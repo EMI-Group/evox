@@ -1,6 +1,6 @@
 from module import *
 
-class Problem:
+class Problem(Module):
     def setup(self):
         return {}
 

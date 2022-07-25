@@ -1,7 +1,8 @@
+import chex
 import evoxlib as exl
 import jax.numpy as jnp
-import chex
 import pytest
+
 
 class Leaf(exl.module.Module):
     def setup(self):
@@ -15,6 +16,7 @@ class Leaf(exl.module.Module):
         return {
             'c': c * 2
         }
+
 
 class Root(exl.module.Module):
     def __init__(self):
@@ -34,6 +36,7 @@ class Root(exl.module.Module):
         attr_b = state['attr_b'] - 2
         state = self.leaf.run(state)
         return state | {'attr_a': attr_a, 'attr_b': attr_b}
+
 
 def test_basic():
     test_module = Root()
