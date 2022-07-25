@@ -1,6 +1,7 @@
 import chex
 import jax
 import types
+from functools import partial
 
 def jit(func):
     return jax.jit(func, static_argnums=(0,))
@@ -22,6 +23,11 @@ def use_state(func):
                 }
     return wrapper
 
+def vmap_method(method):
+    def wrapped(self, *args, **kargs):
+        return jax.vmap(partial(method, self))(*args, **kargs)
+    return wrapped
+
 def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'):
     for attr_name in dir(cls):
         if attr_name.startswith(ignore_prefix):
@@ -31,14 +37,26 @@ def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'
 
         attr = getattr(cls, attr_name)
         if isinstance(attr, types.FunctionType):
-            print(f"wrapped: {attr_name}")
             wrapped = use_state(attr)
+            setattr(cls, attr_name, wrapped)
+    return cls
+
+def vmap_class(cls, ignore=['init', '__init__'], ignore_prefix='_'):
+    for attr_name in dir(cls):
+        if attr_name.startswith(ignore_prefix):
+            continue
+        if attr_name in ignore:
+            continue
+
+        attr = getattr(cls, attr_name)
+        if isinstance(attr, types.FunctionType):
+            wrapped = vmap_method(attr)
             setattr(cls, attr_name, wrapped)
     return cls
 
 class Module:
     def setup(self, key: chex.PRNGKey = None):
-        pass
+        return {}
 
     def init(self, key: chex.PRNGKey = None, name='_top_level'):
         self.name = name
@@ -46,7 +64,10 @@ class Module:
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
             if isinstance(attr, Module):
-                key, subkey = jax.random.split(key)
+                if key is None:
+                    subkey = None
+                else:
+                    key, subkey = jax.random.split(key)
                 submodule_name = f'_submodule_{attr_name}'
                 state[submodule_name] = attr.init(subkey, submodule_name)
         return self.setup(key) | state
