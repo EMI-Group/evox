@@ -23,7 +23,7 @@
         ];
         pyenv = python.withPackages dependencies;
       in
-        with pkgs; {
+        with pkgs; rec {
           packages.default = python.pkgs.buildPythonPackage rec {
             pname = "evoxlib";
             version = "0.0.1";
@@ -36,11 +36,14 @@
               python -m pytest
             '';
           };
+
           devShells.default = mkShell {
             buildInputs = [
               pyenv
             ];
           };
+
+          check = packages.default;
         }
     );
 }
