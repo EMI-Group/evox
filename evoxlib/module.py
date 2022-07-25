@@ -10,13 +10,17 @@ def use_state(func):
         if self.name == '_top_level':
             return func(self, state, *args, **kargs)
         else:
-            return state | {
-                self.name: func(self, state[self.name], *args, **kargs)
-            }
+            return_value = func(self, state[self.name], *args, **kargs)
+            if isinstance(return_value, tuple):
+                state |= {
+                    self.name: return_value[0]
+                }
+                return state, return_value[1:]
+            else:
+                return state | {
+                    self.name: return_value
+                }
     return wrapper
-
-def tree_lift(func):
-    return lambda x: jax.tree_util.tree_map(func, x)
 
 def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'):
     for attr_name in dir(cls):
@@ -31,12 +35,6 @@ def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'
             wrapped = use_state(attr)
             setattr(cls, attr_name, wrapped)
     return cls
-
-def tree_lift_class(cls):
-    pass
-
-def vmap_class(cls):
-    pass
 
 class Module:
     def setup(self, key: chex.PRNGKey = None):
