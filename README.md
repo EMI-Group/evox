@@ -1,6 +1,6 @@
 # Exmaple
 
-```
+```python
 import evoxlib as exl
 import jax
 import jax.numpy as jnp
