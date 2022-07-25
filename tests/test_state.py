@@ -4,21 +4,20 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-
+@exl.use_state_class
 class Leaf(exl.Module):
     def setup(self, key):
         return {
             'c': jnp.arange(10)
         }
 
-    @exl.lift
     def run(self, state):
         c = state['c']
         return {
             'c': c * 2
         }
 
-
+@exl.use_state_class
 class Root(exl.Module):
     def __init__(self):
         self.a = 123
@@ -31,7 +30,6 @@ class Root(exl.Module):
             'attr_b': self.b
         }
 
-    @exl.lift
     def run(self, state):
         attr_a = state['attr_a'] + 2
         attr_b = state['attr_b'] - 2
