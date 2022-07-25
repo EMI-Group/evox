@@ -7,14 +7,6 @@ import pytest
 def test_ackley():
     ackley = exl.problems.classic.Ackley()
     key = jax.random.PRNGKey(12345)
-    state = ackley.init()
-    X = jnp.zeros((16, ))
-    state, F = ackley.evaluate(state, X)
-    chex.assert_tree_all_close(F, jnp.zeros((1, )), atol=1e-6)
-
-def test_vectorized_ackley():
-    ackley = exl.vmap_class(exl.problems.classic.Ackley)()
-    key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = ackley.init(keys)
     X = jnp.zeros((16, 2))

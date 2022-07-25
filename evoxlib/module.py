@@ -16,7 +16,7 @@ def use_state(func):
                 state |= {
                     self.name: return_value[0]
                 }
-                return state, return_value[1:]
+                return state, *return_value[1:]
             else:
                 return state | {
                     self.name: return_value
@@ -28,7 +28,10 @@ def vmap_method(method):
         return jax.vmap(partial(method, self))(*args, **kargs)
     return wrapped
 
-def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'):
+def jit_method(method):
+    return jax.jit(method, static_argnums=[0,])
+
+def _class_decorator(cls, wrapper, ignore, ignore_prefix):
     for attr_name in dir(cls):
         if attr_name.startswith(ignore_prefix):
             continue
@@ -37,22 +40,18 @@ def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'
 
         attr = getattr(cls, attr_name)
         if isinstance(attr, types.FunctionType):
-            wrapped = use_state(attr)
+            wrapped = wrapper(attr)
             setattr(cls, attr_name, wrapped)
     return cls
+
+def use_state_class(cls, ignore=['setup', 'init', '__init__'], ignore_prefix='_'):
+    return _class_decorator(cls, use_state, ignore, ignore_prefix)
 
 def vmap_class(cls, ignore=['init', '__init__'], ignore_prefix='_'):
-    for attr_name in dir(cls):
-        if attr_name.startswith(ignore_prefix):
-            continue
-        if attr_name in ignore:
-            continue
+    return _class_decorator(cls, vmap_method, ignore, ignore_prefix)
 
-        attr = getattr(cls, attr_name)
-        if isinstance(attr, types.FunctionType):
-            wrapped = vmap_method(attr)
-            setattr(cls, attr_name, wrapped)
-    return cls
+def jit_class(cls, ignore=['init', '__init__'], ignore_prefix='_'):
+    return _class_decorator(cls, jit_method, ignore, ignore_prefix)
 
 class Module:
     def setup(self, key: chex.PRNGKey = None):

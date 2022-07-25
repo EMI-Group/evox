@@ -1,7 +1,7 @@
 from .module import *
 
 class Algorithm(Module):
-    def setup(self):
+    def setup(self, key):
         return {}
 
     def tell(self, state, X, F):
