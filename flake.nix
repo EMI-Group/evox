@@ -10,7 +10,8 @@
   };
 
   outputs = { self, nixpkgs, utils, flake-compat }:
-    utils.lib.eachDefaultSystem (system:
+    with utils.lib;
+    eachSystem (with system; [ x86_64-linux ]) (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python310;
@@ -43,7 +44,7 @@
             ];
           };
 
-          check = packages.default;
+          checks.default = packages.default;
         }
     );
 }
