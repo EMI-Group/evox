@@ -1,4 +1,4 @@
-from module import *
+from .module import *
 
 class Problem(Module):
     def setup(self):

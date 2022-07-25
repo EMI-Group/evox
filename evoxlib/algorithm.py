@@ -1,11 +1,11 @@
-from module import *
+from .module import *
 
 class Algorithm(Module):
     def setup(self):
         return {}
 
     @lift
-    def tell(self, state):
+    def tell(self, state, X, F):
         pass
 
     @lift
