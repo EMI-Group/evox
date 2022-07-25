@@ -1,1 +1,1 @@
-from evoxlib.problems import classic
+from . import classic

@@ -1,1 +1,1 @@
-from evoxlib.problems.classic.ackley import Ackley
+from .ackley import Ackley

@@ -1,6 +1,6 @@
-from evoxlib.module import *
-from evoxlib.algorithm import *
-from evoxlib.problem import *
+from .module import *
+from .algorithm import *
+from .problem import *
 
-from evoxlib import problems
-from evoxlib import algorithms
+from . import problems
+from . import algorithms
