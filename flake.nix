@@ -13,19 +13,30 @@
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        python = pkgs.python310;
+        dependencies = ps: with ps; [
+          build
+          chex
+          jax
+          jaxlib
+          pytest
+        ];
+        pyenv = python.withPackages dependencies;
       in
-        with pkgs;
-        rec {
-          python = python310;
+        with pkgs; {
+          packages.default = python.pkgs.buildPythonPackage rec {
+            pname = "evoxlib";
+            version = "0.0.1";
+            format = "pyproject";
 
-          pyenv = python.withPackages (ps: with ps; [
-            pytest
-            chex
-            jax
-            jaxlib
-          ]);
+            src = ./.;
+            propagatedBuildInputs = dependencies python.pkgs;
 
-          devShell = mkShell {
+            checkPhase = ''
+              python -m pytest
+            '';
+          };
+          devShells.default = mkShell {
             buildInputs = [
               pyenv
             ];
