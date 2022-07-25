@@ -34,7 +34,7 @@ class Root(exl.Module):
         attr_a = state['attr_a'] + 2
         attr_b = state['attr_b'] - 2
         state = self.leaf.run(state)
-        return state | {'attr_a': attr_a, 'attr_b': attr_b}
+        return state | {'attr_a': attr_a, 'attr_b': attr_b}, 789
 
 
 def test_basic():
@@ -48,8 +48,7 @@ def test_basic():
             'c': jnp.arange(10)
         }
     })
-    print(state)
-    state = test_module.run(state)
+    state, magic = test_module.run(state)
     chex.assert_trees_all_close(state, state, {
         'attr_a': 125,
         'attr_b': 454,
@@ -57,3 +56,4 @@ def test_basic():
             'c': jnp.arange(10) * 2
         }
     })
+    assert magic == 789
