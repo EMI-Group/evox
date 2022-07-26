@@ -4,13 +4,15 @@ import jax.numpy as jnp
 
 import evoxlib as exl
 
+
 def _ackley_func(a, b, c, x):
     return (
-        - a * jnp.exp(-b*jnp.sqrt(jnp.mean(x ** 2)))
-        - jnp.exp(jnp.mean(jnp.cos(c*x)))
+        -a * jnp.exp(-b * jnp.sqrt(jnp.mean(x**2)))
+        - jnp.exp(jnp.mean(jnp.cos(c * x)))
         + a
         + jnp.e
     )
+
 
 @exl.jit_class
 @exl.use_state_class
@@ -21,5 +23,4 @@ class Ackley(exl.Problem):
         self.c = c
 
     def evaluate(self, state, X):
-        return state, jax.vmap(
-            partial(_ackley_func, self.a, self.b, self.c))(X)
+        return state, jax.vmap(partial(_ackley_func, self.a, self.b, self.c))(X)

@@ -1,5 +1,6 @@
 from .module import *
 
+
 class Algorithm(Module):
     def setup(self, key):
         return {}

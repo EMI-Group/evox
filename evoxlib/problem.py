@@ -2,6 +2,7 @@ import chex
 
 from .module import *
 
+
 class Problem(Module):
     def setup(self, key: chex.PRNGKey = None):
         return {}
