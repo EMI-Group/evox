@@ -2,6 +2,7 @@ import jax.numpy as jnp
 
 import evoxlib as exl
 
+
 @exl.jit_class
 @exl.use_state_class
 class Sphere(exl.Problem):
