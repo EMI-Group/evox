@@ -12,7 +12,7 @@ class Pipeline(exl.Module):
             lb=jnp.full(shape=(2, ), fill_value=-32),
             ub=jnp.full(shape=(2, ), fill_value=32),
             pop_size=100,
-            inertia_weight=0.8,
+            inertia_weight=0.6,
             cognitive_coefficient = 1.0,
             social_coefficient = 2.0,
         )
@@ -48,6 +48,6 @@ def test_cso():
     for i in range(100):
         state = pipeline.step(state)
 
-    # the result should be ok
+    # the result should be close to 0
     state, min_fitness = pipeline.get_min_fitness(state)
-    assert min_fitness < 1
+    assert min_fitness < 1e-4

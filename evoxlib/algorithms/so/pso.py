@@ -39,9 +39,9 @@ class PSO(exl.Algorithm):
             "population": population,
             "velocity": velocity,
             "local_best_location": population,
-            "local_best_fitness": jnp.zeros((self.pop_size,)),
+            "local_best_fitness": jnp.full((self.pop_size,), jnp.inf),
             "global_best_location": population[0],
-            "global_best_fitness": jnp.zeros((1,)),
+            "global_best_fitness": jnp.array([jnp.inf]),
             "key": state_key,
         }
 
