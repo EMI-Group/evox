@@ -16,8 +16,8 @@ class PSO(exl.Algorithm):
         ub,
         pop_size,
         inertia_weight=0.6,
-        cognitive_coefficient = 0.8,
-        social_coefficient = 2.5,
+        cognitive_coefficient=0.8,
+        social_coefficient=2.5,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -62,8 +62,8 @@ class PSO(exl.Algorithm):
         local_best_fitness = jnp.minimum(state["local_best_fitness"], F)
 
         global_best_location, global_best_fitness = min_by(
-            [state['global_best_location'][jnp.newaxis, :], x],
-            [state['global_best_fitness'], F]
+            [state["global_best_location"][jnp.newaxis, :], x],
+            [state["global_best_fitness"], F],
         )
 
         global_best_fitness = jnp.atleast_1d(global_best_fitness)
