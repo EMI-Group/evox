@@ -30,7 +30,7 @@
             version = "0.0.1";
             format = "pyproject";
 
-            src = ./.;
+            src = builtins.path { path = ./.; name = "evoxlib"; };
             propagatedBuildInputs = dependencies python.pkgs;
 
             checkPhase = ''
