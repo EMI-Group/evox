@@ -4,3 +4,4 @@ from .problem import *
 
 from . import problems
 from . import algorithms
+from . import utils

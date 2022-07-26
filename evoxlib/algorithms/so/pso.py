@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import copy
 
 import evoxlib as exl
+from evoxlib.utils import *
 
 
 @exl.use_state_class
@@ -14,46 +15,73 @@ class PSO(exl.Algorithm):
         lb,
         ub,
         pop_size,
-        inertia_weight,
-        cognitive_coefficient,
-        social_coefficient,
+        inertia_weight=0.6,
+        cognitive_coefficient = 0.8,
+        social_coefficient = 2.5,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
+        self.w = inertia_weight
+        self.phi_p = cognitive_coefficient
+        self.phi_g = social_coefficient
 
     def setup(self, key):
-        state_key, init_key = jax.random.split(key)
-        population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
-        population = population * (self.ub - self.lb) + self.lb
-        speed = jnp.zeros(shape=(self.pop_size, self.dim))
+        state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
+        length = self.ub - self.lb
+        population = jax.random.uniform(init_pop_key, shape=(self.pop_size, self.dim))
+        population = population * length + self.lb
+        velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
+        velocity = velocity * length * 2 - length
 
-        return {"population": population, "speed": speed, "key": state_key}
+        return {
+            "population": population,
+            "velocity": velocity,
+            "local_best_location": population,
+            "local_best_fitness": jnp.zeros((self.pop_size,)),
+            "global_best_location": population[0],
+            "global_best_fitness": jnp.zeros((1,)),
+            "key": state_key,
+        }
 
     def ask(self, state):
         return state, state["population"]
 
     def tell(self, state, x, F):
         key = state["key"]
-        key, subkey = jax.random.split(key)
-        randperm = jax.random.permutation(subkey, self.pop_size).reshape(2, -1)
-        mask = F[randperm[0, :]] < F[randperm[1, :]]
+        key, rg_key, rp_key = jax.random.split(key, 3)
 
-        teachers = jnp.where(mask, randperm[0, :], randperm[1, :])
-        students = jnp.where(mask, randperm[1, :], randperm[0, :])
+        rg = jax.random.uniform(rg_key, shape=(self.pop_size, self.dim))
+        rp = jax.random.uniform(rp_key, shape=(self.pop_size, self.dim))
 
-        key, subkey1, subkey2 = jax.random.split(key, num=3)
-        lambda1 = jax.random.uniform(subkey1, shape=(self.pop_size // 2, self.dim))
-        lambda2 = jax.random.uniform(subkey2, shape=(self.pop_size // 2, self.dim))
+        compare = state["local_best_fitness"] > F
+        local_best_location = jnp.where(
+            compare[:, jnp.newaxis], x, state["local_best_location"]
+        )
+        local_best_fitness = jnp.minimum(state["local_best_fitness"], F)
 
-        speed = state["speed"]
-        new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students])
-        new_population = x.at[students].add(new_speed)
-        new_speed = speed.at[students].set(new_speed)
+        global_best_location, global_best_fitness = min_by(
+            [state['global_best_location'][jnp.newaxis, :], x],
+            [state['global_best_fitness'], F]
+        )
 
-        state["population"] = new_population
-        state["speed"] = new_speed
-        state["key"] = key
+        global_best_fitness = jnp.atleast_1d(global_best_fitness)
 
-        return state
+        velocity = (
+            self.w * state["velocity"]
+            + self.phi_p * rp * (local_best_location - state["population"])
+            + self.phi_g * rg * (global_best_location - state["population"])
+        )
+        population = state["population"] + velocity
+        population = jnp.clip(population, self.lb, self.ub)
+
+        return state | {
+            "population": population,
+            "velocity": velocity,
+            "local_best_location": local_best_location,
+            "local_best_fitness": local_best_fitness,
+            "global_best_location": global_best_location,
+            "global_best_fitness": global_best_fitness,
+            "key": key,
+        }
