@@ -17,6 +17,16 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  "chex >= 0.1.0",
+  "jax >= 0.3.0",
+  "jaxlib >= 0.3.0",
+]
+
+[project.optional-dependencies]
+tests = [
+  "pytest >= 6.0.0",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/pypa/sampleproject"

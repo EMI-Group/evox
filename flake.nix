@@ -13,38 +13,57 @@
     with utils.lib;
     eachSystem (with system; [ x86_64-linux ]) (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
         python = pkgs.python310;
-        dependencies = ps: with ps; [
+        common-dependencies = ps: with ps; [
           build
           chex
           jax
-          jaxlib
           pytest
         ];
-        pyenv = python.withPackages dependencies;
+        other-dependencies = gpuSupport: ps: with ps;
+          if gpuSupport
+          then [jaxlibWithCuda]
+          else [jaxlibWithoutCuda];
+        dependencies = gpuSupport: ps: common-dependencies ps ++ other-dependencies gpuSupport ps;
+
+        cpu-pyenv = python.withPackages (dependencies false);
+        gpu-pyenv = python.withPackages (dependencies true);
+
+        evoxlib = gpuSupport: python.pkgs.buildPythonPackage {
+          pname = "evoxlib";
+          version = "0.0.1";
+          format = "pyproject";
+
+          src = builtins.path { path = ./.; name = "evoxlib"; };
+          propagatedBuildInputs = dependencies gpuSupport python.pkgs;
+
+          checkPhase = ''
+            python -m pytest
+          '';
+        };
       in
         with pkgs; rec {
-          packages.default = python.pkgs.buildPythonPackage rec {
-            pname = "evoxlib";
-            version = "0.0.1";
-            format = "pyproject";
+          packages.cpu = evoxlib false;
+          packages.gpu = evoxlib true;
+          packages.default = packages.gpu;
 
-            src = builtins.path { path = ./.; name = "evoxlib"; };
-            propagatedBuildInputs = dependencies python.pkgs;
-
-            checkPhase = ''
-              python -m pytest
-            '';
-          };
-
-          devShells.default = mkShell {
+          devShells.cpu = mkShell {
             buildInputs = [
-              pyenv
+              cpu-pyenv
             ];
           };
 
-          checks.default = packages.default;
+          devShells.gpu = mkShell {
+            buildInputs = [
+              gpu-pyenv
+            ];
+          };
+
+          devShells.default = devShells.gpu;
         }
     );
 }
