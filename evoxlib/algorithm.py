@@ -2,6 +2,8 @@ from .module import *
 
 
 class Algorithm(Module):
+    """Base class for all algorithms
+    """
     def setup(self, key):
         return {}
 

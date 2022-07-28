@@ -31,6 +31,14 @@ def vmap_method(method):
 
 
 def jit_method(method):
+    """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
+
+    Args:
+        method (function): a python method
+
+    Returns:
+        function: a jit wrapped version of this method
+    """
     return jax.jit(
         method,
         static_argnums=[
@@ -66,6 +74,9 @@ def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
 
 
 class Module:
+    """Base class for all EvoXLib modules.
+    This module allow easy managing of states.
+    """
     def setup(self, key: chex.PRNGKey = None):
         return {}
 
