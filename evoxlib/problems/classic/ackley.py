@@ -15,7 +15,6 @@ def _ackley_func(a, b, c, x):
 
 
 @exl.jit_class
-@exl.use_state_class
 class Ackley(exl.Problem):
     def __init__(self, a=20, b=0.2, c=2):
         self.a = a
