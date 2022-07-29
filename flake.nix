@@ -45,6 +45,7 @@
           pytest
           sphinx
           pydata-sphinx-theme
+          numpydoc
         ];
         other-dependencies = gpuSupport: ps: with ps;
           if gpuSupport

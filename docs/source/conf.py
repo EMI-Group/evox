@@ -29,7 +29,9 @@ author = 'Bill Huang'
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon"
+    "sphinx.ext.autosummary",
+    "numpydoc",
+    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,4 +56,11 @@ html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 
 autodoc_typehints_format = 'short'
-autodoc_typehints = 'both'
+autodoc_typehints = "description"
+autodoc_class_signature = "separated"
+autosummary_generate = True
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+numpydoc_show_class_members = False
+autosummary_generate = True
+autosummary_imported_members = True

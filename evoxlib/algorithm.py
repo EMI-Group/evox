@@ -8,7 +8,6 @@ class Algorithm(Module):
 
     The ``ask`` and ``tell`` methods are automatically wrapped with
     ``use_state``
-
     """
     def __init_subclass__(cls):
         for method_name in ['ask', 'tell']:
@@ -17,9 +16,6 @@ class Algorithm(Module):
             wrapped = use_state(attr)
             setattr(cls, method_name, wrapped)
 
-    def setup(self, key: chex.PRNGKey):
-        return {}
-
     def ask(self, state: dict):
         """Ask the algorithm
 
@@ -27,13 +23,13 @@ class Algorithm(Module):
 
         Parameters
         ----------
-        state
-            The state of this algorithm
+        state : dict
+            The state of this algorithm.
 
         Returns
         -------
-        dict
-            The new state of the algorithm
+        dict : dict
+            The new state of the algorithm.
         """
         pass
 
@@ -44,11 +40,11 @@ class Algorithm(Module):
 
         Parameters
         ----------
-        state
+        state : dict
             The state of this algorithm
-        X
+        X : ndarray
             The points given by ``ask``
-        F
+        F : ndarray
             The fitness
 
         Returns

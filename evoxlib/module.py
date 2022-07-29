@@ -106,9 +106,40 @@ class Module:
     This module allow easy managing of states.
     """
     def setup(self, key: chex.PRNGKey = None):
+        """Setup mutable state here
+
+        The state it self is immutable, but it act as a mutable state
+        by returning new state each time.
+
+        Parameters
+        ----------
+        key : PRNGKey
+            A PRNGKey.
+
+        Returns
+        -------
+        dict
+            The state of this algorithm.
+        """
         return {}
 
     def init(self, key: chex.PRNGKey = None, name="_top_level"):
+        """Initialize this module and all submodules
+
+        This method should not be overwritten.
+
+        Parameters
+        ----------
+        key : PRNGKey
+            A PRNGKey.
+        name : string
+            The name of this module.
+
+        Returns
+        -------
+        dict
+            The state of this module and all submodules.
+        """
         self.name = name
         state = {}
         for attr_name in dir(self):
