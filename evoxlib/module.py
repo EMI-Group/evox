@@ -9,6 +9,11 @@ def jit(func):
 
 
 def use_state(func):
+    """Decorator for easy state management.
+
+    Args:
+        func (function): the method to be wrapped with
+    """
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level":
             return func(self, state, *args, **kargs)
@@ -48,6 +53,16 @@ def jit_method(method):
 
 
 def _class_decorator(cls, wrapper, ignore, ignore_prefix):
+    """A helper function used to add decorators to methods of a class
+
+    Args:
+        wrapper (function): the decorator
+        ignore (list): ignore methods in this list
+        ignore_prefix (string): ignore methods with certain prefix
+
+    Returns:
+        class: a class with selected methods wrapped
+    """
     for attr_name in dir(cls):
         if attr_name.startswith(ignore_prefix):
             continue
