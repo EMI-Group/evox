@@ -11,8 +11,10 @@ def jit(func):
 def use_state(func):
     """Decorator for easy state management.
 
-    Args:
-        func (function): the method to be wrapped with
+    Parameters
+    ----------
+    func
+        The method to be wrapped with
     """
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level":
@@ -38,11 +40,15 @@ def vmap_method(method):
 def jit_method(method):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
 
-    Args:
-        method (function): a python method
+    Parameters
+    ----------
+    method
+        A python method
 
-    Returns:
-        function: a jit wrapped version of this method
+    Returns
+    -------
+    function
+        A jit wrapped version of this method
     """
     return jax.jit(
         method,
@@ -55,13 +61,19 @@ def jit_method(method):
 def _class_decorator(cls, wrapper, ignore, ignore_prefix):
     """A helper function used to add decorators to methods of a class
 
-    Args:
-        wrapper (function): the decorator
-        ignore (list): ignore methods in this list
-        ignore_prefix (string): ignore methods with certain prefix
+    Parameters
+    ----------
+    wrapper
+        The decorator
+    ignore
+        Ignore methods in this list
+    ignore_prefix
+        Ignore methods with certain prefix
 
-    Returns:
-        class: a class with selected methods wrapped
+    Returns
+    -------
+    class
+        a class with selected methods wrapped
     """
     for attr_name in dir(cls):
         if attr_name.startswith(ignore_prefix):
@@ -90,6 +102,7 @@ def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
 
 class Module:
     """Base class for all EvoXLib modules.
+
     This module allow easy managing of states.
     """
     def setup(self, key: chex.PRNGKey = None):

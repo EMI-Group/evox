@@ -5,22 +5,21 @@ import chex
 
 @jax.jit
 def _dominate(x, y):
-    """
-    return true if x dominate y (x < y) and false elsewise.
+    """return true if x dominate y (x < y) and false elsewise.
     """
     return jnp.all(x <= y) & jnp.any(x < y)
 
 
 @jax.jit
 def _dominate_relation(x, y):
-    """
-    return a matrix A, where A_{ij} is True if x_i donminate y_j
+    """return a matrix A, where A_{ij} is True if x_i donminate y_j
     """
     return jax.vmap(lambda _x: jax.vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
 def non_dominated_sort(x):
-    """
+    """ Perform non-dominated sort
+
     Currently JAX doesn't support dynamic shape with jit,
     so part of the function must be runned without jit
     """
