@@ -8,7 +8,6 @@ import evoxlib as exl
 from evoxlib.utils import *
 
 
-@exl.use_state_class
 class PSO(exl.Algorithm):
     def __init__(
         self,

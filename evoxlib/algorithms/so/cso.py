@@ -7,7 +7,6 @@ import copy
 import evoxlib as exl
 
 
-@exl.use_state_class
 class CSO(exl.Algorithm):
     def __init__(self, lb, ub, pop_size):
         self.dim = lb.shape[0]

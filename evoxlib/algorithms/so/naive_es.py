@@ -3,7 +3,6 @@ import jax.numpy as jnp
 import evoxlib as exl
 
 
-@exl.use_state_class
 class NaiveES(exl.Algorithm):
     def __init__(self, lb, ub, pop_size, topk=None, eps=1e-8):
         self.dim = lb.shape[0]
@@ -23,15 +22,11 @@ class NaiveES(exl.Algorithm):
             + self.lb
         )
         stdvar = jnp.ones((self.dim,))
-        return {"mean": mean, "stdvar": stdvar, "key": state_key}
-
-    def tell(self, state, X, F):
-        order = jnp.argsort(F)
-        X = X[order]
-        elite = X[: self.topk, :]
-        new_mean = jnp.mean(elite, axis=0)
-        new_stdvar = jnp.sqrt(jnp.var(elite, axis=0) + self.eps)
-        return state | {"mean": new_mean, "stdvar": new_stdvar}
+        return {
+            "mean": mean,
+            "stdvar": stdvar,
+            "key": state_key
+        }
 
     def ask(self, state):
         key = state["key"]
@@ -43,3 +38,14 @@ class NaiveES(exl.Algorithm):
         sample = jnp.clip(sample, self.lb, self.ub)
         state = state | {"key": key}
         return state, sample
+
+    def tell(self, state, X, F):
+        order = jnp.argsort(F)
+        X = X[order]
+        elite = X[: self.topk, :]
+        new_mean = jnp.mean(elite, axis=0)
+        new_stdvar = jnp.sqrt(jnp.var(elite, axis=0) + self.eps)
+        return state | {
+            "mean": new_mean,
+            "stdvar": new_stdvar
+        }
