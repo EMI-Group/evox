@@ -18,11 +18,33 @@
           config.allowUnfree = true;
         };
         python = pkgs.python310;
+
+        pydata-sphinx-theme = python.pkgs.buildPythonPackage rec {
+          pname = "pydata_sphinx_theme";
+          version = "0.9.0";
+          format = "wheel";
+
+          src = python.pkgs.fetchPypi {
+            inherit pname version format;
+            python = "py3";
+            sha256 = "b22b442a6d6437e5eaf0a1f057169ffcb31eaa9f10be7d5481a125e735c71c12";
+          };
+          propagatedBuildInputs = with python.pkgs; [
+            sphinx
+            beautifulsoup4
+            docutils
+            packaging
+            pygments
+          ];
+        };
+
         common-dependencies = ps: with ps; [
           build
           chex
           jax
           pytest
+          sphinx
+          pydata-sphinx-theme
         ];
         other-dependencies = gpuSupport: ps: with ps;
           if gpuSupport
