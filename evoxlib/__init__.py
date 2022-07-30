@@ -1,10 +1,8 @@
-from .module import *
-from .algorithm import *
-from .problem import *
+from .core.algorithm import Algorithm
+from .core.module import *
+from .core.operator import Operator
+from .core.problem import Problem
 
 from . import problems
 from . import algorithms
 from . import utils
-
-# prelude
-from operators import Operator

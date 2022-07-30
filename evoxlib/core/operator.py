@@ -1,7 +1,7 @@
-import evoxlib as exl
+from .module import Module
 
 
-class Operator(exl.Module):
+class Operator(Module):
     def __init_subclass__(cls):
         attr = getattr(cls, '__call__')
         assert isinstance(attr, types.FunctionType)

@@ -1,3 +1,5 @@
+import types
+
 import chex
 
 from .module import *
