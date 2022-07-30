@@ -12,7 +12,6 @@ class Algorithm(Module):
     def __init_subclass__(cls):
         for method_name in ['ask', 'tell']:
             attr = getattr(cls, method_name)
-            assert isinstance(attr, types.FunctionType)
             wrapped = use_state(attr)
             setattr(cls, method_name, wrapped)
 

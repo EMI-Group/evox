@@ -33,17 +33,19 @@ class NSGA2(exl.Algorithm):
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
-        population = jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+        population = jax.random.uniform(subkey, shape=(self.pop_size, self.dim)) * (self.ub - self.lb) + self.lb
         return {"population": population, "fitness": None, "is_init": True}
 
+    @exl.jit_method
     def ask(self, state):
         return jax.lax.cond(state["is_init"], self._ask_init, self._ask_normal, state)
 
     def tell(self, state, x, F):
-        if state["is_init"]:
-            return self._tell_init(state, x, F)
-        else:
-            return self._tell_normal(state, x, F)
+        with jax.disable_jit():
+            if state["is_init"]:
+                return self._tell_init(state, x, F)
+            else:
+                return self._tell_normal(state, x, F)
 
     def _ask_init(self, state):
         return state, state["population"]
@@ -55,7 +57,7 @@ class NSGA2(exl.Algorithm):
         state, crossovered = self.selection(state, state["population"])
         state, crossovered = self.crossover(state, crossovered)
 
-        return state, jnp.concatenate([mutated, crossovered], axis=0)
+        return state, jnp.clip(jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub)
 
     def _tell_init(self, state, x, F):
         state = state | {"fitness": F, "is_init": False}

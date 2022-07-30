@@ -11,6 +11,7 @@ def _generic_zdt(f1, g, h, x):
     return jnp.array([f1_x, g_x * h(f1(x), g_x)])
 
 
+@exl.jit_class
 class ZDT(exl.Problem, final=False):
     def __init__(self, n):
         self.n = n

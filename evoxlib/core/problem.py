@@ -13,7 +13,6 @@ class Problem(Module):
             return
         for method_name in ['evaluate']:
             attr = getattr(cls, method_name)
-            assert isinstance(attr, types.FunctionType)
             wrapped = use_state(attr)
             setattr(cls, method_name, wrapped)
 
