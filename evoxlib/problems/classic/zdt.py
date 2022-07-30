@@ -11,7 +11,7 @@ def _generic_zdt(f1, g, h, x):
     return jnp.array([f1_x, g_x * h(f1(x), g_x)])
 
 
-class ZDT(exl.Problem):
+class ZDT(exl.Problem, final=False):
     def __init__(self, n):
         self.n = n
         self._zdt = None
@@ -19,11 +19,12 @@ class ZDT(exl.Problem):
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
         chex.assert_shape(X, (None, self.n))
-        return state, jax.jit(jax.vmap(self._zdt(X)))
+        return state, jax.jit(jax.vmap(self._zdt))(X)
 
 
 class ZDT1(ZDT):
-    def __init__(self):
+    def __init__(self, n):
+        super().__init__(n)
         f1 = lambda x: x[0]
         g = lambda x: 1 + 9 * jnp.mean(x[1:])
         h = lambda f1, g: 1 - jnp.sqrt(f1 / g)
@@ -31,7 +32,8 @@ class ZDT1(ZDT):
 
 
 class ZDT2(ZDT):
-    def __init__(self):
+    def __init__(self, n):
+        super().__init__(n)
         f1 = lambda x: x[0]
         g = lambda x: 1 + 9 * jnp.mean(x[1:])
         h = lambda f1, g: 1 - (f1 / g) ** 2
@@ -39,7 +41,8 @@ class ZDT2(ZDT):
 
 
 class ZDT3(ZDT):
-    def __init__(self):
+    def __init__(self, n):
+        super().__init__(n)
         f1 = lambda x: x[0]
         g = lambda x: 1 + 9 * jnp.mean(x[1:])
         h = lambda f1, g: 1 - jnp.sqrt(f1 / g) - (f1 / g) * jnp.sin(10 * jnp.pi * f1)
@@ -47,7 +50,8 @@ class ZDT3(ZDT):
 
 
 class ZDT4(ZDT):
-    def __init__(self):
+    def __init__(self, n):
+        super().__init__(n)
         f1 = lambda x: x[0]
         g = (
             lambda x: 1

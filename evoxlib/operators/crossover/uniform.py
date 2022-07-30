@@ -1,10 +1,15 @@
 import evoxlib as exl
-
+import jax
+import jax.numpy as jnp
 
 def _random_pairing(key, x):
     batch, dim = x.shape
-    x = jax.random.shuffle(key, x)
-    return x.reshape(batch // 2, dim, 2)
+    x = jax.random.shuffle(key, x, axis=0)
+    return x.reshape(batch // 2, 2, dim)
+
+def _unpair(x):
+    batch, _, dim = x.shape
+    return x.reshape(batch * 2, dim)
 
 def _uniform_crossover(key, parents):
     _, dim = parents.shape
@@ -14,7 +19,7 @@ def _uniform_crossover(key, parents):
     return jnp.stack([c1, c2])
 
 class UniformCrossover(exl.Operator):
-    def __init__(self):
+    def __init__(self, stdvar=1.0):
         self.stdvar = stdvar
 
     def setup(self, key):
@@ -28,4 +33,4 @@ class UniformCrossover(exl.Operator):
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_uniform_crossover)(crossover_keys, paired)
-        return {"key": key}, children
+        return {"key": key}, _unpair(children)

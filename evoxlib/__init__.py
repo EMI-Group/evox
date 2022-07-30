@@ -5,4 +5,5 @@ from .core.problem import Problem
 
 from . import problems
 from . import algorithms
+from . import operators
 from . import utils

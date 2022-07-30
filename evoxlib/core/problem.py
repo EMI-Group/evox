@@ -8,7 +8,9 @@ from .module import *
 class Problem(Module):
     """Base class for all algorithms
     """
-    def __init_subclass__(cls):
+    def __init_subclass__(cls, final=True):
+        if not final:
+            return
         for method_name in ['evaluate']:
             attr = getattr(cls, method_name)
             assert isinstance(attr, types.FunctionType)

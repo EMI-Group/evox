@@ -1,4 +1,4 @@
-from .module import Module
+from .module import *
 
 
 class Operator(Module):
@@ -6,7 +6,7 @@ class Operator(Module):
         attr = getattr(cls, '__call__')
         assert isinstance(attr, types.FunctionType)
         wrapped = use_state(attr)
-        setattr(cls, method_name, wrapped)
+        setattr(cls, '__call__', wrapped)
 
     def __call__(self, state, x):
         pass

@@ -14,6 +14,6 @@ class RandomSelection(exl.Operator):
 
     def __call__(self, state, x):
         key, subkey = jax.random.split(state["key"])
-        num = int(x.shape[0] * p)
+        num = int(x.shape[0] * self.p)
         chosen = jax.random.choice(subkey, x.shape[0], shape=(num, ))
         return {"key": key}, x[chosen, :]
