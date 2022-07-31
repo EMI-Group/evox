@@ -34,8 +34,8 @@ class Pipeline(exl.Module):
     def get_min_fitness(self, state):
         return state, state["min_fitness"]
 
-
-def test_clustered_cso():
+# disable this test for now
+def __test_clustered_cso():
     # create a pipeline
     pipeline = Pipeline()
     # init the pipeline
