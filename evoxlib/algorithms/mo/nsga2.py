@@ -7,6 +7,7 @@ from evoxlib.operators.mutation import GaussianMutation
 from evoxlib.operators.crossover import UniformCrossover
 from evoxlib.operators import non_dominated_sort, crowding_distance_sort
 
+
 class NSGA2(exl.Algorithm):
     """NSGA-II algorithm
 
@@ -33,7 +34,11 @@ class NSGA2(exl.Algorithm):
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
-        population = jax.random.uniform(subkey, shape=(self.pop_size, self.dim)) * (self.ub - self.lb) + self.lb
+        population = (
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
+        )
         return {"population": population, "fitness": None, "is_init": True}
 
     @exl.jit_method
@@ -57,7 +62,9 @@ class NSGA2(exl.Algorithm):
         state, crossovered = self.selection(state, state["population"])
         state, crossovered = self.crossover(state, crossovered)
 
-        return state, jnp.clip(jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub)
+        return state, jnp.clip(
+            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
+        )
 
     def _tell_init(self, state, x, F):
         state = state | {"fitness": F, "is_init": False}

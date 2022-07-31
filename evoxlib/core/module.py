@@ -16,6 +16,7 @@ def use_state(func):
     func
         The method to be wrapped with
     """
+
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level":
             return func(self, state, *args, **kargs)
@@ -36,11 +37,14 @@ def vmap_method(method):
 
     return wrapped
 
+
 def vmap_setup(setup_method, n):
     def wrapped(self, key):
         keys = jax.random.split(key, n)
         return jax.vmap(partial(setup_method, self))(keys)
+
     return wrapped
+
 
 def jit_method(method):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
@@ -105,7 +109,7 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
             continue
 
         attr = getattr(cls, attr_name)
-        if attr_name == 'setup':
+        if attr_name == "setup":
             wrapped = vmap_setup(attr, n)
         else:
             wrapped = vmap_method(attr)
@@ -122,6 +126,7 @@ class Module:
 
     This module allow easy managing of states.
     """
+
     def setup(self, key: chex.PRNGKey = None):
         """Setup mutable state here
 
@@ -161,7 +166,7 @@ class Module:
         state = {}
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if not attr_name.startswith('_') and isinstance(attr, Module):
+            if not attr_name.startswith("_") and isinstance(attr, Module):
                 if key is None:
                     subkey = None
                 else:

@@ -2,30 +2,32 @@ import evoxlib as exl
 import jax
 import jax.numpy as jnp
 
+
 def _random_pairing(key, x):
     batch, dim = x.shape
     x = jax.random.shuffle(key, x, axis=0)
     return x.reshape(batch // 2, 2, dim)
 
+
 def _unpair(x):
     batch, _, dim = x.shape
     return x.reshape(batch * 2, dim)
 
+
 def _uniform_crossover(key, parents):
     _, dim = parents.shape
-    mask = jax.random.choice(key, 2, (dim, ))
+    mask = jax.random.choice(key, 2, (dim,))
     c1 = jnp.where(mask, parents[0], parents[1])
     c2 = jnp.where(mask, parents[1], parents[0])
     return jnp.stack([c1, c2])
+
 
 class UniformCrossover(exl.Operator):
     def __init__(self, stdvar=1.0):
         self.stdvar = stdvar
 
     def setup(self, key):
-        return {
-            'key': key
-        }
+        return {"key": key}
 
     def __call__(self, state, x):
         key = state["key"]

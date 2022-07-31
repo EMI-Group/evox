@@ -9,8 +9,9 @@ class Algorithm(Module):
     The ``ask`` and ``tell`` methods are automatically wrapped with
     ``use_state``
     """
+
     def __init_subclass__(cls):
-        for method_name in ['ask', 'tell']:
+        for method_name in ["ask", "tell"]:
             attr = getattr(cls, method_name)
             wrapped = use_state(attr)
             setattr(cls, method_name, wrapped)

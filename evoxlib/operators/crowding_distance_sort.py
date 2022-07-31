@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import chex
 
+
 @jax.jit
 def crowding_distance(x: chex.Array):
     """sort according to crowding distance
@@ -18,7 +19,7 @@ def crowding_distance(x: chex.Array):
     ndarray
         An 1d-array containing the crowding distance for x.
     """
-    d = jnp.zeros((x.shape[0], ))
+    d = jnp.zeros((x.shape[0],))
 
     def f(carry, fitness):
         rank = jnp.argsort(fitness)
@@ -31,7 +32,6 @@ def crowding_distance(x: chex.Array):
 
     d, _ = jax.lax.scan(f, d, x.T)
     return d
-
 
 
 def crowding_distance_sort(x: chex.Array):

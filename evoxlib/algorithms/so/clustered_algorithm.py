@@ -13,6 +13,7 @@ class ClusterdAlgorithm(exl.Algorithm):
     Can take in any base algorithm, split the problem into num_cluster different sub-problems
     and solve each problem using the base algorithm.
     """
+
     def __init__(self, lb, ub, algorithm, num_cluster, *args, **kargs):
         self.dim = lb.shape[0]
         assert self.dim % num_cluster == 0
