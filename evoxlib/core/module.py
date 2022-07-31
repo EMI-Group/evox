@@ -36,6 +36,11 @@ def vmap_method(method):
 
     return wrapped
 
+def vmap_setup(setup_method, n):
+    def wrapped(self, key):
+        keys = jax.random.split(key, n)
+        return jax.vmap(partial(setup_method, self))(keys)
+    return wrapped
 
 def jit_method(method):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
@@ -92,8 +97,20 @@ def use_state_class(cls, ignore=["setup", "init", "__init__"], ignore_prefix="_"
     return _class_decorator(cls, use_state, ignore, ignore_prefix)
 
 
-def vmap_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
-    return _class_decorator(cls, vmap_method, ignore, ignore_prefix)
+def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
+    for attr_name in dir(cls):
+        if attr_name.startswith(ignore_prefix):
+            continue
+        if attr_name in ignore:
+            continue
+
+        attr = getattr(cls, attr_name)
+        if attr_name == 'setup':
+            wrapped = vmap_setup(attr, n)
+        else:
+            wrapped = vmap_method(attr)
+        setattr(cls, attr_name, wrapped)
+    return cls
 
 
 def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
@@ -144,7 +161,7 @@ class Module:
         state = {}
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if isinstance(attr, Module):
+            if not attr_name.startswith('_') and isinstance(attr, Module):
                 if key is None:
                     subkey = None
                 else:
