@@ -35,7 +35,7 @@ class Pipeline(exl.Module):
         return state, state["min_fitness"]
 
 
-def test_cso():
+def test_pso():
     # create a pipeline
     pipeline = Pipeline()
     # init the pipeline
