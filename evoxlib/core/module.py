@@ -23,10 +23,10 @@ def use_state(func):
         else:
             return_value = func(self, state[self.name], *args, **kargs)
             if isinstance(return_value, tuple):
-                state |= {self.name: return_value[0]}
+                state = {**state, **{self.name: return_value[0]}}
                 return state, *return_value[1:]
             else:
-                return state | {self.name: return_value}
+                return {**state, **{self.name: return_value}}
 
     return wrapper
 
