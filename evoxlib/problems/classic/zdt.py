@@ -12,7 +12,7 @@ def _generic_zdt(f1, g, h, x):
 
 
 @exl.jit_class
-class ZDT(exl.Problem, final=False):
+class ZDT(exl.Problem):
     def __init__(self, n):
         self.n = n
         self._zdt = None

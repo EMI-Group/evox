@@ -8,14 +8,6 @@ from .module import *
 class Problem(Module):
     """Base class for all algorithms"""
 
-    def __init_subclass__(cls, final=True):
-        if not final:
-            return
-        for method_name in ["evaluate"]:
-            attr = getattr(cls, method_name)
-            wrapped = use_state(attr)
-            setattr(cls, method_name, wrapped)
-
     def setup(self, key: chex.PRNGKey = None):
         return {}
 

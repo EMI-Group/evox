@@ -5,7 +5,6 @@ import pytest
 
 
 @exl.jit_class
-@exl.use_state_class
 class Pipeline(exl.Module):
     def __init__(self):
         # create a clustered CSO
@@ -35,7 +34,7 @@ class Pipeline(exl.Module):
         return state, state["min_fitness"]
 
 # disable this test for now
-def __test_clustered_cso():
+def test_clustered_cso():
     # create a pipeline
     pipeline = Pipeline()
     # init the pipeline

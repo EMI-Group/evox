@@ -10,12 +10,6 @@ class Algorithm(Module):
     ``use_state``
     """
 
-    def __init_subclass__(cls):
-        for method_name in ["ask", "tell"]:
-            attr = getattr(cls, method_name)
-            wrapped = use_state(attr)
-            setattr(cls, method_name, wrapped)
-
     def ask(self, state: dict):
         """Ask the algorithm
 

@@ -5,7 +5,6 @@ import jax.numpy as jnp
 import pytest
 
 
-@exl.use_state_class
 class Leaf(exl.Module):
     def setup(self, key):
         return {"c": jnp.arange(10)}
@@ -15,7 +14,6 @@ class Leaf(exl.Module):
         return {"c": c * 2}
 
 
-@exl.use_state_class
 class Root(exl.Module):
     def __init__(self):
         self.a = 123

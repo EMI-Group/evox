@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-@exl.use_state_class
+
 class Pipeline(exl.Module):
     def __init__(self):
         # choose an algorithm

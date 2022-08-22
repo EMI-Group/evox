@@ -102,7 +102,10 @@ def use_state_class(cls, ignore=["setup", "init", "__init__"], ignore_prefix="_"
 
 
 def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
-    for attr_name in dir(cls):
+    class VmapWrapped(cls):
+        pass
+
+    for attr_name in dir(VmapWrapped):
         if attr_name.startswith(ignore_prefix):
             continue
         if attr_name in ignore:
@@ -113,15 +116,37 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
             wrapped = vmap_setup(attr, n)
         else:
             wrapped = vmap_method(attr)
-        setattr(cls, attr_name, wrapped)
-    return cls
+        setattr(VmapWrapped, attr_name, wrapped)
+    return VmapWrapped
 
 
 def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
     return _class_decorator(cls, jit_method, ignore, ignore_prefix)
 
 
-class Module:
+class MetaModule(type):
+    def __new__(
+        cls,
+        name,
+        bases,
+        class_dict,
+        force_wrap=["__call__"],
+        ignore=["init", "setup"],
+        ignore_prefix="_",
+    ):
+        wrapped = {}
+
+        for key, value in class_dict.items():
+            if key in force_wrap:
+                wrapped[key] = use_state(value)
+            elif key.startswith("_") or key in ignore:
+                wrapped[key] = value
+            elif callable(value):
+                wrapped[key] = use_state(value)
+        return super().__new__(cls, name, bases, wrapped)
+
+
+class Module(metaclass=MetaModule):
     """Base class for all EvoXLib modules.
 
     This module allow easy managing of states.
