@@ -46,6 +46,7 @@
           sphinx
           pydata-sphinx-theme
           numpydoc
+          bokeh
         ];
         other-dependencies = gpuSupport: ps: with ps;
           if gpuSupport
@@ -86,7 +87,7 @@
             ];
           };
 
-          devShells.default = devShells.gpu;
+          devShells.default = devShells.cpu;
         }
     );
 }

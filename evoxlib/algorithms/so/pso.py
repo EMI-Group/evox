@@ -7,7 +7,7 @@ import copy
 import evoxlib as exl
 from evoxlib.utils import *
 
-
+@exl.jit_class
 class PSO(exl.Algorithm):
     def __init__(
         self,
