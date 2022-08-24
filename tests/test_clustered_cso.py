@@ -9,12 +9,12 @@ class Pipeline(exl.Module):
     def __init__(self):
         # create a clustered CSO
         self.algorithm = exl.algorithms.ClusterdAlgorithm(
-            lb=jnp.full(shape=(100,), fill_value=-32),
-            ub=jnp.full(shape=(100,), fill_value=32),
+            lb=jnp.full(shape=(500,), fill_value=-32),
+            ub=jnp.full(shape=(500,), fill_value=32),
             # the base algorithm is CSO
             algorithm=exl.algorithms.CSO,
             num_cluster=10,
-            pop_size=10,
+            pop_size=20,
         )
         # choose a problem
         self.problem = exl.problems.classic.Sphere()
