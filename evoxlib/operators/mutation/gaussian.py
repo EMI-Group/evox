@@ -8,9 +8,9 @@ class GaussianMutation(exl.Operator):
         self.stdvar = stdvar
 
     def setup(self, key):
-        return {"key": key}
+        return exl.State(key=key)
 
     def __call__(self, state, x):
         key, subkey = jax.random.split(state["key"])
         perturbation = jax.random.normal(subkey, x.shape) * self.stdvar
-        return {"key": key}, x + perturbation
+        return exl.State(key=key), x + perturbation

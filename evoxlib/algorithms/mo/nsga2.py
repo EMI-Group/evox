@@ -2,7 +2,7 @@ import evoxlib as exl
 import jax
 import jax.numpy as jnp
 
-from evoxlib.operators.selection import RandomSelection
+from evoxlib.operators.selection import UniformRandomSelection
 from evoxlib.operators.mutation import GaussianMutation
 from evoxlib.operators.crossover import UniformCrossover
 from evoxlib.operators import non_dominated_sort, crowding_distance_sort
@@ -19,7 +19,7 @@ class NSGA2(exl.Algorithm):
         lb,
         ub,
         pop_size,
-        selection=RandomSelection(p=0.5),
+        selection=UniformRandomSelection(p=0.5),
         mutation=GaussianMutation(),
         crossover=UniformCrossover(),
     ):
@@ -39,7 +39,7 @@ class NSGA2(exl.Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        return {"population": population, "fitness": None, "is_init": True}
+        return exl.State({"population": population, "fitness": None, "is_init": True})
 
     @exl.jit_method
     def ask(self, state):

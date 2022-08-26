@@ -21,7 +21,7 @@ class Pipeline(exl.Module):
 
     def setup(self, key):
         # record the min fitness
-        return {"min_fitness": 1e9}
+        return exl.State({"min_fitness": 1e9})
 
     def step(self, state):
         # one step

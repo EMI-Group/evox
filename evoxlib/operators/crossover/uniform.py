@@ -27,7 +27,7 @@ class UniformCrossover(exl.Operator):
         self.stdvar = stdvar
 
     def setup(self, key):
-        return {"key": key}
+        return exl.State({"key": key})
 
     def __call__(self, state, x):
         key = state["key"]
@@ -35,4 +35,4 @@ class UniformCrossover(exl.Operator):
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_uniform_crossover)(crossover_keys, paired)
-        return {"key": key}, _unpair(children)
+        return exl.State(key=key), _unpair(children)

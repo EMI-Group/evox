@@ -34,7 +34,7 @@ class PSO(exl.Algorithm):
         velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
         velocity = velocity * length * 2 - length
 
-        return {
+        return exl.State({
             "population": population,
             "velocity": velocity,
             "local_best_location": population,
@@ -42,7 +42,7 @@ class PSO(exl.Algorithm):
             "global_best_location": population[0],
             "global_best_fitness": jnp.array([jnp.inf]),
             "key": state_key,
-        }
+        })
 
     def ask(self, state):
         return state, state["population"]
@@ -75,7 +75,7 @@ class PSO(exl.Algorithm):
         population = state["population"] + velocity
         population = jnp.clip(population, self.lb, self.ub)
 
-        return state | {
+        return state.update({
             "population": population,
             "velocity": velocity,
             "local_best_location": local_best_location,
@@ -83,4 +83,4 @@ class PSO(exl.Algorithm):
             "global_best_location": global_best_location,
             "global_best_fitness": global_best_fitness,
             "key": key,
-        }
+        })

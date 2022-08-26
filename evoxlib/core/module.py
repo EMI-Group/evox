@@ -3,6 +3,8 @@ import jax
 import types
 from functools import partial
 
+from .state import State
+
 
 def jit(func):
     return jax.jit(func, static_argnums=(0,))
@@ -10,6 +12,9 @@ def jit(func):
 
 def use_state(func):
     """Decorator for easy state management.
+
+    This decorator will try to extract the sub-state belong to the module from current state
+    and merge the result back to current state.
 
     Parameters
     ----------
@@ -19,19 +24,32 @@ def use_state(func):
 
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level":
-            return func(self, state, *args, **kargs)
+            return_value = func(self, state, *args, **kargs)
+
+            # single return value, the value must be a State
+            if not isinstance(return_value, tuple):
+                return state.update(return_value)
+
+            # unpack the return value first
+            state = state.update(return_value[0])
+            return state, *return_value[1:]
         else:
-            return_value = func(self, state[self.name], *args, **kargs)
-            if isinstance(return_value, tuple):
-                state = {**state, **{self.name: return_value[0]}}
-                return state, *return_value[1:]
-            else:
-                return {**state, **{self.name: return_value}}
+            return_value = func(self, state._get_child_state(self.name), *args, **kargs)
+
+            # single return value, the value must be a State
+            if not isinstance(return_value, tuple):
+                return state._update_child(self.name, return_value)
+
+            # unpack the return value first
+            state = state._update_child(self.name, return_value[0])
+            return state, *return_value[1:]
 
     return wrapper
 
 
 def vmap_method(method):
+    """wrap vmap over normal methods.
+    """
     def wrapped(self, *args, **kargs):
         return jax.vmap(partial(method, self))(*args, **kargs)
 
@@ -39,9 +57,35 @@ def vmap_method(method):
 
 
 def vmap_setup(setup_method, n):
+    """wrap setup method.
+
+    It's different from vmap_method in that it will automatically split the RNG key.
+    """
     def wrapped(self, key):
         keys = jax.random.split(key, n)
         return jax.vmap(partial(setup_method, self))(keys)
+
+    return wrapped
+
+
+def tree_map_method(method):
+    """wrap tree_map over normal methods.
+    """
+    def wrapped(self, *args, **kargs):
+        return jax.tree_util.tree_map(partial(method, self))(*args, **kargs)
+
+    return wrapped
+
+def tree_map_setup(setup_method, treedef, leaf_count):
+    """wrap setup method.
+
+    It's different from vmap_method in that it will automatically split the RNG key
+    and rearange in a pytree.
+    """
+    def wrapped(self, key):
+        keys = jax.random.split(key, leaf_count)
+        tree_keys = jax.tree_util.tree_unflatten(treedef, keys)
+        return jax.tree_util.tree_map(partial(setup_method, self), tree_keys)
 
     return wrapped
 
@@ -119,12 +163,42 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
         setattr(VmapWrapped, attr_name, wrapped)
     return VmapWrapped
 
+def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix="_"):
+    class TreeMapWrapped(cls):
+        pass
+
+    values, treedef = jax.tree_util.tree_flatten(dummy_input)
+    leaf_count = len(values)
+
+    for attr_name in dir(TreeMapWrapped):
+        if attr_name.startswith(ignore_prefix):
+            continue
+        if attr_name in ignore:
+            continue
+
+        attr = getattr(cls, attr_name)
+        if attr_name == "setup":
+            wrapped = tree_map_setup(attr, treedef, leaf_count)
+        else:
+            wrapped = tree_map_method(attr)
+        setattr(TreeMapWrapped, attr_name, wrapped)
+    return TreeMapWrapped
+
+
 
 def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
     return _class_decorator(cls, jit_method, ignore, ignore_prefix)
 
 
+def _auto_lift(state: State|dict) -> State:
+    return State(state) if isinstance(state, dict) else state
+
 class MetaModule(type):
+    """Meta class used by Module
+
+    This meta class will try to wrap methods with use_state,
+    which allows easy managing of states.
+    """
     def __new__(
         cls,
         name,
@@ -139,7 +213,7 @@ class MetaModule(type):
         for key, value in class_dict.items():
             if key in force_wrap:
                 wrapped[key] = use_state(value)
-            elif key.startswith("_") or key in ignore:
+            elif key.startswith(ignore_prefix) or key in ignore:
                 wrapped[key] = value
             elif callable(value):
                 wrapped[key] = use_state(value)
@@ -152,7 +226,7 @@ class Module(metaclass=MetaModule):
     This module allow easy managing of states.
     """
 
-    def setup(self, key: chex.PRNGKey = None):
+    def setup(self, key: chex.PRNGKey = None) -> State:
         """Setup mutable state here
 
         The state it self is immutable, but it act as a mutable state
@@ -168,7 +242,7 @@ class Module(metaclass=MetaModule):
         dict
             The state of this algorithm.
         """
-        return {}
+        return State()
 
     def init(self, key: chex.PRNGKey = None, name="_top_level"):
         """Initialize this module and all submodules
@@ -188,7 +262,7 @@ class Module(metaclass=MetaModule):
             The state of this module and all submodules.
         """
         self.name = name
-        state = {}
+        child_states = {}
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
             if not attr_name.startswith("_") and isinstance(attr, Module):
@@ -197,5 +271,8 @@ class Module(metaclass=MetaModule):
                 else:
                     key, subkey = jax.random.split(key)
                 submodule_name = f"_submodule_{attr_name}"
-                state[submodule_name] = attr.init(subkey, submodule_name)
-        return self.setup(key) | state
+                submodule_state = attr.init(subkey, submodule_name)
+                assert isinstance(submodule_state, State), "setup method must return a State"
+                child_states[submodule_name] = submodule_state
+        self_state = self.setup(key)
+        return self_state._set_child_states(child_states)

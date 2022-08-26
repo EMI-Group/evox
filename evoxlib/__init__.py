@@ -2,9 +2,7 @@ from .core.algorithm import Algorithm
 from .core.module import *
 from .core.operator import Operator
 from .core.problem import Problem
+from .core.state import State
 
-from . import problems
-from . import algorithms
-from . import operators
-from . import monitors
-from . import utils
+
+from . import algorithms, monitors, operators, problems, utils

@@ -20,7 +20,11 @@ class CSO(exl.Algorithm):
         population = population * (self.ub - self.lb) + self.lb
         speed = jnp.zeros(shape=(self.pop_size, self.dim))
 
-        return {"population": population, "speed": speed, "key": state_key}
+        return exl.State(
+            population=population,
+            speed=speed,
+            key=state_key
+        )
 
     def ask(self, state):
         return state, state["population"]
@@ -43,8 +47,8 @@ class CSO(exl.Algorithm):
         new_population = x.at[students].add(new_speed)
         new_speed = speed.at[students].set(new_speed)
 
-        state["population"] = new_population
-        state["speed"] = new_speed
-        state["key"] = key
-
-        return state
+        return state.update(
+            population=new_population,
+            speed = new_speed,
+            key = key
+        )

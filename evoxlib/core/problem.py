@@ -3,13 +3,11 @@ import types
 import chex
 
 from .module import *
+from .state import State
 
 
 class Problem(Module):
     """Base class for all algorithms"""
-
-    def setup(self, key: chex.PRNGKey = None):
-        return {}
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         """Evaluate the fitness at given points

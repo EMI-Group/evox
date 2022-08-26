@@ -1,1 +1,1 @@
-from .random import RandomSelection
+from .uniform_random import UniformRandomSelection
