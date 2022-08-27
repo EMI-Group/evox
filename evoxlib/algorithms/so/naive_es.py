@@ -22,14 +22,14 @@ class NaiveES(exl.Algorithm):
             + self.lb
         )
         stdvar = jnp.ones((self.dim,))
-        return exl.State({"mean": mean, "stdvar": stdvar, "key": state_key})
+        return exl.State(mean=mean, stdvar=stdvar, key=state_key)
 
     def ask(self, state):
-        key = state["key"]
+        key = state.key
         key, subkey = jax.random.split(key)
         sample = (
-            jax.random.normal(subkey, shape=(self.pop_size, self.dim)) * state["stdvar"]
-            + state["mean"]
+            jax.random.normal(subkey, shape=(self.pop_size, self.dim)) * state.stdvar
+            + state.mean
         )
         sample = jnp.clip(sample, self.lb, self.ub)
         state = state.update(key=key)
@@ -41,4 +41,4 @@ class NaiveES(exl.Algorithm):
         elite = X[: self.topk, :]
         new_mean = jnp.mean(elite, axis=0)
         new_stdvar = jnp.sqrt(jnp.var(elite, axis=0) + self.eps)
-        return state.update({"mean": new_mean, "stdvar": new_stdvar})
+        return state.update(mean=new_mean, stdvar=new_stdvar)

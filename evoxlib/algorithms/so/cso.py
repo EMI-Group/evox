@@ -6,6 +6,7 @@ import copy
 
 import evoxlib as exl
 
+
 @exl.jit_class
 class CSO(exl.Algorithm):
     def __init__(self, lb, ub, pop_size):
@@ -20,17 +21,13 @@ class CSO(exl.Algorithm):
         population = population * (self.ub - self.lb) + self.lb
         speed = jnp.zeros(shape=(self.pop_size, self.dim))
 
-        return exl.State(
-            population=population,
-            speed=speed,
-            key=state_key
-        )
+        return exl.State(population=population, speed=speed, key=state_key)
 
     def ask(self, state):
-        return state, state["population"]
+        return state, state.population
 
     def tell(self, state, x, F):
-        key = state["key"]
+        key = state.key
         key, subkey = jax.random.split(key)
         randperm = jax.random.permutation(subkey, self.pop_size).reshape(2, -1)
         mask = F[randperm[0, :]] < F[randperm[1, :]]
@@ -42,13 +39,9 @@ class CSO(exl.Algorithm):
         lambda1 = jax.random.uniform(subkey1, shape=(self.pop_size // 2, self.dim))
         lambda2 = jax.random.uniform(subkey2, shape=(self.pop_size // 2, self.dim))
 
-        speed = state["speed"]
+        speed = state.speed
         new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students])
         new_population = x.at[students].add(new_speed)
         new_speed = speed.at[students].set(new_speed)
 
-        return state.update(
-            population=new_population,
-            speed = new_speed,
-            key = key
-        )
+        return state.update(population=new_population, speed=new_speed, key=key)

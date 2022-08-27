@@ -39,27 +39,27 @@ class NSGA2(exl.Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        return exl.State({"population": population, "fitness": None, "is_init": True})
+        return exl.State(population=population, fitness=None, is_init=True)
 
     @exl.jit_method
     def ask(self, state):
-        return jax.lax.cond(state["is_init"], self._ask_init, self._ask_normal, state)
+        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
     def tell(self, state, x, F):
         with jax.disable_jit():
-            if state["is_init"]:
+            if state.is_init:
                 return self._tell_init(state, x, F)
             else:
                 return self._tell_normal(state, x, F)
 
     def _ask_init(self, state):
-        return state, state["population"]
+        return state, state.population
 
     def _ask_normal(self, state):
-        state, mutated = self.selection(state, state["population"])
+        state, mutated = self.selection(state, state.population)
         state, mutated = self.mutation(state, mutated)
 
-        state, crossovered = self.selection(state, state["population"])
+        state, crossovered = self.selection(state, state.population)
         state, crossovered = self.crossover(state, crossovered)
 
         return state, jnp.clip(
@@ -67,17 +67,17 @@ class NSGA2(exl.Algorithm):
         )
 
     def _tell_init(self, state, x, F):
-        state = state | {"fitness": F, "is_init": False}
+        state = state.update(fitness=F, is_init=False)
         return state
 
     def _tell_normal(self, state, x, F):
-        merged_pop = jnp.concatenate([state["population"], x], axis=0)
-        merged_fitness = jnp.concatenate([state["fitness"], F], axis=0)
+        merged_pop = jnp.concatenate([state.population, x], axis=0)
+        merged_fitness = jnp.concatenate([state.fitness, F], axis=0)
 
         rank = exl.operators.non_dominated_sort(merged_fitness)
 
-        survivor = jnp.zeros_like(state["population"])
-        survivor_fitness = jnp.zeros_like(state["fitness"])
+        survivor = jnp.zeros_like(state.population)
+        survivor_fitness = jnp.zeros_like(state.fitness)
         index = 0
         current_rank = 0
         while index < survivor.shape[0]:
@@ -99,5 +99,5 @@ class NSGA2(exl.Algorithm):
                 )
                 index = survivor.shape[0]
             current_rank += 1
-        state = state | {"population": survivor, "fitness": survivor_fitness}
+        state = state.update(population=survivor, fitness=survivor_fitness)
         return state

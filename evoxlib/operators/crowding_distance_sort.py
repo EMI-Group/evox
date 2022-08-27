@@ -34,6 +34,7 @@ def crowding_distance(x: chex.Array):
     return d
 
 
+@jax.jit
 def crowding_distance_sort(x: chex.Array):
     """sort according to crowding distance
 
