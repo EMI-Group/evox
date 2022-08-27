@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 def _random_pairing(key, x):
     batch, dim = x.shape
-    x = jax.random.shuffle(key, x, axis=0)
+    x = jax.random.permutation(key, x, axis=0)
     return x.reshape(batch // 2, 2, dim)
 
 
@@ -27,10 +27,10 @@ class UniformCrossover(exl.Operator):
         self.stdvar = stdvar
 
     def setup(self, key):
-        return exl.State({"key": key})
+        return exl.State(key=key)
 
     def __call__(self, state, x):
-        key = state["key"]
+        key = state.key
         key, pairing_key, crossover_key = jax.random.split(key, 3)
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
