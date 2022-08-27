@@ -1,16 +1,15 @@
 import types
 import chex
 from .module import *
+from .state import State
 
 
 class Algorithm(Module):
     """Base class for all algorithms
 
-    The ``ask`` and ``tell`` methods are automatically wrapped with
-    ``use_state``
     """
 
-    def ask(self, state: dict):
+    def ask(self, state: State):
         """Ask the algorithm
 
         Ask the algorithm for points to explore
@@ -27,7 +26,7 @@ class Algorithm(Module):
         """
         pass
 
-    def tell(self, state: dict, X: chex.Array, F: chex.Array):
+    def tell(self, state: State, X: chex.Array, F: chex.Array):
         """Tell the algorithm more information
 
         Tell the algorithm about the points it chose and their corresponding fitness

@@ -6,11 +6,27 @@ from jax.tree_util import register_pytree_node_class
 
 @register_pytree_node_class
 class State:
+    """A class represents state
+
+    ``State`` is immutable, to update state, use the ``update`` method or the ``|`` operator.
+    ``State`` has already implemented ``tree_flatten``, ``tree_unflatten``
+    and has registered as a valid pytree node. So it can be used as pytree with JAX without any issue.
+    """
+
     empty = {}
 
     def __init__(
         self, state_dict: dict = empty, child_states: dict[str, State] = empty, **kwargs
     ) -> None:
+        """Construct a ``State`` from dict or keyword arguments
+
+        Example::
+            >>> import evoxlib as exl
+            >>> exl.State({"x": 1, "y": 2}) # from dict
+            State ({'x': 1, 'y': 2}, [])
+            >>> exl.State(x=1, y=2) # from keyword arguments
+            State ({'x': 1, 'y': 2}, [])
+        """
         if state_dict is State.empty:
             if child_states is not State.empty:
                 raise ValueError(
@@ -27,6 +43,16 @@ class State:
         """Update the current State with another State or dict and return new State.
 
         This method also accept keyword arguments.
+
+        Example::
+            >>> import evoxlib as exl
+            >>> state = exl.State(x=1, y=2)
+            >>> state.update(y=3) # use the update method
+            State ({'x': 1, 'y': 3}, [])
+            >>> state # note that State is immutable, so state isn't modified
+            State ({'x': 1, 'y': 2}, [])
+            >>> state | {"y": 4} # use the | operator
+            State ({'x': 1, 'y': 4}, [])
         """
         if other is None:
             return State({**self._state_dict, **kwargs}, self._child_states)

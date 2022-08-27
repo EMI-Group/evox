@@ -48,8 +48,8 @@ def use_state(func):
 
 
 def vmap_method(method):
-    """wrap vmap over normal methods.
-    """
+    """wrap vmap over normal methods."""
+
     def wrapped(self, *args, **kargs):
         return jax.vmap(partial(method, self))(*args, **kargs)
 
@@ -61,6 +61,7 @@ def vmap_setup(setup_method, n):
 
     It's different from vmap_method in that it will automatically split the RNG key.
     """
+
     def wrapped(self, key):
         keys = jax.random.split(key, n)
         return jax.vmap(partial(setup_method, self))(keys)
@@ -69,12 +70,13 @@ def vmap_setup(setup_method, n):
 
 
 def tree_map_method(method):
-    """wrap tree_map over normal methods.
-    """
+    """wrap tree_map over normal methods."""
+
     def wrapped(self, *args, **kargs):
         return jax.tree_util.tree_map(partial(method, self))(*args, **kargs)
 
     return wrapped
+
 
 def tree_map_setup(setup_method, treedef, leaf_count):
     """wrap setup method.
@@ -82,6 +84,7 @@ def tree_map_setup(setup_method, treedef, leaf_count):
     It's different from vmap_method in that it will automatically split the RNG key
     and rearange in a pytree.
     """
+
     def wrapped(self, key):
         keys = jax.random.split(key, leaf_count)
         tree_keys = jax.tree_util.tree_unflatten(treedef, keys)
@@ -141,10 +144,6 @@ def _class_decorator(cls, wrapper, ignore, ignore_prefix):
     return cls
 
 
-def use_state_class(cls, ignore=["setup", "init", "__init__"], ignore_prefix="_"):
-    return _class_decorator(cls, use_state, ignore, ignore_prefix)
-
-
 def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
     class VmapWrapped(cls):
         pass
@@ -162,6 +161,7 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
             wrapped = vmap_method(attr)
         setattr(VmapWrapped, attr_name, wrapped)
     return VmapWrapped
+
 
 def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix="_"):
     class TreeMapWrapped(cls):
@@ -185,20 +185,20 @@ def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix=
     return TreeMapWrapped
 
 
-
 def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
     return _class_decorator(cls, jit_method, ignore, ignore_prefix)
 
-
-def _auto_lift(state: State|dict) -> State:
-    return State(state) if isinstance(state, dict) else state
 
 class MetaModule(type):
     """Meta class used by Module
 
     This meta class will try to wrap methods with use_state,
     which allows easy managing of states.
+
+    It is recommended to use a single underscore as prefix to prevent a method from being wrapped.
+    Still, this behavior can be configured by passing ``force_wrap``, ``ignore`` and ``ignore_prefix``.
     """
+
     def __new__(
         cls,
         name,
@@ -224,6 +224,12 @@ class Module(metaclass=MetaModule):
     """Base class for all EvoXLib modules.
 
     This module allow easy managing of states.
+
+    All the constants (e.g. hyperparameters) are initialized in the ``__init__``,
+    and mutated states are initialized in the ``setup`` method.
+
+    The ``init`` method will automatically call the ``setup`` of the current module
+    and recursively call ``setup`` methods of all submodules.
     """
 
     def setup(self, key: chex.PRNGKey = None) -> State:
@@ -239,12 +245,12 @@ class Module(metaclass=MetaModule):
 
         Returns
         -------
-        dict
-            The state of this algorithm.
+        State
+            The state of this module.
         """
         return State()
 
-    def init(self, key: chex.PRNGKey = None, name="_top_level"):
+    def init(self, key: chex.PRNGKey = None, name="_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
@@ -258,8 +264,8 @@ class Module(metaclass=MetaModule):
 
         Returns
         -------
-        dict
-            The state of this module and all submodules.
+        State
+            The state of this module and all submodules combined.
         """
         self.name = name
         child_states = {}
@@ -272,7 +278,9 @@ class Module(metaclass=MetaModule):
                     key, subkey = jax.random.split(key)
                 submodule_name = f"_submodule_{attr_name}"
                 submodule_state = attr.init(subkey, submodule_name)
-                assert isinstance(submodule_state, State), "setup method must return a State"
+                assert isinstance(
+                    submodule_state, State
+                ), "setup method must return a State"
                 child_states[submodule_name] = submodule_state
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)

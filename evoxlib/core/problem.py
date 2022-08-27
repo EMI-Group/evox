@@ -9,7 +9,7 @@ from .state import State
 class Problem(Module):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state: State, X: chex.Array) -> chex.Array:
         """Evaluate the fitness at given points
 
         Parameters

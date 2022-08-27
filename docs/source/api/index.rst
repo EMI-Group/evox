@@ -5,4 +5,6 @@ EvoXLib API
 .. toctree::
     :maxdepth: 3
 
-    basic
+    core/index
+    algorithms/index
+    problems/index
