@@ -41,7 +41,7 @@ let
     pydata-sphinx-theme
     pytest
     sphinx
-    tensorflow-datasets
+    torchvision
   ];
 
   pyenv = python.withPackages dependencies;

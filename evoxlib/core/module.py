@@ -71,24 +71,10 @@ def vmap_setup(setup_method, n):
 
 def tree_map_method(method):
     """wrap tree_map over normal methods."""
-
-    def wrapped(self, *args, **kargs):
-        return jax.tree_util.tree_map(partial(method, self))(*args, **kargs)
-
-    return wrapped
-
-
-def tree_map_setup(setup_method, treedef, leaf_count):
-    """wrap setup method.
-
-    It's different from vmap_method in that it will automatically split the RNG key
-    and rearange in a pytree.
-    """
-
-    def wrapped(self, key):
-        keys = jax.random.split(key, leaf_count)
-        tree_keys = jax.tree_util.tree_unflatten(treedef, keys)
-        return jax.tree_util.tree_map(partial(setup_method, self), tree_keys)
+    print("tree_map2", method.__name__)
+    def wrapped(self, state, *args):
+        print(state)
+        return jax.tree_util.tree_map(method, self._inner, state.inner_state, *args)
 
     return wrapped
 
@@ -163,12 +149,21 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
     return VmapWrapped
 
 
-def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix="_"):
-    class TreeMapWrapped(cls):
-        pass
-
+def tree_map_class(cls, dummy_input, ignore=["init"], ignore_prefix="_"):
     values, treedef = jax.tree_util.tree_flatten(dummy_input)
     leaf_count = len(values)
+
+    class TreeMapWrapped(cls):
+        def __init__(self, *args):
+            self._inner = jax.tree_util.tree_map(super().__init__, *args)
+
+        def setup(self, key):
+            keys = jax.random.split(key, leaf_count)
+            tree_keys = jax.tree_util.tree_unflatten(treedef, keys)
+            return State(
+                inner_state=jax.tree_util.tree_map(super().setup, self._inner, tree_keys)
+            )
+
 
     for attr_name in dir(TreeMapWrapped):
         if attr_name.startswith(ignore_prefix):
@@ -178,8 +173,10 @@ def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix=
 
         attr = getattr(cls, attr_name)
         if attr_name == "setup":
-            wrapped = tree_map_setup(attr, treedef, leaf_count)
+            print("pass")
+            continue
         else:
+            print("tree_map", attr_name)
             wrapped = tree_map_method(attr)
         setattr(TreeMapWrapped, attr_name, wrapped)
     return TreeMapWrapped
@@ -208,10 +205,12 @@ class MetaModule(type):
         ignore=["init", "setup"],
         ignore_prefix="_",
     ):
+        print("Metaclass", name)
         wrapped = {}
 
         for key, value in class_dict.items():
             if key in force_wrap:
+                print("use_state", key)
                 wrapped[key] = use_state(value)
             elif key.startswith(ignore_prefix) or key in ignore:
                 wrapped[key] = value
