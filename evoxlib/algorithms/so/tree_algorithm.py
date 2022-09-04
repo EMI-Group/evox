@@ -7,6 +7,8 @@ import copy
 import evoxlib as exl
 from evoxlib.utils import *
 
+
+@exl.jit_class
 class FlattenParam:
     def __init__(self, dummy_input):
         self.shape_def = tree_map(lambda x: x.shape, dummy_input)
@@ -18,6 +20,8 @@ class FlattenParam:
     def unflatten(self, x):
         return tree_map(lambda x, shape: x.reshape(-1, *shape), x, self.shape_def)
 
+
+@exl.jit_class
 class TreeAlgorithm(exl.Algorithm):
     def __init__(self, base_algorithm, initial_params, *args):
         self._base_algorithm = base_algorithm
