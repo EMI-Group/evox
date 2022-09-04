@@ -1,7 +1,7 @@
 import chex
 import jax
 import types
-from functools import partial
+from functools import partial, wraps
 
 from .state import State
 
@@ -22,6 +22,7 @@ def use_state(func):
         The method to be wrapped with
     """
 
+    @wraps(func)
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level":
             return_value = func(self, state, *args, **kargs)
@@ -65,30 +66,6 @@ def vmap_setup(setup_method, n):
     def wrapped(self, key):
         keys = jax.random.split(key, n)
         return jax.vmap(partial(setup_method, self))(keys)
-
-    return wrapped
-
-
-def tree_map_method(method):
-    """wrap tree_map over normal methods."""
-
-    def wrapped(self, *args, **kargs):
-        return jax.tree_util.tree_map(partial(method, self))(*args, **kargs)
-
-    return wrapped
-
-
-def tree_map_setup(setup_method, treedef, leaf_count):
-    """wrap setup method.
-
-    It's different from vmap_method in that it will automatically split the RNG key
-    and rearange in a pytree.
-    """
-
-    def wrapped(self, key):
-        keys = jax.random.split(key, leaf_count)
-        tree_keys = jax.tree_util.tree_unflatten(treedef, keys)
-        return jax.tree_util.tree_map(partial(setup_method, self), tree_keys)
 
     return wrapped
 
@@ -161,28 +138,6 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
             wrapped = vmap_method(attr)
         setattr(VmapWrapped, attr_name, wrapped)
     return VmapWrapped
-
-
-def tree_map_class(cls, dummy_input, ignore=["init", "__init__"], ignore_prefix="_"):
-    class TreeMapWrapped(cls):
-        pass
-
-    values, treedef = jax.tree_util.tree_flatten(dummy_input)
-    leaf_count = len(values)
-
-    for attr_name in dir(TreeMapWrapped):
-        if attr_name.startswith(ignore_prefix):
-            continue
-        if attr_name in ignore:
-            continue
-
-        attr = getattr(cls, attr_name)
-        if attr_name == "setup":
-            wrapped = tree_map_setup(attr, treedef, leaf_count)
-        else:
-            wrapped = tree_map_method(attr)
-        setattr(TreeMapWrapped, attr_name, wrapped)
-    return TreeMapWrapped
 
 
 def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):

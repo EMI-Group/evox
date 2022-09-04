@@ -69,7 +69,7 @@ class State:
         raise ValueError("other must be either State or dict")
 
     def _get_child_state(self, name) -> State:
-        return self.__dict__["_child_states"][name]
+        return self._child_states[name]
 
     def _set_child_states(self, child_states) -> State:
         """Force set child state and return self
@@ -93,10 +93,10 @@ class State:
         return self.update(*args, **kwargs)
 
     def __getattr__(self, key: str) -> Any:
-        return self.__dict__["_state_dict"][key]
+        return self._state_dict[key]
 
     def __getitem__(self, key: str) -> Any:
-        return self.__dict__["_state_dict"][key]
+        return self._state_dict[key]
 
     def __setattr__(self, key: str, value: Any) -> None:
         raise TypeError("State is immutable")
