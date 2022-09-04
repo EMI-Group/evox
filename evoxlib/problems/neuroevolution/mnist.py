@@ -35,7 +35,6 @@ class MNIST(Problem):
         self.batch_size = batch_size
         if isinstance(model, nn.Module):
             self.model = model
-            return
 
         if model == "LeNet":
             self.model = LetNet()
@@ -58,16 +57,6 @@ class MNIST(Problem):
     #     return self._start_new_epoch(key)
 
     def evaluate(self, state, X):
-        # step = state["step"]
-        # # start a new epoch when needed
-        # state = jax.lax.cond(
-        #     step < self.steps_per_epoch,
-        #     lambda state: state,  # identity function
-        #     lambda state: self._start_new_epoch(state["key"]),
-        # )
-
-        # image = self.train_ds["image"][state["perms"][step, ...]]
-        # label = self.train_ds["label"][state["perms"][step, ...]]
         try:
             data, labels = next(self.iter)
         except StopIteration:
@@ -75,15 +64,15 @@ class MNIST(Problem):
             data, labels = next(self.iter)
 
         data, labels = jnp.array(data), jnp.array(labels)
-        losses = jix.jit(jax.vmap(partial(self._calculate_loss, data, labels)))(X)
+        losses = jax.jit(jax.vmap(partial(self._calculate_loss, data, labels)))(X)
         return state, losses
 
     @exl.jit_method
     def _calculate_loss(self, data, labels, X):
         # add channel dim
-        data = data[:, jnp.newaxis, :, :]
+        data = data[:, :, :, jnp.newaxis]
         output = self.model.apply(X, data)
-        loss = self.loss_func(output, labels)
+        loss = jnp.mean(self.loss_func(output, labels))
         return loss
 
     def _start_new_epoch(self, key):

@@ -121,4 +121,4 @@ def test_crowding_distance2():
             0.29857454,
         ]
     )
-    chex.assert_trees_all_close(distance, ground_truth)
+    chex.assert_trees_all_close(distance, ground_truth, rtol=1e-5)
