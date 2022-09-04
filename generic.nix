@@ -53,10 +53,14 @@ let
 
     src = builtins.path { path = ./.; name = "evoxlib"; };
     propagatedBuildInputs = dependencies python.pkgs;
+    checkInputs = [ python.pkgs.pytestCheckHook ];
 
-    checkPhase = ''
-      python -m pytest
-    '';
+    pythonImportsCheck = [
+      "evoxlib"
+    ];
+    disabledTestPaths = [
+      "tests/test_neuroevolution.py"
+    ];
   };
 
   accelerator = if cudaSupport then "cuda" else "cpu";
