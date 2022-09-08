@@ -48,13 +48,11 @@ class PGPE(exl.Algorithm):
 
     def tell(self, state, x, F):
         D_pos = x[: self.pop_size // 2, :]
-        D_neg = x[self.pop_size // 2 :, :]
         F_pos = F[: self.pop_size // 2]
         F_neg = F[self.pop_size // 2 :]
 
         delta_x = jnp.mean(((F_pos - F_neg) / 2)[:, jnp.newaxis] * (D_pos - state.center), axis=0)
         f_avg = jnp.mean(F)
-        tmp = (F_pos + F_neg) / 2
         delta_stdev = jnp.mean(
             ((F_pos + F_neg) / 2 - f_avg)[:, jnp.newaxis]
             * (((D_pos - state.center) ** 2 - state.stdev**2) / state.stdev),
