@@ -9,11 +9,12 @@ import evoxlib as exl
 
 @exl.jit_class
 class CSO(exl.Algorithm):
-    def __init__(self, lb, ub, pop_size):
+    def __init__(self, lb, ub, pop_size, phi=0.1):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
+        self.phi = phi
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
@@ -32,19 +33,21 @@ class CSO(exl.Algorithm):
 
     def tell(self, state, x, F):
         key = state.key
-        key, subkey = jax.random.split(key)
-        randperm = jax.random.permutation(subkey, self.pop_size).reshape(2, -1)
+        key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(key, num=5)
+        randperm = jax.random.permutation(pairing_key, self.pop_size).reshape(2, -1)
         mask = F[randperm[0, :]] < F[randperm[1, :]]
 
         teachers = jnp.where(mask, randperm[0, :], randperm[1, :])
         students = jnp.where(mask, randperm[1, :], randperm[0, :])
 
-        key, subkey1, subkey2 = jax.random.split(key, num=3)
-        lambda1 = jax.random.uniform(subkey1, shape=(self.pop_size // 2, self.dim))
-        lambda2 = jax.random.uniform(subkey2, shape=(self.pop_size // 2, self.dim))
+        center = jnp.mean(x, axis=0)
+
+        lambda1 = jax.random.uniform(lambda1_key, shape=(self.pop_size // 2, self.dim))
+        lambda2 = jax.random.uniform(lambda2_key, shape=(self.pop_size // 2, self.dim))
+        lambda3 = jax.random.uniform(lambda3_key, shape=(self.pop_size // 2, self.dim))
 
         speed = state.speed
-        new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students])
+        new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students]) + self.phi * (center - x[students])
         new_population = x.at[students].add(new_speed)
         new_speed = speed.at[students].set(new_speed)
 
