@@ -17,7 +17,6 @@ class LetNet(nn.Module):
     x = nn.Dense(84)(x)
     x = nn.sigmoid(x)
     x = nn.Dense(10)(x)
-
     return x
 
 
@@ -36,5 +35,4 @@ class SimpleCNN(nn.Module):
     x = nn.Dense(120)(x)
     x = nn.sigmoid(x)
     x = nn.Dense(10)(x)
-
     return x
