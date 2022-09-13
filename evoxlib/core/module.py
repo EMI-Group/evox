@@ -33,7 +33,7 @@ def use_state(func):
 
             # unpack the return value first
             state = state.update(return_value[0])
-            return state, *return_value[1:]
+            return (state, *return_value[1:])
         else:
             return_value = func(self, state._get_child_state(self.name), *args, **kargs)
 
@@ -43,7 +43,7 @@ def use_state(func):
 
             # unpack the return value first
             state = state._update_child(self.name, return_value[0])
-            return state, *return_value[1:]
+            return (state, *return_value[1:])
 
     return wrapper
 
