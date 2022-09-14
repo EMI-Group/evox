@@ -4,3 +4,4 @@ __pycache__
 /.vscode
 /result
 /docs/build
+/MNIST

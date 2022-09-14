@@ -47,8 +47,10 @@ class CSO(exl.Algorithm):
         lambda3 = jax.random.uniform(lambda3_key, shape=(self.pop_size // 2, self.dim))
 
         speed = state.speed
-        new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students]) + self.phi * (center - x[students])
+        new_speed = lambda1 * speed[students] + lambda2 * (x[teachers] - x[students]) + self.phi * lambda3 * (center - x[students])
         new_population = x.at[students].add(new_speed)
         new_speed = speed.at[students].set(new_speed)
+
+        new_population = jnp.clip(new_population, self.lb, self.ub)
 
         return state.update(population=new_population, speed=new_speed, key=key)
