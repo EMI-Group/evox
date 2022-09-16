@@ -10,6 +10,7 @@ class Pipeline(exl.Module):
         self.algorithm = exl.algorithms.NSGA2(
             lb=jnp.full(shape=(2,), fill_value=0),
             ub=jnp.full(shape=(2,), fill_value=1),
+            n_objs=2,
             pop_size=100,
         )
         # choose a problem

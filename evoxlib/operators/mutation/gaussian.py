@@ -3,6 +3,7 @@ import jax
 import jax.numpy as jnp
 
 
+@exl.jit_class
 class GaussianMutation(exl.Operator):
     def __init__(self, stdvar=1.0):
         self.stdvar = stdvar

@@ -22,6 +22,7 @@ def _uniform_crossover(key, parents):
     return jnp.stack([c1, c2])
 
 
+@exl.jit_class
 class UniformCrossover(exl.Operator):
     def __init__(self, stdvar=1.0):
         self.stdvar = stdvar

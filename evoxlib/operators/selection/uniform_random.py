@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 
 
+@exl.jit_class
 class UniformRandomSelection(exl.Operator):
     def __init__(self, p):
         self.p = p

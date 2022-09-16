@@ -8,8 +8,8 @@ from functools import partial
 
 
 def min_by(
-    values: Union[chex.Array | list[chex.Array]],
-    keys: Union[chex.Array | list[chex.Array]],
+    values: chex.Array | list[chex.Array],
+    keys: chex.Array | list[chex.Array],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
