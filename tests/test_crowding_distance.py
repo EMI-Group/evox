@@ -122,3 +122,25 @@ def test_crowding_distance2():
         ]
     )
     chex.assert_trees_all_close(distance, ground_truth, rtol=1e-5)
+
+
+def test_masked_crowding_distance1():
+    x = jnp.array([[-1, -1], [0.5, 4], [1, 2.5], [2, 2], [-2, -2], [3, 1], [4, 0.8], [-3, -3], [-3, -4]])
+    mask = jnp.array([False, True,     True,     True,   False,    True,   True,     False,    False])
+    distance = exl.operators.crowding_distance(x, mask)
+    chex.assert_trees_all_close(
+        distance,
+        jnp.array(
+            [
+                -jnp.inf,
+                jnp.inf,
+                1.5 / 3.5 + 2 / 3.2,
+                2 / 3.5 + 1.5 / 3.2,
+                -jnp.inf,
+                2 / 3.5 + 1.2 / 3.2,
+                jnp.inf,
+                -jnp.inf,
+                -jnp.inf,
+            ]
+        ),
+    )

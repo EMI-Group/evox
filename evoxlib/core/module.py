@@ -91,7 +91,19 @@ def jit_method(method):
     )
 
 
-def _class_decorator(cls, wrapper, ignore, ignore_prefix):
+def default_cond_fun(name):
+    if name == '__call__':
+        return True
+
+    if name.startswith('_'):
+        return False
+
+    if name in ['init', 'setup']:
+        return False
+
+    return True
+
+def _class_decorator(cls, wrapper, cond_fun=default_cond_fun):
     """A helper function used to add decorators to methods of a class
 
     Parameters
@@ -109,14 +121,9 @@ def _class_decorator(cls, wrapper, ignore, ignore_prefix):
         a class with selected methods wrapped
     """
     for attr_name in dir(cls):
-        if attr_name.startswith(ignore_prefix):
-            continue
-        if attr_name in ignore:
-            continue
-
-        attr = getattr(cls, attr_name)
-        if isinstance(attr, types.FunctionType):
-            wrapped = wrapper(attr)
+        func = getattr(cls, attr_name)
+        if callable(func) and cond_fun(attr_name):
+            wrapped = wrapper(func)
             setattr(cls, attr_name, wrapped)
     return cls
 
@@ -140,8 +147,8 @@ def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
     return VmapWrapped
 
 
-def jit_class(cls, ignore=["init", "__init__"], ignore_prefix="_"):
-    return _class_decorator(cls, jit_method, ignore, ignore_prefix)
+def jit_class(cls, cond_fun=default_cond_fun):
+    return _class_decorator(cls, jit_method, cond_fun)
 
 
 class MetaModule(type):

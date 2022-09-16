@@ -15,6 +15,7 @@ def _dominate_relation(x, y):
     return jax.vmap(lambda _x: jax.vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
+@jax.jit
 def non_dominated_sort(x):
     """Perform non-dominated sort
 
@@ -26,17 +27,32 @@ def non_dominated_sort(x):
     rank = jnp.zeros((x.shape[0],), dtype=jnp.int32)
     dominate_count = jnp.sum(dominate_relation_matrix, axis=0)
 
-    with jax.disable_jit():
-        current_rank = 0
-        next_front = dominate_count == 0
-        while jnp.any(next_front):
-            rank = rank.at[next_front].set(current_rank)
-            _, index_to_decrease = jnp.where(
-                dominate_relation_matrix[next_front, :] == True
-            )
-            dominate_count = dominate_count.at[index_to_decrease].add(-1)
-            dominate_count = dominate_count.at[next_front].add(-1)
+    indices = jnp.indices((x.shape[0], ))
+    empty = x.shape[0] + 1
 
-            current_rank += 1
-            next_front = dominate_count == 0
+    current_rank = 0
+    next_front = dominate_count == 0
+
+    def _cond_fun(loop_state):
+        _rank, _dominate_count, _current_rank, next_front = loop_state
+        return jnp.any(next_front)
+
+    def _body_fun(loop_state):
+        rank, dominate_count, current_rank, next_front = loop_state
+        rank = jnp.where(next_front, current_rank, rank)
+        masked_dominate_relation_matrix = jnp.where(next_front[:, jnp.newaxis], dominate_relation_matrix, 0)
+        indices_to_decs = jnp.where(masked_dominate_relation_matrix, indices, empty)
+        dominate_count = dominate_count - jnp.bincount(indices_to_decs.reshape(-1), length=x.shape[0])
+        dominate_count = dominate_count - next_front
+
+        current_rank += 1
+        next_front = dominate_count == 0
+        return rank, dominate_count, current_rank, next_front
+
+    rank, _dominate_count, _current_rank, _next_front = jax.lax.while_loop(
+        _cond_fun,
+        _body_fun,
+        (rank, dominate_count, current_rank, next_front)
+    )
+
     return rank
