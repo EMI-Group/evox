@@ -79,7 +79,7 @@ def test_neuroevolution_treemap():
 
     # the result should be close to 0
     state, min_fitness = pipeline.get_min_fitness(state)
-    print(f'fitness: {min_fitness}  time: {time.perf_counter() - start}')
+    print(f'Treemap loss: {min_fitness}  time: {time.perf_counter() - start}')
 
 
 def test_neuroevolution_adapter():
@@ -96,4 +96,4 @@ def test_neuroevolution_adapter():
 
     # the result should be close to 0
     state, min_fitness = pipeline.get_min_fitness(state)
-    print(f'fitness: {min_fitness}  time: {time.perf_counter() - start}')
+    print(f'Adapter loss: {min_fitness}  time: {time.perf_counter() - start}')
