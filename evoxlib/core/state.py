@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from pprint import pformat
 from typing import Any
 
 from jax.tree_util import register_pytree_node_class
@@ -82,7 +84,8 @@ class State:
     def _update_child(self, name, child_state) -> State:
         return State(
             self._state_dict,
-            {**self._child_states, name: self._child_states[name].update(child_state)},
+            {**self._child_states,
+                name: self._child_states[name].update(child_state)},
         )
 
     def __or__(self, *args, **kwargs) -> State:
@@ -105,7 +108,14 @@ class State:
         raise TypeError("State is immutable")
 
     def __repr__(self) -> str:
-        return f"State ({self._state_dict}, {None if self._child_states is None else list(self._child_states.keys())})"
+        return f"State ({self._state_dict}, {list(self._child_states.keys())})"
+
+    def __str__(self) -> str:
+        return ("State (\n"
+                f" {pformat(self._state_dict)},\n"
+                f" {pformat(list(self._child_states.keys()))}\n"
+                ")"
+                )
 
     def tree_flatten(self):
         children = (self._state_dict, self._child_states)
@@ -115,3 +125,9 @@ class State:
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         return cls(*children)
+
+    def __eq__(self, other: State):
+        if self._state_dict != other._state_dict:
+            return False
+
+        return self._child_states == other._child_states
