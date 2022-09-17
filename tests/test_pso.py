@@ -25,10 +25,10 @@ class Pipeline(exl.Module):
 
     def step(self, state):
         # one step
-        state, X = self.algorithm.ask(state)
-        state, F = self.problem.evaluate(state, X)
-        state = self.algorithm.tell(state, X, F)
-        return state | {"min_fitness": jnp.minimum(state["min_fitness"], jnp.min(F))}
+        state, pop = self.algorithm.ask(state)
+        state, fitness = self.problem.evaluate(state, pop)
+        state = self.algorithm.tell(state, fitness)
+        return state | {"min_fitness": jnp.minimum(state["min_fitness"], jnp.min(fitness))}
 
     def get_min_fitness(self, state):
         return state, state["min_fitness"]

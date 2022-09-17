@@ -19,7 +19,7 @@ class PGPE(exl.Algorithm):
         stdev_init: float = 0.1,
         center_learning_rate: float = 0.15,
         stdev_learning_rate: float = 0.1,
-        stdev_max_change = 0.2
+        stdev_max_change: float = 0.2,
     ):
         self.dim = center_init.shape[0]
         self.pop_size = pop_size
@@ -27,7 +27,7 @@ class PGPE(exl.Algorithm):
         self.stdev = jnp.full_like(center_init, stdev_init)
         self.stdev_learning_rate = stdev_learning_rate
         self.stdev_max_change = stdev_max_change
-        if optimizer == 'adam':
+        if optimizer == "adam":
             self.optimizer = optax.adam(learning_rate=center_learning_rate)
         else:
             raise TypeError(f"{optimizer} is not supported right now")
@@ -35,7 +35,11 @@ class PGPE(exl.Algorithm):
     def setup(self, key):
         opt_state = self.optimizer.init(self.center_init)
         return exl.State(
-            center=self.center_init, stdev=self.stdev, opt_state=opt_state, key=key
+            center=self.center_init,
+            stdev=self.stdev,
+            opt_state=opt_state,
+            key=key,
+            sample=None,
         )
 
     def ask(self, state):
@@ -44,19 +48,21 @@ class PGPE(exl.Algorithm):
             jax.random.normal(state.key, (self.pop_size // 2, self.dim)) * state.stdev
         )
         D = jnp.concatenate([state.center + delta, state.center - delta], axis=0)
-        return state.update(key=subkey), D
+        return state.update(key=subkey, sample=D), D
 
-    def tell(self, state, x, F):
-        D_pos = x[: self.pop_size // 2, :]
-        F_pos = F[: self.pop_size // 2]
-        F_neg = F[self.pop_size // 2 :]
+    def tell(self, state, fitness):
+        D_pos = state.sample[: self.pop_size // 2, :]
+        F_pos = fitness[: self.pop_size // 2]
+        F_neg = fitness[self.pop_size // 2 :]
 
-        delta_x = jnp.mean(((F_pos - F_neg) / 2)[:, jnp.newaxis] * (D_pos - state.center), axis=0)
-        f_avg = jnp.mean(F)
+        delta_x = jnp.mean(
+            ((F_pos - F_neg) / 2)[:, jnp.newaxis] * (D_pos - state.center), axis=0
+        )
+        f_avg = jnp.mean(fitness)
         delta_stdev = jnp.mean(
             ((F_pos + F_neg) / 2 - f_avg)[:, jnp.newaxis]
             * (((D_pos - state.center) ** 2 - state.stdev**2) / state.stdev),
-            axis=0
+            axis=0,
         )
         updates, opt_state = self.optimizer.update(
             delta_x, state.opt_state, state.center

@@ -48,22 +48,21 @@ class PSO(exl.Algorithm):
     def ask(self, state):
         return state, state.population
 
-    def tell(self, state, x, F):
-        key = state.key
-        key, rg_key, rp_key = jax.random.split(key, 3)
+    def tell(self, state, fitness):
+        key, rg_key, rp_key = jax.random.split(state.key, 3)
 
         rg = jax.random.uniform(rg_key, shape=(self.pop_size, self.dim))
         rp = jax.random.uniform(rp_key, shape=(self.pop_size, self.dim))
 
-        compare = state.local_best_fitness > F
+        compare = state.local_best_fitness > fitness
         local_best_location = jnp.where(
-            compare[:, jnp.newaxis], x, state.local_best_location
+            compare[:, jnp.newaxis], state.population, state.local_best_location
         )
-        local_best_fitness = jnp.minimum(state.local_best_fitness, F)
+        local_best_fitness = jnp.minimum(state.local_best_fitness, fitness)
 
         global_best_location, global_best_fitness = min_by(
-            [state.global_best_location[jnp.newaxis, :], x],
-            [state.global_best_fitness, F],
+            [state.global_best_location[jnp.newaxis, :], state.population],
+            [state.global_best_fitness, fitness],
         )
 
         global_best_fitness = jnp.atleast_1d(global_best_fitness)

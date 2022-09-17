@@ -33,9 +33,7 @@ class ClusterdAlgorithm(exl.Algorithm):
         xs = jnp.concatenate(xs, axis=1)
         return state, xs
 
-    def tell(self, state, x, F):
-        # split into different parts
-        xs = x.T.reshape(self.num_cluster, self.subproblem_dim, -1).transpose((0, 2, 1))
+    def tell(self, state, fitness):
         # copy fitness num_cluster times
-        F = jnp.tile(F, (self.num_cluster, 1))
-        return self.base_algorithm.tell(state, xs, F)
+        fitness = jnp.tile(fitness, (self.num_cluster, 1))
+        return self.base_algorithm.tell(state, fitness)

@@ -35,17 +35,14 @@ class TreeAlgorithm(exl.Algorithm):
 
     def ask(self, state):
         params = []
-        for this in self.inner:
-            state, param = self._base_algorithm.ask(this, state)
+        for inner_self in self.inner:
+            state, param = self._base_algorithm.ask(inner_self, state)
             params.append(param)
         params = tree_unflatten(self.treedef, params)
         return state, self.flatten_param.unflatten(params)
 
-    def tell(self, state, xs, F):
-        xs = self.flatten_param.flatten(xs)
-        xs = tree_leaves(xs)
-
-        for this, x in zip(self.inner, xs):
-            state = self._base_algorithm.tell(this, state, x, F)
+    def tell(self, state, fitness):
+        for inner_self in self.inner:
+            state = self._base_algorithm.tell(inner_self, state, fitness)
 
         return state

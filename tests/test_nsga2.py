@@ -18,9 +18,9 @@ class Pipeline(exl.Module):
 
     def step(self, state):
         # one step
-        state, X = self.algorithm.ask(state)
-        state, F = self.problem.evaluate(state, X)
-        state = self.algorithm.tell(state, X, F)
+        state, pop = self.algorithm.ask(state)
+        state, fitness = self.problem.evaluate(state, pop)
+        state = self.algorithm.tell(state, fitness)
         return state
 
 def test_nsga2():
