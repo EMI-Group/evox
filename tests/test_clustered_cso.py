@@ -9,15 +9,16 @@ class Pipeline(exl.Module):
     def __init__(self):
         # create a clustered CSO
         self.algorithm = exl.algorithms.ClusterdAlgorithm(
-            lb=jnp.full(shape=(500,), fill_value=-32),
-            ub=jnp.full(shape=(500,), fill_value=32),
-            # the base algorithm is CSO
-            algorithm=exl.algorithms.CSO,
+            base_algorithm=exl.algorithms.CSO,
+            dim=100,
             num_cluster=10,
-            pop_size=20,
+            lb=jnp.full(shape=(10,), fill_value=-32),
+            ub=jnp.full(shape=(10,), fill_value=32),
+            # the base algorithm is CSO
+            pop_size=100,
         )
         # choose a problem
-        self.problem = exl.problems.classic.Sphere()
+        self.problem = exl.problems.classic.Ackley()
 
     def setup(self, key):
         # record the min fitness
@@ -41,9 +42,9 @@ def test_clustered_cso():
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
-    # run the pipeline for 100 steps
-    for i in range(100):
+    # run the pipeline for 300 steps
+    for i in range(300):
         state = pipeline.step(state)
 
     state, min_fitness = pipeline.get_min_fitness(state)
-    print(min_fitness)
+    assert min_fitness < 1
