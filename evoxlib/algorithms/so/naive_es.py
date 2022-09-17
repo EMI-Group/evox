@@ -22,7 +22,7 @@ class NaiveES(exl.Algorithm):
             + self.lb
         )
         stdvar = jnp.ones((self.dim,))
-        return exl.State(mean=mean, stdvar=stdvar, key=state_key)
+        return exl.State(mean=mean, stdvar=stdvar, key=state_key, sample=None)
 
     def ask(self, state):
         key = state.key
@@ -32,12 +32,11 @@ class NaiveES(exl.Algorithm):
             + state.mean
         )
         sample = jnp.clip(sample, self.lb, self.ub)
-        state = state.update(key=key)
-        return state, sample
+        return state.update(key=key, sample=sample), sample
 
-    def tell(self, state, X, F):
+    def tell(self, state, fitness):
         order = jnp.argsort(F)
-        X = X[order]
+        X = state.sample[order]
         elite = X[: self.topk, :]
         new_mean = jnp.mean(elite, axis=0)
         new_stdvar = jnp.sqrt(jnp.var(elite, axis=0) + self.eps)

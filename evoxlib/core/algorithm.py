@@ -1,5 +1,8 @@
 import types
+from typing import Tuple
+
 import chex
+
 from .module import *
 from .state import State
 
@@ -9,7 +12,7 @@ class Algorithm(Module):
 
     """
 
-    def ask(self, state: State):
+    def ask(self, state: State) -> Tuple[State, chex.Array]:
         """Ask the algorithm
 
         Ask the algorithm for points to explore
@@ -26,7 +29,7 @@ class Algorithm(Module):
         """
         pass
 
-    def tell(self, state: State, X: chex.Array, F: chex.Array):
+    def tell(self, state: State, fitness: chex.Array) -> State:
         """Tell the algorithm more information
 
         Tell the algorithm about the points it chose and their corresponding fitness
