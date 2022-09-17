@@ -1,13 +1,13 @@
-import chex
-import jax
+import itertools
 import types
 from functools import partial, wraps
+from typing import NamedTuple
+
+import chex
+import jax
+from jax.tree_util import register_pytree_node_class
 
 from .state import State
-
-
-def jit(func):
-    return jax.jit(func, static_argnums=(0,))
 
 
 def use_state(func):
@@ -48,26 +48,8 @@ def use_state(func):
     return wrapper
 
 
-def vmap_method(method):
-    """wrap vmap over normal methods."""
-
-    def wrapped(self, *args, **kargs):
-        return jax.vmap(partial(method, self))(*args, **kargs)
-
-    return wrapped
-
-
-def vmap_setup(setup_method, n):
-    """wrap setup method.
-
-    It's different from vmap_method in that it will automatically split the RNG key.
-    """
-
-    def wrapped(self, key):
-        keys = jax.random.split(key, n)
-        return jax.vmap(partial(setup_method, self))(keys)
-
-    return wrapped
+def jit(func):
+    return jax.jit(func, static_argnums=(0,))
 
 
 def jit_method(method):
@@ -92,16 +74,17 @@ def jit_method(method):
 
 
 def default_cond_fun(name):
-    if name == '__call__':
+    if name == "__call__":
         return True
 
-    if name.startswith('_'):
+    if name.startswith("_"):
         return False
 
-    if name in ['init', 'setup']:
+    if name in ["init", "setup"]:
         return False
 
     return True
+
 
 def _class_decorator(cls, wrapper, cond_fun=default_cond_fun):
     """A helper function used to add decorators to methods of a class
@@ -126,25 +109,6 @@ def _class_decorator(cls, wrapper, cond_fun=default_cond_fun):
             wrapped = wrapper(func)
             setattr(cls, attr_name, wrapped)
     return cls
-
-
-def vmap_class(cls, n, ignore=["init", "__init__"], ignore_prefix="_"):
-    class VmapWrapped(cls):
-        pass
-
-    for attr_name in dir(VmapWrapped):
-        if attr_name.startswith(ignore_prefix):
-            continue
-        if attr_name in ignore:
-            continue
-
-        attr = getattr(cls, attr_name)
-        if attr_name == "setup":
-            wrapped = vmap_setup(attr, n)
-        else:
-            wrapped = vmap_method(attr)
-        setattr(VmapWrapped, attr_name, wrapped)
-    return VmapWrapped
 
 
 def jit_class(cls, cond_fun=default_cond_fun):
@@ -212,7 +176,7 @@ class Module(metaclass=MetaModule):
         """
         return State()
 
-    def init(self, key: chex.PRNGKey = None, name="_top_level") -> State:
+    def init(self, key: chex.PRNGKey = None, name: str = "_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
