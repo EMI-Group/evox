@@ -1,2 +1,2 @@
-from .clustered_algorithm import ClusterdAlgorithm
+from .clustered_algorithm import ClusterdAlgorithm, RandomMaskAlgorithm
 from .tree_algorithm import TreeAlgorithm

@@ -3,6 +3,7 @@ import evoxlib as exl
 import jax
 import pytest
 from evoxlib import Module, State
+from jax.tree_util import tree_map
 
 
 class Leaf(Module):
@@ -69,9 +70,9 @@ def test_basic():
     root_state = root_module.init(key=jax.random.PRNGKey(123))
     middle_state = middle_module.init(key=jax.random.PRNGKey(456))
     leaf_state = leaf_module.init(key=jax.random.PRNGKey(789))
-    assert root_state._get_child_state('_submodule_leaf') == leaf_state
-    assert root_state._get_child_state('_submodule_middle') == middle_state
-    assert middle_state._get_child_state('_submodule_leaf') == leaf_state
+    assert root_state.get_child_state('_submodule_leaf') == leaf_state
+    assert root_state.get_child_state('_submodule_middle') == middle_state
+    assert middle_state.get_child_state('_submodule_leaf') == leaf_state
 
     root_state, magic = root_module.run(root_state)
     assert magic == [2, 7, 1, 2, 7, 1, 8, 2, 8]
@@ -87,3 +88,8 @@ def test_repl_and_str():
                           " ['_submodule_leaf', '_submodule_middle']\n"
                           ")"
                           )
+
+def test_jax_pytree():
+    module = Root()
+    state = module.init(key=jax.random.PRNGKey(0))
+    assert state == tree_map(lambda x: x, state)

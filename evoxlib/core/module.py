@@ -24,7 +24,7 @@ def use_state(func):
 
     @wraps(func)
     def wrapper(self, state, *args, **kargs):
-        if self.name == "_top_level":
+        if self.name == "_top_level" or not state.has_child(self.name):
             return_value = func(self, state, *args, **kargs)
 
             # single return value, the value must be a State
@@ -35,14 +35,14 @@ def use_state(func):
             state = state.update(return_value[0])
             return (state, *return_value[1:])
         else:
-            return_value = func(self, state._get_child_state(self.name), *args, **kargs)
+            return_value = func(self, state.get_child_state(self.name), *args, **kargs)
 
             # single return value, the value must be a State
             if not isinstance(return_value, tuple):
-                return state._update_child(self.name, return_value)
+                return state.update_child(self.name, return_value)
 
             # unpack the return value first
-            state = state._update_child(self.name, return_value[0])
+            state = state.update_child(self.name, return_value[0])
             return (state, *return_value[1:])
 
     return wrapper

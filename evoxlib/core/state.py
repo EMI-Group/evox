@@ -70,7 +70,10 @@ class State:
 
         raise ValueError("other must be either State or dict")
 
-    def _get_child_state(self, name) -> State:
+    def has_child(self, name) -> bool:
+        return name in self._child_states
+
+    def get_child_state(self, name) -> State:
         return self._child_states[name]
 
     def _set_child_states(self, child_states) -> State:
@@ -81,7 +84,7 @@ class State:
         self.__dict__["_child_states"] = child_states
         return self
 
-    def _update_child(self, name, child_state) -> State:
+    def update_child(self, name, child_state) -> State:
         return State(
             self._state_dict,
             {**self._child_states,
