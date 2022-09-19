@@ -1,3 +1,4 @@
+from turtle import pos
 import evoxlib as exl
 
 import jax
@@ -23,11 +24,9 @@ class TournamentSelection(exl.Operator):
         order = jnp.argsort(candidates_fitness)[::-1]
         candidates = candidates[order]
 
-        possibilities = jnp.ones(shape=(self.k,)) * self.p
-        temp = 1
-        for i in range(self.k):
-            possibilities[i] *= temp
-            temp *= 1 - self.p
+        possibilities = jnp.full((self.k, ), 1 - self.p)
+        possibilities[0] = 1
+        possibilities = jnp.cumprod(possibilities) * self.p
 
         # select an individual from k candidates by possibilities
         chosen = jax.random.choice(subkey, self.k, key=possibilities, shape=(1,))
