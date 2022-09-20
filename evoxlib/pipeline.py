@@ -1,2 +1,0 @@
-class Pipeline:
-    pass
