@@ -14,7 +14,7 @@ class StdPipeline(Module):
             self.fitness_monitor = None
 
         if population_monitor:
-            self.population_monitor = PopulationMonitor()
+            self.population_monitor = PopulationMonitor(2)
         else:
             self.population_monitor = None
 

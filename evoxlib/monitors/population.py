@@ -36,7 +36,7 @@ class PopulationMonitor:
         for i, (x, y) in enumerate(self.history):
             column_history[f"{i}_x"] = x
             column_history[f"{i}_y"] = y
-        print(column_history)
+
         column_history = ColumnDataSource(column_history)
 
         # init data
