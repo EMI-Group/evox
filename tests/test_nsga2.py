@@ -1,31 +1,22 @@
 import evoxlib as exl
+from evoxlib import pipelines, algorithms, problems
 import jax
 import jax.numpy as jnp
 import pytest
 
 
-class Pipeline(exl.Module):
-    def __init__(self):
-        # choose an algorithm
-        self.algorithm = exl.algorithms.NSGA2(
+def test_nsga2():
+    key = jax.random.PRNGKey(123)
+    pipeline = pipelines.StdPipeline(
+        algorithm=exl.algorithms.NSGA2(
             lb=jnp.full(shape=(2,), fill_value=0),
             ub=jnp.full(shape=(2,), fill_value=1),
             n_objs=2,
             pop_size=100,
-        )
-        # choose a problem
-        self.problem = exl.problems.classic.ZDT1(n=2)
-
-    def step(self, state):
-        # one step
-        state, pop = self.algorithm.ask(state)
-        state, fitness = self.problem.evaluate(state, pop)
-        state = self.algorithm.tell(state, fitness)
-        return state
-
-def test_nsga2():
-    key = jax.random.PRNGKey(123)
-    pipeline = Pipeline()
+        ),
+        problem=exl.problems.classic.ZDT1(n=2),
+        fitness_monitor=True
+    )
     state = pipeline.init(key)
 
     for i in range(100):

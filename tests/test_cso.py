@@ -1,39 +1,21 @@
 import evoxlib as exl
+from evoxlib import pipelines, algorithms, problems
 import jax
 import jax.numpy as jnp
 import pytest
 
 
-@exl.jit_class
-class Pipeline(exl.Module):
-    def __init__(self):
-        # choose an algorithm
-        self.algorithm = exl.algorithms.CSO(
+def test_cso():
+    # create a pipeline
+    pipeline = pipelines.StdPipeline(
+        algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
             pop_size=100,
-        )
-        # choose a problem
-        self.problem = exl.problems.classic.Ackley()
-
-    def setup(self, key):
-        # record the min fitness
-        return exl.State({"min_fitness": 1e9})
-
-    def step(self, state):
-        # one step
-        state, pop = self.algorithm.ask(state)
-        state, fitness = self.problem.evaluate(state, pop)
-        state = self.algorithm.tell(state, fitness)
-        return state | {"min_fitness": jnp.minimum(state["min_fitness"], jnp.min(fitness))}
-
-    def get_min_fitness(self, state):
-        return state, state["min_fitness"]
-
-
-def test_cso():
-    # create a pipeline
-    pipeline = Pipeline()
+        ),
+        problem=problems.classic.Ackley(),
+        fitness_monitor=True
+    )
     # init the pipeline
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)

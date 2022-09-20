@@ -1,4 +1,5 @@
 import evoxlib as exl
+from evoxlib import algorithms, problems, pipelines
 from evoxlib.problems.neuroevolution.models import SimpleCNN
 import jax
 import jax.numpy as jnp
@@ -8,67 +9,24 @@ import time
 
 class PartialPGPE(exl.algorithms.PGPE):
     def __init__(self, center_init):
-        super().__init__(300, center_init, 'adam', center_learning_rate=0.01, stdev_init=0.01)
-
-
-class TreemapPipeline(exl.Module):
-    def __init__(self):
-        # MNIST with LeNet
-        self.problem = exl.problems.neuroevolution.MNIST("./", 128, SimpleCNN())
-        center_init = jax.tree_util.tree_map(
-            lambda x: x.reshape(-1),
-            self.problem.initial_params,
-        )
-        self.algorithm = exl.algorithms.TreeAlgorithm(PartialPGPE, self.problem.initial_params, center_init)
-
-    def setup(self, key):
-        # record the min fitness
-        return exl.State({"min_fitness": 1e9})
-
-    def step(self, state):
-        # one step
-        state, pop = self.algorithm.ask(state)
-        state, fitness = self.problem.evaluate(state, pop)
-        state = self.algorithm.tell(state, fitness)
-        return state | {"min_fitness": jnp.minimum(state["min_fitness"], jnp.min(fitness))}
-
-    def get_min_fitness(self, state):
-        return state, state["min_fitness"]
-
-
-class AdapterPipeline(exl.Module):
-    def __init__(self):
-        # MNIST with LeNet
-        self.problem = exl.problems.neuroevolution.MNIST("./", 128, SimpleCNN())
-        self.adapter = exl.utils.TreeToVector(self.problem.initial_params)
-        self.algorithm = exl.algorithms.PGPE(
-            300,
-            self.adapter.to_vector(self.problem.initial_params),
-            'adam',
-            center_learning_rate=0.01,
-            stdev_init=0.01
-        )
-
-    def setup(self, key):
-        # record the min fitness
-        return exl.State({"min_fitness": 1e9})
-
-    def step(self, state):
-        # one step
-        state, pop = self.algorithm.ask(state)
-        tree_pop = self.adapter.to_tree(pop, True)
-        state, fitness = self.problem.evaluate(state, tree_pop)
-        state = self.algorithm.tell(state, fitness)
-        return state | {"min_fitness": jnp.minimum(state["min_fitness"], jnp.min(fitness))}
-
-    def get_min_fitness(self, state):
-        return state, state["min_fitness"]
+        super().__init__(300, center_init, 'adam',
+                         center_learning_rate=0.01, stdev_init=0.01)
 
 
 def test_neuroevolution_treemap():
     start = time.perf_counter()
     # create a pipeline
-    pipeline = TreemapPipeline()
+    problem = exl.problems.neuroevolution.MNIST("./", 128, SimpleCNN())
+    center_init = jax.tree_util.tree_map(
+        lambda x: x.reshape(-1),
+        problem.initial_params,
+    )
+    pipeline = pipelines.StdPipeline(
+        algorithm=exl.algorithms.TreeAlgorithm(
+            PartialPGPE, problem.initial_params, center_init),
+        problem=problem,
+        fitness_monitor=True
+    )
     # init the pipeline
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
@@ -85,7 +43,22 @@ def test_neuroevolution_treemap():
 def test_neuroevolution_adapter():
     start = time.perf_counter()
     # create a pipeline
-    pipeline = AdapterPipeline()
+    problem = problems.neuroevolution.MNIST(
+        "./", 128, SimpleCNN())
+    adapter = exl.utils.TreeToVector(problem.initial_params)
+    algorithm = algorithms.PGPE(
+        300,
+        adapter.to_vector(problem.initial_params),
+        'adam',
+        center_learning_rate=0.01,
+        stdev_init=0.01
+    )
+    pipeline = pipelines.AdapterPipeline(
+        algorithm=algorithm,
+        problem=problem,
+        adapter=adapter,
+        fitness_monitor=True
+    )
     # init the pipeline
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
