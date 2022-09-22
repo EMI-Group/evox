@@ -6,8 +6,7 @@ import evoxlib as exl
 
 def _rosenbrock_func(x):
     f = jnp.sum(
-        100 * (x[:, :x.shape[1] - 1]) ** 2 - x[:, 1:x.shape[1]] ** 2 + (x[:, :x.shape[1] - 1] - 1) ** 2,
-        axis=1, keepdims=True)
+        100 * ((x[1:])- x[:x.shape[0] - 1] ** 2) ** 2 + (x[:x.shape[0] - 1] - 1) ** 2)
     return f
 
 
@@ -16,3 +15,4 @@ class Rosenbrock(exl.Problem):
         
     def evaluate(self, state, X):
         return state, jax.vmap(_rosenbrock_func)(X)
+
