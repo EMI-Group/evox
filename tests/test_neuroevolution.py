@@ -1,6 +1,7 @@
 import evoxlib as exl
 from evoxlib import algorithms, problems, pipelines
 from evoxlib.problems.neuroevolution.models import SimpleCNN
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
@@ -21,11 +22,12 @@ def test_neuroevolution_treemap():
         lambda x: x.reshape(-1),
         problem.initial_params,
     )
+    monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithm=exl.algorithms.TreeAlgorithm(
             PartialPGPE, problem.initial_params, center_init),
         problem=problem,
-        fitness_monitor=True
+        fitness_transforms=[monitor]
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -36,7 +38,7 @@ def test_neuroevolution_treemap():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = pipeline.get_min_fitness()
     print(f'Treemap loss: {min_fitness}  time: {time.perf_counter() - start}')
 
 
@@ -45,7 +47,8 @@ def test_neuroevolution_adapter():
     # create a pipeline
     problem = problems.neuroevolution.MNIST(
         "./", 128, SimpleCNN())
-    adapter = exl.utils.TreeToVector(problem.initial_params)
+    adapter = exl.utils.TreeAndVector(problem.initial_params)
+    monitor = FitnessMonitor()
     algorithm = algorithms.PGPE(
         300,
         adapter.to_vector(problem.initial_params),
@@ -53,11 +56,12 @@ def test_neuroevolution_adapter():
         center_learning_rate=0.01,
         stdev_init=0.01
     )
-    pipeline = pipelines.AdapterPipeline(
+    pipeline = pipelines.StdPipeline(
         algorithm=algorithm,
         problem=problem,
         adapter=adapter,
-        fitness_monitor=True
+        pop_transforms=[adapter.batched_to_tree],
+        fitness_transforms=[monitor]
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -68,5 +72,5 @@ def test_neuroevolution_adapter():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = pipeline.get_min_fitness()
     print(f'Adapter loss: {min_fitness}  time: {time.perf_counter() - start}')

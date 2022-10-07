@@ -1,11 +1,13 @@
 import evoxlib as exl
 from evoxlib import algorithms, problems, pipelines
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_pso():
+    monitor = FitnessMonitor()
     # create a pipeline
     pipeline = pipelines.StdPipeline(
         algorithm=algorithms.PSO(
@@ -17,7 +19,7 @@ def test_pso():
             social_coefficient=2.0,
         ),
         problem=problems.classic.Ackley(),
-        fitness_monitor=True
+        fitness_transforms=[monitor.update]
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -28,5 +30,5 @@ def test_pso():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = monitor.get_min_fitness()
     assert min_fitness < 1e-4

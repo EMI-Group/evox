@@ -1,11 +1,13 @@
 import evoxlib as exl
 from evoxlib import algorithms, problems, pipelines
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_pgpe():
+    monitor = FitnessMonitor()
     # create a pipeline
     key = jax.random.PRNGKey(42)
     key1, key2 = jax.random.split(key)
@@ -20,7 +22,7 @@ def test_pgpe():
             stdev_learning_rate=0.1
         ),
         problem=exl.problems.classic.Rastrigin(),
-        fitness_monitor=True
+        fitness_transforms=[monitor.update]
     )
     # init the pipeline
     state = pipeline.init(key2)
@@ -30,5 +32,5 @@ def test_pgpe():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = monitor.get_min_fitness()
     assert min_fitness < 1e-1
