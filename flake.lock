@@ -16,13 +16,28 @@
         "type": "github"
       }
     },
+    "local-nixpkgs": {
+      "locked": {
+        "lastModified": 1665034474,
+        "narHash": "sha256-ds2zdSO8t649e2vdcs19J4Nxs0O1yCy4EZyK5VYCdIU=",
+        "ref": "init/ray",
+        "rev": "0cf3ce826136be554484300b1556c3b848179bd2",
+        "revCount": 414226,
+        "type": "git",
+        "url": "file:///home/bill/Source/nixpkgs"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/bill/Source/nixpkgs"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1662096612,
-        "narHash": "sha256-R+Q8l5JuyJryRPdiIaYpO5O3A55rT+/pItBrKcy7LM4=",
+        "lastModified": 1665056165,
+        "narHash": "sha256-2C7VfNphJa0FxPoT+suMOmUDVrQ5RIE+NKfDWqElvE4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "21de2b973f9fee595a7a1ac4693efff791245c34",
+        "rev": "27a89ba43b0fb735ce867e8ab3d2442f8cc61dad",
         "type": "github"
       },
       "original": {
@@ -35,6 +50,7 @@
     "root": {
       "inputs": {
         "flake-compat": "flake-compat",
+        "local-nixpkgs": "local-nixpkgs",
         "nixpkgs": "nixpkgs",
         "utils": "utils"
       }

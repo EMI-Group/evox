@@ -29,20 +29,40 @@ let
     ];
   };
 
+  # ray = import ./ray-bin.nix { inherit pkgs python; };
+  # ray = local-nixpkgs.legacyPackages.x86_64-linux.python310Packages.ray-bin;
+
   dependencies = ps: with ps; [
     bokeh
     build
     chex
     flax
+    gym
     jax
     jaxlib
     numpydoc
     optax
+    pandas
     pydata-sphinx-theme
     pytest
+    (ray-bin.override {
+      withData = false;
+      withServe = false;
+      withTune = false;
+      withRllib = false;
+      withAir = false;
+    })
     sphinx
     torchvision
+    pytorch
+
+    # gym render
+    pyglet
+
+    (pkgs.callPackage ./ale-py.nix {})
+    (pkgs.callPackage ./auto-rom.nix {})
   ];
+
 
   pyenv = python.withPackages dependencies;
 
