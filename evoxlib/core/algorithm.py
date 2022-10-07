@@ -38,9 +38,7 @@ class Algorithm(Module):
         ----------
         state : dict
             The state of this algorithm
-        X : ndarray
-            The points given by ``ask``
-        F : ndarray
+        fitness : ndarray
             The fitness
 
         Returns
