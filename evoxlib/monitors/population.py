@@ -25,9 +25,10 @@ class PopulationMonitor:
         self.history = []
         self.min_fitness = float("inf")
 
-    def update(self, X):
+    def update(self, pop):
         chex.assert_shape(X, (None, self.n))
         self.history.append(np.array(X).T)
+        return pop
 
     def show(self):
         # format self.history into ColumnDataSource acceptable format

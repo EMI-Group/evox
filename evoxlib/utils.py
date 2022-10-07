@@ -1,10 +1,13 @@
-import chex
+from collections.abc import Iterable
+from functools import partial
 from typing import Union
+
+import chex
 import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
+
 from .core.module import *
-from functools import partial
 
 
 def min_by(
@@ -27,7 +30,23 @@ def _prod_tuple(xs):
     return prod
 
 
-class TreeToVector:
+def compose(*functions):
+    # if argument is a single Iterable like list or tuple,
+    # treat it as a list of functions
+    if len(functions) == 1 and isinstance(functions[0], Iterable):
+        functions = functions[0]
+
+    def composed_function(*args):
+        carry = args
+        for function in functions:
+            carry = function(carry)
+        return carry
+
+    return composed_function
+
+
+@jit_class
+class TreeAndVector:
     def __init__(self, dummy_input):
         leaves, self.treedef = tree_flatten(dummy_input)
         self.shapes = [x.shape for x in leaves]
@@ -40,38 +59,53 @@ class TreeToVector:
             self.slice_sizes.append(size)
             index += size
 
-    @partial(jax.jit, static_argnums=(0, 2))
-    def to_vector(self, x, batch=False):
+    def to_vector(self, x):
         leaves = tree_leaves(x)
-        if batch:
-            leaves = [x.reshape(x.shape[0], -1) for x in leaves]
-            return jnp.concatenate(leaves, axis=1)
-        else:
-            leaves = [x.reshape(-1) for x in leaves]
-            return jnp.concatenate(leaves, axis=0)
+        leaves = [x.reshape(-1) for x in leaves]
+        return jnp.concatenate(leaves, axis=0)
 
-    @partial(jax.jit, static_argnums=(0, 2))
-    def to_tree(self, x, batch=False):
+    def batched_to_tree(self, x):
+        leaves = tree_leaves(x)
+        leaves = [x.reshape(x.shape[0], -1) for x in leaves]
+        return jnp.concatenate(leaves, axis=1)
+
+    def to_tree(self, x):
         leaves = []
-
-        if batch:
-            for start_index, slice_size, shape in zip(
-                self.start_indices, self.slice_sizes, self.shapes
-            ):
-                batch_size = x.shape[0]
-                leaves.append(
-                    jax.lax.dynamic_slice(
-                        x, (0, start_index), (batch_size, slice_size)
-                    ).reshape(batch_size, *shape)
-                )
-        else:
-            for start_index, slice_size, shape in zip(
-                self.start_indices, self.slice_sizes, self.shapes
-            ):
-                leaves.append(
-                    jax.lax.dynamic_slice(x, (start_index,), (slice_size,)).reshape(
-                        shape
-                    )
-                )
-
+        for start_index, slice_size, shape in zip(
+            self.start_indices, self.slice_sizes, self.shapes
+        ):
+            leaves.append(
+                jax.lax.dynamic_slice(x, (start_index,), (slice_size,)).reshape(shape)
+            )
         return tree_unflatten(self.treedef, leaves)
+
+    def batched_to_tree(self, x):
+        leaves = []
+        for start_index, slice_size, shape in zip(
+            self.start_indices, self.slice_sizes, self.shapes
+        ):
+            batch_size = x.shape[0]
+            leaves.append(
+                jax.lax.dynamic_slice(
+                    x, (0, start_index), (batch_size, slice_size)
+                ).reshape(batch_size, *shape)
+            )
+        return tree_unflatten(self.treedef, leaves)
+
+    # need this because of the follow issue
+    # TypeError: cannot pickle 'jaxlib.pytree.PyTreeDef' object
+    # https://github.com/google/jax/issues/3872
+    def __getstate__(self):
+        dummy_tree = tree_unflatten(self.treedef, self.start_indices)
+        return {
+            "dummy_tree": dummy_tree,
+            "shapes": self.shapes,
+            "start_indices": self.start_indices,
+            "slice_sizes": self.slice_sizes,
+        }
+
+    def __setstate__(self, state_dict):
+        _leaves, self.treedef = tree_flatten(state_dict["dummy_tree"])
+        self.shapes = state_dict["shapes"]
+        self.start_indices = state_dict["start_indices"]
+        self.slice_sizes = state_dict["slice_sizes"]

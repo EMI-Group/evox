@@ -13,9 +13,10 @@ class FitnessMonitor:
         self.history = []
         self.min_fitness = float("inf")
 
-    def update(self, F):
-        self.min_fitness = min(self.min_fitness, jnp.min(F).item())
+    def update(self, fitness):
+        self.min_fitness = min(self.min_fitness, jnp.min(fitness).item())
         self.history.append(self.min_fitness)
+        return fitness
 
     def show(self):
         plot = figure(
