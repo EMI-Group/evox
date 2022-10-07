@@ -6,6 +6,9 @@ from typing import Any
 from jax.tree_util import register_pytree_node_class
 
 
+def is_magic_method(name: str):
+    return name.startswith("__") and name.endswith("__")
+
 @register_pytree_node_class
 class State:
     """A class represents state
@@ -99,6 +102,8 @@ class State:
         return self.update(*args, **kwargs)
 
     def __getattr__(self, key: str) -> Any:
+        if is_magic_method(key):
+            return super().__getattr__(key)
         return self._state_dict[key]
 
     def __getitem__(self, key: str) -> Any:
@@ -117,6 +122,16 @@ class State:
         return ("State (\n"
                 f" {pformat(self._state_dict)},\n"
                 f" {pformat(list(self._child_states.keys()))}\n"
+                ")"
+                )
+
+    def sprint_tree(self) -> str:
+        if self is State.empty:
+            return "State.empty"
+        str_children = {key: child_state.sprint_tree() for key, child_state in self._child_states.items()}
+        return ("State (\n"
+                f" {pformat(self._state_dict)},\n"
+                f" {pformat(str_children)}\n"
                 ")"
                 )
 
