@@ -1,16 +1,9 @@
-from functools import partial
-from re import S
-
 import jax
 import jax.numpy as jnp
 from jax import lax
-import copy
 from enum import Enum
 
-from matplotlib.pyplot import sca
-
 import evoxlib as exl
-from evoxlib.evoxlib.core.state import State
 
 
 class MutationVectorTypeEnum(Enum):
