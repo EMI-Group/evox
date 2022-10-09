@@ -26,8 +26,9 @@ class PopulationMonitor:
         self.min_fitness = float("inf")
 
     def update(self, pop):
-        chex.assert_shape(X, (None, self.n))
-        self.history.append(np.array(X).T)
+        chex.assert_shape(pop, (None, self.n))
+        # convert to numpy array to save gpu memory
+        self.history.append(np.array(pop).T)
         return pop
 
     def show(self):
