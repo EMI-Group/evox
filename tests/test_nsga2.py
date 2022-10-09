@@ -17,7 +17,7 @@ def test_nsga2():
             pop_size=100,
         ),
         problem=exl.problems.classic.ZDT1(n=2),
-        fitness_transforms=[monitor]
+        fitness_transform=monitor.update
     )
     state = pipeline.init(key)
 

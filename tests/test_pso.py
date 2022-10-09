@@ -19,7 +19,7 @@ def test_pso():
             social_coefficient=2.0,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transforms=[monitor.update]
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)

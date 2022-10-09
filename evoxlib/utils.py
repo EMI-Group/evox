@@ -36,13 +36,30 @@ def compose(*functions):
     if len(functions) == 1 and isinstance(functions[0], Iterable):
         functions = functions[0]
 
-    def composed_function(*args):
-        carry = args
+    def composed_function(carry):
         for function in functions:
             carry = function(carry)
         return carry
 
     return composed_function
+
+
+@jax.jit
+def rank(array):
+    """
+    Return the rank for each item of an 1d-array.
+    """
+    order = jnp.argsort(array)
+    rank = jnp.empty_like(order)
+    rank = rank.at[order].set(jnp.arange(order.shape[0]))
+    return rank
+
+
+@jax.jit
+def rank_based_fitness(raw_fitness):
+    num_elems = raw_fitness.shape[0]
+    fitness_rank = rank(raw_fitness)
+    return fitness_rank / num_elems - 0.5
 
 
 @jit_class
@@ -64,7 +81,7 @@ class TreeAndVector:
         leaves = [x.reshape(-1) for x in leaves]
         return jnp.concatenate(leaves, axis=0)
 
-    def batched_to_tree(self, x):
+    def batched_to_vector(self, x):
         leaves = tree_leaves(x)
         leaves = [x.reshape(x.shape[0], -1) for x in leaves]
         return jnp.concatenate(leaves, axis=1)

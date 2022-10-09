@@ -22,7 +22,7 @@ def test_pgpe():
             stdev_learning_rate=0.1
         ),
         problem=exl.problems.classic.Rastrigin(),
-        fitness_transforms=[monitor.update]
+        fitness_transform=monitor.update
     )
     # init the pipeline
     state = pipeline.init(key2)

@@ -27,7 +27,7 @@ def test_neuroevolution_treemap():
         algorithm=exl.algorithms.TreeAlgorithm(
             PartialPGPE, problem.initial_params, center_init),
         problem=problem,
-        fitness_transforms=[monitor]
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -38,7 +38,7 @@ def test_neuroevolution_treemap():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    min_fitness = pipeline.get_min_fitness()
+    min_fitness = monitor.get_min_fitness()
     print(f'Treemap loss: {min_fitness}  time: {time.perf_counter() - start}')
 
 
@@ -59,9 +59,8 @@ def test_neuroevolution_adapter():
     pipeline = pipelines.StdPipeline(
         algorithm=algorithm,
         problem=problem,
-        adapter=adapter,
-        pop_transforms=[adapter.batched_to_tree],
-        fitness_transforms=[monitor]
+        pop_transform=adapter.batched_to_tree,
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -72,5 +71,5 @@ def test_neuroevolution_adapter():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    min_fitness = pipeline.get_min_fitness()
+    min_fitness = monitor.get_min_fitness()
     print(f'Adapter loss: {min_fitness}  time: {time.perf_counter() - start}')

@@ -6,15 +6,19 @@ from evoxlib.core.module import Module
 
 
 class FitnessMonitor:
-    def __init__(self, n_objects=1):
+    def __init__(self, n_objects=1, keep_global_best=True):
         # single object for now
         assert n_objects == 1
         self.n_objects = n_objects
         self.history = []
         self.min_fitness = float("inf")
+        self.keep_global_best = keep_global_best
 
     def update(self, fitness):
-        self.min_fitness = min(self.min_fitness, jnp.min(fitness).item())
+        if self.keep_global_best:
+            self.min_fitness = min(self.min_fitness, jnp.min(fitness).item())
+        else:
+            self.min_fitness = jnp.min(fitness).item()
         self.history.append(self.min_fitness)
         return fitness
 
