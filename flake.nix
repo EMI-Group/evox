@@ -25,6 +25,7 @@
         devShells.default = total.devShells.cpu;
         packages.default = total.packages.cpu;
         packages.auto-rom = callPackage ./auto-rom.nix {};
+        devShells.fhs = import ./fhs.nix { inherit nixpkgs system; cudaSupport=true; };
       }
     );
 }
