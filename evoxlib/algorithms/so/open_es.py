@@ -17,15 +17,15 @@ class OpenES(exl.Algorithm):
         self.learning_rate = learning_rate
         self.noise_std = noise_std
 
-    def new_pop(self, key, params):
+    def _new_pop(self, key, params):
         key, noise_key = jax.random.split(key)
         noise = jax.random.normal(noise_key, shape=(self.pop_size, self.dim))
-        population = jnp.repeat(params, self.pop_size).reshape(self.pop_size, self.dim)
+        population = jnp.repeat(params, self.pop_size).reshape(self.dim, self.pop_size).T
         population = population + self.noise_std * noise
         return population, noise, key
 
     def setup(self, key):
-        population, noise, key = self.new_pop(key, self.init_params)
+        population, noise, key = self._new_pop(key, self.init_params)
         return exl.State(population=population, params=self.init_params, noise=noise, key=key)
 
     def ask(self, state):
@@ -33,7 +33,7 @@ class OpenES(exl.Algorithm):
 
     def tell(self, state, fitness):
         params = state.params
-        population, noise, key = self.new_pop(key, params)
-        params = params + self.learning_rate / self.pop_size / self.noise_std * jnp.sum(lax.map(lambda F, e: F * e, zip(fitness, noise)), axis=1)
+        population, noise, key = self._new_pop(state.key, params)
+        params = params + self.learning_rate / self.pop_size / self.noise_std * jnp.sum(jax.vmap(lambda F, e: F * e)(fitness, noise), axis=0)
         
         return state.update(population=population, params=params, key=key)

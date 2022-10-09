@@ -2,6 +2,7 @@ import math
 import jax
 import jax.numpy as jnp
 from jax import lax
+from .sort_utils import sort_key_valrows
 
 import evoxlib as exl
 
@@ -15,7 +16,7 @@ class CMA_ES(exl.Algorithm):
         assert(init_var > 0)
         N = init_mean.shape[0]
         if pop_size is None:
-            M = 4 + math.floor(3 * math.log(self.dim))
+            M = 4 + math.floor(3 * math.log(N))
         else:
             M = pop_size
 
@@ -51,8 +52,8 @@ class CMA_ES(exl.Algorithm):
         self.dim = N
         self.pop_size = M
         self.init_mean = init_mean
-        self.init_var = init_var
-        self.weight = w
+        self.init_std = init_var
+        self.weight = w[:μ]
         self.μeff = μeff
         self.positive_count = μ
         self.chiN = math.sqrt(self.dim) * (1 - 1 / 4 / self.dim + 1 / 21 / self.dim ** 2)
@@ -65,14 +66,14 @@ class CMA_ES(exl.Algorithm):
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
         zero_mean_pop = jax.random.normal(init_key, shape=(self.pop_size, self.dim))
-        population = lax.map(lambda p, μ, σ: μ + σ * p, zip(zero_mean_pop, self.init_mean, self.init_var))
+        population = jax.vmap(lambda p: self.init_mean + self.init_std * p)(zero_mean_pop)
         covariance = jnp.eye(self.dim)
         eigvecs = jnp.eye(self.dim)
         eigvals = jnp.ones((self.dim,))
         path_σ = jnp.zeros((self.dim,))
         path_c = jnp.zeros((self.dim,))
         mean = self.init_mean
-        step_size = self.init_var
+        step_size = self.init_std
 
         return exl.State(population=population, zero_mean_pop=population, zero_mean_cov_pop=population,
                          covariance=covariance, eigvecs=eigvecs, eigvals=eigvals,
@@ -96,20 +97,20 @@ class CMA_ES(exl.Algorithm):
         step_size = state.step_size
         iter_count = state.iter_count + 1
 
-        fitness, population, zero_mean_pop, zero_mean_cov_pop = lax.sort((fitness, population, zero_mean_pop, zero_mean_cov_pop), is_stable=False)
-        mean = jnp.sum(lax.map(lambda w, x: w * x, zip(self.weight[:self.positive_count], population[:self.positive_count])), axis=1)
-        zmean = jnp.sum(lax.map(lambda w, x: w * x, zip(self.weight[:self.positive_count], zero_mean_pop[:self.positive_count])), axis=1)
-        ymean = jnp.sum(lax.map(lambda w, x: w * x, zip(self.weight[:self.positive_count], zero_mean_cov_pop[:self.positive_count])), axis=1)
+        fitness, population, zero_mean_pop, zero_mean_cov_pop = sort_key_valrows(fitness, population, zero_mean_pop, zero_mean_cov_pop)
+        mean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, population[:self.positive_count]), axis=0)
+        zmean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, zero_mean_pop[:self.positive_count]), axis=0)
+        ymean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, zero_mean_cov_pop[:self.positive_count]), axis=0)
 
-        path_σ = (1 - self.cσ) * path_σ + math.sqrt(self.cσ * (2 - self.cσ) * self.μeff) * (B @ zmean)
-        hσ = jnp.linalg.norm(path_σ) / math.sqrt(1 - (1 - self.cσ) ** (2 * iter_count)) < (1.4 + 2 / (self.dim + 1)) * self.chiN
-        hσ = 1 if hσ else 0
-        path_c = (1 - self.cc) * path_c + hσ * math.sqrt(self.cc * (2 - self.cc) * self.μeff) * ymean
-        step_size = step_size * math.exp(self.cσ / self.dσ * (jnp.linalg.norm(path_σ) / self.chiN - 1))
+        path_σ = (1 - self.cσ) * path_σ + jnp.sqrt(self.cσ * (2 - self.cσ) * self.μeff) * (B @ zmean)
+        hσ = jnp.linalg.norm(path_σ) / jnp.sqrt(1 - (1 - self.cσ) ** (2 * iter_count)) < (1.4 + 2 / (self.dim + 1)) * self.chiN
+        hσ = lax.cond(hσ, lambda: 1, lambda: 0)
+        path_c = (1 - self.cc) * path_c + hσ * jnp.sqrt(self.cc * (2 - self.cc) * self.μeff) * ymean
+        step_size = step_size * jnp.exp(self.cσ / self.dσ * (jnp.linalg.norm(path_σ) / self.chiN - 1))
 
         C = (1 - self.c1 - self.cμ + self.c1 * (1 - hσ) * self.cc * (2 - self.cc)) * C + \
             self.c1 * (path_c.reshape(self.dim, 1) @ path_c.reshape(1, self.dim)) + \
-            self.cμ * jnp.diag(self.weight) @ jnp.sum(lax.map(lambda y: y.reshape(self.dim, 1) @ y.reshape(1, self.dim), zero_mean_cov_pop[:self.positive_count]))
+            self.cμ * jnp.sum(jax.vmap(lambda w, y: w * y.reshape(self.dim, 1) @ y.reshape(1, self.dim))(self.weight, zero_mean_cov_pop[:self.positive_count]), axis=0)
 
         def updateBD(B, D, C):
             D, B = jnp.linalg.eigh(C, symmetrize_input=True)
@@ -119,12 +120,12 @@ class CMA_ES(exl.Algorithm):
         def noUpdate(B, D, C):
             return B, D
 
-        B, D = lax.cond(iter_count % math.ceil(1 / (self.c1 + self.cμ) / self.dim / 10) == 0, updateBD, noUpdate, B, D, C)
+        B, D = lax.cond(iter_count % jnp.ceil(1 / (self.c1 + self.cμ) / self.dim / 10) == 0, updateBD, noUpdate, B, D, C)
 
         key, sample_key = jax.random.split(state.key)
         zero_mean_pop = jax.random.normal(sample_key, shape=(self.pop_size, self.dim))
-        zero_mean_cov_pop = lax.map(lambda p: B @ (D * p), zero_mean_pop)
-        population = lax.map(lambda p: mean + step_size * p, population)
+        zero_mean_cov_pop = jax.vmap(lambda p: B @ (D * p))(zero_mean_pop)
+        population = jax.vmap(lambda p: mean + step_size * p)(population)
 
         return state.update(population=population, zero_mean_pop=zero_mean_pop, zero_mean_cov_pop=zero_mean_cov_pop,
                             covariance=C, eigvecs=B, eigvals=D,

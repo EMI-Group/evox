@@ -16,7 +16,7 @@ class DE(exl.Algorithm):
     def __init__(self, lb, ub, pop_size, batch_size, scale_factor=0.2, cross_rate=0.5, mutation_type=MutationVectorTypeEnum.RAND_1):
         assert(jnp.all(lb < ub))
         assert(pop_size >= 5) # otherwise the batch_size assert must fail
-        assert(mutation_type >= MutationVectorTypeEnum.RAND_1 and mutation_type <= MutationVectorTypeEnum.BEST_2)
+        assert(mutation_type == MutationVectorTypeEnum.RAND_1 or mutation_type == MutationVectorTypeEnum.BEST_2)
         if mutation_type == MutationVectorTypeEnum.RAND_1:
             assert(batch_size >= 1 and batch_size <= pop_size // 4)
         elif mutation_type == MutationVectorTypeEnum.BEST_2:
@@ -45,7 +45,7 @@ class DE(exl.Algorithm):
 
     def tell(self, state, fitness):
         key, selection_key, crossover_key, preserve_key = jax.random.split(state.key, num=4)
-        shuffle_pop = jax.random.shuffle(selection_key, state.population)
+        shuffle_pop = jax.random.permutation(selection_key, state.population, independent=True)
         if self.mutation_type == MutationVectorTypeEnum.RAND_1:
             new_pop = shuffle_pop[self.batch_size : self.batch_size * 2] + self.scale_factor *\
                         (shuffle_pop[self.batch_size * 2 : self.batch_size * 3] - shuffle_pop[self.batch_size * 3 : self.batch_size * 4])
@@ -56,8 +56,8 @@ class DE(exl.Algorithm):
                                                 - shuffle_pop[self.batch_size * 3 : self.batch_size * 4] - shuffle_pop[self.batch_size * 4 : self.batch_size * 5])
         old_pop = shuffle_pop[:self.batch_size]
         rand_crossover = jax.random.uniform(crossover_key, shape=(self.batch_size, self.dim))
-        rand_preserve = jax.random.randint(preserve_key, self.batch_size, minval=0, maxval=self.dim)
-        rand_crossover = lax.map(lambda c, p: c.at[p].set(0), zip(rand_crossover, rand_preserve))
+        rand_preserve = jax.random.randint(preserve_key, shape=(self.batch_size,), minval=0, maxval=self.dim)
+        rand_crossover = jax.vmap(lambda c, p: c.at[p].set(0))(rand_crossover, rand_preserve)
         mask = rand_crossover <= self.cross_rate
         new_pop = jnp.where(mask, new_pop, old_pop)
     
