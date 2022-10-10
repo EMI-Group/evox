@@ -13,6 +13,7 @@ in
   name = "evoxlib-env";
 
   targetPkgs = pkgs: with pkgs; [
+    fish
     which
     python39
     python39Packages.pip
@@ -22,7 +23,8 @@ in
     cudaPackages.cudnn
     cudaPackages.cutensor
     zlib
+    SDL2
   ];
 
-  runScript = "bash";
+  runScript = "fish";
 }).env
