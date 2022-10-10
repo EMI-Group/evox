@@ -6,3 +6,4 @@ __pycache__
 /docs/build
 /MNIST
 /venv
+/pyvenv.cfg
