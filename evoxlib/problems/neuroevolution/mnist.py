@@ -3,13 +3,12 @@ import jax
 import jax.numpy as jnp
 from torchvision import datasets
 from torch.utils.data import DataLoader
-from flax import linen as nn
 import optax
 from functools import partial
 
 import evoxlib as exl
 from evoxlib import Problem
-from .models import LetNet
+from .models import LeNet
 
 
 def numpy_collate_fn(batch: list):
@@ -37,7 +36,7 @@ class MNIST(Problem):
             self.model = model
 
         if model == "LeNet":
-            self.model = LetNet()
+            self.model = LeNet()
 
         self.loss_func = loss_func
 
