@@ -58,11 +58,8 @@ let
 
     # gym render
     pyglet
-
-    (pkgs.callPackage ./ale-py.nix {})
-    (pkgs.callPackage ./auto-rom.nix {})
+    ale-py
   ];
-
 
   pyenv = python.withPackages dependencies;
 
