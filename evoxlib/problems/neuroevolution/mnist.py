@@ -1,5 +1,6 @@
 import numpy as np
 import jax
+from jax import jit, vmap
 import jax.numpy as jnp
 from torchvision import datasets
 from torch.utils.data import DataLoader
@@ -27,17 +28,12 @@ class MNIST(Problem):
         self,
         root,
         batch_size,
-        model,
-        loss_func=optax.softmax_cross_entropy_with_integer_labels,
+        forward_func,
         num_workers=0,
+        loss_func=optax.softmax_cross_entropy_with_integer_labels
     ):
         self.batch_size = batch_size
-        if isinstance(model, nn.Module):
-            self.model = model
-
-        if model == "LeNet":
-            self.model = LeNet()
-
+        self.forward_func = forward_func
         self.loss_func = loss_func
 
         mnist_dataset = datasets.MNIST(root, download=True, transform=np.array)
@@ -48,12 +44,6 @@ class MNIST(Problem):
             num_workers=num_workers,
         )
         self.iter = iter(self.dataloader)
-        self.initial_params = self.model.init(
-            jax.random.PRNGKey(0), jnp.zeros((batch_size, 28, 28, 1))
-        )
-
-    # def setup(self, key):
-    #     return self._start_new_epoch(key)
 
     def evaluate(self, state, X):
         try:
@@ -63,18 +53,14 @@ class MNIST(Problem):
             data, labels = next(self.iter)
 
         data, labels = jnp.array(data), jnp.array(labels)
-        losses = jax.jit(jax.vmap(partial(self._calculate_loss, data, labels)))(X)
+        losses = jit(vmap(partial(self._calculate_loss, data, labels)))(X)
         return state, losses
 
     @exl.jit_method
     def _calculate_loss(self, data, labels, X):
         # add channel dim
         data = data[:, :, :, jnp.newaxis]
-        output = self.model.apply(X, data)
+        output = self.forward_func(X, data)
         loss = jnp.mean(self.loss_func(output, labels))
         return loss
 
-    def _start_new_epoch(self, key):
-        key, subkey = jax.random.split(key)
-        perms = new_permutation(subkey, self.train_ds_size, self.batch_size)
-        return {"step": 0, "key": key, "perms": perms}
