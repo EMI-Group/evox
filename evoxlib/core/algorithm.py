@@ -7,7 +7,7 @@ from .module import *
 from .state import State
 
 
-class Algorithm(Module):
+class Algorithm(Stateful):
     """Base class for all algorithms
 
     """

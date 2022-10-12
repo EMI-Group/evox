@@ -6,7 +6,7 @@ from .module import *
 from .state import State
 
 
-class Problem(Module):
+class Problem(Stateful):
     """Base class for all algorithms"""
 
     def evaluate(self, state: State, pop: jnp.ndarray) -> jnp.ndarray:

@@ -116,7 +116,7 @@ def jit_class(cls, cond_fun=default_cond_fun):
     return _class_decorator(cls, jit_method, cond_fun)
 
 
-class MetaModule(type):
+class MetaStatefulModule(type):
     """Meta class used by Module
 
     This meta class will try to wrap methods with use_state,
@@ -147,7 +147,7 @@ class MetaModule(type):
         return super().__new__(cls, name, bases, wrapped)
 
 
-class Module(metaclass=MetaModule):
+class Stateful(metaclass=MetaStatefulModule):
     """Base class for all EvoXLib modules.
 
     This module allow easy managing of states.
@@ -198,7 +198,7 @@ class Module(metaclass=MetaModule):
         child_states = {}
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if not attr_name.startswith("_") and isinstance(attr, Module):
+            if not attr_name.startswith("_") and isinstance(attr, Stateful):
                 if key is None:
                     subkey = None
                 else:

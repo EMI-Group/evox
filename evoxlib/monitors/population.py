@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from bokeh.models import ColumnDataSource, Slider, Spinner, CustomJS
 from bokeh.plotting import figure, show
-from evoxlib.core.module import Module
+from evoxlib.core.module import Stateful
 
 
 def get_init_range(data):

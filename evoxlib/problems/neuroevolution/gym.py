@@ -6,7 +6,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import ray
-from evoxlib import Module, Problem, State
+from evoxlib import Stateful, Problem, State
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose
 
@@ -176,7 +176,7 @@ class Controller:
 
 
 @exl.jit_class
-class CapEpisode(Module):
+class CapEpisode(Stateful):
     def __init__(self, init_cap=100):
         self.init_cap = init_cap
 
@@ -202,7 +202,7 @@ class Gym(Problem):
         env_options: dict = {},
         controller_options: dict = {},
         worker_options: dict = {},
-        cap_episode: Module = CapEpisode(),
+        cap_episode: Stateful = CapEpisode(),
         batch_policy: bool = False,
         fitness_is_neg_reward: bool = True,
     ):

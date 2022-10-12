@@ -2,7 +2,7 @@ import jax.numpy as jnp
 import bokeh
 from bokeh.plotting import figure, show
 from bokeh.models import Spinner
-from evoxlib.core.module import Module
+from evoxlib.core.module import Stateful
 
 
 class FitnessMonitor:

@@ -1,10 +1,10 @@
-from evoxlib import Module
+from evoxlib import Stateful
 from evoxlib import Algorithm, Problem
 from evoxlib.monitors import FitnessMonitor, PopulationMonitor
 from typing import Optional, Callable
 
 
-class StdPipeline(Module):
+class StdPipeline(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,

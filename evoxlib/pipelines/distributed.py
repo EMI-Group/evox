@@ -1,4 +1,4 @@
-from evoxlib import Module, State
+from evoxlib import Stateful, State
 from evoxlib import Algorithm, Problem
 from evoxlib.monitors import FitnessMonitor, PopulationMonitor
 import ray
@@ -8,7 +8,7 @@ import chex
 from typing import Optional, Callable
 
 
-class WorkerPipeline(Module):
+class WorkerPipeline(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
@@ -118,7 +118,7 @@ class Supervisor:
             chex.assert_trees_all_close(leaves0, leaves)
 
 
-class DistributedPipeline(Module):
+class DistributedPipeline(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
