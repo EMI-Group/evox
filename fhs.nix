@@ -17,6 +17,8 @@ in
     which
     python39
     python39Packages.pip
+    python39Packages.setuptools
+    python39Packages.wheel
     python39Packages.virtualenv
 
     cudaPackages.cudatoolkit
