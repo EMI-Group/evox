@@ -9,7 +9,7 @@ authors = [{ name = "Bill Huang", email = "bill.huang2001@gmail.com" }]
 description = "Evoxlib"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.7"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
@@ -17,14 +17,16 @@ classifiers = [
 ]
 
 dependencies = [
-  "chex >= 0.1.0",
   "jax >= 0.3.0",
   "jaxlib >= 0.3.0",
   "bokeh >= 2.4.0"
 ]
 
 [project.optional-dependencies]
-tests = ["pytest >= 6.0.0"]
+tests = [
+  "pytest >= 6.0.0",
+  "chex >= 0.1.0"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/pypa/sampleproject"

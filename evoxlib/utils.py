@@ -2,7 +2,6 @@ from collections.abc import Iterable
 from functools import partial
 from typing import Union
 
-import chex
 import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
@@ -11,8 +10,8 @@ from .core.module import *
 
 
 def min_by(
-    values: Union[chex.Array, list[chex.Array]],
-    keys: Union[chex.Array, list[chex.Array]],
+    values: Union[jnp.ndarray, list[jnp.ndarray]],
+    keys: Union[jnp.ndarray, list[jnp.ndarray]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)

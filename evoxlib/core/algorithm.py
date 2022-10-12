@@ -12,7 +12,7 @@ class Algorithm(Module):
 
     """
 
-    def ask(self, state: State) -> Tuple[State, chex.Array]:
+    def ask(self, state: State) -> Tuple[State, jnp.ndarray]:
         """Ask the algorithm
 
         Ask the algorithm for points to explore
@@ -29,7 +29,7 @@ class Algorithm(Module):
         """
         pass
 
-    def tell(self, state: State, fitness: chex.Array) -> State:
+    def tell(self, state: State, fitness: jnp.ndarray) -> State:
         """Tell the algorithm more information
 
         Tell the algorithm about the points it chose and their corresponding fitness

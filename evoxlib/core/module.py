@@ -5,6 +5,7 @@ from typing import NamedTuple
 
 import chex
 import jax
+import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class
 
 from .state import State
@@ -158,7 +159,7 @@ class Module(metaclass=MetaModule):
     and recursively call ``setup`` methods of all submodules.
     """
 
-    def setup(self, key: chex.PRNGKey = None) -> State:
+    def setup(self, key: jnp.ndarray = None) -> State:
         """Setup mutable state here
 
         The state it self is immutable, but it act as a mutable state
@@ -176,7 +177,7 @@ class Module(metaclass=MetaModule):
         """
         return State()
 
-    def init(self, key: chex.PRNGKey = None, name: str = "_top_level") -> State:
+    def init(self, key: jnp.ndarray = None, name: str = "_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.

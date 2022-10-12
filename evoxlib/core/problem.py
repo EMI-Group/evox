@@ -9,7 +9,7 @@ from .state import State
 class Problem(Module):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: State, pop: chex.Array) -> chex.Array:
+    def evaluate(self, state: State, pop: jnp.ndarray) -> jnp.ndarray:
         """Evaluate the fitness at given points
 
         Parameters
