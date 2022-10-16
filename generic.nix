@@ -34,14 +34,22 @@ let
     build
     chex
     flax
+    gym
     jax
     jaxlib
     numpydoc
     optax
+    pandas
     pydata-sphinx-theme
     pytest
+    ray
     sphinx
     torchvision
+    pytorch
+
+    # gym render
+    pyglet
+    ale-py
   ];
 
   pyenv = python.withPackages dependencies;

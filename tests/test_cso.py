@@ -1,12 +1,14 @@
 import evoxlib as exl
 from evoxlib import pipelines, algorithms, problems
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_cso():
-    # create a pipeline
+    monitor = FitnessMonitor()
+    # create a pipelines
     pipeline = pipelines.StdPipeline(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
@@ -14,7 +16,7 @@ def test_cso():
             pop_size=100,
         ),
         problem=problems.classic.Ackley(),
-        fitness_monitor=True
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -25,5 +27,5 @@ def test_cso():
         state = pipeline.step(state)
 
     # the result should be close to 0
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = monitor.get_min_fitness()
     assert min_fitness < 1e-4

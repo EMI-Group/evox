@@ -2,11 +2,11 @@ import chex
 import evoxlib as exl
 import jax
 import pytest
-from evoxlib import Module, State
+from evoxlib import Stateful, State
 from jax.tree_util import tree_map
 
 
-class Leaf(Module):
+class Leaf(Stateful):
     def setup(self, key):
         return State(c=42)
 
@@ -19,7 +19,7 @@ class Leaf(Module):
         return state
 
 
-class Middle(Module):
+class Middle(Stateful):
     def __init__(self):
         super().__init__()
         self.leaf = Leaf()
@@ -36,7 +36,7 @@ class Middle(Module):
         return state
 
 
-class Root(Module):
+class Root(Stateful):
     def __init__(self):
         super().__init__()
         self.a = 123

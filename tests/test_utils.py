@@ -6,17 +6,17 @@ import chex
 import pytest
 
 def assert_invertible(tree):
-    tree_to_vector = exl.utils.TreeToVector(tree)
+    tree_to_vector = exl.utils.TreeAndVector(tree)
     vector = tree_to_vector.to_vector(tree)
     tree2 = tree_to_vector.to_tree(vector)
     chex.assert_trees_all_close(tree, tree2)
 
     tree_batched = tree_map(lambda x, y: jnp.stack([x, y], axis=0), tree, tree)
-    vector_batched = tree_to_vector.to_vector(tree_batched, True)
-    tree_batched2 = tree_to_vector.to_tree(vector_batched, True)
+    vector_batched = tree_to_vector.batched_to_vector(tree_batched)
+    tree_batched2 = tree_to_vector.batched_to_tree(vector_batched)
     chex.assert_trees_all_close(tree_batched, tree_batched2)
 
-def test_tree_to_vector():
+def test_tree_and_vector():
     tree = {
         'layer1': jnp.arange(10).reshape(2, 5),
         'layer2': {

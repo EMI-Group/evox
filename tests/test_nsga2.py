@@ -1,11 +1,13 @@
 import evoxlib as exl
 from evoxlib import pipelines, algorithms, problems
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_nsga2():
+    monitor = FitnessMonitor()
     key = jax.random.PRNGKey(123)
     pipeline = pipelines.StdPipeline(
         algorithm=exl.algorithms.NSGA2(
@@ -15,7 +17,7 @@ def test_nsga2():
             pop_size=100,
         ),
         problem=exl.problems.classic.ZDT1(n=2),
-        fitness_monitor=True
+        fitness_transform=monitor.update
     )
     state = pipeline.init(key)
 

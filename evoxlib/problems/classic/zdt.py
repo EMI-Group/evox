@@ -17,7 +17,7 @@ class ZDT(exl.Problem):
         self.n = n
         self._zdt = None
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state: chex.PyTreeDef, X: jnp.ndarray):
         chex.assert_type(X, float)
         chex.assert_shape(X, (None, self.n))
         return state, jax.jit(jax.vmap(self._zdt))(X)
