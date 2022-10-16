@@ -3,7 +3,6 @@ import types
 from functools import partial, wraps
 from typing import NamedTuple
 
-import chex
 import jax
 import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class
