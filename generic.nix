@@ -54,17 +54,17 @@ let
 
   pyenv = python.withPackages dependencies;
 
-  evoxlib = python.pkgs.buildPythonPackage {
-    pname = "evoxlib";
+  evox = python.pkgs.buildPythonPackage {
+    pname = "evox";
     version = "0.0.2";
     format = "pyproject";
 
-    src = builtins.path { path = ./.; name = "evoxlib"; };
+    src = builtins.path { path = ./.; name = "evox"; };
     propagatedBuildInputs = dependencies python.pkgs;
     checkInputs = [ python.pkgs.pytestCheckHook ];
 
     pythonImportsCheck = [
-      "evoxlib"
+      "evox"
     ];
     disabledTestPaths = [
       "tests/test_neuroevolution.py"
@@ -74,7 +74,7 @@ let
   accelerator = if cudaSupport then "cuda" else "cpu";
 in
 {
-  packages."${accelerator}" = evoxlib;
+  packages."${accelerator}" = evox;
 
   devShells."${accelerator}" = pkgs.mkShell {
     buildInputs = [

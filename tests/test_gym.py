@@ -1,7 +1,7 @@
-import evoxlib as exl
-from evoxlib import pipelines, algorithms, problems
-from evoxlib.monitors import FitnessMonitor
-from evoxlib.utils import TreeAndVector
+import evox as ex
+from evox import pipelines, algorithms, problems
+from evox.monitors import FitnessMonitor
+from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
 from flax import linen as nn

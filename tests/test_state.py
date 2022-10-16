@@ -1,8 +1,8 @@
 import chex
-import evoxlib as exl
+import evox as ex
 import jax
 import pytest
-from evoxlib import Stateful, State
+from evox import Stateful, State
 from jax.tree_util import tree_map
 
 

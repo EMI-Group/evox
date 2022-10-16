@@ -2,6 +2,6 @@
 Algorithm Class
 ===============
 
-.. autoclass:: evoxlib.Algorithm
+.. autoclass:: evox.Algorithm
     :members:
     :inherited-members:

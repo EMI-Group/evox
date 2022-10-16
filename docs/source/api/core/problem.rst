@@ -2,6 +2,6 @@
 Problem Class
 =============
 
-.. autoclass:: evoxlib.Problem
+.. autoclass:: evox.Problem
     :members:
     :inherited-members:

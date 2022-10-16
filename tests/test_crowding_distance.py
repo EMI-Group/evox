@@ -1,12 +1,12 @@
 import jax
 import jax.numpy as jnp
 import chex
-import evoxlib as exl
+import evox as ex
 
 
 def test_crowding_distance1():
     x = jnp.array([[0.5, 4], [1, 2.5], [2, 2], [3, 1], [4, 0.8]])
-    distance = exl.operators.crowding_distance(x)
+    distance = ex.operators.crowding_distance(x)
     chex.assert_trees_all_close(
         distance,
         jnp.array(
@@ -24,9 +24,9 @@ def test_crowding_distance1():
 def test_crowding_distance2():
     key = jax.random.PRNGKey(314)
     x = jax.random.normal(key, (128, 8))
-    rank = exl.operators.non_dominated_sort(x)
+    rank = ex.operators.non_dominated_sort(x)
     pareto_front = x[rank == 0]
-    distance = exl.operators.crowding_distance(pareto_front)
+    distance = ex.operators.crowding_distance(pareto_front)
     ground_truth = jnp.array(
         [
             jnp.inf,
@@ -127,7 +127,7 @@ def test_crowding_distance2():
 def test_masked_crowding_distance1():
     x = jnp.array([[-1, -1], [0.5, 4], [1, 2.5], [2, 2], [-2, -2], [3, 1], [4, 0.8], [-3, -3], [-3, -4]])
     mask = jnp.array([False, True,     True,     True,   False,    True,   True,     False,    False])
-    distance = exl.operators.crowding_distance(x, mask)
+    distance = ex.operators.crowding_distance(x, mask)
     chex.assert_trees_all_close(
         distance,
         jnp.array(

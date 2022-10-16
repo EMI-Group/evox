@@ -1,5 +1,5 @@
 ===========
-EvoXLib API
+evox API
 ===========
 
 .. toctree::

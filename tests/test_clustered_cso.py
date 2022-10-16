@@ -1,6 +1,6 @@
-import evoxlib as exl
-from evoxlib import algorithms, problems, pipelines
-from evoxlib.monitors import FitnessMonitor
+import evox as ex
+from evox import algorithms, problems, pipelines
+from evox.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
@@ -11,7 +11,7 @@ def test_clustered_cso():
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.ClusterdAlgorithm(
-            base_algorithm=exl.algorithms.CSO(
+            base_algorithm=ex.algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
                 ub=jnp.full(shape=(10,), fill_value=32),
                 pop_size=100,
@@ -39,7 +39,7 @@ def test_random_mask_cso():
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.RandomMaskAlgorithm(
-            base_algorithm=exl.algorithms.CSO(
+            base_algorithm=ex.algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
                 ub=jnp.full(shape=(10,), fill_value=32),
                 pop_size=100,
