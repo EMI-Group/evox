@@ -1,8 +1,6 @@
 import types
 from typing import Tuple
 
-import chex
-
 from .module import *
 from .state import State
 
