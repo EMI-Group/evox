@@ -1,6 +1,6 @@
-import evoxlib as exl
-from evoxlib import pipelines, algorithms, problems
-from evoxlib.monitors import FitnessMonitor
+import evox as ex
+from evox import pipelines, algorithms, problems
+from evox.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest

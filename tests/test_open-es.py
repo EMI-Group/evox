@@ -1,5 +1,5 @@
-import evoxlib as exl
-from evoxlib import pipelines, algorithms, problems
+import evox as ex
+from evox import pipelines, algorithms, problems
 import jax
 import jax.numpy as jnp
 import pytest

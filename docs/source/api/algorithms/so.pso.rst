@@ -2,6 +2,6 @@
 PSO
 ===
 
-.. autoclass:: evoxlib.algorithms.PSO
+.. autoclass:: evox.algorithms.PSO
     :members:
     :inherited-members:

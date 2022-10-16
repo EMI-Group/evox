@@ -2,6 +2,6 @@
 State Class
 =============
 
-.. autoclass:: evoxlib.State
+.. autoclass:: evox.State
     :members:
     :inherited-members:

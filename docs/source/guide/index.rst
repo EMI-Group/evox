@@ -1,5 +1,5 @@
 ================
-EvoXLib's guide!
+evox's guide!
 ================
 
 .. toctree::

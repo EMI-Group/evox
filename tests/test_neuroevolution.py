@@ -1,16 +1,16 @@
 import time
 
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import pytest
 from flax import linen as nn
-from evoxlib import algorithms, pipelines, problems
-from evoxlib.monitors import FitnessMonitor
-from evoxlib.problems.neuroevolution.models import SimpleCNN
+from evox import algorithms, pipelines, problems
+from evox.monitors import FitnessMonitor
+from evox.problems.neuroevolution.models import SimpleCNN
 
 
-class PartialPGPE(exl.algorithms.PGPE):
+class PartialPGPE(ex.algorithms.PGPE):
     def __init__(self, center_init):
         super().__init__(
             100, center_init, "adam", center_learning_rate=0.01, stdev_init=0.01
@@ -39,7 +39,7 @@ def init_problem_and_model(key):
     model = SimpleCNN()
     batch_size = 64
     initial_params = model.init(key, jnp.zeros((batch_size, 28, 28, 1)))
-    problem = exl.problems.neuroevolution.MNIST(
+    problem = ex.problems.neuroevolution.MNIST(
         root="./", batch_size=128, forward_func=model.apply
     )
     return initial_params, problem
@@ -58,7 +58,7 @@ def test_neuroevolution_treemap():
     )
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
-        algorithm=exl.algorithms.TreeAlgorithm(
+        algorithm=ex.algorithms.TreeAlgorithm(
             PartialPGPE, initial_params, center_init
         ),
         problem=problem,
@@ -82,7 +82,7 @@ def test_neuroevolution_adapter():
     initial_params, problem = init_problem_and_model(model_init_key)
 
     start = time.perf_counter()
-    adapter = exl.utils.TreeAndVector(initial_params)
+    adapter = ex.utils.TreeAndVector(initial_params)
     monitor = FitnessMonitor()
     algorithm = algorithms.PGPE(
         100,

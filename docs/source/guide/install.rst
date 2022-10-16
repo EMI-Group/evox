@@ -1,5 +1,5 @@
 ===============
-Install EvoXLib
+Install evox
 ===============
 
-``pip install evoxlib``
+``pip install evox``
