@@ -29,9 +29,6 @@ let
     ];
   };
 
-  # ray = import ./ray-bin.nix { inherit pkgs python; };
-  # ray = local-nixpkgs.legacyPackages.x86_64-linux.python310Packages.ray-bin;
-
   dependencies = ps: with ps; [
     bokeh
     build
@@ -45,13 +42,7 @@ let
     pandas
     pydata-sphinx-theme
     pytest
-    (ray-bin.override {
-      withData = false;
-      withServe = false;
-      withTune = false;
-      withRllib = false;
-      withAir = false;
-    })
+    ray
     sphinx
     torchvision
     pytorch
