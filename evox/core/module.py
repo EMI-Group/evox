@@ -202,11 +202,10 @@ class Stateful(metaclass=MetaStatefulModule):
                     subkey = None
                 else:
                     key, subkey = jax.random.split(key)
-                submodule_name = f"_submodule_{attr_name}"
-                submodule_state = attr.init(subkey, submodule_name)
+                submodule_state = attr.init(subkey, attr_name)
                 assert isinstance(
                     submodule_state, State
                 ), "setup method must return a State"
-                child_states[submodule_name] = submodule_state
+                child_states[attr_name] = submodule_state
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)
