@@ -5,3 +5,5 @@ __pycache__
 /result
 /docs/build
 /MNIST
+/venv
+/pyvenv.cfg
