@@ -30,7 +30,7 @@ def _prod_tuple(xs):
 
 @jax.jit
 def pair_distance(a, b):
-    return jnp.linalg.norm(a-b)
+    return jnp.linalg.norm(a-b, axis=0)
 
 
 @jax.jit
@@ -40,7 +40,7 @@ def euclidean_dis(x, y):
 
 @jax.jit
 def pair_max(a, b):
-    return jnp.max(a-b)
+    return jnp.max(a-b, axis=0)
 
 
 @jax.jit
