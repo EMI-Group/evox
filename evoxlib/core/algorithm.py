@@ -7,12 +7,12 @@ from .module import *
 from .state import State
 
 
-class Algorithm(Module):
+class Algorithm(Stateful):
     """Base class for all algorithms
 
     """
 
-    def ask(self, state: State) -> Tuple[State, chex.Array]:
+    def ask(self, state: State) -> Tuple[State, jnp.ndarray]:
         """Ask the algorithm
 
         Ask the algorithm for points to explore
@@ -29,7 +29,7 @@ class Algorithm(Module):
         """
         pass
 
-    def tell(self, state: State, fitness: chex.Array) -> State:
+    def tell(self, state: State, fitness: jnp.ndarray) -> State:
         """Tell the algorithm more information
 
         Tell the algorithm about the points it chose and their corresponding fitness
@@ -38,9 +38,7 @@ class Algorithm(Module):
         ----------
         state : dict
             The state of this algorithm
-        X : ndarray
-            The points given by ``ask``
-        F : ndarray
+        fitness : ndarray
             The fitness
 
         Returns

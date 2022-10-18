@@ -35,7 +35,7 @@ class NaiveES(exl.Algorithm):
         return state.update(key=key, sample=sample), sample
 
     def tell(self, state, fitness):
-        order = jnp.argsort(F)
+        order = jnp.argsort(fitness)
         X = state.sample[order]
         elite = X[: self.topk, :]
         new_mean = jnp.mean(elite, axis=0)

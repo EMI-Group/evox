@@ -1,5 +1,6 @@
 import evoxlib as exl
 from evoxlib import algorithms, problems, pipelines
+from evoxlib.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
@@ -7,6 +8,7 @@ import pytest
 
 def test_clustered_cso():
     # create a pipeline
+    monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.ClusterdAlgorithm(
             base_algorithm=exl.algorithms.CSO(
@@ -18,7 +20,7 @@ def test_clustered_cso():
             num_cluster=10,
         ),
         problem=problems.classic.Ackley(),
-        fitness_monitor=True
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -28,12 +30,13 @@ def test_clustered_cso():
     for i in range(300):
         state = pipeline.step(state)
 
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = monitor.get_min_fitness()
     assert min_fitness < 1
 
 
 def test_random_mask_cso():
     # create a pipeline
+    monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.RandomMaskAlgorithm(
             base_algorithm=exl.algorithms.CSO(
@@ -47,7 +50,7 @@ def test_random_mask_cso():
             change_every=10,
         ),
         problem=problems.classic.Ackley(),
-        fitness_monitor=True
+        fitness_transform=monitor.update
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -57,5 +60,5 @@ def test_random_mask_cso():
     for i in range(600):
         state = pipeline.step(state)
 
-    state, min_fitness = pipeline.get_min_fitness(state)
+    min_fitness = monitor.get_min_fitness()
     assert min_fitness < 1

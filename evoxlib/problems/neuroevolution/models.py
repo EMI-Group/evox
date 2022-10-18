@@ -1,6 +1,6 @@
 from flax import linen as nn
 
-class LetNet(nn.Module):
+class LeNet(nn.Module):
   """A simple CNN model."""
 
   @nn.compact
