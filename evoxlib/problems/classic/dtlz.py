@@ -243,8 +243,8 @@ class DTLZ8(DTLZ):
         m = self.m
         f = jnp.zeros((n, m))
         for i in range(m):
-            f[:, i] = jnp.mean(
-                X[:, int(i*d/m):int((i+1)*d/m)], axis=1, keepdims=True)
+            f = f.at[:, i].set(
+                jnp.mean(X[:, int(i*d/m):int((i+1)*d/m)], axis=1, keepdims=True))
 
         return state, f
 
@@ -272,8 +272,8 @@ class DTLZ9(DTLZ):
         m = self.m
         f = jnp.zeros([n, m])
         for i in range(m):
-            f[:, i] = jnp.sum(X[:, int(i*d/m):int((i+1)*d/m)],
-                              axis=1, keepdims=True)
+            f = f.at[:, i].set(jnp.sum(X[:, int(i*d/m):int((i+1)*d/m)],
+                                       axis=1, keepdims=True))
         return state, f
 
     def pf(self, state: chex.PyTreeDef):
