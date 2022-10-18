@@ -21,7 +21,7 @@ class ClusterdAlgorithm(Algorithm):
         self.subproblem_dim = self.dim // num_cluster
         self.base_algorithm = base_algorithm
 
-    def init(self, key: chex.PRNGKey = None, name: str = "_top_level"):
+    def init(self, key: jnp.ndarray = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
         child_states = {
@@ -38,21 +38,21 @@ class ClusterdAlgorithm(Algorithm):
         xs = jnp.concatenate(xs, axis=1)
         return state, xs
 
-    def tell(self, state: State, fitness: chex.Array):
+    def tell(self, state: State, fitness: jnp.ndarray):
         def partial_tell(state):
             return self.base_algorithm.tell(state, fitness)
 
         return jax.vmap(partial_tell)(state)
 
 
-def _mask_state(state: State, permutation: chex.Array):
+def _mask_state(state: State, permutation: jnp.ndarray):
     return tree_map(
         lambda x: x[permutation, ...],
         state,
     )
 
 
-def _unmask_state(old_state: State, new_state: State, permutation: chex.Array):
+def _unmask_state(old_state: State, new_state: State, permutation: jnp.ndarray):
     assert isinstance(old_state, State)
     assert isinstance(new_state, State)
     return tree_map(
@@ -94,7 +94,7 @@ class RandomMaskAlgorithm(Algorithm):
         else:
             self.pop_size = pop_size
 
-    def init(self, key: chex.PRNGKey = None, name: str = "_top_level"):
+    def init(self, key: jnp.ndarray = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
         child_states = {
@@ -105,7 +105,7 @@ class RandomMaskAlgorithm(Algorithm):
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)
 
-    def setup(self, key: chex.PRNGKey):
+    def setup(self, key: jnp.ndarray):
         return State(
             key=key,
             sub_pops=jnp.zeros((self.num_cluster, self.pop_size, self.subproblem_dim)),
@@ -137,7 +137,7 @@ class RandomMaskAlgorithm(Algorithm):
         )
         return state, full_pop
 
-    def tell(self, state: State, fitness: chex.Array):
+    def tell(self, state: State, fitness: jnp.ndarray):
         def partial_tell(state):
             return self.base_algorithm.tell(state, fitness)
 

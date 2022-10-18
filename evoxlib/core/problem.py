@@ -6,10 +6,10 @@ from .module import *
 from .state import State
 
 
-class Problem(Module):
+class Problem(Stateful):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: State, pop: chex.Array) -> chex.Array:
+    def evaluate(self, state: State, pop: jnp.ndarray) -> jnp.ndarray:
         """Evaluate the fitness at given points
 
         Parameters
