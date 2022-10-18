@@ -10,9 +10,8 @@ class TournamentSelection(exl.Operator):
     """Tournament selection"""
 
     def __init__(
-        self, num_round: int,  tournament_func: Callable = jnp.argmax, tournament_size: int = 2
+        self, num_round: int, tournament_func: Callable = jnp.argmax, tournament_size: int = 2
     ):
-        #
         """
         Parameters
         ----------
@@ -39,7 +38,7 @@ class TournamentSelection(exl.Operator):
         # k individuals to form candidates
         chosen = jax.random.choice(subkey, self.num_round, shape=(
             self.num_round, self.tournament_size))
-        candidates = x[chosen, ...]
+        # candidates = x[chosen, ...]
         candidates_fitness = fitness[chosen, ...]
         winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
         index = jnp.diagonal(chosen[:, winner_indices])
