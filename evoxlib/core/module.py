@@ -5,6 +5,7 @@ from typing import NamedTuple
 
 import chex
 import jax
+import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class
 
 from .state import State
@@ -115,7 +116,7 @@ def jit_class(cls, cond_fun=default_cond_fun):
     return _class_decorator(cls, jit_method, cond_fun)
 
 
-class MetaModule(type):
+class MetaStatefulModule(type):
     """Meta class used by Module
 
     This meta class will try to wrap methods with use_state,
@@ -146,7 +147,7 @@ class MetaModule(type):
         return super().__new__(cls, name, bases, wrapped)
 
 
-class Module(metaclass=MetaModule):
+class Stateful(metaclass=MetaStatefulModule):
     """Base class for all EvoXLib modules.
 
     This module allow easy managing of states.
@@ -158,7 +159,7 @@ class Module(metaclass=MetaModule):
     and recursively call ``setup`` methods of all submodules.
     """
 
-    def setup(self, key: chex.PRNGKey = None) -> State:
+    def setup(self, key: jnp.ndarray = None) -> State:
         """Setup mutable state here
 
         The state it self is immutable, but it act as a mutable state
@@ -176,7 +177,7 @@ class Module(metaclass=MetaModule):
         """
         return State()
 
-    def init(self, key: chex.PRNGKey = None, name: str = "_top_level") -> State:
+    def init(self, key: jnp.ndarray = None, name: str = "_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
@@ -197,7 +198,7 @@ class Module(metaclass=MetaModule):
         child_states = {}
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if not attr_name.startswith("_") and isinstance(attr, Module):
+            if not attr_name.startswith("_") and isinstance(attr, Stateful):
                 if key is None:
                     subkey = None
                 else:

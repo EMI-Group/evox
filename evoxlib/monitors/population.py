@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from bokeh.models import ColumnDataSource, Slider, Spinner, CustomJS
 from bokeh.plotting import figure, show
-from evoxlib.core.module import Module
+from evoxlib.core.module import Stateful
 
 
 def get_init_range(data):
@@ -25,9 +25,11 @@ class PopulationMonitor:
         self.history = []
         self.min_fitness = float("inf")
 
-    def update(self, X):
-        chex.assert_shape(X, (None, self.n))
-        self.history.append(np.array(X).T)
+    def update(self, pop):
+        chex.assert_shape(pop, (None, self.n))
+        # convert to numpy array to save gpu memory
+        self.history.append(np.array(pop).T)
+        return pop
 
     def show(self):
         # format self.history into ColumnDataSource acceptable format
