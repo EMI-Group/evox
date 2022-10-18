@@ -1,14 +1,33 @@
 import jax
 import jax.numpy as jnp
-# import math
-from scipy.special import comb
+from jax import lax
 from itertools import combinations as n_choose_k
-from functools import partial
+from jax.scipy.special import gammaln
+from jax._src.lax.lax import _const as _lax_const
 
-# @partial(jax.jit, static_argnums=2)
+
+def comb(N,k):
+    """Calculate the combinations
+
+    """    
+    one = _lax_const(N, 1)
+    N_plus_1 = lax.add(N,one)
+    k_plus_1 = lax.add(k,one)
+    return jnp.rint(lax.exp(lax.sub(gammaln(N_plus_1), lax.add(gammaln(k_plus_1), gammaln(lax.sub(N_plus_1,k))))))
+
+
 def uniform_point(n, m):
+    """Generate uniformly distributed points on the hyperplane.
+
+    Args:
+        n (int): the population size.
+        m (int): the number of objective.
+
+    Returns:
+        w: weight vector.
+        n: the size of weight vector.
+    """    
     h1 = 1
-    # print(math.comb(h1 + m, m - 1))
     while comb(h1 + m, m - 1) <= n:
         h1 += 1
     w = jnp.array(list(n_choose_k(range(1, h1 + m), m-1))) - \
@@ -29,13 +48,3 @@ def uniform_point(n, m):
     n = jnp.shape(w)[0]
     return w, n
 
-# @jax.jit
-# def pf(x):
-#     x = jnp.asarray(x)
-#     f = jnp.asarray(uniform_point(275, x)[0])
-#     return f
-
-if __name__ == '__main__':
-    w, n = uniform_point(275, 10)
-    print(w.dtype)
-    print(n)

@@ -3,8 +3,8 @@ import jax
 import jax.numpy as jnp
 
 from evoxlib.operators.selection import UniformRandomSelection
-from evoxlib.operators.mutation import GaussianMutation
-from evoxlib.operators.crossover import UniformCrossover
+from evoxlib.operators.mutation import GaussianMutation, PmMutation
+from evoxlib.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
 from evoxlib.operators import non_dominated_sort, crowding_distance_sort
 
 
@@ -22,8 +22,10 @@ class NSGA2(exl.Algorithm):
         n_objs,
         pop_size,
         selection=UniformRandomSelection(p=0.5),
-        mutation=GaussianMutation(),
-        crossover=UniformCrossover(),
+        # mutation=GaussianMutation(),
+        mutation=PmMutation(),
+        # crossover=UniformCrossover(),
+        crossover=SimulatedBinaryCrossover(),
     ):
         self.lb = lb
         self.ub = ub
@@ -64,7 +66,7 @@ class NSGA2(exl.Algorithm):
 
     def _ask_normal(self, state):
         state, mutated = self.selection(state, state.population)
-        state, mutated = self.mutation(state, mutated)
+        state, mutated = self.mutation(state, mutated, (self.lb, self.ub))
 
         state, crossovered = self.selection(state, state.population)
         state, crossovered = self.crossover(state, crossovered)

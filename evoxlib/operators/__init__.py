@@ -1,2 +1,3 @@
 from .non_dominated_sort import non_dominated_sort
 from .crowding_distance_sort import crowding_distance, crowding_distance_sort
+from .uniform_point import uniform_point
