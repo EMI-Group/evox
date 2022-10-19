@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
 from jax import lax
-from jax.experimental.host_callback import id_print
 import evox as ex
 
 
