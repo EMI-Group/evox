@@ -1,2 +1,3 @@
 from .uniform_random import UniformRandomSelection
 from .tournament import TournamentSelection
+from .rvea_selection import ReferenceVectorGuidedSelection

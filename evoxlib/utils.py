@@ -29,6 +29,46 @@ def _prod_tuple(xs):
     return prod
 
 
+@jax.jit
+def pair_distance(a, b):
+    return jnp.linalg.norm(a-b, axis=0)
+
+
+@jax.jit
+def euclidean_dis(x, y):
+    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_distance(_x, _y))(y))(x)
+
+
+@jax.jit
+def pair_max(a, b):
+    return jnp.max(a-b, axis=0)
+
+
+@jax.jit
+def cos_dist(x, y):
+    return jnp.dot(x / jnp.linalg.norm(x, axis=-1, keepdims=True),
+                   (y / jnp.linalg.norm(y, axis=-1, keepdims=True)).T)
+
+
+@jax.jit
+def cal_indicator(x, y):
+    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_max(_x, _y))(y))(x)
+
+
+@jax.jit
+def cal_fitness(pop_obj, kappa):
+    n = jnp.shape(pop_obj)[0]
+    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / \
+        (jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1)))
+    I = cal_indicator(pop_obj, pop_obj)
+
+    C = jnp.max(jnp.abs(I), axis=0)
+
+    fitness = jnp.sum(-jnp.exp(-I / jnp.tile(C, (n, 1)) / kappa), axis=0) + 1
+
+    return fitness, I, C
+
+
 def compose(*functions):
     # if argument is a single Iterable like list or tuple,
     # treat it as a list of functions
