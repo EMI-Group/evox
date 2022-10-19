@@ -36,10 +36,10 @@ class TournamentSelection(exl.Operator):
         key, subkey = jax.random.split(state.key)
         # select num_round times and each time
         # k individuals to form candidates
-        chosen = jax.random.choice(
-            subkey, x.shape[0], shape=(self.num_round, self.tournament_size)
-        )
-        candidates = x[chosen, ...]
+        chosen = jax.random.choice(subkey, self.num_round, shape=(
+            self.num_round, self.tournament_size))
+        # candidates = x[chosen, ...]
         candidates_fitness = fitness[chosen, ...]
         winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
-        return exl.State(key=key), candidates[winner_indices, ...]
+        index = jnp.diagonal(chosen[:, winner_indices])
+        return exl.State(key=key), x[index]

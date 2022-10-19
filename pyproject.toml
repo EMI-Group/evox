@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "evoxlib"
 version = "0.0.2"
 authors = [{ name = "Bill Huang", email = "bill.huang2001@gmail.com" },
-           { name = "Christina Lee", email = "1315552992@qq.com"} ]
+           { name = "Christina Lee", email = "1315552992@qq.com"},
+           { name = "Zhenyu Liang", email = "zhenyuliang97@gmail.com" }]
 description = "Evoxlib"
 readme = "README.md"
 license = { file = "LICENSE" }
