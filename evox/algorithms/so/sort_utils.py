@@ -1,10 +1,9 @@
 import jax
 import jax.numpy as jnp
-from jax import lax
 
 @jax.jit
-def sort_key_valrows(keys, *vals):
-    assert(len(keys.shape) == 1)
-    keys, perm = lax.sort((keys, jnp.arange(0, keys.shape[0])), is_stable=False)
-    vals = map(lambda v: v[perm], vals)
-    return keys, *vals
+def sort_by_key(keys, *vals):
+    assert (len(keys.shape) == 1), f"Expect keys to be a 1d-vector, got shape {key.shape}."
+    order = jnp.argsort(keys)
+    vals = map(lambda v: v[order], vals)
+    return keys[order], *vals
