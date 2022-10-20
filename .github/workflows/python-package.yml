@@ -10,16 +10,12 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  nix-build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-
     steps:
     - uses: actions/checkout@v3
     - uses: cachix/install-nix-action@v17
     - uses: cachix/cachix-action@v11
       with:
-        name: mycache
+        name: billhuangevoxlib
     - run: nix build .#cpu
