@@ -1,15 +1,15 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import jax.experimental.host_callback as hcb
-from evoxlib.operators.mutation import PmMutation
-from evoxlib.operators.crossover import SimulatedBinaryCrossover
-from evoxlib.operators import uniform_point
-from evoxlib.utils import euclidean_dis
+from evox.operators.mutation import PmMutation
+from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import uniform_point
+from evox.utils import euclidean_dis
 
 
-@exl.jit_class
-class MOEAD(exl.Algorithm):
+@ex.jit_class
+class MOEAD(ex.Algorithm):
     """MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/document/4358754
@@ -47,7 +47,7 @@ class MOEAD(exl.Algorithm):
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, :self.T]
-        return exl.State(
+        return ex.State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
@@ -58,7 +58,7 @@ class MOEAD(exl.Algorithm):
             is_init=True,
             key=key,)
 
-    @exl.jit_method
+    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 

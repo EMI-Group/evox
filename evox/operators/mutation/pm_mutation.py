@@ -1,10 +1,10 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 
 
-@exl.jit_class
-class PmMutation(exl.Operator):
+@ex.jit_class
+class PmMutation(ex.Operator):
     """Polynomial mutation
 
     Args:
@@ -17,7 +17,7 @@ class PmMutation(exl.Operator):
         self.dis_m = dis_m
 
     def setup(self, key):
-        return exl.State(key=key)
+        return ex.State(key=key)
 
     def __call__(self, state, x, boundary=None):
         key, subkey1, subkey2 = jax.random.split(state.key, 3)
@@ -48,4 +48,4 @@ class PmMutation(exl.Operator):
         if jnp.shape(x)[0] % 2 != 0:
             pop_dec = jnp.r_[pop_dec, x[-1:, :]]
 
-        return exl.State(key=key), pop_dec
+        return ex.State(key=key), pop_dec

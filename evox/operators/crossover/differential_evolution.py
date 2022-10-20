@@ -1,4 +1,4 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 
@@ -24,8 +24,8 @@ def _de_crossover(key, new_x, x, cr):
     return jnp.where(mask, new_x, x)
 
 
-@exl.jit_class
-class DECrossover(exl.Operator):
+@ex.jit_class
+class DECrossover(ex.Operator):
     def __init__(self, stdvar=1.0, F=0.5, cr=0.7):
         """
         Parameters
@@ -40,7 +40,7 @@ class DECrossover(exl.Operator):
         self.cr = cr
 
     def setup(self, key):
-        return exl.State(key=key)
+        return ex.State(key=key)
 
     def __call__(self, state, x):
         key = state.key
@@ -48,4 +48,4 @@ class DECrossover(exl.Operator):
         scaled = _random_scaling(scaling_key, x)
         mutated_individual = jax.vmap(_de_mutation)(scaled, self.F)
         children = _de_crossover(crossover_key, mutated_individual, x, self.cr)
-        return exl.State(key=key), children
+        return ex.State(key=key), children
