@@ -98,7 +98,7 @@ def rank(array):
 def rank_based_fitness(raw_fitness):
     num_elems = raw_fitness.shape[0]
     fitness_rank = rank(raw_fitness)
-    return fitness_rank / num_elems - 0.5
+    return fitness_rank / (num_elems - 1) - 0.5
 
 
 @jit_class
