@@ -2,7 +2,7 @@ import math
 import jax
 import jax.numpy as jnp
 from jax import lax
-from .sort_utils import sort_key_valrows
+from .sort_utils import sort_by_key
 
 import evox as ex
 
