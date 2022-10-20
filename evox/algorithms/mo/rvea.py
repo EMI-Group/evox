@@ -1,16 +1,16 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import jax.experimental.host_callback as hcb
-from evoxlib.operators.selection import ReferenceVectorGuidedSelection
+from evox.operators.selection import ReferenceVectorGuidedSelection
 
-from evoxlib.operators.mutation import PmMutation
-from evoxlib.operators.crossover import SimulatedBinaryCrossover
-from evoxlib.operators import uniform_point
+from evox.operators.mutation import PmMutation
+from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import uniform_point
     
     
-@exl.jit_class
-class RVEA(exl.Algorithm):
+@ex.jit_class
+class RVEA(ex.Algorithm):
     """RVEA algorithm
 
     link: https://ieeexplore.ieee.org/document/7386636
@@ -50,14 +50,14 @@ class RVEA(exl.Algorithm):
             + self.lb
         )
         v = uniform_point(self.pop_size, self.n_objs)[0]
-        return exl.State(
+        return ex.State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
             is_init=True, key=key, gen=0)
 
-    @exl.jit_method
+    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 

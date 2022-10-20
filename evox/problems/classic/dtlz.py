@@ -1,13 +1,13 @@
 import jax
 import jax.numpy as jnp
-import evoxlib as exl
-from evoxlib.operators.uniform_point import uniform_point
+import evox as ex
+from evox.operators.uniform_point import uniform_point
 import chex
 from functools import partial
 from scipy.spatial.distance import cdist
 
 
-class DTLZ(exl.Problem):
+class DTLZ(ex.Problem):
     """DTLZ"""
 
     def __init__(self, d=None, m=None, ref_num=1000,):

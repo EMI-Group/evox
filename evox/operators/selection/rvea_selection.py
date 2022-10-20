@@ -1,12 +1,12 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import jax.experimental.host_callback as hcb
-from evoxlib.utils import cos_dist
+from evox.utils import cos_dist
 
 
-@exl.jit_class
-class ReferenceVectorGuidedSelection(exl.Operator):
+@ex.jit_class
+class ReferenceVectorGuidedSelection(ex.Operator):
     """Reference vector guided environmental selection.
 
     """    
@@ -17,7 +17,7 @@ class ReferenceVectorGuidedSelection(exl.Operator):
         self.theta = theta
 
     def setup(self, key):
-        return exl.State(key=key)
+        return ex.State(key=key)
 
     def __call__(self, state, x, v, theta):
         self.x = x
@@ -58,7 +58,7 @@ class ReferenceVectorGuidedSelection(exl.Operator):
             next_ind = jax.lax.cond(jnp.sum(sub_index) != is_null, update_next, no_update, i, sub_index, next_ind)
         
 
-        return exl.State(key=key), next_ind
+        return ex.State(key=key), next_ind
     
     
 

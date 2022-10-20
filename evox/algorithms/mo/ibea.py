@@ -1,16 +1,16 @@
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import jax.experimental.host_callback as hcb
 
-from evoxlib.operators.selection import TournamentSelection
-from evoxlib.operators.mutation import PmMutation
-from evoxlib.operators.crossover import SimulatedBinaryCrossover
-from evoxlib.utils import cal_fitness
+from evox.operators.selection import TournamentSelection
+from evox.operators.mutation import PmMutation
+from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.utils import cal_fitness
 
 
-@exl.jit_class
-class IBEA(exl.Algorithm):
+@ex.jit_class
+class IBEA(ex.Algorithm):
     """IBEA algorithm
 
     link: 
@@ -44,13 +44,13 @@ class IBEA(exl.Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        return exl.State(
+        return ex.State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             is_init=True)
 
-    @exl.jit_method
+    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 

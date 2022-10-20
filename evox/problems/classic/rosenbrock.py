@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 
-import evoxlib as exl
+import evox as ex
 
 
 def _rosenbrock_func(x):
@@ -10,8 +10,8 @@ def _rosenbrock_func(x):
     return f
 
 
-@exl.jit_class
-class Rosenbrock(exl.Problem):
+@ex.jit_class
+class Rosenbrock(ex.Problem):
         
     def evaluate(self, state, X):
         return state, jax.vmap(_rosenbrock_func)(X)
