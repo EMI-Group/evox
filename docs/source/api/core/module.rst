@@ -2,6 +2,6 @@
 Module Class
 ============
 
-.. autoclass:: evoxlib.Module
+.. autoclass:: evox.Module
     :members:
     :inherited-members:

@@ -1,12 +1,12 @@
 import chex
-import evoxlib as exl
+import evox as ex
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_ackley():
-    ackley = exl.problems.classic.Ackley()
+    ackley = ex.problems.classic.Ackley()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = ackley.init(keys)
@@ -16,7 +16,7 @@ def test_ackley():
 
 
 def test_griewank():
-    griewank = exl.problems.classic.Griewank()
+    griewank = ex.problems.classic.Griewank()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 2)
     state = griewank.init(keys)
@@ -26,7 +26,7 @@ def test_griewank():
 
 
 def test_rastrigin():
-    rastrigin = exl.problems.classic.Rastrigin()
+    rastrigin = ex.problems.classic.Rastrigin()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = rastrigin.init(keys)
@@ -36,7 +36,7 @@ def test_rastrigin():
 
 
 def test_rosenbrock():
-    rosenbrock = exl.problems.classic.Rosenbrock()
+    rosenbrock = ex.problems.classic.Rosenbrock()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = rosenbrock.init(keys)
@@ -46,7 +46,7 @@ def test_rosenbrock():
 
 
 def test_dtlz1():
-    dtlz1 = exl.problems.classic.DTLZ1(d=None, m=4)
+    dtlz1 = ex.problems.classic.DTLZ1(d=None, m=4)
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = dtlz1.init(keys)

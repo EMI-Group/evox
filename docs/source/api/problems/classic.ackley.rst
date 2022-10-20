@@ -2,6 +2,6 @@
 Ackley
 ======
 
-.. autoclass:: evoxlib.problems.classic.Ackley
+.. autoclass:: evox.problems.classic.Ackley
     :members:
     :inherited-members:

@@ -1,4 +1,4 @@
-from evoxlib import algorithms, problems, pipelines
+from evox import algorithms, problems, pipelines
 import jax
 import jax.numpy as jnp
 

@@ -1,8 +1,8 @@
 import chex
-import evoxlib as exl
+import evox as ex
 import jax
 import pytest
-from evoxlib import Stateful, State
+from evox import Stateful, State
 from jax.tree_util import tree_map
 
 
@@ -70,9 +70,9 @@ def test_basic():
     root_state = root_module.init(key=jax.random.PRNGKey(123))
     middle_state = middle_module.init(key=jax.random.PRNGKey(456))
     leaf_state = leaf_module.init(key=jax.random.PRNGKey(789))
-    assert root_state.get_child_state('_submodule_leaf') == leaf_state
-    assert root_state.get_child_state('_submodule_middle') == middle_state
-    assert middle_state.get_child_state('_submodule_leaf') == leaf_state
+    assert root_state.get_child_state('leaf') == leaf_state
+    assert root_state.get_child_state('middle') == middle_state
+    assert middle_state.get_child_state('leaf') == leaf_state
 
     root_state, magic = root_module.run(root_state)
     assert magic == [2, 7, 1, 2, 7, 1, 8, 2, 8]
@@ -82,10 +82,10 @@ def test_basic():
 def test_repl_and_str():
     module = Root()
     state = module.init(key=jax.random.PRNGKey(456))
-    assert repr(state) == "State ({'attr_a': 123, 'attr_b': 456}, ['_submodule_leaf', '_submodule_middle'])"
+    assert repr(state) == "State ({'attr_a': 123, 'attr_b': 456}, ['leaf', 'middle'])"
     assert str(state) == ("State (\n"
                           " {'attr_a': 123, 'attr_b': 456},\n"
-                          " ['_submodule_leaf', '_submodule_middle']\n"
+                          " ['leaf', 'middle']\n"
                           ")"
                           )
 

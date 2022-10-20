@@ -10,7 +10,7 @@ let
   };
 in
 (pkgs.buildFHSUserEnv {
-  name = "evoxlib-env";
+  name = "evox-env";
 
   targetPkgs = pkgs: with pkgs; [
     fish
