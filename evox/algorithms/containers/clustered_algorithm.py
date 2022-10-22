@@ -1,48 +1,73 @@
 import copy
 from functools import partial
-from jax.tree_util import tree_map
-import chex
+from typing import Optional
+
 import jax
 import jax.numpy as jnp
 from evox import Algorithm, State
+from jax import vmap, pmap
+from jax.tree_util import tree_map
 
 
 class ClusterdAlgorithm(Algorithm):
     """A container that split the encoding into subproblems, and run an Algorithm on each.
 
     Can take in any base algorithm, split the problem into n different sub-problems
-    and solve each problem using the base algorithm. Dim must be a multiple of num_cluster.
+    and solve each problem using the base algorithm.
+    Dim must be a multiple of num_cluster, and num_cluster must be a multiple of num_gpus.
     """
 
-    def __init__(self, base_algorithm: Algorithm, dim: int, num_cluster: int):
+    def __init__(
+        self,
+        base_algorithm: Algorithm,
+        dim: int,
+        num_cluster: int,
+        num_gpus: Optional[int] = None,
+    ):
         assert dim % num_cluster == 0
         self.dim = dim
         self.num_cluster = num_cluster
         self.subproblem_dim = self.dim // num_cluster
         self.base_algorithm = base_algorithm
+        if num_gpus is not None:
+            assert num_cluster % num_gpus == 0, "num_gpus must divide num_cluster"
+        self.num_gpus = num_gpus
 
     def init(self, key: jnp.ndarray = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
-        child_states = {
-            "_base_algorithm": jax.vmap(
-                partial(self.base_algorithm.init, name="_base_algorithm")
+        if self.num_gpus is None:
+            vectorized_state = vmap(
+                partial(self.base_algorithm.init, name="base_algorithm")
             )(keys)
-        }
+        else:
+            keys = keys.reshape(self.num_gpus, self.num_cluster // self.num_gpus, 2)
+            vectorized_state = pmap(
+                vmap(partial(self.base_algorithm.init, name="base_algorithm"))
+            )(keys)
+        child_states = {"base_algorithm": vectorized_state}
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)
 
     def ask(self, state: State):
-        state, xs = jax.vmap(self.base_algorithm.ask)(state)
-        # concatenate different parts as a whole
-        xs = jnp.concatenate(xs, axis=1)
-        return state, xs
+        if self.num_gpus is None:
+            state, sub_pops = vmap(self.base_algorithm.ask)(state)
+            # concatenate different parts as a whole
+            full_pop = sub_pops.transpose((1, 0, 2)).reshape((-1, self.dim))
+        else:
+            state, sub_pops = pmap(vmap(self.base_algorithm.ask))(state)
+            # concatenate different parts as a whole
+            full_pop = sub_pops.transpose((2, 0, 1, 3)).reshape((-1, self.dim))
+        return state, full_pop
 
     def tell(self, state: State, fitness: jnp.ndarray):
         def partial_tell(state):
             return self.base_algorithm.tell(state, fitness)
 
-        return jax.vmap(partial_tell)(state)
+        if self.num_gpus is None:
+            return vmap(partial_tell)(state)
+        else:
+            return pmap(vmap(partial_tell))(state)
 
 
 def _mask_state(state: State, permutation: jnp.ndarray):
@@ -98,7 +123,7 @@ class RandomMaskAlgorithm(Algorithm):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
         child_states = {
-            self.submodule_name: jax.vmap(
+            self.submodule_name: vmap(
                 partial(self.base_algorithm.init, name=self.submodule_name)
             )(keys)
         }
@@ -118,7 +143,7 @@ class RandomMaskAlgorithm(Algorithm):
         return jax.lax.cond(state.count == 0, self._ask_init, self._ask_normal, state)
 
     def _ask_init(self, state: State):
-        child_state, xs = jax.vmap(self.base_algorithm.ask)(
+        child_state, xs = vmap(self.base_algorithm.ask)(
             state.get_child_state(self.submodule_name)
         )
         state = state.update_child(self.submodule_name, child_state)
@@ -129,7 +154,7 @@ class RandomMaskAlgorithm(Algorithm):
     def _ask_normal(self, state: State):
         old_state = state.get_child_state(self.submodule_name)
         masked_child_state = _mask_state(old_state, state.permutation)
-        new_child_state, xs = jax.vmap(self.base_algorithm.ask)(masked_child_state)
+        new_child_state, xs = vmap(self.base_algorithm.ask)(masked_child_state)
         full_pop = jnp.concatenate(state.sub_pops.at[state.permutation].set(xs), axis=1)
         state = state.update_child(
             self.submodule_name,
@@ -143,7 +168,7 @@ class RandomMaskAlgorithm(Algorithm):
 
         old_state = state.get_child_state(self.submodule_name)
         masked_child_state = _mask_state(old_state, state.permutation)
-        new_child_state = jax.vmap(partial_tell)(masked_child_state)
+        new_child_state = vmap(partial_tell)(masked_child_state)
         state = state.update_child(
             self.submodule_name,
             _unmask_state(old_state, new_child_state, state.permutation),
