@@ -1,12 +1,14 @@
 import evox as ex
-from evox import algorithms, problems, pipelines
-from evox.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
 import pytest
+from evox import algorithms, pipelines, problems
+from evox.monitors import FitnessMonitor
+import chex
 
 
-def test_clustered_cso():
+@pytest.mark.parametrize("num_gpus", [None, 1])
+def test_clustered_cso(num_gpus):
     # create a pipeline
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
@@ -16,8 +18,9 @@ def test_clustered_cso():
                 ub=jnp.full(shape=(10,), fill_value=32),
                 pop_size=100,
             ),
-            dim=100,
-            num_cluster=10,
+            dim=40,
+            num_cluster=4,
+            num_gpus=num_gpus
         ),
         problem=problems.classic.Ackley(),
         fitness_transform=monitor.update
@@ -26,12 +29,12 @@ def test_clustered_cso():
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
-    # run the pipeline for 300 steps
-    for i in range(300):
+    # run the pipeline for 50 steps
+    for i in range(50):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert min_fitness < 1
+    assert abs(min_fitness - 10.785286903381348) < 1e-4
 
 
 def test_random_mask_cso():
@@ -44,8 +47,8 @@ def test_random_mask_cso():
                 ub=jnp.full(shape=(10,), fill_value=32),
                 pop_size=100,
             ),
-            dim=100,
-            num_cluster=10,
+            dim=40,
+            num_cluster=4,
             num_mask=2,
             change_every=10,
         ),
@@ -56,9 +59,9 @@ def test_random_mask_cso():
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
-    # run the pipeline for 300 steps
-    for i in range(600):
+    # run the pipeline for 50 steps
+    for i in range(50):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert min_fitness < 1
+    assert abs(min_fitness - 16.529775619506836) < 1e-4
