@@ -9,17 +9,24 @@ import evox as ex
 
 @ex.jit_class
 class CSO(ex.Algorithm):
-    def __init__(self, lb, ub, pop_size, phi=0.1):
+    def __init__(self, lb, ub, pop_size, phi=0, mean = None, stdvar = None):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
         self.phi = phi
+        self.mean = mean
+        self.stdvar = stdvar
+        assert stdvar is None or stdvar > 0
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
-        population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
-        population = population * (self.ub - self.lb) + self.lb
+        if self.mean is not None and self.stdvar is not None:
+            population = self.stdvar * jax.random.normal(init_key, shape=(self.pop_size, self.dim))
+            population = jnp.clip(population, self.lb, self.ub)
+        else:
+            population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
+            population = population * (self.ub - self.lb) + self.lb
         speed = jnp.zeros(shape=(self.pop_size, self.dim))
 
         return ex.State(population=population, speed=speed, key=state_key)
