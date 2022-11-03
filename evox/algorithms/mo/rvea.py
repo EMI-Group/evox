@@ -7,8 +7,8 @@ from evox.operators.selection import ReferenceVectorGuidedSelection
 from evox.operators.mutation import PmMutation
 from evox.operators.crossover import SimulatedBinaryCrossover
 from evox.operators import uniform_point
-    
-    
+
+
 @ex.jit_class
 class RVEA(ex.Algorithm):
     """RVEA algorithm
@@ -55,18 +55,19 @@ class RVEA(ex.Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
-            is_init=True, key=key, gen=0)
+            is_init=True,
+            key=key,
+            gen=0,
+        )
 
     @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
     def tell(self, state, fitness):
-        return jax.lax.cond(state.is_init,
-                            self._tell_init,
-                            self._tell_normal,
-                            state, fitness
-                            )
+        return jax.lax.cond(
+            state.is_init, self._tell_init, self._tell_normal, state, fitness
+        )
 
     def _ask_init(self, state):
         return state, state.population
@@ -88,23 +89,39 @@ class RVEA(ex.Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        state, rank = self.selection(state, merged_fitness, v, (current_gen/self.max_gen)**self.alpha)
-        
+        state, rank = self.selection(
+            state, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
+        )
+
         survivor = merged_pop[rank[0]]
         survivor_fitness = merged_fitness[rank[0]]
-        
+
         def rv_adaptation(pop_obj, v):
             v_temp = v * jnp.tile((pop_obj.max(0) - pop_obj.min(0)), (len(v), 1))
             next_v = v.astype(float)
 
-            next_v = v_temp / jnp.tile(jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1), (1, jnp.shape(v)[1]))
-                
+            next_v = v_temp / jnp.tile(
+                jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1),
+                (1, jnp.shape(v)[1]),
+            )
+
             return next_v
-        
+
         def no_update(pop_obj, v):
             return v
-        
-        v= jax.lax.cond(current_gen % (1 / self.fr) == 0, rv_adaptation, no_update, survivor_fitness, v)
 
-        state = state.update(population=survivor, fitness=survivor_fitness, reference_vector=v, gen=current_gen)
+        v = jax.lax.cond(
+            current_gen % (1 / self.fr) == 0,
+            rv_adaptation,
+            no_update,
+            survivor_fitness,
+            v,
+        )
+
+        state = state.update(
+            population=survivor,
+            fitness=survivor_fitness,
+            reference_vector=v,
+            gen=current_gen,
+        )
         return state

@@ -13,7 +13,7 @@ from evox.utils import cal_fitness
 class IBEA(ex.Algorithm):
     """IBEA algorithm
 
-    link: 
+    link:
     """
 
     def __init__(
@@ -48,18 +48,17 @@ class IBEA(ex.Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True)
+            is_init=True,
+        )
 
     @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
     def tell(self, state, fitness):
-        return jax.lax.cond(state.is_init,
-                            self._tell_init,
-                            self._tell_normal,
-                            state, fitness
-                            )
+        return jax.lax.cond(
+            state.is_init, self._tell_init, self._tell_normal, state, fitness
+        )
 
     def _ask_init(self, state):
         return state, state.population
@@ -82,8 +81,7 @@ class IBEA(ex.Algorithm):
         return state
 
     def _tell_normal(self, state, fitness):
-        merged_pop = jnp.concatenate(
-            [state.population, state.next_generation], axis=0)
+        merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 
         n = jnp.shape(merged_pop)[0]
@@ -97,7 +95,7 @@ class IBEA(ex.Algorithm):
             next = next.at[x].set(-1)
 
         ind = jnp.where(next != -1, size=n, fill_value=-1)[0]
-        ind_n = ind[0:self.pop_size]
+        ind_n = ind[0 : self.pop_size]
 
         survivor = merged_pop[ind_n]
         survivor_fitness = merged_obj[ind_n]

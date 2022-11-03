@@ -52,5 +52,7 @@ class OpenES(ex.Algorithm):
         )
 
     def tell(self, state, fitness):
-        params = state.params - self.learning_rate / self.noise_std * jnp.mean(fitness[:, jnp.newaxis] * state.noise, axis=0)
+        params = state.params - self.learning_rate / self.noise_std * jnp.mean(
+            fitness[:, jnp.newaxis] * state.noise, axis=0
+        )
         return state.update(params=params)
