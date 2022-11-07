@@ -22,12 +22,17 @@ class SimpleCNN(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        x = nn.Conv(features=6, kernel_size=(5, 5), padding="SAME")(x)
-        x = nn.sigmoid(x)
-        x = nn.avg_pool(x, window_shape=(2, 2), strides=(2, 2))
-        x = nn.Conv(features=16, kernel_size=(5, 5), padding="SAME")(x)
-        x = nn.sigmoid(x)
-        x = nn.avg_pool(x, window_shape=(2, 2), strides=(2, 2))
+        x = nn.Conv(features=6, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.relu(x)
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.relu(x)
+        x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.relu(x)
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.relu(x)
+        x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
+
         x = x.reshape(x.shape[0], -1)
         x = nn.Dense(120)(x)
         x = nn.sigmoid(x)
@@ -38,9 +43,9 @@ class SimpleCNN(nn.Module):
 def init_problem_and_model(key):
     model = SimpleCNN()
     batch_size = 64
-    initial_params = model.init(key, jnp.zeros((batch_size, 28, 28, 1)))
-    problem = ex.problems.neuroevolution.MNIST(
-        root="./", batch_size=128, forward_func=model.apply
+    initial_params = model.init(key, jnp.zeros((batch_size, 32, 32, 3)))
+    problem = ex.problems.neuroevolution.TorchvisionDataset(
+        root="./datasets", batch_size=batch_size, forward_func=model.apply, dataset_name="cifar10"
     )
     return initial_params, problem
 
@@ -58,9 +63,7 @@ def test_neuroevolution_treemap():
     )
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
-        algorithm=ex.algorithms.TreeAlgorithm(
-            PartialPGPE, initial_params, center_init
-        ),
+        algorithm=ex.algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
         fitness_transform=monitor.update,
     )
