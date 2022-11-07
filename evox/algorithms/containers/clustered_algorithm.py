@@ -61,13 +61,12 @@ class ClusterdAlgorithm(Algorithm):
         return state, full_pop
 
     def tell(self, state: State, fitness: jnp.ndarray):
-        def partial_tell(state):
-            return self.base_algorithm.tell(state, fitness)
-
         if self.num_gpus is None:
-            return vmap(partial_tell)(state)
+            return vmap(self.base_algorithm.tell, in_axes=(0, None))(state, fitness)
         else:
-            return pmap(vmap(partial_tell))(state)
+            return pmap(
+                vmap(self.base_algorithm.tell, in_axes=(0, None)), in_axes=(0, None)
+            )(state, fitness)
 
 
 def _mask_state(state: State, permutation: jnp.ndarray):
@@ -163,12 +162,11 @@ class RandomMaskAlgorithm(Algorithm):
         return state, full_pop
 
     def tell(self, state: State, fitness: jnp.ndarray):
-        def partial_tell(state):
-            return self.base_algorithm.tell(state, fitness)
-
         old_state = state.get_child_state(self.submodule_name)
         masked_child_state = _mask_state(old_state, state.permutation)
-        new_child_state = vmap(partial_tell)(masked_child_state)
+        new_child_state = vmap(self.base_algorithm.tell, in_axes=(0, None))(
+            masked_child_state, fitness
+        )
         state = state.update_child(
             self.submodule_name,
             _unmask_state(old_state, new_child_state, state.permutation),
