@@ -48,17 +48,27 @@ class WorkerPipeline(Stateful):
 
 @ray.remote
 class Worker:
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, supervisor, worker_index):
         self.pipeline = pipeline
+        self.supervisor = supervisor
+        self.worker_index = worker_index
+        self.initialized = False
 
     def init(self, key):
         self.state = self.pipeline.init(key)
+        self.initialized = True
 
     def step1(self):
+        if not self.initialized:
+            self.state = supervisor.request_restore_state.remote(self.worker_index)
+
         self.state, parital_fitness = self.pipeline.step1(self.state)
         return parital_fitness
 
     def step2(self, fitness):
+        if not self.initialized:
+            self.state = supervisor.request_restore_state.remote(self.worker_index)
+
         fitness = ray.get(fitness)
         fitness = jnp.concatenate(fitness, axis=0)
         self.state = self.pipeline.step2(self.state, fitness)
@@ -94,7 +104,9 @@ class Supervisor:
                     slice_size,
                     pop_transform,
                     fitness_transform,
-                )
+                ),
+                self,
+                i,
             )
             for i in range(num_workers)
         ]
@@ -109,6 +121,11 @@ class Supervisor:
         fitness = [worker.step1.remote() for worker in self.workers]
         worker_futures = [worker.step2.remote(fitness) for worker in self.workers]
         return fitness, worker_futures
+
+    def request_restore_state(worker_index: int):
+        # find a healthy worker and send it's state
+        healthy_worker = (worker_index + 1) % len(self.workers)
+        return self.workers[healthy_worker].get_full_state.remote()
 
     def assert_state_sync(self):
         states = ray.get([worker.get_full_state.remote() for worker in self.workers])
