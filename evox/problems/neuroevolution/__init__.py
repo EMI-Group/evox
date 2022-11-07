@@ -1,2 +1,2 @@
-from .mnist import MNIST
+from .torchvision_dataset import TorchvisionDataset
 from .gym import Gym
