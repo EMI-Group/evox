@@ -27,9 +27,6 @@ class WorkerPipeline(Stateful):
 
     def step1(self, state):
         state, pop = self.algorithm.ask(state)
-        if self.fitness_transform is not None:
-            pop = self.fitness_transform(pop)
-
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
 
         if self.pop_transform is not None:
@@ -40,6 +37,9 @@ class WorkerPipeline(Stateful):
         return state, partial_fitness
 
     def step2(self, state, fitness):
+        if self.fitness_transform is not None:
+            fitness = self.fitness_transform(fitness)
+
         state = self.algorithm.tell(state, fitness)
         return state
 
