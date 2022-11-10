@@ -36,16 +36,16 @@ def test_cso():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
     algorithm = CSO(lb, ub, 100)
-    fitess = run_single_objective_algorithm(algorithm)
-    assert fitess < 0.1
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
 
 
 def test_pso():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
     algorithm = PSO(lb, ub, 100)
-    fitess = run_single_objective_algorithm(algorithm)
-    assert fitess < 0.1
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
 
 
 def test_pgpe():
@@ -58,8 +58,8 @@ def test_pgpe():
         stdev_init=10,
         stdev_learning_rate=0.2,
     )
-    fitess = run_single_objective_algorithm(algorithm, fitness_shaping=True)
-    assert fitess < 0.1
+    fitness = run_single_objective_algorithm(algorithm, fitness_shaping=True)
+    assert fitness < 0.1
 
 
 def test_openes():
@@ -68,23 +68,23 @@ def test_openes():
     algorithm = OpenES(
         init_mean, 100, learning_rate=1, noise_std=3, mirrored_sampling=True
     )
-    fitess = run_single_objective_algorithm(
+    fitness = run_single_objective_algorithm(
         algorithm, fitness_shaping=True, num_iter=1000
     )
-    assert fitess < 1
+    assert fitness < 1
 
 
 def test_xnes():
     init_mean = jnp.array([5.0, -10, 15, -20, 25])
     init_covar = jnp.eye(5) * 2
     algorithm = xNES(init_mean, init_covar, pop_size=100)
-    fitess = run_single_objective_algorithm(algorithm)
-    assert fitess < 0.1
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
 
 
 def test_de():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
     algorithm = DE(lb, ub, 100, batch_size=100, base_vector="rand")
-    fitess = run_single_objective_algorithm(algorithm)
-    assert fitess < 0.1
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
