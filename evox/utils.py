@@ -31,7 +31,7 @@ def _prod_tuple(xs):
 
 @jax.jit
 def pair_distance(a, b):
-    return jnp.linalg.norm(a-b, axis=0)
+    return jnp.linalg.norm(a - b, axis=0)
 
 
 @jax.jit
@@ -41,13 +41,15 @@ def euclidean_dis(x, y):
 
 @jax.jit
 def pair_max(a, b):
-    return jnp.max(a-b, axis=0)
+    return jnp.max(a - b, axis=0)
 
 
 @jax.jit
 def cos_dist(x, y):
-    return jnp.dot(x / jnp.linalg.norm(x, axis=-1, keepdims=True),
-                   (y / jnp.linalg.norm(y, axis=-1, keepdims=True)).T)
+    return jnp.dot(
+        x / jnp.linalg.norm(x, axis=-1, keepdims=True),
+        (y / jnp.linalg.norm(y, axis=-1, keepdims=True)).T,
+    )
 
 
 @jax.jit
@@ -58,8 +60,9 @@ def cal_indicator(x, y):
 @jax.jit
 def cal_fitness(pop_obj, kappa):
     n = jnp.shape(pop_obj)[0]
-    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / \
-        (jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1)))
+    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / (
+        jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1))
+    )
     I = cal_indicator(pop_obj, pop_obj)
 
     C = jnp.max(jnp.abs(I), axis=0)
@@ -99,6 +102,20 @@ def rank_based_fitness(raw_fitness):
     num_elems = raw_fitness.shape[0]
     fitness_rank = rank(raw_fitness)
     return fitness_rank / (num_elems - 1) - 0.5
+
+
+class OptaxWrapper(Stateful):
+    def __init__(self, optimizer, init_params):
+        self.optimizer = optimizer
+        self.init_params = init_params
+
+    def setup(self, key):
+        opt_state = self.optimizer.init(self.init_params)
+        return State(opt_state=opt_state)
+
+    def update(self, state, grads, params=None):
+        updates, opt_state = self.optimizer.update(grads, state.opt_state, params)
+        return state.update(opt_state=opt_state), updates
 
 
 @jit_class
