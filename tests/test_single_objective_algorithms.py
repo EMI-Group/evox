@@ -48,12 +48,13 @@ def test_pso():
     assert fitness < 0.1
 
 
-def test_pgpe():
+@pytest.mark.parametrize("optimizer", ["adam", "clipup"])
+def test_pgpe(optimizer):
     init_mean = jnp.array([5.0, -10, 15, -20, 25])
     algorithm = PGPE(
         100,
         init_mean,
-        optimizer="adam",
+        optimizer=optimizer,
         center_learning_rate=0.3,
         stdev_init=10,
         stdev_learning_rate=0.2,
