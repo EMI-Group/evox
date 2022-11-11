@@ -14,9 +14,25 @@ from torchvision import datasets
 from .models import LeNet
 
 
-def collate_fn(batch: list):
+def np_collate_fn(batch: list):
     data, labels = list(zip(*batch))
-    return jnp.array(np.stack(data)), jnp.array(labels)
+    return np.stack(data), np.array(labels)
+
+
+def jnp_collate_fn(batch: list):
+    data, labels = list(zip(*batch))
+    return jnp.stack(data), jnp.array(labels)
+
+
+class InMemoryDataset(Dataset):
+    def __init__(self, dataset):
+        self.in_memory_dataset = [dataset[i] for i in range(len(dataset))]
+
+    def __len__(self):
+        return len(self.in_memory_dataset)
+
+    def __getitem__(self, index):
+        return self.in_memory_dataset[index]
 
 
 class DeterministicRandomSampler(Sampler):
@@ -46,6 +62,7 @@ class TorchvisionDataset(Problem):
         test_dataset: Optional[Dataset] = None,
         valid_percent: float = 0.2,
         num_workers: int = 0,
+        in_memory: bool = False,
         loss_func: Callable = optax.softmax_cross_entropy_with_integer_labels,
     ):
         self.batch_size = batch_size
@@ -53,6 +70,8 @@ class TorchvisionDataset(Problem):
         self.loss_func = loss_func
         self.valid_percent = valid_percent
         self.num_workers = num_workers
+        self.in_memory = in_memory
+        self.collate_fn = np_collate_fn
 
         if train_dataset is not None and isinstance(dataset, Dataset):
             if dataset_name is not None:
@@ -84,7 +103,13 @@ class TorchvisionDataset(Problem):
                 root, train=False, download=True, transform=np.array
             )
         else:
-            raise ValueError(f"Not supported dataset: {dataset}")
+            raise ValueError(f"Not supported dataset: {dataset_name}")
+
+        if in_memory:
+            assert self.num_workers == 0, "When in_memory is True, num_workers should be 0 to avoid multi-processing"
+            self.train_dataset = InMemoryDataset(self.train_dataset)
+            self.test_dataset = InMemoryDataset(self.test_dataset)
+
 
     def setup(self, key):
         key, subset_key, sampler_key = jax.random.split(key, num=3)
@@ -92,69 +117,81 @@ class TorchvisionDataset(Problem):
         valid_len = int(len(self.train_dataset) * self.valid_percent)
         train_len = len(self.train_dataset) - valid_len
 
-        self.train_dataset = Subset(self.train_dataset, indices[:train_len].tolist())
         self.valid_dataset = Subset(self.train_dataset, indices[train_len:].tolist())
-
+        self.train_dataset = Subset(self.train_dataset, indices[:train_len].tolist())
         self.sampler = DeterministicRandomSampler(sampler_key, len(self.train_dataset))
 
         self.train_dataloader = DataLoader(
             self.train_dataset,
             sampler=self.sampler,
             batch_size=self.batch_size,
-            collate_fn=collate_fn,
+            collate_fn=self.collate_fn,
             num_workers=self.num_workers,
             drop_last=True,
         )
 
         self.train_iter = iter(self.train_dataloader)
-        # to work with jit, mode is an integer
+        # to work with jit, mode and metric are integer type
         # 0 - train, 1 - valid, 2 - test
-        return State(key=key, mode=0)
+        return State(key=key, mode=0, metric=0)
 
-    def train(self, state):
-        return state.update(mode=0)
+    def train(self, state, metric="loss"):
+        return state.update(mode=0, metric=(0 if metric == "loss" else 1))
 
-    def valid(self, state):
-        return state.update(mode=1)
+    def valid(self, state, metric="loss"):
+        return state.update(mode=1, metric=(0 if metric == "loss" else 1))
 
-    def test(self, state):
-        return state.update(mode=2)
+    def test(self, state, metric="loss"):
+        return state.update(mode=2, metric=(0 if metric == "loss" else 1))
 
     def _evaluate_train_mode(self, state, batch_params):
         try:
             data, labels = next(self.train_iter)
+            # data, labels = jnp.asarray(data), jnp.asarray(labels)
         except StopIteration:
             self.train_iter = iter(self.train_dataloader)
             data, labels = next(self.train_iter)
+            # data, labels = jnp.asarray(data), jnp.asarray(labels)
 
         losses = self._calculate_loss(data, labels, batch_params)
         return state, losses
 
     def _evaluate_valid_mode(self, state, batch_params):
-        valid_dataset = DataLoader(
+        valid_dataloader = DataLoader(
             self.valid_dataset,
             batch_size=self.batch_size,
-            collate_fn=collate_fn,
+            collate_fn=self.collate_fn,
             num_workers=self.num_workers,
             drop_last=True,
         )
-        accumulated_loss = 0
-        for data, labels in valid_dataset:
-            accumulated_loss += self._calculate_loss(data, labels, batch_params)
-        return accumulated_loss / len(valid_dataset)
+        if state.metric == 0:
+            metric_func = self._calculate_loss
+        else:
+            metric_func = self._calculate_accuracy
+
+        accumulated_metric = 0
+        for data, labels in valid_dataloader:
+            accumulated_metric += metric_func(data, labels, batch_params)
+        return state, accumulated_metric / len(valid_dataloader)
 
     def _evaluate_test_mode(self, state, batch_params):
-        test_dataset = DataLoader(
+        breakpoint()
+        test_dataloader = DataLoader(
             self.test_dataset,
             batch_size=self.batch_size,
-            collate_fn=collate_fn,
+            collate_fn=self.collate_fn,
             num_workers=self.num_workers,
             drop_last=True,
         )
-        accumulated_loss = 0
+        if state.metric == 0:
+            metric_func = self._calculate_loss
+        else:
+            metric_func = self._calculate_accuracy
+
+        accumulated_metric = 0
         for data, labels in test_dataloader:
-            accumulated_loss += self._calculate_loss(data, labels, batch_params)
-        return accumulated_loss / len(test_dataloader)
+            accumulated_metric += metric_func(data, labels, batch_params)
+        return state, accumulated_metric / len(test_dataloader)
 
     def evaluate(self, state, batch_params):
         if state.mode == 0:
@@ -165,6 +202,14 @@ class TorchvisionDataset(Problem):
             return self._evaluate_test_mode(state, batch_params)
         else:
             raise ValueError(f"Unknown mode: {state.mode}")
+
+    @evox.jit_method
+    def _calculate_accuracy(self, data, labels, batch_params):
+        output = vmap(self.forward_func, in_axes=(0, None))(batch_params, data) # (pop_size, batch_size, out_dim)
+        output = jnp.argmax(output, axis=2) # (pop_size, batch_size)
+        acc = jnp.mean(output == labels, axis=1)
+
+        return acc
 
     @evox.jit_method
     def _calculate_loss(self, data, labels, batch_params):
