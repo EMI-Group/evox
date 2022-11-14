@@ -4,7 +4,6 @@ import jax.numpy as jnp
 
 def _flip(key, x, p):
     probabilities = jax.random.uniform(key, x.shape)
-    print(probabilities)
     new_x = jnp.where(probabilities < p, x, ~x)
     return new_x
 
