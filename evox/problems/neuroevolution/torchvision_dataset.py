@@ -11,8 +11,6 @@ from jax import jit, vmap
 from torch.utils.data import DataLoader, Dataset, Sampler, random_split, Subset
 from torchvision import datasets
 
-from .models import LeNet
-
 
 def np_collate_fn(batch: list):
     data, labels = list(zip(*batch))
@@ -106,10 +104,11 @@ class TorchvisionDataset(Problem):
             raise ValueError(f"Not supported dataset: {dataset_name}")
 
         if in_memory:
-            assert self.num_workers == 0, "When in_memory is True, num_workers should be 0 to avoid multi-processing"
+            assert (
+                self.num_workers == 0
+            ), "When in_memory is True, num_workers should be 0 to avoid multi-processing"
             self.train_dataset = InMemoryDataset(self.train_dataset)
             self.test_dataset = InMemoryDataset(self.test_dataset)
-
 
     def setup(self, key):
         key, subset_key, sampler_key = jax.random.split(key, num=3)
@@ -205,8 +204,10 @@ class TorchvisionDataset(Problem):
 
     @evox.jit_method
     def _calculate_accuracy(self, data, labels, batch_params):
-        output = vmap(self.forward_func, in_axes=(0, None))(batch_params, data) # (pop_size, batch_size, out_dim)
-        output = jnp.argmax(output, axis=2) # (pop_size, batch_size)
+        output = vmap(self.forward_func, in_axes=(0, None))(
+            batch_params, data
+        )  # (pop_size, batch_size, out_dim)
+        output = jnp.argmax(output, axis=2)  # (pop_size, batch_size)
         acc = jnp.mean(output == labels, axis=1)
 
         return acc
