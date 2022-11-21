@@ -11,6 +11,7 @@ except ImportError as e:
             f'TorchvisionDataset requires torchvision, optax but got "{original_erorr_msg}" when importing'
         )
 
+
 try:
     # optional dependency: gym
     from .gym import Gym
