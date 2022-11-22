@@ -50,7 +50,6 @@ class NSGA2(ex.Algorithm):
             next_generation=population,
             is_init=True)
 
-    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
