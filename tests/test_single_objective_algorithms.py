@@ -39,6 +39,12 @@ def test_cso():
     fitness = run_single_objective_algorithm(algorithm)
     assert fitness < 0.1
 
+def test_cma_es():
+    init_mean = jnp.array([5.0, -10, 15, -20, 25])
+    algorithm = CMA_ES(init_mean, init_stdvar=1, pop_size=100)
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
+
 
 def test_pso():
     lb = jnp.full((5,), -32.0)
