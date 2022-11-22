@@ -18,6 +18,8 @@ class DE(ex.Algorithm):
         cross_probability=0.9,
         differential_weight=0.8,
         batch_size=1,
+        mean = None,
+        stdvar = None
     ):
         assert jnp.all(lb < ub)
         assert pop_size >= 4
@@ -38,11 +40,17 @@ class DE(ex.Algorithm):
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
         self.batch_size = batch_size
+        self.mean = mean
+        self.stdvar = stdvar
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
-        population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
-        population = population * (self.ub - self.lb) + self.lb
+        if self.mean is not None and self.stdvar is not None:
+            population = self.stdvar * jax.random.normal(init_key, shape=(self.pop_size, self.dim))
+            population = jnp.clip(population, self.lb, self.ub)
+        else:
+            population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
+            population = population * (self.ub - self.lb) + self.lb
         fitness = jnp.full((self.pop_size,), jnp.inf)
         best_index = 0
         start_index = 0

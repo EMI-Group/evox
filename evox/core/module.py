@@ -22,6 +22,8 @@ def use_state(func):
         The method to be wrapped with
     """
 
+    err_msg = "Expect first return value must be State, got {}"
+
     @wraps(func)
     def wrapper(self, state, *args, **kargs):
         if self.name == "_top_level" or not state.has_child(self.name):
@@ -29,9 +31,15 @@ def use_state(func):
 
             # single return value, the value must be a State
             if not isinstance(return_value, tuple):
+                assert isinstance(return_value, State), err_msg.format(
+                    type(return_value)
+                )
                 return state.update(return_value)
 
             # unpack the return value first
+            assert isinstance(return_value[0], State), err_msg.format(
+                type(return_value[0])
+            )
             state = state.update(return_value[0])
             return (state, *return_value[1:])
         else:
@@ -39,9 +47,15 @@ def use_state(func):
 
             # single return value, the value must be a State
             if not isinstance(return_value, tuple):
+                assert isinstance(return_value, State), err_msg.format(
+                    type(return_value)
+                )
                 return state.update_child(self.name, return_value)
 
             # unpack the return value first
+            assert isinstance(return_value[0], State), err_msg.format(
+                type(return_value[0])
+            )
             state = state.update_child(self.name, return_value[0])
             return (state, *return_value[1:])
 
