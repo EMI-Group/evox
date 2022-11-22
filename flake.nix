@@ -1,10 +1,7 @@
 {
   description = "evox";
   inputs = {
-    # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    # use custom nixpkgs until
-    # https://github.com/NixOS/nixpkgs/pull/194357 get merged
-    nixpkgs.url = "github:BillHuang2001/nixpkgs/evox-env";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-22.11";
     utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";

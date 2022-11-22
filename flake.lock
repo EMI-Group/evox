@@ -18,16 +18,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1665820751,
-        "narHash": "sha256-Sld0fhr1MC8dVWEbNCGBRC+uuRfopFg0Cd7pq7jtj6A=",
-        "owner": "BillHuang2001",
+        "lastModified": 1669130108,
+        "narHash": "sha256-jjJIdilc8vtRkKhVgLbbjd1/0iNE+a0Jv8aTZugAnZA=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3570d6275f425664d3d1acf47e5b0bb810a75b6b",
+        "rev": "dfdea0f6f2ded5ad8c056cbd27275b3e241afe14",
         "type": "github"
       },
       "original": {
-        "owner": "BillHuang2001",
-        "ref": "evox-env",
+        "owner": "NixOS",
+        "ref": "release-22.11",
         "repo": "nixpkgs",
         "type": "github"
       }
