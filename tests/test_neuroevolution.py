@@ -7,7 +7,6 @@ import pytest
 from flax import linen as nn
 from evox import algorithms, pipelines, problems
 from evox.monitors import FitnessMonitor
-from evox.problems.neuroevolution.models import SimpleCNN
 
 
 class PartialPGPE(ex.algorithms.PGPE):
