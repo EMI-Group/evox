@@ -8,33 +8,31 @@ import chex
 
 
 @pytest.mark.parametrize("num_gpus", [None, 1])
-def test_clustered_cso(num_gpus):
+def test_clustered_cma_es(num_gpus):
     # create a pipeline
+    init_mean = jnp.full((10,), fill_value=-20)
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.ClusterdAlgorithm(
-            base_algorithm=ex.algorithms.CSO(
-                lb=jnp.full(shape=(10,), fill_value=-32),
-                ub=jnp.full(shape=(10,), fill_value=32),
-                pop_size=100,
-            ),
+            base_algorithm=ex.algorithms.CMA_ES(init_mean, init_stdvar=10, pop_size=10),
             dim=40,
             num_cluster=4,
-            num_gpus=num_gpus
+            num_gpus=num_gpus,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update
+        fitness_transform=monitor.update,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
-    # run the pipeline for 50 steps
-    for i in range(50):
+    # run the pipeline for 10 steps
+    for i in range(10):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert abs(min_fitness - 10.785286903381348) < 1e-4
+    print(min_fitness)
+    assert abs(min_fitness - 21) < 0.1
 
 
 def test_random_mask_cso():
@@ -53,15 +51,15 @@ def test_random_mask_cso():
             change_every=10,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update
+        fitness_transform=monitor.update,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
-    # run the pipeline for 50 steps
-    for i in range(50):
+    # run the pipeline for 10 steps
+    for i in range(10):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert abs(min_fitness - 16.529775619506836) < 1e-4
+    assert abs(min_fitness - 19.6) < 0.1

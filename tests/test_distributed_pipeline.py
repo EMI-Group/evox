@@ -6,7 +6,7 @@ import jax.numpy as jnp
 import pytest
 
 
-def test_cso():
+def test_distributed_cso():
     monitor = FitnessMonitor()
     # create a pipeline
     pipeline = pipelines.DistributedPipeline(

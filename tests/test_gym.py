@@ -63,4 +63,4 @@ def test_cartpole(batch_policy):
     min_fitness = monitor.get_min_fitness()
     print(min_fitness)
     # gym should be deterministic
-    assert min_fitness == -151
+    assert min_fitness == -83.0

@@ -146,6 +146,7 @@ class Supervisor:
         for state in states:
             leaves, _treedef = tree_flatten(state)
             chex.assert_trees_all_close(leaves0, leaves)
+        return True
 
 
 class DistributedPipeline(Stateful):
@@ -225,4 +226,4 @@ class DistributedPipeline(Stateful):
         return state, ray.get(self.supervisor.sample.remote())
 
     def health_check(self, state):
-        ray.get(self.supervisor.assert_state_sync.remote())
+        return state, ray.get(self.supervisor.assert_state_sync.remote())
