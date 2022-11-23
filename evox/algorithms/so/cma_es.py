@@ -32,7 +32,7 @@ class CMA_ES(Algorithm):
         if recombination_weights is None:
             # auto
             self.mu = self.pop_size // 2
-            self.weights = math.log(self.mu + 0.5) - jnp.log(jnp.arange(1, self.mu + 1))
+            self.weights = jnp.log(self.mu + 0.5) - jnp.log(jnp.arange(1, self.mu + 1))
             self.weights = self.weights / sum(self.weights)
         else:
             w = recombination_weights
@@ -50,7 +50,6 @@ class CMA_ES(Algorithm):
             self.weights = recombination_weights
 
         self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
-
         # time constant for cumulation for C
         self.cc = (4 + self.mueff / self.dim) / (
             self.dim + 4 + 2 * self.mueff / self.dim
@@ -117,9 +116,10 @@ class CMA_ES(Algorithm):
 
         ps = self._update_ps(state.ps, state.invsqrtC, state.sigma, delta_mean)
 
-        hsig = jnp.linalg.norm(ps) / jnp.sqrt(
-            1 - (1 - self.cs) ** (2 * state.count_iter)
-        ) / self.chiN < 1.4 + 2 / (self.dim + 1)
+        hsig = (
+            jnp.linalg.norm(ps) / jnp.sqrt(1 - (1 - self.cs) ** (2 * state.count_iter))
+            < (1.4 + 2 / (self.dim + 1)) * self.chiN
+        )
         pc = self._update_pc(state.pc, ps, delta_mean, state.sigma, hsig)
         C = self._update_C(state.C, pc, state.sigma, population, state.mean, hsig)
         sigma = self._update_sigma(state.sigma, ps)
@@ -136,15 +136,13 @@ class CMA_ES(Algorithm):
         )
 
     def _update_mean(self, mean, population):
-        update = jnp.sum(
-            (population[: self.mu] - mean) * self.weights[:, jnp.newaxis], axis=0
-        )
+        update = self.weights @ (population[: self.mu] - mean)
         return mean + self.cm * update
 
     def _update_ps(self, ps, invsqrtC, sigma, delta_mean):
         return (1 - self.cs) * ps + jnp.sqrt(
             self.cs * (2 - self.cs) * self.mueff
-        ) * invsqrtC * delta_mean / sigma
+        ) * invsqrtC @ delta_mean / sigma
 
     def _update_pc(self, pc, ps, delta_mean, sigma, hsig):
         return (1 - self.cc) * pc + hsig * jnp.sqrt(
@@ -155,8 +153,8 @@ class CMA_ES(Algorithm):
         y = (population[: self.mu] - old_mean) / sigma
         return (
             (1 - self.c1 - self.cmu) * C
-            + self.c1 * (pc @ pc.T + (1 - hsig) * self.cc * (2 - self.cc) * C)
-            + self.cmu * y.T @ jnp.diag(self.weights) @ y
+            + self.c1 * (jnp.outer(pc, pc) + (1 - hsig) * self.cc * (2 - self.cc) * C)
+            + self.cmu * (y.T * self.weights) @ y
         )
 
     def _update_sigma(self, sigma, ps):
@@ -165,9 +163,8 @@ class CMA_ES(Algorithm):
         )
 
     def _decomposition_C(self, C):
-        triu_C = jnp.triu(C)
-        C = triu_C + triu_C.T  # enforce symmetry
+        C = jnp.triu(C) + jnp.triu(C, 1).T  # enforce symmetry
         D, B = jnp.linalg.eigh(C)
         D = jnp.sqrt(D)
-        invsqrtC = B @ jnp.diag(1 / D) @ B.T
+        invsqrtC = (B / D) @ B.T
         return B, D, invsqrtC
