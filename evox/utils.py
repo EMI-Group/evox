@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from functools import partial
-from typing import Union
+from typing import Union, List
 
 import jax
 import jax.numpy as jnp
@@ -10,8 +10,8 @@ from .core.module import *
 
 
 def min_by(
-    values: Union[jnp.ndarray, list[jnp.ndarray]],
-    keys: Union[jnp.ndarray, list[jnp.ndarray]],
+    values: Union[jnp.ndarray, List[jnp.ndarray]],
+    keys: Union[jnp.ndarray, List[jnp.ndarray]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
