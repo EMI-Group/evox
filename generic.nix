@@ -47,7 +47,10 @@ let
       "evox"
     ];
     disabledTestPaths = [
+      # need external dataset
       "tests/test_neuroevolution.py"
+      # too slow
+      "tests/test_moead.py"
     ];
   };
 
