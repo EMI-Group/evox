@@ -1,13 +1,13 @@
 import jax
 import jax.numpy as jnp
-from jax import lax
 import evox as ex
+import optax
 
 
 @ex.jit_class
 class OpenES(ex.Algorithm):
     def __init__(
-        self, init_params, pop_size, learning_rate, noise_std, mirrored_sampling=True
+        self, init_params, pop_size, learning_rate, noise_std, optimizer="sgd", mirrored_sampling=True, utility=True, l2coeff=None, lr_decay=None
     ):
         """
         Implement the algorithm described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning"
@@ -28,13 +28,32 @@ class OpenES(ex.Algorithm):
         self.learning_rate = learning_rate
         self.noise_std = noise_std
         self.mirrored_sampling = mirrored_sampling
+        self.utility = utility
+        self.lr_decay = lr_decay
+        self.l2coeff = l2coeff
+
+
+        if optimizer == "adam":
+            self.optimizer = optax.adamw(learning_rate=learning_rate, weight_decay=l2coeff)
+        elif optimizer == "sgd":
+            self.optimizer = optax.sgd(learning_rate=learning_rate)
+        else:
+            raise TypeError(f"{optimizer} is not supported right now")
+
+        if self.utility:
+            rank = jnp.arange(1, pop_size + 1)
+            util_ = jnp.maximum(0, jnp.log(pop_size / 2 + 1) - jnp.log(rank))
+            utility = util_ / util_.sum() - 1 / pop_size
+            self.utility_score = utility
 
     def setup(self, key):
-        # placeholder
         population = jnp.tile(self.init_params, (self.pop_size, 1))
         noise = jnp.tile(self.init_params, (self.pop_size, 1))
+
+        opt_state = self.optimizer.init(self.init_params)
+
         return ex.State(
-            population=population, params=self.init_params, noise=noise, key=key
+            population=population, params=self.init_params, noise=noise, key=key, opt_state=opt_state
         )
 
     def ask(self, state):
@@ -52,7 +71,15 @@ class OpenES(ex.Algorithm):
         )
 
     def tell(self, state, fitness):
-        params = state.params - self.learning_rate / self.noise_std * jnp.mean(
-            fitness[:, jnp.newaxis] * state.noise, axis=0
-        )
-        return state.update(params=params)
+        if self.utility:
+            cumulative_update = jnp.zeros_like(state.params)
+            fitness_rank = jnp.argsort(fitness)[::-1]
+            for ui, kid in enumerate(fitness_rank):
+                cumulative_update += self.utility_score[ui] * state.noise[kid]
+            cumulative_update /= self.pop_size * self.noise_std
+        else:
+            cumulative_update = jnp.mean(fitness[:, jnp.newaxis] * state.noise, axis=0) / self.noise_std
+
+        updates, opt_state = self.optimizer.update(cumulative_update, state.opt_state, state.params)
+        params = optax.apply_updates(state.params, updates)
+        return state.update(params=params, opt_state=opt_state)

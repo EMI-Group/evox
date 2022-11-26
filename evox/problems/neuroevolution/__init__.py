@@ -15,6 +15,7 @@ except ImportError as e:
 try:
     # optional dependency: gym
     from .gym import Gym
+    from .gym_mo import Gym_mo
 except ImportError as e:
     original_erorr_msg = str(e)
 

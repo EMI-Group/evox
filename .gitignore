@@ -8,3 +8,15 @@ __pycache__
 /venv
 /pyvenv.cfg
 /datasets
+
+logs/
+evox/algorithms/so/cso_*.py
+
+tests/maze/
+!tests/maze/maze_so.py
+
+tests/mujoco_envs/*.gif
+tests/mujoco_envs/*test*.py
+tests/mujoco_envs/*learn*.py
+
+tests/gym_env_test.py
