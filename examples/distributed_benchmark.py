@@ -4,6 +4,7 @@ import evox
 import jax
 import jax.numpy as jnp
 import pytest
+from evox.utils import rank_based_fitness, compose
 from evox import algorithms, pipelines, problems
 from evox.monitors import FitnessMonitor
 from flax import linen as nn
@@ -18,13 +19,16 @@ class SimpleCNN(nn.Module):
         x = x / 255.0
         x = (x - 0.5) / 0.5
 
-        x = nn.Conv(features=16, kernel_size=(3, 3), padding="VALID")(x)
+        x = nn.Conv(features=32, kernel_size=(3, 3), padding="VALID")(x)
         x = nn.relu(x)
         x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
 
-        x = nn.Conv(features=16, kernel_size=(3, 3), padding="VALID")(x)
+        x = nn.Conv(features=32, kernel_size=(3, 3), padding="VALID")(x)
         x = nn.relu(x)
         x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
+
+        x = nn.Conv(features=32, kernel_size=(3, 3), padding="VALID")(x)
+        x = nn.relu(x)
 
         x = x.reshape(x.shape[0], -1)
         x = nn.Dense(64)(x)
@@ -38,7 +42,7 @@ def init_problem_and_model(key):
     batch_size = 256
     initial_params = jax.jit(model.init)(key, jnp.zeros((batch_size, 32, 32, 3)))
     problem = evox.problems.neuroevolution.TorchvisionDataset(
-        root="/cifar10",  # the path to cifar10 dataset
+        root="./datasets",  # the path to cifar10 dataset
         batch_size=batch_size,
         forward_func=jax.jit(model.apply),
         dataset_name="cifar10",
@@ -60,7 +64,8 @@ def run_benchmark(num_gpus):
         adapter.to_vector(initial_params),
         "clipup",
         center_learning_rate=0.01,
-        stdev_init=0.01,
+        stdev_init=0.1,
+        stdev_learning_rate=0.2
     )
     pipeline = pipelines.DistributedPipeline(
         algorithm=algorithm,
@@ -74,18 +79,18 @@ def run_benchmark(num_gpus):
     # init the pipeline
     state = pipeline.init(key)
     # warm up
-    for i in range(3):
+    for i in range(5):
         pipeline.step(state)
-        # _state, accuracy = pipeline.valid(state, metric="accuracy")
+        _state, accuracy = pipeline.valid(state, metric="accuracy")
 
     start = time.perf_counter()
     valid_acc = []
     # run the pipeline for 1000 steps
-    for i in range(5000):
+    for i in range(1000):
         state = pipeline.step(state)
-        # if (i + 1) % 100 == 0:
-        #     state, accuracy = pipeline.valid(state, metric="accuracy")
-        #     valid_acc.append(accuracy)
+        if (i + 1) % 100 == 0:
+            state, accuracy = pipeline.valid(state, metric="accuracy")
+            valid_acc.append(accuracy)
 
     return time.perf_counter() - start, valid_acc, monitor.history
 
@@ -95,7 +100,8 @@ result = {}
 for i in range(1, MAX_GPUS + 1):
     print(f"using {i} gpus")
     runtime, valid_acc, train_loss = run_benchmark(i)
-    print([jnp.max(x) for x in valid_acc])
+    print([jnp.max(x).item() for x in valid_acc])
+    print(runtime)
     result[i] = {
         "runtime": runtime,
         "valid_acc": valid_acc,

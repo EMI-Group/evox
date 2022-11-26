@@ -1,5 +1,6 @@
+import warnings
 from functools import partial
-from typing import Callable, Union, Optional
+from typing import Callable, NamedTuple, Optional, Union
 
 import evox
 import jax
@@ -7,8 +8,9 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 from evox import Problem, State, Stateful
-from jax import jit, vmap
-from torch.utils.data import DataLoader, Dataset, Sampler, random_split, Subset
+from jax import jit, lax, vmap
+from jax.tree_util import tree_leaves
+from torch.utils.data import DataLoader, Dataset, Sampler, Subset, random_split
 from torchvision import datasets
 
 
@@ -22,15 +24,23 @@ def jnp_collate_fn(batch: list):
     return jnp.stack(data), jnp.array(labels)
 
 
-class InMemoryDataset(Dataset):
-    def __init__(self, dataset):
-        self.in_memory_dataset = [dataset[i] for i in range(len(dataset))]
+class InMemoryDataset:
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
 
     def __len__(self):
-        return len(self.in_memory_dataset)
+        return self.labels.shape[0]
 
-    def __getitem__(self, index):
-        return self.in_memory_dataset[index]
+    def __getitem__(self, indices):
+        return self.data[indices], self.labels[indices]
+
+    @classmethod
+    def from_pytorch_dataset(cls, dataset):
+        dataset = [dataset[i] for i in range(len(dataset))]
+        data, labels = list(zip(*dataset))
+        data, labels = jnp.array(data), jnp.array(labels)
+        return cls(data, labels)
 
 
 class DeterministicRandomSampler(Sampler):
@@ -73,8 +83,8 @@ class TorchvisionDataset(Problem):
 
         if train_dataset is not None and isinstance(dataset, Dataset):
             if dataset_name is not None:
-                raise ValueError(
-                    f"dataset_name should not be specified when using train_dataset and test_dataset"
+                warnings.warn(
+                    "When train_dataset and test_dataset are specified, dataset_name is ignored"
                 )
 
             self.train_dataset = train_dataset
@@ -104,13 +114,36 @@ class TorchvisionDataset(Problem):
             raise ValueError(f"Not supported dataset: {dataset_name}")
 
         if in_memory:
-            assert (
-                self.num_workers == 0
-            ), "When in_memory is True, num_workers should be 0 to avoid multi-processing"
-            self.train_dataset = InMemoryDataset(self.train_dataset)
-            self.test_dataset = InMemoryDataset(self.test_dataset)
+            if self.num_workers != 0:
+                warnings.warn("When in_memory is True, num_workers is ignored")
+            self.train_dataset = InMemoryDataset.from_pytorch_dataset(
+                self.train_dataset
+            )
+            self.test_dataset = InMemoryDataset.from_pytorch_dataset(self.test_dataset)
 
-    def setup(self, key):
+    @evox.jit_method
+    def _new_permutation(self, key):
+        num_batches = len(self.train_dataset) // self.batch_size
+        permutation = jax.random.permutation(key, len(self.train_dataset))
+        permutation = permutation[: num_batches * self.batch_size].reshape(
+            (-1, self.batch_size)
+        )
+        return permutation
+
+    def _in_memory_setup(self, key):
+        key, subset_key, perm_key = jax.random.split(key, num=3)
+        indices = jax.random.permutation(subset_key, len(self.train_dataset))
+        valid_len = int(len(self.train_dataset) * self.valid_percent)
+        train_len = len(self.train_dataset) - valid_len
+
+        self.valid_dataset = InMemoryDataset(*self.train_dataset[indices[train_len:]])
+        self.train_dataset = InMemoryDataset(*self.train_dataset[indices[:train_len]])
+
+        permutation = self._new_permutation(perm_key)
+
+        return State(key=key, permutation=permutation, iter=0, mode=0, metric=0)
+
+    def _setup(self, key):
         key, subset_key, sampler_key = jax.random.split(key, num=3)
         indices = jax.random.permutation(subset_key, len(self.train_dataset))
         valid_len = int(len(self.train_dataset) * self.valid_percent)
@@ -132,7 +165,13 @@ class TorchvisionDataset(Problem):
         self.train_iter = iter(self.train_dataloader)
         # to work with jit, mode and metric are integer type
         # 0 - train, 1 - valid, 2 - test
-        return State(key=key, mode=0, metric=0)
+        return State(mode=0, metric=0)
+
+    def setup(self, key):
+        if self.in_memory:
+            return self._in_memory_setup(key)
+        else:
+            return self._setup(key)
 
     def train(self, state, metric="loss"):
         return state.update(mode=0, metric=(0 if metric == "loss" else 1))
@@ -143,7 +182,40 @@ class TorchvisionDataset(Problem):
     def test(self, state, metric="loss"):
         return state.update(mode=2, metric=(0 if metric == "loss" else 1))
 
-    def _evaluate_train_mode(self, state, batch_params):
+    @evox.jit_method
+    def _evaluate_in_memory_train(self, state, batch_params):
+        def new_epoch(state):
+            key, subkey = jax.random.split(state.key)
+            permutation = self._new_permutation(subkey)
+            return state.update(key=key, permutation=permutation, iter=0)
+
+        state = lax.cond(
+            state.iter >= state.permutation.shape[0],
+            new_epoch,
+            lambda x: x,  # identity
+            state,
+        )
+        data, labels = self.train_dataset[state.permutation[state.iter]]
+
+        losses = self._calculate_loss(data, labels, batch_params)
+        return state.update(iter=state.iter + 1), losses
+
+    @partial(jit, static_argnums=[0, 2, 3])
+    def _evaluate_in_memory_valid(self, state, dataset, metric_func, batch_params):
+        num_batches = len(dataset) // self.batch_size
+        permutation = jnp.arange(num_batches * self.batch_size).reshape(
+            num_batches, self.batch_size
+        )
+
+        def batch_evaluate(i, accumulated_metric):
+            data, labels = dataset[permutation[i]]
+            return accumulated_metric + metric_func(data, labels, batch_params)
+
+        pop_size = tree_leaves(batch_params)[0].shape[0]
+        losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size, ))) / num_batches
+        return state, losses
+
+    def _evaluate_train(self, state, batch_params):
         try:
             data, labels = next(self.train_iter)
             # data, labels = jnp.asarray(data), jnp.asarray(labels)
@@ -155,52 +227,53 @@ class TorchvisionDataset(Problem):
         losses = self._calculate_loss(data, labels, batch_params)
         return state, losses
 
-    def _evaluate_valid_mode(self, state, batch_params):
+    def _evaluate_valid(self, state, dataset, metric_func, batch_params):
         valid_dataloader = DataLoader(
-            self.valid_dataset,
+            dataset,
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
             num_workers=self.num_workers,
             drop_last=True,
         )
-        if state.metric == 0:
-            metric_func = self._calculate_loss
-        else:
-            metric_func = self._calculate_accuracy
 
         accumulated_metric = 0
-        for data, labels in valid_dataloader:
+        for data, labels in dataset:
             accumulated_metric += metric_func(data, labels, batch_params)
-        return state, accumulated_metric / len(valid_dataloader)
-
-    def _evaluate_test_mode(self, state, batch_params):
-        breakpoint()
-        test_dataloader = DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            collate_fn=self.collate_fn,
-            num_workers=self.num_workers,
-            drop_last=True,
-        )
-        if state.metric == 0:
-            metric_func = self._calculate_loss
-        else:
-            metric_func = self._calculate_accuracy
-
-        accumulated_metric = 0
-        for data, labels in test_dataloader:
-            accumulated_metric += metric_func(data, labels, batch_params)
-        return state, accumulated_metric / len(test_dataloader)
+        return state, accumulated_metric / len(dataset)
 
     def evaluate(self, state, batch_params):
-        if state.mode == 0:
-            return self._evaluate_train_mode(state, batch_params)
-        elif state.mode == 1:
-            return self._evaluate_valid_mode(state, batch_params)
-        elif state.mode == 2:
-            return self._evaluate_test_mode(state, batch_params)
+        if state.metric == 0:
+            metric_func = self._calculate_loss
         else:
-            raise ValueError(f"Unknown mode: {state.mode}")
+            metric_func = self._calculate_accuracy
+
+        # dispatch
+        if self.in_memory:
+            if state.mode == 0:
+                return self._evaluate_in_memory_train(state, batch_params)
+            elif state.mode == 1:
+                return self._evaluate_in_memory_valid(
+                    state, self.valid_dataset, metric_func, batch_params
+                )
+            elif state.mode == 2:
+                return self._evaluate_in_memory_valid(
+                    state, self.test_dataset, metric_func, batch_params
+                )
+            else:
+                raise ValueError(f"Unknown mode: {state.mode}")
+        else:
+            if state.mode == 0:
+                return self._evaluate_train_mode(state, batch_params)
+            elif state.mode == 1:
+                return self._evaluate_valid_mode(
+                    state, self.valid_dataset, metric_func, batch_params
+                )
+            elif state.mode == 2:
+                return self._evaluate_valid_mode(
+                    state, self.test_dataset, metric_func, batch_params
+                )
+            else:
+                raise ValueError(f"Unknown mode: {state.mode}")
 
     @evox.jit_method
     def _calculate_accuracy(self, data, labels, batch_params):
