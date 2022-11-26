@@ -23,7 +23,7 @@ class Worker:
     def step(self, actions):
         for i, (env, action) in enumerate(zip(self.envs, actions)):
             # take the action if not terminated
-            if not self.terminated[i]:
+            if not (self.terminated[i] or self.truncated[i]):
                 (
                     self.observations[i],
                     reward,
@@ -33,7 +33,11 @@ class Worker:
                 ) = env.step(action)
                 self.total_rewards[i] += reward
                 self.episode_length[i] += 1
-        return self.observations, self.terminated
+            if self.terminated[i]:
+                self.truncated[i] = True
+            if self.truncated[i]:
+                self.terminated[i] = True
+        return self.observations, self.terminated, self.truncated
 
     def get_rewards(self):
         return self.total_rewards
@@ -62,7 +66,7 @@ class Worker:
 
             if all(self.terminated):
                 break
-
+        # print(max(self.episode_length))
         return self.total_rewards, self.episode_length
 
 
@@ -257,6 +261,8 @@ class Gym(Problem):
         seeds = jax.random.randint(
             subkey, (self.num_workers, self.env_per_worker), 0, jnp.iinfo(jnp.int32).max
         )
+        # seeds = jnp.full((self.num_workers, self.env_per_worker), 42)
+
         seeds = seeds.tolist()
 
         cap_episode_length = None

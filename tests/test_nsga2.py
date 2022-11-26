@@ -1,9 +1,12 @@
+import sys
+sys.path.append('/home/lishuang/evox')
+
 import evox as ex
 from evox import pipelines, algorithms, problems
 from evox.monitors import FitnessMonitor
 import jax
 import jax.numpy as jnp
-import pytest
+# import pytest
 
 
 def test_nsga2():
@@ -23,3 +26,6 @@ def test_nsga2():
 
     for i in range(100):
         state = pipeline.step(state)
+        
+if __name__ == "__main__":
+    test_nsga2()

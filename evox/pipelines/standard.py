@@ -22,6 +22,8 @@ class StdPipeline(Stateful):
             pop = self.pop_transform(pop)
 
         state, fitness = self.problem.evaluate(state, pop)
+        print(fitness)
+        assert False
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
