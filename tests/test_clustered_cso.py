@@ -32,7 +32,7 @@ def test_clustered_cma_es(num_gpus):
 
     min_fitness = monitor.get_min_fitness()
     print(min_fitness)
-    assert abs(min_fitness - 21) < 0.1
+    assert abs(min_fitness - 21.25) < 0.1
 
 
 def test_random_mask_cso():
