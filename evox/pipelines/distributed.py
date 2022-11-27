@@ -1,11 +1,12 @@
-from evox import Stateful, State
-from evox import Algorithm, Problem
-from evox.monitors import FitnessMonitor, PopulationMonitor
-import ray
-import jax.numpy as jnp
-from jax.tree_util import tree_flatten
+from typing import Callable, Optional
+
 import chex
-from typing import Optional, Callable
+import jax.numpy as jnp
+import numpy as np
+import ray
+from evox import Algorithm, Problem, State, Stateful
+from evox.monitors import FitnessMonitor, PopulationMonitor
+from jax.tree_util import tree_flatten
 
 
 class WorkerPipeline(Stateful):
@@ -13,6 +14,7 @@ class WorkerPipeline(Stateful):
         self,
         algorithm: Algorithm,
         problem: Problem,
+        pop_size: int,
         start_indices: int,
         slice_sizes: int,
         pop_transform: Optional[Callable],
@@ -20,6 +22,7 @@ class WorkerPipeline(Stateful):
     ):
         self.algorithm = algorithm
         self.problem = problem
+        self.pop_size = pop_size
         self.start_indices = start_indices
         self.slice_sizes = slice_sizes
         self.pop_transform = pop_transform
@@ -27,10 +30,11 @@ class WorkerPipeline(Stateful):
 
     def step1(self, state):
         state, pop = self.algorithm.ask(state)
-        if self.fitness_transform is not None:
-            pop = self.fitness_transform(pop)
-
+        assert (
+            self.pop_size == pop.shape[0]
+        ), f"Specified pop_size doesn't match the actual pop_size, {self.pop_size} != {pop.shape[0]}"
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
+
         if self.pop_transform is not None:
             partial_pop = self.pop_transform(partial_pop)
 
@@ -39,8 +43,22 @@ class WorkerPipeline(Stateful):
         return state, partial_fitness
 
     def step2(self, state, fitness):
+        if self.fitness_transform is not None:
+            fitness = self.fitness_transform(fitness)
+
         state = self.algorithm.tell(state, fitness)
         return state
+
+    def valid(self, state, metric):
+        new_state = self.problem.valid(state, metric=metric)
+        new_state, pop = self.algorithm.ask(new_state)
+        partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
+
+        if self.pop_transform is not None:
+            partial_pop = self.pop_transform(partial_pop)
+
+        new_state, partial_fitness = self.problem.evaluate(new_state, partial_pop)
+        return state, partial_fitness
 
     def sample(self, state):
         return self.algorithm.ask(state)
@@ -48,11 +66,13 @@ class WorkerPipeline(Stateful):
 
 @ray.remote
 class Worker:
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, worker_index):
         self.pipeline = pipeline
+        self.worker_index = worker_index
 
     def init(self, key):
         self.state = self.pipeline.init(key)
+        self.initialized = True
 
     def step1(self):
         self.state, parital_fitness = self.pipeline.step1(self.state)
@@ -62,6 +82,10 @@ class Worker:
         fitness = ray.get(fitness)
         fitness = jnp.concatenate(fitness, axis=0)
         self.state = self.pipeline.step2(self.state, fitness)
+
+    def valid(self, metric):
+        _state, fitness = self.pipeline.valid(self.state, metric)
+        return fitness
 
     def get_full_state(self):
         return self.state
@@ -90,11 +114,13 @@ class Supervisor:
                 WorkerPipeline(
                     algorithm,
                     problem,
+                    pop_size,
                     i * slice_size,
                     slice_size,
                     pop_transform,
                     fitness_transform,
-                )
+                ),
+                i,
             )
             for i in range(num_workers)
         ]
@@ -110,12 +136,17 @@ class Supervisor:
         worker_futures = [worker.step2.remote(fitness) for worker in self.workers]
         return fitness, worker_futures
 
+    def valid(self, metric):
+        fitness = [worker.valid.remote(metric) for worker in self.workers]
+        return fitness
+
     def assert_state_sync(self):
         states = ray.get([worker.get_full_state.remote() for worker in self.workers])
         leaves0, _treedef = tree_flatten(states[0])
         for state in states:
             leaves, _treedef = tree_flatten(state)
             chex.assert_trees_all_close(leaves0, leaves)
+        return True
 
 
 class DistributedPipeline(Stateful):
@@ -185,9 +216,14 @@ class DistributedPipeline(Stateful):
             fitness = self.global_fitness_transform(fitness)
         # block until all workers have finished processing
         ray.get(worker_futures)
+        return state
+
+    def valid(self, state, metric="loss"):
+        fitness = ray.get(ray.get(self.supervisor.valid.remote(metric)))
+        return state, jnp.concatenate(fitness, axis=0)
 
     def sample(self, state):
         return state, ray.get(self.supervisor.sample.remote())
 
     def health_check(self, state):
-        ray.get(self.supervisor.assert_state_sync.remote())
+        return state, ray.get(self.supervisor.assert_state_sync.remote())

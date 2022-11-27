@@ -1,4 +1,3 @@
-from functools import partial, reduce
 from jax.tree_util import tree_flatten, tree_unflatten, tree_map, tree_leaves
 import jax
 import jax.numpy as jnp

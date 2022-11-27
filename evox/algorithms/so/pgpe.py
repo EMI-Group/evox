@@ -1,16 +1,59 @@
+import copy
 from functools import partial
 
+import evox
 import jax
 import jax.numpy as jnp
-import copy
-import chex
 import optax
+from jax import lax, jit
+from jax.tree_util import tree_map, tree_reduce
+from jax.experimental.host_callback import id_print
 
-import evox as ex
+
+@jit
+def tree_l2_norm(pytree):
+    return jnp.sqrt(
+        tree_reduce(
+            lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree)
+        )
+    )
 
 
-@ex.jit_class
-class PGPE(ex.Algorithm):
+@evox.jit_class
+class ClipUp(evox.Stateful):
+    def __init__(self, step_size, max_speed, momentum, params):
+        self.step_size = step_size
+        self.max_speed = max_speed
+        self.momentum = momentum
+        self.params = params
+
+    def setup(self, key):
+        velocity = tree_map(lambda x: jnp.zeros_like(x), self.params)
+        return evox.State(velocity=velocity)
+
+    def update(self, state, gradient, _params=None):
+        grad_norm = tree_l2_norm(gradient)
+        velocity = tree_map(
+            lambda v, g: self.momentum * v + self.step_size * g / grad_norm,
+            state.velocity,
+            gradient,
+        )
+        velocity_norm = tree_l2_norm(velocity)
+
+        def clip_velocity(velocity):
+            return tree_map(lambda v: self.max_speed * v / velocity_norm, velocity)
+
+        velocity = lax.cond(
+            velocity_norm > self.max_speed,
+            clip_velocity,
+            lambda v: v, # identity function
+            velocity,
+        )
+        return state.update(velocity=velocity), -velocity
+
+
+@evox.jit_class
+class PGPE(evox.Algorithm):
     def __init__(
         self,
         pop_size: int,
@@ -27,17 +70,25 @@ class PGPE(ex.Algorithm):
         self.stdev = jnp.full_like(center_init, stdev_init)
         self.stdev_learning_rate = stdev_learning_rate
         self.stdev_max_change = stdev_max_change
+
         if optimizer == "adam":
-            self.optimizer = optax.adam(learning_rate=center_learning_rate)
+            optimizer = optax.adam(learning_rate=center_learning_rate)
+        elif optimizer == "clipup":
+            optimizer = ClipUp(
+                step_size=0.15, max_speed=0.3, momentum=0.9, params=center_init
+            )
+
+        if isinstance(optimizer, optax.GradientTransformation):
+            self.optimizer = evox.utils.OptaxWrapper(optimizer, center_init)
+        elif isinstance(optimizer, evox.Stateful):
+            self.optimizer = optimizer
         else:
             raise TypeError(f"{optimizer} is not supported right now")
 
     def setup(self, key):
-        opt_state = self.optimizer.init(self.center_init)
-        return ex.State(
+        return evox.State(
             center=self.center_init,
             stdev=self.stdev,
-            opt_state=opt_state,
             key=key,
             sample=None,
         )
@@ -64,9 +115,7 @@ class PGPE(ex.Algorithm):
             * (((D_pos - state.center) ** 2 - state.stdev**2) / state.stdev),
             axis=0,
         )
-        updates, opt_state = self.optimizer.update(
-            delta_x, state.opt_state, state.center
-        )
+        state, updates = self.optimizer.update(state, delta_x, state.center)
         center = optax.apply_updates(state.center, updates)
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)
@@ -74,5 +123,4 @@ class PGPE(ex.Algorithm):
         return state.update(
             center=center,
             stdev=state.stdev - stdev_updates,
-            opt_state=opt_state,
         )

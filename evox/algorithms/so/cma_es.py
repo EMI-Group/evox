@@ -1,134 +1,170 @@
 import math
+
 import jax
 import jax.numpy as jnp
 from jax import lax
+
+import evox
+from evox import Algorithm, State
+
 from .sort_utils import sort_by_key
 
-import evox as ex
 
-
-@ex.jit_class
-class CMA_ES(ex.Algorithm):
-    def __init__(self, init_mean, init_var, pop_size=None, recombination_weights=None, c1=None, cμ=None, cc=None, cσ=None, dσ=None):
+@evox.jit_class
+class CMA_ES(Algorithm):
+    def __init__(
+        self, init_mean, init_stdvar, pop_size=None, recombination_weights=None, cm=1
+    ):
         """
-        See [link](https://arxiv.org/pdf/1604.00772.pdf) for default argument values
+        [link](https://arxiv.org/pdf/1604.00772.pdf)
         """
-        assert(init_var > 0)
-        N = init_mean.shape[0]
+        self.init_mean = init_mean
+        assert init_stdvar > 0, "Expect variance to be a non-negative float"
+        self.init_stdvar = init_stdvar
+        self.dim = init_mean.shape[0]
+        self.cm = cm
         if pop_size is None:
-            M = 4 + math.floor(3 * math.log(N))
+            # auto
+            self.pop_size = 4 + math.floor(3 * math.log(self.dim))
         else:
-            M = pop_size
-
-        if recombination_weights is not None:
-            w = recombination_weights
-            assert(w.shape[0] == M)
-            μ = jnp.count_nonzero(w > 0)
-            μeff = jnp.sum(w[:μ]) ** 2 / jnp.sum(w[:μ] ** 2)
-        else:
-            w = math.log((M + 1) / 2) - jnp.log(jnp.arange(1, M + 1))
-            μ = M // 2
-            μeff = jnp.sum(w[:μ]) ** 2 / jnp.sum(w[:μ] ** 2)
-        if c1 is None:
-            c1 = 2 / ((N + 1.3) ** 2 + μeff)
-        if cμ is None:
-            cμ = min(1 - c1, 2 * ((μeff - 2 + 1 / μeff) / ((N + 2) ** 2 + μeff)))
-        if cc is None:
-            cc = (4 + μeff / N) / (N + 4 + 2 * μeff / N)
-        if cσ is None:
-            cσ = (2 + μeff) / (N + μeff + 5)
-        if dσ is None:
-            dσ = 1 + 2 * max(0, math.sqrt((μeff - 1) / (N + 1)) - 1) + cσ
+            self.pop_size = pop_size
 
         if recombination_weights is None:
-            μeff_neg = jnp.sum(w[μ:]) ** 2 / jnp.sum(w[μ:] ** 2)
-            αμ = 1 + c1 / cμ
-            αμeff = 1 + 2 * μeff_neg / (μeff + 2)
-            αpd = (1 - c1 - cμ) / N / cμ
-            ω_possum = 1 / jnp.sum(w[:μ])
-            ω_negsum = -1 / jnp.sum(w[μ:])
-            w = jnp.where(w >= 0, ω_possum * w, ω_negsum * min(αμ, αμeff, αpd) * w)
+            # auto
+            self.mu = self.pop_size // 2
+            self.weights = jnp.log(self.mu + 0.5) - jnp.log(jnp.arange(1, self.mu + 1))
+            self.weights = self.weights / sum(self.weights)
+        else:
+            w = recombination_weights
+            assert (
+                recombination_weights[1:] <= recombination_weights[:-1]
+            ).all(), "recombination_weights must be non-increasing"
+            assert (
+                jnp.abs(jnp.sum(recombination_weights) - 1) < 1e-6
+            ), "sum of recombination_weights must be 1"
+            assert (
+                recombination_weights > 0
+            ).all(), "recombination_weights must be positive"
+            self.mu = recombination_weights.shape[0]
+            assert mu <= self.dim
+            self.weights = recombination_weights
 
-        self.dim = N
-        self.pop_size = M
-        self.init_mean = init_mean
-        self.init_std = init_var
-        self.weight = w[:μ]
-        self.μeff = μeff
-        self.positive_count = μ
-        self.chiN = math.sqrt(self.dim) * (1 - 1 / 4 / self.dim + 1 / 21 / self.dim ** 2)
-        self.c1 = c1
-        self.cμ = cμ
-        self.cc = cc
-        self.cσ = cσ
-        self.dσ = dσ
+        self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
+        # time constant for cumulation for C
+        self.cc = (4 + self.mueff / self.dim) / (
+            self.dim + 4 + 2 * self.mueff / self.dim
+        )
+
+        # t-const for cumulation for sigma control
+        self.cs = (2 + self.mueff) / (self.dim + self.mueff + 5)
+
+        # learning rate for rank-one update of C
+        self.c1 = 2 / ((self.dim + 1.3) ** 2 + self.mueff)
+
+        # learning rate for rank-μ update of C
+        self.cmu = min(
+            1 - self.c1,
+            2
+            * ((self.mueff - 2 + 1 / self.mueff) / ((self.dim + 2) ** 2 + self.mueff)),
+        )
+
+        # damping for sigma
+        self.damps = (
+            1 + 2 * max(0, math.sqrt((self.mueff - 1) / (self.dim + 1)) - 1) + self.cs
+        )
+
+        self.chiN = self.dim**0.5 * (
+            1 - 1 / (4 * self.dim) + 1 / (21 * self.dim**2)
+        )
+        self.decomp_per_iter = 1 / (self.c1 + self.cmu) / self.dim / 10
+        self.decomp_per_iter = max(jnp.floor(self.decomp_per_iter).astype(jnp.int32), 1)
 
     def setup(self, key):
-        state_key, init_key = jax.random.split(key)
-        zero_mean_pop = jax.random.normal(init_key, shape=(self.pop_size, self.dim))
-        population = jax.vmap(lambda p: self.init_mean + self.init_std * p)(zero_mean_pop)
-        covariance = jnp.eye(self.dim)
-        eigvecs = jnp.eye(self.dim)
-        eigvals = jnp.ones((self.dim,))
-        path_σ = jnp.zeros((self.dim,))
-        path_c = jnp.zeros((self.dim,))
-        mean = self.init_mean
-        step_size = self.init_std
-
-        return ex.State(population=population, zero_mean_pop=population, zero_mean_cov_pop=population,
-                         covariance=covariance, eigvecs=eigvecs, eigvals=eigvals,
-                         path_σ=path_σ, path_c=path_c,
-                         mean=mean, step_size=step_size,
-                         iter_count=0, key=state_key)
+        pc = jnp.zeros((self.dim,))
+        ps = jnp.zeros((self.dim,))
+        B = jnp.eye(self.dim)
+        D = jnp.ones((self.dim,))
+        C = B @ jnp.diag(D) @ B.T
+        return State(
+            pc=pc,
+            ps=ps,
+            B=B,
+            D=D,
+            C=C,
+            count_eigen=0,
+            count_iter=0,
+            invsqrtC=C,
+            mean=self.init_mean,
+            sigma=self.init_stdvar,
+            key=key,
+        )
 
     def ask(self, state):
-        return state, state.population
+        key, sample_key = jax.random.split(state.key)
+        noise = jax.random.normal(sample_key, (self.pop_size, self.dim))
+        population = state.mean + state.sigma * (state.D * noise) @ state.B.T
+        new_state = state.update(
+            population=population, count_iter=state.count_iter + 1, key=key
+        )
+        return new_state, population
 
     def tell(self, state, fitness):
-        C = state.covariance
-        B = state.eigvecs
-        D = state.eigvals
-        population = state.population
-        zero_mean_pop = state.zero_mean_pop
-        zero_mean_cov_pop = state.zero_mean_cov_pop
-        mean = state.mean
-        path_σ = state.path_σ
-        path_c = state.path_c
-        step_size = state.step_size
-        iter_count = state.iter_count + 1
+        fitness, population = sort_by_key(fitness, state.population)
 
-        fitness, population, zero_mean_pop, zero_mean_cov_pop = sort_key_valrows(fitness, population, zero_mean_pop, zero_mean_cov_pop)
-        mean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, population[:self.positive_count]), axis=0)
-        zmean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, zero_mean_pop[:self.positive_count]), axis=0)
-        ymean = jnp.sum(jax.vmap(lambda w, x: w * x)(self.weight, zero_mean_cov_pop[:self.positive_count]), axis=0)
+        mean = self._update_mean(state.mean, population)
+        delta_mean = mean - state.mean
 
-        path_σ = (1 - self.cσ) * path_σ + jnp.sqrt(self.cσ * (2 - self.cσ) * self.μeff) * (B @ zmean)
-        hσ = jnp.linalg.norm(path_σ) / jnp.sqrt(1 - (1 - self.cσ) ** (2 * iter_count)) < (1.4 + 2 / (self.dim + 1)) * self.chiN
-        hσ = lax.cond(hσ, lambda: 1, lambda: 0)
-        path_c = (1 - self.cc) * path_c + hσ * jnp.sqrt(self.cc * (2 - self.cc) * self.μeff) * ymean
-        step_size = step_size * jnp.exp(self.cσ / self.dσ * (jnp.linalg.norm(path_σ) / self.chiN - 1))
+        ps = self._update_ps(state.ps, state.invsqrtC, state.sigma, delta_mean)
 
-        C = (1 - self.c1 - self.cμ + self.c1 * (1 - hσ) * self.cc * (2 - self.cc)) * C + \
-            self.c1 * (path_c.reshape(self.dim, 1) @ path_c.reshape(1, self.dim)) + \
-            self.cμ * jnp.sum(jax.vmap(lambda w, y: w * y.reshape(self.dim, 1) @ y.reshape(1, self.dim))(self.weight, zero_mean_cov_pop[:self.positive_count]), axis=0)
+        hsig = (
+            jnp.linalg.norm(ps) / jnp.sqrt(1 - (1 - self.cs) ** (2 * state.count_iter))
+            < (1.4 + 2 / (self.dim + 1)) * self.chiN
+        )
+        pc = self._update_pc(state.pc, ps, delta_mean, state.sigma, hsig)
+        C = self._update_C(state.C, pc, state.sigma, population, state.mean, hsig)
+        sigma = self._update_sigma(state.sigma, ps)
 
-        def updateBD(B, D, C):
-            D, B = jnp.linalg.eigh(C, symmetrize_input=True)
-            D = jnp.sqrt(D)
-            return B, D
-        
-        def noUpdate(B, D, C):
-            return B, D
+        B, D, invsqrtC = lax.cond(
+            state.count_iter % self.decomp_per_iter == 0,
+            self._decomposition_C,
+            lambda _C: (state.B, state.D, state.invsqrtC),
+            C,
+        )
 
-        B, D = lax.cond(iter_count % jnp.ceil(1 / (self.c1 + self.cμ) / self.dim / 10) == 0, updateBD, noUpdate, B, D, C)
+        return state.update(
+            mean=mean, ps=ps, pc=pc, C=C, sigma=sigma, B=B, D=D, invsqrtC=invsqrtC
+        )
 
-        key, sample_key = jax.random.split(state.key)
-        zero_mean_pop = jax.random.normal(sample_key, shape=(self.pop_size, self.dim))
-        zero_mean_cov_pop = jax.vmap(lambda p: B @ (D * p))(zero_mean_pop)
-        population = jax.vmap(lambda p: mean + step_size * p)(population)
+    def _update_mean(self, mean, population):
+        update = self.weights @ (population[: self.mu] - mean)
+        return mean + self.cm * update
 
-        return state.update(population=population, zero_mean_pop=zero_mean_pop, zero_mean_cov_pop=zero_mean_cov_pop,
-                            covariance=C, eigvecs=B, eigvals=D,
-                            path_σ=path_σ, path_c=path_c,
-                            mean=mean, step_size=step_size,
-                            iter_count=iter_count, key=key)
+    def _update_ps(self, ps, invsqrtC, sigma, delta_mean):
+        return (1 - self.cs) * ps + jnp.sqrt(
+            self.cs * (2 - self.cs) * self.mueff
+        ) * invsqrtC @ delta_mean / sigma
+
+    def _update_pc(self, pc, ps, delta_mean, sigma, hsig):
+        return (1 - self.cc) * pc + hsig * jnp.sqrt(
+            self.cc * (2 - self.cc) * self.mueff
+        ) * delta_mean / sigma
+
+    def _update_C(self, C, pc, sigma, population, old_mean, hsig):
+        y = (population[: self.mu] - old_mean) / sigma
+        return (
+            (1 - self.c1 - self.cmu) * C
+            + self.c1 * (jnp.outer(pc, pc) + (1 - hsig) * self.cc * (2 - self.cc) * C)
+            + self.cmu * (y.T * self.weights) @ y
+        )
+
+    def _update_sigma(self, sigma, ps):
+        return sigma * jnp.exp(
+            (self.cs / self.damps) * (jnp.linalg.norm(ps) / self.chiN - 1)
+        )
+
+    def _decomposition_C(self, C):
+        C = jnp.triu(C) + jnp.triu(C, 1).T  # enforce symmetry
+        D, B = jnp.linalg.eigh(C)
+        D = jnp.sqrt(D)
+        invsqrtC = (B / D) @ B.T
+        return B, D, invsqrtC
