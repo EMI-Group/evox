@@ -7,7 +7,7 @@ import json
 
 
 backend = jax.default_backend()
-num_rounds = 1
+num_rounds = 11
 dim_lists = jnp.arange(0, 4 + 1/4, 1/4)
 dim_lists = jnp.round(10 ** dim_lists).astype(jnp.int32)
 dim_lists = dim_lists.tolist()
@@ -29,7 +29,7 @@ def run_benchmark(dim, pop_size):
     state = pipeline.init(key)
 
     # warm up
-    for i in range(3):
+    for i in range(10):
         pipeline.step(state)
     # real benchmark
     start = time.perf_counter()

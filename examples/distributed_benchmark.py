@@ -1,13 +1,16 @@
+import json
 import time
 
-import evox
 import jax
 import jax.numpy as jnp
 import pytest
-from evox.utils import rank_based_fitness, compose
+import ray
+from flax import linen as nn
+
+import evox
 from evox import algorithms, pipelines, problems
 from evox.monitors import FitnessMonitor
-from flax import linen as nn
+from evox.utils import compose, rank_based_fitness
 
 
 class SimpleCNN(nn.Module):
@@ -42,7 +45,7 @@ def init_problem_and_model(key):
     batch_size = 256
     initial_params = jax.jit(model.init)(key, jnp.zeros((batch_size, 32, 32, 3)))
     problem = evox.problems.neuroevolution.TorchvisionDataset(
-        root="./datasets",  # the path to cifar10 dataset
+        root="/cifar10",  # the path to cifar10 dataset
         batch_size=batch_size,
         forward_func=jax.jit(model.apply),
         dataset_name="cifar10",
@@ -72,7 +75,7 @@ def run_benchmark(num_gpus):
         problem=problem,
         pop_size=150,
         num_workers=num_gpus,
-        options={"num_gpus": 1, "num_cpus": 8},
+        options={"num_gpus": 1, "num_cpus": 4},
         pop_transform=adapter.batched_to_tree,
         global_fitness_transform=monitor.update
     )
@@ -90,17 +93,23 @@ def run_benchmark(num_gpus):
         state = pipeline.step(state)
         if (i + 1) % 100 == 0:
             state, accuracy = pipeline.valid(state, metric="accuracy")
-            valid_acc.append(accuracy)
+            valid_acc.append(accuracy.tolist())
 
     return time.perf_counter() - start, valid_acc, monitor.history
 
 
-MAX_GPUS = 6
+runtime_env = {
+    'env_vars': {'XLA_PYTHON_CLIENT_PREALLOCATE': "false"}
+}
+
+ray.init(runtime_env=runtime_env)
+
+MAX_GPUS = 8
 result = {}
 for i in range(1, MAX_GPUS + 1):
     print(f"using {i} gpus")
     runtime, valid_acc, train_loss = run_benchmark(i)
-    print([jnp.max(x).item() for x in valid_acc])
+    print([max(x) for x in valid_acc])
     print(runtime)
     result[i] = {
         "runtime": runtime,

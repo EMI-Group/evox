@@ -107,23 +107,35 @@ class Supervisor:
         pop_transform: Optional[Callable],
         fitness_transform: Optional[Callable],
     ):
-        assert pop_size % num_workers == 0
+        assert (
+            pop_size > num_workers
+        ), "pop_size must be greater than the number of workers"
+
+        # try to evenly distribute the task
+        std_slice_size = pop_size // num_workers
+        reminder = pop_size % num_workers
+        slice_size_list = np.full(num_workers, fill_value=std_slice_size)
+        slice_size_list[-reminder:] += 1
+
         slice_size = pop_size // num_workers
-        self.workers = [
-            Worker.options(**options).remote(
-                WorkerPipeline(
-                    algorithm,
-                    problem,
-                    pop_size,
-                    i * slice_size,
-                    slice_size,
-                    pop_transform,
-                    fitness_transform,
-                ),
-                i,
+        start_index = 0
+        self.workers = []
+        for i, slice_size in enumerate(slice_size_list):
+            self.workers.append(
+                Worker.options(**options).remote(
+                    WorkerPipeline(
+                        algorithm,
+                        problem,
+                        pop_size,
+                        start_index,
+                        slice_size,
+                        pop_transform,
+                        fitness_transform,
+                    ),
+                    i,
+                )
             )
-            for i in range(num_workers)
-        ]
+            start_index += slice_size
 
     def setup_all_workers(self, key):
         ray.get([worker.init.remote(key) for worker in self.workers])
