@@ -6,7 +6,10 @@ import chex
 @jax.jit
 def _dominate(x, y):
     """return true if x dominate y (x < y) and false elsewise."""
-    return jnp.all(x <= y) & jnp.any(x < y)
+    if jnp.issubdtype(x, jnp.inexact) and jnp.issubdtype(y, jnp.inexact):
+        return jnp.all(x < y) # don't need to check for equal relation
+    else:
+        return jnp.all(x <= y) & jnp.any(x < y)
 
 
 @jax.jit
