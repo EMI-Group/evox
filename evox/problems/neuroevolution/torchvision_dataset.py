@@ -63,8 +63,9 @@ class TorchvisionDataset(Problem):
     def __init__(
         self,
         root: str,
-        batch_size: int,
         forward_func: Callable,
+        batch_size: int,
+        num_passes: int = 1,
         dataset_name: Optional[str] = None,
         train_dataset: Optional[Dataset] = None,
         test_dataset: Optional[Dataset] = None,
@@ -73,7 +74,15 @@ class TorchvisionDataset(Problem):
         in_memory: bool = False,
         loss_func: Callable = optax.softmax_cross_entropy_with_integer_labels,
     ):
-        self.batch_size = batch_size
+        self.num_passes = num_passes
+
+        if batch_size % num_passes != 0:
+            self.batch_size = int(round(batch_size / num_passes))
+            warn_msg = f"batch_size isn't evenly divisible by num_passes, the actual batch size will be rounded"
+            warnings.warn(warn_msg)
+        else:
+            self.batch_size = batch_size // num_passes
+
         self.forward_func = forward_func
         self.loss_func = loss_func
         self.valid_percent = valid_percent
@@ -188,17 +197,28 @@ class TorchvisionDataset(Problem):
             key, subkey = jax.random.split(state.key)
             permutation = self._new_permutation(subkey)
             return state.update(key=key, permutation=permutation, iter=0)
+            
+        def batch_evaluate(i, state_and_acc):
+            state, accumulator = state_and_acc
 
-        state = lax.cond(
-            state.iter >= state.permutation.shape[0],
-            new_epoch,
-            lambda x: x,  # identity
-            state,
+            state = lax.cond(
+                state.iter >= state.permutation.shape[0],
+                new_epoch,
+                lambda x: x,  # identity
+                state,
+            )
+            data, labels = self.train_dataset[state.permutation[state.iter]]
+            losses = self._calculate_loss(data, labels, batch_params)
+            return state.update(iter=state.iter + 1), accumulator + losses
+        
+        pop_size = tree_leaves(batch_params)[0].shape[0]
+        state, total_loss = lax.fori_loop(
+            0,
+            self.num_passes,
+            batch_evaluate,
+            (state, jnp.zeros((pop_size, )))
         )
-        data, labels = self.train_dataset[state.permutation[state.iter]]
-
-        losses = self._calculate_loss(data, labels, batch_params)
-        return state.update(iter=state.iter + 1), losses
+        return state, total_loss / self.batch_size / self.num_passes
 
     @partial(jit, static_argnums=[0, 2, 3])
     def _evaluate_in_memory_valid(self, state, dataset, metric_func, batch_params):
@@ -212,8 +232,8 @@ class TorchvisionDataset(Problem):
             return accumulated_metric + metric_func(data, labels, batch_params)
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
-        losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size, ))) / num_batches
-        return state, losses
+        losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
+        return state, losses / (num_batches * self.batch_size)
 
     def _evaluate_train(self, state, batch_params):
         try:
@@ -224,8 +244,11 @@ class TorchvisionDataset(Problem):
             data, labels = next(self.train_iter)
             # data, labels = jnp.asarray(data), jnp.asarray(labels)
 
-        losses = self._calculate_loss(data, labels, batch_params)
-        return state, losses
+        pop_size = tree_leaves(batch_params)[0].shape[0]
+        total_loss = jnp.zeros((pop_size, ))
+        for _ in range(self.num_passes):
+            total_loss += self._calculate_loss(data, labels, batch_params)
+        return state, total_loss / self.batch_size / self.num_passes
 
     def _evaluate_valid(self, state, dataset, metric_func, batch_params):
         valid_dataloader = DataLoader(
@@ -237,9 +260,9 @@ class TorchvisionDataset(Problem):
         )
 
         accumulated_metric = 0
-        for data, labels in dataset:
+        for data, labels in valid_dataloader:
             accumulated_metric += metric_func(data, labels, batch_params)
-        return state, accumulated_metric / len(dataset)
+        return state, accumulated_metric / (len(valid_dataloader) * self.batch_size)
 
     def evaluate(self, state, batch_params):
         if state.metric == 0:
@@ -248,32 +271,20 @@ class TorchvisionDataset(Problem):
             metric_func = self._calculate_accuracy
 
         # dispatch
-        if self.in_memory:
-            if state.mode == 0:
-                return self._evaluate_in_memory_train(state, batch_params)
-            elif state.mode == 1:
-                return self._evaluate_in_memory_valid(
-                    state, self.valid_dataset, metric_func, batch_params
-                )
-            elif state.mode == 2:
-                return self._evaluate_in_memory_valid(
-                    state, self.test_dataset, metric_func, batch_params
-                )
-            else:
-                raise ValueError(f"Unknown mode: {state.mode}")
+        if self.in_memory and state.mode == 0:
+            return self._evaluate_in_memory_train(state, batch_params)
+        elif self.in_memory and state.mode == 1:
+            return self._evaluate_in_memory_valid(state, self.valid_dataset, metric_func, batch_params)
+        elif self.in_memory and state.mode == 2:
+            return self._evaluate_in_memory_valid(state, self.test_dataset, metric_func, batch_params)
+        elif not self.in_memory and state.mode == 0:
+            return self._evaluate_train_mode(state, batch_params)
+        elif not self.in_memory and state.mode == 1:
+            return self._evaluate_valid_mode(state, self.valid_dataset, metric_func, batch_params)
+        elif not self.in_memory and state.mode == 2:
+            return self._evaluate_valid_mode(state, self.test_dataset, metric_func, batch_params)
         else:
-            if state.mode == 0:
-                return self._evaluate_train_mode(state, batch_params)
-            elif state.mode == 1:
-                return self._evaluate_valid_mode(
-                    state, self.valid_dataset, metric_func, batch_params
-                )
-            elif state.mode == 2:
-                return self._evaluate_valid_mode(
-                    state, self.test_dataset, metric_func, batch_params
-                )
-            else:
-                raise ValueError(f"Unknown mode: {state.mode}")
+            raise ValueError(f"Unknown mode: {state.mode}")
 
     @evox.jit_method
     def _calculate_accuracy(self, data, labels, batch_params):
@@ -281,13 +292,13 @@ class TorchvisionDataset(Problem):
             batch_params, data
         )  # (pop_size, batch_size, out_dim)
         output = jnp.argmax(output, axis=2)  # (pop_size, batch_size)
-        acc = jnp.mean(output == labels, axis=1)
+        acc = jnp.sum(output == labels, axis=1)
 
         return acc
 
     @evox.jit_method
     def _calculate_loss(self, data, labels, batch_params):
         output = vmap(self.forward_func, in_axes=(0, None))(batch_params, data)
-        loss = jnp.mean(vmap(self.loss_func, in_axes=(0, None))(output, labels), axis=1)
+        loss = jnp.sum(vmap(self.loss_func, in_axes=(0, None))(output, labels), axis=1)
 
         return loss
