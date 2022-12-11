@@ -27,6 +27,15 @@ let
     sphinx
     torchvision
     pytorch
+    ale-py
+
+    # develop
+    rope
+    pyflakes
+    pyls-isort
+    python-lsp-server
+    python-lsp-black
+    pylsp-mypy
 
     # gym render
     pyglet
