@@ -48,6 +48,7 @@ class PGPE(ex.Algorithm):
             jax.random.normal(state.key, (self.pop_size // 2, self.dim)) * state.stdev
         )
         D = jnp.concatenate([state.center + delta, state.center - delta], axis=0)
+
         return state.update(key=subkey, sample=D), D
 
     def tell(self, state, fitness):

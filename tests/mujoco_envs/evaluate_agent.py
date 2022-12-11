@@ -6,17 +6,33 @@ import jax.numpy as jnp
 import evox as ex
 import gym
 from PIL import Image
+from flax import linen as nn
 
-from Ant import AntPolicy as ProblemPolicy
+from MuJoCo_so import AgentModel
 
-model_path = '/home/lishuang/evox/logs/2022_11_15_10_23_38/best.npy'
-gym_env = "Ant-v4"
+class AgentModel(nn.Module):
+    
+    obv_shape = 17
+    act_shape = 6
+
+    @nn.compact
+    def __call__(self, x):
+        x = nn.Dense(64)(x)
+        x = nn.tanh(x)
+        x = nn.Dense(64)(x)
+        x = nn.tanh(x)
+        x = nn.Dense(self.act_shape)(x)
+        x = nn.tanh(x)  # action is in range(-1, 1)
+        return x
+
+model_path = '/home/lishuang/evox/logs/HalfCheetah-v4/mo/2022_11_27_23_47_58/iteration40/agent14.npy'
+gym_env = "HalfCheetah-v4"
 seed = 42
 
 def initialize_agent_policy():
     key = jax.random.PRNGKey(seed)
-    agent_policy = ProblemPolicy()
-    initial_params = agent_policy.init(key, jnp.zeros(agent_policy.observation_shape)) 
+    agent_policy = AgentModel()
+    initial_params = agent_policy.init(key, jnp.zeros(agent_policy.obv_shape)) 
 
     adapter = ex.utils.TreeAndVector(initial_params)
     policy_gene = jnp.load(model_path)
@@ -37,9 +53,9 @@ def evaluate(env, policy, collect_rgbarray=False):
 
         action = policy(observation)
         observation, reward, terminated, truncated, info = env.step(action)
-        print(terminated, truncated)
         total_reward += reward
         eposide_length += 1
+        print(terminated, truncated, eposide_length, total_reward, info)
         if terminated or truncated:
             break
 
@@ -57,10 +73,10 @@ def rgb_arrays2gif(rgb_arrays, saveName, duration=None, loop=0, fps=None):
 
 def main():
     policy = initialize_agent_policy()
-    env = gym.make("Ant-v4", render_mode="rgb_array")
-    reward, rgb_arrays = evaluate(env, policy, collect_rgbarray=True)
+    env = gym.make(gym_env)
+    reward, = evaluate(env, policy)
 
-    rgb_arrays2gif(rgb_arrays, "./videos/0.gif", duration=0.3)
+    # rgb_arrays2gif(rgb_arrays, "./videos/0.gif", duration=0.3)
 
     print(reward)
     env.close()

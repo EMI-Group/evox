@@ -8,7 +8,7 @@ import optax
 @ex.jit_class
 class OpenES(ex.Algorithm):
     def __init__(
-        self, init_params, pop_size, learning_rate, noise_std, optimizer="adam", mirrored_sampling=True, utility=True
+        self, init_params, pop_size, learning_rate, noise_std, optimizer="sgd", mirrored_sampling=True, utility=True, l2coeff=None
     ):
         """
         Implement the algorithm described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning"
@@ -32,7 +32,8 @@ class OpenES(ex.Algorithm):
         self.utility = utility
 
         if optimizer == "adam":
-            self.optimizer = optax.adam(learning_rate=learning_rate)
+            self.optimizer = optax.adamw(learning_rate=learning_rate, weight_decay=l2coeff)
+
         elif optimizer == "sgd":
             self.optimizer = optax.sgd(learning_rate=learning_rate)
         else:
@@ -79,7 +80,7 @@ class OpenES(ex.Algorithm):
         else:
             cumulative_update = jnp.mean(fitness[:, jnp.newaxis] * state.noise, axis=0) / self.noise_std
 
-        updates, opt_state = self.optimizer.update(cumulative_update, state.opt_state)
+        updates, opt_state = self.optimizer.update(cumulative_update, state.opt_state, state.params)
         params = optax.apply_updates(state.params, updates)
         # params = state.params - self.learning_rate / self.noise_std * jnp.mean(fitness[:, jnp.newaxis] * state.noise, axis=0)
         return state.update(params=params, opt_state=opt_state)

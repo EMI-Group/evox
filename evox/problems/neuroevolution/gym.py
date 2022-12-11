@@ -13,12 +13,59 @@ from jax.tree_util import tree_map, tree_structure, tree_transpose
 import gym
 
 
+@ex.jit_class
+class Normalizer(Stateful):
+    def __init__(self):
+        self.sum = 0
+        self.sumOfSquares = 0
+        self.count = 0
+
+    def setup(self, key):
+        return ex.State(sum=0, sumOfSquares=0, count=0)
+
+    def normalize(self, state, x):
+        newCount = state.count + 1
+        newSum = state.sum + x
+        newSumOfSquares = state.sumOfSquares + x ** 2
+        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
+        
+        state, mean = self.mean(state)
+        state, std = self.std(state)
+        return state, (x - mean) / std
+
+    def mean(self, state):
+        mean = state.sum / state.count
+        return state.update(mean=mean), mean
+
+    def std(self, state):
+        return state, jnp.sqrt(jnp.maximum(state.sumOfSquares / state.count - state.mean ** 2, 1e-2))
+
+    def normalize_obvs(self, state, obvs):
+
+        newCount = state.count + len(obvs)
+        newSum = state.sum + jnp.sum(obvs, axis=0)
+        newSumOFsquares = state.sumOfSquares + jnp.sum(obvs ** 2, axis=0)
+        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOFsquares)
+
+        state, mean = self.mean(state)
+        state, std = self.std(state)
+        return state, (obvs - mean) / std
+
+
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_name, env_options, num_env, policy=None):
+    def __init__(self, env_name, env_options, num_env, policy=None, normalize_obv=True):
         self.num_env = num_env
         self.envs = [gym.make(env_name, **env_options) for _ in range(num_env)]
         self.policy = policy
+
+        self.seed2key = jit(vmap(jax.random.PRNGKey))
+        self.splitKey = jit(vmap(jax.random.split))
+        
+        self.normalize_obv = normalize_obv
+        if self.normalize_obv:
+            self.normalizer = Normalizer()
+            self.normalizer_state = self.normalizer.init()
 
     def step(self, actions):
         for i, (env, action) in enumerate(zip(self.envs, actions)):
@@ -31,8 +78,10 @@ class Worker:
                     self.truncated[i],
                     self.infos[i],
                 ) = env.step(action)
+
                 self.total_rewards[i] += reward
                 self.episode_length[i] += 1
+
             if self.terminated[i]:
                 self.truncated[i] = True
             if self.truncated[i]:
@@ -49,6 +98,7 @@ class Worker:
         self.total_rewards = [0 for _ in range(self.num_env)]
         self.terminated = [False for _ in range(self.num_env)]
         self.truncated = [False for _ in range(self.num_env)]
+
         self.observations, self.infos = zip(
             *[env.reset(seed=seed) for seed, env in zip(seeds, self.envs)]
         )
@@ -59,14 +109,22 @@ class Worker:
     def rollout(self, seeds, subpop, cap_episode_length):
         assert self.policy is not None
         self.reset(seeds)
+
+        policy_seeds = self.seed2key(jnp.asarray(seeds))
+
         for i in range(cap_episode_length):
             observations = jnp.asarray(self.observations)
-            actions = np.asarray(self.policy(subpop, observations))
+            if self.normalize_obv:
+                self.normalizer_state, observations = self.normalizer.normalize_obvs(self.normalizer_state, observations)
+
+            policy_seeds = self.splitKey(jnp.asarray(policy_seeds))[:, 0, :]
+            actions = np.asarray(self.policy(subpop, observations, seed=jnp.asarray(policy_seeds)))
             self.step(actions)
 
             if all(self.terminated):
                 break
         # print(max(self.episode_length))
+
         return self.total_rewards, self.episode_length
 
 
@@ -81,6 +139,7 @@ class Controller:
         env_options,
         worker_options,
         batch_policy,
+        normalize_obv
     ):
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
@@ -90,6 +149,7 @@ class Controller:
                 env_options,
                 env_per_worker,
                 None if batch_policy else jit(vmap(policy)),
+                normalize_obv,
             )
             for _ in range(num_workers)
         ]
@@ -120,9 +180,11 @@ class Controller:
             worker.rollout.remote(worker_seeds, subpop, cap_episode_length)
             for worker_seeds, subpop, worker in zip(seeds, sliced_pop, self.workers)
         ]
+
         rewards, episode_length = zip(*ray.get(rollout_future))
         return np.array(rewards).reshape(-1), np.array(episode_length).reshape(-1)
 
+    
     def _batched_evaluate(self, seeds, pop, cap_episode_length):
         observations = ray.get(
             [worker.reset.remote(worker_seeds) for worker_seeds, worker in zip(seeds, self.workers)]
@@ -205,9 +267,10 @@ class Gym(Problem):
         env_options: dict = {},
         controller_options: dict = {},
         worker_options: dict = {},
-        cap_episode: Stateful = CapEpisode(),
+        init_cap: int = 100,
         batch_policy: bool = False,
-        fitness_is_neg_reward: bool = True,
+        fitness_is_neg_reward: bool = True, 
+        normalize_obv: bool = True
     ):
         """Construct a gym problem
 
@@ -244,13 +307,14 @@ class Gym(Problem):
             env_options,
             worker_options,
             batch_policy,
+            normalize_obv
         )
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
         self.fitness_is_neg_reward = fitness_is_neg_reward
         self.env_name = env_name
         self.policy = policy
-        self.cap_episode = cap_episode
+        self.cap_episode = CapEpisode(init_cap=init_cap)
 
     def setup(self, key):
         return State(key=key)
@@ -286,6 +350,7 @@ class Gym(Problem):
             fitness = -rewards
         else:
             fitness = rewards
+
 
         return state.update(key=key), fitness
 
