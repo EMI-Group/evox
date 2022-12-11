@@ -12,60 +12,21 @@ from jax.tree_util import tree_map, tree_structure, tree_transpose
 
 import gym
 
-
-@ex.jit_class
-class Normalizer(Stateful):
-    def __init__(self):
-        self.sum = 0
-        self.sumOfSquares = 0
-        self.count = 0
-
-    def setup(self, key):
-        return ex.State(sum=0, sumOfSquares=0, count=0)
-
-    def normalize(self, state, x):
-        newCount = state.count + 1
-        newSum = state.sum + x
-        newSumOfSquares = state.sumOfSquares + x ** 2
-        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
-        
-        state, mean = self.mean(state)
-        state, std = self.std(state)
-        return state, (x - mean) / std
-
-    def mean(self, state):
-        mean = state.sum / state.count
-        return state.update(mean=mean), mean
-
-    def std(self, state):
-        return state, jnp.sqrt(jnp.maximum(state.sumOfSquares / state.count - state.mean ** 2, 1e-2))
-
-    def normalize_obvs(self, state, obvs):
-
-        newCount = state.count + len(obvs)
-        newSum = state.sum + jnp.sum(obvs, axis=0)
-        newSumOFsquares = state.sumOfSquares + jnp.sum(obvs ** 2, axis=0)
-        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOFsquares)
-
-        state, mean = self.mean(state)
-        state, std = self.std(state)
-        return state, (obvs - mean) / std
-
-
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_name, env_options, num_env, policy=None, normalize_obv=True):
+    def __init__(self, env_name, env_options, num_env, policy=None, mean=None, std=None):
         self.num_env = num_env
         self.envs = [gym.make(env_name, **env_options) for _ in range(num_env)]
         self.policy = policy
 
         self.seed2key = jit(vmap(jax.random.PRNGKey))
-        self.splitKey = jit(vmap(jax.random.split))
+        # self.splitKey = jit(vmap(jax.random.split))
         
-        self.normalize_obv = normalize_obv
-        if self.normalize_obv:
-            self.normalizer = Normalizer()
-            self.normalizer_state = self.normalizer.init()
+        self.mean, self.std = mean, std
+        if self.mean is not None:  # use obv normalization
+            def normalize(obv):
+                return (obv - self.mean) / self.std
+            self.normalizer = jit(vmap(normalize))
 
     def step(self, actions):
         for i, (env, action) in enumerate(zip(self.envs, actions)):
@@ -114,8 +75,8 @@ class Worker:
 
         for i in range(cap_episode_length):
             observations = jnp.asarray(self.observations)
-            if self.normalize_obv:
-                self.normalizer_state, observations = self.normalizer.normalize_obvs(self.normalizer_state, observations)
+            if self.mean is not None:
+                observations = self.normalizer(observations)
 
             policy_seeds = self.splitKey(jnp.asarray(policy_seeds))[:, 0, :]
             actions = np.asarray(self.policy(subpop, observations, seed=jnp.asarray(policy_seeds)))
@@ -139,7 +100,8 @@ class Controller:
         env_options,
         worker_options,
         batch_policy,
-        normalize_obv
+        mean, 
+        std
     ):
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
@@ -149,7 +111,8 @@ class Controller:
                 env_options,
                 env_per_worker,
                 None if batch_policy else jit(vmap(policy)),
-                normalize_obv,
+                mean,
+                std,
             )
             for _ in range(num_workers)
         ]
@@ -299,6 +262,11 @@ class Gym(Problem):
             If True, the fitness is the negative of the total reward,
             otherwise return the original reward.
         """
+        mean, std = None, None
+        if normalize_obv:
+            vbn_data = jnp.load(f"./vbn_data/{env_name}", allow_pickle=True).item()
+            mean, std = vbn_data["mean"], vbn_data["std"]
+
         self.controller = Controller.options(**controller_options).remote(
             policy,
             num_workers,
@@ -307,7 +275,8 @@ class Gym(Problem):
             env_options,
             worker_options,
             batch_policy,
-            normalize_obv
+            mean, 
+            std
         )
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
