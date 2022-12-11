@@ -1,13 +1,10 @@
-import copy
-from functools import partial
-
-import evox
 import jax
 import jax.numpy as jnp
 import optax
-from jax import lax, jit
+from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
-from jax.experimental.host_callback import id_print
+
+import evox
 
 
 @jit
@@ -46,7 +43,7 @@ class ClipUp(evox.Stateful):
         velocity = lax.cond(
             velocity_norm > self.max_speed,
             clip_velocity,
-            lambda v: v, # identity function
+            lambda v: v,  # identity function
             velocity,
         )
         return state.update(velocity=velocity), -velocity
