@@ -35,7 +35,6 @@ class CMA_ES(Algorithm):
             self.weights = jnp.log(self.mu + 0.5) - jnp.log(jnp.arange(1, self.mu + 1))
             self.weights = self.weights / sum(self.weights)
         else:
-            w = recombination_weights
             assert (
                 recombination_weights[1:] <= recombination_weights[:-1]
             ).all(), "recombination_weights must be non-increasing"
@@ -46,7 +45,7 @@ class CMA_ES(Algorithm):
                 recombination_weights > 0
             ).all(), "recombination_weights must be positive"
             self.mu = recombination_weights.shape[0]
-            assert mu <= self.dim
+            assert self.mu <= self.dim
             self.weights = recombination_weights
 
         self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
