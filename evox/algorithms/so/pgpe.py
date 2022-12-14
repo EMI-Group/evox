@@ -87,29 +87,25 @@ class PGPE(evox.Algorithm):
             center=self.center_init,
             stdev=self.stdev,
             key=key,
-            sample=None,
         )
 
     def ask(self, state):
         key, subkey = jax.random.split(state.key)
-        delta = (
+        noise = (
             jax.random.normal(state.key, (self.pop_size // 2, self.dim)) * state.stdev
         )
-        D = jnp.concatenate([state.center + delta, state.center - delta], axis=0)
-        return state.update(key=subkey, sample=D), D
+        D = jnp.concatenate([state.center + noise, state.center - noise], axis=0)
+        return state.update(key=subkey, noise=noise), D
 
     def tell(self, state, fitness):
-        D_pos = state.sample[: self.pop_size // 2, :]
         F_pos = fitness[: self.pop_size // 2]
         F_neg = fitness[self.pop_size // 2 :]
 
-        delta_x = jnp.mean(
-            ((F_pos - F_neg) / 2)[:, jnp.newaxis] * (D_pos - state.center), axis=0
-        )
+        delta_x = jnp.mean(((F_pos - F_neg) / 2)[:, jnp.newaxis] * state.noise, axis=0)
         f_avg = jnp.mean(fitness)
         delta_stdev = jnp.mean(
             ((F_pos + F_neg) / 2 - f_avg)[:, jnp.newaxis]
-            * (((D_pos - state.center) ** 2 - state.stdev**2) / state.stdev),
+            * ((state.noise**2 - state.stdev**2) / state.stdev),
             axis=0,
         )
         state, updates = self.optimizer.update(state, delta_x, state.center)
