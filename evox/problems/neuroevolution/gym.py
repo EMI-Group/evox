@@ -263,7 +263,7 @@ class Gym(Problem):
         """
         mean, std = None, None
         if normalize_obv:
-            vbn_data = jnp.load(f"./vbn_data/{env_name}.npy", allow_pickle=True).item()
+            vbn_data = jnp.load(f".test/mujoco_envs/vbn_data/{env_name}.npy", allow_pickle=True).item()
             mean, std = vbn_data["mean"], vbn_data["std"]
             print(f"mean: {mean}, std: {std}")
 
