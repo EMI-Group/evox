@@ -1,4 +1,5 @@
 from .cso import CSO
+from .cso_new import CSO_new
 from .pso import PSO
 from .naive_es import NaiveES
 from .pgpe import PGPE

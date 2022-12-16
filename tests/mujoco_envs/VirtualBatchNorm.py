@@ -7,11 +7,6 @@ import jax.numpy as jnp
 from evox import Stateful
 import gym
 
-data = jnp.load("./vbn_data/Ant-v4.npy", allow_pickle=True).item()
-print(data)
-
-assert False
-
 class VirtualBatchNormalizer():
     def __init__(self, key, env, batch_size=128, pick_pro=0.01):
         self.key = key
@@ -55,15 +50,17 @@ class VirtualBatchNormalizer():
     def normalize(self, x):
         return (x - self.mean) / self.std
 
-env_name = "Ant-v4"
+
+
+env_name = "Swimmer-v4"
 env = gym.make(env_name)
 key = jax.random.PRNGKey(1)
 vbn = VirtualBatchNormalizer(key, env, batch_size=1024, pick_pro=0.01)
 
 import os
-save_dir = './vbn_data/'
+save_dir = '.test/mujoco_envs/vbn_data/'
 
-data = {"mean": vbn.mean, "std": vbn.std}
+data = {"mean": vbn.mean, "std": vbn.std, "count": vbn.batch_size}
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 

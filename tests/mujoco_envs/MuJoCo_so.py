@@ -23,11 +23,12 @@ envs = {"Ant-v4": {"observation_shape": (27), "action_shape": (8)},
 
 train_args = {
     "num_workers": 16,
-    "env_per_worker": 2,
+    "env_per_worker": 25,
     "act_noise_std": 0.01,
 }
 
 openai_es_args = {
+
     "learning_rate": 0.01,
     "noise_std": 0.02,
     "optimizer": 'adam',
@@ -49,11 +50,13 @@ class AgentModel(nn.Module):
     
     @nn.compact
     def __call__(self, x):
-        x = nn.Dense(act_shape)(x)
+        x = nn.Dense(32, kernel_init=jax.nn.initializers.xavier_uniform())(x)
+        x = nn.tanh(x)
+        x = nn.Dense(32, kernel_init=jax.nn.initializers.xavier_uniform())(x)
+        x = nn.tanh(x)
+        x = nn.Dense(act_shape, kernel_init=jax.nn.initializers.xavier_uniform())(x)
         x = nn.tanh(x)  # action is in range(-1, 1)
-        if "lb" in envs[env_name] and "ub" in envs[env_name]:
-            x = jnp.clip(x, envs[env_name]["lb"], envs[env_name]["ub"])
-
+        
         return x
 
 class AgentPolicy():
@@ -67,12 +70,17 @@ class AgentPolicy():
     def act_with_noise(self, params, obv, seed):
         action = self.model.apply(params, obv)
         noise = jax.random.normal(seed, shape=action.shape) * self.act_noise_std
+        action += noise
+
+        if "lb" in envs[env_name] and "ub" in envs[env_name]:
+            action = jnp.clip(action, envs[env_name]["lb"], envs[env_name]["ub"])
         # print(f"action: {action}, noise: {noise}")
-        return action + noise
+        return action
+
 
 def main():
     batch_policy = False
-    key = jax.random.PRNGKey(42)
+    key = jax.random.PRNGKey(41)
     model_key, pipeline_key = jax.random.split(key)
 
     model = AgentModel()
@@ -81,7 +89,7 @@ def main():
 
     policy = AgentPolicy(model, act_noise_std=train_args["act_noise_std"])
 
-    monitor = GymMonitor(need_save=True, save_interval=20, env_name=env_name)
+    monitor = GymMonitor(need_save=True, save_interval=10000, env_name=env_name)
     problem = problems.neuroevolution.Gym(
         policy=jax.jit(policy.act_with_noise),
         num_workers=train_args["num_workers"],
@@ -97,6 +105,7 @@ def main():
     )
 
     center = adapter.to_vector(params)
+
     print(f"the length of gene is {len(center)}")
     # create a pipeline
     pipeline = pipelines.GymPipeline(
@@ -106,14 +115,25 @@ def main():
         #     pop_size=train_args["num_workers"] * train_args["env_per_worker"],
         # ),
         # algorithm=algorithms.CSO(
-        #     lb=jnp.full((len(center),), -1),
-        #     ub=jnp.full((len(center),), 1),
-        #     pop_size=args.pop_size,
+        #     lb=jnp.full((len(center),), -2),
+        #     ub=jnp.full((len(center),), 2),
+        #     pop_size=train_args["num_workers"] * train_args["env_per_worker"],
         # ),
-        algorithm=algorithms.OpenES(
-            init_params=center,
+        # algorithm=algorithms.CSO_new(
+        #     lb=jnp.full((len(center),), -2),
+        #     ub=jnp.full((len(center),), 2),
+        #     pop_size=train_args["num_workers"] * train_args["env_per_worker"],
+        #     elite_rate=0.5
+        # ),
+        # algorithm=algorithms.OpenES(
+        #     init_params=center,
+        #     pop_size=train_args["num_workers"] * train_args["env_per_worker"],
+        #     **openai_es_args
+        # ),
+        algorithm=algorithms.CMA_ES(
+            init_mean=center,
+            init_stdvar=0.1,
             pop_size=train_args["num_workers"] * train_args["env_per_worker"],
-            **openai_es_args
         ),
         problem=problem,
         pop_transform=adapter.batched_to_tree,

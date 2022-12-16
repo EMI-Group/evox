@@ -1,9 +1,6 @@
 import jax.numpy as jnp
 from evox.core.module import Stateful
 from evox.operators import non_dominated_sort, crowding_distance_sort
-import bokeh
-from bokeh.plotting import figure, show
-from bokeh.models import Spinner
 import time
 import os
 

@@ -42,10 +42,6 @@ class Worker:
                 self.total_rewards[i] += reward
                 self.episode_length[i] += 1
 
-            if self.terminated[i]:
-                self.truncated[i] = True
-            if self.truncated[i]:
-                self.terminated[i] = True
         return self.observations, self.terminated, self.truncated
 
     def get_rewards(self):
@@ -82,9 +78,8 @@ class Worker:
             actions = np.asarray(self.policy(subpop, observations, seed=jnp.asarray(policy_seeds)))
             self.step(actions)
 
-            if all(self.terminated):
+            if all([self.terminated[i] or self.truncated[i] for i in range(self.num_env)]):
                 break
-        # print(max(self.episode_length))
 
         return self.total_rewards, self.episode_length, self.mo_rewards
 
