@@ -53,12 +53,12 @@ pipeline = pipelines.StdPipeline(
 # init the pipeline
 state = pipeline.init(pipeline_key)
 # run the pipeline for 100 steps
-for i in range(10):
+for i in range(100):
     print(monitor.get_min_fitness())
     state = pipeline.step(state)
 
 state, sample_pop = pipeline.sample(state)
-# problem._render(state, adapter.to_tree(sample_pop[0]))
+# problem._render(state.get_child_state("problem"), adapter.to_tree(sample_pop[0]))
 
 # the result should be close to 0
 min_fitness = monitor.get_min_fitness()
