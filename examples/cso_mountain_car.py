@@ -44,7 +44,7 @@ pipeline = pipelines.StdPipeline(
     algorithm=algorithms.CSO(
         lb=jnp.full_like(center, fill_value=-3),
         ub=jnp.full_like(center, fill_value=3),
-        pop_size=64,
+        pop_size=128,
     ),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
