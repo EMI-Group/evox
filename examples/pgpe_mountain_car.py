@@ -10,8 +10,8 @@ class CarPolicy(nn.Module):
     """A simple model for cartpole"""
 
     @nn.compact
-    def __call__(self, img):
-        x = img.astype(jnp.float32)
+    def __call__(self, x):
+        x = x.at[1].multiply(10)  # normalization
         x = nn.Dense(16)(x)
         x = nn.relu(x)
         x = nn.Dense(3)(x)
@@ -45,6 +45,7 @@ pipeline = pipelines.StdPipeline(
         optimizer="adam",
         center_init=center,
         pop_size=64,
+        stdev_init=1
     ),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
@@ -60,7 +61,9 @@ for i in range(100):
 state, sample_pop = pipeline.sample(state)
 # problem._render(state.get_child_state("problem"), adapter.to_tree(sample_pop[0]))
 
-# the result should be close to 0
 min_fitness = monitor.get_min_fitness()
 print(min_fitness)
 print(monitor.history)
+
+# 83
+# [152.0, 152.0, 121.0, 108.0, 89.0, 89.0, 89.0, 89.0, 89.0, 89.0, 89.0, 89.0, 89.0, 85.0, 85.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0, 83.0]
