@@ -1,19 +1,26 @@
 import jax
 import jax.numpy as jnp
-from jax import lax
-import evox as ex
+import optax
+
+import evox
 
 
-@ex.jit_class
-class OpenES(ex.Algorithm):
+@evox.jit_class
+class OpenES(evox.Algorithm):
     def __init__(
-        self, init_params, pop_size, learning_rate, noise_std, mirrored_sampling=True
+        self,
+        init_params,
+        pop_size,
+        learning_rate,
+        noise_stdev,
+        optimizer=None,
+        mirrored_sampling=True,
     ):
         """
         Implement the algorithm described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning"
         from https://arxiv.org/abs/1703.03864
         """
-        assert noise_std > 0
+        assert noise_stdev > 0
         assert learning_rate > 0
         assert pop_size > 0
 
@@ -26,15 +33,22 @@ class OpenES(ex.Algorithm):
         self.init_params = init_params
         self.pop_size = pop_size
         self.learning_rate = learning_rate
-        self.noise_std = noise_std
+        self.noise_stdev = noise_stdev
         self.mirrored_sampling = mirrored_sampling
+
+        if optimizer == "adam":
+            self.optimizer = evox.utils.OptaxWrapper(
+                optax.adam(learning_rate=learning_rate), init_params
+            )
+        else:
+            self.optimizer = None
 
     def setup(self, key):
         # placeholder
         population = jnp.tile(self.init_params, (self.pop_size, 1))
         noise = jnp.tile(self.init_params, (self.pop_size, 1))
-        return ex.State(
-            population=population, params=self.init_params, noise=noise, key=key
+        return evox.State(
+            population=population, center=self.init_params, noise=noise, key=key
         )
 
     def ask(self, state):
@@ -44,7 +58,7 @@ class OpenES(ex.Algorithm):
             noise = jnp.concatenate([noise, -noise], axis=0)
         else:
             noise = jax.random.normal(noise_key, shape=(self.pop_size, self.dim))
-        population = state.params[jnp.newaxis, :] + self.noise_std * noise
+        population = state.center[jnp.newaxis, :] + self.noise_stdev * noise
 
         return (
             state.update(population=population, key=key, noise=noise),
@@ -52,7 +66,10 @@ class OpenES(ex.Algorithm):
         )
 
     def tell(self, state, fitness):
-        params = state.params - self.learning_rate / self.noise_std * jnp.mean(
-            fitness[:, jnp.newaxis] * state.noise, axis=0
-        )
-        return state.update(params=params)
+        grad = state.noise.T @ fitness / self.pop_size / self.noise_stdev
+        if self.optimizer is None:
+            center = state.center - self.learning_rate * grad
+        else:
+            state, updates = self.optimizer.update(state, state.center)
+            center = optax.apply_updates(state.center, updates)
+        return state.update(center=center)
