@@ -1,4 +1,5 @@
 from .standard import StdPipeline
+from .gym import GymPipeline
 
 try:
     # optional dependency: ray
