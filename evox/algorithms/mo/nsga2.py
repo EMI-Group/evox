@@ -46,24 +46,11 @@ class NSGA2(ex.Algorithm):
         )
         return ex.State(
             population=population,
-            fitness=jnp.zeros((self.pop_size, self.n_objs)),
+            fitness=jnp.full((self.pop_size, self.n_objs), fill_value=jnp.inf),
             next_generation=population,
-            is_init=True)
+        )
 
     def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(state.is_init,
-                            self._tell_init,
-                            self._tell_normal,
-                            state, fitness
-                            )
-
-    def _ask_init(self, state):
-        return state, state.population
-
-    def _ask_normal(self, state):
         state, mutated = self.selection(state, state.population)
         state, mutated = self.mutation(state, mutated, (self.lb, self.ub))
 
@@ -74,22 +61,17 @@ class NSGA2(ex.Algorithm):
         )
         return state.update(next_generation=next_generation), next_generation
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
         rank = non_dominated_sort(merged_fitness)
         order = jnp.argsort(rank)
         worst_rank = rank[order[self.pop_size]]
-        mask = (rank == worst_rank)
+        mask = rank == worst_rank
         crowding_distance = crowding_distance_sort(merged_fitness, mask)
 
-        combined_order = jnp.lexsort(
-            (-crowding_distance, rank))[:self.pop_size]
+        combined_order = jnp.lexsort((-crowding_distance, rank))[: self.pop_size]
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fitness[combined_order]
 

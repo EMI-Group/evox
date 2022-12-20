@@ -1,16 +1,16 @@
 from functools import reduce
 from typing import Callable
 
-import evox as ex
+import gym
 import jax
 import jax.numpy as jnp
 import numpy as np
 import ray
-from evox import Stateful, Problem, State
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose
 
-import gym
+import evox as ex
+from evox import Problem, State, Stateful
 
 
 @ray.remote(num_cpus=1)
@@ -23,7 +23,7 @@ class Worker:
     def step(self, actions):
         for i, (env, action) in enumerate(zip(self.envs, actions)):
             # take the action if not terminated
-            if not self.terminated[i]:
+            if not self.terminated[i] and not self.truncated[i]:
                 (
                     self.observations[i],
                     reward,
@@ -42,25 +42,30 @@ class Worker:
         return self.episode_length
 
     def reset(self, seeds):
-        self.total_rewards = [0 for _ in range(self.num_env)]
-        self.terminated = [False for _ in range(self.num_env)]
-        self.truncated = [False for _ in range(self.num_env)]
+        self.total_rewards = np.zeros((self.num_env, ))
+        self.episode_length = np.zeros((self.num_env, ))
+        self.terminated = np.zeros((self.num_env, ), dtype=bool)
+        self.truncated = np.zeros((self.num_env, ), dtype=bool)
         self.observations, self.infos = zip(
             *[env.reset(seed=seed) for seed, env in zip(seeds, self.envs)]
         )
         self.observations, self.infos = list(self.observations), list(self.infos)
-        self.episode_length = [0 for _ in range(self.num_env)]
         return self.observations
 
     def rollout(self, seeds, subpop, cap_episode_length):
         assert self.policy is not None
         self.reset(seeds)
-        for i in range(cap_episode_length):
+        i = 0
+        while True:
             observations = jnp.asarray(self.observations)
             actions = np.asarray(self.policy(subpop, observations))
             self.step(actions)
 
-            if all(self.terminated):
+            if np.all(self.terminated | self.truncated):
+                break
+
+            i += 1
+            if cap_episode_length and i >= cap_episode_length:
                 break
 
         return self.total_rewards, self.episode_length
@@ -97,7 +102,9 @@ class Controller:
             def reshape_weight(w):
                 # first dim is batch
                 weight_dim = w.shape[1:]
-                return list(w.reshape((self.num_workers, self.env_per_worker, *weight_dim)))
+                return list(
+                    w.reshape((self.num_workers, self.env_per_worker, *weight_dim))
+                )
 
             if isinstance(pop, jnp.ndarray):
                 # first dim is batch
@@ -121,7 +128,10 @@ class Controller:
 
     def _batched_evaluate(self, seeds, pop, cap_episode_length):
         observations = ray.get(
-            [worker.reset.remote(worker_seeds) for worker_seeds, worker in zip(seeds, self.workers)]
+            [
+                worker.reset.remote(worker_seeds)
+                for worker_seeds, worker in zip(seeds, self.workers)
+            ]
         )
         terminated = False
         episode_length = 0
@@ -142,7 +152,8 @@ class Controller:
             )
             return actions
 
-        for i in range(cap_episode_length):
+        i = 0
+        while True:
             observations = jnp.asarray(observations)
             # get action from policy
             actions = jit(batch_policy_evaluation)(observations)
@@ -158,7 +169,12 @@ class Controller:
             all_terminated = reduce(
                 lambda carry, elem: carry and all(elem), terminated, True
             )
+
             if all_terminated:
+                break
+
+            i += 1
+            if cap_episode_length and i >= cap_episode_length:
                 break
 
         rewards = [worker.get_rewards.remote() for worker in self.workers]
@@ -201,7 +217,7 @@ class Gym(Problem):
         env_options: dict = {},
         controller_options: dict = {},
         worker_options: dict = {},
-        cap_episode: Stateful = CapEpisode(),
+        cap_episode: Stateful = None,
         batch_policy: bool = False,
         fitness_is_neg_reward: bool = True,
     ):

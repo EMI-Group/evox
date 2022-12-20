@@ -13,14 +13,14 @@ from .sort_utils import sort_by_key
 @evox.jit_class
 class CMA_ES(Algorithm):
     def __init__(
-        self, init_mean, init_stdvar, pop_size=None, recombination_weights=None, cm=1
+        self, init_mean, init_stdev, pop_size=None, recombination_weights=None, cm=1
     ):
         """
         [link](https://arxiv.org/pdf/1604.00772.pdf)
         """
         self.init_mean = init_mean
-        assert init_stdvar > 0, "Expect variance to be a non-negative float"
-        self.init_stdvar = init_stdvar
+        assert init_stdev > 0, "Expect variance to be a non-negative float"
+        self.init_stdev = init_stdev
         self.dim = init_mean.shape[0]
         self.cm = cm
         if pop_size is None:
@@ -35,7 +35,6 @@ class CMA_ES(Algorithm):
             self.weights = jnp.log(self.mu + 0.5) - jnp.log(jnp.arange(1, self.mu + 1))
             self.weights = self.weights / sum(self.weights)
         else:
-            w = recombination_weights
             assert (
                 recombination_weights[1:] <= recombination_weights[:-1]
             ).all(), "recombination_weights must be non-increasing"
@@ -46,7 +45,7 @@ class CMA_ES(Algorithm):
                 recombination_weights > 0
             ).all(), "recombination_weights must be positive"
             self.mu = recombination_weights.shape[0]
-            assert mu <= self.dim
+            assert self.mu <= self.dim
             self.weights = recombination_weights
 
         self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
@@ -95,7 +94,7 @@ class CMA_ES(Algorithm):
             count_iter=0,
             invsqrtC=C,
             mean=self.init_mean,
-            sigma=self.init_stdvar,
+            sigma=self.init_stdev,
             key=key,
         )
 
