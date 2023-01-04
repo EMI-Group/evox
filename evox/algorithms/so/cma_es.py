@@ -10,7 +10,7 @@ from .sort_utils import sort_by_key
 
 
 @evox.jit_class
-class CMA_ES(Algorithm):
+class CMAES(Algorithm):
     def __init__(
         self, init_mean, init_stdev, pop_size=None, recombination_weights=None, cm=1
     ):
@@ -173,7 +173,7 @@ class CMA_ES(Algorithm):
 
 
 @evox.jit_class
-class SepCMAES(CMA_ES):
+class SepCMAES(CMAES):
     def setup(self, key):
         pc = jnp.zeros((self.dim,))
         ps = jnp.zeros((self.dim,))
