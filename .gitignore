@@ -8,3 +8,6 @@ __pycache__
 /venv
 /pyvenv.cfg
 /datasets
+/exp
+/container
+/benchmarks
