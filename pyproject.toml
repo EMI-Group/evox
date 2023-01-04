@@ -5,31 +5,45 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "evox"
 version = "0.0.2"
-authors = [{ name = "Bill Huang", email = "bill.huang2001@gmail.com" },
-           { name = "Christina Lee", email = "1315552992@qq.com"},
-           { name = "Zhenyu Liang", email = "zhenyuliang97@gmail.com" }]
+authors = [
+  { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
+  { name = "Christina Lee", email = "1315552992@qq.com" },
+  { name = "Zhenyu Liang", email = "zhenyuliang97@gmail.com" },
+]
 description = "evox"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.7"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
+  "License :: OSI Approved :: BSD License",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
 dependencies = [
   "jax >= 0.3.0",
   "jaxlib >= 0.3.0",
-  "bokeh >= 2.4.0"
+  "optax >= 0.1.0",
+  "bokeh >= 2.4.0",
 ]
 
 [project.optional-dependencies]
-tests = [
-  "pytest >= 6.0.0",
-  "chex >= 0.1.0"
+tests = ["pytest >= 6.0.0", "chex >= 0.1.0"]
+
+gym = ["gym >= 0.26.0"]
+
+neuroevolution = ["torch >= 1.0.0", "torchvision >= 0.1.0"]
+
+distributed = ["ray >= 2.0.0"]
+
+full = [
+  "gym >= 0.26.0",
+  "ray >= 2.0.0",
+  "torch >= 1.0.0",
+  "torchvision >= 0.1.0",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/EMI-Group/evox"
+"Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
