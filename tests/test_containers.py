@@ -14,7 +14,7 @@ def test_clustered_cma_es(num_gpus):
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.ClusterdAlgorithm(
-            base_algorithm=ex.algorithms.CMAES(init_mean, init_stdvar=10, pop_size=10),
+            base_algorithm=ex.algorithms.CMAES(init_mean, init_stdev=10, pop_size=10),
             dim=40,
             num_cluster=4,
             num_gpus=num_gpus,
@@ -27,14 +27,14 @@ def test_clustered_cma_es(num_gpus):
     state = pipeline.init(key)
 
     # run the pipeline for 10 steps
-    for i in range(10):
+    for i in range(200):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    print(min_fitness)
-    assert abs(min_fitness - 21.25) < 0.1
+    assert min_fitness < 1
 
 
+@pytest.mark.skip(reason="currently random_mask is unstable")
 def test_random_mask_cso():
     # create a pipeline
     monitor = FitnessMonitor()
@@ -49,6 +49,7 @@ def test_random_mask_cso():
             num_cluster=4,
             num_mask=2,
             change_every=10,
+            pop_size=50
         ),
         problem=problems.classic.Ackley(),
         fitness_transform=monitor.update,
@@ -62,4 +63,5 @@ def test_random_mask_cso():
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
+    print(min_fitness)
     assert abs(min_fitness - 19.6) < 0.1

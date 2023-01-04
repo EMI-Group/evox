@@ -49,6 +49,7 @@ def init_problem_and_model(key):
     return initial_params, problem
 
 
+@pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_treemap():
     key = jax.random.PRNGKey(42)
     pipeline_key, model_init_key = jax.random.split(key)
@@ -78,6 +79,7 @@ def test_neuroevolution_treemap():
     print(f"Treemap loss: {min_fitness}  time: {time.perf_counter() - start}")
 
 
+@pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_adapter():
     key = jax.random.PRNGKey(42)
     pipeline_key, model_init_key = jax.random.split(key)

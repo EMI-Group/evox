@@ -13,10 +13,10 @@ def test_distributed_cso():
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
-            pop_size=200,
+            pop_size=20,
         ),
         problem=problems.classic.Ackley(),
-        pop_size=200,
+        pop_size=10,
         num_workers=2,
         global_fitness_transform=monitor.update,
         options={

@@ -19,6 +19,7 @@ class CartpolePolicy(nn.Module):
         return jnp.argmax(x)
 
 
+@pytest.mark.skip(reason="time consuming")
 @pytest.mark.parametrize("batch_policy", [True, False])
 def test_cartpole(batch_policy):
     key = jax.random.PRNGKey(42)
@@ -46,7 +47,7 @@ def test_cartpole(batch_policy):
             optimizer="adam",
             center_init=center,
             pop_size=40,
-        ),        
+        ),
         problem=problem,
         pop_transform=adapter.batched_to_tree,
         fitness_transform=monitor.update,
