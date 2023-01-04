@@ -3,7 +3,6 @@ import math
 import jax
 import jax.numpy as jnp
 from jax import lax
-
 import evox
 from evox import Algorithm, State
 
@@ -45,7 +44,7 @@ class CMA_ES(Algorithm):
                 recombination_weights > 0
             ).all(), "recombination_weights must be positive"
             self.mu = recombination_weights.shape[0]
-            assert self.mu <= self.dim
+            assert self.mu <= self.pop_size
             self.weights = recombination_weights
 
         self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
@@ -61,10 +60,14 @@ class CMA_ES(Algorithm):
         self.c1 = 2 / ((self.dim + 1.3) ** 2 + self.mueff)
 
         # learning rate for rank-μ update of C
+        # convert self.dim to float first to prevent overflow
         self.cmu = min(
             1 - self.c1,
-            2
-            * ((self.mueff - 2 + 1 / self.mueff) / ((self.dim + 2) ** 2 + self.mueff)),
+            (
+                2
+                * (self.mueff - 2 + 1 / self.mueff)
+                / ((float(self.dim) + 2) ** 2 + self.mueff)
+            ),
         )
 
         # damping for sigma
@@ -167,3 +170,60 @@ class CMA_ES(Algorithm):
         D = jnp.sqrt(D)
         invsqrtC = (B / D) @ B.T
         return B, D, invsqrtC
+
+
+@evox.jit_class
+class SepCMAES(CMA_ES):
+    def setup(self, key):
+        pc = jnp.zeros((self.dim,))
+        ps = jnp.zeros((self.dim,))
+        C = jnp.ones((self.dim,))
+        return State(
+            pc=pc,
+            ps=ps,
+            C=C,
+            count_iter=0,
+            mean=self.init_mean,
+            sigma=self.init_stdev,
+            key=key,
+        )
+
+    def ask(self, state):
+        key, sample_key = jax.random.split(state.key)
+        noise = jax.random.normal(sample_key, (self.pop_size, self.dim))
+        population = state.mean + state.sigma * jnp.sqrt(state.C) * noise
+        new_state = state.update(
+            population=population, count_iter=state.count_iter + 1, key=key
+        )
+        return new_state, population
+
+    def tell(self, state, fitness):
+        fitness, population = sort_by_key(fitness, state.population)
+
+        mean = self._update_mean(state.mean, population)
+        delta_mean = mean - state.mean
+
+        ps = self._update_ps(state.ps, state.C, state.sigma, delta_mean)
+
+        hsig = (
+            jnp.linalg.norm(ps) / jnp.sqrt(1 - (1 - self.cs) ** (2 * state.count_iter))
+            < (1.4 + 2 / (self.dim + 1)) * self.chiN
+        )
+        pc = self._update_pc(state.pc, ps, delta_mean, state.sigma, hsig)
+        C = self._update_C(state.C, pc, state.sigma, population, state.mean, hsig)
+        sigma = self._update_sigma(state.sigma, ps)
+
+        return state.update(mean=mean, ps=ps, pc=pc, C=C, sigma=sigma)
+
+    def _update_ps(self, ps, C, sigma, delta_mean):
+        return (1 - self.cs) * ps + jnp.sqrt(
+            self.cs * (2 - self.cs) * self.mueff
+        ) * delta_mean / jnp.sqrt(C) / sigma
+
+    def _update_C(self, C, pc, sigma, population, old_mean, hsig):
+        y = (population[: self.mu] - old_mean) / sigma
+        return (
+          (1 - self.c1 - self.cmu) * C
+          + self.c1 * ((pc ** 2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
+          + self.cmu * self.weights @ (y ** 2)
+        )
