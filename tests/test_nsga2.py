@@ -23,3 +23,4 @@ def test_nsga2():
 
     for i in range(100):
         state = pipeline.step(state)
+        

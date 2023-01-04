@@ -1,43 +1,40 @@
 from evox import Stateful
 from evox import Algorithm, Problem
-from evox.monitors import FitnessMonitor, PopulationMonitor
 from typing import Optional, Callable
 
 
-class StdPipeline(Stateful):
+class GymPipeline(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
         problem: Problem,
         pop_transform: Optional[Callable] = None,
-        fitness_transform: Optional[Callable] = None):
+        fitness_transform: Optional[Callable] = None,
+        monitor_update: Optional[Callable] = None
+        ):
+        
         self.algorithm = algorithm
         self.problem = problem
         self.pop_transform = pop_transform
         self.fitness_transform = fitness_transform
+        self.monitor_update = monitor_update
 
     def step(self, state):
-        state, pop = self.algorithm.ask(state)
+        state, init_pop = self.algorithm.ask(state)
+
         if self.pop_transform is not None:
-            pop = self.pop_transform(pop)
+            pop = self.pop_transform(init_pop)
 
         state, fitness = self.problem.evaluate(state, pop)
-
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
+
+        if self.monitor_update is not None:
+            self.monitor_update(state, self.problem, init_pop, fitness)
 
         state = self.algorithm.tell(state, fitness)
 
         return state
-
-    def valid(self, state, metric="loss"):
-        new_state = self.problem.valid(state, metric=metric)
-        new_state, pop = self.algorithm.ask(new_state)
-        if self.pop_transform is not None:
-            pop = self.pop_transform(pop)
-
-        new_state, fitness = self.problem.evaluate(new_state, pop)
-        return state, fitness
 
     def sample(self, state):
         """Sample the algorithm but don't change it's state

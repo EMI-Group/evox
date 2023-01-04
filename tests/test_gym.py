@@ -46,7 +46,7 @@ def test_cartpole(batch_policy):
             optimizer="adam",
             center_init=center,
             pop_size=40,
-        ),
+        ),        
         problem=problem,
         pop_transform=adapter.batched_to_tree,
         fitness_transform=monitor.update,

@@ -15,6 +15,10 @@ in
   targetPkgs = pkgs: with pkgs; [
     fish
     which
+    swig
+    stdenv
+    gcc
+
     python39
     python39Packages.pip
     python39Packages.setuptools
@@ -26,6 +30,7 @@ in
     cudaPackages.cutensor
     zlib
     SDL2
+    glfw
   ];
 
   runScript = "fish";
