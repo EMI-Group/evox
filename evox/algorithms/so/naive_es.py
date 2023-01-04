@@ -1,43 +1,47 @@
 import jax
 import jax.numpy as jnp
-import evox as ex
+import evox
+from evox import State, Algorithm
 
 
-class NaiveES(ex.Algorithm):
-    def __init__(self, lb, ub, pop_size, topk=None, eps=1e-8):
-        self.dim = lb.shape[0]
-        self.lb = lb
-        self.ub = ub
+class NaiveES(Algorithm):
+    def __init__(self, dim, pop_size, topk):
+        self.dim = dim
         self.pop_size = pop_size
-        if topk is None:
-            self.topk = self.pop_size // 2
-        else:
-            self.topk = topk
-        self.eps = eps
+        self.topk = topk
 
     def setup(self, key):
-        state_key, init_key = jax.random.split(key)
-        mean = (
-            jax.random.uniform(init_key, shape=(self.dim,)) * (self.ub - self.lb)
-            + self.lb
-        )
+        mean = jnp.zeros((dim,))
         stdvar = jnp.ones((self.dim,))
-        return ex.State(mean=mean, stdvar=stdvar, key=state_key, sample=None)
+        return State(
+            mean=mean,
+            stdvar=stdvar,
+            key=key
+        )
 
     def ask(self, state):
-        key = state.key
-        key, subkey = jax.random.split(key)
-        sample = (
-            jax.random.normal(subkey, shape=(self.pop_size, self.dim)) * state.stdvar
-            + state.mean
+        key, subkey = jax.random.split(state.key)
+        noise = jax.random.normal(
+            subkey,
+            (self.pop_size, self.dim) 
         )
-        sample = jnp.clip(sample, self.lb, self.ub)
-        return state.update(key=key, sample=sample), sample
+        pop = state.mean + state.stdvar * noise
+        new_state = state.update(
+            key=key,
+            pop=pop
+        )
+        return new_state, sample
 
     def tell(self, state, fitness):
-        order = jnp.argsort(fitness)
-        X = state.sample[order]
-        elite = X[: self.topk, :]
+        _topk_value, topk_index = jax.lax.top_k(
+            fitness,
+            self.topk
+        )
+        elite = state.pop[topk_index]
         new_mean = jnp.mean(elite, axis=0)
-        new_stdvar = jnp.sqrt(jnp.var(elite, axis=0) + self.eps)
-        return state.update(mean=new_mean, stdvar=new_stdvar)
+        new_stdvar = jnp.std(elite, axis=0)
+        new_state = state.update(
+            mean=new_mean,
+            stdvar=new_stdvar
+        )
+        return new_state
