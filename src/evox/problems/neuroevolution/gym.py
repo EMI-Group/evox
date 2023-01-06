@@ -106,7 +106,7 @@ class Worker:
             observations = jnp.asarray(self.observations)
             policy_seeds = self.splitKey(jnp.asarray(policy_seeds))[:, 0, :]
             actions = np.asarray(
-                self.policy(subpop, observations, seed=jnp.asarray(policy_seeds))
+                self.policy(subpop, observations)
             )
             self.step(actions)
 

@@ -31,7 +31,7 @@ jobs:
     - name: Build and install package
       run: |
         output=$(python -m build --wheel)
-        pip install dist/${output##* }[full]
+        pip install dist/${output##* }[full,test]
     - name: Test with pytest
       run: |
         pytest
