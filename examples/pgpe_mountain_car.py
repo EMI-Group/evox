@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from flax import linen as nn
 
 class CarPolicy(nn.Module):
-    """A simple model for cartpole"""
+    """A simple model for mountain car"""
 
     @nn.compact
     def __call__(self, x):
