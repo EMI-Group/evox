@@ -101,10 +101,8 @@ class Worker:
         assert self.policy is not None
         self.reset(seeds)
         i = 0
-        policy_seeds = self.seed2key(jnp.asarray(seeds))
         while True:
             observations = jnp.asarray(self.observations)
-            policy_seeds = self.splitKey(jnp.asarray(policy_seeds))[:, 0, :]
             actions = np.asarray(
                 self.policy(subpop, observations)
             )
