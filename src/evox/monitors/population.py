@@ -3,7 +3,7 @@ import chex
 import jax.numpy as jnp
 import numpy as np
 from bokeh.models import ColumnDataSource, Slider, Spinner, CustomJS
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure, show, save
 from evox.core.module import Stateful
 
 
@@ -31,7 +31,7 @@ class PopulationMonitor:
         self.history.append(np.array(pop).T)
         return pop
 
-    def show(self):
+    def _plot_figure(self):
         # format self.history into ColumnDataSource acceptable format
         # use ColumnDataSource is more efficient than passing numpy array directly
         column_history = {}
@@ -67,11 +67,11 @@ class PopulationMonitor:
             CustomJS(
                 args={"source": source, "history": column_history},
                 code="""
-                    const iter = cb_obj.value
-                    source.data.x = history.data[`${iter}_x`]
-                    source.data.y = history.data[`${iter}_y`]
-                    source.change.emit();
-                """,
+                            const iter = cb_obj.value
+                            source.data.x = history.data[`${iter}_x`]
+                            source.data.y = history.data[`${iter}_y`]
+                            source.change.emit();
+                        """,
             ),
         )
 
@@ -91,4 +91,16 @@ class PopulationMonitor:
                 [plot],
             ]
         )
+
+        return layout
+
+    def show(self):
+        layout = self._plot_figure()
         show(layout)
+
+    def save(self, filename=None):
+        layout = self._plot_figure()
+        if filename is None:
+            save(layout)
+        else:
+            save(layout, filename=filename)

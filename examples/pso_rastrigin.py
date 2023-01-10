@@ -18,7 +18,7 @@ pipeline = pipelines.StdPipeline(
         ub=jnp.full(shape=(2,), fill_value=32),
         pop_size=POP_SIZE,
     ),
-    problems.classic.Ackley(),
+    problems.classic.Rastrigin(),
     fitness_transform=fit_monitor.update,
     pop_transform=pop_monitor.update,
 )
@@ -36,5 +36,5 @@ for i in range(EPOCH_NUM):
     state = pipeline.step(state)
     print(fit_monitor.get_min_fitness())
 
-pop_monitor.save('PSO_Ackley_pop_information.html')
-fit_monitor.save('PSO_Ackley_fit_information.html')
+pop_monitor.save('PSO_Rast_pop_information.html')
+fit_monitor.save('PSO_Rast_fit_information.html')

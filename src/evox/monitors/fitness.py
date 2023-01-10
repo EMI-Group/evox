@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import bokeh
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure, show, save
 from bokeh.models import Spinner
 from evox.core.module import Stateful
 
@@ -22,7 +22,7 @@ class FitnessMonitor:
         self.history.append(self.min_fitness)
         return fitness
 
-    def show(self):
+    def _plot_figure(self):
         plot = figure(
             title="Fitness - Iteration",
             x_axis_label="Iteration",
@@ -46,7 +46,18 @@ class FitnessMonitor:
                 [plot],
             ]
         )
+        return layout
+
+    def show(self):
+        layout = self._plot_figure()
         show(layout)
+
+    def save(self, filename=None):
+        layout = self._plot_figure()
+        if filename is None:
+            save(layout)
+        else:
+            save(layout, filename=filename)
 
     def get_min_fitness(self):
         return self.min_fitness
