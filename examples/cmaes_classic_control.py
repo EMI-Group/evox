@@ -11,8 +11,8 @@ gym_name = "Pendulum-v1"
 def tanh2(x):
     return 2*nn.tanh(x)
 
-classic_params = {
-    "Acrobot-v1":(3, (6,), jnp.argmax), 
+policy_params = {
+    "Acrobot-v1":(3, (6,), jnp.argmax),
     "CartPole-v1":(2, (4,), jnp.argmax),
     "MountainCarContinuous-v0":(1, (2,), nn.tanh),
     "MountainCar-v0":(3, (2,), jnp.argmax),
@@ -27,15 +27,15 @@ class ClassicPolicy(nn.Module):
         x = x.at[1].multiply(10)  # normalization
         x = nn.Dense(16)(x)
         x = nn.relu(x)
-        x = nn.Dense(classic_params[gym_name][0])(x)
+        x = nn.Dense(policy_params[gym_name][0])(x)
 
-        return classic_params[gym_name][2](x)
+        return policy_params[gym_name][2](x)
 
 key = jax.random.PRNGKey(42)
 model_key, pipeline_key = jax.random.split(key)
 
 model = ClassicPolicy()
-params = model.init(model_key, jnp.zeros(classic_params[gym_name][1]))
+params = model.init(model_key, jnp.zeros(policy_params[gym_name][1]))
 adapter = TreeAndVector(params)
 monitor = FitnessMonitor()
 problem = problems.neuroevolution.Gym(
