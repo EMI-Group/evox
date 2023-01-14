@@ -1,10 +1,9 @@
 import jax
 import jax.numpy as jnp
 import evox as ex
-from evox.operators.uniform_point import uniform_point
+from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 import chex
 from functools import partial
-from scipy.spatial.distance import cdist
 
 
 class DTLZ(ex.Problem):
@@ -15,6 +14,9 @@ class DTLZ(ex.Problem):
         self.m = m
         self._dtlz = None
         self.ref_num = ref_num
+        
+    def setup(self, key):
+        return ex.State(key=key)
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
@@ -22,12 +24,13 @@ class DTLZ(ex.Problem):
         return state, jax.jit(jax.vmap(self._dtlz))(X)
 
     def pf(self, state: chex.PyTreeDef):
-        f = uniform_point(self.ref_num * self.m, self.m)[0] / 2
+        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
+        # f = LatinHypercubeSampling(self.ref_num * self.m, self.m).random(state.key)[0] / 2
         return state, f
 
 
 class DTLZ1(DTLZ):
-    def __init__(self, d=None, m=None, ref_num=1000):
+    def __init__(self, d=None, m=None, ref_num=100):
         if m is None:
             self.m = 3
         else:
@@ -74,7 +77,7 @@ class DTLZ2(DTLZ):
         return state, f
 
     def pf(self, state: chex.PyTreeDef):
-        f = uniform_point(self.ref_num * self.m, self.m)[0]
+        f = UniformSampling(self.ref_num * self.m, self.m).random()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1,
                       keepdims=True)), (1, self.m))
         return state, f
@@ -105,7 +108,7 @@ class DTLZ4(DTLZ2):
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         m = self.m
-        X[:, :m - 1] = X[:, :m - 1] ** 100
+        X = X.at[:, :m - 1].power(100)
         g = jnp.sum((X[:, m - 1:] - 0.5) ** 2, axis=1, keepdims=True)
         f = jnp.tile(1 + g, (1, m)) * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((jnp.shape(g)[0], 1)),
                                                                     jnp.cos(X[:, :m - 1] * jnp.pi / 2)],
@@ -133,7 +136,8 @@ class DTLZ5(DTLZ):
         m = self.m
         g = jnp.sum((X[:, m - 1:] - 0.5) ** 2, axis=1, keepdims=True)
         temp = jnp.tile(g, (1, m - 2))
-        X[:, 1:m - 1] = (1 + 2 * temp * X[:, 1:m - 1]) / (2 + 2 * temp)
+        X = X.at[:, 1:m - 1].set((1 + 2 * temp *
+                                 X[:, 1:m - 1]) / (2 + 2 * temp))
         f = jnp.tile(1 + g, (1, m)) * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((jnp.shape(g)[0], 1)),
                                                                     jnp.cos(X[:, :m - 1] * jnp.pi / 2)],
                                                              axis=1)) * \
@@ -172,7 +176,8 @@ class DTLZ6(DTLZ):
         m = self.m
         g = jnp.sum((X[:, m - 1:] ** 0.1), axis=1, keepdims=True)
         temp = jnp.tile(g, (1, m - 2))
-        X[:, 1:m - 1] = (1 + 2 * temp * X[:, 1:m - 1]) / (2 + 2 * temp)
+        X = X.at[:, 1:m - 1].set((1 + 2 * temp *
+                                 X[:, 1:m - 1]) / (2 + 2 * temp))
 
         f = jnp.tile(1 + g, (1, m)) * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((jnp.shape(g)[0], 1)),
                                                                     jnp.cos(X[:, :m - 1] * jnp.pi / 2)],
@@ -213,8 +218,9 @@ class DTLZ7(DTLZ):
         m = self.m
         f = jnp.zeros((n, m))
         g = 1 + jnp.mean(X[:, m-1:], axis=1, keepdims=True)
-        f[:, m-1] = (1 + g) * (m - jnp.sum(X[:, :m-1] / (1 + jnp.tile(g, (1, m-1)))
-                                           * (1 + jnp.sin(3 * jnp.pi * X[:, :m-1])), axis=1, keepdims=True))
+        f = f.at[:, m-1].set((1 + g) * (m - jnp.sum(X[:, :m-1] / (1 + jnp.tile(g, (1, m-1)))
+                                                    * (1 + jnp.sin(3 * jnp.pi * X[:, :m-1])), axis=1, keepdims=True)))
+
         return state, f
 
     def pf(self, state: chex.PyTreeDef):
