@@ -28,17 +28,17 @@ class ReferenceVectorGuidedSelection(ex.Operator):
         nv = jnp.shape(self.v)[0]
         obj = self.x
 
-        obj = obj - jnp.tile(obj.min(0), (n, 1))
+        obj -= jnp.tile(jnp.min(obj, axis=0), (n, 1))
 
         cosine = cos_dist(self.v, self.v)
         cosine = jnp.where(jnp.eye(jnp.shape(cosine)[0], dtype=bool), 0, cosine) 
-        gamma = jnp.arccos(cosine).min(1)
+        gamma = jnp.min(jnp.arccos(cosine), axis=1)
 
         angle = jnp.arccos(cos_dist(obj, self.v))
 
         associate = jnp.argmin(angle, axis=1)
 
-        next_ind = jnp.full([1, nv], -1)
+        next_ind = jnp.full(nv, -1)
         is_null = jnp.sum(next_ind)
         
         
@@ -53,10 +53,12 @@ class ReferenceVectorGuidedSelection(ex.Operator):
         def no_update(i, sub_index ,next_ind):
             return next_ind
         
-        for i in range(nv):
+        def body_fun(i, val):
             sub_index = jnp.where(associate == i, size=nv, fill_value=-1)[0] 
-            next_ind = jax.lax.cond(jnp.sum(sub_index) != is_null, update_next, no_update, i, sub_index, next_ind)
+            next_ind = jax.lax.cond(jnp.sum(sub_index) != is_null, update_next, no_update, i, sub_index, val)
+            return next_ind
         
+        next_ind = jax.lax.fori_loop(0, nv, body_fun, next_ind)
 
         return ex.State(key=key), next_ind
     
