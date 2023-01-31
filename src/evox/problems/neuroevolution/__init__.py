@@ -1,5 +1,3 @@
-from .torchvision_dataset import TorchvisionDataset
-
 try:
     # optional dependency: torchvision, optax
     from .torchvision_dataset import TorchvisionDataset
