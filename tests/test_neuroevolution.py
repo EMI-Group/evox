@@ -9,6 +9,7 @@ from evox import algorithms, pipelines, problems
 from evox.monitors import FitnessMonitor
 
 
+
 class PartialPGPE(ex.algorithms.PGPE):
     def __init__(self, center_init):
         super().__init__(
