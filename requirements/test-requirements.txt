@@ -1,0 +1,9 @@
+# a mirror of ../pyproject.toml
+# used for caching dependencies in github action
+chex >= 0.1.0
+flax >= 0.5.0
+pytest >= 6.0.0
+gym >= 0.26.0
+ray >= 2.0.0
+torch >= 1.0.0
+torchvision >= 0.1.0

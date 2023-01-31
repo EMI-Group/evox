@@ -24,6 +24,8 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: requirements/test-requirements.txt
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
