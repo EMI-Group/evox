@@ -20,7 +20,7 @@ def test_distributed_cso():
         num_workers=2,
         global_fitness_transform=monitor.update,
         options={
-            "num_cpus": 2,
+            "num_cpus": 0.5, # just for testing purpose
             "num_gpus": 0
         }
     )

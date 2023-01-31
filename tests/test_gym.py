@@ -34,7 +34,7 @@ def test_cartpole(batch_policy):
         num_workers=4,
         env_per_worker=10,
         controller_options={
-            "num_cpus": 1,
+            "num_cpus": 0.25,
             "num_gpus": 0,
         },
         worker_options={"num_cpus": 1},
