@@ -8,7 +8,13 @@ import evox
 @evox.jit_class
 class OpenES(evox.Algorithm):
     def __init__(
-        self, init_params, pop_size, learning_rate, noise_std, optimizer="sgd", mirrored_sampling=True, utility=True, l2coeff=None, lr_decay=None
+        self,
+        init_params,
+        pop_size,
+        learning_rate,
+        noise_stdev,
+        optimizer=None,
+        mirrored_sampling=True,
     ):
         """
         Implement the algorithm described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning"
@@ -29,23 +35,6 @@ class OpenES(evox.Algorithm):
         self.learning_rate = learning_rate
         self.noise_stdev = noise_stdev
         self.mirrored_sampling = mirrored_sampling
-        self.utility = utility
-        self.lr_decay = lr_decay
-        self.l2coeff = l2coeff
-
-
-        if optimizer == "adam":
-            self.optimizer = optax.adamw(learning_rate=learning_rate, weight_decay=l2coeff)
-        elif optimizer == "sgd":
-            self.optimizer = optax.sgd(learning_rate=learning_rate)
-        else:
-            raise TypeError(f"{optimizer} is not supported right now")
-
-        if self.utility:
-            rank = jnp.arange(1, pop_size + 1)
-            util_ = jnp.maximum(0, jnp.log(pop_size / 2 + 1) - jnp.log(rank))
-            utility = util_ / util_.sum() - 1 / pop_size
-            self.utility_score = utility
 
         if optimizer == "adam":
             self.optimizer = evox.utils.OptaxWrapper(
@@ -55,13 +44,11 @@ class OpenES(evox.Algorithm):
             self.optimizer = None
 
     def setup(self, key):
+        # placeholder
         population = jnp.tile(self.init_params, (self.pop_size, 1))
         noise = jnp.tile(self.init_params, (self.pop_size, 1))
-
-        opt_state = self.optimizer.init(self.init_params)
-
-        return ex.State(
-            population=population, params=self.init_params, noise=noise, key=key, opt_state=opt_state
+        return evox.State(
+            population=population, center=self.init_params, noise=noise, key=key
         )
 
     def ask(self, state):
@@ -79,15 +66,10 @@ class OpenES(evox.Algorithm):
         )
 
     def tell(self, state, fitness):
-        if self.utility:
-            cumulative_update = jnp.zeros_like(state.params)
-            fitness_rank = jnp.argsort(fitness)[::-1]
-            for ui, kid in enumerate(fitness_rank):
-                cumulative_update += self.utility_score[ui] * state.noise[kid]
-            cumulative_update /= self.pop_size * self.noise_std
+        grad = state.noise.T @ fitness / self.pop_size / self.noise_stdev
+        if self.optimizer is None:
+            center = state.center - self.learning_rate * grad
         else:
-            cumulative_update = jnp.mean(fitness[:, jnp.newaxis] * state.noise, axis=0) / self.noise_std
-
-        updates, opt_state = self.optimizer.update(cumulative_update, state.opt_state, state.params)
-        params = optax.apply_updates(state.params, updates)
-        return state.update(params=params, opt_state=opt_state)
+            state, updates = self.optimizer.update(state, state.center)
+            center = optax.apply_updates(state.center, updates)
+        return state.update(center=center)
