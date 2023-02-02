@@ -1,4 +1,4 @@
-# EvoX: A Distributed GPU-accelerated Library for Evolutionary Computation
+# EvoX: A Distributed GPU-accelerated Library towards Scalable Evolutionary Computation
 
 <h4 align="left">
   [<a href="https://evox.readthedocs.io/">Docs</a>]
