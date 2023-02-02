@@ -11,6 +11,7 @@
 - GPU computing.
 - Easy to use distributed pipeline.
 - Support a wide range of problems.
+- Hierarchical state managing.
 
 ### Index
 
