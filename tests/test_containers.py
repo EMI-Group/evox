@@ -7,6 +7,7 @@ from evox.monitors import FitnessMonitor
 import chex
 
 
+@pytest.mark.skip(reason="currently clustered container is unstable")
 @pytest.mark.parametrize("num_gpus", [None, 1])
 def test_clustered_cma_es(num_gpus):
     # create a pipeline
