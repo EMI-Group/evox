@@ -12,6 +12,7 @@ __pycache__
 /container
 /benchmarks
 /build
+/src/evox.egg-info
 
 logs/
 evox/algorithms/so/cso_*.py
