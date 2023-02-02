@@ -1,7 +1,7 @@
 import itertools
 import types
 from functools import partial, wraps
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 import jax
 import jax.numpy as jnp
@@ -22,7 +22,7 @@ def use_state(func):
         The method to be wrapped with
     """
 
-    err_msg = "Expect first return value must be State, got {}"
+    err_msg = "Expect last return value must be State, got {}"
 
     @wraps(func)
     def wrapper(self, state, *args, **kargs):
@@ -37,11 +37,11 @@ def use_state(func):
                 return state.update(return_value)
 
             # unpack the return value first
-            assert isinstance(return_value[0], State), err_msg.format(
-                type(return_value[0])
+            assert isinstance(return_value[-1], State), err_msg.format(
+                type(return_value[-1])
             )
-            state = state.update(return_value[0])
-            return (state, *return_value[1:])
+            state = state.update(return_value[-1])
+            return (*return_value[:-1], state)
         else:
             return_value = func(self, state.get_child_state(self.name), *args, **kargs)
 
@@ -53,11 +53,11 @@ def use_state(func):
                 return state.update_child(self.name, return_value)
 
             # unpack the return value first
-            assert isinstance(return_value[0], State), err_msg.format(
-                type(return_value[0])
+            assert isinstance(return_value[-1], State), err_msg.format(
+                type(return_value[-1])
             )
-            state = state.update_child(self.name, return_value[0])
-            return (state, *return_value[1:])
+            state = state.update_child(self.name, return_value[-1])
+            return (*return_value[:-1], state)
 
     return wrapper
 
@@ -172,7 +172,7 @@ class Stateful(metaclass=MetaStatefulModule):
     and recursively call ``setup`` methods of all submodules.
     """
 
-    def setup(self, key: jnp.ndarray = None) -> State:
+    def setup(self, key: Optional[jnp.ndarray] = None) -> State:
         """Setup mutable state here
 
         The state it self is immutable, but it act as a mutable state
@@ -190,7 +190,7 @@ class Stateful(metaclass=MetaStatefulModule):
         """
         return State()
 
-    def init(self, key: jnp.ndarray = None, name: str = "_top_level") -> State:
+    def init(self, key: Optional[jnp.ndarray] = None, name: str = "_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.

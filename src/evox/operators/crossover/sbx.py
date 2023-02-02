@@ -49,4 +49,4 @@ class SimulatedBinaryCrossover(ex.Operator):
         if self.type == 2:
             offspring_dec = (parent1_dec + parent2_dec) / 2 + \
                 beta * (parent1_dec - parent2_dec) / 2
-        return ex.State(key=key), offspring_dec
+        return offspring_dec, ex.State(key=key)

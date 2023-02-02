@@ -12,7 +12,7 @@ class Leaf(Stateful):
 
     def run(self, state):
         c = state.c
-        return state.update(c=c*2), [2, 7, 1]
+        return [2, 7, 1], state.update(c=c*2)
 
     def check(self, state):
         assert state.c == 84
@@ -28,8 +28,8 @@ class Middle(Stateful):
         return State(d=[3, 1, 4, 1, 5, 9, 2, 6])
 
     def run(self, state):
-        state, e = self.leaf.run(state)
-        return state.update(d=3.1415926), e + [8, 2, 8]
+        e, state = self.leaf.run(state)
+        return e + [8, 2, 8], state.update(d=3.1415926)
 
     def check(self, state):
         assert state.d == 3.1415926
@@ -50,9 +50,9 @@ class Root(Stateful):
     def run(self, state):
         attr_a = state["attr_a"] + 2
         attr_b = state["attr_b"] - 3
-        state, e1 = self.leaf.run(state)
-        state, e2 = self.middle.run(state)
-        return state | {"attr_a": attr_a, "attr_b": attr_b}, e1 + e2
+        e1, state = self.leaf.run(state)
+        e2, state = self.middle.run(state)
+        return e1 + e2, state | {"attr_a": attr_a, "attr_b": attr_b}
 
     def check(self, state):
         assert state.attr_a == 125
@@ -74,7 +74,7 @@ def test_basic():
     assert root_state.get_child_state('middle') == middle_state
     assert middle_state.get_child_state('leaf') == leaf_state
 
-    root_state, magic = root_module.run(root_state)
+    magic, root_state = root_module.run(root_state)
     assert magic == [2, 7, 1, 2, 7, 1, 8, 2, 8]
     root_state = root_module.check(root_state)
 

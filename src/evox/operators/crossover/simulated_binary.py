@@ -55,4 +55,4 @@ class SBXCrossover(ex.Operator):
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_sbx_crossover)(
             crossover_keys, paired, self.distribution_factor)
-        return ex.State(key=key), _unpair(children)
+        return _unpair(children), ex.State(key=key)

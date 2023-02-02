@@ -18,7 +18,7 @@ class Normalizer(Stateful):
         newSum = state.sum + x
         newSumOfSquares = state.sumOfSquares + x ** 2
         state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
-        
+
         state, mean = self.mean(state)
         state, std = self.std(state)
         return state, (x - mean) / std

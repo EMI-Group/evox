@@ -1,6 +1,4 @@
-import types
-
-import chex
+from typing import Tuple
 
 from .module import *
 from .state import State
@@ -9,7 +7,7 @@ from .state import State
 class Problem(Stateful):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: State, pop: jnp.ndarray) -> jnp.ndarray:
+    def evaluate(self, state: State, pop: jnp.ndarray) -> Tuple[jnp.ndarray, State]:
         """Evaluate the fitness at given points
 
         Parameters
@@ -26,4 +24,4 @@ class Problem(Stateful):
         ndarray
             The fitness.
         """
-        pass
+        return jnp.empty(0)

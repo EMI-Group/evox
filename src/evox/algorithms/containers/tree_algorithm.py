@@ -38,7 +38,7 @@ class TreeAlgorithm(ex.Algorithm):
             state, param = self._base_algorithm.ask(inner_self, state)
             params.append(param)
         params = tree_unflatten(self.treedef, params)
-        return state, self.flatten_param.unflatten(params)
+        return self.flatten_param.unflatten(params), state
 
     def tell(self, state, fitness):
         for inner_self in self.inner:

@@ -12,7 +12,7 @@ from evox.utils import cal_fitness
 class IBEA(ex.Algorithm):
     """IBEA algorithm
 
-    link: 
+    link:
     """
 
     def __init__(
@@ -47,42 +47,40 @@ class IBEA(ex.Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True)
+            is_init=True,
+        )
 
     @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-    
+
     def tell(self, state, fitness):
-        return jax.lax.cond(state.is_init,
-                            self._tell_init,
-                            self._tell_normal,
-                            state, fitness
-                            )
+        return jax.lax.cond(
+            state.is_init, self._tell_init, self._tell_normal, state, fitness
+        )
 
     def _ask_init(self, state):
-        return state, state.population
+        return state.population, state
 
     def _ask_normal(self, state):
         population = state.population
         pop_obj = state.fitness
         fitness = cal_fitness(pop_obj, self.kappa)[0]
 
-        state, selected = self.selection(state, population, fitness)
-        state, crossovered = self.crossover(state, selected)
-        state, mutated = self.mutation(state, crossovered, (self.lb, self.ub))
+        selected, state = self.selection(state, population, fitness)
+        crossovered, state = self.crossover(state, selected)
+        mutated, state = self.mutation(state, crossovered, (self.lb, self.ub))
 
         next_generation = jnp.clip(mutated, self.lb, self.ub)
-        return state.update(next_generation=next_generation), next_generation
+        return next_generation, state.update(next_generation=next_generation)
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)
         return state
 
-    #@profile
+    # @profile
     def _tell_normal(self, state, fitness):
-        merged_pop = jnp.concatenate(
-            [state.population, state.next_generation], axis=0)
+        merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 
         n = jnp.shape(merged_pop)[0]
@@ -90,7 +88,7 @@ class IBEA(ex.Algorithm):
 
         next_ind = jnp.arange(n)
         vals = (next_ind, merged_fitness)
-        
+
         def body_fun(i, vals):
             next_ind, merged_fitness = vals
             x = jnp.argmin(merged_fitness)
@@ -98,11 +96,11 @@ class IBEA(ex.Algorithm):
             merged_fitness = merged_fitness.at[x].set(jnp.max(merged_fitness))
             next_ind = next_ind.at[x].set(-1)
             return (next_ind, merged_fitness)
-        
+
         next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
 
         ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
-        ind_n = ind[0:self.pop_size]
+        ind_n = ind[0 : self.pop_size]
 
         survivor = merged_pop[ind_n]
         survivor_fitness = merged_obj[ind_n]

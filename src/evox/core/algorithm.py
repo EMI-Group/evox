@@ -10,22 +10,24 @@ class Algorithm(Stateful):
 
     """
 
-    def ask(self, state: State) -> Tuple[State, jnp.ndarray]:
+    def ask(self, state: State) -> Tuple[jnp.ndarray, State]:
         """Ask the algorithm
 
         Ask the algorithm for points to explore
 
         Parameters
         ----------
-        state : dict
+        state
             The state of this algorithm.
 
         Returns
         -------
-        dict : dict
+        population
+            The candidate solution.
+        state
             The new state of the algorithm.
         """
-        pass
+        return jnp.zeros(0), State()
 
     def tell(self, state: State, fitness: jnp.ndarray) -> State:
         """Tell the algorithm more information
@@ -34,14 +36,14 @@ class Algorithm(Stateful):
 
         Parameters
         ----------
-        state : dict
+        state
             The state of this algorithm
-        fitness : ndarray
+        fitness
             The fitness
 
         Returns
         -------
-        dict
+        state
             The new state of the algorithm
         """
-        pass
+        return State()

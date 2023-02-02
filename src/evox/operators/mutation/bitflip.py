@@ -27,4 +27,4 @@ class BitFlipMutation(ex.Operator):
         mutation_keys = jax.random.split(subkey, batch)
         ps = jnp.ones(shape=(batch,)) * self.p
         new_x = jax.vmap(_flip)(mutation_keys, x, ps)
-        return ex.State(key=key), new_x
+        return new_x, ex.State(key=key)

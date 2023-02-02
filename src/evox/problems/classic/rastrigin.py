@@ -11,4 +11,4 @@ def _rastrigin_func(x):
 @ex.jit_class
 class Rastrigin(ex.Problem):
     def evaluate(self, state, X):
-        return state, jax.vmap(_rastrigin_func)(X)
+        return jax.vmap(_rastrigin_func)(X), state

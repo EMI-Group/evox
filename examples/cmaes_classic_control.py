@@ -69,7 +69,7 @@ for i in range(100):
     print(monitor.get_min_fitness())
     state = pipeline.step(state)
 
-state, sample_pop = pipeline.sample(state)
+sample_pop, state = pipeline.sample(state)
 # problem._render(state.get_child_state("problem"), adapter.to_tree(sample_pop[0]))
 
 min_fitness = monitor.get_min_fitness()

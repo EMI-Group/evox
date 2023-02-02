@@ -16,4 +16,4 @@ class UniformRandomSelection(ex.Operator):
         key, subkey = jax.random.split(state.key)
         num = int(x.shape[0] * self.p)
         chosen = jax.random.choice(subkey, x.shape[0], shape=(num,))
-        return ex.State(key=key), x[chosen, :]
+        return x[chosen, :], ex.State(key=key)

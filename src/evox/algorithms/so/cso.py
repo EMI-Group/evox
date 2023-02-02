@@ -58,13 +58,13 @@ class CSO(ex.Algorithm):
         new_velocity = state.velocity.at[students].set(student_velocity)
 
         return (
+            candidates,
             state.update(
                 population=new_population,
                 velocity=new_velocity,
                 students=students,
                 key=key,
             ),
-            candidates,
         )
 
     def tell(self, state, fitness):

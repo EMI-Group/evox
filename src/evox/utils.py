@@ -115,7 +115,7 @@ class OptaxWrapper(Stateful):
 
     def update(self, state, grads, params=None):
         updates, opt_state = self.optimizer.update(grads, state.opt_state, params)
-        return state.update(opt_state=opt_state), updates
+        return updates, state.update(opt_state=opt_state)
 
 
 @jit_class

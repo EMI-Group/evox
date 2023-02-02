@@ -12,4 +12,4 @@ class Sphere(ex.Problem):
 
     def evaluate(self, state, X):
         F = jnp.sum(X**2, axis=-1)
-        return state, F
+        return F, state

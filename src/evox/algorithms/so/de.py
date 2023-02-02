@@ -74,7 +74,7 @@ class DE(ex.Algorithm):
             )
         )(ask_one_keys, indices, R)
 
-        return state.update(trial_vectors=trial_vectors, key=key), trial_vectors
+        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
     def _ask_one(self, key, index, R, population, best_index):
         # index is the index of the "agent"

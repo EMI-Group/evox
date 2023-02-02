@@ -48,4 +48,4 @@ class PmMutation(ex.Operator):
         if jnp.shape(x)[0] % 2 != 0:
             pop_dec = jnp.r_[pop_dec, x[-1:, :]]
 
-        return ex.State(key=key), pop_dec
+        return pop_dec, ex.State(key=key)

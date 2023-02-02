@@ -13,4 +13,4 @@ def _griewank_func(x):
 class Griewank(ex.Problem):
 
     def evaluate(self, state, X):
-        return state, jax.vmap(_griewank_func)(X)
+        return jax.vmap(_griewank_func)(X), state

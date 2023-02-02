@@ -21,11 +21,11 @@ class ZDT(ex.Problem):
     def evaluate(self, state: chex.PyTreeDef, X: jnp.ndarray):
         chex.assert_type(X, float)
         chex.assert_shape(X, (None, self.n))
-        return state, jax.jit(jax.vmap(self._zdt))(X)
+        return jax.jit(jax.vmap(self._zdt))(X), state
 
     def pf(self, state: chex.PyTreeDef):
         x = jnp.linspace(0, 1, self.ref_num)
-        return state, jnp.c_[x, 1 - jnp.sqrt(x)]
+        return jnp.c_[x, 1 - jnp.sqrt(x)], state
 
 
 class ZDT1(ZDT):
@@ -48,7 +48,7 @@ class ZDT2(ZDT):
 
     def pf(self, state: chex.PyTreeDef):
         x = jnp.linspace(0, 1, self.ref_num)
-        return state, jnp.c_[x, 1 - x**2]
+        return jnp.c_[x, 1 - x**2], state
 
 
 

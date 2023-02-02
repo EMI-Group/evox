@@ -12,7 +12,6 @@ def _rosenbrock_func(x):
 
 @ex.jit_class
 class Rosenbrock(ex.Problem):
-        
     def evaluate(self, state, X):
-        return state, jax.vmap(_rosenbrock_func)(X)
+        return jax.vmap(_rosenbrock_func)(X), state
 

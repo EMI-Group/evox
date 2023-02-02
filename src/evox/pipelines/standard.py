@@ -17,11 +17,11 @@ class StdPipeline(Stateful):
         self.fitness_transform = fitness_transform
 
     def step(self, state):
-        state, pop = self.algorithm.ask(state)
+        pop, state = self.algorithm.ask(state)
         if self.pop_transform is not None:
             pop = self.pop_transform(pop)
 
-        state, fitness = self.problem.evaluate(state, pop)
+        fitness, state = self.problem.evaluate(state, pop)
 
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
@@ -32,15 +32,15 @@ class StdPipeline(Stateful):
 
     def valid(self, state, metric="loss"):
         new_state = self.problem.valid(state, metric=metric)
-        new_state, pop = self.algorithm.ask(new_state)
+        pop, new_state = self.algorithm.ask(new_state)
         if self.pop_transform is not None:
             pop = self.pop_transform(pop)
 
         new_state, fitness = self.problem.evaluate(new_state, pop)
-        return state, fitness
+        return fitness, state
 
     def sample(self, state):
         """Sample the algorithm but don't change it's state
         """
-        state_, sample_pop = self.algorithm.ask(state)
-        return state, sample_pop
+        sample_pop, state_ = self.algorithm.ask(state)
+        return sample_pop, state

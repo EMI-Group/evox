@@ -46,7 +46,7 @@ class PSO(ex.Algorithm):
         )
 
     def ask(self, state):
-        return state, state.population
+        return state.population, state
 
     def tell(self, state, fitness):
         key, rg_key, rp_key = jax.random.split(state.key, 3)

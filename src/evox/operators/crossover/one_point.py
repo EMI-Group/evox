@@ -12,7 +12,7 @@ def _random_pairing(key, x):
 def _unpair(x):
     batch, _, dim = x.shape
     return x.reshape(batch * 2, dim)
-    
+
 
 def _one_point_crossover(key, parents):
     _, dim = parents.shape
@@ -38,4 +38,4 @@ class OnePointCrossover(ex.Operator):
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_one_point_crossover)(crossover_keys, paired)
-        return ex.State(key=key), _unpair(children)
+        return _unpair(children), ex.State(key=key)

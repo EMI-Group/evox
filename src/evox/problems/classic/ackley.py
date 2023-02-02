@@ -22,4 +22,4 @@ class Ackley(ex.Problem):
         self.c = c
 
     def evaluate(self, state, X):
-        return state, jax.vmap(partial(_ackley_func, self.a, self.b, self.c))(X)
+        return jax.vmap(partial(_ackley_func, self.a, self.b, self.c))(X), state

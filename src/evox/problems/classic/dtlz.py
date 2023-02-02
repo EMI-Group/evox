@@ -14,19 +14,19 @@ class DTLZ(ex.Problem):
         self.m = m
         self._dtlz = None
         self.ref_num = ref_num
-        
+
     def setup(self, key):
         return ex.State(key=key)
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
         chex.assert_shape(X, (None, self.n))
-        return state, jax.jit(jax.vmap(self._dtlz))(X)
+        return jax.jit(jax.vmap(self._dtlz))(X), state
 
     def pf(self, state: chex.PyTreeDef):
         f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
         # f = LatinHypercubeSampling(self.ref_num * self.m, self.m).random(state.key)[0] / 2
-        return state, f
+        return f, state
 
 
 class DTLZ1(DTLZ):
@@ -52,7 +52,7 @@ class DTLZ1(DTLZ):
         f = 0.5 * jnp.tile(1 + g, (1, m)) * jnp.fliplr(jnp.cumprod(
             jnp.c_[jnp.ones((n, 1)), X[:, :m - 1]], axis=1)) * \
             jnp.c_[jnp.ones((n, 1)), 1 - X[:, m - 2::-1]]
-        return state, f
+        return f, state
 
 
 class DTLZ2(DTLZ):
@@ -74,13 +74,13 @@ class DTLZ2(DTLZ):
                                                                     jnp.cos(X[:, :m - 1] * jnp.pi / 2)], axis=1)) * jnp.c_[jnp.ones((jnp.shape(g)[0], 1)), jnp.sin(
                                                                         X[:, m - 2::-1] * jnp.pi / 2)]
 
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         f = UniformSampling(self.ref_num * self.m, self.m).random()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1,
                       keepdims=True)), (1, self.m))
-        return state, f
+        return f, state
 
 
 class DTLZ3(DTLZ2):
@@ -99,7 +99,7 @@ class DTLZ3(DTLZ2):
                                                              axis=1)) * \
             jnp.c_[jnp.ones((n, 1)), jnp.sin(X[:, m - 2::-1] * jnp.pi / 2)]
 
-        return state, f
+        return f, state
 
 
 class DTLZ4(DTLZ2):
@@ -116,7 +116,7 @@ class DTLZ4(DTLZ2):
             jnp.c_[jnp.ones((jnp.shape(g)[0], 1)), jnp.sin(
                 X[:, m - 2::-1] * jnp.pi / 2)]
 
-        return state, f
+        return f, state
 
 
 class DTLZ5(DTLZ):
@@ -143,7 +143,7 @@ class DTLZ5(DTLZ):
                                                              axis=1)) * \
             jnp.c_[jnp.ones((jnp.shape(g)[0], 1)), jnp.sin(
                 X[:, m - 2::-1] * jnp.pi / 2)]
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
@@ -157,7 +157,7 @@ class DTLZ5(DTLZ):
 
         f = f / jnp.sqrt(2) * jnp.tile(jnp.hstack((self.m - 2,
                                                    jnp.arange(self.m - 2, -1, -1))), (jnp.shape(f)[0], 1))
-        return state, f
+        return f, state
 
 
 class DTLZ6(DTLZ):
@@ -184,7 +184,7 @@ class DTLZ6(DTLZ):
                                                              axis=1)) * \
             jnp.c_[jnp.ones((jnp.shape(g)[0], 1)), jnp.sin(
                 X[:, m - 2::-1] * jnp.pi / 2)]
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
@@ -198,7 +198,7 @@ class DTLZ6(DTLZ):
 
         f = f / jnp.sqrt(2) * jnp.tile(jnp.hstack((self.m - 2,
                                                    jnp.arange(self.m - 2, -1, -1))), (jnp.shape(f)[0], 1))
-        return state, f
+        return f, state
 
 
 class DTLZ7(DTLZ):
@@ -221,7 +221,7 @@ class DTLZ7(DTLZ):
         f = f.at[:, m-1].set((1 + g) * (m - jnp.sum(X[:, :m-1] / (1 + jnp.tile(g, (1, m-1)))
                                                     * (1 + jnp.sin(3 * jnp.pi * X[:, :m-1])), axis=1, keepdims=True)))
 
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         intervel = jnp.array([0, 0.251412, 0.631627, 0.859401])
@@ -252,7 +252,7 @@ class DTLZ8(DTLZ):
             f = f.at[:, i].set(
                 jnp.mean(X[:, int(i*d/m):int((i+1)*d/m)], axis=1, keepdims=True))
 
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         return super().pf(state)
@@ -280,7 +280,7 @@ class DTLZ9(DTLZ):
         for i in range(m):
             f = f.at[:, i].set(jnp.sum(X[:, int(i*d/m):int((i+1)*d/m)],
                                        axis=1, keepdims=True))
-        return state, f
+        return f, state
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
@@ -288,4 +288,4 @@ class DTLZ9(DTLZ):
             (jnp.hstack(((jnp.arange(0, 1, 1. / (n - 1))), 1.)))).T
         f = jnp.c_[jnp.tile(jnp.cos(0.5*jnp.pi*temp),
                             (1, self.m-1)), jnp.sin(0.5*jnp.pi*temp)]
-        return state, f
+        return f, state

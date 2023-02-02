@@ -24,8 +24,8 @@ def test_rvea():
         fitness_transform=monitor.update
     )
     state = pipeline.init(key)
-    state, pf = problem.pf(state=state)
-    
+    pf, state = problem.pf(state=state)
+
 
     for i in range(100):
         state = pipeline.step(state)

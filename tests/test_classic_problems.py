@@ -11,7 +11,7 @@ def test_ackley():
     keys = jax.random.split(key, 16)
     state = ackley.init(keys)
     X = jnp.zeros((16, 2))
-    state, F = ackley.evaluate(state, X)
+    F, state = ackley.evaluate(state, X)
     chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
@@ -21,7 +21,7 @@ def test_griewank():
     keys = jax.random.split(key, 2)
     state = griewank.init(keys)
     X = jnp.zeros((16, 2))
-    state, F = griewank.evaluate(state, X)
+    F, state = griewank.evaluate(state, X)
     chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
@@ -31,7 +31,7 @@ def test_rastrigin():
     keys = jax.random.split(key, 16)
     state = rastrigin.init(keys)
     X = jnp.zeros((16, 2))
-    state, F = rastrigin.evaluate(state, X)
+    F, state = rastrigin.evaluate(state, X)
     chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
@@ -41,7 +41,7 @@ def test_rosenbrock():
     keys = jax.random.split(key, 16)
     state = rosenbrock.init(keys)
     X = jnp.ones((16, 2))
-    state, F = rosenbrock.evaluate(state, X)
+    F, state = rosenbrock.evaluate(state, X)
     chex.assert_tree_all_close(F, jnp.zeros((16, )), atol=1e-6)
 
 
@@ -51,8 +51,8 @@ def test_dtlz1():
     keys = jax.random.split(key, 16)
     state = dtlz1.init(keys)
     X = jnp.ones((16, 7))*0.5
-    state, F = dtlz1.evaluate(state, X)
-    state, pf = dtlz1.pf(state)
+    F, state = dtlz1.evaluate(state, X)
+    pf, state = dtlz1.pf(state)
     print(pf.shape)
     chex.assert_tree_all_close(
         jnp.sum(F, axis=1), 0.5*jnp.ones((16, )), atol=1e-6)

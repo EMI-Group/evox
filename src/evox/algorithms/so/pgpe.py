@@ -46,7 +46,7 @@ class ClipUp(evox.Stateful):
             lambda v: v,  # identity function
             velocity,
         )
-        return state.update(velocity=velocity), -velocity
+        return -velocity, state.update(velocity=velocity)
 
 
 @evox.jit_class
@@ -92,10 +92,10 @@ class PGPE(evox.Algorithm):
     def ask(self, state):
         key, subkey = jax.random.split(state.key)
         noise = (
-            jax.random.normal(state.key, (self.pop_size // 2, self.dim)) * state.stdev
+            jax.random.normal(subkey, (self.pop_size // 2, self.dim)) * state.stdev
         )
         D = jnp.concatenate([state.center + noise, state.center - noise], axis=0)
-        return state.update(key=subkey, noise=noise), D
+        return D, state.update(key=key, noise=noise)
 
     def tell(self, state, fitness):
         F_pos = fitness[: self.pop_size // 2]
@@ -108,7 +108,7 @@ class PGPE(evox.Algorithm):
             * ((state.noise**2 - state.stdev**2) / state.stdev),
             axis=0,
         )
-        state, updates = self.optimizer.update(state, delta_x, state.center)
+        updates, state = self.optimizer.update(state, delta_x, state.center)
         center = optax.apply_updates(state.center, updates)
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)

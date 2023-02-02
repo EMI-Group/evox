@@ -36,4 +36,4 @@ class UniformCrossover(ex.Operator):
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_uniform_crossover)(crossover_keys, paired)
-        return ex.State(key=key), _unpair(children)
+        return _unpair(children), ex.State(key=key)

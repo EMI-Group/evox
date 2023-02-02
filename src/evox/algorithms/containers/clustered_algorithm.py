@@ -58,7 +58,7 @@ class ClusterdAlgorithm(Algorithm):
             state, sub_pops = pmap(vmap(self.base_algorithm.ask))(state)
             # concatenate different parts as a whole
             full_pop = sub_pops.transpose((2, 0, 1, 3)).reshape((-1, self.dim))
-        return state, full_pop
+        return full_pop, state
 
     def tell(self, state: State, fitness: jnp.ndarray):
         if self.num_gpus is None:
@@ -148,7 +148,7 @@ class RandomMaskAlgorithm(Algorithm):
         state = state.update_child(self.submodule_name, child_state)
         # concatenate different parts as a whole
         pop = jnp.concatenate(xs, axis=1)
-        return state.update(sub_pops=xs), pop
+        return pop, state.update(sub_pops=xs)
 
     def _ask_normal(self, state: State):
         old_state = state.get_child_state(self.submodule_name)
@@ -159,7 +159,7 @@ class RandomMaskAlgorithm(Algorithm):
             self.submodule_name,
             _unmask_state(old_state, new_child_state, state.permutation),
         )
-        return state, full_pop
+        return full_pop, state
 
     def tell(self, state: State, fitness: jnp.ndarray):
         old_state = state.get_child_state(self.submodule_name)

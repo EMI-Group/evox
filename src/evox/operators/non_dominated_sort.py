@@ -26,7 +26,7 @@ def non_dominated_sort(x, method="auto"):
             method = "scan"
         else:
             method = "full map-reduce"
-    
+
     chex.assert_rank(x, 2)
     dominate_relation_matrix = _dominate_relation(x, x)
     rank = jnp.zeros((x.shape[0],), dtype=jnp.int32)
@@ -38,7 +38,7 @@ def non_dominated_sort(x, method="auto"):
     def _cond_fun(loop_state):
         _rank, _dominate_count, _current_rank, pareto_front = loop_state
         return jnp.any(pareto_front)
- 
+
     def _body_fun(loop_state):
         rank, dominate_count, current_rank, pareto_front = loop_state
         rank = jnp.where(pareto_front, current_rank, rank)  # update rank

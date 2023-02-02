@@ -80,7 +80,7 @@ class xNES(ex.Algorithm):
         key, normal_key = jax.random.split(state.key)
         noise = jax.random.normal(normal_key, shape=(self.pop_size, self.dim))
         population = state.mean + state.sigma * (noise @ state.B.T)
-        return state.update(noise=noise, key=key), population
+        return population, state.update(noise=noise, key=key)
 
     def tell(self, state, fitness):
         fitness, noise = sort_by_key(fitness, state.noise)
@@ -169,7 +169,7 @@ class SeparableNES(ex.Algorithm):
         )
 
     def ask(self, state):
-        return state, state.population
+        return state.population, state
 
     def tell(self, state, fitness):
         mean = state.mean

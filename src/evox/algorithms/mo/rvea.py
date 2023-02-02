@@ -6,8 +6,8 @@ from evox.operators.selection import ReferenceVectorGuidedSelection
 from evox.operators.mutation import PmMutation
 from evox.operators.crossover import SimulatedBinaryCrossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-    
-    
+
+
 @ex.jit_class
 class RVEA(ex.Algorithm):
     """RVEA algorithms
@@ -59,33 +59,39 @@ class RVEA(ex.Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
-            is_init=True, key=key, gen=0, mask=mask)
+            is_init=True,
+            key=key,
+            gen=0,
+            mask=mask,
+        )
 
     @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
     def tell(self, state, fitness):
-        return jax.lax.cond(state.is_init,
-                            self._tell_init,
-                            self._tell_normal,
-                            state, fitness
-                            )
+        return jax.lax.cond(
+            state.is_init, self._tell_init, self._tell_normal, state, fitness
+        )
 
     def _ask_init(self, state):
-        return state, state.population
+        return state.population, state
 
     def _ask_normal(self, state):
         mask = state.mask
         key = state.key
         key, subkey = jax.random.split(key)
-        r = jax.random.uniform(subkey, shape=(self.pop_size, self.dim))* (self.ub - self.lb) + self.lb
-        
-        state, crossovered = self.crossover(state, state.population)
-        state, next_generation = self.mutation(state, crossovered, (self.lb, self.ub))
+        r = (
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
+        )
+
+        crossovered, state = self.crossover(state, state.population)
+        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
         next_generation = jnp.where(mask, r, next_generation)
 
-        return state.update(next_generation=next_generation, key=key), next_generation
+        return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)
@@ -97,25 +103,42 @@ class RVEA(ex.Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        state, rank = self.selection(state, merged_fitness, v, (current_gen/self.max_gen)**self.alpha)
+        rank, state = self.selection(
+            state, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
+        )
 
         mask = (rank == -1)[:, jnp.newaxis]
 
         survivor = merged_pop[rank]
         survivor_fitness = merged_fitness[rank]
-        
+
         def rv_adaptation(pop_obj, v):
             v_temp = v * jnp.tile((pop_obj.max(0) - pop_obj.min(0)), (len(v), 1))
             next_v = v.astype(float)
 
-            next_v = v_temp / jnp.tile(jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1), (1, jnp.shape(v)[1]))
-                
+            next_v = v_temp / jnp.tile(
+                jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1),
+                (1, jnp.shape(v)[1]),
+            )
+
             return next_v
-        
+
         def no_update(pop_obj, v):
             return v
-        
-        v= jax.lax.cond(current_gen % (1 / self.fr) == 0, rv_adaptation, no_update, survivor_fitness, v)
 
-        state = state.update(population=survivor, fitness=survivor_fitness, reference_vector=v, gen=current_gen, mask=mask)
+        v = jax.lax.cond(
+            current_gen % (1 / self.fr) == 0,
+            rv_adaptation,
+            no_update,
+            survivor_fitness,
+            v,
+        )
+
+        state = state.update(
+            population=survivor,
+            fitness=survivor_fitness,
+            reference_vector=v,
+            gen=current_gen,
+            mask=mask,
+        )
         return state

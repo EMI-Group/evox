@@ -108,7 +108,7 @@ class CMAES(Algorithm):
         new_state = state.update(
             population=population, count_iter=state.count_iter + 1, key=key
         )
-        return new_state, population
+        return population, new_state
 
     def tell(self, state, fitness):
         fitness, population = sort_by_key(fitness, state.population)
@@ -195,7 +195,7 @@ class SepCMAES(CMAES):
         new_state = state.update(
             population=population, count_iter=state.count_iter + 1, key=key
         )
-        return new_state, population
+        return population, new_state
 
     def tell(self, state, fitness):
         fitness, population = sort_by_key(fitness, state.population)

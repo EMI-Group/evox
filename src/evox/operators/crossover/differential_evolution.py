@@ -48,4 +48,4 @@ class DECrossover(ex.Operator):
         scaled = _random_scaling(scaling_key, x)
         mutated_individual = jax.vmap(_de_mutation)(scaled, self.F)
         children = _de_crossover(crossover_key, mutated_individual, x, self.cr)
-        return ex.State(key=key), children
+        return children, ex.State(key=key)

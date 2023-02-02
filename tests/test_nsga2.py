@@ -25,7 +25,7 @@ def test_nsga2():
         fitness_transform=monitor.update
     )
     state = pipeline.init(key)
-    state, pf = problem.pf(state=state)
+    pf, state = problem.pf(state=state)
 
     for i in range(100):
         state = pipeline.step(state)
@@ -36,4 +36,4 @@ def test_nsga2():
         print("step", i)
         # print(t1-t0)
         print("igd", igd)
-        
+

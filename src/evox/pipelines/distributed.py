@@ -29,7 +29,7 @@ class WorkerPipeline(Stateful):
         self.fitness_transform = fitness_transform
 
     def step1(self, state):
-        state, pop = self.algorithm.ask(state)
+        pop, state = self.algorithm.ask(state)
         assert (
             self.pop_size == pop.shape[0]
         ), f"Specified pop_size doesn't match the actual pop_size, {self.pop_size} != {pop.shape[0]}"
@@ -38,9 +38,9 @@ class WorkerPipeline(Stateful):
         if self.pop_transform is not None:
             partial_pop = self.pop_transform(partial_pop)
 
-        state, partial_fitness = self.problem.evaluate(state, partial_pop)
+        partial_fitness, state = self.problem.evaluate(state, partial_pop)
 
-        return state, partial_fitness
+        return partial_fitness, state
 
     def step2(self, state, fitness):
         if self.fitness_transform is not None:
@@ -51,14 +51,14 @@ class WorkerPipeline(Stateful):
 
     def valid(self, state, metric):
         new_state = self.problem.valid(state, metric=metric)
-        new_state, pop = self.algorithm.ask(new_state)
+        pop, new_state = self.algorithm.ask(new_state)
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
 
         if self.pop_transform is not None:
             partial_pop = self.pop_transform(partial_pop)
 
-        new_state, partial_fitness = self.problem.evaluate(new_state, partial_pop)
-        return state, partial_fitness
+        partial_fitness, new_state = self.problem.evaluate(new_state, partial_pop)
+        return partial_fitness, state
 
     def sample(self, state):
         return self.algorithm.ask(state)
@@ -75,7 +75,7 @@ class Worker:
         self.initialized = True
 
     def step1(self):
-        self.state, parital_fitness = self.pipeline.step1(self.state)
+        parital_fitness, self.state = self.pipeline.step1(self.state)
         return parital_fitness
 
     def step2(self, fitness):
@@ -84,14 +84,14 @@ class Worker:
         self.state = self.pipeline.step2(self.state, fitness)
 
     def valid(self, metric):
-        _state, fitness = self.pipeline.valid(self.state, metric)
+        fitness, _state = self.pipeline.valid(self.state, metric)
         return fitness
 
     def get_full_state(self):
         return self.state
 
     def sample(self):
-        _state, sample = self.pipeline.sample(self.state)
+        sample, _state = self.pipeline.sample(self.state)
         return sample
 
 
@@ -232,10 +232,10 @@ class DistributedPipeline(Stateful):
 
     def valid(self, state, metric="loss"):
         fitness = ray.get(ray.get(self.supervisor.valid.remote(metric)))
-        return state, jnp.concatenate(fitness, axis=0)
+        return jnp.concatenate(fitness, axis=0), state
 
     def sample(self, state):
-        return state, ray.get(self.supervisor.sample.remote())
+        return ray.get(self.supervisor.sample.remote()), state
 
     def health_check(self, state):
-        return state, ray.get(self.supervisor.assert_state_sync.remote())
+        return ray.get(self.supervisor.assert_state_sync.remote()), state

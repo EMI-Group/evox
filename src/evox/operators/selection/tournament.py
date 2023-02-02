@@ -42,4 +42,4 @@ class TournamentSelection(ex.Operator):
         candidates_fitness = fitness[chosen, ...]
         winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
         index = jnp.diagonal(chosen[:, winner_indices])
-        return ex.State(key=key), x[index]
+        return x[index], ex.State(key=key)
