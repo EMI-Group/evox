@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../../src'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'evox'
+project = 'EvoX'
 copyright = '2022, Bill Huang'
 author = 'Bill Huang'
 
