@@ -3,7 +3,7 @@ evox API
 ===========
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
     core/index
     algorithms/index
