@@ -28,8 +28,8 @@ class Normalizer(Stateful):
         newSum = state.sum + x
         newSumOfSquares = state.sumOfSquares + x**2
         state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
-        state, mean = self.mean(state)
-        state, std = self.std(state)
+        mean, state = self.mean(state)
+        std, state = self.std(state)
         return state, (x - mean) / std
 
     def mean(self, state):
@@ -48,8 +48,8 @@ class Normalizer(Stateful):
         newSumOFsquares = state.sumOfSquares + jnp.sum(obvs**2, axis=0)
         state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOFsquares)
 
-        state, mean = self.mean(state)
-        state, std = self.std(state)
+        mean, state = self.mean(state)
+        std, state = self.std(state)
         return state, (obvs - mean) / std
 
 
@@ -252,7 +252,7 @@ class CapEpisode(Stateful):
         )
 
     def get(self, state):
-        return state, state.cap
+        return state.cap, state
 
 
 class Gym(Problem):
@@ -330,7 +330,7 @@ class Gym(Problem):
 
         cap_episode_length = None
         if self.cap_episode:
-            state, cap_episode_length = self.cap_episode.get(state)
+            cap_episode_length, state = self.cap_episode.get(state)
             cap_episode_length = cap_episode_length.item()
 
         rewards, episode_length = ray.get(
@@ -350,7 +350,7 @@ class Gym(Problem):
         else:
             fitness = rewards
 
-        return state.update(key=key), fitness
+        return fitness, state.update(key=key)
 
     def _render(self, state, individual, ale_render_mode=None):
         key, subkey = jax.random.split(state.key)
