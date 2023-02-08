@@ -6,5 +6,5 @@ EvoX's guide!
     :maxdepth: 2
 
     install
-    start
-    advanced
+    basics/index
+    advanced/index
