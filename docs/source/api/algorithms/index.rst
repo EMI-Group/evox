@@ -5,6 +5,10 @@ Algorithms
 .. toctree::
     :maxdepth: 1
 
+    so.cma_es
     so.cso
-    so.naive_es
+    so.de
+    so.nes
+    so.open_es
+    so.pgpe
     so.pso
