@@ -3,7 +3,6 @@ from __future__ import annotations
 from pprint import pformat
 from typing import Any, Optional, Tuple, Union
 
-import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class
 
 

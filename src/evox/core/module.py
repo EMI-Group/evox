@@ -180,7 +180,7 @@ class Stateful(metaclass=MetaStatefulModule):
 
         Parameters
         ----------
-        key : PRNGKey
+        key
             A PRNGKey.
 
         Returns
@@ -197,9 +197,9 @@ class Stateful(metaclass=MetaStatefulModule):
 
         Parameters
         ----------
-        key : PRNGKey
+        key
             A PRNGKey.
-        name : string
+        name
             The name of this module.
 
         Returns

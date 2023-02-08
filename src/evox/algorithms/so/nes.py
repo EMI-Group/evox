@@ -1,7 +1,6 @@
 import math
 import jax
 import jax.numpy as jnp
-from jax import lax, scipy
 from .sort_utils import sort_by_key
 from jax.scipy.linalg import expm
 
