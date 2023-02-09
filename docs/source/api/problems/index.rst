@@ -3,8 +3,8 @@ Problems
 ========
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
-    classic.ackley
-    classic.sphere
-    classic.zdt
+    classic/index
+    neuroevolution/index
+    rl/index
