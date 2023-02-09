@@ -33,7 +33,9 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "sphinx.ext.napoleon",
-    "myst_parser"
+    "myst_parser",
+    "sphinx_copybutton",
+    "sphinx_design"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -69,6 +71,7 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ["evox.css"]
 
 autodoc_typehints_format = 'short'
 autodoc_typehints = "description"
