@@ -1,8 +1,7 @@
-===============
-Getting Started
-===============
+===========
+Quick Start
+===========
 
-=============================
 Algorithm, Problem & Pipeline
 =============================
 
@@ -13,7 +12,8 @@ To start with, import ``evox``
     import evox
     from evox import algorithms, problems, pipelines
 
-Then, create an ``algorithm`` and a ``problem``:
+Then, create an ``algorithm`` and a ``problem``.
+The list of available algorithms and problems can be found in :mod:`here <evox.algorithms>` and :mod:`here <evox.problems>`.
 
 .. code-block:: python
 

@@ -2,6 +2,8 @@
 Algorithms
 ==========
 
+.. automodule:: evox.algorithms
+
 .. toctree::
     :maxdepth: 2
 
