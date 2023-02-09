@@ -1,6 +1,6 @@
-===========
-evox API
-===========
+==========
+EvoX's API
+==========
 
 .. toctree::
     :maxdepth: 2
@@ -8,3 +8,4 @@ evox API
     core/index
     algorithms/index
     problems/index
+    pipelines/index
