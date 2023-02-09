@@ -3,12 +3,7 @@ Algorithms
 ==========
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
-    so.cma_es
-    so.cso
-    so.de
-    so.nes
-    so.open_es
-    so.pgpe
-    so.pso
+    so/index
+    mo/index
