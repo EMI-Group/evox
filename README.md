@@ -1,9 +1,17 @@
 # EvoX: A Distributed GPU-accelerated Library towards Scalable Evolutionary Computation
 
-<h4 align="left">
-  [<a href="https://evox.readthedocs.io/">Docs</a>]
-  [<a href="https://arxiv.org/abs/2301.12457">Paper</a>]
-</h4>
+<div align="center">
+  <a href="https://evox.readthedocs.io/">
+    <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=flat-square" href="https://evox.readthedocs.io/">
+  </a>
+  <a href="https://arxiv.org/abs/2301.12457">
+    <img src="https://img.shields.io/badge/paper-arxiv-red?style=flat-square">
+  </a>
+  <a href="https://github.com/EMI-Group/evox/actions/workflows/python-package.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=flat-square">
+  </a>
+</div>
+
 
 ## Features
 
@@ -16,6 +24,7 @@
 ### Index
 
 - [Getting started](#getting-started)
+- [More Tutorial](#more-tutorial)
 - [Example](#exmaple)
 
 ## Installation
@@ -24,7 +33,7 @@
 pip install evox
 ``
 
-## Getting started
+## Quick Start
 
 To start with, import `evox`
 
@@ -65,8 +74,11 @@ for i in range(100):
     state = pipeline.step(state)
 ```
 
-For more detailed usage, please refer to our [documentation](https://evox.readthedocs.io/).
+## More Tutorial
+
+Head to our [tutorial page](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 ## Exmaple
 
 The [example](https://github.com/EMI-Group/evox/tree/main/examples) folder has many examples on how to use EvoX.
+
