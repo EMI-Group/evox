@@ -153,7 +153,7 @@ class Controller:
                     w.reshape((self.num_workers, self.env_per_worker, *weight_dim))
                 )
 
-            if isinstance(pop, jnp.ndarray):
+            if isinstance(pop, jax.Array):
                 # first dim is batch
                 param_dim = pop.shape[1:]
                 pop = pop.reshape((self.num_workers, self.env_per_worker, *param_dim))

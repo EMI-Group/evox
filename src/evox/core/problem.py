@@ -1,5 +1,7 @@
 from typing import Tuple
 
+import jax
+
 from .module import *
 from .state import State
 
@@ -7,7 +9,7 @@ from .state import State
 class Problem(Stateful):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: State, pop: jnp.ndarray) -> Tuple[jnp.ndarray, State]:
+    def evaluate(self, state: State, pop: jax.Array) -> Tuple[jax.Array, State]:
         """Evaluate the fitness at given points
 
         Parameters

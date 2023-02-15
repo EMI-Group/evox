@@ -33,7 +33,7 @@ class ClusterdAlgorithm(Algorithm):
             assert num_cluster % num_gpus == 0, "num_gpus must divide num_cluster"
         self.num_gpus = num_gpus
 
-    def init(self, key: jnp.ndarray = None, name: str = "_top_level"):
+    def init(self, key: jax.Array = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
         if self.num_gpus is None:
@@ -60,7 +60,7 @@ class ClusterdAlgorithm(Algorithm):
             full_pop = sub_pops.transpose((2, 0, 1, 3)).reshape((-1, self.dim))
         return full_pop, state
 
-    def tell(self, state: State, fitness: jnp.ndarray):
+    def tell(self, state: State, fitness: jax.Array):
         if self.num_gpus is None:
             return vmap(self.base_algorithm.tell, in_axes=(0, None))(state, fitness)
         else:
@@ -69,14 +69,14 @@ class ClusterdAlgorithm(Algorithm):
             )(state, fitness)
 
 
-def _mask_state(state: State, permutation: jnp.ndarray):
+def _mask_state(state: State, permutation: jax.Array):
     return tree_map(
         lambda x: x[permutation, ...],
         state,
     )
 
 
-def _unmask_state(old_state: State, new_state: State, permutation: jnp.ndarray):
+def _unmask_state(old_state: State, new_state: State, permutation: jax.Array):
     assert isinstance(old_state, State)
     assert isinstance(new_state, State)
     return tree_map(
@@ -118,7 +118,7 @@ class RandomMaskAlgorithm(Algorithm):
         else:
             self.pop_size = pop_size
 
-    def init(self, key: jnp.ndarray = None, name: str = "_top_level"):
+    def init(self, key: jax.Array = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
         child_states = {
@@ -129,7 +129,7 @@ class RandomMaskAlgorithm(Algorithm):
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)
 
-    def setup(self, key: jnp.ndarray):
+    def setup(self, key: jax.Array):
         return State(
             key=key,
             sub_pops=jnp.zeros((self.num_cluster, self.pop_size, self.subproblem_dim)),
@@ -161,7 +161,7 @@ class RandomMaskAlgorithm(Algorithm):
         )
         return full_pop, state
 
-    def tell(self, state: State, fitness: jnp.ndarray):
+    def tell(self, state: State, fitness: jax.Array):
         old_state = state.get_child_state(self.submodule_name)
         masked_child_state = _mask_state(old_state, state.permutation)
         new_child_state = vmap(self.base_algorithm.tell, in_axes=(0, None))(

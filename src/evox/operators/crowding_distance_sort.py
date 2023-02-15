@@ -4,7 +4,7 @@ import chex
 
 
 @jax.jit
-def crowding_distance(costs: jnp.ndarray, mask: jnp.ndarray = None):
+def crowding_distance(costs: jax.Array, mask: jax.Array = None):
     """sort according to crowding distance
 
     The input x should have shape (n, d), and mask is None or
@@ -47,7 +47,7 @@ def crowding_distance(costs: jnp.ndarray, mask: jnp.ndarray = None):
 
 
 @jax.jit
-def crowding_distance_sort(x: jnp.ndarray, mask: jnp.ndarray = None):
+def crowding_distance_sort(x: jax.Array, mask: jax.Array = None):
     """sort according to crowding distance
 
     The input x should have rank 2 and should not contain any dominate relation.

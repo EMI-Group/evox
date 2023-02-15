@@ -1,6 +1,8 @@
 import types
 from typing import Tuple
 
+import jax
+
 from .module import *
 from .state import State
 
@@ -10,7 +12,7 @@ class Algorithm(Stateful):
 
     """
 
-    def ask(self, state: State) -> Tuple[jnp.ndarray, State]:
+    def ask(self, state: State) -> Tuple[jax.Array, State]:
         """Ask the algorithm
 
         Ask the algorithm for points to explore
@@ -29,7 +31,7 @@ class Algorithm(Stateful):
         """
         return jnp.zeros(0), State()
 
-    def tell(self, state: State, fitness: jnp.ndarray) -> State:
+    def tell(self, state: State, fitness: jax.Array) -> State:
         """Tell the algorithm more information
 
         Tell the algorithm about the points it chose and their corresponding fitness

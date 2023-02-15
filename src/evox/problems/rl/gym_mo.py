@@ -121,7 +121,7 @@ class Controller:
                 weight_dim = w.shape[1:]
                 return list(w.reshape((self.num_workers, self.env_per_worker, *weight_dim)))
 
-            if isinstance(pop, jnp.ndarray):
+            if isinstance(pop, jax.Array):
                 # first dim is batch
                 param_dim = pop.shape[1:]
                 pop = pop.reshape((self.num_workers, self.env_per_worker, *param_dim))
@@ -141,14 +141,12 @@ class Controller:
 
         rewards, episode_length, mo_rewards = zip(*ray.get(rollout_future))
         mo_lists = {key: [] for key in self.mo_keys}
-        
+
         for key in self.mo_keys:
             mo_lists[key].append([worker_mo[key] for worker_mo in mo_rewards])
         # print(mo_lists)
         return np.array(rewards).reshape(-1), np.array(episode_length).reshape(-1), *[np.array(mo_lists[key]).reshape(-1) for key in self.mo_keys]
 
-
-    
     def _batched_evaluate(self, seeds, pop, cap_episode_length):
         observations = ray.get(
             [worker.reset.remote(worker_seeds) for worker_seeds, worker in zip(seeds, self.workers)]
@@ -308,7 +306,7 @@ class Gym_mo(Problem):
 
         mo_lists = [-jnp.asarray(mo) for mo in mo_rewards]  # especially notice the '-', we consider the negative reward as the fitness
 
-        fitness = zip(*mo_lists) 
+        fitness = zip(*mo_lists)
         fitness = jnp.asarray(list(fitness))
 
         if self.cap_episode:

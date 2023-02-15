@@ -54,7 +54,7 @@ class PGPE(evox.Algorithm):
     def __init__(
         self,
         pop_size: int,
-        center_init: jnp.ndarray,
+        center_init: jax.Array,
         optimizer: str,
         stdev_init: float = 0.1,
         center_learning_rate: float = 0.15,

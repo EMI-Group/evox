@@ -1,12 +1,14 @@
 from typing import Callable, Optional
 
 import chex
+import jax
 import jax.numpy as jnp
 import numpy as np
 import ray
+from jax.tree_util import tree_flatten
+
 from evox import Algorithm, Problem, State, Stateful
 from evox.monitors import FitnessMonitor, PopulationMonitor
-from jax.tree_util import tree_flatten
 
 
 class WorkerPipeline(Stateful):
@@ -42,7 +44,7 @@ class WorkerPipeline(Stateful):
 
         return partial_fitness, state
 
-    def step2(self, state: State, fitness: jnp.Array):
+    def step2(self, state: State, fitness: jax.Array):
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
@@ -74,7 +76,7 @@ class Worker:
         self.pipeline = pipeline
         self.worker_index = worker_index
 
-    def init(self, key: jnp.Array):
+    def init(self, key: jax.Array):
         self.state = self.pipeline.init(key)
         self.initialized = True
 
@@ -82,7 +84,7 @@ class Worker:
         parital_fitness, self.state = self.pipeline.step1(self.state)
         return parital_fitness
 
-    def step2(self, fitness: jnp.Array):
+    def step2(self, fitness: jax.Array):
         fitness = ray.get(fitness)
         fitness = jnp.concatenate(fitness, axis=0)
         self.state = self.pipeline.step2(self.state, fitness)
@@ -141,7 +143,7 @@ class Supervisor:
             )
             start_index += slice_size
 
-    def setup_all_workers(self, key: jnp.Array):
+    def setup_all_workers(self, key: jax.Array):
         ray.get([worker.init.remote(key) for worker in self.workers])
 
     def sample(self):
@@ -219,7 +221,7 @@ class DistributedPipeline(Stateful):
         )
         self.global_fitness_transform = global_fitness_transform
 
-    def setup(self, key: jnp.Array):
+    def setup(self, key: jax.Array):
         ray.get(self.supervisor.setup_all_workers.remote(key))
         return State()
 
