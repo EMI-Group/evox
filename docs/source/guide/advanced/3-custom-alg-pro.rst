@@ -80,3 +80,12 @@ And Here is what each part of the algorithm correspond to in EvoX.
 
 The Problem Class
 =================
+
+The Problem class is quite simple, the only required the method is ``evaluate``.
+
+Migrate from traditional EC library
+-----------------------------------
+
+There is one thing to notice here, ``evaluate`` is a stateful function, meaning it should accept a state and return a new state.
+So, if you are working with numerical benchmark functions, which don't need to statefule,
+you can simply ignore the state, but remember that you still have to use this stateful interface.
