@@ -2,6 +2,8 @@
 EvoX's API
 ==========
 
+.. automodule:: evox
+
 .. toctree::
     :maxdepth: 2
 
