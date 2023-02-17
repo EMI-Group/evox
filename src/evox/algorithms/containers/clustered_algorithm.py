@@ -1,6 +1,4 @@
-import copy
 from functools import partial
-from typing import Optional
 
 import jax
 import jax.numpy as jnp
