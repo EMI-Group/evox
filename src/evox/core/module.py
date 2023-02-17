@@ -172,7 +172,7 @@ class Stateful(metaclass=MetaStatefulModule):
     and recursively call ``setup`` methods of all submodules.
     """
 
-    def setup(self, key: Optional[jax.Array] = None) -> State:
+    def setup(self, key: jax.Array) -> State:
         """Setup mutable state here
 
         The state it self is immutable, but it act as a mutable state
@@ -190,7 +190,7 @@ class Stateful(metaclass=MetaStatefulModule):
         """
         return State()
 
-    def init(self, key: Optional[jax.Array] = None, name: str = "_top_level") -> State:
+    def init(self, key: jax.Array = None, name: str = "_top_level") -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
