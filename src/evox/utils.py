@@ -10,8 +10,8 @@ from .core.module import *
 
 
 def min_by(
-    values: Union[jnp.ndarray, List[jnp.ndarray]],
-    keys: Union[jnp.ndarray, List[jnp.ndarray]],
+    values: Union[jax.Array, List[jax.Array]],
+    keys: Union[jax.Array, List[jax.Array]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
