@@ -32,6 +32,36 @@ def test_clustered_cma_es():
     assert min_fitness < 1
 
 
+@pytest.mark.parametrize("random_subpop", [True, False])
+def test_vectorized_coevolution(random_subpop):
+    # create a pipeline
+    monitor = FitnessMonitor()
+    pipeline = pipelines.StdPipeline(
+        algorithms.VectorizedCoevolution(
+            base_algorithm=algorithms.CSO(
+                lb=jnp.full(shape=(10,), fill_value=-32),
+                ub=jnp.full(shape=(10,), fill_value=32),
+                pop_size=20,
+            ),
+            dim=40,
+            num_subpops=4,
+            random_subpop=random_subpop,
+        ),
+        problem=problems.classic.Ackley(),
+        fitness_transform=monitor.update,
+    )
+    # init the pipeline
+    key = jax.random.PRNGKey(42)
+    state = pipeline.init(key)
+
+    # run the pipeline for 10 steps
+    for i in range(200):
+        state = pipeline.step(state)
+
+    min_fitness = monitor.get_min_fitness()
+    assert min_fitness < 0.1
+
+
 @pytest.mark.skip(reason="currently random_mask is unstable")
 def test_random_mask_cso():
     # create a pipeline
