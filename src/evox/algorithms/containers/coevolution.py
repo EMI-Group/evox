@@ -3,11 +3,19 @@ from typing import Optional, Tuple
 
 import jax
 import jax.numpy as jnp
-from evox import Algorithm, State
+from evox import Algorithm, State, jit_class
 from jax import vmap
+from jax.tree_util import tree_map
 
 
+@jit_class
 class VectorizedCoevolution(Algorithm):
+    """
+    Automatically apply cooperative coevolution to any algorithm.
+    The process of cooperative coevolution is vectorized,
+    meaning all sub-populations will evolve at the same time in each generation.
+    """
+
     def __init__(
         self,
         base_algorithm: Algorithm,
@@ -88,4 +96,120 @@ class VectorizedCoevolution(Algorithm):
             base_alg_state=base_alg_state,
             best_dec=best_dec,
             best_fit=jnp.minimum(state.best_fit, min_fitness),
+        )
+
+
+@jit_class
+class Coevolution(Algorithm):
+    """
+    Automatically apply cooperative coevolution to any algorithm.
+    The process of cooperative coevolution is not vectorized,
+    meaning all sub-populations will evolve one at a time (round-robin) in each generation.
+    """
+
+    def __init__(
+        self,
+        base_algorithm: Algorithm,
+        dim: int,
+        num_subpops: int,
+        subpop_size: int,
+        random_subpop: bool = True,
+    ):
+        assert dim % num_subpops == 0
+
+        self._base_algorithm = base_algorithm
+        self.dim = dim
+        self.num_subpops = num_subpops
+        self.subpop_size = subpop_size
+        self.random_subpop = random_subpop
+        self.sub_dim = dim // num_subpops
+
+    def setup(self, key: jax.Array) -> State:
+        if self.random_subpop:
+            key, subkey = jax.random.split(key)
+            self.permutation = jax.random.permutation(subkey, self.dim)
+
+        best_dec = jnp.empty((self.dim,))
+        best_fit = jnp.full((self.num_subpops,), jnp.inf)  # fitness
+        keys = jax.random.split(key, self.num_subpops)
+        base_alg_state = vmap(
+            partial(self._base_algorithm.init, name="base_algorithm")
+        )(keys)
+
+        return State(
+            iter_counter=0,
+            subpops=jnp.empty((self.num_subpops, self.subpop_size, self.sub_dim)),
+            best_dec=best_dec,
+            best_fit=best_fit,
+            base_alg_state=base_alg_state,
+        )
+
+    def ask(self, state: State) -> Tuple[jax.Array, State]:
+        subpop_index = state.iter_counter % self.num_subpops
+
+        # Ask all the algorithms once,
+        # and use Round-Robin to tell each algorithms,
+        # after each algorithm is updated, do ``ask`` again.
+        subpops, base_alg_state = jax.lax.cond(
+            subpop_index == 0,
+            lambda state: vmap(self._base_algorithm.ask)(state.base_alg_state),
+            lambda state: (state.subpops, state.base_alg_state),
+            state,
+        )
+        subpop = subpops[subpop_index]
+
+        # in the first iteration, we don't really have a best solution
+        # so just pick the first solution.
+        best_dec = jax.lax.select(
+            state.iter_counter == 0,
+            subpops[:, 0, :].reshape((self.dim,)),
+            state.best_dec,
+        )
+
+        # co-operate
+        tiled_best_dec = jnp.tile(best_dec, (self.subpop_size, 1))
+        coop_pops = jax.lax.dynamic_update_slice(
+            tiled_best_dec, subpop, (0, subpop_index * self.sub_dim)
+        )
+
+        # if random_subpop is set, do a inverse permutation here.
+        if self.random_subpop:
+            coop_pops = coop_pops.at[:, self.permutation].set(coop_pops)
+
+        return coop_pops, state.update(
+            subpops=subpops,
+            base_alg_state=base_alg_state,
+            coop_pops=coop_pops,
+        )
+
+    def tell(self, state: State, fitness: jax.Array) -> State:
+        subpop_index = state.iter_counter % self.num_subpops
+        subpop_base_alg_state = self._base_algorithm.tell(
+            state.base_alg_state[subpop_index], fitness
+        )
+        base_alg_state = tree_map(
+            lambda old_value, new_value: old_value.at[subpop_index].set(new_value),
+            state.base_alg_state,
+            subpop_base_alg_state,
+        )
+        min_fitness = jnp.min(fitness)
+
+        best_dec_this_gen = state.coop_pops[jnp.argmin(fitness)]
+        if self.random_subpop:
+            # if random_subpop is set, permutate the decision variables.
+            best_dec_this_gen = best_dec_this_gen[self.permutation]
+        from jax.experimental.host_callback import id_print
+        best_dec = jax.lax.select(
+            state.best_fit[subpop_index] > min_fitness,
+            best_dec_this_gen,
+            state.best_dec,
+        )
+
+        best_fit = state.best_fit.at[subpop_index].min(min_fitness)
+
+        return state.update(
+            base_alg_state=base_alg_state,
+            best_dec=best_dec,
+            best_fit=best_fit,
+            iter_counter=state.iter_counter + 1,
         )
