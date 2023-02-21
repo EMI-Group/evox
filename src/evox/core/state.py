@@ -3,7 +3,7 @@ from __future__ import annotations
 from pprint import pformat
 from typing import Any, Optional, Tuple, Union
 
-from jax.tree_util import register_pytree_node_class
+from jax.tree_util import register_pytree_node_class, tree_map
 
 
 def is_magic_method(name: str):
@@ -106,8 +106,20 @@ class State:
             return super().__getattr__(key)
         return self._state_dict[key]
 
-    def __getitem__(self, key: str) -> Any:
-        return self._state_dict[key]
+    def __getitem__(self, index: Union[str, int]) -> State:
+        """
+        PyTree index, apply the index to every element in the state.
+        """
+        return tree_map(lambda x: x[index], self)
+
+    def __getslice__(self, begin: int, end: int) -> State:
+        """
+        PyTree index, apply the index to every element in the state.
+        """
+        if isinstance(begin, int) and isinstance(end, int):
+            return tree_map(lambda x: x[begin:end], self)
+        else:
+            raise TypeError(f"begin and end should be int, but got {type(begin)} and {type(end)}")
 
     def __setattr__(self, key: str, value: Any) -> None:
         raise TypeError("State is immutable")
