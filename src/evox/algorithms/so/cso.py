@@ -30,7 +30,11 @@ class CSO(ex.Algorithm):
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
         return ex.State(
-            population=population, fitness=fitness, velocity=velocity, key=state_key
+            population=population,
+            fitness=fitness,
+            velocity=velocity,
+            students=jnp.empty((self.pop_size // 2, ), dtype=jnp.int32),
+            key=state_key
         )
 
     def ask(self, state):
