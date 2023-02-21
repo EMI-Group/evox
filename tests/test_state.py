@@ -48,8 +48,8 @@ class Root(Stateful):
         return State(attr_a=self.a, attr_b=self.b)
 
     def run(self, state):
-        attr_a = state["attr_a"] + 2
-        attr_b = state["attr_b"] - 3
+        attr_a = state.attr_a + 2
+        attr_b = state.attr_b - 3
         e1, state = self.leaf.run(state)
         e2, state = self.middle.run(state)
         return e1 + e2, state | {"attr_a": attr_a, "attr_b": attr_b}
