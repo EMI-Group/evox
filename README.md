@@ -2,13 +2,13 @@
 
 <div align="center">
   <a href="https://evox.readthedocs.io/">
-    <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=flat-square" href="https://evox.readthedocs.io/">
+    <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=for-the-badge" href="https://evox.readthedocs.io/">
   </a>
   <a href="https://arxiv.org/abs/2301.12457">
-    <img src="https://img.shields.io/badge/paper-arxiv-red?style=flat-square">
+    <img src="https://img.shields.io/badge/paper-arxiv-red?style=for-the-badge">
   </a>
   <a href="https://github.com/EMI-Group/evox/actions/workflows/python-package.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=flat-square">
+    <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=for-the-badge">
   </a>
 </div>
 
