@@ -58,6 +58,10 @@ will be wrapped with ``use_state`` decorator. This decorator requires the method
 
 which is common pattern in stateful computation.
 
+.. warning::
+    Currently, for all user defined private methods, the name of the method should starts with ``_``.
+
+
 An overview of State
 ====================
 
