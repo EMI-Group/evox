@@ -27,12 +27,9 @@ let
   ];
 
   test-dependencies = with python.pkgs; [
+    pytest
     chex
     flax
-    pytest
-  ];
-
-  other-dependencies = with python.pkgs; [
     gym
     ray
     torchvision
@@ -44,8 +41,16 @@ let
     format = "pyproject";
 
     src = builtins.path { path = ./.; name = "evox"; };
+    nativeBuildInputs = with python.pkgs; [
+      setuptools
+    ];
     propagatedBuildInputs = common-dependencies;
-    checkInputs = [ python.pkgs.pytestCheckHook ] ++ test-dependencies;
+    # checkInputs = [ python.pkgs.pytestCheckHook ] ++ test-dependencies;
+    checkInputs = test-dependencies;
+
+    checkPhase = ''
+      PYTHONPATH=$PYTHONPATH:./src pytest -s
+    '';
 
     pythonImportsCheck = [
       "evox"
@@ -62,8 +67,7 @@ in
       (python.withPackages
         (ps: common-dependencies
           ++ test-dependencies
-          ++ doc-dependencies
-          ++ other-dependencies))
+          ++ doc-dependencies))
     ];
   };
 }
