@@ -10,58 +10,45 @@ let
   };
   python = pkgs.python310;
 
-  dependencies = ps: with ps; [
-    bokeh
-    build
-    chex
-    flax
-    gym
+  common-dependencies = with python.pkgs; [
     jax
     jaxlib
-    numpydoc
     optax
-    pandas
-    pydata-sphinx-theme
-    pytest
-    ray
-    sphinx
-    torchvision
-    pytorch
-    ale-py
-
-    # develop
-    rope
-    pyflakes
-    pyls-isort
-    python-lsp-server
-    python-lsp-black
-    pylsp-mypy
-
-    # gym render
-    pyglet
+    bokeh
   ];
 
-  pyenv = python.withPackages dependencies;
+  doc-dependencies = with python.pkgs; [
+    myst-parser
+    numpydoc
+    pydata-sphinx-theme
+    sphinx
+    sphinx-copybutton
+    sphinx-design
+  ];
+
+  test-dependencies = with python.pkgs; [
+    chex
+    flax
+    pytest
+  ];
+
+  other-dependencies = with python.pkgs; [
+    gym
+    ray
+    torchvision
+  ];
 
   evox = python.pkgs.buildPythonPackage {
     pname = "evox";
-    version = "0.0.2";
+    version = "0.0.3";
     format = "pyproject";
 
     src = builtins.path { path = ./.; name = "evox"; };
-    propagatedBuildInputs = dependencies python.pkgs;
-    checkInputs = [ python.pkgs.pytestCheckHook ];
+    propagatedBuildInputs = common-dependencies;
+    checkInputs = [ python.pkgs.pytestCheckHook ] ++ test-dependencies;
 
     pythonImportsCheck = [
       "evox"
-    ];
-    disabledTestPaths = [
-      # need external dataset
-      "tests/test_neuroevolution.py"
-      # too slow
-      "tests/test_moead.py"
-      # failed
-      "tests/test_nsga2.py"
     ];
   };
 
@@ -72,7 +59,11 @@ in
 
   devShells."${accelerator}" = pkgs.mkShell {
     buildInputs = [
-      pyenv
+      (python.withPackages
+        (ps: common-dependencies
+          ++ test-dependencies
+          ++ doc-dependencies
+          ++ other-dependencies))
     ];
   };
 }

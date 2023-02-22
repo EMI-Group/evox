@@ -14,7 +14,6 @@
     with nixpkgs.lib;
     eachSystem (with system; [ x86_64-linux ]) (system:
       let
-        callPackage = nixpkgs.legacyPackages.${system}.callPackage;
         generic-builder = import ./generic.nix;
         with-cuda = generic-builder { inherit system nixpkgs; cudaSupport = true; };
         cpu-only = generic-builder { inherit system nixpkgs; cudaSupport = false; };
