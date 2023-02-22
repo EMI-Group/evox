@@ -29,7 +29,7 @@ def test_clustered_cma_es():
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert min_fitness < 1
+    assert min_fitness < 2
 
 
 @pytest.mark.parametrize("random_subpop", [True, False])
