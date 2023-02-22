@@ -34,3 +34,6 @@ Cooperative Coevolution
 
 We offer Cooperative Coevolution (CC) framework for all algorithms.
 Currently, there are two types of CC container in EvoX, :class:`evox.algorithms.Coevolution` and :class:`evox.algorithms.VectorizedCoevolution`.
+The difference is that ``VectorizedCoevolution`` update all sub-populations at the same time in each iteration,
+but ``Coevolution`` follows traditional approach that update a single sub-populations at each iteration.
+Thus ``VectorizedCoevolution`` is faster, but ``Coevolution`` could be better in terms of best fitness with a limited number of evaluations.
