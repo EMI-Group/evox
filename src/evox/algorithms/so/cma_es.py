@@ -15,7 +15,12 @@ class CMAES(Algorithm):
         self, init_mean, init_stdev, pop_size=None, recombination_weights=None, cm=1
     ):
         """
-        [link](https://arxiv.org/pdf/1604.00772.pdf)
+        This implementation follows `The CMA Evolution Strategy: A Tutorial <https://arxiv.org/pdf/1604.00772.pdf>`_.
+
+        .. note::
+            CMA-ES involves eigendecomposition,
+            which introduces relatively large numerical error,
+            and may lead to non-deterministic behavior on different hardware backends.
         """
         self.init_mean = init_mean
         assert init_stdev > 0, "Expect variance to be a non-negative float"
