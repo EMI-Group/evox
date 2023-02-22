@@ -20,3 +20,8 @@ To scale the workflow using multiple machines, use the :class:`DistributedPipeli
             "num_gpus": 1
         }
     )
+
+.. tip::
+    It is recommanded that one set the environment variable ``XLA_PYTHON_CLIENT_PREALLOCATE=false``.
+    This variable control disables the GPU memory preallocation, otherwise running multiple JAX processes may cause OOM.
+    For more information, please refer to `JAX's documentation <https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html>`_ on this matter.
