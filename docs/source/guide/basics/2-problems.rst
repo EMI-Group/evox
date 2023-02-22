@@ -48,3 +48,17 @@ EvoX currently supports rl environments from Gym.
         },
         batch_policy=False,
     )
+
+.. tip::
+    ``controller_options`` and ``worker_options`` are directly passed down to Ray,
+    usually, you can leave ``controller_options`` blank because there isn't much computation happen there.
+    ``worker_options`` can be used to control how much cpu and gpu each worker gets.
+
+    For example:
+
+    .. code-block:: python
+
+        worker_options={
+            "num_cpus": 2,
+            "num_gpus": 0,
+        }
