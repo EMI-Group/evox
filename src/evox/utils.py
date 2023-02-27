@@ -118,7 +118,6 @@ class OptaxWrapper(Stateful):
         return updates, state.update(opt_state=opt_state)
 
 
-@jit_class
 class TreeAndVector:
     def __init__(self, dummy_input):
         leaves, self.treedef = tree_flatten(dummy_input)
@@ -132,16 +131,19 @@ class TreeAndVector:
             self.slice_sizes.append(size)
             index += size
 
+    @partial(jax.jit, static_argnums=[0])
     def to_vector(self, x):
         leaves = tree_leaves(x)
         leaves = [x.reshape(-1) for x in leaves]
         return jnp.concatenate(leaves, axis=0)
 
+    @partial(jax.jit, static_argnums=[0])
     def batched_to_vector(self, x):
         leaves = tree_leaves(x)
         leaves = [x.reshape(x.shape[0], -1) for x in leaves]
         return jnp.concatenate(leaves, axis=1)
 
+    @partial(jax.jit, static_argnums=[0])
     def to_tree(self, x):
         leaves = []
         for start_index, slice_size, shape in zip(
@@ -152,6 +154,7 @@ class TreeAndVector:
             )
         return tree_unflatten(self.treedef, leaves)
 
+    @partial(jax.jit, static_argnums=[0])
     def batched_to_tree(self, x):
         leaves = []
         for start_index, slice_size, shape in zip(

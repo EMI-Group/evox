@@ -2,7 +2,7 @@ import chex
 import evox as ex
 import jax
 import pytest
-from evox import Stateful, State
+from evox import Stateful, State, jit_method
 from jax.tree_util import tree_map
 
 
@@ -47,6 +47,7 @@ class Root(Stateful):
     def setup(self, key):
         return State(attr_a=self.a, attr_b=self.b)
 
+    @jit_method
     def run(self, state):
         attr_a = state.attr_a + 2
         attr_b = state.attr_b - 3
@@ -61,6 +62,14 @@ class Root(Stateful):
         state = self.middle.check(state)
         state = self.leaf.check(state)
         return state
+
+    @jit_method
+    def test_override_a(self, state):
+        return self.a, state
+
+    @jit_method
+    def test_override_b(self, state):
+        return self.b, state
 
 
 def test_basic():
@@ -89,7 +98,21 @@ def test_repl_and_str():
                           ")"
                           )
 
+
 def test_jax_pytree():
     module = Root()
     state = module.init(key=jax.random.PRNGKey(0))
     assert state == tree_map(lambda x: x, state)
+
+
+def test_override():
+    root_module = Root()
+    root_state = root_module.init(key=jax.random.PRNGKey(123))
+    a, _state = root_module.test_override_a(root_state)
+    b, _state = root_module.test_override_b(root_state)
+    assert a == 123 and b == 456
+
+    overrided_root_module = root_module.override({"a": 234, "b": 567})
+    a, _state = overrided_root_module.test_override_a(root_state)
+    b, _state = overrided_root_module.test_override_b(root_state)
+    assert a == 234 and b == 567
