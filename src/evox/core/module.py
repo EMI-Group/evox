@@ -29,7 +29,8 @@ def use_state(func: Callable, allow_override=True):
 
     @wraps(func)
     def wrapper(self, state: State, *args, **kwargs):
-        assert isinstance(self, Stateful) and isinstance(state, State)
+        assert isinstance(self, Stateful), f"expect self to be 'Stateful', got {type(self)} {self}"
+        assert isinstance(state, State), f"expect state to be 'State', got {type(state)} {state}"
         # find the state that match the current module
         path, matched_state = state.find_path_to(self._node_id)
 
@@ -148,7 +149,7 @@ class MetaStatefulModule(type):
         bases,
         class_dict,
         force_wrap=["__call__"],
-        ignore=["init", "setup", "cache_override", "override"],
+        ignore=["init", "setup", "allow_override", "override"],
         ignore_prefix="_",
     ):
         wrapped = {}
@@ -181,10 +182,9 @@ def stateful_tree_flatten(self):
     for key in vars(self):
         var = getattr(self, key)
 
-        if key in ["_cache_override", "_node_id"]:
+        if key in ["_allow_override", "_node_id"]:
             static_var[key] = var
         elif key in cache_override:
-            print(f"registering {key}")
             var_names.append(key)
             var_values.append(var)
         else:
@@ -292,7 +292,7 @@ class Stateful(metaclass=MetaStatefulModule):
         state, _node_id = self._recursive_init(key, 0)
         return state
 
-    def cache_override(self, *override_attr_names: list[str]) -> Stateful:
+    def allow_override(self, *override_attr_names: list[str]) -> Stateful:
         assert (
             not hasattr(self, "_node_id") or self._node_id is None
         ), "allow_override can only be called before init"
@@ -301,5 +301,8 @@ class Stateful(metaclass=MetaStatefulModule):
 
     def override(self, override_attrs: dict[str, Any]) -> Stateful:
         overrided = copy(self)
-        overrided.__dict__ = {**overrided.__dict__, **override_attrs}
+        for key, value in override_attrs.items():
+            assert hasattr(self, key)
+            setattr(overrided, key, value)
+
         return overrided
