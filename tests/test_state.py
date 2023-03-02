@@ -106,7 +106,7 @@ def test_jax_pytree():
 
 
 def test_override():
-    root_module = Root()
+    root_module = Root().allow_override("a", "b")
     root_state = root_module.init(key=jax.random.PRNGKey(123))
     a, _state = root_module.test_override_a(root_state)
     b, _state = root_module.test_override_b(root_state)
