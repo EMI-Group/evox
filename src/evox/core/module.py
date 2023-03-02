@@ -29,8 +29,12 @@ def use_state(func: Callable, allow_override=True):
 
     @wraps(func)
     def wrapper(self, state: State, *args, **kwargs):
-        assert isinstance(self, Stateful), f"expect self to be 'Stateful', got {type(self)} {self}"
-        assert isinstance(state, State), f"expect state to be 'State', got {type(state)} {state}"
+        assert isinstance(
+            self, Stateful
+        ), f"expect self to be 'Stateful', got {type(self)} {self}"
+        assert isinstance(
+            state, State
+        ), f"expect state to be 'State', got {type(state)} {state}"
         # find the state that match the current module
         path, matched_state = state.find_path_to(self._node_id)
 
@@ -191,10 +195,7 @@ def stateful_tree_flatten(self):
             static_var[key] = var
 
     children = var_values
-    aux = (
-        var_names,
-        static_var
-    )
+    aux = (var_names, static_var)
     return (children, aux)
 
 
@@ -293,6 +294,22 @@ class Stateful(metaclass=MetaStatefulModule):
         return state
 
     def allow_override(self, *override_attr_names: list[str]) -> Stateful:
+        """Declare certain variables to be overridable.
+        The declared variables can then be used in ``override``
+
+        This method should be called before ``init``.
+
+        Parameters
+        ----------
+        override_attr_names
+            A list of attribute names, for example "lambda", "phi"
+
+        Returns
+        -------
+        Stateful
+            Mutate this object, declare these fields to be overridable
+            and return self.
+        """
         assert (
             not hasattr(self, "_node_id") or self._node_id is None
         ), "allow_override can only be called before init"
@@ -300,9 +317,26 @@ class Stateful(metaclass=MetaStatefulModule):
         return self
 
     def override(self, override_attrs: dict[str, Any]) -> Stateful:
+        """Override certain variables by passing a dictionary
+        that maps attribute names to values.
+
+        The variables should be declared first using ``allow_override``
+
+        Parameters
+        ----------
+        override_attrs
+            A dict that maps attribute names to values.
+
+        Returns
+        -------
+        Stateful
+            A copy of self with the required fields overrided.
+        """
         overrided = copy(self)
         for key, value in override_attrs.items():
-            assert hasattr(self, key)
+            assert hasattr(
+                self, key
+            ), f"Attribute {key} is not overridable, to allow it, use 'allow_override' to declare."
             setattr(overrided, key, value)
 
         return overrided
