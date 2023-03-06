@@ -29,9 +29,7 @@ class ClusterdAlgorithm(Algorithm):
 
     def setup(self, key: jax.Array) -> State:
         keys = jax.random.split(key, self.num_cluster)
-        vectorized_state = vmap(
-            partial(self._base_algorithm.init, name="base_algorithm")
-        )(keys)
+        vectorized_state = vmap(self._base_algorithm.init)(keys)
         return vectorized_state
 
     def ask(self, state: State):
@@ -96,11 +94,7 @@ class RandomMaskAlgorithm(Algorithm):
     def init(self, key: jax.Array = None, name: str = "_top_level"):
         self.name = name
         keys = jax.random.split(key, self.num_cluster)
-        child_states = {
-            self.submodule_name: vmap(
-                partial(self.base_algorithm.init, name=self.submodule_name)
-            )(keys)
-        }
+        child_states = {self.submodule_name: vmap(self.base_algorithm.init)(keys)}
         self_state = self.setup(key)
         return self_state._set_child_states(child_states)
 
