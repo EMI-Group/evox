@@ -16,8 +16,8 @@ class PSO(ex.Algorithm):
         ub,
         pop_size,
         inertia_weight=0.6,
-        cognitive_coefficient=0.8,
-        social_coefficient=2.5,
+        cognitive_coefficient=2.5,
+        social_coefficient=0.8,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
