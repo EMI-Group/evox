@@ -39,9 +39,7 @@ class VectorizedCoevolution(Algorithm):
         best_dec = jnp.empty((self.dim,))
         best_fit = jnp.inf  # fitness
         keys = jax.random.split(key, self.num_subpops)
-        base_alg_state = vmap(
-            partial(self._base_algorithm.init, name="base_algorithm")
-        )(keys)
+        base_alg_state = vmap(self._base_algorithm.init)(keys)
 
         return State(
             first_iter=True,
@@ -132,9 +130,7 @@ class Coevolution(Algorithm):
         best_dec = jnp.empty((self.dim,))
         best_fit = jnp.full((self.num_subpops,), jnp.inf)  # fitness
         keys = jax.random.split(key, self.num_subpops)
-        base_alg_state = vmap(
-            partial(self._base_algorithm.init, name="base_algorithm")
-        )(keys)
+        base_alg_state = vmap(self._base_algorithm.init)(keys)
 
         return State(
             iter_counter=0,
@@ -199,6 +195,7 @@ class Coevolution(Algorithm):
             # if random_subpop is set, permutate the decision variables.
             best_dec_this_gen = best_dec_this_gen[self.permutation]
         from jax.experimental.host_callback import id_print
+
         best_dec = jax.lax.select(
             state.best_fit[subpop_index] > min_fitness,
             best_dec_this_gen,

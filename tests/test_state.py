@@ -62,6 +62,12 @@ class Root(Stateful):
         state = self.leaf.check(state)
         return state
 
+    def test_override_a(self, state):
+        return self.a, state
+
+    def test_override_b(self, state):
+        return self.b, state
+
 
 def test_basic():
     root_module = Root()
@@ -88,6 +94,7 @@ def test_repl_and_str():
                           " ['leaf', 'middle']\n"
                           ")"
                           )
+
 
 def test_jax_pytree():
     module = Root()

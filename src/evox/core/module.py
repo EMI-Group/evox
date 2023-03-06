@@ -1,16 +1,14 @@
-import itertools
-import types
-from functools import partial, wraps
-from typing import NamedTuple, Optional
-
+import warnings
+from functools import wraps
+from typing import Any, Callable, Tuple
+import numpy as np
 import jax
 import jax.numpy as jnp
-from jax.tree_util import register_pytree_node_class
 
 from .state import State
 
 
-def use_state(func):
+def use_state(func: Callable):
     """Decorator for easy state management.
 
     This decorator will try to extract the sub-state belong to the module from current state
@@ -25,48 +23,39 @@ def use_state(func):
     err_msg = "Expect last return value must be State, got {}"
 
     @wraps(func)
-    def wrapper(self, state, *args, **kargs):
-        if self.name == "_top_level" or not state.has_child(self.name):
-            return_value = func(self, state, *args, **kargs)
+    def wrapper(self, state: State, *args, **kwargs):
+        assert isinstance(self, Stateful) and isinstance(state, State)
+        # find the state that match the current module
+        path, matched_state = state.find_path_to(self._node_id)
 
-            # single return value, the value must be a State
-            if not isinstance(return_value, tuple):
-                assert isinstance(return_value, State), err_msg.format(
-                    type(return_value)
-                )
-                return state.update(return_value)
+        return_value = func(self, matched_state, *args, **kwargs)
 
-            # unpack the return value first
-            assert isinstance(return_value[-1], State), err_msg.format(
-                type(return_value[-1])
-            )
-            state = state.update(return_value[-1])
-            return (*return_value[:-1], state)
+        # single return value, the value must be a State
+        if not isinstance(return_value, tuple):
+            assert isinstance(return_value, State), err_msg.format(type(return_value))
+            aux, new_state = None, return_value
         else:
-            return_value = func(self, state.get_child_state(self.name), *args, **kargs)
-
-            # single return value, the value must be a State
-            if not isinstance(return_value, tuple):
-                assert isinstance(return_value, State), err_msg.format(
-                    type(return_value)
-                )
-                return state.update_child(self.name, return_value)
-
             # unpack the return value first
             assert isinstance(return_value[-1], State), err_msg.format(
                 type(return_value[-1])
             )
-            state = state.update_child(self.name, return_value[-1])
-            return (*return_value[:-1], state)
+            aux, new_state = return_value[:-1], return_value[-1]
+
+        state = state.update_path(path, new_state)
+
+        if aux is None:
+            return state
+        else:
+            return (*aux, state)
 
     return wrapper
 
 
-def jit(func):
+def jit(func: Callable):
     return jax.jit(func, static_argnums=(0,))
 
 
-def jit_method(method):
+def jit_method(method: Callable):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
 
     Parameters
@@ -87,7 +76,7 @@ def jit_method(method):
     )
 
 
-def default_cond_fun(name):
+def default_cond_fun(name: str):
     if name == "__call__":
         return True
 
@@ -157,6 +146,7 @@ class MetaStatefulModule(type):
                 wrapped[key] = value
             elif callable(value):
                 wrapped[key] = use_state(value)
+
         return super().__new__(cls, name, bases, wrapped)
 
 
@@ -171,6 +161,10 @@ class Stateful(metaclass=MetaStatefulModule):
     The ``init`` method will automatically call the ``setup`` of the current module
     and recursively call ``setup`` methods of all submodules.
     """
+
+    def __init__(self) -> None:
+        self._node_id = None
+        self._cache_override = set()
 
     def setup(self, key: jax.Array) -> State:
         """Setup mutable state here
@@ -190,7 +184,36 @@ class Stateful(metaclass=MetaStatefulModule):
         """
         return State()
 
-    def init(self, key: jax.Array = None, name: str = "_top_level") -> State:
+    def _recursive_init(self, key, node_id) -> Tuple[State, int]:
+        if hasattr(self, "_node_id") and self._node_id is not None:
+            warnings.warn(
+                "Trying to re-initialize a Stateful module that is already initialized"
+            )
+
+        self._node_id = node_id
+
+        child_states = {}
+        for attr_name in vars(self):
+            attr = getattr(self, attr_name)
+            if not attr_name.startswith("_") and isinstance(attr, Stateful):
+                if key is None:
+                    subkey = None
+                else:
+                    key, subkey = jax.random.split(key)
+                submodule_state, node_id = attr._recursive_init(subkey, node_id + 1)
+                assert isinstance(
+                    submodule_state, State
+                ), "setup method must return a State"
+                child_states[attr_name] = submodule_state
+
+        return (
+            self.setup(key)
+            ._set_state_id_mut(self._node_id)
+            ._set_child_states_mut(child_states),
+            node_id,
+        )
+
+    def init(self, key: jax.Array = None) -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
@@ -199,27 +222,11 @@ class Stateful(metaclass=MetaStatefulModule):
         ----------
         key
             A PRNGKey.
-        name
-            The name of this module.
 
         Returns
         -------
         State
             The state of this module and all submodules combined.
         """
-        self.name = name
-        child_states = {}
-        for attr_name in dir(self):
-            attr = getattr(self, attr_name)
-            if not attr_name.startswith("_") and isinstance(attr, Stateful):
-                if key is None:
-                    subkey = None
-                else:
-                    key, subkey = jax.random.split(key)
-                submodule_state = attr.init(subkey, attr_name)
-                assert isinstance(
-                    submodule_state, State
-                ), "setup method must return a State"
-                child_states[attr_name] = submodule_state
-        self_state = self.setup(key)
-        return self_state._set_child_states(child_states)
+        state, _node_id = self._recursive_init(key, 0)
+        return state
