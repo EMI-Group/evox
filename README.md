@@ -78,7 +78,7 @@ for i in range(100):
 
 Head to our [tutorial page](https://evox.readthedocs.io/en/latest/guide/index.html).
 
-## Exmaple
+## Example
 
 The [example](https://github.com/EMI-Group/evox/tree/main/examples) folder has many examples on how to use EvoX.
 
