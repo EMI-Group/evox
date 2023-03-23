@@ -7,7 +7,9 @@ from evox.monitors import FitnessMonitor
 import chex
 
 
-@pytest.mark.skip(reason="a bit non-deterministic now, maybe due to the fact that eigen decomposition is unstable")
+@pytest.mark.skip(
+    reason="a bit non-deterministic now, maybe due to the fact that eigen decomposition is unstable"
+)
 def test_clustered_cma_es():
     # create a pipeline
     init_mean = jnp.full((10,), fill_value=-20)
@@ -62,8 +64,10 @@ def test_vectorized_coevolution(random_subpop):
     assert min_fitness < 0.1
 
 
-@pytest.mark.parametrize("random_subpop", [True, False])
-def test_coevolution(random_subpop):
+@pytest.mark.parametrize(
+    "random_subpop, num_subpop_iter", [(True, 1), (False, 1), (True, 2), (False, 2)]
+)
+def test_coevolution(random_subpop, num_subpop_iter):
     # create a pipeline
     monitor = FitnessMonitor()
     pipeline = pipelines.StdPipeline(
@@ -76,6 +80,7 @@ def test_coevolution(random_subpop):
             dim=40,
             num_subpops=4,
             subpop_size=10,
+            num_subpop_iter=num_subpop_iter,
             random_subpop=random_subpop,
         ),
         problem=problems.classic.Ackley(),
@@ -107,7 +112,7 @@ def test_random_mask_cso():
             num_cluster=4,
             num_mask=2,
             change_every=10,
-            pop_size=50
+            pop_size=50,
         ),
         problem=problems.classic.Ackley(),
         fitness_transform=monitor.update,

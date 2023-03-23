@@ -111,6 +111,7 @@ class Coevolution(Algorithm):
         dim: int,
         num_subpops: int,
         subpop_size: int,
+        num_subpop_iter: int = 1,
         random_subpop: bool = True,
     ):
         assert dim % num_subpops == 0
@@ -119,6 +120,7 @@ class Coevolution(Algorithm):
         self.dim = dim
         self.num_subpops = num_subpops
         self.subpop_size = subpop_size
+        self.num_subpop_iter = num_subpops
         self.random_subpop = random_subpop
         self.sub_dim = dim // num_subpops
 
@@ -141,25 +143,31 @@ class Coevolution(Algorithm):
         )
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
-        subpop_index = state.iter_counter % self.num_subpops
+        subpop_index = (state.iter_counter // self.num_subpop_iter) % self.num_subpops
 
-        # Ask all the algorithms once,
-        # and use Round-Robin to tell each algorithms,
-        # after each algorithm is updated, do ``ask`` again.
-        subpops, base_alg_state = jax.lax.cond(
-            subpop_index == 0,
-            lambda state: vmap(self._base_algorithm.ask)(state.base_alg_state),
-            lambda state: (state.subpops, state.base_alg_state),
+        # Ask all the algorithms once to initialize the best solution,
+        def init_best_dec(state):
+            # in the first iteration, we don't really have a best solution
+            # so just pick the first solution.
+            init_subpops, _base_alg_state = vmap(self._base_algorithm.ask)(state.base_alg_state)
+            first_dec = init_subpops[:, 0, :]
+            return first_dec.reshape((self.dim,))
+
+        best_dec = jax.lax.cond(
+            state.iter_counter == 0,
+            init_best_dec,
+            lambda state: state.best_dec,
             state,
         )
-        subpop = subpops[subpop_index]
 
-        # in the first iteration, we don't really have a best solution
-        # so just pick the first solution.
-        best_dec = jax.lax.select(
-            state.iter_counter == 0,
-            subpops[:, 0, :].reshape((self.dim,)),
-            state.best_dec,
+        subpop, sub_alg_state = self._base_algorithm.ask(
+            state.base_alg_state[subpop_index]
+        )
+        subpops = state.subpops.at[subpop_index].set(subpop)
+        base_alg_state = tree_map(
+            lambda old, new: old.at[subpop_index].set(new),
+            state.base_alg_state,
+            sub_alg_state,
         )
 
         # co-operate
@@ -179,12 +187,12 @@ class Coevolution(Algorithm):
         )
 
     def tell(self, state: State, fitness: jax.Array) -> State:
-        subpop_index = state.iter_counter % self.num_subpops
+        subpop_index = (state.iter_counter // self.num_subpop_iter) % self.num_subpops
         subpop_base_alg_state = self._base_algorithm.tell(
             state.base_alg_state[subpop_index], fitness
         )
         base_alg_state = tree_map(
-            lambda old_value, new_value: old_value.at[subpop_index].set(new_value),
+            lambda old, new: old.at[subpop_index].set(new),
             state.base_alg_state,
             subpop_base_alg_state,
         )
@@ -194,7 +202,6 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             # if random_subpop is set, permutate the decision variables.
             best_dec_this_gen = best_dec_this_gen[self.permutation]
-        from jax.experimental.host_callback import id_print
 
         best_dec = jax.lax.select(
             state.best_fit[subpop_index] > min_fitness,
