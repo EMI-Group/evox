@@ -16,7 +16,7 @@ def _ackley_func(a, b, c, x):
 
 @ex.jit_class
 class Ackley(ex.Problem):
-    def __init__(self, a=20, b=0.2, c=2):
+    def __init__(self, a=20, b=0.2, c=2*jnp.pi):
         self.a = a
         self.b = b
         self.c = c
