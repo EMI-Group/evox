@@ -43,4 +43,7 @@ class StdPipeline(Stateful):
         """Sample the algorithm but don't change it's state
         """
         sample_pop, state_ = self.algorithm.ask(state)
+        if self.pop_transform is not None:
+            sample_pop = self.pop_transform(sample_pop)
+
         return sample_pop, state
