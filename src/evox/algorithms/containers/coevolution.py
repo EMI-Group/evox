@@ -120,7 +120,7 @@ class Coevolution(Algorithm):
         self.dim = dim
         self.num_subpops = num_subpops
         self.subpop_size = subpop_size
-        self.num_subpop_iter = num_subpops
+        self.num_subpop_iter = num_subpop_iter
         self.random_subpop = random_subpop
         self.sub_dim = dim // num_subpops
 
