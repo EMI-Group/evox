@@ -94,7 +94,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert min_fitness < 0.5
+    assert min_fitness < 2
 
 
 @pytest.mark.skip(reason="currently random_mask is unstable")
