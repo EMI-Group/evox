@@ -18,6 +18,8 @@ class PSO(ex.Algorithm):
         inertia_weight=0.6,
         cognitive_coefficient=2.5,
         social_coefficient=0.8,
+        mean=None,
+        stdev=None,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -26,14 +28,27 @@ class PSO(ex.Algorithm):
         self.w = inertia_weight
         self.phi_p = cognitive_coefficient
         self.phi_g = social_coefficient
+        self.mean = mean
+        self.stdev = stdev
 
     def setup(self, key):
         state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
-        length = self.ub - self.lb
-        population = jax.random.uniform(init_pop_key, shape=(self.pop_size, self.dim))
-        population = population * length + self.lb
-        velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
-        velocity = velocity * length * 2 - length
+        if self.mean is not None and self.stdev is not None:
+            population = self.stdev * jax.random.normal(
+                init_pop_key, shape=(self.pop_size, self.dim)
+            )
+            population = jnp.clip(population, self.lb, self.ub)
+            velocity = self.stdev * jax.random.normal(
+                init_v_key, shape=(self.pop_size, self.dim)
+            )
+        else:
+            length = self.ub - self.lb
+            population = jax.random.uniform(
+                init_pop_key, shape=(self.pop_size, self.dim)
+            )
+            population = population * length + self.lb
+            velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
+            velocity = velocity * length * 2 - length
 
         return ex.State(
             population=population,

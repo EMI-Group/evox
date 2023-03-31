@@ -104,6 +104,7 @@ class CMAES(Algorithm):
             mean=self.init_mean,
             sigma=self.init_stdev,
             key=key,
+            population=jnp.empty((self.pop_size, self.dim)),
         )
 
     def ask(self, state):

@@ -87,13 +87,12 @@ class PGPE(evox.Algorithm):
             center=self.center_init,
             stdev=self.stdev,
             key=key,
+            noise=jnp.empty((self.pop_size // 2, self.dim)),
         )
 
     def ask(self, state):
         key, subkey = jax.random.split(state.key)
-        noise = (
-            jax.random.normal(subkey, (self.pop_size // 2, self.dim)) * state.stdev
-        )
+        noise = jax.random.normal(subkey, (self.pop_size // 2, self.dim)) * state.stdev
         D = jnp.concatenate([state.center + noise, state.center - noise], axis=0)
         return D, state.update(key=key, noise=noise)
 
