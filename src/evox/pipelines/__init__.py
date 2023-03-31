@@ -1,4 +1,5 @@
 from .standard import StdPipeline
+from .multidevice import MultiDevicePipeline
 from .gym import GymPipeline
 
 try:
