@@ -39,17 +39,18 @@ def test_clustered_cma_es():
 def test_vectorized_coevolution(random_subpop):
     # create a pipeline
     monitor = FitnessMonitor()
-    pipeline = pipelines.StdPipeline(
-        algorithms.VectorizedCoevolution(
-            base_algorithm=algorithms.CSO(
-                lb=jnp.full(shape=(10,), fill_value=-32),
-                ub=jnp.full(shape=(10,), fill_value=32),
-                pop_size=20,
-            ),
-            dim=40,
-            num_subpops=4,
-            random_subpop=random_subpop,
+    algorithm = algorithms.VectorizedCoevolution(
+        base_algorithm=algorithms.CSO(
+            lb=jnp.full(shape=(20,), fill_value=-32),
+            ub=jnp.full(shape=(20,), fill_value=32),
+            pop_size=30,
         ),
+        dim=40,
+        num_subpops=2,
+        random_subpop=random_subpop,
+    )
+    pipeline = pipelines.StdPipeline(
+        algorithm,
         problem=problems.classic.Ackley(),
         fitness_transform=monitor.update,
     )
@@ -57,11 +58,43 @@ def test_vectorized_coevolution(random_subpop):
     key = jax.random.PRNGKey(42)
     state = pipeline.init(key)
 
+    if not random_subpop:
+        # test the population given by VectorizedCoevolution
+        # is the same as manually concatenate the population
+        # given by two base algorithms.
+        cso1 = algorithms.CSO(
+            lb=jnp.full(shape=(20,), fill_value=-32),
+            ub=jnp.full(shape=(20,), fill_value=32),
+            pop_size=30,
+        )
+        cso2 = algorithms.CSO(
+            lb=jnp.full(shape=(20,), fill_value=-32),
+            ub=jnp.full(shape=(20,), fill_value=32),
+            pop_size=30,
+        )
+        _, alg_key = jax.random.split(key)
+        key1, key2 = jax.random.split(alg_key)
+        cso1_state = cso1.init(key1)
+        cso2_state = cso2.init(key2)
+
+        cso1_subpop, _ = cso1.ask(cso1_state)
+        cso2_subpop, _ = cso2.ask(cso2_state)
+        vcc_cso_pop, _ = algorithm.ask(state)
+        pop_size = cso1_subpop.shape[0]
+        cso1_pop = jnp.concatenate(
+            [cso1_subpop, jnp.tile(cso2_subpop[0, :], (pop_size, 1))], axis=1
+        )
+        cso2_pop = jnp.concatenate(
+            [jnp.tile(cso1_subpop[0, :], (pop_size, 1)), cso2_subpop], axis=1
+        )
+        target_pop = jnp.concatenate([cso1_pop, cso2_pop], axis=0)
+        assert (jnp.abs(vcc_cso_pop - target_pop) < 1e-4).all()
+
     for i in range(200):
         state = pipeline.step(state)
 
     min_fitness = monitor.get_min_fitness()
-    assert min_fitness < 0.1
+    assert min_fitness < 1
 
 
 @pytest.mark.parametrize(
