@@ -1,4 +1,9 @@
-# EvoX: A Distributed GPU-accelerated Library towards Scalable Evolutionary Computation
+<h1 align="center">
+  <img src=./logo.png alt="Logo" height="24em"/>
+  <strong>EvoX</strong>
+  <br>
+  A Distributed GPU-accelerated Library towards Scalable Evolutionary Computation
+</h1>
 
 <div align="center">
   <a href="https://evox.readthedocs.io/">
@@ -23,9 +28,12 @@
 
 ### Index
 
-- [Getting started](#getting-started)
+- [Features](#features)
+  - [Index](#index)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [More Tutorial](#more-tutorial)
-- [Example](#exmaple)
+- [Example](#example)
 
 ## Installation
 
