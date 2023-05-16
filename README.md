@@ -47,7 +47,7 @@ To start with, import `evox`
 
 ```python
 import evox
-from evox import algorithm, problem, pipeline
+from evox import algorithms, problems, pipelines
 ```
 
 Then, create an algorithm and a problem:
