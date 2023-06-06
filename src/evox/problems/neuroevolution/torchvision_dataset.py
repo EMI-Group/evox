@@ -197,7 +197,7 @@ class TorchvisionDataset(Problem):
             key, subkey = jax.random.split(state.key)
             permutation = self._new_permutation(subkey)
             return state.update(key=key, permutation=permutation, iter=0)
-            
+
         def batch_evaluate(i, state_and_acc):
             state, accumulator = state_and_acc
 
@@ -210,7 +210,7 @@ class TorchvisionDataset(Problem):
             data, labels = self.train_dataset[state.permutation[state.iter]]
             losses = self._calculate_loss(data, labels, batch_params)
             return state.update(iter=state.iter + 1), accumulator + losses
-        
+
         pop_size = tree_leaves(batch_params)[0].shape[0]
         state, total_loss = lax.fori_loop(
             0,
@@ -218,7 +218,7 @@ class TorchvisionDataset(Problem):
             batch_evaluate,
             (state, jnp.zeros((pop_size, )))
         )
-        return state, total_loss / self.batch_size / self.num_passes
+        return total_loss / self.batch_size / self.num_passes, state
 
     @partial(jit, static_argnums=[0, 2, 3])
     def _evaluate_in_memory_valid(self, state, dataset, metric_func, batch_params):
@@ -233,7 +233,7 @@ class TorchvisionDataset(Problem):
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
         losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
-        return state, losses / (num_batches * self.batch_size)
+        return losses / (num_batches * self.batch_size), state
 
     def _evaluate_train(self, state, batch_params):
         try:
@@ -248,7 +248,7 @@ class TorchvisionDataset(Problem):
         total_loss = jnp.zeros((pop_size, ))
         for _ in range(self.num_passes):
             total_loss += self._calculate_loss(data, labels, batch_params)
-        return state, total_loss / self.batch_size / self.num_passes
+        return total_loss / self.batch_size / self.num_passes, state
 
     def _evaluate_valid(self, state, dataset, metric_func, batch_params):
         valid_dataloader = DataLoader(
@@ -262,7 +262,7 @@ class TorchvisionDataset(Problem):
         accumulated_metric = 0
         for data, labels in valid_dataloader:
             accumulated_metric += metric_func(data, labels, batch_params)
-        return state, accumulated_metric / (len(valid_dataloader) * self.batch_size)
+        return accumulated_metric / (len(valid_dataloader) * self.batch_size), state
 
     def evaluate(self, state, batch_params):
         if state.metric == 0:
