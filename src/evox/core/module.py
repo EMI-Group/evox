@@ -193,18 +193,27 @@ class Stateful(metaclass=MetaStatefulModule):
         self._node_id = node_id
 
         child_states = {}
+
+        # Find all submodules and sort them according to their name.
+        # Sorting is important because it makes sure that the node_id
+        # is deterministic across different runs.
+        submodules = []
         for attr_name in vars(self):
             attr = getattr(self, attr_name)
             if not attr_name.startswith("_") and isinstance(attr, Stateful):
-                if key is None:
-                    subkey = None
-                else:
-                    key, subkey = jax.random.split(key)
-                submodule_state, node_id = attr._recursive_init(subkey, node_id + 1)
-                assert isinstance(
-                    submodule_state, State
-                ), "setup method must return a State"
-                child_states[attr_name] = submodule_state
+                submodules.append((attr_name, attr))
+        submodules.sort()
+
+        for attr_name, attr in submodules:
+            if key is None:
+                subkey = None
+            else:
+                key, subkey = jax.random.split(key)
+            submodule_state, node_id = attr._recursive_init(subkey, node_id + 1)
+            assert isinstance(
+                submodule_state, State
+            ), "setup method must return a State"
+            child_states[attr_name] = submodule_state
 
         return (
             self.setup(key)
