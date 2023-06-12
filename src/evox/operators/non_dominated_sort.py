@@ -18,8 +18,25 @@ def _dominate_relation(x, y):
 
 @jax.jit
 def non_dominated_sort(x, method="auto"):
-    """Perform non-dominated sort"""
-    assert method in ["auto", "scan", "full map-reduce"], "method must be either 'auto', 'scan', or 'full map-reduce'"
+    """Perform non-dominated sort
+    Parameters
+    ----------
+    x
+        An array with shape (n, m) where n is the population size, m is the number of objectives
+    method
+        Determine the jax operation used.
+        Default to "scan" on CPU and "full map-reduce" on GPU.
+
+    Returns
+    -------
+    jax.Array
+        A one-dimensional array representing the ranking, starts with 0.
+    """
+    assert method in [
+        "auto",
+        "scan",
+        "full map-reduce",
+    ], "method must be either 'auto', 'scan', or 'full map-reduce'"
     if method == "auto":
         backend = jax.default_backend()
         if backend == "cpu":
@@ -52,8 +69,7 @@ def non_dominated_sort(x, method="auto"):
 
         if method == "full map-reduce":
             count_desc = jnp.sum(
-                pareto_front[:, jnp.newaxis] * dominate_relation_matrix,
-                axis=0
+                pareto_front[:, jnp.newaxis] * dominate_relation_matrix, axis=0
             )
         else:
             count_desc, _ = lax.scan(
