@@ -1,10 +1,8 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 import pytest
 from evox import algorithms, pipelines, problems
-from evox.monitors import FitnessMonitor
-import chex
+from evox.monitors import StdSOMonitor
 
 
 @pytest.mark.skip(
@@ -13,7 +11,7 @@ import chex
 def test_clustered_cma_es():
     # create a pipeline
     init_mean = jnp.full((10,), fill_value=-20)
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.ClusterdAlgorithm(
             base_algorithm=algorithms.CMAES(init_mean, init_stdev=10, pop_size=10),
@@ -21,7 +19,7 @@ def test_clustered_cma_es():
             num_cluster=4,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -38,7 +36,7 @@ def test_clustered_cma_es():
 @pytest.mark.parametrize("random_subpop", [True, False])
 def test_vectorized_coevolution(random_subpop):
     # create a pipeline
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     algorithm = algorithms.VectorizedCoevolution(
         base_algorithm=algorithms.CSO(
             lb=jnp.full(shape=(20,), fill_value=-32),
@@ -52,7 +50,7 @@ def test_vectorized_coevolution(random_subpop):
     pipeline = pipelines.StdPipeline(
         algorithm,
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -102,7 +100,7 @@ def test_vectorized_coevolution(random_subpop):
 )
 def test_coevolution(random_subpop, num_subpop_iter):
     # create a pipeline
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.Coevolution(
             base_algorithm=algorithms.CSO(
@@ -117,7 +115,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
             random_subpop=random_subpop,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)
@@ -133,10 +131,10 @@ def test_coevolution(random_subpop, num_subpop_iter):
 @pytest.mark.skip(reason="currently random_mask is unstable")
 def test_random_mask_cso():
     # create a pipeline
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     pipeline = pipelines.StdPipeline(
         algorithms.RandomMaskAlgorithm(
-            base_algorithm=ex.algorithms.CSO(
+            base_algorithm=algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
                 ub=jnp.full(shape=(10,), fill_value=32),
                 pop_size=100,
@@ -148,7 +146,7 @@ def test_random_mask_cso():
             pop_size=50,
         ),
         problem=problems.classic.Ackley(),
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)

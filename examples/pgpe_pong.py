@@ -1,10 +1,11 @@
 import evox as ex
 from evox import pipelines, algorithms, problems
-from evox.monitors import FitnessMonitor
+from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
 from flax import linen as nn
+
 
 # https://docs.ray.io/en/latest/ray-core/examples/plot_pong_example.html
 def pong_preprocess(img):
@@ -40,8 +41,8 @@ model_key, pipeline_key = jax.random.split(key)
 model = PongPolicy()
 params = model.init(model_key, jnp.zeros((210, 160, 3)))
 adapter = TreeAndVector(params)
-monitor = FitnessMonitor()
-problem = problems.neuroevolution.Gym(
+monitor = StdSOMonitor()
+problem = problems.rl.Gym(
     env_name="ALE/Pong-v5",
     env_options={"full_action_space": False},
     policy=jax.jit(model.apply),
@@ -64,7 +65,7 @@ pipeline = pipelines.StdPipeline(
     ),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
-    fitness_transform=monitor.update,
+    fitness_transform=monitor.record_fit,
 )
 # init the pipeline
 state = pipeline.init(pipeline_key)
@@ -78,4 +79,3 @@ sample_pop, state = pipeline.sample(state)
 # the result should be close to 0
 min_fitness = monitor.get_min_fitness()
 print(min_fitness)
-print(monitor.history)

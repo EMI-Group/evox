@@ -54,12 +54,12 @@ Usually, we don't care about the final state of the pipeline, instead, we are mo
 
 The ``monitor`` is the way to record these values in EvoX.
 
-First, import monitos and create a monitor
+First, import monitors and create a monitor
 
 .. code-block:: python
 
-    from evox.monitors import FitnessMonitor
-    monitor = FitnessMonitor()
+    from evox.monitors import StdSOMonitor
+    monitor = StdSOMonitor()
 
 Then set this monitor as the fitness transform for the pipeline
 
@@ -68,10 +68,10 @@ Then set this monitor as the fitness transform for the pipeline
     pipeline = pipelines.StdPipeline(
         pso,
         ackley,
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
 
-Then continue to run the pipeline as ususal. now at each iteration, the pipeline will call ``monitor.update`` with the fitness at that iteration.
+Then continue to run the pipeline as ususal. now at each iteration, the pipeline will call ``monitor.record_fit`` with the fitness at that iteration.
 
 .. code-block:: python
     # init the pipeline

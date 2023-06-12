@@ -5,8 +5,7 @@ import jax
 import jax.numpy as jnp
 from jax import pmap
 
-from evox import Algorithm, Problem, State, Stateful, jit_method
-from evox.monitors import FitnessMonitor, PopulationMonitor
+from evox import Algorithm, Problem, State, Stateful
 
 
 class MultiDevicePipeline(Stateful):
@@ -123,7 +122,9 @@ class MultiDevicePipeline(Stateful):
         )
 
     def valid(self, state: State, metric: str = "loss") -> Tuple[jax.Array, State]:
-        new_pro_state = pmap(partial(self.problem.valid, metric=metric))(state.pro_states)
+        new_pro_state = pmap(partial(self.problem.valid, metric=metric))(
+            state.pro_states
+        )
         pop, new_state = self.pmap_alg_ask(new_state)
         if self.pop_transform is not None:
             pop = self.pop_transform(pop)
@@ -132,8 +133,7 @@ class MultiDevicePipeline(Stateful):
         return fitness, state
 
     def sample(self, state: State):
-        """Sample the algorithm but don't change it's state
-        """
+        """Sample the algorithm but don't change it's state"""
         sample_pop, state_ = self.pmap_alg_ask(state)
         if self.pop_transform is not None:
             sample_pop = self.pop_transform(sample_pop)

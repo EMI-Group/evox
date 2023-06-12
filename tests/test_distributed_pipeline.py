@@ -1,13 +1,13 @@
 import evox as ex
 from evox import pipelines, algorithms, problems
-from evox.monitors import FitnessMonitor
+from evox.monitors import StdSOMonitor
 import jax
 import jax.numpy as jnp
 import pytest
 
 
 def test_distributed_cso():
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     # create a pipeline
     pipeline = pipelines.DistributedPipeline(
         algorithm=algorithms.CSO(
@@ -18,11 +18,8 @@ def test_distributed_cso():
         problem=problems.classic.Ackley(),
         pop_size=10,
         num_workers=2,
-        global_fitness_transform=monitor.update,
-        options={
-            "num_cpus": 0.5, # just for testing purpose
-            "num_gpus": 0
-        }
+        global_fitness_transform=monitor.record_fit,
+        options={"num_cpus": 0.5, "num_gpus": 0},  # just for testing purpose
     )
     # init the pipeline
     key = jax.random.PRNGKey(42)

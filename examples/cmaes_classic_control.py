@@ -1,5 +1,5 @@
 from evox import pipelines, algorithms, problems
-from evox.monitors import FitnessMonitor
+from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
@@ -8,16 +8,19 @@ from flax import linen as nn
 # change here only
 gym_name = "Pendulum-v1"
 
+
 def tanh2(x):
-    return 2*nn.tanh(x)
+    return 2 * nn.tanh(x)
+
 
 policy_params = {
-    "Acrobot-v1":(3, (6,), jnp.argmax),
-    "CartPole-v1":(2, (4,), jnp.argmax),
-    "MountainCarContinuous-v0":(1, (2,), nn.tanh),
-    "MountainCar-v0":(3, (2,), jnp.argmax),
-    "Pendulum-v1":(1, (3,), tanh2)
+    "Acrobot-v1": (3, (6,), jnp.argmax),
+    "CartPole-v1": (2, (4,), jnp.argmax),
+    "MountainCarContinuous-v0": (1, (2,), nn.tanh),
+    "MountainCar-v0": (3, (2,), jnp.argmax),
+    "Pendulum-v1": (1, (3,), tanh2),
 }
+
 
 class ClassicPolicy(nn.Module):
     """A simple model for Classic Control problem"""
@@ -31,14 +34,15 @@ class ClassicPolicy(nn.Module):
 
         return policy_params[gym_name][2](x)
 
+
 key = jax.random.PRNGKey(42)
 model_key, pipeline_key = jax.random.split(key)
 
 model = ClassicPolicy()
 params = model.init(model_key, jnp.zeros(policy_params[gym_name][1]))
 adapter = TreeAndVector(params)
-monitor = FitnessMonitor()
-problem = problems.neuroevolution.Gym(
+monitor = StdSOMonitor()
+problem = problems.rl.Gym(
     env_name=gym_name,
     policy=jax.jit(model.apply),
     num_workers=16,
@@ -53,14 +57,10 @@ problem = problems.neuroevolution.Gym(
 center = adapter.to_vector(params)
 # create a pipeline
 pipeline = pipelines.StdPipeline(
-    algorithm=algorithms.CMAES(
-        init_mean=center,
-        init_stdev=1,
-        pop_size=64
-    ),
+    algorithm=algorithms.CMAES(init_mean=center, init_stdev=1, pop_size=64),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
-    fitness_transform=monitor.update,
+    fitness_transform=monitor.record_fit,
 )
 # init the pipeline
 state = pipeline.init(pipeline_key)
@@ -74,4 +74,3 @@ sample_pop, state = pipeline.sample(state)
 
 min_fitness = monitor.get_min_fitness()
 print(min_fitness)
-print(monitor.history)

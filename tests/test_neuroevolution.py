@@ -6,8 +6,7 @@ import jax.numpy as jnp
 import pytest
 from flax import linen as nn
 from evox import algorithms, pipelines, problems
-from evox.monitors import FitnessMonitor
-
+from evox.monitors import StdSOMonitor
 
 
 class PartialPGPE(ex.algorithms.PGPE):
@@ -22,14 +21,14 @@ class SimpleCNN(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        x = nn.Conv(features=6, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.Conv(features=6, kernel_size=(3, 3), padding="SAME")(x)
         x = nn.relu(x)
-        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding="SAME")(x)
         x = nn.relu(x)
         x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
-        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding="SAME")(x)
         x = nn.relu(x)
-        x = nn.Conv(features=16, kernel_size=(3, 3), padding='SAME')(x)
+        x = nn.Conv(features=16, kernel_size=(3, 3), padding="SAME")(x)
         x = nn.relu(x)
         x = nn.max_pool(x, window_shape=(2, 2), strides=(2, 2))
 
@@ -45,7 +44,10 @@ def init_problem_and_model(key):
     batch_size = 64
     initial_params = model.init(key, jnp.zeros((batch_size, 32, 32, 3)))
     problem = ex.problems.neuroevolution.TorchvisionDataset(
-        root="./datasets", batch_size=batch_size, forward_func=model.apply, dataset_name="cifar10"
+        root="./datasets",
+        batch_size=batch_size,
+        forward_func=model.apply,
+        dataset_name="cifar10",
     )
     return initial_params, problem
 
@@ -62,11 +64,11 @@ def test_neuroevolution_treemap():
         lambda x: x.reshape(-1),
         initial_params,
     )
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     pipeline = pipelines.StdPipeline(
         algorithm=ex.algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     state = pipeline.init(pipeline_key)
@@ -88,7 +90,7 @@ def test_neuroevolution_adapter():
 
     start = time.perf_counter()
     adapter = ex.utils.TreeAndVector(initial_params)
-    monitor = FitnessMonitor()
+    monitor = StdSOMonitor()
     algorithm = algorithms.PGPE(
         100,
         adapter.to_vector(initial_params),
@@ -100,7 +102,7 @@ def test_neuroevolution_adapter():
         algorithm=algorithm,
         problem=problem,
         pop_transform=adapter.batched_to_tree,
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     state = pipeline.init(key)

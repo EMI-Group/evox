@@ -1,6 +1,6 @@
 import evox as ex
 from evox import pipelines, algorithms, problems
-from evox.monitors import FitnessMonitor
+from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
@@ -28,8 +28,8 @@ def test_cartpole(batch_policy):
     model = CartpolePolicy()
     params = model.init(model_key, jnp.zeros((4,)))
     adapter = TreeAndVector(params)
-    monitor = FitnessMonitor()
-    problem = problems.neuroevolution.Gym(
+    monitor = StdSOMonitor()
+    problem = problems.rl.Gym(
         policy=jax.jit(model.apply),
         num_workers=4,
         env_per_worker=10,
@@ -50,7 +50,7 @@ def test_cartpole(batch_policy):
         ),
         problem=problem,
         pop_transform=adapter.batched_to_tree,
-        fitness_transform=monitor.update,
+        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     state = pipeline.init(pipeline_key)

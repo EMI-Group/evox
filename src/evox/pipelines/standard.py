@@ -1,6 +1,5 @@
 from evox import Stateful
 from evox import Algorithm, Problem
-from evox.monitors import FitnessMonitor, PopulationMonitor
 from typing import Optional, Callable
 
 
@@ -10,7 +9,8 @@ class StdPipeline(Stateful):
         algorithm: Algorithm,
         problem: Problem,
         pop_transform: Optional[Callable] = None,
-        fitness_transform: Optional[Callable] = None):
+        fitness_transform: Optional[Callable] = None,
+    ):
         self.algorithm = algorithm
         self.problem = problem
         self.pop_transform = pop_transform
@@ -40,8 +40,7 @@ class StdPipeline(Stateful):
         return fitness, state
 
     def sample(self, state):
-        """Sample the algorithm but don't change it's state
-        """
+        """Sample the algorithm but don't change it's state"""
         sample_pop, state_ = self.algorithm.ask(state)
         if self.pop_transform is not None:
             sample_pop = self.pop_transform(sample_pop)

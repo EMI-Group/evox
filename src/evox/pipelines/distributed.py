@@ -8,7 +8,6 @@ import ray
 from jax.tree_util import tree_flatten
 
 from evox import Algorithm, Problem, State, Stateful
-from evox.monitors import FitnessMonitor, PopulationMonitor
 
 
 class WorkerPipeline(Stateful):
@@ -68,11 +67,7 @@ class WorkerPipeline(Stateful):
 
 @ray.remote
 class Worker:
-    def __init__(
-        self,
-        pipeline: WorkerPipeline,
-        worker_index: int
-    ):
+    def __init__(self, pipeline: WorkerPipeline, worker_index: int):
         self.pipeline = pipeline
         self.worker_index = worker_index
 
