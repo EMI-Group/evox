@@ -14,7 +14,6 @@ let
     jax
     jaxlib
     optax
-    bokeh
   ];
 
   doc-dependencies = with python.pkgs; [
