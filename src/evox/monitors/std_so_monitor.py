@@ -40,7 +40,11 @@ class StdSOMonitor:
                 self.topk_fitness = current_min_fit
                 if self.current_population is not None:
                     individual_index = jnp.argmin(fitness)
-                    self.topk_solutions = self.current_population[individual_index]
+                    # use slice to keepdim,
+                    # because topk_solutions should have dim of (1, dim)
+                    self.topk_solutions = self.current_population[
+                        individual_index : individual_index + 1
+                    ]
         else:
             # since topk > 1, we have to sort the fitness
             if self.topk_fitness is None:

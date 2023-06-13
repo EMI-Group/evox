@@ -34,7 +34,9 @@ class StdMOMonitor:
         return pop
 
     def record_fit(self, fitness):
-        self.fitness_history.append(fitness)
+        if self.record_fit_history:
+            self.fitness_history.append(fitness)
+
         if self.record_pf:
             if self.pf_fitness is None:
                 self.pf_fitness = fitness
