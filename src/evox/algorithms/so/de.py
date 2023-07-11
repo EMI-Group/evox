@@ -15,10 +15,9 @@ class DE(ex.Algorithm):
         pop_size,
         base_vector="rand",
         num_difference_vectors=1,
-
         differential_weight=0.5,
         cross_probability=0.9,
-        #batch_size=100,
+        batch_size=100,
         mean = None,
         stdvar = None,
     ):
@@ -87,7 +86,6 @@ class DE(ex.Algorithm):
         )(indices, R, random_choiced=random_choices, mask=masks)
         
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key) 
-
     
     def _ask_one(self, index, R, population, best_index, random_choiced, mask): 
         random_choiced = jnp.where(
@@ -99,11 +97,8 @@ class DE(ex.Algorithm):
         else:
             base_vector = population[random_choiced[0], :]
 
-
         difference_vectors = population[random_choiced[1:], :] 
-
         subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)  
-        
         mutation_vectors = (                       
             jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0) 
             * self.differential_weight
