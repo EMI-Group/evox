@@ -1,22 +1,22 @@
-from .cso import CSO
-from .pso import PSO
-from .pgpe import PGPE
-from .de import DE
-from .cma_es import CMAES, SepCMAES, IPOPCMAES, BIPOPCMAES
-from .nes import xNES, SeparableNES
-from .open_es import OpenES
-from .ars import ARS
 from .amalgam import AMaLGaM, IndependentAMaLGaM
-from .ma_es import MAES, LMMAES
-from .rmes import RMES
+from .ars import ARS
 from .asebo import ASEBO
-from .noise_reuse_es import Noise_reuse_es
-from .snes import SNES
+from .cma_es import BIPOPCMAES, CMAES, IPOPCMAES, SepCMAES
 from .cr_fm_nes import CR_FM_NES
+from .cso import CSO
+from .de import DE
+from .de_lib import SHADE, CoDE, JaDE, SaDE
 from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
 from .les import LES
+from .ma_es import LMMAES, MAES
+from .nes import SeparableNES, xNES
+from .noise_reuse_es import Noise_reuse_es
+from .open_es import OpenES
 from .persistent_es import PersistentES
-
+from .pgpe import PGPE
+from .pso import PSO
 from .pso_vatients import *
+from .rmes import RMES
+from .snes import SNES
