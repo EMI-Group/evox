@@ -5,3 +5,4 @@ from .de import DE
 from .cma_es import CMAES, SepCMAES
 from .nes import xNES, SeparableNES
 from .open_es import OpenES
+from .de_lib import SaDE, JaDE, CoDE, SHADE
