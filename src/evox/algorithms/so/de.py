@@ -1,13 +1,14 @@
 from functools import partial
 
-import evox as ex
 import jax
 import jax.numpy as jnp
-from jax import lax, vmap
+from jax import vmap
+
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class DE(ex.Algorithm):
+@jit_class
+class DE(Algorithm):
     def __init__(
         self,
         lb,
@@ -17,6 +18,7 @@ class DE(ex.Algorithm):
         num_difference_vectors=1,
         differential_weight=0.5,
         cross_probability=0.9,
+        batch_size=100,
         mean=None,
         stdvar=None,
     ):
@@ -34,7 +36,7 @@ class DE(ex.Algorithm):
         self.ub = ub
         self.pop_size = pop_size
         self.base_vector = base_vector
-        self.batch_size = pop_size
+        self.batch_size = batch_size
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
         self.mean = mean
@@ -54,7 +56,7 @@ class DE(ex.Algorithm):
         best_index = 0
         start_index = 0
 
-        return ex.State(
+        return State(
             population=population,
             fitness=fitness,
             best_index=best_index,
@@ -106,9 +108,7 @@ class DE(ex.Algorithm):
             base_vector = population[random_choiced[0], :]
 
         difference_vectors = population[random_choiced[1:], :]
-
         subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)
-
         mutation_vectors = (
             jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0)
             * self.differential_weight
