@@ -4,7 +4,7 @@ import evox as ex
 import jax
 import jax.numpy as jnp
 from jax import lax, vmap
-
+from jax.experimental.host_callback import id_print
 
 @ex.jit_class
 class DE(ex.Algorithm):
@@ -13,22 +13,22 @@ class DE(ex.Algorithm):
         lb,
         ub,
         pop_size,
-        base_vector="best",
+        base_vector="rand",
         num_difference_vectors=1,
+
+        differential_weight=0.5,
         cross_probability=0.9,
-        differential_weight=0.8,
-        batch_size=1,
+        #batch_size=100,
         mean = None,
-        stdvar = None
+        stdvar = None,
     ):
         assert jnp.all(lb < ub)
         assert pop_size >= 4
-        assert cross_probability > 0 and cross_probability < 1
-        assert pop_size % batch_size == 0
+        assert cross_probability > 0 and cross_probability <= 1
         assert base_vector in [
             "rand",
             "best",
-        ], "base_vector must be either 'best' or 'rand'"
+        ]
 
         self.num_difference_vectors = num_difference_vectors
         self.dim = lb.shape[0]
@@ -36,14 +36,13 @@ class DE(ex.Algorithm):
         self.ub = ub
         self.pop_size = pop_size
         self.base_vector = base_vector
-        self.batch_size = batch_size
+        self.batch_size = pop_size 
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
-        self.batch_size = batch_size
         self.mean = mean
         self.stdvar = stdvar
 
-    def setup(self, key):
+    def setup(self, key): 
         state_key, init_key = jax.random.split(key)
         if self.mean is not None and self.stdvar is not None:
             population = self.stdvar * jax.random.normal(init_key, shape=(self.pop_size, self.dim))
@@ -53,7 +52,7 @@ class DE(ex.Algorithm):
             population = population * (self.ub - self.lb) + self.lb
         fitness = jnp.full((self.pop_size,), jnp.inf)
         best_index = 0
-        start_index = 0
+        start_index = 0 
 
         return ex.State(
             population=population,
@@ -61,73 +60,72 @@ class DE(ex.Algorithm):
             best_index=best_index,
             start_index=start_index,
             key=state_key,
+            trial_vectors = jnp.empty((self.batch_size, self.dim)),
         )
 
     def ask(self, state):
-        key, ask_one_key, R_key = jax.random.split(state.key, 3)
+        key, R_key = jax.random.split(state.key, 2) 
+
+        indices = jnp.arange(self.batch_size) + state.start_index 
+
+        choice_keys = jax.random.split(R_key, self.batch_size)
+        random_choices = vmap(partial(jax.random.choice, a=self.pop_size, shape=(self.num_difference_vectors * 2 + 1,), replace=False))(choice_keys)
+
         R = jax.random.choice(R_key, self.dim, shape=(self.batch_size,))
-        ask_one_keys = jax.random.split(ask_one_key, self.batch_size)
-        indices = jnp.arange(self.batch_size) + state.start_index
-        trial_vectors = vmap(
+        masks_init = (
+            jax.random.uniform(R_key, shape=(self.batch_size, self.dim))
+            < self.cross_probability
+        )
+        tile_arange = jnp.tile(jnp.arange(self.dim), (self.batch_size, 1))
+        tile_R = jnp.tile(R[:, jnp.newaxis], (1, self.dim))
+        masks = jnp.where(tile_arange == tile_R, True, masks_init)
+  
+        trial_vectors = vmap(                                           
             partial(
-                self._ask_one, population=state.population, best_index=state.best_index
+                self._ask_one, population=state.population, best_index=state.best_index  
             )
-        )(ask_one_keys, indices, R)
+        )(indices, R, random_choiced=random_choices, mask=masks)
+        
+        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key) 
 
-        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
-
-    def _ask_one(self, key, index, R, population, best_index):
-        # index is the index of the "agent"
-        # R is the dim that must change
-
-        # first sample from [0, pop_size - 1), then replace best_index with pop_size - 1
-        # this can ensure the same vector is not selected.
-        select_key, crossover_key = jax.random.split(key)
-        random_choiced = jax.random.choice(
-            select_key,
-            self.pop_size - 1,
-            shape=(self.num_difference_vectors + 1,),
-            replace=False,
-        )
+    
+    def _ask_one(self, index, R, population, best_index, random_choiced, mask): 
         random_choiced = jnp.where(
-            random_choiced == index, self.pop_size - 1, random_choiced
+            random_choiced == index, self.pop_size - 1, random_choiced  
         )
 
-        if self.base_vector == "best":
+        if self.base_vector == "best":   
             base_vector = population[best_index, :]
         else:
             base_vector = population[random_choiced[0], :]
 
-        difference_vectors = population[random_choiced[1:], :]
 
-        mutation_vectors = (
-            jnp.sum(difference_vectors.at[1:, :].multiply(-1), axis=0)
+        difference_vectors = population[random_choiced[1:], :] 
+
+        subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)  
+        
+        mutation_vectors = (                       
+            jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0) 
             * self.differential_weight
             + base_vector
         )
 
-        mask = (
-            jax.random.uniform(crossover_key, shape=(self.dim,))
-            < self.cross_probability
-        )
-        mask = mask.at[R].set(True)
+        trial_vector = jnp.where(mask, mutation_vectors, population[index],)
+        trial_vector = jnp.clip(trial_vector, self.lb, self.ub)
 
-        return jnp.where(
-            mask,
-            mutation_vectors,
-            population[index],
-        )
+        return trial_vector
 
-    def tell(self, state, trial_fitness):
+    def tell(self, state, trial_fitness): 
         start_index = state.start_index
-        batch_pop = jax.lax.dynamic_slice_in_dim(
+        batch_pop = jax.lax.dynamic_slice_in_dim( 
             state.population, start_index, self.batch_size, axis=0
         )
         batch_fitness = jax.lax.dynamic_slice_in_dim(
             state.fitness, start_index, self.batch_size, axis=0
         )
 
-        compare = trial_fitness < batch_fitness
+        compare = trial_fitness < batch_fitness 
+
         population_update = jnp.where(
             compare[:, jnp.newaxis], state.trial_vectors, batch_pop
         )
@@ -140,7 +138,7 @@ class DE(ex.Algorithm):
             state.fitness, fitness_update, start_index, axis=0
         )
         best_index = jnp.argmin(fitness)
-        start_index = (state.start_index + self.batch_size) % self.pop_size
+        start_index = (state.start_index + self.batch_size) % self.pop_size 
         return state.update(
             population=population,
             fitness=fitness,
