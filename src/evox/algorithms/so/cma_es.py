@@ -12,7 +12,7 @@ from .sort_utils import sort_by_key
 @evox.jit_class
 class CMAES(Algorithm):
     def __init__(
-        self, init_mean, init_stdev, pop_size=None, recombination_weights=None, cm=1
+        self, center_init, init_stdev, pop_size=None, recombination_weights=None, cm=1
     ):
         """
         This implementation follows `The CMA Evolution Strategy: A Tutorial <https://arxiv.org/pdf/1604.00772.pdf>`_.
@@ -22,10 +22,10 @@ class CMAES(Algorithm):
             which introduces relatively large numerical error,
             and may lead to non-deterministic behavior on different hardware backends.
         """
-        self.init_mean = init_mean
+        self.center_init = center_init
         assert init_stdev > 0, "Expect variance to be a non-negative float"
         self.init_stdev = init_stdev
-        self.dim = init_mean.shape[0]
+        self.dim = center_init.shape[0]
         self.cm = cm
         if pop_size is None:
             # auto
@@ -101,7 +101,7 @@ class CMAES(Algorithm):
             count_eigen=0,
             count_iter=0,
             invsqrtC=C,
-            mean=self.init_mean,
+            mean=self.center_init,
             sigma=self.init_stdev,
             key=key,
             population=jnp.empty((self.pop_size, self.dim)),
@@ -189,7 +189,7 @@ class SepCMAES(CMAES):
             ps=ps,
             C=C,
             count_iter=0,
-            mean=self.init_mean,
+            mean=self.center_init,
             sigma=self.init_stdev,
             key=key,
         )
