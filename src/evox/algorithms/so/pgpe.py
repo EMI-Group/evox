@@ -73,7 +73,7 @@ class PGPE(evox.Algorithm):
         elif optimizer == "clipup":
             optimizer = ClipUp(
                 step_size=0.15, max_speed=0.3, momentum=0.9, params=center_init
-            )
+        )
 
         if isinstance(optimizer, optax.GradientTransformation):
             self.optimizer = evox.utils.OptaxWrapper(optimizer, center_init)

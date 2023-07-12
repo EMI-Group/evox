@@ -20,8 +20,8 @@ class ClassicPolicy(nn.Module):
         return jnp.argmax(x)
 
 
-def cartpole(al: type, **kwargs):
-    key = jax.random.PRNGKey(42)
+def cartpole(seed, al: type, **kwargs):
+    key = jax.random.PRNGKey(seed)
     model_key, pipeline_key = jax.random.split(key)
 
     model = ClassicPolicy()
@@ -53,25 +53,61 @@ def cartpole(al: type, **kwargs):
     state = pipeline.init(key)
 
     # run the pipeline for 10 steps
-    for i in range(20):
+    for i in range(50):
         state = pipeline.step(state)
+        if monitor.get_min_fitness() == -500:
+            break
         # print(monitor.get_min_fitness())
 
     # obtain 500
     min_fitness = monitor.get_min_fitness()
     # cartpole is simple. expect to obtain max score(500) in each algorithm
-    assert min_fitness == -500
+    return min_fitness == -500
 
 
-def test_cma_es():
-    cartpole(algorithms.CMAES, init_stdev=1)
+def test_cma_es_0():
+    assert cartpole(0, algorithms.CMAES, init_stdev=1)
 
 
-def test_pgpe():
-    cartpole(algorithms.PGPE, optimizer="adam")
+def test_cma_es_1():
+    assert cartpole(1, algorithms.CMAES, init_stdev=1)
 
 
-def test_open_es():
-    cartpole(algorithms.OpenES, learning_rate=0.02, noise_stdev=0.02, mirrored_sampling=True, optimizer="adam")
+def test_cma_es_2():
+    assert cartpole(2, algorithms.CMAES, init_stdev=1)
 
 
+def test_pgpe_0():
+    assert cartpole(0, algorithms.PGPE, optimizer="adam")
+
+
+def test_pgpe_1():
+    assert cartpole(1, algorithms.PGPE, optimizer="adam")
+
+
+def test_pgpe_2():
+    assert cartpole(2, algorithms.PGPE, optimizer="adam")
+
+
+def test_open_es_0():
+    assert cartpole(0, algorithms.OpenES, learning_rate=0.2, noise_stdev=0.2, mirrored_sampling=True)
+
+
+def test_open_es_1():
+    assert cartpole(1, algorithms.OpenES, learning_rate=0.2, noise_stdev=0.2, mirrored_sampling=True)
+
+
+def test_open_es_2():
+    assert cartpole(2, algorithms.OpenES, learning_rate=0.2, noise_stdev=0.2, mirrored_sampling=True)
+
+
+def test_ars_0():
+    assert cartpole(0, algorithms.ARS)
+
+
+def test_ars_1():
+    assert cartpole(1, algorithms.ARS)
+
+
+def test_ars_2():
+    assert cartpole(2, algorithms.ARS)

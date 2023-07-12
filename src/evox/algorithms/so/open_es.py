@@ -8,13 +8,13 @@ import evox
 @evox.jit_class
 class OpenES(evox.Algorithm):
     def __init__(
-        self,
-        center_init,
-        pop_size,
-        learning_rate,
-        noise_stdev,
-        optimizer=None,
-        mirrored_sampling=True,
+            self,
+            center_init,
+            pop_size,
+            learning_rate,
+            noise_stdev,
+            optimizer=None,
+            mirrored_sampling=True,
     ):
         """
         Implement the algorithm described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning"
@@ -26,7 +26,7 @@ class OpenES(evox.Algorithm):
 
         if mirrored_sampling is True:
             assert (
-                pop_size % 2 == 0
+                    pop_size % 2 == 0
             ), "When mirrored_sampling is True, pop_size must be a multiple of 2."
 
         self.dim = center_init.shape[0]
