@@ -20,3 +20,7 @@ from .pso import PSO
 from .pso_vatients import *
 from .rmes import RMES
 from .snes import SNES
+from .code import CoDE
+from .jade import JaDE
+from .sade import SaDE
+from .shade import SHADE
