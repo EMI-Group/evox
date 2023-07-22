@@ -111,3 +111,48 @@ def test_ars_1():
 
 def test_ars_2():
     assert cartpole(2, algorithms.ARS)
+    
+def test_sepcma_0():
+    assert cartpole(0, algorithms.SepCMAES,init_stdev=1)
+
+def test_sepcma_1():
+    assert cartpole(1, algorithms.SepCMAES,init_stdev=1)
+
+def test_sepcma_2():
+    assert cartpole(2, algorithms.SepCMAES,init_stdev=1)
+
+def test_ipopcma_0():
+    assert cartpole(0, algorithms.IPOPCMAES,init_stdev=1)
+
+def test_ipopcma_1():     
+    assert cartpole(1, algorithms.IPOPCMAES,init_stdev=1)
+
+def test_ipopcma_2():          
+    assert cartpole(2, algorithms.IPOPCMAES,init_stdev=1)
+
+def test_bipopcma_0():               
+    assert cartpole(0, algorithms.BIPOPCMAES,init_stdev=1)
+
+def test_bipopcma_1():                    
+    assert cartpole(1, algorithms.BIPOPCMAES,init_stdev=1)
+
+def test_bipopcma_2():                         
+    assert cartpole(2, algorithms.BIPOPCMAES,init_stdev=1)
+
+def test_amalgam_0():
+    assert cartpole(0, algorithms.AMaLGaM,init_stdev=1)
+
+def test_amalgam_1():     
+    assert cartpole(1, algorithms.AMaLGaM,init_stdev=1)
+
+def test_amalgam_2():          
+    assert cartpole(2, algorithms.AMaLGaM,init_stdev=1)
+
+def test_independent_amalgam_0():               
+    assert cartpole(0, algorithms.IndependentAMaLGaM,init_stdev=1) 
+
+def test_independent_amalgam_1():
+    assert cartpole(1, algorithms.IndependentAMaLGaM,init_stdev=1)
+
+def test_independent_amalgam_2():
+    assert cartpole(2, algorithms.IndependentAMaLGaM,init_stdev=1)     

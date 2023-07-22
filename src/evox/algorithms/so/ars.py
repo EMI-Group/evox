@@ -6,7 +6,6 @@ Simple random search provides a competitive approach to reinforcement learning
 import jax
 import jax.numpy as jnp
 import optax
-
 import evox
 
 
