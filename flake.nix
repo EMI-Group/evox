@@ -1,7 +1,7 @@
 {
   description = "evox";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:ogoid/nixpkgs/fixup-missing-cudnn";
     utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -14,15 +14,17 @@
     with nixpkgs.lib;
     eachSystem (with system; [ x86_64-linux ]) (system:
       let
-        generic-builder = import ./generic.nix;
-        with-cuda = generic-builder { inherit system nixpkgs; cudaSupport = true; };
-        cpu-only = generic-builder { inherit system nixpkgs; cudaSupport = false; };
-        total = recursiveUpdate with-cuda cpu-only;
+        builder = import ./dev_env_builder.nix;
+        cuda-env = builder { inherit system nixpkgs; cudaSupport = true; };
+        cpu-env = builder { inherit system nixpkgs; cudaSupport = false; };
       in
-      recursiveUpdate total {
-        devShells.default = total.devShells.cpu;
-        packages.default = total.packages.cpu;
-        devShells.fhs = import ./fhs.nix { inherit nixpkgs system; cudaSupport=true; };
+      {
+        devShells.default = cpu-env;
+        devShells.cpu = cpu-env;
+        devShells.cuda = cuda-env;
+        devShells.fhs = import ./fhs.nix {
+          inherit nixpkgs system; cudaSupport=true;
+        };
       }
     );
 }
