@@ -26,7 +26,7 @@ def use_state(func: Callable):
     def wrapper(self, state: State, *args, **kwargs):
         assert isinstance(self, Stateful) and isinstance(state, State)
         # find the state that match the current module
-        path, matched_state = state.find_path_to(self._node_id)
+        path, matched_state = state.find_path_to(self._node_id, self._module_name)
 
         return_value = func(self, matched_state, *args, **kwargs)
 
@@ -184,13 +184,14 @@ class Stateful(metaclass=MetaStatefulModule):
         """
         return State()
 
-    def _recursive_init(self, key, node_id) -> Tuple[State, int]:
+    def _recursive_init(self, key, node_id, module_name) -> Tuple[State, int]:
         if hasattr(self, "_node_id") and self._node_id is not None:
             warnings.warn(
                 "Trying to re-initialize a Stateful module that is already initialized"
             )
 
         self._node_id = node_id
+        self._module_name = module_name
 
         child_states = {}
 
@@ -209,7 +210,7 @@ class Stateful(metaclass=MetaStatefulModule):
                 subkey = None
             else:
                 key, subkey = jax.random.split(key)
-            submodule_state, node_id = attr._recursive_init(subkey, node_id + 1)
+            submodule_state, node_id = attr._recursive_init(subkey, node_id + 1, attr_name)
             assert isinstance(
                 submodule_state, State
             ), "setup method must return a State"
@@ -237,5 +238,5 @@ class Stateful(metaclass=MetaStatefulModule):
         State
             The state of this module and all submodules combined.
         """
-        state, _node_id = self._recursive_init(key, 0)
+        state, _node_id = self._recursive_init(key, 0, None)
         return state
