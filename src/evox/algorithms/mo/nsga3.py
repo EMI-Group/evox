@@ -5,6 +5,7 @@ import jax.numpy as jnp
 from evox.operators.selection import UniformRandomSelection
 from evox.operators.mutation import GaussianMutation, PmMutation
 from evox.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
+from evox.operators.sampling import UniformSampling
 from evox.operators import non_dominated_sort, crowding_distance_sort
 
 
@@ -21,6 +22,7 @@ class NSGA2(ex.Algorithm):
         ub,
         n_objs,
         pop_size,
+        ref=None,
         selection=UniformRandomSelection(p=0.5),
         mutation=GaussianMutation(),
         # mutation=PmMutation(),
@@ -32,6 +34,7 @@ class NSGA2(ex.Algorithm):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
+        self.ref = ref if ref else UniformSampling(n_objs, pop_size).random()
 
         self.selection = selection
         self.mutation = mutation
@@ -86,10 +89,38 @@ class NSGA2(ex.Algorithm):
         order = jnp.argsort(rank)
         worst_rank = rank[order[self.pop_size]]
         mask = rank == worst_rank
-        crowding_distance = crowding_distance_sort(merged_fitness, mask)
+        
+        def loop_body(i, state):
+            fitness, ex_idx = state
+            weight = jnp.full(self.n_objs, 1e-6).at[i].set(1)
+            asf = fitness / weight
+            idx = jnp.argmin(jnp.max(asf, axis=1))
+            ex_idx = ex_idx.at[i].set(idx)
+            return (fitness, ex_idx)
+        
+        ideal = jnp.min(merged_fitness, axis=0)
+        ex_idx = jnp.empty(self.n_objs)
+        jax.lax.fori_loop(0, self.n_objs, loop_body, (merged_fitness, ex_idx))
+        extreme = merged_fitness[ex_idx]
+        plane = jnp.linalg.solve(extreme, jnp.zeros(self.n_objs))
+        intercept = 1/ (plane @ jnp.eye(self.n_objs))
+        
+        def normalize():
+            
+            return NotImplemented
+        
+        def associate():
+            
+            return NotImplemented
 
-        combined_order = jnp.lexsort((-crowding_distance, rank))[: self.pop_size]
-        survivor = merged_pop[combined_order]
-        survivor_fitness = merged_fitness[combined_order]
+        def niche():
+            
+            return NotImplemented
+        
+        # combined_order = jnp.lexsort((-crowding_distance, rank))[: self.pop_size]
+        # survivor = merged_pop[combined_order]
+        # survivor_fitness = merged_fitness[combined_order]
+        
+        
         state = state.update(population=survivor, fitness=survivor_fitness)
         return state
