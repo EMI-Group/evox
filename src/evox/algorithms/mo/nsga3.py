@@ -35,6 +35,7 @@ class NSGA2(ex.Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.ref = ref if ref else UniformSampling(n_objs, pop_size).random()
+        self.ref_norm = jnp.linalg.norm(ref, axis=1)
 
         self.selection = selection
         self.mutation = mutation
@@ -90,36 +91,48 @@ class NSGA2(ex.Algorithm):
         worst_rank = rank[order[self.pop_size]]
         mask = rank == worst_rank
         
-        def loop_body(i, state):
-            fitness, ex_idx = state
+        # Normalize
+        def normalize_loop(i, val):
+            ex_idx, fitness = val
             weight = jnp.full(self.n_objs, 1e-6).at[i].set(1)
             asf = fitness / weight
             idx = jnp.argmin(jnp.max(asf, axis=1))
             ex_idx = ex_idx.at[i].set(idx)
-            return (fitness, ex_idx)
+            return ex_idx, fitness
         
         ideal = jnp.min(merged_fitness, axis=0)
-        ex_idx = jnp.empty(self.n_objs)
-        jax.lax.fori_loop(0, self.n_objs, loop_body, (merged_fitness, ex_idx))
+        ex_idx = jnp.full(self.n_objs, jnp.nan)
+        ex_idx, _ = jax.lax.fori_loop(0, self.n_objs, normalize_loop, (ex_idx, merged_fitness))
         extreme = merged_fitness[ex_idx]
         plane = jnp.linalg.solve(extreme, jnp.zeros(self.n_objs))
         intercept = 1/ (plane @ jnp.eye(self.n_objs))
         
-        def normalize():
+        # Associate
+        def associate_loop(i, val):
+            pi, d, fitness, ref, ref_norm = val
+            dis = jnp.linalg.norm(jnp.cross(fitness, ref), axis=1) / ref_norm
+            d = d.at[i].set(jnp.argmin(dis))
+            pi = pi.at[i].set(dis[d[i]])
+            return pi, d, fitness, ref, ref_norm
+        
+        rank_order = jnp.argsort(rank)
+        ranked_pop = merged_pop[rank_order]
+        ranked_fitness = merged_fitness[rank_order]
+        end = jnp.sum(rank <= worst_rank)
+        pi = jnp.full(self.pop_size, jnp.nan)
+        d = jnp.full(self.pop_size, jnp.nan)
+        pi, d, _, _, _ = jax.lax.fori_loop(0, end, associate_loop,
+                                           (pi, d, ranked_fitness, self.ref, self.ref_norm))
+        
+        # Niche
+        def niche_loop(val):
+            sur, sur_fit, pop, fit, idx = val
             
             return NotImplemented
         
-        def associate():
-            
-            return NotImplemented
-
-        def niche():
-            
-            return NotImplemented
-        
-        # combined_order = jnp.lexsort((-crowding_distance, rank))[: self.pop_size]
-        # survivor = merged_pop[combined_order]
-        # survivor_fitness = merged_fitness[combined_order]
+        survivor = jnp.full((self.pop_size, self.dim), jnp.nan)
+        survivor_fitness = jnp.full((self.pop_size, self.n_objs), jnp.nan)
+        K = self.pop_size - jnp.sum(rank < worst_rank)
         
         
         state = state.update(population=survivor, fitness=survivor_fitness)
