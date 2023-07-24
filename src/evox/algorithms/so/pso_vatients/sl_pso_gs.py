@@ -14,15 +14,15 @@ class SL_PSO_GS(ex.Algorithm):
         lb, # lower bound of problem
         ub, # upper bound of problem
         pop_size,
-        epsilon,
-        theta,
+        social_influence_factor, # epsilon
+        demonstrator_choice_factor, # theta
     ):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
-        self.epsilon = epsilon
-        self.theta = theta
+        self.social_influence_factor = social_influence_factor
+        self.demonstrator_choice_factor = demonstrator_choice_factor
 
     def setup(self, key):
         state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
@@ -61,7 +61,7 @@ class SL_PSO_GS(ex.Algorithm):
         # ----------------- Demonstator Choice -----------------
         # sort from largest fitness to smallest fitness (worst to best)
         ranked_population = state.population[jnp.argsort(-fitness)]
-        sigma = self.theta * (self.pop_size - (jnp.arange(self.pop_size) + 1))
+        sigma = self.demonstrator_choice_factor * (self.pop_size - (jnp.arange(self.pop_size) + 1))
         standard_normal_distribution = jax.random.normal(demonstrator_choice_key, shape=(self.pop_size,))
         # normal distribution (shape=(self.pop_size,)) means
         # each individual choose a demonstrator by normal distribution
@@ -75,7 +75,7 @@ class SL_PSO_GS(ex.Algorithm):
         velocity = (
             r1 * state.velocity
             + r2 * (X_k - state.population)
-            + r3 * self.epsilon * (X_avg - state.population)
+            + r3 * self.social_influence_factor * (X_avg - state.population)
         )
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
