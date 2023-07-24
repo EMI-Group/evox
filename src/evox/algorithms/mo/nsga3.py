@@ -10,8 +10,8 @@ from evox.operators import non_dominated_sort, crowding_distance_sort
 
 
 @ex.jit_class
-class NSGA2(ex.Algorithm):
-    """NSGA-II algorithm
+class NSGA3(ex.Algorithm):
+    """NSGA-III algorithm
 
     link: https://ieeexplore.ieee.org/document/6600851
     """
