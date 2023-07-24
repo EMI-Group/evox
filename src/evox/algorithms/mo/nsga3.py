@@ -91,9 +91,7 @@ class NSGA2(ex.Algorithm):
         ranked_pop = merged_pop[order]
         ranked_fitness = merged_fitness[order]
         last_rank = rank[self.pop_size]
-        end = jnp.sum(rank <= last_rank)
-        mask = rank <= last_rank
-        ranked_fitness = jnp.where(jnp.repeat(mask[:, None], self.n_objs), ranked_fitness, jnp.nan)
+        ranked_fitness = jnp.where(jnp.repeat((rank <= last_rank)[:, None], self.n_objs), ranked_fitness, jnp.nan)
         
         # Normalize
         def normalize_loop(i, val):
@@ -139,14 +137,14 @@ class NSGA2(ex.Algorithm):
     
         # Niche
         def niche_loop(val):
-            sur, sur_fit, pop, fit, idx = val
+            idx, i, rho = val
             
             return NotImplemented
         
-        survivor = jnp.full((self.pop_size, self.dim), jnp.nan)
-        survivor_fitness = jnp.full((self.pop_size, self.n_objs), jnp.nan)
-        K = self.pop_size - jnp.sum(rank < last_rank)
-        
-        
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        survivor_idx = jnp.arange(self.pop_size)
+        rho = jnp.bincount(jnp.where(rank >= last_rank, pi, len(self.ref)), length=len(self.ref))
+        survivor_idx = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
+                                          niche_loop,
+                                          (survivor_idx, jnp.sum(rho), rho))
+        state = state.update(population=ranked_pop[survivor_idx], fitness=ranked_fitness[survivor_idx])
         return state
