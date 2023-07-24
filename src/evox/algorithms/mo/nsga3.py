@@ -134,15 +134,41 @@ class NSGA2(ex.Algorithm):
         dist = perpendicular_distance(ranked_fitness, self.ref)
         pi = jnp.nanargmin(dist, axis=1)
         d = dist[jnp.arange(len(normalized_fitness)), pi]
-    
+        
         # Niche
         def niche_loop(val):
-            idx, i, rho = val
+            def nope(val):
+                idx, i, rho, j = val
+                rho = rho.at[j].set(self.pop_size)
+                return idx, i, rho, j
             
-            return NotImplemented
+            def have(val):
+                def zero(val):
+                    idx, i, rho, j = val
+                    idx = idx.at[i].set(jnp.nanargmin(jnp.where(pi != j, d, jnp.nan)))
+                    rho = rho.at[j].add(1)
+                    return idx, i+1, rho, j
+                
+                def already(val):
+                    idx, i, rho, j = val
+                    key = jax.random.PRNGKey(i * j)
+                    temp = jax.random.randint(key, (1, len(ranked_pop)), 0, self.pop_size)
+                    temp = temp + (pi == j) * self.pop_size
+                    idx = idx.at[i].set(jnp.argmax(temp))
+                    rho = rho.at[j].add(1)
+                    return idx, i+1, rho, j
+                
+                return jax.lax.cond(rho[val[3]], already, zero, val)
+            
+            idx, i, rho = val
+            j = jnp.argmin(rho)
+            idx, i, rho, j = jax.lax.cond(jnp.sum(pi == j), have, nope, (idx, i, rho, j))
+            return idx, i, rho
         
         survivor_idx = jnp.arange(self.pop_size)
         rho = jnp.bincount(jnp.where(rank >= last_rank, pi, len(self.ref)), length=len(self.ref))
+        pi = jnp.where(rank != last_rank, pi, -1)
+        d = jnp.where(rank != last_rank, d, jnp.nan)
         survivor_idx = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
                                           niche_loop,
                                           (survivor_idx, jnp.sum(rho), rho))
