@@ -25,5 +25,3 @@ tests/mujoco_envs/*test*.py
 tests/mujoco_envs/*learn*.py
 
 tests/gym_env_test.py
-
-why/

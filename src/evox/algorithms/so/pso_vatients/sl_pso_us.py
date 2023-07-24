@@ -14,15 +14,15 @@ class SL_PSO_US(ex.Algorithm):
         lb, # lower bound of problem
         ub, # upper bound of problem
         pop_size,
-        epsilon,
-        _lambda,
+        social_influence_factor, # epsilon
+        demonstrator_choice_factor, # lambda
     ):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
-        self.epsilon = epsilon
-        self._lambda = _lambda
+        self.social_influence_factor = social_influence_factor
+        self.demonstrator_choice_factor = demonstrator_choice_factor
 
     def setup(self, key):
         state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
@@ -62,7 +62,7 @@ class SL_PSO_US(ex.Algorithm):
         # sort from largest fitness to smallest fitness (worst to best)
         ranked_population = state.population[jnp.argsort(-fitness)]
         # demonstator choice: q to pop_size
-        q = jnp.clip(self.pop_size - jnp.ceil(self._lambda * (self.pop_size - (jnp.arange(self.pop_size) + 1) - 1)), a_min=1, a_max=self.pop_size)
+        q = jnp.clip(self.pop_size - jnp.ceil(self.demonstrator_choice_factor * (self.pop_size - (jnp.arange(self.pop_size) + 1) - 1)), a_min=1, a_max=self.pop_size)
         # uniform distribution (shape: (pop_size,)) means 
         # each individual choose a demonstator by uniform distribution in the range of q to pop_size
         uniform_distribution = jax.random.uniform(demonstrator_choice_key, (self.pop_size,), minval=q, maxval=self.pop_size + 1)
@@ -74,7 +74,7 @@ class SL_PSO_US(ex.Algorithm):
         velocity = (
             r1 * state.velocity
             + r2 * (X_k - state.population)
-            + r3 * self.epsilon * (X_avg - state.population)
+            + r3 * self.social_influence_factor * (X_avg - state.population)
         )
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
