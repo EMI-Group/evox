@@ -35,7 +35,6 @@ class NSGA2(ex.Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.ref = ref if ref else UniformSampling(n_objs, pop_size).random()
-        self.ref_norm = jnp.linalg.norm(ref, axis=1)
 
         self.selection = selection
         self.mutation = mutation
@@ -88,42 +87,56 @@ class NSGA2(ex.Algorithm):
 
         rank = non_dominated_sort(merged_fitness)
         order = jnp.argsort(rank)
-        worst_rank = rank[order[self.pop_size]]
-        mask = rank == worst_rank
+        rank = rank[order]
+        ranked_pop = merged_pop[order]
+        ranked_fitness = merged_fitness[order]
+        last_rank = rank[self.pop_size]
+        end = jnp.sum(rank <= last_rank)
+        mask = rank <= last_rank
+        ranked_fitness = jnp.where(jnp.repeat(mask[:, None], self.n_objs), ranked_fitness, jnp.nan)
         
         # Normalize
         def normalize_loop(i, val):
             ex_idx, fitness = val
             weight = jnp.full(self.n_objs, 1e-6).at[i].set(1)
             asf = fitness / weight
-            idx = jnp.argmin(jnp.max(asf, axis=1))
+            idx = jnp.nanargmin(jnp.nanmax(asf, axis=1))
             ex_idx = ex_idx.at[i].set(idx)
             return ex_idx, fitness
         
-        ideal = jnp.min(merged_fitness, axis=0)
+        ideal = jnp.nanmin(ranked_fitness, axis=0)
         ex_idx = jnp.full(self.n_objs, jnp.nan)
-        ex_idx, _ = jax.lax.fori_loop(0, self.n_objs, normalize_loop, (ex_idx, merged_fitness))
-        extreme = merged_fitness[ex_idx]
-        plane = jnp.linalg.solve(extreme, jnp.zeros(self.n_objs))
-        intercept = 1/ (plane @ jnp.eye(self.n_objs))
+        ex_idx, _ = jax.lax.fori_loop(0, self.n_objs, normalize_loop, (ex_idx, ranked_fitness))
+        extreme = ranked_fitness[ex_idx]
+        
+        def extreme_point(val):
+            extreme = val[0]
+            plane = jnp.linalg.solve(extreme, jnp.ones(self.n_objs))
+            intercept = 1/ plane
+            return intercept
+        
+        def worst_point(val):
+            return jnp.nanmax(ranked_fitness, axis=0)
+        
+        nadir_point = jax.lax.cond(jnp.linalg.matrix_rank(extreme) == self.n_objs,
+                                   extreme_point, worst_point,
+                                   (extreme, ranked_fitness-ideal))
+        normalized_fitness = (ranked_fitness - ideal) / nadir_point
         
         # Associate
-        def associate_loop(i, val):
-            pi, d, fitness, ref, ref_norm = val
-            dis = jnp.linalg.norm(jnp.cross(fitness, ref), axis=1) / ref_norm
-            d = d.at[i].set(jnp.argmin(dis))
-            pi = pi.at[i].set(dis[d[i]])
-            return pi, d, fitness, ref, ref_norm
+        def perpendicular_distance(x, y):
+            y_norm = jnp.linalg.norm(y, axis=1)
+            proj_len = x @ y.T / y_norm
+            unit_vec = y / y_norm[:, None]
+            proj_vec = jnp.reshape(proj_len, (proj_len.size, 1)) * jnp.tile(unit_vec, (len(x), 1))
+            prep_vec = jnp.repeat(x, len(y), axis=0) - proj_vec
+            dist = jnp.reshape(jnp.linalg.norm(prep_vec, axis=1), (len(x), len(y)))
+            return dist
         
-        rank_order = jnp.argsort(rank)
-        ranked_pop = merged_pop[rank_order]
-        ranked_fitness = merged_fitness[rank_order]
-        end = jnp.sum(rank <= worst_rank)
-        pi = jnp.full(self.pop_size, jnp.nan)
-        d = jnp.full(self.pop_size, jnp.nan)
-        pi, d, _, _, _ = jax.lax.fori_loop(0, end, associate_loop,
-                                           (pi, d, ranked_fitness, self.ref, self.ref_norm))
-        
+        dist = perpendicular_distance(ranked_fitness, self.ref)
+        pi = jnp.nanargmin(dist, axis=1)
+        d = dist[jnp.arange(len(normalized_fitness)), pi]
+    
         # Niche
         def niche_loop(val):
             sur, sur_fit, pop, fit, idx = val
@@ -132,7 +145,7 @@ class NSGA2(ex.Algorithm):
         
         survivor = jnp.full((self.pop_size, self.dim), jnp.nan)
         survivor_fitness = jnp.full((self.pop_size, self.n_objs), jnp.nan)
-        K = self.pop_size - jnp.sum(rank < worst_rank)
+        K = self.pop_size - jnp.sum(rank < last_rank)
         
         
         state = state.update(population=survivor, fitness=survivor_fitness)
