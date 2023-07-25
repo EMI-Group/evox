@@ -34,7 +34,7 @@ class NSGA3(ex.Algorithm):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
-        self.ref = ref if ref else UniformSampling(n_objs, pop_size).random()
+        self.ref = ref if ref else UniformSampling(pop_size, n_objs).random()[0]
 
         self.selection = selection
         self.mutation = mutation
@@ -165,8 +165,9 @@ class NSGA3(ex.Algorithm):
         rho = jnp.bincount(jnp.where(rank < last_rank, pi, len(self.ref)), length=len(self.ref))
         pi = jnp.where(rank == last_rank, pi, -1)
         d = jnp.where(rank == last_rank, d, jnp.nan)
-        survivor_idx = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
+        survivor_idx, _, _ = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
                                           niche_loop,
                                           (survivor_idx, jnp.sum(rho), rho))
+        
         state = state.update(population=ranked_pop[survivor_idx], fitness=ranked_fitness[survivor_idx])
         return state

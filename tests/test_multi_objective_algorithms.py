@@ -8,7 +8,7 @@ import jax.numpy as jnp
 def run_moea(algorithm, problem=problems.classic.DTLZ1(m=3)):
     key = jax.random.PRNGKey(123)
     monitor = StdMOMonitor(record_pf=False)
-    problem = problems.classic.DTLZ1(m=3)
+    problem = problems.classic.DTLZ2(m=3)
     pipeline = pipelines.StdPipeline(
         algorithm=algorithm,
         problem=problem,
@@ -17,12 +17,15 @@ def run_moea(algorithm, problem=problems.classic.DTLZ1(m=3)):
     state = pipeline.init(key)
     true_pf, state = problem.pf(state)
 
-    for i in range(10):
+    for i in range(100):
         state = pipeline.step(state)
+        objs = monitor.get_last()
+        igd = IGD(true_pf, objs).calulate()
+        print("igd", igd)
 
-    objs = monitor.get_last()
-    igd = IGD(true_pf, objs).calulate()
-    print("igd", igd)
+    # objs = monitor.get_last()
+    # igd = IGD(true_pf, objs).calulate()
+    # print("igd", igd)
 
 
 # def test_ibea():
@@ -67,8 +70,8 @@ def run_moea(algorithm, problem=problems.classic.DTLZ1(m=3)):
     
 def test_nsga3():
     algorithm = algorithms.NSGA3(
-        lb=jnp.full(shape=(3,), fill_value=0),
-        ub=jnp.full(shape=(3,), fill_value=1),
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
         n_objs=3,
         pop_size=100,
     )
