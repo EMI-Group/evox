@@ -155,4 +155,41 @@ def test_independent_amalgam_1():
     assert cartpole(1, algorithms.IndependentAMaLGaM,init_stdev=1)
 
 def test_independent_amalgam_2():
-    assert cartpole(2, algorithms.IndependentAMaLGaM,init_stdev=1)     
+    assert cartpole(2, algorithms.IndependentAMaLGaM,init_stdev=1)
+
+def test_ma_es_0():
+    assert cartpole(0, algorithms.MAES,init_stdev=1)     
+
+def test_ma_es_1():
+    assert cartpole(1, algorithms.MAES,init_stdev=1)
+
+def test_ma_es_2():
+    assert cartpole(2, algorithms.MAES,init_stdev=1)
+
+def test_lmma_es_0():
+    assert cartpole(0, algorithms.LMMAES,init_stdev=1)
+
+def test_lmma_es_1():
+    assert cartpole(1, algorithms.LMMAES,init_stdev=1)
+
+def test_lmma_es_2():
+    assert cartpole(2, algorithms.LMMAES,init_stdev=1)
+
+def test_rmes_0():
+    assert cartpole(0, algorithms.RMES,init_stdev=1)
+
+def test_rmes_1():
+    assert cartpole(1, algorithms.RMES,init_stdev=1)
+
+def test_rmes_2():
+    assert cartpole(2, algorithms.RMES,init_stdev=1)
+
+def test_asebo_0():
+    assert cartpole(0, algorithms.ASEBO)
+
+def test_asebo_1():
+    assert cartpole(1, algorithms.ASEBO)
+
+def test_asebo_2():
+    assert cartpole(2, algorithms.ASEBO)
+    
