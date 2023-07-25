@@ -92,21 +92,16 @@ class NSGA3(ex.Algorithm):
         ranked_pop = merged_pop[order]
         ranked_fitness = merged_fitness[order]
         last_rank = rank[self.pop_size]
-        ranked_fitness = jnp.where(jnp.repeat((rank <= last_rank)[:, None], self.n_objs), ranked_fitness, jnp.nan)
+        ranked_fitness = jnp.where(jnp.repeat((rank <= last_rank)[:, None], self.n_objs, axis=1), ranked_fitness, jnp.nan)
         
         # Normalize
-        def normalize_loop(i, val):
-            ex_idx, fitness = val
-            weight = jnp.full(self.n_objs, 1e-6).at[i].set(1)
-            asf = fitness / weight
-            idx = jnp.nanargmin(jnp.nanmax(asf, axis=1))
-            ex_idx = ex_idx.at[i].set(idx)
-            return ex_idx, fitness
-        
         ideal = jnp.nanmin(ranked_fitness, axis=0)
-        ex_idx = jnp.full(self.n_objs, jnp.nan)
-        ex_idx, _ = jax.lax.fori_loop(0, self.n_objs, normalize_loop, (ex_idx, ranked_fitness))
-        extreme = ranked_fitness[ex_idx]
+        offset_fitness = ranked_fitness - ideal
+        weight = jnp.eye(self.n_objs, self.n_objs) + 1e-6
+        weighted = jnp.repeat(offset_fitness, self.n_objs, axis=0).reshape(len(offset_fitness), self.n_objs, self.n_objs) / weight
+        asf = jnp.nanmax(weighted, axis=2)
+        ex_idx =jnp.argmin(asf, axis=0)
+        extreme = offset_fitness[ex_idx]
         
         def extreme_point(val):
             extreme = val[0]
@@ -119,8 +114,8 @@ class NSGA3(ex.Algorithm):
         
         nadir_point = jax.lax.cond(jnp.linalg.matrix_rank(extreme) == self.n_objs,
                                    extreme_point, worst_point,
-                                   (extreme, ranked_fitness-ideal))
-        normalized_fitness = (ranked_fitness - ideal) / nadir_point
+                                   (extreme, offset_fitness))
+        normalized_fitness = offset_fitness / nadir_point
         
         # Associate
         def perpendicular_distance(x, y):
@@ -146,7 +141,7 @@ class NSGA3(ex.Algorithm):
             def have(val):
                 def zero(val):
                     idx, i, rho, j = val
-                    idx = idx.at[i].set(jnp.nanargmin(jnp.where(pi != j, d, jnp.nan)))
+                    idx = idx.at[i].set(jnp.nanargmin(jnp.where(pi == j, d, jnp.nan)))
                     rho = rho.at[j].add(1)
                     return idx, i+1, rho, j
                 
@@ -167,9 +162,9 @@ class NSGA3(ex.Algorithm):
             return idx, i, rho
         
         survivor_idx = jnp.arange(self.pop_size)
-        rho = jnp.bincount(jnp.where(rank >= last_rank, pi, len(self.ref)), length=len(self.ref))
-        pi = jnp.where(rank != last_rank, pi, -1)
-        d = jnp.where(rank != last_rank, d, jnp.nan)
+        rho = jnp.bincount(jnp.where(rank < last_rank, pi, len(self.ref)), length=len(self.ref))
+        pi = jnp.where(rank == last_rank, pi, -1)
+        d = jnp.where(rank == last_rank, d, jnp.nan)
         survivor_idx = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
                                           niche_loop,
                                           (survivor_idx, jnp.sum(rho), rho))

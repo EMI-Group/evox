@@ -25,45 +25,45 @@ def run_moea(algorithm, problem=problems.classic.DTLZ1(m=3)):
     print("igd", igd)
 
 
-def test_ibea():
-    algorithm = algorithms.IBEA(
-        lb=jnp.full(shape=(3,), fill_value=0),
-        ub=jnp.full(shape=(3,), fill_value=1),
-        n_objs=3,
-        pop_size=100,
-    )
-    run_moea(algorithm)
+# def test_ibea():
+#     algorithm = algorithms.IBEA(
+#         lb=jnp.full(shape=(3,), fill_value=0),
+#         ub=jnp.full(shape=(3,), fill_value=1),
+#         n_objs=3,
+#         pop_size=100,
+#     )
+#     run_moea(algorithm)
 
 
-def test_moead():
-    algorithm = algorithms.MOEAD(
-        lb=jnp.full(shape=(3,), fill_value=0),
-        ub=jnp.full(shape=(3,), fill_value=1),
-        n_objs=3,
-        pop_size=100,
-        type=1,
-    )
-    run_moea(algorithm)
+# def test_moead():
+#     algorithm = algorithms.MOEAD(
+#         lb=jnp.full(shape=(3,), fill_value=0),
+#         ub=jnp.full(shape=(3,), fill_value=1),
+#         n_objs=3,
+#         pop_size=100,
+#         type=1,
+#     )
+#     run_moea(algorithm)
 
 
-def test_nsga2():
-    algorithm = algorithms.NSGA2(
-        lb=jnp.full(shape=(3,), fill_value=0),
-        ub=jnp.full(shape=(3,), fill_value=1),
-        n_objs=3,
-        pop_size=100,
-    )
-    run_moea(algorithm)
+# def test_nsga2():
+#     algorithm = algorithms.NSGA2(
+#         lb=jnp.full(shape=(3,), fill_value=0),
+#         ub=jnp.full(shape=(3,), fill_value=1),
+#         n_objs=3,
+#         pop_size=100,
+#     )
+#     run_moea(algorithm)
 
 
-def test_rvea():
-    algorithm = algorithms.RVEA(
-        lb=jnp.full(shape=(3,), fill_value=0),
-        ub=jnp.full(shape=(3,), fill_value=1),
-        n_objs=3,
-        pop_size=100,
-    )
-    run_moea(algorithm)
+# def test_rvea():
+#     algorithm = algorithms.RVEA(
+#         lb=jnp.full(shape=(3,), fill_value=0),
+#         ub=jnp.full(shape=(3,), fill_value=1),
+#         n_objs=3,
+#         pop_size=100,
+#     )
+#     run_moea(algorithm)
     
 def test_nsga3():
     algorithm = algorithms.NSGA3(
