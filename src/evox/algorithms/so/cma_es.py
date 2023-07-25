@@ -233,3 +233,125 @@ class SepCMAES(CMAES):
           + self.c1 * ((pc ** 2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
           + self.cmu * self.weights @ (y ** 2)
         )
+@evox.jit_class
+class IPOPCMAES(CMAES):
+    def __init__(self, center_init, init_stdev, pop_size=None, recombination_weights=None, cm=1, stagnation_threshold=50):
+        super().__init__(center_init, init_stdev, pop_size, recombination_weights, cm)
+        
+        self.original_pop_size = self.pop_size
+        self.restarts = 0
+        self.stagnation_threshold = stagnation_threshold
+        self.best_fitness = float('inf')
+        self.stagnation_count = 0
+  
+    def setup(self, key):         
+        pc = jnp.zeros((self.dim,))         
+        ps = jnp.zeros((self.dim,))         
+        B = jnp.eye(self.dim)         
+        D = jnp.ones((self.dim,))         
+        C = B @ jnp.diag(D) @ B.T 
+         
+        return State(             
+            pc=pc,             
+            ps=ps,             
+            B=B,             
+            D=D,             
+            C=C,             
+            count_eigen=0,             
+            count_iter=0,             
+            invsqrtC=C,             
+            mean=self.center_init,             
+            sigma=self.init_stdev,             
+            key=key,             
+            population=jnp.empty((self.pop_size, self.dim)),
+            best_fitness= float('inf'),
+            restarts=0,
+            stagnation_count=0, 
+            pop_size=self.original_pop_size      
+            )
+
+    
+    def _update_best_fitness(self, current_best_fitness, best_fitness):     
+        return lax.cond(current_best_fitness < best_fitness, current_best_fitness, lambda _: current_best_fitness, best_fitness, lambda _: best_fitness)  
+
+
+
+    def tell(self, state, fitness):
+        state = super().tell(state, fitness)
+    
+    # Update based on the best fitness in the current population
+        current_best_fitness = jnp.min(fitness)
+    
+        def improve_fn():
+            return state.update(
+            best_fitness=current_best_fitness,
+            stagnation_count=0
+            )
+    
+        def no_improve_fn():
+            new_stagnation_count = self.stagnation_count + 1
+            return state.update(
+            best_fitness=state.best_fitness,
+            stagnation_count=new_stagnation_count
+            )
+    
+        new_state = lax.cond(
+            current_best_fitness < state.best_fitness,
+            improve_fn,
+            no_improve_fn
+        )
+    
+    # Check for stagnation
+        return lax.cond(
+            new_state.stagnation_count >= self.stagnation_threshold,
+            new_state, self._restart,
+            new_state, self._remain,
+        )
+
+    def _restart(self, state):
+        new_restarts = self.restarts + 1
+        new_pop_size = self.original_pop_size * (2 ** new_restarts)
+        return state.update(
+            restarts=new_restarts,
+            pop_size=new_pop_size,
+            sigma=self.init_stdev,
+            stagnation_count=0
+        )
+    
+    def _remain(self,state):
+        return state.update(             
+            restarts=state.restarts,             
+            pop_size=state.pop_size,            
+            sigma=self.init_stdev,             
+            stagnation_count=state.stagnation_count        
+        )
+    
+class BIPOPCMAES(IPOPCMAES):
+    def _restart(self, state):
+        # Determine new restarts and population size based on the current population size         
+        def back_to_original_fn(_):
+            new_restarts=self.restarts+1
+            new_pop_size=self.original_pop_size             
+            return state.update(
+                     restarts=new_restarts,             
+                     pop_size=new_pop_size,             
+                     sigma=self.init_stdev,             
+                     stagnation_count=0
+                )                  
+        def double_population_fn(_):             
+                    new_restarts = self.restarts + 1         
+                    new_pop_size = self.original_pop_size * (2 ** new_restarts)         
+                    return state.update(             
+                        restarts=new_restarts,             
+                        pop_size=new_pop_size,             
+                        sigma=self.init_stdev,             
+                        stagnation_count=0         )               
+        # If the current population size is greater than 16 times the original size, restart to original size.
+        # Otherwise, double the current population size.
+        return jax.lax.cond(             
+            state.pop_size > 16 * self.original_pop_size,             
+            None,back_to_original_fn,             
+            None,double_population_fn,                   
+            )
+
+
