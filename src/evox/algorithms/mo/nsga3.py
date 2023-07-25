@@ -6,7 +6,7 @@ from evox.operators.selection import UniformRandomSelection
 from evox.operators.mutation import GaussianMutation, PmMutation
 from evox.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
 from evox.operators.sampling import UniformSampling
-from evox.operators import non_dominated_sort, crowding_distance_sort
+from evox.operators import non_dominated_sort
 
 
 @ex.jit_class
@@ -52,6 +52,7 @@ class NSGA3(ex.Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             is_init=True,
+            key=key
         )
 
     def ask(self, state):
