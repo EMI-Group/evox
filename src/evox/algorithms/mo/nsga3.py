@@ -166,8 +166,8 @@ class NSGA3(ex.Algorithm):
         pi = jnp.where(rank == last_rank, pi, -1)
         d = jnp.where(rank == last_rank, d, jnp.nan)
         survivor_idx, _, _ = jax.lax.while_loop(lambda val: val[1] < self.pop_size,
-                                          niche_loop,
-                                          (survivor_idx, jnp.sum(rho), rho))
+                                                niche_loop,
+                                                (survivor_idx, jnp.sum(rho), rho))
         
         state = state.update(population=ranked_pop[survivor_idx], fitness=ranked_fitness[survivor_idx])
         return state
