@@ -73,3 +73,5 @@ def test_nsga3():
         pop_size=100,
     )
     run_moea(algorithm)
+    
+test_nsga3()
