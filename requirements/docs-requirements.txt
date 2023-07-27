@@ -2,6 +2,7 @@
 jax
 jaxlib
 optax
+pyarrow
 # for docs generation
 pydata-sphinx-theme
 sphinx < 6 # https://github.com/pydata/pydata-sphinx-theme/issues/1094

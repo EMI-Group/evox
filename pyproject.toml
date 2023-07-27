@@ -25,6 +25,7 @@ dependencies = [
   "jax >= 0.3.0",
   "jaxlib >= 0.3.0",
   "optax >= 0.1.0",
+  "pyarrow >= 10.0.0",
 ]
 
 [project.optional-dependencies]
