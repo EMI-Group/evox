@@ -1,6 +1,7 @@
 from .standard import StdPipeline
 from .multidevice import MultiDevicePipeline
 from .gym import GymPipeline
+from .uni_workflow import UniWorkflow
 
 try:
     # optional dependency: ray
