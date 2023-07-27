@@ -1,4 +1,4 @@
-import evox as ex
+import evox
 import jax
 import jax.numpy as jnp
 
@@ -9,8 +9,8 @@ from evox.operators.sampling import UniformSampling
 from evox.operators import non_dominated_sort
 
 
-@ex.jit_class
-class NSGA3(ex.Algorithm):
+@evox.jit_class
+class NSGA3(evox.Algorithm):
     """NSGA-III algorithm
 
     link: https://ieeexplore.ieee.org/document/6600851
@@ -47,12 +47,11 @@ class NSGA3(ex.Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        return ex.State(
+        return evox.State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
-            key=key
+            is_init=True
         )
 
     def ask(self, state):
