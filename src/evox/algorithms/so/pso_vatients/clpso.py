@@ -64,7 +64,7 @@ class CLPSO(ex.Algorithm):
         # ----------------- Update gbest -----------------
         gbest_position, gbest_fitness = min_by(
             [state.gbest_position[jnp.newaxis, :], state.population],
-            [state.gbest_position, fitness],
+            [state.gbest_fitness, fitness],
         )
         gbest_fitness = jnp.atleast_1d(gbest_fitness)
 
