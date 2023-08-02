@@ -1,3 +1,3 @@
-from .gaussian import GaussianMutation
-from .pm_mutation import PmMutation
-from .bitflip import BitFlipMutation
+from .gaussian import gaussian, Gaussian
+from .pm_mutation import polynomial, Polynomial
+from .bitflip import bitflip, Bitflip

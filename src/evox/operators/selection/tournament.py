@@ -1,16 +1,33 @@
 from typing import Callable
 
-import evox as ex
-import jax
 import jax.numpy as jnp
+from jax import random, jit, vmap
+from evox import jit_class
+
+from functools import partial
 
 
-@ex.jit_class
-class TournamentSelection(ex.Operator):
+@partial(jit, static_argnums=[3, 4, 5])
+def tournament(key, pop, fit, n_round, tournament_func, tournament_size):
+    # select num_round times and each time
+    # k individuals to form candidates
+    chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
+    # candidates = x[chosen, ...]
+    candidates_fitness = fit[chosen, ...]
+    winner_indices = vmap(tournament_func)(candidates_fitness)
+    index = jnp.diagonal(chosen[:, winner_indices])
+    return pop[index]
+
+
+@jit_class
+class Tournament:
     """Tournament selection"""
 
     def __init__(
-        self, num_round: int, tournament_func: Callable = jnp.argmax, tournament_size: int = 2
+        self,
+        n_round: int,
+        tournament_func: Callable = jnp.argmax,
+        tournament_size: int = 2,
     ):
         """
         Parameters
@@ -25,21 +42,11 @@ class TournamentSelection(ex.Operator):
         tournament_size
             Number of individuals in one tournament
         """
-        self.num_round = num_round
+        self.n_round = n_round
         self.tournament_func = tournament_func
         self.tournament_size = tournament_size
 
-    def setup(self, key):
-        return ex.State(key=key)
-
-    def __call__(self, state, x, fitness):
-        key, subkey = jax.random.split(state.key)
-        # select num_round times and each time
-        # k individuals to form candidates
-        chosen = jax.random.choice(subkey, self.num_round, shape=(
-            self.num_round, self.tournament_size))
-        # candidates = x[chosen, ...]
-        candidates_fitness = fitness[chosen, ...]
-        winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
-        index = jnp.diagonal(chosen[:, winner_indices])
-        return x[index], ex.State(key=key)
+    def __call__(self, key, pop, fit):
+        return tournament(
+            key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
+        )
