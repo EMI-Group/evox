@@ -1,14 +1,15 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
+from evox import jit_class, Operator, State
+
 
 def _flip(key, x, p):
     probabilities = jax.random.uniform(key, x.shape)
     new_x = jnp.where(probabilities < p, x, ~x)
     return new_x
 
-@ex.jit_class
-class BitFlipMutation(ex.Operator):
+@jit_class
+class BitFlipMutation(Operator):
     def __init__(self, p):
         """
         Parameters
@@ -19,7 +20,7 @@ class BitFlipMutation(ex.Operator):
         self.p = p
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
     def __call__(self, state, x):
         batch, _ = x.shape
@@ -27,4 +28,4 @@ class BitFlipMutation(ex.Operator):
         mutation_keys = jax.random.split(subkey, batch)
         ps = jnp.ones(shape=(batch,)) * self.p
         new_x = jax.vmap(_flip)(mutation_keys, x, ps)
-        return new_x, ex.State(key=key)
+        return new_x, State(key=key)

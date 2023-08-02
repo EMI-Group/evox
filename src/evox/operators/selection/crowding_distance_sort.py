@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import chex
+from jax.experimental.host_callback import id_print
 
 
 @jax.jit
@@ -66,4 +67,5 @@ def crowding_distance_sort(x: jax.Array, mask: jax.Array = None):
     """
     chex.assert_rank(x, 2)
     distance = crowding_distance(x, mask)
+
     return jnp.argsort(distance)

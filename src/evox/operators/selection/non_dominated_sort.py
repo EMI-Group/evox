@@ -2,18 +2,7 @@ import jax
 import jax.numpy as jnp
 from jax import vmap, lax
 import chex
-
-
-@jax.jit
-def _dominate(x, y):
-    """return true if x dominate y (x < y) and false elsewise."""
-    return jnp.all(x <= y) & jnp.any(x < y)
-
-
-@jax.jit
-def _dominate_relation(x, y):
-    """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
-    return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
+from evox.utils import _dominate_relation
 
 
 @jax.jit

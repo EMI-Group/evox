@@ -1,8 +1,6 @@
-import evox as ex
-import jax
 import jax.numpy as jnp
 from itertools import combinations as n_choose_k
-# from evox.utils import comb
+
 from scipy.special import comb
 
 
@@ -12,7 +10,6 @@ class UniformSampling:
     def __init__(self, n=None, m=None):
         self.n = n
         self.m = m
-
 
     def random(self):
         h1 = 1
@@ -35,4 +32,4 @@ class UniformSampling:
                 w = jnp.r_[w, w2/2. + 1./(2.*self.m)]
         w = jnp.maximum(w, 1e-6)
         n = jnp.shape(w)[0]
-        return  w, n
+        return w, n

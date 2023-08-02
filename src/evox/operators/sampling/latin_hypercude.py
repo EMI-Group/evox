@@ -9,6 +9,7 @@ class LatinHypercubeSampling:
         self.n = n
         self.m = m
 
+    # @jax.jit
     def random(self, key):
         key, subkey = jax.random.split(key)
         subkeys = jax.random.split(subkey, self.m)
@@ -17,4 +18,4 @@ class LatinHypercubeSampling:
         parm = jax.vmap(jax.random.permutation, in_axes=(0, 0), out_axes=1)(subkeys, parm)
         w = (parm - w) / self.n
         n = self.n
-        return  w, n
+        return w, n

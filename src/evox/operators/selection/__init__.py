@@ -1,3 +1,6 @@
 from .uniform_random import UniformRandomSelection
 from .tournament import TournamentSelection
 from .rvea_selection import ReferenceVectorGuidedSelection
+from .non_dominated_sort import non_dominated_sort
+from .crowding_distance_sort import crowding_distance, crowding_distance_sort
+from .roulette_wheel import RouletteWheelSelection

@@ -1,6 +1,7 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
+
+from evox import jit_class, Operator, State
 
 
 def _random_pairing(key, x):
@@ -22,13 +23,13 @@ def _uniform_crossover(key, parents):
     return jnp.stack([c1, c2])
 
 
-@ex.jit_class
-class UniformCrossover(ex.Operator):
+@jit_class
+class UniformCrossover(Operator):
     def __init__(self, stdvar=1.0):
         self.stdvar = stdvar
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
     def __call__(self, state, x):
         key = state.key
@@ -36,4 +37,4 @@ class UniformCrossover(ex.Operator):
         paired = _random_pairing(pairing_key, x)
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_uniform_crossover)(crossover_keys, paired)
-        return _unpair(children), ex.State(key=key)
+        return _unpair(children), State(key=key)

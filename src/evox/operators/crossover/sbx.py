@@ -1,10 +1,10 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 
+from evox import jit_class, Operator, State
 
-@ex.jit_class
-class SimulatedBinaryCrossover(ex.Operator):
+@jit_class
+class SimulatedBinaryCrossover(Operator):
     """Simulated binary crossover(SBX)
 
     Args:
@@ -20,7 +20,7 @@ class SimulatedBinaryCrossover(ex.Operator):
         self.type = type
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
     def __call__(self, state, x):
         key = state.key
@@ -49,4 +49,4 @@ class SimulatedBinaryCrossover(ex.Operator):
         if self.type == 2:
             offspring_dec = (parent1_dec + parent2_dec) / 2 + \
                 beta * (parent1_dec - parent2_dec) / 2
-        return offspring_dec, ex.State(key=key)
+        return offspring_dec, State(key=key)

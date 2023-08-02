@@ -1,31 +1,42 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
+from functools import partial
 
-from evox.operators.selection import UniformRandomSelection
-from evox.operators.mutation import GaussianMutation, PmMutation
-from evox.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
-from evox.operators import non_dominated_sort, crowding_distance_sort
+from evox import jit_class, Algorithm, State
+from evox.operators.selection import TournamentSelection, non_dominated_sort, crowding_distance
+from evox.operators.mutation import PmMutation
+from evox.operators.crossover import SimulatedBinaryCrossover
+from jax.experimental.host_callback import id_print
 
 
-@ex.jit_class
-class NSGA2(ex.Algorithm):
+@partial(jax.jit, static_argnames=['n'])
+def environmental_selection(fitness, n):
+    rank = non_dominated_sort(fitness)
+    order = jnp.argsort(rank)
+    worst_rank = rank[order[n - 1]]
+    mask = rank == worst_rank
+    crowding_dis = crowding_distance(fitness, mask)
+    combined_indices = jnp.lexsort((-crowding_dis, rank))[: n]
+
+    return combined_indices
+
+
+@jit_class
+class NSGA2(Algorithm):
     """NSGA-II algorithm
 
     link: https://ieeexplore.ieee.org/document/996017
     """
 
     def __init__(
-        self,
-        lb,
-        ub,
-        n_objs,
-        pop_size,
-        selection=UniformRandomSelection(p=0.5),
-        mutation=GaussianMutation(),
-        # mutation=PmMutation(),
-        crossover=UniformCrossover(),
-        # crossover=SimulatedBinaryCrossover(),
+            self,
+            lb,
+            ub,
+            n_objs,
+            pop_size,
+
+            mutation=PmMutation(),
+            crossover=SimulatedBinaryCrossover(),
     ):
         self.lb = lb
         self.ub = ub
@@ -33,21 +44,22 @@ class NSGA2(ex.Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
 
-        self.selection = selection
+        self.selection = TournamentSelection(num_round=self.pop_size)
         self.mutation = mutation
         self.crossover = crossover
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
         population = (
-            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
+                jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+                * (self.ub - self.lb)
+                + self.lb
         )
-        return ex.State(
+        return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
+            key=key,
             is_init=True,
         )
 
@@ -63,15 +75,9 @@ class NSGA2(ex.Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        mutated, state = self.selection(state, state.population)
-        mutated, state = self.mutation(state, mutated)
+        crossovered, state = self.crossover(state, state.population)
+        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
 
-        crossovered, state = self.selection(state, state.population)
-        crossovered, state = self.crossover(state, crossovered)
-
-        next_generation = jnp.clip(
-            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
-        )
         return next_generation, state.update(next_generation=next_generation)
 
     def _tell_init(self, state, fitness):
@@ -82,13 +88,8 @@ class NSGA2(ex.Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        rank = non_dominated_sort(merged_fitness)
-        order = jnp.argsort(rank)
-        worst_rank = rank[order[self.pop_size]]
-        mask = rank == worst_rank
-        crowding_distance = crowding_distance_sort(merged_fitness, mask)
+        combined_order = environmental_selection(merged_fitness, self.pop_size)
 
-        combined_order = jnp.lexsort((-crowding_distance, rank))[: self.pop_size]
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fitness[combined_order]
         state = state.update(population=survivor, fitness=survivor_fitness)

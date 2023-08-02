@@ -1,15 +1,91 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 
-from evox.operators.selection import ReferenceVectorGuidedSelection
+from evox import jit_class, Algorithm, State, Operator
+from evox.operators.selection import UniformRandomSelection
 from evox.operators.mutation import PmMutation
 from evox.operators.crossover import SimulatedBinaryCrossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox.utils import cos_dist
 
 
-@ex.jit_class
-class RVEA(ex.Algorithm):
+@jit_class
+class ReferenceVectorGuidedSelection(Operator):
+    """Reference vector guided environmental selection.
+
+    """
+
+    def __init__(self, x=None, v=None, theta=None):
+        self.x = x
+        self.v = v
+        self.theta = theta
+
+    def setup(self, key):
+        return State(key=key)
+
+    def __call__(self, state, x, v, theta):
+        self.x = x
+        self.v = v
+        self.theta = theta
+        key, subkey = jax.random.split(state.key)
+        n, m = jnp.shape(self.x)
+        nv = jnp.shape(self.v)[0]
+        obj = self.x
+
+        obj -= jnp.tile(jnp.min(obj, axis=0), (n, 1))
+
+        cosine = cos_dist(self.v, self.v)
+        cosine = jnp.where(jnp.eye(jnp.shape(cosine)[0], dtype=bool), 0, cosine)
+        cosine = jnp.clip(cosine, -1, 1)
+        gamma = jnp.min(jnp.arccos(cosine), axis=1)
+
+        angle = jnp.arccos(cos_dist(obj, self.v))
+
+        associate = jnp.argmin(angle, axis=1)
+
+        next_ind = jnp.full(nv, -1)
+        is_null = jnp.sum(next_ind)
+
+        global_min = jnp.inf
+        global_min_idx = -1
+
+        vals = next_ind, global_min, global_min_idx
+
+        def update_next(i, sub_index, next_ind, global_min, global_min_idx):
+            apd = (1+m*theta*angle[sub_index, i]/gamma[i]) * jnp.sqrt(jnp.sum(obj[sub_index, :]**2, axis=1))
+
+            apd_max = jnp.max(apd)
+            noise = jnp.where(sub_index == -1, apd_max, 0)
+            apd = apd + noise
+            best = jnp.argmin(apd)
+
+            global_min_idx = jnp.where(apd[best] < global_min, sub_index[best.astype(int)], global_min_idx)
+            global_min = jnp.minimum(apd[best], global_min)
+
+            next_ind = next_ind.at[i].set(sub_index[best.astype(int)])
+            return next_ind, global_min, global_min_idx
+
+        def no_update(i, sub_index, next_ind, global_min, global_min_idx):
+            return next_ind, global_min, global_min_idx
+
+        def body_fun(i, vals):
+            next_ind, global_min, global_min_idx = vals
+            sub_index = jnp.where(associate == i, size=nv, fill_value=-1)[0]
+
+            next_ind, global_min, global_min_idx = jax.lax.cond(jnp.sum(sub_index) != is_null, update_next, no_update, i, sub_index, next_ind, global_min, global_min_idx)
+            return next_ind, global_min, global_min_idx
+
+        next_ind, global_min, global_min_idx = jax.lax.fori_loop(0, nv, body_fun, vals)
+        mask = next_ind == -1
+
+        next_ind = jnp.where(mask, global_min_idx, next_ind)
+        next_ind = jnp.where(global_min_idx != -1, next_ind, jnp.arange(0, nv))
+
+        return next_ind, State(key=key)
+
+
+@jit_class
+class RVEA(Algorithm):
     """RVEA algorithms
 
     link: https://ieeexplore.ieee.org/document/7386636
@@ -24,6 +100,8 @@ class RVEA(ex.Algorithm):
         alpha=2,
         fr=0.1,
         max_gen=100,
+        rs=50,
+        mating=UniformRandomSelection(p=1),
         selection=ReferenceVectorGuidedSelection(),
         mutation=PmMutation(),
         crossover=SimulatedBinaryCrossover(),
@@ -36,7 +114,9 @@ class RVEA(ex.Algorithm):
         self.alpha = alpha
         self.fr = fr
         self.max_gen = max_gen
+        self.rs = rs
 
+        self.mating = mating
         self.selection = selection
         self.mutation = mutation
         self.crossover = crossover
@@ -52,20 +132,17 @@ class RVEA(ex.Algorithm):
         )
         v = self.sampling.random(subkey2)[0]
         v = v / jnp.linalg.norm(v, axis=0)
-        mask = jnp.full((self.pop_size, 1), False)
 
-        return ex.State(
+        return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
             is_init=True,
             key=key,
-            gen=0,
-            mask=mask,
+            gen=0
         )
 
-    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
@@ -78,18 +155,15 @@ class RVEA(ex.Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        mask = state.mask
+
         key = state.key
         key, subkey = jax.random.split(key)
-        r = (
-            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
-        )
 
-        crossovered, state = self.crossover(state, state.population)
+        mating_pool = jax.random.permutation(subkey, jnp.arange(0, self.pop_size))
+        # mating_pool, state = self.mating(state, state.population)
+        population = state.population[mating_pool]
+        crossovered, state = self.crossover(state, population)
         next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
-        next_generation = jnp.where(mask, r, next_generation)
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
@@ -100,14 +174,13 @@ class RVEA(ex.Algorithm):
     def _tell_normal(self, state, fitness):
         current_gen = state.gen + 1
         v = state.reference_vector
+
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
         rank, state = self.selection(
             state, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
-
-        mask = (rank == -1)[:, jnp.newaxis]
 
         survivor = merged_pop[rank]
         survivor_fitness = merged_fitness[rank]
@@ -139,6 +212,6 @@ class RVEA(ex.Algorithm):
             fitness=survivor_fitness,
             reference_vector=v,
             gen=current_gen,
-            mask=mask,
         )
         return state
+

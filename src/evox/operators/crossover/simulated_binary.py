@@ -1,6 +1,7 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
+
+from evox import jit_class, Operator, State
 
 
 def _random_pairing(key, x):
@@ -33,8 +34,8 @@ def _sbx_crossover(key, parents, mu):
     return jnp.stack([c1, c2])
 
 
-@ex.jit_class
-class SBXCrossover(ex.Operator):
+@jit_class
+class SBXCrossover(Operator):
     def __init__(self, stdvar=1.0, distribution_factor=1):
         """
         Parameters
@@ -46,7 +47,7 @@ class SBXCrossover(ex.Operator):
         self.distribution_factor = distribution_factor
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
     def __call__(self, state, x):
         key = state.key
@@ -55,4 +56,4 @@ class SBXCrossover(ex.Operator):
         crossover_keys = jax.random.split(crossover_key, paired.shape[0])
         children = jax.vmap(_sbx_crossover)(
             crossover_keys, paired, self.distribution_factor)
-        return _unpair(children), ex.State(key=key)
+        return _unpair(children), State(key=key)

@@ -1,16 +1,15 @@
-from typing import Callable
-
-import evox as ex
 import jax
 import jax.numpy as jnp
+from typing import Callable
+from evox import jit_class, Operator, State
 
 
-@ex.jit_class
-class TournamentSelection(ex.Operator):
+@jit_class
+class TournamentSelection(Operator):
     """Tournament selection"""
 
     def __init__(
-        self, num_round: int, tournament_func: Callable = jnp.argmax, tournament_size: int = 2
+        self, num_round: int, tournament_func: Callable = jnp.argmin, tournament_size: int = 2
     ):
         """
         Parameters
@@ -30,16 +29,28 @@ class TournamentSelection(ex.Operator):
         self.tournament_size = tournament_size
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
-    def __call__(self, state, x, fitness):
+    def __call__(self, state, *args):
         key, subkey = jax.random.split(state.key)
         # select num_round times and each time
         # k individuals to form candidates
         chosen = jax.random.choice(subkey, self.num_round, shape=(
             self.num_round, self.tournament_size))
         # candidates = x[chosen, ...]
-        candidates_fitness = fitness[chosen, ...]
-        winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
-        index = jnp.diagonal(chosen[:, winner_indices])
-        return x[index], ex.State(key=key)
+
+        # candidates_fitness = fitness[chosen, ...]
+        # winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
+        # index = jnp.diagonal(chosen[:, winner_indices])
+        if len(args) == 1:
+            fitness = args[0]
+            candidates_fitness = fitness[chosen, ...]
+            winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
+            index = chosen[jnp.arange(self.num_round), winner_indices]
+        else:
+            fitness = jnp.c_[args]
+            candidates_fitness = fitness[chosen, ...]
+            winner_indices = jax.vmap(jnp.lexsort)(jnp.transpose(candidates_fitness, (0, 2, 1)))
+            index = chosen[jnp.arange(self.num_round), winner_indices[:, 0]]
+
+        return index, State(key=key)

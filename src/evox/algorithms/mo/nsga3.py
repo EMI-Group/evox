@@ -6,7 +6,7 @@ from evox.operators.selection import UniformRandomSelection
 from evox.operators.mutation import GaussianMutation, PmMutation
 from evox.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
 from evox.operators.sampling import UniformSampling
-from evox.operators import non_dominated_sort
+from  evox.operators.selection import non_dominated_sort
 
 
 @evox.jit_class
@@ -23,11 +23,11 @@ class NSGA3(evox.Algorithm):
         n_objs,
         pop_size,
         ref=None,
-        selection=UniformRandomSelection(p=0.5),
-        mutation=GaussianMutation(),
-        # mutation=PmMutation(),
-        crossover=UniformCrossover(),
-        # crossover=SimulatedBinaryCrossover(),
+        selection=UniformRandomSelection(p=1),
+        # mutation=GaussianMutation(),
+        mutation=PmMutation(),
+        # crossover=UniformCrossover(),
+        crossover=SimulatedBinaryCrossover(),
     ):
         self.lb = lb
         self.ub = ub
@@ -66,15 +66,20 @@ class NSGA3(evox.Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        mutated, state = self.selection(state, state.population)
-        mutated, state = self.mutation(state, mutated)
+        selected, state = self.selection(state, state.population)
+        population = state.population[selected]
+        crossovered, state = self.crossover(state, population)
+        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
 
-        crossovered, state = self.selection(state, state.population)
-        crossovered, state = self.crossover(state, crossovered)
+        # next_generation, state = self.selection(state, state.population)
 
-        next_generation = jnp.clip(
-            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
-        )
+
+        # crossovered, state = self.crossover(state, state.population)
+        # next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+
+        # next_generation = jnp.clip(
+        #     jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
+        # )
         return next_generation, state.update(next_generation=next_generation)
 
     def _tell_init(self, state, fitness):
@@ -127,6 +132,7 @@ class NSGA3(evox.Algorithm):
             return dist
         
         dist = perpendicular_distance(ranked_fitness, self.ref)
+
         pi = jnp.nanargmin(dist, axis=1)
         d = dist[jnp.arange(len(normalized_fitness)), pi]
         

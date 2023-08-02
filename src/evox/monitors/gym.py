@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 from evox.core.module import Stateful
-from evox.operators import non_dominated_sort, crowding_distance_sort
+from evox.operators.selection import non_dominated_sort, crowding_distance_sort
 import time
 import os
 
