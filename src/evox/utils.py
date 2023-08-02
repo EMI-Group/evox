@@ -69,6 +69,16 @@ def _dominate_relation(x, y):
     return jax.vmap(lambda _x: jax.vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
+@jax.jit
+def new_dist_mat(xs : jax.Array) -> jax.Array:
+    assert len(xs.shape) == 2
+    xx = jax.vmap(lambda x: jnp.dot(x, x))(xs)
+    x2 = jnp.broadcast_to(xx[:, jnp.newaxis], (xx.shape[0], xx.shape[0]))
+    y2 = jnp.broadcast_to(xx[jnp.newaxis, :], (xx.shape[0], xx.shape[0]))
+    xy = jnp.matmul(xs, xs.T)
+    return jnp.sqrt(jnp.maximum(x2 + y2 - 2 * xy, 0))
+
+
 def compose(*functions):
     # if argument is a single Iterable like list or tuple,
     # treat it as a list of functions
