@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 
+<<<<<<< HEAD
 from evox import jit_class, Algorithm, State, Operator
 from evox.operators.selection import UniformRandomSelection
 from evox.operators.mutation import PmMutation
@@ -85,6 +86,14 @@ class ReferenceVectorGuidedSelection(Operator):
 
 
 @jit_class
+=======
+from evox.operators import selection, mutation, crossover
+from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox import Algorithm, State, jit_class
+
+
+@jit_class
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 class RVEA(Algorithm):
     """RVEA algorithms
 
@@ -100,11 +109,17 @@ class RVEA(Algorithm):
         alpha=2,
         fr=0.1,
         max_gen=100,
+<<<<<<< HEAD
         rs=50,
         mating=UniformRandomSelection(p=1),
         selection=ReferenceVectorGuidedSelection(),
         mutation=PmMutation(),
         crossover=SimulatedBinaryCrossover(),
+=======
+        selection_op=None,
+        mutation_op=None,
+        crossover_op=None,
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
     ):
         self.lb = lb
         self.ub = ub
@@ -116,10 +131,23 @@ class RVEA(Algorithm):
         self.max_gen = max_gen
         self.rs = rs
 
+<<<<<<< HEAD
         self.mating = mating
         self.selection = selection
         self.mutation = mutation
         self.crossover = crossover
+=======
+        self.selection = selection_op
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        if self.selection is None:
+            self.selection = selection.ReferenceVectorGuided()
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary()
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
         # self.sampling = UniformSampling(self.pop_size, self.n_objs)
         self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
@@ -155,6 +183,7 @@ class RVEA(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
+<<<<<<< HEAD
 
         key = state.key
         key, subkey = jax.random.split(key)
@@ -164,6 +193,19 @@ class RVEA(Algorithm):
         population = state.population[mating_pool]
         crossovered, state = self.crossover(state, population)
         next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+=======
+        mask = state.mask
+        key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
+        r = (
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
+        )
+
+        crossovered = self.crossover(x_key, state.population)
+        next_generation = self.mutation(mut_key, crossovered)
+        next_generation = jnp.where(mask, r, next_generation)
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
@@ -178,8 +220,8 @@ class RVEA(Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        rank, state = self.selection(
-            state, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
+        rank = self.selection(
+            merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
 
         survivor = merged_pop[rank]
@@ -196,7 +238,7 @@ class RVEA(Algorithm):
 
             return next_v
 
-        def no_update(pop_obj, v):
+        def no_update(_pop_obj, v):
             return v
 
         v = jax.lax.cond(

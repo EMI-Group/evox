@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 
+<<<<<<< HEAD
 from evox import jit_class, Algorithm, State
 from evox.operators.selection import TournamentSelection
 from evox.operators.mutation import PmMutation
@@ -24,6 +25,13 @@ def cal_fitness(pop_obj, kappa):
     return fitness, I, C
 
 
+=======
+from evox.operators import selection, mutation, crossover
+from evox.utils import cal_fitness
+from evox import Algorithm, State, jit_class
+
+
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 @jit_class
 class IBEA(Algorithm):
     """IBEA algorithm
@@ -38,8 +46,8 @@ class IBEA(Algorithm):
         n_objs,
         pop_size,
         kappa=0.05,
-        mutation=PmMutation(),
-        crossover=SimulatedBinaryCrossover(),
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -48,9 +56,14 @@ class IBEA(Algorithm):
         self.pop_size = pop_size
         self.kappa = kappa
 
-        self.selection = TournamentSelection(num_round=self.pop_size)
-        self.mutation = mutation
-        self.crossover = crossover
+        self.selection = selection.Tournament(n_round=self.pop_size)
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -65,6 +78,7 @@ class IBEA(Algorithm):
             next_generation=population,
             key=key,
             is_init=True,
+            key=key,
         )
 
     def ask(self, state):
@@ -79,16 +93,26 @@ class IBEA(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
+        key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         population = state.population
         pop_obj = state.fitness
         fitness = cal_fitness(pop_obj, self.kappa)[0]
 
+<<<<<<< HEAD
         selected_idx, state = self.selection(state, -fitness)
         selected = population[selected_idx]
         crossovered, state = self.crossover(state, selected)
         next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
 
         return next_generation, state.update(next_generation=next_generation)
+=======
+        selected = self.selection(sel_key, population, fitness)
+        crossovered = self.crossover(x_key, selected)
+        mutated = self.mutation(mut_key, crossovered)
+
+        next_generation = jnp.clip(mutated, self.lb, self.ub)
+        return next_generation, state.update(next_generation=next_generation, key=key)
+>>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)

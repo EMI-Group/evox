@@ -162,7 +162,7 @@ class Supervisor:
         return True
 
 
-class DistributedPipeline(Stateful):
+class RayDistributedWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,

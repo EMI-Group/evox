@@ -1,23 +1,61 @@
 import jax
 import jax.numpy as jnp
 
-<<<<<<< HEAD
 from evox import jit_class, Algorithm, State
 from evox.operators.mutation import PmMutation
 from evox.operators.crossover import SimulatedBinaryCrossover
-=======
-from evox.operators import mutation, crossover
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-from evox.utils import euclidean_dis
-from evox import Algorithm, State, jit_class
+from evox.utils import cos_dist
+from jax.experimental.host_callback import id_print
+from functools import partial
+
+
+@partial(jax.jit, static_argnums=3)
+def associate(pop, obj, w, s, rng):
+    k = len(w)
+
+    dis = cos_dist(obj, w)
+    max_indices = jnp.argmax(dis, axis=1)
+    id_print(max_indices)
+    partition = jnp.zeros((s, k), dtype=int)
+
+    def body_fun(i, p):
+        mask = max_indices == i
+        # current = jnp.zeros((s, ))
+        current = jnp.where(mask, size=len(pop), fill_value=-1)[0]
+
+        def true_fun(c):
+            c = c[:s]
+            rad = jax.random.randint(rng, (s, ), 0, len(pop))
+            c = jnp.where(c != -1, c, rad)
+            return c
+
+        def false_fun(c):
+            rank = non_dominated_sort(obj)
+            rank = jnp.where(mask, rank, jnp.inf)
+            order = jnp.argsort(rank)
+            worst_rank = rank[order[s - 1]]
+            mask_worst = rank == worst_rank
+            crowding_dis = crowding_distance(obj, mask_worst)
+            c = jnp.lexsort((-crowding_dis, rank))[: s]
+            return c
+
+        current = jax.lax.cond(jnp.sum(mask) < s, true_fun, false_fun, current)
+        p = p.at[:, i].set(current)
+        return p
+
+    partition = jax.lax.fori_loop(0, k, body_fun, partition)
+    id_print(partition)
+    partition = partition.flatten(order='F')
+
+    return partition
 
 
 @jit_class
-class MOEAD(Algorithm):
-    """MOEA/D algorithm
+class MOEADM2M(Algorithm):
+    """MOEA/D based on MOP to MOP algorithm
 
-    link: https://ieeexplore.ieee.org/document/4358754
+    link: https://ieeexplore.ieee.org/abstract/document/6595549
     """
 
     def __init__(
@@ -26,25 +64,21 @@ class MOEAD(Algorithm):
         ub,
         n_objs,
         pop_size,
-        type=1,
-        mutation_op=None,
-        crossover_op=None,
+        k=10,
+        mutation=PmMutation(),
+        crossover=SimulatedBinaryCrossover(type=2),
     ):
         self.lb = lb
         self.ub = ub
         self.n_objs = n_objs
         self.dim = lb.shape[0]
-        self.pop_size = pop_size
-        self.type = type
-        self.T = jnp.ceil(self.pop_size / 10).astype(int)
+        self.k = k
+        self.pop_size = (jnp.ceil(pop_size / self.k) * self.k).astype(int)
+        # self.type = type
+        # self.T = jnp.ceil(self.pop_size / 10).astype(int)
 
-        self.mutation = mutation_op
-        self.crossover = crossover_op
-
-        if self.mutation is None:
-            self.mutation = mutation.Polynomial((lb, ub))
-        if self.crossover is None:
-            self.crossover = crossover.SimulatedBinary(type=2)
+        self.mutation = mutation
+        self.crossover = crossover
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -54,16 +88,17 @@ class MOEAD(Algorithm):
             + self.lb
         )
         # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
-        w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
-        B = euclidean_dis(w, w)
-        B = jnp.argsort(B, axis=1)
-        B = B[:, : self.T]
+        w = LatinHypercubeSampling(self.k, self.n_objs).random(subkey2)[0]
+        s = (self.pop_size / self.k).astype(int)
+        # B = euclidean_dis(w, w)
+        # B = jnp.argsort(B, axis=1)
+        # B = B[:, : self.T]
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             weight_vector=w,
-            B=B,
+            # B=B,
             Z=jnp.zeros(shape=self.n_objs),
             parent=jnp.zeros((self.pop_size, self.T)).astype(int),
             is_init=True,
@@ -82,15 +117,15 @@ class MOEAD(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, subkey, sel_key, mut_key = jax.random.split(state.key, 4)
+        key, subkey = jax.random.split(state.key)
         parent = jax.random.permutation(
             subkey, state.B, axis=1, independent=True
         ).astype(int)
         population = state.population
         selected_p = jnp.r_[population[parent[:, 0]], population[parent[:, 1]]]
 
-        crossovered = self.crossover(sel_key, selected_p)
-        next_generation = self.mutation(mut_key, crossovered)
+        crossovered, state = self.crossover(state, selected_p)
+        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
         # next_generation = jnp.clip(mutated, self.lb, self.ub)
 
         return next_generation, state.update(

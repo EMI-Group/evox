@@ -9,7 +9,7 @@ import pytest
 def test_distributed_cso():
     monitor = StdSOMonitor()
     # create a pipeline
-    pipeline = pipelines.DistributedPipeline(
+    pipeline = pipelines.RayDistributedWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
