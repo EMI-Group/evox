@@ -1,5 +1,5 @@
 import evox
-from evox.operators.selection import non_dominated_sort
+from evox.operators import non_dominated_sort
 import jax
 import jax.numpy as jnp
 import chex
