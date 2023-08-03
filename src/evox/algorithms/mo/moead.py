@@ -1,17 +1,11 @@
 import jax
 import jax.numpy as jnp
 
-<<<<<<< HEAD
-from evox import jit_class, Algorithm, State
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
-=======
 from evox.operators import mutation, crossover
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
 from evox import Algorithm, State, jit_class
-
+from jax.experimental.host_callback import id_print
 
 @jit_class
 class MOEAD(Algorithm):
@@ -45,6 +39,7 @@ class MOEAD(Algorithm):
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary(type=2)
+        self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -54,7 +49,8 @@ class MOEAD(Algorithm):
             + self.lb
         )
         # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
-        w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
+        w, _ = self.sample(subkey2)
+        # w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
@@ -91,7 +87,6 @@ class MOEAD(Algorithm):
 
         crossovered = self.crossover(sel_key, selected_p)
         next_generation = self.mutation(mut_key, crossovered)
-        # next_generation = jnp.clip(mutated, self.lb, self.ub)
 
         return next_generation, state.update(
             next_generation=next_generation, parent=parent, key=key

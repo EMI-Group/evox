@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-import jax
-import jax.numpy as jnp
-from typing import Callable
-from evox import jit_class, Operator, State
-
-
-@jit_class
-class TournamentSelection(Operator):
-    """Tournament selection"""
-
-    def __init__(
-        self, num_round: int, tournament_func: Callable = jnp.argmin, tournament_size: int = 2
-=======
 from typing import Callable
 
 import jax.numpy as jnp
@@ -22,15 +8,23 @@ from functools import partial
 
 
 @partial(jit, static_argnums=[3, 4, 5])
-def tournament(key, pop, fit, n_round, tournament_func, tournament_size):
-    # select num_round times and each time
-    # k individuals to form candidates
+def tournament_single_fit(key, pop, fit, n_round, tournament_func, tournament_size):
+
     chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
-    # candidates = x[chosen, ...]
     candidates_fitness = fit[chosen, ...]
     winner_indices = vmap(tournament_func)(candidates_fitness)
-    index = jnp.diagonal(chosen[:, winner_indices])
-    return pop[index]
+    index = chosen[jnp.arange(n_round), winner_indices]
+    return pop[index], index
+
+
+@partial(jit, static_argnums=[3, 4, 5])
+def tournament_multi_fit(key, pop, fit, n_round, tournament_func, tournament_size):
+
+    chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
+    candidates_fitness = fit[chosen, ...]
+    winner_indices = vmap(jnp.lexsort)(jnp.transpose(candidates_fitness, (0, 2, 1)))
+    index = chosen[jnp.arange(n_round), winner_indices[:, 0]]
+    return pop[index], index
 
 
 @jit_class
@@ -40,9 +34,8 @@ class Tournament:
     def __init__(
         self,
         n_round: int,
-        tournament_func: Callable = jnp.argmax,
+        tournament_func: Callable = jnp.argmin,
         tournament_size: int = 2,
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
     ):
         """
         Parameters
@@ -61,36 +54,16 @@ class Tournament:
         self.tournament_func = tournament_func
         self.tournament_size = tournament_size
 
-<<<<<<< HEAD
-    def setup(self, key):
-        return State(key=key)
+    def __call__(self, key, pop, *args):
 
-    def __call__(self, state, *args):
-        key, subkey = jax.random.split(state.key)
-        # select num_round times and each time
-        # k individuals to form candidates
-        chosen = jax.random.choice(subkey, self.num_round, shape=(
-            self.num_round, self.tournament_size))
-        # candidates = x[chosen, ...]
-
-        # candidates_fitness = fitness[chosen, ...]
-        # winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
-        # index = jnp.diagonal(chosen[:, winner_indices])
         if len(args) == 1:
-            fitness = args[0]
-            candidates_fitness = fitness[chosen, ...]
-            winner_indices = jax.vmap(self.tournament_func)(candidates_fitness)
-            index = chosen[jnp.arange(self.num_round), winner_indices]
-        else:
-            fitness = jnp.c_[args]
-            candidates_fitness = fitness[chosen, ...]
-            winner_indices = jax.vmap(jnp.lexsort)(jnp.transpose(candidates_fitness, (0, 2, 1)))
-            index = chosen[jnp.arange(self.num_round), winner_indices[:, 0]]
-
-        return index, State(key=key)
-=======
-    def __call__(self, key, pop, fit):
-        return tournament(
+            fit = args[0]
+            return tournament_single_fit(
             key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
-        )
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
+            )
+        else:
+            fit = jnp.c_[args]
+            return tournament_multi_fit(
+            key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
+            )
+

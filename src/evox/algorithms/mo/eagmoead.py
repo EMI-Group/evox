@@ -3,15 +3,13 @@ import jax.numpy as jnp
 from functools import partial
 
 from evox import jit_class, Algorithm, State
-from evox.operators.selection import RouletteWheelSelection, non_dominated_sort, crowding_distance_sort, crowding_distance
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import selection, mutation, crossover, non_dominated_sort, crowding_distance
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
 from jax.experimental.host_callback import id_print
 
 
-@partial(jax.jit, static_argnames=['n'])
+@partial(jax.jit, static_argnums=[1])
 def environmental_selection(fitness, n):
     rank = non_dominated_sort(fitness)
     order = jnp.argsort(rank)
@@ -37,8 +35,9 @@ class EAGMOEAD(Algorithm):
         n_objs,
         pop_size,
         LGs=8,
-        mutation=PmMutation(),
-        crossover=SimulatedBinaryCrossover(type=2),
+        selection_op=None,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -48,9 +47,17 @@ class EAGMOEAD(Algorithm):
         self.LGs = LGs
         self.T = jnp.ceil(self.pop_size / 10).astype(int)
 
-        self.selection = RouletteWheelSelection(self.pop_size)
-        self.mutation = mutation
-        self.crossover = crossover
+        self.selection = selection_op
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        if self.selection is None:
+            self.selection = selection.RouletteWheelSelection(self.pop_size)
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary(type=2)
+        self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -60,8 +67,8 @@ class EAGMOEAD(Algorithm):
             + self.lb
         )
         fitness = jnp.zeros((self.pop_size, self.n_objs))
-        # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
-        w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
+
+        w = self.sample(subkey2)[0]
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
@@ -93,7 +100,7 @@ class EAGMOEAD(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, subkey = jax.random.split(state.key)
+        key, per_key, sel_key, x_key, mut_key = jax.random.split(state.key, 5)
         B = state.B
         population = state.inner_pop
         n, t = jnp.shape(B)
@@ -101,10 +108,10 @@ class EAGMOEAD(Algorithm):
         d = s / jnp.sum(s) + 0.002
         d = d / jnp.sum(d)
 
-        offspring_loc, state = self.selection(state, 1./d)
+        _, offspring_loc = self.selection(sel_key, population, 1./d)
         parent = jnp.zeros((n, 2)).astype(int)
         B = jax.random.permutation(
-            subkey, B, axis=1, independent=True
+            per_key, B, axis=1, independent=True
         ).astype(int)
 
         def body_fun(i, val):
@@ -116,8 +123,8 @@ class EAGMOEAD(Algorithm):
 
         selected_p = jnp.r_[population[parent[:, 0]], population[parent[:, 1]]]
 
-        crossovered, state = self.crossover(state, selected_p)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+        crossovered = self.crossover(x_key, selected_p)
+        next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(
             next_generation=next_generation, offspring_loc=offspring_loc, key=key

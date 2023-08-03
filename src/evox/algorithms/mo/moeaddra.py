@@ -2,12 +2,10 @@ import jax
 import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover, DECrossover
+from evox.operators import selection, mutation, crossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-from evox.operators.selection import TournamentSelection
 from evox.utils import euclidean_dis
-from jax.experimental.host_callback import id_print
+
 
 
 @jit_class
@@ -23,9 +21,9 @@ class MOEADDRA(Algorithm):
         ub,
         n_objs,
         pop_size,
-        type=1,
-        mutation=PmMutation(),
-        crossover=DECrossover(),
+        # type=1,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -37,9 +35,15 @@ class MOEADDRA(Algorithm):
         self.nr = jnp.ceil(self.pop_size / 100).astype(int)
         self.i_size = jnp.floor(self.pop_size / 5).astype(int)
 
-        self.selection = TournamentSelection(num_round=self.pop_size, tournament_size=10)
-        self.mutation = mutation
-        self.crossover = crossover
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        self.selection = selection.Tournament(n_round=self.pop_size)
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.DifferentialEvolve()
+        self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -49,7 +53,7 @@ class MOEADDRA(Algorithm):
             + self.lb
         )
 
-        w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
+        w = self.sample(subkey2)[0]
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
@@ -82,7 +86,7 @@ class MOEADDRA(Algorithm):
 
     def _ask_normal(self, state):
 
-        key, subkey1, subkey2, subkey3 = jax.random.split(state.key, 4)
+        key, subkey1, subkey2, subkey3, sel_key, x_key, mut_key = jax.random.split(state.key, 7)
         parent = jax.random.permutation(
             subkey1, state.B, axis=1, independent=True
         ).astype(int)
@@ -92,7 +96,7 @@ class MOEADDRA(Algorithm):
         pi = state.pi
         population = state.population
 
-        selected_idx, state = self.selection(state, -pi)
+        _, selected_idx = self.selection(sel_key, population, -pi)
         mask = jnp.sum(w < 1e-3, axis=1) == (self.n_objs - 1)
 
         boundary = jnp.where(mask, size=self.pop_size, fill_value=0)[0]
@@ -103,8 +107,8 @@ class MOEADDRA(Algorithm):
 
         choosed_p = jnp.where(rand < 0.9, parent[I_all], rand_perm)
 
-        crossovered, state = self.crossover(state, population[I_all], population[choosed_p[:, 0]], population[choosed_p[:, 1]])
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+        crossovered = self.crossover(x_key, population[I_all], population[choosed_p[:, 0]], population[choosed_p[:, 1]])
+        next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(
             next_generation=next_generation, choosed_p=choosed_p, key=key, I_all=I_all

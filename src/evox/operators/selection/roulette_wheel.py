@@ -1,37 +1,35 @@
 import jax
 import jax.numpy as jnp
-from evox import jit_class, Operator, State
+from evox import jit_class
+from jax.experimental.host_callback import id_print
 
 
 @jit_class
-class RouletteWheelSelection(Operator):
-    """Roulette wheel selection"""
+class RouletteWheelSelection:
+    """Roulette wheel selection
+
+    The smaller the fitness, the greater the selection probability.
+    """
 
     def __init__(self, n):
         self.n = n
 
-    def setup(self, key):
-        return State(key=key)
-
-    def __call__(self, state, fitness):
-        key, subkey = jax.random.split(state.key)
+    def __call__(self, key, x, fitness):
 
         fitness = fitness - jnp.minimum(jnp.min(fitness), 0) + 1e-6
         fitness = jnp.cumsum(1. / fitness)
         fitness = fitness / jnp.max(fitness)
+        # id_print(fitness)
 
-        index = jnp.zeros(self.n).astype(int)
-        vals = (index, key)
+        random_values = jax.random.uniform(key, shape=(self.n, ))
+        # id_print(random_values)
+        selected_indices = jnp.searchsorted(fitness, random_values)
 
-        def body_fun(i, vals):
-            index, key = vals
-            key, subkey = jax.random.split(key)
-            r = jax.random.uniform(subkey)
-            idx = jnp.argwhere(fitness >= r, size=10)
-            index = index.at[i].set(idx[0, 0])
-            val = (index, key)
-            return val
+        return x[selected_indices], selected_indices
 
-        index, key = jax.lax.fori_loop(0, self.n, body_fun, vals)
 
-        return index, State(key=key)
+if __name__ == '__main__':
+    r = RouletteWheelSelection(10)
+    x = jnp.array([3.0, 1.5, 2.7, 5.2, 4.1])
+    idx = r(jax.random.PRNGKey(22), x, x)
+    print(idx)

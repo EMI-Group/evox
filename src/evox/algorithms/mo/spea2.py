@@ -2,9 +2,10 @@ import jax
 import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
-from evox.operators.selection import TournamentSelection
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import selection, mutation, crossover
+# from evox.operators.selection import TournamentSelection
+# from evox.operators.mutation import PmMutation
+# from evox.operators.crossover import SimulatedBinaryCrossover
 from evox.utils import _dominate_relation, euclidean_dis
 from jax.experimental.host_callback import id_print
 
@@ -72,9 +73,8 @@ class SPEA2(Algorithm):
             ub,
             n_objs,
             pop_size,
-
-            mutation=PmMutation(),
-            crossover=SimulatedBinaryCrossover(),
+            mutation_op=None,
+            crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -82,9 +82,14 @@ class SPEA2(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
 
-        self.selection = TournamentSelection(num_round=self.pop_size)
-        self.mutation = mutation
-        self.crossover = crossover
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+        self.selection = selection.Tournament(n_round=self.pop_size)
+
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -113,14 +118,14 @@ class SPEA2(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
+        key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         population = state.population
 
         sig_fitness = cal_fitness(state.fitness)
 
-        selected_idx, state = self.selection(state, sig_fitness)
-        selected = population[selected_idx]
-        crossovered, state = self.crossover(state, selected)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+        selected, _ = self.selection(sel_key, population, sig_fitness)
+        crossovered = self.crossover(x_key, selected)
+        next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(next_generation=next_generation)
 

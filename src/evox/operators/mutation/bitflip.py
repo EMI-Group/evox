@@ -1,38 +1,8 @@
-<<<<<<< HEAD
-import jax
-import jax.numpy as jnp
-from evox import jit_class, Operator, State
-
-=======
 from evox import jit_class
 import jax.numpy as jnp
 from jax import jit, random
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
 
-<<<<<<< HEAD
-@jit_class
-class BitFlipMutation(Operator):
-    def __init__(self, p):
-        """
-        Parameters
-        ----------
-        p
-            The probability to flip each bit.
-        """
-        self.p = p
-
-    def setup(self, key):
-        return State(key=key)
-
-    def __call__(self, state, x):
-        batch, _ = x.shape
-        key, subkey = jax.random.split(state.key)
-        mutation_keys = jax.random.split(subkey, batch)
-        ps = jnp.ones(shape=(batch,)) * self.p
-        new_x = jax.vmap(_flip)(mutation_keys, x, ps)
-        return new_x, State(key=key)
-=======
 @jit
 def bitflip(key, x, prob, bool_input="auto"):
     """Perform bitflip mutation, the input x is expected to have a dtype of bool or uint8.
@@ -66,4 +36,3 @@ class Bitflip:
 
     def __call__(self, key, x):
         return bitflip(key, x, self.prob, self.bool_input)
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9

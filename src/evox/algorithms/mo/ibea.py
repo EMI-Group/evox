@@ -1,13 +1,9 @@
 import jax
 import jax.numpy as jnp
 
-<<<<<<< HEAD
-from evox import jit_class, Algorithm, State
-from evox.operators.selection import TournamentSelection
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import selection, mutation, crossover
 from evox.utils import cal_max
-from jax.experimental.host_callback import id_print
+from evox import Algorithm, State, jit_class
 
 
 @jax.jit
@@ -25,18 +21,11 @@ def cal_fitness(pop_obj, kappa):
     return fitness, I, C
 
 
-=======
-from evox.operators import selection, mutation, crossover
-from evox.utils import cal_fitness
-from evox import Algorithm, State, jit_class
-
-
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 @jit_class
 class IBEA(Algorithm):
     """IBEA algorithm
 
-    link:
+    link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
     """
 
     def __init__(
@@ -76,7 +65,6 @@ class IBEA(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            key=key,
             is_init=True,
             key=key,
         )
@@ -98,26 +86,19 @@ class IBEA(Algorithm):
         pop_obj = state.fitness
         fitness = cal_fitness(pop_obj, self.kappa)[0]
 
-<<<<<<< HEAD
-        selected_idx, state = self.selection(state, -fitness)
-        selected = population[selected_idx]
-        crossovered, state = self.crossover(state, selected)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
-
-        return next_generation, state.update(next_generation=next_generation)
-=======
-        selected = self.selection(sel_key, population, fitness)
+        # selected = self.selection(sel_key, population, fitness)
+        selected, _ = self.selection(sel_key, population, -fitness)
         crossovered = self.crossover(x_key, selected)
-        mutated = self.mutation(mut_key, crossovered)
+        next_generation = self.mutation(mut_key, crossovered)
 
-        next_generation = jnp.clip(mutated, self.lb, self.ub)
+        # next_generation = jnp.clip(mutated, self.lb, self.ub)
         return next_generation, state.update(next_generation=next_generation, key=key)
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)
         return state
 
+    # @profile
     def _tell_normal(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
@@ -139,7 +120,7 @@ class IBEA(Algorithm):
         next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
 
         ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
-        ind_n = ind[0: self.pop_size]
+        ind_n = ind[0 : self.pop_size]
 
         survivor = merged_pop[ind_n]
         survivor_fitness = merged_obj[ind_n]

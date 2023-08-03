@@ -3,11 +3,9 @@ import jax.numpy as jnp
 import evox as ex
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 import chex
-import os
-import json
+import os, json
 
 
-@ex.jit_class
 class DTLZ(ex.Problem):
     """DTLZ"""
 
@@ -16,18 +14,18 @@ class DTLZ(ex.Problem):
         self.m = m
         self._dtlz = None
         self.ref_num = ref_num
+        self.sample = UniformSampling(self.ref_num * self.m, self.m)
 
     def setup(self, key):
         return ex.State(key=key)
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
-        chex.assert_shape(X, (None, self.n))
+        chex.assert_shape(X, (None, self.d))
         return jax.jit(jax.vmap(self._dtlz))(X), state
 
     def pf(self, state: chex.PyTreeDef):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
-        # f = LatinHypercubeSampling(self.ref_num * self.m, self.m).random(state.key)[0] / 2
+        f = self.sample()[0] / 2
         return f, state
 
 
@@ -79,7 +77,7 @@ class DTLZ2(DTLZ):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0]
+        f = self.sample()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1,
                                        keepdims=True)), (1, self.m))
         return f, state

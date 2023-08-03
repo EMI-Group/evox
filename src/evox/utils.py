@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from functools import partial
 from typing import Union, List
 
-import jax
+from jax import vmap
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 
@@ -36,7 +36,7 @@ def pair_distance(a, b):
 
 @jax.jit
 def euclidean_dis(x, y):
-    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_distance(_x, _y))(y))(x)
+    return vmap(lambda _x: vmap(lambda _y: pair_distance(_x, _y))(y))(x)
 
 
 @jax.jit
@@ -54,7 +54,7 @@ def cos_dist(x, y):
 
 @jax.jit
 def cal_max(x, y):
-    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_max(_x, _y))(y))(x)
+    return vmap(lambda _x: vmap(lambda _y: pair_max(_x, _y))(y))(x)
 
 
 @jax.jit
@@ -66,7 +66,7 @@ def _dominate(x, y):
 @jax.jit
 def _dominate_relation(x, y):
     """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
-    return jax.vmap(lambda _x: jax.vmap(lambda _y: _dominate(_x, _y))(y))(x)
+    return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
 @jax.jit

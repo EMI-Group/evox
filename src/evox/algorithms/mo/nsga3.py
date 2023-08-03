@@ -2,9 +2,6 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators.sampling import UniformSampling
-<<<<<<< HEAD
-from  evox.operators.selection import non_dominated_sort
-=======
 from evox.operators import (
     non_dominated_sort,
     selection,
@@ -12,7 +9,6 @@ from evox.operators import (
     crossover,
 )
 from evox import Algorithm, jit_class, State
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
 
 @jit_class
@@ -29,24 +25,17 @@ class NSGA3(Algorithm):
         n_objs,
         pop_size,
         ref=None,
-<<<<<<< HEAD
-        selection=UniformRandomSelection(p=1),
-        # mutation=GaussianMutation(),
-        mutation=PmMutation(),
-        # crossover=UniformCrossover(),
-        crossover=SimulatedBinaryCrossover(),
-=======
         selection_op=None,
         mutation_op=None,
         crossover_op=None,
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
     ):
         self.lb = lb
         self.ub = ub
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
-        self.ref = ref if ref else UniformSampling(pop_size, n_objs).random()[0]
+        self.sample = UniformSampling(pop_size, n_objs)
+        self.ref = ref if ref else self.sample()[0]
 
         self.selection = selection_op
         self.mutation = mutation_op
@@ -86,23 +75,6 @@ class NSGA3(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-<<<<<<< HEAD
-        selected, state = self.selection(state, state.population)
-        population = state.population[selected]
-        crossovered, state = self.crossover(state, population)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
-
-        # next_generation, state = self.selection(state, state.population)
-
-
-        # crossovered, state = self.crossover(state, state.population)
-        # next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
-
-        # next_generation = jnp.clip(
-        #     jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
-        # )
-        return next_generation, state.update(next_generation=next_generation)
-=======
         key, sel_key1, mut_key, sel_key2, x_key = jax.random.split(state.key, 5)
         mutated = self.selection(sel_key1, state.population)
         mutated = self.mutation(mut_key, mutated)
@@ -114,7 +86,6 @@ class NSGA3(Algorithm):
             jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
         )
         return next_generation, state.update(next_generation=next_generation, key=key)
->>>>>>> e9d1a7a9a7ff3bb82fc0c14c4cd4180929c822b9
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)
@@ -180,7 +151,6 @@ class NSGA3(Algorithm):
             return dist
 
         dist = perpendicular_distance(ranked_fitness, self.ref)
-
         pi = jnp.nanargmin(dist, axis=1)
         d = dist[jnp.arange(len(normalized_fitness)), pi]
 
