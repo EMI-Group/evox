@@ -1,7 +1,7 @@
-====================
-Distributed Pipeline
-====================
+==============================
+Ray-based Distributed Workflow
+==============================
 
-.. autoclass:: evox.pipelines.DistributedPipeline
+.. autoclass:: evox.pipelines.RayDistributedWorkflow
     :members:
     :inherited-members:

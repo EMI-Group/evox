@@ -19,6 +19,24 @@ class Brax(Problem):
         cap_episode: int,
         fitness_is_neg_reward: bool = True,
     ):
+        """Contruct a brax-based problem
+
+        Parameters
+        ----------
+        policy
+            A function that accept two arguments
+            the first one is the parameter and the second is the input.
+        env_name
+            The environment name.
+        batch_size
+            The number of brax environments to run in parallel.
+            Usually this should match the population size at the algorithm side.
+        cap_episode
+            The maximum number episodes to run.
+        fitness_is_neg_reward
+            Whether to return the fitness value as the negative of reward or not.
+            Default to True.
+        """
         self.batched_policy = jit(vmap(policy))
         self.env = envs.wrappers.VmapWrapper(envs.create(env_name=env_name))
         self.batch_size = batch_size

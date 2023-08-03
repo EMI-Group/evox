@@ -9,6 +9,7 @@ class StdMOMonitor:
     """Standard multi-objective monitor
     Used for multi-objective workflow,
     can monitor fitness and record the pareto front.
+
     Parameters
     ----------
     record_pf

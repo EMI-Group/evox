@@ -8,4 +8,5 @@ Multi-objective
     ibea
     moead
     nsga2
+    nsga3
     rvea
