@@ -17,8 +17,7 @@ def _unpair(x):
 def _one_point_crossover(key, parents):
     _, dim = parents.shape
     point = random.choice(key, dim) + 1
-    mask = jnp.ones((point,))
-    mask = jnp.pad(mask, (0, dim - point), "constant", constant_values=(0, 0))
+    mask = jnp.arange(dim) < point
     c1 = jnp.where(mask, parents[0], parents[1])
     c2 = jnp.where(mask, parents[1], parents[0])
     return jnp.stack([c1, c2])
