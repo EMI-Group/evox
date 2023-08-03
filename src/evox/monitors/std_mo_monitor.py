@@ -1,11 +1,6 @@
 import jax.numpy as jnp
-<<<<<<< Updated upstream
 import numpy as np
-from ..operators.selection.non_dominated_sort import non_dominated_sort
-import jax.experimental.host_callback as hcb
-=======
-from src.evox.operators.selection.non_dominated_sort import non_dominated_sort
->>>>>>> Stashed changes
+from ..operators.non_dominated_sort import non_dominated_sort
 
 
 class StdMOMonitor:
