@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 from functools import partial
-import evox as ex
+from evox import jit_class, Problem
 import chex
 
 
@@ -11,8 +11,8 @@ def _generic_zdt(f1, g, h, x):
     return jnp.array([f1_x, g_x * h(f1(x), g_x)])
 
 
-@ex.jit_class
-class ZDT(ex.Problem):
+@jit_class
+class ZDT(Problem):
     def __init__(self, n, ref_num=100):
         self.n = n
         self._zdt = None

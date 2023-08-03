@@ -3,10 +3,7 @@ import jax.numpy as jnp
 from functools import partial
 
 from evox import jit_class, Algorithm, State
-from evox.operators.selection import TournamentSelection, non_dominated_sort
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
-from jax.experimental.host_callback import id_print
+from evox.operators import selection, mutation, crossover, non_dominated_sort
 
 
 @partial(jax.jit, static_argnums=[0, 1])
@@ -69,8 +66,8 @@ class HypE(Algorithm):
         n_objs,
         pop_size,
         n_sample=10000,
-        mutation=PmMutation(),
-        crossover=SimulatedBinaryCrossover(),
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -79,9 +76,13 @@ class HypE(Algorithm):
         self.pop_size = pop_size
         self.n_sample = n_sample
 
-        self.selection = TournamentSelection(num_round=self.pop_size)
-        self.mutation = mutation
-        self.crossover = crossover
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+        self.selection = selection.Tournament(n_round=self.pop_size)
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -113,13 +114,12 @@ class HypE(Algorithm):
     def _ask_normal(self, state):
         population = state.population
         pop_obj = state.fitness
-        key, subkey = jax.random.split(state.key)
+        key, subkey, sel_key, x_key, mut_key = jax.random.split(state.key, 5)
         hv = cal_hv(pop_obj, state.ref_point, self.pop_size, self.n_sample, subkey)
 
-        selected_idx, state = self.selection(state, -hv)
-        selected = population[selected_idx]
-        crossovered, state = self.crossover(state, selected)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+        selected, _ = self.selection(sel_key, population, -hv)
+        crossovered = self.crossover(x_key, selected)
+        next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(next_generation=next_generation)
 
@@ -136,7 +136,7 @@ class HypE(Algorithm):
 
         rank = non_dominated_sort(merged_obj)
         order = jnp.argsort(rank)
-        worst_rank = rank[order[n - 1]]
+        worst_rank = rank[order[n-1]]
         mask = rank == worst_rank
 
         key, subkey = jax.random.split(state.key)

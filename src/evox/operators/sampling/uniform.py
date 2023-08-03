@@ -1,9 +1,12 @@
+import jax
 import jax.numpy as jnp
 from itertools import combinations as n_choose_k
-
 from scipy.special import comb
 
+import evox
 
+
+@evox.jit_class
 class UniformSampling:
     """Uniform sampling use Das and Dennis's method, Deb and Jain's method."""
 
@@ -11,7 +14,7 @@ class UniformSampling:
         self.n = n
         self.m = m
 
-    def random(self):
+    def __call__(self):
         h1 = 1
         while comb(h1 + self.m, self.m - 1) <= self.n:
             h1 += 1
@@ -33,3 +36,4 @@ class UniformSampling:
         w = jnp.maximum(w, 1e-6)
         n = jnp.shape(w)[0]
         return w, n
+
