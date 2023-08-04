@@ -48,9 +48,7 @@ class MOEAD(Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
         w, _ = self.sample(subkey2)
-        # w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
