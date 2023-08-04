@@ -1,6 +1,5 @@
 import jax
 import jax.numpy as jnp
-from jax import jit, lax
 from evox.utils import cos_dist
 
 from evox.operators import mutation, crossover
@@ -8,7 +7,7 @@ from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox import Algorithm, State, jit_class
 
 
-@jit
+@jax.jit
 def ref_vec_guided(x, v, theta):
     n, m = jnp.shape(x)
     nv = jnp.shape(v)[0]

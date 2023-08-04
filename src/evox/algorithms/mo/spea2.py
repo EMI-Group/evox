@@ -3,11 +3,7 @@ import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover
-# from evox.operators.selection import TournamentSelection
-# from evox.operators.mutation import PmMutation
-# from evox.operators.crossover import SimulatedBinaryCrossover
 from evox.utils import _dominate_relation, euclidean_dis
-from jax.experimental.host_callback import id_print
 
 
 @jax.jit
@@ -45,8 +41,6 @@ def _truncation(obj, k, mask):
 
     def body_fun(vals):
         del_ind, dis = vals
-        # temp = jnp.sort(dis, axis=1)
-        # rank = jnp.lexsort(temp[:, ::-1].T)
         temp = jnp.min(dis, axis=1)
         rank = jnp.argsort(temp)
         idx = rank[0]
