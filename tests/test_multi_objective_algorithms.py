@@ -113,3 +113,13 @@ def test_spea2():
         pop_size=100,
     )
     run_moea(algorithm)
+
+
+def test_moeadm2m():
+    algorithm = algorithms.MOEADM2M(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
