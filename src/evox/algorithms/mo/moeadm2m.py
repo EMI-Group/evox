@@ -2,26 +2,49 @@ import jax
 import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox.operators import sampling, non_dominated_sort, crowding_distance
 from evox.utils import cos_dist
-from jax.experimental.host_callback import id_print
 from functools import partial
 
 
-@partial(jax.jit, static_argnums=3)
-def associate(pop, obj, w, s, rng):
-    k = len(w)
+@jit_class
+class Crossover:
+    def __call__(self, key, p1, p2, scale):
+        n, d = jnp.shape(p1)
 
+        subkey1, subkey2 = jax.random.split(key)
+        rc = (2*jax.random.uniform(subkey1, (n, 1))-1) * (1-jax.random.uniform(subkey2, (n, 1)))**(-(1-scale)**0.7)
+        offspring = p1 + jnp.tile(rc, (1, d)) * (p1 - p2)
+        return offspring
+
+
+@jit_class
+class Mutation:
+
+    def __call__(self, key, p1, off, scale, lb, ub):
+        n, d = jnp.shape(p1)
+        subkey1, subkey2, subkey3, subkey4 = jax.random.split(key, 4)
+        rm = 0.25 * (2*jax.random.uniform(subkey1, (n, d))-1) * (1-jax.random.uniform(subkey2, (n, d)))**(-(1-scale)**0.7)
+        site = jax.random.uniform(subkey3, (n, d)) < (1/d)
+        lower = jnp.tile(lb, (n, 1))
+        upper = jnp.tile(ub, (n, 1))
+        offspring = jnp.where(site, off + rm * (upper - lower), off)
+        rnd = jax.random.uniform(subkey4, (n, d))
+        offspring = jnp.where(offspring < lower, lower + 0.5 * rnd * (p1 - lower), offspring)
+        offspring = jnp.where(offspring > upper, upper - 0.5 * rnd * (upper - p1), offspring)
+        return offspring
+
+
+@partial(jax.jit, static_argnums=4)
+def associate(rng, pop, obj, w, s):
+    k = len(w)
     dis = cos_dist(obj, w)
     max_indices = jnp.argmax(dis, axis=1)
-    id_print(max_indices)
+    # id_print(max_indices)
     partition = jnp.zeros((s, k), dtype=int)
 
     def body_fun(i, p):
         mask = max_indices == i
-        # current = jnp.zeros((s, ))
         current = jnp.where(mask, size=len(pop), fill_value=-1)[0]
 
         def true_fun(c):
@@ -45,10 +68,9 @@ def associate(pop, obj, w, s, rng):
         return p
 
     partition = jax.lax.fori_loop(0, k, body_fun, partition)
-    id_print(partition)
-    partition = partition.flatten(order='F')
 
-    return partition
+    partition = partition.flatten(order='F')
+    return pop[partition], obj[partition]
 
 
 @jit_class
@@ -65,8 +87,9 @@ class MOEADM2M(Algorithm):
         n_objs,
         pop_size,
         k=10,
-        mutation=PmMutation(),
-        crossover=SimulatedBinaryCrossover(type=2),
+        max_gen=100,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -74,11 +97,13 @@ class MOEADM2M(Algorithm):
         self.dim = lb.shape[0]
         self.k = k
         self.pop_size = (jnp.ceil(pop_size / self.k) * self.k).astype(int)
-        # self.type = type
-        # self.T = jnp.ceil(self.pop_size / 10).astype(int)
+        self.s = int(self.pop_size / self.k)
+        self.max_gen = max_gen
 
-        self.mutation = mutation
-        self.crossover = crossover
+        self.mutation = Mutation()
+        self.crossover = Crossover()
+
+        self.sample = sampling.LatinHypercubeSampling(self.k, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -87,22 +112,17 @@ class MOEADM2M(Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
-        w = LatinHypercubeSampling(self.k, self.n_objs).random(subkey2)[0]
-        s = (self.pop_size / self.k).astype(int)
-        # B = euclidean_dis(w, w)
-        # B = jnp.argsort(B, axis=1)
-        # B = B[:, : self.T]
+
+        w = self.sample(subkey2)[0]
+
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            weight_vector=w,
-            # B=B,
-            Z=jnp.zeros(shape=self.n_objs),
-            parent=jnp.zeros((self.pop_size, self.T)).astype(int),
+            w=w,
             is_init=True,
             key=key,
+            gen=0
         )
 
     def ask(self, state):
@@ -117,110 +137,41 @@ class MOEADM2M(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, subkey = jax.random.split(state.key)
-        parent = jax.random.permutation(
-            subkey, state.B, axis=1, independent=True
-        ).astype(int)
+        key, local_key, global_key, rnd_key, x_key, mut_key = jax.random.split(state.key, 6)
+        current_gen = state.gen
+        scale = current_gen / self.max_gen
         population = state.population
-        selected_p = jnp.r_[population[parent[:, 0]], population[parent[:, 1]]]
+        mating_pool_local = jax.random.randint(local_key, (self.s, self.k), 0, self.s) + \
+                            jnp.tile(jnp.arange(0, self.s * self.k, self.s), (self.s, 1))
+        mating_pool_local = mating_pool_local.flatten()
+        mating_pool_global = jax.random.randint(global_key, (self.pop_size, ), 0, self.pop_size)
 
-        crossovered, state = self.crossover(state, selected_p)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
-        # next_generation = jnp.clip(mutated, self.lb, self.ub)
+        rnd = jax.random.uniform(rnd_key, (self.s, self.k)).flatten()
+
+        mating_pool_local = jnp.where(rnd < 0.7, mating_pool_global, mating_pool_local)
+
+        crossovered = self.crossover(x_key, population, population[mating_pool_local], scale)
+        next_generation = self.mutation(mut_key, population, crossovered, scale, self.lb, self.ub)
+        current_gen = current_gen + 1
 
         return next_generation, state.update(
-            next_generation=next_generation, parent=parent, key=key
+            next_generation=next_generation, key=key, gen=current_gen
         )
 
     def _tell_init(self, state, fitness):
-        Z = jnp.min(fitness, axis=0)
-        state = state.update(fitness=fitness, Z=Z, is_init=False)
+        key, subkey = jax.random.split(state.key)
+        population = state.population
+        population, fitness = associate(subkey, population, fitness, state.w, self.s)
+
+        state = state.update(population=population, fitness=fitness, is_init=False, key=key)
         return state
 
     def _tell_normal(self, state, fitness):
-        population = state.population
-        pop_obj = state.fitness
-        offspring = state.next_generation
-        obj = fitness
-        w = state.weight_vector
-        Z = state.Z
-        parent = state.parent
+        key, subkey = jax.random.split(state.key)
+        merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
+        merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        out_vals = (population, pop_obj, Z)
+        population, pop_obj = associate(subkey, merged_pop, merged_fitness, state.w, self.s)
 
-        def out_body(i, out_vals):
-            population, pop_obj, Z = out_vals
-            ind_p = parent[i]
-            ind_obj = obj[i]
-            Z = jnp.minimum(Z, obj[i])
-
-            if self.type == 1:
-                # PBI approach
-                norm_w = jnp.linalg.norm(w[ind_p], axis=1)
-                norm_p = jnp.linalg.norm(
-                    pop_obj[ind_p] - jnp.tile(Z, (self.T, 1)), axis=1
-                )
-                norm_o = jnp.linalg.norm(ind_obj - Z)
-                cos_p = (
-                    jnp.sum(
-                        (pop_obj[ind_p] - jnp.tile(Z, (self.T, 1))) * w[ind_p], axis=1
-                    )
-                    / norm_w
-                    / norm_p
-                )
-                cos_o = (
-                    jnp.sum(jnp.tile(ind_obj - Z, (self.T, 1)) * w[ind_p], axis=1)
-                    / norm_w
-                    / norm_o
-                )
-                g_old = norm_p * cos_p + 5 * norm_p * jnp.sqrt(1 - cos_p**2)
-                g_new = norm_o * cos_o + 5 * norm_o * jnp.sqrt(1 - cos_o**2)
-            if self.type == 2:
-                # Tchebycheff approach
-                g_old = jnp.max(
-                    jnp.abs(pop_obj[ind_p] - jnp.tile(Z, (self.T, 1))) * w[ind_p],
-                    axis=1,
-                )
-                g_new = jnp.max(
-                    jnp.tile(jnp.abs(ind_obj - Z), (self.T, 1)) * w[ind_p], axis=1
-                )
-            if self.type == 3:
-                # Tchebycheff approach with normalization
-                z_max = jnp.max(pop_obj, axis=0)
-                g_old = jnp.max(
-                    jnp.abs(pop_obj[ind_p] - jnp.tile(Z, (self.T, 1)))
-                    / jnp.tile(z_max - Z, (self.T, 1))
-                    * w[ind_p],
-                    axis=1,
-                )
-                g_new = jnp.max(
-                    jnp.tile(jnp.abs(ind_obj - Z), (self.T, 1))
-                    / jnp.tile(z_max - Z, (self.T, 1))
-                    * w[ind_p],
-                    axis=1,
-                )
-            if self.type == 4:
-                # Modified Tchebycheff approach
-                g_old = jnp.max(
-                    jnp.abs(pop_obj[ind_p] - jnp.tile(Z, (self.T, 1))) / w[ind_p],
-                    axis=1,
-                )
-                g_new = jnp.max(
-                    jnp.tile(jnp.abs(ind_obj - Z), (self.T, 1)) / w[ind_p], axis=1
-                )
-
-            g_new = g_new[:, jnp.newaxis]
-            g_old = g_old[:, jnp.newaxis]
-            population = population.at[ind_p].set(
-                jnp.where(g_old >= g_new, offspring[ind_p], population[ind_p])
-            )
-            pop_obj = pop_obj.at[ind_p].set(
-                jnp.where(g_old >= g_new, obj[ind_p], pop_obj[ind_p])
-            )
-
-            return (population, pop_obj, Z)
-
-        population, pop_obj, Z = jax.lax.fori_loop(0, self.pop_size, out_body, out_vals)
-
-        state = state.update(population=population, fitness=pop_obj, Z=Z)
+        state = state.update(population=population, fitness=pop_obj, key=key)
         return state

@@ -7,3 +7,4 @@ from .eagmoead import EAGMOEAD
 from .moeaddra import MOEADDRA
 from .spea2 import SPEA2
 from .hype import HypE
+from .moeadm2m import MOEADM2M
