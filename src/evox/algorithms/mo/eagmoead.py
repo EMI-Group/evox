@@ -6,7 +6,6 @@ from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover, non_dominated_sort, crowding_distance
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
-from jax.experimental.host_callback import id_print
 
 
 @partial(jax.jit, static_argnums=[1])

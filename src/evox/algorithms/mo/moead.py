@@ -5,7 +5,7 @@ from evox.operators import mutation, crossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
 from evox import Algorithm, State, jit_class
-from jax.experimental.host_callback import id_print
+
 
 @jit_class
 class MOEAD(Algorithm):
