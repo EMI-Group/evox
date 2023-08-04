@@ -19,11 +19,11 @@ in
     stdenv
     gcc
 
-    python39
-    python39Packages.pip
-    python39Packages.setuptools
-    python39Packages.wheel
-    python39Packages.virtualenv
+    python310
+    python310Packages.pip
+    python310Packages.setuptools
+    python310Packages.wheel
+    python310Packages.virtualenv
 
     cudaPackages.cudatoolkit
     cudaPackages.cudnn
@@ -32,6 +32,4 @@ in
     SDL2
     glfw
   ];
-
-  runScript = "fish";
 }).env

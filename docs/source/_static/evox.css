@@ -4,11 +4,11 @@ original css file: https://raw.githubusercontent.com/numpy/numpy/main/doc/source
 */
 
 .navbar-brand img {
-  height: 75px;
+  height: 75%;
 }
 
 .navbar-brand {
-  height: 75px;
+  height: 75%;
 }
 
 body {

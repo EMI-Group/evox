@@ -64,3 +64,12 @@ def test_rvea():
         pop_size=100,
     )
     run_moea(algorithm)
+    
+def test_nsga3():
+    algorithm = algorithms.NSGA3(
+        lb=jnp.full(shape=(3,), fill_value=0),
+        ub=jnp.full(shape=(3,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)

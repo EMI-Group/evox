@@ -1,17 +1,18 @@
-import evox as ex
+from typing import Any
 import jax
-import jax.numpy as jnp
+from jax import jit
+from evox import jit_class
 
 
-@ex.jit_class
-class GaussianMutation(ex.Operator):
+@jit
+def gaussian(key, x, stdvar):
+    perturbation = jax.random.normal(key, x.shape) * stdvar
+    return x + perturbation
+
+
+class Gaussian:
     def __init__(self, stdvar=1.0):
         self.stdvar = stdvar
 
-    def setup(self, key):
-        return ex.State(key=key)
-
-    def __call__(self, state, x):
-        key, subkey = jax.random.split(state.key)
-        perturbation = jax.random.normal(subkey, x.shape) * self.stdvar
-        return x + perturbation, ex.State(key=key)
+    def __call__(self, key, x):
+        return gaussian(key, x, self.stdvar)

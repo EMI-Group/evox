@@ -1,10 +1,11 @@
 from .standard import StdPipeline
 from .multidevice import MultiDevicePipeline
 from .gym import GymPipeline
+from .uni_workflow import UniWorkflow
 
 try:
     # optional dependency: ray
-    from .distributed import DistributedPipeline
+    from .distributed import RayDistributedWorkflow
 except ImportError as e:
     original_erorr_msg = str(e)
 

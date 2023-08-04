@@ -1,15 +1,14 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 
-from evox.operators.mutation import PmMutation
-from evox.operators.crossover import SimulatedBinaryCrossover
+from evox.operators import mutation, crossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class MOEAD(ex.Algorithm):
+@jit_class
+class MOEAD(Algorithm):
     """MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/document/4358754
@@ -22,8 +21,8 @@ class MOEAD(ex.Algorithm):
         n_objs,
         pop_size,
         type=1,
-        mutation=PmMutation(),
-        crossover=SimulatedBinaryCrossover(type=2),
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -33,8 +32,13 @@ class MOEAD(ex.Algorithm):
         self.type = type
         self.T = jnp.ceil(self.pop_size / 10).astype(int)
 
-        self.mutation = mutation
-        self.crossover = crossover
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        if self.mutation is None:
+            self.mutation = mutation.Polynomial((lb, ub))
+        if self.crossover is None:
+            self.crossover = crossover.SimulatedBinary(type=2)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -48,7 +52,7 @@ class MOEAD(ex.Algorithm):
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
-        return ex.State(
+        return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
@@ -60,7 +64,6 @@ class MOEAD(ex.Algorithm):
             key=key,
         )
 
-    @ex.jit_method
     def ask(self, state):
         return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
 
@@ -73,15 +76,15 @@ class MOEAD(ex.Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, subkey = jax.random.split(state.key)
+        key, subkey, sel_key, mut_key = jax.random.split(state.key, 4)
         parent = jax.random.permutation(
             subkey, state.B, axis=1, independent=True
         ).astype(int)
         population = state.population
         selected_p = jnp.r_[population[parent[:, 0]], population[parent[:, 1]]]
 
-        crossovered, state = self.crossover(state, selected_p)
-        next_generation, state = self.mutation(state, crossovered, (self.lb, self.ub))
+        crossovered = self.crossover(sel_key, selected_p)
+        next_generation = self.mutation(mut_key, crossovered)
         # next_generation = jnp.clip(mutated, self.lb, self.ub)
 
         return next_generation, state.update(

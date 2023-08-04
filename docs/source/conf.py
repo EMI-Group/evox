@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_favicon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,6 +50,7 @@ exclude_patterns = []
 
 # mock these modules, so we can build the document without these dependencies.
 autodoc_mock_imports = [
+    "brax",
     "chex",
     "gym",
     "ray",
@@ -62,10 +64,19 @@ autodoc_mock_imports = [
 # a list of builtin themes.
 #
 html_theme = "pydata_sphinx_theme"
-
+html_logo = "_static/evox_logo_with_title.svg"
 html_theme_options = {
     "github_url": "https://github.com/EMI-Group/evox",
+    "logo": {
+        "alt_text": "EvoX logo image",
+        "text": "",
+    },
 }
+favicons = [
+    "favicon-16x16.ico",
+    "favicon-32x32.ico",
+]
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

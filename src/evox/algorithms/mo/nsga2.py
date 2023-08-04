@@ -1,15 +1,18 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 
-from evox.operators.selection import UniformRandomSelection
-from evox.operators.mutation import GaussianMutation, PmMutation
-from evox.operators.crossover import UniformCrossover, SimulatedBinaryCrossover
-from evox.operators import non_dominated_sort, crowding_distance_sort
+from evox.operators import (
+    non_dominated_sort,
+    crowding_distance_sort,
+    selection,
+    mutation,
+    crossover,
+)
+from evox import Algorithm, jit_class, State
 
 
-@ex.jit_class
-class NSGA2(ex.Algorithm):
+@jit_class
+class NSGA2(Algorithm):
     """NSGA-II algorithm
 
     link: https://ieeexplore.ieee.org/document/996017
@@ -21,11 +24,9 @@ class NSGA2(ex.Algorithm):
         ub,
         n_objs,
         pop_size,
-        selection=UniformRandomSelection(p=0.5),
-        mutation=GaussianMutation(),
-        # mutation=PmMutation(),
-        crossover=UniformCrossover(),
-        # crossover=SimulatedBinaryCrossover(),
+        selection_op=None,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -33,9 +34,16 @@ class NSGA2(ex.Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
 
-        self.selection = selection
-        self.mutation = mutation
-        self.crossover = crossover
+        self.selection = selection_op
+        self.mutation = mutation_op
+        self.crossover = crossover_op
+
+        if self.selection is None:
+            self.selection = selection.UniformRand(0.5)
+        if self.mutation is None:
+            self.mutation = mutation.Gaussian()
+        if self.crossover is None:
+            self.crossover = crossover.UniformRand()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -44,11 +52,12 @@ class NSGA2(ex.Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        return ex.State(
+        return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             is_init=True,
+            key=key,
         )
 
     def ask(self, state):
@@ -63,16 +72,17 @@ class NSGA2(ex.Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        mutated, state = self.selection(state, state.population)
-        mutated, state = self.mutation(state, mutated)
+        key, sel_key1, mut_key, sel_key2, x_key = jax.random.split(state.key, 5)
+        mutated = self.selection(sel_key1, state.population)
+        mutated = self.mutation(mut_key, mutated)
 
-        crossovered, state = self.selection(state, state.population)
-        crossovered, state = self.crossover(state, crossovered)
+        crossovered = self.selection(sel_key2, state.population)
+        crossovered = self.crossover(x_key, crossovered)
 
         next_generation = jnp.clip(
             jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
         )
-        return next_generation, state.update(next_generation=next_generation)
+        return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)

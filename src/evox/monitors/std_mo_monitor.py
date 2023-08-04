@@ -2,12 +2,14 @@ import chex
 import jax.numpy as jnp
 import numpy as np
 from ..operators.non_dominated_sort import non_dominated_sort
+import jax.experimental.host_callback as hcb
 
 
 class StdMOMonitor:
     """Standard multi-objective monitor
     Used for multi-objective workflow,
     can monitor fitness and record the pareto front.
+
     Parameters
     ----------
     record_pf
@@ -29,11 +31,11 @@ class StdMOMonitor:
         self.pf_solutions = None
         self.pf_fitness = None
 
-    def record_pop(self, pop):
+    def record_pop(self, pop, tranform=None):
         self.current_population = pop
         return pop
 
-    def record_fit(self, fitness):
+    def record_fit(self, fitness, tranform=None):
         if self.record_fit_history:
             self.fitness_history.append(fitness)
 
@@ -68,3 +70,9 @@ class StdMOMonitor:
 
     def get_history(self):
         return self.fitness_history
+
+    def flush(self):
+        hcb.barrier_wait()
+
+    def close(self):
+        self.flush()

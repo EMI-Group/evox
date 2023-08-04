@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import warnings
+import jax.experimental.host_callback as hcb
 
 
 class StdSOMonitor:
@@ -25,11 +26,11 @@ class StdSOMonitor:
         self.topk_solutions = None
         self.topk_fitness = None
 
-    def record_pop(self, pop):
+    def record_pop(self, pop, tranform=None):
         self.current_population = pop
         return pop
 
-    def record_fit(self, fitness):
+    def record_fit(self, fitness, transform=None):
         if self.record_fit_history:
             self.fitness_history.append(fitness)
         if self.record_topk == 1:
@@ -90,3 +91,9 @@ class StdSOMonitor:
 
     def get_history(self):
         return self.fitness_history
+
+    def flush(self):
+        hcb.barrier_wait()
+
+    def close(self):
+        self.flush()

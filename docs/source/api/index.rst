@@ -11,3 +11,4 @@ EvoX's API
     algorithms/index
     problems/index
     pipelines/index
+    monitors/index

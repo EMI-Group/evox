@@ -1,12 +1,12 @@
-import evox as ex
-import jax
 import jax.numpy as jnp
+from jax import jit, random, vmap
+from evox import jit_class
 
 
 def _random_scaling(key, x):
     batch, dim = x.shape
     candidates = jnp.tile(x, (3, 1))  # shape: (3*batch, dim)
-    candidates = jax.random.permutation(key, candidates, axis=0)
+    candidates = random.permutation(key, candidates, axis=0)
     return candidates.reshape(batch, 3, dim)
 
 
@@ -17,35 +17,35 @@ def _de_mutation(parents, F):
     return mutated_individual
 
 
-def _de_crossover(key, new_x, x, cr):
+def _de_crossover(key, new_x, x, CR):
     batch, dim = x.shape
-    random_crossover = jax.random.uniform(key, shape=(batch, dim))
-    mask = random_crossover <= cr
+    random_crossover = random.uniform(key, shape=(batch, dim))
+    mask = random_crossover <= CR
     return jnp.where(mask, new_x, x)
 
 
-@ex.jit_class
-class DECrossover(ex.Operator):
-    def __init__(self, stdvar=1.0, F=0.5, cr=0.7):
+@jit
+def differential_evolve(key, x, F, CR):
+    scaling_key, crossover_key = random.split(key, 2)
+    scaled = _random_scaling(scaling_key, x)
+    mutated_individual = vmap(_de_mutation)(scaled, F)
+    children = _de_crossover(crossover_key, mutated_individual, x, CR)
+    return children
+
+
+@jit_class
+class DifferentialEvolve:
+    def __init__(self, F=0.5, CR=0.7):
         """
         Parameters
         ----------
         F
             The scaling factor
-        cr
+        CR
             The probability of crossover
         """
-        self.stdvar = stdvar
         self.F = F
-        self.cr = cr
+        self.CR = CR
 
-    def setup(self, key):
-        return ex.State(key=key)
-
-    def __call__(self, state, x):
-        key = state.key
-        key, scaling_key, crossover_key = jax.random.split(key, 3)
-        scaled = _random_scaling(scaling_key, x)
-        mutated_individual = jax.vmap(_de_mutation)(scaled, self.F)
-        children = _de_crossover(crossover_key, mutated_individual, x, self.cr)
-        return children, ex.State(key=key)
+    def __call__(self, key, x):
+        return differential_evolve(key, x, self.F, self.CR)

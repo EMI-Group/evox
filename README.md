@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src=./logo.png alt="Logo" height="24em"/>
+  <img src=./docs/source/_static/evox_logo.png alt="Logo" height="24em"/>
   <strong>EvoX</strong>
   <br>
   A Distributed GPU-accelerated Library towards Scalable Evolutionary Computation
