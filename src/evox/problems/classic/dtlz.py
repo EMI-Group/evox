@@ -1,12 +1,13 @@
 import jax
 import jax.numpy as jnp
-import evox as ex
+from evox import Problem, State, jit_class
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 import chex
-import os, json
+import pkgutil, json
 
 
-class DTLZ(ex.Problem):
+@jit_class
+class DTLZ(Problem):
     """DTLZ"""
 
     def __init__(self, d=None, m=None, ref_num=1000):
@@ -17,7 +18,7 @@ class DTLZ(ex.Problem):
         self.sample = UniformSampling(self.ref_num * self.m, self.m)
 
     def setup(self, key):
-        return ex.State(key=key)
+        return State(key=key)
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
@@ -220,13 +221,10 @@ class DTLZ7(DTLZ):
         f = f.at[:, m - 1:].set((1 + g) * (m - jnp.sum(f[:, :m - 1] / (1 + jnp.tile(g, (1, m - 1)))
                                                        * (1 + jnp.sin(3 * jnp.pi * f[:, :m - 1])), axis=1,
                                                        keepdims=True)))
-
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        script_path = os.path.abspath(__file__)
-        script_directory = os.path.dirname(script_path)
-        data_file = "data/dtlz7_pf.json"
-        data_file_path = os.path.join(script_directory, data_file)
-        pf = json.load(open(data_file_path, 'r'))
+        data_bytes = pkgutil.get_data('evox', 'problems/classic/data/dtlz7_pf.json')
+        data = data_bytes.decode()
+        pf = json.loads(data)
         return jnp.array(pf), state
