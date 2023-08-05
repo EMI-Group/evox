@@ -1,8 +1,6 @@
-import chex
 import jax.numpy as jnp
 import numpy as np
 from ..operators.non_dominated_sort import non_dominated_sort
-import jax.experimental.host_callback as hcb
 
 
 class StdMOMonitor:

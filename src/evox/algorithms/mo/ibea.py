@@ -2,15 +2,30 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators import selection, mutation, crossover
-from evox.utils import cal_fitness
+from evox.utils import cal_max
 from evox import Algorithm, State, jit_class
+
+
+@jax.jit
+def cal_fitness(pop_obj, kappa):
+    n = jnp.shape(pop_obj)[0]
+    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / (
+        jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1))
+    )
+    I = cal_max(pop_obj, pop_obj)
+
+    C = jnp.max(jnp.abs(I), axis=0)
+
+    fitness = jnp.sum(-jnp.exp(-I / jnp.tile(C, (n, 1)) / kappa), axis=0) + 1
+
+    return fitness, I, C
 
 
 @jit_class
 class IBEA(Algorithm):
     """IBEA algorithm
 
-    link:
+    link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
     """
 
     def __init__(
@@ -71,11 +86,12 @@ class IBEA(Algorithm):
         pop_obj = state.fitness
         fitness = cal_fitness(pop_obj, self.kappa)[0]
 
-        selected = self.selection(sel_key, population, fitness)
+        # selected = self.selection(sel_key, population, fitness)
+        selected, _ = self.selection(sel_key, population, -fitness)
         crossovered = self.crossover(x_key, selected)
-        mutated = self.mutation(mut_key, crossovered)
+        next_generation = self.mutation(mut_key, crossovered)
 
-        next_generation = jnp.clip(mutated, self.lb, self.ub)
+        # next_generation = jnp.clip(mutated, self.lb, self.ub)
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):

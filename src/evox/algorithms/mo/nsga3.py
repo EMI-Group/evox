@@ -34,7 +34,8 @@ class NSGA3(Algorithm):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
-        self.ref = ref if ref else UniformSampling(pop_size, n_objs).random()[0]
+        self.sample = UniformSampling(pop_size, n_objs)
+        self.ref = ref if ref else self.sample()[0]
 
         self.selection = selection_op
         self.mutation = mutation_op

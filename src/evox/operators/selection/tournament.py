@@ -8,15 +8,23 @@ from functools import partial
 
 
 @partial(jit, static_argnums=[3, 4, 5])
-def tournament(key, pop, fit, n_round, tournament_func, tournament_size):
-    # select num_round times and each time
-    # k individuals to form candidates
+def tournament_single_fit(key, pop, fit, n_round, tournament_func, tournament_size):
+
     chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
-    # candidates = x[chosen, ...]
     candidates_fitness = fit[chosen, ...]
     winner_indices = vmap(tournament_func)(candidates_fitness)
-    index = jnp.diagonal(chosen[:, winner_indices])
-    return pop[index]
+    index = chosen[jnp.arange(n_round), winner_indices]
+    return pop[index], index
+
+
+@partial(jit, static_argnums=[3, 4, 5])
+def tournament_multi_fit(key, pop, fit, n_round, tournament_func, tournament_size):
+
+    chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
+    candidates_fitness = fit[chosen, ...]
+    winner_indices = vmap(jnp.lexsort)(jnp.transpose(candidates_fitness, (0, 2, 1)))
+    index = chosen[jnp.arange(n_round), winner_indices[:, 0]]
+    return pop[index], index
 
 
 @jit_class
@@ -26,7 +34,7 @@ class Tournament:
     def __init__(
         self,
         n_round: int,
-        tournament_func: Callable = jnp.argmax,
+        tournament_func: Callable = jnp.argmin,
         tournament_size: int = 2,
     ):
         """
@@ -46,7 +54,16 @@ class Tournament:
         self.tournament_func = tournament_func
         self.tournament_size = tournament_size
 
-    def __call__(self, key, pop, fit):
-        return tournament(
+    def __call__(self, key, pop, *args):
+
+        if len(args) == 1:
+            fit = args[0]
+            return tournament_single_fit(
             key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
-        )
+            )
+        else:
+            fit = jnp.c_[args]
+            return tournament_multi_fit(
+            key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
+            )
+

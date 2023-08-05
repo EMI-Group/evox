@@ -39,6 +39,7 @@ class MOEAD(Algorithm):
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary(type=2)
+        self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -47,8 +48,7 @@ class MOEAD(Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
-        # w = UniformSampling(self.pop_size, self.n_objs).random()[0]
-        w = LatinHypercubeSampling(self.pop_size, self.n_objs).random(subkey2)[0]
+        w, _ = self.sample(subkey2)
         B = euclidean_dis(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
@@ -85,7 +85,6 @@ class MOEAD(Algorithm):
 
         crossovered = self.crossover(sel_key, selected_p)
         next_generation = self.mutation(mut_key, crossovered)
-        # next_generation = jnp.clip(mutated, self.lb, self.ub)
 
         return next_generation, state.update(
             next_generation=next_generation, parent=parent, key=key

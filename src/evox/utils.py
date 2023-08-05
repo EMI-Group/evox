@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from functools import partial
 from typing import Union, List
 
-import jax
+from jax import vmap
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 
@@ -36,7 +36,7 @@ def pair_distance(a, b):
 
 @jax.jit
 def euclidean_dis(x, y):
-    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_distance(_x, _y))(y))(x)
+    return vmap(lambda _x: vmap(lambda _y: pair_distance(_x, _y))(y))(x)
 
 
 @jax.jit
@@ -53,23 +53,30 @@ def cos_dist(x, y):
 
 
 @jax.jit
-def cal_indicator(x, y):
-    return jax.vmap(lambda _x: jax.vmap(lambda _y: pair_max(_x, _y))(y))(x)
+def cal_max(x, y):
+    return vmap(lambda _x: vmap(lambda _y: pair_max(_x, _y))(y))(x)
 
 
 @jax.jit
-def cal_fitness(pop_obj, kappa):
-    n = jnp.shape(pop_obj)[0]
-    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / (
-        jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1))
-    )
-    I = cal_indicator(pop_obj, pop_obj)
+def _dominate(x, y):
+    """return true if x dominate y (x < y) and false elsewise."""
+    return jnp.all(x <= y) & jnp.any(x < y)
 
-    C = jnp.max(jnp.abs(I), axis=0)
 
-    fitness = jnp.sum(-jnp.exp(-I / jnp.tile(C, (n, 1)) / kappa), axis=0) + 1
+@jax.jit
+def _dominate_relation(x, y):
+    """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
+    return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
-    return fitness, I, C
+
+@jax.jit
+def new_dist_mat(xs : jax.Array) -> jax.Array:
+    assert len(xs.shape) == 2
+    xx = jax.vmap(lambda x: jnp.dot(x, x))(xs)
+    x2 = jnp.broadcast_to(xx[:, jnp.newaxis], (xx.shape[0], xx.shape[0]))
+    y2 = jnp.broadcast_to(xx[jnp.newaxis, :], (xx.shape[0], xx.shape[0]))
+    xy = jnp.matmul(xs, xs.T)
+    return jnp.sqrt(jnp.maximum(x2 + y2 - 2 * xy, 0))
 
 
 def compose(*functions):
