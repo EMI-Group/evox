@@ -11,7 +11,7 @@ from evox import Algorithm, jit_class, State
 
 
 @jit_class
-class KNEA(Algorithm):
+class KnEA(Algorithm):
     """KnEA algorithm
 
     link: https://ieeexplore.ieee.org/document/6975108

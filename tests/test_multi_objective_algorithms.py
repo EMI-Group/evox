@@ -127,7 +127,7 @@ def test_moeadm2m():
 
 
 def test_knea():
-    algorithm = algorithms.KNEA(
+    algorithm = algorithms.KnEA(
         lb=jnp.full(shape=(12,), fill_value=0),
         ub=jnp.full(shape=(12,), fill_value=1),
         n_objs=3,
