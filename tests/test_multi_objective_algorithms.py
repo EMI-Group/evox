@@ -64,7 +64,8 @@ def test_rvea():
         pop_size=100,
     )
     run_moea(algorithm)
-    
+
+
 def test_nsga3():
     algorithm = algorithms.NSGA3(
         lb=jnp.full(shape=(12,), fill_value=0),
@@ -117,6 +118,16 @@ def test_spea2():
 
 def test_moeadm2m():
     algorithm = algorithms.MOEADM2M(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
+
+
+def test_knea():
+    algorithm = algorithms.KNEA(
         lb=jnp.full(shape=(12,), fill_value=0),
         ub=jnp.full(shape=(12,), fill_value=1),
         n_objs=3,
