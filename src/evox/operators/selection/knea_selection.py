@@ -6,10 +6,10 @@ from evox.operators.non_dominated_sort import _dominate_relation
 
 
 @jit_class
-class MatingSelection:
-    """Mating selection
+class KnEASelection:
+    """Mating selection (in KnEA algorithm)
     
-    A tournament selection based on knee points and neighbors
+    A binary tournament selection based on knee points and neighbors
     """
 
     def __init__(self, num_round: int, k_neighbors: int = 3):

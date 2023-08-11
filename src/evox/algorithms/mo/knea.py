@@ -35,7 +35,7 @@ class KnEA(Algorithm):
         self.pop_size = pop_size
         self.knee_rate = knee_rate
 
-        self.selection = selection.MatingSelection(int(pop_size / 2), k_neighbors)
+        self.selection = selection.KnEASelection(int(pop_size / 2), k_neighbors)
         self.mutation = mutation_op
         self.crossover = crossover_op
 
