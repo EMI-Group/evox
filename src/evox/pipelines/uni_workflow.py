@@ -1,19 +1,20 @@
-from evox import jit_method, Stateful, Algorithm, Problem
-from typing import Optional, Callable, Union
+from evox import jit_method, Stateful, Algorithm, Problem, State
+from typing import Optional, Callable
+import warnings
 import jax
 import jax.numpy as jnp
 from jax import jit
 from jax.tree_util import tree_map
 from jax.sharding import PositionalSharding
-from jaxlib.xla_extension import PjitFunction
 import jax.experimental.host_callback as hcb
 
 
 class UniWorkflow(Stateful):
-    """Experimental unified workflow, designed to provide unparallel performance for EC workflow.
+    """Experimental unified workflow,
+    designed to provide unparallel performance for EC workflow.
 
-    Provide automatic multi-device (e.g. multiple gpus) computation as well as distributed computation
-    using JAX's native components.
+    Provide automatic multi-device (e.g. multiple gpus) computation
+    as well as distributed computation using JAX's native components.
 
     Monitor is called using JAX's asynchronous host callback,
     thus closing the monitor is needed to wait for the callback to complete.
@@ -26,20 +27,60 @@ class UniWorkflow(Stateful):
         monitor=None,
         pop_transform: Optional[Callable] = None,
         fit_transform: Optional[Callable] = None,
-        jitted_problem: Union[bool, str] = True,
-        num_objectives=None,
+        record_pop=True,
+        jit_problem: bool = True,
+        jit_monitor: bool = False,
+        num_objectives: Optional[int] = None,
     ):
+        """
+        Parameters
+        ----------
+        algorithm
+            The algorithm.
+        problem
+            The problem.
+        monitor
+            Optional monitor.
+        pop_transform
+            Optional population transform function,
+            usually used to decode the population
+            into the format that can be understood by the problem.
+        fit_transform
+            Optional fitness transform function.
+            usually used to apply fitness shaping.
+        record_pop
+            Whether to record the population if monitor is enabled.
+        jit_problem
+            If the problem can be jit compiled by JAX or not.
+            Default to True.
+        jit_monitor
+            If the monitor can be jit compiled by JAX or not.
+            Default to False.
+        num_objectives
+            Number of objectives.
+            When the problem can be jit compiled, this field is not needed.
+            When the problem cannot be jit compiled, this field should be set,
+            if not, default to 1.
+        """
         self.algorithm = algorithm
         self.problem = problem
         self.monitor = monitor
         self.pop_transform = pop_transform
         self.fit_transform = fit_transform
-        self.jitted_problem = jitted_problem
+        self.record_pop = record_pop
+        self.jit_problem = jit_problem
+        self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
         self.distributed_step = False
-        assert not (
-            jitted_problem == False and self.num_objectives == False
-        ), "When using external problem, num_objectives must be set"
+        if jit_problem is False and self.num_objectives is None:
+            warnings.warn(
+                (
+                    "Using external problem "
+                    "but num_objectives isn't set "
+                    "assuming to be 1."
+                )
+            )
+            self.num_objectives = 1
 
         def _step(self, state):
             pop, state = self.algorithm.ask(state)
@@ -54,17 +95,19 @@ class UniWorkflow(Stateful):
                 pop = self.pop_transform(pop)
 
             # if the function is jitted
-            if self.jitted_problem:
+            if self.jit_problem:
                 fitness, state = self.problem.evaluate(state, pop)
             else:
                 pop_size = pop.shape[0]
+                if self.num_objectives == 1:
+                    fit_shape = (pop_size,)
+                else:
+                    fit_shape = (pop_size, self.num_objectives)
                 fitness, state = hcb.call(
-                    lambda state_pop: self.problem.evaluate(state_pop[0], state_pop[1]),
+                    lambda args: self.problem.evaluate(args[0], args[1]),
                     (state, pop),
                     result_shape=(
-                        jax.ShapeDtypeStruct(
-                            (pop_size, self.num_objectives), dtype=jnp.float32
-                        ),
+                        jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
                         state,
                     ),
                 )
@@ -105,12 +148,35 @@ class UniWorkflow(Stateful):
 
         return tree_map(get_shard_for_array, state)
 
-    def enable_multi_devices(self, state):
+    def enable_multi_devices(
+        self, state: State, devices: Optional[list] = None
+    ) -> State:
+        """
+        Enable the workflow to run on multiple local devices.
+
+        Parameters
+        ----------
+        state
+            The state.
+        devices
+            A list of devices.
+            If set to None, all local devices will be used.
+
+        Returns
+        -------
+        State
+            The sharded state, distributed amoung all devices.
+        """
+        if self.jit_problem is False:
+            raise ValueError(
+                "multi-devices with non jit problem isn't currently supported"
+            )
+        if devices is None:
+            devices = jax.local_devices()
+        device_count = len(devices)
         dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
         pop_size, dim = dummy_pop.shape
-        sharding = PositionalSharding(jax.local_devices()).reshape(
-            1, jax.local_device_count()
-        )
+        sharding = PositionalSharding(devices).reshape(1, device_count)
         state_sharding = self._auto_shard(state, sharding, pop_size, dim)
         state = jax.device_put(state, state_sharding)
         self._step = jit(
@@ -123,7 +189,7 @@ class UniWorkflow(Stateful):
 
     def enable_distributed(self, state):
         dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
-        pop_size, dim = dummy_pop.shape
+        pop_size, _dim = dummy_pop.shape
         self.slice_size = pop_size // jax.process_count()
         self.start_index = self.slice_size * jax.process_index()
         self.distributed_step = True
