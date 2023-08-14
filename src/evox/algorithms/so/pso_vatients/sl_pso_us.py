@@ -8,7 +8,7 @@ from evox.utils import *
 # SL-PSO-US: Using Uniform Sampling for Demonstator Choice
 # https://ieeexplore.ieee.org/document/6900227
 @ex.jit_class
-class SL_PSO_US(ex.Algorithm):
+class SLPSOUS(ex.Algorithm):
     def __init__(
         self,
         lb, # lower bound of problem
@@ -78,7 +78,7 @@ class SL_PSO_US(ex.Algorithm):
         )
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
-        return ex.State(
+        return state.update(
             population=population,
             velocity=velocity,
             global_best_location=global_best_location,

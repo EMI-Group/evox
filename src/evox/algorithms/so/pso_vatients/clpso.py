@@ -4,9 +4,8 @@ import jax.numpy as jnp
 import evox as ex
 from evox.utils import *
 
-# SL-PSO: Social Learning PSO
-# SL-PSO-GS: Using Gaussian Sampling for Demonstator Choice
-# https://ieeexplore.ieee.org/document/6900227
+# CL-PSO: Comprehensive Learning PSO
+# https://ieeexplore.ieee.org/document/1637688
 @ex.jit_class
 class CLPSO(ex.Algorithm):
     def __init__(
@@ -87,7 +86,7 @@ class CLPSO(ex.Algorithm):
         )
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
-        return ex.State(
+        return state.update(
             population=population,
             velocity=velocity,
             pbest_position=pbest_position,

@@ -4,11 +4,10 @@ import jax.numpy as jnp
 import evox as ex
 from evox.utils import *
 
-# SL-PSO: Social Learning PSO
-# SL-PSO-GS: Using Gaussian Sampling for Demonstator Choice
-# https://ieeexplore.ieee.org/document/6900227
+# CPSO-S: Cooperative PSO
+# https://ieeexplore.ieee.org/document/1304845
 @ex.jit_class
-class CPSO_S(ex.Algorithm):
+class CPSOS(ex.Algorithm):
     def __init__(
         self,
         lb, # lower bound of problem
@@ -116,7 +115,7 @@ class CPSO_S(ex.Algorithm):
         population = jnp.where(cond, _population[None, :], broadcast_context_vector[None, :])
         population = jnp.transpose(population, axes=(0,2,1))
         
-        return ex.State(
+        return state.update(
             _population=_population,
             velocity=velocity,
             population=population,
