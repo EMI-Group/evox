@@ -34,11 +34,11 @@ def crowding_distance(costs: jax.Array, mask: jax.Array = None):
     def distance_in_one_dim(cost):
         rank = jnp.lexsort((cost, ~mask))
         cost = cost[rank]
-        distance_range = cost[num_valid_elem-1] - cost[0]
+        distance_range = cost[num_valid_elem - 1] - cost[0]
         distance = jnp.empty(totel_len)
         distance = distance.at[rank[1:-1]].set((cost[2:] - cost[:-2]) / distance_range)
         distance = distance.at[rank[0]].set(jnp.inf)
-        distance = distance.at[rank[num_valid_elem-1]].set(jnp.inf)
+        distance = distance.at[rank[num_valid_elem - 1]].set(jnp.inf)
 
         distance = jnp.where(mask, distance, -jnp.inf)
         return distance

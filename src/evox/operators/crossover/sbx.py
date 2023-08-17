@@ -9,7 +9,7 @@ def simulated_binary(key, x, pro_c, dis_c, type):
     mu_key, beta1_key, beta2_key, beta3_key = random.split(key, 4)
     n, _ = jnp.shape(x)
     parent1_dec = x[: n // 2, :]
-    parent2_dec = x[n // 2: n // 2 * 2, :]
+    parent2_dec = x[n // 2 : n // 2 * 2, :]
     n_p, d = jnp.shape(parent1_dec)
     beta = jnp.zeros((n_p, d))
     mu = random.uniform(mu_key, shape=(n_p, d))

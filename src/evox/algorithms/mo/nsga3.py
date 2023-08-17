@@ -19,15 +19,15 @@ class NSGA3(Algorithm):
     """
 
     def __init__(
-            self,
-            lb,
-            ub,
-            n_objs,
-            pop_size,
-            ref=None,
-            selection_op=None,
-            mutation_op=None,
-            crossover_op=None,
+        self,
+        lb,
+        ub,
+        n_objs,
+        pop_size,
+        ref=None,
+        selection_op=None,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -54,16 +54,16 @@ class NSGA3(Algorithm):
     def setup(self, key):
         key, subkey = jax.random.split(key)
         population = (
-                jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-                * (self.ub - self.lb)
-                + self.lb
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
         )
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             is_init=True,
-            key=key
+            key=key,
         )
 
     def ask(self, state):
@@ -114,10 +114,10 @@ class NSGA3(Algorithm):
         offset_fitness = ranked_fitness - ideal
         weight = jnp.eye(self.n_objs, self.n_objs) + 1e-6
         weighted = (
-                jnp.repeat(offset_fitness, self.n_objs, axis=0).reshape(
-                    len(offset_fitness), self.n_objs, self.n_objs
-                )
-                / weight
+            jnp.repeat(offset_fitness, self.n_objs, axis=0).reshape(
+                len(offset_fitness), self.n_objs, self.n_objs
+            )
+            / weight
         )
         asf = jnp.nanmax(weighted, axis=2)
         ex_idx = jnp.argmin(asf, axis=0)

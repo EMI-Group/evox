@@ -29,14 +29,18 @@ def ref_vec_guided(x, v, theta):
     vals = next_ind, global_min, global_min_idx
 
     def update_next(i, sub_index, next_ind, global_min, global_min_idx):
-        apd = (1 + m * theta * angle[sub_index, i] / gamma[i]) * jnp.sqrt(jnp.sum(obj[sub_index, :] ** 2, axis=1))
+        apd = (1 + m * theta * angle[sub_index, i] / gamma[i]) * jnp.sqrt(
+            jnp.sum(obj[sub_index, :] ** 2, axis=1)
+        )
 
         apd_max = jnp.max(apd)
         noise = jnp.where(sub_index == -1, apd_max, 0)
         apd = apd + noise
         best = jnp.argmin(apd)
 
-        global_min_idx = jnp.where(apd[best] < global_min, sub_index[best.astype(int)], global_min_idx)
+        global_min_idx = jnp.where(
+            apd[best] < global_min, sub_index[best.astype(int)], global_min_idx
+        )
         global_min = jnp.minimum(apd[best], global_min)
 
         next_ind = next_ind.at[i].set(sub_index[best.astype(int)])
@@ -49,8 +53,16 @@ def ref_vec_guided(x, v, theta):
         next_ind, global_min, global_min_idx = vals
         sub_index = jnp.where(associate == i, size=nv, fill_value=-1)[0]
 
-        next_ind, global_min, global_min_idx = lax.cond(jnp.sum(sub_index) != is_null, update_next, no_update, i,
-                                                            sub_index, next_ind, global_min, global_min_idx)
+        next_ind, global_min, global_min_idx = lax.cond(
+            jnp.sum(sub_index) != is_null,
+            update_next,
+            no_update,
+            i,
+            sub_index,
+            next_ind,
+            global_min,
+            global_min_idx,
+        )
         return next_ind, global_min, global_min_idx
 
     next_ind, global_min, global_min_idx = lax.fori_loop(0, nv, body_fun, vals)
@@ -65,5 +77,6 @@ def ref_vec_guided(x, v, theta):
 @jit_class
 class ReferenceVectorGuided:
     """Reference vector guided environmental selection."""
+
     def __call__(self, x, v, theta):
         return ref_vec_guided(x, v, theta)

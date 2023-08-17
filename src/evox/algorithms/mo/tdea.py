@@ -22,11 +22,11 @@ def theta_nd_sort(obj, w, mask):
     d_class = jnp.argmin(d2, axis=1)
     d_class = jnp.where(mask, d_class, jnp.inf)
 
-    theta = jnp.zeros((nw, )) + 5
+    theta = jnp.zeros((nw,)) + 5
     theta = jnp.where(jnp.sum(w > 1e-4, axis=1) == 1, 1e6, theta)
-    t_rank = jnp.zeros((n, ), dtype=int)
+    t_rank = jnp.zeros((n,), dtype=int)
 
-    t_list = jnp.arange(1, n+1)
+    t_list = jnp.arange(1, n + 1)
 
     def loop_body(i, val):
         t_front_no = val
@@ -57,19 +57,30 @@ def environmental_selection(pop, obj, w, n, z, z_nad):
 
     w1 = jnp.zeros((m, m)) + 1e-6
     w1 = jnp.where(jnp.eye(m), 1, w1)
-    asf = jax.vmap(lambda x, y: jnp.max(jnp.abs((x - z) / (z_nad - z)) / y, axis=1), in_axes=(None, 0), out_axes=1)(obj, w1)
+    asf = jax.vmap(
+        lambda x, y: jnp.max(jnp.abs((x - z) / (z_nad - z)) / y, axis=1),
+        in_axes=(None, 0),
+        out_axes=1,
+    )(obj, w1)
 
     extreme = jnp.argmin(asf, axis=0)
-    hyper_plane = jnp.linalg.solve(obj[extreme, :] - jnp.tile(z, (m, 1)), jnp.ones((m, 1)))
+    hyper_plane = jnp.linalg.solve(
+        obj[extreme, :] - jnp.tile(z, (m, 1)), jnp.ones((m, 1))
+    )
     a = z + 1 / jnp.squeeze(hyper_plane)
 
-    a = jax.lax.cond(jnp.any(jnp.isnan(a)) | jnp.any(a <= z), lambda _:jnp.max(obj, axis=0), lambda x: x, a)
+    a = jax.lax.cond(
+        jnp.any(jnp.isnan(a)) | jnp.any(a <= z),
+        lambda _: jnp.max(obj, axis=0),
+        lambda x: x,
+        a,
+    )
     z_nad = a
 
-    norm_obj = (obj - jnp.tile(z, (n_merge, 1))) / jnp.tile(z_nad-z, (n_merge, 1))
+    norm_obj = (obj - jnp.tile(z, (n_merge, 1))) / jnp.tile(z_nad - z, (n_merge, 1))
 
     t_rank = theta_nd_sort(norm_obj, w, mask)
-    combined_order = jnp.lexsort((t_rank, rank))[: n]
+    combined_order = jnp.lexsort((t_rank, rank))[:n]
 
     return pop[combined_order], obj[combined_order], z, z_nad
 
@@ -119,7 +130,7 @@ class tDEA(Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             w=w,
-            z=jnp.zeros((self.n_objs, )),
+            z=jnp.zeros((self.n_objs,)),
             z_nad=jnp.zeros((self.n_objs,)),
             is_init=True,
             key=key,
@@ -144,9 +155,7 @@ class tDEA(Algorithm):
         crossovered = self.crossover(x_key, population)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(
-            next_generation=next_generation, key=key
-        )
+        return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):
         z = jnp.min(fitness, axis=0)
@@ -158,8 +167,9 @@ class tDEA(Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        population, pop_obj, z, z_nad = environmental_selection(merged_pop, merged_fitness, state.w, self.pop_size,
-                                                                state.z, state.z_nad)
+        population, pop_obj, z, z_nad = environmental_selection(
+            merged_pop, merged_fitness, state.w, self.pop_size, state.z, state.z_nad
+        )
 
         state = state.update(population=population, fitness=pop_obj, z=z, z_nad=z_nad)
         return state

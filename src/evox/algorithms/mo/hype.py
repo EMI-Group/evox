@@ -12,7 +12,7 @@ def calculate_alpha(N, k):
 
     for i in range(1, k + 1):
         num = jnp.prod((k - jnp.arange(1, i)) / (N - jnp.arange(1, i)))
-        alpha = alpha.at[i-1].set(num / i)
+        alpha = alpha.at[i - 1].set(num / i)
     return alpha
 
 
@@ -26,13 +26,13 @@ def cal_hv(points, ref, k, n_sample, key):
     s = jax.random.uniform(key, shape=(n_sample, m), minval=f_min, maxval=ref)
 
     pds = jnp.zeros((n, n_sample), dtype=bool)
-    ds = jnp.zeros((n_sample, ))
+    ds = jnp.zeros((n_sample,))
 
     def body_fun1(i, vals):
         pds, ds = vals
         x = jnp.sum((jnp.tile(points[i, :], (n_sample, 1)) - s) <= 0, axis=1) == m
         pds = pds.at[i].set(jnp.where(x, True, pds[i]))
-        ds = jnp.where(x, ds+1, ds)
+        ds = jnp.where(x, ds + 1, ds)
         return pds, ds
 
     pds, ds = jax.lax.fori_loop(0, n, body_fun1, (pds, ds))
@@ -42,7 +42,7 @@ def cal_hv(points, ref, k, n_sample, key):
 
     def body_fun2(i, val):
         temp = jnp.where(pds[i, :], ds, -1).astype(int)
-        value = jnp.where(temp!=-1, alpha[temp], 0)
+        value = jnp.where(temp != -1, alpha[temp], 0)
         value = jnp.sum(value)
         val = val.at[i].set(value)
         return val
@@ -51,6 +51,7 @@ def cal_hv(points, ref, k, n_sample, key):
     f = f * jnp.prod(ref - f_min) / n_sample
 
     return f
+
 
 @jit_class
 class HypE(Algorithm):
@@ -96,7 +97,7 @@ class HypE(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            ref_point=jnp.zeros((self.n_objs, )),
+            ref_point=jnp.zeros((self.n_objs,)),
             key=key,
             is_init=True,
         )
@@ -125,7 +126,7 @@ class HypE(Algorithm):
         return next_generation, state.update(next_generation=next_generation)
 
     def _tell_init(self, state, fitness):
-        ref_point = jnp.zeros((self.n_objs, )) + jnp.max(fitness)*1.2
+        ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
         state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
         return state
 
@@ -137,7 +138,7 @@ class HypE(Algorithm):
 
         rank = non_dominated_sort(merged_obj)
         order = jnp.argsort(rank)
-        worst_rank = rank[order[n-1]]
+        worst_rank = rank[order[n - 1]]
         mask = rank == worst_rank
 
         key, subkey = jax.random.split(state.key)

@@ -3,7 +3,13 @@ import jax.numpy as jnp
 from functools import partial
 
 from evox import jit_class, Algorithm, State
-from evox.operators import selection, mutation, crossover, non_dominated_sort, crowding_distance
+from evox.operators import (
+    selection,
+    mutation,
+    crossover,
+    non_dominated_sort,
+    crowding_distance,
+)
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import euclidean_dis
 
@@ -15,7 +21,7 @@ def environmental_selection(fitness, n):
     worst_rank = rank[order[n - 1]]
     mask = rank == worst_rank
     crowding_dis = crowding_distance(fitness, mask)
-    combined_indices = jnp.lexsort((-crowding_dis, rank))[: n]
+    combined_indices = jnp.lexsort((-crowding_dis, rank))[:n]
 
     return combined_indices
 
@@ -82,7 +88,7 @@ class EAGMOEAD(Algorithm):
             B=B,
             s=jnp.zeros((self.pop_size, self.LGs)),
             parent=jnp.zeros((self.pop_size, self.T)).astype(int),
-            offspring_loc=jnp.zeros((self.pop_size, )).astype(int),
+            offspring_loc=jnp.zeros((self.pop_size,)).astype(int),
             gen=0,
             is_init=True,
             key=key,
@@ -108,11 +114,9 @@ class EAGMOEAD(Algorithm):
         d = s / jnp.sum(s) + 0.002
         d = d / jnp.sum(d)
 
-        _, offspring_loc = self.selection(sel_key, population, 1./d)
+        _, offspring_loc = self.selection(sel_key, population, 1.0 / d)
         parent = jnp.zeros((n, 2)).astype(int)
-        B = jax.random.permutation(
-            per_key, B, axis=1, independent=True
-        ).astype(int)
+        B = jax.random.permutation(per_key, B, axis=1, independent=True).astype(int)
 
         def body_fun(i, val):
             val = val.at[i, 0].set(B[offspring_loc[i], 0])
@@ -152,7 +156,9 @@ class EAGMOEAD(Algorithm):
 
         def body_fun(i, vals):
             population, pop_obj = vals
-            g_old = jnp.sum(pop_obj[B[offspring_loc[i], :]] * w[B[offspring_loc[i], :]], axis=1)
+            g_old = jnp.sum(
+                pop_obj[B[offspring_loc[i], :]] * w[B[offspring_loc[i], :]], axis=1
+            )
             g_new = w[B[offspring_loc[i], :]] @ jnp.transpose(offspring_obj[i])
             idx = B[offspring_loc[i]]
             g_new = g_new[:, jnp.newaxis]
@@ -178,18 +184,24 @@ class EAGMOEAD(Algorithm):
         sucessful = jnp.where(mask, size=self.pop_size)
 
         def update_s(s):
-            h = offspring_loc[combined_order[sucessful]-self.pop_size]
+            h = offspring_loc[combined_order[sucessful] - self.pop_size]
             head = h[0]
             h = jnp.where(h == head, -1, h)
             h = h.at[0].set(head)
             hist, _ = jnp.histogram(h, self.pop_size, range=(0, self.pop_size))
-            s = s.at[:, gen % self.LGs+1].set(hist)
+            s = s.at[:, gen % self.LGs + 1].set(hist)
             return s
 
         def no_update(s):
             return s
 
         s = jax.lax.cond(num_valid != 0, update_s, no_update, s)
-        state = state.update(population=survivor, fitness=survivor_fitness, inner_pop=inner_pop, inner_obj=inner_obj,
-                             s=s, gen=gen)
+        state = state.update(
+            population=survivor,
+            fitness=survivor_fitness,
+            inner_pop=inner_pop,
+            inner_obj=inner_obj,
+            s=s,
+            gen=gen,
+        )
         return state

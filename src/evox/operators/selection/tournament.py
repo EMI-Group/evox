@@ -59,11 +59,10 @@ class Tournament:
         if len(args) == 1:
             fit = args[0]
             return tournament_single_fit(
-            key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
+                key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
             )
         else:
             fit = jnp.c_[args]
             return tournament_multi_fit(
-            key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
+                key, pop, fit, self.n_round, self.tournament_func, self.tournament_size
             )
-

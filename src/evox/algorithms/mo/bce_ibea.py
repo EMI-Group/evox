@@ -31,15 +31,21 @@ def cal_fitness(pop_obj, kappa):
 def exploration(pc_obj, npc_obj, n_nd, n):
     f_max = jnp.max(pc_obj, axis=0)
     f_min = jnp.min(pc_obj, axis=0)
-    norm_pc_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(f_max - f_min, (len(pc_obj), 1))
-    norm_npc_obj = (npc_obj - jnp.tile(f_min, (len(npc_obj), 1))) / jnp.tile(f_max - f_min, (len(npc_obj), 1))
+    norm_pc_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(
+        f_max - f_min, (len(pc_obj), 1)
+    )
+    norm_npc_obj = (npc_obj - jnp.tile(f_min, (len(npc_obj), 1))) / jnp.tile(
+        f_max - f_min, (len(npc_obj), 1)
+    )
 
     d = euclidean_dis(norm_pc_obj, norm_pc_obj)
-    d = d.at[jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))].set(jnp.inf)
+    d = d.at[jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))].set(
+        jnp.inf
+    )
     d = jnp.where(jnp.isnan(d), jnp.inf, d)
     d = jnp.sort(d, axis=1)
     r0 = jnp.mean(d[:, jnp.minimum(2, jnp.shape(d)[1] - 1)])
-    r = n_nd/n * r0
+    r = n_nd / n * r0
 
     d = euclidean_dis(norm_pc_obj, norm_npc_obj)
     s = jnp.sum(d <= r, axis=1) <= 1
@@ -60,10 +66,14 @@ def pc_selection(pc, pc_obj, n):
     def true_fun(next_ind, mask, i):
         f_max = jnp.max(jnp.where(jnp.tile(mask, (1, m)), pc_obj, -jnp.inf), axis=0)
         f_min = jnp.min(jnp.where(jnp.tile(mask, (1, m)), pc_obj, jnp.inf), axis=0)
-        norm_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(f_max - f_min, (len(pc_obj), 1))
+        norm_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(
+            f_max - f_min, (len(pc_obj), 1)
+        )
         norm_obj = jnp.where(jnp.tile(mask, (1, m)), norm_obj, jnp.inf)
         d = euclidean_dis(norm_obj, norm_obj)
-        d = d.at[jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))].set(jnp.inf)
+        d = d.at[jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))].set(
+            jnp.inf
+        )
         d = jnp.where(jnp.isnan(d), jnp.inf, d)
         sd = jnp.sort(d, axis=1)
 
@@ -115,7 +125,7 @@ def environmental_selection(pop, obj, n, kappa):
     next_ind, merged_fitness = jax.lax.fori_loop(0, n, body_fun, vals)
 
     ind = jnp.where(next_ind != -1, size=len(pop), fill_value=-1)[0]
-    ind_n = ind[0: n]
+    ind_n = ind[0:n]
 
     return pop[ind_n], obj[ind_n]
 
@@ -194,12 +204,16 @@ class BCEIBEA(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        return jax.lax.cond(state.counter % 2 == 0, self._ask_even, self._ask_odd, state)
+        return jax.lax.cond(
+            state.counter % 2 == 0, self._ask_even, self._ask_odd, state
+        )
 
     def _ask_odd(self, state):
         key, mating_key, x_key, mut_key = jax.random.split(state.key, 4)
         s = exploration(state.fitness, state.npc_obj, state.n_nd, self.pop_size)
-        mating_pool = jax.random.randint(mating_key, shape=(self.pop_size, ), minval=0, maxval=self.pop_size)
+        mating_pool = jax.random.randint(
+            mating_key, shape=(self.pop_size,), minval=0, maxval=self.pop_size
+        )
         head = jnp.where(s, size=len(s), fill_value=-1)[0]
         mating_pool = jnp.where(s, mating_pool, head[0])
         s_indices = jnp.where(s, jnp.arange(0, len(s)), head[0])
@@ -227,31 +241,58 @@ class BCEIBEA(Algorithm):
 
     def _tell_init(self, state, fitness):
         pc, pc_obj, n_nd = pc_selection(state.population, fitness, self.pop_size)
-        state = state.update(population=pc, fitness=pc_obj, npc_obj=fitness, new_pc_obj=fitness, new_npc_obj=fitness, n_nd=n_nd, is_init=False)
+        state = state.update(
+            population=pc,
+            fitness=pc_obj,
+            npc_obj=fitness,
+            new_pc_obj=fitness,
+            new_npc_obj=fitness,
+            n_nd=n_nd,
+            is_init=False,
+        )
         return state
 
     def _tell_normal(self, state, fitness):
-        return jax.lax.cond(state.counter % 2 == 0, self._tell_even, self._tell_odd, state, fitness)
+        return jax.lax.cond(
+            state.counter % 2 == 0, self._tell_even, self._tell_odd, state, fitness
+        )
 
     def _tell_odd(self, state, fitness):
         new_pc_obj = fitness
         merged_pop = jnp.concatenate([state.npc, state.new_pc], axis=0)
         merged_fitness = jnp.concatenate([state.npc_obj, fitness], axis=0)
-        npc, npc_obj = environmental_selection(merged_pop, merged_fitness, self.pop_size, self.kappa)
-        return state.update(npc=npc, fitness=npc_obj, counter=state.counter + 1, new_pc_obj=new_pc_obj)
+        npc, npc_obj = environmental_selection(
+            merged_pop, merged_fitness, self.pop_size, self.kappa
+        )
+        return state.update(
+            npc=npc, fitness=npc_obj, counter=state.counter + 1, new_pc_obj=new_pc_obj
+        )
 
     def _tell_even(self, state, fitness):
         new_npc_obj = fitness
         merged_pop = jnp.concatenate([state.npc, state.new_npc], axis=0)
         merged_fitness = jnp.concatenate([state.npc_obj, new_npc_obj], axis=0)
 
-        npc, npc_obj = environmental_selection(merged_pop, merged_fitness, self.pop_size, self.kappa)
+        npc, npc_obj = environmental_selection(
+            merged_pop, merged_fitness, self.pop_size, self.kappa
+        )
 
-        merged_pop = jnp.concatenate((state.population, state.new_npc, state.new_pc), axis=0)
-        merged_fitness = jnp.concatenate((state.npc_obj, new_npc_obj, state.new_pc_obj), axis=0)
+        merged_pop = jnp.concatenate(
+            (state.population, state.new_npc, state.new_pc), axis=0
+        )
+        merged_fitness = jnp.concatenate(
+            (state.npc_obj, new_npc_obj, state.new_pc_obj), axis=0
+        )
 
         pc, pc_obj, n_nd = pc_selection(merged_pop, merged_fitness, self.pop_size)
 
-        state = state.update(population=pc, fitness=pc_obj, n_nd=n_nd, new_npc_obj=new_npc_obj, npc=npc, npc_obj=npc_obj, counter=state.counter + 1)
+        state = state.update(
+            population=pc,
+            fitness=pc_obj,
+            n_nd=n_nd,
+            new_npc_obj=new_npc_obj,
+            npc=npc,
+            npc_obj=npc_obj,
+            counter=state.counter + 1,
+        )
         return state
-

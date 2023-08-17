@@ -14,6 +14,7 @@ def _de_crossover(key, new_x, x, CR):
     mask = random_crossover < CR
     return jnp.where(mask, new_x, x)
 
+
 @jit
 def differential_evolve(key, x1, x2, x3, F, CR):
     key, de_key = random.split(key)
