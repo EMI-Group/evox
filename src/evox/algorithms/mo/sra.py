@@ -5,7 +5,6 @@ from evox.operators import mutation, crossover
 from evox.utils import cal_max
 from evox import Algorithm, State, jit_class
 from functools import partial
-from jax.experimental.host_callback import id_print
 
 
 @jax.jit
