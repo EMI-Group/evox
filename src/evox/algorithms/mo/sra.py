@@ -93,6 +93,7 @@ class SRA(Algorithm):
     """Stochastic ranking algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/7445185
+    Inspired by PlatEMO.
     """
 
     def __init__(

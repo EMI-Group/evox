@@ -125,7 +125,7 @@ class BCEIBEA(Algorithm):
     """Bi-criterion evolution based IBEA
 
     link: https://ieeexplore.ieee.org/abstract/document/7347391
-    Inspired by PlatEMO's algorithm.
+    Inspired by PlatEMO.
 
     Note: The number of outer iterations needs to be set to Maximum Generation*2+1.
     """

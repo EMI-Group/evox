@@ -43,6 +43,7 @@ def simulated_binary(key, x, pro_c, dis_c, type):
 @jit_class
 class SimulatedBinary:
     """Simulated binary crossover(SBX)
+    Inspired by PlatEMO.
 
     Args:
         pro_c: the probabilities of doing crossover.

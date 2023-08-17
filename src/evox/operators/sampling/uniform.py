@@ -8,7 +8,10 @@ import evox
 
 @evox.jit_class
 class UniformSampling:
-    """Uniform sampling use Das and Dennis's method, Deb and Jain's method."""
+    """
+    Uniform sampling use Das and Dennis's method, Deb and Jain's method.
+    Inspired by PlatEMO's NBI algorithm.
+    """
 
     def __init__(self, n=None, m=None):
         self.n = n

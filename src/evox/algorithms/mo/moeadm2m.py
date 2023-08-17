@@ -40,7 +40,6 @@ def associate(rng, pop, obj, w, s):
     k = len(w)
     dis = cos_dist(obj, w)
     max_indices = jnp.argmax(dis, axis=1)
-    # id_print(max_indices)
     partition = jnp.zeros((s, k), dtype=int)
 
     def body_fun(i, p):
@@ -78,6 +77,7 @@ class MOEADM2M(Algorithm):
     """MOEA/D based on MOP to MOP algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/6595549
+    Inspired by PlatEMO.
     """
 
     def __init__(

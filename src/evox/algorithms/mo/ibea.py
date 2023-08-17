@@ -26,6 +26,7 @@ class IBEA(Algorithm):
     """IBEA algorithm
 
     link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
+    Inspired by PlatEMO.
     """
 
     def __init__(

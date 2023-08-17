@@ -79,6 +79,7 @@ class tDEA(Algorithm):
     """Theta-dominance based evolutionary algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/7445185
+    Inspired by PlatEMO.
     """
 
     def __init__(
@@ -156,9 +157,6 @@ class tDEA(Algorithm):
     def _tell_normal(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
-
-        # key, subkey, env_key = jax.random.split(state.key, 3)
-        # pc = jax.random.uniform(subkey) * (0.6 - 0.4) + 0.4
 
         population, pop_obj, z, z_nad = environmental_selection(merged_pop, merged_fitness, state.w, self.pop_size,
                                                                 state.z, state.z_nad)
