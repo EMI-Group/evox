@@ -86,19 +86,16 @@ class IBEA(Algorithm):
         pop_obj = state.fitness
         fitness = cal_fitness(pop_obj, self.kappa)[0]
 
-        # selected = self.selection(sel_key, population, fitness)
         selected, _ = self.selection(sel_key, population, -fitness)
         crossovered = self.crossover(x_key, selected)
         next_generation = self.mutation(mut_key, crossovered)
 
-        # next_generation = jnp.clip(mutated, self.lb, self.ub)
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):
         state = state.update(fitness=fitness, is_init=False)
         return state
 
-    # @profile
     def _tell_normal(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)

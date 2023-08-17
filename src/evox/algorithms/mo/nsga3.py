@@ -42,11 +42,11 @@ class NSGA3(Algorithm):
         self.crossover = crossover_op
 
         if self.selection is None:
-            self.selection = selection.UniformRand(0.5)
+            self.selection = selection.UniformRand(1)
         if self.mutation is None:
-            self.mutation = mutation.Gaussian()
+            self.mutation = mutation.Polynomial((self.lb, self.ub))
         if self.crossover is None:
-            self.crossover = crossover.UniformRand()
+            self.crossover = crossover.SimulatedBinary()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -75,16 +75,11 @@ class NSGA3(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, sel_key1, mut_key, sel_key2, x_key = jax.random.split(state.key, 5)
-        mutated = self.selection(sel_key1, state.population)
-        mutated = self.mutation(mut_key, mutated)
+        key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
+        # crossovered = self.selection(sel_key1, state.population)
+        crossovered = self.crossover(x_key, state.population)
+        next_generation = self.mutation(mut_key, crossovered)
 
-        crossovered = self.selection(sel_key2, state.population)
-        crossovered = self.crossover(x_key, crossovered)
-
-        next_generation = jnp.clip(
-            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
-        )
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):

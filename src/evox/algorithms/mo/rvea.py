@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 from evox.utils import cos_dist
 
-from evox.operators import mutation, crossover
+from evox.operators import mutation, crossover, selection
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox import Algorithm, State, jit_class
 
@@ -106,7 +106,7 @@ class RVEA(Algorithm):
         self.crossover = crossover_op
 
         if self.selection is None:
-            self.selection = ReferenceVectorGuided()
+            self.selection = selection.ReferenceVectorGuided()
         if self.mutation is None:
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:

@@ -123,3 +123,33 @@ def test_moeadm2m():
         pop_size=100,
     )
     run_moea(algorithm)
+
+
+def test_sra():
+    algorithm = algorithms.SRA(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
+
+
+def test_tdea():
+    algorithm = algorithms.tDEA(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
+
+
+def test_bce_ibea():
+    algorithm = algorithms.BCEIBEA(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
