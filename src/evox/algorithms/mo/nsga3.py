@@ -1,12 +1,12 @@
 import jax
 import jax.numpy as jnp
 
-from evox.operators.sampling import UniformSampling
 from evox.operators import (
     non_dominated_sort,
     selection,
     mutation,
     crossover,
+    sampling,
 )
 from evox import Algorithm, jit_class, State
 
@@ -19,41 +19,44 @@ class NSGA3(Algorithm):
     """
 
     def __init__(
-        self,
-        lb,
-        ub,
-        n_objs,
-        pop_size,
-        ref=None,
-        selection_op=None,
-        mutation_op=None,
-        crossover_op=None,
+            self,
+            lb,
+            ub,
+            n_objs,
+            pop_size,
+            ref=None,
+            selection_op=None,
+            mutation_op=None,
+            crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
-        self.sample = UniformSampling(pop_size, n_objs)
-        self.ref = ref if ref else self.sample()[0]
+        self.ref = ref
 
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
 
+        if self.ref is None:
+            self.ref = sampling.UniformSampling(pop_size, n_objs)()[0]
         if self.selection is None:
-            self.selection = selection.UniformRand(1)
+            self.selection = selection.UniformRand(0.5)
         if self.mutation is None:
-            self.mutation = mutation.Polynomial((self.lb, self.ub))
+            self.mutation = mutation.Gaussian()
         if self.crossover is None:
-            self.crossover = crossover.SimulatedBinary()
+            self.crossover = crossover.UniformRand()
+
+        self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
         population = (
-            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
+                jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+                * (self.ub - self.lb)
+                + self.lb
         )
         return State(
             population=population,
@@ -75,11 +78,15 @@ class NSGA3(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
-        # crossovered = self.selection(sel_key1, state.population)
-        crossovered = self.crossover(x_key, state.population)
-        next_generation = self.mutation(mut_key, crossovered)
+        key, sel_key1, mut_key, sel_key2, x_key = jax.random.split(state.key, 5)
+        selected = self.selection(sel_key1, state.population)
+        mutated = self.mutation(mut_key, selected)
+        selected = self.selection(sel_key2, state.population)
+        crossovered = self.crossover(x_key, selected)
 
+        next_generation = jnp.clip(
+            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
+        )
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def _tell_init(self, state, fitness):
@@ -107,10 +114,10 @@ class NSGA3(Algorithm):
         offset_fitness = ranked_fitness - ideal
         weight = jnp.eye(self.n_objs, self.n_objs) + 1e-6
         weighted = (
-            jnp.repeat(offset_fitness, self.n_objs, axis=0).reshape(
-                len(offset_fitness), self.n_objs, self.n_objs
-            )
-            / weight
+                jnp.repeat(offset_fitness, self.n_objs, axis=0).reshape(
+                    len(offset_fitness), self.n_objs, self.n_objs
+                )
+                / weight
         )
         asf = jnp.nanmax(weighted, axis=2)
         ex_idx = jnp.argmin(asf, axis=0)
@@ -135,12 +142,8 @@ class NSGA3(Algorithm):
 
         # Associate
         def perpendicular_distance(x, y):
-            y_norm = jnp.linalg.norm(y, axis=1)
-            proj_len = x @ y.T / y_norm
-            unit_vec = y / y_norm[:, None]
-            proj_vec = jnp.reshape(proj_len, (proj_len.size, 1)) * jnp.tile(
-                unit_vec, (len(x), 1)
-            )
+            proj_len = x @ y.T
+            proj_vec = proj_len.reshape(proj_len.size, 1) * jnp.tile(y, (len(x), 1))
             prep_vec = jnp.repeat(x, len(y), axis=0) - proj_vec
             dist = jnp.reshape(jnp.linalg.norm(prep_vec, axis=1), (len(x), len(y)))
             return dist
