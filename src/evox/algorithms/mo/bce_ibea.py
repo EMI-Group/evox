@@ -29,6 +29,7 @@ def cal_fitness(pop_obj, kappa):
 
 @partial(jax.jit, static_argnums=3)
 def exploration(pc_obj, npc_obj, n_nd, n):
+    # PC evolving
     f_max = jnp.max(pc_obj, axis=0)
     f_min = jnp.min(pc_obj, axis=0)
     norm_pc_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(
@@ -55,6 +56,7 @@ def exploration(pc_obj, npc_obj, n_nd, n):
 
 @partial(jax.jit, static_argnums=2)
 def pc_selection(pc, pc_obj, n):
+    # PC selection
     m = jnp.shape(pc_obj)[1]
     rank = non_dominated_sort(pc_obj)
     mask = rank == 0

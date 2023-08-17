@@ -10,6 +10,7 @@ from functools import partial
 
 @jax.jit
 def theta_nd_sort(obj, w, mask):
+    # theta non-dominated sort
     n = len(obj)
     nw = len(w)
 
