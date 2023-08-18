@@ -25,9 +25,3 @@ DTLZ Family
 
 .. autoclass:: evox.problems.classic.DTLZ7
     :members:
-
-.. autoclass:: evox.problems.classic.DTLZ8
-    :members:
-
-.. autoclass:: evox.problems.classic.DTLZ9
-    :members:
