@@ -44,7 +44,7 @@ class LSMOP(ex.Problem):
         return jax.jit(jax.vmap(self._lsmop))(X), state
 
     def pf(self, state: chex.PyTreeDef):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
+        f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return f, state
 
     @staticmethod
@@ -268,7 +268,7 @@ class LSMOP5(LSMOP):
         return f, state
 
     def pf(self):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
+        f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return f / jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1, keepdims=True)), (1, self.m))
 
 class LSMOP6(LSMOP):
@@ -341,7 +341,7 @@ class LSMOP7(LSMOP):
         return f, state
 
     def pf(self):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
+        f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1, keepdims=True)), (1, self.m))
         return f
 
@@ -381,7 +381,7 @@ class LSMOP8(LSMOP):
         return f, state
 
     def pf(self):
-        f = UniformSampling(self.ref_num * self.m, self.m).random()[0] / 2
+        f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f ** 2, axis=1, keepdims=True)), (1, self.m))
         return f
 

@@ -9,10 +9,10 @@ from lsmop import *
 key = random.PRNGKey(1)
 points = jax.random.uniform(key, shape=(4, 2))
 n = 10
-A = jnp.ones((n - 1))
-c = jnp.minimum(0,A)
-print(A)
-print(c)
+A = jnp.ones((4, 2))
+
+print(jnp.hstack((points,A)))
+print(jnp.hstack((points,A),axis=1))
 # print(ND)
 
 

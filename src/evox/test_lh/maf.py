@@ -7,7 +7,7 @@ import chex
 from functools import partial
 from jax import vmap
 from matplotlib.path import Path
-import numpy as np
+
 class MaF(ex.Problem):
     """MAF"""
 
@@ -310,7 +310,7 @@ class MaF10(MaF):
         S = jnp.arange(2, 2*M+1, 2)
         A = jnp.ones((M-1))
 
-        z01 = X / jnp.repeat(jnp.arange(2,d*2+1,2), n, axis=0)
+        z01 = X / jnp.tile(jnp.arange(2,d*2+1,2), (n,1))
         t1 = jnp.zeros((n, K+L))
         t1 = t1.at[:,:K].set(z01[:,:K])
         t1 = t1.at[:,K:].set(self._s_linear(z01[:,K:],0.35))
@@ -319,7 +319,47 @@ class MaF10(MaF):
         t2 = t2.at[:,:K].set(t1[:,:K])
         t2 = t2.at[:,K:].set(self._b_flat(t1[:,K:], 0.8,0.75,0.85))
 
-        
+        t3 = t2**0.02
+
+        t4 = jnp.zeros((n,M))
+        for i in range(1, M):
+            t4 = t4.at[:,i-1].set(self._r_sum(t3[:, jnp.arange((i-1)*K/(M-1),i*K/(M-1))], jnp.arange(2*((i-1)*K/(M-1)+1), 2*(i+1)*K/(M-1)+1,2)))
+        t4 = t4.at[:,M-1].set(self._r_sum(t3[:,jnp.arange(K+1,K+L+1)-1],jnp.arange(2*(K+1),2*(K+L)+1,2)))
+        x = jnp.zeros((n,M))
+        for i in range(1,M):
+            x = x.at[:,i-1].set(jnp.maximum(t4[:,M-1],A[i-1])*(t4[:,i-1]-0.5) + 0.5)
+        x = x.at[:M-1].set(t4[:,M-1])
+
+        h = self._convex(x)
+        h = h.at[:,M].set(self._mixed(x))
+        f = jnp.tile(D @ x[:M],(1,M)) + jnp.tile(S, (n,1)) * h
+        return f, state
+
+    '''完全使用new bing生成，需要检查公式'''
+    def pf(self, state: chex.PyTreeDef):
+        M = self.m
+        N = self.ref_num * self.m
+        R = UniformSampling(N, M)()[0]
+        c = jnp.ones((N, M))
+        for i in range(1, R.shape[0] + 1):
+            for j in range(2, M + 1):
+                temp = R[i - 1, j - 1] / R[i - 1, 0] * jnp.prod(1 - c[i - 1, M - j + 1:M - 1])
+                c = c.at[i - 1, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
+        x = jnp.arccos(c) * 2 / jnp.pi
+        temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
+        a = jnp.arange(0, 1.0001, 0.0001)
+        E = jnp.abs(
+            temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi)
+        rank = jnp.argsort(E, axis=1)
+        for i in range(x.shape[0]):
+            x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
+        f = self._convex(x)
+        f = f.at[:, M - 1].set(self._mixed(x))
+        f = f * jnp.tile(jnp.arange(2, 2 * M + 1, 2), (f.shape[0], 1))
+        return f, state
+
+
+
 
     def _s_linear(self,y, A):
         output = jnp.abs(y-A).jnp.abs((A-y).astype(jnp.float32) + A)
@@ -329,6 +369,15 @@ class MaF10(MaF):
         output = A + jnp.minimum(0, jnp.floor(y-B))*A*(B-y)/B - jnp.minimum(0, jnp.floor(C - y))*(1-A)*(y-C)/(1-C)
         output = jnp.round(output*1e4)/1e4
         return output
+
+    def _r_sum(self,y,w):
+        return jnp.sum(y * jnp.repeat(w, y.shape[0],axis=0),axis=1)
+
+    def _convex(self,x):
+        return jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((x.shape[0], 1)), 1 - jnp.cos(x[:, :-1] * jnp.pi / 2)]), axis=1)) * jnp.hstack([jnp.ones((x.shape[0], 1)), 1 - jnp.sin(x[:, -2::-1] * jnp.pi / 2)])
+
+    def _mixed(self, x):
+        return 1 - x[:, 0] - jnp.cos(10 * jnp.pi * x[:, 0] + jnp.pi / 2) / 10 / jnp.pi
 
 
 
