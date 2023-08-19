@@ -21,8 +21,6 @@ def run_moea(algorithm, problem=problems.classic.DTLZ1(m=3)):
         state = pipeline.step(state)
 
     objs = monitor.get_last()
-    igd = IGD(true_pf, objs).calulate()
-    print("igd", igd)
 
 
 def test_ibea():

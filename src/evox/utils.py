@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from functools import partial
 from typing import Union, List
 
-from jax import vmap
+from jax import vmap, jit
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 
@@ -29,22 +29,47 @@ def _prod_tuple(xs):
     return prod
 
 
-@jax.jit
-def pair_distance(a, b):
-    return jnp.linalg.norm(a - b, axis=0)
+@partial(jit, static_argnames="func")
+def pairwise_func(x, y, func):
+    return vmap(lambda _x: vmap(lambda _y: func(_x, _y))(y))(x)
 
 
-@jax.jit
-def euclidean_dis(x, y):
-    return vmap(lambda _x: vmap(lambda _y: pair_distance(_x, _y))(y))(x)
+@jit
+def euclidean_dist(x, y):
+    return jnp.linalg.norm(x - y, axis=0)
 
 
-@jax.jit
+@jit
+def manhattan_dist(x, y):
+    return jnp.sum(jnp.abs(x - y))
+
+
+@jit
+def chebyshev_dist(x, y):
+    return jnp.max(jnp.abs(x - y))
+
+
+@jit
+def pairwise_euclidean_dist(x, y):
+    return pairwise_func(x, y, euclidean_dist)
+
+
+@jit
+def pairwise_manhattan_dist(x, y):
+    return pairwise_func(x, y, manhattan_dist)
+
+
+@jit
+def pairwise_chebyshev_dist(x, y):
+    return pairwise_func(x, y, chebyshev_dist)
+
+
+@jit
 def pair_max(a, b):
     return jnp.max(a - b, axis=0)
 
 
-@jax.jit
+@jit
 def cos_dist(x, y):
     return jnp.dot(
         x / jnp.linalg.norm(x, axis=-1, keepdims=True),
@@ -52,25 +77,25 @@ def cos_dist(x, y):
     )
 
 
-@jax.jit
+@jit
 def cal_max(x, y):
-    return vmap(lambda _x: vmap(lambda _y: pair_max(_x, _y))(y))(x)
+    return pairwise_func(x, y, pair_max)
 
 
-@jax.jit
+@jit
 def _dominate(x, y):
     """return true if x dominate y (x < y) and false elsewise."""
     return jnp.all(x <= y) & jnp.any(x < y)
 
 
-@jax.jit
+@jit
 def _dominate_relation(x, y):
     """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
     return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
-@jax.jit
-def new_dist_mat(xs : jax.Array) -> jax.Array:
+@jit
+def new_dist_mat(xs: jax.Array) -> jax.Array:
     assert len(xs.shape) == 2
     xx = jax.vmap(lambda x: jnp.dot(x, x))(xs)
     x2 = jnp.broadcast_to(xx[:, jnp.newaxis], (xx.shape[0], xx.shape[0]))
@@ -93,7 +118,7 @@ def compose(*functions):
     return composed_function
 
 
-@jax.jit
+@jit
 def rank(array):
     """
     Return the rank for each item of an 1d-array.
@@ -104,7 +129,7 @@ def rank(array):
     return rank
 
 
-@jax.jit
+@jit
 def rank_based_fitness(raw_fitness):
     num_elems = raw_fitness.shape[0]
     fitness_rank = rank(raw_fitness)
