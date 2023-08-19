@@ -1,5 +1,5 @@
 from evox import jit_method, Stateful, Algorithm, Problem, State
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict
 import warnings
 import jax
 import jax.numpy as jnp
@@ -29,7 +29,7 @@ class UniWorkflow(Stateful):
         fit_transform: Optional[Callable] = None,
         record_pop: bool = True,
         record_time: bool = False,
-        metrics: Optional[dict[str, Callable]] = None,
+        metrics: Optional[Dict[str, Callable]] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
