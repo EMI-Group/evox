@@ -27,7 +27,9 @@ class UniWorkflow(Stateful):
         monitor=None,
         pop_transform: Optional[Callable] = None,
         fit_transform: Optional[Callable] = None,
-        record_pop=True,
+        record_pop: bool = True,
+        record_time: bool = False,
+        metrics: Optional[dict[str, Callable]] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
@@ -50,6 +52,11 @@ class UniWorkflow(Stateful):
             usually used to apply fitness shaping.
         record_pop
             Whether to record the population if monitor is enabled.
+        record_time
+            Whether to record the time at the end of each generation.
+            Due to its timing nature,
+            record_time requires synchronized functional call.
+            Default to False.
         jit_problem
             If the problem can be jit compiled by JAX or not.
             Default to True.
@@ -68,6 +75,8 @@ class UniWorkflow(Stateful):
         self.pop_transform = pop_transform
         self.fit_transform = fit_transform
         self.record_pop = record_pop
+        self.record_time = record_time
+        self.metrics = metrics
         self.jit_problem = jit_problem
         self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
@@ -83,15 +92,20 @@ class UniWorkflow(Stateful):
             self.num_objectives = 1
 
         def _step(self, state):
+            if self.monitor and self.record_time:
+                hcb.call(self.monitor.record_time, None)
+
             pop, state = self.algorithm.ask(state)
 
-            if self.monitor is not None:
+            if self.monitor and self.record_pop:
                 hcb.id_tap(self.monitor.record_pop, pop)
+
             if self.distributed_step is True:
                 pop = jax.lax.dynamic_slice_in_dim(
                     pop, self.start_index, self.slice_size, axis=0
                 )
-            if self.pop_transform is not None:
+
+            if self.pop_transform:
                 pop = self.pop_transform(pop)
 
             # if the function is jitted
@@ -114,10 +128,19 @@ class UniWorkflow(Stateful):
             if self.distributed_step is True:
                 fitness = jax.lax.all_gather(fitness, "i", axis=0, tiled=True)
 
-            if self.monitor is not None:
-                hcb.id_tap(self.monitor.record_fit, fitness)
+            if self.monitor:
+                if self.metrics:
+                    metrics = {
+                        name: func(fitness) for name, func in self.metrics.items()
+                    }
+                else:
+                    metrics = None
+                hcb.id_tap(
+                    lambda args, _: self.monitor.record_fit(args[0], args[1]),
+                    (fitness, metrics),
+                )
 
-            if self.fit_transform is not None:
+            if self.fit_transform:
                 fitness = self.fit_transform(fitness)
 
             state = self.algorithm.tell(state, fitness)
