@@ -160,5 +160,3 @@ def test_gde3():
         pop_size=POP_SIZE,
     )
     run_moea(algorithm)
-
-test_bige()
