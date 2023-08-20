@@ -3,4 +3,3 @@ from .tournament import tournament_single_fit, tournament_multi_fit, Tournament
 from .rvea_selection import ref_vec_guided, ReferenceVectorGuided
 from .topk_fit import topk_fit, TopkFit
 from .roulette_wheel import RouletteWheelSelection
-from .knea_selection import KnEASelection
