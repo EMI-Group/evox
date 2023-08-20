@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Learn2Hop: Learned Optimization on Rough Landscapes
+# Link: https://proceedings.mlr.press/v139/merchant21a.html
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/obertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 import optax
