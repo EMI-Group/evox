@@ -1,5 +1,24 @@
-import math
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+# 
+# Title: Completely Derandomized Self-Adaptation in Evolution Strategies
+# Link: http://www.cmap.polytechnique.fr/~nikolaus.hansen/cmaartic.pdf
+# 
+# Title: A Simple Modification in CMA-ES Achieving Linear Time and Space Complexity (SepCMAES)
+# Link: https://inria.hal.science/inria-00287367/document
+# 
+# Title: A Restart CMA Evolution Strategy With Increasing Population Size (IPOPCMAES)
+# Link: http://www.cmap.polytechnique.fr/~nikolaus.hansen/cec2005ipopcmaes.pdf
+# 
+# Title: Benchmarking a BI-Population CMA-ES on the BBOB-2009 Function Testbed (BIPOPCMAES)
+# Link: https://inria.hal.science/inria-00382093/document
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
+import math
 import jax
 import jax.numpy as jnp
 from jax import lax

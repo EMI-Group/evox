@@ -1,7 +1,17 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+# 
+# Title: Benchmarking Parameter-Free AMaLGaM on Functions With and Without Noise(AMaLGaM, IndependentAMaLGaM)
+# Link: https://homepages.cwi.nl/~bosman/publications/2013_benchmarkingparameterfree.pdf
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# -------------------------------------------------------------------------------------- 
+
 import math  
 import jax 
 import jax.numpy as jnp 
-from jax import lax 
 import evox
 from evox import Algorithm, State  
 from .cma_es import CMAES
@@ -22,7 +32,7 @@ class AMaLGaM(CMAES):
         updated_C = super()._update_C(C, pc, sigma, population, old_mean, hsig)
         y = (population[: self.mu] - old_mean) / sigma
         sdr = jnp.linalg.norm(y[0]) / sigma
-        beta = 0.05  # Scaling factor; can be adjusted based on your needs
+        beta = 0.05 
         true_fun = lambda _: (1 + beta * (sdr - 1)) * C                  
         false_fun = lambda _: (1 / (1 + beta * (1 - sdr))) * C 
         return jax.lax.cond(sdr > 1, None, true_fun,None, false_fun)
@@ -74,7 +84,7 @@ class IndependentAMaLGaM(AMaLGaM):
 
     def _update_C(self, C, pc, sigma, population, old_mean, hsig):     
         y = (population[: self.mu] - old_mean) / sigma     
-        sdr = jnp.abs(y[0]) / sigma  # Just the absolute value for each dimension          
+        sdr = jnp.abs(y[0]) / sigma  
 
         # update C for single dimension
         C = (1 - self.c1 - self.cmu) * C + \
@@ -106,7 +116,7 @@ class IndependentAMaLGaM(AMaLGaM):
         )
     
         return population, new_state
-# Override the tell function if required. For example, you might not need B, D, invsqrtC for IndependentAMaLGaM
+    
     def tell(self, state, fitness):
         fitness, population = sort_by_key(fitness, state.population)
 
