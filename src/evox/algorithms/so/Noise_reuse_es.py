@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Noise-Reuse in Online Evolution Strategies
+# Link: https://arxiv.org/pdf/2304.12180.pdf
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 import optax
