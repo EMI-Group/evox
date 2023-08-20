@@ -1,3 +1,12 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Guided evolutionary strategies: Augmenting random search with surrogate gradients
+# Link: https://arxiv.org/abs/1806.10230
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
 import jax
 import jax.numpy as jnp
