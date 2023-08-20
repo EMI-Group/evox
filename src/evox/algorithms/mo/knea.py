@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+from functools import partial
 
 from evox.operators import (
     selection,
@@ -8,6 +9,19 @@ from evox.operators import (
     non_dominated_sort,
 )
 from evox import Algorithm, jit_class, State
+from evox.utils import pairwise_euclidean_dist
+
+
+@partial(jax.jit, static_argnums=1)
+def calc_DW(fit, k):
+    dis = pairwise_euclidean_dist(fit, fit)
+    order = jnp.argsort(dis, axis=1)
+    neighbor = jnp.take_along_axis(dis, order[:, 1 : k + 1], axis=1)
+    avg = jnp.sum(neighbor, axis=1) / k
+    r = 1 / abs(neighbor - avg[:, None])
+    w = r / jnp.sum(r, axis=1)[:, None]
+    DW = jnp.sum(neighbor * w, axis=1)
+    return DW
 
 
 @jit_class
@@ -34,15 +48,16 @@ class KnEA(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.knee_rate = knee_rate
+        self.k_neighbors = k_neighbors
 
-        self.selection = selection.KnEASelection(int(pop_size / 2), k_neighbors)
+        self.selection = selection.Tournament(pop_size)
         self.mutation = mutation_op
         self.crossover = crossover_op
 
         if self.mutation is None:
-            self.mutation = mutation.Gaussian()
+            self.mutation = mutation.Polynomial((self.lb, self.ub))
         if self.crossover is None:
-            self.crossover = crossover.UniformRand()
+            self.crossover = crossover.SimulatedBinary()
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -74,15 +89,14 @@ class KnEA(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        keys = jax.random.split(state.key, 5)
-        selected = self.selection(keys[1], state.population, state.fitness, state.knee)
-        mutated = self.mutation(keys[2], selected)
-        selected = self.selection(keys[3], state.population, state.fitness, state.knee)
-        crossovered = self.crossover(keys[4], selected)
-
-        next_gen = jnp.clip(
-            jnp.concatenate([mutated, crossovered], axis=0), self.lb, self.ub
-        )
+        rank = non_dominated_sort(state.fitness)
+        DW = calc_DW(state.fitness, self.k_neighbors)
+        
+        keys = jax.random.split(state.key, 4)
+        selected, _ = self.selection(keys[1], state.population, -DW, ~state.knee, rank)
+        crossovered = self.crossover(keys[2], selected)
+        mutated = self.mutation(keys[3], crossovered)
+        next_gen = jnp.clip(mutated, self.lb, self.ub)
         return next_gen, state.update(next_generation=next_gen, key=keys[0])
 
     def _tell_init(self, state, fitness):
