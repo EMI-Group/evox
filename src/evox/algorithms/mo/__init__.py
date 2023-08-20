@@ -9,3 +9,5 @@ from .spea2 import SPEA2
 from .hype import HypE
 from .moeadm2m import MOEADM2M
 from .knea import KnEA
+from .bige import BiGE
+from .gde3 import GDE3
