@@ -1,3 +1,12 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Natural Evolution Strategies
+# Link: https://www.jmlr.org/papers/volume15/wierstra14a/wierstra14a.pdf
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
 import jax
 import jax.numpy as jnp
