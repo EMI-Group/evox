@@ -1,10 +1,23 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Simplify Your Covariance Matrix Adaptation Evolution Strategy (MAES)
+# Link: https://www.honda-ri.de/pubs/pdf/3376.pdf
+# 
+# Title: Limited-Memory Matrix Adaptation for Large Scale Black-box Optimization (LMMAES)
+# Link: https://arxiv.org/pdf/1705.06693.pdf
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
-import math
 from jax import lax
 from   .cma_es import CMAES
 import evox 
-from evox import Algorithm, State
+from evox import State
 from .sort_utils import sort_by_key 
 
 @evox.jit_class

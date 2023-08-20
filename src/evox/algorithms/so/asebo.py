@@ -1,3 +1,15 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+#
+# Title: From Complexity to Simplicity: Adaptive ES-Active Subspaces for Blackbox Optimization
+# Link: https://arxiv.org/abs/1903.04268
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+#
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 from typing import Tuple, Optional, Union
 import jax
 import jax.numpy as jnp
@@ -44,7 +56,8 @@ class ASEBO(evox.Algorithm):
 
     def setup(self, key):         
         grad_subspace = jnp.zeros((self.subspace_dims, self.dim))         
-        return evox.State(             key=key,             
+        return evox.State(             
+                          key=key,             
                           center=self.center_init,             
                           grad_subspace=grad_subspace,
                           gen_counter = 0,

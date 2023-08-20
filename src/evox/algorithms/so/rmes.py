@@ -1,5 +1,16 @@
-import math
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: A Simple Yet Efficient Evolution Strategy for Large-Scale Black-Box Optimization (RMES)
+# Link: https://ieeexplore.ieee.org/document/8080257df（RMES)
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+#
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
+import math
 import jax
 import jax.numpy as jnp
 from jax import lax
