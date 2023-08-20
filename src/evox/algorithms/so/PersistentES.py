@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Unbiased Gradient Estimation in Unrolled Computation Graphs with Persistent Evolution Strategies
+# Link: http://proceedings.mlr.press/v139/vicol21a.html
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 import optax

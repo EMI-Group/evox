@@ -1,3 +1,12 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Fast Moving Natural Evolution Strategy for High-Dimensional Problems
+# Link: https://arxiv.org/abs/2201.11422
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
 import jax
 import jax.numpy as jnp

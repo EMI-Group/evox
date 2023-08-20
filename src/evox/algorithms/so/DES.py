@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Discovering Evolution Strategies via Meta-Black-Box Optimization
+# Link: https://arxiv.org/abs/2211.11260
+# 
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 import evox
