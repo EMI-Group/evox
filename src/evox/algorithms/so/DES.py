@@ -5,7 +5,7 @@
 # 
 # 2. This code has been inspired by or utilizes the algorithmic implementation from evosax. 
 # More information about evosax can be found at the following URL:
-# GitHub Link: https://github.com/obertTLange/evosax
+# GitHub Link: https://github.com/RobertTLange/evosax
 # --------------------------------------------------------------------------------------
 
 import jax
