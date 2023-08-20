@@ -3,7 +3,6 @@ import jax
 import jax.numpy as jnp
 from .sort_utils import sort_by_key
 from jax.scipy.linalg import expm
-
 import evox as ex
 
 
@@ -67,13 +66,7 @@ class xNES(ex.Algorithm):
         population = jnp.empty((self.pop_size, self.dim))
         noise = jnp.empty_like(population)
 
-        return ex.State(
-            noise=noise,
-            mean=mean,
-            sigma=sigma,
-            B=B,
-            key=key,
-        )
+        return ex.State(noise=noise, mean=mean, sigma=sigma, B=B, key=key,)
 
     def ask(self, state):
         key, normal_key = jax.random.split(state.key)
@@ -98,11 +91,7 @@ class xNES(ex.Algorithm):
         sigma = state.sigma * jnp.exp(self.learning_rate_var / 2 * grad_sigma)
         B = state.B @ expm(self.learning_rate_B / 2 * grad_B)
 
-        return state.update(
-            mean=mean,
-            sigma=sigma,
-            B=B,
-        )
+        return state.update(mean=mean, sigma=sigma, B=B,)
 
 
 @ex.jit_class

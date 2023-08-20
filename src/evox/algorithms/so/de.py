@@ -18,8 +18,8 @@ class DE(ex.Algorithm):
         cross_probability=0.9,
         differential_weight=0.8,
         batch_size=1,
-        mean = None,
-        stdvar = None
+        mean=None,
+        stdvar=None,
     ):
         assert jnp.all(lb < ub)
         assert pop_size >= 4
@@ -46,7 +46,9 @@ class DE(ex.Algorithm):
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
         if self.mean is not None and self.stdvar is not None:
-            population = self.stdvar * jax.random.normal(init_key, shape=(self.pop_size, self.dim))
+            population = self.stdvar * jax.random.normal(
+                init_key, shape=(self.pop_size, self.dim)
+            )
             population = jnp.clip(population, self.lb, self.ub)
         else:
             population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
@@ -112,11 +114,7 @@ class DE(ex.Algorithm):
         )
         mask = mask.at[R].set(True)
 
-        return jnp.where(
-            mask,
-            mutation_vectors,
-            population[index],
-        )
+        return jnp.where(mask, mutation_vectors, population[index],)
 
     def tell(self, state, trial_fitness):
         start_index = state.start_index
