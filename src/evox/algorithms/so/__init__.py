@@ -8,7 +8,6 @@ from .de import DE
 from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
-from .les import LES
 from .ma_es import LMMAES, MAES
 from .nes import SeparableNES, xNES
 from .noise_reuse_es import Noise_reuse_es
@@ -23,3 +22,14 @@ from .code import CoDE
 from .jade import JaDE
 from .sade import SaDE
 from .shade import SHADE
+
+try:
+    # optional dependency: flax
+    from .les import LES
+except ImportError as e:
+    original_erorr_msg = str(e)
+
+    def LES(*args, **kwargs):
+        raise ImportError(
+            f'LES requires flax but got "{original_erorr_msg}" when importing'
+        )
