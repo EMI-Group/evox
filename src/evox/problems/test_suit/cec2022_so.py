@@ -1,47 +1,69 @@
-import jax
 import jax.numpy as jnp
 from functools import partial
-import evox as ex
+from evox import Problem, jit_class
 from jax import lax, vmap
-from jax.experimental.host_callback import id_print
-import sys
+import pkgutil
 
-"""
-Instantiation format: problem_instance = CEC2022.create(1)
-i.e., problem_instance = F1_CEC2022()
-"""
 
-"""Operational functions transform basic problems into test problems"""
-@ex.jit_class
-class OperatFunc():
+# 1. Generate x = ones and evaluate
+# X = jnp.zeros((x_num, D))
+# F, _ = func.evaluate(state, X)
+
+# 2. Generate x = randnum and evaluate
+# X = jax.random.uniform(key, shape=(x_num, D)) * 200 -100
+# F, _ = func.evaluate(state, X)
+
+# 3. Generate x = Os and evaluate
+# F = func._evaluate(x)
+
+
+@jit_class
+class OperatFunc:
+    """Operational functions transform basic problems into test problems"""
+
     def __init__(self):
         func_num = int(self.__class__.__name__.split("_")[0][1:])
-        file_Os = f"src/evox/problems/CEC2022_benchmark/input_data/shift_data_{func_num}.txt"
-        file_M_2D = f"src/evox/problems/CEC2022_benchmark/input_data/M_{func_num}_D2.txt"
-        file_M_10D = f"src/evox/problems/CEC2022_benchmark/input_data/M_{func_num}_D10.txt"
-        file_M_20D = f"src/evox/problems/CEC2022_benchmark/input_data/M_{func_num}_D20.txt"
-        file_S_10D = f"src/evox/problems/CEC2022_benchmark/input_data/shuffle_data_{func_num}_D10.txt"
-        file_S_20D = f"src/evox/problems/CEC2022_benchmark/input_data/shuffle_data_{func_num}_D20.txt"
+        Os_D = pkgutil.get_data(
+            "evox", f"problems/test_suit/cec2022_input_data/shift_data_{func_num}.txt"
+        ).decode()
+        M_2D = pkgutil.get_data(
+            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D2.txt"
+        ).decode()
+        M_10D = pkgutil.get_data(
+            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D10.txt"
+        ).decode()
+        M_20D = pkgutil.get_data(
+            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D20.txt"
+        ).decode()
 
-        with open(file_Os, "r") as file:
-            if func_num in [9, 10, 11, 12]:
-                self.Os_D = jnp.array([list(map(float, line.split())) for line in file.read().splitlines()])
-            else:
-                self.Os_D = jnp.array([float(x) for x in file.read().split()])
-        with open(file_M_2D, "r") as file:
-            M_2D = jnp.array([list(map(float, line.split())) for line in file.read().splitlines()])
-        with open(file_M_10D, "r") as file:
-            M_10D = jnp.array([list(map(float, line.split())) for line in file.read().splitlines()])
-        with open(file_M_20D, "r") as file:
-            M_20D = jnp.array([list(map(float, line.split())) for line in file.read().splitlines()])
+        if func_num in [9, 10, 11, 12]:
+            self.Os_D = jnp.array(
+                [list(map(float, line.split())) for line in Os_D.splitlines()]
+            )
+        else:
+            self.Os_D = jnp.array([float(x) for x in Os_D.split()])
+
+        M_2D = jnp.array([list(map(float, line.split())) for line in M_2D.splitlines()])
+        M_10D = jnp.array(
+            [list(map(float, line.split())) for line in M_10D.splitlines()]
+        )
+        M_20D = jnp.array(
+            [list(map(float, line.split())) for line in M_20D.splitlines()]
+        )
         self.M_dict = {2: M_2D, 10: M_10D, 20: M_20D}
         self.func_num = func_num
 
         if self.func_num in [6, 7, 8]:
-            with open(file_S_10D, "r") as file:
-                S_10D = jnp.array([int(x) for x in file.read().split()])
-            with open(file_S_20D, "r") as file:
-                S_20D = jnp.array([int(x) for x in file.read().split()])
+            S_10D = pkgutil.get_data(
+                "evox",
+                f"problems/test_suit/cec2022_input_data/shuffle_data_{func_num}_D10.txt",
+            ).decode()
+            S_20D = pkgutil.get_data(
+                "evox",
+                f"problems/test_suit/cec2022_input_data/shuffle_data_{func_num}_D20.txt",
+            ).decode()
+            S_10D = jnp.array([int(x) for x in S_10D.split()])
+            S_20D = jnp.array([int(x) for x in S_20D.split()])
             self.S_dict = {10: S_10D, 20: S_20D}
 
             group_sizes = jnp.round(self.p * 10).astype(int)
@@ -55,7 +77,6 @@ class OperatFunc():
             ids_20 = jnp.split(ids, split_points)
 
             self.ids = {10: ids_10, 20: ids_20}
-
 
     def shift_operat(self, x, Os):
         # Shift the solution to Os
@@ -87,13 +108,13 @@ class OperatFunc():
 
     def ssr_operat(self, x, Os, Mr, sh_rate, SS=None):
         # Wraps shift_operat, shuffle_operat, rotate_operat and split_operat
-        y = self.shift_operat(x, Os) 
+        y = self.shift_operat(x, Os)
 
         y = y * sh_rate
         # The order of scaling and rotate can be changed
         z = self.rotate_operat(y, Mr)
 
-        z = self.shuffle_operat(z, SS) 
+        z = self.shuffle_operat(z, SS)
 
         return z
 
@@ -102,67 +123,67 @@ class OperatFunc():
         Os_mat = Os_mat[0:N]
         D = x.shape[0]
 
-        diff_square_sum = jnp.sum((x - Os_mat)**2, axis = 1)
+        diff_square_sum = jnp.sum((x - Os_mat) ** 2, axis=1)
         term1 = 1 / jnp.sqrt(diff_square_sum)
         term2 = jnp.exp(-0.5 * diff_square_sum / (sigma**2 * D))
         W = term1 * term2
         W_norm = W / jnp.sum(W)
-        
+
         f = jnp.sum(W_norm * (lamb * fs + bias))
 
         return f
 
 
-
-"""These are the basic functions"""
-
-@ex.jit_class
-class BasicFunc():
+@jit_class
+class BasicFunc:
+    """These are the basic functions"""
 
     def zakharov_func(self, z):
         D = z.shape[0]
         i = jnp.arange(1, D + 1)
-        
+
         term1 = jnp.sum(z**2)
         term2 = jnp.sum(0.5 * i * z)
-        
+
         f_value = term1 + term2**2 + term2**4
         return f_value
 
     def rosenbrock_func(self, z):
-        z =  z + jnp.ones_like(z)
-        term1 = 100 * jnp.sum((z[:-1]**2 - z[1:])**2)
-        term2 = jnp.sum((1 - z[:-1])**2)
-        
+        z = z + jnp.ones_like(z)
+        term1 = 100 * jnp.sum((z[:-1] ** 2 - z[1:]) ** 2)
+        term2 = jnp.sum((1 - z[:-1]) ** 2)
+
         f_value = term1 + term2
         return f_value
 
     def schafferF7_func(self, z, y):
         # This function is transferred from the python source code
         nx = z.shape[0]
+
         def body_func(i, f, z, y):
-            z = z.at[i].set(lax.pow(y[i]*y[i]+y[i+1]*y[i+1],0.5))
-            tmp=jnp.sin(50.0 * lax.pow(z[i], 0.2))
-            f += lax.pow(z[i], 0.5)+lax.pow(z[i], 0.5) * tmp * tmp 
+            z = z.at[i].set(lax.pow(y[i] * y[i] + y[i + 1] * y[i + 1], 0.5))
+            tmp = jnp.sin(50.0 * lax.pow(z[i], 0.2))
+            f += lax.pow(z[i], 0.5) + lax.pow(z[i], 0.5) * tmp * tmp
             return f
-        f = lax.fori_loop(0, nx-1, partial(body_func, z=z, y=y), 0)
-        f = f*f / (nx-1)/(nx-1)
+
+        f = lax.fori_loop(0, nx - 1, partial(body_func, z=z, y=y), 0)
+        f = f * f / (nx - 1) / (nx - 1)
         return f
 
     def rastrigin_func(self, z):
         z = z * 0.0512
-        f_value = jnp.sum(z**2 - 10*jnp.cos(2*jnp.pi*z) + 10)
+        f_value = jnp.sum(z**2 - 10 * jnp.cos(2 * jnp.pi * z) + 10)
         return f_value
-        
+
     def levy_func(self, z):
-        w = 1 + (z) / 4     # Levy func should be 1 + (z-1) / 4 here
+        w = 1 + (z) / 4  # Levy func should be 1 + (z-1) / 4 here
         w1 = w[:-1]
         w_last = w[-1]
-        
-        term1 = jnp.sin(jnp.pi * w[0])**2
-        term2 = jnp.sum(((w1 - 1)**2) * (1 + 10 * (jnp.sin(jnp.pi * w1 + 1))**2))
-        term3 = ((w_last - 1)**2) * (1 + (jnp.sin(2 * jnp.pi * w_last))**2)
-        
+
+        term1 = jnp.sin(jnp.pi * w[0]) ** 2
+        term2 = jnp.sum(((w1 - 1) ** 2) * (1 + 10 * (jnp.sin(jnp.pi * w1 + 1)) ** 2))
+        term3 = ((w_last - 1) ** 2) * (1 + (jnp.sin(2 * jnp.pi * w_last)) ** 2)
+
         f_value = term1 + term2 + term3
         return f_value
 
@@ -177,8 +198,8 @@ class BasicFunc():
         D = z.shape[0]
         z = z * 0.05
         z = z - 1
-        term1 = jnp.fabs(jnp.sum(z**2)**2 - jnp.sum(z)**2)**0.5
-        term2 = (0.5*jnp.sum(z**2) + jnp.sum(z)) / D
+        term1 = jnp.fabs(jnp.sum(z**2) ** 2 - jnp.sum(z) ** 2) ** 0.5
+        term2 = (0.5 * jnp.sum(z**2) + jnp.sum(z)) / D
 
         f_value = term1 + term2 + 0.5
         return f_value
@@ -187,19 +208,19 @@ class BasicFunc():
         # This function is transferred from the python source code
         nx = z.shape[0]
         f = 1.0
-        tmp3=lax.pow(1.0*nx,1.2)
+        tmp3 = lax.pow(1.0 * nx, 1.2)
 
         z = z * 0.05
 
         for i in range(nx):
-            temp=0.0
+            temp = 0.0
             for j in range(1, 33):
-                tmp1=lax.pow(2.0,jnp.float32(j))
-                tmp2=tmp1*z[i]
-                temp += jnp.fabs(tmp2-jnp.floor(tmp2+0.5))/tmp1
-            f *= lax.pow(1.0+(i+1)*temp,10.0/tmp3)
-        tmp1=10.0/nx/nx
-        f = f*tmp1-tmp1
+                tmp1 = lax.pow(2.0, jnp.float32(j))
+                tmp2 = tmp1 * z[i]
+                temp += jnp.fabs(tmp2 - jnp.floor(tmp2 + 0.5)) / tmp1
+            f *= lax.pow(1.0 + (i + 1) * temp, 10.0 / tmp3)
+        tmp1 = 10.0 / nx / nx
+        f = f * tmp1 - tmp1
 
         return f
 
@@ -222,7 +243,7 @@ class BasicFunc():
         z = z * 10
 
         for i in range(nx):
-            z = z.at[i].set(z[i] + 4.209687462275036e+002)
+            z = z.at[i].set(z[i] + 4.209687462275036e002)
 
             condition1 = z[i] > 500
             condition2 = z[i] < -500
@@ -231,49 +252,54 @@ class BasicFunc():
             result = lax.select(condition2, 2, result)
 
             def zi_larger_500(zi, f):
-                f-=(500.0-jnp.fmod(zi,500))*jnp.sin(lax.pow(500.0-jnp.fmod(zi,500),0.5))
-                tmp=(zi-500.0)/100
-                f+= tmp*tmp/nx
+                f -= (500.0 - jnp.fmod(zi, 500)) * jnp.sin(
+                    lax.pow(500.0 - jnp.fmod(zi, 500), 0.5)
+                )
+                tmp = (zi - 500.0) / 100
+                f += tmp * tmp / nx
                 return f
+
             def zi_smaller_neg500(zi, f):
-                f-=(-500.0 + jnp.fmod(jnp.fabs(zi),500))*jnp.sin(lax.pow(500.0-jnp.fmod(jnp.fabs(zi),500),0.5))
-                tmp=(zi+500.0)/100
-                f+= tmp*tmp/nx
+                f -= (-500.0 + jnp.fmod(jnp.fabs(zi), 500)) * jnp.sin(
+                    lax.pow(500.0 - jnp.fmod(jnp.fabs(zi), 500), 0.5)
+                )
+                tmp = (zi + 500.0) / 100
+                f += tmp * tmp / nx
                 return f
+
             def zi_between_500(zi, f):
-                f-=zi*jnp.sin(lax.pow(jnp.fabs(zi),0.5))
+                f -= zi * jnp.sin(lax.pow(jnp.fabs(zi), 0.5))
                 return f
-            
+
             branch_func = (zi_between_500, zi_larger_500, zi_smaller_neg500)
             f = lax.switch(result, branch_func, z[i], f)
-        f +=4.189828872724338e+002*nx
+        f += 4.189828872724338e002 * nx
         return f
 
     def happycat_func(self, z):
         D = z.shape[0]
-        z = z * 0.05 -1
+        z = z * 0.05 - 1
         zsquare_sum = jnp.sum(z**2)
         zsum = jnp.sum(z)
 
-        term1 = lax.pow(jnp.fabs(zsquare_sum - D), 1/4)
-        term2 = (0.5*zsquare_sum + zsum)/D
+        term1 = lax.pow(jnp.fabs(zsquare_sum - D), 1 / 4)
+        term2 = (0.5 * zsquare_sum + zsum) / D
 
         f_value = term1 + term2 + 0.5
         return f_value
 
     def elliptic_func(self, z):
-        
         D = z.shape[0]
         i_arr = jnp.arange(D)
-        idx_arr = 6 * i_arr / (D-1)
-        pow_arr = 10 ** idx_arr
-        
+        idx_arr = 6 * i_arr / (D - 1)
+        pow_arr = 10**idx_arr
+
         f_value = jnp.sum(pow_arr * (z**2))
 
         return f_value
 
     def discus_func(self, z):
-        f_value = 1e6 * (z[0]**2) + jnp.sum(z[1:]**2)
+        f_value = 1e6 * (z[0] ** 2) + jnp.sum(z[1:] ** 2)
 
         return f_value
 
@@ -281,10 +307,10 @@ class BasicFunc():
         z_roll = jnp.roll(z, 1)
         square_sum = z**2 + z_roll**2
 
-        term1 = (jnp.sin(jnp.sqrt(square_sum)))**2 - 0.5
-        term2 = (1 + 0.001*(square_sum))**2
+        term1 = (jnp.sin(jnp.sqrt(square_sum))) ** 2 - 0.5
+        term2 = (1 + 0.001 * (square_sum)) ** 2
 
-        f_value = jnp.sum(0.5 + term1/term2)
+        f_value = jnp.sum(0.5 + term1 / term2)
         return f_value
 
     def expGrieRosen_func(self, z):
@@ -293,18 +319,18 @@ class BasicFunc():
 
         f = 0.0
         z = z * 0.05
-        z = z.at[0].set(z[0]+1)
-        for i in range(nx-1):
-            z = z.at[i+1].set(z[i+1]+1)
-            tmp1 = z[i]*z[i]-z[i+1]
-            tmp2 = z[i]-1.0
-            temp = 100.0*tmp1*tmp1 + tmp2*tmp2
-            f += (temp*temp)/4000.0 - jnp.cos(temp) + 1.0
-            
-        tmp1 = z[nx-1]*z[nx-1]-z[0]
-        tmp2 = z[nx-1]-1.0
-        temp = 100.0*tmp1*tmp1 + tmp2*tmp2
-        f += (temp*temp)/4000.0 - jnp.cos(temp) + 1.0 
+        z = z.at[0].set(z[0] + 1)
+        for i in range(nx - 1):
+            z = z.at[i + 1].set(z[i + 1] + 1)
+            tmp1 = z[i] * z[i] - z[i + 1]
+            tmp2 = z[i] - 1.0
+            temp = 100.0 * tmp1 * tmp1 + tmp2 * tmp2
+            f += (temp * temp) / 4000.0 - jnp.cos(temp) + 1.0
+
+        tmp1 = z[nx - 1] * z[nx - 1] - z[0]
+        tmp2 = z[nx - 1] - 1.0
+        temp = 100.0 * tmp1 * tmp1 + tmp2 * tmp2
+        f += (temp * temp) / 4000.0 - jnp.cos(temp) + 1.0
         return f
 
     def griewank_func(self, z):
@@ -317,10 +343,11 @@ class BasicFunc():
         f_value = term1 - term2 + 1
         return f_value
 
-"""Here are the test problems of CEC2022"""
-@ex.jit_class
-class F1_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F1_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
 
@@ -339,9 +366,11 @@ class F1_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F2_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F2_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
 
@@ -349,7 +378,7 @@ class F2_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         D = x.shape[0]
         Os = self.Os_D[0:D]
         M = self.M_dict[D]
-        sh_rate = 2.048/100.0
+        sh_rate = 2.048 / 100.0
 
         z = self.ssr_operat(x, Os, M, sh_rate)
         f = self.rosenbrock_func(z)
@@ -360,9 +389,11 @@ class F2_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F3_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F3_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
 
@@ -382,9 +413,11 @@ class F3_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F4_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F4_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
 
@@ -403,9 +436,11 @@ class F4_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F5_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F5_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
 
@@ -424,9 +459,11 @@ class F5_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F6_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F6_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         self.p = jnp.array([0.4, 0.4, 0.2])
         OperatFunc.__init__(self)
@@ -447,18 +484,20 @@ class F6_CEC2022(OperatFunc, BasicFunc, ex.Problem):
 
         f = f1 + f2 + f3
         # f may be smaller than 0 (round error)
-        f = lax.select(f < 1e-8, 0.0, f) 
+        f = lax.select(f < 1e-8, 0.0, f)
         return f
 
     def evaluate(self, state, X):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F7_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F7_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
-        self.p = jnp.array([0.1,0.2,0.2,0.2,0.1,0.2])
+        self.p = jnp.array([0.1, 0.2, 0.2, 0.2, 0.1, 0.2])
         OperatFunc.__init__(self)
 
     def _evaluate(self, x):
@@ -470,17 +509,16 @@ class F7_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         ids = self.ids[D]
 
         z = self.ssr_operat(x, Os, M, sh_rate, S)
- 
+
         y_len = len(ids[5])
         y = lax.dynamic_slice_in_dim(z, 0, y_len)
-        
+
         f1 = self.hgbat_func(z[ids[0]])
         f2 = self.katsuura_func(z[ids[1]])
         f3 = self.ackley_func(z[ids[2]])
         f4 = self.rastrigin_func(z[ids[3]])
         f5 = self.schwefel_func(z[ids[4]])
         f6 = self.schafferF7_func(z[ids[5]], y)
-
 
         f = f1 + f2 + f3 + f4 + f5 + f6
         f = lax.select(f < 1e-8, 0.0, f)
@@ -490,11 +528,13 @@ class F7_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F8_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F8_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
-        self.p = jnp.array([0.3,0.2,0.2,0.1,0.2])
+        self.p = jnp.array([0.3, 0.2, 0.2, 0.1, 0.2])
         OperatFunc.__init__(self)
 
     def _evaluate(self, x):
@@ -506,7 +546,7 @@ class F8_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         ids = self.ids[D]
 
         z = self.ssr_operat(x, Os, M, sh_rate, S)
-        
+
         f1 = self.katsuura_func(z[ids[0]])
         f2 = self.happycat_func(z[ids[1]])
         f3 = self.expGrieRosen_func(z[ids[2]])
@@ -523,9 +563,11 @@ class F8_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F9_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F9_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
         self.bias = jnp.array([0, 200, 300, 100, 400])
@@ -538,20 +580,20 @@ class F9_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         Os = jnp.ravel(Os_mat)
         M = self.M_dict[D]
         sh_rate = 1
-        
-        z1 = self.ssr_operat(x, Os[0:D], M[0:D], 2.048/100.0)
+
+        z1 = self.ssr_operat(x, Os[0:D], M[0:D], 2.048 / 100.0)
         f1 = self.rosenbrock_func(z1)
 
-        z2 = self.ssr_operat(x, Os[D:2*D], M[D:2*D], sh_rate)
+        z2 = self.ssr_operat(x, Os[D : 2 * D], M[D : 2 * D], sh_rate)
         f2 = self.elliptic_func(z2)
 
-        z3 = self.ssr_operat(x, Os[2*D:3*D], M[2*D:3*D], sh_rate)
+        z3 = self.ssr_operat(x, Os[2 * D : 3 * D], M[2 * D : 3 * D], sh_rate)
         f3 = self.bentCigar_func(z3)
-        
-        z4 = self.ssr_operat(x, Os[3*D:4*D], M[3*D:4*D], sh_rate)
+
+        z4 = self.ssr_operat(x, Os[3 * D : 4 * D], M[3 * D : 4 * D], sh_rate)
         f4 = self.discus_func(z4)
 
-        z5 = x - Os[4*D:5*D]
+        z5 = x - Os[4 * D : 5 * D]
         f5 = self.elliptic_func(z5)
 
         fs = jnp.array([f1, f2, f3, f4, f5])
@@ -564,9 +606,11 @@ class F9_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F10_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F10_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
         self.bias = jnp.array([0, 200, 100])
@@ -579,14 +623,14 @@ class F10_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         Os = jnp.ravel(Os_mat)
         M = self.M_dict[D]
         sh_rate = 1
-        
+
         z1 = x - Os[0:D]
         f1 = self.schwefel_func(z1)
 
-        z2 = self.ssr_operat(x, Os[D:2*D], M[D:2*D], sh_rate)
+        z2 = self.ssr_operat(x, Os[D : 2 * D], M[D : 2 * D], sh_rate)
         f2 = self.rastrigin_func(z2)
 
-        z3 = self.ssr_operat(x, Os[2*D:3*D], M[2*D:3*D], sh_rate)
+        z3 = self.ssr_operat(x, Os[2 * D : 3 * D], M[2 * D : 3 * D], sh_rate)
         f3 = self.hgbat_func(z3)
 
         fs = jnp.array([f1, f2, f3])
@@ -599,9 +643,11 @@ class F10_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F11_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F11_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
         self.bias = jnp.array([0, 200, 300, 400, 200])
@@ -614,20 +660,20 @@ class F11_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         Os = jnp.ravel(Os_mat)
         M = self.M_dict[D]
         sh_rate = 1
-        
+
         z1 = self.ssr_operat(x, Os[0:D], M[0:D], sh_rate)
         f1 = self.expSchaffer(z1)
 
-        z2 = self.ssr_operat(x, Os[D:2*D], M[D:2*D], sh_rate)
+        z2 = self.ssr_operat(x, Os[D : 2 * D], M[D : 2 * D], sh_rate)
         f2 = self.schwefel_func(z2)
 
-        z3 = self.ssr_operat(x, Os[2*D:3*D], M[2*D:3*D], 6)
+        z3 = self.ssr_operat(x, Os[2 * D : 3 * D], M[2 * D : 3 * D], 6)
         f3 = self.griewank_func(z3)
-        
-        z4 = self.ssr_operat(x, Os[3*D:4*D], M[3*D:4*D], 2.048/100.0)
+
+        z4 = self.ssr_operat(x, Os[3 * D : 4 * D], M[3 * D : 4 * D], 2.048 / 100.0)
         f4 = self.rosenbrock_func(z4)
 
-        z5 = self.ssr_operat(x, Os[4*D:5*D], M[4*D:5*D], sh_rate)
+        z5 = self.ssr_operat(x, Os[4 * D : 5 * D], M[4 * D : 5 * D], sh_rate)
         f5 = self.rastrigin_func(z5)
 
         fs = jnp.array([f1, f2, f3, f4, f5])
@@ -644,9 +690,11 @@ class F11_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
-@ex.jit_class
-class F12_CEC2022(OperatFunc, BasicFunc, ex.Problem):
-    
+
+@jit_class
+class F12_CEC2022(OperatFunc, BasicFunc, Problem):
+    """Test problems of CEC2022"""
+
     def __init__(self):
         OperatFunc.__init__(self)
         self.bias = jnp.array([0, 300, 500, 100, 400, 200])
@@ -659,23 +707,23 @@ class F12_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         Os = jnp.ravel(Os_mat)
         M = self.M_dict[D]
         sh_rate = 1
-        
+
         z1 = self.ssr_operat(x, Os[0:D], M[0:D], sh_rate)
         f1 = self.hgbat_func(z1)
 
-        z2 = self.ssr_operat(x, Os[D:2*D], M[D:2*D], sh_rate)
+        z2 = self.ssr_operat(x, Os[D : 2 * D], M[D : 2 * D], sh_rate)
         f2 = self.rastrigin_func(z2)
 
-        z3 = self.ssr_operat(x, Os[2*D:3*D], M[2*D:3*D], sh_rate)
+        z3 = self.ssr_operat(x, Os[2 * D : 3 * D], M[2 * D : 3 * D], sh_rate)
         f3 = self.schwefel_func(z3)
-        
-        z4 = self.ssr_operat(x, Os[3*D:4*D], M[3*D:4*D], sh_rate)
+
+        z4 = self.ssr_operat(x, Os[3 * D : 4 * D], M[3 * D : 4 * D], sh_rate)
         f4 = self.bentCigar_func(z4)
 
-        z5 = self.ssr_operat(x, Os[4*D:5*D], M[4*D:5*D], sh_rate)
+        z5 = self.ssr_operat(x, Os[4 * D : 5 * D], M[4 * D : 5 * D], sh_rate)
         f5 = self.elliptic_func(z5)
 
-        z6 = self.ssr_operat(x, Os[4*D:5*D], M[4*D:5*D], sh_rate)
+        z6 = self.ssr_operat(x, Os[4 * D : 5 * D], M[4 * D : 5 * D], sh_rate)
         f6 = self.expSchaffer(z6)
 
         fs = jnp.array([f1, f2, f3, f4, f5, f6])
@@ -688,41 +736,28 @@ class F12_CEC2022(OperatFunc, BasicFunc, ex.Problem):
         F = vmap(self._evaluate)(X)
         return F, state
 
+
 class CEC2022:
+    """
+    Instantiation format: problem_instance = CEC2022.create(1)
+    i.e., problem_instance = F1_CEC2022()
+    """
+
+    func_num2class = {
+        1: F1_CEC2022(),
+        2: F2_CEC2022(),
+        3: F3_CEC2022(),
+        4: F4_CEC2022(),
+        5: F5_CEC2022(),
+        6: F6_CEC2022(),
+        7: F7_CEC2022(),
+        8: F8_CEC2022(),
+        9: F9_CEC2022(),
+        10: F10_CEC2022(),
+        11: F11_CEC2022(),
+        12: F12_CEC2022(),
+    }
+
     @staticmethod
-    def create(func_num):
-        class_name = f'F{func_num}_CEC2022'
-        return globals()[class_name]()
-
-"""Test procedure"""
-if __name__ == "__main__":
-    # Settings
-    D = 20
-    x_num = 2
-
-    # for func_num in range(1, 13):
-    for func_num in [5]:
-        func = CEC2022.create(func_num)
-        key = jax.random.PRNGKey(12)
-
-        state = func.init(key)
-        
-        # 1. Generate x = ones and evaluate
-        # X = jnp.zeros((x_num, D))
-        # F, _ = func.evaluate(state, X)
-
-        # 2. Generate x = randnum and evaluate
-        # X = jax.random.uniform(key, shape=(x_num, D)) * 200 -100
-        # F, _ = func.evaluate(state, X)
-
-        # 3. Generate x = Os and evaluate
-        # filename = "src/evox/problems/CEC2022_benchmark/input_data/" +  f"shift_data_{func_num}.txt"
-        # with open(filename, "r") as file:
-        #     x = jnp.array([float(o) for o in file.read().split()])[0:D]
-        # F = func._evaluate(x)
-
-        # 4. Test a specific x
-        x = jnp.array([-24.8563141058211,	0.934279928323217,	21.9938804974319	,51.9868437732316,	-18.4026171994622,	-12.3749158258090	,16.0884721890886,	-3.32554911037810,	-51.3380365280924,	42.4094150789138	,-22.8106865747213	,-19.6839236295059	,52.9744557100712	,-58.5380815576669,	-10.7503725909710	,-38.6761024802951,	51.9586919106073,	-14.5689180365802	,-59.7737569826370,	21.1112829340476])
-        F = func._evaluate(x)
-
-        print(F)
+    def create(func_num: int):
+        return CEC2022.func_num2class[func_num]()

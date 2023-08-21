@@ -1,1 +1,0 @@
-from .CEC2022_SO import CEC2022
