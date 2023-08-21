@@ -2,7 +2,6 @@ from .differential_evolution import (
     DifferentialEvolve,
     de_arith_recom,
     de_bin_cross,
-    de_crossover,
     de_diff_sum,
     de_exp_cross,
     differential_evolve,
