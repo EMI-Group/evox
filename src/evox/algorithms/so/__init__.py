@@ -5,7 +5,6 @@ from .cma_es import BIPOPCMAES, CMAES, IPOPCMAES, SepCMAES
 from .cr_fm_nes import CR_FM_NES
 from .cso import CSO
 from .de import DE
-from .de_lib import SHADE, CoDE, JaDE, SaDE
 from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
