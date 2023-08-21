@@ -9,11 +9,13 @@ Single-objective
     ars
     asebo
     cma_es
+    code
     cr_fm_nes
     cso
     de
     esmc
     guide_es
+    jade
     les
     ma_es
     nes
@@ -23,4 +25,6 @@ Single-objective
     pgpe
     pso
     rmes
+    sade
+    shade
     snes

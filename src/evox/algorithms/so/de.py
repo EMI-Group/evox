@@ -1,34 +1,34 @@
 from functools import partial
 
-import evox as ex
 import jax
 import jax.numpy as jnp
-from jax import lax, vmap
+from jax import vmap
+
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class DE(ex.Algorithm):
+@jit_class
+class DE(Algorithm):
     def __init__(
         self,
         lb,
         ub,
         pop_size,
-        base_vector="best",
+        base_vector="rand",
         num_difference_vectors=1,
+        differential_weight=0.5,
         cross_probability=0.9,
-        differential_weight=0.8,
-        batch_size=1,
+        batch_size=100,
         mean=None,
         stdvar=None,
     ):
         assert jnp.all(lb < ub)
         assert pop_size >= 4
-        assert cross_probability > 0 and cross_probability < 1
-        assert pop_size % batch_size == 0
+        assert cross_probability > 0 and cross_probability <= 1
         assert base_vector in [
             "rand",
             "best",
-        ], "base_vector must be either 'best' or 'rand'"
+        ]
 
         self.num_difference_vectors = num_difference_vectors
         self.dim = lb.shape[0]
@@ -39,7 +39,6 @@ class DE(ex.Algorithm):
         self.batch_size = batch_size
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
-        self.batch_size = batch_size
         self.mean = mean
         self.stdvar = stdvar
 
@@ -57,40 +56,48 @@ class DE(ex.Algorithm):
         best_index = 0
         start_index = 0
 
-        return ex.State(
+        return State(
             population=population,
             fitness=fitness,
             best_index=best_index,
             start_index=start_index,
             key=state_key,
+            trial_vectors=jnp.empty((self.batch_size, self.dim)),
         )
 
     def ask(self, state):
-        key, ask_one_key, R_key = jax.random.split(state.key, 3)
-        R = jax.random.choice(R_key, self.dim, shape=(self.batch_size,))
-        ask_one_keys = jax.random.split(ask_one_key, self.batch_size)
+        key, R_key = jax.random.split(state.key, 2)
+
         indices = jnp.arange(self.batch_size) + state.start_index
+
+        choice_keys = jax.random.split(R_key, self.batch_size)
+        random_choices = vmap(
+            partial(
+                jax.random.choice,
+                a=self.pop_size,
+                shape=(self.num_difference_vectors * 2 + 1,),
+                replace=False,
+            )
+        )(choice_keys)
+
+        R = jax.random.choice(R_key, self.dim, shape=(self.batch_size,))
+        masks_init = (
+            jax.random.uniform(R_key, shape=(self.batch_size, self.dim))
+            < self.cross_probability
+        )
+        tile_arange = jnp.tile(jnp.arange(self.dim), (self.batch_size, 1))
+        tile_R = jnp.tile(R[:, jnp.newaxis], (1, self.dim))
+        masks = jnp.where(tile_arange == tile_R, True, masks_init)
+
         trial_vectors = vmap(
             partial(
                 self._ask_one, population=state.population, best_index=state.best_index
             )
-        )(ask_one_keys, indices, R)
+        )(indices, R, random_choiced=random_choices, mask=masks)
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
-    def _ask_one(self, key, index, R, population, best_index):
-        # index is the index of the "agent"
-        # R is the dim that must change
-
-        # first sample from [0, pop_size - 1), then replace best_index with pop_size - 1
-        # this can ensure the same vector is not selected.
-        select_key, crossover_key = jax.random.split(key)
-        random_choiced = jax.random.choice(
-            select_key,
-            self.pop_size - 1,
-            shape=(self.num_difference_vectors + 1,),
-            replace=False,
-        )
+    def _ask_one(self, index, R, population, best_index, random_choiced, mask):
         random_choiced = jnp.where(
             random_choiced == index, self.pop_size - 1, random_choiced
         )
@@ -101,20 +108,21 @@ class DE(ex.Algorithm):
             base_vector = population[random_choiced[0], :]
 
         difference_vectors = population[random_choiced[1:], :]
-
+        subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)
         mutation_vectors = (
-            jnp.sum(difference_vectors.at[1:, :].multiply(-1), axis=0)
+            jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0)
             * self.differential_weight
             + base_vector
         )
 
-        mask = (
-            jax.random.uniform(crossover_key, shape=(self.dim,))
-            < self.cross_probability
+        trial_vector = jnp.where(
+            mask,
+            mutation_vectors,
+            population[index],
         )
-        mask = mask.at[R].set(True)
+        trial_vector = jnp.clip(trial_vector, self.lb, self.ub)
 
-        return jnp.where(mask, mutation_vectors, population[index],)
+        return trial_vector
 
     def tell(self, state, trial_fitness):
         start_index = state.start_index
@@ -126,6 +134,7 @@ class DE(ex.Algorithm):
         )
 
         compare = trial_fitness < batch_fitness
+
         population_update = jnp.where(
             compare[:, jnp.newaxis], state.trial_vectors, batch_pop
         )

@@ -1,0 +1,3 @@
+include src/evox/problems/classic/data/*.json
+include src/evox/problems/test_suit/cec2022_input_data/*.txt
+
