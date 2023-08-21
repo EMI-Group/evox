@@ -1,3 +1,4 @@
+import evox
 import jax
 import jax.numpy as jnp
 import evox as ex
@@ -101,7 +102,7 @@ class MaF3(MaF):
         return f, state 
 
     def pf(self, state: chex.PyTreeDef):
-        r = UniformSampling(self.ref_num * self.m,self.m).random()[0].__pow__(2)
+        r = UniformSampling(self.ref_num * self.m,self.m)()[0].__pow__(2)
         temp = jnp.sum(jnp.sqrt(r[:,:-1]),axis=1) + r[:,-1]
         f = r/jnp.stack([jnp.repeat(temp.__pow__(2),self.d-1,axis=1), temp])
         return f, state
@@ -335,13 +336,12 @@ class MaF10(MaF):
         f = jnp.tile(D @ x[:M],(1,M)) + jnp.tile(S, (n,1)) * h
         return f, state
 
-    '''完全使用new bing生成，需要检查公式'''
     def pf(self, state: chex.PyTreeDef):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
         c = jnp.ones((N, M))
-        for i in range(1, R.shape[0] + 1):
+        for i in range(1, N + 1):
             for j in range(2, M + 1):
                 temp = R[i - 1, j - 1] / R[i - 1, 0] * jnp.prod(1 - c[i - 1, M - j + 1:M - 1])
                 c = c.at[i - 1, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
@@ -349,7 +349,7 @@ class MaF10(MaF):
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
         a = jnp.arange(0, 1.0001, 0.0001)
         E = jnp.abs(
-            temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi)
+            temp @ (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + jnp.tile(a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi,(x.shape[0],1)))
         rank = jnp.argsort(E, axis=1)
         for i in range(x.shape[0]):
             x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
@@ -357,9 +357,6 @@ class MaF10(MaF):
         f = f.at[:, M - 1].set(self._mixed(x))
         f = f * jnp.tile(jnp.arange(2, 2 * M + 1, 2), (f.shape[0], 1))
         return f, state
-
-
-
 
     def _s_linear(self,y, A):
         output = jnp.abs(y-A).jnp.abs((A-y).astype(jnp.float32) + A)
@@ -379,6 +376,128 @@ class MaF10(MaF):
     def _mixed(self, x):
         return 1 - x[:, 0] - jnp.cos(10 * jnp.pi * x[:, 0] + jnp.pi / 2) / 10 / jnp.pi
 
+def MaF11(MaF):
+    def __init__(self, d=None, m=None, ref_num=1000):
+        if m is None:
+            self.m = 3
+        else:
+            self.m = m
+        if d is None:
+            self.d = self.m + 9
+        else:
+            self.d = d
+        self.d = jnp.ceil((self.d - self.m + 1)/2)*2 + self.m - 1
+        super().__init__(d, m, ref_num)
+
+    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        N, D = X.shape
+        M = self.m
+        K = M - 1
+        L = D - K
+        D = 1
+        S = jnp.arange(2, 2 * M + 1, 2)
+        A = jnp.ones(M - 1)
+
+        z01 = X / jnp.tile(jnp.arange(2, X.shape[1] * 2 + 1, 2),(N,1))
+
+        t1 = jnp.zeros((N, K + L))
+        t1 = t1.at[:, :K].set(z01[:, :K])
+        t1 = t1.at[:, K:].set(self._s_linear(z01[:, K:], 0.35))
+
+        t2 = jnp.zeros((N, K + L // 2))
+        t2 = t2.at[:, :K].set(t1[:, :K])
+        t2 = t2.at[:, K:K + L // 2].set(
+            (t1[:, K::2] + t1[:, K + 1::2] + 2 * jnp.abs(t1[:, K::2] - t1[:, K + 1::2])) / 3)
+
+        t3 = jnp.zeros((N, M))
+        for i in range(1, M):
+            t3 = t3.at[:, i - 1].set(self._r_sum(t2[:, (i - 1) * K // (M - 1):i * K // (M - 1)], jnp.ones(K // (M - 1))))
+        t3 = t3.at[:, M - 1].set(self._r_sum(t2[:, K:K + L // 2], jnp.ones(L // 2)))
+
+        x = jnp.zeros((N, M))
+        for i in range(1, M):
+            x = x.at[:, i - 1].set(jnp.maximum(t3[:, M - 1], A[i - 1]) * (t3[:, i - 1] - 0.5) + 0.5)
+        x = x.at[:, M - 1].set(t3[:, M - 1])
+
+        h = self._convex(x)
+        h = h.at[:, M - 1].set(self._disc(x))
+        f = D * x[:, M - 1].reshape(-1, 1) + S * h
+        return f, state
+
+    def pf(self, state: chex.PyTreeDef):
+        M = self.m
+        N = self.ref_num * self.m
+        R = UniformSampling(N, M)()[0]
+        c = jnp.ones((R.shape[0], M))
+        for i in range(R.shape[0]):
+            for j in range(1, M):
+                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j + 1:M - 1])
+                c = c.at[i, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
+        x = jnp.arccos(c) * 2 / jnp.pi
+        temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
+        a = jnp.arange(0, 1.0001, 0.0001)
+        E = jnp.abs(temp.reshape(-1, 1) * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a * (jnp.cos(5 * jnp.pi * a)) ** 2)
+        rank = jnp.argsort(E, axis=1)
+        for i in range(x.shape[0]):
+            x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
+        R = self._convex(x)
+        R = R.at[:, M - 1].set(self._disc(x))
+        # _fast_non_dominated_sort 代替NDSort
+        f = R[self._fast_non_dominated_sort(R, 1) == 1]
+        f *= jnp.arange(2, 2 * M + 1, 2)
+        return f, state
+    def _s_linear(self, y, A):
+        return jnp.abs(y - A) / jnp.abs(jnp.floor(A - y) + A)
+
+    def _r_nonsep(self, y, A):
+        Output = jnp.zeros((y.shape[0], 1))
+        for j in range(y.shape[1]):
+            Temp = jnp.zeros((y.shape[0], 1))
+            for k in range(A - 2):
+                Temp += jnp.abs(y[:, j] - y[:, (j + k) % y.shape[1]])
+            Output += y[:, j] + Temp
+        Output /= (y.shape[1] / A) / jnp.ceil(A / 2) / (1 + 2 * A - 2 * jnp.ceil(A / 2))
+        return Output
+
+    def _r_sum(self, y, w):
+        return jnp.sum(y * w, axis=1) / jnp.sum(w)
+
+    def _convex(self, x):
+        return jnp.fliplr(jnp.cumprod(jnp.hstack((jnp.ones((x.shape[0], 1)), 1 - jnp.cos(x[:, :-1] * jnp.pi / 2))),
+                                      axis=1)) * jnp.hstack(
+            (jnp.ones((x.shape[0], 1)), 1 - jnp.sin(x[:, x.shape[1] - 2::-1] * jnp.pi / 2)))
+
+    def _disc(self, x):
+        return 1 - x[:, 0] * (jnp.cos(5 * jnp.pi * x[:, 0])) ** 2
+
+    def _fast_non_dominated_sort(self,objectives):
+        # 计算每个解的支配计数和被支配解集合
+        N = objectives.shape[0]
+        domination_counts = jnp.zeros(N, dtype=int)
+        dominated_sets = [[] for _ in range(N)]
+        for i in range(N):
+            for j in range(i + 1, N):
+                if all(objectives[i] <= objectives[j]) and any(objectives[i] < objectives[j]):
+                    domination_counts = domination_counts.at[j].add(1)
+                    dominated_sets[i].append(j)
+                elif all(objectives[j] <= objectives[i]) and any(objectives[j] < objectives[i]):
+                    domination_counts = domination_counts.at[i].add(1)
+                    dominated_sets[j].append(i)
+        # 计算每个解的排名
+        ranks = jnp.zeros(N, dtype=int)
+        front = jnp.where(domination_counts == 0)[0]
+        rank = 1
+        while front.size > 0:
+            next_front = []
+            for i in front:
+                ranks = ranks.at[i].set(rank)
+                for j in dominated_sets[i]:
+                    domination_counts = domination_counts.at[j].add(-1)
+                    if domination_counts[j] == 0:
+                        next_front.append(j)
+            front = jnp.array(next_front)
+            rank += 1
+        return ranks
 
 
 
