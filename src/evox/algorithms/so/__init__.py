@@ -1,5 +1,5 @@
 from .cso import CSO
-from .pso import PSO
+from .pso_varients.pso import PSO
 from .pgpe import PGPE
 from .de import DE
 from .cma_es import CMAES, SepCMAES, IPOPCMAES, BIPOPCMAES
@@ -19,4 +19,4 @@ from .guided_es import GuidedES
 from .les import LES
 from .persistent_es import PersistentES
 
-from .pso_vatients import *
+from .pso_varients import *
