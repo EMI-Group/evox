@@ -15,10 +15,10 @@
 import jax
 import jax.numpy as jnp
 from jax import lax
-from .cma_es import CMAES
+from src.evox.algorithms.so.cma_es import CMAES
 import evox
 from evox import State
-from .sort_utils import sort_by_key
+from src.evox.algorithms.so.sort_utils import sort_by_key
 
 
 @evox.jit_class

@@ -15,7 +15,7 @@ import jax.numpy as jnp
 import evox
 from evox import Algorithm, State
 from .cma_es import CMAES
-from .sort_utils import sort_by_key
+from src.evox.algorithms.so.sort_utils import sort_by_key
 
 # Full AMaLGaM implementation
 class AMaLGaM(CMAES):

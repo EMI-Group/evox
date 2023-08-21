@@ -1,7 +1,7 @@
 import math
 import jax
 import jax.numpy as jnp
-from .sort_utils import sort_by_key
+from src.evox.algorithms.so.sort_utils import sort_by_key
 from jax.scipy.linalg import expm
 import evox as ex
 

@@ -25,7 +25,7 @@ from jax import lax
 import evox
 from evox import Algorithm, State
 
-from .sort_utils import sort_by_key
+from src.evox.algorithms.so.sort_utils import sort_by_key
 
 
 @evox.jit_class
