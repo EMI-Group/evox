@@ -16,7 +16,7 @@ import pkgutil
 # 3. Generate x = Os and evaluate
 # F = func._evaluate(x)
 
-
+print(__name__)
 @jit_class
 class OperatFunc:
     """Operational functions transform basic problems into test problems"""
@@ -24,16 +24,16 @@ class OperatFunc:
     def __init__(self):
         func_num = int(self.__class__.__name__.split("_")[0][1:])
         Os_D = pkgutil.get_data(
-            "evox", f"problems/test_suit/cec2022_input_data/shift_data_{func_num}.txt"
+            __name__, f"cec2022_input_data/shift_data_{func_num}.txt"
         ).decode()
         M_2D = pkgutil.get_data(
-            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D2.txt"
+            __name__, f"cec2022_input_data/M_{func_num}_D2.txt"
         ).decode()
         M_10D = pkgutil.get_data(
-            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D10.txt"
+            __name__, f"cec2022_input_data/M_{func_num}_D10.txt"
         ).decode()
         M_20D = pkgutil.get_data(
-            "evox", f"problems/test_suit/cec2022_input_data/M_{func_num}_D20.txt"
+            __name__, f"cec2022_input_data/M_{func_num}_D20.txt"
         ).decode()
 
         if func_num in [9, 10, 11, 12]:
@@ -55,12 +55,12 @@ class OperatFunc:
 
         if self.func_num in [6, 7, 8]:
             S_10D = pkgutil.get_data(
-                "evox",
-                f"problems/test_suit/cec2022_input_data/shuffle_data_{func_num}_D10.txt",
+                __name__,
+                f"cec2022_input_data/shuffle_data_{func_num}_D10.txt",
             ).decode()
             S_20D = pkgutil.get_data(
-                "evox",
-                f"problems/test_suit/cec2022_input_data/shuffle_data_{func_num}_D20.txt",
+                __name__,
+                f"cec2022_input_data/shuffle_data_{func_num}_D20.txt",
             ).decode()
             S_10D = jnp.array([int(x) for x in S_10D.split()])
             S_20D = jnp.array([int(x) for x in S_20D.split()])
