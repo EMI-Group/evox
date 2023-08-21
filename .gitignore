@@ -16,11 +16,6 @@ __pycache__
 /.idea
 
 logs/
-evox/algorithms/so/cso_*.py
-
+monitor_out/
 tests/maze/
-!tests/maze/maze_so.py
-
-tests/mujoco_envs/*.gif
-tests/mujoco_envs/*test*.py
-tests/mujoco_envs/*learn*.py
+tests/mujoco_envs/*
