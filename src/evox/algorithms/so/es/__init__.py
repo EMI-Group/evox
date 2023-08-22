@@ -12,5 +12,16 @@ from .cr_fm_nes import CR_FM_NES
 from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
-from .les import LES
 from .persistent_es import PersistentES
+
+
+try:
+    # optional dependency: flax
+    from .les import LES
+except ImportError as e:
+    original_erorr_msg = str(e)
+
+    def LES(*args, **kwargs):
+        raise ImportError(
+            f'LES requires flax but got "{original_erorr_msg}" when importing'
+        )
