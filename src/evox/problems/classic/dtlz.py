@@ -224,7 +224,7 @@ class DTLZ7(DTLZ):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        data_bytes = pkgutil.get_data('evox', 'problems/classic/data/dtlz7_pf.json')
+        data_bytes = pkgutil.get_data(__name__, "data/dtlz7_pf.json")
         data = data_bytes.decode()
         pf = json.loads(data)
         return jnp.array(pf), state
