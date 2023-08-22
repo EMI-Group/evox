@@ -9,7 +9,7 @@ import evox
 class OpenES(evox.Algorithm):
     def __init__(
         self,
-        init_params,
+        center_init,
         pop_size,
         learning_rate,
         noise_stdev,
@@ -29,8 +29,8 @@ class OpenES(evox.Algorithm):
                 pop_size % 2 == 0
             ), "When mirrored_sampling is True, pop_size must be a multiple of 2."
 
-        self.dim = init_params.shape[0]
-        self.init_params = init_params
+        self.dim = center_init.shape[0]
+        self.center_init = center_init
         self.pop_size = pop_size
         self.learning_rate = learning_rate
         self.noise_stdev = noise_stdev
@@ -38,17 +38,17 @@ class OpenES(evox.Algorithm):
 
         if optimizer == "adam":
             self.optimizer = evox.utils.OptaxWrapper(
-                optax.adam(learning_rate=learning_rate), init_params
+                optax.adam(learning_rate=learning_rate), center_init
             )
         else:
             self.optimizer = None
 
     def setup(self, key):
         # placeholder
-        population = jnp.tile(self.init_params, (self.pop_size, 1))
-        noise = jnp.tile(self.init_params, (self.pop_size, 1))
+        population = jnp.tile(self.center_init, (self.pop_size, 1))
+        noise = jnp.tile(self.center_init, (self.pop_size, 1))
         return evox.State(
-            population=population, center=self.init_params, noise=noise, key=key
+            population=population, center=self.center_init, noise=noise, key=key
         )
 
     def ask(self, state):

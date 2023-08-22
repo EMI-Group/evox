@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover
-from evox.utils import _dominate_relation, euclidean_dis
+from evox.utils import _dominate_relation, pairwise_euclidean_dist
 
 
 @jax.jit
@@ -17,7 +17,7 @@ def cal_fitness(obj):
         lambda s, d: jnp.sum(jnp.where(d, s, 0)), in_axes=(None, 1), out_axes=0
     )(s, dom_matrix)
 
-    dis = euclidean_dis(obj, obj)
+    dis = pairwise_euclidean_dist(obj, obj)
     diagonal_indices = jnp.arange(n)
     dis = jnp.where(diagonal_indices[:, None] == diagonal_indices, jnp.inf, dis)
     dis = jnp.sort(dis, axis=1)
@@ -29,7 +29,7 @@ def cal_fitness(obj):
 @jax.jit
 def _truncation(obj, k, mask):
     n = jnp.shape(obj)[0]
-    dis = euclidean_dis(obj, obj)
+    dis = pairwise_euclidean_dist(obj, obj)
     diagonal_indices = jnp.arange(n)
     dis = jnp.where(diagonal_indices[:, None] == diagonal_indices, jnp.inf, dis)
     mask_matrix = mask[:, jnp.newaxis] & mask[jnp.newaxis, :]

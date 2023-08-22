@@ -12,3 +12,5 @@ from .knea import KnEA
 from .sra import SRA
 from .tdea import TDEA
 from .bce_ibea import BCEIBEA
+from .bige import BiGE
+from .gde3 import GDE3

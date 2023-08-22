@@ -51,10 +51,6 @@ def use_state(func: Callable):
     return wrapper
 
 
-def jit(func: Callable):
-    return jax.jit(func, static_argnums=(0,))
-
-
 def jit_method(method: Callable):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
 

@@ -74,6 +74,7 @@ Then set this monitor as the fitness transform for the pipeline
 Then continue to run the pipeline as ususal. now at each iteration, the pipeline will call ``monitor.record_fit`` with the fitness at that iteration.
 
 .. code-block:: python
+
     # init the pipeline
     state = pipeline.init(key)
     # run the pipeline for 100 steps

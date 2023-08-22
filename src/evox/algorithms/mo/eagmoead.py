@@ -11,7 +11,7 @@ from evox.operators import (
     crowding_distance,
 )
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-from evox.utils import euclidean_dis
+from evox.utils import pairwise_euclidean_dist
 
 
 @partial(jax.jit, static_argnums=[1])
@@ -75,7 +75,7 @@ class EAGMOEAD(Algorithm):
         fitness = jnp.zeros((self.pop_size, self.n_objs))
 
         w = self.sample(subkey2)[0]
-        B = euclidean_dis(w, w)
+        B = pairwise_euclidean_dist(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
         return State(

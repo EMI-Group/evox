@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 from evox.operators import mutation, crossover
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-from evox.utils import euclidean_dis
+from evox.utils import pairwise_euclidean_dist
 from evox import Algorithm, State, jit_class
 
 
@@ -50,7 +50,7 @@ class MOEAD(Algorithm):
             + self.lb
         )
         w, _ = self.sample(subkey2)
-        B = euclidean_dis(w, w)
+        B = pairwise_euclidean_dist(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
         return State(

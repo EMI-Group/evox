@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from evox import pipelines, problems
-from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, xNES
+from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, xNES, CoDE, JaDE, SaDE, SHADE
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
 
@@ -108,4 +108,32 @@ def test_de():
     ub = jnp.full((5,), 32.0)
     algorithm = DE(lb, ub, 100, batch_size=100, base_vector="rand")
     fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
+
+def test_code():
+    lb = jnp.full((5,), -32.0)
+    ub = jnp.full((5,), 32.0)
+    algorithm = CoDE(lb, ub, pop_size=100)
+    fitness = run_single_objective_algorithm(algorithm, num_iter=30)
+    assert fitness < 0.1
+
+def test_jade():
+    lb = jnp.full((5,), -32.0)
+    ub = jnp.full((5,), 32.0)
+    algorithm = JaDE(lb, ub, pop_size=1000)
+    fitness = run_single_objective_algorithm(algorithm, num_iter=30)
+    assert fitness < 0.1
+
+def test_sade():
+    lb = jnp.full((5,), -32.0)
+    ub = jnp.full((5,), 32.0)
+    algorithm = SaDE(lb, ub, pop_size=100)
+    fitness = run_single_objective_algorithm(algorithm, num_iter=30)
+    assert fitness < 0.1
+
+def test_shade():
+    lb = jnp.full((5,), -32.0)
+    ub = jnp.full((5,), 32.0)
+    algorithm = SHADE(lb, ub, pop_size=100)
+    fitness = run_single_objective_algorithm(algorithm, num_iter=30)
     assert fitness < 0.1
