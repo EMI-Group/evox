@@ -126,6 +126,16 @@ def test_moeadm2m():
     run_moea(algorithm)
 
 
+def test_knea():
+    algorithm = algorithms.KnEA(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
+    
+
 def test_sra():
     algorithm = algorithms.SRA(
         lb=jnp.full(shape=(12,), fill_value=0),
@@ -154,3 +164,4 @@ def test_bce_ibea():
         pop_size=100,
     )
     run_moea(algorithm)
+    

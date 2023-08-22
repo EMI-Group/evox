@@ -48,6 +48,8 @@ class NSGA3(Algorithm):
             self.mutation = mutation.Gaussian()
         if self.crossover is None:
             self.crossover = crossover.UniformRand()
+            
+        self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
 
         self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
 
