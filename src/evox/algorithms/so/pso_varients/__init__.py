@@ -5,3 +5,4 @@ from .cpso_s import CPSOS
 from .dms_pso_el import DMSPSOEL
 from .fips import FIPS
 from .swmmpso import SwmmPSO
+from .pso import PSO
