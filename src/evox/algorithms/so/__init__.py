@@ -1,7 +1,3 @@
-from .code import CoDE
-from .jade import JaDE
-from .sade import SaDE
-from .shade import SHADE
-
+from .de_variants import *
 from .pso_variants import *
 from .es import *
