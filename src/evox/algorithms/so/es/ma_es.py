@@ -14,12 +14,11 @@
 
 import jax
 import jax.numpy as jnp
-from jax import lax
-from src.evox.algorithms.so.cma_es import CMAES
+
 import evox
 from evox import State
-from src.evox.algorithms.so.sort_utils import sort_by_key
-
+from .sort_utils import sort_by_key
+from .cma_es import CMAES
 
 @evox.jit_class
 class MAES(CMAES):

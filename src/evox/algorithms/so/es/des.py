@@ -10,9 +10,8 @@
 
 import jax
 import jax.numpy as jnp
-import evox
 from flax import linen as nn
-
+import evox
 
 def get_des_weights(popsize: int, temperature: float = 12.5):
     """Compute discovered recombination weights."""

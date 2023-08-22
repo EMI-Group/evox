@@ -7,15 +7,15 @@
 # More information about evosax can be found at the following URL:
 # GitHub Link: https://github.com/RobertTLange/evosax
 # --------------------------------------------------------------------------------------
-
+import sys
+import functools
+import pkgutil
 import jax
 import jax.numpy as jnp
 import evox
 from flax import linen as nn
-import functools
-from typing import Optional, Tuple, Union
-import sys
-import pkgutil
+
+from typing import Optional
 
 if sys.version_info < (3, 8):
     import pickle5 as pickle
@@ -145,7 +145,9 @@ def norm_diff_best(fitness: jax.Array, best_fitness: float) -> jax.Array:
     fitness = jnp.clip(fitness, -1e10, 1e10)
     diff_best = fitness - best_fitness
     return jnp.clip(
-        diff_best / (jnp.nanmax(diff_best) - jnp.nanmin(diff_best.min) + 1e-10), -1, 1,
+        diff_best / (jnp.nanmax(diff_best) - jnp.nanmin(diff_best.min) + 1e-10),
+        -1,
+        1,
     )
 
 
@@ -169,7 +171,10 @@ class EvoPathMLP(nn.Module):
 
     @nn.compact
     def __call__(
-        self, path_c: jax.Array, path_sigma: jax.Array, time_embed: jax.Array,
+        self,
+        path_c: jax.Array,
+        path_sigma: jax.Array,
+        time_embed: jax.Array,
     ):
         timestamps = jnp.repeat(
             jnp.expand_dims(time_embed, axis=0), repeats=path_c.shape[0], axis=0
@@ -260,7 +265,10 @@ class LES(evox.Algorithm):
         path_c = self.evopath.update(state.path_c, weight_diff)
         path_sigma = self.evopath.update(state.path_sigma, weight_noise)
         lrates_mean, lrates_sigma = self.lrate_layer.apply(
-            self.les_net_params["lrate_modulation"], path_c, path_sigma, time_embed,
+            self.les_net_params["lrate_modulation"],
+            path_c,
+            path_sigma,
+            time_embed,
         )
         weighted_mean = (weights * x).sum(axis=0)
         weighted_sigma = jnp.sqrt((weights * (x - state.mean) ** 2).sum(axis=0) + 1e-10)
@@ -271,5 +279,8 @@ class LES(evox.Algorithm):
         mean = jnp.clip(mean, self.clip_min, self.clip_max)
         sigma = jnp.clip(sigma, 0, self.clip_max)
         return state.update(
-            mean=mean, sigma=sigma, path_c=path_c, path_sigma=path_sigma,
+            mean=mean,
+            sigma=sigma,
+            path_c=path_c,
+            path_sigma=path_sigma,
         )

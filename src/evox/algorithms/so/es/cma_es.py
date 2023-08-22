@@ -19,13 +19,14 @@
 # --------------------------------------------------------------------------------------
 
 import math
+
 import jax
 import jax.numpy as jnp
 from jax import lax
+
 import evox
 from evox import Algorithm, State
-
-from src.evox.algorithms.so.sort_utils import sort_by_key
+from .sort_utils import sort_by_key
 
 
 @evox.jit_class
@@ -71,7 +72,7 @@ class CMAES(Algorithm):
             assert self.mu <= self.pop_size
             self.weights = recombination_weights
 
-        self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights ** 2)
+        self.mueff = jnp.sum(self.weights) ** 2 / jnp.sum(self.weights**2)
         # time constant for cumulation for C
         self.cc = (4 + self.mueff / self.dim) / (
             self.dim + 4 + 2 * self.mueff / self.dim
@@ -99,8 +100,8 @@ class CMAES(Algorithm):
             1 + 2 * max(0, math.sqrt((self.mueff - 1) / (self.dim + 1)) - 1) + self.cs
         )
 
-        self.chiN = self.dim ** 0.5 * (
-            1 - 1 / (4 * self.dim) + 1 / (21 * self.dim ** 2)
+        self.chiN = self.dim**0.5 * (
+            1 - 1 / (4 * self.dim) + 1 / (21 * self.dim**2)
         )
         self.decomp_per_iter = 1 / (self.c1 + self.cmu) / self.dim / 10
         self.decomp_per_iter = max(jnp.floor(self.decomp_per_iter).astype(jnp.int32), 1)
@@ -249,8 +250,8 @@ class SepCMAES(CMAES):
         y = (population[: self.mu] - old_mean) / sigma
         return (
             (1 - self.c1 - self.cmu) * C
-            + self.c1 * ((pc ** 2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
-            + self.cmu * self.weights @ (y ** 2)
+            + self.c1 * ((pc**2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
+            + self.cmu * self.weights @ (y**2)
         )
 
 
@@ -338,7 +339,7 @@ class IPOPCMAES(CMAES):
 
     def _restart(self, state):
         new_restarts = self.restarts + 1
-        new_pop_size = self.original_pop_size * (2 ** new_restarts)
+        new_pop_size = self.original_pop_size * (2**new_restarts)
         return state.update(
             restarts=new_restarts,
             pop_size=new_pop_size,
@@ -370,7 +371,7 @@ class BIPOPCMAES(IPOPCMAES):
 
         def double_population_fn(_):
             new_restarts = self.restarts + 1
-            new_pop_size = self.original_pop_size * (2 ** new_restarts)
+            new_pop_size = self.original_pop_size * (2**new_restarts)
             return state.update(
                 restarts=new_restarts,
                 pop_size=new_pop_size,

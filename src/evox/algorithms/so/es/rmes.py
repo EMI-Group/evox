@@ -10,14 +10,12 @@
 # GitHub Link: https://github.com/RobertTLange/evosax
 # --------------------------------------------------------------------------------------
 
-import math
 import jax
 import jax.numpy as jnp
 from jax import lax
 import evox
-from evox import Algorithm, State
-from src.evox.algorithms.so.cma_es import CMAES
-from src.evox.algorithms.so.sort_utils import sort_by_key
+from .cma_es import CMAES
+from .sort_utils import sort_by_key
 
 
 @evox.jit_class

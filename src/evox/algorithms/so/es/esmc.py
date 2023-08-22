@@ -11,7 +11,6 @@
 import jax
 import jax.numpy as jnp
 import optax
-from flax import struct
 import evox
 
 
@@ -66,7 +65,10 @@ class ESMC(evox.Algorithm):
 
     def ask(self, state):
         key, _ = jax.random.split(state.key)
-        z_plus = jax.random.normal(state.key, (int(self.popsize / 2), self.num_dims),)
+        z_plus = jax.random.normal(
+            state.key,
+            (int(self.popsize / 2), self.num_dims),
+        )
         z = jnp.concatenate([jnp.zeros((1, self.num_dims)), z_plus, -1.0 * z_plus])
         x = state.center + z * state.sigma.reshape(1, self.num_dims)
         return x, state.update(key=key, x=x)

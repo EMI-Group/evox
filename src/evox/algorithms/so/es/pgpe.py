@@ -11,7 +11,7 @@ import evox
 def tree_l2_norm(pytree):
     return jnp.sqrt(
         tree_reduce(
-            lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf ** 2), pytree)
+            lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree)
         )
     )
 
@@ -104,7 +104,7 @@ class PGPE(evox.Algorithm):
         f_avg = jnp.mean(fitness)
         delta_stdev = jnp.mean(
             ((F_pos + F_neg) / 2 - f_avg)[:, jnp.newaxis]
-            * ((state.noise ** 2 - state.stdev ** 2) / state.stdev),
+            * ((state.noise**2 - state.stdev**2) / state.stdev),
             axis=0,
         )
         updates, state = self.optimizer.update(state, delta_x, state.center)
@@ -112,4 +112,7 @@ class PGPE(evox.Algorithm):
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)
         stdev_updates = jnp.clip(stdev_updates, -bound, bound)
-        return state.update(center=center, stdev=state.stdev - stdev_updates,)
+        return state.update(
+            center=center,
+            stdev=state.stdev - stdev_updates,
+        )

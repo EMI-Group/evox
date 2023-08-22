@@ -82,7 +82,7 @@ class SNES(evox.Algorithm):
         ranks = fitness.argsort()
         sorted_noise = s[ranks]
         grad_mean = (state.weights * sorted_noise).sum(axis=0)
-        grad_sigma = (state.weights * (sorted_noise ** 2 - 1)).sum(axis=0)
+        grad_sigma = (state.weights * (sorted_noise**2 - 1)).sum(axis=0)
         center = state.center + self.lrate_mean * state.sigma * grad_mean
         sigma = state.sigma * jnp.exp(self.lrate_sigma / 2 * grad_sigma)
         return state.update(center=center, sigma=sigma)

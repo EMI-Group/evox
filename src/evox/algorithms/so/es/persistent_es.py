@@ -92,7 +92,8 @@ class PersistentES(evox.Algorithm):
 
     def tell(self, state, fitness):
         theta_grad = jnp.mean(
-            state.pert_accum * fitness.reshape(-1, 1) / (self.sigma ** 2), axis=0,
+            state.pert_accum * fitness.reshape(-1, 1) / (self.sigma**2),
+            axis=0,
         )
         # Grad update using optimizer instance - decay lrate if desired
         updates, state = self.optimizer.update(state, theta_grad, state.center)

@@ -89,7 +89,8 @@ class Noise_reuse_es(evox.Algorithm):
 
     def tell(self, state, fitness):
         theta_grad = jnp.mean(
-            state.unroll_pert * fitness.reshape(-1, 1) / (state.sigma ** 2), axis=0,
+            state.unroll_pert * fitness.reshape(-1, 1) / (state.sigma**2),
+            axis=0,
         )
         # Grad update using optimizer instance - decay lrate if desired
         updates, state = self.optimizer.update(state, theta_grad, state.center)
