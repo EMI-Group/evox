@@ -1,7 +1,5 @@
 """
 Small worlds and mega-minds: effects of neighborhood topology on particle swarm performance
-
-Not fully tested.
 """
 
 import jax
@@ -31,8 +29,8 @@ class SwmmPSO(Algorithm):
         lb,
         ub,
         pop_size,
-        max_phi_1=2,
-        max_phi_2=2,
+        max_phi_1=2.05,
+        max_phi_2=2.05,
         max_phi=4.1,
         mean=None,
         stdev=None,
@@ -86,8 +84,7 @@ class SwmmPSO(Algorithm):
         # the proper coefficient are chi = 2/(phi - 2 + jnp.sqrt(jnp.abs(phi * (phi - 4))))
         chi = 2/(phi - 2 + jnp.sqrt(jnp.abs(phi * (phi - 4))))
 
-        if self.topology == "Circles":
-            adjacancy_matrix = get_circles_neighbour(random_key = adj_key, population = population, K = 2, shortcut = self.shortcut)
+        adjacancy_matrix = self._get_topo(key=adj_key, population=population)
 
         return State(
             population=population,
@@ -102,6 +99,12 @@ class SwmmPSO(Algorithm):
             phi=phi,
         )
 
+    def _get_topo(self, key, population):
+        adjacancy_matrix: jax.Array
+        if self.topology == "Circles":
+            adjacancy_matrix = get_circles_neighbour(random_key = key, population = population, K = 2, shortcut = self.shortcut)
+        return adjacancy_matrix
+
     def ask(self, state):
         return state.population, state
 
@@ -111,10 +114,10 @@ class SwmmPSO(Algorithm):
 
         # is it same for all or different
         phi1 = jax.random.uniform(
-            key1, shape=(self.pop_size, 1), minval=0, maxval=self.max_phi_1
+            key1, shape=(self.pop_size, self.dim), minval=0, maxval=self.max_phi_1
         )
         phi2 = jax.random.uniform(
-            key2, shape=(self.pop_size, 1), minval=0, maxval=self.max_phi_2
+            key2, shape=(self.pop_size, self.dim), minval=0, maxval=self.max_phi_2
         )
 
         compare = state.local_best_fitness > fitness
@@ -123,6 +126,7 @@ class SwmmPSO(Algorithm):
         )
         local_best_fitness = jnp.minimum(state.local_best_fitness, fitness)
 
+        # adjacancy_matrix = self._get_topo(key=key3, population=state.population)
         adjacancy_matrix = state.adjacancy_matrix
         
         neighbour_list, _ = build_adjacancy_list_from_matrix(adjacancy_matrix = adjacancy_matrix)
@@ -131,12 +135,6 @@ class SwmmPSO(Algorithm):
 
 
         neighbour_best_location = local_best_location[neighbour_best_indice, :]
-
-
-        # jax.debug.print("phi 1: {}", phi1)
-        # jax.debug.print("phi 2: {}", phi2)
-        # jax.debug.print("chi: {}", state.chi)
-
 
         # vi = chi * (vi + phi1 * (pi - xi) + phi2 * (pg - xi))
         # pi is the best position in the search space it has found thus far in a vector
@@ -150,13 +148,6 @@ class SwmmPSO(Algorithm):
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
 
-        
-
-        # jax.debug.print("phis {} {}", phi1, phi2)
-        # jax.debug.print("difference {}", jnp.sum(jnp.abs(population - state.population)))
-        # jax.debug.print("chi {}", state.chi)
-        # jax.debug.print("mat {}", state.adjacancy_matrix)
-        # jax.debug.print("distance {}", jnp.sum(get_distance_matrix(population)))
         return state.update(
             population=population,
             velocity=velocity,

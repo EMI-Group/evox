@@ -1,7 +1,5 @@
 """
 The Fully Informed Particle Swarm: Simpler, Maybe Better
-
-Not fully tested.
 """
 import jax
 import jax.numpy as jnp
@@ -156,16 +154,15 @@ class FIPS(Algorithm):
         )
 
     def _get_PM(self, weight_list, adjacancy_list, adjacancy_list_mapping, location, key):
-        phik = jax.random.uniform(key = key, shape=adjacancy_list.shape)
-        phik = adjacancy_list_mapping * phik * self.max_phi
-        weight_phi = weight_list * phik
-
+        phik = jax.random.uniform(key = key, shape=(self.pop_size, self.pop_size, self.dim))
+        phik = adjacancy_list_mapping[:,:,jnp.newaxis] * phik * self.max_phi
+        weight_phi = weight_list[:,:,jnp.newaxis] * phik
         def calculate_pm(row_weight,row_adjacancy_list ):
-            upper = location[row_adjacancy_list] * row_weight[jnp.newaxis,:,jnp.newaxis]
-            lower = row_weight[jnp.newaxis,:,jnp.newaxis]
+            upper = location[row_adjacancy_list] * row_weight
+            lower = row_weight
 
-            upper = jnp.sum(upper, axis=1)
-            lower = jnp.sum(lower)
+            upper = jnp.sum(upper, axis=0)
+            lower = jnp.sum(lower, axis=0)
 
             frac = upper/lower
             return frac.reshape(-1)
@@ -200,49 +197,6 @@ class FIPS(Algorithm):
 
         return distance_list
 
-def test_weight_calculation():
-    fitness = jnp.array([7,8,9,10,11])
-    adjacancy_list = jnp.array([[0,2,3,0],
-                                [1,2,1,1],
-                                [0,1,2,3],
-                                [0,2,3,3]])
-    
-    result = jax.jit(FIPS._calculate_weight_by_fitness)(None, fitness=fitness, adjacancy_list=adjacancy_list)
-    print(result)
-    
-    
-    key = jax.random.PRNGKey(12)
-    values = jax.random.uniform(key, shape=(4, 2))
-
-    result = jax.jit(FIPS._calculate_weight_by_distance)(None, position=values, adjacancy_list=adjacancy_list)
-    print(result)
-    pass
-
-def test_indexing():
-    adjacancy_list = [[0,2,1]]
-    location = [[1, 9], [2, 8], [3, 7]]
-    adjacancy_list = jnp.array(adjacancy_list)
-    location = jnp.array(location)
-    print(location[adjacancy_list])
-    
-    weight = jnp.array([0.1,0.001, 4])
-    upper = location[adjacancy_list] * weight[jnp.newaxis,:,jnp.newaxis]
-    lower = weight
-    print(upper)
-    print(lower)
-
-    upper = jnp.sum(upper, axis=1)
-    print(upper)
-    lower = jnp.sum(lower)
-    print(lower)
-    frac = upper/lower
-    print(frac)
-    print(frac.reshape(-1))
-
-
-if __name__ == "__main__":
-    # test_weight_calculation()
-    test_indexing()
 
 
 
