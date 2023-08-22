@@ -1,7 +1,7 @@
 from .amalgam import AMaLGaM, IndependentAMaLGaM
 from .ars import ARS
 from .asebo import ASEBO
-from .cma_es import CMAES
+from .cma_es import CMAES, SepCMAES
 from .cr_fm_nes import CR_FM_NES
 from .des import DES
 from .esmc import ESMC
