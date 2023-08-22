@@ -48,7 +48,7 @@ class NSGA3(Algorithm):
             self.mutation = mutation.Gaussian()
         if self.crossover is None:
             self.crossover = crossover.UniformRand()
-            
+
         self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
 
     def setup(self, key):
@@ -63,7 +63,7 @@ class NSGA3(Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             is_init=True,
-            key=key
+            key=key,
         )
 
     def ask(self, state):

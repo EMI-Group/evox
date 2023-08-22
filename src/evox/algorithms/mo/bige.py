@@ -17,29 +17,32 @@ def estimate(fit, mask):
     # calculate proximity and crowding degree as bi-goals
     def calc_sh(fit_a, pr_a, fit_b, pr_b, r):
         dis = euclidean_dist(fit_a, fit_b)
-        res = ((dis < r) * 0.5 *
-               ((1 + (pr_a >= pr_b) + (pr_a > pr_b)) *
-                (1 - dis / r))) ** 2
+        res = (
+            (dis < r) * 0.5 * ((1 + (pr_a >= pr_b) + (pr_a > pr_b)) * (1 - dis / r))
+        ) ** 2
         return res
-    
+
     n, m = jnp.sum(mask), fit.shape[1]
-    r = 1 / n**(1 / m)
+    r = 1 / n ** (1 / m)
     fit_mask = mask[:, None].repeat(m, axis=1)
     fit = jnp.where(fit_mask, fit, jnp.nan)
     f_max = jnp.nanmax(fit, axis=0)
     f_min = jnp.nanmin(fit, axis=0)
     normed_fit = (fit - f_min) / (f_max - f_min).clip(1e-6)
     normed_fit = jnp.where(fit_mask, normed_fit, m)
-    
+
     # pr: proximity
     # sh: sharing function
     # cd: crowding degree
     pr = jnp.sum(normed_fit, axis=1)
-    sh = vmap(lambda _f_a, _pr_a, _r:
-              vmap(lambda _f_b, _pr_b: calc_sh(_f_a, _pr_a, _f_b, _pr_b, _r))(normed_fit, pr),
-              (0, 0, None))(normed_fit, pr, r)
+    sh = vmap(
+        lambda _f_a, _pr_a, _r: vmap(
+            lambda _f_b, _pr_b: calc_sh(_f_a, _pr_a, _f_b, _pr_b, _r)
+        )(normed_fit, pr),
+        (0, 0, None),
+    )(normed_fit, pr, r)
     cd = jnp.sqrt(jnp.sum(sh, axis=1) - sh.diagonal())
-    
+
     bi_fit = jnp.hstack([pr[:, None], cd[:, None]])
     bi_mask = mask[:, None].repeat(2, axis=1)
     bi_fit = jnp.where(bi_mask, bi_fit, jnp.inf)
@@ -106,7 +109,7 @@ class BiGE(Algorithm):
     def _ask_normal(self, state):
         bi_fit = estimate(state.population, jnp.full((self.pop_size,), True))
         bi_rank = non_dominated_sort(bi_fit)
-        
+
         keys = jax.random.split(state.key, 4)
         selected, _ = self.selection(keys[1], state.population, bi_rank)
         crossovered = self.crossover(keys[2], selected)
@@ -127,10 +130,10 @@ class BiGE(Algorithm):
         ranked_pop = merged_pop[order]
         ranked_fit = merged_fit[order]
         last_rank = rank[self.pop_size]
-        
+
         bi_fit = estimate(ranked_fit, rank == last_rank)
         bi_rank = non_dominated_sort(bi_fit)
-        
+
         fin_rank = jnp.where(rank >= last_rank, bi_rank, -1)
         idx = jnp.argsort(fin_rank)[: self.pop_size]
         state = state.update(population=ranked_pop[idx], fitness=ranked_fit[idx])
