@@ -442,7 +442,7 @@ def MaF11(MaF):
             x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
         R = self._convex(x)
         R = R.at[:, M - 1].set(self._disc(x))
-        # _fast_non_dominated_sort 代替NDSort
+        # _fast_non_dominated_sort 代替NDSort，具体待检验
         f = R[self._fast_non_dominated_sort(R, 1) == 1]
         f *= jnp.arange(2, 2 * M + 1, 2)
         return f, state
@@ -499,8 +499,246 @@ def MaF11(MaF):
             rank += 1
         return ranks
 
+def MaF12(MaF):
+    def __init__(self, d=None, m=None, ref_num=1000):
+        if m is None:
+            self.m = 3
+        else:
+            self.m = m
+        if d is None:
+            self.d = self.m + 9
+        else:
+            self.d = d
+        super().__init__(d, m, ref_num)
 
+    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        N, D = X.shape
+        M = self.m
+        K = M - 1
+        L = D - K
+        D = 1
+        S = jnp.arange(2, 2 * M + 1, 2)
+        A = jnp.ones(M - 1)
 
-        
-    
-    
+        z01 = X / jnp.arange(2, X.shape[1] * 2 + 1, 2)
+
+        t1 = jnp.zeros((N, K + L))
+        Y = (jnp.flip(jnp.cumsum(jnp.flip(z01, 1), 1), 1) - z01) / jnp.arange(K + L - 1, -1, -1)
+        t1 = t1.at[:, :K + L - 1].set(z01[:, :K + L - 1] ** (0.02 + (50 - 0.02) * (
+                    0.98 / 49.98 - (1 - 2 * Y[:, :K + L - 1]) * jnp.abs(
+                jnp.floor(0.5 - Y[:, :K + L - 1]) + 0.98 / 49.98))))
+        t1 = t1.at[:, -1].set(z01[:, -1])
+
+        t2 = jnp.zeros((N, K + L))
+        t2 = t2.at[:, :K].set(self._s_decept(t1[:, :K], 0.35, 0.001, 0.05))
+        t2 = t2.at[:, K:].set(self._s_multi(t1[:, K:], 30, 95, 0.35))
+
+        t3 = jnp.zeros((N, M))
+        for i in range(1, M):
+            t3 = t3.at[:, i - 1].set(self._r_nonsep(t2[:, (i - 1) * K // (M - 1): i * K // (M - 1)], K // (M - 1)))
+
+        SUM = jnp.zeros(N)
+        for i in range(K, K + L - 1):
+            for j in range(i + 1, K + L):
+                SUM += jnp.abs(t2[:, i] - t2[:, j])
+
+        t3 = t3.at[:, M - 1].set(
+            (jnp.sum(t2[:, K:], axis=1) + SUM * 2) / jnp.ceil(L / 2) / (1 + 2 * L - 2 * jnp.ceil(L / 2)))
+
+        x = jnp.zeros((N, M))
+        for i in range(M - 1):
+            x = x.at[:, i].set(jnp.maximum(t3[:, M - 1], A[i]) * (t3[:, i] - 0.5) + 0.5)
+
+        x = x.at[:, M - 1].set(t3[:, M - 1])
+
+        h = self._concave(x)
+        f = D * x[:, M - 1].reshape(-1, 1) + S * h
+        return f, state
+
+    def pf(self, state: chex.PyTreeDef):
+        M = self.m
+        N = self.ref_num * self.m
+        R = UniformSampling(N, M)()[0]
+        R = R / jnp.sqrt(jnp.sum(R ** 2, axis=1)).reshape(-1, 1)
+        f = jnp.arange(2, 2 * M + 1, 2) * R
+        return f, state
+
+    def _s_decept(self, y, A, B, C):
+        return 1 + (jnp.abs(y - A) - B) * (
+                    jnp.floor(y - A + B) * (1 - C + (A - B) / B) / (A - B) + jnp.floor(A + B - y) * (
+                        1 - C + (1 - A - B) / B) / (1 - A - B) + 1 / B)
+
+    def _s_multi(self,y, A, B, C):
+        return (1 + jnp.cos((4 * A + 2) * jnp.pi * (0.5 - jnp.abs(y - C) / 2 / (jnp.floor(C - y) + C))) + 4 * B * (
+                    jnp.abs(y - C) / 2 / (jnp.floor(C - y) + C)) ** 2) / (B + 2)
+
+    def _r_nonsep(self, y, A):
+        Output = jnp.zeros(y.shape[0])
+        for j in range(y.shape[1]):
+            Temp = jnp.zeros(y.shape[0])
+            for k in range(A - 1):
+                Temp += jnp.abs(y[:, j] - y[:, (j + 1 + k) % y.shape[1]])
+            Output += y[:, j] + Temp
+        return Output / y.shape[1] // A / jnp.ceil(A / 2) / (1 + 2 * A - 2 * jnp.ceil(A / 2))
+
+    def _concave(self, x):
+        return jnp.fliplr(
+            jnp.cumprod(jnp.hstack([jnp.ones((x.shape[0], 1)), jnp.sin(x[:, :-1] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
+            [jnp.ones((x.shape[0], 1)), jnp.cos(x[:, x.shape[1] - 2::-1] * jnp.pi / 2)])
+
+def MaF13(MaF):
+    def __init__(self, d=None, m=None, ref_num=1000):
+        if m is None:
+            self.m = 3
+        else:
+            self.m = m
+        if d is None:
+            self.d = 5
+        else:
+            self.d = d
+        self.m = jnp.maximum(self.m, 3)
+        super().__init__(d, m, ref_num)
+
+    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        N, D = X.shape
+        Y = X - 2 * X[:, 1].reshape(-1, 1) * jnp.sin(
+            2 * jnp.pi * X[:, 0].reshape(-1, 1) + jnp.arange(1, D + 1) * jnp.pi / D)
+        f = jnp.zeros((N, self.m))
+        f = f.at[:, 0].set(jnp.sin(X[:, 0] * jnp.pi / 2) + 2 * jnp.mean(Y[:, 3:D:3] ** 2, axis=1))
+        f = f.at[:, 1].set(
+            jnp.cos(X[:, 0] * jnp.pi / 2) * jnp.sin(X[:, 1] * jnp.pi / 2) + 2 * jnp.mean(Y[:, 4:D:3] ** 2, axis=1))
+        f = f.at[:, 2].set(
+            jnp.cos(X[:, 0] * jnp.pi / 2) * jnp.cos(X[:, 1] * jnp.pi / 2) + 2 * jnp.mean(Y[:, 2:D:3] ** 2, axis=1))
+        f = f.at[:, 3:].set(
+            jnp.tile(f[:, 0] ** 2 + f[:, 1] ** 10 + f[:, 2] ** 10 + 2 * jnp.mean(Y[:, 3:D] ** 2, axis=1),(1, self.m - 3)))
+        return f, state
+
+    def pf(self, state: chex.PyTreeDef):
+        M = self.m
+        N = self.ref_num * self.m
+        R = UniformSampling(N, 3)()[0]
+        R = R / jnp.sqrt(jnp.sum(R ** 2, axis=1)).reshape(-1, 1)
+        f = jnp.hstack([R, jnp.tile(R[:, 0] ** 2 + R[:, 1] ** 10 + R[:, 2] ** 10, (1, M-3))])
+        return f, state
+
+def MaF14(MaF):
+    def __init__(self, d=None, m=None, ref_num=1000):
+        if m is None:
+            self.m = 3
+        else:
+            self.m = m
+        if d is None:
+            self.d = 20 * self.m
+        else:
+            self.d = d
+        nk = 2
+        c = 3.8 * 0.1 * (1 - 0.1)
+        for i in range(1, self.m):
+            c = jnp.concatenate([c, 3.8 * c[-1] * (1 - c[-1])])
+        self.sublen = jnp.floor(c / jnp.sum(c) * (self.d - self.m + 1) / nk).astype(int)
+        self.len = jnp.concatenate([[0], jnp.cumsum(self.sublen * nk)])
+        super().__init__(d, m, ref_num)
+
+    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        N, D = X.shape
+        M = self.m
+        nk = 2
+        X = X.at[:, M:].set((1 + jnp.arange(M, D + 1) / D) * X[:, M:] - X[:, 0].reshape(-1, 1) * 10)
+        G = jnp.zeros((N, M))
+        for i in range(0, M, 2):
+            for j in range(nk):
+                G = G.at[:, i].set(G[:, i] + self._Rastrigin(
+                    X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
+
+        for i in range(1, M, 2):
+            for j in range(nk):
+                G = G.at[:, i].set(G[:, i] + self._Rosenbrock(
+                    X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
+
+        G /= self.sublen.reshape(1, -1) * nk
+        f = (1 + G) * jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((N, 1)), X[:, :M - 1]]), axis=1)) * jnp.hstack(
+            [jnp.ones((N, 1)), jnp.ones((N, M - 2)), jnp.ones((N, 1)) - X[:, M - 2::-1]])
+        return f, state
+
+    def pf(self, state: chex.PyTreeDef):
+        if self.m == 2:
+            R = self._GetOptimum()
+            return R, state
+        elif self.m == 3:
+            a = jnp.linspace(0, 1, 10).reshape(-1, 1)
+            R = [a @ a.T, a @ (1 - a).T, (1 - a) @ jnp.ones_like(a).T]
+            return R, state
+    def _GetOptimum(self):
+        M = self.m
+        N = self.ref_num * self.m
+        f = UniformSampling(N, M)()[0]
+        return f
+    def _Rastrigin(self, x):
+        return jnp.sum(x ** 2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1)
+
+    def _Rosenbrock(self, x):
+        return jnp.sum(100 * (x[:, :-1] ** 2 - x[:, 1:]) ** 2 + (x[:, :-1] - 1) ** 2, axis=1)
+
+def MaF15(MaF):
+    def __init__(self, d=None, m=None, ref_num=1000):
+        if m is None:
+            self.m = 3
+        else:
+            self.m = m
+        if d is None:
+            self.d = 20 * self.m
+        else:
+            self.d = d
+        nk = 2
+        c = 3.8 * 0.1 * (1 - 0.1)
+        for i in range(1, self.m):
+            c = jnp.concatenate([c, 3.8 * c[-1] * (1 - c[-1])])
+        self.sublen = jnp.floor(c / jnp.sum(c) * (self.d - self.m + 1) / nk).astype(int)
+        self.len = jnp.concatenate([[0], jnp.cumsum(self.sublen * nk)])
+        super().__init__(d, m, ref_num)
+
+    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        N, D = X.shape
+        M = self.m
+        nk = 2
+        X = X.at[:, M:].set(
+            (1 + jnp.cos(jnp.arange(M, D + 1) / D *jnp.pi / 2)) * X[:, M:] - X[:, 0].reshape(-1, 1) * 10)
+        G = jnp.zeros((N, M))
+        for i in range(0, M, 2):
+            for j in range(nk):
+                G = G.at[:, i].set(G[:, i] + self._Griewank(
+                    X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
+
+        for i in range(1, M, 2):
+            for j in range(nk):
+                G = G.at[:, i].set(G[:, i] + self._Sphere(
+                    X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
+
+        G /= self.sublen.reshape(1, -1) * nk
+        f = (1 + G + jnp.hstack([G[:, 1:], jnp.zeros((N, 1))])) * (1 - jnp.fliplr(
+            jnp.cumprod(jnp.hstack([jnp.ones((N, 1)), jnp.cos(X[:, :M - 1] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
+            [jnp.ones((N, 1)), jnp.sin(X[:, M - 2::-1] * jnp.pi / 2)]))
+        return f, state
+
+    def pf(self, state: chex.PyTreeDef):
+        if self.m == 2:
+            R = self._GetOptimum()
+            return R, state
+        elif self.m == 3:
+            a = jnp.linspace(0, jnp.pi / 2, 10).reshape(-1, 1)
+            R = [1 - jnp.sin(a) * jnp.cos(a.T), 1 - jnp.sin(a) * jnp.sin(a.T), 1 - jnp.cos(a) * jnp.ones_like(a).T]
+            return R, state
+    def _GetOptimum(self):
+        M = self.m
+        N = self.ref_num * self.m
+        R = UniformSampling(N, M)()[0]
+        R = 1 - R / jnp.sqrt(jnp.sum(R ** 2, axis=1)).reshape(-1, 1)
+        return R
+
+    def _Griewank(self, x):
+        return jnp.sum(x ** 2, axis=1) / 4000 - jnp.prod(jnp.cos(x / jnp.sqrt(jnp.arange(1, x.shape[1] + 1))),
+                                                         axis=1) + 1
+
+    def _Sphere(self, x):
+        return jnp.sum(x ** 2, axis=1)
+
