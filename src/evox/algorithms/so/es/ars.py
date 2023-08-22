@@ -1,7 +1,13 @@
-"""
-Augmented Random Search
-Simple random search provides a competitive approach to reinforcement learning
-"""
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Simple random search provides a competitive approach to reinforcement learning(ARS)
+# Link: https://arxiv.org/pdf/1803.07055.pdf
+#
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax.
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
 import jax
 import jax.numpy as jnp
