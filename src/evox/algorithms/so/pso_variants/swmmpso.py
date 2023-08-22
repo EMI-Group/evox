@@ -6,12 +6,12 @@ import jax
 import jax.numpy as jnp
 from functools import partial
 from typing import Union, Iterable, Literal
-from evox.algorithms.so.pso_varients.topology_utils import (
+from .topology_utils import (
     get_circles_neighbour,
     get_neighbour_best_fitness,
     build_adjacancy_list_from_matrix,
 )
-from evox.algorithms.so.pso_varients.utils import get_distance_matrix
+from .utils import get_distance_matrix
 
 from evox import (
     Algorithm,
