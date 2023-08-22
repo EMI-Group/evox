@@ -9,5 +9,5 @@ from .spea2 import SPEA2
 from .hype import HypE
 from .moeadm2m import MOEADM2M
 from .sra import SRA
-from .tdea import tDEA
+from .tdea import TDEA
 from .bce_ibea import BCEIBEA

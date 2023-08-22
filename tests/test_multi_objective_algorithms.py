@@ -137,7 +137,7 @@ def test_sra():
 
 
 def test_tdea():
-    algorithm = algorithms.tDEA(
+    algorithm = algorithms.TDEA(
         lb=jnp.full(shape=(12,), fill_value=0),
         ub=jnp.full(shape=(12,), fill_value=1),
         n_objs=3,

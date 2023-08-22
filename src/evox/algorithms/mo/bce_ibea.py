@@ -29,7 +29,18 @@ def cal_fitness(pop_obj, kappa):
 
 @partial(jax.jit, static_argnums=3)
 def exploration(pc_obj, npc_obj, n_nd, n):
-    # PC evolving
+    """
+    Pareto criterion evolving
+
+    Args:
+        pc_obj: Objective values of Pareto criterion solutions.
+        npc_obj: Objective values of non-Pareto criterion solutions.
+        n_nd: Number of nondominated solutions.
+        n: Total number of solutions.
+
+    Returns:
+        s: Boolean array indicating solutions to be explored.
+    """
     f_max = jnp.max(pc_obj, axis=0)
     f_min = jnp.min(pc_obj, axis=0)
     norm_pc_obj = (pc_obj - jnp.tile(f_min, (len(pc_obj), 1))) / jnp.tile(
@@ -39,24 +50,37 @@ def exploration(pc_obj, npc_obj, n_nd, n):
         f_max - f_min, (len(npc_obj), 1)
     )
 
-    d = euclidean_dis(norm_pc_obj, norm_pc_obj)
-    d = d.at[jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))].set(
+    # Determine the size of the niche
+    distance = euclidean_dis(norm_pc_obj, norm_pc_obj)
+    distance = distance.at[jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))].set(
         jnp.inf
     )
-    d = jnp.where(jnp.isnan(d), jnp.inf, d)
-    d = jnp.sort(d, axis=1)
-    r0 = jnp.mean(d[:, jnp.minimum(2, jnp.shape(d)[1] - 1)])
+    distance = jnp.where(jnp.isnan(distance), jnp.inf, distance)
+    distance = jnp.sort(distance, axis=1)
+    # Calculate the characteristic distance r0 for niche detection
+    r0 = jnp.mean(distance[:, jnp.minimum(2, jnp.shape(distance)[1] - 1)])
     r = n_nd / n * r0
 
-    d = euclidean_dis(norm_pc_obj, norm_npc_obj)
-    s = jnp.sum(d <= r, axis=1) <= 1
+    # Detect the solutions in PC to be explored
+    # s: Solutions to be explored
+    distance = euclidean_dis(norm_pc_obj, norm_npc_obj)
+    s = jnp.sum(distance <= r, axis=1) <= 1
 
     return s
 
 
 @partial(jax.jit, static_argnums=2)
 def pc_selection(pc, pc_obj, n):
-    # PC selection
+    """
+    Pareto criterion selection
+
+    Args:
+        pc : Pareto criterion population.
+        pc_obj : Objective values of pc.
+        n : Number of solutions to select.
+    """
+    # m: Number of objectives
+    # n_nd: Number of non-dominated solutions in PC
     m = jnp.shape(pc_obj)[1]
     rank = non_dominated_sort(pc_obj)
     mask = rank == 0
@@ -72,17 +96,21 @@ def pc_selection(pc, pc_obj, n):
             f_max - f_min, (len(pc_obj), 1)
         )
         norm_obj = jnp.where(jnp.tile(mask, (1, m)), norm_obj, jnp.inf)
-        d = euclidean_dis(norm_obj, norm_obj)
-        d = d.at[jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))].set(
+        distance = euclidean_dis(norm_obj, norm_obj)
+        distance = distance.at[jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))].set(
             jnp.inf
         )
-        d = jnp.where(jnp.isnan(d), jnp.inf, d)
-        sd = jnp.sort(d, axis=1)
+        distance = jnp.where(jnp.isnan(distance), jnp.inf, distance)
 
+        # Calculate sorted distance matrix (sd) for each solution
+        sd = jnp.sort(distance, axis=1)
         sd = jnp.where(jnp.tile(mask, (1, len(pc_obj))), sd, 0)
+
+        # Calculate the characteristic distance r for niche detection
         r = jnp.sum(sd[:, jnp.minimum(2, jnp.shape(sd)[1] - 1)]) / n_nd
 
-        big_r = jnp.minimum(d / r, 1)
+        # Calculate big_r which scales the distance matrix
+        big_r = jnp.minimum(distance / r, 1)
 
         def loop(vals):
             i, mask, big_r = vals
@@ -140,6 +168,11 @@ class BCEIBEA(Algorithm):
     Inspired by PlatEMO.
 
     Note: The number of outer iterations needs to be set to Maximum Generation*2+1.
+
+    Args:
+        kappa (float, optional): The scaling factor for selecting parents in the environmental selection.
+            It controls the probability of selecting parents based on their fitness values.
+            Defaults to 0.05.
     """
 
     def __init__(
