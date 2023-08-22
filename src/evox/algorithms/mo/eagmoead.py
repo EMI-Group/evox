@@ -25,6 +25,7 @@ class EAGMOEAD(Algorithm):
     """EAG-MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/6882229
+    Inspired by PlatEMO.
     """
 
     def __init__(

@@ -59,6 +59,7 @@ class SPEA2(Algorithm):
     """SPEA2 algorithm
 
     link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
+    Inspired by PlatEMO.
     """
 
     def __init__(

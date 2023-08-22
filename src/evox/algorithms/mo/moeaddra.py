@@ -13,6 +13,7 @@ class MOEADDRA(Algorithm):
     """MOEA/D-DRA algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/4982949
+    Inspired by PlatEMO.
     """
 
     def __init__(
