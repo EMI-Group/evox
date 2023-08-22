@@ -18,7 +18,6 @@ let
   ];
 
   doc-dependencies = with python.pkgs; [
-    flax
     myst-parser
     numpydoc
     pydata-sphinx-theme

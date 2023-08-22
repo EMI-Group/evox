@@ -8,10 +8,10 @@
 # GitHub Link: https://github.com/RobertTLange/evosax
 # --------------------------------------------------------------------------------------
 
+import math
 import jax
 import jax.numpy as jnp
 import evox
-import math
 
 
 def get_recombination_weights(popsize: int):
@@ -43,7 +43,10 @@ def w_dist_hat(alpha_dist, z):
 @evox.jit_class
 class CR_FM_NES(evox.Algorithm):
     def __init__(
-        self, pop_size: int, center_init: jax.Array, sigma: float = 0.03,
+        self,
+        pop_size: int,
+        center_init: jax.Array,
+        sigma: float = 0.03,
     ):
 
         super().__init__()
@@ -111,11 +114,14 @@ class CR_FM_NES(evox.Algorithm):
 
     def ask(self, state):
         key, _ = jax.random.split(state.key)
-        z_plus = jax.random.normal(state.key, (int(self.popsize / 2), self.num_dims),)
+        z_plus = jax.random.normal(
+            state.key,
+            (int(self.popsize / 2), self.num_dims),
+        )
         z = jnp.concatenate([z_plus, -1.0 * z_plus])
         z = jnp.swapaxes(z, 0, 1)
         normv = jnp.linalg.norm(state.v)
-        normv2 = normv ** 2
+        normv2 = normv**2
         vbar = state.v / normv
         y = z + (jnp.sqrt(1 + normv2) - 1) * vbar @ (vbar.T @ z)
         x = state.center[:, None] + state.sigma * y * state.D
@@ -143,7 +149,9 @@ class CR_FM_NES(evox.Algorithm):
             p_sigma_cond, self.lrate_move_sigma, self.lrate_stag_sigma
         )
         lrate_sigma = jax.lax.select(
-            p_sigma_norm >= 0.1 * self.chi_N, lrate_sigma, self.lrate_conv_sigma,
+            p_sigma_norm >= 0.1 * self.chi_N,
+            lrate_sigma,
+            self.lrate_conv_sigma,
         )
         # update evolution path p_c and mean
         wxm = (x - state.center[:, None]) @ weights
@@ -154,8 +162,8 @@ class CR_FM_NES(evox.Algorithm):
 
         normv = jnp.linalg.norm(state.v)
         vbar = state.v / normv
-        normv2 = normv ** 2
-        normv4 = normv2 ** 2
+        normv2 = normv**2
+        normv4 = normv2**2
 
         exY = jnp.append(y, p_c / state.D, axis=1)
         yy = exY * exY
@@ -168,9 +176,9 @@ class CR_FM_NES(evox.Algorithm):
             jnp.sqrt(normv4 + (2 * gammav - jnp.sqrt(gammav)) / jnp.max(vbarbar))
             / (2 + normv2),
         )
-        t = exY * ip_yvbar - vbar * (ip_yvbar ** 2 + gammav) / 2
-        b = -(1 - alphavd ** 2) * normv4 / gammav + 2 * alphavd ** 2
-        H = jnp.ones([self.num_dims, 1]) * 2 - (b + 2 * alphavd ** 2) * vbarbar
+        t = exY * ip_yvbar - vbar * (ip_yvbar**2 + gammav) / 2
+        b = -(1 - alphavd**2) * normv4 / gammav + 2 * alphavd**2
+        H = jnp.ones([self.num_dims, 1]) * 2 - (b + 2 * alphavd**2) * vbarbar
         invH = H ** (-1)
         s_step1 = (
             yy
@@ -191,7 +199,9 @@ class CR_FM_NES(evox.Algorithm):
 
         # update v, D covariance ingredients
         exw = jnp.append(
-            self.lrate_B * weights, jnp.array([self.c1]).reshape(1, 1), axis=0,
+            self.lrate_B * weights,
+            jnp.array([self.c1]).reshape(1, 1),
+            axis=0,
         )
         v = state.v + (t @ exw) / normv
         D = state.D + (s @ exw) * state.D

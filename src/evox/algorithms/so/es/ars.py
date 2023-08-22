@@ -1,7 +1,13 @@
-"""
-Augmented Random Search
-Simple random search provides a competitive approach to reinforcement learning
-"""
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Simple random search provides a competitive approach to reinforcement learning(ARS)
+# Link: https://arxiv.org/pdf/1803.07055.pdf
+#
+# 2. This code has been inspired by or utilizes the algorithmic implementation from evosax.
+# More information about evosax can be found at the following URL:
+# GitHub Link: https://github.com/RobertTLange/evosax
+# --------------------------------------------------------------------------------------
 
 import jax
 import jax.numpy as jnp
@@ -42,11 +48,17 @@ class ARS(evox.Algorithm):
         self.optimizer = evox.utils.OptaxWrapper(self.optimizer, center_init)
 
     def setup(self, key):
-        return evox.State(key=key, center=self.center_init,)
+        return evox.State(
+            key=key,
+            center=self.center_init,
+        )
 
     def ask(self, state):
         key, _ = jax.random.split(state.key)
-        z_plus = jax.random.normal(state.key, (int(self.pop_size / 2), self.dim),)
+        z_plus = jax.random.normal(
+            state.key,
+            (int(self.pop_size / 2), self.dim),
+        )
         z = jnp.concatenate([z_plus, -1.0 * z_plus])
         x = state.center + self.sigma * z
         return x, state.update(key=key, population=x, noise=z)
