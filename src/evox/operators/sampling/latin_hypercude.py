@@ -14,9 +14,10 @@ class LatinHypercubeSampling:
     def __call__(self, key):
         subkeys = jax.random.split(key, self.m)
         w = jax.random.uniform(key, shape=(self.n, self.m))
-        parm = jnp.tile(jnp.arange(1, self.n+1), (self.m, 1))
-        parm = jax.vmap(jax.random.permutation, in_axes=(0, 0), out_axes=1)(subkeys, parm)
+        parm = jnp.tile(jnp.arange(1, self.n + 1), (self.m, 1))
+        parm = jax.vmap(jax.random.permutation, in_axes=(0, 0), out_axes=1)(
+            subkeys, parm
+        )
         w = (parm - w) / self.n
         n = self.n
         return w, n
-

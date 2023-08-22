@@ -52,9 +52,9 @@ def exploration(pc_obj, npc_obj, n_nd, n):
 
     # Determine the size of the niche
     distance = pairwise_euclidean_dist(norm_pc_obj, norm_pc_obj)
-    distance = distance.at[jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))].set(
-        jnp.inf
-    )
+    distance = distance.at[
+        jnp.arange(0, len(norm_pc_obj)), jnp.arange(0, len(norm_pc_obj))
+    ].set(jnp.inf)
     distance = jnp.where(jnp.isnan(distance), jnp.inf, distance)
     distance = jnp.sort(distance, axis=1)
     # Calculate the characteristic distance r0 for niche detection
@@ -97,9 +97,9 @@ def pc_selection(pc, pc_obj, n):
         )
         norm_obj = jnp.where(jnp.tile(mask, (1, m)), norm_obj, jnp.inf)
         distance = pairwise_euclidean_dist(norm_obj, norm_obj)
-        distance = distance.at[jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))].set(
-            jnp.inf
-        )
+        distance = distance.at[
+            jnp.arange(0, len(norm_obj)), jnp.arange(0, len(norm_obj))
+        ].set(jnp.inf)
         distance = jnp.where(jnp.isnan(distance), jnp.inf, distance)
 
         # Calculate sorted distance matrix (sd) for each solution

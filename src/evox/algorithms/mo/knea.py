@@ -91,7 +91,7 @@ class KnEA(Algorithm):
     def _ask_normal(self, state):
         rank = non_dominated_sort(state.fitness)
         DW = calc_DW(state.fitness, self.k_neighbors)
-        
+
         keys = jax.random.split(state.key, 4)
         selected, _ = self.selection(keys[1], state.population, -DW, ~state.knee, rank)
         crossovered = self.crossover(keys[2], selected)

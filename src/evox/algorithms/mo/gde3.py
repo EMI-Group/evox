@@ -26,7 +26,7 @@ class GDE3(Algorithm):
         pop_size,
         F=0.49,
         CR=0.97,
-    ): 
+    ):
         """
         Parameters for Differential Evolution
         ----------

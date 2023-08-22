@@ -66,7 +66,7 @@ class RVEA(Algorithm):
             reference_vector=v,
             is_init=True,
             key=key,
-            gen=0
+            gen=0,
         )
 
     def ask(self, state):
