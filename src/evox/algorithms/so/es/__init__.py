@@ -1,19 +1,19 @@
-from .pgpe import PGPE
-from .nes import xNES, SeparableNES
-from .open_es import OpenES
-from .ars import ARS
 from .amalgam import AMaLGaM, IndependentAMaLGaM
-from .ma_es import MAES, LMMAES
-from .rmes import RMES
+from .ars import ARS
 from .asebo import ASEBO
-from .noise_reuse_es import Noise_reuse_es
-from .snes import SNES
+from .cma_es import CMAES
 from .cr_fm_nes import CR_FM_NES
 from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
+from .ma_es import MAES, LMMAES
+from .nes import xNES, SeparableNES
+from .noise_reuse_es import Noise_reuse_es
+from .open_es import OpenES
 from .persistent_es import PersistentES
-
+from .pgpe import PGPE
+from .rmes import RMES
+from .snes import SNES
 
 try:
     # optional dependency: flax
