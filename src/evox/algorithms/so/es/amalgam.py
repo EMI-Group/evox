@@ -9,13 +9,14 @@
 # GitHub Link: https://github.com/RobertTLange/evosax
 # --------------------------------------------------------------------------------------
 
-import math
 import jax
 import jax.numpy as jnp
-import evox
-from evox import Algorithm, State
+from jax import lax
+
+from evox import State
 from .cma_es import CMAES
 from .sort_utils import sort_by_key
+
 
 # Full AMaLGaM implementation
 class AMaLGaM(CMAES):
@@ -88,8 +89,8 @@ class IndependentAMaLGaM(AMaLGaM):
         # update C for single dimension
         C = (
             (1 - self.c1 - self.cmu) * C
-            + self.c1 * ((pc ** 2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
-            + self.cmu * self.weights @ (y ** 2)
+            + self.c1 * ((pc**2) + (1 - hsig) * self.cc * (2 - self.cc) * C)
+            + self.cmu * self.weights @ (y**2)
         )
 
         beta = 0.05
