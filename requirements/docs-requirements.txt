@@ -1,6 +1,7 @@
 # core dependencies
 jax
 jaxlib
+flax
 optax
 pyarrow
 # for docs generation

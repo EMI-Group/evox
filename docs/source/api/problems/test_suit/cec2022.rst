@@ -1,0 +1,42 @@
+=================
+CEC2022 Test Suit
+=================
+
+.. autoclass:: evox.problems.test_suit.CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F1_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F2_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F3_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F4_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F5_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F6_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F7_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F8_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F9_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F10_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F11_CEC2022
+    :members:
+
+.. autoclass:: evox.problems.test_suit.F12_CEC2022
+    :members:

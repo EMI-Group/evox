@@ -1,7 +1,7 @@
 {
   description = "evox";
   inputs = {
-    nixpkgs.url = "github:ogoid/nixpkgs/fixup-missing-cudnn";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";

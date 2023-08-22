@@ -18,18 +18,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1689814630,
-        "narHash": "sha256-K3WNDS0Q3eZWNXcmNCnlBv68oiTD9bbVo9Jo2Tkp2WY=",
-        "owner": "ogoid",
+        "lastModified": 1692447944,
+        "narHash": "sha256-fkJGNjEmTPvqBs215EQU4r9ivecV5Qge5cF/QDLVn3U=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e1c91b230122dceca76e600aae5a97d2f590ebb2",
+        "rev": "d680ded26da5cf104dd2735a51e88d2d8f487b4d",
         "type": "github"
       },
       "original": {
-        "owner": "ogoid",
-        "ref": "fixup-missing-cudnn",
-        "repo": "nixpkgs",
-        "type": "github"
+        "id": "nixpkgs",
+        "ref": "nixos-unstable",
+        "type": "indirect"
       }
     },
     "root": {

@@ -10,3 +10,4 @@ Problems
     classic/index
     neuroevolution/index
     rl/index
+    test_suit/index

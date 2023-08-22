@@ -11,7 +11,6 @@
 import jax
 import jax.numpy as jnp
 import evox
-from flax import linen as nn
 
 
 def get_recombination_weights(popsize: int, use_baseline: bool = True):
@@ -27,7 +26,7 @@ def get_temp_weights(popsize: int, temperature: float):
     ranks = jnp.arange(popsize)
     ranks /= ranks.size - 1
     ranks = ranks - 0.5
-    weights = nn.softmax(-temperature * ranks)
+    weights = jax.nn.softmax(-temperature * ranks)
     return weights
 
 
@@ -43,7 +42,6 @@ class SNES(evox.Algorithm):
         init_min: float = 0.0,
         init_max: float = 0.0,
     ):
-
         super().__init__()
 
         self.num_dims = center_init.shape[0]
@@ -82,7 +80,7 @@ class SNES(evox.Algorithm):
         ranks = fitness.argsort()
         sorted_noise = s[ranks]
         grad_mean = (state.weights * sorted_noise).sum(axis=0)
-        grad_sigma = (state.weights * (sorted_noise ** 2 - 1)).sum(axis=0)
+        grad_sigma = (state.weights * (sorted_noise**2 - 1)).sum(axis=0)
         center = state.center + self.lrate_mean * state.sigma * grad_mean
         sigma = state.sigma * jnp.exp(self.lrate_sigma / 2 * grad_sigma)
         return state.update(center=center, sigma=sigma)

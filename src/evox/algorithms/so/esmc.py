@@ -11,7 +11,6 @@
 import jax
 import jax.numpy as jnp
 import optax
-from flax import struct
 import evox
 
 
