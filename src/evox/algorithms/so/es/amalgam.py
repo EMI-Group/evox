@@ -11,6 +11,7 @@
 
 import jax
 import jax.numpy as jnp
+from jax import lax
 
 from evox import State
 from .cma_es import CMAES
