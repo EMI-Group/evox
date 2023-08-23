@@ -10,7 +10,6 @@
 
 import jax
 import jax.numpy as jnp
-from flax import linen as nn
 import evox
 
 def get_des_weights(popsize: int, temperature: float = 12.5):
@@ -18,8 +17,8 @@ def get_des_weights(popsize: int, temperature: float = 12.5):
     ranks = jnp.arange(popsize)
     ranks /= ranks.size - 1
     ranks = ranks - 0.5
-    sigout = nn.sigmoid(temperature * ranks)
-    weights = nn.softmax(-20 * sigout)
+    sigout = jax.nn.sigmoid(temperature * ranks)
+    weights = jax.nn.softmax(-20 * sigout)
     return weights
 
 
