@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Demonstrator selection in a social learning particle swarm optimizer
+# Link: https://ieeexplore.ieee.org/document/6900227
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -6,7 +13,6 @@ from evox.utils import *
 
 # SL-PSO: Social Learning PSO
 # SL-PSO-GS: Using Gaussian Sampling for Demonstator Choice
-# https://ieeexplore.ieee.org/document/6900227
 @ex.jit_class
 class SLPSOGS(ex.Algorithm):
     def __init__(

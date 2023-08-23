@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: A new optimizer using particle swarm theory
+# Link: https://ieeexplore.ieee.org/document/494215
+# --------------------------------------------------------------------------------------
+
 from functools import partial
 
 import jax

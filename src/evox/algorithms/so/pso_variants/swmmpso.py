@@ -1,6 +1,13 @@
-"""
-Small worlds and mega-minds: effects of neighborhood topology on particle swarm performance
-"""
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Small worlds and mega-minds: effects of neighborhood topology on particle swarm performance
+# Link: https://ieeexplore.ieee.org/document/785509
+#
+# Title: Population structure and particle swarm performance
+# Link: https://ieeexplore.ieee.org/document/1004493
+# --------------------------------------------------------------------------------------
+
 
 import jax
 import jax.numpy as jnp
