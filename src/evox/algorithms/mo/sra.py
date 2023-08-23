@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. Stochastic ranking algorithm is described in the following papers:
+#
+# Title: Stochastic Ranking Algorithm for Many-Objective Optimization Based on Multiple Indicators
+# Link: https://ieeexplore.ieee.org/abstract/document/7445185
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -102,11 +113,6 @@ def environmental_selection(key, pop, obj, k, uni_rnd):
 
 @jit_class
 class SRA(Algorithm):
-    """Stochastic ranking algorithm
-
-    link: https://ieeexplore.ieee.org/abstract/document/7445185
-    Inspired by PlatEMO.
-    """
 
     def __init__(
         self,

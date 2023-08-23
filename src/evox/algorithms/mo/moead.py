@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. MOEA/D algorithm is described in the following papers:
+#
+# Title: MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition
+# Link: https://ieeexplore.ieee.org/document/4358754
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -9,11 +20,6 @@ from evox import Algorithm, State, jit_class
 
 @jit_class
 class MOEAD(Algorithm):
-    """MOEA/D algorithm
-
-    link: https://ieeexplore.ieee.org/document/4358754
-    Inspired by PlatEMO.
-    """
 
     def __init__(
         self,

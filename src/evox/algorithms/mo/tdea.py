@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. Theta-dominance based evolutionary algorithm is described in the following papers:
+#
+# Title: A New Dominance Relation-Based Evolutionary Algorithm for Many-Objective Optimization
+# Link: https://ieeexplore.ieee.org/abstract/document/7080938
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -88,11 +99,6 @@ def environmental_selection(pop, obj, w, n, z, z_nad):
 
 @jit_class
 class TDEA(Algorithm):
-    """Theta-dominance based evolutionary algorithm
-
-    link: https://ieeexplore.ieee.org/abstract/document/7080938
-    Inspired by PlatEMO.
-    """
 
     def __init__(
         self,

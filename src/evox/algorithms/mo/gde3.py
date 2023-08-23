@@ -1,7 +1,16 @@
+# --------------------------------------------------------------------------------------
+# 1. GDE3 algorithm is described in the following papers:
+#
+# Title: GDE3: the third evolution step of generalized differential evolution
+# Link: https://ieeexplore.ieee.org/document/1554717
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
-from jax import vmap
-from functools import partial
 
 from evox import Algorithm, jit_class, State
 from evox.operators import (
@@ -13,10 +22,6 @@ from evox.operators import (
 
 @jit_class
 class GDE3(Algorithm):
-    """GDE3 algorithm
-
-    link: https://ieeexplore.ieee.org/document/1554717
-    """
 
     def __init__(
         self,

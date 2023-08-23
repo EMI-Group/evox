@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. IBEA algorithm is described in the following papers:
+#
+# Title: Indicator-Based Selection in Multiobjective Search
+# Link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -23,11 +34,6 @@ def cal_fitness(pop_obj, kappa):
 
 @jit_class
 class IBEA(Algorithm):
-    """IBEA algorithm
-
-    link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
-    Inspired by PlatEMO.
-    """
 
     def __init__(
         self,

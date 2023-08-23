@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. KnEA algorithm is described in the following papers:
+#
+# Title: A Knee Point-Driven Evolutionary Algorithm for Many-Objective Optimization
+# Link: https://ieeexplore.ieee.org/document/6975108
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 from functools import partial
@@ -26,10 +37,6 @@ def calc_DW(fit, k):
 
 @jit_class
 class KnEA(Algorithm):
-    """KnEA algorithm
-
-    link: https://ieeexplore.ieee.org/document/6975108
-    """
 
     def __init__(
         self,

@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. MOEA/D based on MOP to MOP algorithm is described in the following papers:
+#
+# Title: Decomposition of a Multiobjective Optimization Problem Into a Number of Simple Multiobjective Subproblems
+# Link: https://ieeexplore.ieee.org/abstract/document/6595549
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -83,11 +94,6 @@ def associate(rng, pop, obj, w, s):
 
 @jit_class
 class MOEADM2M(Algorithm):
-    """MOEA/D based on MOP to MOP algorithm
-
-    link: https://ieeexplore.ieee.org/abstract/document/6595549
-    Inspired by PlatEMO.
-    """
 
     def __init__(
         self,

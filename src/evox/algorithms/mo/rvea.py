@@ -1,6 +1,12 @@
+# --------------------------------------------------------------------------------------
+# 1. RVEA algorithm is described in the following papers:
+#
+# Title: A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization
+# Link: https://ieeexplore.ieee.org/document/7386636
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
-from evox.utils import cos_dist
 
 from evox.operators import mutation, crossover, selection
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
@@ -9,10 +15,6 @@ from evox import Algorithm, State, jit_class
 
 @jit_class
 class RVEA(Algorithm):
-    """RVEA algorithms
-
-    link: https://ieeexplore.ieee.org/document/7386636
-    """
 
     def __init__(
         self,
