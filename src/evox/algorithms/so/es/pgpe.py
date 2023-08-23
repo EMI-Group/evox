@@ -1,3 +1,9 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements the algorithm described in the following paper:
+# Title: Parameter-exploring Policy Gradients (PGPE)
+# Link: https://mediatum.ub.tum.de/doc/1287490/file.pdf
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 import optax
