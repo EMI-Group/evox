@@ -1,6 +1,10 @@
-"""
-The Fully Informed Particle Swarm: Simpler, Maybe Better
-"""
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: The fully informed particle swarm: simpler, maybe better
+# Link: https://ieeexplore.ieee.org/document/1304843
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 from .utils import (
@@ -16,8 +20,6 @@ from .topology_utils import (
     get_full_neighbour,
     build_adjacancy_list_from_matrix,
 )
-
-
 from evox import (
     Algorithm,
     Problem,
@@ -28,7 +30,6 @@ from evox import (
     pipelines,
     problems,
 )
-
 from evox.utils import min_by
 
 

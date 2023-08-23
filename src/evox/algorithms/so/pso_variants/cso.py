@@ -1,6 +1,12 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: A Competitive Swarm Optimizer for Large Scale Optimization
+# Link: https://ieeexplore.ieee.org/document/6819057
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
-
 import evox as ex
 
 
