@@ -69,7 +69,6 @@ def _truncation(obj, k, mask):
 
 @jit_class
 class SPEA2(Algorithm):
-
     def __init__(
         self,
         lb,

@@ -34,7 +34,6 @@ def cal_fitness(pop_obj, kappa):
 
 @jit_class
 class IBEA(Algorithm):
-
     def __init__(
         self,
         lb,

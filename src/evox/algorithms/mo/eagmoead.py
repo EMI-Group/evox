@@ -40,7 +40,6 @@ def environmental_selection(fitness, n):
 
 @jit_class
 class EAGMOEAD(Algorithm):
-
     def __init__(
         self,
         lb,

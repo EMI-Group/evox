@@ -25,7 +25,6 @@ from evox import Algorithm, jit_class, State
 
 @jit_class
 class NSGA3(Algorithm):
-
     def __init__(
         self,
         lb,

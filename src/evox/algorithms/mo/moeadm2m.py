@@ -94,7 +94,6 @@ def associate(rng, pop, obj, w, s):
 
 @jit_class
 class MOEADM2M(Algorithm):
-
     def __init__(
         self,
         lb,

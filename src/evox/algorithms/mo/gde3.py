@@ -22,7 +22,6 @@ from evox.operators import (
 
 @jit_class
 class GDE3(Algorithm):
-
     def __init__(
         self,
         lb,

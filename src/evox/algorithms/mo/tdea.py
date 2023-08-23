@@ -99,7 +99,6 @@ def environmental_selection(pop, obj, w, n, z, z_nad):
 
 @jit_class
 class TDEA(Algorithm):
-
     def __init__(
         self,
         lb,

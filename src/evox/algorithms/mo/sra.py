@@ -113,7 +113,6 @@ def environmental_selection(key, pop, obj, k, uni_rnd):
 
 @jit_class
 class SRA(Algorithm):
-
     def __init__(
         self,
         lb,

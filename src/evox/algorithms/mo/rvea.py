@@ -15,7 +15,6 @@ from evox import Algorithm, State, jit_class
 
 @jit_class
 class RVEA(Algorithm):
-
     def __init__(
         self,
         lb,

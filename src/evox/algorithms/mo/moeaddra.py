@@ -20,7 +20,6 @@ from evox.utils import pairwise_euclidean_dist
 
 @jit_class
 class MOEADDRA(Algorithm):
-
     def __init__(
         self,
         lb,

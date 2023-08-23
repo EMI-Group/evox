@@ -62,7 +62,6 @@ def estimate(fit, mask):
 
 @jit_class
 class BiGE(Algorithm):
-
     def __init__(
         self,
         lb,

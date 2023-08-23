@@ -37,7 +37,6 @@ def calc_DW(fit, k):
 
 @jit_class
 class KnEA(Algorithm):
-
     def __init__(
         self,
         lb,
