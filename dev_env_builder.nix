@@ -8,7 +8,7 @@ let
     config.allowUnfree = true;
     config.cudaSupport = cudaSupport;
   };
-  python = pkgs.python310;
+  python = pkgs.python311;
 
   common-dependencies = with python.pkgs; [
     jax
