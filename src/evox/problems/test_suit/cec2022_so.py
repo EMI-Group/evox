@@ -16,7 +16,7 @@ import pkgutil
 # 3. Generate x = Os and evaluate
 # F = func._evaluate(x)
 
-print(__name__)
+
 @jit_class
 class OperatFunc:
     """Operational functions transform basic problems into test problems"""
