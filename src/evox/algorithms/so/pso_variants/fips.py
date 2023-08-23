@@ -3,14 +3,14 @@ The Fully Informed Particle Swarm: Simpler, Maybe Better
 """
 import jax
 import jax.numpy as jnp
-from evox.algorithms.so.pso_varients.utils import (
+from .utils import (
     row_argsort,
     get_distance_matrix,
     select_from_mask,
 )
 from functools import partial
 from typing import Union, Iterable, Literal
-from evox.algorithms.so.pso_varients.topology_utils import (
+from .topology_utils import (
     get_square_neighbour,
     get_neighbour_best_fitness,
     get_full_neighbour,

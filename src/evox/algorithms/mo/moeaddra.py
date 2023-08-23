@@ -7,12 +7,12 @@ from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 from evox.utils import pairwise_euclidean_dist
 
 
-
 @jit_class
 class MOEADDRA(Algorithm):
     """MOEA/D-DRA algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/4982949
+    Inspired by PlatEMO.
     """
 
     def __init__(
@@ -64,10 +64,10 @@ class MOEADDRA(Algorithm):
             weight_vector=w,
             B=B,
             Z=jnp.zeros(shape=self.n_objs),
-            pi=jnp.ones((self.pop_size, )),
-            old_obj=jnp.zeros((self.pop_size, )),
+            pi=jnp.ones((self.pop_size,)),
+            old_obj=jnp.zeros((self.pop_size,)),
             choosed_p=jnp.zeros((self.pop_size, self.T)).astype(int),
-            I_all=jnp.zeros((self.pop_size, )).astype(int),
+            I_all=jnp.zeros((self.pop_size,)).astype(int),
             gen=0,
             is_init=True,
             key=key,
@@ -86,12 +86,16 @@ class MOEADDRA(Algorithm):
 
     def _ask_normal(self, state):
 
-        key, subkey1, subkey2, subkey3, sel_key, x_key, mut_key = jax.random.split(state.key, 7)
+        key, subkey1, subkey2, subkey3, sel_key, x_key, mut_key = jax.random.split(
+            state.key, 7
+        )
         parent = jax.random.permutation(
             subkey1, state.B, axis=1, independent=True
         ).astype(int)
         rand = jax.random.uniform(subkey2, (self.pop_size, 1))
-        rand_perm = jax.random.randint(subkey3, (self.pop_size, self.T), 0, self.pop_size)
+        rand_perm = jax.random.randint(
+            subkey3, (self.pop_size, self.T), 0, self.pop_size
+        )
         w = state.weight_vector
         pi = state.pi
         population = state.population
@@ -100,14 +104,19 @@ class MOEADDRA(Algorithm):
         mask = jnp.sum(w < 1e-3, axis=1) == (self.n_objs - 1)
 
         boundary = jnp.where(mask, size=self.pop_size, fill_value=0)[0]
-        boundary = boundary[:self.i_size]
-        g_bound = jnp.tile(boundary, (5, ))
+        boundary = boundary[: self.i_size]
+        g_bound = jnp.tile(boundary, (5,))
 
         I_all = jnp.where(g_bound != 0, g_bound, selected_idx)
 
         choosed_p = jnp.where(rand < 0.9, parent[I_all], rand_perm)
 
-        crossovered = self.crossover(x_key, population[I_all], population[choosed_p[:, 0]], population[choosed_p[:, 1]])
+        crossovered = self.crossover(
+            x_key,
+            population[I_all],
+            population[choosed_p[:, 0]],
+            population[choosed_p[:, 1]],
+        )
         next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(
@@ -116,7 +125,10 @@ class MOEADDRA(Algorithm):
 
     def _tell_init(self, state, fitness):
         Z = jnp.min(fitness, axis=0)
-        old_obj = jnp.max(jnp.abs((fitness - jnp.tile(Z, (self.pop_size, 1))) * state.weight_vector), axis=1)
+        old_obj = jnp.max(
+            jnp.abs((fitness - jnp.tile(Z, (self.pop_size, 1))) * state.weight_vector),
+            axis=1,
+        )
         state = state.update(fitness=fitness, Z=Z, old_obj=old_obj, is_init=False)
         return state
 
@@ -142,13 +154,15 @@ class MOEADDRA(Algorithm):
             ind_obj = off_obj[i]
             Z = jnp.minimum(Z, ind_obj)
 
-            g_old = jnp.max(jnp.abs(pop_obj[p] - jnp.tile(Z, (len(p), 1))) * w[p], axis=1)
-            g_new = jnp.max(jnp.abs(jnp.tile(ind_obj-Z, (len(p), 1))) * w[p], axis=1)
+            g_old = jnp.max(
+                jnp.abs(pop_obj[p] - jnp.tile(Z, (len(p), 1))) * w[p], axis=1
+            )
+            g_new = jnp.max(jnp.abs(jnp.tile(ind_obj - Z, (len(p), 1))) * w[p], axis=1)
 
             g_new = g_new[:, jnp.newaxis]
             g_old = g_old[:, jnp.newaxis]
 
-            indices = jnp.where(g_old >= g_new, size=len(p))[0][:self.nr]
+            indices = jnp.where(g_old >= g_new, size=len(p))[0][: self.nr]
 
             population = population.at[p[indices]].set(ind_dec)
             pop_obj = pop_obj.at[p[indices]].set(ind_obj)
@@ -158,10 +172,12 @@ class MOEADDRA(Algorithm):
         population, pop_obj, Z = jax.lax.fori_loop(0, self.pop_size, out_body, out_vals)
 
         def update_pi(pi, old_obj):
-            new_obj = jnp.max(jnp.abs((pop_obj - jnp.tile(Z, (self.pop_size, 1))) * w), axis=1)
+            new_obj = jnp.max(
+                jnp.abs((pop_obj - jnp.tile(Z, (self.pop_size, 1))) * w), axis=1
+            )
             delta = (old_obj - new_obj) / old_obj
             mask = delta < 0.001
-            pi = jnp.where(mask, pi*(0.95 + 0.05*delta/0.001), 1)
+            pi = jnp.where(mask, pi * (0.95 + 0.05 * delta / 0.001), 1)
             old_obj = new_obj
             return pi, old_obj
 
@@ -176,5 +192,12 @@ class MOEADDRA(Algorithm):
             old_obj,
         )
 
-        state = state.update(population=population, fitness=pop_obj, Z=Z, gen=current_gen, pi=pi, old_obj=old_obj)
+        state = state.update(
+            population=population,
+            fitness=pop_obj,
+            Z=Z,
+            gen=current_gen,
+            pi=pi,
+            old_obj=old_obj,
+        )
         return state

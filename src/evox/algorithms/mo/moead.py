@@ -12,6 +12,7 @@ class MOEAD(Algorithm):
     """MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/document/4358754
+    Inspired by PlatEMO.
     """
 
     def __init__(

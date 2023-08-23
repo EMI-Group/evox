@@ -57,6 +57,7 @@ def polynomial(key, x, boundary, pro_m, dis_m):
 @jit_class
 class Polynomial:
     """Polynomial mutation
+    Inspired by PlatEMO.
 
     Args:
         pro_m: the expectation of number of bits doing mutation.

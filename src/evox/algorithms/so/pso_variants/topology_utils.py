@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from evox.algorithms.so.pso_varients.utils import (
+from .utils import (
     row_argsort,
     get_distance_matrix,
     select_from_mask,

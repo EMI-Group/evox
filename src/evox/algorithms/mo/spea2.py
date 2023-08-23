@@ -13,7 +13,9 @@ def cal_fitness(obj):
     dom_matrix = _dominate_relation(obj, obj)
     s = jnp.sum(dom_matrix, axis=1)
 
-    r = jax.vmap(lambda s, d: jnp.sum(jnp.where(d, s, 0)), in_axes=(None, 1), out_axes=0)(s, dom_matrix)
+    r = jax.vmap(
+        lambda s, d: jnp.sum(jnp.where(d, s, 0)), in_axes=(None, 1), out_axes=0
+    )(s, dom_matrix)
 
     dis = pairwise_euclidean_dist(obj, obj)
     diagonal_indices = jnp.arange(n)
@@ -21,7 +23,7 @@ def cal_fitness(obj):
     dis = jnp.sort(dis, axis=1)
 
     d = 1 / (dis[:, jnp.floor(jnp.sqrt(6)).astype(int) - 1] + 2)
-    return d+r
+    return d + r
 
 
 @jax.jit
@@ -59,16 +61,17 @@ class SPEA2(Algorithm):
     """SPEA2 algorithm
 
     link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
+    Inspired by PlatEMO.
     """
 
     def __init__(
-            self,
-            lb,
-            ub,
-            n_objs,
-            pop_size,
-            mutation_op=None,
-            crossover_op=None,
+        self,
+        lb,
+        ub,
+        n_objs,
+        pop_size,
+        mutation_op=None,
+        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -88,9 +91,9 @@ class SPEA2(Algorithm):
     def setup(self, key):
         key, subkey = jax.random.split(key)
         population = (
-                jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-                * (self.ub - self.lb)
-                + self.lb
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
         )
         return State(
             population=population,
@@ -140,13 +143,13 @@ class SPEA2(Algorithm):
             return order
 
         def truncation(mask):
-            order = _truncation(merged_fitness, num_valid-self.pop_size, mask)
+            order = _truncation(merged_fitness, num_valid - self.pop_size, mask)
             order = jnp.where(order, size=len(mask))[0]
             return order
 
         order = jax.lax.cond(num_valid <= self.pop_size, fitness_sort, truncation, mask)
 
-        combined_order = order[:self.pop_size]
+        combined_order = order[: self.pop_size]
 
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fitness[combined_order]
