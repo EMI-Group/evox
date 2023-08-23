@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------------
+# This code implements algorithms described in the following papers:
+#
+# Title: Exponential Natural Evolution Strategies (xNES)
+# Link: https://dl.acm.org/doi/abs/10.1145/1830483.1830557
+#
+# Title: Natural Evolution Strategies (SeparableNES)
+# Link: https://www.jmlr.org/papers/volume15/wierstra14a/wierstra14a.pdf
+# --------------------------------------------------------------------------------------
+
 import math
 import jax
 import jax.numpy as jnp
