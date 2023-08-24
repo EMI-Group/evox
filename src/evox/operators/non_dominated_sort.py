@@ -2,6 +2,8 @@ import jax
 import jax.numpy as jnp
 from jax import vmap, lax
 import chex
+import numpy as np
+from jax import pure_callback
 
 
 @jax.jit
@@ -16,6 +18,25 @@ def _dominate_relation(x, y):
     return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
 
 
+def host_rank_from_domination_matrix(dominate_mat, dominate_count):
+    dominate_count = np.copy(dominate_count)
+    # The number of inidividuals
+    N = dominate_mat.shape[0]
+    rank = np.empty((N,), dtype=np.int32)
+    current_rank = 0
+    pareto_front = dominate_count == 0
+    while pareto_front.any():
+        rank[pareto_front] = current_rank  # update rank
+        count_desc = np.sum(dominate_mat[pareto_front, :], axis=0)
+        # a trick to prevent the current pareto-front from being selected again
+        dominate_count -= count_desc
+        dominate_count -= pareto_front
+        current_rank += 1
+        pareto_front = dominate_count == 0
+
+    return rank
+
+
 @jax.jit
 def non_dominated_sort(x, method="auto"):
     """Perform non-dominated sort
@@ -26,6 +47,7 @@ def non_dominated_sort(x, method="auto"):
     method
         Determine the jax operation used.
         Default to "scan" on CPU and "full map-reduce" on GPU.
+        An experimental "host" mode can be used for CPU, to run computation on CPU through host callback.
 
     Returns
     -------
@@ -36,7 +58,8 @@ def non_dominated_sort(x, method="auto"):
         "auto",
         "scan",
         "full map-reduce",
-    ], "method must be either 'auto', 'scan', or 'full map-reduce'"
+        "host",
+    ], "method must be either 'auto', 'scan', or 'full map-reduce', 'host'"
     if method == "auto":
         backend = jax.default_backend()
         if backend == "cpu":
@@ -44,11 +67,19 @@ def non_dominated_sort(x, method="auto"):
         else:
             method = "full map-reduce"
 
-    chex.assert_rank(x, 2)
     dominate_relation_matrix = _dominate_relation(x, x)
-    rank = jnp.zeros((x.shape[0],), dtype=jnp.int32)
     dominate_count = jnp.sum(dominate_relation_matrix, axis=0)
 
+    if method == "host":
+        rank = pure_callback(
+            host_rank_from_domination_matrix,
+            jax.ShapeDtypeStruct((x.shape[0],), dtype=jnp.int32),
+            dominate_relation_matrix,
+            dominate_count,
+        )
+        return rank
+
+    rank = jnp.zeros((x.shape[0],), dtype=jnp.int32)
     current_rank = 0
     pareto_front = dominate_count == 0
 
