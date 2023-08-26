@@ -40,14 +40,13 @@ def cal_hv(points, ref, k, n_sample, key):
 
     f = jnp.zeros((n,))
 
-    def body_fun2(i, val):
-        temp = jnp.where(pds[i, :], ds, -1).astype(int)
+    def body_fun2(pd):
+        temp = jnp.where(pd, ds, -1).astype(int)
         value = jnp.where(temp != -1, alpha[temp], 0)
         value = jnp.sum(value)
-        val = val.at[i].set(value)
-        return val
-
-    f = jax.lax.fori_loop(0, n, body_fun2, f)
+        return value
+    
+    f = jax.vmap(body_fun2)(pds)
     f = f * jnp.prod(ref - f_min) / n_sample
 
     return f
@@ -80,7 +79,9 @@ class HypE(Algorithm):
 
         self.mutation = mutation_op
         self.crossover = crossover_op
-        self.selection = selection.Tournament(n_round=self.pop_size)
+        self.selection = selection.Tournament(
+            n_round=self.pop_size, multi_objective=True
+        )
         if self.mutation is None:
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:
