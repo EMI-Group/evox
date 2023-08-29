@@ -8,13 +8,13 @@
 import jax
 import jax.numpy as jnp
 
-import evox as ex
 from evox.utils import *
+from evox import Algorithm, State, jit_class
 
 
 # CPSO-S: Cooperative PSO
-@ex.jit_class
-class CPSOS(ex.Algorithm):
+@jit_class
+class CPSOS(Algorithm):
     def __init__(
         self,
         lb,  # lower bound of problem
@@ -56,7 +56,7 @@ class CPSOS(ex.Algorithm):
         velocity = jax.random.uniform(init_v_key, shape=(self.dim, self.pop_size))
         velocity = velocity * length * 2 - length
 
-        return ex.State(
+        return State(
             # _population/velocity: shape:(dim, pop_size)
             # _population has dim different swarms, each swarm has pop_size particles
             # each particle in a swarm only records one single number, which is the position of this particle in this dimension

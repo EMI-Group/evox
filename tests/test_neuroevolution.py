@@ -1,15 +1,14 @@
 import time
 
-import evox as ex
 import jax
 import jax.numpy as jnp
 import pytest
 from flax import linen as nn
-from evox import algorithms, pipelines, problems
+from evox import algorithms, pipelines, problems, utils
 from evox.monitors import StdSOMonitor
 
 
-class PartialPGPE(ex.algorithms.PGPE):
+class PartialPGPE(Algorithms.PGPE):
     def __init__(self, center_init):
         super().__init__(
             100, center_init, "adam", center_learning_rate=0.01, stdev_init=0.01
@@ -43,7 +42,7 @@ def init_problem_and_model(key):
     model = SimpleCNN()
     batch_size = 64
     initial_params = model.init(key, jnp.zeros((batch_size, 32, 32, 3)))
-    problem = ex.problems.neuroevolution.TorchvisionDataset(
+    problem = problems.neuroevolution.TorchvisionDataset(
         root="./datasets",
         batch_size=batch_size,
         forward_func=model.apply,
@@ -66,7 +65,7 @@ def test_neuroevolution_treemap():
     )
     monitor = StdSOMonitor()
     pipeline = pipelines.StdPipeline(
-        algorithm=ex.algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
+        algorithm=Algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
         fitness_transform=monitor.record_fit,
     )
@@ -89,7 +88,7 @@ def test_neuroevolution_adapter():
     initial_params, problem = init_problem_and_model(model_init_key)
 
     start = time.perf_counter()
-    adapter = ex.utils.TreeAndVector(initial_params)
+    adapter = utils.TreeAndVector(initial_params)
     monitor = StdSOMonitor()
     algorithm = algorithms.PGPE(
         100,

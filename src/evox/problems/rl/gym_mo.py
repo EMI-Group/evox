@@ -1,7 +1,6 @@
 from functools import reduce
 from typing import Callable
 
-import evox as ex
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -202,7 +201,7 @@ class Controller:
             return self._evaluate(seeds, pop, cap_episode_length)
 
 
-@ex.jit_class
+@jit_class
 class CapEpisode(Stateful):
     def __init__(self, init_cap=100):
         self.init_cap = init_cap

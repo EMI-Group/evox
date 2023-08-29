@@ -8,13 +8,13 @@
 import jax
 import jax.numpy as jnp
 
-import evox as ex
 from evox.utils import *
+from evox import Algorithm, State, jit_class
 
 
 # DMS-PSO-EL: dynamic multi-swarm particle swarm optimization based on an elite learning strategy
-@ex.jit_class
-class DMSPSOEL(ex.Algorithm):
+@jit_class
+class DMSPSOEL(Algorithm):
     #: Population size N, dynamic sub-swarms size ND,
     # following sub-swarm size Nf,
     # number of dynamic sub-swarms ND_sub, size of each dynamic
@@ -75,7 +75,7 @@ class DMSPSOEL(ex.Algorithm):
         velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
         velocity = velocity * length * 2 - length
 
-        return ex.State(
+        return State(
             iteration=0,
             population=population,
             velocity=velocity,

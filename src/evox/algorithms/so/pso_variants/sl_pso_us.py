@@ -8,14 +8,14 @@
 import jax
 import jax.numpy as jnp
 
-import evox as ex
 from evox.utils import *
+from evox import Algorithm, State, jit_class
 
 # SL-PSO: Social Learning PSO
 # SL-PSO-US: Using Uniform Sampling for Demonstator Choice
 # https://ieeexplore.ieee.org/document/6900227
-@ex.jit_class
-class SLPSOUS(ex.Algorithm):
+@jit_class
+class SLPSOUS(Algorithm):
     def __init__(
         self,
         lb, # lower bound of problem
@@ -41,7 +41,7 @@ class SLPSOUS(ex.Algorithm):
         velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
         velocity = velocity * length * 2 - length
 
-        return ex.State(
+        return State(
             population=population,
             velocity=velocity,
             global_best_location=population[0],

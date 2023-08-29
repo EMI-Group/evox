@@ -1,5 +1,4 @@
 import chex
-import evox as ex
 import jax
 import pytest
 from evox import Stateful, State

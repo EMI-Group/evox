@@ -9,11 +9,10 @@ import ray
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose
 
-import evox as ex
-from evox import Problem, State, Stateful
+from evox import Problem, Algorithm, State, Stateful, jit_class
 
 
-@ex.jit_class
+@jit_class
 class Normalizer(Stateful):
     def __init__(self):
         self.sum = 0
@@ -21,7 +20,7 @@ class Normalizer(Stateful):
         self.count = 0
 
     def setup(self, key):
-        return ex.State(sum=0, sumOfSquares=0, count=0)
+        return State(sum=0, sumOfSquares=0, count=0)
 
     def normalize(self, state, x):
         newCount = state.count + 1
@@ -238,7 +237,7 @@ class Controller:
             return self._evaluate(seeds, pop, cap_episode_length)
 
 
-@ex.jit_class
+@jit_class
 class CapEpisode(Stateful):
     def __init__(self, init_cap=100):
         self.init_cap = init_cap

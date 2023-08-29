@@ -1,8 +1,7 @@
 from functools import partial
 import jax
 import jax.numpy as jnp
-
-import evox as ex
+from evox import Problem, jit_class
 
 
 def _ackley_func(a, b, c, x):
@@ -14,8 +13,8 @@ def _ackley_func(a, b, c, x):
     )
 
 
-@ex.jit_class
-class Ackley(ex.Problem):
+@jit_class
+class Ackley(Problem):
     def __init__(self, a=20, b=0.2, c=2*jnp.pi):
         self.a = a
         self.b = b

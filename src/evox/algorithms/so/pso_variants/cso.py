@@ -7,11 +7,11 @@
 
 import jax
 import jax.numpy as jnp
-import evox as ex
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class CSO(ex.Algorithm):
+@jit_class
+class CSO(Algorithm):
     def __init__(self, lb, ub, pop_size, phi=0, mean=None, stdev=None):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -35,7 +35,7 @@ class CSO(ex.Algorithm):
         velocity = jnp.zeros((self.pop_size, self.dim))
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
-        return ex.State(
+        return State(
             population=population,
             fitness=fitness,
             velocity=velocity,

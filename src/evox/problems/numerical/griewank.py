@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
-
-import evox as ex
+from evox import Problem, jit_class
 
 
 def _griewank_func(x):
@@ -9,8 +8,8 @@ def _griewank_func(x):
     return f
 
 
-@ex.jit_class
-class Griewank(ex.Problem):
+@jit_class
+class Griewank(Problem):
 
     def evaluate(self, state, X):
         return jax.vmap(_griewank_func)(X), state

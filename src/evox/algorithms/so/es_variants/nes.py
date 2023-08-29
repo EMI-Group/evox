@@ -13,11 +13,11 @@ import jax
 import jax.numpy as jnp
 from jax.scipy.linalg import expm
 from .sort_utils import sort_by_key
-import evox as ex
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class xNES(ex.Algorithm):
+@jit_class
+class xNES(Algorithm):
     def __init__(
         self,
         init_mean,
@@ -76,7 +76,7 @@ class xNES(ex.Algorithm):
         population = jnp.empty((self.pop_size, self.dim))
         noise = jnp.empty_like(population)
 
-        return ex.State(
+        return State(
             noise=noise,
             mean=mean,
             sigma=sigma,
@@ -114,8 +114,8 @@ class xNES(ex.Algorithm):
         )
 
 
-@ex.jit_class
-class SeparableNES(ex.Algorithm):
+@jit_class
+class SeparableNES(Algorithm):
     def __init__(
         self,
         init_mean,
@@ -168,7 +168,7 @@ class SeparableNES(ex.Algorithm):
         sigma = self.init_std
 
         population, zero_mean_pop, key = self._new_pop(key, mean, sigma)
-        return ex.State(
+        return State(
             population=population,
             zero_mean_pop=zero_mean_pop,
             mean=mean,

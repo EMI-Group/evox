@@ -1,4 +1,3 @@
-import evox as ex
 from evox import pipelines, algorithms, problems
 from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
