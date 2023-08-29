@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+from evox import Problem, jit_class
 
 
 @jit_class

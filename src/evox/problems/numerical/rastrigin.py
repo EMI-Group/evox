@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+from evox import Problem, jit_class
 
 
 def _rastrigin_func(x):

@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+from evox import Problem, jit_class
 
 
 def _rosenbrock_func(x):
