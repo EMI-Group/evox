@@ -2,7 +2,7 @@
 CEC2022 Test Suit
 =================
 
-.. autoclass:: evox.problems.test_suit.CEC2022
+.. autoclass:: evox.problems.test_suit.CEC2022TestSuit
     :members:
 
 .. autoclass:: evox.problems.test_suit.F1_CEC2022

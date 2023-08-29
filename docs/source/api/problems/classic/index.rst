@@ -12,3 +12,4 @@ Numerical Benchmarks
     rosenbrock
     sphere
     zdt
+    cec2022

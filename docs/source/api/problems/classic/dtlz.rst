@@ -1,9 +1,6 @@
-===========
-DTLZ Family
-===========
-
-.. autoclass:: evox.problems.classic.DTLZ
-    :members:
+==============
+DTLZ Test Suit
+==============
 
 .. autoclass:: evox.problems.classic.DTLZ1
     :members:

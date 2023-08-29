@@ -7,7 +7,7 @@ import pkgutil, json
 
 
 @jit_class
-class DTLZ(Problem):
+class DTLZTestSuit(Problem):
     """DTLZ"""
 
     def __init__(self, d=None, m=None, ref_num=1000):
@@ -30,7 +30,7 @@ class DTLZ(Problem):
         return f, state
 
 
-class DTLZ1(DTLZ):
+class DTLZ1(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=100):
         if m is None:
             self.m = 3
@@ -66,7 +66,7 @@ class DTLZ1(DTLZ):
         return f, state
 
 
-class DTLZ2(DTLZ):
+class DTLZ2(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -105,7 +105,7 @@ class DTLZ2(DTLZ):
         return f, state
 
 
-class DTLZ3(DTLZ2):
+class DTLZ3(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
@@ -139,7 +139,7 @@ class DTLZ3(DTLZ2):
         return f, state
 
 
-class DTLZ4(DTLZ2):
+class DTLZ4(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
@@ -166,7 +166,7 @@ class DTLZ4(DTLZ2):
         return f, state
 
 
-class DTLZ5(DTLZ):
+class DTLZ5(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -227,7 +227,7 @@ class DTLZ5(DTLZ):
         return f, state
 
 
-class DTLZ6(DTLZ):
+class DTLZ6(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -288,7 +288,7 @@ class DTLZ6(DTLZ):
         return f, state
 
 
-class DTLZ7(DTLZ):
+class DTLZ7(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3

@@ -737,7 +737,7 @@ class F12_CEC2022(OperatFunc, BasicFunc, Problem):
         return F, state
 
 
-class CEC2022:
+class CEC2022TestSuit:
     """
     Instantiation format: problem_instance = CEC2022.create(1)
     i.e., problem_instance = F1_CEC2022()

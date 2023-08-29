@@ -1,6 +1,6 @@
-===
-ZDT
-===
+=============
+ZDT Test Suit
+=============
 
 .. autoclass:: evox.problems.classic.ZDT1
     :members:

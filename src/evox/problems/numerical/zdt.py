@@ -12,7 +12,7 @@ def _generic_zdt(f1, g, h, x):
 
 
 @jit_class
-class ZDT(Problem):
+class ZDTTestSuit(Problem):
     def __init__(self, n, ref_num=100):
         self.n = n
         self._zdt = None
@@ -28,7 +28,7 @@ class ZDT(Problem):
         return jnp.c_[x, 1 - jnp.sqrt(x)], state
 
 
-class ZDT1(ZDT):
+class ZDT1(ZDTTestSuit):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[0]
@@ -37,7 +37,7 @@ class ZDT1(ZDT):
         self._zdt = partial(_generic_zdt, f1, g, h)
 
 
-class ZDT2(ZDT):
+class ZDT2(ZDTTestSuit):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[0]
@@ -50,7 +50,7 @@ class ZDT2(ZDT):
         return jnp.c_[x, 1 - x**2], state
 
 
-class ZDT3(ZDT):
+class ZDT3(ZDTTestSuit):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[0]
@@ -68,7 +68,7 @@ class ZDT3(ZDT):
         return pf, state
 
 
-class ZDT4(ZDT):
+class ZDT4(ZDTTestSuit):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[0]
@@ -81,7 +81,7 @@ class ZDT4(ZDT):
         self._zdt = partial(_generic_zdt, f1, g, h)
 
 
-class ZDT6(ZDT):
+class ZDT6(ZDTTestSuit):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: 1 - jnp.exp(-4 * x[0]) * jnp.sin(6 * jnp.pi * x[0])**6
