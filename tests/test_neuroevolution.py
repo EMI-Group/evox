@@ -8,7 +8,7 @@ from evox import algorithms, pipelines, problems, utils
 from evox.monitors import StdSOMonitor
 
 
-class PartialPGPE(Algorithms.PGPE):
+class PartialPGPE(algorithms.PGPE):
     def __init__(self, center_init):
         super().__init__(
             100, center_init, "adam", center_learning_rate=0.01, stdev_init=0.01
