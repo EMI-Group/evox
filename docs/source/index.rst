@@ -30,13 +30,13 @@ Welcome to EvoX's documentation!
       :link: guide/advanced/index
       :link-type: doc
 
-   .. grid-item-card:: :octicon:`list-unordered;1.5em` Available Algorithms
+   .. grid-item-card:: :octicon:`list-unordered;1.5em` Algorithms
       :padding: 1
       :margin: 0
       :link: api/algorithms/index
       :link-type: doc
 
-   .. grid-item-card:: :octicon:`list-unordered;1.5em` Available Problems
+   .. grid-item-card:: :octicon:`list-unordered;1.5em` Problems
       :padding: 1
       :margin: 0
       :link: api/problems/index
