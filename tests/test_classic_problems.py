@@ -6,7 +6,7 @@ import pytest
 
 
 def test_ackley():
-    ackley = ex.problems.classic.Ackley()
+    ackley = ex.problems.numerical.Ackley()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = ackley.init(keys)
@@ -16,7 +16,7 @@ def test_ackley():
 
 
 def test_griewank():
-    griewank = ex.problems.classic.Griewank()
+    griewank = ex.problems.numerical.Griewank()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 2)
     state = griewank.init(keys)
@@ -26,7 +26,7 @@ def test_griewank():
 
 
 def test_rastrigin():
-    rastrigin = ex.problems.classic.Rastrigin()
+    rastrigin = ex.problems.numerical.Rastrigin()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = rastrigin.init(keys)
@@ -36,7 +36,7 @@ def test_rastrigin():
 
 
 def test_rosenbrock():
-    rosenbrock = ex.problems.classic.Rosenbrock()
+    rosenbrock = ex.problems.numerical.Rosenbrock()
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = rosenbrock.init(keys)
@@ -46,7 +46,7 @@ def test_rosenbrock():
 
 
 def test_dtlz1():
-    dtlz1 = ex.problems.classic.DTLZ1(d=None, m=4)
+    dtlz1 = ex.problems.numerical.DTLZ1(d=None, m=4)
     key = jax.random.PRNGKey(12345)
     keys = jax.random.split(key, 16)
     state = dtlz1.init(keys)

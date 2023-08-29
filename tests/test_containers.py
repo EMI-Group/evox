@@ -18,7 +18,7 @@ def test_clustered_cma_es():
             dim=40,
             num_cluster=4,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         fitness_transform=monitor.record_fit,
     )
     # init the pipeline
@@ -49,7 +49,7 @@ def test_vectorized_coevolution(random_subpop):
     )
     pipeline = pipelines.StdPipeline(
         algorithm,
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         fitness_transform=monitor.record_fit,
     )
     # init the pipeline
@@ -114,7 +114,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
             num_subpop_iter=num_subpop_iter,
             random_subpop=random_subpop,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         fitness_transform=monitor.record_fit,
     )
     # init the pipeline
@@ -145,7 +145,7 @@ def test_random_mask_cso():
             change_every=10,
             pop_size=50,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         fitness_transform=monitor.record_fit,
     )
     # init the pipeline

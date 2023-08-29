@@ -13,7 +13,7 @@ def run_uni_workflow_with_jit_problem():
             ub=jnp.full(shape=(2,), fill_value=32),
             pop_size=20,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         monitor=monitor,
     )
     # init the pipeline
@@ -39,7 +39,7 @@ def run_uni_workflow_with_non_jit_problem():
             ub=jnp.full(shape=(2,), fill_value=32),
             pop_size=20,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         monitor=monitor,
         jit_problem=False,
     )

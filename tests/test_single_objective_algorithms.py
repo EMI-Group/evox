@@ -8,7 +8,7 @@ from evox.utils import compose, rank_based_fitness
 
 
 def run_single_objective_algorithm(
-    algorithm, problem=problems.classic.Sphere(), num_iter=200, fitness_shaping=False
+    algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
 ):
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()

@@ -15,7 +15,7 @@ def test_distributed_cso():
             ub=jnp.full(shape=(2,), fill_value=32),
             pop_size=20,
         ),
-        problem=problems.classic.Ackley(),
+        problem=problems.numerical.Ackley(),
         pop_size=10,
         num_workers=2,
         global_fitness_transform=monitor.record_fit,

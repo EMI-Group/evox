@@ -22,7 +22,7 @@ The list of available algorithms and problems can be found in :mod:`here <evox.a
         ub=jnp.full(shape=(2,), fill_value=32),
         pop_size=100,
     )
-    ackley = problems.classic.Ackley()
+    ackley = problems.numerical.Ackley()
 
 The algorithm and the problem are composed together using ``pipeline``:
 

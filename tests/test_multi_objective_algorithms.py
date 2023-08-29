@@ -13,10 +13,10 @@ UB = 1
 ITER = 10
 
 
-def run_moea(algorithm, problem=problems.classic.DTLZ1(m=M)):
+def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
-    # problem = problems.classic.DTLZ2(m=M)
+    # problem = problems.numerical.DTLZ2(m=M)
     pipeline = pipelines.StdPipeline(
         algorithm=algorithm,
         problem=problem,

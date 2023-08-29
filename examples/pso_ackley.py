@@ -8,7 +8,7 @@ algorithm = algorithms.PSO(
     pop_size=100,
 )
 
-problem = problems.classic.Ackley()
+problem = problems.numerical.Ackley()
 
 # create a pipeline
 
