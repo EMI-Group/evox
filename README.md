@@ -34,6 +34,7 @@
 - [Quick Start](#quick-start)
 - [More Tutorial](#more-tutorial)
 - [Example](#example)
+- [Support](#support)
 
 ## Installation
 
@@ -90,3 +91,8 @@ Head to our [tutorial page](https://evox.readthedocs.io/en/latest/guide/index.ht
 
 The [example](https://github.com/EMI-Group/evox/tree/main/examples) folder has many examples on how to use EvoX.
 
+## Support
+
+- For general discussion, please head to Github's [discussion](https://github.com/EMI-Group/evox/discussions)
+- For Chinese speakers, please consider to join the QQ group to discuss. (Group number: 297969717).
+<img src="./docs/source/_static/qq_group_number.jpg" width="15%">
