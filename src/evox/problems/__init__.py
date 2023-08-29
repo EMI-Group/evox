@@ -1,3 +1,3 @@
 """The module that contains all pre-defined problems"""
 
-from . import numerical, neuroevolution, rl, test_suit
+from . import numerical, neuroevolution, rl
