@@ -760,4 +760,4 @@ class CEC2022TestSuit:
 
     @staticmethod
     def create(func_num: int):
-        return CEC2022.func_num2class[func_num]()
+        return CEC2022TestSuit.func_num2class[func_num]()
