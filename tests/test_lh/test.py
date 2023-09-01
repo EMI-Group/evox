@@ -13,6 +13,5 @@ A = jnp.ones((4, 2))
 
 print(jnp.hstack((points,A)))
 print(jnp.hstack((points,A),axis=1))
-# print(ND)
 
 
