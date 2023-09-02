@@ -7,7 +7,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
-from evox import Problem, State, Stateful
+from evox import Problem, State, Stateful, jit_class, jit_method
 from jax import jit, lax, vmap
 from jax.tree_util import tree_leaves
 from torch.utils.data import DataLoader, Dataset, Sampler, Subset, random_split
@@ -56,7 +56,7 @@ class DeterministicRandomSampler(Sampler):
         return iter(jax.random.permutation(subkey, self.max_len).tolist())
 
     def __len__(self):
-        return max_len
+        return self.max_len
 
 
 class TorchvisionDataset(Problem):
@@ -90,7 +90,7 @@ class TorchvisionDataset(Problem):
         self.in_memory = in_memory
         self.collate_fn = np_collate_fn
 
-        if train_dataset is not None and isinstance(dataset, Dataset):
+        if train_dataset is not None and isinstance(train_dataset, Dataset):
             if dataset_name is not None:
                 warnings.warn(
                     "When train_dataset and test_dataset are specified, dataset_name is ignored"
@@ -130,7 +130,7 @@ class TorchvisionDataset(Problem):
             )
             self.test_dataset = InMemoryDataset.from_pytorch_dataset(self.test_dataset)
 
-    @evox.jit_method
+    @jit_method
     def _new_permutation(self, key):
         num_batches = len(self.train_dataset) // self.batch_size
         permutation = jax.random.permutation(key, len(self.train_dataset))
@@ -150,7 +150,7 @@ class TorchvisionDataset(Problem):
 
         permutation = self._new_permutation(perm_key)
 
-        return State(key=key, permutation=permutation, iter=0, mode=0, metric=0)
+        return State(key=key, permutation=permutation, iter=0, mode=0, metric_func=0)
 
     def _setup(self, key):
         key, subset_key, sampler_key = jax.random.split(key, num=3)
@@ -183,15 +183,15 @@ class TorchvisionDataset(Problem):
             return self._setup(key)
 
     def train(self, state, metric="loss"):
-        return state.update(mode=0, metric=(0 if metric == "loss" else 1))
+        return state.update(mode=0, metric_func=(0 if metric == "loss" else 1))
 
     def valid(self, state, metric="loss"):
-        return state.update(mode=1, metric=(0 if metric == "loss" else 1))
+        return state.update(mode=1, metric_func=(0 if metric == "loss" else 1))
 
     def test(self, state, metric="loss"):
-        return state.update(mode=2, metric=(0 if metric == "loss" else 1))
+        return state.update(mode=2, metric_func=(0 if metric == "loss" else 1))
 
-    @evox.jit_method
+    @jit_method
     def _evaluate_in_memory_train(self, state, batch_params):
         def new_epoch(state):
             key, subkey = jax.random.split(state.key)
@@ -213,23 +213,19 @@ class TorchvisionDataset(Problem):
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
         state, total_loss = lax.fori_loop(
-            0,
-            self.num_passes,
-            batch_evaluate,
-            (state, jnp.zeros((pop_size, )))
+            0, self.num_passes, batch_evaluate, (state, jnp.zeros((pop_size,)))
         )
         return total_loss / self.batch_size / self.num_passes, state
 
-    @partial(jit, static_argnums=[0, 2, 3])
-    def _evaluate_in_memory_valid(self, state, dataset, metric_func, batch_params):
-        num_batches = len(dataset) // self.batch_size
+    def _evaluate_in_memory_valid(self, state, batch_params):
+        num_batches = len(self.valid_dataset) // self.batch_size
         permutation = jnp.arange(num_batches * self.batch_size).reshape(
             num_batches, self.batch_size
         )
 
         def batch_evaluate(i, accumulated_metric):
-            data, labels = dataset[permutation[i]]
-            return accumulated_metric + metric_func(data, labels, batch_params)
+            data, labels = self.valid_dataset[permutation[i]]
+            return accumulated_metric + self._metric_func(state, data, labels, batch_params)
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
         losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
@@ -245,14 +241,14 @@ class TorchvisionDataset(Problem):
             # data, labels = jnp.asarray(data), jnp.asarray(labels)
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
-        total_loss = jnp.zeros((pop_size, ))
+        total_loss = jnp.zeros((pop_size,))
         for _ in range(self.num_passes):
             total_loss += self._calculate_loss(data, labels, batch_params)
         return total_loss / self.batch_size / self.num_passes, state
 
-    def _evaluate_valid(self, state, dataset, metric_func, batch_params):
+    def _evaluate_valid(self, state, batch_params):
         valid_dataloader = DataLoader(
-            dataset,
+            self.valid_dataset,
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
             num_workers=self.num_workers,
@@ -261,42 +257,45 @@ class TorchvisionDataset(Problem):
 
         accumulated_metric = 0
         for data, labels in valid_dataloader:
-            accumulated_metric += metric_func(data, labels, batch_params)
+            accumulated_metric += self._metric_func(state, data, labels, batch_params)
         return accumulated_metric / (len(valid_dataloader) * self.batch_size), state
 
     def evaluate(self, state, batch_params):
-        if state.metric == 0:
-            metric_func = self._calculate_loss
+        if self.in_memory:
+            return lax.switch(
+                state.mode,
+                [self._evaluate_in_memory_train, self._evaluate_in_memory_valid],
+                state,
+                batch_params,
+            )
         else:
-            metric_func = self._calculate_accuracy
+            return lax.switch(
+                state.mode,
+                [self._evaluate_train_mode, self._evaluate_valid_mode],
+                state,
+                batch_params,
+            )
 
-        # dispatch
-        if self.in_memory and state.mode == 0:
-            return self._evaluate_in_memory_train(state, batch_params)
-        elif self.in_memory and state.mode == 1:
-            return self._evaluate_in_memory_valid(state, self.valid_dataset, metric_func, batch_params)
-        elif self.in_memory and state.mode == 2:
-            return self._evaluate_in_memory_valid(state, self.test_dataset, metric_func, batch_params)
-        elif not self.in_memory and state.mode == 0:
-            return self._evaluate_train_mode(state, batch_params)
-        elif not self.in_memory and state.mode == 1:
-            return self._evaluate_valid_mode(state, self.valid_dataset, metric_func, batch_params)
-        elif not self.in_memory and state.mode == 2:
-            return self._evaluate_valid_mode(state, self.test_dataset, metric_func, batch_params)
-        else:
-            raise ValueError(f"Unknown mode: {state.mode}")
+    def _metric_func(self, state, data, labels, batch_params):
+        return lax.switch(
+            state.metric_func,
+            [self._calculate_loss, self._calculate_accuracy],
+            data,
+            labels,
+            batch_params,
+        )
 
-    @evox.jit_method
+    @jit_method
     def _calculate_accuracy(self, data, labels, batch_params):
         output = vmap(self.forward_func, in_axes=(0, None))(
             batch_params, data
         )  # (pop_size, batch_size, out_dim)
         output = jnp.argmax(output, axis=2)  # (pop_size, batch_size)
-        acc = jnp.sum(output == labels, axis=1)
+        acc = jnp.mean(output == labels, axis=1)
 
         return acc
 
-    @evox.jit_method
+    @jit_method
     def _calculate_loss(self, data, labels, batch_params):
         output = vmap(self.forward_func, in_axes=(0, None))(batch_params, data)
         loss = jnp.sum(vmap(self.loss_func, in_axes=(0, None))(output, labels), axis=1)
