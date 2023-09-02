@@ -3,7 +3,7 @@ from typing import Optional, Callable, Dict
 import warnings
 import jax
 import jax.numpy as jnp
-from jax import jit
+from jax import jit, pmap
 from jax.tree_util import tree_map
 from jax.sharding import PositionalSharding
 import jax.experimental.host_callback as hcb
@@ -126,7 +126,7 @@ class UniWorkflow(Stateful):
                     ),
                 )
             if self.distributed_step is True:
-                fitness = jax.lax.all_gather(fitness, "i", axis=0, tiled=True)
+                fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
 
             if self.monitor:
                 if self.metrics:
@@ -211,9 +211,31 @@ class UniWorkflow(Stateful):
         return state
 
     def enable_distributed(self, state):
+        """
+        Enable the distributed workflow to run across multiple nodes.
+        To use jax's distribution ability,
+        one need to run the same program on all nodes
+        with different parameters in `jax.distributed.initialize`.
+
+        Parameters
+        ----------
+        state
+            The state.
+
+        Returns
+        -------
+        State
+            The sharded state, distributed amoung all nodes.
+        """
+        # auto determine pop_size and dimension
         dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
         pop_size, _dim = dummy_pop.shape
         self.slice_size = pop_size // jax.process_count()
         self.start_index = self.slice_size * jax.process_index()
         self.distributed_step = True
+        # enter pmap env, thus allowing collective ops in _step
+        self._step = pmap(self._step, axis_name="node", static_broadcasted_argnums=0)
+        # pmap requires an extra dimension
+        state = tree_map(lambda x: jnp.expand_dims(x, axis=0), state)
+        tree_map(lambda x: print(x.shape), state)
         return state
