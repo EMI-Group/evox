@@ -8,10 +8,11 @@ from lsmop import *
 
 key = random.PRNGKey(1)
 points = jax.random.uniform(key, shape=(4, 2))
-n = 10
-A = jnp.ones((4, 2))
+n = 1000
+m = 6
+r = UniformSampling(n, m)()[0]
 
-print(jnp.hstack((points,A)))
-print(jnp.hstack((points,A),axis=1))
+print(r)
+# print(jnp.hstack((points,A),axis=1))
 
 

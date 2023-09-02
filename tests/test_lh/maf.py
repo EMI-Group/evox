@@ -51,7 +51,6 @@ class MaF1(MaF):
         m = self.m
         n, d = jnp.shape(X)
         g = jnp.sum((X[:, m - 1:] - 0.5).__pow__(2), axis=1).reshape((-1, 1))
-
         ones_col = jnp.ones((n, 1))
         cumprod_term = jnp.fliplr(jnp.cumprod(jnp.hstack([ones_col, X[:, :m - 1]]), axis=1))
         reversed_term = jnp.hstack([ones_col, 1 - X[:, m - 2::-1]])  # Reversed slice for last term
@@ -61,8 +60,9 @@ class MaF1(MaF):
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
+        # n = 1000
         f = 1 - UniformSampling(n, self.m)()[0]
-        return f
+        return f, state
 
 
 class MaF2(MaF):
@@ -108,7 +108,6 @@ class MaF2(MaF):
         return f, state
 
 
-
 class MaF3(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -124,9 +123,11 @@ class MaF3(MaF):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        r = UniformSampling(self.ref_num * self.m, self.m)()[0].__pow__(2)
-        temp = jnp.sum(jnp.sqrt(r[:, :-1]), axis=1) + r[:, -1]
-        f = r / jnp.stack([jnp.repeat(temp.__pow__(2), self.d - 1, axis=1), temp])
+        n = self.ref_num * self.m
+        # n = 1000
+        r = UniformSampling(n, self.m)()[0]**2
+        temp = (jnp.sum(jnp.sqrt(r[:, :-1]), axis=1) + r[:, -1]).reshape((-1,1))
+        f = r / jnp.hstack([jnp.tile(temp**2, (1, r.shape[1]-1)), temp])
         return f, state
 
 
@@ -137,17 +138,19 @@ class MaF4(MaF):
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
         g = 100 * (d - self.m + 1 + jnp.sum(
-            (X[:, self.m - 1:] - 0.5).__pow__(2) - jnp.cos(20 * jnp.pi * (X[:, self.m - 1:] - 0.5)), axis=1));
-        f1 = jnp.repeat(1 + g, self.m, axis=1) - jnp.repeat(1 + g, self.m, axis=1) * jnp.fliplr(
-            jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos(X[:, :self.m - 2] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
+            (X[:, self.m - 1:] - 0.5)**2 - jnp.cos(20 * jnp.pi * (X[:, self.m - 1:] - 0.5)), axis=1))[:, jnp.newaxis]
+        f1 = jnp.tile(1 + g,(1, self.m)) - jnp.tile(1 + g, (1, self.m)) * jnp.fliplr(
+            jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos(X[:, :self.m - 1] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
             [jnp.ones((n, 1)), jnp.sin(X[:, self.m - 2::-1] * jnp.pi / 2)])
-        f = f1 * jnp.repeat(jnp.power(2, jnp.arange(1, self.m + 1)), n, axis=0)
+        f = f1 * jnp.tile(jnp.power(2, jnp.arange(1, self.m + 1)), (n, 1))
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        r = UniformSampling(self.ref_num * self.m, self.m)()[0]
-        r1 = r / jnp.repeat(jnp.sqrt(jnp.sum(r.__pow__(2), axis=1)), self.m, axis=1)
-        f = (1 - r1) * jnp.repeat(jnp.power(2, jnp.arange(1, self.m + 1)), self.ref_num * self.m, axis=0)
+        n = self.ref_num * self.m
+        # n = 1000
+        r = UniformSampling(n, self.m)()[0]
+        r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1, self.m))
+        f = (1 - r1) * jnp.tile(jnp.power(2, jnp.arange(1, self.m + 1)), (r.shape[0], 1))
         return f, state
 
 
@@ -157,20 +160,20 @@ class MaF5(MaF):
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
-        X = X.at[:, :self.m - 1].set(X[:, :self.m - 1].__pow__(100));
-        g = jnp.sum((X[:, self.m - 1:] - 0.5).__pow__(2), axis=1);
-        f1 = jnp.repeat(1 + g, self.m, axis=1) * jnp.fliplr(
+        X = X.at[:, :self.m - 1].set(X[:, :self.m - 1]**100)
+        g = jnp.sum((X[:, self.m - 1:] - 0.5)**2, axis=1)[:,jnp.newaxis]
+        f1 = jnp.tile(1 + g, (1, self.m)) * jnp.fliplr(
             jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos(X[:, :self.m - 1] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
             [jnp.ones((n, 1)), jnp.sin(X[:, self.m - 2::-1] * jnp.pi / 2)])
-        f = f1 * jnp.repeat(jnp.power(2, jnp.arange(self.m, 0, -1)), n, axis=0);
+        f = f1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (n, 1))
         return f, state
 
-        # R = R.*repmat(2.^(obj.M:-1:1),size(R,1),1);
-
     def pf(self, state: chex.PyTreeDef):
-        r = UniformSampling(self.ref_num * self.m, self.m)()[0]
-        r1 = r / jnp.repeat(jnp.sqrt(jnp.sum(r.__pow__(2), axis=1)), self.m, axis=1)
-        f = r1 * jnp.repeat(jnp.power(2, jnp.arange(1, self.m + 1)), self.ref_num * self.m, axis=0)
+        # n = self.ref_num * self.m
+        n = 1000
+        r = UniformSampling(n, self.m)()[0]
+        r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1,self.m))
+        f = r1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (r.shape[0], 1))
         return f, state
 
 
