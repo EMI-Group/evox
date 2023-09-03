@@ -96,6 +96,7 @@ class UniWorkflow(Stateful):
                 hcb.call(self.monitor.record_time, None)
 
             pop, state = self.algorithm.ask(state)
+            pop_size = pop.shape[0]
 
             if self.monitor and self.record_pop:
                 hcb.id_tap(self.monitor.record_pop, pop)
@@ -112,7 +113,6 @@ class UniWorkflow(Stateful):
             if self.jit_problem:
                 fitness, state = self.problem.evaluate(state, pop)
             else:
-                pop_size = pop.shape[0]
                 if self.num_objectives == 1:
                     fit_shape = (pop_size,)
                 else:
@@ -149,8 +149,32 @@ class UniWorkflow(Stateful):
 
         self._step = jit_method(_step)
 
+        def _valid(self, state, metric):
+            new_state = self.problem.valid(state, metric=metric)
+            pop, new_state = self.algorithm.ask(new_state)
+
+            if self.distributed_step is True:
+                pop = jax.lax.dynamic_slice_in_dim(
+                    pop, self.start_index, self.slice_size, axis=0
+                )
+
+            if self.pop_transform is not None:
+                pop = self.pop_transform(pop)
+
+            fitness, new_state = self.problem.evaluate(new_state, pop)
+
+            if self.distributed_step is True:
+                fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
+            
+            return fitness, state
+
+        self._valid = jit_method(_valid)
+
     def step(self, state):
         return self._step(self, state)
+    
+    def valid(self, state, metric):
+        return self._valid(self, state, metric)
 
     def _auto_shard(self, state, sharding, pop_size, dim):
         def get_shard_for_array(arr):
@@ -233,9 +257,9 @@ class UniWorkflow(Stateful):
         self.slice_size = pop_size // jax.process_count()
         self.start_index = self.slice_size * jax.process_index()
         self.distributed_step = True
-        # enter pmap env, thus allowing collective ops in _step
+        # enter pmap env, thus allowing collective ops in _step and _valid
         self._step = pmap(self._step, axis_name="node", static_broadcasted_argnums=0)
+        self._valid = pmap(self._valid, axis_name="node", static_broadcasted_argnums=0, in_axes=(None, 0, None))
         # pmap requires an extra dimension
         state = tree_map(lambda x: jnp.expand_dims(x, axis=0), state)
-        tree_map(lambda x: print(x.shape), state)
         return state
