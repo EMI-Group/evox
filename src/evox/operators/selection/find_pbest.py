@@ -11,8 +11,8 @@ from functools import partial
 def select_rand_pbest(key, percent, population, fitness):
     assert percent > 0 and percent <= 1.0
     pop_size = population.shape[0]
+    top_p_num = max(int(pop_size * percent), 1)  # The number is p,  ranges in 5% - 20%.
     sorted_indices = jnp.argsort(fitness)
-    top_p_num = int(pop_size * percent)  # The number is p,  ranges in 5% - 20%
     pbest_indices = sorted_indices[:top_p_num]
     pbest_index = jax.random.choice(key, pbest_indices)
     pbest_vect = population[pbest_index]
