@@ -182,14 +182,14 @@ class TorchvisionDataset(Problem):
         else:
             return self._setup(key)
 
-    def train(self, state, metric="loss"):
-        return state.update(mode=0, metric_func=(0 if metric == "loss" else 1))
+    def train(self, state, metric=0):
+        return state.update(mode=0, metric_func=metric)
 
-    def valid(self, state, metric="loss"):
-        return state.update(mode=1, metric_func=(0 if metric == "loss" else 1))
+    def valid(self, state, metric=0):
+        return state.update(mode=1, metric_func=metric)
 
-    def test(self, state, metric="loss"):
-        return state.update(mode=2, metric_func=(0 if metric == "loss" else 1))
+    def test(self, state, metric=0):
+        return state.update(mode=2, metric_func=metric)
 
     @jit_method
     def _evaluate_in_memory_train(self, state, batch_params):
