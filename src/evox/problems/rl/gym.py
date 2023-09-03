@@ -183,6 +183,7 @@ class Controller:
         terminated = False
         episode_length = 0
 
+        @jit
         def batch_policy_evaluation(observations):
             # the first two dims are num_workers and env_per_worker
             observation_dim = observations.shape[2:]
@@ -203,7 +204,7 @@ class Controller:
         while True:
             observations = jnp.asarray(observations)
             # get action from policy
-            actions = jit(batch_policy_evaluation)(observations)
+            actions = batch_policy_evaluation(observations)
             # convert to numpy array
             actions = np.asarray(actions)
 
@@ -211,13 +212,10 @@ class Controller:
                 worker.step.remote(action)
                 for worker, action in zip(self.workers, actions)
             ]
-            observations, terminated = zip(*ray.get(futures))
-
-            all_terminated = reduce(
-                lambda carry, elem: carry and all(elem), terminated, True
-            )
-
-            if all_terminated:
+            observations, terminated, truncated = zip(*ray.get(futures))
+            terminated = np.concatenate(terminated, axis=0)
+            truncated = np.concatenate(truncated, axis=0)
+            if np.all(terminated | truncated):
                 break
 
             i += 1
