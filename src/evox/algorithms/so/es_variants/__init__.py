@@ -7,7 +7,7 @@ from .des import DES
 from .esmc import ESMC
 from .guided_es import GuidedES
 from .ma_es import MAES, LMMAES
-from .nes import xNES, SeparableNES
+from .nes import XNES, SeparableNES
 from .noise_reuse_es import Noise_reuse_es
 from .open_es import OpenES
 from .persistent_es import PersistentES
