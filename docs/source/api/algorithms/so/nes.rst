@@ -2,7 +2,7 @@
 xNES
 ====
 
-.. autoclass:: evox.algorithms.xNES
+.. autoclass:: evox.algorithms.XNES
     :members:
 
 .. autoclass:: evox.algorithms.SeparableNES

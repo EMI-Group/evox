@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from evox import pipelines, problems
-from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, xNES, CoDE, JaDE, SaDE, SHADE
+from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
 
@@ -98,7 +98,7 @@ def test_openes(optimizer):
 def test_xnes():
     init_mean = jnp.array([5.0, -10, 15, -20, 25])
     init_covar = jnp.eye(5) * 2
-    algorithm = xNES(init_mean, init_covar, pop_size=100)
+    algorithm = XNES(init_mean, init_covar, pop_size=100)
     fitness = run_single_objective_algorithm(algorithm)
     assert fitness < 0.1
 
