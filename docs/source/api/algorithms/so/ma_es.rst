@@ -1,5 +1,5 @@
 =====
-MAES
+MA-ES
 =====
 
 .. autoclass:: evox.algorithms.MAES

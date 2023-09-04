@@ -1,5 +1,5 @@
 ==============
-Noise_reuse_es
+Noise-Reuse-ES
 ==============
 
 .. autoclass:: evox.algorithms.Noise_reuse_es

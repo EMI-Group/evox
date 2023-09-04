@@ -1,6 +1,6 @@
-===
-SL_PSO_US
-===
+=========
+SL-PSO-US
+=========
 
 .. autoclass:: evox.algorithms.SLPSOUS
     :members:

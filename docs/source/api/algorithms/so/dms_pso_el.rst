@@ -1,6 +1,6 @@
-===
-DMS_PSO_EL
-===
+==========
+DMS-PSO-EL
+==========
 
 .. autoclass:: evox.algorithms.DMSPSOEL
     :members:

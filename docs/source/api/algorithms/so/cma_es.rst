@@ -1,5 +1,5 @@
 ======
-CMA ES
+CMA-ES
 ======
 
 .. autoclass:: evox.algorithms.CMAES
