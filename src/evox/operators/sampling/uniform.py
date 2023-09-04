@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 from itertools import combinations as n_choose_k
-from scipy.special import comb
+from math import comb
 
 import evox
 
