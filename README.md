@@ -96,3 +96,15 @@ The [example](https://github.com/EMI-Group/evox/tree/main/examples) folder has m
 - For general discussion, please head to Github's [discussion](https://github.com/EMI-Group/evox/discussions)
 - For Chinese speakers, please consider to join the QQ group to discuss. (Group number: 297969717).
 <img src="./docs/source/_static/qq_group_number.jpg" width="15%">
+
+## Citation
+
+```
+@article{evox,
+  title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
+  author = {Huang, Beichen and Cheng, Ran and Li, Zhuozhao and Jin, Yaochu and Tan, Kay Chen},
+  journal = {arXiv preprint arXiv:2301.12457},
+  eprint = {2301.12457},
+  year = {2023}
+}
+```
