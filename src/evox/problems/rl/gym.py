@@ -1,7 +1,6 @@
-from functools import reduce
 from typing import Callable, Optional
 
-import gym
+import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -9,7 +8,7 @@ import ray
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose
 
-from evox import Problem, Algorithm, State, Stateful, jit_class
+from evox import Problem, State, Stateful, jit_class, jit_method
 
 
 @jit_class
@@ -41,7 +40,6 @@ class Normalizer(Stateful):
         )
 
     def normalize_obvs(self, state, obvs):
-
         newCount = state.count + len(obvs)
         newSum = state.sum + jnp.sum(obvs, axis=0)
         newSumOFsquares = state.sumOfSquares + jnp.sum(obvs**2, axis=0)
@@ -102,9 +100,7 @@ class Worker:
         i = 0
         while True:
             observations = jnp.asarray(self.observations)
-            actions = np.asarray(
-                self.policy(subpop, observations)
-            )
+            actions = np.asarray(self.policy(subpop, observations))
             self.step(actions)
 
             if np.all(self.terminated | self.truncated):
@@ -143,28 +139,27 @@ class Controller:
         self.policy = policy
         self.batch_policy = batch_policy
 
+    @jit_method
+    def slice_pop(self, pop):
+        def reshape_weight(w):
+            # first dim is batch
+            weight_dim = w.shape[1:]
+            return list(w.reshape((self.num_workers, self.env_per_worker, *weight_dim)))
+
+        if isinstance(pop, jax.Array):
+            # first dim is batch
+            param_dim = pop.shape[1:]
+            pop = pop.reshape((self.num_workers, self.env_per_worker, *param_dim))
+        else:
+            outer_treedef = tree_structure(pop)
+            inner_treedef = tree_structure([0 for _i in range(self.num_workers)])
+            pop = tree_map(reshape_weight, pop)
+            pop = tree_transpose(outer_treedef, inner_treedef, pop)
+
+        return pop
+
     def _evaluate(self, seeds, pop, cap_episode_length):
-        def slice_pop(pop):
-            def reshape_weight(w):
-                # first dim is batch
-                weight_dim = w.shape[1:]
-                return list(
-                    w.reshape((self.num_workers, self.env_per_worker, *weight_dim))
-                )
-
-            if isinstance(pop, jax.Array):
-                # first dim is batch
-                param_dim = pop.shape[1:]
-                pop = pop.reshape((self.num_workers, self.env_per_worker, *param_dim))
-            else:
-                outer_treedef = tree_structure(pop)
-                inner_treedef = tree_structure([0 for i in range(self.num_workers)])
-                pop = tree_map(reshape_weight, pop)
-                pop = tree_transpose(outer_treedef, inner_treedef, pop)
-
-            return pop
-
-        sliced_pop = jit(slice_pop)(pop)
+        sliced_pop = self.slice_pop(pop)
         rollout_future = [
             worker.rollout.remote(worker_seeds, subpop, cap_episode_length)
             for worker_seeds, subpop, worker in zip(seeds, sliced_pop, self.workers)
@@ -172,6 +167,21 @@ class Controller:
 
         rewards, episode_length = zip(*ray.get(rollout_future))
         return np.array(rewards).reshape(-1), np.array(episode_length).reshape(-1)
+
+    @jit_method
+    def batch_policy_evaluation(self, observations, pop):
+        # the first two dims are num_workers and env_per_worker
+        observation_dim = observations.shape[2:]
+        actions = jax.vmap(self.policy)(
+            pop,
+            observations.reshape(
+                (self.num_workers * self.env_per_worker, *observation_dim)
+            ),
+        )
+        # reshape in order to distribute to different workers
+        action_dim = actions.shape[1:]
+        actions = actions.reshape((self.num_workers, self.env_per_worker, *action_dim))
+        return actions
 
     def _batched_evaluate(self, seeds, pop, cap_episode_length):
         observations = ray.get(
@@ -183,28 +193,11 @@ class Controller:
         terminated = False
         episode_length = 0
 
-        @jit
-        def batch_policy_evaluation(observations):
-            # the first two dims are num_workers and env_per_worker
-            observation_dim = observations.shape[2:]
-            actions = jax.vmap(self.policy)(
-                pop,
-                observations.reshape(
-                    (self.num_workers * self.env_per_worker, *observation_dim)
-                ),
-            )
-            # reshape in order to distribute to different workers
-            action_dim = actions.shape[1:]
-            actions = actions.reshape(
-                (self.num_workers, self.env_per_worker, *action_dim)
-            )
-            return actions
-
         i = 0
         while True:
             observations = jnp.asarray(observations)
             # get action from policy
-            actions = batch_policy_evaluation(observations)
+            actions = self.batch_policy_evaluation(observations, pop)
             # convert to numpy array
             actions = np.asarray(actions)
 
