@@ -26,7 +26,7 @@ class UniformSampling:
             jnp.array(list(n_choose_k(range(1, h1 + self.m), self.m - 1)))
             - jnp.tile(
                 jnp.array(range(self.m - 1)),
-                (comb(h1 + self.m - 1, self.m - 1).astype(int), 1),
+                (comb(h1 + self.m - 1, self.m - 1), 1),
             )
             - 1
         )
@@ -46,7 +46,7 @@ class UniformSampling:
                     jnp.array(list(n_choose_k(range(1, h2 + self.m), self.m - 1)))
                     - jnp.tile(
                         jnp.array(range(self.m - 1)),
-                        (comb(h2 + self.m - 1, self.m - 1).astype(int), 1),
+                        (comb(h2 + self.m - 1, self.m - 1), 1),
                     )
                     - 1
                 )
