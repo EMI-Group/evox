@@ -52,7 +52,7 @@ exclude_patterns = []
 autodoc_mock_imports = [
     "brax",
     "chex",
-    "gym",
+    "gymnasium",
     "ray",
     "torch",
     "torchvision",

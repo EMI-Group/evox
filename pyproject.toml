@@ -44,7 +44,7 @@ test = [
   "pytest >= 6.0.0",
 ]
 
-gym = ["gym >= 0.26.0"]
+gymnasium = ["gymnasium >= 0.29.0"]
 
 neuroevolution = [
   "torch >= 1.0.0",
@@ -54,7 +54,7 @@ neuroevolution = [
 distributed = ["ray >= 2.0.0"]
 
 full = [
-  "gym >= 0.26.0",
+  "gymnasium >= 0.29.0",
   "ray >= 2.0.0",
   "torch >= 1.0.0",
   "torchvision >= 0.1.0",
