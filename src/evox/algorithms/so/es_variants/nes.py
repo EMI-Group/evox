@@ -17,7 +17,7 @@ from evox import Algorithm, State, jit_class
 
 
 @jit_class
-class xNES(Algorithm):
+class XNES(Algorithm):
     def __init__(
         self,
         init_mean,
@@ -91,11 +91,11 @@ class xNES(Algorithm):
         return population, state.update(noise=noise, key=key)
 
     def tell(self, state, fitness):
-        fitness, noise = sort_by_key(fitness, state.noise)
-
         if self.recombination_weights is None:
             weights = fitness
+            noise = state.noise
         else:
+            fitness, noise = sort_by_key(fitness, state.noise)
             weights = self.recombination_weights
 
         I = jnp.eye(self.dim)
