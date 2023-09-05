@@ -259,7 +259,6 @@ class UniWorkflow(Stateful):
         self.distributed_step = True
         # enter pmap env, thus allowing collective ops in _step and _valid
         self._step = pmap(self._step, axis_name="node", static_broadcasted_argnums=0)
-        self._valid = pmap(self._valid, axis_name="node", static_broadcasted_argnums=0, in_axes=(None, 0, None))
         # pmap requires an extra dimension
         state = tree_map(lambda x: jnp.expand_dims(x, axis=0), state)
         return state
