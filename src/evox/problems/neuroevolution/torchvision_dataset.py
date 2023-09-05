@@ -59,6 +59,7 @@ class DeterministicRandomSampler(Sampler):
         return self.max_len
 
 
+@jit_class
 class TorchvisionDataset(Problem):
     def __init__(
         self,
