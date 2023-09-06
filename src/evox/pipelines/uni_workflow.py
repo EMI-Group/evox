@@ -27,7 +27,7 @@ class UniWorkflow(Stateful):
         monitor=None,
         pop_transform: Optional[Callable] = None,
         fit_transform: Optional[Callable] = None,
-        record_pop: bool = True,
+        record_pop: bool = False,
         record_time: bool = False,
         metrics: Optional[Dict[str, Callable]] = None,
         jit_problem: bool = True,
