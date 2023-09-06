@@ -10,6 +10,7 @@ from jax import vmap
 from matplotlib.path import Path
 
 
+@evox.jit_class
 class MaF(Problem):
     """
     ------------------------------- Reference --------------------------------
@@ -169,8 +170,8 @@ class MaF5(MaF):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        # n = self.ref_num * self.m
-        n = 1000
+        n = self.ref_num * self.m
+        # n = 1000
         r = UniformSampling(n, self.m)()[0]
         r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1,self.m))
         f = r1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (r.shape[0], 1))
@@ -184,22 +185,24 @@ class MaF6(MaF):
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
         i = 2
-        g = jnp.sum((X[:, self.m - 1:] - 0.5).__pow__(2), axis=1);
-        temp = jnp.repeat(g, self.m - i, axis=1)
+        g = jnp.sum((X[:, self.m - 1:] - 0.5)**2, axis=1)[:, jnp.newaxis]
+        temp = jnp.tile(g, (1, self.m - i))
         X = X.at[:, i - 1:self.m - 1].set((1 + 2 * temp * X[:, i - 1:self.m - 1]) / (2 + 2 * temp))
-        f = jnp.repeat(1 + 100 * g, self.m, axis=1) * jnp.fliplr(
+        f = jnp.tile((1 + 100 * g),(1, self.m)) * jnp.fliplr(
             jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos(X[:, :self.m - 1] * jnp.pi / 2)]), axis=1)) * jnp.hstack(
             [jnp.ones((n, 1)), jnp.sin(X[:, self.m - 2::-1] * jnp.pi / 2)])
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        i = 2;
-        n = self.ref_num * self.m
+        i = 2
+        # n = self.ref_num * self.m
+        n = 1000
         r = UniformSampling(n, i)()[0]
-        r1 = r / jnp.repeat(jnp.sqrt(jnp.sum(r.__pow__(2), axis=1)), i, axis=1)
-        r2 = jnp.hstack([jnp.repeat(r1[:, 1], self.m - i, axis=1), r1])
-        f = r2 / jnp.power(jnp.sqrt(2),
-                           jnp.repeat(jnp.maximum(self.m - i, jnp.arange(self.m - i, 2 - i, -1)), n, axis=0))
+        r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1, r.shape[1]))
+        if r1.shape[1] < self.m:
+            r1 = jnp.hstack((r1[:, jnp.zeros((self.m - r1.shape[1])).astype(int)], r1))
+        f = r1 / jnp.power(jnp.sqrt(2),
+                           jnp.tile(jnp.maximum(self.m - i, 0), (r.shape[0], 1)))
         return f, state
 
 
@@ -211,28 +214,32 @@ class MaF7(MaF):
         n, d = jnp.shape(X)
         f = jnp.zeros((n, self.m))
         g = 1 + 9 * jnp.mean(X[:, self.m - 1:], axis=1)
-        f = f.at[:, :self.m - 2].set(X[:, :self.m - 2])
+        f = f.at[:, :self.m - 1].set(X[:, :self.m - 1])
         f = f.at[:, self.m - 1].set((1 + g) * (self.m - jnp.sum(
-            X[:, :self.m - 2] / (1 + jnp.repeat(g, self.m - 1, axis=1)) * (
-                    1 + jnp.sin(3 * jnp.pi * X[:, :self.m - 2:])), axis=1)))
+            f[:, :self.m - 1] / (1 + jnp.tile(g[:, jnp.newaxis], (1, self.m - 1))) * (
+                    1 + jnp.sin(3 * jnp.pi * f[:, :self.m - 1])), axis=1)))
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
+        # n = 1000
         interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
         median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0])
-        X = UniformSampling(n, self.m - 1)()[0]
+        X = self._grid(n, self.m - 1)
         X = jnp.where(X <= median, X * (interval[1] - interval[0]) / median + interval[0], X)
         X = jnp.where(X > median, (X - median) * (interval[3] - interval[2]) / (1 - median) + interval[2], X)
-        f = jnp.hstack([X, 2 * (self.m - jnp.sum(X / 2 * (1 + jnp.sin(3 * jnp.pi * X)), axis=1))])
+        f = jnp.hstack([X, 2 * (self.m - jnp.sum(X / 2 * (1 + jnp.sin(3 * jnp.pi * X)), axis=1))[:,jnp.newaxis]])
         return f, state
 
-
+    def _grid(self,N, M):
+        gap = jnp.linspace(0, 1, jnp.ceil(N ** (1 / M)).astype(int))
+        c = jnp.meshgrid(*[gap] * M)
+        W = jnp.column_stack([c[i].ravel() for i in range(M)])
+        return jnp.flip(W,axis=1)
 class MaF8(MaF):
     """
     the dimention only is 2.
     """
-
     def __init__(self, d=None, m=None, ref_num=1000):
         d = 2
         super().__init__(d, m, ref_num)
@@ -245,23 +252,23 @@ class MaF8(MaF):
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
         # [X, Y] = ndgrid(linspace(-1, 1, ceil(sqrt(N))));
-        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(jnp.int32))
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
         x, y = jnp.meshgrid(temp, temp)
         x = x.ravel(order="F")
         y = y.ravel(order="F")
-        # using jnp as np, this may make some mistakes, but in my test, there is no warning
+        # using np based library, this may make some mistakes, but in my test, there is no warning
         poly_path = Path(self.points)
         _points = jnp.column_stack((x, y))
         ND = poly_path.contains_points(_points)
 
-        f = self._eucl_dis([x[ND], y[ND]], self.points)
+        f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f, state
 
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
-        return jnp.vstack([x, y])
+        return jnp.column_stack([x, y])
 
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
@@ -274,11 +281,8 @@ class MaF8(MaF):
         return (x, y)
 
     def _eucl_dis(self, x, y):
-        a_squared = jnp.sum(jnp.square(x), axis=1)
-        b_squared = jnp.sum(jnp.square(y), axis=1)
-        ab = jnp.dot(x, y.T)
-        distance = jnp.sqrt(jnp.add(jnp.add(-2 * ab, a_squared[:, jnp.newaxis]), b_squared))
-        return distance
+        dist_matrix = jnp.linalg.norm(x[:, None] - y, axis=-1)
+        return dist_matrix
 
 
 class MaF9(MaF):
@@ -292,29 +296,30 @@ class MaF9(MaF):
         m, d1 = jnp.shape(self.points)
         f = jnp.zeros((n, m))
         for i in range(m):
-            f = f.at[:, i].set(self._Point2Line(X, self.points[jnp.mod(jnp.arange(i, i + 2), m) + 1, :]))
+            f = f.at[:, i].set(self._Point2Line(X, self.points[jnp.mod(jnp.arange(i, i + 2), m), :]))
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
+        # n = 1000
         # [X, Y] = ndgrid(linspace(-1, 1, ceil(sqrt(N))));
-        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(jnp.int32))
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
         x, y = jnp.meshgrid(temp, temp)
-        x = x.ravel(order="F")
-        y = y.ravel(order="F")
+        x = x.ravel(order="C")
+        y = y.ravel(order="C")
         # using jnp as np, this may make some mistakes, but in my test, there is no warning
         poly_path = Path(self.points)
         _points = jnp.column_stack((x, y))
         ND = poly_path.contains_points(_points)
 
-        f = self.evaluate(state, jnp.vstack((x[ND], y[ND])))
+        f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
-        return jnp.vstack([x, y])
+        return jnp.column_stack([x, y])
 
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
@@ -325,11 +330,21 @@ class MaF9(MaF):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
+    # obj.Points[:, 0], obj.Points[:, 1] = np.cos(thera - np.arange(1, obj.M + 1) * 2 * np.pi / obj.M) * rho, np.sin(
+    #     thera - np.arange(1, obj.M + 1) * 2 * np.pi / obj.M) * rho
+    def _Point2Line(self, PopDec, Line):
+        # distance = jnp.abs((line[0, 0] - f[:, 0]) * (line[1, 1] - f[:, 1]) - (line[1, 0] - f[:, 0]) * (
+        #         line[0, 1] - f[:, 1])) / jnp.sqrt((line[0, 0] - line[1, 0]) ** 2 + (line[0, 1] - line[1, 1]) ** 2)
 
-    def _Point2Line(self, f, line):
-        distance = jnp.abs((line[0, 0] - f[:, 0]) * (line[1, 1] - f[:, 1]) - (line[1, 0] - f[:, 0]) * (
-                line[0, 1] - f[:, 1])) / jnp.sqrt((line[0, 0] - line[1, 0]) ** 2 + (line[0, 1] - line[1, 1]) ** 2)
-        return distance
+        
+        # Distance = abs((Line(1, 1) - PopDec(:, 1)). * (Line(2, 2) - PopDec(:, 2))-(Line(2, 1) - PopDec(:, 1)).*(
+        #             Line(1, 2) - PopDec(:, 2)))./ sqrt((Line(1, 1) - Line(2, 1)). ^ 2 + (Line(1, 2) - Line(2, 2)). ^ 2);
+        Distance = jnp.abs((Line[0, 0] - PopDec[:, 0]) * (Line[1, 1] - PopDec[:, 1]) - (Line[1, 0] - PopDec[:, 0]) * (
+                    Line[0, 1] - PopDec[:, 1])) / jnp.sqrt(
+            (Line[0, 0] - Line[1, 0]) ** 2 + (Line[0, 1] - Line[1, 1]) ** 2)
+        return Distance
+
+        # return distance
 
 
 class MaF10(MaF):
@@ -351,9 +366,9 @@ class MaF10(MaF):
         L = d - K
         D = 1
         S = jnp.arange(2, 2 * M + 1, 2)
-        A = jnp.ones((M - 1))
+        A = jnp.ones(M - 1)
 
-        z01 = X / jnp.tile(jnp.arange(2, d * 2 + 1, 2), (n, 1))
+        z01 = X / jnp.arange(2, d * 2 + 1, 2)
         t1 = jnp.zeros((n, K + L))
         t1 = t1.at[:, :K].set(z01[:, :K])
         t1 = t1.at[:, K:].set(self._s_linear(z01[:, K:], 0.35))
@@ -365,20 +380,21 @@ class MaF10(MaF):
         t3 = t2 ** 0.02
 
         t4 = jnp.zeros((n, M))
-        for i in range(1, M):
-            t4 = t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange((i - 1) * K / (M - 1), i * K / (M - 1))],
-                                                 jnp.arange(2 * ((i - 1) * K / (M - 1) + 1),
-                                                            2 * (i + 1) * K / (M - 1) + 1, 2)))
+        t4 = t4.at[:, 0].set(self._r_sum(t3[:, int(K/(M-1)-1)], 2*K/(M-1)))
+        for i in range(2, M):
+            t4 = t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange(int((i - 1) * K / (M - 1)), int(i * K / (M - 1) + 1)) - 1],
+                                                 jnp.arange(int(2 * ((i - 1) * K / (M - 1) + 1)),
+                                                            int(2 * i * K / (M - 1) + 1), 2)))
         t4 = t4.at[:, M - 1].set(
             self._r_sum(t3[:, jnp.arange(K + 1, K + L + 1) - 1], jnp.arange(2 * (K + 1), 2 * (K + L) + 1, 2)))
         x = jnp.zeros((n, M))
         for i in range(1, M):
             x = x.at[:, i - 1].set(jnp.maximum(t4[:, M - 1], A[i - 1]) * (t4[:, i - 1] - 0.5) + 0.5)
-        x = x.at[:M - 1].set(t4[:, M - 1])
+        x = x.at[:, M - 1].set(t4[:, M - 1])
 
         h = self._convex(x)
         h = h.at[:, M].set(self._mixed(x))
-        f = jnp.tile(D @ x[:M], (1, M)) + jnp.tile(S, (n, 1)) * h
+        f = jnp.tile((x[:, M])[:,jnp.newaxis], (1, M)) + S * h
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
@@ -405,7 +421,7 @@ class MaF10(MaF):
         return f, state
 
     def _s_linear(self, y, A):
-        output = jnp.abs(y - A).jnp.abs((A - y).astype(jnp.float32) + A)
+        output = jnp.abs(y - A)/jnp.abs((A - y).astype(jnp.float32) + A)
         return output
 
     def _b_flat(self, y, A, B, C):
@@ -415,7 +431,7 @@ class MaF10(MaF):
         return output
 
     def _r_sum(self, y, w):
-        return jnp.sum(y * jnp.repeat(w, y.shape[0], axis=0), axis=1)
+        return jnp.sum(y * w, axis=1)/ jnp.sum(w)
 
     def _convex(self, x):
         return jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((x.shape[0], 1)), 1 - jnp.cos(x[:, :-1] * jnp.pi / 2)]),
