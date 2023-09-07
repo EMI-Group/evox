@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. SPEA2 algorithm is described in the following papers:
+#
+# Title: SPEA2: Improving the strength pareto evolutionary algorithm
+# Link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -61,7 +72,6 @@ class SPEA2(Algorithm):
     """SPEA2 algorithm
 
     link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
-    Inspired by PlatEMO.
     """
 
     def __init__(

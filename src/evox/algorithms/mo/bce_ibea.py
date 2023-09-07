@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. Bi-criterion evolution based IBEA algorithm is described in the following papers:
+#
+# Title: Pareto or Non-Pareto: Bi-Criterion Evolution in Multiobjective Optimization
+# Link: https://ieeexplore.ieee.org/abstract/document/7347391
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -165,7 +176,6 @@ class BCEIBEA(Algorithm):
     """Bi-criterion evolution based IBEA
 
     link: https://ieeexplore.ieee.org/abstract/document/7347391
-    Inspired by PlatEMO.
 
     Note: The number of outer iterations needs to be set to Maximum Generation*2+1.
 

@@ -1,3 +1,15 @@
+# --------------------------------------------------------------------------------------
+# 1. NSGA-III algorithm is described in the following papers:
+#
+# Title: An Evolutionary Many-Objective Optimization Algorithm Using Reference-Point-Based Nondominated Sorting
+# Approach, Part I: Solving Problems With Box Constraints
+# Link: https://ieeexplore.ieee.org/document/6600851
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 

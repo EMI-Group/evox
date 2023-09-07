@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. MOEA/D-DRA algorithm is described in the following papers:
+#
+# Title: The performance of a new version of MOEA/D on CEC09 unconstrained MOP test instances
+# Link: https://ieeexplore.ieee.org/abstract/document/4982949
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -12,9 +23,8 @@ class MOEADDRA(Algorithm):
     """MOEA/D-DRA algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/4982949
-    Inspired by PlatEMO.
     """
-
+    
     def __init__(
         self,
         lb,

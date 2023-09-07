@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------------------
+# 1. NSGA-II algorithm is described in the following papers:
+#
+# Title: A fast and elitist multiobjective genetic algorithm: NSGA-II
+# Link: https://ieeexplore.ieee.org/document/996017
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 

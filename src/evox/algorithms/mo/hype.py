@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. HypE algorithm is described in the following papers:
+#
+# Title: HypE: An Algorithm for Fast Hypervolume-Based Many-Objective Optimization
+# Link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 from functools import partial
@@ -57,7 +68,6 @@ class HypE(Algorithm):
     """HypE algorithm
 
     link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
-    Inspired by PlatEMO.
     """
 
     def __init__(

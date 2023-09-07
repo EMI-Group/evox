@@ -1,3 +1,15 @@
+# --------------------------------------------------------------------------------------
+# 1. EAG-MOEA/D algorithm is described in the following papers:
+#
+# Title: An External Archive Guided Multiobjective Evolutionary Algorithm Based on Decomposition for Combinatorial
+# Optimization
+# Link: https://ieeexplore.ieee.org/abstract/document/6882229
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 from functools import partial
@@ -31,7 +43,6 @@ class EAGMOEAD(Algorithm):
     """EAG-MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/abstract/document/6882229
-    Inspired by PlatEMO.
     """
 
     def __init__(
