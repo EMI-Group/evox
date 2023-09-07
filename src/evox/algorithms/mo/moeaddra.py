@@ -24,6 +24,7 @@ class MOEADDRA(Algorithm):
 
     link: https://ieeexplore.ieee.org/abstract/document/4982949
     """
+    
     def __init__(
         self,
         lb,
