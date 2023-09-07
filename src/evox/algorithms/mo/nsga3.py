@@ -25,6 +25,11 @@ from evox import Algorithm, jit_class, State
 
 @jit_class
 class NSGA3(Algorithm):
+    """NSGA-III algorithm
+
+    link: https://ieeexplore.ieee.org/document/6600851
+    """
+
     def __init__(
         self,
         lb,

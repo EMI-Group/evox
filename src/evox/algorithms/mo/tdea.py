@@ -99,6 +99,11 @@ def environmental_selection(pop, obj, w, n, z, z_nad):
 
 @jit_class
 class TDEA(Algorithm):
+    """Theta-dominance based evolutionary algorithm
+
+    link: https://ieeexplore.ieee.org/abstract/document/7080938
+    """
+
     def __init__(
         self,
         lb,

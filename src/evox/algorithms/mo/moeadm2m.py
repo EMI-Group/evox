@@ -94,6 +94,11 @@ def associate(rng, pop, obj, w, s):
 
 @jit_class
 class MOEADM2M(Algorithm):
+    """MOEA/D based on MOP to MOP algorithm
+
+    link: https://ieeexplore.ieee.org/abstract/document/6595549
+    """
+
     def __init__(
         self,
         lb,

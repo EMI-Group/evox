@@ -113,6 +113,11 @@ def environmental_selection(key, pop, obj, k, uni_rnd):
 
 @jit_class
 class SRA(Algorithm):
+    """Stochastic ranking algorithm
+
+    link: https://ieeexplore.ieee.org/abstract/document/7445185
+    """
+
     def __init__(
         self,
         lb,

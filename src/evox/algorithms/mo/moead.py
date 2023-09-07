@@ -20,6 +20,11 @@ from evox import Algorithm, State, jit_class
 
 @jit_class
 class MOEAD(Algorithm):
+    """MOEA/D algorithm
+
+    link: https://ieeexplore.ieee.org/document/4358754
+    """
+
     def __init__(
         self,
         lb,

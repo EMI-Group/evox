@@ -69,7 +69,6 @@ class HypE(Algorithm):
     """HypE algorithm
 
     link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
-    Inspired by PlatEMO.
     """
 
     def __init__(

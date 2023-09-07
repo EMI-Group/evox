@@ -173,7 +173,10 @@ def environmental_selection(pop, obj, n, kappa):
 
 @jit_class
 class BCEIBEA(Algorithm):
-    """
+    """Bi-criterion evolution based IBEA
+
+    link: https://ieeexplore.ieee.org/abstract/document/7347391
+
     Note: The number of outer iterations needs to be set to Maximum Generation*2+1.
 
     Args:

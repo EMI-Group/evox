@@ -69,6 +69,11 @@ def _truncation(obj, k, mask):
 
 @jit_class
 class SPEA2(Algorithm):
+    """SPEA2 algorithm
+
+    link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
+    """
+
     def __init__(
         self,
         lb,

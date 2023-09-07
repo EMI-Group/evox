@@ -15,6 +15,11 @@ from evox import Algorithm, State, jit_class
 
 @jit_class
 class RVEA(Algorithm):
+    """RVEA algorithms
+
+    link: https://ieeexplore.ieee.org/document/7386636
+    """
+
     def __init__(
         self,
         lb,

@@ -22,6 +22,11 @@ from evox.operators import (
 
 @jit_class
 class GDE3(Algorithm):
+    """GDE3 algorithm
+
+    link: https://ieeexplore.ieee.org/document/1554717
+    """
+
     def __init__(
         self,
         lb,

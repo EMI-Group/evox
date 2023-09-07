@@ -40,6 +40,11 @@ def environmental_selection(fitness, n):
 
 @jit_class
 class EAGMOEAD(Algorithm):
+    """EAG-MOEA/D algorithm
+
+    link: https://ieeexplore.ieee.org/abstract/document/6882229
+    """
+
     def __init__(
         self,
         lb,

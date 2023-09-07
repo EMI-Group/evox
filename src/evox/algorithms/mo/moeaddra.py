@@ -20,6 +20,10 @@ from evox.utils import pairwise_euclidean_dist
 
 @jit_class
 class MOEADDRA(Algorithm):
+    """MOEA/D-DRA algorithm
+
+    link: https://ieeexplore.ieee.org/abstract/document/4982949
+    """
     def __init__(
         self,
         lb,
