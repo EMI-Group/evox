@@ -8,7 +8,8 @@ import chex
 from functools import partial
 from jax import vmap
 from matplotlib.path import Path
-
+from jax.config import config
+# config.update("jax_enable_x64", True)
 
 @evox.jit_class
 class MaF(Problem):
@@ -43,7 +44,7 @@ class MaF(Problem):
         # f = LatinHypercubeSampling(self.ref_num * self.m, self.m).random(state.key)[0] / 2
         return f, state
 
-
+@evox.jit_class
 class MaF1(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -64,6 +65,7 @@ class MaF1(MaF):
         # n = 1000
         f = 1 - UniformSampling(n, self.m)()[0]
         return f, state
+
 
 
 class MaF2(MaF):
@@ -109,6 +111,7 @@ class MaF2(MaF):
         return f, state
 
 
+@evox.jit_class
 class MaF3(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -132,6 +135,7 @@ class MaF3(MaF):
         return f, state
 
 
+@evox.jit_class
 class MaF4(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -155,6 +159,7 @@ class MaF4(MaF):
         return f, state
 
 
+@evox.jit_class
 class MaF5(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -178,6 +183,7 @@ class MaF5(MaF):
         return f, state
 
 
+@evox.jit_class
 class MaF6(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -205,7 +211,7 @@ class MaF6(MaF):
                            jnp.tile(jnp.maximum(self.m - i, 0), (r.shape[0], 1)))
         return f, state
 
-
+@evox.jit_class
 class MaF7(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -236,6 +242,8 @@ class MaF7(MaF):
         c = jnp.meshgrid(*[gap] * M)
         W = jnp.column_stack([c[i].ravel() for i in range(M)])
         return jnp.flip(W,axis=1)
+
+@evox.jit_class
 class MaF8(MaF):
     """
     the dimention only is 2.
@@ -246,6 +254,8 @@ class MaF8(MaF):
         self.points = self._getPoints()
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        if(X.shape[1] != 2):
+            return jnp.zeros((X.shape[0],2)), State
         f = self._eucl_dis(X, self.points)
         return f, state
 
@@ -284,7 +294,7 @@ class MaF8(MaF):
         dist_matrix = jnp.linalg.norm(x[:, None] - y, axis=-1)
         return dist_matrix
 
-
+@evox.jit_class
 class MaF9(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -346,7 +356,7 @@ class MaF9(MaF):
 
         # return distance
 
-
+@evox.jit_class
 class MaF10(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
@@ -380,58 +390,61 @@ class MaF10(MaF):
         t3 = t2 ** 0.02
 
         t4 = jnp.zeros((n, M))
-        t4 = t4.at[:, 0].set(self._r_sum(t3[:, int(K/(M-1)-1)], 2*K/(M-1)))
+        t4 = t4.at[:, 0].set(self._r_sum(t3[:, int(K/(M-1)-1)][:,None], 2*K/(M-1)))
         for i in range(2, M):
-            t4 = t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange(int((i - 1) * K / (M - 1)), int(i * K / (M - 1) + 1)) - 1],
+            t4 = t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange(int((i - 1) * K / (M - 1)), int(i * K / (M - 1)))],
                                                  jnp.arange(int(2 * ((i - 1) * K / (M - 1) + 1)),
                                                             int(2 * i * K / (M - 1) + 1), 2)))
         t4 = t4.at[:, M - 1].set(
-            self._r_sum(t3[:, jnp.arange(K + 1, K + L + 1) - 1], jnp.arange(2 * (K + 1), 2 * (K + L) + 1, 2)))
+            self._r_sum(t3[:, jnp.arange(K, K + L)], jnp.arange(2 * (K + 1), 2 * (K + L) + 1, 2)))
         x = jnp.zeros((n, M))
         for i in range(1, M):
             x = x.at[:, i - 1].set(jnp.maximum(t4[:, M - 1], A[i - 1]) * (t4[:, i - 1] - 0.5) + 0.5)
         x = x.at[:, M - 1].set(t4[:, M - 1])
 
         h = self._convex(x)
-        h = h.at[:, M].set(self._mixed(x))
-        f = jnp.tile((x[:, M])[:,jnp.newaxis], (1, M)) + S * h
+        h = h.at[:, M-1].set(self._mixed(x))
+        f = jnp.tile((D * x[:, M])[:,jnp.newaxis], (1, M)) + S * h
         return f, state
 
+    '''精度必须是float64'''
     def pf(self, state: chex.PyTreeDef):
+        config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
+        # N = 1000
         R = UniformSampling(N, M)()[0]
-        c = jnp.ones((N, M))
-        for i in range(1, N + 1):
+        R = R.astype(jnp.float64)
+        c = jnp.ones((R.shape[0], M), dtype=jnp.float64)
+        for i in range(1, R.shape[0] + 1):
             for j in range(2, M + 1):
                 temp = R[i - 1, j - 1] / R[i - 1, 0] * jnp.prod(1 - c[i - 1, M - j + 1:M - 1])
                 c = c.at[i - 1, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001)
-        E = jnp.abs(
-            temp @ (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + jnp.tile(a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi,
-                                                                (x.shape[0], 1)))
-        rank = jnp.argsort(E, axis=1)
+        a = jnp.arange(0, 1.0001, 0.0001, dtype=jnp.float64)[jnp.newaxis,:]
+        E = jnp.abs(temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + (a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi))
+        # E = jnp.abs(temp[:, None] @ (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + jnp.tile(a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi, (x.shape[0], 1)))
+        rank = jnp.argsort(E, axis=1) # rank is wrong!!!
         for i in range(x.shape[0]):
-            x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
+            x = x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
         f = self._convex(x)
         f = f.at[:, M - 1].set(self._mixed(x))
         f = f * jnp.tile(jnp.arange(2, 2 * M + 1, 2), (f.shape[0], 1))
         return f, state
 
     def _s_linear(self, y, A):
-        output = jnp.abs(y - A)/jnp.abs((A - y).astype(jnp.float32) + A)
+        output = jnp.abs(y - A)/jnp.abs(jnp.floor(A - y) + A)
         return output
 
     def _b_flat(self, y, A, B, C):
-        output = A + jnp.minimum(0, jnp.floor(y - B)) * A * (B - y) / B - jnp.minimum(0, jnp.floor(C - y)) * (1 - A) * (
+        output = A + jnp.minimum(0, jnp.floor(y - B)) * A * (B - y)/B - jnp.minimum(0, jnp.floor(C - y)) * (1 - A) * (
                 y - C) / (1 - C)
         output = jnp.round(output * 1e4) / 1e4
         return output
 
     def _r_sum(self, y, w):
-        return jnp.sum(y * w, axis=1)/ jnp.sum(w)
+        return jnp.sum(y * w, axis=1) / jnp.sum(w)
 
     def _convex(self, x):
         return jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((x.shape[0], 1)), 1 - jnp.cos(x[:, :-1] * jnp.pi / 2)]),
@@ -442,7 +455,7 @@ class MaF10(MaF):
         return 1 - x[:, 0] - jnp.cos(10 * jnp.pi * x[:, 0] + jnp.pi / 2) / 10 / jnp.pi
 
 
-def MaF11(MaF):
+class MaF11(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -464,7 +477,7 @@ def MaF11(MaF):
         S = jnp.arange(2, 2 * M + 1, 2)
         A = jnp.ones(M - 1)
 
-        z01 = X / jnp.tile(jnp.arange(2, X.shape[1] * 2 + 1, 2), (N, 1))
+        z01 = X / jnp.arange(2, X.shape[1] * 2 + 1, 2)
 
         t1 = jnp.zeros((N, K + L))
         t1 = t1.at[:, :K].set(z01[:, :K])
@@ -568,7 +581,7 @@ def MaF11(MaF):
         return ranks
 
 
-def MaF12(MaF):
+class MaF12(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -656,7 +669,7 @@ def MaF12(MaF):
             [jnp.ones((x.shape[0], 1)), jnp.cos(x[:, x.shape[1] - 2::-1] * jnp.pi / 2)])
 
 
-def MaF13(MaF):
+class MaF13(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -693,7 +706,7 @@ def MaF13(MaF):
         return f, state
 
 
-def MaF14(MaF):
+class MaF14(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
@@ -754,7 +767,7 @@ def MaF14(MaF):
         return jnp.sum(100 * (x[:, :-1] ** 2 - x[:, 1:]) ** 2 + (x[:, :-1] - 1) ** 2, axis=1)
 
 
-def MaF15(MaF):
+class MaF15(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
             self.m = 3
