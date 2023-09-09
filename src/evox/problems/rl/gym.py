@@ -52,9 +52,9 @@ class Normalizer(Stateful):
 
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_name, env_options, num_env, policy=None):
+    def __init__(self, env_creator, num_env, policy=None):
         self.num_env = num_env
-        self.envs = [gym.make(env_name, **env_options) for _ in range(num_env)]
+        self.envs = [env_creator() for _ in range(num_env)]
         self.policy = policy
 
         self.seed2key = jit(vmap(jax.random.PRNGKey))
@@ -95,6 +95,7 @@ class Worker:
         return self.observations
 
     def rollout(self, seeds, subpop, cap_episode_length):
+        subpop = jax.device_put(subpop)
         assert self.policy is not None
         self.reset(seeds)
         i = 0
@@ -120,8 +121,7 @@ class Controller:
         policy,
         num_workers,
         env_per_worker,
-        env_name,
-        env_options,
+        env_creator,
         worker_options,
         batch_policy,
     ):
@@ -129,8 +129,7 @@ class Controller:
         self.env_per_worker = env_per_worker
         self.workers = [
             Worker.options(**worker_options).remote(
-                env_name,
-                env_options,
+                env_creator,
                 env_per_worker,
                 None if batch_policy else jit(vmap(policy)),
             )
@@ -251,8 +250,9 @@ class Gym(Problem):
         policy: Callable,
         num_workers: int,
         env_per_worker: int,
-        env_name: str = "CartPole-v1",
+        env_name: Optional[str] = None,
         env_options: dict = {},
+        env_creator: Optional[Callable] = None,
         controller_options: dict = {},
         worker_options: dict = {},
         init_cap: Optional[int] = None,
@@ -272,6 +272,10 @@ class Gym(Problem):
             Number of gym environment per worker.
         env_name
             The name of the gym environment.
+        env_options
+            The options of the gym environment.
+        env_creator
+            A function with zero argument that returns an environment when called.
         controller_options
             The runtime options for controller actor.
             This actor is used to control workers and run the policy at each step.
@@ -286,12 +290,16 @@ class Gym(Problem):
             If True, the fitness is the negative of the total reward,
             otherwise return the original reward.
         """
+        if env_name:
+            env_creator = lambda: gym.make(env_name, **env_options)
+        if not env_creator:
+            raise ValueError("Either 'env_name' or 'env_creator' must be set.'")
+        
         self.controller = Controller.options(**controller_options).remote(
             policy,
             num_workers,
             env_per_worker,
-            env_name,
-            env_options,
+            env_creator,
             worker_options,
             batch_policy,
         )
