@@ -1,4 +1,5 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List
+from collections import deque
 
 import chex
 import jax
@@ -7,9 +8,10 @@ import numpy as np
 import ray
 from jax.tree_util import tree_flatten
 
-from evox import Algorithm, Problem, State, Stateful
+from evox import Algorithm, Problem, State, Stateful, jit_class
 
 
+@jit_class
 class WorkerPipeline(Stateful):
     def __init__(
         self,
@@ -43,7 +45,8 @@ class WorkerPipeline(Stateful):
 
         return partial_fitness, state
 
-    def step2(self, state: State, fitness: jax.Array):
+    def step2(self, state: State, fitness: List[jax.Array]):
+        fitness = jnp.concatenate(fitness, axis=0)
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
@@ -81,7 +84,6 @@ class Worker:
 
     def step2(self, fitness: jax.Array):
         fitness = ray.get(fitness)
-        fitness = jnp.concatenate(fitness, axis=0)
         self.state = self.pipeline.step2(self.state, fitness)
 
     def valid(self, metric: str):
@@ -173,6 +175,7 @@ class RayDistributedWorkflow(Stateful):
         pop_transform: Optional[Callable] = None,
         fitness_transform: Optional[Callable] = None,
         global_fitness_transform: Optional[Callable] = None,
+        async_dispatch: int = 16,
     ):
         """Create a distributed pipeline
 
@@ -215,20 +218,31 @@ class RayDistributedWorkflow(Stateful):
             fitness_transform,
         )
         self.global_fitness_transform = global_fitness_transform
+        self.async_dispatch_list = deque()
+        self.async_dispatch = async_dispatch
 
     def setup(self, key: jax.Array):
         ray.get(self.supervisor.setup_all_workers.remote(key))
         return State()
 
-    def step(self, state: State):
+    def step(self, state: State, block=False):
         fitness, worker_futures = ray.get(self.supervisor.step.remote())
+
         # get the actual object
-        fitness = ray.get(fitness)
-        fitness = jnp.concatenate(fitness, axis=0)
         if self.global_fitness_transform is not None:
+            fitness = ray.get(fitness)
+            fitness = jnp.concatenate(fitness, axis=0)
             fitness = self.global_fitness_transform(fitness)
-        # block until all workers have finished processing
-        ray.get(worker_futures)
+
+        self.async_dispatch_list.append(worker_futures)
+        while not len(self.async_dispatch_list) < self.async_dispatch:
+            ray.get(self.async_dispatch_list.popleft())
+
+        if block:
+            # block until all workers have finished processing
+            while len(self.async_dispatch_list) > 0:
+                ray.get(self.async_dispatch_list.popleft())
+        # if block is False, don't wait for step 2
         return state
 
     def valid(self, state: State, metric="loss"):
