@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. BiGE algorithm is described in the following papers:
+#
+# Title: Bi-goal evolution for many-objective optimization problems
+# Link: https://doi.org/10.1016/j.artint.2015.06.007
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 from jax import vmap
@@ -52,7 +63,7 @@ def estimate(fit, mask):
 @jit_class
 class BiGE(Algorithm):
     """BiGE algorithm
-
+    
     link: https://doi.org/10.1016/j.artint.2015.06.007
     """
 
