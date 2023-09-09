@@ -18,3 +18,14 @@ except ImportError as e:
         raise ImportError(
             f'Gym requires gym, ray but got "{original_erorr_msg}" when importing'
         )
+    
+try:
+    # optional dependency: gym
+    from .env_pool import EnvPool
+except ImportError as e:
+    original_erorr_msg = str(e)
+
+    def Gym(*args, **kwargs):
+        raise ImportError(
+            f'EnvPool requires env_pool, ray but got "{original_erorr_msg}" when importing'
+        )
