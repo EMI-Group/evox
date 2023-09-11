@@ -9,7 +9,7 @@ from functools import partial
 from jax import vmap
 from matplotlib.path import Path
 from jax.config import config
-# config.update("jax_enable_x64", True)
+from evox.operators.non_dominated_sort import non_dominated_sort
 
 @evox.jit_class
 class MaF(Problem):
@@ -44,6 +44,7 @@ class MaF(Problem):
         # f = LatinHypercubeSampling(self.ref_num * self.m, self.m).random(state.key)[0] / 2
         return f, state
 
+
 @evox.jit_class
 class MaF1(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
@@ -65,7 +66,6 @@ class MaF1(MaF):
         # n = 1000
         f = 1 - UniformSampling(n, self.m)()[0]
         return f, state
-
 
 
 class MaF2(MaF):
@@ -211,6 +211,7 @@ class MaF6(MaF):
                            jnp.tile(jnp.maximum(self.m - i, 0), (r.shape[0], 1)))
         return f, state
 
+
 @evox.jit_class
 class MaF7(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
@@ -243,6 +244,7 @@ class MaF7(MaF):
         W = jnp.column_stack([c[i].ravel() for i in range(M)])
         return jnp.flip(W,axis=1)
 
+
 @evox.jit_class
 class MaF8(MaF):
     """
@@ -255,7 +257,7 @@ class MaF8(MaF):
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         if(X.shape[1] != 2):
-            return jnp.zeros((X.shape[0],2)), State
+            X = X[:, :2]
         f = self._eucl_dis(X, self.points)
         return f, state
 
@@ -293,6 +295,7 @@ class MaF8(MaF):
     def _eucl_dis(self, x, y):
         dist_matrix = jnp.linalg.norm(x[:, None] - y, axis=-1)
         return dist_matrix
+
 
 @evox.jit_class
 class MaF9(MaF):
@@ -340,15 +343,8 @@ class MaF9(MaF):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
-    # obj.Points[:, 0], obj.Points[:, 1] = np.cos(thera - np.arange(1, obj.M + 1) * 2 * np.pi / obj.M) * rho, np.sin(
-    #     thera - np.arange(1, obj.M + 1) * 2 * np.pi / obj.M) * rho
-    def _Point2Line(self, PopDec, Line):
-        # distance = jnp.abs((line[0, 0] - f[:, 0]) * (line[1, 1] - f[:, 1]) - (line[1, 0] - f[:, 0]) * (
-        #         line[0, 1] - f[:, 1])) / jnp.sqrt((line[0, 0] - line[1, 0]) ** 2 + (line[0, 1] - line[1, 1]) ** 2)
 
-        
-        # Distance = abs((Line(1, 1) - PopDec(:, 1)). * (Line(2, 2) - PopDec(:, 2))-(Line(2, 1) - PopDec(:, 1)).*(
-        #             Line(1, 2) - PopDec(:, 2)))./ sqrt((Line(1, 1) - Line(2, 1)). ^ 2 + (Line(1, 2) - Line(2, 2)). ^ 2);
+    def _Point2Line(self, PopDec, Line):
         Distance = jnp.abs((Line[0, 0] - PopDec[:, 0]) * (Line[1, 1] - PopDec[:, 1]) - (Line[1, 0] - PopDec[:, 0]) * (
                     Line[0, 1] - PopDec[:, 1])) / jnp.sqrt(
             (Line[0, 0] - Line[1, 0]) ** 2 + (Line[0, 1] - Line[1, 1]) ** 2)
@@ -356,9 +352,11 @@ class MaF9(MaF):
 
         # return distance
 
+
 @evox.jit_class
 class MaF10(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -367,7 +365,7 @@ class MaF10(MaF):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -454,9 +452,10 @@ class MaF10(MaF):
     def _mixed(self, x):
         return 1 - x[:, 0] - jnp.cos(10 * jnp.pi * x[:, 0] + jnp.pi / 2) / 10 / jnp.pi
 
-
+# @evox.jit_class
 class MaF11(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -466,7 +465,7 @@ class MaF11(MaF):
         else:
             self.d = d
         self.d = jnp.ceil((self.d - self.m + 1) / 2) * 2 + self.m - 1
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         N, D = X.shape
@@ -504,27 +503,35 @@ class MaF11(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
+    '''精度必须是float64, 不能使用JIT, 后续计划直接读数据'''
     def pf(self, state: chex.PyTreeDef):
+        config.update("jax_enable_x64", True)
         M = self.m
-        N = self.ref_num * self.m
-        R = UniformSampling(N, M)()[0]
+        # N = self.ref_num * self.m
+        N = 1000
+        R = UniformSampling(N, M)()[0].astype(jnp.float64)
         c = jnp.ones((R.shape[0], M))
         for i in range(R.shape[0]):
             for j in range(1, M):
-                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j + 1:M - 1])
-                c = c.at[i, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
+                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j:M - 1]).astype(jnp.float64)
+                c = c.at[i, M - j - 1].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1)).astype(jnp.float64)
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001)
-        E = jnp.abs(temp.reshape(-1, 1) * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a * (jnp.cos(5 * jnp.pi * a)) ** 2)
+        a = jnp.arange(0, 1.0001, 0.0001)[None,:].astype(jnp.float64)
+        E = jnp.abs(temp[:,None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a * jnp.cos(5 * jnp.pi * a) ** 2).astype(jnp.float64)
         rank = jnp.argsort(E, axis=1)
         for i in range(x.shape[0]):
-            x = x.at[i, 0].set(a[jnp.min(rank[i, :10])])
+            x = x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
         R = self._convex(x)
-        R = R.at[:, M - 1].set(self._disc(x))
-        # _fast_non_dominated_sort 代替NDSort，具体待检验
-        f = R[self._fast_non_dominated_sort(R, 1) == 1]
-        f *= jnp.arange(2, 2 * M + 1, 2)
+        R = R.at[:, M - 1].set(self._disc(x)).astype(jnp.float64)
+        non_dominated_rank = non_dominated_sort(R)
+        # indices = jnp.nonzero(non_dominated_rank)
+        # indices = jnp.argwhere(non_dominated_rank != 0).squeeze()
+        mask = (non_dominated_rank != 0)[:,None]
+        f = jnp.where(mask, 0, R)
+        # f = R[non_dominated_rank == 0].astype(jnp.float64)
+        # f = R.at[mask,:].set(0)
+        f = f * jnp.arange(2, 2 * M + 1, 2).astype(jnp.float64)
         return f, state
 
     def _s_linear(self, y, A):
@@ -550,35 +557,6 @@ class MaF11(MaF):
 
     def _disc(self, x):
         return 1 - x[:, 0] * (jnp.cos(5 * jnp.pi * x[:, 0])) ** 2
-
-    def _fast_non_dominated_sort(self, objectives):
-        # 计算每个解的支配计数和被支配解集合
-        N = objectives.shape[0]
-        domination_counts = jnp.zeros(N, dtype=int)
-        dominated_sets = [[] for _ in range(N)]
-        for i in range(N):
-            for j in range(i + 1, N):
-                if all(objectives[i] <= objectives[j]) and any(objectives[i] < objectives[j]):
-                    domination_counts = domination_counts.at[j].add(1)
-                    dominated_sets[i].append(j)
-                elif all(objectives[j] <= objectives[i]) and any(objectives[j] < objectives[i]):
-                    domination_counts = domination_counts.at[i].add(1)
-                    dominated_sets[j].append(i)
-        # 计算每个解的排名
-        ranks = jnp.zeros(N, dtype=int)
-        front = jnp.where(domination_counts == 0)[0]
-        rank = 1
-        while front.size > 0:
-            next_front = []
-            for i in front:
-                ranks = ranks.at[i].set(rank)
-                for j in dominated_sets[i]:
-                    domination_counts = domination_counts.at[j].add(-1)
-                    if domination_counts[j] == 0:
-                        next_front.append(j)
-            front = jnp.array(next_front)
-            rank += 1
-        return ranks
 
 
 class MaF12(MaF):

@@ -12,12 +12,18 @@ m = 6
 keys = jax.random.split(key, 16)
 
 maf = MaF11(d=d, m=m)
+if d != maf.d:
+    if d < maf.d:
+        pad_width = [(0, 0), (0, int(maf.d - d))]
+        data = jnp.pad(data, pad_width, mode='wrap')
+    else:
+        data = data[:, :maf.d]
 state = maf.init(keys)
 # state = maf.setup(keys)
-
-f, new_state = maf.evaluate(state, data)
-# f, new_state = maf.pf(state)
+# f, new_state = maf.evaluate(state, data)
+f, new_state = maf.pf(state)
 print(f.shape)
 print(f)
 
-# maf2 JIT没过
+# maf2 JIT没过 maf11 getPF JIT没过
+# maf11 finish
