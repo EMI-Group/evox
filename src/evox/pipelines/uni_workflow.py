@@ -103,7 +103,7 @@ class UniWorkflow(Stateful):
 
             if self.distributed_step is True:
                 pop = jax.lax.dynamic_slice_in_dim(
-                    pop, self.start_index, self.slice_size, axis=0
+                    pop, state.start_index, self.slice_size, axis=0
                 )
 
             if self.pop_transform:
@@ -165,14 +165,14 @@ class UniWorkflow(Stateful):
 
             if self.distributed_step is True:
                 fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
-            
+
             return fitness, state
 
         self._valid = jit_method(_valid)
 
     def step(self, state):
         return self._step(self, state)
-    
+
     def valid(self, state, metric):
         return self._valid(self, state, metric)
 
@@ -254,11 +254,18 @@ class UniWorkflow(Stateful):
         # auto determine pop_size and dimension
         dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
         pop_size, _dim = dummy_pop.shape
-        self.slice_size = pop_size // jax.process_count()
-        self.start_index = self.slice_size * jax.process_index()
+        total_device_count = jax.device_count()
+        local_device_count = jax.local_device_count()
+        self.slice_size = pop_size // total_device_count
+        process_index = jax.process_index()
+        start_index = process_index * local_device_count * self.slice_size
+        start_indices = [
+            start_index + i * self.slice_size for i in range(local_device_count)
+        ]
         self.distributed_step = True
         # enter pmap env, thus allowing collective ops in _step and _valid
         self._step = pmap(self._step, axis_name="node", static_broadcasted_argnums=0)
         # pmap requires an extra dimension
-        state = tree_map(lambda x: jnp.expand_dims(x, axis=0), state)
-        return state
+        state = jax.device_put_replicated(state, jax.local_devices())
+        start_index = jax.device_put_sharded(start_indices, jax.local_devices())
+        return state.update(start_index=start_index)
