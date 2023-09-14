@@ -37,17 +37,23 @@ class CoDE(Algorithm):
         lb,
         ub,
         pop_size=100,
+        batch_size=None,
         diff_padding_num=9,
         param_pool=jnp.array([[1, 0.1], [1, 0.9], [0.8, 0.2]]),
+        replace=False,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
-        self.batch_size = pop_size
+        if not batch_size:
+            self.batch_size = pop_size
+        else:
+            self.batch_size = pop_size // 3
         self.param_pool = param_pool
         self.diff_padding_num = diff_padding_num
         self.strategies = jnp.array([rand_1_bin, rand_2_bin, current2rand_1])
+        self.replace = replace
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key, 2)
@@ -71,7 +77,7 @@ class CoDE(Algorithm):
         key, ask_one_key, param_key = jax.random.split(state.key, 3)
 
         ask_one_keys = jax.random.split(ask_one_key, 3 * self.batch_size).reshape(
-            3, self.batch_size, 2
+            3, self.batch_size, -1
         )
         indices = jnp.arange(self.batch_size) + state.start_index
 
@@ -116,6 +122,7 @@ class CoDE(Algorithm):
             num_diff_vects,
             index,
             population,
+            self.replace,
         )
 
         rand_vect = population[rand_vect_idx]
