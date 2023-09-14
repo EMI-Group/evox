@@ -5,7 +5,7 @@ except ImportError as e:
 
     def Brax(*args, **kwargs):
         raise ImportError(
-            f'Brax requires brax, ray but got "{original_erorr_msg}" when importing'
+            f'Brax requires brax but got "{original_erorr_msg}" when importing'
         )
 
 try:
@@ -25,7 +25,7 @@ try:
 except ImportError as e:
     original_erorr_msg = str(e)
 
-    def Gym(*args, **kwargs):
+    def EnvPool(*args, **kwargs):
         raise ImportError(
-            f'EnvPool requires env_pool, ray but got "{original_erorr_msg}" when importing'
+            f'EnvPool requires env_pool but got "{original_erorr_msg}" when importing'
         )
