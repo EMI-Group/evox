@@ -2,8 +2,10 @@ from evox import jit_class
 import jax.numpy as jnp
 from jax import jit, random
 
+from functools import partial
 
-@jit
+
+@partial(jit, static_argnames="bool_input")
 def bitflip(key, x, prob, bool_input="auto"):
     """Perform bitflip mutation, the input x is expected to have a dtype of bool or uint8.
     The mutation can be performed in either bool mode or packed bits mode.
