@@ -229,8 +229,8 @@ class TorchvisionDataset(Problem):
             return accumulated_metric + self._metric_func(state, data, labels, batch_params)
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
-        losses = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
-        return losses / (num_batches * self.batch_size), state
+        metric = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
+        return metric / (num_batches * self.batch_size), state
 
     def _evaluate_train(self, state, batch_params):
         try:
@@ -292,9 +292,9 @@ class TorchvisionDataset(Problem):
             batch_params, data
         )  # (pop_size, batch_size, out_dim)
         output = jnp.argmax(output, axis=2)  # (pop_size, batch_size)
-        acc = jnp.mean(output == labels, axis=1)
+        num_correct = jnp.sum((output == labels).astype(float), axis=1) # don't reduce here
 
-        return acc
+        return num_correct
 
     @jit_method
     def _calculate_loss(self, data, labels, batch_params):
