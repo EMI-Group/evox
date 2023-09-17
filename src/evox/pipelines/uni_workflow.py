@@ -1,5 +1,5 @@
 from evox import jit_method, Stateful, Algorithm, Problem, State
-from typing import Optional, Callable, Dict
+from typing import Optional, Callable, Dict, List, Union
 import warnings
 import jax
 import jax.numpy as jnp
@@ -23,9 +23,9 @@ class UniWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
-        problem: Problem,
+        problem: Union[Problem, List[Problem]],
         monitor=None,
-        pop_transform: Optional[Callable] = None,
+        pop_transform: Optional[Union[Callable, List[Problem]]] = None,
         fit_transform: Optional[Callable] = None,
         record_pop: bool = False,
         record_time: bool = False,
@@ -107,11 +107,21 @@ class UniWorkflow(Stateful):
                 )
 
             if self.pop_transform:
-                pop = self.pop_transform(pop)
+                if isinstance(self.pop_transform, list):
+                    pop = [transform(pop) for transform in self.pop_transform]
+                else:
+                    pop = self.pop_transform(pop)
 
             # if the function is jitted
             if self.jit_problem:
-                fitness, state = self.problem.evaluate(state, pop)
+                if isinstance(self.problem, list):
+                    fitness = []
+                    for decoded in pop:
+                        fit, state = self.problem.evaluate(state, decoded)
+                        fitness.append(fit)
+                    fitness = jnp.concatenate(fitness, axis=0)
+                else:
+                    fitness, state = self.problem.evaluate(state, pop)
             else:
                 if self.num_objectives == 1:
                     fit_shape = (pop_size,)
