@@ -63,17 +63,15 @@ def de_diff_sum(
 
     # Permutate indices, take the first select_len individuals of indices in the population, and set the next individuals to 0
     pop_permut = population[random_choice]
-    permut_mask = jnp.where(jnp.arange(diff_padding_num) < select_len, True, False)
-    pop_permut_padding = jnp.where(
-        permut_mask[:, jnp.newaxis], pop_permut, jnp.zeros((diff_padding_num, dim))
-    )
+    permut_mask = jnp.arange(diff_padding_num) < select_len
+    pop_permut_padding = jnp.where(permut_mask[:, jnp.newaxis], pop_permut, 0)
 
     diff_vects = pop_permut_padding[1:, :]
     subtrahend_index = jnp.arange(1, diff_vects.shape[0], 2)
     difference_sum = jnp.sum(diff_vects.at[subtrahend_index, :].multiply(-1), axis=0)
 
     rand_vect_idx = random_choice[0]
-    return (difference_sum, rand_vect_idx)
+    return difference_sum, rand_vect_idx
 
 
 @jit

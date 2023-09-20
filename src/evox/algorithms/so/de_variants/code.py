@@ -84,20 +84,14 @@ class CoDE(Algorithm):
         param_keys = jax.random.split(param_key, 3)
         trial_vectors = []
 
-        # run 3 different strategies
-        for strategy, param_key, ask_one_key in zip(
-            self.strategies, param_keys, ask_one_keys
-        ):
-            param_ids = jax.random.choice(
-                param_key, a=3, shape=(self.batch_size,), replace=True
-            )
-            trial_vectors.append(
-                vmap(partial(self._ask_one, state, strategy))(
-                    ask_one_key, indices, param_ids
-                )
-            )
-
-        trial_vectors = jnp.concatenate(trial_vectors, axis=0)
+        param_ids = vmap(
+            partial(jax.random.choice, a=3, shape=(self.batch_size,), replace=True)
+        )(param_keys)
+        trial_vectors = vmap(
+            vmap(partial(self._ask_one, state), in_axes=(None, 0, 0, 0)),
+            in_axes=(0, 0, None, 0),
+        )(self.strategies, ask_one_keys, indices, param_ids)
+        trial_vectors = trial_vectors.reshape(3*self.batch_size, -1)
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
