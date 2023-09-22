@@ -38,7 +38,7 @@ class CoDE(Algorithm):
         ub,
         pop_size=100,
         batch_size=None,
-        diff_padding_num=9,
+        diff_padding_num=5,
         param_pool=jnp.array([[1, 0.1], [1, 0.9], [0.8, 0.2]]),
         replace=False,
     ):
@@ -49,7 +49,7 @@ class CoDE(Algorithm):
         if not batch_size:
             self.batch_size = pop_size
         else:
-            self.batch_size = pop_size // 3
+            self.batch_size = batch_size
         self.param_pool = param_pool
         self.diff_padding_num = diff_padding_num
         self.strategies = jnp.array([rand_1_bin, rand_2_bin, current2rand_1])
