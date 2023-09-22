@@ -12,7 +12,7 @@ def test_ackley():
     state = ackley.init(keys)
     X = jnp.zeros((16, 2))
     F, state = ackley.evaluate(state, X)
-    chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
+    chex.assert_trees_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
 def test_griewank():
@@ -22,7 +22,7 @@ def test_griewank():
     state = griewank.init(keys)
     X = jnp.zeros((16, 2))
     F, state = griewank.evaluate(state, X)
-    chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
+    chex.assert_trees_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
 def test_rastrigin():
@@ -32,7 +32,7 @@ def test_rastrigin():
     state = rastrigin.init(keys)
     X = jnp.zeros((16, 2))
     F, state = rastrigin.evaluate(state, X)
-    chex.assert_tree_all_close(F, jnp.zeros((16,)), atol=1e-6)
+    chex.assert_trees_all_close(F, jnp.zeros((16,)), atol=1e-6)
 
 
 def test_rosenbrock():
@@ -42,7 +42,7 @@ def test_rosenbrock():
     state = rosenbrock.init(keys)
     X = jnp.ones((16, 2))
     F, state = rosenbrock.evaluate(state, X)
-    chex.assert_tree_all_close(F, jnp.zeros((16, )), atol=1e-6)
+    chex.assert_trees_all_close(F, jnp.zeros((16, )), atol=1e-6)
 
 
 def test_dtlz1():
@@ -54,5 +54,5 @@ def test_dtlz1():
     F, state = dtlz1.evaluate(state, X)
     pf, state = dtlz1.pf(state)
     print(pf.shape)
-    chex.assert_tree_all_close(
+    chex.assert_trees_all_close(
         jnp.sum(F, axis=1), 0.5*jnp.ones((16, )), atol=1e-6)
