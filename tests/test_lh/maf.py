@@ -12,6 +12,7 @@ from matplotlib.path import Path
 from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
 import numpy as np
+import math
 
 @evox.jit_class
 class MaF(Problem):
@@ -248,8 +249,8 @@ class MaF7(MaF):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        n = self.ref_num * self.m
-        # n = 1000
+        # n = self.ref_num * self.m
+        n = 1000
         interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
         median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0])
         X = self._grid(n, self.m - 1)
@@ -259,13 +260,13 @@ class MaF7(MaF):
         return f, state
 
     def _grid(self,N, M):
-        gap = jnp.linspace(0, 1, jnp.ceil(N ** (1 / M)).astype(int))
+        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))
         c = jnp.meshgrid(*[gap] * M)
         W = jnp.column_stack([c[i].ravel() for i in range(M)])
         return jnp.flip(W,axis=1)
 
 
-@evox.jit_class
+# @evox.jit_class
 class MaF8(MaF):
     """
     the dimention only is 2.
@@ -275,55 +276,61 @@ class MaF8(MaF):
         super().__init__(d, m, ref_num)
         self.points = self._getPoints()
 
+    @evox.jit_method
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         if(X.shape[1] != 2):
             X = X[:, :2]
         f = self._eucl_dis(X, self.points)
         return f, state
 
+
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
+        # n = 1000
         # [X, Y] = ndgrid(linspace(-1, 1, ceil(sqrt(N))));
-        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
+        temp = jnp.linspace(-1, 1, num=math.ceil(math.sqrt(n)))
         x, y = jnp.meshgrid(temp, temp)
         x = x.ravel(order="F")
         y = y.ravel(order="F")
-        # using np based library, this may make some mistakes, but in my test, there is no warning
+        # using numpy based library, this may make some mistakes, but in my test, there is no warning
         poly_path = Path(self.points)
         _points = jnp.column_stack((x, y))
         ND = poly_path.contains_points(_points)
-
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f, state
 
+    @evox.jit_method
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
         return jnp.column_stack([x, y])
 
+    @evox.jit_method
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
         theta = jnp.arctan2(y, x)
         return theta, rho
 
+    @evox.jit_method
     def _pol2cart(self, theta, rho):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
 
+    @evox.jit_method
     def _eucl_dis(self, x, y):
         dist_matrix = jnp.linalg.norm(x[:, None] - y, axis=-1)
         return dist_matrix
 
 
-@evox.jit_class
 class MaF9(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
         # Generate vertexes
         self.points = self._getPoints()
 
+    @evox.jit_method
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
         m, d1 = jnp.shape(self.points)
@@ -348,29 +355,31 @@ class MaF9(MaF):
         f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
+    @evox.jit_method
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
         return jnp.column_stack([x, y])
 
+    @evox.jit_method
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
         theta = jnp.arctan2(y, x)
         return theta, rho
 
+    @evox.jit_method
     def _pol2cart(self, theta, rho):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
 
+    @evox.jit_method
     def _Point2Line(self, PopDec, Line):
         Distance = jnp.abs((Line[0, 0] - PopDec[:, 0]) * (Line[1, 1] - PopDec[:, 1]) - (Line[1, 0] - PopDec[:, 0]) * (
                     Line[0, 1] - PopDec[:, 1])) / jnp.sqrt(
             (Line[0, 0] - Line[1, 0]) ** 2 + (Line[0, 1] - Line[1, 1]) ** 2)
         return Distance
-
-        # return distance
 
 
 @evox.jit_class
