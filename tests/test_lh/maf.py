@@ -340,19 +340,20 @@ class MaF9(MaF):
         return f, state
 
     def pf(self, state: chex.PyTreeDef):
-        n = self.ref_num * self.m
-        # n = 1000
-        # [X, Y] = ndgrid(linspace(-1, 1, ceil(sqrt(N))));
-        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
-        x, y = jnp.meshgrid(temp, temp)
-        x = x.ravel(order="C")
-        y = y.ravel(order="C")
-        # using jnp as np, this may make some mistakes, but in my test, there is no warning
-        poly_path = Path(self.points)
-        _points = jnp.column_stack((x, y))
-        ND = poly_path.contains_points(_points)
+        with jax.disable_jit():
+            n = self.ref_num * self.m
+            # n = 1000
+            # [X, Y] = ndgrid(linspace(-1, 1, ceil(sqrt(N))));
+            temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
+            x, y = jnp.meshgrid(temp, temp)
+            x = x.ravel(order="C")
+            y = y.ravel(order="C")
+            # using jnp as np, this may make some mistakes, but in my test, there is no warning
+            poly_path = Path(self.points)
+            _points = jnp.column_stack((x, y))
+            ND = poly_path.contains_points(_points)
 
-        f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
+            f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
     @evox.jit_method
@@ -418,15 +419,26 @@ class MaF10(MaF):
 
         t4 = jnp.zeros((n, M))
         t4 = t4.at[:, 0].set(self._r_sum(t3[:, int(K/(M-1)-1)][:,None], 2*K/(M-1)))
-        for i in range(2, M):
-            t4 = t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange(int((i - 1) * K / (M - 1)), int(i * K / (M - 1)))],
-                                                 jnp.arange(int(2 * ((i - 1) * K / (M - 1) + 1)),
-                                                            int(2 * i * K / (M - 1) + 1), 2)))
+        def inner_fun(i, t4):
+            start1 = ((i - 1) * K / (M - 1)).astype(int)
+            length1 = int(K / (M - 1))
+            temp1 = lax.dynamic_slice(t3,[0, start1], [t3.shape[0], length1])
+            start2 = (2 * ((i - 1) * K / (M - 1) + 1)).astype(int)
+            length2 = int(2 * K / (M - 1) + 1)
+            temp2 = start2 + jnp.arange(length2)*2
+            return t4.at[:, i - 1].set(self._r_sum(temp1, temp2))
+        t4 = lax.fori_loop(2,M,inner_fun,t4)
+        # for i in range(2, M):
+        #     t4 =  t4.at[:, i - 1].set(self._r_sum(t3[:, jnp.arange(int((i - 1) * K / (M - 1)), int(i * K / (M - 1)))],
+        #                                            jnp.arange(int(2 * ((i - 1) * K / (M - 1) + 1)),
+        #                                                       int(2 * i * K / (M - 1) + 1), 2)))
         t4 = t4.at[:, M - 1].set(
             self._r_sum(t3[:, jnp.arange(K, K + L)], jnp.arange(2 * (K + 1), 2 * (K + L) + 1, 2)))
         x = jnp.zeros((n, M))
-        for i in range(1, M):
-            x = x.at[:, i - 1].set(jnp.maximum(t4[:, M - 1], A[i - 1]) * (t4[:, i - 1] - 0.5) + 0.5)
+        def inner_fun2(i, x):
+            return x.at[:, i - 1].set(jnp.maximum(t4[:, M - 1], A[i - 1]) * (t4[:, i - 1] - 0.5) + 0.5)
+
+        x = lax.fori_loop(1,M,inner_fun2, x)
         x = x.at[:, M - 1].set(t4[:, M - 1])
 
         h = self._convex(x)
@@ -443,18 +455,24 @@ class MaF10(MaF):
         R = UniformSampling(N, M)()[0]
         R = R.astype(jnp.float64)
         c = jnp.ones((R.shape[0], M), dtype=jnp.float64)
-        for i in range(1, R.shape[0] + 1):
-            for j in range(2, M + 1):
+        def inner_fun(i, c):
+            def inner_fun2(j, c):
                 temp = R[i - 1, j - 1] / R[i - 1, 0] * jnp.prod(1 - c[i - 1, M - j + 1:M - 1])
                 c = c.at[i - 1, M - j].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1))
+                return c
+            with jax.disable_jit():
+                c = lax.fori_loop(2, M+1,inner_fun2, c)
+            return c
+        c = lax.fori_loop(1,R.shape[0]+1, inner_fun, c)
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
         a = jnp.arange(0, 1.0001, 0.0001, dtype=jnp.float64)[jnp.newaxis,:]
         E = jnp.abs(temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + (a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi))
         # E = jnp.abs(temp[:, None] @ (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + jnp.tile(a + jnp.cos(10 * jnp.pi * a + jnp.pi / 2) / 10 / jnp.pi, (x.shape[0], 1)))
         rank = jnp.argsort(E, axis=1) # rank is wrong!!!
-        for i in range(x.shape[0]):
-            x = x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
+        def inner_fun3(i, x):
+            return x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
+        x = lax.fori_loop(0, x.shape[0], inner_fun3, x)
         f = self._convex(x)
         f = f.at[:, M - 1].set(self._mixed(x))
         f = f * jnp.tile(jnp.arange(2, 2 * M + 1, 2), (f.shape[0], 1))
@@ -481,7 +499,7 @@ class MaF10(MaF):
     def _mixed(self, x):
         return 1 - x[:, 0] - jnp.cos(10 * jnp.pi * x[:, 0] + jnp.pi / 2) / 10 / jnp.pi
 
-# @evox.jit_class
+@evox.jit_class
 class MaF11(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -517,14 +535,18 @@ class MaF11(MaF):
             (t1[:, K::2] + t1[:, K + 1::2] + 2 * jnp.abs(t1[:, K::2] - t1[:, K + 1::2])) / 3)
 
         t3 = jnp.zeros((N, M))
-        for i in range(1, M):
-            t3 = t3.at[:, i - 1].set(
-                self._r_sum(t2[:, (i - 1) * K // (M - 1):i * K // (M - 1)], jnp.ones(K // (M - 1))))
+        def inner_fun1(i, t3):
+            start = (i - 1) * K // (M - 1)
+            length = K // (M - 1)
+            temp = lax.dynamic_slice(t2, [0, start], [t2.shape[0], length])
+            return t3.at[:, i - 1].set(self._r_sum(temp, jnp.ones(K // (M - 1))))
+        t3 = lax.fori_loop(1,M,inner_fun1,t3)
         t3 = t3.at[:, M - 1].set(self._r_sum(t2[:, K:K + L // 2], jnp.ones(L // 2)))
 
         x = jnp.zeros((N, M))
-        for i in range(1, M):
-            x = x.at[:, i - 1].set(jnp.maximum(t3[:, M - 1], A[i - 1]) * (t3[:, i - 1] - 0.5) + 0.5)
+        def inner_fun2(i, x):
+            return x.at[:, i - 1].set(jnp.maximum(t3[:, M - 1], A[i - 1]) * (t3[:, i - 1] - 0.5) + 0.5)
+        x = lax.fori_loop(1,M,inner_fun2,x)
         x = x.at[:, M - 1].set(t3[:, M - 1])
 
         h = self._convex(x)
@@ -532,7 +554,7 @@ class MaF11(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
-    '''精度必须是float64, 不能使用JIT, 后续计划直接读数据'''
+    '''精度必须是float64'''
     def pf(self, state: chex.PyTreeDef):
         config.update("jax_enable_x64", True)
         M = self.m
@@ -540,26 +562,29 @@ class MaF11(MaF):
         N = 1000
         R = UniformSampling(N, M)()[0].astype(jnp.float64)
         c = jnp.ones((R.shape[0], M))
-        for i in range(R.shape[0]):
-            for j in range(1, M):
-                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j:M - 1]).astype(jnp.float64)
-                c = c.at[i, M - j - 1].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1)).astype(jnp.float64)
+        def inner_fun(i, c):
+            def inner_fun2(j, c):
+                temp =  R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j:M - 1]).astype(jnp.float64)
+                return c.at[i, M - j - 1].set((temp ** 2 - temp + jnp.sqrt(2 * temp)) / (temp ** 2 + 1)).astype(jnp.float64)
+            with jax.disable_jit():
+                c = lax.fori_loop(1,M,inner_fun2,c)
+            return c
+
+        c = lax.fori_loop(0, R.shape[0],inner_fun,c)
+
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
         a = jnp.arange(0, 1.0001, 0.0001)[None,:].astype(jnp.float64)
         E = jnp.abs(temp[:,None] * (1 - jnp.cos(jnp.pi / 2 * a)) - 1 + a * jnp.cos(5 * jnp.pi * a) ** 2).astype(jnp.float64)
         rank = jnp.argsort(E, axis=1)
-        for i in range(x.shape[0]):
-            x = x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
+        def inner_fun3(i,x):
+            return x.at[i, 0].set(a[0, jnp.min(rank[i, :10])])
+        x = lax.fori_loop(0, x.shape[0], inner_fun3, x)
         R = self._convex(x)
         R = R.at[:, M - 1].set(self._disc(x)).astype(jnp.float64)
         non_dominated_rank = non_dominated_sort(R)
-        # indices = jnp.nonzero(non_dominated_rank)
-        # indices = jnp.argwhere(non_dominated_rank != 0).squeeze()
         mask = (non_dominated_rank != 0)[:,None]
         f = jnp.where(mask, 0, R)
-        # f = R[non_dominated_rank == 0].astype(jnp.float64)
-        # f = R.at[mask,:].set(0)
         f = f * jnp.arange(2, 2 * M + 1, 2).astype(jnp.float64)
         return f, state
 
@@ -600,7 +625,6 @@ class MaF12(MaF):
         else:
             self.d = d
 
-
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         N, D = X.shape
         M = self.m
@@ -624,21 +648,27 @@ class MaF12(MaF):
         t2 = t2.at[:, K:].set(self._s_multi(t1[:, K:], 30, 95, 0.35))
 
         t3 = jnp.zeros((N, M))
-        for i in range(1, M):
-            t3 = t3.at[:, i - 1].set(self._r_nonsep(t2[:, int((i - 1) * K / (M - 1)): int(i * K / (M - 1))], int(K / (M - 1))))
+        def inner_fun(i, t3):
+            start = ((i - 1) * K / (M - 1)).astype(int)
+            length = int(K / (M - 1))
+            temp = lax.dynamic_slice(t2, [0, start], [t2.shape[0], length])
+            return t3.at[:, i - 1].set(self._r_nonsep(temp, int(K / (M - 1))))
+        t3 = lax.fori_loop(1, M, inner_fun, t3)
 
         SUM = jnp.zeros(N)
-        for i in range(K, K + L - 1):
-            for j in range(i+1, K + L):
+        def inner_fun2(i, SUM):
+            def inner_fun3(j, SUM):
                 SUM += jnp.abs(t2[:, i] - t2[:, j])
+                return SUM
+            return lax.fori_loop(i+1, K+L, inner_fun3, SUM)
+        SUM = lax.fori_loop(K,K+L-1,inner_fun2,SUM)
 
-        t3 = t3.at[:, M - 1].set(
-            (jnp.sum(t2[:, K:], axis=1) + SUM * 2) / jnp.ceil(L / 2) / (1 + 2 * L - 2 * jnp.ceil(L / 2)))
+        t3 = t3.at[:, M - 1].set((jnp.sum(t2[:, K:], axis=1) + SUM * 2) / jnp.ceil(L / 2) / (1 + 2 * L - 2 * jnp.ceil(L / 2)))
 
         x = jnp.zeros((N, M))
-        for i in range(M - 1):
-            x = x.at[:, i].set(jnp.maximum(t3[:, M - 1], A[i]) * (t3[:, i] - 0.5) + 0.5)
-
+        def inner_fun4(i,x):
+            return x.at[:, i].set(jnp.maximum(t3[:, M - 1], A[i]) * (t3[:, i] - 0.5) + 0.5)
+        x = lax.fori_loop(0,M-1,inner_fun4,x)
         x = x.at[:, M - 1].set(t3[:, M - 1])
 
         h = self._concave(x)
@@ -709,8 +739,8 @@ class MaF13(MaF):
 
     def pf(self, state: chex.PyTreeDef):
         M = self.m
-        N = 1000
-        # N = self.ref_num * self.m
+        # N = 1000
+        N = self.ref_num * self.m
         R = UniformSampling(N, 3)()[0]
         R = R / (jnp.sqrt(jnp.sum(R ** 2, axis=1))[:,None])
         f = jnp.hstack([R, jnp.tile((R[:, 0] ** 2 + R[:, 1] ** 10 + R[:, 2] ** 10)[:,None], (1, M - 3))])
