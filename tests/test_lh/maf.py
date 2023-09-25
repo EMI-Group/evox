@@ -68,42 +68,34 @@ class MaF1(MaF):
         f = 1 - UniformSampling(n, self.m)()[0]
         return f, state
 
-
+# @evox.jit_class
 class MaF2(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
-
-    # def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
-    #     m = self.m
-    #     n, d = jnp.shape(X)
-    #     g = jnp.zeros((n, m))
-    #     for i in range(m):
-    #         if i < m - 1:
-    #             temp1 = X[ :, m + i * jnp.floor((d - m + 1) / m).astype(int) - 1: m + (i + 1) * jnp.floor(
-    #                 (d - m + 1) / m).astype(int) - 1] / 2 + 1 / 4
-    #         else:
-    #             temp1 = X[:, m + (m - 1) * jnp.floor((d - m + 1) / m).astype(int) - 1: d] / 2 + 1 / 4
-    #         g = g.at[:, i].set(jnp.sum((temp1 - 0.5) ** 2, axis=1))
-    #     f1 = jnp.fliplr(
-    #         jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos((X[:, :m - 1] / 2 + 1 / 4) * jnp.pi / 2)]), axis=1))
-    #     f2 = jnp.hstack([jnp.ones((n, 1)), jnp.sin(((X[:, m - 2::-1]) / 2 + 1 / 4) * jnp.pi / 2)])
-    #     f = (1 + g) * f1 * f2
-    #     return f, state
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         m = self.m
         n, d = jnp.shape(X)
         g = jnp.zeros((n, m))
+        interval =  int((d - m + 1) / m)
+        mask_ones = jnp.ones((X.shape[0], interval),dtype=bool)
+        mask_zeros = jnp.zeros_like(X,dtype=bool)
         def body_fun(i, g):
             def true_fun():
-                return X[:, m + i * jnp.floor((d - m + 1) / m).astype(int) - 1: m + (i + 1) * jnp.floor(
-                    (d - m + 1) / m).astype(int) - 1] / 2 + 1 / 4
+                start = (m + i * jnp.floor((d - m + 1) / m) - 1).astype(int)
+                mask = lax.dynamic_update_slice(mask_zeros,mask_ones,(0,start))
+                temp = jnp.where(mask,X,0.5)
+                return temp / 2 + 1 / 4
             def false_fun():
-                return X[:, m + (m - 1) * jnp.floor((d - m + 1) / m).astype(int) - 1: d] / 2 + 1 / 4
+                start = m + (m - 1) * int((d - m + 1) / m) - 1
+                mask_ones = jnp.ones((X.shape[0],d - start),dtype=bool)
+                mask = lax.dynamic_update_slice(mask_zeros,mask_ones,(0,start))
+                temp = jnp.where(mask, X, 0.5)
+                return temp / 2 + 1 / 4
 
-            temp1 = lax.cond(i < m - 1, true_fun, false_fun, None)
+            temp1 = lax.cond(i < m - 1, true_fun, false_fun)
             return g.at[:, i].set(jnp.sum((temp1 - 0.5) ** 2, axis=1))
-        lax.fori_loop(0, m, body_fun, g)
+        g = lax.fori_loop(0, m, body_fun, g)
 
         f1 = jnp.fliplr(
             jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), jnp.cos((X[:, :m - 1] / 2 + 1 / 4) * jnp.pi / 2)]), axis=1))
