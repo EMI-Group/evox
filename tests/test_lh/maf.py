@@ -11,6 +11,7 @@ from jax import vmap
 from matplotlib.path import Path
 from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
+import numpy as np
 
 @evox.jit_class
 class MaF(Problem):
@@ -68,7 +69,7 @@ class MaF1(MaF):
         f = 1 - UniformSampling(n, self.m)()[0]
         return f, state
 
-# @evox.jit_class
+@evox.jit_class
 class MaF2(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -105,22 +106,24 @@ class MaF2(MaF):
 
     def pf(self, state: chex.PyTreeDef):
         n = self.ref_num * self.m
-        # n = 1000
+        n = 1000
         r = UniformSampling(n, self.m)()[0]
         c = jnp.zeros((r.shape[0], self.m - 1))
-        for i in range(1, n + 1):
-            for j in range(2, self.m+1):
-                temp = r[i-1, j-1] / r[i-1, 0] * jnp.prod(c[i-1, self.m - j + 1:self.m - 1])
-                c = c.at[i-1, self.m - j].set(jnp.sqrt(1 / (1 + temp**2)))
-        # lax.fori_loop(1,n+1,)
+        def inner_fun(i, c):
+           def inner_fun2(j, c):
+                temp = r[i - 1, j - 1] / r[i - 1, 0] * jnp.prod(c[i - 1, self.m - j + 1:self.m - 1])
+                c = c.at[i - 1, self.m - j].set(jnp.sqrt(1 / (1 + temp ** 2)))
+                return c
+           with jax.disable_jit():
+                c = lax.fori_loop(2, self.m+1, inner_fun2, c)
+           return c
+
+        c = lax.fori_loop(1,n+1,inner_fun, c)
 
         if self.m > 5:
             c = c * (jnp.cos(jnp.pi / 8) - jnp.cos(3 * jnp.pi / 8)) + jnp.cos(3 * jnp.pi / 8)
         else:
-            # temp = jnp.any(jnp.logical_or(c < jnp.cos(3 * jnp.pi / 8), c > jnp.cos(jnp.pi / 8)), axis=1)
-            # c = jnp.delete(c, temp.flatten() == 1, axis=0)
             c = c[jnp.all((c >= jnp.cos(3 * jnp.pi / 8)) & (c <= jnp.cos(jnp.pi / 8)), axis=1)]
-
 
         n, _ = jnp.shape(c)
         f = jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), c[:, :self.m - 1]]), axis=1)) * jnp.hstack(
