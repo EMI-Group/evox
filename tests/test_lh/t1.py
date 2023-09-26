@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 from jax import random
-from maf import *
+from evox.problems.numerical.maf import *
 
 key = random.PRNGKey(1)
 data = jnp.load("data.npz")['X']
