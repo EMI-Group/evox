@@ -1,10 +1,13 @@
 import jax
 import jax.numpy as jnp
+
+import evox
 import evox as ex
 from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
 import chex
 from functools import partial
 
+@evox.jit_class
 class LSMOP(ex.Problem):
     """LSMOP"""
 
@@ -94,6 +97,7 @@ class LSMOP(ex.Problem):
 
 class LSMOP1(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -102,7 +106,7 @@ class LSMOP1(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
@@ -198,6 +202,7 @@ class LSMOP3(LSMOP):
 
 class LSMOP4(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -206,7 +211,7 @@ class LSMOP4(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -231,6 +236,7 @@ class LSMOP4(LSMOP):
 
 class LSMOP5(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -239,7 +245,6 @@ class LSMOP5(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -273,6 +278,7 @@ class LSMOP5(LSMOP):
 
 class LSMOP6(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -281,7 +287,7 @@ class LSMOP6(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -307,6 +313,7 @@ class LSMOP6(LSMOP):
 
 class LSMOP7(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -315,7 +322,7 @@ class LSMOP7(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -347,6 +354,7 @@ class LSMOP7(LSMOP):
 
 class LSMOP8(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -355,7 +363,7 @@ class LSMOP8(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
@@ -387,6 +395,7 @@ class LSMOP8(LSMOP):
 
 class LSMOP9(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -395,10 +404,9 @@ class LSMOP9(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
-        temp = X
         n, d = jnp.shape(X)
         self.N = n
         m = self.m
@@ -442,14 +450,14 @@ class LSMOP9(LSMOP):
     def pf(self):
         interval = [0, 0.251412, 0.631627, 0.859401]
         median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0])
-        X = self.ReplicatePoint(self.N, self.m - 1)
+        X = self._ReplicatePoint(self.N, self.m - 1)
         # print("x", X)
         X = X.at[X <= median].set(X[X <= median] * (interval[1] - interval[0]) / median + interval[0])
         X = X.at[X > median].set((X[X > median] - median) * (interval[3] - interval[2]) / (1 - median) + interval[2])
         p = jnp.c_[X, 2 * (self.m - jnp.sum(X / 2 * (1 + jnp.sin(3 * jnp.pi * X)), axis=1, keepdims=True))]
         return p
 
-    def ReplicatePoint(self, sample_num, M):
+    def _ReplicatePoint(self, sample_num, M):
         if M > 1:
             sample_num = jnp.ceil(sample_num ** (1 / M)) ** M
             gap = jnp.arange(0, 1 + 1e-10, 1 / (sample_num ** (1 / M) - 1))

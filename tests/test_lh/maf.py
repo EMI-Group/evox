@@ -747,7 +747,7 @@ class MaF13(MaF):
         return f, state
 
 
-@evox.jit_class
+# @evox.jit_class
 class MaF14(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -778,24 +778,44 @@ class MaF14(MaF):
                 G = G.at[:, i].set(G[:, i] + self._Rastrigin(
                     X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
 
+        # def inner_fun(i,G):
+        #     i = i * 2
+        #     with jax.disable_jit():
+            # def inner_fun2(j,G):
+            #     start = self.len[i] + M - 1 + j * self.sublen[i]
+            #     length = self.sublen[i]
+            #     mask_zeros = jnp.zeros((X.shape[0], length))
+            #     # temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+            #     temp = X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]
+            #     return G.at[:, i].set(G[:, i] + self._Rastrigin(temp))
+            # G = lax.fori_loop(0, nk, inner_fun2, G)
+        #     return G
+        # G = lax.fori_loop(0, int(M/2),inner_fun, G)
+
         for i in range(1, M, 2):
             for j in range(nk):
                 G = G.at[:, i].set(G[:, i] + self._Rosenbrock(
                     X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]))
 
+        # def inner_fun3(i, G):
+        #     i = i * 2
+        #     length = self.sublen[i]
+        #     def inner_fun4(j, G):
+        #         start = self.len[i] + M - 1 + j * self.sublen[i]
+        #         mask_zeros = jnp.zeros((X.shape[0], X.shape[1]))
+        #         mask = lax.dynamic_update_slice()
+        #         # temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+        #         temp = X[:, self.len[i] + M - 1 + j * self.sublen[i]:self.len[i] + M - 1 + (j + 1) * self.sublen[i]]
+        #         return G.at[:, i].set(G[:, i] + self._Rosenbrock(temp))
+        #
+        #     G = lax.fori_loop(0, nk, inner_fun4, G)
+        #     return G
+        # G = lax.fori_loop(1, int(M/2), inner_fun3, G)
+
         G /= self.sublen[None, :] * nk
         f = (1 + G) * jnp.fliplr(jnp.cumprod(jnp.hstack([jnp.ones((N, 1)), X[:, :M - 1]]), axis=1)) * jnp.hstack(
             [jnp.ones((N, 1)),  1 - X[:, M - 2::-1]])
         return f, state
-
-    # def pf(self, state: chex.PyTreeDef):
-    #     if self.m == 2:
-    #         R = self._GetOptimum()
-    #         return R, state
-    #     elif self.m == 3:
-    #         a = jnp.linspace(0, 1, 10).reshape(-1, 1)
-    #         R = [a @ a.T, a @ (1 - a).T, (1 - a) @ jnp.ones_like(a).T]
-    #         return R, state
 
     def pf(self, state: chex.PyTreeDef):
         M = self.m
@@ -810,7 +830,7 @@ class MaF14(MaF):
         return jnp.sum(100 * (x[:, :-1] ** 2 - x[:, 1:]) ** 2 + (x[:, :-1] - 1) ** 2, axis=1)
 
 
-@evox.jit_class
+# @evox.jit_class
 class MaF15(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
