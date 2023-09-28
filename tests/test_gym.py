@@ -7,20 +7,18 @@ from flax import linen as nn
 import pytest
 
 
-class CartpolePolicy(nn.Module):
-    """A simple model for cartpole"""
-
-    @nn.compact
-    def __call__(self, x):
-        x = nn.Dense(32)(x)
-        x = nn.sigmoid(x)
-        x = nn.Dense(2)(x)
-        return jnp.argmax(x)
-
-
-@pytest.mark.skip(reason="time consuming")
 @pytest.mark.parametrize("batch_policy", [True, False])
 def test_cartpole(batch_policy):
+    class CartpolePolicy(nn.Module):
+        """A simple model for cartpole"""
+
+        @nn.compact
+        def __call__(self, x):
+            x = nn.Dense(32)(x)
+            x = nn.sigmoid(x)
+            x = nn.Dense(2)(x)
+            return jnp.argmax(x)
+
     key = jax.random.PRNGKey(42)
     model_key, pipeline_key = jax.random.split(key)
 
@@ -29,38 +27,40 @@ def test_cartpole(batch_policy):
     adapter = TreeAndVector(params)
     monitor = StdSOMonitor()
     problem = problems.rl.Gym(
+        env_name="CartPole-v1",
         policy=jax.jit(model.apply),
-        num_workers=4,
-        env_per_worker=10,
+        num_workers=2,
+        env_per_worker=4,
+        worker_options={"num_gpus": 0, "num_cpus": 0},
         controller_options={
-            "num_cpus": 0.25,
+            "num_cpus": 0,
             "num_gpus": 0,
         },
-        worker_options={"num_cpus": 1},
         batch_policy=batch_policy,
     )
     center = adapter.to_vector(params)
     # create a pipeline
-    pipeline = workflows.StdPipeline(
+    pipeline = workflows.UniWorkflow(
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,
-            pop_size=40,
+            pop_size=8,
         ),
         problem=problem,
+        monitor=monitor,
+        jit_problem=False,
+        num_objectives=1,
         pop_transform=adapter.batched_to_tree,
-        fitness_transform=monitor.record_fit,
     )
     # init the pipeline
     state = pipeline.init(pipeline_key)
 
-    # run the pipeline for 10 steps
-    for i in range(10):
-        print(monitor.get_min_fitness())
+    # run the pipeline for 5 steps
+    for i in range(5):
         state = pipeline.step(state)
 
     # the result should be close to 0
     min_fitness = monitor.get_min_fitness()
     print(min_fitness)
-    # gym should be deterministic
-    assert min_fitness == -83.0
+    # gym is deterministic, so the result should always be the same
+    assert min_fitness == -12.0
