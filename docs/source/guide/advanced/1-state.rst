@@ -6,7 +6,7 @@ EvoX is designed around the stateful computation.
 
 There are two most fundamental classes, namely :class:`Stateful <evox.Stateful>` and :class:`State <evox.State>`.
 
-All class that involves stateful computation are inherented from ``Stateful``. In EvoX, ``Algorithm``, ``Problem``, ``Operator`` and pipelines are all stateful.
+All class that involves stateful computation are inherented from ``Stateful``. In EvoX, ``Algorithm``, ``Problem``, ``Operator`` and workflows are all stateful.
 
 The idea behind the design
 ==========================

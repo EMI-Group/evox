@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdMOMonitor
 from evox.metrics import IGD
 import jax
@@ -17,7 +17,7 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
     # problem = problems.numerical.DTLZ2(m=M)
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm=algorithm,
         problem=problem,
         fitness_transform=monitor.record_fit,

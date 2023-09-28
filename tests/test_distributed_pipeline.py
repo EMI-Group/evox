@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor
 import jax
 import jax.numpy as jnp
@@ -8,7 +8,7 @@ import pytest
 def test_distributed_cso():
     monitor = StdSOMonitor()
     # create a pipeline
-    pipeline = pipelines.RayDistributedWorkflow(
+    pipeline = workflows.RayDistributedWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),

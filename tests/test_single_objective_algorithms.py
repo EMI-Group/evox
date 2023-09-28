@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import pipelines, problems
+from evox import workflows, problems
 from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
@@ -17,7 +17,7 @@ def run_single_objective_algorithm(
     else:
         fitness_transform = monitor.record_fit
 
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm=algorithm,
         problem=problem,
         fitness_transform=fitness_transform,

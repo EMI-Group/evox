@@ -2,5 +2,5 @@
 Standard Pipeline
 =================
 
-.. autoclass:: evox.pipelines.StdPipeline
+.. autoclass:: evox.workflows.StdPipeline
     :members:

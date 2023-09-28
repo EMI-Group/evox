@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from flax import linen as nn
-from evox import algorithms, pipelines, problems, utils
+from evox import algorithms, workflows, problems, utils
 from evox.monitors import StdSOMonitor
 
 
@@ -64,7 +64,7 @@ def test_neuroevolution_treemap():
         initial_params,
     )
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm=Algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
         fitness_transform=monitor.record_fit,
@@ -97,7 +97,7 @@ def test_neuroevolution_adapter():
         center_learning_rate=0.01,
         stdev_init=0.01,
     )
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm=algorithm,
         problem=problem,
         pop_transform=adapter.batched_to_tree,

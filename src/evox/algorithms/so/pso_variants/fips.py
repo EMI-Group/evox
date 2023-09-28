@@ -27,7 +27,7 @@ from evox import (
     algorithms,
     jit_class,
     monitors,
-    pipelines,
+    workflows,
     problems,
 )
 from evox.utils import min_by

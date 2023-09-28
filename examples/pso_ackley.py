@@ -1,4 +1,4 @@
-from evox import algorithms, problems, pipelines
+from evox import algorithms, problems, workflows
 import jax
 import jax.numpy as jnp
 
@@ -12,7 +12,7 @@ problem = problems.numerical.Ackley()
 
 # create a pipeline
 
-pipeline = pipelines.StdPipeline(
+pipeline = workflows.StdPipeline(
     algorithm,
     problem,
 )

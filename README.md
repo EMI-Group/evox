@@ -48,7 +48,7 @@ To start with, import `evox`
 
 ```python
 import evox
-from evox import algorithms, problems, pipelines
+from evox import algorithms, problems, workflows
 ```
 
 Then, create an algorithm and a problem:
@@ -65,7 +65,7 @@ ackley = problems.numerical.Ackley()
 The algorithm and the problem are composed together using `pipeline`:
 
 ```python
-pipeline = pipelines.StdPipeline(pso, ackley)
+pipeline = workflows.StdPipeline(pso, ackley)
 ```
 
 To initialize the whole pipeline, call `init` on the pipeline object with a PRNGKey. Calling `init` will recursively initialize a tree of objects, meaning the algorithm pso and problem ackley are automatically initialize as well.

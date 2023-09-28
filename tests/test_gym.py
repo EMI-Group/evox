@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
 import jax
@@ -41,7 +41,7 @@ def test_cartpole(batch_policy):
     )
     center = adapter.to_vector(params)
     # create a pipeline
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,

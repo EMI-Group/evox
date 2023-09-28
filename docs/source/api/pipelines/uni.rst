@@ -2,5 +2,5 @@
 Universal Workflow
 ==================
 
-.. autoclass:: evox.pipelines.UniWorkflow
+.. autoclass:: evox.workflows.UniWorkflow
     :members:

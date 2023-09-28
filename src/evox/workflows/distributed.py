@@ -180,7 +180,7 @@ class RayDistributedWorkflow(Stateful):
         """Create a distributed pipeline
 
         Distributed pipeline can distribute the pipeline to different nodes,
-        it will create num_workers copies of the pipelines with the same seed,
+        it will create num_workers copies of the workflows with the same seed,
         and at each step each pipeline only evaluate part of the population,
         then pass the fitness to other nodes to recreate the whole fitness array.
 

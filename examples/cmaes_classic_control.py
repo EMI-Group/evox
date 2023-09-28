@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor
 from evox.utils import TreeAndVector
 import jax
@@ -56,7 +56,7 @@ problem = problems.rl.Gym(
 )
 center = adapter.to_vector(params)
 # create a pipeline
-pipeline = pipelines.StdPipeline(
+pipeline = workflows.StdPipeline(
     algorithm=algorithms.CMAES(init_mean=center, init_stdev=1, pop_size=64),
     problem=problem,
     pop_transform=adapter.batched_to_tree,

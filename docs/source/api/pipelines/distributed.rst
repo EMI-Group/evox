@@ -2,5 +2,5 @@
 Ray-based Distributed Workflow
 ==============================
 
-.. autoclass:: evox.pipelines.RayDistributedWorkflow
+.. autoclass:: evox.workflows.RayDistributedWorkflow
     :members:

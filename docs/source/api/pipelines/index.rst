@@ -1,5 +1,5 @@
 =========
-Pipelines
+workflows
 =========
 
 .. toctree::

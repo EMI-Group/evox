@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import algorithms, pipelines, problems
+from evox import algorithms, workflows, problems
 from evox.monitors import StdSOMonitor
 
 
@@ -12,7 +12,7 @@ def test_clustered_cma_es():
     # create a pipeline
     init_mean = jnp.full((10,), fill_value=-20)
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithms.ClusterdAlgorithm(
             base_algorithm=algorithms.CMAES(init_mean, init_stdev=10, pop_size=10),
             dim=40,
@@ -47,7 +47,7 @@ def test_vectorized_coevolution(random_subpop):
         num_subpops=2,
         random_subpop=random_subpop,
     )
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithm,
         problem=problems.numerical.Ackley(),
         fitness_transform=monitor.record_fit,
@@ -101,7 +101,7 @@ def test_vectorized_coevolution(random_subpop):
 def test_coevolution(random_subpop, num_subpop_iter):
     # create a pipeline
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithms.Coevolution(
             base_algorithm=algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
@@ -132,7 +132,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
 def test_random_mask_cso():
     # create a pipeline
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         algorithms.RandomMaskAlgorithm(
             base_algorithm=algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),

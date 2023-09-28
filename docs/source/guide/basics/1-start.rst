@@ -10,7 +10,7 @@ To start with, import ``evox``
 .. code-block:: python
 
     import evox
-    from evox import algorithms, problems, pipelines
+    from evox import algorithms, problems, workflows
 
 Then, create an ``algorithm`` and a ``problem``.
 The list of available algorithms and problems can be found in :mod:`here <evox.algorithms>` and :mod:`here <evox.problems>`.
@@ -28,7 +28,7 @@ The algorithm and the problem are composed together using ``pipeline``:
 
 .. code-block:: python
 
-    pipeline = pipelines.StdPipeline(pso, ackley)
+    pipeline = workflows.StdPipeline(pso, ackley)
 
 
 To initialize the whole pipeline, call ``init`` on the pipeline object with a PRNGKey.
@@ -65,7 +65,7 @@ Then set this monitor as the fitness transform for the pipeline
 
 .. code-block:: python
 
-    pipeline = pipelines.StdPipeline(
+    pipeline = workflows.StdPipeline(
         pso,
         ackley,
         fitness_transform=monitor.record_fit,

@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor
 import jax
 import jax.numpy as jnp
@@ -7,7 +7,7 @@ import jax.numpy as jnp
 def run_uni_workflow_with_jit_problem():
     monitor = StdSOMonitor()
     # create a pipeline
-    pipeline = pipelines.UniWorkflow(
+    pipeline = workflows.UniWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
@@ -33,7 +33,7 @@ def run_uni_workflow_with_jit_problem():
 def run_uni_workflow_with_non_jit_problem():
     monitor = StdSOMonitor()
     # create a pipeline
-    pipeline = pipelines.UniWorkflow(
+    pipeline = workflows.UniWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
