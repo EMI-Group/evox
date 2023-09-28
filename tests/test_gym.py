@@ -20,7 +20,7 @@ def test_cartpole(batch_policy):
             return jnp.argmax(x)
 
     key = jax.random.PRNGKey(42)
-    model_key, pipeline_key = jax.random.split(key)
+    model_key, workflow_key = jax.random.split(key)
 
     model = CartpolePolicy()
     params = model.init(model_key, jnp.zeros((4,)))
@@ -39,8 +39,8 @@ def test_cartpole(batch_policy):
         batch_policy=batch_policy,
     )
     center = adapter.to_vector(params)
-    # create a pipeline
-    pipeline = workflows.UniWorkflow(
+    # create a workflow
+    workflow = workflows.UniWorkflow(
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,
@@ -52,12 +52,12 @@ def test_cartpole(batch_policy):
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,
     )
-    # init the pipeline
-    state = pipeline.init(pipeline_key)
+    # init the workflow
+    state = workflow.init(workflow_key)
 
-    # run the pipeline for 5 steps
+    # run the workflow for 5 steps
     for i in range(5):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     # the result should be close to 0
     min_fitness = monitor.get_min_fitness()

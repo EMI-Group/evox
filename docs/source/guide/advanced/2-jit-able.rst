@@ -31,7 +31,7 @@ In EvoX, we have some general rules on whether a function should be jit-able or 
 +-----------+----------+
 | Component | jit-able |
 +===========+==========+
-| Pipeline  | Optional |
+| Workflow  | Optional |
 +-----------+----------+
 | Algorithm | Yes      |
 +-----------+----------+
@@ -42,6 +42,6 @@ In EvoX, we have some general rules on whether a function should be jit-able or 
 | Monitor   | No       |
 +-----------+----------+
 
-For standard pipeline, one can jit compile when not using monitors and working with jit-able problems.
-But even though the pipeline can be compiled, there isn't much performance gain.
+For standard workflow, one can jit compile when not using monitors and working with jit-able problems.
+But even though the workflow can be compiled, there isn't much performance gain.
 For problems, it depends on the task.

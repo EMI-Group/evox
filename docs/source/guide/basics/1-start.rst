@@ -2,7 +2,7 @@
 Quick Start
 ===========
 
-Algorithm, Problem & Pipeline
+Algorithm, Problem & Workflow
 =============================
 
 To start with, import ``evox``
@@ -24,33 +24,33 @@ The list of available algorithms and problems can be found in :mod:`here <evox.a
     )
     ackley = problems.numerical.Ackley()
 
-The algorithm and the problem are composed together using ``pipeline``:
+The algorithm and the problem are composed together using ``workflow``:
 
 .. code-block:: python
 
-    pipeline = workflows.StdPipeline(pso, ackley)
+    workflow = workflows.StdWorkflow(pso, ackley)
 
 
-To initialize the whole pipeline, call ``init`` on the pipeline object with a PRNGKey.
+To initialize the whole workflow, call ``init`` on the workflow object with a PRNGKey.
 Calling ``init`` will recursively initialize a tree of objects, meaning the algorithm pso and problem ackley are automatically initialize as well.
 
 .. code-block:: python
 
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
-To run the pipeline, call ``step`` on the pipeline.
+To run the workflow, call ``step`` on the workflow.
 
 .. code-block:: python
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
 Monitor
 =======
 
-Usually, we don't care about the final state of the pipeline, instead, we are more interested in things like the fitness or the final solution.
+Usually, we don't care about the final state of the workflow, instead, we are more interested in things like the fitness or the final solution.
 
 The ``monitor`` is the way to record these values in EvoX.
 
@@ -61,25 +61,25 @@ First, import monitors and create a monitor
     from evox.monitors import StdSOMonitor
     monitor = StdSOMonitor()
 
-Then set this monitor as the fitness transform for the pipeline
+Then set this monitor as the fitness transform for the workflow
 
 .. code-block:: python
 
-    pipeline = workflows.StdPipeline(
+    workflow = workflows.StdWorkflow(
         pso,
         ackley,
         fitness_transform=monitor.record_fit,
     )
 
-Then continue to run the pipeline as ususal. now at each iteration, the pipeline will call ``monitor.record_fit`` with the fitness at that iteration.
+Then continue to run the workflow as ususal. now at each iteration, the workflow will call ``monitor.record_fit`` with the fitness at that iteration.
 
 .. code-block:: python
 
-    # init the pipeline
-    state = pipeline.init(key)
-    # run the pipeline for 100 steps
+    # init the workflow
+    state = workflow.init(key)
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
 To get the minimum fitness of all time, call the ``get_min_fitness`` method on the monitor.
 

@@ -1,6 +1,5 @@
-from .standard import StdPipeline
-from .multidevice import MultiDevicePipeline
-from .gym import GymPipeline
+from .standard import StdWorkflow
+from .multidevice import MultiDeviceWorkflow
 from .uni_workflow import UniWorkflow
 
 try:
@@ -9,7 +8,7 @@ try:
 except ImportError as e:
     original_erorr_msg = str(e)
 
-    def DistributedPipeline(*args, **kwargs):
+    def DistributedWorkflow(*args, **kwargs):
         raise ImportError(
-            f'DistributedPipeline requires ray, but got "{original_erorr_msg}" when importing'
+            f'DistributedWorkflow requires ray, but got "{original_erorr_msg}" when importing'
         )

@@ -206,4 +206,4 @@ Then we implement a genetic algorithm that uses bitflip mutation and one-point c
             # replace the old population
             return state.update(pop=new_pop, fit=new_fit)
 
-Now, you can assemble a pipeline and run it.
+Now, you can assemble a workflow and run it.

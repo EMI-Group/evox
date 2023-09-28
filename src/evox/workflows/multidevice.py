@@ -8,7 +8,7 @@ from jax import pmap
 from evox import Algorithm, Problem, State, Stateful
 
 
-class MultiDevicePipeline(Stateful):
+class MultiDeviceWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
@@ -19,18 +19,18 @@ class MultiDevicePipeline(Stateful):
         fitness_transform: Optional[Callable] = None,
         global_fitness_transform: Optional[Callable] = None,
     ):
-        """Create a multi-device pipeline
+        """Create a multi-device workflow
 
-        This multi-device pipeline is similar to the DistributedPipeline,
+        This multi-device workflow is similar to the DistributedWorkflow,
         but use JAX-primitives to implement the distributed framework.
-        So compare to DistributedPipeline,
-        MultiDevicePipeline has more restrictionis but is more efficient.
+        So compare to DistributedWorkflow,
+        MultiDeviceWorkflow has more restrictionis but is more efficient.
 
         ``pop_transform`` and ``fitness_transform`` are applied at each node,
         while ``global_fitness_transform`` is applied at the main node once per step,
         so monitor should be passed as ``global_fitness_transform``.
 
-        Using MultiDevicePipeline requires
+        Using MultiDeviceWorkflow requires
         ``algorithm``, ``problem``, ``pop_transform`` and ``fitness_transform`` to be jit-able.
 
         Parameters

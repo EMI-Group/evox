@@ -17,9 +17,9 @@ The idea behind the design
 
 Here we have five different objects, and notice that they have a hierarchical structure.
 To work with such structure, at each level we must "lift the state" by managing the states of child components.
-So, the state at the ``pipeline`` level must contains the state of both ``algorithm`` and ``problem``,
+So, the state at the ``workflow`` level must contains the state of both ``algorithm`` and ``problem``,
 and since the state at the ``algorithm`` level must contains the state of both operators,
-the state ``pipeline`` level actual need to handle states from all 5 components.
+the state ``workflow`` level actual need to handle states from all 5 components.
 
 However, it is frustrating to managing the hierarchy manually, and it is not good for modular design.
 To solve this problem, we introduce ``Stateful`` and ``State``.
@@ -79,7 +79,7 @@ So you could write code like this.
 
 .. code-block:: python
 
-    class FooPipeline(Stateful):
+    class FooWorkflow(Stateful):
         ...
         def step(self, state):
             population, state = self.algorithm.ask(state)
@@ -87,7 +87,7 @@ So you could write code like this.
             ...
 
 Notice that, when calling the method ``step``,
-``state`` is the state of the pipeline,
+``state`` is the state of the workflow,
 but when calling ``self.algorithm.ask``,
 ``state`` behaves like the state of the algorithm,
-and after the call, the state of the algorithm is automatically merged back into the state of the pipeline.
+and after the call, the state of the algorithm is automatically merged back into the state of the workflow.

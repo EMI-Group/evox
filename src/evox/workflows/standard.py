@@ -3,7 +3,7 @@ from evox import Algorithm, Problem
 from typing import Optional, Callable
 
 
-class StdPipeline(Stateful):
+class StdWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,

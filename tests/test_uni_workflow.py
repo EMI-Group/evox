@@ -6,8 +6,8 @@ import jax.numpy as jnp
 
 def run_uni_workflow_with_jit_problem():
     monitor = StdSOMonitor()
-    # create a pipeline
-    pipeline = workflows.UniWorkflow(
+    # create a workflow
+    workflow = workflows.UniWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
@@ -16,14 +16,14 @@ def run_uni_workflow_with_jit_problem():
         problem=problems.numerical.Ackley(),
         monitor=monitor,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
-    state = pipeline.enable_multi_devices(state)
+    state = workflow.init(key)
+    state = workflow.enable_multi_devices(state)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     monitor.close()
     min_fitness = monitor.get_min_fitness()
@@ -32,8 +32,8 @@ def run_uni_workflow_with_jit_problem():
 
 def run_uni_workflow_with_non_jit_problem():
     monitor = StdSOMonitor()
-    # create a pipeline
-    pipeline = workflows.UniWorkflow(
+    # create a workflow
+    workflow = workflows.UniWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full(shape=(2,), fill_value=-32),
             ub=jnp.full(shape=(2,), fill_value=32),
@@ -43,13 +43,13 @@ def run_uni_workflow_with_non_jit_problem():
         monitor=monitor,
         jit_problem=False,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     monitor.close()
     min_fitness = monitor.get_min_fitness()

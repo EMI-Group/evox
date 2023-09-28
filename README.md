@@ -22,7 +22,7 @@
 
 - Single-objective and multi-objective algorithms.
 - GPU computing.
-- Easy to use distributed pipeline.
+- Easy to use distributed workflow.
 - Support a wide range of problems.
 - Hierarchical state managing.
 
@@ -62,25 +62,25 @@ pso = algorithms.PSO(
 ackley = problems.numerical.Ackley()
 ```
 
-The algorithm and the problem are composed together using `pipeline`:
+The algorithm and the problem are composed together using `workflow`:
 
 ```python
-pipeline = workflows.StdPipeline(pso, ackley)
+workflow = workflows.StdWorkflow(pso, ackley)
 ```
 
-To initialize the whole pipeline, call `init` on the pipeline object with a PRNGKey. Calling `init` will recursively initialize a tree of objects, meaning the algorithm pso and problem ackley are automatically initialize as well.
+To initialize the whole workflow, call `init` on the workflow object with a PRNGKey. Calling `init` will recursively initialize a tree of objects, meaning the algorithm pso and problem ackley are automatically initialize as well.
 
 ```python
 key = jax.random.PRNGKey(42)
-state = pipeline.init(key)
+state = workflow.init(key)
 ```
 
-To run the pipeline, call `step` on the pipeline.
+To run the workflow, call `step` on the workflow.
 
 ```python
-# run the pipeline for 100 steps
+# run the workflow for 100 steps
 for i in range(100):
-    state = pipeline.step(state)
+    state = workflow.step(state)
 ```
 
 ## More Tutorial

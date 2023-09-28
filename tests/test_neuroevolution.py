@@ -54,7 +54,7 @@ def init_problem_and_model(key):
 @pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_treemap():
     key = jax.random.PRNGKey(42)
-    pipeline_key, model_init_key = jax.random.split(key)
+    workflow_key, model_init_key = jax.random.split(key)
 
     initial_params, problem = init_problem_and_model(model_init_key)
 
@@ -64,17 +64,17 @@ def test_neuroevolution_treemap():
         initial_params,
     )
     monitor = StdSOMonitor()
-    pipeline = workflows.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=Algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
         fitness_transform=monitor.record_fit,
     )
-    # init the pipeline
-    state = pipeline.init(pipeline_key)
+    # init the workflow
+    state = workflow.init(workflow_key)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     # the result should be close to 0
     min_fitness = monitor.get_min_fitness()
@@ -84,7 +84,7 @@ def test_neuroevolution_treemap():
 @pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_adapter():
     key = jax.random.PRNGKey(42)
-    pipeline_key, model_init_key = jax.random.split(key)
+    workflow_key, model_init_key = jax.random.split(key)
     initial_params, problem = init_problem_and_model(model_init_key)
 
     start = time.perf_counter()
@@ -97,18 +97,18 @@ def test_neuroevolution_adapter():
         center_learning_rate=0.01,
         stdev_init=0.01,
     )
-    pipeline = workflows.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
         pop_transform=adapter.batched_to_tree,
         fitness_transform=monitor.record_fit,
     )
-    # init the pipeline
-    state = pipeline.init(key)
+    # init the workflow
+    state = workflow.init(key)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     # the result should be close to 0
     min_fitness = monitor.get_min_fitness()

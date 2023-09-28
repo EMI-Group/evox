@@ -10,17 +10,17 @@ algorithm = algorithms.PSO(
 
 problem = problems.numerical.Ackley()
 
-# create a pipeline
+# create a workflow
 
-pipeline = workflows.StdPipeline(
+workflow = workflows.StdWorkflow(
     algorithm,
     problem,
 )
 
-# init the pipeline
+# init the workflow
 key = jax.random.PRNGKey(42)
-state = pipeline.init(key)
+state = workflow.init(key)
 
-# run the pipeline for 100 steps
+# run the workflow for 100 steps
 for i in range(100):
-    state = pipeline.step(state)
+    state = workflow.step(state)

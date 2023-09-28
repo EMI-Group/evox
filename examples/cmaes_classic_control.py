@@ -36,7 +36,7 @@ class ClassicPolicy(nn.Module):
 
 
 key = jax.random.PRNGKey(42)
-model_key, pipeline_key = jax.random.split(key)
+model_key, workflow_key = jax.random.split(key)
 
 model = ClassicPolicy()
 params = model.init(model_key, jnp.zeros(policy_params[gym_name][1]))
@@ -55,21 +55,21 @@ problem = problems.rl.Gym(
     batch_policy=False,
 )
 center = adapter.to_vector(params)
-# create a pipeline
-pipeline = workflows.StdPipeline(
+# create a workflow
+workflow = workflows.StdWorkflow(
     algorithm=algorithms.CMAES(init_mean=center, init_stdev=1, pop_size=64),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
     fitness_transform=monitor.record_fit,
 )
-# init the pipeline
-state = pipeline.init(pipeline_key)
-# run the pipeline for 100 steps
+# init the workflow
+state = workflow.init(workflow_key)
+# run the workflow for 100 steps
 for i in range(100):
     print(monitor.get_min_fitness())
-    state = pipeline.step(state)
+    state = workflow.step(state)
 
-sample_pop, state = pipeline.sample(state)
+sample_pop, state = workflow.sample(state)
 # problem._render(state.get_child_state("problem"), adapter.to_tree(sample_pop[0]))
 
 min_fitness = monitor.get_min_fitness()

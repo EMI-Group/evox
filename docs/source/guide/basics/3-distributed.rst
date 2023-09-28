@@ -2,16 +2,16 @@
 Distribute the workflow
 =======================
 
-To scale the workflow using multiple machines, use the :class:`DistributedPipeline <evox.workflows.DistributedPipeline>` instead of StdPipeline.
+To scale the workflow using multiple machines, use the :class:`DistributedWorkflow <evox.workflows.DistributedWorkflow>` instead of StdWorkflow.
 
 .. code-block:: python
 
     algorithm = <your algorithm>
     problem = <your problem>
 
-    from evox.workflows import DistributedPipeline
+    from evox.workflows import DistributedWorkflow
 
-    pipeline = DistributedPipeline(
+    workflow = DistributedWorkflow(
         algorithm=algorithm,
         problem=problem,
         pop_size=100, # the actual population size used by the algorithm

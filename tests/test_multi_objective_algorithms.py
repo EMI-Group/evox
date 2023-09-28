@@ -17,16 +17,16 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
     # problem = problems.numerical.DTLZ2(m=M)
-    pipeline = workflows.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
         fitness_transform=monitor.record_fit,
     )
-    state = pipeline.init(key)
+    state = workflow.init(key)
     true_pf, state = problem.pf(state)
 
     for i in range(ITER):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     objs = monitor.get_last()
 

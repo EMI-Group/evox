@@ -35,7 +35,7 @@ class PongPolicy(nn.Module):
 
 
 key = jax.random.PRNGKey(42)
-model_key, pipeline_key = jax.random.split(key)
+model_key, workflow_key = jax.random.split(key)
 
 model = PongPolicy()
 params = model.init(model_key, jnp.zeros((210, 160, 3)))
@@ -55,8 +55,8 @@ problem = problems.rl.Gym(
     batch_policy=False,
 )
 center = adapter.to_vector(params)
-# create a pipeline
-pipeline = workflows.StdPipeline(
+# create a workflow
+workflow = workflows.StdWorkflow(
     algorithm=algorithms.PGPE(
         optimizer="adam",
         center_init=center,
@@ -66,14 +66,14 @@ pipeline = workflows.StdPipeline(
     pop_transform=adapter.batched_to_tree,
     fitness_transform=monitor.record_fit,
 )
-# init the pipeline
-state = pipeline.init(pipeline_key)
-# run the pipeline for 100 steps
+# init the workflow
+state = workflow.init(workflow_key)
+# run the workflow for 100 steps
 for i in range(10):
     print(monitor.get_min_fitness())
-    state = pipeline.step(state)
+    state = workflow.step(state)
 
-sample_pop, state = pipeline.sample(state)
+sample_pop, state = workflow.sample(state)
 # problem._render(adapter.to_tree(sample_pop[0]), ale_render_mode="human")
 # the result should be close to 0
 min_fitness = monitor.get_min_fitness()

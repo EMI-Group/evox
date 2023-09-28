@@ -12,7 +12,7 @@ from evox import Algorithm, Problem, State, Stateful, jit_class
 
 
 @jit_class
-class WorkerPipeline(Stateful):
+class WorkerWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
@@ -70,31 +70,31 @@ class WorkerPipeline(Stateful):
 
 @ray.remote
 class Worker:
-    def __init__(self, pipeline: WorkerPipeline, worker_index: int):
-        self.pipeline = pipeline
+    def __init__(self, workflow: WorkerWorkflow, worker_index: int):
+        self.workflow = workflow
         self.worker_index = worker_index
 
     def init(self, key: jax.Array):
-        self.state = self.pipeline.init(key)
+        self.state = self.workflow.init(key)
         self.initialized = True
 
     def step1(self):
-        parital_fitness, self.state = self.pipeline.step1(self.state)
+        parital_fitness, self.state = self.workflow.step1(self.state)
         return parital_fitness
 
     def step2(self, fitness: jax.Array):
         fitness = ray.get(fitness)
-        self.state = self.pipeline.step2(self.state, fitness)
+        self.state = self.workflow.step2(self.state, fitness)
 
     def valid(self, metric: str):
-        fitness, _state = self.pipeline.valid(self.state, metric)
+        fitness, _state = self.workflow.valid(self.state, metric)
         return fitness
 
     def get_full_state(self):
         return self.state
 
     def sample(self):
-        sample, _state = self.pipeline.sample(self.state)
+        sample, _state = self.workflow.sample(self.state)
         return sample
 
 
@@ -126,7 +126,7 @@ class Supervisor:
         for i, slice_size in enumerate(slice_size_list):
             self.workers.append(
                 Worker.options(**options).remote(
-                    WorkerPipeline(
+                    WorkerWorkflow(
                         algorithm,
                         problem,
                         pop_size,
@@ -177,11 +177,11 @@ class RayDistributedWorkflow(Stateful):
         global_fitness_transform: Optional[Callable] = None,
         async_dispatch: int = 16,
     ):
-        """Create a distributed pipeline
+        """Create a distributed workflow
 
-        Distributed pipeline can distribute the pipeline to different nodes,
+        Distributed workflow can distribute the workflow to different nodes,
         it will create num_workers copies of the workflows with the same seed,
-        and at each step each pipeline only evaluate part of the population,
+        and at each step each workflow only evaluate part of the population,
         then pass the fitness to other nodes to recreate the whole fitness array.
 
         pop_transform and fitness_transform are applied at each node,

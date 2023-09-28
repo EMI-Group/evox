@@ -17,16 +17,16 @@ def run_single_objective_algorithm(
     else:
         fitness_transform = monitor.record_fit
 
-    pipeline = workflows.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
         fitness_transform=fitness_transform,
     )
 
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
     for i in range(num_iter):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     return monitor.get_min_fitness()
 
