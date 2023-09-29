@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "jax >= 0.3.0",
+  "jax >= 0.4.16",
   "jaxlib >= 0.3.0",
   "optax >= 0.1.0",
   "pyarrow >= 10.0.0",
