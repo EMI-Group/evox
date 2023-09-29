@@ -209,13 +209,17 @@ class TorchvisionDataset(Problem):
                 state,
             )
             data, labels = self.train_dataset[state.permutation[state.iter]]
-            losses = self._calculate_loss(data, labels, batch_params)
+            losses = self._metric_func(state, data, labels, batch_params)
             return state.update(iter=state.iter + 1), accumulator + losses
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
-        state, total_loss = lax.fori_loop(
-            0, self.num_passes, batch_evaluate, (state, jnp.zeros((pop_size,)))
-        )
+        if self.num_passes > 1:
+            state, total_loss = lax.fori_loop(
+                0, self.num_passes, batch_evaluate, (state, jnp.zeros((pop_size,)))
+            )
+        else:
+            state, total_loss = batch_evaluate(0, (state, jnp.zeros((pop_size,))))
+
         return total_loss / self.batch_size / self.num_passes, state
 
     def _evaluate_in_memory_valid(self, state, batch_params):
@@ -226,7 +230,9 @@ class TorchvisionDataset(Problem):
 
         def batch_evaluate(i, accumulated_metric):
             data, labels = self.valid_dataset[permutation[i]]
-            return accumulated_metric + self._metric_func(state, data, labels, batch_params)
+            return accumulated_metric + self._metric_func(
+                state, data, labels, batch_params
+            )
 
         pop_size = tree_leaves(batch_params)[0].shape[0]
         metric = lax.fori_loop(0, num_batches, batch_evaluate, jnp.zeros((pop_size,)))
@@ -292,7 +298,8 @@ class TorchvisionDataset(Problem):
             batch_params, data
         )  # (pop_size, batch_size, out_dim)
         output = jnp.argmax(output, axis=2)  # (pop_size, batch_size)
-        num_correct = jnp.sum((output == labels).astype(float), axis=1) # don't reduce here
+        num_correct = jnp.sum((output == labels), axis=1)  # don't reduce here
+        num_correct = num_correct.astype(jnp.float32)
 
         return num_correct
 
@@ -300,5 +307,6 @@ class TorchvisionDataset(Problem):
     def _calculate_loss(self, data, labels, batch_params):
         output = vmap(self.forward_func, in_axes=(0, None))(batch_params, data)
         loss = jnp.sum(vmap(self.loss_func, in_axes=(0, None))(output, labels), axis=1)
+        loss = loss.astype(jnp.float32)
 
         return loss
