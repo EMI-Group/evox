@@ -3,10 +3,10 @@ from typing import Optional, Callable, Dict, List, Union
 import warnings
 import jax
 import jax.numpy as jnp
-from jax import jit, pmap
+from jax import jit, pmap, pure_callback
 from jax.tree_util import tree_map
-from jax.sharding import PositionalSharding
-import jax.experimental.host_callback as hcb
+from jax.sharding import PositionalSharding, SingleDeviceSharding
+from jax.experimental import io_callback
 
 
 class UniWorkflow(Stateful):
@@ -92,14 +92,15 @@ class UniWorkflow(Stateful):
             self.num_objectives = 1
 
         def _step(self, state):
+            monitor_device = SingleDeviceSharding(jax.devices()[0])
             if self.monitor and self.record_time:
-                hcb.call(self.monitor.record_time, None)
+                io_callback(self.monitor.record_time, None, sharding=monitor_device)
 
             pop, state = self.algorithm.ask(state)
             pop_size = pop.shape[0]
 
             if self.monitor and self.record_pop:
-                hcb.id_tap(self.monitor.record_pop, pop)
+                io_callback(self.monitor.record_pop, None, pop, sharding=monitor_device)
 
             if self.distributed_step is True:
                 pop = jax.lax.dynamic_slice_in_dim(
@@ -127,14 +128,16 @@ class UniWorkflow(Stateful):
                     fit_shape = (pop_size,)
                 else:
                     fit_shape = (pop_size, self.num_objectives)
-                fitness, state = hcb.call(
-                    lambda args: self.problem.evaluate(args[0], args[1]),
-                    (state, pop),
-                    result_shape=(
+                fitness, state = pure_callback(
+                    self.problem.evaluate,
+                    (
                         jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
                         state,
                     ),
+                    state,
+                    pop,
                 )
+
             if self.distributed_step is True:
                 fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
 
@@ -145,9 +148,12 @@ class UniWorkflow(Stateful):
                     }
                 else:
                     metrics = None
-                hcb.id_tap(
-                    lambda args, _: self.monitor.record_fit(args[0], args[1]),
-                    (fitness, metrics),
+                io_callback(
+                    self.monitor.record_fit,
+                    None,
+                    fitness,
+                    metrics,
+                    sharding=monitor_device,
                 )
 
             if self.fit_transform:
