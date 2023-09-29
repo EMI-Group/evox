@@ -1,5 +1,4 @@
 from .standard import StdWorkflow
-from .multidevice import MultiDeviceWorkflow
 from .uni_workflow import UniWorkflow
 
 try:

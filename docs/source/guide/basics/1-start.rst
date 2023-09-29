@@ -61,17 +61,17 @@ First, import monitors and create a monitor
     from evox.monitors import StdSOMonitor
     monitor = StdSOMonitor()
 
-Then set this monitor as the fitness transform for the workflow
+Then configure the workflow to use the monitor.
 
 .. code-block:: python
 
     workflow = workflows.StdWorkflow(
         pso,
         ackley,
-        fitness_transform=monitor.record_fit,
+        monitor,
     )
 
-Then continue to run the workflow as ususal. now at each iteration, the workflow will call ``monitor.record_fit`` with the fitness at that iteration.
+Then continue to run the workflow as ususal. Now at each iteration, the workflow will call ``monitor.record_fit`` with the fitness at that iteration.
 
 .. code-block:: python
 

@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import numpy as np
 from ..operators.non_dominated_sort import non_dominated_sort
+import jax.experimental.host_callback as hcb
 
 
 class StdMOMonitor:
@@ -31,9 +32,8 @@ class StdMOMonitor:
 
     def record_pop(self, pop, tranform=None):
         self.current_population = pop
-        return pop
 
-    def record_fit(self, fitness, tranform=None):
+    def record_fit(self, fitness, metrics=None, tranform=None):
         if self.record_fit_history:
             self.fitness_history.append(fitness)
 
@@ -55,7 +55,6 @@ class StdMOMonitor:
             pf = rank == 0
             self.pf_fitness = self.pf_fitness[pf]
             self.pf_solutions = self.pf_solutions[pf]
-        return fitness
 
     def get_last(self):
         return self.fitness_history[-1]

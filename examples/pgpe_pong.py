@@ -64,7 +64,7 @@ workflow = workflows.StdWorkflow(
     ),
     problem=problem,
     pop_transform=adapter.batched_to_tree,
-    fitness_transform=monitor.record_fit,
+    monitor=monitor,
 )
 # init the workflow
 state = workflow.init(workflow_key)

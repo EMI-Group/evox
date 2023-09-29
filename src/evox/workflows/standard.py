@@ -1,6 +1,6 @@
-from evox import Stateful
-from evox import Algorithm, Problem
-from typing import Optional, Callable
+from typing import Callable, Dict, Optional
+
+from evox import Algorithm, Problem, Stateful
 
 
 class StdWorkflow(Stateful):
@@ -8,20 +8,42 @@ class StdWorkflow(Stateful):
         self,
         algorithm: Algorithm,
         problem: Problem,
+        monitor=None,
         pop_transform: Optional[Callable] = None,
         fitness_transform: Optional[Callable] = None,
+        record_pop: bool = False,
+        record_time: bool = False,
+        metrics: Optional[Dict[str, Callable]] = None,
     ):
         self.algorithm = algorithm
         self.problem = problem
+        self.monitor = monitor
+        self.record_pop = record_pop
+        self.record_time = record_time
+        self.metrics = metrics
         self.pop_transform = pop_transform
         self.fitness_transform = fitness_transform
 
     def step(self, state):
+        if self.monitor and self.record_time:
+            self.monitor.record_time()
+
         pop, state = self.algorithm.ask(state)
+
+        if self.monitor and self.record_pop:
+            self.monitor.record_pop(pop)
+
         if self.pop_transform is not None:
             pop = self.pop_transform(pop)
 
         fitness, state = self.problem.evaluate(state, pop)
+
+        if self.monitor:
+            if self.metrics:
+                metrics = {name: func(fitness) for name, func in self.metrics.items()}
+            else:
+                metrics = None
+            self.monitor.record_fit(fitness, metrics)
 
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)

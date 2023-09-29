@@ -28,9 +28,8 @@ class StdSOMonitor:
 
     def record_pop(self, pop, tranform=None):
         self.current_population = pop
-        return pop
 
-    def record_fit(self, fitness, transform=None):
+    def record_fit(self, fitness, metrics=None, transform=None):
         if self.record_fit_history:
             self.fitness_history.append(fitness)
         if self.record_topk == 1:
@@ -65,8 +64,6 @@ class StdSOMonitor:
             if self.current_population is not None:
                 self.topk_solutions = self.topk_solutions[topk_rank]
             self.topk_fitness = self.topk_fitness[topk_rank]
-
-        return fitness
 
     def get_last(self):
         return self.fitness_history[-1]

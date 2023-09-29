@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Dict
 from collections import deque
 
 import chex
@@ -171,6 +171,10 @@ class RayDistributedWorkflow(Stateful):
         problem: Problem,
         pop_size: int,
         num_workers: int,
+        monitor=None,
+        record_pop: bool = False,
+        record_time: bool = False,
+        metrics: Optional[Dict[str, Callable]] = None,
         options: dict = {},
         pop_transform: Optional[Callable] = None,
         fitness_transform: Optional[Callable] = None,
@@ -220,19 +224,30 @@ class RayDistributedWorkflow(Stateful):
         self.global_fitness_transform = global_fitness_transform
         self.async_dispatch_list = deque()
         self.async_dispatch = async_dispatch
+        self.monitor = monitor
+        self.record_pop = record_pop
+        self.record_time = record_time
+        self.metrics = metrics
 
     def setup(self, key: jax.Array):
         ray.get(self.supervisor.setup_all_workers.remote(key))
         return State()
 
     def step(self, state: State, block=False):
+        if self.monitor and self.record_time:
+            self.monitor.record_time()
+
         fitness, worker_futures = ray.get(self.supervisor.step.remote())
 
         # get the actual object
-        if self.global_fitness_transform is not None:
+        if self.monitor is not None:
             fitness = ray.get(fitness)
             fitness = jnp.concatenate(fitness, axis=0)
-            fitness = self.global_fitness_transform(fitness)
+            if self.metrics:
+                metrics = {name: func(fitness) for name, func in self.metrics.items()}
+            else:
+                metrics = None
+            self.monitor.record_fit(fitness, metrics)
 
         self.async_dispatch_list.append(worker_futures)
         while not len(self.async_dispatch_list) < self.async_dispatch:

@@ -17,7 +17,7 @@ def test_distributed_cso():
         problem=problems.numerical.Ackley(),
         pop_size=10,
         num_workers=2,
-        global_fitness_transform=monitor.record_fit,
+        monitor=monitor,
         options={"num_cpus": 0.5, "num_gpus": 0},  # just for testing purpose
     )
     # init the workflow
