@@ -3,8 +3,9 @@ import jax.numpy as jnp
 import evox
 import evox as ex
 from src.evox.operators.sampling import UniformSampling
+from src.evox.problems.numerical import Ackley as Ackley
+import math
 import chex
-from functools import partial
 
 
 @evox.jit_class
@@ -36,9 +37,15 @@ class LSMOP(ex.Problem):
         c = jnp.asarray(c)
         self.sublen = jnp.floor(c / jnp.sum(c) * self.d / self.nk)
         self.len_ = jnp.r_[0, jnp.cumsum(self.sublen * self.nk)]
+        self.sublen = tuple(map(int, self.sublen))
+        self.len_ = tuple(map(int, self.len_))
 
     def setup(self, key: jax.Array):
         return ex.State(key=key)
+
+    """
+       all LSMOPs using "for loop" is due to the two variables: self.sub and self.len_, which make dynamic slice and prevent the use of fori_loop.
+    """
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         chex.assert_type(X, float)
@@ -107,8 +114,6 @@ class LSMOP(ex.Problem):
             )
             + jnp.exp(1)
         )
-        if jnp.isnan(f[0]):
-            f = jnp.zeros([jnp.shape(f)[0], jnp.shape(f)[1]])
         return f
 
     @staticmethod
@@ -131,6 +136,7 @@ class LSMOP(ex.Problem):
         return f
 
 
+@evox.jit_class
 class LSMOP1(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -177,7 +183,7 @@ class LSMOP1(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -187,6 +193,7 @@ class LSMOP1(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP2(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
@@ -233,7 +240,7 @@ class LSMOP2(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -242,6 +249,7 @@ class LSMOP2(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP3(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         if m is None:
@@ -288,7 +296,7 @@ class LSMOP3(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -297,6 +305,7 @@ class LSMOP3(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP4(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -311,6 +320,7 @@ class LSMOP4(LSMOP):
 
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
+
         m = self.m
         X = X.at[:, m - 1 : d].set(
             (1 + jnp.tile(jnp.arange(m, d + 1) / d, (n, 1))) * X[:, m - 1 : d]
@@ -321,7 +331,7 @@ class LSMOP4(LSMOP):
             for j in range(1, self.nk + 1):
                 g = g.at[:, i : i + 1].set(
                     g[:, i : i + 1]
-                    + LSMOP._Ackley(
+                    + self._Ackley(
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
@@ -343,7 +353,7 @@ class LSMOP4(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -352,6 +362,7 @@ class LSMOP4(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP5(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -399,7 +410,7 @@ class LSMOP5(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros((n, 1))])
             * jnp.fliplr(
@@ -421,6 +432,7 @@ class LSMOP5(LSMOP):
         )
 
 
+@evox.jit_class
 class LSMOP6(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -468,7 +480,7 @@ class LSMOP6(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -482,6 +494,7 @@ class LSMOP6(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP7(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -529,7 +542,7 @@ class LSMOP7(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -548,6 +561,7 @@ class LSMOP7(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP8(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -595,7 +609,7 @@ class LSMOP8(LSMOP):
                         ]
                     )
                 )
-        g = g / jnp.tile(self.sublen, (n, 1)) / self.nk
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -626,6 +640,7 @@ class LSMOP9(LSMOP):
         else:
             self.d = d
 
+    @evox.jit_method
     def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
         n, d = jnp.shape(X)
         self.N = n
@@ -663,7 +678,9 @@ class LSMOP9(LSMOP):
                     )
                 )
         g = 1 + jnp.sum(
-            g / jnp.tile(self.sublen, (n, 1)) / self.nk, axis=1, keepdims=True
+            g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk,
+            axis=1,
+            keepdims=True,
         )
         f = jnp.zeros((n, m))
         f = f.at[:, : m - 1].set(X[:, : m - 1])
@@ -687,7 +704,8 @@ class LSMOP9(LSMOP):
         median = (interval[1] - interval[0]) / (
             interval[3] - interval[2] + interval[1] - interval[0]
         )
-        X = self._ReplicatePoint(self.N, self.m - 1)
+        N = self.ref_num * self.m
+        X = self._grid(N, self.m - 1)
         X = X.at[X <= median].set(
             X[X <= median] * (interval[1] - interval[0]) / median + interval[0]
         )
@@ -705,19 +723,9 @@ class LSMOP9(LSMOP):
         ]
         return p, state
 
-    def _ReplicatePoint(self, sample_num, M):
-        if M > 1:
-            sample_num = jnp.ceil(sample_num ** (1 / M)) ** M
-            gap = jnp.arange(0, 1 + 1e-10, 1 / (sample_num ** (1 / M) - 1))
-            length = len(gap)
-            w = jnp.zeros((length**M, M))
-            s = "gap," * M
-            statement = "jnp.meshgrid(" + s + ")"
-            a = eval(statement)
-            w = w.at[:, 0].set(a[1][:].flatten("F"))
-            w = w.at[:, 1].set(a[0][:].flatten("F"))
-            for i in range(2, M):
-                w = w.at[:, i].set(a[i][:].flatten("F"))
-        else:
-            w = (jnp.arange(0, 1 + 1e-10, 1 / (sample_num - 1))).transpose()
+    @evox.jit_method
+    def _grid(self, N, M):
+        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))), dtype=jnp.float64)
+        c = jnp.meshgrid(*([gap] * M))
+        w = jnp.vstack([x.ravel() for x in c]).T
         return w
