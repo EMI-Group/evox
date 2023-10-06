@@ -31,10 +31,41 @@
 
 - [Features](#features)
   - [Index](#index)
+- [Contents](#contents)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Example](#example)
 - [Support](#support)
+
+## Contents
+
+### List of Algorithms
+
+#### Single-objective
+
+| Type | Algorithm Name                             |
+| ---- | ------------------------------------------ |
+| ES   | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| PSO  | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
+| DE   | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
+
+#### Multi-objective
+
+| Type                | Algorithm Name                                 |
+| ------------------- | ---------------------------------------------- |
+| Dominance-based     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
+| Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
+| Indicator-based     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
+
+### List of Problems
+
+| Type           | Problem Name                             |
+| ---------------| ---------------------------------------- |
+| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...      |
+| Neuroevolution | Brax, Gym, TorchVision Dataset, ... |
+
+
+For more detailed list, please refer to our API [documentation](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 ## Installation
 
