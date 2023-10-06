@@ -18,13 +18,14 @@
 </div>
 
 
-## Features
+## Key Features
 
 - Single-objective and multi-objective algorithms.
 - GPU computing.
 - Easy to use distributed workflow.
 - Support a wide range of problems.
 - Hierarchical state managing.
+- Detailed [tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 ### Index
 
@@ -32,7 +33,6 @@
   - [Index](#index)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [More Tutorial](#more-tutorial)
 - [Example](#example)
 - [Support](#support)
 
@@ -82,10 +82,6 @@ To run the workflow, call `step` on the workflow.
 for i in range(100):
     state = workflow.step(state)
 ```
-
-## More Tutorial
-
-Head to our [tutorial page](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 ## Example
 
