@@ -117,9 +117,9 @@ def test_maf9():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 1.4213) / abs(float(r1[1, 1])) < 0.0001
+    assert abs(float(r1[1, 1]) - 0.3118) / abs(float(r1[1, 1])) < 0.0001
     assert r2.shape[1] == 3
-    assert abs(float(r2[1, 0]) - 0.0185) < 0.0001
+    assert abs(float(r2[1, 1]) - 0.0351) < 0.0001
 
 
 def test_maf10():

@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import evox
 import evox as ex
 from src.evox.operators.sampling import UniformSampling
-from src.evox.problems.numerical import Ackley as Ackley
+from src.evox.problems.numerical import Sphere as Sphere
 import math
 import chex
 
@@ -40,19 +40,17 @@ class LSMOP(ex.Problem):
         self.sublen = tuple(map(int, self.sublen))
         self.len_ = tuple(map(int, self.len_))
 
-    def setup(self, key: jax.Array):
+    def setup(self, key):
         return ex.State(key=key)
 
     """
        all LSMOPs using "for loop" is due to the two variables: self.sub and self.len_, which make dynamic slice and prevent the use of fori_loop.
     """
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
-        chex.assert_type(X, float)
-        chex.assert_shape(X, (None, self.n))
+    def evaluate(self, state, X):
         return jax.jit(jax.vmap(self._lsmop))(X), state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return f, state
 
@@ -149,7 +147,7 @@ class LSMOP1(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         n, d = jnp.shape(X)
         X = X.at[:, m - 1 : d].set(
@@ -167,7 +165,7 @@ class LSMOP1(LSMOP):
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
+                        ],
                     )
                 )
         for i in range(1, m, 2):
@@ -180,7 +178,7 @@ class LSMOP1(LSMOP):
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
+                        ],
                     )
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
@@ -206,7 +204,7 @@ class LSMOP2(LSMOP):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -262,7 +260,7 @@ class LSMOP3(LSMOP):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -318,7 +316,7 @@ class LSMOP4(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
 
         m = self.m
@@ -375,7 +373,7 @@ class LSMOP5(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -394,7 +392,7 @@ class LSMOP5(LSMOP):
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
+                        ],
                     )
                 )
         for i in range(1, m, 2):
@@ -407,7 +405,7 @@ class LSMOP5(LSMOP):
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
+                        ],
                     )
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
@@ -424,7 +422,7 @@ class LSMOP5(LSMOP):
 
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return (
             f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m)),
@@ -445,7 +443,7 @@ class LSMOP6(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -507,7 +505,7 @@ class LSMOP7(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -555,7 +553,7 @@ class LSMOP7(LSMOP):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
         return f, state
@@ -574,7 +572,7 @@ class LSMOP8(LSMOP):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         X = X.at[:, m - 1 : d].set(
@@ -641,7 +639,7 @@ class LSMOP9(LSMOP):
             self.d = d
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state: chex.PyTreeDef, X):
         n, d = jnp.shape(X)
         self.N = n
         m = self.m
@@ -699,7 +697,7 @@ class LSMOP9(LSMOP):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         interval = [0, 0.251412, 0.631627, 0.859401]
         median = (interval[1] - interval[0]) / (
             interval[3] - interval[2] + interval[1] - interval[0]
@@ -723,7 +721,6 @@ class LSMOP9(LSMOP):
         ]
         return p, state
 
-    @evox.jit_method
     def _grid(self, N, M):
         gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))), dtype=jnp.float64)
         c = jnp.meshgrid(*([gap] * M))

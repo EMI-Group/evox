@@ -34,12 +34,12 @@ class MaF(Problem):
     def setup(self, key):
         return State(key=key)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         chex.assert_type(X, float)
         chex.assert_shape(X, (None, self.ref_num))
         return jax.jit(jax.vmap(self._maf))(X), state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = 1 - UniformSampling(self.ref_num * self.m, self.m)()[0]
         return f, state
 
@@ -49,7 +49,7 @@ class MaF1(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         n, d = jnp.shape(X)
         g = jnp.sum((X[:, m - 1 :] - 0.5).__pow__(2), axis=1).reshape((-1, 1))
@@ -64,7 +64,7 @@ class MaF1(MaF):
         f = repeat_g - repeat_g * cumprod_term * reversed_term
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         f = 1 - UniformSampling(n, self.m)()[0]
         return f, state
@@ -75,7 +75,7 @@ class MaF2(MaF):
         super().__init__(d, m, ref_num)
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         n, d = jnp.shape(X)
         g = jnp.zeros((n, m))
@@ -119,7 +119,7 @@ class MaF2(MaF):
         f = (1 + g) * f1 * f2
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
         c = jnp.zeros((r.shape[0], self.m - 1))
@@ -164,7 +164,7 @@ class MaF3(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         g = 100 * (
             d
@@ -195,7 +195,7 @@ class MaF3(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         # n = 1000
         r = UniformSampling(n, self.m)()[0] ** 2
@@ -209,7 +209,7 @@ class MaF4(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         g = (
             100
@@ -235,7 +235,7 @@ class MaF4(MaF):
         f = f1 * jnp.tile(jnp.power(2, jnp.arange(1, self.m + 1)), (n, 1))
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
         r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, None], (1, self.m))
@@ -250,7 +250,7 @@ class MaF5(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         alpha = 100
         X = X.at[:, : self.m - 1].set((X[:, : self.m - 1] ** alpha).astype(jnp.float64))
@@ -272,7 +272,7 @@ class MaF5(MaF):
         f = f1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (n, 1))
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
         r1 = r / jnp.tile(
@@ -311,7 +311,7 @@ class MaF6(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         i = 2
         n = self.ref_num * self.m
         r = UniformSampling(n, i)()[0]
@@ -331,7 +331,7 @@ class MaF7(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         f = jnp.zeros((n, self.m))
         g = 1 + 9 * jnp.mean(X[:, self.m - 1 :], axis=1)
@@ -350,7 +350,7 @@ class MaF7(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
         median = (interval[1] - interval[0]) / (
@@ -395,7 +395,7 @@ class MaF8(MaF):
         self.points = self._getPoints()
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         if X.shape[1] != 2:
             X = X[:, :2]
         f = self._eucl_dis(X, self.points)
@@ -405,7 +405,7 @@ class MaF8(MaF):
     using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
     """
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         temp = jnp.linspace(-1, 1, num=math.ceil(math.sqrt(n)))
         x, y = jnp.meshgrid(temp, temp)
@@ -450,7 +450,7 @@ class MaF9(MaF):
         self.points = self._getPoints()
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m, d1 = jnp.shape(self.points)
         f = jnp.zeros((n, m))
@@ -464,7 +464,7 @@ class MaF9(MaF):
         using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
     """
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         with jax.disable_jit():
             n = self.ref_num * self.m
             temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
@@ -519,7 +519,7 @@ class MaF10(MaF):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         M = self.m
         K = M - 1
@@ -664,7 +664,7 @@ class MaF11(MaF):
         self.d = jnp.ceil((self.d - self.m + 1) / 2) * 2 + self.m - 1
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
         K = M - 1
@@ -716,7 +716,7 @@ class MaF11(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
@@ -812,7 +812,7 @@ class MaF12(MaF):
         else:
             self.d = d
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
         K = M - 1
@@ -886,7 +886,7 @@ class MaF12(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
@@ -956,7 +956,7 @@ class MaF13(MaF):
         self.m = jnp.maximum(self.m, 3)
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         N, D = X.shape
         Y = X - 2 * X[:, 1].reshape(-1, 1) * jnp.sin(
             2 * jnp.pi * X[:, 0].reshape(-1, 1) + jnp.arange(1, D + 1) * jnp.pi / D
@@ -986,7 +986,7 @@ class MaF13(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, 3)()[0]
@@ -1028,7 +1028,7 @@ class MaF14(MaF):
         The use of the for loop is due to the two variables: self.sub and self.len, which make dynamic slice and prevent the use of fori_loop.
     """
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
         nk = 2
@@ -1124,7 +1124,7 @@ class MaF15(MaF):
         The use of the for loop is due to the two variables: self.sub and self.len, which make dynamic slice and prevent the use of fori_loop.
     """
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
         nk = 2
@@ -1181,7 +1181,7 @@ class MaF15(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
