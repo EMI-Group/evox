@@ -26,7 +26,7 @@ def test_cartpole(batch_policy):
     params = model.init(model_key, jnp.zeros((4,)))
     adapter = TreeAndVector(params)
     monitor = StdSOMonitor()
-    problem = problems.rl.Gym(
+    problem = problems.neuroevolution.Gym(
         env_name="CartPole-v1",
         policy=jax.jit(model.apply),
         num_workers=2,

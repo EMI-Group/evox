@@ -2,5 +2,5 @@
 Gym
 ===
 
-.. autoclass:: evox.problems.rl.Gym
+.. autoclass:: evox.problems.neuroevolution.Gym
     :members:
