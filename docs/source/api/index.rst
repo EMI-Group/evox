@@ -12,3 +12,4 @@ EvoX's API
     problems/index
     workflows/index
     monitors/index
+    metrics/index
