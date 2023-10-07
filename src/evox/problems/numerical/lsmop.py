@@ -3,12 +3,12 @@ import jax.numpy as jnp
 import evox
 import evox as ex
 from src.evox.operators.sampling import UniformSampling
-from src.evox.problems.numerical import Sphere as Sphere
-from src.evox.problems.numerical import Griewank as Griewank
-from src.evox.problems.numerical import Rosenbrock as Rosenbrock
-from src.evox.problems.numerical import Ackley as Ackley
+from src.evox.problems.numerical import Sphere
+from src.evox.problems.numerical import Griewank
+from src.evox.problems.numerical import Rosenbrock
+from src.evox.problems.numerical import Ackley
 import math
-import chex
+
 
 
 @evox.jit_class
