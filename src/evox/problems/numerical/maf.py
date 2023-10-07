@@ -1037,40 +1037,24 @@ class MaF14(MaF):
         G = jnp.zeros((N, M))
 
         for i in range(0, M, 2):
-            for j in range(nk):
-                G = G.at[:, i].set(
-                    G[:, i]
-                    + self._Rastrigin(
-                        X[
-                            :,
-                            self.len[i]
-                            + M
-                            - 1
-                            + j * self.sublen[i] : self.len[i]
-                            + M
-                            - 1
-                            + (j + 1) * self.sublen[i],
-                        ]
-                    )
-                )
+
+            def inner_fun2(j, G):
+                start = self.len[i] + M - 1 + j * self.sublen[i]
+                length = self.sublen[i]
+                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+                return G.at[:, i].set(G[:, i] + self._Rastrigin(temp))
+
+            G = lax.fori_loop(0, nk, inner_fun2, G)
 
         for i in range(1, M, 2):
-            for j in range(nk):
-                G = G.at[:, i].set(
-                    G[:, i]
-                    + self._Rosenbrock(
-                        X[
-                            :,
-                            self.len[i]
-                            + M
-                            - 1
-                            + j * self.sublen[i] : self.len[i]
-                            + M
-                            - 1
-                            + (j + 1) * self.sublen[i],
-                        ]
-                    )
-                )
+
+            def inner_fun2(j, G):
+                start = self.len[i] + M - 1 + j * self.sublen[i]
+                length = self.sublen[i]
+                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+                return G.at[:, i].set(G[:, i] + self._Rosenbrock(temp))
+
+            G = lax.fori_loop(0, nk, inner_fun2, G)
 
         G /= jnp.array(self.sublen)[None, :] * nk
         f = (
@@ -1134,39 +1118,23 @@ class MaF15(MaF):
         )
         G = jnp.zeros((N, M))
         for i in range(0, M, 2):
-            for j in range(nk):
-                G = G.at[:, i].set(
-                    G[:, i]
-                    + self._Griewank(
-                        X[
-                            :,
-                            self.len[i]
-                            + M
-                            - 1
-                            + j * self.sublen[i] : self.len[i]
-                            + M
-                            - 1
-                            + (j + 1) * self.sublen[i],
-                        ]
-                    )
-                )
+
+            def inner_fun1(j, G):
+                start = self.len[i] + M - 1 + j * self.sublen[i]
+                length = self.sublen[i]
+                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+                return G.at[:, i].set(G[:, i] + self._Griewank(temp))
+
+            G = lax.fori_loop(0, nk, inner_fun1, G)
         for i in range(1, M, 2):
-            for j in range(nk):
-                G = G.at[:, i].set(
-                    G[:, i]
-                    + self._Sphere(
-                        X[
-                            :,
-                            self.len[i]
-                            + M
-                            - 1
-                            + j * self.sublen[i] : self.len[i]
-                            + M
-                            - 1
-                            + (j + 1) * self.sublen[i],
-                        ]
-                    )
-                )
+
+            def inner_fun2(j, G):
+                start = self.len[i] + M - 1 + j * self.sublen[i]
+                length = self.sublen[i]
+                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
+                return G.at[:, i].set(G[:, i] + self._Sphere(temp))
+
+            G = lax.fori_loop(0, nk, inner_fun2, G)
         G /= jnp.array(self.sublen)[None, :] * nk
         f = (1 + G + jnp.hstack([G[:, 1:], jnp.zeros((N, 1))])) * (
             1
