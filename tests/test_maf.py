@@ -15,7 +15,6 @@ keys = jax.random.split(key, 16)
 
 
 def test_maf1():
-    global data, keys, d, m
     prob = MaF1(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -27,7 +26,6 @@ def test_maf1():
 
 
 def test_maf2():
-    global data, keys, d, m
     prob = MaF2(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -39,7 +37,6 @@ def test_maf2():
 
 
 def test_maf3():
-    global data, keys, d, m
     prob = MaF3(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -51,7 +48,6 @@ def test_maf3():
 
 
 def test_maf4():
-    global data, keys, d, m
     prob = MaF4(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -63,7 +59,6 @@ def test_maf4():
 
 
 def test_maf5():
-    global data, keys, d, m
     prob = MaF5(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -75,7 +70,6 @@ def test_maf5():
 
 
 def test_maf6():
-    global data, keys, d, m
     prob = MaF6(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -87,7 +81,6 @@ def test_maf6():
 
 
 def test_maf7():
-    global data, keys, d, m
     prob = MaF7(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -99,7 +92,6 @@ def test_maf7():
 
 
 def test_maf8():
-    global data, keys, d, m
     prob = MaF8(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -111,7 +103,6 @@ def test_maf8():
 
 
 def test_maf9():
-    global data, keys, d, m
     prob = MaF9(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -123,7 +114,6 @@ def test_maf9():
 
 
 def test_maf10():
-    global data, keys, d, m
     prob = MaF10(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -135,7 +125,6 @@ def test_maf10():
 
 
 def test_maf11():
-    global data, keys, d, m
     prob = MaF11(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -147,7 +136,6 @@ def test_maf11():
 
 
 def test_maf12():
-    global data, keys, d, m
     prob = MaF12(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -159,7 +147,6 @@ def test_maf12():
 
 
 def test_maf13():
-    global data, keys, d, m
     prob = MaF13(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -171,7 +158,6 @@ def test_maf13():
 
 
 def test_maf14():
-    global data, keys, d, m
     prob = MaF14(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)
@@ -183,7 +169,6 @@ def test_maf14():
 
 
 def test_maf15():
-    global data, keys, d, m
     prob = MaF15(d=d, m=m)
     state = prob.init(keys)
     r1, new_state1 = prob.evaluate(state, data)

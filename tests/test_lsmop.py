@@ -16,13 +16,12 @@ upper = jnp.hstack((upper1, upper2))
 data = random.uniform(key, (100, 300), minval=0, maxval=upper)
 n, d = data.shape
 m = 3
-keys = jax.random.split(key, 16)
+# keys = jax.random.split(key, 16)
 
 
 def test_lsmop1():
-    global data, keys, d, m
     prob = LSMOP1(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -32,9 +31,8 @@ def test_lsmop1():
 
 
 def test_lsmop2():
-    global data, keys, d, m
     prob = LSMOP2(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -44,9 +42,8 @@ def test_lsmop2():
 
 
 def test_lsmop3():
-    global data, keys, d, m
     prob = LSMOP3(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -56,21 +53,20 @@ def test_lsmop3():
 
 
 def test_lsmop4():
-    global data, keys, d, m
     prob = LSMOP4(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
+    # print(r1)
     assert abs(float(r1[1, 1]) - 0.5550) < 0.0001
     assert r2.shape[1] == 3
     assert float(r2[1, 1]) - 0.0133 < 0.0001
 
 
 def test_lsmop5():
-    global data, keys, d, m
     prob = LSMOP5(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -80,9 +76,8 @@ def test_lsmop5():
 
 
 def test_lsmop6():
-    global data, keys, d, m
     prob = LSMOP6(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -92,9 +87,8 @@ def test_lsmop6():
 
 
 def test_lsmop7():
-    global data, keys, d, m
     prob = LSMOP7(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -104,9 +98,8 @@ def test_lsmop7():
 
 
 def test_lsmop8():
-    global data, keys, d, m
     prob = LSMOP8(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)
@@ -116,9 +109,8 @@ def test_lsmop8():
 
 
 def test_lsmop9():
-    global data, keys, d, m
     prob = LSMOP9(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (100, 3)

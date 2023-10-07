@@ -4,6 +4,9 @@ import evox
 import evox as ex
 from src.evox.operators.sampling import UniformSampling
 from src.evox.problems.numerical import Sphere as Sphere
+from src.evox.problems.numerical import Griewank as Griewank
+from src.evox.problems.numerical import Rosenbrock as Rosenbrock
+from src.evox.problems.numerical import Ackley as Ackley
 import math
 import chex
 
@@ -18,6 +21,7 @@ class LSMOP(ex.Problem):
         :param m: the number of object
         :param ref_num: ref_num * m is the Population of PF
         """
+        super().__init__()
         self.nk = 5
         if m is None:
             self.m = 3
@@ -39,6 +43,10 @@ class LSMOP(ex.Problem):
         self.len_ = jnp.r_[0, jnp.cumsum(self.sublen * self.nk)]
         self.sublen = tuple(map(int, self.sublen))
         self.len_ = tuple(map(int, self.len_))
+        self.sphere = Sphere()
+        self.griewank = Griewank()
+        self.rosenbrock = Rosenbrock()
+        self.ackley = Ackley()
 
     def setup(self, key):
         return ex.State(key=key)
@@ -54,83 +62,21 @@ class LSMOP(ex.Problem):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return f, state
 
-    @staticmethod
-    def _Sphere(x):
-        """get the sum of squares of each row in matrix x"""
-        return jnp.sum(x**2, axis=1, keepdims=True)
-
-    @staticmethod
-    def _Giewank(x):
-        f = (
-            jnp.sum(x**2, axis=1, keepdims=True) / 4000
-            - jnp.prod(
-                jnp.cos(
-                    x
-                    / jnp.tile(
-                        jnp.sqrt(jnp.arange(1, jnp.shape(x)[1] + 1)),
-                        (jnp.shape(x)[0], 1),
-                    )
-                ),
-                axis=1,
-                keepdims=True,
-            )
-            + 1
-        )
-        return f
+    """
+       it is totally different with schwefel_func in cec2022_so.py
+    """
 
     @staticmethod
     def _Schwefel(x):
         return jnp.max(jnp.abs(x), keepdims=True, axis=1)
 
+    """
+        there is a little difference between with rastrigin_func in cec2022_so.py
+    """
+
     @staticmethod
     def _Rastrigin(x):
         f = jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1, keepdims=True)
-        return f
-
-    @staticmethod
-    def _Rosenbrock(x):
-        f = jnp.sum(
-            100 * ((x[:, : jnp.shape(x)[1] - 1]) ** 2 - x[:, 1 : jnp.shape(x)[1]]) ** 2
-            + (x[:, : jnp.shape(x)[1] - 1] - 1) ** 2,
-            axis=1,
-            keepdims=True,
-        )
-        return f
-
-    @staticmethod
-    def _Ackley(x):
-        f = (
-            20
-            - 20
-            * jnp.exp(
-                -0.2
-                * jnp.sqrt(jnp.sum(x**2, axis=1, keepdims=True) / jnp.shape(x)[1])
-            )
-            - jnp.exp(
-                jnp.sum(jnp.cos(2 * jnp.pi * x), axis=1, keepdims=True)
-                / jnp.shape(x)[1]
-            )
-            + jnp.exp(1)
-        )
-        return f
-
-    @staticmethod
-    def _Griewank(x):
-        f = (
-            jnp.sum(x**2, axis=1, keepdims=True) / 4000
-            - jnp.prod(
-                jnp.cos(
-                    x
-                    / jnp.tile(
-                        jnp.sqrt(jnp.arange(1, jnp.shape(x)[1] + 1)),
-                        (jnp.shape(x)[0], 1),
-                    )
-                ),
-                axis=1,
-                keepdims=True,
-            )
-            + 1
-        )
         return f
 
 
@@ -157,29 +103,31 @@ class LSMOP1(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
                         ],
-                    )
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
                         ],
-                    )
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -194,6 +142,7 @@ class LSMOP1(LSMOP):
 @evox.jit_class
 class LSMOP2(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
+        super().__init__(d, m, ref_num)
         if m is None:
             self.m = 3
         else:
@@ -202,7 +151,6 @@ class LSMOP2(LSMOP):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
 
     def evaluate(self, state, X):
         n, d = jnp.shape(X)
@@ -214,16 +162,17 @@ class LSMOP2(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Giewank(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.griewank.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
@@ -283,16 +232,17 @@ class LSMOP3(LSMOP):
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Rosenbrock(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.rosenbrock.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -327,29 +277,31 @@ class LSMOP4(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + self._Ackley(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.ackley.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Griewank(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.griewank.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -384,29 +336,31 @@ class LSMOP5(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
                         ],
-                    )
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
                         ],
-                    )
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -454,16 +408,17 @@ class LSMOP6(LSMOP):
         g = jnp.zeros((n, m))
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Rosenbrock(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.rosenbrock.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
@@ -516,29 +471,31 @@ class LSMOP7(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Ackley(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.ackley.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Rosenbrock(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.rosenbrock.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -583,29 +540,31 @@ class LSMOP8(LSMOP):
         g = jnp.zeros([n, m])
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Griewank(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.griewank.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
@@ -620,7 +579,7 @@ class LSMOP8(LSMOP):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
         return f, state
@@ -639,7 +598,7 @@ class LSMOP9(LSMOP):
             self.d = d
 
     @evox.jit_method
-    def evaluate(self, state: chex.PyTreeDef, X):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         self.N = n
         m = self.m
@@ -651,29 +610,31 @@ class LSMOP9(LSMOP):
         g = jnp.zeros((n, m))
         for i in range(0, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Sphere(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.sphere.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         for i in range(1, m, 2):
             for j in range(1, self.nk + 1):
-                g = g.at[:, i : i + 1].set(
-                    g[:, i : i + 1]
-                    + LSMOP._Ackley(
+                g = g.at[:, i].set(
+                    g[:, i]
+                    + self.ackley.evaluate(
+                        state,
                         X[
                             :,
                             int(self.len_[i] + m - 1 + (j - 1) * self.sublen[i]) : int(
                                 self.len_[i] + m - 1 + j * self.sublen[i]
                             ),
-                        ]
-                    )
+                        ],
+                    )[0]
                 )
         g = 1 + jnp.sum(
             g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk,
