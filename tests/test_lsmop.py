@@ -1,5 +1,3 @@
-import jax.numpy as jnp
-import jax.random
 from jax import random
 from evox.problems.numerical.lsmop import *
 import pytest
@@ -16,7 +14,6 @@ upper = jnp.hstack((upper1, upper2))
 data = random.uniform(key, (100, 300), minval=0, maxval=upper)
 n, d = data.shape
 m = 3
-# keys = jax.random.split(key, 16)
 
 
 def test_lsmop1():

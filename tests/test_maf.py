@@ -11,12 +11,11 @@ key = random.PRNGKey(1)
 data = random.uniform(key, (3, 12))
 n, d = data.shape
 m = 3
-keys = jax.random.split(key, 16)
 
 
 def test_maf1():
     prob = MaF1(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -27,7 +26,7 @@ def test_maf1():
 
 def test_maf2():
     prob = MaF2(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -38,7 +37,7 @@ def test_maf2():
 
 def test_maf3():
     prob = MaF3(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -49,7 +48,7 @@ def test_maf3():
 
 def test_maf4():
     prob = MaF4(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -60,7 +59,7 @@ def test_maf4():
 
 def test_maf5():
     prob = MaF5(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -71,7 +70,7 @@ def test_maf5():
 
 def test_maf6():
     prob = MaF6(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -82,7 +81,7 @@ def test_maf6():
 
 def test_maf7():
     prob = MaF7(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -93,7 +92,7 @@ def test_maf7():
 
 def test_maf8():
     prob = MaF8(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -104,7 +103,7 @@ def test_maf8():
 
 def test_maf9():
     prob = MaF9(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -115,7 +114,7 @@ def test_maf9():
 
 def test_maf10():
     prob = MaF10(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -126,7 +125,7 @@ def test_maf10():
 
 def test_maf11():
     prob = MaF11(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -137,7 +136,7 @@ def test_maf11():
 
 def test_maf12():
     prob = MaF12(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -148,7 +147,7 @@ def test_maf12():
 
 def test_maf13():
     prob = MaF13(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -159,7 +158,7 @@ def test_maf13():
 
 def test_maf14():
     prob = MaF14(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
@@ -170,7 +169,7 @@ def test_maf14():
 
 def test_maf15():
     prob = MaF15(d=d, m=m)
-    state = prob.init(keys)
+    state = prob.init(key)
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
