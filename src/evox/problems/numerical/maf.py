@@ -197,7 +197,6 @@ class MaF3(MaF):
 
     def pf(self, state):
         n = self.ref_num * self.m
-        # n = 1000
         r = UniformSampling(n, self.m)()[0] ** 2
         temp = (jnp.sum(jnp.sqrt(r[:, :-1]), axis=1) + r[:, -1]).reshape((-1, 1))
         f = r / jnp.hstack([jnp.tile(temp**2, (1, r.shape[1] - 1)), temp])
