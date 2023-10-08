@@ -74,18 +74,14 @@ class LSMOP(Problem):
     def _loop(
         self,
         state,
-        out_start,
-        out_end,
         outer_loop_type,
-        inner_start,
-        inner_end,
         inner_fun1,
         inner_fun2,
         x,
         g,
     ):
         def inner_loop(i, inner_fun, g):
-            for j in range(inner_start, inner_end):
+            for j in range(0, self.nk):
                 start = self.len[i] + self.m - 1 + j * self.sublen[i]
                 end = start + self.sublen[i]
                 temp = x[:, start:end]
@@ -93,12 +89,12 @@ class LSMOP(Problem):
             return g
 
         if outer_loop_type == "all":
-            for i in range(out_start, out_end):
+            for i in range(0, self.m):
                 g = inner_loop(i, inner_fun1, g)
         else:
-            for i in range(out_start, out_end, 2):
+            for i in range(0, self.m, 2):
                 g = inner_loop(i, inner_fun1, g)
-            for i in range(out_start + 1, out_end, 2):
+            for i in range(1, self.m, 2):
                 g = inner_loop(i, inner_fun2, g)
         return g
 
@@ -124,7 +120,7 @@ class LSMOP1(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        g = self._loop(state, 0, m, "all", 0, self.nk, self.sphere.evaluate, None, X, g)
+        g = self._loop(state, "all", self.sphere.evaluate, None, X, g)
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
@@ -158,11 +154,7 @@ class LSMOP2(LSMOP):
         g = jnp.zeros([n, m])
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.griewank.evaluate,
             LSMOP._Schwefel,
             X,
@@ -200,11 +192,7 @@ class LSMOP3(LSMOP):
         g = jnp.zeros([n, m])
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             LSMOP._Rastrigin,
             self.rosenbrock.evaluate,
             X,
@@ -243,11 +231,7 @@ class LSMOP4(LSMOP):
         g = jnp.zeros([n, m])
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.ackley.evaluate,
             self.griewank.evaluate,
             X,
@@ -284,7 +268,7 @@ class LSMOP5(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        g = self._loop(state, 0, m, "all", 0, self.nk, self.sphere.evaluate, None, X, g)
+        g = self._loop(state, "all", self.sphere.evaluate, None, X, g)
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros((n, 1))])
@@ -331,11 +315,7 @@ class LSMOP6(LSMOP):
         g = jnp.zeros((n, m))
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.rosenbrock.evaluate,
             LSMOP._Schwefel,
             X,
@@ -379,11 +359,7 @@ class LSMOP7(LSMOP):
         g = jnp.zeros([n, m])
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.ackley.evaluate,
             self.rosenbrock.evaluate,
             X,
@@ -432,11 +408,7 @@ class LSMOP8(LSMOP):
         g = jnp.zeros([n, m])
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.griewank.evaluate,
             self.sphere.evaluate,
             X,
@@ -486,11 +458,7 @@ class LSMOP9(LSMOP):
         g = jnp.zeros((n, m))
         g = self._loop(
             state,
-            0,
-            m,
             "jump",
-            0,
-            self.nk,
             self.sphere.evaluate,
             self.ackley.evaluate,
             X,
