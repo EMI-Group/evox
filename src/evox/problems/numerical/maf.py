@@ -2,13 +2,13 @@ import evox
 import jax
 from jax import lax
 import jax.numpy as jnp
-from src.evox import Problem, State
-from src.evox.operators.sampling import UniformSampling
-import chex
+from evox import Problem, State
+from evox.operators.sampling import UniformSampling
 from matplotlib.path import Path
 from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
 import math
+from evox.problems.numerical import Sphere, Griewank
 
 
 @evox.jit_class
@@ -35,8 +35,7 @@ class MaF(Problem):
         return State(key=key)
 
     def evaluate(self, state, X):
-        chex.assert_type(X, float)
-        chex.assert_shape(X, (None, self.ref_num))
+        pass
         return jax.jit(jax.vmap(self._maf))(X), state
 
     def pf(self, state):
@@ -286,7 +285,7 @@ class MaF6(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         i = 2
         g = jnp.sum((X[:, self.m - 1 :] - 0.5) ** 2, axis=1)[:, jnp.newaxis]
@@ -573,7 +572,7 @@ class MaF10(MaF):
         f = jnp.tile((D * x[:, M])[:, jnp.newaxis], (1, M)) + S * h
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
@@ -1023,10 +1022,6 @@ class MaF14(MaF):
         self.sublen = tuple(map(int, self.sublen))
         self.len = tuple(map(int, self.len))
 
-    """
-        The use of the for loop is due to the two variables: self.sub and self.len, which make dynamic slice and prevent the use of fori_loop.
-    """
-
     def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
@@ -1036,26 +1031,18 @@ class MaF14(MaF):
         )
         G = jnp.zeros((N, M))
 
+        def inner_loop(i, inner_fun, g):
+            for j in range(0, nk):
+                start = self.len[i] + self.m - 1 + j * self.sublen[i]
+                end = start + self.sublen[i]
+                temp = X[:, start:end]
+                g = g.at[:, i].set(g[:, i] + inner_fun(temp))
+            return g
+
         for i in range(0, M, 2):
-
-            def inner_fun2(j, G):
-                start = self.len[i] + M - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return G.at[:, i].set(G[:, i] + self._Rastrigin(temp))
-
-            G = lax.fori_loop(0, nk, inner_fun2, G)
-
+            G = inner_loop(i, self._Rastrigin, G)
         for i in range(1, M, 2):
-
-            def inner_fun2(j, G):
-                start = self.len[i] + M - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return G.at[:, i].set(G[:, i] + self._Rosenbrock(temp))
-
-            G = lax.fori_loop(0, nk, inner_fun2, G)
-
+            G = inner_loop(i, self._Rosenbrock, G)
         G /= jnp.array(self.sublen)[None, :] * nk
         f = (
             (1 + G)
@@ -1066,7 +1053,7 @@ class MaF14(MaF):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         M = self.m
         N = self.ref_num * self.m
         f = UniformSampling(N, M)()[0]
@@ -1102,6 +1089,8 @@ class MaF15(MaF):
         self.len = jnp.concatenate([jnp.array([0]), jnp.cumsum(self.sublen * nk)])
         self.sublen = tuple(map(int, self.sublen))
         self.len = tuple(map(int, self.len))
+        self.sphere = Sphere()
+        self.griewank = Griewank()
 
     """
         The use of the for loop is due to the two variables: self.sub and self.len, which make dynamic slice and prevent the use of fori_loop.
@@ -1117,24 +1106,19 @@ class MaF15(MaF):
             - (X[:, 0] * 10)[:, None]
         )
         G = jnp.zeros((N, M))
+
+        def inner_loop(i, inner_fun, g):
+            for j in range(0, nk):
+                start = self.len[i] + self.m - 1 + j * self.sublen[i]
+                end = start + self.sublen[i]
+                temp = X[:, start:end]
+                g = g.at[:, i].set(g[:, i] + inner_fun(state, temp)[0])
+            return g
+
         for i in range(0, M, 2):
-
-            def inner_fun1(j, G):
-                start = self.len[i] + M - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return G.at[:, i].set(G[:, i] + self._Griewank(temp))
-
-            G = lax.fori_loop(0, nk, inner_fun1, G)
+            G = inner_loop(i, self.griewank.evaluate, G)
         for i in range(1, M, 2):
-
-            def inner_fun2(j, G):
-                start = self.len[i] + M - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return G.at[:, i].set(G[:, i] + self._Sphere(temp))
-
-            G = lax.fori_loop(0, nk, inner_fun2, G)
+            G = inner_loop(i, self.sphere.evaluate, G)
         G /= jnp.array(self.sublen)[None, :] * nk
         f = (1 + G + jnp.hstack([G[:, 1:], jnp.zeros((N, 1))])) * (
             1
@@ -1154,13 +1138,3 @@ class MaF15(MaF):
         R = UniformSampling(N, M)()[0]
         R = 1 - R / jnp.sqrt(jnp.sum(R**2, axis=1)).reshape(-1, 1)
         return R, state
-
-    def _Griewank(self, x):
-        return (
-            jnp.sum(x**2, axis=1) / 4000
-            - jnp.prod(jnp.cos(x / jnp.sqrt(jnp.arange(1, x.shape[1] + 1))), axis=1)
-            + 1
-        )
-
-    def _Sphere(self, x):
-        return jnp.sum(x**2, axis=1)

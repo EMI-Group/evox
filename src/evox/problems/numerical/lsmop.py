@@ -1,18 +1,14 @@
 import jax
 import jax.numpy as jnp
 import evox
-import evox as ex
-from src.evox.operators.sampling import UniformSampling
-from src.evox.problems.numerical import Sphere
-from src.evox.problems.numerical import Griewank
-from src.evox.problems.numerical import Rosenbrock
-from src.evox.problems.numerical import Ackley
+from evox import Problem, State
+from evox.operators.sampling import UniformSampling
+from evox.problems.numerical import Sphere, Griewank, Rosenbrock, Ackley
 import math
-from jax import lax
 
 
 @evox.jit_class
-class LSMOP(ex.Problem):
+class LSMOP(Problem):
     """R. Cheng, Y. Jin, and M. Olhofer, Test problems for large-scale multiobjective and many-objective optimization, IEEE Transactions on Cybernetics, 2017, 47(12): 4108-4121."""
 
     def __init__(self, d=None, m=None, ref_num=1000):
@@ -49,11 +45,7 @@ class LSMOP(ex.Problem):
         self.ackley = Ackley()
 
     def setup(self, key):
-        return ex.State(key=key)
-
-    """
-       all LSMOPs using "for loop" is due to the two variables: self.sub and self.len_, which make dynamic slice and prevent the use of fori_loop.
-    """
+        return State(key=key)
 
     def evaluate(self, state, X):
         return jax.jit(jax.vmap(self._lsmop))(X), state
@@ -67,17 +59,48 @@ class LSMOP(ex.Problem):
     """
 
     @staticmethod
-    def _Schwefel(x):
-        return jnp.max(jnp.abs(x), keepdims=True, axis=1)
+    def _Schwefel(state, x):
+        return jnp.max(jnp.abs(x), axis=-1), state
 
     """
         there is a little difference between with rastrigin_func in cec2022_so.py
     """
 
     @staticmethod
-    def _Rastrigin(x):
-        f = jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1, keepdims=True)
-        return f
+    def _Rastrigin(state, x):
+        f = jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1)
+        return f, state
+
+    def _loop(
+        self,
+        state,
+        out_start,
+        out_end,
+        outer_loop_type,
+        inner_start,
+        inner_end,
+        inner_fun1,
+        inner_fun2,
+        x,
+        g,
+    ):
+        def inner_loop(i, inner_fun, g):
+            for j in range(inner_start, inner_end):
+                start = self.len[i] + self.m - 1 + j * self.sublen[i]
+                end = start + self.sublen[i]
+                temp = x[:, start:end]
+                g = g.at[:, i].set(g[:, i] + inner_fun(state, temp)[0])
+            return g
+
+        if outer_loop_type == "all":
+            for i in range(out_start, out_end):
+                g = inner_loop(i, inner_fun1, g)
+        else:
+            for i in range(out_start, out_end, 2):
+                g = inner_loop(i, inner_fun1, g)
+            for i in range(out_start + 1, out_end, 2):
+                g = inner_loop(i, inner_fun2, g)
+        return g
 
 
 @evox.jit_class
@@ -101,15 +124,7 @@ class LSMOP1(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(m):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.sphere.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
+        g = self._loop(state, 0, m, "all", 0, self.nk, self.sphere.evaluate, None, X, g)
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
@@ -141,24 +156,18 @@ class LSMOP2(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.griewank.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i : i + 1].set(g[:, i : i + 1] + LSMOP._Schwefel(temp))
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.griewank.evaluate,
+            LSMOP._Schwefel,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
@@ -189,26 +198,18 @@ class LSMOP3(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i : i + 1].set(g[:, i : i + 1] + LSMOP._Rastrigin(temp))
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(
-                    g[:, i] + self.rosenbrock.evaluate(state, temp)[0]
-                )
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            LSMOP._Rastrigin,
+            self.rosenbrock.evaluate,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
@@ -240,24 +241,18 @@ class LSMOP4(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.ackley.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.griewank.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.ackley.evaluate,
+            self.griewank.evaluate,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g)
@@ -289,15 +284,7 @@ class LSMOP5(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m):
-
-            def inner_fun(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.sphere.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun, g)
+        g = self._loop(state, 0, m, "all", 0, self.nk, self.sphere.evaluate, None, X, g)
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros((n, 1))])
@@ -342,26 +329,18 @@ class LSMOP6(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros((n, m))
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(
-                    g[:, i] + self.rosenbrock.evaluate(state, temp)[0]
-                )
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i : i + 1].set(g[:, i : i + 1] + LSMOP._Schwefel(temp))
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.rosenbrock.evaluate,
+            LSMOP._Schwefel,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
@@ -398,26 +377,18 @@ class LSMOP7(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.ackley.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(
-                    g[:, i] + self.rosenbrock.evaluate(state, temp)[0]
-                )
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.ackley.evaluate,
+            self.rosenbrock.evaluate,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
@@ -459,24 +430,18 @@ class LSMOP8(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros([n, m])
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.griewank.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.sphere.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.griewank.evaluate,
+            self.sphere.evaluate,
+            X,
+            g,
+        )
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
@@ -519,24 +484,18 @@ class LSMOP9(LSMOP):
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
         g = jnp.zeros((n, m))
-        for i in range(0, m, 2):
-
-            def inner_fun1(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.sphere.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun1, g)
-        for i in range(1, m, 2):
-
-            def inner_fun2(j, g):
-                start = self.len[i] + m - 1 + j * self.sublen[i]
-                length = self.sublen[i]
-                temp = lax.dynamic_slice(X, [0, start], [X.shape[0], length])
-                return g.at[:, i].set(g[:, i] + self.ackley.evaluate(state, temp)[0])
-
-            g = lax.fori_loop(0, self.nk, inner_fun2, g)
+        g = self._loop(
+            state,
+            0,
+            m,
+            "jump",
+            0,
+            self.nk,
+            self.sphere.evaluate,
+            self.ackley.evaluate,
+            X,
+            g,
+        )
         g = 1 + jnp.sum(
             g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk,
             axis=1,
