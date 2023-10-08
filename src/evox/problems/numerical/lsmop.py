@@ -3,8 +3,10 @@ import jax.numpy as jnp
 import evox
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from evox.problems.numerical import Sphere, Griewank, Rosenbrock, Ackley
+from evox.problems.numerical import sphere_func, griewank_func, rosenbrock_func, ackley_func
 import math
+from itertools import cycle
+from functools import partial
 
 
 @evox.jit_class
@@ -45,10 +47,11 @@ class LSMOP(Problem):
         self.len = jnp.r_[0, jnp.cumsum(self.sublen * self.nk)]
         self.sublen = tuple(map(int, self.sublen))
         self.len = tuple(map(int, self.len))
-        self.sphere = Sphere()
-        self.griewank = Griewank()
-        self.rosenbrock = Rosenbrock()
-        self.ackley = Ackley()
+        self.sphere = sphere_func
+        self.griewank = griewank_func
+        self.rosenbrock = rosenbrock_func
+        # the default parameter for ackley
+        self.ackley = partial(ackley_func, a=20, b=0.2, c=2*jnp.pi)
 
     def setup(self, key):
         return State(key=key)
@@ -65,43 +68,37 @@ class LSMOP(Problem):
     """
 
     @staticmethod
-    def _Schwefel(state, x):
-        return jnp.max(jnp.abs(x), axis=-1), state
+    def _schwefel(x):
+        return jnp.max(jnp.abs(x), axis=-1)
 
     """
         there is a little difference between with rastrigin_func in cec2022_so.py
     """
 
     @staticmethod
-    def _Rastrigin(state, x):
+    def _rastrigin(x):
         f = jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1)
-        return f, state
+        return f
 
-    def _loop(
+    def _calc_g(
         self,
-        state,
-        outer_loop_type,
-        inner_fun1,
-        inner_fun2,
-        x,
-        g,
+        inner_funcs: list,
+        x: jax.Array,
     ):
-        def inner_loop(i, inner_fun, g):
+        n, d = x.shape
+        g = jnp.zeros([n, m])
+        def calc_obj(i, inner_fun, g):
             for j in range(0, self.nk):
                 start = self.len[i] + self.m - 1 + j * self.sublen[i]
                 end = start + self.sublen[i]
-                temp = x[:, start:end]
-                g = g.at[:, i].set(g[:, i] + inner_fun(state, temp)[0])
+                slice_x = x[:, start:end]
+                g = g.at[:, i].set(g[:, i] + inner_fun(slice_x)[0])
             return g
 
-        if outer_loop_type == "all":
-            for i in range(0, self.m):
-                g = inner_loop(i, inner_fun1, g)
-        else:
-            for i in range(0, self.m, 2):
-                g = inner_loop(i, inner_fun1, g)
-            for i in range(1, self.m, 2):
-                g = inner_loop(i, inner_fun2, g)
+        for i, func in zip(range(0, self.m), cycle(inner_funcs)):
+            g = inner_loop(i, func, g)
+
+        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         return g
 
 
@@ -125,9 +122,7 @@ class LSMOP1(LSMOP):
             (1 + jnp.tile(jnp.arange(m, d + 1) / d, (n, 1))) * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(state, "all", self.sphere.evaluate, None, X, g)
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.sphere], X)
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -157,16 +152,7 @@ class LSMOP2(LSMOP):
             (1 + jnp.tile(jnp.arange(m, d + 1) / d, (n, 1))) * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(
-            state,
-            "jump",
-            self.griewank.evaluate,
-            LSMOP._Schwefel,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.griewank, LSMOP._schwefel], X)
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -195,16 +181,7 @@ class LSMOP3(LSMOP):
             (1 + jnp.tile(jnp.arange(m, d + 1) / d, (n, 1))) * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(
-            state,
-            "jump",
-            LSMOP._Rastrigin,
-            self.rosenbrock.evaluate,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([LSMOP._rastrigin, self.rosenbrock], X)
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -234,16 +211,7 @@ class LSMOP4(LSMOP):
             (1 + jnp.tile(jnp.arange(m, d + 1) / d, (n, 1))) * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(
-            state,
-            "jump",
-            self.ackley.evaluate,
-            self.griewank.evaluate,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.ackley, self.griewank], X)
         f = (
             (1 + g)
             * jnp.fliplr(jnp.cumprod(jnp.c_[jnp.ones((n, 1)), X[:, : m - 1]], axis=1))
@@ -273,9 +241,7 @@ class LSMOP5(LSMOP):
             * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(state, "all", self.sphere.evaluate, None, X, g)
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.sphere], X)
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros((n, 1))])
             * jnp.fliplr(
@@ -318,16 +284,7 @@ class LSMOP6(LSMOP):
             * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros((n, m))
-        g = self._loop(
-            state,
-            "jump",
-            self.rosenbrock.evaluate,
-            LSMOP._Schwefel,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.rosenbrock, LSMOP._schwefel], X)
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -362,16 +319,7 @@ class LSMOP7(LSMOP):
             * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(
-            state,
-            "jump",
-            self.ackley.evaluate,
-            self.rosenbrock.evaluate,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.ackley, self.rosenbrock], X)
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -411,16 +359,7 @@ class LSMOP8(LSMOP):
             * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros([n, m])
-        g = self._loop(
-            state,
-            "jump",
-            self.griewank.evaluate,
-            self.sphere.evaluate,
-            X,
-            g,
-        )
-        g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
+        g = self._calc_g([self.griewank, self.sphere], X)
         f = (
             (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
             * jnp.fliplr(
@@ -461,20 +400,8 @@ class LSMOP9(LSMOP):
             * X[:, m - 1 : d]
             - jnp.tile(X[:, :1] * 10, (1, d - m + 1))
         )
-        g = jnp.zeros((n, m))
-        g = self._loop(
-            state,
-            "jump",
-            self.sphere.evaluate,
-            self.ackley.evaluate,
-            X,
-            g,
-        )
-        g = 1 + jnp.sum(
-            g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk,
-            axis=1,
-            keepdims=True,
-        )
+        g = self._calc_g([self.sphere, self.ackley], X)
+        g = 1 + jnp.sum(g, axis=1, keepdims=True)
         f = jnp.zeros((n, m))
         f = f.at[:, : m - 1].set(X[:, : m - 1])
         f = f.at[:, m - 1 : m].set(
