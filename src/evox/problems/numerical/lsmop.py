@@ -13,9 +13,15 @@ class LSMOP(Problem):
 
     def __init__(self, d=None, m=None, ref_num=1000):
         """init
-        :param d: the dimension of decision space
-        :param m: the number of object
-        :param ref_num: ref_num * m is the Population of PF
+
+        Parameters
+        ----------
+        d
+            the dimension of decision space
+        m
+            the number of object
+        ref_num
+            ref_num * m is the Population of PF
         """
         super().__init__()
         self.nk = 5
