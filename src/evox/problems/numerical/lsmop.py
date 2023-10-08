@@ -86,17 +86,22 @@ class LSMOP(Problem):
         x: jax.Array,
     ):
         n, d = x.shape
-        g = jnp.zeros([n, m])
-        def calc_obj(i, inner_fun, g):
+        g = jnp.zeros([n, self.m])
+        def calc_obj(len_, sublen, inner_func):
+            func_results = []
             for j in range(0, self.nk):
-                start = self.len[i] + self.m - 1 + j * self.sublen[i]
-                end = start + self.sublen[i]
+                start = len_ + self.m - 1 + j * sublen
+                end = start + sublen
                 slice_x = x[:, start:end]
-                g = g.at[:, i].set(g[:, i] + inner_fun(slice_x)[0])
+                func_results.append(inner_func(slice_x)[0])
+
+            g = jnp.sum(jnp.array(func_results))
             return g
 
-        for i, func in zip(range(0, self.m), cycle(inner_funcs)):
-            g = inner_loop(i, func, g)
+        g = []
+        for len_, sublen, func in zip(self.len, self.sublen, cycle(inner_funcs)):
+            g.append(calc_obj(len_, sublen, func))
+        g = jnp.stack(g, axis=1)
 
         g = g / jnp.tile(jnp.array(self.sublen), (n, 1)) / self.nk
         return g
