@@ -4,18 +4,7 @@ from jax import vmap, lax
 import chex
 import numpy as np
 from jax import pure_callback
-
-
-@jax.jit
-def _dominate(x, y):
-    """return true if x dominate y (x < y) and false elsewise."""
-    return jnp.all(x <= y) & jnp.any(x < y)
-
-
-@jax.jit
-def _dominate_relation(x, y):
-    """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
-    return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
+from evox.utils import dominate_relation
 
 
 def host_rank_from_domination_matrix(dominate_mat, dominate_count):
@@ -67,7 +56,7 @@ def non_dominated_sort(x, method="auto"):
         else:
             method = "full map-reduce"
 
-    dominate_relation_matrix = _dominate_relation(x, x)
+    dominate_relation_matrix = dominate_relation(x, x)
     dominate_count = jnp.sum(dominate_relation_matrix, axis=0)
 
     if method == "host":

@@ -14,14 +14,14 @@ import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover
-from evox.utils import _dominate_relation, pairwise_euclidean_dist
+from evox.utils import dominate_relation, pairwise_euclidean_dist
 
 
 @jax.jit
 def cal_fitness(obj):
     n = jnp.shape(obj)[0]
 
-    dom_matrix = _dominate_relation(obj, obj)
+    dom_matrix = dominate_relation(obj, obj)
     s = jnp.sum(dom_matrix, axis=1)
 
     r = jax.vmap(
