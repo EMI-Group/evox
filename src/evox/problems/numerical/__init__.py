@@ -1,9 +1,9 @@
-from .ackley import Ackley
-from .rastrigin import Rastrigin
-from .sphere import Sphere
+from .ackley import Ackley, ackley_func
+from .rastrigin import Rastrigin, rastrigin_func
+from .sphere import Sphere, sphere_func
 from .zdt import ZDT1, ZDT2, ZDT3, ZDT4, ZDT6
-from .griewank import Griewank
-from .rosenbrock import Rosenbrock
+from .griewank import Griewank, griewank_func
+from .rosenbrock import Rosenbrock, rosenbrock_func
 from .dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .cec2022_so import (
     CEC2022TestSuit,

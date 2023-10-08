@@ -8,8 +8,12 @@ def _griewank_func(x):
     return f
 
 
+def griewank_func(X):
+    return jax.vmap(_griewank_func)(X)
+
+
 @jit_class
 class Griewank(Problem):
 
     def evaluate(self, state, X):
-        return jax.vmap(_griewank_func)(X), state
+        return griewank_func(X), state
