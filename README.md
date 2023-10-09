@@ -34,8 +34,6 @@ EvoX offers a powerful and user-friendly optimization framework, empowering rese
 
 ### Index
 
-- [⭐️ Key Features](#️-key-features)
-  - [Index](#index)
 - [Contents](#contents)
   - [List of Algorithms](#list-of-algorithms)
     - [Single-objective](#single-objective)
@@ -108,7 +106,7 @@ pso = algorithms.PSO(
 ackley = problems.numerical.Ackley()
 ```
 
-The algorithm and the problem are composed together using `workflow`:
+To run the EC workflow, compose the algorithm and the problem together using `workflow`:
 
 ```python
 workflow = workflows.StdWorkflow(pso, ackley)
@@ -121,7 +119,7 @@ key = jax.random.PRNGKey(42)
 state = workflow.init(key)
 ```
 
-To run the workflow, call `step` on the workflow.
+Now, call `step` to execute one iteration of the workflow.
 
 ```python
 # run the workflow for 100 steps
