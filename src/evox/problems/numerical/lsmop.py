@@ -3,7 +3,12 @@ import jax.numpy as jnp
 import evox
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from evox.problems.numerical import sphere_func, griewank_func, rosenbrock_func, ackley_func
+from evox.problems.numerical import (
+    sphere_func,
+    griewank_func,
+    rosenbrock_func,
+    ackley_func,
+)
 import math
 from itertools import cycle
 from functools import partial
@@ -51,7 +56,7 @@ class LSMOP(Problem):
         self.griewank = griewank_func
         self.rosenbrock = rosenbrock_func
         # the default parameter for ackley
-        self.ackley = partial(ackley_func, a=20, b=0.2, c=2*jnp.pi)
+        self.ackley = partial(ackley_func, a=20, b=0.2, c=2 * jnp.pi)
 
     def setup(self, key):
         return State(key=key)
@@ -86,7 +91,7 @@ class LSMOP(Problem):
         x: jax.Array,
     ):
         n, d = x.shape
-        # g = jnp.zeros([n, self.m])
+
         def calc_obj(len_, sublen, inner_func):
             func_results = []
             for j in range(0, self.nk):
@@ -107,7 +112,7 @@ class LSMOP(Problem):
         return g
 
 
-# @evox.jit_class
+@evox.jit_class
 class LSMOP1(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -291,14 +296,14 @@ class LSMOP6(LSMOP):
         )
         g = self._calc_g([self.rosenbrock, LSMOP._schwefel], X)
         f = (
-            (1 + g + jnp.c_[g[:, 1:], jnp.zeros([n, 1])])
+            (1 + g + jnp.hstack((g[:, 1:], jnp.zeros([n, 1]))))
             * jnp.fliplr(
                 jnp.cumprod(
-                    jnp.c_[jnp.ones((n, 1)), jnp.cos(X[:, : m - 1] * jnp.pi / 2)],
+                    jnp.hstack((jnp.ones((n, 1)), jnp.cos(X[:, : m - 1] * jnp.pi / 2))),
                     axis=1,
                 )
             )
-            * jnp.c_[jnp.ones((n, 1)), jnp.sin(X[:, m - 2 :: -1] * jnp.pi / 2)]
+            * jnp.hstack((jnp.ones((n, 1)), jnp.sin(X[:, m - 2 :: -1] * jnp.pi / 2)))
         )
         return f, state
 
@@ -383,6 +388,7 @@ class LSMOP8(LSMOP):
         return f, state
 
 
+@evox.jit_class
 class LSMOP9(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
@@ -395,7 +401,6 @@ class LSMOP9(LSMOP):
         else:
             self.d = d
 
-    @evox.jit_method
     def evaluate(self, state, X):
         n, d = jnp.shape(X)
         self.N = n
@@ -431,12 +436,10 @@ class LSMOP9(LSMOP):
         )
         N = self.ref_num * self.m
         X = self._grid(N, self.m - 1)
-        X = X.at[X <= median].set(
-            X[X <= median] * (interval[1] - interval[0]) / median + interval[0]
-        )
-        X = X.at[X > median].set(
-            (X[X > median] - median) * (interval[3] - interval[2]) / (1 - median)
-            + interval[2]
+        X = jnp.where(
+            X <= median,
+            X * (interval[1] - interval[0]) / median + interval[0],
+            (X - median) * (interval[3] - interval[2]) / (1 - median) + interval[2],
         )
         p = jnp.c_[
             X,
