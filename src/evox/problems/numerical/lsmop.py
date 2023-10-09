@@ -68,16 +68,16 @@ class LSMOP(Problem):
     """
 
     @staticmethod
-    def _schwefel(x):
-        return jnp.max(jnp.abs(x), axis=-1)
+    def _schwefel(X):
+        return jnp.max(jnp.abs(X), axis=-1)
 
     """
         there is a little difference between with rastrigin_func in cec2022_so.py
     """
 
     @staticmethod
-    def _rastrigin(x):
-        f = jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1)
+    def _rastrigin(X):
+        f = jnp.sum(X**2 - 10 * jnp.cos(2 * jnp.pi * X) + 10, axis=1)
         return f
 
     def _calc_g(
@@ -86,16 +86,16 @@ class LSMOP(Problem):
         x: jax.Array,
     ):
         n, d = x.shape
-        g = jnp.zeros([n, self.m])
+        # g = jnp.zeros([n, self.m])
         def calc_obj(len_, sublen, inner_func):
             func_results = []
             for j in range(0, self.nk):
                 start = len_ + self.m - 1 + j * sublen
                 end = start + sublen
                 slice_x = x[:, start:end]
-                func_results.append(inner_func(slice_x)[0])
-
-            g = jnp.sum(jnp.array(func_results))
+                func_results.append(inner_func(X=slice_x))
+            # print(jnp.array(func_results))
+            g = jnp.sum(jnp.array(func_results), axis=0)
             return g
 
         g = []
@@ -107,7 +107,7 @@ class LSMOP(Problem):
         return g
 
 
-@evox.jit_class
+# @evox.jit_class
 class LSMOP1(LSMOP):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
