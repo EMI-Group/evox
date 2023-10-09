@@ -43,11 +43,11 @@
 
 #### Single-objective
 
-| Type | Algorithm Name                             |
-| ---- | ------------------------------------------ |
-| ES   | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-| PSO  | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
-| DE   | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
+| Type                   | Algorithm Name                             |
+| ---------------------- | ------------------------------------------ |
+| Differential Evolution | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
+| Evolution Strategies   | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| Particle Swarm         | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
 #### Multi-objective
 
@@ -59,13 +59,14 @@
 
 ### List of Problems
 
-| Type           | Problem Name                             |
-| ---------------| ---------------------------------------- |
-| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...      |
+| Type           | Problem Name                        |
+| -------------- | ----------------------------------- |
+| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution | Brax, Gym, TorchVision Dataset, ... |
 
 
-For more detailed list, please refer to our API [documentation](https://evox.readthedocs.io/en/latest/guide/index.html).
+For more detailed list, please refer to our API documentation. [List of Algorithms](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) and [List of Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+
 
 ## Installation
 

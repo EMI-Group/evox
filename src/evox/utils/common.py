@@ -6,7 +6,7 @@ from jax import vmap, jit
 import jax.numpy as jnp
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 
-from .core.module import *
+from ..core.module import *
 
 
 def min_by(
@@ -89,7 +89,7 @@ def _dominate(x, y):
 
 
 @jit
-def _dominate_relation(x, y):
+def dominate_relation(x, y):
     """return a matrix A, where A_{ij} is True if x_i donminate y_j"""
     return vmap(lambda _x: vmap(lambda _y: _dominate(_x, _y))(y))(x)
 

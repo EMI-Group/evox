@@ -32,7 +32,7 @@ EvoX currently supports rl environments from Gym.
 
 .. code-block:: python
 
-    from evox.problems.rl import Gym
+    from evox.problems.neuroevolution import Gym
     problem = Gym(
         env_name="ALE/Pong-v5", # the environment's name
         env_options={"full_action_space": False}, # the options passes to the environment

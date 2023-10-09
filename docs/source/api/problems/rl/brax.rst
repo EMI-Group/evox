@@ -2,5 +2,5 @@
 Brax-based Problem
 ==================
 
-.. autoclass:: evox.problems.rl.Brax
+.. autoclass:: evox.problems.neuroevolution.Brax
     :members:
