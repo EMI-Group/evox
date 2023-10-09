@@ -1,10 +1,6 @@
-<h1 align="center">
-  <img src=./docs/source/_static/evox_logo.png alt="Logo" height="24em"/>
-  <strong>EvoX</strong>
-  <br>
-  A Distributed GPU-accelerated Framework for Scalable Evolutionary Computation
-</h1>
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EMI-Group/evox/main/docs/source/_static/evox_logo_with_title.svg" width="500px" alt="EvoX Logo"/>
+</p>
 <div align="center">
   <a href="https://evox.readthedocs.io/">
     <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=for-the-badge" href="https://evox.readthedocs.io/">
@@ -18,24 +14,38 @@
 </div>
 
 
-## Key Features
 
-- Single-objective and multi-objective algorithms.
-- GPU computing.
-- Easy to use distributed workflow.
-- Support a wide range of problems.
-- Hierarchical state managing.
-- Detailed [tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
+EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation. Our primary goal is to push the boundaries of evolutionary computation by significantly enhancing its speed and versatility, enabling its application to complex and computationally intensive tasks.
+
+## ⭐️ Key Features
+- ⚡️ Fast
+  - GPU computing for 10x-100x faster optimization.
+  - Distributed workflow for even faster optimization.
+- 🌟 Wide support
+  - Single-objective and multi-objective optimization.
+  - Comprehensive support for commonly used benchmark problems.
+  - Extensive coverage of neuroevolution problems.
+- 🎉 Easy to use
+  - Functional programming for easy function ccomposingomposition.
+  - Hierarchical state management for modular programming.
+  - Detailed tutorial available [here](https://evox.readthedocs.io/en/latest/guide/index.html).
+
+EvoX offers a powerful and user-friendly optimization framework, empowering researchers and practitioners to easily tackle a variety of optimization tasks. The support for commonly used benchmark problems, along with the coverage of neuroevolution problems, provides a versatile platform for optimization experimentation. With its fast GPU computing and distributed workflow capabilities, EvoX enables efficient optimization of complex and computationally intensive problems. The functional programming and hierarchical state management further enhance the ease of use and modularity of the framework.
 
 ### Index
 
-- [Features](#features)
+- [⭐️ Key Features](#️-key-features)
   - [Index](#index)
 - [Contents](#contents)
+  - [List of Algorithms](#list-of-algorithms)
+    - [Single-objective](#single-objective)
+    - [Multi-objective](#multi-objective)
+  - [List of Problems](#list-of-problems)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Example](#example)
 - [Support](#support)
+- [Citation](#citation)
 
 ## Contents
 
@@ -70,9 +80,13 @@ For more detailed list, please refer to our API documentation. [List of Algorith
 
 ## Installation
 
-``
+We recommand install `evox` using `pip`
+
+```bash
 pip install evox
-``
+```
+
+EvoX depends on JAX. To install JAX, please refer to JAX's installation guide [here](https://github.com/google/jax?tab=readme-ov-file#installation).
 
 ## Quick Start
 
