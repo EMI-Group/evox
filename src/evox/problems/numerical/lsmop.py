@@ -99,7 +99,6 @@ class LSMOP(Problem):
                 end = start + sublen
                 slice_x = x[:, start:end]
                 func_results.append(inner_func(X=slice_x))
-            # print(jnp.array(func_results))
             g = jnp.sum(jnp.array(func_results), axis=0)
             return g
 
