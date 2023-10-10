@@ -4,7 +4,6 @@ from jax import lax
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from matplotlib.path import Path
 from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
 import math
@@ -124,17 +123,13 @@ class MaF2(MaF):
         c = jnp.zeros((r.shape[0], self.m - 1))
 
         def inner_fun(i, c):
-            def inner_fun2(j, c):
+            for j in range(2, self.m + 1):
                 temp = (
                     r[i - 1, j - 1]
                     / r[i - 1, 0]
                     * jnp.prod(c[i - 1, self.m - j + 1 : self.m - 1])
                 )
                 c = c.at[i - 1, self.m - j].set(jnp.sqrt(1 / (1 + temp**2)))
-                return c
-
-            with jax.disable_jit():
-                c = lax.fori_loop(2, self.m + 1, inner_fun2, c)
             return c
 
         c = lax.fori_loop(1, r.shape[0] + 1, inner_fun, c)
@@ -399,20 +394,34 @@ class MaF8(MaF):
         f = self._eucl_dis(X, self.points)
         return f, state
 
-    """
-    using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
-    """
-
     def pf(self, state):
         n = self.ref_num * self.m
         temp = jnp.linspace(-1, 1, num=math.ceil(math.sqrt(n)))
-        x, y = jnp.meshgrid(temp, temp)
+        y, x = jnp.meshgrid(temp, temp)
         x = x.ravel(order="F")
         y = y.ravel(order="F")
-        # using numpy based library: matplotlib.path.Path
-        poly_path = Path(self.points)
         _points = jnp.column_stack((x, y))
-        ND = poly_path.contains_points(_points)
+
+        def is_point_in_polygon(polygon, point):
+            """
+            Determine whether a point is within a regular polygon
+            Args:
+                polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
+                point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
+            Returns:
+                bool: If the point is within the polygon, return True; Otherwise, return False
+            """
+            angles = 0
+            n = polygon.shape[0]
+            ps = polygon - point
+            for i in range(0, n):
+                p1 = ps[i]
+                p2 = ps[(i + 1) % n]
+                angle = jnp.arctan2(jnp.cross(p1, p2), jnp.dot(p1, p2))
+                angles += angle
+            return jnp.isclose(jnp.abs(angles), 2 * jnp.pi)
+
+        ND = jax.vmap(is_point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f, state
 
@@ -458,22 +467,35 @@ class MaF9(MaF):
             )
         return f, state
 
-    """
-        using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
-    """
-
     def pf(self, state):
-        with jax.disable_jit():
-            n = self.ref_num * self.m
-            temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
-            x, y = jnp.meshgrid(temp, temp)
-            x = x.ravel(order="C")
-            y = y.ravel(order="C")
-            # using numpy based library: matplotlib.path.Path
-            poly_path = Path(self.points)
-            _points = jnp.column_stack((x, y))
-            ND = poly_path.contains_points(_points)
-            f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
+        n = self.ref_num * self.m
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
+        y, x = jnp.meshgrid(temp, temp)
+        x = x.ravel(order="C")
+        y = y.ravel(order="C")
+        _points = jnp.column_stack((x, y))
+
+        def is_point_in_polygon(polygon, point):
+            """
+            Determine whether a point is within a regular polygon
+            Args:
+                polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
+                point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
+            Returns:
+                bool: If the point is within the polygon, return True; Otherwise, return False
+            """
+            angles = 0
+            n = polygon.shape[0]
+            ps = polygon - point
+            for i in range(0, n):
+                p1 = ps[i]
+                p2 = ps[(i + 1) % n]
+                angle = jnp.arctan2(jnp.cross(p1, p2), jnp.dot(p1, p2))
+                angles += angle
+            return jnp.isclose(jnp.abs(angles), 2 * jnp.pi)
+
+        ND = jax.vmap(is_point_in_polygon, in_axes=(None, 0))(self.points, _points)
+        f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
     @evox.jit_method
