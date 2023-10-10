@@ -9,7 +9,7 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators import mutation, crossover, selection
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox.operators.sampling import LatinHypercubeSampling
 from evox import Algorithm, State, jit_class
 
 
@@ -88,8 +88,15 @@ class RVEA(Algorithm):
 
     def _ask_normal(self, state):
         key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
+        population = state.population
 
-        crossovered = self.crossover(x_key, state.population)
+        no_nan_pop = ~jnp.isnan(population).all(axis=1)
+        max_idx = jnp.sum(no_nan_pop).astype(int)
+
+        pop = population[jnp.where(no_nan_pop, size=self.pop_size, fill_value=-1)]
+
+        mating_pool = jax.random.randint(subkey, (self.pop_size,), 0, max_idx)
+        crossovered = self.crossover(x_key, pop[mating_pool])
         next_generation = self.mutation(mut_key, crossovered)
 
         return next_generation, state.update(next_generation=next_generation, key=key)
@@ -104,16 +111,12 @@ class RVEA(Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        rank = self.selection(
-            merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
+        survivor, survivor_fitness = self.selection(
+            merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
 
-        survivor = merged_pop[rank]
-        survivor_fitness = merged_fitness[rank]
-
         def rv_adaptation(pop_obj, v):
-            v_temp = v * jnp.tile((pop_obj.max(0) - pop_obj.min(0)), (len(v), 1))
-            next_v = v.astype(float)
+            v_temp = v * jnp.tile((jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0)), (len(v), 1))
 
             next_v = v_temp / jnp.tile(
                 jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1),

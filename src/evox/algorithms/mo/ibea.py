@@ -37,6 +37,9 @@ class IBEA(Algorithm):
     """IBEA algorithm
 
     link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
+
+    Args:
+        kappa: fitness scaling factor. Default: 0.05
     """
 
     def __init__(
@@ -111,27 +114,31 @@ class IBEA(Algorithm):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        n = jnp.shape(merged_pop)[0]
         merged_fitness, I, C = cal_fitness(merged_obj, self.kappa)
 
-        next_ind = jnp.arange(n)
-        vals = (next_ind, merged_fitness)
+        # Different from the original paper, the selection here is directly through fitness.
+        next_ind = jnp.argsort(-merged_fitness)[0: self.pop_size]
 
-        def body_fun(i, vals):
-            next_ind, merged_fitness = vals
-            x = jnp.argmin(merged_fitness)
-            merged_fitness += jnp.exp(-I[x, :] / C[x] / self.kappa)
-            merged_fitness = merged_fitness.at[x].set(jnp.max(merged_fitness))
-            next_ind = next_ind.at[x].set(-1)
-            return (next_ind, merged_fitness)
+        # The following code is from the original paper's implementation
+        # and is kept for reference purposes but is not being used in this version.
+        # n = jnp.shape(merged_pop)[0]
+        # next_ind = jnp.arange(n)
+        # vals = (next_ind, merged_fitness)
+        # def body_fun(i, vals):
+        #     next_ind, merged_fitness = vals
+        #     x = jnp.argmin(merged_fitness)
+        #     merged_fitness += jnp.exp(-I[x, :] / C[x] / self.kappa)
+        #     merged_fitness = merged_fitness.at[x].set(jnp.max(merged_fitness))
+        #     next_ind = next_ind.at[x].set(-1)
+        #     return (next_ind, merged_fitness)
+        #
+        # next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
+        #
+        # next_ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
+        # next_ind = next_ind[0: self.pop_size]
 
-        next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
-
-        ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
-        ind_n = ind[0 : self.pop_size]
-
-        survivor = merged_pop[ind_n]
-        survivor_fitness = merged_obj[ind_n]
+        survivor = merged_pop[next_ind]
+        survivor_fitness = merged_obj[next_ind]
 
         state = state.update(population=survivor, fitness=survivor_fitness)
 
