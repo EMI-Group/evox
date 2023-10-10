@@ -18,6 +18,12 @@ class RVEA(Algorithm):
     """RVEA algorithms
 
     link: https://ieeexplore.ieee.org/document/7386636
+
+    Args:
+        alpha : The parameter controlling the rate of change of penalty. Defaults to 2.
+        fr : The frequency of reference vector adaptation. Defaults to 0.1.
+        max_gen : The maximum number of generations. Defaults to 100. If the number of iterations
+            is not 100, change the value based on the actual value.
     """
 
     def __init__(

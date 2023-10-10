@@ -20,6 +20,7 @@ from evox import Algorithm, State, jit_class
 
 @jax.jit
 def cal_fitness(obj):
+    # Calculate the fitness by shift-based density
     n = jnp.shape(obj)[0]
     f_max = jnp.max(obj, axis=0)
     f_min = jnp.min(obj, axis=0)
@@ -45,6 +46,11 @@ class LMOCSO(Algorithm):
     LMOCSO algorithm
 
     link: https://ieeexplore.ieee.org/document/8681243
+
+    Args:
+        alpha : The parameter controlling the rate of change of penalty. Defaults to 2.
+        max_gen : The maximum number of generations. Defaults to 100. If the number of iterations
+            is not 100, change the value based on the actual value.
     """
 
     def __init__(
@@ -53,8 +59,6 @@ class LMOCSO(Algorithm):
         lb,
         ub,
         pop_size,
-        mean=None,
-        stdev=None,
         alpha=2,
         max_gen=100,
         selection_op=None,
@@ -65,9 +69,6 @@ class LMOCSO(Algorithm):
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
-        self.mean = mean
-        self.stdev = stdev
-        assert stdev is None or stdev > 0
         self.alpha = alpha
         self.max_gen = max_gen
 
@@ -82,16 +83,13 @@ class LMOCSO(Algorithm):
         self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
-        state_key, init_key, vector_key = jax.random.split(key, num=3)
+        state_key, init_key, vector_key = jax.random.split(key, 3)
 
-        if self.mean is not None and self.stdev is not None:
-            population = self.stdev * jax.random.normal(
-                init_key, shape=(self.pop_size, self.dim)
-            )
-            population = jnp.clip(population, self.lb, self.ub)
-        else:
-            population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
-            population = population * (self.ub - self.lb) + self.lb
+        population = (
+            jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
+            * (self.ub - self.lb)
+            + self.lb
+        )
         velocity = jnp.zeros((self.pop_size, self.dim))
         fitness = jnp.full((self.pop_size, self.n_objs), jnp.inf)
 
@@ -116,22 +114,22 @@ class LMOCSO(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, pairing_key, r0_key, r1_key, mut_key, subkey = jax.random.split(
-            state.key, num=6
+        key, mating_key, pairing_key, r0_key, r1_key, mut_key = jax.random.split(
+            state.key, 6
         )
         population = state.population
         no_nan_pop = ~jnp.isnan(population).all(axis=1)
         max_idx = jnp.sum(no_nan_pop).astype(int)
         pop = population[jnp.where(no_nan_pop, size=self.pop_size, fill_value=-1)]
-        mating_pool = jax.random.randint(subkey, (self.pop_size,), 0, max_idx)
+        mating_pool = jax.random.randint(mating_key, (self.pop_size,), 0, max_idx)
         population = pop[mating_pool]
 
         randperm = jax.random.permutation(pairing_key, self.pop_size).reshape(2, -1)
 
         # calculate the shift-based density estimation(SDE) fitness
-        SDE_fitness = cal_fitness(state.fitness)
+        sde_fitness = cal_fitness(state.fitness)
 
-        mask = SDE_fitness[randperm[0, :]] > SDE_fitness[randperm[1, :]]
+        mask = sde_fitness[randperm[0, :]] > sde_fitness[randperm[1, :]]
 
         winner = jnp.where(mask, randperm[0, :], randperm[1, :])
         loser = jnp.where(mask, randperm[1, :], randperm[0, :])
