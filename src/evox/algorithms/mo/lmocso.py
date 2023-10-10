@@ -30,12 +30,14 @@ def cal_fitness(obj):
     def shifted_distance(f1, f2):
         s_f = jax.vmap(lambda x, y: jnp.linalg.norm(x - y), in_axes=(None, 0))(f1, f2)
         return s_f
+
     dis = jax.vmap(shifted_distance, in_axes=(0, 0))(f, s_obj)
     dis = jnp.where(jnp.eye(n), jnp.inf, dis)
 
     fitness = jnp.min(dis, axis=1)
 
     return fitness
+
 
 @jit_class
 class LMOCSO(Algorithm):
@@ -46,17 +48,17 @@ class LMOCSO(Algorithm):
     """
 
     def __init__(
-            self,
-            n_objs,
-            lb,
-            ub,
-            pop_size,
-            mean=None,
-            stdev=None,
-            alpha=2,
-            max_gen=100,
-            selection_op=None,
-            mutation_op=None,
+        self,
+        n_objs,
+        lb,
+        ub,
+        pop_size,
+        mean=None,
+        stdev=None,
+        alpha=2,
+        max_gen=100,
+        selection_op=None,
+        mutation_op=None,
     ):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
@@ -83,7 +85,9 @@ class LMOCSO(Algorithm):
         state_key, init_key, vector_key = jax.random.split(key, num=3)
 
         if self.mean is not None and self.stdev is not None:
-            population = self.stdev * jax.random.normal(init_key, shape=(self.pop_size, self.dim))
+            population = self.stdev * jax.random.normal(
+                init_key, shape=(self.pop_size, self.dim)
+            )
             population = jnp.clip(population, self.lb, self.ub)
         else:
             population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
@@ -112,7 +116,9 @@ class LMOCSO(Algorithm):
         return state.population, state
 
     def _ask_normal(self, state):
-        key, pairing_key, r0_key, r1_key, mut_key, subkey = jax.random.split(state.key, num=6)
+        key, pairing_key, r0_key, r1_key, mut_key, subkey = jax.random.split(
+            state.key, num=6
+        )
         population = state.population
         no_nan_pop = ~jnp.isnan(population).all(axis=1)
         max_idx = jnp.sum(no_nan_pop).astype(int)
@@ -133,10 +139,16 @@ class LMOCSO(Algorithm):
         r0 = jax.random.uniform(r0_key, shape=(self.pop_size // 2, self.dim))
         r1 = jax.random.uniform(r1_key, shape=(self.pop_size // 2, self.dim))
 
-        off_velocity = (r0 * state.velocity[loser] + r1 * (population[winner] - population[loser]))
+        off_velocity = r0 * state.velocity[loser] + r1 * (
+            population[winner] - population[loser]
+        )
         new_loser_population = jnp.clip(
-            population[loser] + off_velocity + r0 * (off_velocity - state.velocity[loser]), self.lb,
-            self.ub)
+            population[loser]
+            + off_velocity
+            + r0 * (off_velocity - state.velocity[loser]),
+            self.lb,
+            self.ub,
+        )
         new_population = population.at[loser].set(new_loser_population)
 
         new_velocity = state.velocity.at[loser].set(off_velocity)
@@ -172,7 +184,6 @@ class LMOCSO(Algorithm):
         survivor, survivor_fitness = self.selection(
             merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
-
 
         state = state.update(
             population=survivor,
