@@ -7,30 +7,14 @@
 
 import jax
 import jax.numpy as jnp
-from .utils import (
-    row_argsort,
-    get_distance_matrix,
-    select_from_mask,
-)
-from functools import partial
-from typing import Union, Iterable, Literal
+from .utils import get_distance_matrix
+from typing import Literal
 from .topology_utils import (
     get_square_neighbour,
-    get_neighbour_best_fitness,
     get_full_neighbour,
     build_adjacancy_list_from_matrix,
 )
-from evox import (
-    Algorithm,
-    Problem,
-    State,
-    algorithms,
-    jit_class,
-    monitors,
-    workflows,
-    problems,
-)
-from evox.utils import min_by
+from evox import Algorithm, State
 
 
 class FIPS(Algorithm):
