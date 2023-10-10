@@ -10,6 +10,52 @@ import math
 from evox.problems.numerical import Sphere, Griewank
 
 
+def point_in_polygon(polygon, point):
+    """
+    Determine whether a point is within a regular polygon by ray method
+    Args:
+        polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
+        point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
+    Returns:
+        bool: If the point is within the polygon, return True; Otherwise, return False
+    """
+
+    def true_fun(p1, p2, inside):
+        def inner_true_fun():
+            def inner2_true_fun():
+                x_intersect = (point[1] - p1[1]) * (p2[0] - p1[0]) / (
+                        p2[1] - p1[1]
+                ) + p1[0]
+                return lax.cond(
+                    point[0] <= x_intersect,
+                    lambda: jax.lax.bitwise_not(inside),
+                    lambda: inside,
+                )
+
+            return lax.cond(p1[1] != p2[1], inner2_true_fun, lambda: inside)
+
+        return lax.cond(
+            point[0] <= jnp.maximum(p1[0], p2[0]),
+            inner_true_fun,
+            lambda: inside,
+        )
+
+    inside = False
+    p1 = polygon[0]
+    for i in range(1, polygon.shape[0] + 1):
+        p2 = polygon[i % polygon.shape[0]]
+        inside = lax.cond(
+            (jnp.minimum(p1[1], p2[1]) < point[1])
+            & (point[1] <= jnp.maximum(p1[1], p2[1])),
+            true_fun,
+            lambda *_: inside,
+            p1,
+            p2,
+            inside,
+        )
+        p1 = p2
+    return inside
+
 @evox.jit_class
 class MaF(Problem):
     """
@@ -401,27 +447,7 @@ class MaF8(MaF):
         x = x.ravel(order="F")
         y = y.ravel(order="F")
         _points = jnp.column_stack((x, y))
-
-        def is_point_in_polygon(polygon, point):
-            """
-            Determine whether a point is within a regular polygon
-            Args:
-                polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
-                point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
-            Returns:
-                bool: If the point is within the polygon, return True; Otherwise, return False
-            """
-            angles = 0
-            n = polygon.shape[0]
-            ps = polygon - point
-            for i in range(0, n):
-                p1 = ps[i]
-                p2 = ps[(i + 1) % n]
-                angle = jnp.arctan2(jnp.cross(p1, p2), jnp.dot(p1, p2))
-                angles += angle
-            return jnp.isclose(jnp.abs(angles), 2 * jnp.pi)
-
-        ND = jax.vmap(is_point_in_polygon, in_axes=(None, 0))(self.points, _points)
+        ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f, state
 
@@ -474,27 +500,7 @@ class MaF9(MaF):
         x = x.ravel(order="C")
         y = y.ravel(order="C")
         _points = jnp.column_stack((x, y))
-
-        def is_point_in_polygon(polygon, point):
-            """
-            Determine whether a point is within a regular polygon
-            Args:
-                polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
-                point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
-            Returns:
-                bool: If the point is within the polygon, return True; Otherwise, return False
-            """
-            angles = 0
-            n = polygon.shape[0]
-            ps = polygon - point
-            for i in range(0, n):
-                p1 = ps[i]
-                p2 = ps[(i + 1) % n]
-                angle = jnp.arctan2(jnp.cross(p1, p2), jnp.dot(p1, p2))
-                angles += angle
-            return jnp.isclose(jnp.abs(angles), 2 * jnp.pi)
-
-        ND = jax.vmap(is_point_in_polygon, in_axes=(None, 0))(self.points, _points)
+        ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
