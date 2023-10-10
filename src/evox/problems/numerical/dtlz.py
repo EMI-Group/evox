@@ -1,14 +1,15 @@
 import jax
 import jax.numpy as jnp
 from evox import Problem, State, jit_class
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-import chex
-import pkgutil, json
+from evox.operators.sampling import UniformSampling, GridSampling
 
 
 @jit_class
 class DTLZTestSuit(Problem):
-    """DTLZ"""
+    """DTLZ
+
+    link: https://link.springer.com/chapter/10.1007/1-84628-137-7_6
+    """
 
     def __init__(self, d=None, m=None, ref_num=1000):
         self.d = d
@@ -20,12 +21,10 @@ class DTLZTestSuit(Problem):
     def setup(self, key):
         return State(key=key)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
-        chex.assert_type(X, float)
-        chex.assert_shape(X, (None, self.d))
+    def evaluate(self, state, X):
         return jax.jit(jax.vmap(self._dtlz))(X), state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = self.sample()[0] / 2
         return f, state
 
@@ -42,7 +41,7 @@ class DTLZ1(DTLZTestSuit):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         n, d = jnp.shape(X)
 
@@ -78,7 +77,7 @@ class DTLZ2(DTLZTestSuit):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         g = jnp.sum((X[:, m - 1 :] - 0.5) ** 2, axis=1, keepdims=True)
         f = (
@@ -99,17 +98,17 @@ class DTLZ2(DTLZTestSuit):
 
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         f = self.sample()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
         return f, state
 
 
-class DTLZ3(DTLZTestSuit):
+class DTLZ3(DTLZ2):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         g = 100 * (
@@ -139,11 +138,11 @@ class DTLZ3(DTLZTestSuit):
         return f, state
 
 
-class DTLZ4(DTLZTestSuit):
+class DTLZ4(DTLZ2):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         X = X.at[:, : m - 1].power(100)
         g = jnp.sum((X[:, m - 1 :] - 0.5) ** 2, axis=1, keepdims=True)
@@ -179,7 +178,7 @@ class DTLZ5(DTLZTestSuit):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         g = jnp.sum((X[:, m - 1 :] - 0.5) ** 2, axis=1, keepdims=True)
         temp = jnp.tile(g, (1, m - 2))
@@ -201,7 +200,7 @@ class DTLZ5(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         f = jnp.vstack(
             (
@@ -239,7 +238,7 @@ class DTLZ6(DTLZTestSuit):
             self.d = d
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+    def evaluate(self, state, X):
         m = self.m
         g = jnp.sum((X[:, m - 1 :] ** 0.1), axis=1, keepdims=True)
         temp = jnp.tile(g, (1, m - 2))
@@ -262,7 +261,7 @@ class DTLZ6(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
+    def pf(self, state):
         n = self.ref_num * self.m
         f = jnp.vstack(
             (
@@ -298,9 +297,11 @@ class DTLZ7(DTLZTestSuit):
             self.d = self.m + 19
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
 
-    def evaluate(self, state: chex.PyTreeDef, X: chex.Array):
+        super().__init__(d, m, ref_num)
+        self.sample = GridSampling(self.ref_num * self.m, self.m - 1)
+
+    def evaluate(self, state, X):
         n, d = jnp.shape(X)
         m = self.m
         f = jnp.zeros((n, m))
@@ -321,8 +322,32 @@ class DTLZ7(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state: chex.PyTreeDef):
-        data_bytes = pkgutil.get_data(__name__, "data/dtlz7_pf.json")
-        data = data_bytes.decode()
-        pf = json.loads(data)
-        return jnp.array(pf), state
+    def pf(self, state):
+        interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
+        median = (interval[1] - interval[0]) / (
+            interval[3] - interval[2] + interval[1] - interval[0]
+        )
+
+        x = self.sample()[0]
+
+        mask_less_equal_median = x <= median
+        mask_greater_median = x > median
+
+        x = jnp.where(
+            mask_less_equal_median,
+            x * (interval[1] - interval[0]) / median + interval[0],
+            x,
+        )
+        x = jnp.where(
+            mask_greater_median,
+            (x - median) * (interval[3] - interval[2]) / (1 - median) + interval[2],
+            x,
+        )
+
+        last_col = 2 * (
+            self.m
+            - jnp.sum(x / 2 * (1 + jnp.sin(3 * jnp.pi * x)), axis=1, keepdims=True)
+        )
+
+        pf = jnp.hstack([x, last_col])
+        return pf, state
