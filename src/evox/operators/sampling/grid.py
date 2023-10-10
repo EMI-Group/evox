@@ -1,8 +1,4 @@
-import jax
 import jax.numpy as jnp
-from itertools import combinations as n_choose_k
-from scipy.special import comb
-
 import evox
 
 
@@ -10,7 +6,7 @@ import evox
 class GridSampling:
     """
     Grid sampling.
-    Inspired by PlatEMO's NBI algorithm.
+    Inspired by PlatEMO.
     """
 
     def __init__(self, n=None, m=None):
@@ -21,7 +17,7 @@ class GridSampling:
     def __call__(self):
         gap = jnp.linspace(0, 1, self.num_points)
         grid_axes = [gap for _ in range(self.m)]
-        grid_values = jnp.meshgrid(*grid_axes, indexing='ij') # Equivalent of MATLAB's ndgrid
+        grid_values = jnp.meshgrid(*grid_axes, indexing="ij")
         w = jnp.stack(grid_values, axis=-1).reshape(-1, self.m)
         w = w[:, ::-1]
         n = w.shape[0]
