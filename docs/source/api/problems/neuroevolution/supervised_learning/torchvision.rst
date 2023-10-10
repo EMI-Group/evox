@@ -2,5 +2,5 @@
 Torchvision Dataset
 ===================
 
-.. autoclass:: evox.problems.neuroevolution.TorchvisionDataset
+.. autoclass:: evox.problems.neuroevolution.supervised_learning.TorchvisionDataset
     :members:
