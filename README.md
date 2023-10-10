@@ -18,7 +18,7 @@
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation. Our primary goal is to push the boundaries of evolutionary computation by significantly enhancing its speed and versatility, enabling its application to complex and computationally intensive tasks.
 
 ## ⭐️ Key Features
-- ⚡️ Fast
+- 🚀 Fast
   - GPU computing for 10x-100x faster optimization.
   - Distributed workflow for even faster optimization.
 - 🌟 Wide support
