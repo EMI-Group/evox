@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 
 import gymnasium as gym
 import jax
@@ -52,10 +52,11 @@ class Normalizer(Stateful):
 
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_creator, num_env, policy=None):
+    def __init__(self, env_creator, num_env, policy=None, mo_keys=None):
         self.num_env = num_env
         self.envs = [env_creator() for _ in range(num_env)]
         self.policy = policy
+        self.mo_keys = mo_keys
 
         self.seed2key = jit(vmap(jax.random.PRNGKey))
         self.splitKey = jit(vmap(jax.random.split))
@@ -75,16 +76,31 @@ class Worker:
                 self.total_rewards[i] += reward
                 self.episode_length[i] += 1
 
+                mo_values = []
+                for key in self.mo_keys:
+                    if key not in self.infos[i]:
+                        raise KeyError(
+                            (
+                                f"mo_keys has a key {key}, "
+                                "which doesn't exist in `info`, "
+                                f"available fields are {list(self.infos[i].keys())}."
+                            )
+                        )
+                    mo_values.append(self.infos[i][key])
+                mo_values = np.array(mo_values)
+                self.acc_mo_values += mo_values
+
         return self.observations, self.terminated, self.truncated
 
     def get_rewards(self):
-        return self.total_rewards
+        return self.total_rewards, self.acc_mo_values
 
     def get_episode_length(self):
         return self.episode_length
 
     def reset(self, seeds):
         self.total_rewards = np.zeros((self.num_env,))
+        self.acc_mo_values = np.zeros((len(self.mo_keys),))  # accumulated mo_value
         self.episode_length = np.zeros((self.num_env,))
         self.terminated = np.zeros((self.num_env,), dtype=bool)
         self.truncated = np.zeros((self.num_env,), dtype=bool)
@@ -111,7 +127,7 @@ class Worker:
             if cap_episode_length and i >= cap_episode_length:
                 break
 
-        return self.total_rewards, self.episode_length
+        return self.total_rewards, self.acc_mo_values, self.episode_length
 
 
 @ray.remote
@@ -124,6 +140,7 @@ class Controller:
         env_creator,
         worker_options,
         batch_policy,
+        mo_keys,
     ):
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
@@ -132,11 +149,13 @@ class Controller:
                 env_creator,
                 env_per_worker,
                 None if batch_policy else jit(vmap(policy)),
+                mo_keys,
             )
             for _ in range(num_workers)
         ]
         self.policy = policy
         self.batch_policy = batch_policy
+        self.num_obj = len(mo_keys)
 
     @jit_method
     def slice_pop(self, pop):
@@ -164,8 +183,12 @@ class Controller:
             for worker_seeds, subpop, worker in zip(seeds, sliced_pop, self.workers)
         ]
 
-        rewards, episode_length = zip(*ray.get(rollout_future))
-        return np.array(rewards).reshape(-1), np.array(episode_length).reshape(-1)
+        rewards, acc_mo_values, episode_length = zip(*ray.get(rollout_future))
+        return (
+            np.array(rewards).reshape(-1),
+            np.array(acc_mo_values).reshape(-1, self.num_obj),
+            np.array(episode_length).reshape(-1),
+        )
 
     @jit_method
     def batch_policy_evaluation(self, observations, pop):
@@ -214,11 +237,16 @@ class Controller:
             if cap_episode_length and i >= cap_episode_length:
                 break
 
-        rewards = [worker.get_rewards.remote() for worker in self.workers]
+        rewards, acc_mo_values = zip(
+            *ray.get([worker.get_rewards.remote() for worker in self.workers])
+        )
         episode_length = [worker.get_episode_length.remote() for worker in self.workers]
-        rewards = ray.get(rewards)
         episode_length = ray.get(episode_length)
-        return np.array(rewards).reshape(-1), np.array(episode_length).reshape(-1)
+        return (
+            np.array(rewards).reshape(-1),
+            np.array(acc_mo_values).reshape(-1, self.num_obj),
+            np.array(episode_length).reshape(-1),
+        )
 
     def evaluate(self, seeds, pop, cap_episode_length):
         if self.batch_policy:
@@ -253,6 +281,7 @@ class Gym(Problem):
         env_name: Optional[str] = None,
         env_options: dict = {},
         env_creator: Optional[Callable] = None,
+        mo_keys: List = [],
         controller_options: dict = {},
         worker_options: dict = {},
         init_cap: Optional[int] = None,
@@ -276,6 +305,12 @@ class Gym(Problem):
             The options of the gym environment.
         env_creator
             A function with zero argument that returns an environment when called.
+        mo_keys
+            Optional, a list of strings.
+            If set, the environment is treated as a multi-objective problem,
+            and different objective values are obtained through the `info` term returned by Gym.
+            The `mo_keys` parameter provides the keys for accessing the objective values in the info dictionary.
+            The objective values will be returned in the same order as specified in `mo_keys`.
         controller_options
             The runtime options for controller actor.
             This actor is used to control workers and run the policy at each step.
@@ -294,7 +329,8 @@ class Gym(Problem):
             env_creator = lambda: gym.make(env_name, **env_options)
         if not env_creator:
             raise ValueError("Either 'env_name' or 'env_creator' must be set.'")
-        
+
+        self.mo_keys = mo_keys
         self.controller = Controller.options(**controller_options).remote(
             policy,
             num_workers,
@@ -302,6 +338,7 @@ class Gym(Problem):
             env_creator,
             worker_options,
             batch_policy,
+            mo_keys,
         )
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
@@ -322,7 +359,6 @@ class Gym(Problem):
         seeds = jax.random.randint(
             subkey, (self.num_workers, self.env_per_worker), 0, jnp.iinfo(jnp.int32).max
         )
-        # seeds = jnp.full((self.num_workers, self.env_per_worker), 42)
 
         seeds = seeds.tolist()
 
@@ -331,7 +367,7 @@ class Gym(Problem):
             cap_episode_length, state = self.cap_episode.get(state)
             cap_episode_length = cap_episode_length.item()
 
-        rewards, episode_length = ray.get(
+        rewards, acc_mo_values, episode_length = ray.get(
             self.controller.evaluate.remote(seeds, pop, cap_episode_length)
         )
 
@@ -348,7 +384,10 @@ class Gym(Problem):
         else:
             fitness = rewards
 
-        return fitness, state.update(key=key)
+        if self.mo_keys:
+            return acc_mo_values, state.update(key=key)
+        else:
+            return fitness, state.update(key=key)
 
     def _render(self, state, individual, ale_render_mode=None):
         key, subkey = jax.random.split(state.key)
