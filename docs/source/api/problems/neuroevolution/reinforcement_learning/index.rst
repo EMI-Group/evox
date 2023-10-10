@@ -7,3 +7,4 @@ Reinforcement Learning
 
     brax
     gym
+    env_pool
