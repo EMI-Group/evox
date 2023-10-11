@@ -26,7 +26,7 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
   - Comprehensive support for commonly used benchmark problems.
   - Extensive coverage of neuroevolution problems.
 - 🎉 Easy to use
-  - Functional programming for easy function ccomposingomposition.
+  - Functional programming for easy function composition.
   - Hierarchical state management for modular programming.
   - Detailed tutorial available [here](https://evox.readthedocs.io/en/latest/guide/index.html).
 
