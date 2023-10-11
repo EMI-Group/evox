@@ -184,9 +184,12 @@ class Controller:
         ]
 
         rewards, acc_mo_values, episode_length = zip(*ray.get(rollout_future))
+        acc_mo_values = np.array(acc_mo_values)
+        if acc_mo_values.size != 0:
+            acc_mo_values = acc_mo_values.reshape(-1, self.num_obj)
         return (
             np.array(rewards).reshape(-1),
-            np.array(acc_mo_values).reshape(-1, self.num_obj),
+            acc_mo_values,
             np.array(episode_length).reshape(-1),
         )
 
