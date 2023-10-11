@@ -1,19 +1,14 @@
-.. evox documentation master file, created by
-   sphinx-quickstart on Thu Jul 28 19:12:56 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+# Welcome to EvoX's documentation!
 
-================================
-Welcome to EvoX's documentation!
-================================
+```{toctree}
+:caption: 'Contents:'
+:maxdepth: 1
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+User Guide <guide/index>
+API reference <api/index>
+```
 
-   User Guide <guide/index>
-   API reference <api/index>
-
+```{eval-rst}
 .. grid:: 4
    :gutter: 1 1 2 4
    :padding: 1
@@ -42,10 +37,10 @@ Welcome to EvoX's documentation!
       :link: api/problems/index
       :link-type: doc
 
+```
 
-Indices and tables
-==================
+## Indices and tables
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+- {ref}`genindex`
+- {ref}`modindex`
+- {ref}`search`
