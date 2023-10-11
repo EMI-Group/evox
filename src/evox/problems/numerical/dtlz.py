@@ -86,7 +86,7 @@ class DTLZ2(DTLZTestSuit):
                 jnp.cumprod(
                     jnp.c_[
                         jnp.ones((jnp.shape(g)[0], 1)),
-                        jnp.cos(X[:, : m - 1] * jnp.pi / 2),
+                        jnp.maximum(jnp.cos(X[:, : m - 1] * jnp.pi / 2), 0),
                     ],
                     axis=1,
                 )
@@ -128,7 +128,10 @@ class DTLZ3(DTLZ2):
             jnp.tile(1 + g, (1, m))
             * jnp.fliplr(
                 jnp.cumprod(
-                    jnp.c_[jnp.ones((n, 1)), jnp.cos(X[:, : m - 1] * jnp.pi / 2)],
+                    jnp.c_[
+                        jnp.ones((n, 1)),
+                        jnp.maximum(jnp.cos(X[:, : m - 1] * jnp.pi / 2), 0),
+                    ],
                     axis=1,
                 )
             )
@@ -152,7 +155,7 @@ class DTLZ4(DTLZ2):
                 jnp.cumprod(
                     jnp.c_[
                         jnp.ones((jnp.shape(g)[0], 1)),
-                        jnp.cos(X[:, : m - 1] * jnp.pi / 2),
+                        jnp.maximum(jnp.cos(X[:, : m - 1] * jnp.pi / 2), 0),
                     ],
                     axis=1,
                 )
@@ -189,7 +192,7 @@ class DTLZ5(DTLZTestSuit):
                 jnp.cumprod(
                     jnp.c_[
                         jnp.ones((jnp.shape(g)[0], 1)),
-                        jnp.cos(X[:, : m - 1] * jnp.pi / 2),
+                        jnp.maximum(jnp.cos(X[:, : m - 1] * jnp.pi / 2), 0),
                     ],
                     axis=1,
                 )
@@ -250,7 +253,7 @@ class DTLZ6(DTLZTestSuit):
                 jnp.cumprod(
                     jnp.c_[
                         jnp.ones((jnp.shape(g)[0], 1)),
-                        jnp.cos(X[:, : m - 1] * jnp.pi / 2),
+                        jnp.maximum(jnp.cos(X[:, : m - 1] * jnp.pi / 2), 0),
                     ],
                     axis=1,
                 )
