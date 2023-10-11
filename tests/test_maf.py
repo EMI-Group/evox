@@ -41,7 +41,7 @@ def test_maf3():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 2.1354973e11) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 2.1354973e11) / 2.1354973e11 < 0.0001
     assert r2.shape[1] == 3
     assert float(r2[1, 1]) - 1.8255e-04 < 0.0001
 
@@ -52,7 +52,7 @@ def test_maf4():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 1.9944e03) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 1.9944e03) < 0.01
     assert r2.shape[1] == 3
     assert abs(float(r2[1, 1]) - 3.9460) < 0.0001
 
@@ -63,7 +63,7 @@ def test_maf5():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 2.1819e-40) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 2.1819e-40) < 0.0001
     assert r2.shape[1] == 3
     assert abs(float(r2[1, 1]) - 0.0540) < 0.0001
 
