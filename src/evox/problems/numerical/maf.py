@@ -32,9 +32,9 @@ def point_in_polygon(polygon, point):
         # since it's inequation, flip the result if y_dist is negative.
         return (LHS >= RHS) ^ (y_dist < 0)
 
-    seg_term = jnp.shift(polygon, 1, axis=0)
+    seg_term = jnp.roll(polygon, 1, axis=0)
     is_intersect = vmap(ray_interact_segment, in_axes=(None, 0, 0))(point, polygon, seg_term)
-    return jnp.sum(is_interact) % 2 == 0
+    return jnp.sum(is_interact) % 2 == 1
 
 
 @evox.jit_class
@@ -273,7 +273,7 @@ class MaF5(MaF):
     def evaluate(self, state, X):
         n, d = jnp.shape(X)
         alpha = 100
-        X = X.at[:, : self.m - 1].set((X[:, : self.m - 1] ** alpha).astype(jnp.float64))
+        X = X.at[:, : self.m - 1].set((X[:, : self.m - 1] ** alpha))
         g = jnp.sum((X[:, self.m - 1 :] - 0.5) ** 2, axis=1)[:, jnp.newaxis]
         f1 = (
             jnp.tile(1 + g, (1, self.m))
@@ -397,7 +397,7 @@ class MaF7(MaF):
         return f, state
 
     def _grid(self, N, M):
-        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))), dtype=jnp.float64)
+        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))
         c = jnp.meshgrid(*([gap] * M))
         W = jnp.vstack([x.ravel() for x in c]).T
         return W
@@ -589,8 +589,7 @@ class MaF10(MaF):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
-        R = R.astype(jnp.float64)
-        c = jnp.ones((R.shape[0], M), dtype=jnp.float64)
+        c = jnp.ones((R.shape[0], M))
 
         def inner_fun(i, c):
             def inner_fun2(j, c):
@@ -611,7 +610,7 @@ class MaF10(MaF):
         c = lax.fori_loop(1, R.shape[0] + 1, inner_fun, c)
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001, dtype=jnp.float64)[jnp.newaxis, :]
+        a = jnp.arange(0, 1.0001, 0.0001)[jnp.newaxis, :]
         E = jnp.abs(
             temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a))
             - 1
@@ -733,7 +732,7 @@ class MaF11(MaF):
     def pf(self, state):
         M = self.m
         N = self.ref_num * self.m
-        R = UniformSampling(N, M)()[0].astype(jnp.float64)
+        R = UniformSampling(N, M)()[0]
         c = jnp.ones((R.shape[0], M))
 
         def inner_fun(i, c):
@@ -741,12 +740,11 @@ class MaF11(MaF):
                 temp = (
                     R[i, j]
                     / R[i, 0]
-                    * jnp.prod(1 - c[i, M - j : M - 1]).astype(jnp.float64)
+                    * jnp.prod(1 - c[i, M - j : M - 1])
                 )
                 return (
                     c.at[i, M - j - 1]
                     .set((temp**2 - temp + jnp.sqrt(2 * temp)) / (temp**2 + 1))
-                    .astype(jnp.float64)
                 )
 
             with jax.disable_jit():
@@ -757,19 +755,19 @@ class MaF11(MaF):
 
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001).astype(jnp.float64)[None, :]
+        a = jnp.arange(0, 1.0001, 0.0001)[None, :]
         E = jnp.abs(
             temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a))
             - 1
             + a * jnp.cos(5 * jnp.pi * a) ** 2
-        ).astype(jnp.float64)
+        )
         rank = jnp.argsort(E, axis=1)
         x = x.at[:, 0].set(a[0, jnp.min(rank[:, :10], axis=1)])
         R = self._convex(x)
-        R = R.at[:, M - 1].set(self._disc(x)).astype(jnp.float64)
+        R = R.at[:, M - 1].set(self._disc(x))
         non_dominated_rank = non_dominated_sort(R)
         f = R[non_dominated_rank == 0, :]
-        f = f * jnp.arange(2, 2 * M + 1, 2).astype(jnp.float64)
+        f = f * jnp.arange(2, 2 * M + 1, 2)
         return f, state
 
     @evox.jit_method
