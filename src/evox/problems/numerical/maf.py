@@ -48,7 +48,7 @@ def point_in_polygon(polygon, point):
     """
 
     seg_term = jnp.roll(polygon, 1, axis=0)
-    is_intersect = vmap(ray_interact_segment, in_axes=(None, 0, 0))(
+    is_intersect = vmap(ray_intersect_segment, in_axes=(None, 0, 0))(
         point, polygon, seg_term
     )
     return jnp.sum(is_interact) % 2 == 1
