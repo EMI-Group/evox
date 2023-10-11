@@ -4,7 +4,6 @@ from jax import lax
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
 import math
 from evox.problems.numerical import Sphere, Griewank
@@ -24,7 +23,7 @@ def point_in_polygon(polygon, point):
         def inner_true_fun():
             def inner2_true_fun():
                 x_intersect = (point[1] - p1[1]) * (p2[0] - p1[0]) / (
-                        p2[1] - p1[1]
+                    p2[1] - p1[1]
                 ) + p1[0]
                 return lax.cond(
                     point[0] <= x_intersect,
@@ -55,6 +54,7 @@ def point_in_polygon(polygon, point):
         )
         p1 = p2
     return inside
+
 
 @evox.jit_class
 class MaF(Problem):
@@ -600,8 +600,11 @@ class MaF10(MaF):
         f = jnp.tile((D * x[:, M])[:, jnp.newaxis], (1, M)) + S * h
         return f, state
 
+    """
+        If result is not correct for some problems, it is necessary to use float64 globally
+    """
+
     def pf(self, state):
-        config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
@@ -742,8 +745,11 @@ class MaF11(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
+    """
+        If result is not correct for some problems, it is necessary to use float64 globally
+    """
+
     def pf(self, state):
-        config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0].astype(jnp.float64)
