@@ -1,12 +1,39 @@
 import evox
 import jax
-from jax import lax, jit
+from jax import lax, jit, vmap
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
 from evox.operators.non_dominated_sort import non_dominated_sort
 import math
 from evox.problems.numerical import Sphere, Griewank
+
+
+@jit
+def inside(x, a, b):
+    """check if x is in [a, b] or [b, a]"""
+    return (a <= x <= b) | (b <= x <= a)
+
+
+@jit
+def ray_intersect_segment(point, seg_init, seg_term):
+    """
+    point is a 2d point, representing a horizontal ray casting from the point.
+    segment is segment represented by two 2d points in shape (2, ),
+    where seg_init is the initial point, and seg_term is the terminal point.
+    Thus check if the intersection_x >= P_x.
+    """
+    y_dist = seg_term[1] - seg_init[1]
+    # special case: y_dist == 0, check P_y == seg_init_y and P_x inside the segment
+    judge_1 = (point[1] == seg_init[1]) & inside(point[0], seg_init[0], seg_term[0])
+    # check intersection_x >= P_x.
+    LHS = seg_init[0] * y_dist + (point[1] - seg_init[1]) * (seg_term[0] - seg_init[0])
+    RHS = point[0] * y_dist
+    # since it's an inequation, flip the result if y_dist is negative.
+    judge_2 = (LHS >= RHS) ^ (y_dist < 0)
+    # check intersection_y, which is P_y is inside the segment
+    judge_3 = inside(point[1], seg_init[1], seg_term[1])
+    return ((y_dist == 0) & judge_1) | (y_dist != 0 & judge_2 & judge_3)
 
 
 @jit
@@ -19,21 +46,11 @@ def point_in_polygon(polygon, point):
     Returns:
         bool: If the point is within the polygon, return True; Otherwise, return False
     """
-    def ray_intersect_segment(point, seg_init, seg_term):
-        """
-        point is a 2d point, representing a horizontal ray casting from the point.
-        segment is segment represented by two 2d points in shape (2, ),
-        where seg_init is the initial point, and seg_term is the terminal point.
-        Thus check if the intersection_x >= P_x.
-        """
-        y_dist = seg_term[1] - seg_init[1]
-        LHS = seg_init[0] * y_dist + (point[1] - seg_init[1]) * (seg_term[0] - seg_init[0])
-        RHS = point[0] * y_dist
-        # since it's inequation, flip the result if y_dist is negative.
-        return (LHS >= RHS) ^ (y_dist < 0)
 
     seg_term = jnp.roll(polygon, 1, axis=0)
-    is_intersect = vmap(ray_interact_segment, in_axes=(None, 0, 0))(point, polygon, seg_term)
+    is_intersect = vmap(ray_interact_segment, in_axes=(None, 0, 0))(
+        point, polygon, seg_term
+    )
     return jnp.sum(is_interact) % 2 == 1
 
 
@@ -737,14 +754,9 @@ class MaF11(MaF):
 
         def inner_fun(i, c):
             def inner_fun2(j, c):
-                temp = (
-                    R[i, j]
-                    / R[i, 0]
-                    * jnp.prod(1 - c[i, M - j : M - 1])
-                )
-                return (
-                    c.at[i, M - j - 1]
-                    .set((temp**2 - temp + jnp.sqrt(2 * temp)) / (temp**2 + 1))
+                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j : M - 1])
+                return c.at[i, M - j - 1].set(
+                    (temp**2 - temp + jnp.sqrt(2 * temp)) / (temp**2 + 1)
                 )
 
             with jax.disable_jit():

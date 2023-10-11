@@ -12,6 +12,31 @@ data = random.uniform(key, (3, 12))
 n, d = data.shape
 m = 3
 
+def test_inside():
+    assert inside(8.5, 1.0, 0.0) == False
+    assert inside(8.5, 0.0, 1.0) == False
+    assert inside(0.5, 0.0, 1.0) == True
+    assert inside(0.5, 1.0, 0.0) == True
+    assert inside(1.0, 1.0, 0.0) == True
+    assert inside(0.0, 1.0, 0.0) == True
+
+def test_ray_intersect_segment():
+    point = jnp.array([0.0, 0.0])
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 2.0])) == False
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([-1.0, -1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, -1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, -1.0])) == True
+
+def test_point_in_polygon():
+    polygon = jnp.array([
+        [0, 1.0],
+        [-0.5, -1],
+        [0.5, -1],
+    ])
+    point = jnp.array([0, 0])
+    assert point_in_polygon(polygon, point) == True
+    point = jnp.array([1, -1])
+    assert point_in_polygon(polygon, point) == False
 
 def test_maf1():
     prob = MaF1(d=d, m=m)
