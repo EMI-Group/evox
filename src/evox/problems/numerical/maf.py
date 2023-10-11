@@ -1,6 +1,6 @@
 import evox
 import jax
-from jax import lax
+from jax import lax, jit
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
@@ -9,6 +9,7 @@ import math
 from evox.problems.numerical import Sphere, Griewank
 
 
+@jit
 def point_in_polygon(polygon, point):
     """
     Determine whether a point is within a regular polygon by ray method
@@ -18,42 +19,22 @@ def point_in_polygon(polygon, point):
     Returns:
         bool: If the point is within the polygon, return True; Otherwise, return False
     """
+    def ray_intersect_segment(point, seg_init, seg_term):
+        """
+        point is a 2d point, representing a horizontal ray casting from the point.
+        segment is segment represented by two 2d points in shape (2, ),
+        where seg_init is the initial point, and seg_term is the terminal point.
+        Thus check if the intersection_x >= P_x.
+        """
+        y_dist = seg_term[1] - seg_init[1]
+        LHS = seg_init[0] * y_dist + (point[1] - seg_init[1]) * (seg_term[0] - seg_init[0])
+        RHS = point[0] * y_dist
+        # since it's inequation, flip the result if y_dist is negative.
+        return (LHS >= RHS) ^ (y_dist < 0)
 
-    def true_fun(p1, p2, inside):
-        def inner_true_fun():
-            def inner2_true_fun():
-                x_intersect = (point[1] - p1[1]) * (p2[0] - p1[0]) / (
-                    p2[1] - p1[1]
-                ) + p1[0]
-                return lax.cond(
-                    point[0] <= x_intersect,
-                    lambda: jax.lax.bitwise_not(inside),
-                    lambda: inside,
-                )
-
-            return lax.cond(p1[1] != p2[1], inner2_true_fun, lambda: inside)
-
-        return lax.cond(
-            point[0] <= jnp.maximum(p1[0], p2[0]),
-            inner_true_fun,
-            lambda: inside,
-        )
-
-    inside = False
-    p1 = polygon[0]
-    for i in range(1, polygon.shape[0] + 1):
-        p2 = polygon[i % polygon.shape[0]]
-        inside = lax.cond(
-            (jnp.minimum(p1[1], p2[1]) < point[1])
-            & (point[1] <= jnp.maximum(p1[1], p2[1])),
-            true_fun,
-            lambda *_: inside,
-            p1,
-            p2,
-            inside,
-        )
-        p1 = p2
-    return inside
+    seg_term = jnp.shift(polygon, 1, axis=0)
+    is_intersect = vmap(ray_interact_segment, in_axes=(None, 0, 0))(point, polygon, seg_term)
+    return jnp.sum(is_interact) % 2 == 0
 
 
 @evox.jit_class
