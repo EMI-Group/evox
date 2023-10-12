@@ -29,8 +29,8 @@ def ray_intersect_segment(point, seg_init, seg_term):
     # check intersection_x >= P_x.
     LHS = seg_init[0] * y_dist + (point[1] - seg_init[1]) * (seg_term[0] - seg_init[0])
     RHS = point[0] * y_dist
-    # since it's an inequation, flip the result if y_dist is negative.
-    judge_2 = (LHS >= RHS) ^ (y_dist < 0)
+    # since it's an inequation, reverse the inequation if y_dist is negative.
+    judge_2 = ((y_dist >= 0) & (LHS >= RHS)) | ((y_dist < 0) & (LHS <= RHS))
     # check intersection_y, which is P_y is inside the segment
     judge_3 = inside(point[1], seg_init[1], seg_term[1])
     return ((y_dist == 0) & judge_1) | ((y_dist != 0) & judge_2 & judge_3)
