@@ -1,4 +1,5 @@
 from evox import jit_method, Stateful, Algorithm, Problem, State
+from evox.utils import parse_opt_direction
 from typing import Optional, Callable, Dict, List, Union
 import warnings
 import jax
@@ -25,6 +26,7 @@ class UniWorkflow(Stateful):
         algorithm: Algorithm,
         problem: Union[Problem, List[Problem]],
         monitor=None,
+        opt_direction: Union[str, List[str]] = "min",
         pop_transform: Optional[Union[Callable, List[Problem]]] = None,
         fit_transform: Optional[Callable] = None,
         record_pop: bool = False,
@@ -43,6 +45,9 @@ class UniWorkflow(Stateful):
             The problem.
         monitor
             Optional monitor.
+        opt_direction
+            The optimization direction, can be either "min" or "max"
+            or a list of "min"/"max" to specific the direction for each objective.
         pop_transform
             Optional population transform function,
             usually used to decode the population
@@ -72,6 +77,7 @@ class UniWorkflow(Stateful):
         self.algorithm = algorithm
         self.problem = problem
         self.monitor = monitor
+
         self.pop_transform = pop_transform
         self.fit_transform = fit_transform
         self.record_pop = record_pop
@@ -81,6 +87,7 @@ class UniWorkflow(Stateful):
         self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
         self.distributed_step = False
+        self.opt_direction = parse_opt_direction(opt_direction)
         if jit_problem is False and self.num_objectives is None:
             warnings.warn(
                 (
@@ -140,6 +147,8 @@ class UniWorkflow(Stateful):
 
             if self.distributed_step is True:
                 fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
+
+            fitness = fitness * self.opt_direction
 
             if self.monitor:
                 if self.metrics:
