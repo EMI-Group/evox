@@ -440,7 +440,7 @@ class MaF8(MaF):
 
     def pf(self, state):
         n = self.ref_num * self.m
-        temp = jnp.linspace(-1, 1, num=math.ceil(math.sqrt(n)))
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
         y, x = jnp.meshgrid(temp, temp)
         x = x.ravel(order="F")
         y = y.ravel(order="F")
