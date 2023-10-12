@@ -74,7 +74,7 @@ class StdSOMonitor:
     def get_topk_solutions(self):
         return self.topk_solutions
 
-    def get_min_fitness(self):
+    def get_best_fitness(self):
         if self.topk_fitness is None:
             warnings.warn("trying to get info from a monitor with no recorded data")
             return None
