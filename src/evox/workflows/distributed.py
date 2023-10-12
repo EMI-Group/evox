@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List, Dict
+from typing import Callable, Optional, List, Dict, Union
 from collections import deque
 
 import chex
@@ -9,6 +9,7 @@ import ray
 from jax.tree_util import tree_flatten
 
 from evox import Algorithm, Problem, State, Stateful, jit_class
+from evox.utils import parse_opt_direction
 
 
 @jit_class
@@ -17,6 +18,7 @@ class WorkerWorkflow(Stateful):
         self,
         algorithm: Algorithm,
         problem: Problem,
+        opt_direction: jax.Array,
         pop_size: int,
         start_indices: int,
         slice_sizes: int,
@@ -25,6 +27,7 @@ class WorkerWorkflow(Stateful):
     ):
         self.algorithm = algorithm
         self.problem = problem
+        self.opt_direction = opt_direction
         self.pop_size = pop_size
         self.start_indices = start_indices
         self.slice_sizes = slice_sizes
@@ -47,6 +50,7 @@ class WorkerWorkflow(Stateful):
 
     def step2(self, state: State, fitness: List[jax.Array]):
         fitness = jnp.concatenate(fitness, axis=0)
+        fitness = fitness * self.opt_direction
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
@@ -104,6 +108,7 @@ class Supervisor:
         self,
         algorithm: Algorithm,
         problem: Problem,
+        opt_direction: jax.Array,
         pop_size: int,
         num_workers: int,
         options: dict,
@@ -129,6 +134,7 @@ class Supervisor:
                     WorkerWorkflow(
                         algorithm,
                         problem,
+                        opt_direction,
                         pop_size,
                         start_index,
                         slice_size,
@@ -172,6 +178,7 @@ class RayDistributedWorkflow(Stateful):
         pop_size: int,
         num_workers: int,
         monitor=None,
+        opt_direction: Union[str, List[str]] = "min",
         record_pop: bool = False,
         record_time: bool = False,
         metrics: Optional[Dict[str, Callable]] = None,
@@ -203,6 +210,9 @@ class RayDistributedWorkflow(Stateful):
             will be used to determine the sharding strategy.
         num_workers
             Number of workers.
+        opt_direction
+            The optimization direction, can be either "min" or "max"
+            or a list of "min"/"max" to specific the direction for each objective.
         options
             The runtime options of the worker actor.
         pop_transform:
@@ -212,9 +222,11 @@ class RayDistributedWorkflow(Stateful):
         global_fitness_transform:
             This transform is applied at the main node.
         """
+        opt_direction = parse_opt_direction(opt_direction)
         self.supervisor = Supervisor.remote(
             algorithm,
             problem,
+            opt_direction,
             pop_size,
             num_workers,
             options,

@@ -214,3 +214,29 @@ class TreeAndVector:
         self.shapes = state_dict["shapes"]
         self.start_indices = state_dict["start_indices"]
         self.slice_sizes = state_dict["slice_sizes"]
+
+
+def parse_opt_direction(opt_direction: Union[str, List[str]]):
+    if isinstance(opt_direction, str):
+        if opt_direction == "min":
+            return 1
+        elif opt_direction == "max":
+            return -1
+        else:
+            raise ValueError(
+                f"opt_direction is either 'min' or 'max', got {opt_direction}"
+            )
+    elif isinstance(opt_direction, list):
+        result = []
+        for d in opt_direction:
+            if opt_direction == "min":
+                result.append(1)
+            elif opt_direction == "max":
+                result.append(-1)
+            else:
+                raise ValueError(f"opt_direction is either 'min' or 'max', got {d}")
+        return jnp.array(result)
+    else:
+        raise ValueError(
+            f"opt_direction should have type 'str' or 'list', got {type(opt_direction)}"
+        )
