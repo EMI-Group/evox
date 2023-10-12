@@ -12,7 +12,7 @@ from evox.problems.numerical import Sphere, Griewank
 @jit
 def inside(x, a, b):
     """check if x is in [a, b] or [b, a]"""
-    return (jnp.minimum(a, b) <= x) & (x <= jnp.maximum(a, b))
+    return (jnp.minimum(a, b) < x) & (x <= jnp.maximum(a, b))
 
 
 @jit
