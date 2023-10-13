@@ -51,7 +51,8 @@ def point_in_polygon(polygon, point):
     is_intersect = vmap(ray_intersect_segment, in_axes=(None, 0, 0))(
         point, polygon, seg_term
     )
-    return jnp.sum(is_intersect) % 2 == 1
+    is_vertex = jnp.any(jnp.all(polygon == point, axis=1), axis=0)
+    return (jnp.sum(is_intersect) % 2 == 1) | is_vertex
 
 
 @evox.jit_class
