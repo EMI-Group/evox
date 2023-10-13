@@ -17,8 +17,8 @@ def test_inside():
     assert inside(8.5, 0.0, 1.0) == False
     assert inside(0.5, 0.0, 1.0) == True
     assert inside(0.5, 1.0, 0.0) == True
-    assert inside(1.0, 1.0, 0.0) == True
-    assert inside(0.0, 1.0, 0.0) == False
+    assert inside(1.0, 1.0, 0.0) == False
+    assert inside(0.0, 1.0, 0.0) == True
     assert inside(1.0, 0.0, 1.0) == False
     assert inside(0.0, 0.0, 1.0) == True
 
@@ -27,9 +27,9 @@ def test_ray_intersect_segment():
     assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 2.0])) == False
     assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([-1.0, -1.0])) == True
     assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, -1.0])) == True
-    assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, -1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, -1.0])) == False
     assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, 1.0])) == True
-    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 0.0])) == False
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 0.0])) == True
 
 def test_point_in_polygon():
     polygon = jnp.array([
@@ -43,6 +43,8 @@ def test_point_in_polygon():
     assert point_in_polygon(polygon, point) == False
     point = jnp.array([0, 1.0])
     assert point_in_polygon(polygon, point) == True
+    point = jnp.array([-1, 1.0])
+    assert point_in_polygon(polygon, point) == False
 
 def test_maf1():
     prob = MaF1(d=d, m=m)
