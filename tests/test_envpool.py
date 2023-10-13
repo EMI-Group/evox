@@ -7,8 +7,7 @@ from flax import linen as nn
 import pytest
 
 
-@pytest.mark.parametrize("batch_policy", [True, False])
-def test_cartpole(batch_policy):
+def test_envpool_cartpole():
     class CartpolePolicy(nn.Module):
         """A simple model for cartpole"""
 
@@ -26,17 +25,10 @@ def test_cartpole(batch_policy):
     params = model.init(model_key, jnp.zeros((4,)))
     adapter = TreeAndVector(params)
     monitor = StdSOMonitor()
-    problem = problems.neuroevolution.Gym(
+    problem = problems.neuroevolution.EnvPool(
         env_name="CartPole-v1",
+        num_envs=16,
         policy=jax.jit(model.apply),
-        num_workers=2,
-        env_per_worker=4,
-        worker_options={"num_gpus": 0, "num_cpus": 0},
-        controller_options={
-            "num_cpus": 0,
-            "num_gpus": 0,
-        },
-        batch_policy=batch_policy,
     )
     center = adapter.to_vector(params)
     # create a workflow
@@ -44,23 +36,22 @@ def test_cartpole(batch_policy):
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,
-            pop_size=8,
+            pop_size=16,
         ),
         problem=problem,
         monitor=monitor,
-        jit_problem=False,
+        jit_problem=True,
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,
     )
     # init the workflow
     state = workflow.init(workflow_key)
 
-    # run the workflow for 5 steps
+    # run the workflow for 10 steps
     for i in range(5):
         state = workflow.step(state)
     
     monitor.close()
-    # the result should be close to 0
     min_fitness = monitor.get_best_fitness()
-    # gym is deterministic, so the result should always be the same
-    assert min_fitness == -16.0
+    # envpool is deterministic, so the result should always be the same
+    assert min_fitness == -59.0

@@ -14,3 +14,5 @@ from .gde3 import GDE3
 from .sra import SRA
 from .tdea import TDEA
 from .bce_ibea import BCEIBEA
+from .lmocso import LMOCSO
+

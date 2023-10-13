@@ -23,8 +23,3 @@ DTLZ Test Suit
 .. autoclass:: evox.problems.numerical.DTLZ7
     :members:
 
-.. autoclass:: evox.problems.numerical.DTLZ8
-    :members:
-
-.. autoclass:: evox.problems.numerical.DTLZ9
-    :members:

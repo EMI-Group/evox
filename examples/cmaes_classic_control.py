@@ -66,11 +66,11 @@ workflow = workflows.StdWorkflow(
 state = workflow.init(workflow_key)
 # run the workflow for 100 steps
 for i in range(100):
-    print(monitor.get_min_fitness())
+    print(monitor.get_best_fitness())
     state = workflow.step(state)
 
 sample_pop, state = workflow.sample(state)
 # problem._render(state.get_child_state("problem"), adapter.to_tree(sample_pop[0]))
 
-min_fitness = monitor.get_min_fitness()
+min_fitness = monitor.get_best_fitness()
 print(min_fitness)

@@ -38,7 +38,7 @@ class Brax(Problem):
             Default to True.
         """
         self.batched_policy = jit(vmap(policy))
-        self.env = envs.wrappers.VmapWrapper(envs.create(env_name=env_name))
+        self.env = envs.wrappers.training.VmapWrapper(envs.create(env_name=env_name))
         self.batch_size = batch_size
         self.cap_episode = cap_episode
         self.fitness_is_neg_reward = fitness_is_neg_reward

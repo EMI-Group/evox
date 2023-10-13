@@ -29,7 +29,7 @@ def test_clustered_cma_es():
     for i in range(200):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 2
 
 
@@ -91,7 +91,7 @@ def test_vectorized_coevolution(random_subpop):
     for i in range(200):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 1
 
 
@@ -124,7 +124,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
     for i in range(4 * 200):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 2
 
 
@@ -156,6 +156,6 @@ def test_random_mask_cso():
     for i in range(10):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(min_fitness)
     assert abs(min_fitness - 19.6) < 0.1

@@ -1,6 +1,7 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union, List
 
 from evox import Algorithm, Problem, Stateful
+from evox.utils import parse_opt_direction
 
 
 class StdWorkflow(Stateful):
@@ -9,12 +10,40 @@ class StdWorkflow(Stateful):
         algorithm: Algorithm,
         problem: Problem,
         monitor=None,
+        opt_direction: Union[str, List[str]] = "min",
         pop_transform: Optional[Callable] = None,
         fitness_transform: Optional[Callable] = None,
         record_pop: bool = False,
         record_time: bool = False,
         metrics: Optional[Dict[str, Callable]] = None,
     ):
+        """
+        Parameters
+        ----------
+        algorithm
+            The algorithm.
+        problem
+            The problem.
+        monitor
+            Optional monitor.
+        opt_direction
+            The optimization direction, can be either "min" or "max"
+            or a list of "min"/"max" to specific the direction for each objective.
+        pop_transform
+            Optional population transform function,
+            usually used to decode the population
+            into the format that can be understood by the problem.
+        fit_transform
+            Optional fitness transform function.
+            usually used to apply fitness shaping.
+        record_pop
+            Whether to record the population if monitor is enabled.
+        record_time
+            Whether to record the time at the end of each generation.
+            Due to its timing nature,
+            record_time requires synchronized functional call.
+            Default to False.
+        """
         self.algorithm = algorithm
         self.problem = problem
         self.monitor = monitor
@@ -23,6 +52,7 @@ class StdWorkflow(Stateful):
         self.metrics = metrics
         self.pop_transform = pop_transform
         self.fitness_transform = fitness_transform
+        self.opt_direction = parse_opt_direction(opt_direction)
 
     def step(self, state):
         if self.monitor and self.record_time:
@@ -37,6 +67,8 @@ class StdWorkflow(Stateful):
             pop = self.pop_transform(pop)
 
         fitness, state = self.problem.evaluate(state, pop)
+
+        fitness = fitness * self.opt_direction
 
         if self.monitor:
             if self.metrics:

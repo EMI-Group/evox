@@ -29,7 +29,7 @@ def test_distributed_cso():
         state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(min_fitness)
     assert min_fitness < 1e-4
     workflow.health_check(state)

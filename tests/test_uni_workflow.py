@@ -26,7 +26,7 @@ def run_uni_workflow_with_jit_problem():
         state = workflow.step(state)
 
     monitor.close()
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     return min_fitness
 
 
@@ -52,7 +52,7 @@ def run_uni_workflow_with_non_jit_problem():
         state = workflow.step(state)
 
     monitor.close()
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     return min_fitness
 
 

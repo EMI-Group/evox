@@ -7,3 +7,4 @@ gymnasium >= 0.29.0
 ray >= 2.0.0
 torch >= 1.0.0
 torchvision >= 0.1.0
+envpool >= 0.8.0
