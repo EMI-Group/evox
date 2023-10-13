@@ -451,7 +451,7 @@ class LSMOP9(LSMOP):
         return p, state
 
     def _grid(self, N, M):
-        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))), dtype=jnp.float64)
+        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))
         c = jnp.meshgrid(*([gap] * M))
         w = jnp.vstack([x.ravel() for x in c]).T
         return w

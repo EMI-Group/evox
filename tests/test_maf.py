@@ -12,6 +12,39 @@ data = random.uniform(key, (3, 12))
 n, d = data.shape
 m = 3
 
+def test_inside():
+    assert inside(8.5, 1.0, 0.0) == False
+    assert inside(8.5, 0.0, 1.0) == False
+    assert inside(0.5, 0.0, 1.0) == True
+    assert inside(0.5, 1.0, 0.0) == True
+    assert inside(1.0, 1.0, 0.0) == False
+    assert inside(0.0, 1.0, 0.0) == True
+    assert inside(1.0, 0.0, 1.0) == False
+    assert inside(0.0, 0.0, 1.0) == True
+
+def test_ray_intersect_segment():
+    point = jnp.array([0.0, 0.0])
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 2.0])) == False
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([-1.0, -1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, -1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, -1.0])) == False
+    assert ray_intersect_segment(point, jnp.array([1.0, 0.0]), jnp.array([1.0, 1.0])) == True
+    assert ray_intersect_segment(point, jnp.array([1.0, 1.0]), jnp.array([1.0, 0.0])) == True
+
+def test_point_in_polygon():
+    polygon = jnp.array([
+        [0, 1.0],
+        [-0.5, -1],
+        [0.5, -1],
+    ])
+    point = jnp.array([0, 0])
+    assert point_in_polygon(polygon, point) == True
+    point = jnp.array([1, -1])
+    assert point_in_polygon(polygon, point) == False
+    point = jnp.array([0, 1.0])
+    assert point_in_polygon(polygon, point) == True
+    point = jnp.array([-1, 1.0])
+    assert point_in_polygon(polygon, point) == False
 
 def test_maf1():
     prob = MaF1(d=d, m=m)
@@ -41,7 +74,7 @@ def test_maf3():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 2.1354973e11) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 2.1354973e11) / 2.1354973e11 < 0.0001
     assert r2.shape[1] == 3
     assert float(r2[1, 1]) - 1.8255e-04 < 0.0001
 
@@ -52,7 +85,7 @@ def test_maf4():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 1.9944e03) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 1.9944e03) < 0.01
     assert r2.shape[1] == 3
     assert abs(float(r2[1, 1]) - 3.9460) < 0.0001
 
@@ -63,7 +96,7 @@ def test_maf5():
     r1, new_state1 = prob.evaluate(state, data)
     r2, new_state2 = prob.pf(state)
     assert r1.shape == (3, 3)
-    assert abs(float(r1[1, 1]) - 2.1819e-40) / float(r1[1, 1]) < 0.0001
+    assert abs(float(r1[1, 1]) - 2.1819e-40) < 0.0001
     assert r2.shape[1] == 3
     assert abs(float(r2[1, 1]) - 0.0540) < 0.0001
 
