@@ -7,6 +7,7 @@ pyarrow
 # for docs generation
 pydata-sphinx-theme > 0.13
 sphinx
+numpydoc
 myst-nb
 nbsphinx
 myst-parser
