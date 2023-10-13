@@ -1,14 +1,58 @@
 import evox
 import jax
-from jax import lax
+from jax import lax, jit, vmap
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from matplotlib.path import Path
-from jax.config import config
 from evox.operators.non_dominated_sort import non_dominated_sort
 import math
 from evox.problems.numerical import Sphere, Griewank
+
+
+@jit
+def inside(x, a, b):
+    """check if x is in [a, b) or [b, a)"""
+    return (jnp.minimum(a, b) <= x) & (x < jnp.maximum(a, b))
+
+
+@jit
+def ray_intersect_segment(point, seg_init, seg_term):
+    """
+    point is a 2d point, representing a horizontal ray casting from the point.
+    segment is segment represented by two 2d points in shape (2, ),
+    where seg_init is the initial point, and seg_term is the terminal point.
+    Thus check if the intersection_x >= P_x.
+    """
+    y_dist = seg_term[1] - seg_init[1]
+    # special case: y_dist == 0, check P_y == seg_init_y and P_x inside the segment
+    judge_1 = (point[1] == seg_init[1]) & inside(point[0], seg_init[0], seg_term[0])
+    # check intersection_x >= P_x.
+    LHS = seg_init[0] * y_dist + (point[1] - seg_init[1]) * (seg_term[0] - seg_init[0])
+    RHS = point[0] * y_dist
+    # since it's an inequation, reverse the inequation if y_dist is negative.
+    judge_2 = ((y_dist > 0) & (LHS >= RHS)) | ((y_dist < 0) & (LHS <= RHS))
+    # check intersection_y, which is P_y is inside the segment
+    judge_3 = inside(point[1], seg_init[1], seg_term[1])
+    return ((y_dist == 0) & judge_1) | ((y_dist != 0) & judge_2 & judge_3)
+
+
+@jit
+def point_in_polygon(polygon, point):
+    """
+    Determine whether a point is within a regular polygon by ray method
+    Args:
+        polygon (jnp.array): Vertex coordinates of polygons, shape is (n, 2)
+        point (jnp.array): The coordinates of the points that need to be determined, shape is (2,)
+    Returns:
+        bool: If the point is within the polygon, return True; Otherwise, return False
+    """
+
+    seg_term = jnp.roll(polygon, 1, axis=0)
+    is_intersect = vmap(ray_intersect_segment, in_axes=(None, 0, 0))(
+        point, polygon, seg_term
+    )
+    is_vertex = jnp.any(jnp.all(polygon == point, axis=1), axis=0)
+    return (jnp.sum(is_intersect) % 2 == 1) | is_vertex
 
 
 @evox.jit_class
@@ -124,17 +168,13 @@ class MaF2(MaF):
         c = jnp.zeros((r.shape[0], self.m - 1))
 
         def inner_fun(i, c):
-            def inner_fun2(j, c):
+            for j in range(2, self.m + 1):
                 temp = (
                     r[i - 1, j - 1]
                     / r[i - 1, 0]
                     * jnp.prod(c[i - 1, self.m - j + 1 : self.m - 1])
                 )
                 c = c.at[i - 1, self.m - j].set(jnp.sqrt(1 / (1 + temp**2)))
-                return c
-
-            with jax.disable_jit():
-                c = lax.fori_loop(2, self.m + 1, inner_fun2, c)
             return c
 
         c = lax.fori_loop(1, r.shape[0] + 1, inner_fun, c)
@@ -251,7 +291,7 @@ class MaF5(MaF):
     def evaluate(self, state, X):
         n, d = jnp.shape(X)
         alpha = 100
-        X = X.at[:, : self.m - 1].set((X[:, : self.m - 1] ** alpha).astype(jnp.float64))
+        X = X.at[:, : self.m - 1].set((X[:, : self.m - 1] ** alpha))
         g = jnp.sum((X[:, self.m - 1 :] - 0.5) ** 2, axis=1)[:, jnp.newaxis]
         f1 = (
             jnp.tile(1 + g, (1, self.m))
@@ -375,7 +415,7 @@ class MaF7(MaF):
         return f, state
 
     def _grid(self, N, M):
-        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))), dtype=jnp.float64)
+        gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))
         c = jnp.meshgrid(*([gap] * M))
         W = jnp.vstack([x.ravel() for x in c]).T
         return W
@@ -399,20 +439,14 @@ class MaF8(MaF):
         f = self._eucl_dis(X, self.points)
         return f, state
 
-    """
-    using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
-    """
-
     def pf(self, state):
         n = self.ref_num * self.m
-        temp = jnp.linspace(-1, 1, num=math.ceil(math.sqrt(n)))
-        x, y = jnp.meshgrid(temp, temp)
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
+        y, x = jnp.meshgrid(temp, temp)
         x = x.ravel(order="F")
         y = y.ravel(order="F")
-        # using numpy based library: matplotlib.path.Path
-        poly_path = Path(self.points)
         _points = jnp.column_stack((x, y))
-        ND = poly_path.contains_points(_points)
+        ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f, state
 
@@ -458,22 +492,15 @@ class MaF9(MaF):
             )
         return f, state
 
-    """
-        using numpy based library, this makes JIT disable and may make some mistakes, but in my test, there is no warning 
-    """
-
     def pf(self, state):
-        with jax.disable_jit():
-            n = self.ref_num * self.m
-            temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
-            x, y = jnp.meshgrid(temp, temp)
-            x = x.ravel(order="C")
-            y = y.ravel(order="C")
-            # using numpy based library: matplotlib.path.Path
-            poly_path = Path(self.points)
-            _points = jnp.column_stack((x, y))
-            ND = poly_path.contains_points(_points)
-            f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
+        n = self.ref_num * self.m
+        temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
+        y, x = jnp.meshgrid(temp, temp)
+        x = x.ravel(order="C")
+        y = y.ravel(order="C")
+        _points = jnp.column_stack((x, y))
+        ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
+        f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
         return f, state
 
     @evox.jit_method
@@ -572,13 +599,15 @@ class MaF10(MaF):
         f = jnp.tile((D * x[:, M])[:, jnp.newaxis], (1, M)) + S * h
         return f, state
 
+    """
+        If result is not correct for some problems, it is necessary to use float64 globally
+    """
+
     def pf(self, state):
-        config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
-        R = R.astype(jnp.float64)
-        c = jnp.ones((R.shape[0], M), dtype=jnp.float64)
+        c = jnp.ones((R.shape[0], M))
 
         def inner_fun(i, c):
             def inner_fun2(j, c):
@@ -599,7 +628,7 @@ class MaF10(MaF):
         c = lax.fori_loop(1, R.shape[0] + 1, inner_fun, c)
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001, dtype=jnp.float64)[jnp.newaxis, :]
+        a = jnp.arange(0, 1.0001, 0.0001)[jnp.newaxis, :]
         E = jnp.abs(
             temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a))
             - 1
@@ -714,24 +743,21 @@ class MaF11(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
+    """
+        If result is not correct for some problems, it is necessary to use float64 globally
+    """
+
     def pf(self, state):
-        config.update("jax_enable_x64", True)
         M = self.m
         N = self.ref_num * self.m
-        R = UniformSampling(N, M)()[0].astype(jnp.float64)
+        R = UniformSampling(N, M)()[0]
         c = jnp.ones((R.shape[0], M))
 
         def inner_fun(i, c):
             def inner_fun2(j, c):
-                temp = (
-                    R[i, j]
-                    / R[i, 0]
-                    * jnp.prod(1 - c[i, M - j : M - 1]).astype(jnp.float64)
-                )
-                return (
-                    c.at[i, M - j - 1]
-                    .set((temp**2 - temp + jnp.sqrt(2 * temp)) / (temp**2 + 1))
-                    .astype(jnp.float64)
+                temp = R[i, j] / R[i, 0] * jnp.prod(1 - c[i, M - j : M - 1])
+                return c.at[i, M - j - 1].set(
+                    (temp**2 - temp + jnp.sqrt(2 * temp)) / (temp**2 + 1)
                 )
 
             with jax.disable_jit():
@@ -742,19 +768,19 @@ class MaF11(MaF):
 
         x = jnp.arccos(c) * 2 / jnp.pi
         temp = (1 - jnp.sin(jnp.pi / 2 * x[:, 1])) * R[:, M - 1] / R[:, M - 2]
-        a = jnp.arange(0, 1.0001, 0.0001).astype(jnp.float64)[None, :]
+        a = jnp.arange(0, 1.0001, 0.0001)[None, :]
         E = jnp.abs(
             temp[:, None] * (1 - jnp.cos(jnp.pi / 2 * a))
             - 1
             + a * jnp.cos(5 * jnp.pi * a) ** 2
-        ).astype(jnp.float64)
+        )
         rank = jnp.argsort(E, axis=1)
         x = x.at[:, 0].set(a[0, jnp.min(rank[:, :10], axis=1)])
         R = self._convex(x)
-        R = R.at[:, M - 1].set(self._disc(x)).astype(jnp.float64)
+        R = R.at[:, M - 1].set(self._disc(x))
         non_dominated_rank = non_dominated_sort(R)
         f = R[non_dominated_rank == 0, :]
-        f = f * jnp.arange(2, 2 * M + 1, 2).astype(jnp.float64)
+        f = f * jnp.arange(2, 2 * M + 1, 2)
         return f, state
 
     @evox.jit_method

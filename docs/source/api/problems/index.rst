@@ -9,4 +9,3 @@ Problems
 
     numerical/index
     neuroevolution/index
-    rl/index
