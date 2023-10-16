@@ -269,6 +269,3 @@ class RayDistributedWorkflow(Stateful):
 
     def sample(self, state: State):
         return ray.get(self.supervisor.sample.remote()), state
-
-    def health_check(self, state: State):
-        return ray.get(self.supervisor.assert_state_sync.remote()), state
