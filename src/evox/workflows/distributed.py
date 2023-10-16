@@ -1,7 +1,6 @@
 from typing import Callable, Optional, List, Dict, Union
 from collections import deque
 
-import chex
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -160,14 +159,6 @@ class Supervisor:
     def valid(self, metric: str):
         fitness = [worker.valid.remote(metric) for worker in self.workers]
         return fitness
-
-    def assert_state_sync(self):
-        states = ray.get([worker.get_full_state.remote() for worker in self.workers])
-        leaves0, _treedef = tree_flatten(states[0])
-        for state in states:
-            leaves, _treedef = tree_flatten(state)
-            chex.assert_trees_all_close(leaves0, leaves)
-        return True
 
 
 class RayDistributedWorkflow(Stateful):
