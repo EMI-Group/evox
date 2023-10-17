@@ -1,5 +1,5 @@
 =========
-workflows
+Workflows
 =========
 
 .. toctree::
