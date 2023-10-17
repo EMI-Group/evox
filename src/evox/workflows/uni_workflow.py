@@ -88,6 +88,7 @@ class UniWorkflow(Stateful):
         self.num_objectives = num_objectives
         self.distributed_step = False
         self.opt_direction = parse_opt_direction(opt_direction)
+        self.monitor.set_opt_direction(self.opt_direction)
         if jit_problem is False and self.num_objectives is None:
             warnings.warn(
                 (

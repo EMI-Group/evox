@@ -53,6 +53,7 @@ class StdWorkflow(Stateful):
         self.pop_transform = pop_transform
         self.fitness_transform = fitness_transform
         self.opt_direction = parse_opt_direction(opt_direction)
+        self.monitor.set_opt_direction(self.opt_direction)
 
     def step(self, state):
         if self.monitor and self.record_time:

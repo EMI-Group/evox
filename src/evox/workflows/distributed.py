@@ -228,6 +228,7 @@ class RayDistributedWorkflow(Stateful):
         self.async_dispatch_list = deque()
         self.async_dispatch = async_dispatch
         self.monitor = monitor
+        self.monitor.set_opt_direction(opt_direction)
         self.record_pop = record_pop
         self.record_time = record_time
         self.metrics = metrics
