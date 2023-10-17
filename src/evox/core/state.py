@@ -3,6 +3,7 @@ from __future__ import annotations
 from pprint import pformat
 from typing import Any, Optional, Tuple, Union
 from copy import copy
+import pickle
 
 from jax.tree_util import register_pytree_node_class, tree_map
 
@@ -218,3 +219,11 @@ class State:
             return False
 
         return self._child_states == other._child_states
+
+    def save(self, path: str):
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    def load(self, path: str) -> State:
+        with open(path, "rb") as f:
+            return pickle.load(f)
