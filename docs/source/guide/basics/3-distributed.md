@@ -107,6 +107,26 @@ Instead, it offers tools for enabling distributed interactions among multiple JA
 python main.py
 ```
 
+```{tip}
+To have `process_id` in the argument, one can use `argparse` to parse the argument from the commandline.
+For example:
+
+```python
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('process_id', type=int)
+args = parser.parse_args()
+jax.distributed.initialize(
+    coordinator_address=...,
+    num_processes=...,
+    process_id=args.process_id,
+)
+```
+
+Then call `python main.py 0` on the first machine, `python main 1` on the second machine and so on.
+
+```
+
 ### Run on a single machine
 
 In addition to distributed execution across multiple machines, `UniWorkflow` also supports running on a single machine with multiple GPUs. In this scenario, communication between different devices is facilitated by `nccl`, which is considerably more efficient than cross-machine communication.
