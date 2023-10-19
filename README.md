@@ -51,11 +51,11 @@ EvoX offers a powerful and user-friendly optimization framework, empowering rese
 
 #### Single-objective
 
-| Type                   | Algorithm Name                             |
-| ---------------------- | ------------------------------------------ |
-| Differential Evolution | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| Evolution Strategies   | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-| Particle Swarm         | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
+| Type                        | Algorithm Name                             |
+| --------------------------- | ------------------------------------------ |
+| Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
+| Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
 #### Multi-objective
 
