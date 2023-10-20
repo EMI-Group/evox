@@ -22,6 +22,10 @@
   </a>
 </p>
 
+<p align="center">
+  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
+</p>
+
 ---
 
 🌟 **Introducing EvoX**: Experience the transformative power of **Distributed GPU-Acceleration** in **Evolutionary Computation (EC)**. EvoX isn't just another framework—it's a pioneering toolset crafted to **redefine EC's frontiers**. Dive deep into a vast collection of **Evolutionary Algorithms (EAs)** and engage with an expansive range of **Benchmark Problems**. Tackle everything from intricate tasks to computationally intensive challenges. With EvoX, achieve unmatched speed and adaptability, ensuring your optimization journey is swift and seamless. Embrace the future of EC with EvoX!
@@ -144,8 +148,4 @@ If EvoX has propelled your research or projects, consider citing our work:
   year = {2023}
 }
 ```
-<p align="center">
-  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
-</p>
-
 
