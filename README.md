@@ -13,90 +13,86 @@
   </a>
 </div>
 
+---
 
+🌟 **Introducing EvoX**: Unleash the power of **Distributed GPU-Acceleration** in your Evolutionary Computation projects! With EvoX, you're not just getting a framework; you're accessing a state-of-the-art tool designed to redefine the limits of EC. Dive into a rich library packed with a myriad of Evolutionary Algorithms and an extensive range of benchmark problems. From intricate to computationally demanding tasks, EvoX is engineered to deliver unparalleled speed and adaptability, making your optimization journey swift and seamless. Experience the next-gen of EC with EvoX!
 
-EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation. Our primary goal is to push the boundaries of evolutionary computation by significantly enhancing its speed and versatility, enabling its application to complex and computationally intensive tasks.
+---
 
-## ⭐️ Key Features
-- 🚀 Fast
-  - GPU computing for 10x-100x faster optimization.
-  - Distributed workflow for even faster optimization.
-- 🌟 Wide support
-  - Single-objective and multi-objective optimization.
-  - Comprehensive support for commonly used benchmark problems.
-  - Extensive coverage of neuroevolution problems.
-- 🎉 Easy to use
-  - Functional programming for easy function composition.
-  - Hierarchical state management for modular programming.
-  - Detailed tutorial available [here](https://evox.readthedocs.io/en/latest/guide/index.html).
+## ⭐️ Highlighted Features
 
-EvoX offers a powerful and user-friendly optimization framework, empowering researchers and practitioners to easily tackle a variety of optimization tasks. The support for commonly used benchmark problems, along with the coverage of neuroevolution problems, provides a versatile platform for optimization experimentation. With its fast GPU computing and distributed workflow capabilities, EvoX enables efficient optimization of complex and computationally intensive problems. The functional programming and hierarchical state management further enhance the ease of use and modularity of the framework.
+- 🚀 **Blazing Fast Performance**:
+  - Experience **GPU-Accelerated** optimization, achieving speeds 10x-100x faster than traditional methods.
+  - Leverage the power of distributed workflows for even more rapid optimization.
+  
+- 🌐 **Versatile Optimization Suite**:
+  - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
+  - Dive into a comprehensive library of benchmark problems, ensuring robust testing and evaluation.
+  - Explore the frontier of AI with extensive tools for **neuroevolution** tasks.
+  
+- 🛠️ **Designed for Simplicity**:
+  - Embrace the elegance of functional programming, simplifying complex algorithmic compositions.
+  - Benefit from hierarchical state management, ensuring modular and clean programming.
+  - Jumpstart your journey with our [detailed tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
 
-### Index
+**Elevate Your Optimization Game with EvoX!** Dive into an optimization powerhouse, meticulously crafted to empower both researchers and practitioners. With EvoX, navigating the vast terrains of optimization becomes not just feasible, but effortlessly intuitive. Whether you're dealing with widely recognized benchmark challenges or venturing into the intricate realms of neuroevolution, EvoX stands as your versatile experimentation platform. But it's not just about variety – it's about speed. Harness the might of GPU acceleration and distributed workflows to conquer even the most computationally intensive tasks. And, thanks to its foundation in functional programming and hierarchical state management, you're guaranteed a user experience that champions both efficiency and modularity.
 
-- [Contents](#contents)
-  - [List of Algorithms](#list-of-algorithms)
-    - [Single-objective](#single-objective)
-    - [Multi-objective](#multi-objective)
-  - [List of Problems](#list-of-problems)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Example](#example)
-- [Support](#support)
-- [Citation](#citation)
+### 📑 Table of Contents
 
-## Contents
+- [🧬 Comprehensive Evolutionary Algorithms](#evolutionary-algorithms)
+    - [🎯 Single-Objective Algorithms](#single-objective)
+    - [🌐 Multi-Objective Algorithms](#multi-objective)
+- [📊 Diverse Benchmark Problems](#benchmark-problems)
+- [🔧 Installation](#installation)
+- [🚀 Getting Started](#quick-start)
+- [🔍 Examples](#examples)
+- [🤝 Community & Support](#support)
+- [📝 How to Cite EvoX](#citation)
 
-### List of Evolutionary Algorithms (EAs)
+## 🧬 Comprehensive Evolutionary Algorithms
 
-#### Single-objective EAs
+### 🎯 Single-Objective Algorithms
 
-| Type                        | Algorithm Name                             |
+| Category                    | Algorithm Names                             |
 | --------------------------- | ------------------------------------------ |
 | Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
 | Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-#### Multi-objective EAs
+### 🌐 Multi-Objective Algorithms
 
-| Type                | Algorithm Name                                 |
-| ------------------- | ---------------------------------------------- |
-| Dominance-based     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
-| Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-| Indicator-based     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
+| Category           | Algorithm Names                                 |
+| ------------------ | ---------------------------------------------- |
+| Dominance-based    | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
+| Decomposition-based| MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
+| Indicator-based    | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
 
-### List of Benchmark Problems
+## 📊 Diverse Benchmark Problems
 
-| Type           | Problem Name                        |
-| -------------- | ----------------------------------- |
-| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
-| Neuroevolution | Brax, Gym, TorchVision Dataset, ... |
+| Category      | Problem Names                           |
+| ------------- | --------------------------------------- |
+| Numerical     | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...    |
+| Neuroevolution| Brax, Gym, TorchVision Dataset, ...    |
 
+Dive deeper! For a comprehensive list and further details, explore our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
-For more detailed list, please refer to our API documentation. [List of Algorithms](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) and [List of Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+## 🔧 Setting Up EvoX
 
-
-## Installation
-
-We recommand install `evox` using `pip`
-
+**Step 1**: Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
 ```
+**Note**: EvoX thrives on the power of JAX. Ensure you have JAX set up by following the [official JAX installation guide](https://github.com/google/jax?tab=readme-ov-file#installation).
 
-EvoX depends on JAX. To install JAX, please refer to JAX's installation guide [here](https://github.com/google/jax?tab=readme-ov-file#installation).
+## 🚀 Dive Right In: Quick Start
 
-## Quick Start
-
-To start with, import `evox`
-
+Kickstart your journey with EvoX in just a few simple steps:
+1. **Import necessary modules**:
 ```python
 import evox
 from evox import algorithms, problems, workflows
 ```
-
-Then, create an algorithm and a problem:
-
+2. **Configure an algorithm and define a problem**:
 ```python
 pso = algorithms.PSO(
     lb=jnp.full(shape=(2,), fill_value=-32),
@@ -105,40 +101,31 @@ pso = algorithms.PSO(
 )
 ackley = problems.numerical.Ackley()
 ```
-
-To run the EC workflow, compose the algorithm and the problem together using `workflow`:
-
+3. **Compose and initialize the workflow**:
 ```python
 workflow = workflows.StdWorkflow(pso, ackley)
-```
-
-To initialize the whole workflow, call `init` on the workflow object with a PRNGKey. Calling `init` will recursively initialize a tree of objects, meaning the algorithm pso and problem ackley are automatically initialize as well.
-
-```python
 key = jax.random.PRNGKey(42)
 state = workflow.init(key)
 ```
-
-Now, call `step` to execute one iteration of the workflow.
-
+4. **Run the workflow**:
 ```python
-# run the workflow for 100 steps
+# Execute the workflow for 100 iterations
 for i in range(100):
     state = workflow.step(state)
 ```
 
-## Example
+## 🔍 Explore More with Examples
 
-The [example](https://github.com/EMI-Group/evox/tree/main/examples) folder has many examples on how to use EvoX.
+Eager to delve deeper? The [example directory](https://github.com/EMI-Group/evox/tree/main/examples) is brimming with comprehensive use-cases and applications of EvoX.
 
-## Support
+## 🤝 Join the EvoX Community
 
-- For general discussion, please head to Github's [discussion](https://github.com/EMI-Group/evox/discussions)
-- For Chinese speakers, please consider to join the QQ group to discuss. (Group number: 297969717).
-<img src="./docs/source/_static/qq_group_number.jpg" width="15%">
+- Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
+- For our Chinese enthusiasts, we welcome you to our QQ discussion group (Group number: 297969717).
 
-## Citation
+## 📝 Citing EvoX
 
+If EvoX has propelled your research or projects, consider citing our work:
 ```
 @article{evox,
   title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
