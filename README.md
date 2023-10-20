@@ -2,7 +2,11 @@
   <img src="https://raw.githubusercontent.com/EMI-Group/evox/main/docs/source/_static/evox_logo_with_title.svg" width="500px" alt="EvoX Logo"/>
 </p>
 
-<h3 align="center">📄 Paper | 📚 Documentation | 🛠️ Build Status</h3>
+<h3 align="center">
+  <a href="https://arxiv.org/abs/2301.12457">📄 Paper</a> |
+  <a href="https://evox.readthedocs.io/">📚 Documentation</a> |
+  <a href="https://github.com/EMI-Group/evox/actions/workflows/python-package.yml">🛠️ Build Status</a>
+</h3>
 
 <p align="center">
   <a href="https://arxiv.org/abs/2301.12457">
@@ -17,7 +21,6 @@
     <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=for-the-badge" alt="EvoX Build Status">
   </a>
 </p>
-
 
 ---
 
