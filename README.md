@@ -47,9 +47,9 @@ EvoX offers a powerful and user-friendly optimization framework, empowering rese
 
 ## Contents
 
-### List of Algorithms
+### List of Evolutionary Algorithms (EAs)
 
-#### Single-objective
+#### Single-objective EAs
 
 | Type                        | Algorithm Name                             |
 | --------------------------- | ------------------------------------------ |
@@ -57,7 +57,7 @@ EvoX offers a powerful and user-friendly optimization framework, empowering rese
 | Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-#### Multi-objective
+#### Multi-objective EAs
 
 | Type                | Algorithm Name                                 |
 | ------------------- | ---------------------------------------------- |
@@ -65,7 +65,7 @@ EvoX offers a powerful and user-friendly optimization framework, empowering rese
 | Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
 | Indicator-based     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
 
-### List of Problems
+### List of Benchmark Problems
 
 | Type           | Problem Name                        |
 | -------------- | ----------------------------------- |
