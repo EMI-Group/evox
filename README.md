@@ -39,16 +39,16 @@
 
 ### 📑 Table of Contents
 
-- [🧬 Comprehensive Evolutionary Algorithms](#evolutionary-algorithms)
-    - [🎯 Single-Objective Algorithms](#single-objective)
-    - [🌐 Multi-Objective Algorithms](#multi-objective)
-- [📊 Diverse Benchmark Problems](#benchmark-problems)
-- [🔧 Installation](#installation)
-- [🚀 Getting Started](#quick-start)
-- [🔍 Examples](#examples)
-- [🤝 Community & Support](#support)
-- [📝 How to Cite EvoX](#citation)
-
+- [🧬 Comprehensive Evolutionary Algorithms](#-comprehensive-evolutionary-algorithms)
+    - [🎯 Single-Objective Algorithms](#-single-objective-algorithms)
+    - [🌐 Multi-Objective Algorithms](#-multi-objective-algorithms)
+- [📊 Diverse Benchmark Problems](#-diverse-benchmark-problems)
+- [🔧 Installation](#-setting-up-evox)
+- [🚀 Getting Started](#-dive-right-in-quick-start)
+- [🔍 Examples](#-explore-more-with-examples)
+- [🤝 Community & Support](#-join-the-evox-community)
+- [📝 How to Cite EvoX](#-citing-evox)
+- 
 ## 🧬 Comprehensive Evolutionary Algorithms
 
 ### 🎯 Single-Objective Algorithms
