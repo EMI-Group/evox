@@ -48,7 +48,7 @@
 - [🔍 Examples](#-explore-more-with-examples)
 - [🤝 Community & Support](#-join-the-evox-community)
 - [📝 How to Cite EvoX](#-citing-evox)
-- 
+  
 ## 🧬 Comprehensive Evolutionary Algorithms
 
 ### 🎯 Single-Objective Algorithms
