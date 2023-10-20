@@ -137,7 +137,7 @@ Eager to delve deeper? The [example directory](https://github.com/EMI-Group/evox
 ## 🤝 Join the EvoX Community
 
 - Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
-- We welcome you to our **QQ group** (ID: 297969717).
+- Welcome to join our **QQ group** (ID: 297969717).
 
 ## 📝 Citing EvoX
 
