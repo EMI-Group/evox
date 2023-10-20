@@ -62,7 +62,6 @@
 - [🤝 Community & Support](#-join-the-evox-community)
 - [📝 How to Cite EvoX](#-citing-evox)
 
----
 
 ## 🧬 Comprehensive Evolutionary Algorithms
 
@@ -91,7 +90,6 @@
 
 Dive deeper! For a comprehensive list and further details, explore our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
----
 
 ## 🔧 Setting Up EvoX
 
@@ -101,7 +99,6 @@ pip install evox
 ```
 **Note**: EvoX thrives on the power of JAX. Ensure you have JAX set up by following the [official JAX installation guide](https://github.com/google/jax?tab=readme-ov-file#installation).
 
----
 
 ## 🚀 Dive Right In: Quick Start
 
@@ -133,20 +130,14 @@ for i in range(100):
     state = workflow.step(state)
 ```
 
----
-
 ## 🔍 Explore More with Examples
 
 Eager to delve deeper? The [example directory](https://github.com/EMI-Group/evox/tree/main/examples) is brimming with comprehensive use-cases and applications of EvoX.
-
----
 
 ## 🤝 Join the EvoX Community
 
 - Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
 - If you can speak Chinese, we welcome you to our **QQ group** (ID: 297969717).
-
----
 
 ## 📝 Citing EvoX
 
