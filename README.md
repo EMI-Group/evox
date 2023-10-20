@@ -144,7 +144,7 @@ Eager to delve deeper? The [example directory](https://github.com/EMI-Group/evox
 ## 🤝 Join the EvoX Community
 
 - Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
-- For our Chinese enthusiasts, we welcome you to our **QQ group** (ID: 297969717).
+- For our 中国用户, we welcome you to our **QQ group** (ID: 297969717).
 
 ---
 
