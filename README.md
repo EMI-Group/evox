@@ -24,7 +24,7 @@
 
 ---
 
-🌟 **Introducing EvoX**: Unleash the power of **Distributed GPU-Acceleration** in your Evolutionary Computation projects! With EvoX, you're not just getting a framework; you're accessing a state-of-the-art tool designed to redefine the limits of EC. Dive into a rich library packed with a myriad of Evolutionary Algorithms and an extensive range of benchmark problems. From intricate to computationally demanding tasks, EvoX is engineered to deliver unparalleled speed and adaptability, making your optimization journey swift and seamless. Experience the next-gen of EC with EvoX!
+🌟 **Introducing EvoX**: Experience the transformative power of **Distributed GPU-Acceleration** in **Evolutionary Computation (EC)**. EvoX isn't just another framework—it's a pioneering toolset crafted to **redefine EC's frontiers**. Dive deep into a vast collection of **Evolutionary Algorithms (EAs)** and engage with an expansive range of **Benchmark Problems**. Tackle everything from intricate tasks to computationally intensive challenges. With EvoX, achieve unmatched speed and adaptability, ensuring your optimization journey is swift and seamless. Embrace the future of EC with EvoX!
 
 ---
 
@@ -44,7 +44,7 @@
   - Benefit from hierarchical state management, ensuring modular and clean programming.
   - Jumpstart your journey with our [detailed tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
 
-**Elevate Your Optimization Game with EvoX!** Dive into an optimization powerhouse, meticulously crafted to empower both researchers and practitioners. With EvoX, navigating the vast terrains of optimization becomes not just feasible, but effortlessly intuitive. Whether you're dealing with widely recognized benchmark challenges or venturing into the intricate realms of neuroevolution, EvoX stands as your versatile experimentation platform. But it's not just about variety – it's about speed. Harness the might of GPU acceleration and distributed workflows to conquer even the most computationally intensive tasks. And, thanks to its foundation in functional programming and hierarchical state management, you're guaranteed a user experience that champions both efficiency and modularity.
+**Elevate Your Optimization Game with EvoX!**: Step into a meticulously crafted platform tailored for both researchers and enthusiasts. Effortlessly traverse the vast **optimization landscapes**, confront and conquer widely-acknowledged **black-box optimization challenges**, and venture into the intricate realms of **neuroevolution**. It's not merely about breadth—it's about velocity. Supercharge your projects with **GPU acceleration** and streamlined **distributed workflows**. Plus, with a foundation in **functional programming** and **hierarchical state management**, EvoX promises a seamless, modular user experience.
 
 ### 📑 Table of Contents
 
@@ -60,7 +60,7 @@
   
 ## 🧬 Comprehensive Evolutionary Algorithms
 
-### 🎯 Single-Objective Algorithms
+### 🎯 Single-Objective Optimization
 
 | Category                    | Algorithm Names                             |
 | --------------------------- | ------------------------------------------ |
@@ -68,7 +68,7 @@
 | Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-### 🌐 Multi-Objective Algorithms
+### 🌐 Multi-Objective Optimization
 
 | Category           | Algorithm Names                                 |
 | ------------------ | ---------------------------------------------- |
@@ -144,3 +144,8 @@ If EvoX has propelled your research or projects, consider citing our work:
   year = {2023}
 }
 ```
+<p align="center">
+  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
+</p>
+
+
