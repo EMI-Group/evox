@@ -6,6 +6,7 @@
 
 User Guide <guide/index>
 API reference <api/index>
+Examples <example/index>
 ```
 
 ```{eval-rst}
