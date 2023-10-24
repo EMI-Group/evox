@@ -43,6 +43,7 @@ def test_envpool_cartpole():
         jit_problem=True,
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,
+        opt_direction="max",
     )
     # init the workflow
     state = workflow.init(workflow_key)
@@ -50,8 +51,8 @@ def test_envpool_cartpole():
     # run the workflow for 10 steps
     for i in range(5):
         state = workflow.step(state)
-    
+
     monitor.close()
     min_fitness = monitor.get_best_fitness()
     # envpool is deterministic, so the result should always be the same
-    assert min_fitness == -59.0
+    assert min_fitness == 59.0

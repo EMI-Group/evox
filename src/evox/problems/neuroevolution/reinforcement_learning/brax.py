@@ -15,7 +15,6 @@ class Brax(Problem):
         batch_size: int,
         cap_episode: int,
         backend: str = "generalized",
-        fitness_is_neg_reward: bool = True,
     ):
         """Contruct a brax-based problem
 
@@ -34,9 +33,6 @@ class Brax(Problem):
         backend
             Brax's backend, one of "generalized", "positional", "spring".
             Default to "generalized".
-        fitness_is_neg_reward
-            Whether to return the fitness value as the negative of reward or not.
-            Default to True.
         """
         self.batched_policy = jit(vmap(policy))
         self.policy = policy
@@ -47,7 +43,6 @@ class Brax(Problem):
         )
         self.batch_size = batch_size
         self.cap_episode = cap_episode
-        self.fitness_is_neg_reward = fitness_is_neg_reward
         self.jit_reset = jit(self.env.reset)
         self.jit_env_step = jit(self.env.step)
 
@@ -74,9 +69,6 @@ class Brax(Problem):
         _counter, _brax_state, total_reward = jax.lax.while_loop(
             cond_func, body_func, init_val
         )
-
-        if self.fitness_is_neg_reward:
-            total_reward = -total_reward
 
         return total_reward, state
 

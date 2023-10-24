@@ -292,7 +292,6 @@ class Gym(Problem):
         worker_options: dict = {},
         init_cap: Optional[int] = None,
         batch_policy: bool = False,
-        fitness_is_neg_reward: bool = True,
     ):
         """Construct a gym problem
 
@@ -327,9 +326,6 @@ class Gym(Problem):
 
         worker_options
             The runtime options for worker actors.
-        fitness_is_neg_reward
-            If True, the fitness is the negative of the total reward,
-            otherwise return the original reward.
         """
         if env_name:
             env_creator = lambda: gym.make(env_name, **env_options)
@@ -348,7 +344,6 @@ class Gym(Problem):
         )
         self.num_workers = num_workers
         self.env_per_worker = env_per_worker
-        self.fitness_is_neg_reward = fitness_is_neg_reward
         self.env_name = env_name
         self.policy = policy
         if init_cap is not None:
@@ -385,10 +380,7 @@ class Gym(Problem):
         if self.cap_episode:
             state = self.cap_episode.update(state, episode_length)
 
-        if self.fitness_is_neg_reward:
-            fitness = -rewards
-        else:
-            fitness = rewards
+        fitness = rewards
 
         if self.mo_keys:
             return acc_mo_values, state.update(key=key)

@@ -42,7 +42,6 @@ class EnvPool(Problem):
         num_envs: int,
         env_options: dict = {},
         cap_episode_length: Optional[int] = None,
-        fitness_is_neg_reward: bool = True,
     ):
         self.batch_policy = jit(vmap(policy))
         self.num_envs = num_envs
@@ -53,7 +52,6 @@ class EnvPool(Problem):
             **env_options,
         )
         self.cap_episode_length = cap_episode_length
-        self.fitness_is_neg_reward = fitness_is_neg_reward
 
     def setup(self, key):
         return State(key=key)
@@ -101,7 +99,4 @@ class EnvPool(Problem):
             ),
         )
 
-        if self.fitness_is_neg_reward:
-            return -total_reward, state.update(key=key)
-        else:
-            return total_reward, state.update(key=key)
+        return total_reward, state.update(key=key)
