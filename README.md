@@ -16,7 +16,7 @@
   <a href="https://evox.readthedocs.io/">
     <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=for-the-badge" alt="EvoX Documentation">
   </a>
-  
+
   <a href="https://github.com/EMI-Group/evox/actions/workflows/python-package.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=for-the-badge" alt="EvoX Build Status">
   </a>
@@ -37,12 +37,12 @@
 - 🚀 **Blazing Fast Performance**:
   - Experience **GPU-Accelerated** optimization, achieving speeds 10x-100x faster than traditional methods.
   - Leverage the power of distributed workflows for even more rapid optimization.
-  
+
 - 🌐 **Versatile Optimization Suite**:
   - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
   - Dive into a comprehensive library of benchmark problems, ensuring robust testing and evaluation.
   - Explore the frontier of AI with extensive tools for **neuroevolution** tasks.
-  
+
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of functional programming, simplifying complex algorithmic compositions.
   - Benefit from hierarchical state management, ensuring modular and clean programming.
@@ -52,15 +52,17 @@
 
 ### 📑 Table of Contents
 
+- [⭐️ Highlighted Features](#️-highlighted-features)
+  - [📑 Table of Contents](#-table-of-contents)
 - [🧬 Comprehensive Evolutionary Algorithms](#-comprehensive-evolutionary-algorithms)
-    - [🎯 Single-Objective Algorithms](#-single-objective-algorithms)
-    - [🌐 Multi-Objective Algorithms](#-multi-objective-algorithms)
+  - [🎯 Single-Objective Optimization](#-single-objective-optimization)
+  - [🌐 Multi-Objective Optimization](#-multi-objective-optimization)
 - [📊 Diverse Benchmark Problems](#-diverse-benchmark-problems)
-- [🔧 Installation](#-setting-up-evox)
-- [🚀 Getting Started](#-dive-right-in-quick-start)
-- [🔍 Examples](#-explore-more-with-examples)
-- [🤝 Community & Support](#-join-the-evox-community)
-- [📝 How to Cite EvoX](#-citing-evox)
+- [🔧 Setting Up EvoX](#-setting-up-evox)
+- [🚀 Dive Right In: Quick Start](#-dive-right-in-quick-start)
+- [🔍 Explore More with Examples](#-explore-more-with-examples)
+- [🤝 Join the EvoX Community](#-join-the-evox-community)
+- [📝 Citing EvoX](#-citing-evox)
 
 
 ## 🧬 Comprehensive Evolutionary Algorithms
@@ -132,7 +134,7 @@ for i in range(100):
 
 ## 🔍 Explore More with Examples
 
-Eager to delve deeper? The [example directory](https://github.com/EMI-Group/evox/tree/main/examples) is brimming with comprehensive use-cases and applications of EvoX.
+Eager to delve deeper? The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
 ## 🤝 Join the EvoX Community
 
