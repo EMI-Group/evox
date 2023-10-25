@@ -9,7 +9,7 @@ Generational Distance
     :members:
 
 .. autofunction:: evox.metrics.gd
-    :members:
+
 
 .. autofunction:: evox.metrics.gd_plus
-    :members:
+

@@ -49,8 +49,8 @@ class LMOCSO(Algorithm):
 
     Args:
         alpha : The parameter controlling the rate of change of penalty. Defaults to 2.
-        max_gen : The maximum number of generations. Defaults to 100. If the number of iterations
-            is not 100, change the value based on the actual value.
+        max_gen : The maximum number of generations. Defaults to 100.
+        If the number of iterations is not 100, change the value based on the actual value.
     """
 
     def __init__(

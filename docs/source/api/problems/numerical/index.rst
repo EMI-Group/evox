@@ -8,6 +8,8 @@ Numerical Benchmarks
     ackley
     dtlz
     griewank
+    lsmop
+    maf
     rastrigin
     rosenbrock
     sphere

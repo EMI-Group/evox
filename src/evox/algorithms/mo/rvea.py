@@ -22,8 +22,8 @@ class RVEA(Algorithm):
     Args:
         alpha : The parameter controlling the rate of change of penalty. Defaults to 2.
         fr : The frequency of reference vector adaptation. Defaults to 0.1.
-        max_gen : The maximum number of generations. Defaults to 100. If the number of iterations
-            is not 100, change the value based on the actual value.
+        max_gen : The maximum number of generations. Defaults to 100.
+        If the number of iterations is not 100, change the value based on the actual value.
     """
 
     def __init__(
@@ -122,7 +122,9 @@ class RVEA(Algorithm):
         )
 
         def rv_adaptation(pop_obj, v):
-            v_temp = v * jnp.tile((jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0)), (len(v), 1))
+            v_temp = v * jnp.tile(
+                (jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0)), (len(v), 1)
+            )
 
             next_v = v_temp / jnp.tile(
                 jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1),
