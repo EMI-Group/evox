@@ -3,15 +3,7 @@ Numerical Benchmarks
 ====================
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
-    ackley
-    dtlz
-    griewank
-    lsmop
-    maf
-    rastrigin
-    rosenbrock
-    sphere
-    zdt
-    cec2022
+    test_functions/index
+    test_suits/index
