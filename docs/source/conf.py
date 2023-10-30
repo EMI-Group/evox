@@ -38,6 +38,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_favicon",
+    "sphinxcontrib.mermaid",
     "myst_nb",
 ]
 
