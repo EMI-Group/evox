@@ -99,7 +99,8 @@ Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
 ```
-**Note**: EvoX thrives on the power of JAX. Ensure you have JAX set up by following the [official JAX installation guide](https://github.com/google/jax?tab=readme-ov-file#installation).
+
+**Note**: To install EvoX with JAX and hardware acceleration capabilities, please refer to our comprehensive [installation guide](https://evox.readthedocs.io/en/latest/guide/install.html).
 
 
 ## 🚀 Dive Right In: Quick Start
