@@ -31,6 +31,8 @@ stateDiagram-v2
     jaxlibCuda : jaxlib-cuda
     gpu : NVIDIA GPU
 
+    direction LR
+
     evox --> jax
     jax --> jaxlib
     jax --> jaxlibCuda
@@ -59,12 +61,32 @@ To enable CUDA acceleration, please ensure that the following components are ins
 stateDiagram-v2
     jaxlib : jaxlib-cuda
     cuda : CUDA libraries
-    driver : CUDA driver
+    driver : GPU driver
     gpu : NVIDIA GPU
+    user: User Space
+    kernel: Kernal Space
 
-    jaxlib --> cuda
+    direction LR
+
+    state user {
+      direction LR
+      jaxlib --> cuda
+    }
+
     cuda --> driver
-    driver --> gpu
+
+    state kernel {
+      direction LR
+      driver --> gpu
+    }
+```
+
+```{note}
+If your using any visualization technology, like WSL, docker.
+- **kernel space components**: should be installed on your host system.
+  For example, if you are using WSL with Windows, then the driver should be installed on Windows, not inside WSL.
+  If you are using container (e.g. docker), then the driver should be installed on your host OS (outside docker).
+- **user space components**: need to be installed inside WSL or docker.
 ```
 
 #### Install NVIDIA's proprietary driver
@@ -85,14 +107,14 @@ NVIDIA has a detailed [CUDA on WSL User Guide](https://docs.nvidia.com/cuda/wsl-
 
 ##### GNU/Linux
 
-```{note}
-Only NVIDIA's proprietary driver works with CUDA, open-source drivers like Nouveau do not work.
-```
-
 ```{warning}
 If you are on GNU/Linux,
 I strongly recommend to install the driver via the package manager of your Linux distribution.
 Please do **NOT** install the driver from NVIDIA's website.
+```
+
+```{note}
+Only NVIDIA's proprietary driver works with CUDA, open-source drivers like Nouveau do not.
 ```
 
 The detailed installation guide depends on your operating system, for example
@@ -112,6 +134,16 @@ The detailed installation guide depends on your operating system, for example
   ```
 
 After installing the driver, please reboot.
+
+
+##### Cluster (e.g. slurm, k8s)
+
+If the latest driver has already been installed in the cluster, please go ahead and skip this section.
+
+Otherwise, please contact the administrator of the cluster to upgrade the GPU driver version.
+It is important to note that the driver must be installed on the host system,
+rendering any effort within the container (e.g. docker, singularity) meaningless.
+Thus only the administrator can solve this problem.
 
 #### Install CUDA libraries
 
@@ -182,3 +214,65 @@ Since installing `jax[cuda12]` will usually install the jaxlib compiled with the
 Even if you have CUDA 12, your CUDA version might still be lower than the version of that jaxlib requires.
 In this case, try to install `jax[cuda11]`.
 ```
+
+## Verify your installation
+
+Open a Python terminal, and run the following:
+
+```python
+import evox
+import jax
+jax.numpy.arange(10)
+```
+
+Here are some possible output:
+
+````{tab-set}
+
+  ```{tab-item} Correct
+
+    ```python
+    >>> import evox
+    >>> import jax
+    >>> jax.numpy.arange(10)
+    Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=int32)
+    ```
+
+  ```
+
+  ```{tab-item} EvoX not installed
+
+    ```python
+    >>> import evox
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    ModuleNotFoundError: No module named 'evox'
+    ```
+
+  ```
+
+  ```{tab-item} Wrong jaxlib version
+
+    ```python
+    >>> import evox
+    An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+    >>> import jax
+    >>> jax.numpy.arange(10)
+    Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=int32)
+    ```
+
+  ```
+
+  ```{tab-item} Wrong driver/library
+
+    ```python
+    >>> import evox
+    >>> import jax
+    >>> jax.numpy.arange(10)
+    Could not load library libcublasLt.so.11. Error: libcublasLt.so.11: cannot open shared object file: No such file or directory
+    Aborted (core dumped)
+    ```
+
+  ```
+
+````
