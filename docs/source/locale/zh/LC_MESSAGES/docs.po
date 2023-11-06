@@ -1,0 +1,3491 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 1980, Bill Huang
+# This file is distributed under the same license as the EvoX package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: EvoX \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 1980-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: zh\n"
+"Language-Team: zh <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/api/algorithms/containers/cc.rst:3
+#: ../../source/guide/advanced/4-container.md:28
+msgid "Cooperative Coevolution"
+msgstr ""
+
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:2 of
+msgid ""
+"Automatically apply cooperative coevolution to any algorithm. The process"
+" of cooperative coevolution is vectorized, meaning all sub-populations "
+"will evolve at the same time in each generation."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.__init__
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.__init__
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
+#: evox.algorithms.containers.coevolution.Coevolution.__init__
+#: evox.algorithms.containers.coevolution.Coevolution.setup
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.__init__
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup evox.algorithms.mo.bige.BiGE.setup
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup
+#: evox.algorithms.mo.gde3.GDE3.setup evox.algorithms.mo.hype.HypE.setup
+#: evox.algorithms.mo.ibea.IBEA.setup evox.algorithms.mo.knea.KnEA.setup
+#: evox.algorithms.mo.lmocso.LMOCSO.setup evox.algorithms.mo.moead.MOEAD.setup
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup
+#: evox.algorithms.mo.nsga2.NSGA2.setup evox.algorithms.mo.nsga3.NSGA3.setup
+#: evox.algorithms.mo.rvea.RVEA.setup evox.algorithms.mo.spea2.SPEA2.setup
+#: evox.algorithms.mo.sra.SRA.setup evox.algorithms.mo.tdea.TDEA.setup
+#: evox.algorithms.so.de_variants.code.CoDE.setup
+#: evox.algorithms.so.de_variants.de.DE.setup
+#: evox.algorithms.so.de_variants.jade.JaDE.setup
+#: evox.algorithms.so.de_variants.sade.SaDE.setup
+#: evox.algorithms.so.de_variants.shade.SHADE.setup
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
+#: evox.algorithms.so.es_variants.ars.ARS.__init__
+#: evox.algorithms.so.es_variants.ars.ARS.setup
+#: evox.algorithms.so.es_variants.asebo.ASEBO.__init__
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.__init__
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup
+#: evox.algorithms.so.es_variants.des.DES.__init__
+#: evox.algorithms.so.es_variants.des.DES.setup
+#: evox.algorithms.so.es_variants.esmc.ESMC.__init__
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.__init__
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup
+#: evox.algorithms.so.es_variants.les.LES.__init__
+#: evox.algorithms.so.es_variants.les.LES.setup
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup
+#: evox.algorithms.so.es_variants.nes.XNES.setup
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.__init__
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.__init__
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup
+#: evox.algorithms.so.es_variants.pgpe.PGPE.__init__
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup
+#: evox.algorithms.so.es_variants.rmes.RMES.setup
+#: evox.algorithms.so.es_variants.snes.SNES.__init__
+#: evox.algorithms.so.es_variants.snes.SNES.setup
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup
+#: evox.algorithms.so.pso_variants.cso.CSO.setup
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
+#: evox.algorithms.so.pso_variants.fips.FIPS.__init__
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell
+#: evox.algorithms.so.pso_variants.pso.PSO.setup
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.__init__
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
+#: evox.core.module.Stateful.init evox.core.module.Stateful.setup
+#: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
+#: evox.core.state.State.find_path_to evox.core.state.State.update
+#: evox.metrics.hypervolume.HV.__init__
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__
+#: evox.monitors.std_mo_monitor.StdMOMonitor
+#: evox.monitors.std_so_monitor.StdSOMonitor
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.__init__
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.__init__
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
+#: evox.problems.numerical.lsmop.LSMOP1.__init__
+#: evox.problems.numerical.lsmop.LSMOP2.__init__
+#: evox.problems.numerical.lsmop.LSMOP3.__init__
+#: evox.problems.numerical.lsmop.LSMOP4.__init__
+#: evox.problems.numerical.lsmop.LSMOP5.__init__
+#: evox.problems.numerical.lsmop.LSMOP6.__init__
+#: evox.problems.numerical.lsmop.LSMOP7.__init__
+#: evox.problems.numerical.lsmop.LSMOP8.__init__
+#: evox.problems.numerical.lsmop.LSMOP9.__init__
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__
+#: evox.workflows.distributed.RayDistributedWorkflow.setup
+#: evox.workflows.standard.StdWorkflow.__init__
+#: evox.workflows.uni_workflow.UniWorkflow.__init__
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+msgid "Parameters"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:2
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:2
+#: evox.algorithms.containers.coevolution.Coevolution.setup:2
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:2
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:2
+#: evox.algorithms.mo.bige.BiGE.setup:2
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:2
+#: evox.algorithms.mo.gde3.GDE3.setup:2 evox.algorithms.mo.hype.HypE.setup:2
+#: evox.algorithms.mo.ibea.IBEA.setup:2 evox.algorithms.mo.knea.KnEA.setup:2
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:2
+#: evox.algorithms.mo.moead.MOEAD.setup:2
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:2
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:2
+#: evox.algorithms.mo.nsga2.NSGA2.setup:2
+#: evox.algorithms.mo.nsga3.NSGA3.setup:2 evox.algorithms.mo.rvea.RVEA.setup:2
+#: evox.algorithms.mo.spea2.SPEA2.setup:2 evox.algorithms.mo.sra.SRA.setup:2
+#: evox.algorithms.mo.tdea.TDEA.setup:2
+#: evox.algorithms.so.de_variants.code.CoDE.setup:2
+#: evox.algorithms.so.de_variants.de.DE.setup:2
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:2
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:2
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:2
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:2
+#: evox.algorithms.so.es_variants.ars.ARS.setup:2
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:2
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:2
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:2
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:2
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:2
+#: evox.algorithms.so.es_variants.des.DES.setup:2
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:2
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:2
+#: evox.algorithms.so.es_variants.les.LES.setup:2
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:2
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:2
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:2
+#: evox.algorithms.so.es_variants.nes.XNES.setup:2
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:2
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:2
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:2
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:2
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:2
+#: evox.algorithms.so.es_variants.snes.SNES.setup:2
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:2
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:2
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:2
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:2
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:2
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:2
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:2
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:2
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:2
+#: evox.core.module.Stateful.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:2
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:2 of
+msgid "Setup mutable state here"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
+#: evox.algorithms.containers.coevolution.Coevolution.setup:4
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:4
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:4
+#: evox.algorithms.mo.bige.BiGE.setup:4
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:4
+#: evox.algorithms.mo.gde3.GDE3.setup:4 evox.algorithms.mo.hype.HypE.setup:4
+#: evox.algorithms.mo.ibea.IBEA.setup:4 evox.algorithms.mo.knea.KnEA.setup:4
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:4
+#: evox.algorithms.mo.moead.MOEAD.setup:4
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:4
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:4
+#: evox.algorithms.mo.nsga2.NSGA2.setup:4
+#: evox.algorithms.mo.nsga3.NSGA3.setup:4 evox.algorithms.mo.rvea.RVEA.setup:4
+#: evox.algorithms.mo.spea2.SPEA2.setup:4 evox.algorithms.mo.sra.SRA.setup:4
+#: evox.algorithms.mo.tdea.TDEA.setup:4
+#: evox.algorithms.so.de_variants.code.CoDE.setup:4
+#: evox.algorithms.so.de_variants.de.DE.setup:4
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:4
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:4
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:4
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:4
+#: evox.algorithms.so.es_variants.ars.ARS.setup:4
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:4
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:4
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:4
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:4
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:4
+#: evox.algorithms.so.es_variants.des.DES.setup:4
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:4
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:4
+#: evox.algorithms.so.es_variants.les.LES.setup:4
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:4
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:4
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:4
+#: evox.algorithms.so.es_variants.nes.XNES.setup:4
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:4
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:4
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:4
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:4
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:4
+#: evox.algorithms.so.es_variants.snes.SNES.setup:4
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:4
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:4
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:4
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:4
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:4
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:4
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:4
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:4
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:4
+#: evox.core.module.Stateful.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:4
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:4 of
+msgid ""
+"The state it self is immutable, but it act as a mutable state by "
+"returning new state each time."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
+#: evox.algorithms.containers.coevolution.Coevolution.setup:10
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
+#: evox.algorithms.mo.bige.BiGE.setup:10
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
+#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
+#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
+#: evox.algorithms.mo.moead.MOEAD.setup:10
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
+#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.nsga3.NSGA3.setup:10
+#: evox.algorithms.mo.rvea.RVEA.setup:10
+#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
+#: evox.algorithms.mo.tdea.TDEA.setup:10
+#: evox.algorithms.so.de_variants.code.CoDE.setup:10
+#: evox.algorithms.so.de_variants.de.DE.setup:10
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
+#: evox.algorithms.so.es_variants.ars.ARS.setup:10
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
+#: evox.algorithms.so.es_variants.des.DES.setup:10
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
+#: evox.algorithms.so.es_variants.les.LES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
+#: evox.algorithms.so.es_variants.nes.XNES.setup:10
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
+#: evox.algorithms.so.es_variants.snes.SNES.setup:10
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:10
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
+#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:10 of
+msgid "**key**"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
+#: evox.algorithms.containers.coevolution.Coevolution.setup:10
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
+#: evox.algorithms.mo.bige.BiGE.setup:10
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
+#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
+#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
+#: evox.algorithms.mo.moead.MOEAD.setup:10
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
+#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.nsga3.NSGA3.setup:10
+#: evox.algorithms.mo.rvea.RVEA.setup:10
+#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
+#: evox.algorithms.mo.tdea.TDEA.setup:10
+#: evox.algorithms.so.de_variants.code.CoDE.setup:10
+#: evox.algorithms.so.de_variants.de.DE.setup:10
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
+#: evox.algorithms.so.es_variants.ars.ARS.setup:10
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
+#: evox.algorithms.so.es_variants.des.DES.setup:10
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
+#: evox.algorithms.so.es_variants.les.LES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
+#: evox.algorithms.so.es_variants.nes.XNES.setup:10
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
+#: evox.algorithms.so.es_variants.snes.SNES.setup:10
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:10
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
+#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:10 of
+msgid "A PRNGKey."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
+#: evox.algorithms.containers.coevolution.Coevolution.setup
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup evox.algorithms.mo.bige.BiGE.setup
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup
+#: evox.algorithms.mo.gde3.GDE3.setup evox.algorithms.mo.hype.HypE.setup
+#: evox.algorithms.mo.ibea.IBEA.setup evox.algorithms.mo.knea.KnEA.setup
+#: evox.algorithms.mo.lmocso.LMOCSO.setup evox.algorithms.mo.moead.MOEAD.setup
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup
+#: evox.algorithms.mo.nsga2.NSGA2.setup evox.algorithms.mo.nsga3.NSGA3.setup
+#: evox.algorithms.mo.rvea.RVEA.setup evox.algorithms.mo.spea2.SPEA2.setup
+#: evox.algorithms.mo.sra.SRA.setup evox.algorithms.mo.tdea.TDEA.setup
+#: evox.algorithms.so.de_variants.code.CoDE.setup
+#: evox.algorithms.so.de_variants.de.DE.setup
+#: evox.algorithms.so.de_variants.jade.JaDE.setup
+#: evox.algorithms.so.de_variants.sade.SaDE.setup
+#: evox.algorithms.so.de_variants.shade.SHADE.setup
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
+#: evox.algorithms.so.es_variants.ars.ARS.setup
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup
+#: evox.algorithms.so.es_variants.des.DES.setup
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup
+#: evox.algorithms.so.es_variants.les.LES.setup
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup
+#: evox.algorithms.so.es_variants.nes.XNES.setup
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup
+#: evox.algorithms.so.es_variants.rmes.RMES.setup
+#: evox.algorithms.so.es_variants.snes.SNES.setup
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup
+#: evox.algorithms.so.pso_variants.cso.CSO.setup
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell
+#: evox.algorithms.so.pso_variants.pso.PSO.setup
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
+#: evox.core.module.Stateful.init evox.core.module.Stateful.setup
+#: evox.core.problem.Problem.evaluate
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
+#: evox.workflows.distributed.RayDistributedWorkflow.setup
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+msgid "Returns"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:27
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:26
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:27
+#: evox.algorithms.containers.coevolution.Coevolution.setup:27
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:27
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:27
+#: evox.algorithms.mo.bige.BiGE.setup:27
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:27
+#: evox.algorithms.mo.gde3.GDE3.setup:27 evox.algorithms.mo.hype.HypE.setup:27
+#: evox.algorithms.mo.ibea.IBEA.setup:27 evox.algorithms.mo.knea.KnEA.setup:27
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:27
+#: evox.algorithms.mo.moead.MOEAD.setup:27
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:27
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:27
+#: evox.algorithms.mo.nsga2.NSGA2.setup:27
+#: evox.algorithms.mo.nsga3.NSGA3.setup:27
+#: evox.algorithms.mo.rvea.RVEA.setup:27
+#: evox.algorithms.mo.spea2.SPEA2.setup:27 evox.algorithms.mo.sra.SRA.setup:27
+#: evox.algorithms.mo.tdea.TDEA.setup:27
+#: evox.algorithms.so.de_variants.code.CoDE.setup:27
+#: evox.algorithms.so.de_variants.de.DE.setup:27
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:27
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:27
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:27
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:27
+#: evox.algorithms.so.es_variants.ars.ARS.setup:27
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:27
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:27
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:27
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:27
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:27
+#: evox.algorithms.so.es_variants.des.DES.setup:27
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:27
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:27
+#: evox.algorithms.so.es_variants.les.LES.setup:27
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:27
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:27
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:27
+#: evox.algorithms.so.es_variants.nes.XNES.setup:27
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:27
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:27
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:27
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:27
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:27
+#: evox.algorithms.so.es_variants.snes.SNES.setup:27
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:27
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:27
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:27
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:27
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:27
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:27
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:27
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:27
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:27
+#: evox.core.module.Stateful.init:26 evox.core.module.Stateful.setup:27
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:27
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:27
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:27
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:27
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:27
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:28
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:29 of
+msgid "State"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:15
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:15
+#: evox.algorithms.containers.coevolution.Coevolution.setup:15
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:15
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:15
+#: evox.algorithms.mo.bige.BiGE.setup:15
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:15
+#: evox.algorithms.mo.gde3.GDE3.setup:15 evox.algorithms.mo.hype.HypE.setup:15
+#: evox.algorithms.mo.ibea.IBEA.setup:15 evox.algorithms.mo.knea.KnEA.setup:15
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:15
+#: evox.algorithms.mo.moead.MOEAD.setup:15
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:15
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:15
+#: evox.algorithms.mo.nsga2.NSGA2.setup:15
+#: evox.algorithms.mo.nsga3.NSGA3.setup:15
+#: evox.algorithms.mo.rvea.RVEA.setup:15
+#: evox.algorithms.mo.spea2.SPEA2.setup:15 evox.algorithms.mo.sra.SRA.setup:15
+#: evox.algorithms.mo.tdea.TDEA.setup:15
+#: evox.algorithms.so.de_variants.code.CoDE.setup:15
+#: evox.algorithms.so.de_variants.de.DE.setup:15
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:15
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:15
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:15
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:15
+#: evox.algorithms.so.es_variants.ars.ARS.setup:15
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:15
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:15
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:15
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:15
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:15
+#: evox.algorithms.so.es_variants.des.DES.setup:15
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:15
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:15
+#: evox.algorithms.so.es_variants.les.LES.setup:15
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:15
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:15
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:15
+#: evox.algorithms.so.es_variants.nes.XNES.setup:15
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:15
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:15
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:15
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:15
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:15
+#: evox.algorithms.so.es_variants.snes.SNES.setup:15
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:15
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:15
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:15
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:15
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:15
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:15
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:15
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:15
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:15
+#: evox.core.module.Stateful.setup:15
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:15
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:15
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:15
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:15
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:15 of
+msgid "The state of this module."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
+#: evox.algorithms.containers.coevolution.Coevolution.setup
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
+#: evox.core.module.Stateful.__init__ evox.core.module.Stateful.init
+#: evox.core.module.Stateful.setup evox.core.problem.Problem.evaluate
+#: evox.core.state.State.__init__ evox.core.state.State.find_path_to
+#: evox.core.state.State.update
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+msgid "Return type"
+msgstr ""
+
+#: evox.algorithms.containers.coevolution.Coevolution:2 of
+msgid ""
+"Automatically apply cooperative coevolution to any algorithm. The process"
+" of cooperative coevolution is not vectorized, meaning all sub-"
+"populations will evolve one at a time (round-robin) in each generation."
+msgstr ""
+
+#: ../../source/api/algorithms/containers/clustered.rst:3
+msgid "Clustered Algorithm"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:2 of
+msgid ""
+"A container that split the encoding into subproblems, and run an "
+"Algorithm on each."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:4 of
+msgid ""
+"Can take in any base algorithm, split the problem into n different sub-"
+"problems and solve each problem using the base algorithm. Dim must be a "
+"multiple of num_cluster, and num_cluster must be a multiple of num_gpus."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:2
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:2
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:2
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:2
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:2
+#: evox.core.algorithm.Algorithm.ask:2 of
+msgid "Ask the algorithm"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:4
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:4
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:4
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:4
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:4
+#: evox.core.algorithm.Algorithm.ask:4 of
+msgid "Ask the algorithm for points to explore"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.ask:9 evox.core.algorithm.Algorithm.tell:9
+#: evox.core.problem.Problem.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+msgid "**state**"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.core.algorithm.Algorithm.ask:9 of
+msgid "The state of this algorithm."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14 of
+msgid "population"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14 of
+msgid "The candidate solution."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:29
+#: evox.core.algorithm.Algorithm.ask:29 evox.core.algorithm.Algorithm.tell:29
+#: of
+msgid "state"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:17
+#: evox.core.algorithm.Algorithm.ask:17 evox.core.problem.Problem.evaluate:16
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
+msgid "The new state of the algorithm."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:2
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:2
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:2
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:2
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:2
+#: evox.core.algorithm.Algorithm.tell:2 of
+msgid "Tell the algorithm more information"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:4
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:4
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:4
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:4
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:4
+#: evox.core.algorithm.Algorithm.tell:4 of
+msgid ""
+"Tell the algorithm about the points it chose and their corresponding "
+"fitness"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.tell:9 of
+msgid "The state of this algorithm"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:12
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:12
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
+#: evox.core.algorithm.Algorithm.tell:12 of
+msgid "**fitness**"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:12
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:12
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
+#: evox.core.algorithm.Algorithm.tell:12 of
+msgid "The fitness"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:17
+#: evox.core.algorithm.Algorithm.tell:17 of
+msgid "The new state of the algorithm"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:2 of
+msgid "Cluster container with random mask"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:4 of
+msgid ""
+"pop_size is needed, because JAX needs static shape, if pop_size is None, "
+"it will try to read pop_size from base_algorithm"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:2
+#: evox.core.module.Stateful.init:2 of
+msgid "Initialize this module and all submodules"
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:4
+#: evox.core.module.Stateful.init:4 of
+msgid "This method should not be overwritten."
+msgstr ""
+
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:14
+#: evox.core.module.Stateful.init:14 of
+msgid "The state of this module and all submodules combined."
+msgstr ""
+
+#: ../../source/api/algorithms/containers/index.rst:3
+msgid "Containers"
+msgstr ""
+
+#: ../../source/api/algorithms/containers/tree.rst:3
+msgid "Tree Algorithm"
+msgstr ""
+
+#: ../../source/api/algorithms/index.rst:3
+msgid "Algorithms"
+msgstr ""
+
+#: evox.algorithms:1 of
+msgid ""
+"The module that contains all pre-defined algorithms, including both "
+"single-objective algorithms and multi-objective algorithms."
+msgstr ""
+
+#: ../../source/api/algorithms/mo/bce_ibea.rst:3
+msgid "BCEIBEA"
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:2 of
+msgid "Bi-criterion evolution based IBEA"
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/7347391"
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:6 of
+msgid ""
+"Note: The number of outer iterations needs to be set to Maximum "
+"Generation*2+1."
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:25 evox.algorithms.mo.ibea.IBEA:21
+#: evox.algorithms.mo.lmocso.LMOCSO:23 evox.algorithms.mo.rvea.RVEA:24 of
+msgid "Args:"
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:25 of
+msgid ""
+"kappa (float, optional): The scaling factor for selecting parents in the "
+"environmental selection."
+msgstr ""
+
+#: evox.algorithms.mo.bce_ibea.BCEIBEA:10 of
+msgid ""
+"It controls the probability of selecting parents based on their fitness "
+"values. Defaults to 0.05."
+msgstr ""
+
+#: ../../source/api/algorithms/mo/bige.rst:3
+msgid "BiGE"
+msgstr ""
+
+#: evox.algorithms.mo.bige.BiGE:2 of
+msgid "BiGE algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.bige.BiGE:4 of
+msgid "link: https://doi.org/10.1016/j.artint.2015.06.007"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/eagmoead.rst:3
+msgid "EAG-MOEA/D"
+msgstr ""
+
+#: evox.algorithms.mo.eagmoead.EAGMOEAD:2 of
+msgid "EAG-MOEA/D algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.eagmoead.EAGMOEAD:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/6882229"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/gde3.rst:3
+msgid "GDE3"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3:2 of
+msgid "GDE3 algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3:4 of
+msgid "link: https://ieeexplore.ieee.org/document/1554717"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3.__init__:3 of
+msgid "Parameters for Differential Evolution"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3.__init__:4 of
+msgid "F"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3.__init__:5 of
+msgid "The scaling factor"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3.__init__:22 of
+msgid "CR"
+msgstr ""
+
+#: evox.algorithms.mo.gde3.GDE3.__init__:7 of
+msgid "The probability of crossover"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/hype.rst:3
+msgid "HypE"
+msgstr ""
+
+#: evox.algorithms.mo.hype.HypE:2 of
+msgid "HypE algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.hype.HypE:4 of
+msgid ""
+"link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-"
+"Algorithm-for-Fast-Hypervolume-Based-Many"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/ibea.rst:3
+msgid "IBEA"
+msgstr ""
+
+#: evox.algorithms.mo.ibea.IBEA:2 of
+msgid "IBEA algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.ibea.IBEA:4 of
+msgid "link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
+msgstr ""
+
+#: evox.algorithms.mo.ibea.IBEA:7 of
+msgid "kappa: fitness scaling factor. Default: 0.05"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/index.rst:3
+msgid "Multi-objective"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/knea.rst:3
+msgid "KnEA"
+msgstr ""
+
+#: evox.algorithms.mo.knea.KnEA:2 of
+msgid "KnEA algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.knea.KnEA:4 of
+msgid "link: https://ieeexplore.ieee.org/document/6975108"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/lmocso.rst:3
+msgid "LMOCSO"
+msgstr ""
+
+#: evox.algorithms.mo.lmocso.LMOCSO:2 of
+msgid "LMOCSO algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.lmocso.LMOCSO:4 of
+msgid "link: https://ieeexplore.ieee.org/document/8681243"
+msgstr ""
+
+#: evox.algorithms.mo.lmocso.LMOCSO:7 of
+msgid ""
+"alpha : The parameter controlling the rate of change of penalty. Defaults"
+" to 2. max_gen : The maximum number of generations. Defaults to 100. If "
+"the number of iterations is not 100, change the value based on the actual"
+" value."
+msgstr ""
+
+#: ../../source/api/algorithms/mo/moead.rst:3
+msgid "MOEA/D"
+msgstr ""
+
+#: evox.algorithms.mo.moead.MOEAD:2 of
+msgid "MOEA/D algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.moead.MOEAD:4 of
+msgid "link: https://ieeexplore.ieee.org/document/4358754"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/moeaddra.rst:3
+msgid "MOEA/D-DRA"
+msgstr ""
+
+#: evox.algorithms.mo.moeaddra.MOEADDRA:2 of
+msgid "MOEA/D-DRA algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.moeaddra.MOEADDRA:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/4982949"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/moeadm2m.rst:3
+msgid "MOEA/D-M2M"
+msgstr ""
+
+#: evox.algorithms.mo.moeadm2m.MOEADM2M:2 of
+msgid "MOEA/D based on MOP to MOP algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.moeadm2m.MOEADM2M:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/6595549"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/nsga2.rst:3
+msgid "NSGA-II"
+msgstr ""
+
+#: evox.algorithms.mo.nsga2.NSGA2:2 of
+msgid "NSGA-II algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.nsga2.NSGA2:4 of
+msgid "link: https://ieeexplore.ieee.org/document/996017"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/nsga3.rst:3
+msgid "NSGA-III"
+msgstr ""
+
+#: evox.algorithms.mo.nsga3.NSGA3:2 of
+msgid "NSGA-III algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.nsga3.NSGA3:4 of
+msgid "link: https://ieeexplore.ieee.org/document/6600851"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/rvea.rst:3
+msgid "RVEA"
+msgstr ""
+
+#: evox.algorithms.mo.rvea.RVEA:2 of
+msgid "RVEA algorithms"
+msgstr ""
+
+#: evox.algorithms.mo.rvea.RVEA:4 of
+msgid "link: https://ieeexplore.ieee.org/document/7386636"
+msgstr ""
+
+#: evox.algorithms.mo.rvea.RVEA:7 of
+msgid ""
+"alpha : The parameter controlling the rate of change of penalty. Defaults"
+" to 2. fr : The frequency of reference vector adaptation. Defaults to "
+"0.1. max_gen : The maximum number of generations. Defaults to 100. If the"
+" number of iterations is not 100, change the value based on the actual "
+"value."
+msgstr ""
+
+#: ../../source/api/algorithms/mo/spea2.rst:3
+msgid "SPEA2"
+msgstr ""
+
+#: evox.algorithms.mo.spea2.SPEA2:2 of
+msgid "SPEA2 algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.spea2.SPEA2:4 of
+msgid "link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/sra.rst:3
+msgid "SRA"
+msgstr ""
+
+#: evox.algorithms.mo.sra.SRA:2 of
+msgid "Stochastic ranking algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.sra.SRA:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/7445185"
+msgstr ""
+
+#: ../../source/api/algorithms/mo/tdea.rst:3
+msgid "tDEA"
+msgstr ""
+
+#: evox.algorithms.mo.tdea.TDEA:2 of
+msgid "Theta-dominance based evolutionary algorithm"
+msgstr ""
+
+#: evox.algorithms.mo.tdea.TDEA:4 of
+msgid "link: https://ieeexplore.ieee.org/abstract/document/7080938"
+msgstr ""
+
+#: ../../source/api/algorithms/so/amalgam.rst:3
+msgid "AMaLGaM"
+msgstr ""
+
+#: ../../source/api/algorithms/so/ars.rst:3
+msgid "ARS"
+msgstr ""
+
+#: ../../source/api/algorithms/so/asebo.rst:3
+msgid "ASEBO"
+msgstr ""
+
+#: ../../source/api/algorithms/so/clpso.rst:3
+msgid "CLPSO"
+msgstr ""
+
+#: ../../source/api/algorithms/so/clpso_s.rst:3
+msgid "CLPSO_S"
+msgstr ""
+
+#: ../../source/api/algorithms/so/cma_es.rst:3
+msgid "CMA-ES"
+msgstr ""
+
+#: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:2
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:2
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.__init__:2
+#: evox.algorithms.so.es_variants.ma_es.MAES.__init__:2
+#: evox.algorithms.so.es_variants.rmes.RMES.__init__:2 of
+msgid ""
+"This implementation follows `The CMA Evolution Strategy: A Tutorial "
+"<https://arxiv.org/pdf/1604.00772.pdf>`_."
+msgstr ""
+
+#: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:5
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:5
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.__init__:5
+#: evox.algorithms.so.es_variants.ma_es.MAES.__init__:5
+#: evox.algorithms.so.es_variants.rmes.RMES.__init__:5 of
+msgid ""
+"CMA-ES involves eigendecomposition, which introduces relatively large "
+"numerical error, and may lead to non-deterministic behavior on different "
+"hardware backends."
+msgstr ""
+
+#: ../../source/api/algorithms/so/code.rst:3
+msgid "CoDE"
+msgstr ""
+
+#: evox.algorithms.so.de_variants.code.CoDE:2 of
+msgid ""
+"CoDE Wang Y, Cai Z, Zhang Q. Differential evolution with composite trial "
+"vector generation strategies and control parameters[J]. IEEE transactions"
+" on evolutionary computation, 2011, 15(1): 55-66."
+msgstr ""
+
+#: ../../source/api/algorithms/so/cr_fm_nes.rst:3
+msgid "CR-FM-NES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/cso.rst:3
+msgid "CSO"
+msgstr ""
+
+#: ../../source/api/algorithms/so/de.rst:3
+msgid "DE"
+msgstr ""
+
+#: ../../source/api/algorithms/so/des.rst:3
+msgid "DES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/dms_pso_el.rst:3
+msgid "DMS-PSO-EL"
+msgstr ""
+
+#: ../../source/api/algorithms/so/esmc.rst:3
+msgid "ESMC"
+msgstr ""
+
+#: ../../source/api/algorithms/so/fips.rst:3
+msgid "FIPS"
+msgstr ""
+
+#: ../../source/api/algorithms/so/guide_es.rst:3
+msgid "GuidedES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/index.rst:3
+msgid "Single-objective"
+msgstr ""
+
+#: ../../source/api/algorithms/so/jade.rst:3
+msgid "JaDE"
+msgstr ""
+
+#: evox.algorithms.so.de_variants.jade.JaDE:2 of
+msgid ""
+"JaDE Zhang J, Sanderson A C. JADE: adaptive differential evolution with "
+"optional external archive[J]. IEEE Transactions on evolutionary "
+"computation, 2009, 13(5): 945-958."
+msgstr ""
+
+#: ../../source/api/algorithms/so/les.rst:3
+msgid "LES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/ma_es.rst:3
+msgid "MA-ES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/nes.rst:3
+msgid "xNES"
+msgstr ""
+
+#: evox.algorithms.so.es_variants.nes.SeparableNES.__init__:2
+#: evox.algorithms.so.es_variants.nes.XNES.__init__:2 of
+msgid "See [link](https://arxiv.org/pdf/1106.4487.pdf) for default parameters"
+msgstr ""
+
+#: ../../source/api/algorithms/so/noise_reuse_es.rst:3
+msgid "Noise-Reuse-ES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/open_es.rst:3
+msgid "OpenES"
+msgstr ""
+
+#: evox.algorithms.so.es_variants.open_es.OpenES.__init__:2 of
+msgid ""
+"Implement the algorithm described in \"Evolution Strategies as a Scalable"
+" Alternative to Reinforcement Learning\" from "
+"https://arxiv.org/abs/1703.03864"
+msgstr ""
+
+#: ../../source/api/algorithms/so/persistent_es.rst:3
+msgid "PersistentES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/pgpe.rst:3
+msgid "PGPE"
+msgstr ""
+
+#: ../../source/api/algorithms/so/pso.rst:3
+msgid "PSO"
+msgstr ""
+
+#: ../../source/api/algorithms/so/rmes.rst:3
+msgid "RMES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/sade.rst:3
+msgid "SaDE"
+msgstr ""
+
+#: evox.algorithms.so.de_variants.sade.SaDE:2 of
+msgid ""
+"SaDE Qin A K, Huang V L, Suganthan P N. Differential evolution algorithm "
+"with strategy adaptation for global numerical optimization[J]. IEEE "
+"transactions on Evolutionary Computation, 2008, 13(2): 398-417."
+msgstr ""
+
+#: ../../source/api/algorithms/so/shade.rst:3
+msgid "SHADE"
+msgstr ""
+
+#: evox.algorithms.so.de_variants.shade.SHADE:2 of
+msgid ""
+"SHADE Tanabe R, Fukunaga A. Success-history based parameter adaptation "
+"for differential evolution[C]//2013 IEEE congress on evolutionary "
+"computation. IEEE, 2013: 71-78."
+msgstr ""
+
+#: ../../source/api/algorithms/so/sl_pso_gs.rst:3
+msgid "SL-PSO-GS"
+msgstr ""
+
+#: ../../source/api/algorithms/so/sl_pso_us.rst:3
+msgid "SL-PSO-US"
+msgstr ""
+
+#: ../../source/api/algorithms/so/snes.rst:3
+msgid "SNES"
+msgstr ""
+
+#: ../../source/api/algorithms/so/swmmpso.rst:3
+msgid "SWMMPSO"
+msgstr ""
+
+#: ../../source/api/core/algorithm.rst:3
+msgid "Algorithm Class"
+msgstr ""
+
+#: evox.core.algorithm.Algorithm:2 evox.core.problem.Problem:2 of
+msgid "Base class for all algorithms"
+msgstr ""
+
+#: ../../source/api/core/index.rst:3
+msgid "Core Classes"
+msgstr ""
+
+#: ../../source/api/core/module.rst:3
+msgid "Module Class"
+msgstr ""
+
+#: evox.core.module.Stateful:2 of
+msgid "Base class for all evox modules."
+msgstr ""
+
+#: evox.core.module.Stateful:4 of
+msgid "This module allow easy managing of states."
+msgstr ""
+
+#: evox.core.module.Stateful:6 of
+msgid ""
+"All the constants (e.g. hyperparameters) are initialized in the "
+"``__init__``, and mutated states are initialized in the ``setup`` method."
+msgstr ""
+
+#: evox.core.module.Stateful:9 of
+msgid ""
+"The ``init`` method will automatically call the ``setup`` of the current "
+"module and recursively call ``setup`` methods of all submodules."
+msgstr ""
+
+#: ../../source/api/core/problem.rst:3
+msgid "Problem Class"
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:2
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:2 of
+msgid "Evaluate the fitness at given points"
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:16
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
+msgid "dict"
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8 of
+msgid "The state of this problem."
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:11
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
+msgid "**X**"
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:31
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:31 of
+msgid "ndarray"
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:11
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
+msgid "The population."
+msgstr ""
+
+#: evox.core.problem.Problem.evaluate:19
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:19 of
+msgid "The fitness."
+msgstr ""
+
+#: ../../source/api/core/state.rst:3
+msgid "State Class"
+msgstr ""
+
+#: evox.core.state.State:2 of
+msgid "A class represents state"
+msgstr ""
+
+#: evox.core.state.State:4 of
+msgid ""
+"``State`` is immutable, to update state, use the ``update`` method or the"
+" ``|`` operator. ``State`` has already implemented ``tree_flatten``, "
+"``tree_unflatten`` and has registered as a valid pytree node. So it can "
+"be used as pytree with JAX without any issue."
+msgstr ""
+
+#: evox.core.state.State.__init__:2 of
+msgid "Construct a ``State`` from dict or keyword arguments"
+msgstr ""
+
+#: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
+msgid "Example::"
+msgstr ""
+
+#: evox.core.state.State.find_path_to:2 of
+msgid ""
+"Find the state with node_id matching the state_id A hint can be given "
+"with the module_name"
+msgstr ""
+
+#: evox.core.state.State.update:2 of
+msgid "Update the current State with another State or dict and return new State."
+msgstr ""
+
+#: evox.core.state.State.update:4 of
+msgid "This method also accept keyword arguments."
+msgstr ""
+
+#: ../../source/api/index.rst:3
+msgid "EvoX's API"
+msgstr ""
+
+#: ../../source/api/metrics/gd.rst:3
+msgid "Generational Distance"
+msgstr ""
+
+#: ../../source/api/metrics/hv.rst:3
+msgid "Hypervolume"
+msgstr ""
+
+#: evox.metrics.hypervolume.HV:2 of
+msgid ""
+"Hypervolume indicator Implemented using monte carlo. We offers two "
+"different sample methods: `bounding_cube` and `each_cube`. With "
+"`bounding_cube`, we draw samples from a hypercube that can bound all "
+"objectives. With `each_cube`, we draw samples from each hypercube form by"
+" each objective and the reference point. Since reference point is often "
+"far from pf, `bounding_cube` method usually gives more accurate result."
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:8 of
+msgid "**ref**"
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:8 of
+msgid "The reference point."
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:11 of
+msgid "**num_sample**"
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:11 of
+msgid "Number of samples to draw when doing monte carlo."
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:28 of
+msgid "**sample_method**"
+msgstr ""
+
+#: evox.metrics.hypervolume.HV.__init__:14 of
+msgid "`bounding_cube` or `each_cube`. Default to `bounding_cube`."
+msgstr ""
+
+#: ../../source/api/metrics/igd.rst:3
+msgid "Inverted Generational Distance"
+msgstr ""
+
+#: ../../source/api/metrics/index.rst:3
+msgid "Metrics"
+msgstr ""
+
+#: ../../source/api/monitors/evoxvis.rst:3
+msgid "EvoXVis Monitor"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor:2 of
+msgid ""
+"This class serialize data to apache arrow format, which can be picked up "
+"and used in EvoXVis. The tensors are stored as fixed size binary and the "
+"dtype is recorded in the metadata."
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:10 of
+msgid "**base_filename**"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:8 of
+msgid ""
+"The base filename of the log file, the final filename will be "
+"``<base_filename>_<i>.arrow``, where i is an incrementing number."
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:17 of
+msgid "**out_dir**"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:13 of
+msgid ""
+"This directory to write the log file into. When set to None, the default "
+"directory will be used. The default is ``<TEMP_DIR>/evox``, on Windows, "
+"it's usually ``C:\\TEMP\\evox``, and on MacOS/Linux/BSDs it's "
+"``/tmp/evox``."
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:22 of
+msgid "**out_type**"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:20 of
+msgid ""
+"\"stream\" or \"file\", For more information, please refer to "
+"https://arrow.apache.org/docs/python/ipc.html"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:29
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
+msgid "**batch_size**"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:25 of
+msgid ""
+"The monitor will buffer the data in memory and write out every `batch "
+"size`. Choose a larger value may improve I/O performance and improve "
+"compression ratio, if compression is enabled. Default to 64."
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:48 of
+msgid "**compression**"
+msgstr ""
+
+#: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:32 of
+msgid ""
+"Controls the compression algorithm used when writing to the file. "
+"Available options are None, \"lz4\", \"zstd\", \"lz4\" is extremely fast,"
+" with poor compression ratio, \"zstd\" is fast, but also with good "
+"compression ratio."
+msgstr ""
+
+#: ../../source/api/monitors/index.rst:3
+msgid "Monitors"
+msgstr ""
+
+#: ../../source/api/monitors/std_mo.rst:3
+msgid "Standard Multi-objective Monitor"
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor:2 of
+msgid ""
+"Standard multi-objective monitor Used for multi-objective workflow, can "
+"monitor fitness and record the pareto front."
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor:14 of
+msgid "**record_pf**"
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor:10 of
+msgid ""
+"Whether to record the pareto front during the run. Default to False. "
+"Setting it to True will cause the monitor to maintain a pareto front of "
+"all the solutions with unlimited size, which may hurt performance."
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor:31
+#: evox.monitors.std_so_monitor.StdSOMonitor:28 of
+msgid "**record_fit_history**"
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor:17
+#: evox.monitors.std_so_monitor.StdSOMonitor:14 of
+msgid ""
+"Whether to record the full history of fitness value. Default to True. "
+"Setting it to False may reduce memory usage."
+msgstr ""
+
+#: ../../source/api/monitors/std_so.rst:3
+msgid "Standard Single-objective Monitor"
+msgstr ""
+
+#: evox.monitors.std_so_monitor.StdSOMonitor:2 of
+msgid ""
+"Standard single-objective monitor Used for single-objective workflow, can"
+" monitor fitness and the population."
+msgstr ""
+
+#: evox.monitors.std_so_monitor.StdSOMonitor:11 of
+msgid "**record_topk**"
+msgstr ""
+
+#: evox.monitors.std_so_monitor.StdSOMonitor:10 of
+msgid ""
+"Control how many elite solutions are recorded. Default is 1, which will "
+"record the best individual."
+msgstr ""
+
+#: ../../source/api/problems/index.rst:3
+msgid "Problems"
+msgstr ""
+
+#: evox.problems:1 of
+msgid "The module that contains all pre-defined problems"
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/index.rst:3
+#: ../../source/guide/basics/2-problems.ipynb:40002
+msgid "Neuroevolution"
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/reinforcement_learning/brax.rst:3
+msgid "Brax-based Problem"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:2 of
+msgid "Contruct a brax-based problem"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:9
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:9 of
+msgid "**policy**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:8 of
+msgid ""
+"A function that accept two arguments the first one is the parameter and "
+"the second is the input."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
+msgid "**env_name**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12 of
+msgid "The environment name."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:15 of
+msgid ""
+"The number of brax environments to run in parallel. Usually this should "
+"match the population size at the algorithm side."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
+msgid "**cap_episode**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
+msgid "The maximum number episodes to run."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:36 of
+msgid "**backend**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:22 of
+msgid ""
+"Brax's backend, one of \"generalized\", \"positional\", \"spring\". "
+"Default to \"generalized\"."
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/reinforcement_learning/env_pool.rst:3
+msgid "Env Pool"
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/reinforcement_learning/gym.rst:3
+msgid "Gym"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:2 of
+msgid "Construct a gym problem"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26 of
+msgid "**num_workers**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12 of
+msgid "Number of worker actors."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
+msgid "**env_per_worker**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
+msgid "Number of gym environment per worker."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
+msgid "The name of the gym environment."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
+msgid "**env_options**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
+msgid "The options of the gym environment."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
+msgid "**env_creator**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
+msgid "A function with zero argument that returns an environment when called."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31 of
+msgid "**mo_keys**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:27 of
+msgid ""
+"Optional, a list of strings. If set, the environment is treated as a "
+"multi-objective problem, and different objective values are obtained "
+"through the `info` term returned by Gym. The `mo_keys` parameter provides"
+" the keys for accessing the objective values in the info dictionary. The "
+"objective values will be returned in the same order as specified in "
+"`mo_keys`."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:39 of
+msgid "**controller_options**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:34 of
+msgid ""
+"The runtime options for controller actor. This actor is used to control "
+"workers and run the policy at each step. For example, to enable GPU "
+"acceleration on the policy network, set this field to::"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:55 of
+msgid "**worker_options**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:42 of
+msgid "The runtime options for worker actors."
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/reinforcement_learning/index.rst:3
+msgid "Reinforcement Learning"
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/supervised_learning/index.rst:3
+msgid "Supervised Learning"
+msgstr ""
+
+#: ../../source/api/problems/neuroevolution/supervised_learning/torchvision.rst:3
+msgid "Torchvision Dataset"
+msgstr ""
+
+#: ../../source/api/problems/numerical/index.rst:3
+msgid "Numerical Benchmarks"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/ackley.rst:3
+msgid "Ackley"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/griewank.rst:3
+msgid "Griewank"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/index.md:1
+msgid "Test functions"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/rastrigin.rst:3
+msgid "Rastrigin"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/rosenbrock.rst:3
+msgid "Rosenbrock"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/sphere.rst:3
+msgid "Sphere"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/cec2022.rst:3
+msgid "CEC2022 Test Suit"
+msgstr ""
+
+#: evox.problems.numerical.cec2022_so.CEC2022TestSuit:2 of
+msgid ""
+"Instantiation format: problem_instance = CEC2022.create(1) i.e., "
+"problem_instance = F1_CEC2022()"
+msgstr ""
+
+#: evox.problems.numerical.cec2022_so.F10_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F11_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F12_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F1_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F2_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F3_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F4_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F5_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F6_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F7_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F8_CEC2022:2
+#: evox.problems.numerical.cec2022_so.F9_CEC2022:2 of
+msgid "Test problems of CEC2022"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/dtlz.rst:3
+msgid "DTLZ Test Suit"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/index.md:1
+msgid "Test suits"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/lsmop.rst:3
+msgid "LSMOP Test Suit"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:2
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:2 of
+msgid "init"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:8 of
+msgid "**d**"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:8
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:8 of
+msgid "the dimension of decision space"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:11 of
+msgid "**m**"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:11
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:11 of
+msgid "the number of object"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:27
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:27 of
+msgid "**ref_num**"
+msgstr ""
+
+#: evox.problems.numerical.lsmop.LSMOP1.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP2.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP3.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP4.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP5.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP6.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP7.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP8.__init__:14
+#: evox.problems.numerical.lsmop.LSMOP9.__init__:14 of
+msgid "ref_num * m is the Population of PF"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/maf.rst:3
+msgid "MaF Test Suit"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_suits/zdt.rst:3
+msgid "ZDT Test Suit"
+msgstr ""
+
+#: ../../source/api/workflows/distributed.rst:3
+msgid "Ray-based Distributed Workflow"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:2 of
+msgid "Create a distributed workflow"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:4 of
+msgid ""
+"Distributed workflow can distribute the workflow to different nodes, it "
+"will create num_workers copies of the workflows with the same seed, and "
+"at each step each workflow only evaluate part of the population, then "
+"pass the fitness to other nodes to recreate the whole fitness array."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:9 of
+msgid ""
+"pop_transform and fitness_transform are applied at each node, while "
+"global_fitness_transform is applied at the main node once per step, so "
+"monitor should be passed as global_fitness_transform."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
+#: evox.workflows.standard.StdWorkflow.__init__:8
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
+msgid "**algorithm**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
+#: evox.workflows.standard.StdWorkflow.__init__:8
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
+msgid "The algorithm."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
+#: evox.workflows.standard.StdWorkflow.__init__:11
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
+msgid "**problem**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
+#: evox.workflows.standard.StdWorkflow.__init__:11
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
+msgid "The problem."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:23 of
+msgid "**pop_size**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
+msgid ""
+"Population size, this argument together with num_workers will be used to "
+"determine the sharding strategy."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26 of
+msgid "Number of workers."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:30
+#: evox.workflows.standard.StdWorkflow.__init__:18
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:18 of
+msgid "**opt_direction**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29
+#: evox.workflows.standard.StdWorkflow.__init__:17
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:17 of
+msgid ""
+"The optimization direction, can be either \"min\" or \"max\" or a list of"
+" \"min\"/\"max\" to specific the direction for each objective."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:33 of
+msgid "**options**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:33 of
+msgid "The runtime options of the worker actor."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:36 of
+msgid "**pop_transform:**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:36 of
+msgid "Population transform, this transform is applied at each worker node."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:39 of
+msgid "**fitness_transform:**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:39 of
+msgid "Fitness transform, this transform is applied at each worker node."
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:55 of
+msgid "**global_fitness_transform:**"
+msgstr ""
+
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:42 of
+msgid "This transform is applied at the main node."
+msgstr ""
+
+#: ../../source/api/workflows/index.rst:3
+msgid "Workflows"
+msgstr ""
+
+#: ../../source/api/workflows/standard.rst:3
+msgid "Standard Workflow"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:14
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
+msgid "**monitor**"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:14
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
+msgid "Optional monitor."
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:23
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:23 of
+msgid "**pop_transform**"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:21
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:21 of
+msgid ""
+"Optional population transform function, usually used to decode the "
+"population into the format that can be understood by the problem."
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:27
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:27 of
+msgid "**fit_transform**"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:26
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:26 of
+msgid ""
+"Optional fitness transform function. usually used to apply fitness "
+"shaping."
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:30
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
+msgid "**record_pop**"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:30
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
+msgid "Whether to record the population if monitor is enabled."
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:49
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
+msgid "**record_time**"
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.__init__:33
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:33 of
+msgid ""
+"Whether to record the time at the end of each generation. Due to its "
+"timing nature, record_time requires synchronized functional call. Default"
+" to False."
+msgstr ""
+
+#: evox.workflows.standard.StdWorkflow.sample:2 of
+msgid "Sample the algorithm but don't change it's state"
+msgstr ""
+
+#: ../../source/api/workflows/uni.rst:3
+msgid "Universal Workflow"
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow:2 of
+msgid ""
+"Experimental unified workflow, designed to provide unparallel performance"
+" for EC workflow."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow:5 of
+msgid ""
+"Provide automatic multi-device (e.g. multiple gpus) computation as well "
+"as distributed computation using JAX's native components."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow:8 of
+msgid ""
+"Monitor is called using JAX's asynchronous host callback, thus closing "
+"the monitor is needed to wait for the callback to complete."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:40 of
+msgid "**jit_problem**"
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:39 of
+msgid "If the problem can be jit compiled by JAX or not. Default to True."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:44 of
+msgid "**jit_monitor**"
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:43 of
+msgid "If the monitor can be jit compiled by JAX or not. Default to False."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:63 of
+msgid "**num_objectives**"
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.__init__:47 of
+msgid ""
+"Number of objectives. When the problem can be jit compiled, this field is"
+" not needed. When the problem cannot be jit compiled, this field should "
+"be set, if not, default to 1."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:2 of
+msgid ""
+"Enable the distributed workflow to run across multiple nodes. To use "
+"jax's distribution ability, one need to run the same program on all nodes"
+" with different parameters in `jax.distributed.initialize`."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+msgid "The state."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:16 of
+msgid "The sharded state, distributed amoung all nodes."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:2 of
+msgid "Enable the workflow to run on multiple local devices."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:12 of
+msgid "**devices**"
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:11 of
+msgid "A list of devices. If set to None, all local devices will be used."
+msgstr ""
+
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:17 of
+msgid "The sharded state, distributed amoung all devices."
+msgstr ""
+
+#: ../../source/example/atari_pong.ipynb:10002
+msgid "Solving Pong with EvoX"
+msgstr ""
+
+#: ../../source/example/atari_pong.ipynb:10005
+msgid ""
+"Running this notebook requires installing evox, gymnasium, ale-py as well"
+" as Pong's image. Due to copy right issues, we cannot distribute the "
+"image here. Please follow the instructions [here](https://github.com"
+"/Farama-Foundation/AutoROM) to install the image."
+msgstr ""
+
+#: ../../source/example/custom_algorithm_and_problem.ipynb:10002
+msgid "Custom algorithm and problem"
+msgstr ""
+
+#: ../../source/example/custom_algorithm_and_problem.ipynb:10004
+msgid ""
+"This this notebook, we will show how to use the `Algorithm` and `Problem`"
+" classes to create a custom algorithm and problem. We will use the one-"
+"max problem as an example. The one-max problem is a simple problem where "
+"the goal is to maximize the number of ones in a binary string. For "
+"example, the string `01011` has a fitness of 3."
+msgstr ""
+
+#: ../../source/example/gym_classic_control.ipynb:10002
+msgid "Classic control with Gym"
+msgstr ""
+
+#: ../../source/example/gym_classic_control.ipynb:10004
+msgid ""
+"In this notebook, we will use the Gym to train an agent that solves "
+"classic control problems."
+msgstr ""
+
+#: ../../source/example/gym_classic_control.ipynb:70002
+msgid "Now run the workflow. You may see warnings like"
+msgstr ""
+
+#: ../../source/example/gym_classic_control.ipynb:70007
+msgid ""
+"This is expected behaivor, because we have a controller thread that "
+"manages a group of Gym workers, and the controller thread does not use "
+"GPU."
+msgstr ""
+
+#: ../../source/example/gym_classic_control.ipynb:70010
+msgid ""
+"If the program stucks, you may want to check whether is `num_workers` is "
+"larger than the number of available cores on your computer."
+msgstr ""
+
+#: ../../source/example/index.md:1
+msgid "EvoX's examples"
+msgstr ""
+
+#: ../../source/example/pso_ackley.ipynb:10002
+msgid "Numerical Optimization"
+msgstr ""
+
+#: ../../source/example/pso_ackley.ipynb:10004
+msgid ""
+"In this notebook, we will use the Particle Swarm Optimization (PSO) "
+"algorithm to find the minimum of the Ackley function."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:1
+msgid "Working with state in EvoX"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:3
+msgid "EvoX is designed around the stateful computation."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:5
+msgid ""
+"There are two most fundamental classes, namely {class}`Stateful "
+"<evox.Stateful>` and {class}`State <evox.State>`."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:7
+msgid ""
+"All class that involves stateful computation are inherented from "
+"`Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are"
+" all stateful."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:9
+msgid "The idea behind the design"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:11
+msgid "hierarchical state"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:16
+msgid ""
+"Here we have five different objects, and notice that they have a "
+"hierarchical structure. To work with such structure, at each level we "
+"must \"lift the state\" by managing the states of child components. So, "
+"the state at the `workflow` level must contains the state of both "
+"`algorithm` and `problem`, and since the state at the `algorithm` level "
+"must contains the state of both operators, the state `workflow` level "
+"actual need to handle states from all 5 components."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:22
+msgid ""
+"However, it is frustrating to managing the hierarchy manually, and it is "
+"not good for modular design. To solve this problem, we introduce "
+"`Stateful` and `State`."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:25
+msgid "An overview of Stateful"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:27
+msgid ""
+"In a `Stateful` class, all immutable data are initialized in `__init__`, "
+"the initial mutable state is generated in `setup`, besides these two "
+"method and private methods(start with \"\\_\"), all other methods are "
+"wrapped with `use_state`."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:48
+msgid ""
+"will be wrapped with `use_state` decorator. This decorator requires the "
+"method have the following signature:"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:54
+msgid "which is common pattern in stateful computation."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:56
+msgid ""
+":::{warning} Currently, for all user defined private methods, the name of"
+" the method should starts with `_`. :::"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:60
+msgid "An overview of State"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:62
+msgid ""
+"In EvoX `State` represents a tree of states, which stores the state of "
+"the current object and all child objects."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:64
+msgid "Combined together"
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:66
+msgid ""
+"When combined together, they will automatically go 1 level down in the "
+"tree of states, and merge the subtree back to current level."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:70
+msgid "So you could write code like this."
+msgstr ""
+
+#: ../../source/guide/advanced/1-state.md:81
+msgid ""
+"Notice that, when calling the method `step`, `state` is the state of the "
+"workflow, but when calling `self.algorithm.ask`, `state` behaves like the"
+" state of the algorithm, and after the call, the state of the algorithm "
+"is automatically merged back into the state of the workflow."
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:1
+msgid "Jit-able components"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:3
+msgid "A common pitfall in jit"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:5
+msgid ""
+"In JAX, it's hard to jump out of a jit-compiled function, meaning if you "
+"jit-compile one function, then all other functions used within this "
+"function must also be jit-compiled."
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:8
+msgid "For example, the follow code will result in compilation error"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:19
+msgid ""
+"Even though `bar` is not marked with `jax.jit`, it is still compiled as "
+"`foo` calls `bar`. And since bar uses dynamic index, which is not "
+"compatible with `jax.jit`, an error will occur."
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:22
+msgid "Solution"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:24
+msgid ""
+"To solve is problem, it is common practice to jit-compile low level "
+"components, thus give high level components more freedom. In EvoX, we "
+"have some general rules on whether a function should be jit-able or not."
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Component"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "jit-able"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Workflow"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Optional"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Algorithm"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Yes"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Problem"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "Operators"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+#: ../../source/guide/basics/1-start.ipynb:180002
+msgid "Monitor"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md
+msgid "No"
+msgstr ""
+
+#: ../../source/guide/advanced/2-jit-able.md:35
+msgid ""
+"For standard workflow, one can jit compile when not using monitors and "
+"working with jit-able problems. But even though the workflow can be "
+"compiled, there isn't much performance gain. For problems, it depends on "
+"the task."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:7
+msgid "Custom algorithms and problems in EvoX"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:9
+msgid ""
+"In this chapter, we will introduce how to implement your own algorithm in"
+" EvoX."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:11
+msgid "The Algorithm Class"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:13
+msgid ""
+"The {class}`Algorithm <evox.Algorithm>` class is inherented from "
+"{class}`Stateful <evox.Stateful>`. Besides the things in `Stateful`, your"
+" should also implement a `ask` and a `tell` method. In total, there are "
+"four methods one need to implement."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+msgid "Method"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+msgid "Signature"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+msgid "Usage"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "\\_\\_init\\_\\_"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "{python}`(self, ...)`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid ""
+"Initialize hyperparameters that are fixed though out the optimization "
+"process, for example, the `population size`."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+msgid "setup"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "{python}`(self, RRNGKey) -> State`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "Initialize mutable state, for example the `momentum`."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "ask"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "{python}`(self, State) -> Array, State`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "Gives a candidate population for evaluation."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "tell"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "{python}`(self, State, Array) -> State`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid ""
+"Receive the fitness for the candidate population and update the "
+"algorithm's state."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:24
+#: ../../source/guide/advanced/3-custom-alg-pro.md:79
+msgid "Migrate from traditional EC library"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:26
+msgid ""
+"In traditional EC library, algorithm usually calls the objective function"
+" internally, which gives the following layout"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:34
+msgid "But in EvoX, we have a flat layout"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:40
+msgid "Here is a pseudocode of a genetic algorithm."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:55
+msgid "And Here is what each part of the algorithm correspond to in EvoX."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:75
+msgid "The Problem Class"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:77
+msgid ""
+"The Problem class is quite simple, beside `__init__` and `setup`, the "
+"only required the method is `evaluate`."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:81
+msgid ""
+"There is one thing to notice here, `evaluate` is a stateful function, "
+"meaning it should accept a state and return a new state. So, if you are "
+"working with numerical benchmark functions, which don't need to "
+"statefule, you can simply ignore the state, but remember that you still "
+"have to use this stateful interface."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+msgid "__init__"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+msgid ":python:`(self, ...)`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+msgid "Initialize the settings of the problem."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+msgid ":python:`(self, RRNGKey) -> State`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+msgid "Initialize mutable state of this problem."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+msgid "evaluate"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+msgid ":python:`(self, State, Array) -> Array, State`"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+msgid "Evaluate the fitness of the given candidate solution."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:97
+msgid "More on the problem's state"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:99
+msgid ""
+"If you still wonders what the problem's state actually do, here are the "
+"explanations."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:101
+msgid ""
+"Unlike numerical benchmark functions, real-life problems are more "
+"complex, and may require stateful computations. Here are some examples:"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:104
+msgid ""
+"When dealing with ANN training, we often have training, validation and "
+"testing phase. This implies that the same solution could have different "
+"fitness values during different phases. So clearly, we can't model the "
+"`evaluate` as a stateless pure function any more. To implement this "
+"mechanism, simple put an value in the state to indicate the phase."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:108
+msgid ""
+"Virtual batch norm is a effective trick especially when dealing with RL "
+"tasks. To implement this mechanism, the problem must be stateful, as the "
+"problem have to remember the initial batch norm parameters during the "
+"first run."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:112
+msgid "Example"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:114
+msgid ""
+"Here we give an exmaple of implementing the OneMax problem, along with a "
+"genetic algorithm that solves this problem. The problem itself is "
+"straight forward, the fitness is defined as the sum of every digits in a "
+"fixed-length bitstring. For example, \"100111\" gives 4 and \"000101\" "
+"gives 2."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:118
+msgid ""
+"Let's starts with implementing the OneMax problem. In JAX a bitstring can"
+" be easily represented with a tensor of type bool."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:143
+msgid ""
+"Then we implement a genetic algorithm that uses bitflip mutation and one-"
+"point crossover."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:195
+msgid "Now, you can assemble a workflow and run it."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:1
+msgid "Container Algorithms"
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:3
+msgid ""
+"Container algorithms are a special type of algorithms that works by "
+"containing other algorithms and cannot work on its own. Container "
+"algorithms can be used to compose a series of normal algorithms together."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:6
+msgid "Working with expensive algorithms"
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:8
+msgid ""
+"Many algorithms are expensive in term of space or time. For example, CMA-"
+"ES requires $O(N^2)$ space. Thus, it is costly to run CMA-ES on high-"
+"dimension problems. Sep-CMA-ES scales better, but sacrifice the "
+"performance. That's where container algorithm comes in. With it, we can "
+"easily construct a variant of CMA-ES that uses $O((\\frac{N}{M})^2)$ "
+"space, where $M$ is the number of block. This variant is a balance "
+"between the normal CMA-ES and Sep-CMA-ES."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:15
+msgid "Working with PyTree"
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:17
+msgid ""
+"Usually, algorithms expect the decision variables to be in the form of a "
+"1D-vector. PyTrees are tree-like structures that are not directly "
+"compatible with normal algorithms. So, there are two solutions out there:"
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:21
+msgid "Flatten the PyTree to 1D-vector."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:22
+msgid "Use a specialized algorithm that work with PyTree directly."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:24
+msgid ""
+"Solution 1 is called `adapter` in EvoX, which is quite simple, but we are"
+" not talking about this here. Solution 2 seems more complicated, but the "
+"advantage is that the structural information is preserved, meaning the "
+"algorithm could see the tree structure and apply some type of heuristic "
+"here."
+msgstr ""
+
+#: ../../source/guide/advanced/4-container.md:30
+msgid ""
+"We offer Cooperative Coevolution (CC) framework for all algorithms. "
+"Currently, there are two types of CC container in EvoX, "
+"{class}`evox.algorithms.Coevolution` and "
+"{class}`evox.algorithms.VectorizedCoevolution`. The difference is that "
+"`VectorizedCoevolution` update all sub-populations at the same time in "
+"each iteration, but `Coevolution` follows traditional approach that "
+"update a single sub-populations at each iteration. Thus "
+"`VectorizedCoevolution` is faster, but `Coevolution` could be better in "
+"terms of best fitness with a limited number of evaluations."
+msgstr ""
+
+#: ../../source/guide/advanced/index.md:1
+msgid "Advanced Tutorial"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:10002
+msgid "Quick Start"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:10004
+msgid ""
+"[![Open in Colab](https://colab.research.google.com/assets/colab-"
+"badge.svg)](https://colab.research.google.com/github/EMI-"
+"Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb)"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:10004
+#: ../../source/guide/basics/2-problems.ipynb:10004
+msgid "Open in Colab"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:10006
+msgid ""
+"EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
+" computation."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:40002
+msgid "Create an algorithm and a problem"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:50002
+msgid "To demostrate, we will create a PSO algorithm and an Ackley function."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:50004
+msgid ""
+"For more detailed list, please refer to our API documentation. [List of "
+"Algorithms](https://evox.readthedocs.io/en/latest/api/algorithms/index.html)"
+" and [List of "
+"Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html)."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:70002
+msgid ""
+"Now we want to run the algorithm against the problem. To accomplish this,"
+" we need to create a `workflow` which represents the overall process of "
+"evolutionary computation."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:90002
+msgid ""
+"Since we adopt the functional programming paradigm. We must explicitly "
+"initialize and use the state of a module. To initialize, call `init` with"
+" a pseudorandom number generators key (PRNGKey)."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:110002
+msgid ""
+"The `state` represents the mutatable variables within the whole workflow,"
+" including those inside the algorithm and the problem. For example, the "
+"`population` in an algorithm is part of the `state`, because it will be "
+"changing across iterations."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:120002
+msgid "Now, call `step` on the workflow to execute one iteration."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:140002
+msgid "To run multiple iterations, wrap it inside a for-loop."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:160002
+msgid ""
+"Notice that we are passing `state` as an argument of `step` and it "
+"returns a new `state`. This is exactly how the stateful computation works"
+" in functional programming."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:170002
+msgid ""
+"And you may also notice that the `step` doesn't give any feedback, like "
+"the result of the optimization. This is because we are missing another "
+"component in our workflow. Introducing `monitor`."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:180004
+msgid ""
+"Monitor is a standard way to monitor the intermediate values inside a "
+"optimization process. Information like fitness or population can be "
+"easily obtained by the monitor."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:190002
+msgid "Now, create a \"Standard single-objective monitor\""
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:210002
+msgid "The monitor can be plugged into the workflow."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:230002
+msgid "Now, re-initialize the workflow, and executed it again."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:250002
+msgid ""
+"This time, we can access the minimum fitness achieved through the "
+"`monitor`."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:270002
+msgid ""
+"Execute another 5 iterations, and the minimum fitness will change "
+"accordingly."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:290002
+msgid ""
+"To record information related to the population as well, turn on "
+"`record_pop` option in the workflow."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:290004
+msgid ""
+"This will cause the population be sent to the monitor as well, and the "
+"monitor can then determine the best solution on the fly."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:290006
+msgid ""
+"Please note that when the population size is very large, is option can "
+"harm the overall performance."
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:330002
+msgid ""
+"It show the best solution is (-0.02271652, -0.19201761), which is close "
+"to the global minimum at (0,0). 🥳"
+msgstr ""
+
+#: ../../source/guide/basics/1-start.ipynb:330004
+msgid ""
+"Additionally, please note that the best fitness remains the same as last "
+"time. This is because we are using the same `key` when initializing the "
+"workflow as before. This deterministic behavior in EvoX allows others to "
+"easily reproduce your results."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:10002
+msgid "Working with extended applications"
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:10004
+msgid ""
+"[![Open in Colab](https://colab.research.google.com/assets/colab-"
+"badge.svg)](https://colab.research.google.com/github/EMI-"
+"Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb)"
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:10006
+msgid "Working with extended applications in EvoX is easy."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:40004
+msgid ""
+"Here we will be focusing on neuroevolution tasks, where one need to "
+"evolve a neural network that suits a certain tasks."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:50002
+msgid "Brax"
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:50004
+msgid ""
+"To begin with we will be using Brax, a GPU accelerated physical engine "
+"that is also written in JAX. Since Brax is also using JAX, running EvoX "
+"with Brax is quite easy."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:50007
+msgid "We will be demostrating using the \"swimmer\" environment in Brax."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:60002
+msgid ""
+"First we will need to decide how we are going to evolve a neural network."
+" In this case, we will be using a fixed-size ANN, and only evolve it's "
+"weights."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:90002
+msgid ""
+"However, if we check the weights for this network, we will see that it's "
+"group of parameter sets, and EC algorithms cannot directly work with data"
+" in this format."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:90005
+msgid ""
+"Thankfully, EvoX provides some useful utilities to help us bridge the "
+"gap, and in this case, we have `TreeAndVector` to help us convert a tree-"
+"like struct into a vector and back."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110002
+msgid "Now, `adapter` can help us convert the data back-and-forth."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110004
+msgid "`to_vector` can convert a tree into a vector."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110005
+msgid "`to_tree` can convert a vector back to a tree."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110007
+msgid "There are also batched version conversion."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110009
+msgid "`batched_to_vector` can convert a batch of trees into a batch of vectors."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:110010
+msgid "`batched_to_tree` can convert a batch of vectors into a batch of trees."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:130002
+msgid "Now we can create an algorithm object."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:150002
+msgid ""
+"Now create brax-based problem. The `batch_size` defines how many "
+"environment in a single batch,  and `cap_episode` controls when to "
+"truncate the episode."
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:150006
+msgid ""
+"In this case, we set `batch_size` to 4096, which is the same as our "
+"population size. This means the whole population will be evaluated in a "
+"single pass!"
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:170002
+msgid "Assemble our workflow and fire it!"
+msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:170004
+msgid ""
+"Notice the `pop_transform` option. It's used to convert the population "
+"into the tree-like structure that representing a neural network's weight."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:1
+msgid "Distribute the workflow"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:3
+msgid ""
+"EvoX provides two distributed workflow implementation, one is based on "
+"Ray, and the other one is based on jax.distribute."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:5
+msgid "RayDistributedWorkflow"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:7
+msgid ""
+"RayDistributedWorkflow is built upon Ray. It can be used on any ray "
+"cluster. The Ray cluster should be setup before running the EvoX program."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:9
+msgid "Setup Ray cluster"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:11
+msgid ""
+"Please refer to [Ray's official "
+"documentation](https://docs.ray.io/en/latest/cluster/getting-"
+"started.html) for guide on setting up an Ray cluster."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:13
+msgid "Here is a simple way to setup the cluster locally."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:15
+msgid "On the head node"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:19
+msgid "On worker nodes"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:24
+msgid ""
+"If you only have 1 machine, but multiple devices, then there is nothing "
+"needs to be done. Ray will setup itself in this case."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:26
+#: ../../source/guide/basics/3-distributed.md:73
+msgid "Setup EvoX"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:28
+msgid ""
+"To scale the workflow using multiple machines through Ray, use the "
+"{class}`RayDistributedWorkflow <evox.workflows.RayDistributedWorkflow>` "
+"instead of StdWorkflow."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:30
+msgid "First, import `workflows` from evox"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:36
+msgid "then create your algorithm, problem, monitor object as usual."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:44
+msgid "Now use `RayDistributedWorkflow`"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:58
+msgid ""
+"The `RayDistributedWorkflow` also uses the `workflow.step` function to "
+"execute iterations. However, under the hood, it employs a distinct "
+"approach that allows for the utilization of multiple devices across "
+"different machines."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:61
+#, python-format
+msgid ""
+"It is recommanded that one set the environment variable "
+"`XLA_PYTHON_CLIENT_PREALLOCATE=false`. By default JAX will pre-allocate "
+"80% of the device's memory. This variable disables the GPU memory "
+"preallocation, otherwise running multiple JAX processes may cause OOM. "
+"For more information, please refer to [JAX's "
+"documentation](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)"
+" on this matter."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:67
+msgid "UniWorkflow"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:69
+msgid ""
+"UniWorkflow is short for \"Universal Workflow\", which aims to use pure "
+"JAX to build a workflow that fits any requirement. Since `UniWorkflow` is"
+" written in pure JAX, it has less overhead and don't need any additional "
+"dependencies."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:75
+msgid ""
+"Use `UniWorkflow` to create an workflow, and use `enable_distributed` and"
+" pass in the state to enable this feature."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:91
+msgid ""
+"Then, at the start of your program, before any JAX function is called, do"
+" this:"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:97
+msgid ""
+"In this system, the `coordinator` serves as the primary or head node. The"
+" total number of participating processes is indicated by `num_process`. "
+"The process with `process_id=0` acts as the coordinator."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:99
+msgid ""
+"From more information, please refer to "
+"[jax.distributed.initialize](https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)"
+" and [Using JAX in multi-host and multi-process "
+"environments](https://jax.readthedocs.io/en/latest/multi_process.html)."
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:101
+msgid "Run in a cluster"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:103
+msgid ""
+"Unlike Ray, JAX's doesn't have the concept of cluster or scheduler. "
+"Instead, it offers tools for enabling distributed interactions among "
+"multiple JAX instances. JAX follows the SPMD (single program multiple "
+"data) paradigm. To initiate a distributed program in JAX, you simply need"
+" to run the same script on different machines. For instance, if your "
+"program is named `main.py`, you should execute the following command on "
+"all participating machines with different `process_id` argument in "
+"`jax.distributed.initialize`:"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:111
+msgid ""
+"To have `process_id` in the argument, one can use `argparse` to parse the"
+" argument from the commandline. For example:"
+msgstr ""
+
+#: ../../source/guide/basics/3-distributed.md:126
+msgid ""
+"Then call `python main.py 0` on the first machine, `python main 1` on the"
+" second machine and so on."
+msgstr ""
+
+#: ../../source/guide/basics/index.md:1
+msgid "Getting Started"
+msgstr ""
+
+#: ../../source/guide/index.md:1
+msgid "EvoX's guide!"
+msgstr ""
+
+#: ../../source/guide/install.md:1
+msgid "Installation Guide"
+msgstr ""
+
+#: ../../source/guide/install.md:3
+msgid "Install EvoX"
+msgstr ""
+
+#: ../../source/guide/install.md:5
+msgid "EvoX is available at Pypi and can be installed via:"
+msgstr ""
+
+#: ../../source/guide/install.md:11
+msgid "To install EvoX with optional dependencies:"
+msgstr ""
+
+#: ../../source/guide/install.md:17
+msgid ""
+"available features are `gymnasium`, `neuroevolution`, `envpool`, "
+"`distributed`, and `full` which concludes all features. For example, to "
+"install EvoX with all features, do:"
+msgstr ""
+
+#: ../../source/guide/install.md:24
+msgid "Install JAX with accelerator support"
+msgstr ""
+
+#: ../../source/guide/install.md:26
+msgid ""
+"`EvoX` relies on `JAX` to provide hardware acceleration. The overall "
+"architecture of these Python packages looks like this:"
+msgstr ""
+
+#: ../../source/guide/install.md:43
+msgid ""
+"`JAX` itself is pure Python, and `jaxlib` provides the C/C++ code. To "
+"utilize JAX's hardware acceleration ability, make sure to install the "
+"correct `jaxlib` version."
+msgstr ""
+
+#: ../../source/guide/install.md:47
+msgid ""
+"For more information, e.g. other platforms, please check out JAX's "
+"[official installation guide](https://github.com/google/jax/?tab=readme-"
+"ov-file#installation)."
+msgstr ""
+
+#: ../../source/guide/install.md:50
+msgid "CPU only"
+msgstr ""
+
+#: ../../source/guide/install.md:56
+msgid "CUDA (NVIDIA GPU)"
+msgstr ""
+
+#: ../../source/guide/install.md:58
+msgid ""
+"To enable CUDA acceleration, please ensure that the following components "
+"are installed in a compatible manner:"
+msgstr ""
+
+#: ../../source/guide/install.md:85
+msgid "If your using any visualization technology, like WSL, docker."
+msgstr ""
+
+#: ../../source/guide/install.md:86
+msgid ""
+"**kernel space components**: should be installed on your host system. For"
+" example, if you are using WSL with Windows, then the driver should be "
+"installed on Windows, not inside WSL. If you are using container (e.g. "
+"docker), then the driver should be installed on your host OS (outside "
+"docker)."
+msgstr ""
+
+#: ../../source/guide/install.md:89
+msgid "**user space components**: need to be installed inside WSL or docker."
+msgstr ""
+
+#: ../../source/guide/install.md:92
+msgid "Install NVIDIA's proprietary driver"
+msgstr ""
+
+#: ../../source/guide/install.md:95
+msgid "Windows WSL 2"
+msgstr ""
+
+#: ../../source/guide/install.md:97
+msgid ""
+"Download the [latest NVIDIA Windows GPU "
+"Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and "
+"install it."
+msgstr ""
+
+#: ../../source/guide/install.md:100
+msgid ""
+"You must **NOT** install any NVIDIA GPU Linux driver within WSL 2. GPU "
+"driver this a kernel space program, so it should be installed on the "
+"Windows side."
+msgstr ""
+
+#: ../../source/guide/install.md:105
+msgid ""
+"NVIDIA has a detailed [CUDA on WSL User "
+"Guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)"
+msgstr ""
+
+#: ../../source/guide/install.md:108
+msgid "GNU/Linux"
+msgstr ""
+
+#: ../../source/guide/install.md:111
+msgid ""
+"If you are on GNU/Linux, I strongly recommend to install the driver via "
+"the package manager of your Linux distribution. Please do **NOT** install"
+" the driver from NVIDIA's website."
+msgstr ""
+
+#: ../../source/guide/install.md:117
+msgid ""
+"Only NVIDIA's proprietary driver works with CUDA, open-source drivers "
+"like Nouveau do not."
+msgstr ""
+
+#: ../../source/guide/install.md:120
+msgid ""
+"The detailed installation guide depends on your operating system, for "
+"example"
+msgstr ""
+
+#: ../../source/guide/install.md:122 ../../source/guide/install.md:153
+msgid "ArchLinux"
+msgstr ""
+
+#: ../../source/guide/install.md:126 ../../source/guide/install.md:157
+msgid "Ubuntu 22.04"
+msgstr ""
+
+#: ../../source/guide/install.md:130
+msgid ""
+"NixOS first enable unfree software, and then add the following to your "
+"configuration."
+msgstr ""
+
+#: ../../source/guide/install.md:136
+msgid "After installing the driver, please reboot."
+msgstr ""
+
+#: ../../source/guide/install.md:139
+msgid "Cluster (e.g. slurm, k8s)"
+msgstr ""
+
+#: ../../source/guide/install.md:141
+msgid ""
+"If the latest driver has already been installed in the cluster, please go"
+" ahead and skip this section."
+msgstr ""
+
+#: ../../source/guide/install.md:143
+msgid ""
+"Otherwise, please contact the administrator of the cluster to upgrade the"
+" GPU driver version. It is important to note that the driver must be "
+"installed on the host system, rendering any effort within the container "
+"(e.g. docker, singularity) meaningless. Thus only the administrator can "
+"solve this problem."
+msgstr ""
+
+#: ../../source/guide/install.md:148
+msgid "Install CUDA libraries"
+msgstr ""
+
+#: ../../source/guide/install.md:150
+msgid ""
+"CUDA libraries are user space libraries, so you don't need to reboot "
+"after installation. Again, it depends on your operating system, for "
+"example"
+msgstr ""
+
+#: ../../source/guide/install.md:163
+msgid "Now, you can check your do"
+msgstr ""
+
+#: ../../source/guide/install.md:167
+msgid ""
+"to see if your GPU is recognized by the driver. If you see something like"
+" this, then you are good to go."
+msgstr ""
+
+#: ../../source/guide/install.md:191
+msgid "Then check your jaxlib version by"
+msgstr ""
+
+#: ../../source/guide/install.md:197
+msgid ""
+"Please make sure you CUDA version is smaller or equal to the version of "
+"`jaxlib-cuda`."
+msgstr ""
+
+#: ../../source/guide/install.md:210
+msgid ""
+"For example, we have `0.4.18+cuda11.cudnn86` installed, and 11 < 12.2 "
+"(displayed by `nvidia-smi`). So we are good to go."
+msgstr ""
+
+#: ../../source/guide/install.md:213
+msgid ""
+"Since installing `jax[cuda12]` will usually install the jaxlib compiled "
+"with the latest CUDA version. Even if you have CUDA 12, your CUDA version"
+" might still be lower than the version of that jaxlib requires. In this "
+"case, try to install `jax[cuda11]`."
+msgstr ""
+
+#: ../../source/guide/install.md:218
+msgid "Verify your installation"
+msgstr ""
+
+#: ../../source/guide/install.md:220
+msgid "Open a Python terminal, and run the following:"
+msgstr ""
+
+#: ../../source/guide/install.md:228
+msgid "Here are some possible output:"
+msgstr ""
+
+#: ../../source/guide/install.md
+msgid "Correct"
+msgstr ""
+
+#: ../../source/guide/install.md
+msgid "EvoX not installed"
+msgstr ""
+
+#: ../../source/guide/install.md
+msgid "Wrong jaxlib version"
+msgstr ""
+
+#: ../../source/guide/install.md
+msgid "Wrong driver/library"
+msgstr ""
+
+#: ../../source/index.md:3
+msgid "User Guide"
+msgstr ""
+
+#: ../../source/index.md:3
+msgid "API reference"
+msgstr ""
+
+#: ../../source/index.md:3
+msgid "Examples"
+msgstr ""
+
+#: ../../source/index.md:3
+msgid "Contents:"
+msgstr ""
+
+#: ../../source/index.md:1
+msgid "Welcome to EvoX's documentation!"
+msgstr ""
+
+#: ../../source/index.md:17
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path d=\"M11.25 9.331V.75a.75.75 0 011.5 "
+"0v8.58l1.949-2.11A.75.75 0 1115.8 8.237l-3.25 3.52a.75.75 0 01-1.102 "
+"0l-3.25-3.52A.75.75 0 119.3 7.22l1.949 2.111z\"></path><path fill-"
+"rule=\"evenodd\" d=\"M2.5 3.75a.25.25 0 01.25-.25h5.5a.75.75 0 "
+"100-1.5h-5.5A1.75 1.75 0 001 3.75v11.5c0 .966.784 1.75 1.75 "
+"1.75h6.204c-.171 1.375-.805 2.652-1.77 3.757A.75.75 0 007.75 "
+"22h8.5a.75.75 0 "
+"00.565-1.243c-.964-1.105-1.598-2.382-1.769-3.757h6.204A1.75 1.75 0 0023 "
+"15.25V3.75A1.75 1.75 0 0021.25 2h-5.5a.75.75 0 000 1.5h5.5a.25.25 0 "
+"01.25.25v11.5a.25.25 0 01-.25.25H2.75a.25.25 0 01-.25-.25V3.75zM10.463 "
+"17c-.126 1.266-.564 2.445-1.223 "
+"3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"></path></svg> "
+"Installation Guide"
+msgstr ""
+
+#: ../../source/index.md:23
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 "
+"015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
+"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
+"100 8 4 4 0 000-8z\"></path><path d=\"M17.29 8c-.148 "
+"0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 "
+"6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
+"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
+"8z\"></path></svg> Getting Started"
+msgstr ""
+
+#: ../../source/index.md:29
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 "
+"00-.584 0L.458 6.81a.75.75 0 000 1.38L4.25 9.793v3.803a2.901 2.901 0 "
+"00-1.327.757c-.579.58-.923 1.41-.923 2.43v4.5c0 "
+".248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
+"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 "
+"2.11 0 00.21-.117A.762.762 0 008 "
+"21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 0 "
+"00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
+"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 "
+"1.021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113"
+" 1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84"
+" 2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 "
+"000-1.382l-11.25-4.75zM5 15c-.377 "
+"0-.745.141-1.017.413-.265.265-.483.7-.483 1.368v4.022c.299.105.797.228 "
+"1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.431 "
+"1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
+"11.436z\"></path></svg> Advanced Guide"
+msgstr ""
+
+#: ../../source/index.md:39
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> Algorithms"
+msgstr ""
+
+#: ../../source/index.md:45
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> Problems"
+msgstr ""
+
+#: ../../source/index.md:52
+msgid ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> Metrics"
+msgstr ""
+
+#: ../../source/index.md:59
+msgid "Indices and tables"
+msgstr ""
+
+#: ../../source/index.md:61
+msgid "{ref}`genindex`"
+msgstr ""
+
+#: ../../source/index.md:62
+msgid "{ref}`modindex`"
+msgstr ""
+
+#: ../../source/index.md:63
+msgid "{ref}`search`"
+msgstr ""
+

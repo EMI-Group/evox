@@ -98,3 +98,5 @@ autosummary_generate = True
 autosummary_imported_members = True
 nb_execution_mode = "off"
 myst_enable_extensions = ["dollarmath"]
+locale_dirs = ["locale/"]
+gettext_compact = "docs"
