@@ -142,6 +142,10 @@ Eager to delve deeper? The [example directory](https://evox.readthedocs.io/en/la
 - Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
 - Welcome to join our **QQ group** (ID: 297969717).
 
+## Translation
+
+We use weblate for translation, to help us translate the document, please visit [here](https://hosted.weblate.org/projects/evox/evox/).
+
 ## 📝 Citing EvoX
 
 If EvoX has propelled your research or projects, consider citing our work:
