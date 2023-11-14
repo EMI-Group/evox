@@ -1,12 +1,18 @@
 from collections.abc import Iterable
 from functools import partial
-from typing import Union, List
+from typing import List, Union
 
-from jax import vmap, jit
+import jax
 import jax.numpy as jnp
+from jax import jit, vmap
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 
 from ..core.module import *
+
+
+def algorithm_has_init_ask(algorithm, state):
+    probe = jax.eval_shape(algorithm.init_ask, state)
+    return probe[0] is not None
 
 
 def min_by(

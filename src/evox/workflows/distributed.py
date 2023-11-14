@@ -8,7 +8,7 @@ import ray
 from jax.tree_util import tree_flatten
 
 from evox import Algorithm, Problem, State, Stateful, jit_class
-from evox.utils import parse_opt_direction
+from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
 @jit_class
@@ -33,8 +33,20 @@ class WorkerWorkflow(Stateful):
         self.pop_transform = pop_transform
         self.fitness_transform = fitness_transform
 
+    def setup(self, key):
+        return State(generation=0)
+
     def step1(self, state: State):
-        pop, state = self.algorithm.ask(state)
+        if state.generation == 0:
+            is_init = algorithm_has_init_ask(self.algorithm, state)
+        else:
+            is_init = False
+
+        if is_init:
+            pop, state = self.algorithm.init_ask(state)
+        else:
+            pop, state = self.algorithm.ask(state)
+
         assert (
             self.pop_size == pop.shape[0]
         ), f"Specified pop_size doesn't match the actual pop_size, {self.pop_size} != {pop.shape[0]}"
@@ -48,13 +60,22 @@ class WorkerWorkflow(Stateful):
         return partial_fitness, state
 
     def step2(self, state: State, fitness: List[jax.Array]):
+        if state.generation == 0:
+            is_init = algorithm_has_init_ask(self.algorithm, state)
+        else:
+            is_init = False
+
         fitness = jnp.concatenate(fitness, axis=0)
         fitness = fitness * self.opt_direction
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
-        state = self.algorithm.tell(state, fitness)
-        return state
+        if is_init:
+            state = self.algorithm.init_tell(state, fitness)
+        else:
+            state = self.algorithm.tell(state, fitness)
+
+        return state.update(generation=state.generation + 1)
 
     def valid(self, state: State, metric: str):
         new_state = self.problem.valid(state, metric=metric)

@@ -8,9 +8,13 @@ from .state import State
 
 
 class Algorithm(Stateful):
-    """Base class for all algorithms
+    """Base class for all algorithms"""
 
-    """
+    def init_ask(self, state: State) -> Tuple[jax.Array, State]:
+        return None, State()
+
+    def init_tell(self, state: State) -> State:
+        return State()
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
         """Ask the algorithm

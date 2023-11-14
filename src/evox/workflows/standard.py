@@ -1,7 +1,7 @@
 from typing import Callable, Dict, Optional, Union, List
 
-from evox import Algorithm, Problem, Stateful
-from evox.utils import parse_opt_direction
+from evox import Algorithm, Problem, Stateful, State
+from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
 class StdWorkflow(Stateful):
@@ -55,11 +55,23 @@ class StdWorkflow(Stateful):
         self.opt_direction = parse_opt_direction(opt_direction)
         self.monitor.set_opt_direction(self.opt_direction)
 
+    def setup(self, key):
+        return State(generation=0)
+
     def step(self, state):
+        is_init = False
+        if state.generation == 0:
+            is_init = algorithm_has_init_ask(self.algorithm, state)
+        else:
+            is_init = False
+
         if self.monitor and self.record_time:
             self.monitor.record_time()
 
-        pop, state = self.algorithm.ask(state)
+        if is_init:
+            pop, state = self.algorithm.init_ask(state)
+        else:
+            pop, state = self.algorithm.ask(state)
 
         if self.monitor and self.record_pop:
             self.monitor.record_pop(pop)
@@ -81,9 +93,12 @@ class StdWorkflow(Stateful):
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
-        state = self.algorithm.tell(state, fitness)
+        if is_init:
+            state = self.algorithm.init_tell(state, fitness)
+        else:
+            state = self.algorithm.tell(state, fitness)
 
-        return state
+        return state.update(generation=state.generation + 1)
 
     def valid(self, state, metric="loss"):
         new_state = self.problem.valid(state, metric=metric)
