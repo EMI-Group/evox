@@ -15,7 +15,6 @@ def test_distributed_cso():
             pop_size=20,
         ),
         problem=problems.numerical.Ackley(),
-        pop_size=10,
         num_workers=2,
         monitor=monitor,
         options={"num_cpus": 0.5, "num_gpus": 0},  # just for testing purpose
