@@ -5,9 +5,9 @@ try:
     # optional dependency: ray
     from .distributed import RayDistributedWorkflow
 except ImportError as e:
-    original_erorr_msg = str(e)
+    original_error_msg = str(e)
 
-    def DistributedWorkflow(*args, **kwargs):
+    def RayDistributedWorkflow(*args, **kwargs):
         raise ImportError(
-            f'DistributedWorkflow requires ray, but got "{original_erorr_msg}" when importing'
+            f'RayDistributedWorkflow requires ray, but got "{original_error_msg}" when importing'
         )
