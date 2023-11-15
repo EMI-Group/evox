@@ -20,6 +20,8 @@ In total, there are four methods one need to implement.
 | setup        | {python}`(self, RRNGKey) -> State`      | Initialize mutable state, for example the `momentum`.                                                              |
 | ask          | {python}`(self, State) -> Array, State` | Gives a candidate population for evaluation.                                                                       |
 | tell         | {python}`(self, State, Array) -> State` | Receive the fitness for the candidate population and update the algorithm's state.                                 |
+| init_ask (Optional)  | {python}`(self, State) -> Array, State` | Gives initial population for evaluation. The population can have different shape than `ask`.               |
+| init_tell (Optional) | {python}`(self, State, Array) -> State` | Receive the fitness for the initial population and update the algorithm's state.                           |
 
 ### Migrate from traditional EC library
 
@@ -167,6 +169,14 @@ class ExampleGA(Algorithm):
             fit=jnp.full((self.pop_size,), jnp.inf),
             key=key,
         )
+
+    def init_ask(self, state):
+        # initial the fitness for our initial population
+        return pop, state
+
+    def init_tell(self, state, fitness):
+        # update the fitness for the initial population
+        return state.update(fit=fitness)
 
     def ask(self, state):
         key, mut_key, x_key = random.split(state.key, 3)

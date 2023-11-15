@@ -76,23 +76,18 @@ class RVEA(Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
-            is_init=True,
             key=key,
             gen=0,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
+        return state
+
+    def ask(self, state):
         key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
         population = state.population
 
@@ -107,11 +102,7 @@ class RVEA(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         current_gen = state.gen + 1
         v = state.reference_vector
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)

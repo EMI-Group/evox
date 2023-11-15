@@ -43,6 +43,12 @@ class CSO(Algorithm):
             key=state_key,
         )
 
+    def init_ask(self, state):
+        return state.population, state
+
+    def init_tell(self, state, fitness):
+        return state.update(fitness=fitness)
+
     def ask(self, state):
         key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(
             state.key, num=5
