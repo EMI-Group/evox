@@ -79,22 +79,17 @@ class IBEA(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
+        return state
+
+    def ask(self, state):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         population = state.population
         pop_obj = state.fitness
@@ -106,11 +101,7 @@ class IBEA(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 

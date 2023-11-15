@@ -99,21 +99,17 @@ class HypE(Algorithm):
             next_generation=population,
             ref_point=jnp.zeros((self.n_objs,)),
             key=key,
-            is_init=True,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
+        state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
+        return state
+
+    def ask(self, state):
         population = state.population
         pop_obj = state.fitness
         key, subkey, sel_key, x_key, mut_key = jax.random.split(state.key, 5)
@@ -125,12 +121,7 @@ class HypE(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation)
 
-    def _tell_init(self, state, fitness):
-        ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
-        state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 
