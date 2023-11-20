@@ -3,6 +3,7 @@ Neuroevolution
 ==============
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
-    torchvision
+    reinforcement_learning/index
+    supervised_learning/index

@@ -29,7 +29,7 @@ def run_single_objective_algorithm(
     for i in range(num_iter):
         state = workflow.step(state)
 
-    return monitor.get_min_fitness()
+    return monitor.get_best_fitness()
 
 
 def test_cso():

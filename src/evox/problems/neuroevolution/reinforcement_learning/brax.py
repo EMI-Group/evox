@@ -1,13 +1,10 @@
 from typing import Callable, Any
-from functools import partial
-import brax
 from brax import envs
 from brax.io import html, image
 import jax
 from jax import jit, vmap
 import jax.numpy as jnp
-from jax.tree_util import tree_map
-from evox import Problem, State, Stateful, jit_method
+from evox import Problem, State, jit_method
 
 
 class Brax(Problem):
@@ -17,7 +14,7 @@ class Brax(Problem):
         env_name: str,
         batch_size: int,
         cap_episode: int,
-        fitness_is_neg_reward: bool = True,
+        backend: str = "generalized",
     ):
         """Contruct a brax-based problem
 
@@ -33,15 +30,19 @@ class Brax(Problem):
             Usually this should match the population size at the algorithm side.
         cap_episode
             The maximum number episodes to run.
-        fitness_is_neg_reward
-            Whether to return the fitness value as the negative of reward or not.
-            Default to True.
+        backend
+            Brax's backend, one of "generalized", "positional", "spring".
+            Default to "generalized".
         """
         self.batched_policy = jit(vmap(policy))
-        self.env = envs.wrappers.VmapWrapper(envs.create(env_name=env_name))
+        self.policy = policy
+        self.env_name = env_name
+        self.backend = backend
+        self.env = envs.wrappers.training.VmapWrapper(
+            envs.get_environment(env_name=env_name, backend=backend)
+        )
         self.batch_size = batch_size
         self.cap_episode = cap_episode
-        self.fitness_is_neg_reward = fitness_is_neg_reward
         self.jit_reset = jit(self.env.reset)
         self.jit_env_step = jit(self.env.step)
 
@@ -69,48 +70,32 @@ class Brax(Problem):
             cond_func, body_func, init_val
         )
 
-        if self.fitness_is_neg_reward:
-            total_reward = -total_reward
-
         return total_reward, state
 
-    def visualize(self, state, weights, output_type: str = "HTML", *args, **kwargs):
-        brax_state = state.init_state
-        trajectories = [brax_state.qp]
+    def visualize(
+        self, state, key, weights, output_type: str = "HTML", *args, **kwargs
+    ):
+        env = envs.get_environment(env_name=self.env_name, backend=self.backend)
+        brax_state = jax.jit(env.reset)(key)
+        jit_env_step = jit(env.step)
+        trajectory = [brax_state.pipeline_state]
         episode_length = 1
         for _ in range(self.cap_episode):
-            action = self.batched_policy(weights, brax_state.obs)
-            brax_state = self.jit_env_step(brax_state, action)
-            trajectories.append(brax_state.qp)
+            action = self.policy(weights, brax_state.obs)
+            brax_state = jit_env_step(brax_state, action)
+            trajectory.append(brax_state.pipeline_state)
             episode_length += 1 - brax_state.done
 
-            if brax_state.done.all():
+            if brax_state.done:
                 break
 
-        # trajectories is now [batch_qp_0, ..., batch_qp_n-1]
-        @jit
-        def pytree_first_dim_to_list(obj):
-            return [tree_map(lambda x: x[i], obj) for i in range(self.batch_size)]
-        # slice through the batch dim
-        # trajectories is now [[qp_0_0, qp_0_1, ...], ...]
-        trajectories = [
-            pytree_first_dim_to_list(qp) for qp in trajectories
-        ]
-        # transpose, make the batch_dim the first dim
-        trajectories = list(zip(*trajectories))
-        # strip out the states that are 'done'
-        episode_length = episode_length.astype(int)
-        trajectories = [
-            trajectory[: length + 1]
-            for trajectory, length in zip(trajectories, episode_length)
-        ]
         if output_type == "HTML":
-            return [
-                html.render(self.env.sys, t, *args, **kwargs)
-                for t in trajectories
-            ], state
+            return (
+                html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
+                state,
+            )
         else:
-            return [
-                image.render(self.env.sys, t, *args, **kwargs)
-                for t in trajectories
-            ], state
+            return (
+                image.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
+                state,
+            )

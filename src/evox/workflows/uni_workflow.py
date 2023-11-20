@@ -1,12 +1,16 @@
-from evox import jit_method, Stateful, Algorithm, Problem, State
-from typing import Optional, Callable, Dict, List, Union
 import warnings
+from functools import partial
+from typing import Callable, Dict, List, Optional, Union
+
 import jax
 import jax.numpy as jnp
-from jax import jit, pmap, pure_callback
-from jax.tree_util import tree_map
-from jax.sharding import PositionalSharding, SingleDeviceSharding
+from jax import jit, lax, pmap, pure_callback
 from jax.experimental import io_callback
+from jax.sharding import PositionalSharding, SingleDeviceSharding
+from jax.tree_util import tree_map
+
+from evox import Algorithm, Problem, State, Stateful, jit_method
+from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
 class UniWorkflow(Stateful):
@@ -25,6 +29,7 @@ class UniWorkflow(Stateful):
         algorithm: Algorithm,
         problem: Union[Problem, List[Problem]],
         monitor=None,
+        opt_direction: Union[str, List[str]] = "min",
         pop_transform: Optional[Union[Callable, List[Problem]]] = None,
         fit_transform: Optional[Callable] = None,
         record_pop: bool = False,
@@ -43,6 +48,9 @@ class UniWorkflow(Stateful):
             The problem.
         monitor
             Optional monitor.
+        opt_direction
+            The optimization direction, can be either "min" or "max"
+            or a list of "min"/"max" to specific the direction for each objective.
         pop_transform
             Optional population transform function,
             usually used to decode the population
@@ -72,6 +80,7 @@ class UniWorkflow(Stateful):
         self.algorithm = algorithm
         self.problem = problem
         self.monitor = monitor
+
         self.pop_transform = pop_transform
         self.fit_transform = fit_transform
         self.record_pop = record_pop
@@ -81,6 +90,8 @@ class UniWorkflow(Stateful):
         self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
         self.distributed_step = False
+        self.opt_direction = parse_opt_direction(opt_direction)
+        self.monitor.set_opt_direction(self.opt_direction)
         if jit_problem is False and self.num_objectives is None:
             warnings.warn(
                 (
@@ -91,12 +102,25 @@ class UniWorkflow(Stateful):
             )
             self.num_objectives = 1
 
-        def _step(self, state):
+        # a prototype step function
+        # will be then wrapped to get _step
+        # We are doing this as a workaround for JAX's static shape requirement
+        # Since init_ask and ask can return different shape
+        # and jax.lax.cond requires the same shape from two different branches
+        # we can only apply lax.cond outside of each `step`
+        def _proto_step(self, is_init, state):
+            if is_init:
+                ask = self.algorithm.init_ask
+                tell = self.algorithm.init_tell
+            else:
+                ask = self.algorithm.ask
+                tell = self.algorithm.tell
+
             monitor_device = SingleDeviceSharding(jax.devices()[0])
             if self.monitor and self.record_time:
                 io_callback(self.monitor.record_time, None, sharding=monitor_device)
 
-            pop, state = self.algorithm.ask(state)
+            pop, state = ask(state)
             pop_size = pop.shape[0]
 
             if self.monitor and self.record_pop:
@@ -141,6 +165,8 @@ class UniWorkflow(Stateful):
             if self.distributed_step is True:
                 fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
 
+            fitness = fitness * self.opt_direction
+
             if self.monitor:
                 if self.metrics:
                     metrics = {
@@ -159,11 +185,26 @@ class UniWorkflow(Stateful):
             if self.fit_transform:
                 fitness = self.fit_transform(fitness)
 
-            state = self.algorithm.tell(state, fitness)
+            state = tell(state, fitness)
 
-            return state
+            return state.update(generation=state.generation + 1)
 
-        self._step = jit_method(_step)
+        # wrap around _proto_step
+        # to handle init_ask and init_tell
+        def _step(self, state):
+            # probe if self.algorithm has override the init_ask function
+            if algorithm_has_init_ask(self.algorithm, state):
+                return lax.cond(
+                    state.generation == 0,
+                    partial(_proto_step, self, True),
+                    partial(_proto_step, self, False),
+                    state,
+                )
+            else:
+                return _proto_step(self, False, state)
+
+        # the first argument is self, which should be static
+        self._step = jit(_step, static_argnums=[0])
 
         def _valid(self, state, metric):
             new_state = self.problem.valid(state, metric=metric)
@@ -185,6 +226,9 @@ class UniWorkflow(Stateful):
             return fitness, state
 
         self._valid = jit_method(_valid)
+
+    def setup(self, key):
+        return State(generation=0)
 
     def step(self, state):
         return self._step(self, state)
@@ -246,7 +290,7 @@ class UniWorkflow(Stateful):
             self._step,
             in_shardings=(state_sharding,),
             out_shardings=state_sharding,
-            static_argnums=[0],
+            static_argnums=0,
         )
         return state
 

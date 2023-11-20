@@ -17,47 +17,36 @@ from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover, non_dominated_sort
 
 
-@partial(jax.jit, static_argnums=[0, 1])
-def calculate_alpha(N, k):
-    alpha = jnp.zeros(N)
-
-    for i in range(1, k + 1):
-        num = jnp.prod((k - jnp.arange(1, i)) / (N - jnp.arange(1, i)))
-        alpha = alpha.at[i - 1].set(num / i)
-    return alpha
-
-
 @partial(jax.jit, static_argnums=[2, 3])
 def cal_hv(points, ref, k, n_sample, key):
     n, m = jnp.shape(points)
-    alpha = calculate_alpha(n, k)
+
+    # hit in alpha relevant partition
+    alpha = jnp.cumprod(
+        jnp.r_[1, (k - jnp.arange(1, n)) / (n - jnp.arange(1, n))]
+    ) / jnp.arange(1, n + 1)
 
     f_min = jnp.min(points, axis=0)
 
-    s = jax.random.uniform(key, shape=(n_sample, m), minval=f_min, maxval=ref)
+    samples = jax.random.uniform(key, shape=(n_sample, m), minval=f_min, maxval=ref)
 
-    pds = jnp.zeros((n, n_sample), dtype=bool)
+    # update hypervolume estimates
     ds = jnp.zeros((n_sample,))
+    pds = jax.vmap(
+        lambda x: jnp.sum((jnp.tile(x, (n_sample, 1)) - samples) <= 0, axis=1) == m,
+        in_axes=0,
+        out_axes=0,
+    )(points)
+    ds = jnp.sum(jnp.where(pds, ds + 1, ds), axis=0)
+    ds = jnp.where(ds == 0, ds, ds - 1)
 
-    def body_fun1(i, vals):
-        pds, ds = vals
-        x = jnp.sum((jnp.tile(points[i, :], (n_sample, 1)) - s) <= 0, axis=1) == m
-        pds = pds.at[i].set(jnp.where(x, True, pds[i]))
-        ds = jnp.where(x, ds + 1, ds)
-        return pds, ds
-
-    pds, ds = jax.lax.fori_loop(0, n, body_fun1, (pds, ds))
-    ds = ds - 1
-
-    f = jnp.zeros((n,))
-
-    def body_fun2(pd):
-        temp = jnp.where(pd, ds, -1).astype(int)
+    def cal_f(val):
+        temp = jnp.where(val, ds, -1).astype(int)
         value = jnp.where(temp != -1, alpha[temp], 0)
         value = jnp.sum(value)
         return value
-    
-    f = jax.vmap(body_fun2)(pds)
+
+    f = jax.vmap(cal_f, in_axes=0, out_axes=0)(pds)
     f = f * jnp.prod(ref - f_min) / n_sample
 
     return f
@@ -110,21 +99,17 @@ class HypE(Algorithm):
             next_generation=population,
             ref_point=jnp.zeros((self.n_objs,)),
             key=key,
-            is_init=True,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
+        state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
+        return state
+
+    def ask(self, state):
         population = state.population
         pop_obj = state.fitness
         key, subkey, sel_key, x_key, mut_key = jax.random.split(state.key, 5)
@@ -136,12 +121,7 @@ class HypE(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation)
 
-    def _tell_init(self, state, fitness):
-        ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
-        state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 

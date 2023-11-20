@@ -1,42 +1,65 @@
-from typing import Callable, Optional, List, Dict
 from collections import deque
+from typing import Callable, Dict, List, Optional, Union
 
-import chex
 import jax
 import jax.numpy as jnp
 import numpy as np
 import ray
+from jax import jit
 from jax.tree_util import tree_flatten
 
 from evox import Algorithm, Problem, State, Stateful, jit_class
+from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-@jit_class
 class WorkerWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
         problem: Problem,
-        pop_size: int,
-        start_indices: int,
-        slice_sizes: int,
+        opt_direction: jax.Array,
+        num_workers: int,
+        worker_index: int,
         pop_transform: Optional[Callable],
         fitness_transform: Optional[Callable],
     ):
         self.algorithm = algorithm
         self.problem = problem
-        self.pop_size = pop_size
-        self.start_indices = start_indices
-        self.slice_sizes = slice_sizes
-        self.pop_transform = pop_transform
-        self.fitness_transform = fitness_transform
+        self.opt_direction = opt_direction
+        self.num_workers = num_workers
+        self.worker_index = worker_index
+        if pop_transform is not None:
+            self.pop_transform = jit(pop_transform)
+        else:
+            self.pop_transform = None
+        if fitness_transform is not None:
+            self.fitness_transform = jit(fitness_transform)
+        else:
+            self.fitness_transform = None
+
+    def setup(self, key):
+        return State(generation=0)
+
+    def _get_slice(self, pop_size):
+        slice_per_worker = pop_size // self.num_workers
+        remainder = pop_size % self.num_workers
+        start = slice_per_worker * self.worker_index + min(self.worker_index, remainder)
+        end = start + slice_per_worker + (self.worker_index < remainder)
+        return start, end
 
     def step1(self, state: State):
-        pop, state = self.algorithm.ask(state)
-        assert (
-            self.pop_size == pop.shape[0]
-        ), f"Specified pop_size doesn't match the actual pop_size, {self.pop_size} != {pop.shape[0]}"
-        partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
+        if state.generation == 0:
+            is_init = algorithm_has_init_ask(self.algorithm, state)
+        else:
+            is_init = False
+
+        if is_init:
+            pop, state = self.algorithm.init_ask(state)
+        else:
+            pop, state = self.algorithm.ask(state)
+
+        start, end = self._get_slice(pop.shape[0])
+        partial_pop = pop[start:end]
 
         if self.pop_transform is not None:
             partial_pop = self.pop_transform(partial_pop)
@@ -46,12 +69,22 @@ class WorkerWorkflow(Stateful):
         return partial_fitness, state
 
     def step2(self, state: State, fitness: List[jax.Array]):
+        if state.generation == 0:
+            is_init = algorithm_has_init_ask(self.algorithm, state)
+        else:
+            is_init = False
+
         fitness = jnp.concatenate(fitness, axis=0)
+        fitness = fitness * self.opt_direction
         if self.fitness_transform is not None:
             fitness = self.fitness_transform(fitness)
 
-        state = self.algorithm.tell(state, fitness)
-        return state
+        if is_init:
+            state = self.algorithm.init_tell(state, fitness)
+        else:
+            state = self.algorithm.tell(state, fitness)
+
+        return state.update(generation=state.generation + 1)
 
     def valid(self, state: State, metric: str):
         new_state = self.problem.valid(state, metric=metric)
@@ -104,41 +137,29 @@ class Supervisor:
         self,
         algorithm: Algorithm,
         problem: Problem,
-        pop_size: int,
+        opt_direction: jax.Array,
         num_workers: int,
         options: dict,
         pop_transform: Optional[Callable],
         fitness_transform: Optional[Callable],
     ):
-        assert (
-            pop_size > num_workers
-        ), "pop_size must be greater than the number of workers"
-
         # try to evenly distribute the task
-        std_slice_size = pop_size // num_workers
-        reminder = pop_size % num_workers
-        slice_size_list = np.full(num_workers, fill_value=std_slice_size)
-        slice_size_list[-reminder:] += 1
-
-        slice_size = pop_size // num_workers
-        start_index = 0
         self.workers = []
-        for i, slice_size in enumerate(slice_size_list):
+        for i in range(num_workers):
             self.workers.append(
                 Worker.options(**options).remote(
                     WorkerWorkflow(
                         algorithm,
                         problem,
-                        pop_size,
-                        start_index,
-                        slice_size,
+                        opt_direction,
+                        num_workers,
+                        i,
                         pop_transform,
                         fitness_transform,
                     ),
                     i,
                 )
             )
-            start_index += slice_size
 
     def setup_all_workers(self, key: jax.Array):
         ray.get([worker.init.remote(key) for worker in self.workers])
@@ -155,23 +176,15 @@ class Supervisor:
         fitness = [worker.valid.remote(metric) for worker in self.workers]
         return fitness
 
-    def assert_state_sync(self):
-        states = ray.get([worker.get_full_state.remote() for worker in self.workers])
-        leaves0, _treedef = tree_flatten(states[0])
-        for state in states:
-            leaves, _treedef = tree_flatten(state)
-            chex.assert_trees_all_close(leaves0, leaves)
-        return True
-
 
 class RayDistributedWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
         problem: Problem,
-        pop_size: int,
         num_workers: int,
         monitor=None,
+        opt_direction: Union[str, List[str]] = "min",
         record_pop: bool = False,
         record_time: bool = False,
         metrics: Optional[Dict[str, Callable]] = None,
@@ -203,6 +216,9 @@ class RayDistributedWorkflow(Stateful):
             will be used to determine the sharding strategy.
         num_workers
             Number of workers.
+        opt_direction
+            The optimization direction, can be either "min" or "max"
+            or a list of "min"/"max" to specific the direction for each objective.
         options
             The runtime options of the worker actor.
         pop_transform:
@@ -212,10 +228,11 @@ class RayDistributedWorkflow(Stateful):
         global_fitness_transform:
             This transform is applied at the main node.
         """
+        opt_direction = parse_opt_direction(opt_direction)
         self.supervisor = Supervisor.remote(
             algorithm,
             problem,
-            pop_size,
+            opt_direction,
             num_workers,
             options,
             pop_transform,
@@ -225,6 +242,7 @@ class RayDistributedWorkflow(Stateful):
         self.async_dispatch_list = deque()
         self.async_dispatch = async_dispatch
         self.monitor = monitor
+        self.monitor.set_opt_direction(opt_direction)
         self.record_pop = record_pop
         self.record_time = record_time
         self.metrics = metrics
@@ -266,6 +284,3 @@ class RayDistributedWorkflow(Stateful):
 
     def sample(self, state: State):
         return ray.get(self.supervisor.sample.remote()), state
-
-    def health_check(self, state: State):
-        return ray.get(self.supervisor.assert_state_sync.remote()), state

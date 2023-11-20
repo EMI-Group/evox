@@ -9,7 +9,7 @@ Inverted Generational Distance
     :members:
 
 .. autofunction:: evox.metrics.igd
-    :members:
+
 
 .. autofunction:: evox.metrics.igd_plus
-    :members:
+

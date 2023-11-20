@@ -71,22 +71,18 @@ class MOEAD(Algorithm):
             B=B,
             Z=jnp.zeros(shape=self.n_objs),
             parent=jnp.zeros((self.pop_size, self.T)).astype(int),
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        Z = jnp.min(fitness, axis=0)
+        state = state.update(fitness=fitness, Z=Z)
+        return state
+
+    def ask(self, state):
         key, subkey, sel_key, mut_key = jax.random.split(state.key, 4)
         parent = jax.random.permutation(
             subkey, state.B, axis=1, independent=True
@@ -101,12 +97,7 @@ class MOEAD(Algorithm):
             next_generation=next_generation, parent=parent, key=key
         )
 
-    def _tell_init(self, state, fitness):
-        Z = jnp.min(fitness, axis=0)
-        state = state.update(fitness=fitness, Z=Z, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         population = state.population
         pop_obj = state.fitness
         offspring = state.next_generation

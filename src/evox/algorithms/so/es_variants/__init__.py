@@ -19,9 +19,9 @@ try:
     # optional dependency: flax
     from .les import LES
 except ImportError as e:
-    original_erorr_msg = str(e)
+    original_error_msg = str(e)
 
     def LES(*args, **kwargs):
         raise ImportError(
-            f'LES requires flax but got "{original_erorr_msg}" when importing'
+            f'LES requires flax but got "{original_error_msg}" when importing'
         )

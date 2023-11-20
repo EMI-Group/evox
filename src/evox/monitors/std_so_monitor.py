@@ -25,6 +25,10 @@ class StdSOMonitor:
         self.current_population = None
         self.topk_solutions = None
         self.topk_fitness = None
+        self.opt_direction = 1  # default to min, so no transformation is needed
+
+    def set_opt_direction(self, opt_direction):
+        self.opt_direction = opt_direction
 
     def record_pop(self, pop, tranform=None):
         self.current_population = pop
@@ -66,19 +70,19 @@ class StdSOMonitor:
             self.topk_fitness = self.topk_fitness[topk_rank]
 
     def get_last(self):
-        return self.fitness_history[-1]
+        return self.opt_direction * self.fitness_history[-1]
 
     def get_topk_fitness(self):
-        return self.topk_fitness
+        return self.opt_direction * self.topk_fitness
 
     def get_topk_solutions(self):
         return self.topk_solutions
 
-    def get_min_fitness(self):
+    def get_best_fitness(self):
         if self.topk_fitness is None:
             warnings.warn("trying to get info from a monitor with no recorded data")
             return None
-        return self.topk_fitness[0]
+        return self.opt_direction * self.topk_fitness[0]
 
     def get_best_solution(self):
         if self.topk_solutions is None:
@@ -87,7 +91,7 @@ class StdSOMonitor:
         return self.topk_solutions[0]
 
     def get_history(self):
-        return self.fitness_history
+        return [self.opt_direction * fit for fit in self.fitness_history]
 
     def flush(self):
         hcb.barrier_wait()

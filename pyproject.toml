@@ -13,7 +13,7 @@ mypkg = ["*.txt", "*.json"]
 
 [project]
 name = "evox"
-version = "0.4.1"
+version = "0.5.1"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Christina Lee", email = "1315552992@qq.com" },
@@ -46,6 +46,8 @@ test = [
 
 gymnasium = ["gymnasium >= 0.29.0"]
 
+envpool = ["envpool >= 0.8.0"]
+
 neuroevolution = [
   "torch >= 1.0.0",
   "torchvision >= 0.1.0",
@@ -58,6 +60,7 @@ full = [
   "ray >= 2.0.0",
   "torch >= 1.0.0",
   "torchvision >= 0.1.0",
+  "envpool >= 0.8.0",
 ]
 
 [project.urls]

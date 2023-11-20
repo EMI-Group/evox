@@ -8,7 +8,11 @@ pyarrow
 pydata-sphinx-theme > 0.13
 sphinx
 numpydoc
+myst-nb
+nbsphinx
 myst-parser
 sphinx_copybutton
 sphinx_design
 sphinx-favicon
+sphinxcontrib-mermaid
+

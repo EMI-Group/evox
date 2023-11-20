@@ -51,6 +51,7 @@ def test_cartpole(batch_policy):
         jit_problem=False,
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,
+        opt_direction="max",
     )
     # init the workflow
     state = workflow.init(workflow_key)
@@ -58,9 +59,9 @@ def test_cartpole(batch_policy):
     # run the workflow for 5 steps
     for i in range(5):
         state = workflow.step(state)
-    
+
     monitor.close()
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     # gym is deterministic, so the result should always be the same
-    assert min_fitness == -16.0
+    assert min_fitness == 16.0

@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
 from jax import vmap, lax
-import chex
 import numpy as np
 from jax import pure_callback
 from evox.utils import dominate_relation

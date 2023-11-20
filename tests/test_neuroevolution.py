@@ -77,7 +77,7 @@ def test_neuroevolution_treemap():
         state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(f"Treemap loss: {min_fitness}  time: {time.perf_counter() - start}")
 
 
@@ -111,5 +111,5 @@ def test_neuroevolution_adapter():
         state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(f"Adapter loss: {min_fitness}  time: {time.perf_counter() - start}")
