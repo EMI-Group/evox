@@ -387,24 +387,47 @@ class Gym(Problem):
         else:
             return fitness, state.update(key=key)
 
-    def _render(self, state, individual, ale_render_mode=None):
-        key, subkey = jax.random.split(state.key)
-        seed = jax.random.randint(subkey, (1,), 0, jnp.iinfo(jnp.int32).max).item()
-        if ale_render_mode is None:
-            env = gym.make(self.env_name)
-        else:
-            env = gym.make(self.env_name, render_mode=ale_render_mode)
+    def visualize(self, state, key, weights, ale_render_mode="rgb_array"):
+        """Visualize your policy, passin a single set of weights,
+        and it will be put in the environment for interaction.
 
-        observation = env.reset(seed=seed)
-        if ale_render_mode is None:
-            env.render()
+        Parameters
+        ----------
+        state
+            The state.
+        key
+            This key will be used to seed the test environment.
+        weights
+            A single set of weights for your policy.
+        ale_render_mode
+            'rgb_array' or 'human'.
+
+            In 'rgb_array' mode, this function will return a list of frames,
+            each frame is a numpy array.
+
+            In 'human' mode,
+            the frame should be displayed directly onto your screen.
+            However, if your using remote python environment, for example
+            vscode ssh or jupyter notebook,
+            this method may fail to find a valid display.
+            Default to 'rgb_array'.
+        """
+        seed = jax.random.randint(key, (1,), 0, jnp.iinfo(jnp.int32).max).item()
+        env = gym.make(self.env_name, render_mode=ale_render_mode)
+
+        observation, info = env.reset(seed=seed)
+        frames = []
+        if ale_render_mode == "rgb_array":
+            frames.append(observation)
+
         terminated = False
         while not terminated:
             observation = jnp.array(observation)
-            action = self.policy(individual, observation)
+            action = self.policy(weights, observation)
             action = np.array(action)
-            observation, reward, terminated, _truncated = env.step(action)
-            if ale_render_mode is None:
-                env.render()
+            observation, _reward, terminated, _truncated, info = env.step(action)
 
-        return state.update(key=key)
+            if ale_render_mode == "rgb_array":
+                frames.append(observation)
+
+        return frames, state
