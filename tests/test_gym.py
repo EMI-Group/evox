@@ -29,8 +29,7 @@ def test_cartpole(batch_policy):
     problem = problems.neuroevolution.Gym(
         env_name="CartPole-v1",
         policy=jax.jit(model.apply),
-        num_workers=2,
-        env_per_worker=4,
+        num_workers=3,
         worker_options={"num_gpus": 0, "num_cpus": 0},
         controller_options={
             "num_cpus": 0,
@@ -41,10 +40,12 @@ def test_cartpole(batch_policy):
     center = adapter.to_vector(params)
     # create a workflow
     workflow = workflows.UniWorkflow(
-        algorithm=algorithms.PGPE(
-            optimizer="adam",
-            center_init=center,
-            pop_size=8,
+        algorithm=algorithms.CSO(
+            lb=jnp.full_like(center, -10.0),
+            ub=jnp.full_like(center, 10.0),
+            mean=center,
+            stdev=0.1,
+            pop_size=16,
         ),
         problem=problem,
         monitor=monitor,
@@ -56,12 +57,19 @@ def test_cartpole(batch_policy):
     # init the workflow
     state = workflow.init(workflow_key)
 
-    # run the workflow for 5 steps
-    for i in range(5):
+    # run the workflow for 2 steps
+    for i in range(2):
         state = workflow.step(state)
 
-    monitor.close()
-    # the result should be close to 0
+    monitor.flush()
     min_fitness = monitor.get_best_fitness()
     # gym is deterministic, so the result should always be the same
-    assert min_fitness == 16.0
+    assert min_fitness == 40.0
+
+    # run the workflow for another 25 steps
+    for i in range(25):
+        state = workflow.step(state)
+
+    monitor.flush()
+    min_fitness = monitor.get_best_fitness()
+    assert min_fitness == 48.0
