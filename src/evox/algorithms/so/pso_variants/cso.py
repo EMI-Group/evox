@@ -1,11 +1,17 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: A Competitive Swarm Optimizer for Large Scale Optimization
+# Link: https://ieeexplore.ieee.org/document/6819057
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
+from evox import Algorithm, State, jit_class
 
-import evox as ex
 
-
-@ex.jit_class
-class CSO(ex.Algorithm):
+@jit_class
+class CSO(Algorithm):
     def __init__(self, lb, ub, pop_size, phi=0, mean=None, stdev=None):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -29,13 +35,19 @@ class CSO(ex.Algorithm):
         velocity = jnp.zeros((self.pop_size, self.dim))
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
-        return ex.State(
+        return State(
             population=population,
             fitness=fitness,
             velocity=velocity,
             students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
             key=state_key,
         )
+
+    def init_ask(self, state):
+        return state.population, state
+
+    def init_tell(self, state, fitness):
+        return state.update(fitness=fitness)
 
     def ask(self, state):
         key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(

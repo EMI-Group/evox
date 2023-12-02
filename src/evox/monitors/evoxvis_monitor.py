@@ -91,6 +91,8 @@ class EvoXVisMonitor:
         self.timestamp = None
         self.ref_time = None
         self.duration = []
+        self.metrics = None
+        self.metric_names = None
 
     def _write_batch(self, batch_size):
         if len(self.generation) == 0:
@@ -116,6 +118,14 @@ class EvoXVisMonitor:
             if self.timestamp is not None:
                 fields.append(("duration", pa.float64()))
                 metadata["begin_time"] = str(self.timestamp)
+            if self.metrics:
+                # store the metric_names
+                # so we can fix the order of these keys
+                self.metric_names = self.metrics[0].keys()                
+                for name in self.metric_names:
+                    print(name)
+                    fields.append((name, pa.float64()))
+                metadata["metrics"] = "_".join(self.metric_names)
 
             self.ec_schema = pa.schema(
                 fields,
@@ -141,6 +151,13 @@ class EvoXVisMonitor:
             # timestamp might comtains more elements than fit and pop
             batch.append(self.duration[:batch_size])
             self.duration = self.duration[batch_size:]
+        if self.metrics:
+            for name in self.metric_names:
+                record = []
+                for m in self.metrics[:batch_size]:
+                    record.append(m[name].item())
+                batch.append(record)
+            self.metrics = self.metrics[batch_size:]
         # actually write the data to disk
         self.writer.write_batch(
             pa.record_batch(
@@ -168,6 +185,11 @@ class EvoXVisMonitor:
         batch_size = len(self.fitness)
         if self.population is not None:
             batch_size = min(batch_size, len(self.population))
+
+        if metrics:
+            if self.metrics is None:
+                self.metrics = []
+            self.metrics.append(metrics)
 
         if batch_size >= self.batch_size:
             self._write_batch(batch_size)

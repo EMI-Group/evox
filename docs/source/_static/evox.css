@@ -11,10 +11,6 @@ original css file: https://raw.githubusercontent.com/numpy/numpy/main/doc/source
   height: 75%;
 }
 
-body {
-  font-family: 'Open Sans', sans-serif;
-}
-
 pre,
 code {
   font-size: 100%;
@@ -22,7 +18,6 @@ code {
 }
 
 h1 {
-  font-family: "Lato", sans-serif;
   color: #013243;
   /* warm black */
 }

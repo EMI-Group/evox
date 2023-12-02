@@ -1,15 +1,22 @@
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: A new optimizer using particle swarm theory
+# Link: https://ieeexplore.ieee.org/document/494215
+# --------------------------------------------------------------------------------------
+
 from functools import partial
 
 import jax
 import jax.numpy as jnp
 import copy
 
-import evox as ex
 from evox.utils import *
+from evox import Algorithm, State, jit_class
 
 
-@ex.jit_class
-class PSO(ex.Algorithm):
+@jit_class
+class PSO(Algorithm):
     def __init__(
         self,
         lb,
@@ -50,7 +57,7 @@ class PSO(ex.Algorithm):
             velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
             velocity = velocity * length * 2 - length
 
-        return ex.State(
+        return State(
             population=population,
             velocity=velocity,
             local_best_location=population,

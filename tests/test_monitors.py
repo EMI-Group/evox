@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor, StdMOMonitor
 
 
@@ -12,7 +12,7 @@ def test_std_so_monitor_top1():
     fitness1 = jnp.arange(3)
     monitor.record_pop(pop1)
     monitor.record_fit(fitness1)
-    assert monitor.get_min_fitness() == 0
+    assert monitor.get_best_fitness() == 0
     assert monitor.get_topk_fitness() == 0
     assert (monitor.get_best_solution() == pop1[0]).all()
     assert (monitor.get_topk_solutions() == pop1[0:1]).all()
@@ -21,7 +21,7 @@ def test_std_so_monitor_top1():
     fitness2 = -jnp.arange(3)
     monitor.record_pop(pop2)
     monitor.record_fit(fitness2)
-    assert monitor.get_min_fitness() == -2
+    assert monitor.get_best_fitness() == -2
     assert monitor.get_topk_fitness() == -2
     assert (monitor.get_best_solution() == pop2[2]).all()
     assert (monitor.get_topk_solutions() == pop2[2:3]).all()
@@ -34,7 +34,7 @@ def test_std_so_monitor_top2():
     fitness1 = jnp.arange(3)
     monitor.record_pop(pop1)
     monitor.record_fit(fitness1)
-    assert monitor.get_min_fitness() == 0
+    assert monitor.get_best_fitness() == 0
     assert (monitor.get_topk_fitness() == jnp.array([0, 1])).all()
     assert (monitor.get_best_solution() == pop1[0]).all()
     assert (monitor.get_topk_solutions() == pop1[0:2]).all()
@@ -43,7 +43,7 @@ def test_std_so_monitor_top2():
     fitness2 = -jnp.arange(3)
     monitor.record_pop(pop2)
     monitor.record_fit(fitness2)
-    assert monitor.get_min_fitness() == -2
+    assert monitor.get_best_fitness() == -2
     assert (monitor.get_topk_fitness() == jnp.array([-2, -1])).all()
     assert (monitor.get_best_solution() == pop2[2]).all()
     assert (monitor.get_topk_solutions() == pop2[2:0:-1]).all()

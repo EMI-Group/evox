@@ -1,3 +1,14 @@
+# --------------------------------------------------------------------------------------
+# 1. IBEA algorithm is described in the following papers:
+#
+# Title: Indicator-Based Selection in Multiobjective Search
+# Link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -26,7 +37,9 @@ class IBEA(Algorithm):
     """IBEA algorithm
 
     link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84
-    Inspired by PlatEMO.
+
+    Args:
+        kappa: fitness scaling factor. Default: 0.05
     """
 
     def __init__(
@@ -66,22 +79,17 @@ class IBEA(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
+        return state
+
+    def ask(self, state):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         population = state.population
         pop_obj = state.fitness
@@ -93,35 +101,35 @@ class IBEA(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_obj = jnp.concatenate([state.fitness, fitness], axis=0)
 
-        n = jnp.shape(merged_pop)[0]
         merged_fitness, I, C = cal_fitness(merged_obj, self.kappa)
 
-        next_ind = jnp.arange(n)
-        vals = (next_ind, merged_fitness)
+        # Different from the original paper, the selection here is directly through fitness.
+        next_ind = jnp.argsort(-merged_fitness)[0: self.pop_size]
 
-        def body_fun(i, vals):
-            next_ind, merged_fitness = vals
-            x = jnp.argmin(merged_fitness)
-            merged_fitness += jnp.exp(-I[x, :] / C[x] / self.kappa)
-            merged_fitness = merged_fitness.at[x].set(jnp.max(merged_fitness))
-            next_ind = next_ind.at[x].set(-1)
-            return (next_ind, merged_fitness)
+        # The following code is from the original paper's implementation
+        # and is kept for reference purposes but is not being used in this version.
+        # n = jnp.shape(merged_pop)[0]
+        # next_ind = jnp.arange(n)
+        # vals = (next_ind, merged_fitness)
+        # def body_fun(i, vals):
+        #     next_ind, merged_fitness = vals
+        #     x = jnp.argmin(merged_fitness)
+        #     merged_fitness += jnp.exp(-I[x, :] / C[x] / self.kappa)
+        #     merged_fitness = merged_fitness.at[x].set(jnp.max(merged_fitness))
+        #     next_ind = next_ind.at[x].set(-1)
+        #     return (next_ind, merged_fitness)
+        #
+        # next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
+        #
+        # next_ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
+        # next_ind = next_ind[0: self.pop_size]
 
-        next_ind, merged_fitness = jax.lax.fori_loop(0, self.pop_size, body_fun, vals)
-
-        ind = jnp.where(next_ind != -1, size=n, fill_value=-1)[0]
-        ind_n = ind[0 : self.pop_size]
-
-        survivor = merged_pop[ind_n]
-        survivor_fitness = merged_obj[ind_n]
+        survivor = merged_pop[next_ind]
+        survivor_fitness = merged_obj[next_ind]
 
         state = state.update(population=survivor, fitness=survivor_fitness)
 

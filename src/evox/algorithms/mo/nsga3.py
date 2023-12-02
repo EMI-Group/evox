@@ -1,3 +1,15 @@
+# --------------------------------------------------------------------------------------
+# 1. NSGA-III algorithm is described in the following papers:
+#
+# Title: An Evolutionary Many-Objective Optimization Algorithm Using Reference-Point-Based Nondominated Sorting
+# Approach, Part I: Solving Problems With Box Constraints
+# Link: https://ieeexplore.ieee.org/document/6600851
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -66,18 +78,14 @@ class NSGA3(Algorithm):
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
+        return state
+
+    def ask(self, state):
         key, sel_key1, mut_key, sel_key2, x_key = jax.random.split(state.key, 5)
         selected = self.selection(sel_key1, state.population)
         mutated = self.mutation(mut_key, selected)
@@ -89,11 +97,7 @@ class NSGA3(Algorithm):
         )
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 

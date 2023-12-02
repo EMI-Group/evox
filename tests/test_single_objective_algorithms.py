@@ -1,34 +1,35 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import pipelines, problems
-from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, xNES, CoDE, JaDE, SaDE, SHADE
+from evox import workflows, problems
+from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
 
 
 def run_single_objective_algorithm(
-    algorithm, problem=problems.classic.Sphere(), num_iter=200, fitness_shaping=False
+    algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
 ):
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()
     if fitness_shaping is True:
-        fitness_transform = compose(monitor.record_fit, rank_based_fitness)
+        fitness_transform = rank_based_fitness
     else:
-        fitness_transform = monitor.record_fit
+        fitness_transform = None
 
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
+        monitor=monitor,
         fitness_transform=fitness_transform,
     )
 
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
     for i in range(num_iter):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
-    return monitor.get_min_fitness()
+    return monitor.get_best_fitness()
 
 
 def test_cso():
@@ -98,7 +99,7 @@ def test_openes(optimizer):
 def test_xnes():
     init_mean = jnp.array([5.0, -10, 15, -20, 25])
     init_covar = jnp.eye(5) * 2
-    algorithm = xNES(init_mean, init_covar, pop_size=100)
+    algorithm = XNES(init_mean, init_covar, pop_size=100)
     fitness = run_single_objective_algorithm(algorithm)
     assert fitness < 0.1
 

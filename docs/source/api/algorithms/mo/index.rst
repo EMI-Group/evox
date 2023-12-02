@@ -12,6 +12,7 @@ Multi-objective
     hype
     ibea
     knea
+    lmocso
     moead
     moeaddra
     moeadm2m

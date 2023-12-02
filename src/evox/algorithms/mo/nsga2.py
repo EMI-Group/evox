@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------------------
+# 1. NSGA-II algorithm is described in the following papers:
+#
+# Title: A fast and elitist multiobjective genetic algorithm: NSGA-II
+# Link: https://ieeexplore.ieee.org/document/996017
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
@@ -56,24 +63,19 @@ class NSGA2(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
+        return state
+
+    def ask(self, state):
         key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
-        # crossovered = self.selection(sel_key1, state.population)
+        crossovered = self.selection(sel_key1, state.population, state.fitness)
         crossovered = self.crossover(x_key, state.population)
         next_generation = self.mutation(mut_key, crossovered)
 
@@ -81,11 +83,7 @@ class NSGA2(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
-        return state
-
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 

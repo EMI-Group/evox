@@ -1,4 +1,4 @@
-from evox import pipelines, algorithms, problems
+from evox import workflows, algorithms, problems
 from evox.monitors import StdMOMonitor
 from evox.metrics import IGD
 import jax
@@ -13,20 +13,20 @@ UB = 1
 ITER = 10
 
 
-def run_moea(algorithm, problem=problems.classic.DTLZ1(m=M)):
+def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
-    # problem = problems.classic.DTLZ2(m=M)
-    pipeline = pipelines.StdPipeline(
+    # problem = problems.numerical.DTLZ2(m=M)
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
-        fitness_transform=monitor.record_fit,
+        monitor=monitor,
     )
-    state = pipeline.init(key)
+    state = workflow.init(key)
     true_pf, state = problem.pf(state)
 
     for i in range(ITER):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     objs = monitor.get_last()
 
@@ -184,6 +184,16 @@ def test_tdea():
 
 def test_bce_ibea():
     algorithm = algorithms.BCEIBEA(
+        lb=jnp.full(shape=(12,), fill_value=0),
+        ub=jnp.full(shape=(12,), fill_value=1),
+        n_objs=3,
+        pop_size=100,
+    )
+    run_moea(algorithm)
+
+
+def test_lmocso():
+    algorithm = algorithms.LMOCSO(
         lb=jnp.full(shape=(12,), fill_value=0),
         ub=jnp.full(shape=(12,), fill_value=1),
         n_objs=3,

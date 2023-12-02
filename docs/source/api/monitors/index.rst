@@ -7,4 +7,3 @@ Monitors
 
     std_so
     std_mo
-    evoxvis

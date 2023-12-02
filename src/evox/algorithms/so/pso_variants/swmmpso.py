@@ -1,30 +1,24 @@
-"""
-Small worlds and mega-minds: effects of neighborhood topology on particle swarm performance
-"""
+# --------------------------------------------------------------------------------------
+# 1. This code implements algorithms described in the following papers:
+#
+# Title: Small worlds and mega-minds: effects of neighborhood topology on particle swarm performance
+# Link: https://ieeexplore.ieee.org/document/785509
+#
+# Title: Population structure and particle swarm performance
+# Link: https://ieeexplore.ieee.org/document/1004493
+# --------------------------------------------------------------------------------------
+
 
 import jax
 import jax.numpy as jnp
-from functools import partial
-from typing import Union, Iterable, Literal
+from typing import Literal
 from .topology_utils import (
     get_circles_neighbour,
     get_neighbour_best_fitness,
     build_adjacancy_list_from_matrix,
 )
-from .utils import get_distance_matrix
 
-from evox import (
-    Algorithm,
-    Problem,
-    State,
-    algorithms,
-    jit_class,
-    monitors,
-    pipelines,
-    problems,
-)
-
-from evox.utils import min_by
+from evox import Algorithm, State
 
 
 class SwmmPSO(Algorithm):

@@ -2,5 +2,5 @@
 tDEA
 ====
 
-.. autoclass:: evox.algorithms.tDEA
+.. autoclass:: evox.algorithms.TDEA
     :members:

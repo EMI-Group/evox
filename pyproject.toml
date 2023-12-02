@@ -13,7 +13,7 @@ mypkg = ["*.txt", "*.json"]
 
 [project]
 name = "evox"
-version = "0.3.0"
+version = "0.6.0"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Christina Lee", email = "1315552992@qq.com" },
@@ -22,7 +22,7 @@ authors = [
 description = "evox"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: BSD License",
@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "jax >= 0.3.0",
+  "jax >= 0.4.16",
   "jaxlib >= 0.3.0",
   "optax >= 0.1.0",
   "pyarrow >= 10.0.0",
@@ -44,7 +44,9 @@ test = [
   "pytest >= 6.0.0",
 ]
 
-gym = ["gym >= 0.26.0"]
+gymnasium = ["gymnasium >= 0.29.0"]
+
+envpool = ["envpool >= 0.8.0"]
 
 neuroevolution = [
   "torch >= 1.0.0",
@@ -54,10 +56,11 @@ neuroevolution = [
 distributed = ["ray >= 2.0.0"]
 
 full = [
-  "gym >= 0.26.0",
+  "gymnasium >= 0.29.0",
   "ray >= 2.0.0",
   "torch >= 1.0.0",
   "torchvision >= 0.1.0",
+  "envpool >= 0.8.0",
 ]
 
 [project.urls]

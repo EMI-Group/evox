@@ -1,15 +1,14 @@
 import time
 
-import evox as ex
 import jax
 import jax.numpy as jnp
 import pytest
 from flax import linen as nn
-from evox import algorithms, pipelines, problems
+from evox import algorithms, workflows, problems, utils
 from evox.monitors import StdSOMonitor
 
 
-class PartialPGPE(ex.algorithms.PGPE):
+class PartialPGPE(algorithms.PGPE):
     def __init__(self, center_init):
         super().__init__(
             100, center_init, "adam", center_learning_rate=0.01, stdev_init=0.01
@@ -43,7 +42,7 @@ def init_problem_and_model(key):
     model = SimpleCNN()
     batch_size = 64
     initial_params = model.init(key, jnp.zeros((batch_size, 32, 32, 3)))
-    problem = ex.problems.neuroevolution.TorchvisionDataset(
+    problem = problems.neuroevolution.TorchvisionDataset(
         root="./datasets",
         batch_size=batch_size,
         forward_func=model.apply,
@@ -55,7 +54,7 @@ def init_problem_and_model(key):
 @pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_treemap():
     key = jax.random.PRNGKey(42)
-    pipeline_key, model_init_key = jax.random.split(key)
+    workflow_key, model_init_key = jax.random.split(key)
 
     initial_params, problem = init_problem_and_model(model_init_key)
 
@@ -65,31 +64,31 @@ def test_neuroevolution_treemap():
         initial_params,
     )
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
-        algorithm=ex.algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
+    workflow = workflows.StdWorkflow(
+        algorithm=Algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
-        fitness_transform=monitor.record_fit,
+        monitor=monitor,
     )
-    # init the pipeline
-    state = pipeline.init(pipeline_key)
+    # init the workflow
+    state = workflow.init(workflow_key)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(f"Treemap loss: {min_fitness}  time: {time.perf_counter() - start}")
 
 
 @pytest.mark.skip(reason="time consuming")
 def test_neuroevolution_adapter():
     key = jax.random.PRNGKey(42)
-    pipeline_key, model_init_key = jax.random.split(key)
+    workflow_key, model_init_key = jax.random.split(key)
     initial_params, problem = init_problem_and_model(model_init_key)
 
     start = time.perf_counter()
-    adapter = ex.utils.TreeAndVector(initial_params)
+    adapter = utils.TreeAndVector(initial_params)
     monitor = StdSOMonitor()
     algorithm = algorithms.PGPE(
         100,
@@ -98,19 +97,19 @@ def test_neuroevolution_adapter():
         center_learning_rate=0.01,
         stdev_init=0.01,
     )
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
         pop_transform=adapter.batched_to_tree,
-        fitness_transform=monitor.record_fit,
+        monitor=monitor,
     )
-    # init the pipeline
-    state = pipeline.init(key)
+    # init the workflow
+    state = workflow.init(key)
 
-    # run the pipeline for 100 steps
+    # run the workflow for 100 steps
     for i in range(100):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(f"Adapter loss: {min_fitness}  time: {time.perf_counter() - start}")

@@ -10,5 +10,6 @@ EvoX's API
     core/index
     algorithms/index
     problems/index
-    pipelines/index
+    workflows/index
     monitors/index
+    metrics/index

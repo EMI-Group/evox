@@ -37,17 +37,23 @@ class CoDE(Algorithm):
         lb,
         ub,
         pop_size=100,
-        diff_padding_num=9,
+        batch_size=None,
+        diff_padding_num=5,
         param_pool=jnp.array([[1, 0.1], [1, 0.9], [0.8, 0.2]]),
+        replace=False,
     ):
         self.dim = lb.shape[0]
         self.lb = lb
         self.ub = ub
         self.pop_size = pop_size
-        self.batch_size = pop_size
+        if not batch_size:
+            self.batch_size = pop_size
+        else:
+            self.batch_size = batch_size
         self.param_pool = param_pool
         self.diff_padding_num = diff_padding_num
         self.strategies = jnp.array([rand_1_bin, rand_2_bin, current2rand_1])
+        self.replace = replace
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key, 2)
@@ -71,27 +77,21 @@ class CoDE(Algorithm):
         key, ask_one_key, param_key = jax.random.split(state.key, 3)
 
         ask_one_keys = jax.random.split(ask_one_key, 3 * self.batch_size).reshape(
-            3, self.batch_size, 2
+            3, self.batch_size, -1
         )
         indices = jnp.arange(self.batch_size) + state.start_index
 
         param_keys = jax.random.split(param_key, 3)
         trial_vectors = []
 
-        # run 3 different strategies
-        for strategy, param_key, ask_one_key in zip(
-            self.strategies, param_keys, ask_one_keys
-        ):
-            param_ids = jax.random.choice(
-                param_key, a=3, shape=(self.batch_size,), replace=True
-            )
-            trial_vectors.append(
-                vmap(partial(self._ask_one, state, strategy))(
-                    ask_one_key, indices, param_ids
-                )
-            )
-
-        trial_vectors = jnp.concatenate(trial_vectors, axis=0)
+        param_ids = vmap(
+            partial(jax.random.choice, a=3, shape=(self.batch_size,), replace=True)
+        )(param_keys)
+        trial_vectors = vmap(
+            vmap(partial(self._ask_one, state), in_axes=(None, 0, 0, 0)),
+            in_axes=(0, 0, None, 0),
+        )(self.strategies, ask_one_keys, indices, param_ids)
+        trial_vectors = trial_vectors.reshape(3*self.batch_size, -1)
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
@@ -116,6 +116,7 @@ class CoDE(Algorithm):
             num_diff_vects,
             index,
             population,
+            self.replace,
         )
 
         rand_vect = population[rand_vect_idx]

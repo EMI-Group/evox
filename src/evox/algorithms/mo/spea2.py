@@ -1,16 +1,27 @@
+# --------------------------------------------------------------------------------------
+# 1. SPEA2 algorithm is described in the following papers:
+#
+# Title: SPEA2: Improving the strength pareto evolutionary algorithm
+# Link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
+#
+# 2. This code has been inspired by PlatEMO.
+# More information about PlatEMO can be found at the following URL:
+# GitHub Link: https://github.com/BIMK/PlatEMO
+# --------------------------------------------------------------------------------------
+
 import jax
 import jax.numpy as jnp
 
 from evox import jit_class, Algorithm, State
 from evox.operators import selection, mutation, crossover
-from evox.utils import _dominate_relation, pairwise_euclidean_dist
+from evox.utils import dominate_relation, pairwise_euclidean_dist
 
 
 @jax.jit
 def cal_fitness(obj):
     n = jnp.shape(obj)[0]
 
-    dom_matrix = _dominate_relation(obj, obj)
+    dom_matrix = dominate_relation(obj, obj)
     s = jnp.sum(dom_matrix, axis=1)
 
     r = jax.vmap(
@@ -61,7 +72,6 @@ class SPEA2(Algorithm):
     """SPEA2 algorithm
 
     link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755
-    Inspired by PlatEMO.
     """
 
     def __init__(

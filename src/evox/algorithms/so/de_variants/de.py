@@ -19,6 +19,7 @@ class DE(Algorithm):
         differential_weight=0.5,
         cross_probability=0.9,
         batch_size=100,
+        replace=False,
         mean=None,
         stdvar=None,
     ):
@@ -37,6 +38,7 @@ class DE(Algorithm):
         self.pop_size = pop_size
         self.base_vector = base_vector
         self.batch_size = batch_size
+        self.replace = replace
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
         self.mean = mean
@@ -70,15 +72,23 @@ class DE(Algorithm):
 
         indices = jnp.arange(self.batch_size) + state.start_index
 
-        choice_keys = jax.random.split(R_key, self.batch_size)
-        random_choices = vmap(
-            partial(
-                jax.random.choice,
-                a=self.pop_size,
-                shape=(self.num_difference_vectors * 2 + 1,),
-                replace=False,
+        if self.replace:
+            random_choices = jax.random.choice(
+                R_key,
+                self.pop_size,
+                shape=(self.batch_size, self.num_difference_vectors * 2 + 1),
+                replace=True,
             )
-        )(choice_keys)
+        else:
+            choice_keys = jax.random.split(R_key, self.batch_size)
+            random_choices = vmap(
+                partial(
+                    jax.random.choice,
+                    a=self.pop_size,
+                    shape=(self.num_difference_vectors * 2 + 1,),
+                    replace=False,
+                )
+            )(choice_keys)
 
         R = jax.random.choice(R_key, self.dim, shape=(self.batch_size,))
         masks_init = (

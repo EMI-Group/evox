@@ -7,7 +7,5 @@ Problems
 .. toctree::
     :maxdepth: 2
 
-    classic/index
+    numerical/index
     neuroevolution/index
-    rl/index
-    test_suit/index

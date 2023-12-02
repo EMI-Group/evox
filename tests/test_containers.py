@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import algorithms, pipelines, problems
+from evox import algorithms, workflows, problems
 from evox.monitors import StdSOMonitor
 
 
@@ -9,33 +9,33 @@ from evox.monitors import StdSOMonitor
     reason="a bit non-deterministic now, maybe due to the fact that eigen decomposition is unstable"
 )
 def test_clustered_cma_es():
-    # create a pipeline
+    # create a workflow
     init_mean = jnp.full((10,), fill_value=-20)
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithms.ClusterdAlgorithm(
             base_algorithm=algorithms.CMAES(init_mean, init_stdev=10, pop_size=10),
             dim=40,
             num_cluster=4,
         ),
-        problem=problems.classic.Ackley(),
-        fitness_transform=monitor.record_fit,
+        problem=problems.numerical.Ackley(),
+        monitor=monitor,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
-    # run the pipeline for 10 steps
+    # run the workflow for 10 steps
     for i in range(200):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 2
 
 
 @pytest.mark.parametrize("random_subpop", [True, False])
 def test_vectorized_coevolution(random_subpop):
-    # create a pipeline
+    # create a workflow
     monitor = StdSOMonitor()
     algorithm = algorithms.VectorizedCoevolution(
         base_algorithm=algorithms.CSO(
@@ -47,14 +47,14 @@ def test_vectorized_coevolution(random_subpop):
         num_subpops=2,
         random_subpop=random_subpop,
     )
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithm,
-        problem=problems.classic.Ackley(),
-        fitness_transform=monitor.record_fit,
+        problem=problems.numerical.Ackley(),
+        monitor=monitor,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
     if not random_subpop:
         # test the population given by VectorizedCoevolution
@@ -89,9 +89,9 @@ def test_vectorized_coevolution(random_subpop):
         assert (jnp.abs(vcc_cso_pop - target_pop) < 1e-4).all()
 
     for i in range(200):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 1
 
 
@@ -99,9 +99,9 @@ def test_vectorized_coevolution(random_subpop):
     "random_subpop, num_subpop_iter", [(True, 1), (False, 1), (True, 2), (False, 2)]
 )
 def test_coevolution(random_subpop, num_subpop_iter):
-    # create a pipeline
+    # create a workflow
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithms.Coevolution(
             base_algorithm=algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
@@ -114,25 +114,25 @@ def test_coevolution(random_subpop, num_subpop_iter):
             num_subpop_iter=num_subpop_iter,
             random_subpop=random_subpop,
         ),
-        problem=problems.classic.Ackley(),
-        fitness_transform=monitor.record_fit,
+        problem=problems.numerical.Ackley(),
+        monitor=monitor,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
     for i in range(4 * 200):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     assert min_fitness < 2
 
 
 @pytest.mark.skip(reason="currently random_mask is unstable")
 def test_random_mask_cso():
-    # create a pipeline
+    # create a workflow
     monitor = StdSOMonitor()
-    pipeline = pipelines.StdPipeline(
+    workflow = workflows.StdWorkflow(
         algorithms.RandomMaskAlgorithm(
             base_algorithm=algorithms.CSO(
                 lb=jnp.full(shape=(10,), fill_value=-32),
@@ -145,17 +145,17 @@ def test_random_mask_cso():
             change_every=10,
             pop_size=50,
         ),
-        problem=problems.classic.Ackley(),
-        fitness_transform=monitor.record_fit,
+        problem=problems.numerical.Ackley(),
+        monitor=monitor,
     )
-    # init the pipeline
+    # init the workflow
     key = jax.random.PRNGKey(42)
-    state = pipeline.init(key)
+    state = workflow.init(key)
 
-    # run the pipeline for 10 steps
+    # run the workflow for 10 steps
     for i in range(10):
-        state = pipeline.step(state)
+        state = workflow.step(state)
 
-    min_fitness = monitor.get_min_fitness()
+    min_fitness = monitor.get_best_fitness()
     print(min_fitness)
     assert abs(min_fitness - 19.6) < 0.1

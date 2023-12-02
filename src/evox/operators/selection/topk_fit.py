@@ -9,7 +9,7 @@ def topk_fit(population, fitness, topk):
     returns the selected population and the corresponding fitness.
     """
     topk_fit, index = lax.top_k(-fitness, topk)
-    return population[index], topk_fit
+    return population[index], -topk_fit
 
 
 @jit_class

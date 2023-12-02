@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import numpy as np
 from ..operators.non_dominated_sort import non_dominated_sort
+import jax.experimental.host_callback as hcb
 
 
 class StdMOMonitor:
@@ -28,12 +29,15 @@ class StdMOMonitor:
         self.current_population = None
         self.pf_solutions = None
         self.pf_fitness = None
+        self.opt_direction = 1  # default to min, so no transformation is needed
+
+    def set_opt_direction(self, opt_direction):
+        self.opt_direction = opt_direction
 
     def record_pop(self, pop, tranform=None):
         self.current_population = pop
-        return pop
 
-    def record_fit(self, fitness, tranform=None):
+    def record_fit(self, fitness, metrics=None, tranform=None):
         if self.record_fit_history:
             self.fitness_history.append(fitness)
 
@@ -55,19 +59,18 @@ class StdMOMonitor:
             pf = rank == 0
             self.pf_fitness = self.pf_fitness[pf]
             self.pf_solutions = self.pf_solutions[pf]
-        return fitness
 
     def get_last(self):
-        return self.fitness_history[-1]
+        return self.opt_direction * self.fitness_history[-1]
 
     def get_pf_fitness(self):
-        return self.pf_fitness
+        return self.opt_direction * self.pf_fitness
 
     def get_pf_solutions(self):
         return self.pf_solutions
 
     def get_history(self):
-        return self.fitness_history
+        return [self.opt_direction * fit for fit in self.fitness_history]
 
     def flush(self):
         hcb.barrier_wait()

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pprint import pformat
 from typing import Any, Optional, Tuple, Union
 from copy import copy
+import pickle
 
 from jax.tree_util import register_pytree_node_class, tree_map
 
@@ -106,14 +107,16 @@ class State:
             {**self._child_states, name: self._child_states[name].update(child_state)}
         )
 
-    def find_path_to(self, node_id: int, hint: Optional[str] = None) -> Optional[Tuple[Union[Tuple, int], State]]:
+    def find_path_to(
+        self, node_id: int, hint: Optional[str] = None
+    ) -> Optional[Tuple[Union[Tuple, int], State]]:
         """Find the state with node_id matching the state_id
         A hint can be given with the module_name
         """
         if node_id == self._state_id:
             return node_id, self
 
-        if node_id == self._child_states[hint]._state_id:
+        if hint in self._child_states and node_id == self._child_states[hint]._state_id:
             return (hint, node_id), self._child_states[hint]
 
         for child_id, child_state in self._child_states.items():
@@ -218,3 +221,11 @@ class State:
             return False
 
         return self._child_states == other._child_states
+
+    def save(self, path: str):
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    def load(self, path: str) -> State:
+        with open(path, "rb") as f:
+            return pickle.load(f)

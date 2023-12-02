@@ -1,12 +1,12 @@
-import evox as ex
 import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_map
 import chex
 import pytest
+from evox import utils
 
 def assert_invertible(tree):
-    tree_to_vector = ex.utils.TreeAndVector(tree)
+    tree_to_vector = utils.TreeAndVector(tree)
     vector = tree_to_vector.to_vector(tree)
     tree2 = tree_to_vector.to_tree(vector)
     chex.assert_trees_all_close(tree, tree2)

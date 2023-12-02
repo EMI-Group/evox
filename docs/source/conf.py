@@ -29,15 +29,17 @@ author = "Bill Huang"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "myst_parser",
     "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_favicon",
+    "sphinxcontrib.mermaid",
+    "myst_nb",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -52,7 +54,8 @@ exclude_patterns = []
 autodoc_mock_imports = [
     "brax",
     "chex",
-    "gym",
+    "envpool",
+    "gymnasium",
     "ray",
     "torch",
     "torchvision",
@@ -93,3 +96,7 @@ napoleon_numpy_docstring = True
 numpydoc_show_class_members = False
 autosummary_generate = True
 autosummary_imported_members = True
+nb_execution_mode = "off"
+myst_enable_extensions = ["dollarmath"]
+locale_dirs = ["locale/"]
+gettext_compact = "docs"
