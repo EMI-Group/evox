@@ -32,6 +32,8 @@ def test():
     )
 
     state = problem.init(key)
-    frames, state = problem.visualize(state, key, seed, output_type="rgb_array", width=250, height=250)
+    frames, state = problem.visualize(
+        state, key, seed, output_type="rgb_array", width=250, height=250
+    )
     frames2gif(frames, f"{gym_name}_{seed}.gif")
     assert True

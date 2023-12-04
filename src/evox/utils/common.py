@@ -16,8 +16,8 @@ def algorithm_has_init_ask(algorithm, state):
 
 
 def min_by(
-        values: Union[jax.Array, List[jax.Array]],
-        keys: Union[jax.Array, List[jax.Array]],
+    values: Union[jax.Array, List[jax.Array]],
+    keys: Union[jax.Array, List[jax.Array]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
@@ -183,7 +183,7 @@ class TreeAndVector:
     def to_tree(self, x):
         leaves = []
         for start_index, slice_size, shape in zip(
-                self.start_indices, self.slice_sizes, self.shapes
+            self.start_indices, self.slice_sizes, self.shapes
         ):
             leaves.append(
                 jax.lax.dynamic_slice(x, (start_index,), (slice_size,)).reshape(shape)
@@ -193,7 +193,7 @@ class TreeAndVector:
     def batched_to_tree(self, x):
         leaves = []
         for start_index, slice_size, shape in zip(
-                self.start_indices, self.slice_sizes, self.shapes
+            self.start_indices, self.slice_sizes, self.shapes
         ):
             batch_size = x.shape[0]
             leaves.append(
@@ -250,7 +250,8 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
 
 def frames2gif(frames, save_path, duration=0.1):
     import imageio
-    with imageio.get_writer(save_path, mode='I', duration=duration) as writer:
+
+    with imageio.get_writer(save_path, mode="I", duration=duration) as writer:
         for image in frames:
             formatted_image = np.array(image, dtype=np.uint8)
             writer.append_data(formatted_image)
