@@ -411,7 +411,7 @@ class Gym(Problem):
         observation, info = env.reset(seed=seed)
         frames = []
         if ale_render_mode == "rgb_array":
-            frames.append(observation)
+            frames.append(env.render())
 
         terminated = False
         while not terminated:
@@ -421,6 +421,6 @@ class Gym(Problem):
             observation, _reward, terminated, _truncated, info = env.step(action)
 
             if ale_render_mode == "rgb_array":
-                frames.append(observation)
+                frames.append(env.render())
 
         return frames, state

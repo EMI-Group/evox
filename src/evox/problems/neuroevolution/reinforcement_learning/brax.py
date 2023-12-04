@@ -82,6 +82,8 @@ class Brax(Problem):
         *args,
         **kwargs,
     ):
+        assert output_type in ["HTML", "rgb_array"], "output_type must be either HTML or rgb_array"
+
         env = envs.get_environment(env_name=self.env_name, backend=self.backend)
         brax_state = jax.jit(env.reset)(key)
         jit_env_step = jit(env.step)
@@ -96,6 +98,7 @@ class Brax(Problem):
             if respect_done and brax_state.done:
                 break
 
+        print("start rendering")
         if output_type == "HTML":
             return (
                 html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
@@ -103,6 +106,6 @@ class Brax(Problem):
             )
         else:
             return (
-                image.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
+                [image.render_array(sys=self.env.sys, state=s, **kwargs) for s in trajectory],  # can use tqdm here
                 state,
             )
