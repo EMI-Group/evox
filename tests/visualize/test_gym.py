@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("/mnt/e/evox_es/evox/src")
-
 from evox import problems
 from evox.utils import frames2gif
 import jax
