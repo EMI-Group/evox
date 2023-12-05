@@ -102,18 +102,14 @@ class LMOCSO(Algorithm):
             fitness=fitness,
             velocity=velocity,
             key=state_key,
-            is_init=True,
             reference_vector=v,
             gen=0,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         key, mating_key, pairing_key, r0_key, r1_key, mut_key = jax.random.split(
             state.key, 6
         )
@@ -162,16 +158,11 @@ class LMOCSO(Algorithm):
             ),
         )
 
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         current_gen = state.gen + 1
         v = state.reference_vector
 

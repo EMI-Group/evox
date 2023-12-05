@@ -63,7 +63,7 @@ def estimate(fit, mask):
 @jit_class
 class BiGE(Algorithm):
     """BiGE algorithm
-    
+
     link: https://doi.org/10.1016/j.artint.2015.06.007
     """
 
@@ -102,22 +102,13 @@ class BiGE(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         bi_fit = estimate(state.population, jnp.full((self.pop_size,), True))
         bi_rank = non_dominated_sort(bi_fit)
 
@@ -128,11 +119,11 @@ class BiGE(Algorithm):
         next_gen = jnp.clip(mutated, self.lb, self.ub)
         return next_gen, state.update(next_generation=next_gen, key=keys[0])
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, is_init=False)
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fit = jnp.concatenate([state.fitness, fitness], axis=0)
         rank = non_dominated_sort(merged_fit)

@@ -106,11 +106,7 @@ class RandomMaskAlgorithm(Algorithm):
             count=0,
         )
 
-    def ask(self, state: State):
-        state = self._try_change_mask(state)
-        return jax.lax.cond(state.count == 0, self._ask_init, self._ask_normal, state)
-
-    def _ask_init(self, state: State):
+    def init_ask(self, state: State):
         child_state, xs = vmap(self.base_algorithm.ask)(
             state.get_child_state(self.submodule_name)
         )
@@ -119,7 +115,8 @@ class RandomMaskAlgorithm(Algorithm):
         pop = jnp.concatenate(xs, axis=1)
         return pop, state.update(sub_pops=xs)
 
-    def _ask_normal(self, state: State):
+    def ask(self, state: State):
+        state = self._try_change_mask(state)
         old_state = state.get_child_state(self.submodule_name)
         masked_child_state = _mask_state(old_state, state.permutation)
         new_child_state, xs = vmap(self.base_algorithm.ask)(masked_child_state)

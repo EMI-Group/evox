@@ -106,7 +106,7 @@ class HypE(Algorithm):
 
     def init_tell(self, state, fitness):
         ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
-        state = state.update(fitness=fitness, ref_point=ref_point, is_init=False)
+        state = state.update(fitness=fitness, ref_point=ref_point)
         return state
 
     def ask(self, state):

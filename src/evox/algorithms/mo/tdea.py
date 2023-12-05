@@ -58,7 +58,6 @@ def theta_nd_sort(obj, w, mask):
 
 @partial(jax.jit, static_argnums=3)
 def environmental_selection(pop, obj, w, n, z, z_nad):
-
     n_merge, m = jnp.shape(obj)
     rank = non_dominated_sort(obj)
     order = jnp.argsort(rank)
@@ -143,22 +142,13 @@ class TDEA(Algorithm):
             w=w,
             z=jnp.zeros((self.n_objs,)),
             z_nad=jnp.zeros((self.n_objs,)),
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
 
         mating_pool = jax.random.randint(sel_key, (self.pop_size,), 0, self.pop_size)
@@ -168,13 +158,13 @@ class TDEA(Algorithm):
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
+    def init_tell(self, state, fitness):
         z = jnp.min(fitness, axis=0)
         z_nad = jnp.max(fitness, axis=0)
-        state = state.update(fitness=fitness, z=z, z_nad=z_nad, is_init=False)
+        state = state.update(fitness=fitness, z=z, z_nad=z_nad)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 

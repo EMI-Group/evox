@@ -139,23 +139,14 @@ class MOEADM2M(Algorithm):
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             w=w,
-            is_init=True,
             key=key,
             gen=0,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         key, local_key, global_key, rnd_key, x_key, mut_key = jax.random.split(
             state.key, 6
         )
@@ -186,17 +177,15 @@ class MOEADM2M(Algorithm):
             next_generation=next_generation, key=key, gen=current_gen
         )
 
-    def _tell_init(self, state, fitness):
+    def init_tell(self, state, fitness):
         key, subkey = jax.random.split(state.key)
         population = state.population
         population, fitness = associate(subkey, population, fitness, state.w, self.s)
 
-        state = state.update(
-            population=population, fitness=fitness, is_init=False, key=key
-        )
+        state = state.update(population=population, fitness=fitness, key=key)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         key, subkey = jax.random.split(state.key)
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)

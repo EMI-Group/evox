@@ -9,12 +9,14 @@
 # GitHub Link: https://github.com/BIMK/PlatEMO
 # --------------------------------------------------------------------------------------
 
+import math
+
 import jax
 import jax.numpy as jnp
 
-from evox import jit_class, Algorithm, State
-from evox.operators import selection, mutation, crossover
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox import Algorithm, State, jit_class
+from evox.operators import crossover, mutation, selection
+from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
 from evox.utils import pairwise_euclidean_dist
 
 
@@ -24,7 +26,7 @@ class MOEADDRA(Algorithm):
 
     link: https://ieeexplore.ieee.org/abstract/document/4982949
     """
-    
+
     def __init__(
         self,
         lb,
@@ -41,9 +43,9 @@ class MOEADDRA(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.type = type
-        self.T = jnp.ceil(self.pop_size / 10).astype(int)
-        self.nr = jnp.ceil(self.pop_size / 100).astype(int)
-        self.i_size = jnp.floor(self.pop_size / 5).astype(int)
+        self.T = int(math.ceil(self.pop_size / 10))
+        self.nr = int(math.ceil(self.pop_size / 100))
+        self.i_size = int(math.floor(self.pop_size / 5))
 
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -79,23 +81,13 @@ class MOEADDRA(Algorithm):
             choosed_p=jnp.zeros((self.pop_size, self.T)).astype(int),
             I_all=jnp.zeros((self.pop_size,)).astype(int),
             gen=0,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
-
+    def ask(self, state):
         key, subkey1, subkey2, subkey3, sel_key, x_key, mut_key = jax.random.split(
             state.key, 7
         )
@@ -133,16 +125,16 @@ class MOEADDRA(Algorithm):
             next_generation=next_generation, choosed_p=choosed_p, key=key, I_all=I_all
         )
 
-    def _tell_init(self, state, fitness):
+    def init_tell(self, state, fitness):
         Z = jnp.min(fitness, axis=0)
         old_obj = jnp.max(
             jnp.abs((fitness - jnp.tile(Z, (self.pop_size, 1))) * state.weight_vector),
             axis=1,
         )
-        state = state.update(fitness=fitness, Z=Z, old_obj=old_obj, is_init=False)
+        state = state.update(fitness=fitness, Z=Z, old_obj=old_obj)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         current_gen = state.gen + 1
         population = state.population
         pop_obj = state.fitness
