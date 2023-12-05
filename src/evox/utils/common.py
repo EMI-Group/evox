@@ -246,3 +246,19 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
         raise ValueError(
             f"opt_direction should have type 'str' or 'list', got {type(opt_direction)}"
         )
+
+
+def frames2gif(frames, save_path, duration=0.1):
+    try:
+        import imageio
+    except ImportError:
+        raise ImportError(
+            "imageio is required for rendering. Please install it via `pip install imageio`"
+        )
+
+    with imageio.get_writer(save_path, mode="I", duration=duration) as writer:
+        for image in frames:
+            formatted_image = np.array(image, dtype=np.uint8)
+            writer.append_data(formatted_image)
+
+    print("Gif saved to: ", save_path)
