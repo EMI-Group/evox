@@ -2,13 +2,27 @@ import jax
 import jax.numpy as jnp
 import pytest
 from evox import workflows, problems
-from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE, ODE
+from evox.algorithms import (
+    CMAES,
+    SepCMAES,
+    CSO,
+    DE,
+    PGPE,
+    PSO,
+    OpenES,
+    XNES,
+    CoDE,
+    JaDE,
+    SaDE,
+    SHADE,
+    ODE,
+)
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
 
 
 def run_single_objective_algorithm(
-        algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
+    algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
 ):
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()
