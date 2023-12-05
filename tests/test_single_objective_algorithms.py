@@ -2,13 +2,13 @@ import jax
 import jax.numpy as jnp
 import pytest
 from evox import workflows, problems
-from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE
+from evox.algorithms import CMAES, SepCMAES, CSO, DE, PGPE, PSO, OpenES, XNES, CoDE, JaDE, SaDE, SHADE, ODE
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
 
 
 def run_single_objective_algorithm(
-    algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
+        algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
 ):
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()
@@ -111,12 +111,22 @@ def test_de():
     fitness = run_single_objective_algorithm(algorithm)
     assert fitness < 0.1
 
+
+def test_ode():
+    lb = jnp.full((5,), -32.0)
+    ub = jnp.full((5,), 32.0)
+    algorithm = ODE(lb=lb, ub=ub, pop_size=100, batch_size=100, base_vector="rand")
+    fitness = run_single_objective_algorithm(algorithm)
+    assert fitness < 0.1
+
+
 def test_code():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
     algorithm = CoDE(lb, ub, pop_size=100)
     fitness = run_single_objective_algorithm(algorithm, num_iter=30)
     assert fitness < 0.1
+
 
 def test_jade():
     lb = jnp.full((5,), -32.0)
@@ -125,12 +135,14 @@ def test_jade():
     fitness = run_single_objective_algorithm(algorithm, num_iter=30)
     assert fitness < 0.1
 
+
 def test_sade():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
     algorithm = SaDE(lb, ub, pop_size=100)
     fitness = run_single_objective_algorithm(algorithm, num_iter=30)
     assert fitness < 0.1
+
 
 def test_shade():
     lb = jnp.full((5,), -32.0)

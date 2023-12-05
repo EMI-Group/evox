@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------------------
+# This code implements algorithms described in the following papers:
+#
+# Title: Opposition-Based Differential Evolution
+# Link: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4358759
+# --------------------------------------------------------------------------------------
+
 from functools import partial
 
 import jax
@@ -5,6 +12,7 @@ import jax.numpy as jnp
 from jax import vmap
 
 from evox import Algorithm, State, jit_class
+
 
 @jit_class
 class ODE(Algorithm):
@@ -52,7 +60,6 @@ class ODE(Algorithm):
             population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
             population = population * (self.ub - self.lb) + self.lb
 
-        # 计算对立个体
         opposition_population = self.ub + self.lb - population
 
         fitness = jnp.full((self.pop_size,), jnp.inf)
@@ -61,7 +68,7 @@ class ODE(Algorithm):
 
         return State(
             population=population,
-            opposition_population=opposition_population,  # 添加对立个体
+            opposition_population=opposition_population,
             fitness=fitness,
             best_index=best_index,
             start_index=start_index,
@@ -126,7 +133,7 @@ class ODE(Algorithm):
         mutation_vectors = (
             jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0)
             * self.differential_weight
-            + opposition_base_vector  # 使用了对立个体生成变异向量
+            + opposition_base_vector
         )
 
         trial_vector = jnp.where(
@@ -169,4 +176,3 @@ class ODE(Algorithm):
             best_index=best_index,
             start_index=start_index,
         )
-
