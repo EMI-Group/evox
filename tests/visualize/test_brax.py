@@ -2,6 +2,7 @@ from evox import problems
 from evox.utils import frames2gif
 import jax
 import jax.numpy as jnp
+import pytest
 
 gym_name = "ant"  # choose a setup
 
@@ -15,6 +16,9 @@ def random_policy(rand_seed, x):  # weights, observation
     )
 
 
+@pytest.mark.skip(
+    reason="cost too much time"
+)
 def test():
     seed = 41
     key = jax.random.PRNGKey(seed)
