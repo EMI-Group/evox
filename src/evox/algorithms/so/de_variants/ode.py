@@ -125,7 +125,7 @@ class ODE(Algorithm):
         else:
             base_vector = population[random_choiced[0], :]
 
-        # 计算对立个体
+        # Calculate opposition base vector
         opposition_base_vector = self.ub + self.lb - base_vector
 
         difference_vectors = population[random_choiced[1:], :]
