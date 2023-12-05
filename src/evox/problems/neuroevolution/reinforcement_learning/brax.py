@@ -101,7 +101,6 @@ class Brax(Problem):
             if respect_done and brax_state.done:
                 break
 
-        print("start rendering")
         if output_type == "HTML":
             return (
                 html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
