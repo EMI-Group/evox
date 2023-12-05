@@ -249,7 +249,12 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
 
 
 def frames2gif(frames, save_path, duration=0.1):
-    import imageio
+    try:
+        import imageio
+    except ImportError:
+        raise ImportError(
+            "imageio is required for rendering. Please install it via `pip install imageio`"
+        )
 
     with imageio.get_writer(save_path, mode="I", duration=duration) as writer:
         for image in frames:
