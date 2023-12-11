@@ -129,8 +129,11 @@ def test_de():
 def test_ode():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
-    algorithm = ODE(lb=lb, ub=ub, pop_size=100, batch_size=100, base_vector="rand")
-    fitness = run_single_objective_algorithm(algorithm)
+    algorithm = ODE(lb=lb, ub=ub, pop_size=100, batch_size=100)
+    fitness = run_single_objective_algorithm(
+        algorithm, num_iter=60
+    )  # The ode actually needs to call tell function twice for one iteration, thus requiring twice the number of steps
+
     assert fitness < 0.1
 
 
