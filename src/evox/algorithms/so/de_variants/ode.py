@@ -1,9 +1,16 @@
+# --------------------------------------------------------------------------------------
+# This code implements algorithms described in the following papers:
+#
+# Title: Opposition-Based Differential Evolution
+# Link: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4358759
+# --------------------------------------------------------------------------------------
+
 from functools import partial
 
 import jax
 import jax.numpy as jnp
 from jax import vmap
-import jax.random as jrng
+
 from evox import Algorithm, State, jit_class
 
 
@@ -19,7 +26,6 @@ class ODE(Algorithm):
         differential_weight=0.5,
         cross_probability=0.9,
         batch_size=100,
-        is_odd=True,
         replace=False,
         mean=None,
         stdvar=None,
@@ -27,10 +33,7 @@ class ODE(Algorithm):
         assert jnp.all(lb < ub)
         assert pop_size >= 4
         assert cross_probability > 0 and cross_probability <= 1
-        assert base_vector in [
-            "rand",
-            "best",
-        ]
+        assert base_vector in ["rand", "best"]
 
         self.num_difference_vectors = num_difference_vectors
         self.dim = lb.shape[0]
@@ -39,7 +42,6 @@ class ODE(Algorithm):
         self.pop_size = pop_size
         self.base_vector = base_vector
         self.batch_size = batch_size
-        self.is_odd = is_odd
         self.replace = replace
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
@@ -48,6 +50,7 @@ class ODE(Algorithm):
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
+
         if self.mean is not None and self.stdvar is not None:
             population = self.stdvar * jax.random.normal(
                 init_key, shape=(self.pop_size, self.dim)
@@ -56,12 +59,16 @@ class ODE(Algorithm):
         else:
             population = jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
             population = population * (self.ub - self.lb) + self.lb
+
+        opposition_population = self.ub + self.lb - population
+
         fitness = jnp.full((self.pop_size,), jnp.inf)
         best_index = 0
         start_index = 0
 
         return State(
             population=population,
+            opposition_population=opposition_population,
             fitness=fitness,
             best_index=best_index,
             start_index=start_index,
@@ -71,7 +78,6 @@ class ODE(Algorithm):
 
     def ask(self, state):
         key, R_key = jax.random.split(state.key, 2)
-
         indices = jnp.arange(self.batch_size) + state.start_index
 
         if self.replace:
@@ -100,6 +106,7 @@ class ODE(Algorithm):
         tile_arange = jnp.tile(jnp.arange(self.dim), (self.batch_size, 1))
         tile_R = jnp.tile(R[:, jnp.newaxis], (1, self.dim))
         masks = jnp.where(tile_arange == tile_R, True, masks_init)
+
         trial_vectors = vmap(
             partial(
                 self._ask_one, population=state.population, best_index=state.best_index
@@ -117,15 +124,16 @@ class ODE(Algorithm):
             base_vector = population[best_index, :]
         else:
             base_vector = population[random_choiced[0], :]
-        if self.is_odd:
-            mutation_vector = self.ub + self.lb - base_vector
-            return mutation_vector
+
+        # Calculate opposition base vector
+        opposition_base_vector = self.ub + self.lb - base_vector
+
         difference_vectors = population[random_choiced[1:], :]
         subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)
         mutation_vectors = (
             jnp.sum(difference_vectors.at[subtrahend_index, :].multiply(-1), axis=0)
             * self.differential_weight
-            + base_vector
+            + opposition_base_vector
         )
 
         trial_vector = jnp.where(
@@ -138,8 +146,6 @@ class ODE(Algorithm):
         return trial_vector
 
     def tell(self, state, trial_fitness):
-        if self.is_odd:
-            self.is_odd = False
         start_index = state.start_index
         batch_pop = jax.lax.dynamic_slice_in_dim(
             state.population, start_index, self.batch_size, axis=0
@@ -163,6 +169,7 @@ class ODE(Algorithm):
         )
         best_index = jnp.argmin(fitness)
         start_index = (state.start_index + self.batch_size) % self.pop_size
+
         return state.update(
             population=population,
             fitness=fitness,
