@@ -101,22 +101,13 @@ class EAGMOEAD(Algorithm):
             parent=jnp.zeros((self.pop_size, self.T)).astype(int),
             offspring_loc=jnp.zeros((self.pop_size,)).astype(int),
             gen=0,
-            is_init=True,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         key, per_key, sel_key, x_key, mut_key = jax.random.split(state.key, 5)
         B = state.B
         population = state.inner_pop
@@ -145,11 +136,11 @@ class EAGMOEAD(Algorithm):
             next_generation=next_generation, offspring_loc=offspring_loc, key=key
         )
 
-    def _tell_init(self, state, fitness):
-        state = state.update(fitness=fitness, inner_obj=fitness, is_init=False)
+    def init_tell(self, state, fitness):
+        state = state.update(fitness=fitness, inner_obj=fitness)
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         gen = state.gen + 1
         ext_archive = state.population
         ext_obj = state.fitness

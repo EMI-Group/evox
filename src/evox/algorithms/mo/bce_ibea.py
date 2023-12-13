@@ -150,7 +150,6 @@ def pc_selection(pc, pc_obj, n):
 
 @partial(jax.jit, static_argnums=2)
 def environmental_selection(pop, obj, n, kappa):
-
     merged_fitness, I, C = cal_fitness(obj, kappa)
     next_ind = jnp.arange(len(pop))
     vals = (next_ind, merged_fitness)
@@ -232,23 +231,14 @@ class BCEIBEA(Algorithm):
             new_npc_obj=jnp.zeros((self.pop_size, self.n_objs)),
             n_nd=0,
             next_generation=population,
-            is_init=True,
             counter=1,
             key=key,
         )
 
-    def ask(self, state):
-        return jax.lax.cond(state.is_init, self._ask_init, self._ask_normal, state)
-
-    def tell(self, state, fitness):
-        return jax.lax.cond(
-            state.is_init, self._tell_init, self._tell_normal, state, fitness
-        )
-
-    def _ask_init(self, state):
+    def init_ask(self, state):
         return state.population, state
 
-    def _ask_normal(self, state):
+    def ask(self, state):
         return jax.lax.cond(
             state.counter % 2 == 0, self._ask_even, self._ask_odd, state
         )
@@ -284,7 +274,7 @@ class BCEIBEA(Algorithm):
 
         return next_generation, state.update(new_npc=next_generation, key=key)
 
-    def _tell_init(self, state, fitness):
+    def init_tell(self, state, fitness):
         pc, pc_obj, n_nd = pc_selection(state.population, fitness, self.pop_size)
         state = state.update(
             population=pc,
@@ -293,11 +283,10 @@ class BCEIBEA(Algorithm):
             new_pc_obj=fitness,
             new_npc_obj=fitness,
             n_nd=n_nd,
-            is_init=False,
         )
         return state
 
-    def _tell_normal(self, state, fitness):
+    def tell(self, state, fitness):
         return jax.lax.cond(
             state.counter % 2 == 0, self._tell_even, self._tell_odd, state, fitness
         )

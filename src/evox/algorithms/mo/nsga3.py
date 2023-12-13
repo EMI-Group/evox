@@ -74,7 +74,6 @@ class NSGA3(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            is_init=True,
             key=key,
         )
 

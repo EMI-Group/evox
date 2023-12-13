@@ -47,7 +47,6 @@ workflow = workflows.RayDistributedWorkflow(
     algorithm=algorithm,
     problem=problem,
     monitor=monitor,
-    pop_size=100, # the actual population size used by the algorithm
     num_workers=4, # the number of machines
     options={ # the options that passes to ray
         "num_gpus": 1

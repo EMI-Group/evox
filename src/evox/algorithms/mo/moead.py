@@ -9,13 +9,15 @@
 # GitHub Link: https://github.com/BIMK/PlatEMO
 # --------------------------------------------------------------------------------------
 
+import math
+
 import jax
 import jax.numpy as jnp
 
-from evox.operators import mutation, crossover
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
-from evox.utils import pairwise_euclidean_dist
 from evox import Algorithm, State, jit_class
+from evox.operators import crossover, mutation
+from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
+from evox.utils import pairwise_euclidean_dist
 
 
 @jit_class
@@ -41,7 +43,7 @@ class MOEAD(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.type = type
-        self.T = jnp.ceil(self.pop_size / 10).astype(int)
+        self.T = int(math.ceil(self.pop_size / 10))
 
         self.mutation = mutation_op
         self.crossover = crossover_op

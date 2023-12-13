@@ -6,9 +6,15 @@ import jax.numpy as jnp
 import numpy as np
 import ray
 from jax import jit, vmap
-from jax.tree_util import tree_map, tree_structure, tree_transpose
+from jax.tree_util import tree_map, tree_structure, tree_transpose, tree_leaves
 
 from evox import Problem, State, Stateful, jit_class, jit_method
+
+
+@jit
+def tree_batch_size(tree):
+    """Get the batch size of a tree"""
+    return tree_leaves(tree)[0].shape[0]
 
 
 @jit_class
@@ -52,14 +58,11 @@ class Normalizer(Stateful):
 
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_creator, num_env, policy=None, mo_keys=None):
-        self.num_env = num_env
-        self.envs = [env_creator() for _ in range(num_env)]
+    def __init__(self, env_creator, policy=None, mo_keys=None):
+        self.envs = []
+        self.env_creator = env_creator
         self.policy = policy
         self.mo_keys = mo_keys
-
-        self.seed2key = jit(vmap(jax.random.PRNGKey))
-        self.splitKey = jit(vmap(jax.random.split))
 
     def step(self, actions):
         for i, (env, action) in enumerate(zip(self.envs, actions)):
@@ -98,22 +101,28 @@ class Worker:
     def get_episode_length(self):
         return self.episode_length
 
-    def reset(self, seeds):
-        self.total_rewards = np.zeros((self.num_env,))
+    def reset(self, seed, num_env):
+        # create new envs if needed
+        while len(self.envs) < num_env:
+            self.envs.append(self.env_creator())
+
+        self.total_rewards = np.zeros((num_env,))
         self.acc_mo_values = np.zeros((len(self.mo_keys),))  # accumulated mo_value
-        self.episode_length = np.zeros((self.num_env,))
-        self.terminated = np.zeros((self.num_env,), dtype=bool)
-        self.truncated = np.zeros((self.num_env,), dtype=bool)
+        self.episode_length = np.zeros((num_env,))
+        self.terminated = np.zeros((num_env,), dtype=bool)
+        self.truncated = np.zeros((num_env,), dtype=bool)
         self.observations, self.infos = zip(
-            *[env.reset(seed=seed) for seed, env in zip(seeds, self.envs)]
+            *[env.reset(seed=seed) for env in self.envs[:num_env]]
         )
         self.observations, self.infos = list(self.observations), list(self.infos)
         return self.observations
 
-    def rollout(self, seeds, subpop, cap_episode_length):
+    def rollout(self, seed, subpop, cap_episode_length):
         subpop = jax.device_put(subpop)
+        # num_env is the first dim of subpop
+        num_env = tree_batch_size(subpop)
         assert self.policy is not None
-        self.reset(seeds)
+        self.reset(seed, num_env)
         i = 0
         while True:
             observations = jnp.asarray(self.observations)
@@ -136,18 +145,15 @@ class Controller:
         self,
         policy,
         num_workers,
-        env_per_worker,
         env_creator,
         worker_options,
         batch_policy,
         mo_keys,
     ):
         self.num_workers = num_workers
-        self.env_per_worker = env_per_worker
         self.workers = [
             Worker.options(**worker_options).remote(
                 env_creator,
-                env_per_worker,
                 None if batch_policy else jit(vmap(policy)),
                 mo_keys,
             )
@@ -162,12 +168,12 @@ class Controller:
         def reshape_weight(w):
             # first dim is batch
             weight_dim = w.shape[1:]
-            return list(w.reshape((self.num_workers, self.env_per_worker, *weight_dim)))
+            return jnp.array_split(w, self.num_workers, axis=0)
 
         if isinstance(pop, jax.Array):
             # first dim is batch
             param_dim = pop.shape[1:]
-            pop = pop.reshape((self.num_workers, self.env_per_worker, *param_dim))
+            pop = jnp.array_split(pop, self.num_workers, axis=0)
         else:
             outer_treedef = tree_structure(pop)
             inner_treedef = tree_structure([0 for _i in range(self.num_workers)])
@@ -176,43 +182,43 @@ class Controller:
 
         return pop
 
-    def _evaluate(self, seeds, pop, cap_episode_length):
+    def _evaluate(self, seed, pop, cap_episode_length):
         sliced_pop = self.slice_pop(pop)
         rollout_future = [
-            worker.rollout.remote(worker_seeds, subpop, cap_episode_length)
-            for worker_seeds, subpop, worker in zip(seeds, sliced_pop, self.workers)
+            worker.rollout.remote(seed, subpop, cap_episode_length)
+            for subpop, worker in zip(sliced_pop, self.workers)
         ]
 
         rewards, acc_mo_values, episode_length = zip(*ray.get(rollout_future))
+        rewards = np.concatenate(rewards, axis=0)
+        acc_mo_values = np.concatenate(acc_mo_values, axis=0)
+        episode_length = np.concatenate(episode_length, axis=0)
         acc_mo_values = np.array(acc_mo_values)
-        if acc_mo_values.size != 0:
-            acc_mo_values = acc_mo_values.reshape(-1, self.num_obj)
-        return (
-            np.array(rewards).reshape(-1),
-            acc_mo_values,
-            np.array(episode_length).reshape(-1),
-        )
+        return rewards, acc_mo_values, episode_length
 
     @jit_method
     def batch_policy_evaluation(self, observations, pop):
-        # the first two dims are num_workers and env_per_worker
-        observation_dim = observations.shape[2:]
         actions = jax.vmap(self.policy)(
             pop,
-            observations.reshape(
-                (self.num_workers * self.env_per_worker, *observation_dim)
-            ),
+            observations,
         )
         # reshape in order to distribute to different workers
         action_dim = actions.shape[1:]
-        actions = actions.reshape((self.num_workers, self.env_per_worker, *action_dim))
+        actions = jnp.array_split(actions, self.num_workers, axis=0)
         return actions
 
-    def _batched_evaluate(self, seeds, pop, cap_episode_length):
+    def _batched_evaluate(self, seed, pop, cap_episode_length):
+        pop_size = tree_batch_size(pop)
+        env_per_worker = pop_size // self.num_workers
+        reminder = pop_size % self.num_workers
+        num_envs = [
+            env_per_worker + 1 if i < reminder else env_per_worker
+            for i in range(self.num_workers)
+        ]
         observations = ray.get(
             [
-                worker.reset.remote(worker_seeds)
-                for worker_seeds, worker in zip(seeds, self.workers)
+                worker.reset.remote(seed, num_env)
+                for worker, num_env in zip(self.workers, num_envs)
             ]
         )
         terminated = False
@@ -220,14 +226,15 @@ class Controller:
 
         i = 0
         while True:
+            # flatten observations
+            observations = [obs for worker_obs in observations for obs in worker_obs]
+            observations = np.stack(observations, axis=0)
             observations = jnp.asarray(observations)
             # get action from policy
             actions = self.batch_policy_evaluation(observations, pop)
-            # convert to numpy array
-            actions = np.asarray(actions)
 
             futures = [
-                worker.step.remote(action)
+                worker.step.remote(np.asarray(action))
                 for worker, action in zip(self.workers, actions)
             ]
             observations, terminated, truncated = zip(*ray.get(futures))
@@ -243,22 +250,18 @@ class Controller:
         rewards, acc_mo_values = zip(
             *ray.get([worker.get_rewards.remote() for worker in self.workers])
         )
-        acc_mo_values = np.array(acc_mo_values)
-        if acc_mo_values.size != 0:
-            acc_mo_values = acc_mo_values.reshape(-1, self.num_obj)
+        rewards = np.concatenate(rewards, axis=0)
+        acc_mo_values = np.concatenate(acc_mo_values, axis=0)
         episode_length = [worker.get_episode_length.remote() for worker in self.workers]
         episode_length = ray.get(episode_length)
-        return (
-            np.array(rewards).reshape(-1),
-            acc_mo_values,
-            np.array(episode_length).reshape(-1),
-        )
+        episode_length = np.concatenate(episode_length, axis=0)
+        return rewards, acc_mo_values, episode_length
 
-    def evaluate(self, seeds, pop, cap_episode_length):
+    def evaluate(self, seed, pop, cap_episode_length):
         if self.batch_policy:
-            return self._batched_evaluate(seeds, pop, cap_episode_length)
+            return self._batched_evaluate(seed, pop, cap_episode_length)
         else:
-            return self._evaluate(seeds, pop, cap_episode_length)
+            return self._evaluate(seed, pop, cap_episode_length)
 
 
 @jit_class
@@ -283,7 +286,6 @@ class Gym(Problem):
         self,
         policy: Callable,
         num_workers: int,
-        env_per_worker: int,
         env_name: Optional[str] = None,
         env_options: dict = {},
         env_creator: Optional[Callable] = None,
@@ -302,8 +304,6 @@ class Gym(Problem):
             the first one is the parameter and the second is the input.
         num_workers
             Number of worker actors.
-        env_per_worker
-            Number of gym environment per worker.
         env_name
             The name of the gym environment.
         env_options
@@ -323,7 +323,6 @@ class Gym(Problem):
             set this field to::
 
                 {"num_gpus": 1}
-
         worker_options
             The runtime options for worker actors.
         """
@@ -336,14 +335,12 @@ class Gym(Problem):
         self.controller = Controller.options(**controller_options).remote(
             policy,
             num_workers,
-            env_per_worker,
             env_creator,
             worker_options,
             batch_policy,
             mo_keys,
         )
         self.num_workers = num_workers
-        self.env_per_worker = env_per_worker
         self.env_name = env_name
         self.policy = policy
         if init_cap is not None:
@@ -357,11 +354,7 @@ class Gym(Problem):
     def evaluate(self, state, pop):
         key, subkey = jax.random.split(state.key)
         # generate a list of seeds for gym
-        seeds = jax.random.randint(
-            subkey, (self.num_workers, self.env_per_worker), 0, jnp.iinfo(jnp.int32).max
-        )
-
-        seeds = seeds.tolist()
+        seed = jax.random.randint(subkey, (1,), 0, jnp.iinfo(jnp.int32).max).item()
 
         cap_episode_length = None
         if self.cap_episode:
@@ -369,7 +362,7 @@ class Gym(Problem):
             cap_episode_length = cap_episode_length.item()
 
         rewards, acc_mo_values, episode_length = ray.get(
-            self.controller.evaluate.remote(seeds, pop, cap_episode_length)
+            self.controller.evaluate.remote(seed, pop, cap_episode_length)
         )
 
         # convert np.array -> jnp.array here
@@ -387,24 +380,47 @@ class Gym(Problem):
         else:
             return fitness, state.update(key=key)
 
-    def _render(self, state, individual, ale_render_mode=None):
-        key, subkey = jax.random.split(state.key)
-        seed = jax.random.randint(subkey, (1,), 0, jnp.iinfo(jnp.int32).max).item()
-        if ale_render_mode is None:
-            env = gym.make(self.env_name)
-        else:
-            env = gym.make(self.env_name, render_mode=ale_render_mode)
+    def visualize(self, state, key, weights, ale_render_mode="rgb_array"):
+        """Visualize your policy, passin a single set of weights,
+        and it will be put in the environment for interaction.
 
-        observation = env.reset(seed=seed)
-        if ale_render_mode is None:
-            env.render()
+        Parameters
+        ----------
+        state
+            The state.
+        key
+            This key will be used to seed the test environment.
+        weights
+            A single set of weights for your policy.
+        ale_render_mode
+            'rgb_array' or 'human'.
+
+            In 'rgb_array' mode, this function will return a list of frames,
+            each frame is a numpy array.
+
+            In 'human' mode,
+            the frame should be displayed directly onto your screen.
+            However, if your using remote python environment, for example
+            vscode ssh or jupyter notebook,
+            this method may fail to find a valid display.
+            Default to 'rgb_array'.
+        """
+        seed = jax.random.randint(key, (1,), 0, jnp.iinfo(jnp.int32).max).item()
+        env = gym.make(self.env_name, render_mode=ale_render_mode)
+
+        observation, info = env.reset(seed=seed)
+        frames = []
+        if ale_render_mode == "rgb_array":
+            frames.append(env.render())
+
         terminated = False
         while not terminated:
             observation = jnp.array(observation)
-            action = self.policy(individual, observation)
+            action = self.policy(weights, observation)
             action = np.array(action)
-            observation, reward, terminated, _truncated = env.step(action)
-            if ale_render_mode is None:
-                env.render()
+            observation, _reward, terminated, _truncated, info = env.step(action)
 
-        return state.update(key=key)
+            if ale_render_mode == "rgb_array":
+                frames.append(env.render())
+
+        return frames, state
