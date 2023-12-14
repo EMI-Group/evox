@@ -211,9 +211,6 @@ class RayDistributedWorkflow(Stateful):
             The algorithm.
         problem
             The problem.
-        pop_size
-            Population size, this argument together with num_workers
-            will be used to determine the sharding strategy.
         num_workers
             Number of workers.
         opt_direction
