@@ -53,9 +53,12 @@ class CSO(Algorithm):
         key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(
             state.key, num=5
         )
+
+        # create comparison pairs randomly (the lower the better)
         randperm = jax.random.permutation(pairing_key, self.pop_size).reshape(2, -1)
         mask = state.fitness[randperm[0, :]] < state.fitness[randperm[1, :]]
 
+        # selection
         teachers = jnp.where(mask, randperm[0, :], randperm[1, :])
         students = jnp.where(mask, randperm[1, :], randperm[0, :])
         lambda1 = jax.random.uniform(lambda1_key, shape=(self.pop_size // 2, self.dim))
