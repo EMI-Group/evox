@@ -10,6 +10,7 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import vmap
+import jax.random as jrng
 from evox import Algorithm, State, jit_class
 
 
@@ -25,7 +26,6 @@ class ODE(Algorithm):
         differential_weight=0.5,
         cross_probability=0.9,
         batch_size=100,
-        is_odd=True,
         replace=False,
         mean=None,
         stdvar=None,
@@ -45,7 +45,6 @@ class ODE(Algorithm):
         self.pop_size = pop_size
         self.base_vector = base_vector
         self.batch_size = batch_size
-        self.is_odd = is_odd
         self.replace = replace
         self.cross_probability = cross_probability
         self.differential_weight = differential_weight
@@ -73,6 +72,7 @@ class ODE(Algorithm):
             start_index=start_index,
             key=state_key,
             trial_vectors=jnp.empty((self.batch_size, self.dim)),
+            counter=1,
         )
 
     def ask(self, state):
@@ -106,15 +106,20 @@ class ODE(Algorithm):
         tile_arange = jnp.tile(jnp.arange(self.dim), (self.batch_size, 1))
         tile_R = jnp.tile(R[:, jnp.newaxis], (1, self.dim))
         masks = jnp.where(tile_arange == tile_R, True, masks_init)
-        trial_vectors = vmap(
-            partial(
-                self._ask_one, population=state.population, best_index=state.best_index
+
+        def generate_trial_vector(index, R, random_choices, mask):
+            # 使用 lambda 函数直接传递所有参数
+            return jax.lax.cond(
+                state.counter % 2 == 0,
+                lambda: self._ask_one_even(index, R, state.population, state.best_index, random_choices, mask),
+                lambda: self._ask_one_odd(index, R, state.population, state.best_index, random_choices, mask)
             )
-        )(indices, R, random_choiced=random_choices, mask=masks)
+
+        trial_vectors = vmap(generate_trial_vector)(indices, R, random_choices, masks)
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
-    def _ask_one(self, index, R, population, best_index, random_choiced, mask):
+    def _ask_one_odd(self, index, R, population, best_index, random_choiced, mask):
         random_choiced = jnp.where(
             random_choiced == index, self.pop_size - 1, random_choiced
         )
@@ -123,9 +128,18 @@ class ODE(Algorithm):
             base_vector = population[best_index, :]
         else:
             base_vector = population[random_choiced[0], :]
-        if self.is_odd:
-            mutation_vector = self.ub + self.lb - base_vector
-            return mutation_vector
+        mutation_vector = self.ub + self.lb - base_vector
+        return mutation_vector
+
+    def _ask_one_even(self, index, R, population, best_index, random_choiced, mask):
+        random_choiced = jnp.where(
+            random_choiced == index, self.pop_size - 1, random_choiced
+        )
+
+        if self.base_vector == "best":
+            base_vector = population[best_index, :]
+        else:
+            base_vector = population[random_choiced[0], :]
         difference_vectors = population[random_choiced[1:], :]
         subtrahend_index = jnp.arange(1, self.num_difference_vectors * 2 + 1, 2)
         mutation_vectors = (
@@ -144,8 +158,6 @@ class ODE(Algorithm):
         return trial_vector
 
     def tell(self, state, trial_fitness):
-        if self.is_odd:
-            self.is_odd = False
         start_index = state.start_index
         batch_pop = jax.lax.dynamic_slice_in_dim(
             state.population, start_index, self.batch_size, axis=0
@@ -174,4 +186,5 @@ class ODE(Algorithm):
             fitness=fitness,
             best_index=best_index,
             start_index=start_index,
+            counter=state.counter + 1,
         )
