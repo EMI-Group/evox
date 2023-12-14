@@ -11,9 +11,13 @@ class DTLZTestSuit(Problem):
     link: https://link.springer.com/chapter/10.1007/1-84628-137-7_6
     """
 
-    def __init__(self, d=None, m=None, ref_num=1000):
+    def __init__(self, d, m, ref_num=1000):
         self.d = d
         self.m = m
+        if self.d is None:
+            raise ValueError("d must be specified, but got None")
+        if self.m is None:
+            raise ValueError("m must be specified, but got None")
         self._dtlz = None
         self.ref_num = ref_num
         self.sample = UniformSampling(self.ref_num * self.m, self.m)
@@ -39,7 +43,7 @@ class DTLZ1(DTLZTestSuit):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -75,7 +79,7 @@ class DTLZ2(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -179,7 +183,7 @@ class DTLZ5(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -239,7 +243,7 @@ class DTLZ6(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -301,7 +305,7 @@ class DTLZ7(DTLZTestSuit):
         else:
             self.d = d
 
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
         self.sample = GridSampling(self.ref_num * self.m, self.m - 1)
 
     def evaluate(self, state, X):

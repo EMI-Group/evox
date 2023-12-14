@@ -12,7 +12,7 @@ let
 
   common-dependencies = with python.pkgs; [
     jax
-    jaxlib
+    (if cudaSupport then jaxlibWithCuda else jaxlib)
     optax
     pyarrow
   ];
