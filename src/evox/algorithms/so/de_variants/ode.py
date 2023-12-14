@@ -107,15 +107,12 @@ class ODE(Algorithm):
         tile_R = jnp.tile(R[:, jnp.newaxis], (1, self.dim))
         masks = jnp.where(tile_arange == tile_R, True, masks_init)
 
-        def generate_trial_vector(index, R, random_choices, mask):
-            # 使用 lambda 函数直接传递所有参数
-            return jax.lax.cond(
-                state.counter % 2 == 0,
-                lambda: self._ask_one_even(index, R, state.population, state.best_index, random_choices, mask),
-                lambda: self._ask_one_odd(index, R, state.population, state.best_index, random_choices, mask)
-            )
-
-        trial_vectors = vmap(generate_trial_vector)(indices, R, random_choices, masks)
+        trial_vectors = jax.lax.cond(
+            state.counter % 2 == 0,
+            vmap(self._ask_one_even, in_axes=[0, 0, None, None, 0, 0]),
+            vmap(self._ask_one_odd, in_axes=[0, 0, None, None, 0, 0]),
+            indices, R, state.population, state.best_index, random_choices, masks
+        )
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
