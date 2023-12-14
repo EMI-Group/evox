@@ -19,11 +19,11 @@ in
     stdenv
     gcc
 
-    python310
-    python310Packages.pip
-    python310Packages.setuptools
-    python310Packages.wheel
-    python310Packages.virtualenv
+    python311
+    python311Packages.pip
+    python311Packages.setuptools
+    python311Packages.wheel
+    python311Packages.virtualenv
 
     cudaPackages.cudatoolkit
     cudaPackages.cudnn
