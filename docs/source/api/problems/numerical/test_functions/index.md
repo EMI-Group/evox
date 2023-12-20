@@ -7,5 +7,6 @@ ackley
 griewank
 rastrigin
 rosenbrock
+schwefel
 sphere
 ```

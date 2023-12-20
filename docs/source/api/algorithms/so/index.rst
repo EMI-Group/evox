@@ -25,6 +25,7 @@ Single-objective
     ma_es
     nes
     noise_reuse_es
+    ode
     open_es
     persistent_es
     pgpe
