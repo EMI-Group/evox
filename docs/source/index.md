@@ -1,13 +1,17 @@
 # Welcome to EvoX's documentation!
 
+
 ```{toctree}
 :caption: 'Contents:'
 :maxdepth: 1
+:hidden:
 
 User Guide <guide/index>
 API reference <api/index>
 Examples <example/index>
 ```
+
+<br></br>
 
 ```{eval-rst}
 .. grid:: 3
