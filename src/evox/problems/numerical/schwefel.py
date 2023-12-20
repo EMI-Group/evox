@@ -7,7 +7,7 @@ from evox import Problem, jit_class
 @jit
 def schwefel_func(x):
     _pop_size, dim = x.shape
-    return 418.9828872724338 * dim - jnp.sum(x * jnp.sin(jnp.sqrt(jnp.abs(x))))
+    return 418.9828872724338 * dim - jnp.sum(x * jnp.sin(jnp.sqrt(jnp.abs(x))), axis=1)
 
 
 @jit_class
