@@ -22,10 +22,6 @@
   </a>
 </p>
 
-<p align="center">
-  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
-</p>
-
 ---
 
 🌟 Experience the transformative power of **Distributed GPU-Acceleration** in **Evolutionary Computation (EC)**. EvoX isn't just another framework—it's a pioneering toolset crafted to **redefine EC's frontiers**. Dive deep into a vast collection of **Evolutionary Algorithms (EAs)** and engage with an expansive range of **Benchmark Problems**. Tackle everything from intricate tasks to computationally intensive challenges. With EvoX, achieve unmatched speed and adaptability, ensuring your optimization journey is swift and seamless. Embrace the future of EC with EvoX!
@@ -49,21 +45,6 @@
   - Jumpstart your journey with our [detailed tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 **Elevate Your Optimization Game with EvoX!**: Step into a meticulously crafted platform tailored for both researchers and enthusiasts. Effortlessly traverse the vast **optimization landscapes**, confront and conquer widely-acknowledged **black-box optimization challenges**, and venture into the intricate realms of **neuroevolution**. It's not merely about breadth—it's about velocity. Supercharge your projects with **GPU acceleration** and streamlined **distributed workflows**. Plus, with a foundation in **functional programming** and **hierarchical state management**, EvoX promises a seamless, modular user experience.
-
-### 📑 Table of Contents
-
-- [⭐️ Highlighted Features](#️-highlighted-features)
-  - [📑 Table of Contents](#-table-of-contents)
-- [🧬 Comprehensive Evolutionary Algorithms](#-comprehensive-evolutionary-algorithms)
-  - [🎯 Single-Objective Optimization](#-single-objective-optimization)
-  - [🌐 Multi-Objective Optimization](#-multi-objective-optimization)
-- [📊 Diverse Benchmark Problems](#-diverse-benchmark-problems)
-- [🔧 Setting Up EvoX](#-setting-up-evox)
-- [🚀 Dive Right In: Quick Start](#-dive-right-in-quick-start)
-- [🔍 Explore More with Examples](#-explore-more-with-examples)
-- [🤝 Join the EvoX Community](#-join-the-evox-community)
-- [📝 Citing EvoX](#-citing-evox)
-
 
 ## 🧬 Comprehensive Evolutionary Algorithms
 
@@ -158,4 +139,9 @@ If EvoX has propelled your research or projects, consider citing our work:
   year = {2023}
 }
 ```
+
+<p align="center">
+  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
+</p>
+
 
