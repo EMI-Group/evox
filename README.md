@@ -145,7 +145,7 @@ If EvoX has propelled your research or projects, consider citing our work:
 [![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
 
 <p align="center">
-  ❤️ Found EvoX helpful? Please consider giving it a star to show your support! ⭐
+  ❤️ Found EvoX helpful? Please consider [giving it a star](https://github.com/EMI-Group/EvoX) to show your support! ⭐
 </p>
 
 
