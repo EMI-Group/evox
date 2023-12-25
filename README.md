@@ -113,18 +113,18 @@ for i in range(100):
     state = workflow.step(state)
 ```
 
-## 🔍 Explore More with Examples
+## 🔍 Use-cases and Examples
 
 The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
-## 🤝 Join the EvoX Community
-
-- Engage in discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
-- Welcome to join our **QQ group** (ID: 297969717).
-
-## 🌍 Translation
+## 🌍 Translation in Chinease
 
 We use weblate for translation, to help us translate the document, please visit [here](https://hosted.weblate.org/projects/evox/evox/).
+
+## 🤝 EvoX Community
+
+- Engage in discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
+- Join our **QQ group** (ID: 297969717).
 
 ## 📝 Citing EvoX
 
