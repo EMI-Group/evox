@@ -124,7 +124,7 @@ The [example directory](https://evox.readthedocs.io/en/latest/example/index.html
 - Join our QQ group (ID: 297969717).
 
 ## Sister Projects
-- EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [EvoXBench Github](https://github.com/EMI-Group/evoxbench).
+- EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [here](https://github.com/EMI-Group/evoxbench).
 
 ## Citing EvoX
 
