@@ -27,7 +27,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 
 ---
 
-## ⭐️ Key Features
+## ⭐️ Key Features ⭐️
 
 - 🚀 **Fast Performance**:
   - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
@@ -45,9 +45,9 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 
 ---
 
-## 🧬 Comprehensive Evolutionary Algorithms
+## Comprehensive Evolutionary Algorithms
 
-### 🎯 Single-Objective Optimization
+### Single-Objective Optimization
 
 | Category                    | Algorithm Names                             |
 | --------------------------- | ------------------------------------------ |
@@ -55,7 +55,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 | Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-### 🌐 Multi-Objective Optimization
+### Multi-Objective Optimization
 
 | Category           | Algorithm Names                                 |
 | ------------------ | ---------------------------------------------- |
@@ -63,7 +63,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 | Decomposition-based| MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
 | Indicator-based    | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
 
-## 📊 Diverse Benchmark Problems
+## Diverse Benchmark Problems
 
 | Category      | Problem Names                           |
 | ------------- | --------------------------------------- |
@@ -73,7 +73,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 For a comprehensive list and further details, please check our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
 
-## 🔧 Setting Up EvoX
+## Setting Up EvoX
 
 Install `evox` effortlessly via `pip`:
 ```bash
@@ -83,7 +83,7 @@ pip install evox
 **Note**: To install EvoX with JAX and hardware acceleration capabilities, please refer to our comprehensive [installation guide](https://evox.readthedocs.io/en/latest/guide/install.html).
 
 
-## 🚀 Quick Start
+## Quick Start
 
 Kickstart your journey with EvoX in just a few simple steps:
 1. **Import necessary modules**:
@@ -113,20 +113,20 @@ for i in range(100):
     state = workflow.step(state)
 ```
 
-## 🔍 Use-cases & Applications
+## Use-cases & Applications
 
 The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
-## 🤝 Support & Community 
+## Support & Community 
 
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
 - Join our QQ group (ID: 297969717).
-- Sister Project - EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [EvoXBench Github](https://github.com/EMI-Group/evoxbench).
 
-  
+## Sister Projects
+- EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [EvoXBench Github](https://github.com/EMI-Group/evoxbench).
 
-## 📝 Citing EvoX
+## Citing EvoX
 
 If you use EvoX in your research and want to cite it in your work, please use:
 ```
