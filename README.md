@@ -117,7 +117,7 @@ for i in range(100):
 
 The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
-## Support & Community 
+## Community & Support 
 
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
