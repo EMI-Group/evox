@@ -122,6 +122,8 @@ The [example directory](https://evox.readthedocs.io/en/latest/example/index.html
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
 - Join our QQ group (ID: 297969717).
+- Sister Project - EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [EvoXBench Github](https://github.com/EMI-Group/evoxbench).
+
   
 
 ## 📝 Citing EvoX
