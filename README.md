@@ -70,7 +70,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 | Numerical     | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...    |
 | Neuroevolution| Brax, Gym, TorchVision Dataset, ...    |
 
-Dive deeper! For a comprehensive list and further details, explore our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+For a comprehensive list and further details, please check our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
 
 ## 🔧 Setting Up EvoX
@@ -83,7 +83,7 @@ pip install evox
 **Note**: To install EvoX with JAX and hardware acceleration capabilities, please refer to our comprehensive [installation guide](https://evox.readthedocs.io/en/latest/guide/install.html).
 
 
-## 🚀 Dive Right In: Quick Start
+## 🚀 Quick Start
 
 Kickstart your journey with EvoX in just a few simple steps:
 1. **Import necessary modules**:
