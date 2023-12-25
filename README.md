@@ -119,9 +119,9 @@ The [example directory](https://evox.readthedocs.io/en/latest/example/index.html
 
 ## 🤝 Support & Community 
 
-- To help us translate the document, please visit [Weblate](https://hosted.weblate.org/projects/evox/evox/).
-- Engage in discussions and share your experiences on GitHub's [Discussion Board](https://github.com/EMI-Group/evox/discussions).
-- Welcome to join our QQ group (ID: 297969717).
+- Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
+- Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
+- Join our QQ group (ID: 297969717).
   
 
 ## 📝 Citing EvoX
