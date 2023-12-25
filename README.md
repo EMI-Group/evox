@@ -115,11 +115,11 @@ for i in range(100):
 
 ## 🔍 Explore More with Examples
 
-Eager to delve deeper? The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
+The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
 ## 🤝 Join the EvoX Community
 
-- Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
+- Engage in discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
 - Welcome to join our **QQ group** (ID: 297969717).
 
 ## 🌍 Translation
