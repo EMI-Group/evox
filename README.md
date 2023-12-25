@@ -27,7 +27,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 
 ---
 
-## ⭐️ Key Features ⭐️
+## Key Features 
 
 - 🚀 **Fast Performance**:
   - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
