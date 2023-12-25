@@ -40,7 +40,7 @@ EvoX is a sophisticated computing framework for Evolutionary Computation (EC), b
 
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
-  - Benefit from hierarchical state management, ensuring modular and clean programming.
+  - Benefit from **Bierarchical State Management**, ensuring modular and clean programming.
   - Jumpstart your journey with our [Detailed Tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
 
 ---
