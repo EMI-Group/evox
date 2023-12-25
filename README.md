@@ -122,7 +122,7 @@ Eager to delve deeper? The [example directory](https://evox.readthedocs.io/en/la
 - Engage in enlightening discussions and share your experiences on GitHub's [discussion board](https://github.com/EMI-Group/evox/discussions).
 - Welcome to join our **QQ group** (ID: 297969717).
 
-## Translation
+## 🌍 Translation
 
 We use weblate for translation, to help us translate the document, please visit [here](https://hosted.weblate.org/projects/evox/evox/).
 
