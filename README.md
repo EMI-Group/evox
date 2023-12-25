@@ -23,7 +23,7 @@
 ---
 
 ##
-EvoX is a sophisticated computing framework tailored for Evolutionary Computation (EC), built upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray). It offers a comprehensive suite of Evolutionary Algorithms (EAs) and a wide range of Benchmark Problems, tailored to address both simple and complex computational challenges. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/).
+EvoX is a sophisticated computing framework for Evolutionary Computation (EC), built upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray). It offers a comprehensive suite of Evolutionary Algorithms (EAs) and a wide range of Benchmark Problems, tailored to address both simple and complex computational challenges. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/).
 
 ---
 
