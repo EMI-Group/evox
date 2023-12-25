@@ -17,8 +17,7 @@
 </p>
 
 <p align="center">
-  <br>
-  🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 
+  <b>🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟<\b>
 </p>
 
 ---
