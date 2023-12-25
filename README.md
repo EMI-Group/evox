@@ -17,9 +17,7 @@
 </p>
 
 <p align="center">
-  <br>
   🌟Unlocking the Power of Distributed GPU-Acceleration in Evolutionary Computation🌟 
-  </br>
 </p>
 
 ---
