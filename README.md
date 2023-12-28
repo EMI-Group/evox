@@ -27,7 +27,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 ---
 
-## Key Features 
+## Key Features
 
 - 🚀 **Fast Performance**:
   - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
@@ -117,9 +117,19 @@ for i in range(100):
 
 ## Use-cases & Applications
 
+Try out EvoX in your browser with Colab
+
+| | |
+|-|-|
+| Basic Usage | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb) |
+| Numerical Optimization | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb) |
+| Neuroevolution with Gym | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb) |
+| Neuroevolution with Brax | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb) |
+| Custom algorithm and problem | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/custom_algorithm_and_problem.ipynb) |
+
 The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
 
-## Community & Support 
+## Community & Support
 
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).

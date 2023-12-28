@@ -11,6 +11,27 @@ API reference <api/index>
 Examples <example/index>
 ```
 
+EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
+
+
+---
+
+## Key Features
+
+- 🚀 **Fast Performance**:
+  - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
+  - Leverage the power of {class}`Distributed Workflows <evox.workflows.RayDistributedWorkflow>` for even more rapid optimization.
+
+- 🌐 **Versatile Optimization Suite**:
+  - Cater to all your needs with both {doc}`Single-objective <api/algorithms/so/index>` and {doc}`Multi-objective <api/algorithms/mo/index>` optimization capabilities.
+  - Dive into a comprehensive library of {doc}`Benchmark Problems <api/problems/numerical/index>`, ensuring robust testing and evaluation.
+  - Explore the frontier of AI with extensive tools for {doc}`Neuroevolution <api/problems/neuroevolution/index>` tasks.
+
+- 🛠️ **Designed for Simplicity**:
+  - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
+  - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
+
+---
 <br></br>
 
 ```{eval-rst}
