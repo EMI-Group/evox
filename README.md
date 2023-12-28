@@ -63,6 +63,8 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Decomposition-based| MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
 | Indicator-based    | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
 
+For a comprehensive list and further details of all algorithms, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) and [Source Code](https://github.com/EMI-Group/evox/tree/main/src/evox/algorithms).
+
 ## Diverse Benchmark Problems
 
 | Category      | Problem Names                           |
@@ -70,7 +72,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Numerical     | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...    |
 | Neuroevolution| Brax, Gym, TorchVision Dataset, ...    |
 
-For a comprehensive list and further details, please check our [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html) for algorithms and [Benchmark Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+For a comprehensive list and further details of all benchmark problems, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html) and [Source Code](https://github.com/EMI-Group/evox/tree/main/src/evox/problems).
 
 
 ## Setting Up EvoX
