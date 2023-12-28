@@ -2,17 +2,36 @@
 
 
 ```{toctree}
-:caption: 'Contents:'
+:caption: 'User Guide'
 :maxdepth: 1
 :hidden:
 
-User Guide <guide/index>
-API reference <api/index>
+guide/install
+guide/basics/index
+guide/advanced/index
+```
+
+```{toctree}
+:caption: 'API Reference'
+:maxdepth: 1
+:hidden:
+api/core/index
+api/algorithms/index
+api/problems/index
+api/workflows/index
+api/monitors/index
+api/metrics/index
+```
+
+```{toctree}
+:caption: 'Additional Resources'
+:maxdepth: 2
+:hidden:
+
 Examples <example/index>
 ```
 
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
-
 
 ---
 
@@ -80,9 +99,3 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
       :link: api/metrics/index
       :link-type: doc
 ```
-
-## Indices and tables
-
-- {ref}`genindex`
-- {ref}`modindex`
-- {ref}`search`
