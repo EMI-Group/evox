@@ -117,7 +117,7 @@ for i in range(100):
 
 ## Use-cases and Applications 
 
-Try out ready-to-play examples in your browser with Colab
+Try out ready-to-play examples in your browser with [Colab](https://colab.google/):
 
 | Example | Link |
 | ------- | ---- |
