@@ -119,8 +119,8 @@ for i in range(100):
 
 Try out EvoX in your browser with Colab
 
-| | |
-|-|-|
+| Example | Link |
+| ------- | ---- |
 | Basic Usage | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb) |
 | Numerical Optimization | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb) |
 | Neuroevolution with Gym | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb) |
@@ -136,6 +136,7 @@ The [example directory](https://evox.readthedocs.io/en/latest/example/index.html
 - Join our QQ group (ID: 297969717).
 
 ## Sister Projects
+
 - EvoXBench: A benchmark platform for Neural Architecutre Search (NAS) without the requirement of GPUs/PyTorch/Tensorflow, supporting various programming languages such as Java, Matlab, Python, ect. Check out [here](https://github.com/EMI-Group/evoxbench).
 
 ## Citing EvoX
