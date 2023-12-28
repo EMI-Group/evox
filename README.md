@@ -115,9 +115,9 @@ for i in range(100):
     state = workflow.step(state)
 ```
 
-## Use-cases & Applications
+## Use-cases and Applications 
 
-Try out EvoX in your browser with Colab
+Try out ready-to-play examples in your browser with Colab
 
 | Example | Link |
 | ------- | ---- |
@@ -125,9 +125,9 @@ Try out EvoX in your browser with Colab
 | Numerical Optimization | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb) |
 | Neuroevolution with Gym | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb) |
 | Neuroevolution with Brax | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb) |
-| Custom algorithm and problem | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/custom_algorithm_and_problem.ipynb) |
+| Custom Algorithm/Problem | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/custom_algorithm_and_problem.ipynb) |
 
-The [example directory](https://evox.readthedocs.io/en/latest/example/index.html) is brimming with comprehensive use-cases and applications of EvoX.
+More use-cases and applications can be found at [Example Directory](https://evox.readthedocs.io/en/latest/example/index.html).
 
 ## Community & Support
 
