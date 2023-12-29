@@ -4,6 +4,7 @@ jaxlib
 flax
 optax
 pyarrow
+polib
 # for docs generation
 sphinx-book-theme > 1.0
 sphinx
