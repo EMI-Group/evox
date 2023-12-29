@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2023-12-29 05:32+0000\n"
+"PO-Revision-Date: 2023-12-29 09:52+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -3044,11 +3044,11 @@ msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110004
 msgid "`to_vector` can convert a tree into a vector."
-msgstr ""
+msgstr "`to_vector` 可以将树转化成向量形式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110005
 msgid "`to_tree` can convert a vector back to a tree."
-msgstr ""
+msgstr "`to_tree` 可以把向量转化回树的形式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110007
 msgid "There are also batched version conversion."
@@ -3266,11 +3266,11 @@ msgstr ""
 
 #: ../../source/guide/install.md:1
 msgid "Installation Guide"
-msgstr ""
+msgstr "安装教程"
 
 #: ../../source/guide/install.md:3
 msgid "Install EvoX"
-msgstr ""
+msgstr "安装EvoX"
 
 #: ../../source/guide/install.md:5
 msgid "EvoX is available at Pypi and can be installed via:"
@@ -3278,7 +3278,7 @@ msgstr "EvoX 可以在 PyPI 上找到，可以通过以下方式安装："
 
 #: ../../source/guide/install.md:11
 msgid "To install EvoX with optional dependencies:"
-msgstr ""
+msgstr "要安装带有可选依赖项的 EvoX："
 
 #: ../../source/guide/install.md:17
 msgid ""
@@ -3286,16 +3286,19 @@ msgid ""
 "`distributed`, and `full` which concludes all features. For example, to "
 "install EvoX with all features, do:"
 msgstr ""
+"EvoX 提供多种可选特性，包括 `gymnasium`、`neuroevolution`、`envpool`、`distri"
+"buted`和`full`（包含所有特性）。例如，要安装包含所有特性的 "
+"EvoX，您可以使用以下命令："
 
 #: ../../source/guide/install.md:24
 msgid "Install JAX with accelerator support"
-msgstr ""
+msgstr "安装支持GPU加速的JAX"
 
 #: ../../source/guide/install.md:26
 msgid ""
 "`EvoX` relies on `JAX` to provide hardware acceleration. The overall "
 "architecture of these Python packages looks like this:"
-msgstr ""
+msgstr "`EvoX`依赖于`JAX`来提供硬件加速的能力。这些Python包的整体架构如下："
 
 #: ../../source/guide/install.md:43
 msgid ""
@@ -3303,6 +3306,8 @@ msgid ""
 "utilize JAX's hardware acceleration ability, make sure to install the "
 "correct `jaxlib` version."
 msgstr ""
+"`JAX`本身是纯 Python 库，而`jaxlib`则提供了支持加速器的 C/C++ "
+"代码。要充分利用JAX的硬件加速能力，必须确保安装了正确的`jaxlib`版本。"
 
 #: ../../source/guide/install.md:47
 msgid ""
@@ -3310,20 +3315,22 @@ msgid ""
 "installation guide](https://github.com/google/jax/?tab=readme-ov-"
 "file#installation)."
 msgstr ""
+"想要了解更多信息，比如在其他平台上安装的教程，请查阅JAX的[官方安装指南](https"
+"://github.com/google/jax/?tab=readme-ov-file#installation)。"
 
 #: ../../source/guide/install.md:50
 msgid "CPU only"
-msgstr ""
+msgstr "纯CPU版"
 
 #: ../../source/guide/install.md:56
 msgid "CUDA (NVIDIA GPU)"
-msgstr ""
+msgstr "CUDA版 （NVIDIA GPU）"
 
 #: ../../source/guide/install.md:58
 msgid ""
 "To enable CUDA acceleration, please ensure that the following components are "
 "installed in a compatible manner:"
-msgstr ""
+msgstr "为了能正确启用 CUDA 加速，请确保以下组件以能够兼容的方式安装："
 
 #: ../../source/guide/install.md:85
 msgid "If your using any visualization technology, like WSL, docker."
@@ -3337,14 +3344,17 @@ msgid ""
 "docker), then the driver should be installed on your host OS (outside "
 "docker)."
 msgstr ""
+"**内核空间组件**：应安装在您的宿主机系统上。例如，如果您在 Windows 上使用 "
+"WSL，则应在 Windows 上安装驱动程序，而不是在 WSL 内部安装。如果您使用容器（"
+"例如 Docker），则应在您的宿主机操作系统（Docker 外部）上安装驱动程序。"
 
 #: ../../source/guide/install.md:89
 msgid "**user space components**: need to be installed inside WSL or docker."
-msgstr ""
+msgstr "**用户空间组件**：需要安装在 WSL 或 Docker 内部。"
 
 #: ../../source/guide/install.md:92
 msgid "Install NVIDIA's proprietary driver"
-msgstr ""
+msgstr "安装 NVIDIA 的闭源驱动程序"
 
 #: ../../source/guide/install.md:95
 msgid "Windows WSL 2"
@@ -3364,6 +3374,8 @@ msgid ""
 "driver this a kernel space program, so it should be installed on the Windows "
 "side."
 msgstr ""
+"请**不要**在 WSL 2 内部安装任何 NVIDIA GPU Linux 驱动程序。GPU "
+"驱动程序属于内核空间程序，应安装在 Windows 主机系统上。"
 
 #: ../../source/guide/install.md:105
 msgid ""
@@ -3383,17 +3395,20 @@ msgid ""
 "package manager of your Linux distribution. Please do **NOT** install the "
 "driver from NVIDIA's website."
 msgstr ""
+"如果您使用 GNU/Linux 系统，我强烈建议您通过您的 Linux "
+"发行版的包管理器（比如apt，pacman）来安装驱动程序，而不是从 NVIDIA "
+"的网站下载安装包。"
 
 #: ../../source/guide/install.md:117
 msgid ""
 "Only NVIDIA's proprietary driver works with CUDA, open-source drivers like "
 "Nouveau do not."
-msgstr ""
+msgstr "仅有NVIDIA的闭源驱动支持CUDA，像Nouveau这样的开源驱动则不支持。"
 
 #: ../../source/guide/install.md:120
 msgid ""
 "The detailed installation guide depends on your operating system, for example"
-msgstr ""
+msgstr "具体的安装方法取决于您的操作系统，例如"
 
 #: ../../source/guide/install.md:122 ../../source/guide/install.md:153
 msgid "ArchLinux"
@@ -3411,7 +3426,7 @@ msgstr ""
 
 #: ../../source/guide/install.md:136
 msgid "After installing the driver, please reboot."
-msgstr ""
+msgstr "安装完驱动后，请重启电脑。"
 
 #: ../../source/guide/install.md:139
 msgid "Cluster (e.g. slurm, k8s)"
@@ -3475,34 +3490,37 @@ msgid ""
 "still be lower than the version of that jaxlib requires. In this case, try "
 "to install `jax[cuda11]`."
 msgstr ""
+"由于安装 jax[cuda12] 通常会安装到使用最新 CUDA 版本编译的 jaxlib，即使您有 "
+"CUDA 12，您的 CUDA 版本也可能低于 jaxlib 要求的版本（小版本号不够）。 "
+"在这种情况下，请尝试安装 jax[cuda11]。"
 
 #: ../../source/guide/install.md:218
 msgid "Verify your installation"
-msgstr ""
+msgstr "验证安装是否正确"
 
 #: ../../source/guide/install.md:220
 msgid "Open a Python terminal, and run the following:"
-msgstr ""
+msgstr "打开 Python 终端，并运行以下命令："
 
 #: ../../source/guide/install.md:228
 msgid "Here are some possible output:"
-msgstr ""
+msgstr "这里是几种可能的输出结果："
 
 #: ../../source/guide/install.md
 msgid "Correct"
-msgstr ""
+msgstr "正确"
 
 #: ../../source/guide/install.md
 msgid "EvoX not installed"
-msgstr ""
+msgstr "未安装EvoX"
 
 #: ../../source/guide/install.md
 msgid "Wrong jaxlib version"
-msgstr ""
+msgstr "jaxlib版本错误"
 
 #: ../../source/guide/install.md
 msgid "Wrong driver/library"
-msgstr ""
+msgstr "驱动或库版本错误"
 
 #: ../../source/index.md:4 ../../source/index.md:3
 msgid "User Guide"
