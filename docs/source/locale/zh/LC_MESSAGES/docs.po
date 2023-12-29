@@ -3,20 +3,21 @@
 # This file is distributed under the same license as the EvoX package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: EvoX \n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2023-12-29 05:32+0000\n"
+"Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: zh <LL@li.org>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.4-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -164,6 +165,10 @@ msgid ""
 "function return to have static shape, we need to have two different "
 "functions, one is the normal `ask` and another is `init_ask`."
 msgstr ""
+"如果您需要以特殊的方式初始化种群，请重写此方法。例如，遗传算法需要评估大小为 "
+"N 的初始种群的适应度，但在那之后，它只需要评估大小为 M 的后代的适应度，并且 "
+"N != M。由于 JAX 要求函数返回具有静态形状，因此我们需要有两个不同的函数，"
+"一个是常规的 `ask`，另一个是 `init_ask`。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
@@ -185,7 +190,7 @@ msgstr ""
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
 msgid "**state**"
-msgstr ""
+msgstr "**状态**"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
@@ -196,7 +201,7 @@ msgstr ""
 #: evox.core.algorithm.Algorithm.ask:9
 #: evox.core.algorithm.Algorithm.init_ask:13 of
 msgid "The state of this algorithm."
-msgstr ""
+msgstr "这个算法的状态。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
@@ -290,7 +295,7 @@ msgstr "种群"
 #: evox.core.algorithm.Algorithm.ask:14
 #: evox.core.algorithm.Algorithm.init_ask:18 of
 msgid "The candidate solution."
-msgstr ""
+msgstr "候选解。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
@@ -308,7 +313,7 @@ msgstr ""
 #: evox.core.algorithm.Algorithm.init_tell:26
 #: evox.core.algorithm.Algorithm.tell:29 of
 msgid "state"
-msgstr ""
+msgstr "状态"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
@@ -321,7 +326,7 @@ msgstr ""
 #: evox.core.problem.Problem.evaluate:16
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
 msgid "The new state of the algorithm."
-msgstr ""
+msgstr "算法的新的状态。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
 #: evox.algorithms.containers.coevolution.Coevolution.setup
@@ -339,7 +344,7 @@ msgstr "返回值类型"
 msgid ""
 "Tell the algorithm the fitness of the initial population Use in pair with "
 "`init_ask`."
-msgstr ""
+msgstr "告诉算法初始种群的适应度并应该与`init_ask`函数配对使用。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
@@ -349,7 +354,7 @@ msgstr ""
 #: evox.core.algorithm.Algorithm.init_tell:9
 #: evox.core.algorithm.Algorithm.tell:9 of
 msgid "The state of this algorithm"
-msgstr ""
+msgstr "算法的状态"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
@@ -422,7 +427,7 @@ msgstr "算法的新状态"
 #: evox.workflows.standard.StdWorkflow.setup:2
 #: evox.workflows.uni_workflow.UniWorkflow.setup:2 of
 msgid "Setup mutable state here"
-msgstr ""
+msgstr "在这里设置可变状态"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
@@ -488,7 +493,7 @@ msgstr ""
 msgid ""
 "The state it self is immutable, but it act as a mutable state by returning "
 "new state each time."
-msgstr ""
+msgstr "状态本身是不可变的，但是你可以通过生成一个新的状态来实现修改的操作。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
@@ -555,7 +560,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.setup:10
 #: evox.workflows.uni_workflow.UniWorkflow.setup:10 of
 msgid "**key**"
-msgstr ""
+msgstr "**随机数生成器密钥**"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
@@ -618,7 +623,7 @@ msgstr ""
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:10 of
 msgid "A PRNGKey."
-msgstr "一个PRNGKey。"
+msgstr "一个伪随机数生成器密钥。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:27
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:26
@@ -778,7 +783,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:2
 #: evox.core.algorithm.Algorithm.ask:2 of
 msgid "Ask the algorithm"
-msgstr ""
+msgstr "询问这个算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:4
@@ -787,7 +792,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:4
 #: evox.core.algorithm.Algorithm.ask:4 of
 msgid "Ask the algorithm for points to explore"
-msgstr ""
+msgstr "向算法询问要探索的点"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:2
@@ -796,7 +801,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:2
 #: evox.core.algorithm.Algorithm.tell:2 of
 msgid "Tell the algorithm more information"
-msgstr ""
+msgstr "告诉算法更多的信息"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:4
@@ -806,7 +811,7 @@ msgstr ""
 #: evox.core.algorithm.Algorithm.tell:4 of
 msgid ""
 "Tell the algorithm about the points it chose and their corresponding fitness"
-msgstr ""
+msgstr "告诉算法它选择的点以及它们对应的适应度"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
@@ -815,7 +820,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
 #: evox.core.algorithm.Algorithm.tell:12 of
 msgid "**fitness**"
-msgstr ""
+msgstr "**适应度**"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
@@ -844,12 +849,12 @@ msgstr "初始化这个模块和所有的子模块"
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:4
 #: evox.core.module.Stateful.init:4 of
 msgid "This method should not be overwritten."
-msgstr ""
+msgstr "此方法不应被复写。"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:14
 #: evox.core.module.Stateful.init:14 of
 msgid "The state of this module and all submodules combined."
-msgstr ""
+msgstr "该模块及其所有子模块的组合之和。"
 
 #: ../../source/api/algorithms/containers/index.rst:3
 msgid "Containers"
@@ -867,7 +872,7 @@ msgstr ""
 msgid ""
 "The module that contains all pre-defined algorithms, including both single-"
 "objective algorithms and multi-objective algorithms."
-msgstr ""
+msgstr "包含所有预定义算法的模块，包括单目标算法和多目标算法。"
 
 #: ../../source/api/algorithms/mo/bce_ibea.rst:3
 msgid "BCEIBEA"
@@ -1429,7 +1434,7 @@ msgstr ""
 
 #: evox.core.state.State.__init__:2 of
 msgid "Construct a ``State`` from dict or keyword arguments"
-msgstr ""
+msgstr "从Python字典（dict）或关键字（keyword arguments）构建一个状态（State）对象"
 
 #: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
 msgid "Example::"
@@ -1482,7 +1487,7 @@ msgstr ""
 
 #: evox.metrics.hypervolume.HV.__init__:11 of
 msgid "Number of samples to draw when doing monte carlo."
-msgstr ""
+msgstr "在使用蒙特卡洛方法的时候样本的数量。"
 
 #: evox.metrics.hypervolume.HV.__init__:28 of
 msgid "**sample_method**"
@@ -1788,7 +1793,7 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12 of
 msgid "This key will be used to seed the test environment."
-msgstr ""
+msgstr "此密钥将会作为测试环境的随机数种子。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:15 of
 msgid "**weights**"
@@ -2154,7 +2159,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
 msgid "Whether to record the population if monitor is enabled."
-msgstr ""
+msgstr "如果启用了monitor，是否要记录种群数据。"
 
 #: evox.workflows.standard.StdWorkflow.__init__:49
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
@@ -2234,7 +2239,7 @@ msgstr ""
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:2 of
 msgid "Enable the workflow to run on multiple local devices."
-msgstr ""
+msgstr "允许workflow利用单台机器的多个设备（GPU）。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:12 of
 msgid "**devices**"
@@ -2285,7 +2290,7 @@ msgstr ""
 
 #: ../../source/example/gym_classic_control.ipynb:70002
 msgid "Now run the workflow. You may see warnings like"
-msgstr ""
+msgstr "现在运行workflow。你可能会看到这样的警报"
 
 #: ../../source/example/gym_classic_control.ipynb:70007
 msgid ""
@@ -2779,7 +2784,7 @@ msgstr ""
 #: ../../source/guide/advanced/3-custom-alg-pro.md:205
 #: ../../source/guide/advanced/3-custom-alg-pro.md:195
 msgid "Now, you can assemble a workflow and run it."
-msgstr ""
+msgstr "现在你可以组合出一个workflow并运行。"
 
 #: ../../source/guide/advanced/4-container.md:1
 msgid "Container Algorithms"
@@ -2848,7 +2853,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/index.md:1
 msgid "Advanced Tutorial"
-msgstr ""
+msgstr "进阶教程"
 
 #: ../../source/guide/basics/1-start.ipynb:10002
 msgid "Quick Start"
@@ -2905,7 +2910,7 @@ msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:140002
 msgid "To run multiple iterations, wrap it inside a for-loop."
-msgstr ""
+msgstr "想要执行多次迭代，只要在这外面套一个for循环即可。"
 
 #: ../../source/guide/basics/1-start.ipynb:160002
 msgid ""
@@ -3035,7 +3040,7 @@ msgstr ""
 
 #: ../../source/guide/basics/2-problems.ipynb:110002
 msgid "Now, `adapter` can help us convert the data back-and-forth."
-msgstr ""
+msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110004
 msgid "`to_vector` can convert a tree into a vector."
@@ -3117,7 +3122,7 @@ msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
-msgstr ""
+msgstr "这里有一个简单的本地集群搭建方法。"
 
 #: ../../source/guide/basics/3-distributed.md:15
 msgid "On the head node"
@@ -3152,7 +3157,7 @@ msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:36
 msgid "then create your algorithm, problem, monitor object as usual."
-msgstr ""
+msgstr "接下来创建algorithm，problem，monitor对象。"
 
 #: ../../source/guide/basics/3-distributed.md:44
 msgid "Now use `RayDistributedWorkflow`"
@@ -3269,7 +3274,7 @@ msgstr ""
 
 #: ../../source/guide/install.md:5
 msgid "EvoX is available at Pypi and can be installed via:"
-msgstr ""
+msgstr "EvoX 可以在 PyPI 上找到，可以通过以下方式安装："
 
 #: ../../source/guide/install.md:11
 msgid "To install EvoX with optional dependencies:"
@@ -3322,7 +3327,7 @@ msgstr ""
 
 #: ../../source/guide/install.md:85
 msgid "If your using any visualization technology, like WSL, docker."
-msgstr ""
+msgstr "如果你正在使用任何虚拟化技术，例如 WSL 或 Docker。"
 
 #: ../../source/guide/install.md:86
 msgid ""
@@ -3350,6 +3355,8 @@ msgid ""
 "Download the [latest NVIDIA Windows GPU Driver](https://www.nvidia.com/"
 "Download/index.aspx?lang=en-us), and install it."
 msgstr ""
+"下载 [最新的NVIDIA Windows GPU驱动](https://www.nvidia.com/Download/index."
+"aspx?lang=en-us)，并安装."
 
 #: ../../source/guide/install.md:100
 msgid ""
@@ -3363,6 +3370,8 @@ msgid ""
 "NVIDIA has a detailed [CUDA on WSL User Guide](https://docs.nvidia.com/cuda/"
 "wsl-user-guide/index.html)"
 msgstr ""
+"NVIDIA官方有一个详细的教程 [CUDA on WSL User Guide](https://docs.nvidia.com/"
+"cuda/wsl-user-guide/index.html)"
 
 #: ../../source/guide/install.md:108
 msgid "GNU/Linux"
@@ -3527,7 +3536,7 @@ msgstr ""
 msgid ""
 "Experience **GPU-Accelerated** optimization, achieving speeds 100x faster "
 "than traditional methods."
-msgstr ""
+msgstr "体验**GPU 加速**的优化，速度比传统方法快 100 倍。"
 
 #: ../../source/index.md:42
 msgid ""
@@ -3566,13 +3575,13 @@ msgstr ""
 msgid ""
 "Embrace the elegance of **Functional Programming**, simplifying complex "
 "algorithmic compositions."
-msgstr ""
+msgstr "拥抱优雅的**函数式编程**，化繁为简，轻松构建复杂算法。"
 
 #: ../../source/index.md:51
 msgid ""
 "Benefit from **Hierarchical State Management**, ensuring modular and clean "
 "programming."
-msgstr ""
+msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
 
 #: ../../source/index.md:54
 msgid "<br></br>"
@@ -3594,6 +3603,19 @@ msgid ""
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"></path></svg> "
 "Installation Guide"
 msgstr ""
+"<path fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 "
+"015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 01-1.499-.044 "
+"9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 100 8 4 4 0 000-"
+"8z\"><path d=\"M17.29 8c-.148 0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 "
+"4.53 0 013.38 8.097 6.69 6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
+"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 8z\"><path fill-"
+"rule=\"evenodd\" d=\"M2.5 3.75a.25.25 0 01.25-.25h5.5a.75.75 0 100-1.5h-"
+"5.5A1.75 1.75 0 001 3.75v11.5c0 .966.784 1.75 1.75 1.75h6.204c-.171 1.375-."
+"805 2.652-1.77 3.757A.75.75 0 007.75 22h8.5a.75.75 0 00.565-1.243c-.964-1."
+"105-1.598-2.382-1.769-3.757h6.204A1.75 1.75 0 0023 15.25V3.75A1.75 1.75 0 "
+"0021.25 2h-5.5a.75.75 0 000 1.5h5.5a.25.25 0 01.25.25v11.5a.25.25 0 01-."
+"25.25H2.75a.25.25 0 01-.25-.25V3.75zM10.463 17c-.126 1.266-.564 2.445-1.223 3"
+".5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"> 安装教程"
 
 #: ../../source/index.md:67 ../../source/index.md:23
 msgid ""
@@ -3607,6 +3629,15 @@ msgid ""
 "00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 8z\"></path></"
 "svg> Getting Started"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule="
+"\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 015.9 "
+"8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 01-1.499-.044 9.005 "
+"9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 100 8 4 4 0 000-8z\"></"
+"path><path d=\"M17.29 8c-.148 0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 "
+"4.53 0 013.38 8.097 6.69 6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
+"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 8z\"></path></"
+"svg> 新手教程"
 
 #: ../../source/index.md:73 ../../source/index.md:29
 msgid ""
