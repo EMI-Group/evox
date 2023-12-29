@@ -41,7 +41,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
-  - Jumpstart your journey with our [Detailed Tutorial](https://evox.readthedocs.io/en/latest/guide/index.html).
+  - Jumpstart your journey with our [Detailed Tutorial](https://evox.readthedocs.io/en/latest/guide/basics/index.html).
 
 ---
 
