@@ -115,7 +115,7 @@ for i in range(100):
     state = workflow.step(state)
 ```
 
-## Use-cases and Applications 
+## Use-cases and Applications
 
 Try out ready-to-play examples in your browser with Colab:
 
@@ -131,9 +131,11 @@ For more use-cases and applications, pleae check out [Example Directory](https:/
 
 ## Community & Support
 
-- Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
 - Join our QQ group (ID: 297969717).
+- Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
+
+![Translation status](https://hosted.weblate.org/widget/evox/evox/multi-auto.svg)
 
 ## Sister Projects
 

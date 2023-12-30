@@ -31,6 +31,8 @@ api/metrics/index
 Examples <example/index>
 ```
 
+[[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh/latest/)
+
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
 
 ---
