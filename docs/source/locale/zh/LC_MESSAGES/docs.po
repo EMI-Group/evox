@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2023-12-29 09:52+0000\n"
+"PO-Revision-Date: 2023-12-30 07:38+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -2264,6 +2264,9 @@ msgid ""
 "Please follow the instructions [here](https://github.com/Farama-Foundation/"
 "AutoROM) to install the image."
 msgstr ""
+"运行这个文档需要先安装 evox，gymnasium，ale-py以及Pong这个游戏的镜像文件。由"
+"于版权问题，我们无法在这里给出游戏镜像文件。请按照这里[AutoROM](https://githu"
+"b.com/Farama-Foundation/AutoROM)的教程安装游戏镜像。"
 
 #: ../../source/example/custom_algorithm_and_problem.ipynb:10002
 msgid "Custom algorithm and problem"
@@ -2277,6 +2280,10 @@ msgid ""
 "goal is to maximize the number of ones in a binary string. For example, the "
 "string `01011` has a fitness of 3."
 msgstr ""
+"在这个文档中，我们将会展示如何通过`Algorithm`和`Problem`两个类来写一个自定义"
+"的算法和问题。我们将会以one-max问题为例。one-max问题是一个非常简单的问题，这"
+"个问题的目标是最大化一个由0或1组成的字符串中1的数量。比如说字符串`01011`的适"
+"应度值是3。"
 
 #: ../../source/example/gym_classic_control.ipynb:10002
 msgid "Classic control with Gym"
@@ -2286,7 +2293,7 @@ msgstr ""
 msgid ""
 "In this notebook, we will use the Gym to train an agent that solves classic "
 "control problems."
-msgstr ""
+msgstr "在这个文档里，我们会借助Gym来训练一个解决经典控制问题的智能体。"
 
 #: ../../source/example/gym_classic_control.ipynb:70002
 msgid "Now run the workflow. You may see warnings like"
@@ -2310,13 +2317,13 @@ msgstr ""
 
 #: ../../source/example/pso_ackley.ipynb:10002
 msgid "Numerical Optimization"
-msgstr ""
+msgstr "数值优化"
 
 #: ../../source/example/pso_ackley.ipynb:10004
 msgid ""
 "In this notebook, we will use the Particle Swarm Optimization (PSO) "
 "algorithm to find the minimum of the Ackley function."
-msgstr ""
+msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试问题的最小值。"
 
 #: ../../source/guide/advanced/1-state.md:1
 msgid "Working with state in EvoX"
@@ -3449,13 +3456,14 @@ msgstr ""
 
 #: ../../source/guide/install.md:148
 msgid "Install CUDA libraries"
-msgstr ""
+msgstr "安装CUDA库"
 
 #: ../../source/guide/install.md:150
 msgid ""
 "CUDA libraries are user space libraries, so you don't need to reboot after "
 "installation. Again, it depends on your operating system, for example"
-msgstr ""
+msgstr "CUDA 库是安装在用户空间的，所以在安装后您不需要重启。 "
+"具体的安装方式取决于您的操作系统，例如"
 
 #: ../../source/guide/install.md:163
 msgid "Now, you can check your do"
@@ -3540,7 +3548,7 @@ msgstr ""
 
 #: ../../source/index.md:1
 msgid "Welcome to EvoX's documentation!"
-msgstr ""
+msgstr "欢迎来到EvoX的文档！"
 
 #: ../../source/index.md:38
 msgid "Key Features"
@@ -3548,7 +3556,7 @@ msgstr ""
 
 #: ../../source/index.md:40
 msgid "🚀 **Fast Performance**:"
-msgstr ""
+msgstr "🚀 **超高性能**："
 
 #: ../../source/index.md:41
 msgid ""
