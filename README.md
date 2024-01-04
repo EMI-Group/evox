@@ -1,6 +1,10 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/EMI-Group/evox/main/docs/source/_static/evox_logo_with_title.svg" width="500px" alt="EvoX Logo"/>
-</p>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/evox_logo_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_logo_light.png">
+    <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_logo_light.png">
+  </picture>
+</h1>
 
 <p align="center">
   <a href="https://arxiv.org/abs/2301.12457">
