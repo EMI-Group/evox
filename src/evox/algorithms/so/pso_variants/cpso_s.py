@@ -92,7 +92,6 @@ class CPSOS(Algorithm):
     def ask(self, state):
         return state.population, state
 
-    # fitness: shape:(dim, pop_size)
     def tell(self, state, fitness):
         state_key, rand_key_gbest, rand_key_pbest = jax.random.split(state.key, num=3)
 
