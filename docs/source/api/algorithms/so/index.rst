@@ -9,7 +9,7 @@ Single-objective
     ars
     asebo
     clpso
-    clpso_s
+    cpso_s
     cma_es
     code
     cr_fm_nes
