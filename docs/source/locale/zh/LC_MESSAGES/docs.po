@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2023-12-30 07:38+0000\n"
-"Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"PO-Revision-Date: 2024-01-10 10:06+0000\n"
+"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -30,7 +30,8 @@ msgid ""
 "Automatically apply cooperative coevolution to any algorithm. The process of "
 "cooperative coevolution is vectorized, meaning all sub-populations will "
 "evolve at the same time in each generation."
-msgstr ""
+msgstr "将协同演化自动应用于任何算法。协同演化的过程被向量化，意味着在每一代中，所有"
+"的子种群将同时进化。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.__init__
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
@@ -148,12 +149,12 @@ msgstr ""
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices
 #: evox.workflows.uni_workflow.UniWorkflow.setup of
 msgid "Parameters"
-msgstr ""
+msgstr "参数"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:2
 #: evox.core.algorithm.Algorithm.init_ask:2 of
 msgid "Ask the algorithm for the initial population"
-msgstr ""
+msgstr "向算法获取初始化种群"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:4
 #: evox.core.algorithm.Algorithm.init_ask:4 of
@@ -757,17 +758,18 @@ msgid ""
 "Automatically apply cooperative coevolution to any algorithm. The process of "
 "cooperative coevolution is not vectorized, meaning all sub-populations will "
 "evolve one at a time (round-robin) in each generation."
-msgstr ""
+msgstr "将协同演化自动应用于任何算法。协同演化的过程未被向量化，这意味着在每一代中，"
+"所有子种群将逐一（轮流）进行进化。"
 
 #: ../../source/api/algorithms/containers/clustered.rst:3
 msgid "Clustered Algorithm"
-msgstr ""
+msgstr "聚类算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:2 of
 msgid ""
 "A container that split the encoding into subproblems, and run an Algorithm "
 "on each."
-msgstr ""
+msgstr "一个容器，它将编码分割成若干子问题，并在每个子问题上运行一个算法。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:4 of
 msgid ""
@@ -775,6 +777,9 @@ msgid ""
 "problems and solve each problem using the base algorithm. Dim must be a "
 "multiple of num_cluster, and num_cluster must be a multiple of num_gpus."
 msgstr ""
+"能够接收任何基础算法，将问题分割成 n 个不同的子问题，并使用基础算法解决每个子"
+"问题。其中，维度（Dim）必须是簇数量（num_cluster）的倍数，而簇数量（num_clust"
+"er）必须是 GPU 数量（num_gpus）的倍数。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:2
@@ -833,13 +838,14 @@ msgstr "适应度值"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:2 of
 msgid "Cluster container with random mask"
-msgstr ""
+msgstr "带有随机掩码的簇容器"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:4 of
 msgid ""
 "pop_size is needed, because JAX needs static shape, if pop_size is None, it "
 "will try to read pop_size from base_algorithm"
-msgstr ""
+msgstr "需要指定种群大小（pop_size），因为 JAX 需要静态形状，如果种群大小（pop_size）"
+"未设定，系统将尝试从基础算法中读取种群大小"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:2
 #: evox.core.module.Stateful.init:2 of
@@ -858,15 +864,15 @@ msgstr "该模块及其所有子模块的组合之和。"
 
 #: ../../source/api/algorithms/containers/index.rst:3
 msgid "Containers"
-msgstr ""
+msgstr "容器"
 
 #: ../../source/api/algorithms/containers/tree.rst:3
 msgid "Tree Algorithm"
-msgstr ""
+msgstr "树算法"
 
 #: ../../source/api/algorithms/index.rst:3
 msgid "Algorithms"
-msgstr ""
+msgstr "算法"
 
 #: evox.algorithms:1 of
 msgid ""
@@ -884,18 +890,18 @@ msgstr ""
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7347391"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7347391"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:6 of
 msgid ""
 "Note: The number of outer iterations needs to be set to Maximum "
 "Generation*2+1."
-msgstr ""
+msgstr "注意：外部迭代次数需要设置为最大代数（Maximum Generation）的两倍加一。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:25 evox.algorithms.mo.ibea.IBEA:21
 #: evox.algorithms.mo.lmocso.LMOCSO:23 evox.algorithms.mo.rvea.RVEA:24 of
 msgid "Args:"
-msgstr ""
+msgstr "参数："
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:25 of
 msgid ""
@@ -907,7 +913,7 @@ msgstr ""
 msgid ""
 "It controls the probability of selecting parents based on their fitness "
 "values. Defaults to 0.05."
-msgstr ""
+msgstr "它控制了基于个体适应度值选择父代的概率。默认值为0.05。"
 
 #: ../../source/api/algorithms/mo/bige.rst:3
 msgid "BiGE"
@@ -919,7 +925,7 @@ msgstr ""
 
 #: evox.algorithms.mo.bige.BiGE:4 of
 msgid "link: https://doi.org/10.1016/j.artint.2015.06.007"
-msgstr ""
+msgstr "链接：https://doi.org/10.1016/j.artint.2015.06.007"
 
 #: ../../source/api/algorithms/mo/eagmoead.rst:3
 msgid "EAG-MOEA/D"
@@ -931,7 +937,7 @@ msgstr ""
 
 #: evox.algorithms.mo.eagmoead.EAGMOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6882229"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6882229"
 
 #: ../../source/api/algorithms/mo/gde3.rst:3
 msgid "GDE3"
@@ -943,7 +949,7 @@ msgstr ""
 
 #: evox.algorithms.mo.gde3.GDE3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/1554717"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/1554717"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:3 of
 msgid "Parameters for Differential Evolution"
@@ -978,6 +984,8 @@ msgid ""
 "link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-"
 "Algorithm-for-Fast-Hypervolume-Based-Many"
 msgstr ""
+"链接：https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-"
+"Algorithm-for-Fast-Hypervolume-Based-Many"
 
 #: ../../source/api/algorithms/mo/ibea.rst:3
 msgid "IBEA"
@@ -989,7 +997,7 @@ msgstr ""
 
 #: evox.algorithms.mo.ibea.IBEA:4 of
 msgid "link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
-msgstr ""
+msgstr "链接：https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
 
 #: evox.algorithms.mo.ibea.IBEA:7 of
 msgid "kappa: fitness scaling factor. Default: 0.05"
@@ -997,7 +1005,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/mo/index.rst:3
 msgid "Multi-objective"
-msgstr ""
+msgstr "多目标"
 
 #: ../../source/api/algorithms/mo/knea.rst:3
 msgid "KnEA"
@@ -1009,7 +1017,7 @@ msgstr ""
 
 #: evox.algorithms.mo.knea.KnEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6975108"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/6975108"
 
 #: ../../source/api/algorithms/mo/lmocso.rst:3
 msgid "LMOCSO"
@@ -1021,7 +1029,7 @@ msgstr ""
 
 #: evox.algorithms.mo.lmocso.LMOCSO:4 of
 msgid "link: https://ieeexplore.ieee.org/document/8681243"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/8681243"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:7 of
 msgid ""
@@ -1040,7 +1048,7 @@ msgstr ""
 
 #: evox.algorithms.mo.moead.MOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/document/4358754"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/4358754"
 
 #: ../../source/api/algorithms/mo/moeaddra.rst:3
 msgid "MOEA/D-DRA"
@@ -1052,7 +1060,7 @@ msgstr ""
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/4982949"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/4982949"
 
 #: ../../source/api/algorithms/mo/moeadm2m.rst:3
 msgid "MOEA/D-M2M"
@@ -1064,7 +1072,7 @@ msgstr ""
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6595549"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6595549"
 
 #: ../../source/api/algorithms/mo/nsga2.rst:3
 msgid "NSGA-II"
@@ -1076,7 +1084,7 @@ msgstr ""
 
 #: evox.algorithms.mo.nsga2.NSGA2:4 of
 msgid "link: https://ieeexplore.ieee.org/document/996017"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/996017"
 
 #: ../../source/api/algorithms/mo/nsga3.rst:3
 msgid "NSGA-III"
@@ -1088,7 +1096,7 @@ msgstr ""
 
 #: evox.algorithms.mo.nsga3.NSGA3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6600851"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/6600851"
 
 #: ../../source/api/algorithms/mo/rvea.rst:3
 msgid "RVEA"
@@ -1100,7 +1108,7 @@ msgstr ""
 
 #: evox.algorithms.mo.rvea.RVEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/7386636"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/7386636"
 
 #: evox.algorithms.mo.rvea.RVEA:7 of
 msgid ""
@@ -1121,7 +1129,7 @@ msgstr ""
 #: evox.algorithms.mo.spea2.SPEA2:4 of
 msgid ""
 "link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755"
-msgstr ""
+msgstr "链接：https://www.research-collection.ethz.ch/handle/20.500.11850/145755"
 
 #: ../../source/api/algorithms/mo/sra.rst:3
 msgid "SRA"
@@ -1129,11 +1137,11 @@ msgstr ""
 
 #: evox.algorithms.mo.sra.SRA:2 of
 msgid "Stochastic ranking algorithm"
-msgstr ""
+msgstr "随机排序算法"
 
 #: evox.algorithms.mo.sra.SRA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7445185"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7445185"
 
 #: ../../source/api/algorithms/mo/tdea.rst:3
 msgid "tDEA"
@@ -1145,7 +1153,7 @@ msgstr ""
 
 #: evox.algorithms.mo.tdea.TDEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7080938"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7080938"
 
 #: ../../source/api/algorithms/so/amalgam.rst:3
 msgid "AMaLGaM"
@@ -1190,7 +1198,8 @@ msgid ""
 "CMA-ES involves eigendecomposition, which introduces relatively large "
 "numerical error, and may lead to non-deterministic behavior on different "
 "hardware backends."
-msgstr ""
+msgstr "CMA-ES涉及特征分解，这会引入相对较大的数值误差，并可能导致在不同硬件后端上的"
+"非确定性行为。"
 
 #: ../../source/api/algorithms/so/code.rst:3
 msgid "CoDE"
@@ -1341,7 +1350,7 @@ msgstr ""
 
 #: ../../source/api/core/algorithm.rst:3
 msgid "Algorithm Class"
-msgstr ""
+msgstr "算法类"
 
 #: evox.core.algorithm.Algorithm:2 evox.core.problem.Problem:2 of
 msgid "Base class for all algorithms"
@@ -1377,7 +1386,7 @@ msgstr ""
 
 #: ../../source/api/core/problem.rst:3
 msgid "Problem Class"
-msgstr ""
+msgstr "问题类"
 
 #: evox.core.problem.Problem.evaluate:2
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:2 of
@@ -1393,7 +1402,7 @@ msgstr ""
 #: evox.core.problem.Problem.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8 of
 msgid "The state of this problem."
-msgstr ""
+msgstr "这个问题的状态。"
 
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
@@ -1409,16 +1418,16 @@ msgstr ""
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
 msgid "The population."
-msgstr ""
+msgstr "种群。"
 
 #: evox.core.problem.Problem.evaluate:19
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:19 of
 msgid "The fitness."
-msgstr ""
+msgstr "适应度值。"
 
 #: ../../source/api/core/state.rst:3
 msgid "State Class"
-msgstr ""
+msgstr "状态类"
 
 #: evox.core.state.State:2 of
 msgid "A class represents state"
@@ -1479,11 +1488,11 @@ msgstr ""
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "The reference point."
-msgstr ""
+msgstr "参考点。"
 
 #: evox.metrics.hypervolume.HV.__init__:11 of
 msgid "**num_sample**"
-msgstr ""
+msgstr "**样本数量**"
 
 #: evox.metrics.hypervolume.HV.__init__:11 of
 msgid "Number of samples to draw when doing monte carlo."
@@ -1499,11 +1508,11 @@ msgstr ""
 
 #: ../../source/api/metrics/igd.rst:3
 msgid "Inverted Generational Distance"
-msgstr ""
+msgstr "反世代距离"
 
 #: ../../source/api/metrics/index.rst:3
 msgid "Metrics"
-msgstr ""
+msgstr "度量指标"
 
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
@@ -1572,17 +1581,17 @@ msgstr ""
 
 #: ../../source/api/monitors/index.rst:3
 msgid "Monitors"
-msgstr ""
+msgstr "监视器"
 
 #: ../../source/api/monitors/std_mo.rst:3
 msgid "Standard Multi-objective Monitor"
-msgstr ""
+msgstr "标准多目标监视器"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:2 of
 msgid ""
 "Standard multi-objective monitor Used for multi-objective workflow, can "
 "monitor fitness and record the pareto front."
-msgstr ""
+msgstr "标准多目标监视器，用于多目标工作流，可以监控适应度并记录帕累托前沿。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:14 of
 msgid "**record_pf**"
