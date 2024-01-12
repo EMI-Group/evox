@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-12 03:12+0000\n"
-"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
+"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1490,11 +1490,11 @@ msgstr "这个方法也接受关键字参数。"
 
 #: ../../source/api/metrics/gd.rst:3
 msgid "Generational Distance"
-msgstr "迭代距离"
+msgstr "世代距离"
 
 #: ../../source/api/metrics/hv.rst:3
 msgid "Hypervolume"
-msgstr ""
+msgstr "超体积"
 
 #: evox.metrics.hypervolume.HV:2 of
 msgid ""
