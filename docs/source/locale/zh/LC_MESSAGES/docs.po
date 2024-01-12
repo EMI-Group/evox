@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-10 10:06+0000\n"
+"PO-Revision-Date: 2024-01-12 03:13+0000\n"
 "Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -882,11 +882,11 @@ msgstr "包含所有预定义算法的模块，包括单目标算法和多目标
 
 #: ../../source/api/algorithms/mo/bce_ibea.rst:3
 msgid "BCEIBEA"
-msgstr ""
+msgstr "BCEIBEA"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:2 of
 msgid "Bi-criterion evolution based IBEA"
-msgstr ""
+msgstr "Bi-criterion evolution based IBEA"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7347391"
@@ -907,7 +907,7 @@ msgstr "参数："
 msgid ""
 "kappa (float, optional): The scaling factor for selecting parents in the "
 "environmental selection."
-msgstr ""
+msgstr "kappa（浮点型，可选）：环境选择中用于选择父代的缩放因子。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:10 of
 msgid ""
@@ -917,11 +917,11 @@ msgstr "它控制了基于个体适应度值选择父代的概率。默认值为
 
 #: ../../source/api/algorithms/mo/bige.rst:3
 msgid "BiGE"
-msgstr ""
+msgstr "BiGE"
 
 #: evox.algorithms.mo.bige.BiGE:2 of
 msgid "BiGE algorithm"
-msgstr ""
+msgstr "BiGE算法"
 
 #: evox.algorithms.mo.bige.BiGE:4 of
 msgid "link: https://doi.org/10.1016/j.artint.2015.06.007"
@@ -929,11 +929,11 @@ msgstr "链接：https://doi.org/10.1016/j.artint.2015.06.007"
 
 #: ../../source/api/algorithms/mo/eagmoead.rst:3
 msgid "EAG-MOEA/D"
-msgstr ""
+msgstr "EAG-MOEA/D"
 
 #: evox.algorithms.mo.eagmoead.EAGMOEAD:2 of
 msgid "EAG-MOEA/D algorithm"
-msgstr ""
+msgstr "EAG-MOEA/D算法"
 
 #: evox.algorithms.mo.eagmoead.EAGMOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6882229"
@@ -941,11 +941,11 @@ msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6882229"
 
 #: ../../source/api/algorithms/mo/gde3.rst:3
 msgid "GDE3"
-msgstr ""
+msgstr "GDE3"
 
 #: evox.algorithms.mo.gde3.GDE3:2 of
 msgid "GDE3 algorithm"
-msgstr ""
+msgstr "GDE3算法"
 
 #: evox.algorithms.mo.gde3.GDE3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/1554717"
@@ -953,31 +953,31 @@ msgstr "链接：https://ieeexplore.ieee.org/document/1554717"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:3 of
 msgid "Parameters for Differential Evolution"
-msgstr ""
+msgstr "差分演化的参数"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:4 of
 msgid "F"
-msgstr ""
+msgstr "F"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:5 of
 msgid "The scaling factor"
-msgstr ""
+msgstr "缩放因子"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:22 of
 msgid "CR"
-msgstr ""
+msgstr "CR"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:7 of
 msgid "The probability of crossover"
-msgstr ""
+msgstr "交叉概率"
 
 #: ../../source/api/algorithms/mo/hype.rst:3
 msgid "HypE"
-msgstr ""
+msgstr "HypE"
 
 #: evox.algorithms.mo.hype.HypE:2 of
 msgid "HypE algorithm"
-msgstr ""
+msgstr "HypE算法"
 
 #: evox.algorithms.mo.hype.HypE:4 of
 msgid ""
@@ -989,11 +989,11 @@ msgstr ""
 
 #: ../../source/api/algorithms/mo/ibea.rst:3
 msgid "IBEA"
-msgstr ""
+msgstr "IBEA"
 
 #: evox.algorithms.mo.ibea.IBEA:2 of
 msgid "IBEA algorithm"
-msgstr ""
+msgstr "IBEA算法"
 
 #: evox.algorithms.mo.ibea.IBEA:4 of
 msgid "link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
@@ -1001,7 +1001,7 @@ msgstr "链接：https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
 
 #: evox.algorithms.mo.ibea.IBEA:7 of
 msgid "kappa: fitness scaling factor. Default: 0.05"
-msgstr ""
+msgstr "kappa：适应度缩放因子。默认值：0.05"
 
 #: ../../source/api/algorithms/mo/index.rst:3
 msgid "Multi-objective"
@@ -1009,11 +1009,11 @@ msgstr "多目标"
 
 #: ../../source/api/algorithms/mo/knea.rst:3
 msgid "KnEA"
-msgstr ""
+msgstr "KnEA"
 
 #: evox.algorithms.mo.knea.KnEA:2 of
 msgid "KnEA algorithm"
-msgstr ""
+msgstr "KnEA算法"
 
 #: evox.algorithms.mo.knea.KnEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6975108"
@@ -1021,11 +1021,11 @@ msgstr "链接：https://ieeexplore.ieee.org/document/6975108"
 
 #: ../../source/api/algorithms/mo/lmocso.rst:3
 msgid "LMOCSO"
-msgstr ""
+msgstr "LMOCSO"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:2 of
 msgid "LMOCSO algorithm"
-msgstr ""
+msgstr "LMOCSO算法"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:4 of
 msgid "link: https://ieeexplore.ieee.org/document/8681243"
@@ -1036,15 +1036,16 @@ msgid ""
 "alpha : The parameter controlling the rate of change of penalty. Defaults to "
 "2. max_gen : The maximum number of generations. Defaults to 100. If the "
 "number of iterations is not 100, change the value based on the actual value."
-msgstr ""
+msgstr "alpha：控制罚分变化率的参数。默认值为2。max_gen：最大代数。默认值为100。如果"
+"迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/moead.rst:3
 msgid "MOEA/D"
-msgstr ""
+msgstr "MOEA/D"
 
 #: evox.algorithms.mo.moead.MOEAD:2 of
 msgid "MOEA/D algorithm"
-msgstr ""
+msgstr "MOEA/D算法"
 
 #: evox.algorithms.mo.moead.MOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/document/4358754"
@@ -1052,11 +1053,11 @@ msgstr "链接：https://ieeexplore.ieee.org/document/4358754"
 
 #: ../../source/api/algorithms/mo/moeaddra.rst:3
 msgid "MOEA/D-DRA"
-msgstr ""
+msgstr "MOEA/D-DRA"
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:2 of
 msgid "MOEA/D-DRA algorithm"
-msgstr ""
+msgstr "MOEA/D-DRA算法"
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/4982949"
@@ -1064,7 +1065,7 @@ msgstr "链接：https://ieeexplore.ieee.org/abstract/document/4982949"
 
 #: ../../source/api/algorithms/mo/moeadm2m.rst:3
 msgid "MOEA/D-M2M"
-msgstr ""
+msgstr "MOEA/D-M2M"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:2 of
 msgid "MOEA/D based on MOP to MOP algorithm"
@@ -1076,11 +1077,11 @@ msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6595549"
 
 #: ../../source/api/algorithms/mo/nsga2.rst:3
 msgid "NSGA-II"
-msgstr ""
+msgstr "NSGA-II"
 
 #: evox.algorithms.mo.nsga2.NSGA2:2 of
 msgid "NSGA-II algorithm"
-msgstr ""
+msgstr "NSGA-II算法"
 
 #: evox.algorithms.mo.nsga2.NSGA2:4 of
 msgid "link: https://ieeexplore.ieee.org/document/996017"
@@ -1088,11 +1089,11 @@ msgstr "链接：https://ieeexplore.ieee.org/document/996017"
 
 #: ../../source/api/algorithms/mo/nsga3.rst:3
 msgid "NSGA-III"
-msgstr ""
+msgstr "NSGA-III"
 
 #: evox.algorithms.mo.nsga3.NSGA3:2 of
 msgid "NSGA-III algorithm"
-msgstr ""
+msgstr "NSGA-III算法"
 
 #: evox.algorithms.mo.nsga3.NSGA3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6600851"
@@ -1100,11 +1101,11 @@ msgstr "链接：https://ieeexplore.ieee.org/document/6600851"
 
 #: ../../source/api/algorithms/mo/rvea.rst:3
 msgid "RVEA"
-msgstr ""
+msgstr "RVEA"
 
 #: evox.algorithms.mo.rvea.RVEA:2 of
 msgid "RVEA algorithms"
-msgstr ""
+msgstr "RVEA算法"
 
 #: evox.algorithms.mo.rvea.RVEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/7386636"
@@ -1117,14 +1118,16 @@ msgid ""
 "max_gen : The maximum number of generations. Defaults to 100. If the number "
 "of iterations is not 100, change the value based on the actual value."
 msgstr ""
+"alpha：控制罚分变化率的参数。默认值为2。fr：参考向量适应频率。默认值为0."
+"1。max_gen：最大代数。默认值为100。如果迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/spea2.rst:3
 msgid "SPEA2"
-msgstr ""
+msgstr "SPEA2"
 
 #: evox.algorithms.mo.spea2.SPEA2:2 of
 msgid "SPEA2 algorithm"
-msgstr ""
+msgstr "SPEA2算法"
 
 #: evox.algorithms.mo.spea2.SPEA2:4 of
 msgid ""
@@ -1133,7 +1136,7 @@ msgstr "链接：https://www.research-collection.ethz.ch/handle/20.500.11850/145
 
 #: ../../source/api/algorithms/mo/sra.rst:3
 msgid "SRA"
-msgstr ""
+msgstr "SRA"
 
 #: evox.algorithms.mo.sra.SRA:2 of
 msgid "Stochastic ranking algorithm"
@@ -1145,11 +1148,11 @@ msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7445185"
 
 #: ../../source/api/algorithms/mo/tdea.rst:3
 msgid "tDEA"
-msgstr ""
+msgstr "tDEA"
 
 #: evox.algorithms.mo.tdea.TDEA:2 of
 msgid "Theta-dominance based evolutionary algorithm"
-msgstr ""
+msgstr "基于θ优势的演化算法"
 
 #: evox.algorithms.mo.tdea.TDEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7080938"
@@ -1157,27 +1160,27 @@ msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7080938"
 
 #: ../../source/api/algorithms/so/amalgam.rst:3
 msgid "AMaLGaM"
-msgstr ""
+msgstr "AMaLGaM"
 
 #: ../../source/api/algorithms/so/ars.rst:3
 msgid "ARS"
-msgstr ""
+msgstr "ARS"
 
 #: ../../source/api/algorithms/so/asebo.rst:3
 msgid "ASEBO"
-msgstr ""
+msgstr "ASEBO"
 
 #: ../../source/api/algorithms/so/clpso.rst:3
 msgid "CLPSO"
-msgstr ""
+msgstr "CLPSO"
 
 #: ../../source/api/algorithms/so/clpso_s.rst:3
 msgid "CLPSO_S"
-msgstr ""
+msgstr "CLPSO_S"
 
 #: ../../source/api/algorithms/so/cma_es.rst:3
 msgid "CMA-ES"
-msgstr ""
+msgstr "CMA-ES"
 
 #: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:2
 #: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:2
@@ -1188,6 +1191,8 @@ msgid ""
 "This implementation follows `The CMA Evolution Strategy: A Tutorial <https://"
 "arxiv.org/pdf/1604.00772.pdf>`_."
 msgstr ""
+"这个实现遵循了《CMA 演化策略：教程》（The CMA Evolution Strategy: A "
+"Tutorial），详情可见：https://arxiv.org/pdf/1604.00772.pdf。"
 
 #: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:5
 #: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:5
@@ -1203,7 +1208,7 @@ msgstr "CMA-ES涉及特征分解，这会引入相对较大的数值误差，并
 
 #: ../../source/api/algorithms/so/code.rst:3
 msgid "CoDE"
-msgstr ""
+msgstr "CoDE"
 
 #: evox.algorithms.so.de_variants.code.CoDE:2 of
 msgid ""
@@ -1211,46 +1216,49 @@ msgid ""
 "vector generation strategies and control parameters[J]. IEEE transactions on "
 "evolutionary computation, 2011, 15(1): 55-66."
 msgstr ""
+"CoDE Wang Y, Cai Z, Zhang Q. Differential evolution with composite trial "
+"vector generation strategies and control parameters[J]. IEEE transactions on "
+"evolutionary computation, 2011, 15(1): 55-66."
 
 #: ../../source/api/algorithms/so/cr_fm_nes.rst:3
 msgid "CR-FM-NES"
-msgstr ""
+msgstr "CR-FM-NES"
 
 #: ../../source/api/algorithms/so/cso.rst:3
 msgid "CSO"
-msgstr ""
+msgstr "CSO"
 
 #: ../../source/api/algorithms/so/de.rst:3
 msgid "DE"
-msgstr ""
+msgstr "DE"
 
 #: ../../source/api/algorithms/so/des.rst:3
 msgid "DES"
-msgstr ""
+msgstr "DES"
 
 #: ../../source/api/algorithms/so/dms_pso_el.rst:3
 msgid "DMS-PSO-EL"
-msgstr ""
+msgstr "DMS-PSO-EL"
 
 #: ../../source/api/algorithms/so/esmc.rst:3
 msgid "ESMC"
-msgstr ""
+msgstr "ESMC"
 
 #: ../../source/api/algorithms/so/fips.rst:3
 msgid "FIPS"
-msgstr ""
+msgstr "FIPS"
 
 #: ../../source/api/algorithms/so/guide_es.rst:3
 msgid "GuidedES"
-msgstr ""
+msgstr "GuidedES"
 
 #: ../../source/api/algorithms/so/index.rst:3
 msgid "Single-objective"
-msgstr ""
+msgstr "单目标"
 
 #: ../../source/api/algorithms/so/jade.rst:3
 msgid "JaDE"
-msgstr ""
+msgstr "JaDE"
 
 #: evox.algorithms.so.de_variants.jade.JaDE:2 of
 msgid ""
@@ -1258,41 +1266,46 @@ msgid ""
 "optional external archive[J]. IEEE Transactions on evolutionary computation, "
 "2009, 13(5): 945-958."
 msgstr ""
+"JaDE Zhang J, Sanderson A C. JADE: adaptive differential evolution with "
+"optional external archive[J]. IEEE Transactions on evolutionary computation, "
+"2009, 13(5): 945-958."
 
 #: ../../source/api/algorithms/so/les.rst:3
 msgid "LES"
-msgstr ""
+msgstr "LES"
 
 #: ../../source/api/algorithms/so/ma_es.rst:3
 msgid "MA-ES"
-msgstr ""
+msgstr "MA-ES"
 
 #: ../../source/api/algorithms/so/nes.rst:3
 msgid "xNES"
-msgstr ""
+msgstr "xNES"
 
 #: evox.algorithms.so.es_variants.nes.SeparableNES.__init__:2
 #: evox.algorithms.so.es_variants.nes.XNES.__init__:2 of
 msgid "See [link](https://arxiv.org/pdf/1106.4487.pdf) for default parameters"
-msgstr ""
+msgstr "参考链接[link](https://arxiv.org/pdf/1106.4487.pdf)中的默认参数"
 
 #: ../../source/api/algorithms/so/noise_reuse_es.rst:3
 msgid "Noise-Reuse-ES"
-msgstr ""
+msgstr "Noise-Reuse-ES"
 
 #: ../../source/api/algorithms/so/ode.rst:3
 msgid "ODE"
-msgstr ""
+msgstr "ODE"
 
 #: ../../source/api/algorithms/so/open_es.rst:3
 msgid "OpenES"
-msgstr ""
+msgstr "OpenES"
 
 #: evox.algorithms.so.es_variants.open_es.OpenES.__init__:2 of
 msgid ""
 "Implement the algorithm described in \"Evolution Strategies as a Scalable "
 "Alternative to Reinforcement Learning\" from https://arxiv.org/abs/1703.03864"
 msgstr ""
+"实现论文 \"Evolution Strategies as a Scalable Alternative to Reinforcement "
+"Learning\" 中描述的算法，链接为https://arxiv.org/abs/1703.03864"
 
 #: ../../source/api/algorithms/so/persistent_es.rst:3
 msgid "PersistentES"
@@ -1300,19 +1313,19 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/pgpe.rst:3
 msgid "PGPE"
-msgstr ""
+msgstr "PGPE"
 
 #: ../../source/api/algorithms/so/pso.rst:3
 msgid "PSO"
-msgstr ""
+msgstr "PSO"
 
 #: ../../source/api/algorithms/so/rmes.rst:3
 msgid "RMES"
-msgstr ""
+msgstr "RMES"
 
 #: ../../source/api/algorithms/so/sade.rst:3
 msgid "SaDE"
-msgstr ""
+msgstr "SaDE"
 
 #: evox.algorithms.so.de_variants.sade.SaDE:2 of
 msgid ""
@@ -1320,6 +1333,9 @@ msgid ""
 "with strategy adaptation for global numerical optimization[J]. IEEE "
 "transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 msgstr ""
+"SaDE Qin A K, Huang V L, Suganthan P N. Differential evolution algorithm "
+"with strategy adaptation for global numerical optimization[J]. IEEE "
+"transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 
 #: ../../source/api/algorithms/so/shade.rst:3
 msgid "SHADE"
@@ -1331,6 +1347,9 @@ msgid ""
 "differential evolution[C]//2013 IEEE congress on evolutionary computation. "
 "IEEE, 2013: 71-78."
 msgstr ""
+"SHADE Tanabe R, Fukunaga A. Success-history based parameter adaptation for "
+"differential evolution[C]//2013 IEEE congress on evolutionary computation. "
+"IEEE, 2013: 71-78."
 
 #: ../../source/api/algorithms/so/sl_pso_gs.rst:3
 msgid "SL-PSO-GS"
@@ -1346,7 +1365,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/swmmpso.rst:3
 msgid "SWMMPSO"
-msgstr ""
+msgstr "SWMMPSO"
 
 #: ../../source/api/core/algorithm.rst:3
 msgid "Algorithm Class"
@@ -1362,27 +1381,29 @@ msgstr ""
 
 #: ../../source/api/core/module.rst:3
 msgid "Module Class"
-msgstr ""
+msgstr "模块类"
 
 #: evox.core.module.Stateful:2 of
 msgid "Base class for all evox modules."
-msgstr ""
+msgstr "所有EvoX模块的基础类。"
 
 #: evox.core.module.Stateful:4 of
 msgid "This module allow easy managing of states."
-msgstr ""
+msgstr "这个模块允许轻松管理状态。"
 
 #: evox.core.module.Stateful:6 of
 msgid ""
 "All the constants (e.g. hyperparameters) are initialized in the "
 "``__init__``, and mutated states are initialized in the ``setup`` method."
-msgstr ""
+msgstr "所有常数（例如超参数）都在“ __init__” 中初始化，而变异状态则在 “setup” "
+"方法中初始化。"
 
 #: evox.core.module.Stateful:9 of
 msgid ""
 "The ``init`` method will automatically call the ``setup`` of the current "
 "module and recursively call ``setup`` methods of all submodules."
-msgstr ""
+msgstr "“init” 方法将自动调用当前模块的 “setup”，并递归地调用所有子模块的 “setup” "
+"方法。"
 
 #: ../../source/api/core/problem.rst:3
 msgid "Problem Class"
@@ -1391,7 +1412,7 @@ msgstr "问题类"
 #: evox.core.problem.Problem.evaluate:2
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:2 of
 msgid "Evaluate the fitness at given points"
-msgstr ""
+msgstr "在给定点评估适应度"
 
 #: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:16
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
@@ -1431,7 +1452,7 @@ msgstr "状态类"
 
 #: evox.core.state.State:2 of
 msgid "A class represents state"
-msgstr ""
+msgstr "一个表示状态的类"
 
 #: evox.core.state.State:4 of
 msgid ""
@@ -1440,6 +1461,9 @@ msgid ""
 "``tree_unflatten`` and has registered as a valid pytree node. So it can be "
 "used as pytree with JAX without any issue."
 msgstr ""
+"“State ”是不可变的，要更新状态，请使用“update ” 方法或 “| ”运算符。“State ” "
+"已经实现了 “tree_flatten”、“tree_unflatten ”并且已注册为有效的 pytree "
+"节点。因此，它可以与 JAX 一起作为 pytree 使用。"
 
 #: evox.core.state.State.__init__:2 of
 msgid "Construct a ``State`` from dict or keyword arguments"
@@ -1447,30 +1471,30 @@ msgstr "从Python字典（dict）或关键字（keyword arguments）构建一个
 
 #: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
 msgid "Example::"
-msgstr ""
+msgstr "例子："
 
 #: evox.core.state.State.find_path_to:2 of
 msgid ""
 "Find the state with node_id matching the state_id A hint can be given with "
 "the module_name"
-msgstr ""
+msgstr "找到节点 ID 与状态 ID 匹配的状态。可以通过模块名称给出提示"
 
 #: evox.core.state.State.update:2 of
 msgid ""
 "Update the current State with another State or dict and return new State."
-msgstr ""
+msgstr "使用另一个 State 或 dict 更新当前 State，并返回新的 State。"
 
 #: evox.core.state.State.update:4 of
 msgid "This method also accept keyword arguments."
-msgstr ""
+msgstr "这个方法也接受关键字参数。"
 
 #: ../../source/api/metrics/gd.rst:3
 msgid "Generational Distance"
-msgstr ""
+msgstr "世代距离"
 
 #: ../../source/api/metrics/hv.rst:3
 msgid "Hypervolume"
-msgstr ""
+msgstr "超体积"
 
 #: evox.metrics.hypervolume.HV:2 of
 msgid ""
@@ -1638,16 +1662,16 @@ msgstr ""
 
 #: ../../source/api/problems/index.rst:3
 msgid "Problems"
-msgstr ""
+msgstr "问题"
 
 #: evox.problems:1 of
 msgid "The module that contains all pre-defined problems"
-msgstr ""
+msgstr "包含所有预定义的问题的模块"
 
 #: ../../source/api/problems/neuroevolution/index.rst:3
 #: ../../source/guide/basics/2-problems.ipynb:40002
 msgid "Neuroevolution"
-msgstr ""
+msgstr "神经演化"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/brax.rst:3
 msgid "Brax-based Problem"
@@ -1798,7 +1822,7 @@ msgstr ""
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
 msgid "The state."
-msgstr ""
+msgstr "状态。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12 of
 msgid "This key will be used to seed the test environment."
@@ -1836,11 +1860,11 @@ msgstr ""
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/index.rst:3
 msgid "Reinforcement Learning"
-msgstr ""
+msgstr "强化学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/index.rst:3
 msgid "Supervised Learning"
-msgstr ""
+msgstr "监督学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/torchvision.rst:3
 msgid "Torchvision Dataset"
@@ -1860,7 +1884,7 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/index.md:1
 msgid "Test functions"
-msgstr ""
+msgstr "测试函数"
 
 #: ../../source/api/problems/numerical/test_functions/rastrigin.rst:3
 msgid "Rastrigin"
@@ -2184,7 +2208,7 @@ msgstr ""
 
 #: evox.workflows.standard.StdWorkflow.sample:2 of
 msgid "Sample the algorithm but don't change it's state"
-msgstr ""
+msgstr "对算法采样但不改变它的状态"
 
 #: ../../source/api/workflows/uni.rst:3
 msgid "Universal Workflow"
@@ -2322,7 +2346,7 @@ msgstr ""
 
 #: ../../source/example/index.md:1
 msgid "EvoX's examples"
-msgstr ""
+msgstr "EvoX的样例"
 
 #: ../../source/example/pso_ackley.ipynb:10002
 msgid "Numerical Optimization"
@@ -2356,7 +2380,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:9
 msgid "The idea behind the design"
-msgstr ""
+msgstr "设计背后的想法"
 
 #: ../../source/guide/advanced/1-state.md:11
 msgid "hierarchical state"
@@ -2538,7 +2562,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:11
 msgid "The Algorithm Class"
-msgstr ""
+msgstr "算法类"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:13
 msgid ""
@@ -2662,7 +2686,7 @@ msgstr ""
 #: ../../source/guide/advanced/3-custom-alg-pro.md:42
 #: ../../source/guide/advanced/3-custom-alg-pro.md:40
 msgid "Here is a pseudocode of a genetic algorithm."
-msgstr ""
+msgstr "这是一个遗传算法的伪代码。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:57
 #: ../../source/guide/advanced/3-custom-alg-pro.md:55
@@ -2672,7 +2696,7 @@ msgstr ""
 #: ../../source/guide/advanced/3-custom-alg-pro.md:77
 #: ../../source/guide/advanced/3-custom-alg-pro.md:75
 msgid "The Problem Class"
-msgstr ""
+msgstr "问题类"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:79
 #: ../../source/guide/advanced/3-custom-alg-pro.md:77
@@ -2772,7 +2796,7 @@ msgstr ""
 #: ../../source/guide/advanced/3-custom-alg-pro.md:114
 #: ../../source/guide/advanced/3-custom-alg-pro.md:112
 msgid "Example"
-msgstr ""
+msgstr "样例"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:116
 #: ../../source/guide/advanced/3-custom-alg-pro.md:114
@@ -2873,7 +2897,7 @@ msgstr "进阶教程"
 
 #: ../../source/guide/basics/1-start.ipynb:10002
 msgid "Quick Start"
-msgstr ""
+msgstr "快速开始"
 
 #: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:34
 #: ../../source/guide/basics/1-start.ipynb:10006
@@ -2884,7 +2908,7 @@ msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
-msgstr ""
+msgstr "创建一个算法和一个问题"
 
 #: ../../source/guide/basics/1-start.ipynb:50002
 msgid "To demostrate, we will create a PSO algorithm and an Ackley function."
@@ -3278,7 +3302,7 @@ msgstr ""
 
 #: ../../source/guide/basics/index.md:1
 msgid "Getting Started"
-msgstr ""
+msgstr "开始"
 
 #: ../../source/guide/install.md:1
 msgid "Installation Guide"
@@ -3374,7 +3398,7 @@ msgstr "安装 NVIDIA 的闭源驱动程序"
 
 #: ../../source/guide/install.md:95
 msgid "Windows WSL 2"
-msgstr ""
+msgstr "Windows WSL 2"
 
 #: ../../source/guide/install.md:97
 msgid ""
@@ -3486,13 +3510,13 @@ msgstr ""
 
 #: ../../source/guide/install.md:191
 msgid "Then check your jaxlib version by"
-msgstr ""
+msgstr "之后通过其检查您的jaxlib版本"
 
 #: ../../source/guide/install.md:197
 msgid ""
 "Please make sure you CUDA version is smaller or equal to the version of "
 "`jaxlib-cuda`."
-msgstr ""
+msgstr "请确保您的CUDA版本小于或等于`jaxlib-cuda`的版本。"
 
 #: ../../source/guide/install.md:210
 msgid ""
@@ -3541,7 +3565,7 @@ msgstr "驱动或库版本错误"
 
 #: ../../source/index.md:4 ../../source/index.md:3
 msgid "User Guide"
-msgstr ""
+msgstr "用户指引"
 
 #: ../../source/index.md:14
 msgid "API Reference"
@@ -3553,7 +3577,7 @@ msgstr ""
 
 #: ../../source/index.md:26
 msgid "Additional Resources"
-msgstr ""
+msgstr "补充资源"
 
 #: ../../source/index.md:1
 msgid "Welcome to EvoX's documentation!"
@@ -3727,7 +3751,7 @@ msgstr ""
 
 #: ../../source/api/index.rst:3
 msgid "EvoX's API"
-msgstr ""
+msgstr "EvoX的API"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
 msgid "**env_per_worker**"
@@ -3757,7 +3781,7 @@ msgstr ""
 #: ../../source/guide/basics/1-start.ipynb:10004
 #: ../../source/guide/basics/2-problems.ipynb:10004
 msgid "Open in Colab"
-msgstr ""
+msgstr "在Colab中打开"
 
 #: ../../source/guide/basics/2-problems.ipynb:10004
 msgid ""
