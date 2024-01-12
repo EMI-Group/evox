@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-12 03:13+0000\n"
-"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
+"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1317,15 +1317,15 @@ msgstr "PGPE"
 
 #: ../../source/api/algorithms/so/pso.rst:3
 msgid "PSO"
-msgstr ""
+msgstr "PSO"
 
 #: ../../source/api/algorithms/so/rmes.rst:3
 msgid "RMES"
-msgstr ""
+msgstr "RMES"
 
 #: ../../source/api/algorithms/so/sade.rst:3
 msgid "SaDE"
-msgstr ""
+msgstr "SaDE"
 
 #: evox.algorithms.so.de_variants.sade.SaDE:2 of
 msgid ""
@@ -1365,7 +1365,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/swmmpso.rst:3
 msgid "SWMMPSO"
-msgstr ""
+msgstr "SWMMPSO"
 
 #: ../../source/api/core/algorithm.rst:3
 msgid "Algorithm Class"
