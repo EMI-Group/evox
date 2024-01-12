@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-12 03:12+0000\n"
-"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
+"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -965,7 +965,7 @@ msgstr "缩放因子"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:22 of
 msgid "CR"
-msgstr ""
+msgstr "CR"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:7 of
 msgid "The probability of crossover"
