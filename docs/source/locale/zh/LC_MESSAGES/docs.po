@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-12 03:02+0000\n"
-"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
+"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -907,7 +907,7 @@ msgstr "参数："
 msgid ""
 "kappa (float, optional): The scaling factor for selecting parents in the "
 "environmental selection."
-msgstr ""
+msgstr "kappa（浮点型，可选）：环境选择中用于选择父代的缩放因子。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:10 of
 msgid ""
@@ -953,7 +953,7 @@ msgstr "链接：https://ieeexplore.ieee.org/document/1554717"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:3 of
 msgid "Parameters for Differential Evolution"
-msgstr ""
+msgstr "差分演化的参数"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:4 of
 msgid "F"
@@ -961,7 +961,7 @@ msgstr ""
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:5 of
 msgid "The scaling factor"
-msgstr ""
+msgstr "缩放因子"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:22 of
 msgid "CR"
@@ -969,7 +969,7 @@ msgstr ""
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:7 of
 msgid "The probability of crossover"
-msgstr ""
+msgstr "交叉概率"
 
 #: ../../source/api/algorithms/mo/hype.rst:3
 msgid "HypE"
@@ -1001,7 +1001,7 @@ msgstr "链接：https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
 
 #: evox.algorithms.mo.ibea.IBEA:7 of
 msgid "kappa: fitness scaling factor. Default: 0.05"
-msgstr ""
+msgstr "kappa：适应度缩放因子。默认值：0.05"
 
 #: ../../source/api/algorithms/mo/index.rst:3
 msgid "Multi-objective"
@@ -1036,7 +1036,8 @@ msgid ""
 "alpha : The parameter controlling the rate of change of penalty. Defaults to "
 "2. max_gen : The maximum number of generations. Defaults to 100. If the "
 "number of iterations is not 100, change the value based on the actual value."
-msgstr ""
+msgstr "alpha：控制罚分变化率的参数。默认值为2。max_gen：最大代数。默认值为100。如果"
+"迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/moead.rst:3
 msgid "MOEA/D"
@@ -1052,7 +1053,7 @@ msgstr "链接：https://ieeexplore.ieee.org/document/4358754"
 
 #: ../../source/api/algorithms/mo/moeaddra.rst:3
 msgid "MOEA/D-DRA"
-msgstr ""
+msgstr "MOEA/D-DRA"
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:2 of
 msgid "MOEA/D-DRA algorithm"
@@ -1117,6 +1118,8 @@ msgid ""
 "max_gen : The maximum number of generations. Defaults to 100. If the number "
 "of iterations is not 100, change the value based on the actual value."
 msgstr ""
+"alpha：控制罚分变化率的参数。默认值为2。fr：参考向量适应频率。默认值为0."
+"1。max_gen：最大代数。默认值为100。如果迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/spea2.rst:3
 msgid "SPEA2"
@@ -1188,6 +1191,8 @@ msgid ""
 "This implementation follows `The CMA Evolution Strategy: A Tutorial <https://"
 "arxiv.org/pdf/1604.00772.pdf>`_."
 msgstr ""
+"这个实现遵循了《CMA 演化策略：教程》（The CMA Evolution Strategy: A "
+"Tutorial），详情可见：https://arxiv.org/pdf/1604.00772.pdf。"
 
 #: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:5
 #: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:5
@@ -1384,19 +1389,21 @@ msgstr "所有EvoX模块的基础类。"
 
 #: evox.core.module.Stateful:4 of
 msgid "This module allow easy managing of states."
-msgstr ""
+msgstr "这个模块允许轻松管理状态。"
 
 #: evox.core.module.Stateful:6 of
 msgid ""
 "All the constants (e.g. hyperparameters) are initialized in the "
 "``__init__``, and mutated states are initialized in the ``setup`` method."
-msgstr ""
+msgstr "所有常数（例如超参数）都在“ __init__” 中初始化，而变异状态则在 “setup” "
+"方法中初始化。"
 
 #: evox.core.module.Stateful:9 of
 msgid ""
 "The ``init`` method will automatically call the ``setup`` of the current "
 "module and recursively call ``setup`` methods of all submodules."
-msgstr ""
+msgstr "“init” 方法将自动调用当前模块的 “setup”，并递归地调用所有子模块的 “setup” "
+"方法。"
 
 #: ../../source/api/core/problem.rst:3
 msgid "Problem Class"
@@ -1405,7 +1412,7 @@ msgstr "问题类"
 #: evox.core.problem.Problem.evaluate:2
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:2 of
 msgid "Evaluate the fitness at given points"
-msgstr ""
+msgstr "在给定点评估适应度"
 
 #: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:16
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
@@ -1445,7 +1452,7 @@ msgstr "状态类"
 
 #: evox.core.state.State:2 of
 msgid "A class represents state"
-msgstr ""
+msgstr "一个表示状态的类"
 
 #: evox.core.state.State:4 of
 msgid ""
@@ -1454,6 +1461,9 @@ msgid ""
 "``tree_unflatten`` and has registered as a valid pytree node. So it can be "
 "used as pytree with JAX without any issue."
 msgstr ""
+"“State ”是不可变的，要更新状态，请使用“update ” 方法或 “| ”运算符。“State ” "
+"已经实现了 “tree_flatten”、“tree_unflatten ”并且已注册为有效的 pytree "
+"节点。因此，它可以与 JAX 一起作为 pytree 使用。"
 
 #: evox.core.state.State.__init__:2 of
 msgid "Construct a ``State`` from dict or keyword arguments"
@@ -1461,22 +1471,22 @@ msgstr "从Python字典（dict）或关键字（keyword arguments）构建一个
 
 #: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
 msgid "Example::"
-msgstr ""
+msgstr "例子："
 
 #: evox.core.state.State.find_path_to:2 of
 msgid ""
 "Find the state with node_id matching the state_id A hint can be given with "
 "the module_name"
-msgstr ""
+msgstr "找到节点 ID 与状态 ID 匹配的状态。可以通过模块名称给出提示"
 
 #: evox.core.state.State.update:2 of
 msgid ""
 "Update the current State with another State or dict and return new State."
-msgstr ""
+msgstr "使用另一个 State 或 dict 更新当前 State，并返回新的 State。"
 
 #: evox.core.state.State.update:4 of
 msgid "This method also accept keyword arguments."
-msgstr ""
+msgstr "这个方法也接受关键字参数。"
 
 #: ../../source/api/metrics/gd.rst:3
 msgid "Generational Distance"
