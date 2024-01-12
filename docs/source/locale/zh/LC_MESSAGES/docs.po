@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-12 03:12+0000\n"
-"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-12 03:13+0000\n"
+"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1250,7 +1250,7 @@ msgstr "FIPS"
 
 #: ../../source/api/algorithms/so/guide_es.rst:3
 msgid "GuidedES"
-msgstr ""
+msgstr "GuidedES"
 
 #: ../../source/api/algorithms/so/index.rst:3
 msgid "Single-objective"
@@ -1258,7 +1258,7 @@ msgstr "单目标"
 
 #: ../../source/api/algorithms/so/jade.rst:3
 msgid "JaDE"
-msgstr ""
+msgstr "JaDE"
 
 #: evox.algorithms.so.de_variants.jade.JaDE:2 of
 msgid ""
@@ -1272,15 +1272,15 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/les.rst:3
 msgid "LES"
-msgstr ""
+msgstr "LES"
 
 #: ../../source/api/algorithms/so/ma_es.rst:3
 msgid "MA-ES"
-msgstr ""
+msgstr "MA-ES"
 
 #: ../../source/api/algorithms/so/nes.rst:3
 msgid "xNES"
-msgstr ""
+msgstr "xNES"
 
 #: evox.algorithms.so.es_variants.nes.SeparableNES.__init__:2
 #: evox.algorithms.so.es_variants.nes.XNES.__init__:2 of
@@ -1289,15 +1289,15 @@ msgstr "参考链接[link](https://arxiv.org/pdf/1106.4487.pdf)中的默认参�
 
 #: ../../source/api/algorithms/so/noise_reuse_es.rst:3
 msgid "Noise-Reuse-ES"
-msgstr ""
+msgstr "Noise-Reuse-ES"
 
 #: ../../source/api/algorithms/so/ode.rst:3
 msgid "ODE"
-msgstr ""
+msgstr "ODE"
 
 #: ../../source/api/algorithms/so/open_es.rst:3
 msgid "OpenES"
-msgstr ""
+msgstr "OpenES"
 
 #: evox.algorithms.so.es_variants.open_es.OpenES.__init__:2 of
 msgid ""
@@ -1313,7 +1313,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/pgpe.rst:3
 msgid "PGPE"
-msgstr ""
+msgstr "PGPE"
 
 #: ../../source/api/algorithms/so/pso.rst:3
 msgid "PSO"
