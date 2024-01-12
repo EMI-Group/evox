@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-12 03:13+0000\n"
-"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-13 06:06+0000\n"
+"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1069,7 +1069,7 @@ msgstr "MOEA/D-M2M"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:2 of
 msgid "MOEA/D based on MOP to MOP algorithm"
-msgstr ""
+msgstr "MOEA/D M2M 算法"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6595549"
@@ -1309,7 +1309,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/persistent_es.rst:3
 msgid "PersistentES"
-msgstr ""
+msgstr "PersistentES"
 
 #: ../../source/api/algorithms/so/pgpe.rst:3
 msgid "PGPE"
@@ -1642,13 +1642,13 @@ msgstr ""
 
 #: ../../source/api/monitors/std_so.rst:3
 msgid "Standard Single-objective Monitor"
-msgstr ""
+msgstr "标准单目标监视器"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:2 of
 msgid ""
 "Standard single-objective monitor Used for single-objective workflow, can "
 "monitor fitness and the population."
-msgstr ""
+msgstr "标准单目标监控器 用于单目标工作流，可以监控适应度和种群。"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:11 of
 msgid "**record_topk**"
@@ -1733,11 +1733,11 @@ msgstr ""
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/gym.rst:3
 msgid "Gym"
-msgstr ""
+msgstr "Gym"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:2 of
 msgid "Construct a gym problem"
-msgstr ""
+msgstr "构建一个gym 问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
@@ -1762,7 +1762,7 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21
 msgid "The options of the gym environment."
-msgstr ""
+msgstr "gym 环境的选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24
