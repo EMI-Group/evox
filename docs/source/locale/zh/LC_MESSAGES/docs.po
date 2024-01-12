@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-13 06:06+0000\n"
-"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
+"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1357,11 +1357,11 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/sl_pso_us.rst:3
 msgid "SL-PSO-US"
-msgstr ""
+msgstr "SL-PSO-US"
 
 #: ../../source/api/algorithms/so/snes.rst:3
 msgid "SNES"
-msgstr ""
+msgstr "SNES"
 
 #: ../../source/api/algorithms/so/swmmpso.rst:3
 msgid "SWMMPSO"
@@ -1505,6 +1505,11 @@ msgid ""
 "the reference point. Since reference point is often far from pf, "
 "`bounding_cube` method usually gives more accurate result."
 msgstr ""
+"超体积指标，使用蒙特卡洛方法实现。我们提供两种不同的样本方法：`bounding_cube`"
+" 和 `each_cube`。使用 `bounding_cube` "
+"方法，我们从一个可以包围所有目标的超立方体中抽取样本。使用 `each_cube` 方法，"
+"我们从由每个目标和参考点形成的每个超立方体中抽取样本。由于参考点通常远离帕雷"
+"托前沿（pf），`bounding_cube`方法通常能提供更准确的结果。"
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "**ref**"
@@ -1551,7 +1556,7 @@ msgstr ""
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:10 of
 msgid "**base_filename**"
-msgstr ""
+msgstr "**base_filename**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:8 of
 msgid ""
@@ -1561,7 +1566,7 @@ msgstr ""
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:17 of
 msgid "**out_dir**"
-msgstr ""
+msgstr "**out_dir**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:13 of
 msgid ""
@@ -1579,11 +1584,13 @@ msgid ""
 "\"stream\" or \"file\", For more information, please refer to https://arrow."
 "apache.org/docs/python/ipc.html"
 msgstr ""
+"\"stream\" 或\"file\"，更多信息，请参考 https://arrow.apache.org/docs/python/"
+"ipc.html"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:29
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
 msgid "**batch_size**"
-msgstr ""
+msgstr "**batch_size**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:25 of
 msgid ""
@@ -1627,6 +1634,8 @@ msgid ""
 "it to True will cause the monitor to maintain a pareto front of all the "
 "solutions with unlimited size, which may hurt performance."
 msgstr ""
+"是否在运行过程中记录帕累托前沿。默认值为假（False）。将其设置为真（True）将导"
+"致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性能。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:31
 #: evox.monitors.std_so_monitor.StdSOMonitor:28 of
@@ -1652,7 +1661,7 @@ msgstr "标准单目标监控器 用于单目标工作流，可以监控适应�
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:11 of
 msgid "**record_topk**"
-msgstr ""
+msgstr "**record_topk**"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:10 of
 msgid ""
@@ -1691,7 +1700,7 @@ msgstr ""
 msgid ""
 "A function that accept two arguments the first one is the parameter and the "
 "second is the input."
-msgstr ""
+msgstr "一个接受两个参数的函数，第一个参数是参数本身，第二个是输入。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
@@ -1701,7 +1710,7 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12 of
 msgid "The environment name."
-msgstr ""
+msgstr "环境名。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:15 of
 msgid ""
@@ -1711,7 +1720,7 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "**cap_episode**"
-msgstr ""
+msgstr "**cap_episode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "The maximum number episodes to run."
@@ -1772,7 +1781,7 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24
 msgid "A function with zero argument that returns an environment when called."
-msgstr ""
+msgstr "一个调用时返回一个环境的零参数函数。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:28 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31
