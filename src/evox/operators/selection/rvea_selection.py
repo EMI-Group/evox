@@ -23,10 +23,10 @@ def ref_vec_guided(x, f, v, theta):
     nan_mask = jnp.isnan(obj).any(axis=1)
     associate = jnp.argmin(angle, axis=1)
     associate = jnp.where(nan_mask, -1, associate)
-
-    partition = jax.vmap(
-        lambda x: jnp.where(associate == x, jnp.arange(0, n), -1), in_axes=1, out_axes=1
-    )(jnp.tile(jnp.arange(0, nv), (n, 1)))
+    associate = jnp.tile(associate[:, jnp.newaxis], (1, nv))
+    partition = jnp.tile(jnp.arange(0, n)[:, jnp.newaxis], (1, nv))
+    I = jnp.tile(jnp.arange(0, nv), (n, 1))
+    partition = (associate == I) * partition + (associate != I) * -1
 
     mask = partition == -1
     mask_null = jnp.sum(mask, axis=0) == n

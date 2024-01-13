@@ -29,7 +29,7 @@ class DTLZTestSuit(Problem):
         return jax.jit(jax.vmap(self._dtlz))(X), state
 
     def pf(self, state):
-        f = self.sample()[0] / 2
+        f = self.sample(state.key)[0] / 2
         return f, state
 
 
@@ -43,7 +43,7 @@ class DTLZ1(DTLZTestSuit):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(self.d, self.m, ref_num)
+        super().__init__(d, m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -79,7 +79,7 @@ class DTLZ2(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(self.d, self.m, ref_num)
+        super().__init__(d, m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -103,7 +103,7 @@ class DTLZ2(DTLZTestSuit):
         return f, state
 
     def pf(self, state):
-        f = self.sample()[0]
+        f = self.sample(state.key)[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
         return f, state
 
@@ -183,7 +183,7 @@ class DTLZ5(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(self.d, self.m, ref_num)
+        super().__init__(d, m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -222,13 +222,9 @@ class DTLZ5(DTLZTestSuit):
         for i in range(self.m - 2):
             f = jnp.c_[f[:, 0], f]
 
-        f = (
-            f
-            / jnp.sqrt(2)
-            * jnp.tile(
-                jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
-                (jnp.shape(f)[0], 1),
-            )
+        f = f / jnp.sqrt(2) ** jnp.tile(
+            jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
+            (jnp.shape(f)[0], 1),
         )
         return f, state
 
@@ -243,7 +239,7 @@ class DTLZ6(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(self.d, self.m, ref_num)
+        super().__init__(d, m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -283,13 +279,9 @@ class DTLZ6(DTLZTestSuit):
         for i in range(self.m - 2):
             f = jnp.c_[f[:, 0], f]
 
-        f = (
-            f
-            / jnp.sqrt(2)
-            * jnp.tile(
-                jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
-                (jnp.shape(f)[0], 1),
-            )
+        f = f / jnp.sqrt(2) ** jnp.tile(
+            jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
+            (jnp.shape(f)[0], 1),
         )
         return f, state
 
@@ -305,7 +297,7 @@ class DTLZ7(DTLZTestSuit):
         else:
             self.d = d
 
-        super().__init__(self.d, self.m, ref_num)
+        super().__init__(d, m, ref_num)
         self.sample = GridSampling(self.ref_num * self.m, self.m - 1)
 
     def evaluate(self, state, X):

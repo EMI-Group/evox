@@ -9,7 +9,7 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators import mutation, crossover, selection
-from evox.operators.sampling import LatinHypercubeSampling
+from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
 from evox import Algorithm, State, jit_class
 
 
@@ -59,7 +59,10 @@ class RVEA(Algorithm):
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary()
 
-        self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
+        if self.n_objs == 2:
+            self.sampling = UniformSampling(self.pop_size, self.n_objs)
+        else:
+            self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -69,13 +72,14 @@ class RVEA(Algorithm):
             + self.lb
         )
         v = self.sampling(subkey2)[0]
-        v = v / jnp.linalg.norm(v, axis=0)
+        v0 = v
 
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
             reference_vector=v,
+            init_v=v0,
             key=key,
             gen=0,
         )
@@ -88,7 +92,7 @@ class RVEA(Algorithm):
         return state
 
     def ask(self, state):
-        key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
+        key, subkey, x_key, x1_key, x2_key, mut_key = jax.random.split(state.key, 6)
         population = state.population
 
         no_nan_pop = ~jnp.isnan(population).all(axis=1)
@@ -99,6 +103,7 @@ class RVEA(Algorithm):
         mating_pool = jax.random.randint(subkey, (self.pop_size,), 0, max_idx)
         crossovered = self.crossover(x_key, pop[mating_pool])
         next_generation = self.mutation(mut_key, crossovered)
+        next_generation = jnp.clip(next_generation, self.lb, self.ub)
 
         return next_generation, state.update(next_generation=next_generation, key=key)
 
@@ -132,7 +137,7 @@ class RVEA(Algorithm):
             rv_adaptation,
             no_update,
             survivor_fitness,
-            v,
+            state.init_v,
         )
 
         state = state.update(
