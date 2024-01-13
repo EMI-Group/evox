@@ -29,7 +29,7 @@ class DTLZTestSuit(Problem):
         return jax.jit(jax.vmap(self._dtlz))(X), state
 
     def pf(self, state):
-        f = self.sample(state.key)[0] / 2
+        f = self.sample()[0] / 2
         return f, state
 
 
@@ -103,7 +103,7 @@ class DTLZ2(DTLZTestSuit):
         return f, state
 
     def pf(self, state):
-        f = self.sample(state.key)[0]
+        f = self.sample()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
         return f, state
 

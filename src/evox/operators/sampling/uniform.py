@@ -17,7 +17,7 @@ class UniformSampling:
         self.n = n
         self.m = m
 
-    def __call__(self, key):
+    def __call__(self, key=None):
         h1 = 1
         while comb(h1 + self.m, self.m - 1) <= self.n:
             h1 += 1
