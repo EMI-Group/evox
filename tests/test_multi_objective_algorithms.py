@@ -7,14 +7,13 @@ import jax.numpy as jnp
 
 N = 12
 M = 3
-D = 7
 POP_SIZE = 100
 LB = 0
 UB = 1
 ITER = 10
 
 
-def run_moea(algorithm, problem=problems.numerical.DTLZ1(d=D, m=M)):
+def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
     workflow = workflows.StdWorkflow(

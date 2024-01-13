@@ -43,7 +43,7 @@ class DTLZ1(DTLZTestSuit):
             self.d = self.m + 4
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -79,7 +79,7 @@ class DTLZ2(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -183,7 +183,7 @@ class DTLZ5(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -239,7 +239,7 @@ class DTLZ6(DTLZTestSuit):
             self.d = self.m + 9
         else:
             self.d = d
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
 
     def evaluate(self, state, X):
         m = self.m
@@ -297,7 +297,7 @@ class DTLZ7(DTLZTestSuit):
         else:
             self.d = d
 
-        super().__init__(d, m, ref_num)
+        super().__init__(self.d, self.m, ref_num)
         self.sample = GridSampling(self.ref_num * self.m, self.m - 1)
 
     def evaluate(self, state, X):
