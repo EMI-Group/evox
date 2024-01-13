@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-12 03:13+0000\n"
-"Last-Translator: Xinyao Li <lixy2020@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-13 06:06+0000\n"
+"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -1069,7 +1069,7 @@ msgstr "MOEA/D-M2M"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:2 of
 msgid "MOEA/D based on MOP to MOP algorithm"
-msgstr ""
+msgstr "MOEA/D M2M 算法"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6595549"
@@ -1309,7 +1309,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/persistent_es.rst:3
 msgid "PersistentES"
-msgstr ""
+msgstr "PersistentES"
 
 #: ../../source/api/algorithms/so/pgpe.rst:3
 msgid "PGPE"
@@ -1339,7 +1339,7 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/shade.rst:3
 msgid "SHADE"
-msgstr ""
+msgstr "SHADE"
 
 #: evox.algorithms.so.de_variants.shade.SHADE:2 of
 msgid ""
@@ -1353,15 +1353,15 @@ msgstr ""
 
 #: ../../source/api/algorithms/so/sl_pso_gs.rst:3
 msgid "SL-PSO-GS"
-msgstr ""
+msgstr "SL-PSO-GS"
 
 #: ../../source/api/algorithms/so/sl_pso_us.rst:3
 msgid "SL-PSO-US"
-msgstr ""
+msgstr "SL-PSO-US"
 
 #: ../../source/api/algorithms/so/snes.rst:3
 msgid "SNES"
-msgstr ""
+msgstr "SNES"
 
 #: ../../source/api/algorithms/so/swmmpso.rst:3
 msgid "SWMMPSO"
@@ -1373,11 +1373,11 @@ msgstr "算法类"
 
 #: evox.core.algorithm.Algorithm:2 evox.core.problem.Problem:2 of
 msgid "Base class for all algorithms"
-msgstr ""
+msgstr "所有算法的基类"
 
 #: ../../source/api/core/index.rst:3
 msgid "Core Classes"
-msgstr ""
+msgstr "核心类"
 
 #: ../../source/api/core/module.rst:3
 msgid "Module Class"
@@ -1418,7 +1418,7 @@ msgstr "在给定点评估适应度"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
 msgid "dict"
-msgstr ""
+msgstr "字典"
 
 #: evox.core.problem.Problem.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8 of
@@ -1428,13 +1428,13 @@ msgstr "这个问题的状态。"
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
 msgid "**X**"
-msgstr ""
+msgstr "**X**"
 
 #: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:31
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:31 of
 msgid "ndarray"
-msgstr ""
+msgstr "ndarray"
 
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
@@ -1505,10 +1505,15 @@ msgid ""
 "the reference point. Since reference point is often far from pf, "
 "`bounding_cube` method usually gives more accurate result."
 msgstr ""
+"超体积指标，使用蒙特卡洛方法实现。我们提供两种不同的样本方法：`bounding_cube`"
+" 和 `each_cube`。使用 `bounding_cube` "
+"方法，我们从一个可以包围所有目标的超立方体中抽取样本。使用 `each_cube` 方法，"
+"我们从由每个目标和参考点形成的每个超立方体中抽取样本。由于参考点通常远离帕雷"
+"托前沿（pf），`bounding_cube`方法通常能提供更准确的结果。"
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "**ref**"
-msgstr ""
+msgstr "**ref**"
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "The reference point."
@@ -1524,11 +1529,11 @@ msgstr "在使用蒙特卡洛方法的时候样本的数量。"
 
 #: evox.metrics.hypervolume.HV.__init__:28 of
 msgid "**sample_method**"
-msgstr ""
+msgstr "**sample_method**"
 
 #: evox.metrics.hypervolume.HV.__init__:14 of
 msgid "`bounding_cube` or `each_cube`. Default to `bounding_cube`."
-msgstr ""
+msgstr "`bounding_cube` 或 `each_cube`. 默认为 `bounding_cube`."
 
 #: ../../source/api/metrics/igd.rst:3
 msgid "Inverted Generational Distance"
@@ -1548,20 +1553,23 @@ msgid ""
 "used in EvoXVis. The tensors are stored as fixed size binary and the dtype "
 "is recorded in the metadata."
 msgstr ""
+"这个类将数据序列化为可以在EvoXVis中提取和使用的apache "
+"arrow格式。张量被存储为固定大小的二进制，并且数据类型被记录在元数据中。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:10 of
 msgid "**base_filename**"
-msgstr ""
+msgstr "**base_filename**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:8 of
 msgid ""
 "The base filename of the log file, the final filename will be "
 "``<base_filename>_<i>.arrow``, where i is an incrementing number."
-msgstr ""
+msgstr "日志文件的基本文件名，最终文件名将是``<base_filename>_<i>."
+"arrow``，其中i是递增的数字。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:17 of
 msgid "**out_dir**"
-msgstr ""
+msgstr "**out_dir**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:13 of
 msgid ""
@@ -1569,32 +1577,39 @@ msgid ""
 "directory will be used. The default is ``<TEMP_DIR>/evox``, on Windows, it's "
 "usually ``C:\\TEMP\\evox``, and on MacOS/Linux/BSDs it's ``/tmp/evox``."
 msgstr ""
+"将日志文件写入的目录。当设置为None时，将使用默认目录。默认为``<TEMP_DIR>/evox"
+"``，在Windows上通常为``C：\\temp\\evox``，在MacOS/Linux/BSD上为``/tMP/"
+"evox``。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:22 of
 msgid "**out_type**"
-msgstr ""
+msgstr "**out_type**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:20 of
 msgid ""
 "\"stream\" or \"file\", For more information, please refer to https://arrow."
 "apache.org/docs/python/ipc.html"
 msgstr ""
+"\"stream\" 或\"file\"，更多信息，请参考 https://arrow.apache.org/docs/python/"
+"ipc.html"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:29
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
 msgid "**batch_size**"
-msgstr ""
+msgstr "**batch_size**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:25 of
 msgid ""
 "The monitor will buffer the data in memory and write out every `batch size`. "
 "Choose a larger value may improve I/O performance and improve compression "
 "ratio, if compression is enabled. Default to 64."
-msgstr ""
+msgstr "监控器会将数据缓存在内存中，并写出每个`batch "
+"size`。如果启用了压缩，则选择较大的值可能会提高I/"
+"O性能并提高压缩比。默认为64。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:48 of
 msgid "**compression**"
-msgstr ""
+msgstr "**compression**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:32 of
 msgid ""
@@ -1602,6 +1617,8 @@ msgid ""
 "options are None, \"lz4\", \"zstd\", \"lz4\" is extremely fast, with poor "
 "compression ratio, \"zstd\" is fast, but also with good compression ratio."
 msgstr ""
+"控制写入文件时使用的压缩算法。可供选择的有None、“lz4”、“zstd”，“lz4”速度极快"
+"，压缩比差，“zstd”速度快，同时压缩比也很好。"
 
 #: ../../source/api/monitors/index.rst:3
 msgid "Monitors"
@@ -1619,7 +1636,7 @@ msgstr "标准多目标监视器，用于多目标工作流，可以监控适应
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:14 of
 msgid "**record_pf**"
-msgstr ""
+msgstr "**record_pf**"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:10 of
 msgid ""
@@ -1627,38 +1644,40 @@ msgid ""
 "it to True will cause the monitor to maintain a pareto front of all the "
 "solutions with unlimited size, which may hurt performance."
 msgstr ""
+"是否在运行过程中记录帕累托前沿。默认值为假（False）。将其设置为真（True）将导"
+"致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性能。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:31
 #: evox.monitors.std_so_monitor.StdSOMonitor:28 of
 msgid "**record_fit_history**"
-msgstr ""
+msgstr "**record_fit_history**"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:17
 #: evox.monitors.std_so_monitor.StdSOMonitor:14 of
 msgid ""
 "Whether to record the full history of fitness value. Default to True. "
 "Setting it to False may reduce memory usage."
-msgstr ""
+msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
 
 #: ../../source/api/monitors/std_so.rst:3
 msgid "Standard Single-objective Monitor"
-msgstr ""
+msgstr "标准单目标监视器"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:2 of
 msgid ""
 "Standard single-objective monitor Used for single-objective workflow, can "
 "monitor fitness and the population."
-msgstr ""
+msgstr "标准单目标监控器 用于单目标工作流，可以监控适应度和种群。"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:11 of
 msgid "**record_topk**"
-msgstr ""
+msgstr "**record_topk**"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:10 of
 msgid ""
 "Control how many elite solutions are recorded. Default is 1, which will "
 "record the best individual."
-msgstr ""
+msgstr "控制录制多少精英解决方案。默认为1，它将记录最好的个体。"
 
 #: ../../source/api/problems/index.rst:3
 msgid "Problems"
@@ -1675,43 +1694,43 @@ msgstr "神经演化"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/brax.rst:3
 msgid "Brax-based Problem"
-msgstr ""
+msgstr "基于Brax的问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:2 of
 msgid "Contruct a brax-based problem"
-msgstr ""
+msgstr "构造一个基于Brax的问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:9
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:9 of
 msgid "**policy**"
-msgstr ""
+msgstr "**策略**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:8 of
 msgid ""
 "A function that accept two arguments the first one is the parameter and the "
 "second is the input."
-msgstr ""
+msgstr "一个接受两个参数的函数，第一个参数是参数本身，第二个是输入。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18
 msgid "**env_name**"
-msgstr ""
+msgstr "**env_name**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12 of
 msgid "The environment name."
-msgstr ""
+msgstr "环境名。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:15 of
 msgid ""
 "The number of brax environments to run in parallel. Usually this should "
 "match the population size at the algorithm side."
-msgstr ""
+msgstr "要并行运行的BRAX环境的数量。通常，这应该与算法端的种群大小相匹配。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "**cap_episode**"
-msgstr ""
+msgstr "**cap_episode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "The maximum number episodes to run."
@@ -1719,13 +1738,14 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:36 of
 msgid "**backend**"
-msgstr ""
+msgstr "**后端**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:22 of
 msgid ""
 "Brax's backend, one of \"generalized\", \"positional\", \"spring\". Default "
 "to \"generalized\"."
-msgstr ""
+msgstr "Brax的后端，是“generalized”、“positional”、“spring”中的其中一个。默认为“gener"
+"alized”。"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/env_pool.rst:3
 msgid "Env Pool"
@@ -1733,17 +1753,17 @@ msgstr ""
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/gym.rst:3
 msgid "Gym"
-msgstr ""
+msgstr "Gym"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:2 of
 msgid "Construct a gym problem"
-msgstr ""
+msgstr "构建一个gym 问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:26
 msgid "**num_workers**"
-msgstr ""
+msgstr "**num_workers**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12 of
 msgid "Number of worker actors."
@@ -1752,17 +1772,17 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18
 msgid "The name of the gym environment."
-msgstr ""
+msgstr "Gym环境的名称。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21
 msgid "**env_options**"
-msgstr ""
+msgstr "**env_options**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21
 msgid "The options of the gym environment."
-msgstr ""
+msgstr "gym 环境的选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24
@@ -1772,7 +1792,7 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24
 msgid "A function with zero argument that returns an environment when called."
-msgstr ""
+msgstr "一个调用时返回一个环境的零参数函数。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:28 of
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31
