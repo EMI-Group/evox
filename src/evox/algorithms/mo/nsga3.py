@@ -36,7 +36,6 @@ class NSGA3(Algorithm):
         ub,
         n_objs,
         pop_size,
-        ref=None,
         selection_op=None,
         mutation_op=None,
         crossover_op=None,
@@ -46,14 +45,11 @@ class NSGA3(Algorithm):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.pop_size = pop_size
-        self.ref = ref
 
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
 
-        if self.ref is None:
-            self.ref = sampling.UniformSampling(pop_size, n_objs)()[0]
         if self.selection is None:
             self.selection = selection.UniformRand(0.5)
         if self.mutation is None:
@@ -61,7 +57,7 @@ class NSGA3(Algorithm):
         if self.crossover is None:
             self.crossover = crossover.UniformRand()
 
-        self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
+        self.sampling = sampling.UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey = jax.random.split(key)
@@ -70,6 +66,8 @@ class NSGA3(Algorithm):
             * (self.ub - self.lb)
             + self.lb
         )
+        self.ref = self.sampling(subkey)[0]
+        self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),

@@ -222,13 +222,9 @@ class DTLZ5(DTLZTestSuit):
         for i in range(self.m - 2):
             f = jnp.c_[f[:, 0], f]
 
-        f = (
-            f
-            / jnp.sqrt(2)
-            * jnp.tile(
-                jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
-                (jnp.shape(f)[0], 1),
-            )
+        f = f / jnp.sqrt(2) ** jnp.tile(
+            jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
+            (jnp.shape(f)[0], 1),
         )
         return f, state
 
@@ -283,13 +279,9 @@ class DTLZ6(DTLZTestSuit):
         for i in range(self.m - 2):
             f = jnp.c_[f[:, 0], f]
 
-        f = (
-            f
-            / jnp.sqrt(2)
-            * jnp.tile(
-                jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
-                (jnp.shape(f)[0], 1),
-            )
+        f = f / jnp.sqrt(2) ** jnp.tile(
+            jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
+            (jnp.shape(f)[0], 1),
         )
         return f, state
 
