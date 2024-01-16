@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  EvoX\n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-13 06:06+0000\n"
-"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
+"PO-Revision-Date: 2024-01-16 04:14+0000\n"
+"Last-Translator: Li Hao <12132340@mail.sustech.edu.cn>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: Chinese (Simplified) "
-"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.4-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -1221,9 +1222,8 @@ msgstr ""
 " on evolutionary computation, 2011, 15(1): 55-66."
 
 #: ../../source/api/algorithms/so/cpso_s.rst:3
-#, fuzzy
 msgid "CPSO_S"
-msgstr "CLPSO_S"
+msgstr "CPSO_S"
 
 #: evox.algorithms.so.pso_variants.cpso_s.CPSOS:2 of
 msgid ""
@@ -1231,11 +1231,12 @@ msgid ""
 "coevolution framework. CPSOS essentially a wrapper around PSO and "
 "Coevolution."
 msgstr ""
+"协同粒子群优化器（CPSO）在EvoX库中通过其内置的协同演化框架得以实现，实质上，C"
+"PSOS本质上是对PSO（粒子群优化算法）和协同演化的封装。"
 
 #: evox.algorithms.so.pso_variants.cpso_s.CPSOS:6 of
-#, fuzzy
 msgid "https://ieeexplore.ieee.org/document/1304845"
-msgstr "链接：https://ieeexplore.ieee.org/document/6600851"
+msgstr "https://ieeexplore.ieee.org/document/1304845"
 
 #: ../../source/api/algorithms/so/cr_fm_nes.rst:3
 msgid "CR-FM-NES"
@@ -1558,7 +1559,7 @@ msgstr "度量指标"
 
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
-msgstr ""
+msgstr "EvoXVis 监视器"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor:2 of
 msgid ""
@@ -1668,14 +1669,15 @@ msgid ""
 "A Built-in plot function for visualizing the population of single-"
 "objective algorithm. Use plotly internally, so you need to install plotly"
 " to use this function."
-msgstr ""
+msgstr "内置的单目标算法种群可视化绘图函数。内部使用plotly库，因此要使用此功能，您需"
+"要先安装plotly。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor.plot:5
 #: evox.monitors.std_so_monitor.StdSOMonitor.plot:5 of
 msgid ""
 "If the problem is provided, we will plot the fitness landscape of the "
 "problem."
-msgstr ""
+msgstr "如果提供了问题实例，我们将绘制该问题的适应度landscape。"
 
 #: ../../source/api/monitors/std_so.rst:3
 msgid "Standard Single-objective Monitor"
@@ -1750,7 +1752,7 @@ msgstr "**cap_episode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "The maximum number episodes to run."
-msgstr ""
+msgstr "运行的最大episode数量。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:36 of
 msgid "**backend**"
@@ -1764,7 +1766,7 @@ msgstr "Brax的后端，是“generalized”、“positional”、“spring”�
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/env_pool.rst:3
 msgid "Env Pool"
-msgstr ""
+msgstr "环境池"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/gym.rst:3
 msgid "Gym"
@@ -1781,7 +1783,7 @@ msgstr "**num_workers**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12 of
 msgid "Number of worker actors."
-msgstr ""
+msgstr "工作者（worker）actor的数量。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
 msgid "The name of the gym environment."
@@ -1797,7 +1799,7 @@ msgstr "gym 环境的选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "**env_creator**"
-msgstr ""
+msgstr "**env_creator**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "A function with zero argument that returns an environment when called."
@@ -1805,7 +1807,7 @@ msgstr "一个调用时返回一个环境的零参数函数。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:28 of
 msgid "**mo_keys**"
-msgstr ""
+msgstr "**mo_keys**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
 msgid ""
@@ -1816,10 +1818,13 @@ msgid ""
 "objective values will be returned in the same order as specified in "
 "`mo_keys`."
 msgstr ""
+"可选参数，一个字符串列表。如果设置，环境被视为一个多目标问题，不同的目标值通"
+"过Gym返回的`info`项获取。`mo_keys`参数提供了在info字典中访问目标值的键。目标"
+"值将按照在`mo_keys`中指定的顺序返回。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:36 of
 msgid "**controller_options**"
-msgstr ""
+msgstr "**控制器选项**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31 of
 msgid ""
@@ -1827,20 +1832,22 @@ msgid ""
 "workers and run the policy at each step. For example, to enable GPU "
 "acceleration on the policy network, set this field to::"
 msgstr ""
+"控制器actor的运行时选项。这个actor用于控制工作者worker，并在每一步运行策略。"
+"例如，要启用策略网络的GPU加速功能，请将此字段设置为::"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:52 of
 msgid "**worker_options**"
-msgstr ""
+msgstr "**工作者选项**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:39 of
 msgid "The runtime options for worker actors."
-msgstr ""
+msgstr "工作者（actor）的运行时选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:2 of
 msgid ""
 "Visualize your policy, passin a single set of weights, and it will be put"
 " in the environment for interaction."
-msgstr ""
+msgstr "可视化您的策略，通过传递一组权重，该策略将会被置于环境中进行互动展示。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
@@ -1854,25 +1861,25 @@ msgstr "此密钥将会作为测试环境的随机数种子。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:15 of
 msgid "**weights**"
-msgstr ""
+msgstr "**权重**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:15 of
 msgid "A single set of weights for your policy."
-msgstr ""
+msgstr "策略的一组权重。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:41 of
 msgid "**ale_render_mode**"
-msgstr ""
+msgstr "**ale_render_mode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:18 of
 msgid "'rgb_array' or 'human'."
-msgstr ""
+msgstr "'rgb_array' 或 'human'。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:20 of
 msgid ""
 "In 'rgb_array' mode, this function will return a list of frames, each "
 "frame is a numpy array."
-msgstr ""
+msgstr "在\"rgb_array\"模式下，该函数将返回一个帧列表，每个帧都是一个numpy数组。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:23 of
 msgid ""
@@ -1881,6 +1888,9 @@ msgid ""
 " or jupyter notebook, this method may fail to find a valid display. "
 "Default to 'rgb_array'."
 msgstr ""
+"在\"human\"模式下，帧应直接显示在屏幕上。但是，如果您正在使用远程Python环境（"
+"例如VSCode SSH或Jupyter Notebook），这种方法可能无法找到有效的显示器，"
+"因此默认设置为\"rgb_array\"模式。"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/index.rst:3
 msgid "Reinforcement Learning"
@@ -1892,19 +1902,19 @@ msgstr "监督学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/torchvision.rst:3
 msgid "Torchvision Dataset"
-msgstr ""
+msgstr "Torchvision 数据集"
 
 #: ../../source/api/problems/numerical/index.rst:3
 msgid "Numerical Benchmarks"
-msgstr ""
+msgstr "数值基准测试"
 
 #: ../../source/api/problems/numerical/test_functions/ackley.rst:3
 msgid "Ackley"
-msgstr ""
+msgstr "Ackley"
 
 #: ../../source/api/problems/numerical/test_functions/griewank.rst:3
 msgid "Griewank"
-msgstr ""
+msgstr "Griewank"
 
 #: ../../source/api/problems/numerical/test_functions/index.md:1
 msgid "Test functions"
@@ -1912,33 +1922,35 @@ msgstr "测试函数"
 
 #: ../../source/api/problems/numerical/test_functions/rastrigin.rst:3
 msgid "Rastrigin"
-msgstr ""
+msgstr "Rastrigin"
 
 #: ../../source/api/problems/numerical/test_functions/rosenbrock.rst:3
 msgid "Rosenbrock"
-msgstr ""
+msgstr "Rosenbrock"
 
 #: ../../source/api/problems/numerical/test_functions/schwefel.rst:3
 msgid "Schwefel"
-msgstr ""
+msgstr "Schwefel"
 
 #: evox.problems.numerical.schwefel.Schwefel:2 of
 msgid "The Schwefel function The minimum is x = [420.9687462275036, ...]"
-msgstr ""
+msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/api/problems/numerical/test_functions/sphere.rst:3
 msgid "Sphere"
-msgstr ""
+msgstr "Sphere"
 
 #: ../../source/api/problems/numerical/test_suits/cec2022.rst:3
 msgid "CEC2022 Test Suit"
-msgstr ""
+msgstr "CEC2022 测试套件"
 
 #: evox.problems.numerical.cec2022_so.CEC2022TestSuit:2 of
 msgid ""
 "Instantiation format: problem_instance = CEC2022.create(1) i.e., "
 "problem_instance = F1_CEC2022()"
 msgstr ""
+"实例化格式：problem_instance = CEC2022.create(1)，即 problem_instance = "
+"F1_CEC2022()"
 
 #: evox.problems.numerical.cec2022_so.F10_CEC2022:2
 #: evox.problems.numerical.cec2022_so.F11_CEC2022:2
@@ -1953,19 +1965,19 @@ msgstr ""
 #: evox.problems.numerical.cec2022_so.F8_CEC2022:2
 #: evox.problems.numerical.cec2022_so.F9_CEC2022:2 of
 msgid "Test problems of CEC2022"
-msgstr ""
+msgstr "CEC2022测试问题集"
 
 #: ../../source/api/problems/numerical/test_suits/dtlz.rst:3
 msgid "DTLZ Test Suit"
-msgstr ""
+msgstr "DTLZ测试套件"
 
 #: ../../source/api/problems/numerical/test_suits/index.md:1
 msgid "Test suits"
-msgstr ""
+msgstr "测试套件"
 
 #: ../../source/api/problems/numerical/test_suits/lsmop.rst:3
 msgid "LSMOP Test Suit"
-msgstr ""
+msgstr "LSMOP测试套件"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:2
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:2
@@ -1977,7 +1989,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:2
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:2 of
 msgid "init"
-msgstr ""
+msgstr "init"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:8
@@ -1989,7 +2001,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:8 of
 msgid "**d**"
-msgstr ""
+msgstr "**维度**"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:8
@@ -2001,7 +2013,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:8 of
 msgid "the dimension of decision space"
-msgstr ""
+msgstr "决策空间的维度"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:11
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:11
@@ -2025,7 +2037,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:11
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:11 of
 msgid "the number of object"
-msgstr ""
+msgstr "目标数量"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:27
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:27
@@ -2049,23 +2061,23 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:14
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:14 of
 msgid "ref_num * m is the Population of PF"
-msgstr ""
+msgstr "ref_num * m 是 Pareto 前沿（PF）的种群数量"
 
 #: ../../source/api/problems/numerical/test_suits/maf.rst:3
 msgid "MaF Test Suit"
-msgstr ""
+msgstr "MaF测试套件"
 
 #: ../../source/api/problems/numerical/test_suits/zdt.rst:3
 msgid "ZDT Test Suit"
-msgstr ""
+msgstr "ZDT测试套件"
 
 #: ../../source/api/workflows/distributed.rst:3
 msgid "Ray-based Distributed Workflow"
-msgstr ""
+msgstr "基于Ray的分布式工作流"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:2 of
 msgid "Create a distributed workflow"
-msgstr ""
+msgstr "创建分布式工作流"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:4 of
 msgid ""
@@ -2074,6 +2086,10 @@ msgid ""
 "at each step each workflow only evaluate part of the population, then "
 "pass the fitness to other nodes to recreate the whole fitness array."
 msgstr ""
+"分布式工作流能够将工作流程分布到不同的节点上。它会使用相同的随机种子创建num_w"
+"orkers个相同工作流程副本，并且在每一步中，每个工作流程仅评估种群的一部分，然"
+"后将适应度值传递给其他节点以重建整个适应度数组。这样，通过各节点间的协作，实"
+"现大规模并行计算和优化过程的高效执行。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:9 of
 msgid ""
@@ -2081,6 +2097,9 @@ msgid ""
 "global_fitness_transform is applied at the main node once per step, so "
 "monitor should be passed as global_fitness_transform."
 msgstr ""
+"pop_transform和fitness_transform在每个节点上分别应用，而global_fitness_transf"
+"orm则在主节点上每一步执行一次。因此，monitor应当作为global_fitness_transform"
+"传递。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
 #: evox.workflows.standard.StdWorkflow.__init__:8
@@ -2092,7 +2111,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.__init__:8
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
 msgid "The algorithm."
-msgstr ""
+msgstr "算法。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
 #: evox.workflows.standard.StdWorkflow.__init__:11
@@ -2123,6 +2142,8 @@ msgid ""
 "The optimization direction, can be either \"min\" or \"max\" or a list of"
 " \"min\"/\"max\" to specific the direction for each objective."
 msgstr ""
+"优化方向，可以是\"min\"（最小化）或\"max\"（最大化），也可以是一个包含\"min\""
+"/\"max\"的列表来指定每个目标的具体优化方向。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "**options**"
@@ -2130,7 +2151,7 @@ msgstr ""
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "The runtime options of the worker actor."
-msgstr ""
+msgstr "工作者（worker）actor的运行时选项。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "**pop_transform:**"
@@ -2146,7 +2167,7 @@ msgstr ""
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "Fitness transform, this transform is applied at each worker node."
-msgstr ""
+msgstr "适应度变换，这个变换在每个工作节点上应用。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:51 of
 msgid "**global_fitness_transform:**"
@@ -2154,15 +2175,15 @@ msgstr ""
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:38 of
 msgid "This transform is applied at the main node."
-msgstr ""
+msgstr "这个变换在主节点上应用。"
 
 #: ../../source/api/workflows/index.rst:3
 msgid "Workflows"
-msgstr ""
+msgstr "工作流"
 
 #: ../../source/api/workflows/standard.rst:3
 msgid "Standard Workflow"
-msgstr ""
+msgstr "标准工作流"
 
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
@@ -2172,7 +2193,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
 msgid "Optional monitor."
-msgstr ""
+msgstr "可选监控器。"
 
 #: evox.workflows.standard.StdWorkflow.__init__:23
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:23 of
@@ -2184,7 +2205,7 @@ msgstr ""
 msgid ""
 "Optional population transform function, usually used to decode the "
 "population into the format that can be understood by the problem."
-msgstr ""
+msgstr "可选种群变换函数，通常用于将种群解码为问题能够理解的格式。"
 
 #: evox.workflows.standard.StdWorkflow.__init__:27
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:27 of
@@ -2196,7 +2217,7 @@ msgstr ""
 msgid ""
 "Optional fitness transform function. usually used to apply fitness "
 "shaping."
-msgstr ""
+msgstr "可选适应度变换函数，通常用于应用适应度整形。"
 
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
@@ -3802,4 +3823,3 @@ msgstr ""
 
 #~ msgid "{ref}`search`"
 #~ msgstr "{ref}`search`"
-
