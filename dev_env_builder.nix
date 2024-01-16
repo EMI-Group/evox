@@ -20,8 +20,8 @@ let
   doc-dependencies = with python.pkgs; [
     myst-parser
     numpydoc
-    pydata-sphinx-theme
     sphinx
+    sphinx-book-theme
     sphinx-copybutton
     sphinx-design
   ];

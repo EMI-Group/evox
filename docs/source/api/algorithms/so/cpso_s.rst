@@ -1,5 +1,5 @@
 =======
-CLPSO_S
+CPSO_S
 =======
 
 .. autoclass:: evox.algorithms.CPSOS

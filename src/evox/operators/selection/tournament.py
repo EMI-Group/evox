@@ -9,7 +9,8 @@ from functools import partial
 
 @partial(jit, static_argnums=[3, 4, 5])
 def tournament_single_fit(key, pop, fit, n_round, tournament_func, tournament_size):
-    chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
+    pop_size = fit.shape[0]
+    chosen = random.choice(key, pop_size, shape=(n_round, tournament_size))
     candidates_fitness = fit[chosen, ...]
     winner_indices = vmap(tournament_func)(candidates_fitness)
     index = chosen[jnp.arange(n_round), winner_indices]
@@ -18,7 +19,8 @@ def tournament_single_fit(key, pop, fit, n_round, tournament_func, tournament_si
 
 @partial(jit, static_argnums=[3, 4, 5])
 def tournament_multi_fit(key, pop, fit, n_round, tournament_func, tournament_size):
-    chosen = random.choice(key, n_round, shape=(n_round, tournament_size))
+    pop_size = fit.shape[0]
+    chosen = random.choice(key, pop_size, shape=(n_round, tournament_size))
     candidates_fitness = fit[chosen, ...]
     winner_indices = vmap(jnp.lexsort)(jnp.transpose(candidates_fitness, (0, 2, 1)))
     index = chosen[jnp.arange(n_round), winner_indices[:, 0]]

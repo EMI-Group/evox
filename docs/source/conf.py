@@ -66,10 +66,16 @@ autodoc_mock_imports = [
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_book_theme"
 html_logo = "_static/evox_logo_with_title.svg"
 html_theme_options = {
-    "github_url": "https://github.com/EMI-Group/evox",
+    "repository_branch": "main",
+    "path_to_docs": "/docs/source",
+    "repository_url": "https://github.com/EMI-Group/evox",
+    "use_repository_button": True,
+    "launch_buttons": {
+        "colab_url": "https://colab.research.google.com"
+    },
     "logo": {
         "alt_text": "EvoX logo image",
         "text": "",
@@ -85,7 +91,6 @@ favicons = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["evox.css"]
 
 autodoc_typehints_format = "short"
 autodoc_typehints = "description"

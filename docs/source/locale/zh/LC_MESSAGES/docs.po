@@ -3,33 +3,33 @@
 # This file is distributed under the same license as the EvoX package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: EvoX \n"
+"Project-Id-Version:  EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2024-01-13 06:06+0000\n"
+"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
 "Language: zh\n"
-"Language-Team: zh <LL@li.org>\n"
+"Language-Team: Chinese (Simplified) "
+"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.11.0\n"
+"Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
 #: ../../source/guide/advanced/4-container.md:28
 msgid "Cooperative Coevolution"
-msgstr ""
+msgstr "协同演化"
 
 #: evox.algorithms.containers.coevolution.VectorizedCoevolution:2 of
 msgid ""
 "Automatically apply cooperative coevolution to any algorithm. The process"
 " of cooperative coevolution is vectorized, meaning all sub-populations "
 "will evolve at the same time in each generation."
-msgstr ""
+msgstr "将协同演化自动应用于任何算法。协同演化的过程被向量化，意味着在每一代中，所有的子种群将同时进化。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.__init__
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
@@ -38,6 +38,7 @@ msgstr ""
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.__init__
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
 #: evox.algorithms.containers.coevolution.Coevolution.__init__
@@ -57,6 +58,7 @@ msgstr ""
 #: evox.algorithms.so.de_variants.code.CoDE.setup
 #: evox.algorithms.so.de_variants.de.DE.setup
 #: evox.algorithms.so.de_variants.jade.JaDE.setup
+#: evox.algorithms.so.de_variants.ode.ODE.setup
 #: evox.algorithms.so.de_variants.sade.SaDE.setup
 #: evox.algorithms.so.de_variants.shade.SHADE.setup
 #: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
@@ -94,7 +96,7 @@ msgstr ""
 #: evox.algorithms.so.es_variants.snes.SNES.__init__
 #: evox.algorithms.so.es_variants.snes.SNES.setup
 #: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.__init__
 #: evox.algorithms.so.pso_variants.cso.CSO.setup
 #: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
 #: evox.algorithms.so.pso_variants.fips.FIPS.__init__
@@ -108,7 +110,8 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
-#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
+#: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
 #: evox.core.module.Stateful.init evox.core.module.Stateful.setup
 #: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
 #: evox.core.state.State.find_path_to evox.core.state.State.update
@@ -123,6 +126,7 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.__init__
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
 #: evox.problems.numerical.lsmop.LSMOP1.__init__
@@ -137,267 +141,72 @@ msgstr ""
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__
 #: evox.workflows.distributed.RayDistributedWorkflow.setup
 #: evox.workflows.standard.StdWorkflow.__init__
+#: evox.workflows.standard.StdWorkflow.setup
 #: evox.workflows.uni_workflow.UniWorkflow.__init__
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices
+#: evox.workflows.uni_workflow.UniWorkflow.setup of
 msgid "Parameters"
-msgstr ""
+msgstr "参数"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:2
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:2
-#: evox.algorithms.containers.coevolution.Coevolution.setup:2
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:2
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:2
-#: evox.algorithms.mo.bige.BiGE.setup:2
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:2
-#: evox.algorithms.mo.gde3.GDE3.setup:2 evox.algorithms.mo.hype.HypE.setup:2
-#: evox.algorithms.mo.ibea.IBEA.setup:2 evox.algorithms.mo.knea.KnEA.setup:2
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:2
-#: evox.algorithms.mo.moead.MOEAD.setup:2
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:2
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:2
-#: evox.algorithms.mo.nsga2.NSGA2.setup:2
-#: evox.algorithms.mo.nsga3.NSGA3.setup:2 evox.algorithms.mo.rvea.RVEA.setup:2
-#: evox.algorithms.mo.spea2.SPEA2.setup:2 evox.algorithms.mo.sra.SRA.setup:2
-#: evox.algorithms.mo.tdea.TDEA.setup:2
-#: evox.algorithms.so.de_variants.code.CoDE.setup:2
-#: evox.algorithms.so.de_variants.de.DE.setup:2
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:2
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:2
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:2
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:2
-#: evox.algorithms.so.es_variants.ars.ARS.setup:2
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:2
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:2
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:2
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:2
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:2
-#: evox.algorithms.so.es_variants.des.DES.setup:2
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:2
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:2
-#: evox.algorithms.so.es_variants.les.LES.setup:2
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:2
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:2
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:2
-#: evox.algorithms.so.es_variants.nes.XNES.setup:2
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:2
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:2
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:2
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:2
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:2
-#: evox.algorithms.so.es_variants.snes.SNES.setup:2
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:2
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:2
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:2
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:2
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:2
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:2
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:2
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:2
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:2
-#: evox.core.module.Stateful.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:2
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:2 of
-msgid "Setup mutable state here"
-msgstr ""
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:2
+#: evox.core.algorithm.Algorithm.init_ask:2 of
+msgid "Ask the algorithm for the initial population"
+msgstr "向算法获取初始化种群"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
-#: evox.algorithms.containers.coevolution.Coevolution.setup:4
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:4
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:4
-#: evox.algorithms.mo.bige.BiGE.setup:4
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:4
-#: evox.algorithms.mo.gde3.GDE3.setup:4 evox.algorithms.mo.hype.HypE.setup:4
-#: evox.algorithms.mo.ibea.IBEA.setup:4 evox.algorithms.mo.knea.KnEA.setup:4
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:4
-#: evox.algorithms.mo.moead.MOEAD.setup:4
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:4
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:4
-#: evox.algorithms.mo.nsga2.NSGA2.setup:4
-#: evox.algorithms.mo.nsga3.NSGA3.setup:4 evox.algorithms.mo.rvea.RVEA.setup:4
-#: evox.algorithms.mo.spea2.SPEA2.setup:4 evox.algorithms.mo.sra.SRA.setup:4
-#: evox.algorithms.mo.tdea.TDEA.setup:4
-#: evox.algorithms.so.de_variants.code.CoDE.setup:4
-#: evox.algorithms.so.de_variants.de.DE.setup:4
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:4
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:4
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:4
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:4
-#: evox.algorithms.so.es_variants.ars.ARS.setup:4
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:4
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:4
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:4
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:4
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:4
-#: evox.algorithms.so.es_variants.des.DES.setup:4
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:4
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:4
-#: evox.algorithms.so.es_variants.les.LES.setup:4
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:4
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:4
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:4
-#: evox.algorithms.so.es_variants.nes.XNES.setup:4
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:4
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:4
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:4
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:4
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:4
-#: evox.algorithms.so.es_variants.snes.SNES.setup:4
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:4
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:4
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:4
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:4
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:4
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:4
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:4
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:4
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:4
-#: evox.core.module.Stateful.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:4
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:4 of
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:4
+#: evox.core.algorithm.Algorithm.init_ask:4 of
 msgid ""
-"The state it self is immutable, but it act as a mutable state by "
-"returning new state each time."
+"Override this method if you need to initialize the population in a "
+"special way. For example, Genetic Algorithm needs to evaluate the fitness"
+" of the initial population of size N, but after that, it only need to "
+"evaluate the fitness of the offspring of size M, and N != M. Since JAX "
+"requires the function return to have static shape, we need to have two "
+"different functions, one is the normal `ask` and another is `init_ask`."
 msgstr ""
+"如果您需要以特殊的方式初始化种群，请重写此方法。例如，遗传算法需要评估大小为 N 的初始种群的适应度，但在那之后，它只需要评估大小为 M "
+"的后代的适应度，并且 N != M。由于 JAX 要求函数返回具有静态形状，因此我们需要有两个不同的函数，一个是常规的 `ask`，另一个是 "
+"`init_ask`。"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
-#: evox.algorithms.containers.coevolution.Coevolution.setup:10
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
-#: evox.algorithms.mo.bige.BiGE.setup:10
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
-#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
-#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
-#: evox.algorithms.mo.moead.MOEAD.setup:10
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
-#: evox.algorithms.mo.nsga2.NSGA2.setup:10
-#: evox.algorithms.mo.nsga3.NSGA3.setup:10
-#: evox.algorithms.mo.rvea.RVEA.setup:10
-#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
-#: evox.algorithms.mo.tdea.TDEA.setup:10
-#: evox.algorithms.so.de_variants.code.CoDE.setup:10
-#: evox.algorithms.so.de_variants.de.DE.setup:10
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
-#: evox.algorithms.so.es_variants.ars.ARS.setup:10
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
-#: evox.algorithms.so.es_variants.des.DES.setup:10
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
-#: evox.algorithms.so.es_variants.les.LES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
-#: evox.algorithms.so.es_variants.nes.XNES.setup:10
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
-#: evox.algorithms.so.es_variants.snes.SNES.setup:10
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:10
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
-#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:10 of
-msgid "**key**"
-msgstr ""
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.ask:9
+#: evox.core.algorithm.Algorithm.init_ask:13
+#: evox.core.algorithm.Algorithm.init_tell:9
+#: evox.core.algorithm.Algorithm.tell:9 evox.core.problem.Problem.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+msgid "**state**"
+msgstr "**状态**"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
-#: evox.algorithms.containers.coevolution.Coevolution.setup:10
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
-#: evox.algorithms.mo.bige.BiGE.setup:10
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
-#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
-#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
-#: evox.algorithms.mo.moead.MOEAD.setup:10
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
-#: evox.algorithms.mo.nsga2.NSGA2.setup:10
-#: evox.algorithms.mo.nsga3.NSGA3.setup:10
-#: evox.algorithms.mo.rvea.RVEA.setup:10
-#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
-#: evox.algorithms.mo.tdea.TDEA.setup:10
-#: evox.algorithms.so.de_variants.code.CoDE.setup:10
-#: evox.algorithms.so.de_variants.de.DE.setup:10
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
-#: evox.algorithms.so.es_variants.ars.ARS.setup:10
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
-#: evox.algorithms.so.es_variants.des.DES.setup:10
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
-#: evox.algorithms.so.es_variants.les.LES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
-#: evox.algorithms.so.es_variants.nes.XNES.setup:10
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
-#: evox.algorithms.so.es_variants.snes.SNES.setup:10
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:10
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
-#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:10 of
-msgid "A PRNGKey."
-msgstr ""
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.core.algorithm.Algorithm.ask:9
+#: evox.core.algorithm.Algorithm.init_ask:13 of
+msgid "The state of this algorithm."
+msgstr "这个算法的状态。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
 #: evox.algorithms.containers.coevolution.Coevolution.setup
@@ -415,6 +224,7 @@ msgstr ""
 #: evox.algorithms.so.de_variants.code.CoDE.setup
 #: evox.algorithms.so.de_variants.de.DE.setup
 #: evox.algorithms.so.de_variants.jade.JaDE.setup
+#: evox.algorithms.so.de_variants.ode.ODE.setup
 #: evox.algorithms.so.de_variants.sade.SaDE.setup
 #: evox.algorithms.so.de_variants.shade.SHADE.setup
 #: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
@@ -441,7 +251,6 @@ msgstr ""
 #: evox.algorithms.so.es_variants.rmes.RMES.setup
 #: evox.algorithms.so.es_variants.snes.SNES.setup
 #: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup
 #: evox.algorithms.so.pso_variants.cso.CSO.setup
 #: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
 #: evox.algorithms.so.pso_variants.fips.FIPS.ask
@@ -453,7 +262,8 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
-#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
+#: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
 #: evox.core.module.Stateful.init evox.core.module.Stateful.setup
 #: evox.core.problem.Problem.evaluate
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
@@ -462,10 +272,363 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
 #: evox.workflows.distributed.RayDistributedWorkflow.setup
+#: evox.workflows.standard.StdWorkflow.setup
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices
+#: evox.workflows.uni_workflow.UniWorkflow.setup of
 msgid "Returns"
-msgstr ""
+msgstr "返回值"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14
+#: evox.core.algorithm.Algorithm.init_ask:18 of
+msgid "population"
+msgstr "种群"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14
+#: evox.core.algorithm.Algorithm.init_ask:18 of
+msgid "The candidate solution."
+msgstr "候选解。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:33
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:29
+#: evox.core.algorithm.Algorithm.ask:29
+#: evox.core.algorithm.Algorithm.init_ask:33
+#: evox.core.algorithm.Algorithm.init_tell:26
+#: evox.core.algorithm.Algorithm.tell:29 of
+msgid "state"
+msgstr "状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:21
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:17
+#: evox.core.algorithm.Algorithm.ask:17
+#: evox.core.algorithm.Algorithm.init_ask:21
+#: evox.core.problem.Problem.evaluate:16
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
+msgid "The new state of the algorithm."
+msgstr "算法的新的状态。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
+#: evox.algorithms.containers.coevolution.Coevolution.setup
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
+#: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
+#: evox.core.module.Stateful.__init__ evox.core.module.Stateful.init
+#: evox.core.module.Stateful.setup evox.core.problem.Problem.evaluate
+#: evox.core.state.State.__init__ evox.core.state.State.find_path_to
+#: evox.core.state.State.update
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+msgid "Return type"
+msgstr "返回值类型"
+
+#: evox.core.algorithm.Algorithm.init_tell:2 of
+msgid ""
+"Tell the algorithm the fitness of the initial population Use in pair with"
+" `init_ask`."
+msgstr "告诉算法初始种群的适应度并应该与`init_ask`函数配对使用。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.init_tell:9
+#: evox.core.algorithm.Algorithm.tell:9 of
+msgid "The state of this algorithm"
+msgstr "算法的状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:17
+#: evox.core.algorithm.Algorithm.init_tell:14
+#: evox.core.algorithm.Algorithm.tell:17 of
+msgid "The new state of the algorithm"
+msgstr "算法的新状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:2
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:2
+#: evox.algorithms.containers.coevolution.Coevolution.setup:2
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:2
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:2
+#: evox.algorithms.mo.bige.BiGE.setup:2
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:2
+#: evox.algorithms.mo.gde3.GDE3.setup:2 evox.algorithms.mo.hype.HypE.setup:2
+#: evox.algorithms.mo.ibea.IBEA.setup:2 evox.algorithms.mo.knea.KnEA.setup:2
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:2
+#: evox.algorithms.mo.moead.MOEAD.setup:2
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:2
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:2
+#: evox.algorithms.mo.nsga2.NSGA2.setup:2
+#: evox.algorithms.mo.nsga3.NSGA3.setup:2 evox.algorithms.mo.rvea.RVEA.setup:2
+#: evox.algorithms.mo.spea2.SPEA2.setup:2 evox.algorithms.mo.sra.SRA.setup:2
+#: evox.algorithms.mo.tdea.TDEA.setup:2
+#: evox.algorithms.so.de_variants.code.CoDE.setup:2
+#: evox.algorithms.so.de_variants.de.DE.setup:2
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:2
+#: evox.algorithms.so.de_variants.ode.ODE.setup:2
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:2
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:2
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:2
+#: evox.algorithms.so.es_variants.ars.ARS.setup:2
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:2
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:2
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:2
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:2
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:2
+#: evox.algorithms.so.es_variants.des.DES.setup:2
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:2
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:2
+#: evox.algorithms.so.es_variants.les.LES.setup:2
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:2
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:2
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:2
+#: evox.algorithms.so.es_variants.nes.XNES.setup:2
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:2
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:2
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:2
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:2
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:2
+#: evox.algorithms.so.es_variants.snes.SNES.setup:2
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:2
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:2
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:2
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:2
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:2
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:2
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:2
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:2
+#: evox.core.module.Stateful.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:2
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:2
+#: evox.workflows.standard.StdWorkflow.setup:2
+#: evox.workflows.uni_workflow.UniWorkflow.setup:2 of
+msgid "Setup mutable state here"
+msgstr "在这里设置可变状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
+#: evox.algorithms.containers.coevolution.Coevolution.setup:4
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:4
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:4
+#: evox.algorithms.mo.bige.BiGE.setup:4
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:4
+#: evox.algorithms.mo.gde3.GDE3.setup:4 evox.algorithms.mo.hype.HypE.setup:4
+#: evox.algorithms.mo.ibea.IBEA.setup:4 evox.algorithms.mo.knea.KnEA.setup:4
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:4
+#: evox.algorithms.mo.moead.MOEAD.setup:4
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:4
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:4
+#: evox.algorithms.mo.nsga2.NSGA2.setup:4
+#: evox.algorithms.mo.nsga3.NSGA3.setup:4 evox.algorithms.mo.rvea.RVEA.setup:4
+#: evox.algorithms.mo.spea2.SPEA2.setup:4 evox.algorithms.mo.sra.SRA.setup:4
+#: evox.algorithms.mo.tdea.TDEA.setup:4
+#: evox.algorithms.so.de_variants.code.CoDE.setup:4
+#: evox.algorithms.so.de_variants.de.DE.setup:4
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:4
+#: evox.algorithms.so.de_variants.ode.ODE.setup:4
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:4
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:4
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:4
+#: evox.algorithms.so.es_variants.ars.ARS.setup:4
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:4
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:4
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:4
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:4
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:4
+#: evox.algorithms.so.es_variants.des.DES.setup:4
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:4
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:4
+#: evox.algorithms.so.es_variants.les.LES.setup:4
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:4
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:4
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:4
+#: evox.algorithms.so.es_variants.nes.XNES.setup:4
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:4
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:4
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:4
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:4
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:4
+#: evox.algorithms.so.es_variants.snes.SNES.setup:4
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:4
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:4
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:4
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:4
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:4
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:4
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:4
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:4
+#: evox.core.module.Stateful.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:4
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:4
+#: evox.workflows.standard.StdWorkflow.setup:4
+#: evox.workflows.uni_workflow.UniWorkflow.setup:4 of
+msgid ""
+"The state it self is immutable, but it act as a mutable state by "
+"returning new state each time."
+msgstr "状态本身是不可变的，但是你可以通过生成一个新的状态来实现修改的操作。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
+#: evox.algorithms.containers.coevolution.Coevolution.setup:10
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
+#: evox.algorithms.mo.bige.BiGE.setup:10
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
+#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
+#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
+#: evox.algorithms.mo.moead.MOEAD.setup:10
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
+#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.nsga3.NSGA3.setup:10
+#: evox.algorithms.mo.rvea.RVEA.setup:10
+#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
+#: evox.algorithms.mo.tdea.TDEA.setup:10
+#: evox.algorithms.so.de_variants.code.CoDE.setup:10
+#: evox.algorithms.so.de_variants.de.DE.setup:10
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
+#: evox.algorithms.so.de_variants.ode.ODE.setup:10
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
+#: evox.algorithms.so.es_variants.ars.ARS.setup:10
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
+#: evox.algorithms.so.es_variants.des.DES.setup:10
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
+#: evox.algorithms.so.es_variants.les.LES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
+#: evox.algorithms.so.es_variants.nes.XNES.setup:10
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
+#: evox.algorithms.so.es_variants.snes.SNES.setup:10
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
+#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:10
+#: evox.workflows.standard.StdWorkflow.setup:10
+#: evox.workflows.uni_workflow.UniWorkflow.setup:10 of
+msgid "**key**"
+msgstr "**随机数生成器密钥**"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
+#: evox.algorithms.containers.coevolution.Coevolution.setup:10
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
+#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
+#: evox.algorithms.mo.bige.BiGE.setup:10
+#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
+#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
+#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
+#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
+#: evox.algorithms.mo.moead.MOEAD.setup:10
+#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
+#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
+#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.nsga3.NSGA3.setup:10
+#: evox.algorithms.mo.rvea.RVEA.setup:10
+#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
+#: evox.algorithms.mo.tdea.TDEA.setup:10
+#: evox.algorithms.so.de_variants.code.CoDE.setup:10
+#: evox.algorithms.so.de_variants.de.DE.setup:10
+#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
+#: evox.algorithms.so.de_variants.ode.ODE.setup:10
+#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
+#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
+#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
+#: evox.algorithms.so.es_variants.ars.ARS.setup:10
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
+#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
+#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
+#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
+#: evox.algorithms.so.es_variants.des.DES.setup:10
+#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
+#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
+#: evox.algorithms.so.es_variants.les.LES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
+#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
+#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
+#: evox.algorithms.so.es_variants.nes.XNES.setup:10
+#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
+#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
+#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
+#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
+#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
+#: evox.algorithms.so.es_variants.snes.SNES.setup:10
+#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
+#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
+#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
+#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
+#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
+#: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
+#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:10
+#: evox.workflows.standard.StdWorkflow.setup:10
+#: evox.workflows.uni_workflow.UniWorkflow.setup:10 of
+msgid "A PRNGKey."
+msgstr "一个伪随机数生成器密钥。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:27
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:26
@@ -489,6 +652,7 @@ msgstr ""
 #: evox.algorithms.so.de_variants.code.CoDE.setup:27
 #: evox.algorithms.so.de_variants.de.DE.setup:27
 #: evox.algorithms.so.de_variants.jade.JaDE.setup:27
+#: evox.algorithms.so.de_variants.ode.ODE.setup:27
 #: evox.algorithms.so.de_variants.sade.SaDE.setup:27
 #: evox.algorithms.so.de_variants.shade.SHADE.setup:27
 #: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:27
@@ -513,7 +677,6 @@ msgstr ""
 #: evox.algorithms.so.es_variants.rmes.RMES.setup:27
 #: evox.algorithms.so.es_variants.snes.SNES.setup:27
 #: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:27
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:27
 #: evox.algorithms.so.pso_variants.cso.CSO.setup:27
 #: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:27
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup:27
@@ -527,10 +690,12 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:27
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:27
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:27
+#: evox.workflows.standard.StdWorkflow.setup:27
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:28
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:29 of
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:29
+#: evox.workflows.uni_workflow.UniWorkflow.setup:27 of
 msgid "State"
-msgstr ""
+msgstr "状态"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:15
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:15
@@ -553,6 +718,7 @@ msgstr ""
 #: evox.algorithms.so.de_variants.code.CoDE.setup:15
 #: evox.algorithms.so.de_variants.de.DE.setup:15
 #: evox.algorithms.so.de_variants.jade.JaDE.setup:15
+#: evox.algorithms.so.de_variants.ode.ODE.setup:15
 #: evox.algorithms.so.de_variants.sade.SaDE.setup:15
 #: evox.algorithms.so.de_variants.shade.SHADE.setup:15
 #: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:15
@@ -577,7 +743,6 @@ msgstr ""
 #: evox.algorithms.so.es_variants.rmes.RMES.setup:15
 #: evox.algorithms.so.es_variants.snes.SNES.setup:15
 #: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:15
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.setup:15
 #: evox.algorithms.so.pso_variants.cso.CSO.setup:15
 #: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:15
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup:15
@@ -590,38 +755,28 @@ msgstr ""
 #: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:15
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:15
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:15
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:15 of
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:15
+#: evox.workflows.standard.StdWorkflow.setup:15
+#: evox.workflows.uni_workflow.UniWorkflow.setup:15 of
 msgid "The state of this module."
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
-#: evox.algorithms.containers.coevolution.Coevolution.setup
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
-#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.tell
-#: evox.core.module.Stateful.__init__ evox.core.module.Stateful.init
-#: evox.core.module.Stateful.setup evox.core.problem.Problem.evaluate
-#: evox.core.state.State.__init__ evox.core.state.State.find_path_to
-#: evox.core.state.State.update
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
-msgid "Return type"
-msgstr ""
+msgstr "这个模块的状态。"
 
 #: evox.algorithms.containers.coevolution.Coevolution:2 of
 msgid ""
 "Automatically apply cooperative coevolution to any algorithm. The process"
 " of cooperative coevolution is not vectorized, meaning all sub-"
 "populations will evolve one at a time (round-robin) in each generation."
-msgstr ""
+msgstr "将协同演化自动应用于任何算法。协同演化的过程未被向量化，这意味着在每一代中，所有子种群将逐一（轮流）进行进化。"
 
 #: ../../source/api/algorithms/containers/clustered.rst:3
 msgid "Clustered Algorithm"
-msgstr ""
+msgstr "聚类算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:2 of
 msgid ""
 "A container that split the encoding into subproblems, and run an "
 "Algorithm on each."
-msgstr ""
+msgstr "一个容器，它将编码分割成若干子问题，并在每个子问题上运行一个算法。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm:4 of
 msgid ""
@@ -629,6 +784,9 @@ msgid ""
 "problems and solve each problem using the base algorithm. Dim must be a "
 "multiple of num_cluster, and num_cluster must be a multiple of num_gpus."
 msgstr ""
+"能够接收任何基础算法，将问题分割成 n "
+"个不同的子问题，并使用基础算法解决每个子问题。其中，维度（Dim）必须是簇数量（num_cluster）的倍数，而簇数量（num_cluster）必须是"
+" GPU 数量（num_gpus）的倍数。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:2
@@ -637,7 +795,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:2
 #: evox.core.algorithm.Algorithm.ask:2 of
 msgid "Ask the algorithm"
-msgstr ""
+msgstr "询问这个算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:4
@@ -646,77 +804,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:4
 #: evox.core.algorithm.Algorithm.ask:4 of
 msgid "Ask the algorithm for points to explore"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
-#: evox.core.algorithm.Algorithm.ask:9 evox.core.algorithm.Algorithm.tell:9
-#: evox.core.problem.Problem.evaluate:8
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
-msgid "**state**"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
-#: evox.core.algorithm.Algorithm.ask:9 of
-msgid "The state of this algorithm."
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
-#: evox.core.algorithm.Algorithm.ask:14 of
-msgid "population"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
-#: evox.core.algorithm.Algorithm.ask:14 of
-msgid "The candidate solution."
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:29
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:29
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:29
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:29
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:29
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:29
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:29
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:29
-#: evox.core.algorithm.Algorithm.ask:29 evox.core.algorithm.Algorithm.tell:29
-#: of
-msgid "state"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:17
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:17
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:17
-#: evox.core.algorithm.Algorithm.ask:17 evox.core.problem.Problem.evaluate:16
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
-msgid "The new state of the algorithm."
-msgstr ""
+msgstr "向算法询问要探索的点"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:2
@@ -725,7 +813,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:2
 #: evox.core.algorithm.Algorithm.tell:2 of
 msgid "Tell the algorithm more information"
-msgstr ""
+msgstr "告诉算法更多的信息"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:4
@@ -736,16 +824,7 @@ msgstr ""
 msgid ""
 "Tell the algorithm about the points it chose and their corresponding "
 "fitness"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
-#: evox.core.algorithm.Algorithm.tell:9 of
-msgid "The state of this algorithm"
-msgstr ""
+msgstr "告诉算法它选择的点以及它们对应的适应度"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
@@ -754,7 +833,7 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
 #: evox.core.algorithm.Algorithm.tell:12 of
 msgid "**fitness**"
-msgstr ""
+msgstr "**适应度**"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
@@ -763,208 +842,201 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
 #: evox.core.algorithm.Algorithm.tell:12 of
 msgid "The fitness"
-msgstr ""
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:17
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:17
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:17
-#: evox.core.algorithm.Algorithm.tell:17 of
-msgid "The new state of the algorithm"
-msgstr ""
+msgstr "适应度值"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:2 of
 msgid "Cluster container with random mask"
-msgstr ""
+msgstr "带有随机掩码的簇容器"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:4 of
 msgid ""
 "pop_size is needed, because JAX needs static shape, if pop_size is None, "
 "it will try to read pop_size from base_algorithm"
-msgstr ""
+msgstr "需要指定种群大小（pop_size），因为 JAX 需要静态形状，如果种群大小（pop_size）未设定，系统将尝试从基础算法中读取种群大小"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:2
 #: evox.core.module.Stateful.init:2 of
 msgid "Initialize this module and all submodules"
-msgstr ""
+msgstr "初始化这个模块和所有的子模块"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:4
 #: evox.core.module.Stateful.init:4 of
 msgid "This method should not be overwritten."
-msgstr ""
+msgstr "此方法不应被复写。"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:14
 #: evox.core.module.Stateful.init:14 of
 msgid "The state of this module and all submodules combined."
-msgstr ""
+msgstr "该模块及其所有子模块的组合之和。"
 
 #: ../../source/api/algorithms/containers/index.rst:3
 msgid "Containers"
-msgstr ""
+msgstr "容器"
 
 #: ../../source/api/algorithms/containers/tree.rst:3
 msgid "Tree Algorithm"
-msgstr ""
+msgstr "树算法"
 
 #: ../../source/api/algorithms/index.rst:3
 msgid "Algorithms"
-msgstr ""
+msgstr "算法"
 
 #: evox.algorithms:1 of
 msgid ""
 "The module that contains all pre-defined algorithms, including both "
 "single-objective algorithms and multi-objective algorithms."
-msgstr ""
+msgstr "包含所有预定义算法的模块，包括单目标算法和多目标算法。"
 
 #: ../../source/api/algorithms/mo/bce_ibea.rst:3
 msgid "BCEIBEA"
-msgstr ""
+msgstr "BCEIBEA"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:2 of
 msgid "Bi-criterion evolution based IBEA"
-msgstr ""
+msgstr "Bi-criterion evolution based IBEA"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7347391"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7347391"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:6 of
 msgid ""
 "Note: The number of outer iterations needs to be set to Maximum "
 "Generation*2+1."
-msgstr ""
+msgstr "注意：外部迭代次数需要设置为最大代数（Maximum Generation）的两倍加一。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:25 evox.algorithms.mo.ibea.IBEA:21
 #: evox.algorithms.mo.lmocso.LMOCSO:23 evox.algorithms.mo.rvea.RVEA:24 of
 msgid "Args:"
-msgstr ""
+msgstr "参数："
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:25 of
 msgid ""
 "kappa (float, optional): The scaling factor for selecting parents in the "
 "environmental selection."
-msgstr ""
+msgstr "kappa（浮点型，可选）：环境选择中用于选择父代的缩放因子。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:10 of
 msgid ""
 "It controls the probability of selecting parents based on their fitness "
 "values. Defaults to 0.05."
-msgstr ""
+msgstr "它控制了基于个体适应度值选择父代的概率。默认值为0.05。"
 
 #: ../../source/api/algorithms/mo/bige.rst:3
 msgid "BiGE"
-msgstr ""
+msgstr "BiGE"
 
 #: evox.algorithms.mo.bige.BiGE:2 of
 msgid "BiGE algorithm"
-msgstr ""
+msgstr "BiGE算法"
 
 #: evox.algorithms.mo.bige.BiGE:4 of
 msgid "link: https://doi.org/10.1016/j.artint.2015.06.007"
-msgstr ""
+msgstr "链接：https://doi.org/10.1016/j.artint.2015.06.007"
 
 #: ../../source/api/algorithms/mo/eagmoead.rst:3
 msgid "EAG-MOEA/D"
-msgstr ""
+msgstr "EAG-MOEA/D"
 
 #: evox.algorithms.mo.eagmoead.EAGMOEAD:2 of
 msgid "EAG-MOEA/D algorithm"
-msgstr ""
+msgstr "EAG-MOEA/D算法"
 
 #: evox.algorithms.mo.eagmoead.EAGMOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6882229"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6882229"
 
 #: ../../source/api/algorithms/mo/gde3.rst:3
 msgid "GDE3"
-msgstr ""
+msgstr "GDE3"
 
 #: evox.algorithms.mo.gde3.GDE3:2 of
 msgid "GDE3 algorithm"
-msgstr ""
+msgstr "GDE3算法"
 
 #: evox.algorithms.mo.gde3.GDE3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/1554717"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/1554717"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:3 of
 msgid "Parameters for Differential Evolution"
-msgstr ""
+msgstr "差分演化的参数"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:4 of
 msgid "F"
-msgstr ""
+msgstr "F"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:5 of
 msgid "The scaling factor"
-msgstr ""
+msgstr "缩放因子"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:22 of
 msgid "CR"
-msgstr ""
+msgstr "CR"
 
 #: evox.algorithms.mo.gde3.GDE3.__init__:7 of
 msgid "The probability of crossover"
-msgstr ""
+msgstr "交叉概率"
 
 #: ../../source/api/algorithms/mo/hype.rst:3
 msgid "HypE"
-msgstr ""
+msgstr "HypE"
 
 #: evox.algorithms.mo.hype.HypE:2 of
 msgid "HypE algorithm"
-msgstr ""
+msgstr "HypE算法"
 
 #: evox.algorithms.mo.hype.HypE:4 of
 msgid ""
 "link: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-"
 "Algorithm-for-Fast-Hypervolume-Based-Many"
 msgstr ""
+"链接：https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-"
+"Algorithm-for-Fast-Hypervolume-Based-Many"
 
 #: ../../source/api/algorithms/mo/ibea.rst:3
 msgid "IBEA"
-msgstr ""
+msgstr "IBEA"
 
 #: evox.algorithms.mo.ibea.IBEA:2 of
 msgid "IBEA algorithm"
-msgstr ""
+msgstr "IBEA算法"
 
 #: evox.algorithms.mo.ibea.IBEA:4 of
 msgid "link: https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
-msgstr ""
+msgstr "链接：https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
 
 #: evox.algorithms.mo.ibea.IBEA:7 of
 msgid "kappa: fitness scaling factor. Default: 0.05"
-msgstr ""
+msgstr "kappa：适应度缩放因子。默认值：0.05"
 
 #: ../../source/api/algorithms/mo/index.rst:3
 msgid "Multi-objective"
-msgstr ""
+msgstr "多目标"
 
 #: ../../source/api/algorithms/mo/knea.rst:3
 msgid "KnEA"
-msgstr ""
+msgstr "KnEA"
 
 #: evox.algorithms.mo.knea.KnEA:2 of
 msgid "KnEA algorithm"
-msgstr ""
+msgstr "KnEA算法"
 
 #: evox.algorithms.mo.knea.KnEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6975108"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/6975108"
 
 #: ../../source/api/algorithms/mo/lmocso.rst:3
 msgid "LMOCSO"
-msgstr ""
+msgstr "LMOCSO"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:2 of
 msgid "LMOCSO algorithm"
-msgstr ""
+msgstr "LMOCSO算法"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:4 of
 msgid "link: https://ieeexplore.ieee.org/document/8681243"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/8681243"
 
 #: evox.algorithms.mo.lmocso.LMOCSO:7 of
 msgid ""
@@ -972,79 +1044,79 @@ msgid ""
 " to 2. max_gen : The maximum number of generations. Defaults to 100. If "
 "the number of iterations is not 100, change the value based on the actual"
 " value."
-msgstr ""
+msgstr "alpha：控制罚分变化率的参数。默认值为2。max_gen：最大代数。默认值为100。如果迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/moead.rst:3
 msgid "MOEA/D"
-msgstr ""
+msgstr "MOEA/D"
 
 #: evox.algorithms.mo.moead.MOEAD:2 of
 msgid "MOEA/D algorithm"
-msgstr ""
+msgstr "MOEA/D算法"
 
 #: evox.algorithms.mo.moead.MOEAD:4 of
 msgid "link: https://ieeexplore.ieee.org/document/4358754"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/4358754"
 
 #: ../../source/api/algorithms/mo/moeaddra.rst:3
 msgid "MOEA/D-DRA"
-msgstr ""
+msgstr "MOEA/D-DRA"
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:2 of
 msgid "MOEA/D-DRA algorithm"
-msgstr ""
+msgstr "MOEA/D-DRA算法"
 
 #: evox.algorithms.mo.moeaddra.MOEADDRA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/4982949"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/4982949"
 
 #: ../../source/api/algorithms/mo/moeadm2m.rst:3
 msgid "MOEA/D-M2M"
-msgstr ""
+msgstr "MOEA/D-M2M"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:2 of
 msgid "MOEA/D based on MOP to MOP algorithm"
-msgstr ""
+msgstr "MOEA/D M2M 算法"
 
 #: evox.algorithms.mo.moeadm2m.MOEADM2M:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/6595549"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/6595549"
 
 #: ../../source/api/algorithms/mo/nsga2.rst:3
 msgid "NSGA-II"
-msgstr ""
+msgstr "NSGA-II"
 
 #: evox.algorithms.mo.nsga2.NSGA2:2 of
 msgid "NSGA-II algorithm"
-msgstr ""
+msgstr "NSGA-II算法"
 
 #: evox.algorithms.mo.nsga2.NSGA2:4 of
 msgid "link: https://ieeexplore.ieee.org/document/996017"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/996017"
 
 #: ../../source/api/algorithms/mo/nsga3.rst:3
 msgid "NSGA-III"
-msgstr ""
+msgstr "NSGA-III"
 
 #: evox.algorithms.mo.nsga3.NSGA3:2 of
 msgid "NSGA-III algorithm"
-msgstr ""
+msgstr "NSGA-III算法"
 
 #: evox.algorithms.mo.nsga3.NSGA3:4 of
 msgid "link: https://ieeexplore.ieee.org/document/6600851"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/6600851"
 
 #: ../../source/api/algorithms/mo/rvea.rst:3
 msgid "RVEA"
-msgstr ""
+msgstr "RVEA"
 
 #: evox.algorithms.mo.rvea.RVEA:2 of
 msgid "RVEA algorithms"
-msgstr ""
+msgstr "RVEA算法"
 
 #: evox.algorithms.mo.rvea.RVEA:4 of
 msgid "link: https://ieeexplore.ieee.org/document/7386636"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/document/7386636"
 
 #: evox.algorithms.mo.rvea.RVEA:7 of
 msgid ""
@@ -1053,67 +1125,63 @@ msgid ""
 "0.1. max_gen : The maximum number of generations. Defaults to 100. If the"
 " number of iterations is not 100, change the value based on the actual "
 "value."
-msgstr ""
+msgstr "alpha：控制罚分变化率的参数。默认值为2。fr：参考向量适应频率。默认值为0.1。max_gen：最大代数。默认值为100。如果迭代次数不是100，根据实际值更改该值。"
 
 #: ../../source/api/algorithms/mo/spea2.rst:3
 msgid "SPEA2"
-msgstr ""
+msgstr "SPEA2"
 
 #: evox.algorithms.mo.spea2.SPEA2:2 of
 msgid "SPEA2 algorithm"
-msgstr ""
+msgstr "SPEA2算法"
 
 #: evox.algorithms.mo.spea2.SPEA2:4 of
 msgid "link: https://www.research-collection.ethz.ch/handle/20.500.11850/145755"
-msgstr ""
+msgstr "链接：https://www.research-collection.ethz.ch/handle/20.500.11850/145755"
 
 #: ../../source/api/algorithms/mo/sra.rst:3
 msgid "SRA"
-msgstr ""
+msgstr "SRA"
 
 #: evox.algorithms.mo.sra.SRA:2 of
 msgid "Stochastic ranking algorithm"
-msgstr ""
+msgstr "随机排序算法"
 
 #: evox.algorithms.mo.sra.SRA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7445185"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7445185"
 
 #: ../../source/api/algorithms/mo/tdea.rst:3
 msgid "tDEA"
-msgstr ""
+msgstr "tDEA"
 
 #: evox.algorithms.mo.tdea.TDEA:2 of
 msgid "Theta-dominance based evolutionary algorithm"
-msgstr ""
+msgstr "基于θ优势的演化算法"
 
 #: evox.algorithms.mo.tdea.TDEA:4 of
 msgid "link: https://ieeexplore.ieee.org/abstract/document/7080938"
-msgstr ""
+msgstr "链接：https://ieeexplore.ieee.org/abstract/document/7080938"
 
 #: ../../source/api/algorithms/so/amalgam.rst:3
 msgid "AMaLGaM"
-msgstr ""
+msgstr "AMaLGaM"
 
 #: ../../source/api/algorithms/so/ars.rst:3
 msgid "ARS"
-msgstr ""
+msgstr "ARS"
 
 #: ../../source/api/algorithms/so/asebo.rst:3
 msgid "ASEBO"
-msgstr ""
+msgstr "ASEBO"
 
 #: ../../source/api/algorithms/so/clpso.rst:3
 msgid "CLPSO"
-msgstr ""
-
-#: ../../source/api/algorithms/so/clpso_s.rst:3
-msgid "CLPSO_S"
-msgstr ""
+msgstr "CLPSO"
 
 #: ../../source/api/algorithms/so/cma_es.rst:3
 msgid "CMA-ES"
-msgstr ""
+msgstr "CMA-ES"
 
 #: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:2
 #: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:2
@@ -1124,6 +1192,8 @@ msgid ""
 "This implementation follows `The CMA Evolution Strategy: A Tutorial "
 "<https://arxiv.org/pdf/1604.00772.pdf>`_."
 msgstr ""
+"这个实现遵循了《CMA 演化策略：教程》（The CMA Evolution Strategy: A "
+"Tutorial），详情可见：https://arxiv.org/pdf/1604.00772.pdf。"
 
 #: evox.algorithms.so.es_variants.cma_es.CMAES.__init__:5
 #: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.__init__:5
@@ -1134,11 +1204,11 @@ msgid ""
 "CMA-ES involves eigendecomposition, which introduces relatively large "
 "numerical error, and may lead to non-deterministic behavior on different "
 "hardware backends."
-msgstr ""
+msgstr "CMA-ES涉及特征分解，这会引入相对较大的数值误差，并可能导致在不同硬件后端上的非确定性行为。"
 
 #: ../../source/api/algorithms/so/code.rst:3
 msgid "CoDE"
-msgstr ""
+msgstr "CoDE"
 
 #: evox.algorithms.so.de_variants.code.CoDE:2 of
 msgid ""
@@ -1146,46 +1216,66 @@ msgid ""
 "vector generation strategies and control parameters[J]. IEEE transactions"
 " on evolutionary computation, 2011, 15(1): 55-66."
 msgstr ""
+"CoDE Wang Y, Cai Z, Zhang Q. Differential evolution with composite trial "
+"vector generation strategies and control parameters[J]. IEEE transactions"
+" on evolutionary computation, 2011, 15(1): 55-66."
+
+#: ../../source/api/algorithms/so/cpso_s.rst:3
+#, fuzzy
+msgid "CPSO_S"
+msgstr "CLPSO_S"
+
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS:2 of
+msgid ""
+"Cooperative particle swarm optimizer. Implemented using EvoX's built-in "
+"coevolution framework. CPSOS essentially a wrapper around PSO and "
+"Coevolution."
+msgstr ""
+
+#: evox.algorithms.so.pso_variants.cpso_s.CPSOS:6 of
+#, fuzzy
+msgid "https://ieeexplore.ieee.org/document/1304845"
+msgstr "链接：https://ieeexplore.ieee.org/document/6600851"
 
 #: ../../source/api/algorithms/so/cr_fm_nes.rst:3
 msgid "CR-FM-NES"
-msgstr ""
+msgstr "CR-FM-NES"
 
 #: ../../source/api/algorithms/so/cso.rst:3
 msgid "CSO"
-msgstr ""
+msgstr "CSO"
 
 #: ../../source/api/algorithms/so/de.rst:3
 msgid "DE"
-msgstr ""
+msgstr "DE"
 
 #: ../../source/api/algorithms/so/des.rst:3
 msgid "DES"
-msgstr ""
+msgstr "DES"
 
 #: ../../source/api/algorithms/so/dms_pso_el.rst:3
 msgid "DMS-PSO-EL"
-msgstr ""
+msgstr "DMS-PSO-EL"
 
 #: ../../source/api/algorithms/so/esmc.rst:3
 msgid "ESMC"
-msgstr ""
+msgstr "ESMC"
 
 #: ../../source/api/algorithms/so/fips.rst:3
 msgid "FIPS"
-msgstr ""
+msgstr "FIPS"
 
 #: ../../source/api/algorithms/so/guide_es.rst:3
 msgid "GuidedES"
-msgstr ""
+msgstr "GuidedES"
 
 #: ../../source/api/algorithms/so/index.rst:3
 msgid "Single-objective"
-msgstr ""
+msgstr "单目标"
 
 #: ../../source/api/algorithms/so/jade.rst:3
 msgid "JaDE"
-msgstr ""
+msgstr "JaDE"
 
 #: evox.algorithms.so.de_variants.jade.JaDE:2 of
 msgid ""
@@ -1193,31 +1283,38 @@ msgid ""
 "optional external archive[J]. IEEE Transactions on evolutionary "
 "computation, 2009, 13(5): 945-958."
 msgstr ""
+"JaDE Zhang J, Sanderson A C. JADE: adaptive differential evolution with "
+"optional external archive[J]. IEEE Transactions on evolutionary "
+"computation, 2009, 13(5): 945-958."
 
 #: ../../source/api/algorithms/so/les.rst:3
 msgid "LES"
-msgstr ""
+msgstr "LES"
 
 #: ../../source/api/algorithms/so/ma_es.rst:3
 msgid "MA-ES"
-msgstr ""
+msgstr "MA-ES"
 
 #: ../../source/api/algorithms/so/nes.rst:3
 msgid "xNES"
-msgstr ""
+msgstr "xNES"
 
 #: evox.algorithms.so.es_variants.nes.SeparableNES.__init__:2
 #: evox.algorithms.so.es_variants.nes.XNES.__init__:2 of
 msgid "See [link](https://arxiv.org/pdf/1106.4487.pdf) for default parameters"
-msgstr ""
+msgstr "参考链接[link](https://arxiv.org/pdf/1106.4487.pdf)中的默认参数"
 
 #: ../../source/api/algorithms/so/noise_reuse_es.rst:3
 msgid "Noise-Reuse-ES"
-msgstr ""
+msgstr "Noise-Reuse-ES"
+
+#: ../../source/api/algorithms/so/ode.rst:3
+msgid "ODE"
+msgstr "ODE"
 
 #: ../../source/api/algorithms/so/open_es.rst:3
 msgid "OpenES"
-msgstr ""
+msgstr "OpenES"
 
 #: evox.algorithms.so.es_variants.open_es.OpenES.__init__:2 of
 msgid ""
@@ -1225,26 +1322,28 @@ msgid ""
 " Alternative to Reinforcement Learning\" from "
 "https://arxiv.org/abs/1703.03864"
 msgstr ""
+"实现论文 \"Evolution Strategies as a Scalable Alternative to Reinforcement "
+"Learning\" 中描述的算法，链接为https://arxiv.org/abs/1703.03864"
 
 #: ../../source/api/algorithms/so/persistent_es.rst:3
 msgid "PersistentES"
-msgstr ""
+msgstr "PersistentES"
 
 #: ../../source/api/algorithms/so/pgpe.rst:3
 msgid "PGPE"
-msgstr ""
+msgstr "PGPE"
 
 #: ../../source/api/algorithms/so/pso.rst:3
 msgid "PSO"
-msgstr ""
+msgstr "PSO"
 
 #: ../../source/api/algorithms/so/rmes.rst:3
 msgid "RMES"
-msgstr ""
+msgstr "RMES"
 
 #: ../../source/api/algorithms/so/sade.rst:3
 msgid "SaDE"
-msgstr ""
+msgstr "SaDE"
 
 #: evox.algorithms.so.de_variants.sade.SaDE:2 of
 msgid ""
@@ -1252,10 +1351,13 @@ msgid ""
 "with strategy adaptation for global numerical optimization[J]. IEEE "
 "transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 msgstr ""
+"SaDE Qin A K, Huang V L, Suganthan P N. Differential evolution algorithm "
+"with strategy adaptation for global numerical optimization[J]. IEEE "
+"transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 
 #: ../../source/api/algorithms/so/shade.rst:3
 msgid "SHADE"
-msgstr ""
+msgstr "SHADE"
 
 #: evox.algorithms.so.de_variants.shade.SHADE:2 of
 msgid ""
@@ -1263,107 +1365,110 @@ msgid ""
 "for differential evolution[C]//2013 IEEE congress on evolutionary "
 "computation. IEEE, 2013: 71-78."
 msgstr ""
+"SHADE Tanabe R, Fukunaga A. Success-history based parameter adaptation "
+"for differential evolution[C]//2013 IEEE congress on evolutionary "
+"computation. IEEE, 2013: 71-78."
 
 #: ../../source/api/algorithms/so/sl_pso_gs.rst:3
 msgid "SL-PSO-GS"
-msgstr ""
+msgstr "SL-PSO-GS"
 
 #: ../../source/api/algorithms/so/sl_pso_us.rst:3
 msgid "SL-PSO-US"
-msgstr ""
+msgstr "SL-PSO-US"
 
 #: ../../source/api/algorithms/so/snes.rst:3
 msgid "SNES"
-msgstr ""
+msgstr "SNES"
 
 #: ../../source/api/algorithms/so/swmmpso.rst:3
 msgid "SWMMPSO"
-msgstr ""
+msgstr "SWMMPSO"
 
 #: ../../source/api/core/algorithm.rst:3
 msgid "Algorithm Class"
-msgstr ""
+msgstr "算法类"
 
 #: evox.core.algorithm.Algorithm:2 evox.core.problem.Problem:2 of
 msgid "Base class for all algorithms"
-msgstr ""
+msgstr "所有算法的基类"
 
 #: ../../source/api/core/index.rst:3
 msgid "Core Classes"
-msgstr ""
+msgstr "核心类"
 
 #: ../../source/api/core/module.rst:3
 msgid "Module Class"
-msgstr ""
+msgstr "模块类"
 
 #: evox.core.module.Stateful:2 of
 msgid "Base class for all evox modules."
-msgstr ""
+msgstr "所有EvoX模块的基础类。"
 
 #: evox.core.module.Stateful:4 of
 msgid "This module allow easy managing of states."
-msgstr ""
+msgstr "这个模块允许轻松管理状态。"
 
 #: evox.core.module.Stateful:6 of
 msgid ""
 "All the constants (e.g. hyperparameters) are initialized in the "
 "``__init__``, and mutated states are initialized in the ``setup`` method."
-msgstr ""
+msgstr "所有常数（例如超参数）都在“ __init__” 中初始化，而变异状态则在 “setup” 方法中初始化。"
 
 #: evox.core.module.Stateful:9 of
 msgid ""
 "The ``init`` method will automatically call the ``setup`` of the current "
 "module and recursively call ``setup`` methods of all submodules."
-msgstr ""
+msgstr "“init” 方法将自动调用当前模块的 “setup”，并递归地调用所有子模块的 “setup” 方法。"
 
 #: ../../source/api/core/problem.rst:3
 msgid "Problem Class"
-msgstr ""
+msgstr "问题类"
 
 #: evox.core.problem.Problem.evaluate:2
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:2 of
 msgid "Evaluate the fitness at given points"
-msgstr ""
+msgstr "在给定点评估适应度"
 
 #: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:16
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
 msgid "dict"
-msgstr ""
+msgstr "字典"
 
 #: evox.core.problem.Problem.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8 of
 msgid "The state of this problem."
-msgstr ""
+msgstr "这个问题的状态。"
 
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
 msgid "**X**"
-msgstr ""
+msgstr "**X**"
 
 #: evox.core.problem.Problem.evaluate:-1 evox.core.problem.Problem.evaluate:31
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:-1
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:31 of
 msgid "ndarray"
-msgstr ""
+msgstr "ndarray"
 
 #: evox.core.problem.Problem.evaluate:11
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:11 of
 msgid "The population."
-msgstr ""
+msgstr "种群。"
 
 #: evox.core.problem.Problem.evaluate:19
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:19 of
 msgid "The fitness."
-msgstr ""
+msgstr "适应度值。"
 
 #: ../../source/api/core/state.rst:3
 msgid "State Class"
-msgstr ""
+msgstr "状态类"
 
 #: evox.core.state.State:2 of
 msgid "A class represents state"
-msgstr ""
+msgstr "一个表示状态的类"
 
 #: evox.core.state.State:4 of
 msgid ""
@@ -1372,40 +1477,39 @@ msgid ""
 "``tree_unflatten`` and has registered as a valid pytree node. So it can "
 "be used as pytree with JAX without any issue."
 msgstr ""
+"“State ”是不可变的，要更新状态，请使用“update ” 方法或 “| ”运算符。“State ” 已经实现了 "
+"“tree_flatten”、“tree_unflatten ”并且已注册为有效的 pytree 节点。因此，它可以与 JAX 一起作为 "
+"pytree 使用。"
 
 #: evox.core.state.State.__init__:2 of
 msgid "Construct a ``State`` from dict or keyword arguments"
-msgstr ""
+msgstr "从Python字典（dict）或关键字（keyword arguments）构建一个状态（State）对象"
 
 #: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
 msgid "Example::"
-msgstr ""
+msgstr "例子："
 
 #: evox.core.state.State.find_path_to:2 of
 msgid ""
 "Find the state with node_id matching the state_id A hint can be given "
 "with the module_name"
-msgstr ""
+msgstr "找到节点 ID 与状态 ID 匹配的状态。可以通过模块名称给出提示"
 
 #: evox.core.state.State.update:2 of
 msgid "Update the current State with another State or dict and return new State."
-msgstr ""
+msgstr "使用另一个 State 或 dict 更新当前 State，并返回新的 State。"
 
 #: evox.core.state.State.update:4 of
 msgid "This method also accept keyword arguments."
-msgstr ""
-
-#: ../../source/api/index.rst:3
-msgid "EvoX's API"
-msgstr ""
+msgstr "这个方法也接受关键字参数。"
 
 #: ../../source/api/metrics/gd.rst:3
 msgid "Generational Distance"
-msgstr ""
+msgstr "世代距离"
 
 #: ../../source/api/metrics/hv.rst:3
 msgid "Hypervolume"
-msgstr ""
+msgstr "超体积"
 
 #: evox.metrics.hypervolume.HV:2 of
 msgid ""
@@ -1416,38 +1520,41 @@ msgid ""
 " each objective and the reference point. Since reference point is often "
 "far from pf, `bounding_cube` method usually gives more accurate result."
 msgstr ""
+"超体积指标，使用蒙特卡洛方法实现。我们提供两种不同的样本方法：`bounding_cube` 和 `each_cube`。使用 "
+"`bounding_cube` 方法，我们从一个可以包围所有目标的超立方体中抽取样本。使用 `each_cube` "
+"方法，我们从由每个目标和参考点形成的每个超立方体中抽取样本。由于参考点通常远离帕雷托前沿（pf），`bounding_cube`方法通常能提供更准确的结果。"
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "**ref**"
-msgstr ""
+msgstr "**ref**"
 
 #: evox.metrics.hypervolume.HV.__init__:8 of
 msgid "The reference point."
-msgstr ""
+msgstr "参考点。"
 
 #: evox.metrics.hypervolume.HV.__init__:11 of
 msgid "**num_sample**"
-msgstr ""
+msgstr "**样本数量**"
 
 #: evox.metrics.hypervolume.HV.__init__:11 of
 msgid "Number of samples to draw when doing monte carlo."
-msgstr ""
+msgstr "在使用蒙特卡洛方法的时候样本的数量。"
 
 #: evox.metrics.hypervolume.HV.__init__:28 of
 msgid "**sample_method**"
-msgstr ""
+msgstr "**sample_method**"
 
 #: evox.metrics.hypervolume.HV.__init__:14 of
 msgid "`bounding_cube` or `each_cube`. Default to `bounding_cube`."
-msgstr ""
+msgstr "`bounding_cube` 或 `each_cube`. 默认为 `bounding_cube`."
 
 #: ../../source/api/metrics/igd.rst:3
 msgid "Inverted Generational Distance"
-msgstr ""
+msgstr "反世代距离"
 
 #: ../../source/api/metrics/index.rst:3
 msgid "Metrics"
-msgstr ""
+msgstr "度量指标"
 
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
@@ -1458,21 +1565,21 @@ msgid ""
 "This class serialize data to apache arrow format, which can be picked up "
 "and used in EvoXVis. The tensors are stored as fixed size binary and the "
 "dtype is recorded in the metadata."
-msgstr ""
+msgstr "这个类将数据序列化为可以在EvoXVis中提取和使用的apache arrow格式。张量被存储为固定大小的二进制，并且数据类型被记录在元数据中。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:10 of
 msgid "**base_filename**"
-msgstr ""
+msgstr "**base_filename**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:8 of
 msgid ""
 "The base filename of the log file, the final filename will be "
 "``<base_filename>_<i>.arrow``, where i is an incrementing number."
-msgstr ""
+msgstr "日志文件的基本文件名，最终文件名将是``<base_filename>_<i>.arrow``，其中i是递增的数字。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:17 of
 msgid "**out_dir**"
-msgstr ""
+msgstr "**out_dir**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:13 of
 msgid ""
@@ -1480,33 +1587,35 @@ msgid ""
 "directory will be used. The default is ``<TEMP_DIR>/evox``, on Windows, "
 "it's usually ``C:\\TEMP\\evox``, and on MacOS/Linux/BSDs it's "
 "``/tmp/evox``."
-msgstr ""
+msgstr "将日志文件写入的目录。当设置为None时，将使用默认目录。默认为``<TEMP_DIR>/evox``，在Windows上通常为``C：\\temp\\evox``，在MacOS/Linux/BSD上为``/tMP/evox``。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:22 of
 msgid "**out_type**"
-msgstr ""
+msgstr "**out_type**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:20 of
 msgid ""
 "\"stream\" or \"file\", For more information, please refer to "
 "https://arrow.apache.org/docs/python/ipc.html"
 msgstr ""
+"\"stream\" 或\"file\"，更多信息，请参考 "
+"https://arrow.apache.org/docs/python/ipc.html"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:29
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
 msgid "**batch_size**"
-msgstr ""
+msgstr "**batch_size**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:25 of
 msgid ""
 "The monitor will buffer the data in memory and write out every `batch "
 "size`. Choose a larger value may improve I/O performance and improve "
 "compression ratio, if compression is enabled. Default to 64."
-msgstr ""
+msgstr "监控器会将数据缓存在内存中，并写出每个`batch size`。如果启用了压缩，则选择较大的值可能会提高I/O性能并提高压缩比。默认为64。"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:48 of
 msgid "**compression**"
-msgstr ""
+msgstr "**compression**"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:32 of
 msgid ""
@@ -1514,116 +1623,131 @@ msgid ""
 "Available options are None, \"lz4\", \"zstd\", \"lz4\" is extremely fast,"
 " with poor compression ratio, \"zstd\" is fast, but also with good "
 "compression ratio."
-msgstr ""
+msgstr "控制写入文件时使用的压缩算法。可供选择的有None、“lz4”、“zstd”，“lz4”速度极快，压缩比差，“zstd”速度快，同时压缩比也很好。"
 
 #: ../../source/api/monitors/index.rst:3
 msgid "Monitors"
-msgstr ""
+msgstr "监视器"
 
 #: ../../source/api/monitors/std_mo.rst:3
 msgid "Standard Multi-objective Monitor"
-msgstr ""
+msgstr "标准多目标监视器"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:2 of
 msgid ""
 "Standard multi-objective monitor Used for multi-objective workflow, can "
 "monitor fitness and record the pareto front."
-msgstr ""
+msgstr "标准多目标监视器，用于多目标工作流，可以监控适应度并记录帕累托前沿。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:14 of
 msgid "**record_pf**"
-msgstr ""
+msgstr "**record_pf**"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:10 of
 msgid ""
 "Whether to record the pareto front during the run. Default to False. "
 "Setting it to True will cause the monitor to maintain a pareto front of "
 "all the solutions with unlimited size, which may hurt performance."
-msgstr ""
+msgstr "是否在运行过程中记录帕累托前沿。默认值为假（False）。将其设置为真（True）将导致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性能。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:31
 #: evox.monitors.std_so_monitor.StdSOMonitor:28 of
 msgid "**record_fit_history**"
-msgstr ""
+msgstr "**record_fit_history**"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor:17
 #: evox.monitors.std_so_monitor.StdSOMonitor:14 of
 msgid ""
 "Whether to record the full history of fitness value. Default to True. "
 "Setting it to False may reduce memory usage."
+msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor.plot:2
+#: evox.monitors.std_so_monitor.StdSOMonitor.plot:2 of
+msgid ""
+"A Built-in plot function for visualizing the population of single-"
+"objective algorithm. Use plotly internally, so you need to install plotly"
+" to use this function."
+msgstr ""
+
+#: evox.monitors.std_mo_monitor.StdMOMonitor.plot:5
+#: evox.monitors.std_so_monitor.StdSOMonitor.plot:5 of
+msgid ""
+"If the problem is provided, we will plot the fitness landscape of the "
+"problem."
 msgstr ""
 
 #: ../../source/api/monitors/std_so.rst:3
 msgid "Standard Single-objective Monitor"
-msgstr ""
+msgstr "标准单目标监视器"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:2 of
 msgid ""
 "Standard single-objective monitor Used for single-objective workflow, can"
 " monitor fitness and the population."
-msgstr ""
+msgstr "标准单目标监控器 用于单目标工作流，可以监控适应度和种群。"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:11 of
 msgid "**record_topk**"
-msgstr ""
+msgstr "**record_topk**"
 
 #: evox.monitors.std_so_monitor.StdSOMonitor:10 of
 msgid ""
 "Control how many elite solutions are recorded. Default is 1, which will "
 "record the best individual."
-msgstr ""
+msgstr "控制录制多少精英解决方案。默认为1，它将记录最好的个体。"
 
 #: ../../source/api/problems/index.rst:3
 msgid "Problems"
-msgstr ""
+msgstr "问题"
 
 #: evox.problems:1 of
 msgid "The module that contains all pre-defined problems"
-msgstr ""
+msgstr "包含所有预定义的问题的模块"
 
 #: ../../source/api/problems/neuroevolution/index.rst:3
 #: ../../source/guide/basics/2-problems.ipynb:40002
 msgid "Neuroevolution"
-msgstr ""
+msgstr "神经演化"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/brax.rst:3
 msgid "Brax-based Problem"
-msgstr ""
+msgstr "基于Brax的问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:2 of
 msgid "Contruct a brax-based problem"
-msgstr ""
+msgstr "构造一个基于Brax的问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:9
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:9 of
 msgid "**policy**"
-msgstr ""
+msgstr "**策略**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:8 of
 msgid ""
 "A function that accept two arguments the first one is the parameter and "
 "the second is the input."
-msgstr ""
+msgstr "一个接受两个参数的函数，第一个参数是参数本身，第二个是输入。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
 msgid "**env_name**"
-msgstr ""
+msgstr "**env_name**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:12 of
 msgid "The environment name."
-msgstr ""
+msgstr "环境名。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:15 of
 msgid ""
 "The number of brax environments to run in parallel. Usually this should "
 "match the population size at the algorithm side."
-msgstr ""
+msgstr "要并行运行的BRAX环境的数量。通常，这应该与算法端的种群大小相匹配。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "**cap_episode**"
-msgstr ""
+msgstr "**cap_episode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:19 of
 msgid "The maximum number episodes to run."
@@ -1631,13 +1755,13 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:36 of
 msgid "**backend**"
-msgstr ""
+msgstr "**后端**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:22 of
 msgid ""
 "Brax's backend, one of \"generalized\", \"positional\", \"spring\". "
 "Default to \"generalized\"."
-msgstr ""
+msgstr "Brax的后端，是“generalized”、“positional”、“spring”中的其中一个。默认为“generalized”。"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/env_pool.rst:3
 msgid "Env Pool"
@@ -1645,54 +1769,46 @@ msgstr ""
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/gym.rst:3
 msgid "Gym"
-msgstr ""
+msgstr "Gym"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:2 of
 msgid "Construct a gym problem"
-msgstr ""
+msgstr "构建一个gym 问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
 msgid "**num_workers**"
-msgstr ""
+msgstr "**num_workers**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12 of
 msgid "Number of worker actors."
 msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
-msgid "**env_per_worker**"
-msgstr ""
-
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:15 of
-msgid "Number of gym environment per worker."
-msgstr ""
+msgid "The name of the gym environment."
+msgstr "Gym环境的名称。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
-msgid "The name of the gym environment."
-msgstr ""
-
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "**env_options**"
-msgstr ""
+msgstr "**env_options**"
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:18 of
+msgid "The options of the gym environment."
+msgstr "gym 环境的选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
-msgid "The options of the gym environment."
-msgstr ""
-
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
 msgid "**env_creator**"
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "A function with zero argument that returns an environment when called."
-msgstr ""
+msgstr "一个调用时返回一个环境的零参数函数。"
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:28 of
 msgid "**mo_keys**"
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:27 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:24 of
 msgid ""
 "Optional, a list of strings. If set, the environment is treated as a "
 "multi-objective problem, and different objective values are obtained "
@@ -1702,32 +1818,78 @@ msgid ""
 "`mo_keys`."
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:39 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:36 of
 msgid "**controller_options**"
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:34 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:31 of
 msgid ""
 "The runtime options for controller actor. This actor is used to control "
 "workers and run the policy at each step. For example, to enable GPU "
 "acceleration on the policy network, set this field to::"
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:55 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:52 of
 msgid "**worker_options**"
 msgstr ""
 
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:42 of
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:39 of
 msgid "The runtime options for worker actors."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:2 of
+msgid ""
+"Visualize your policy, passin a single set of weights, and it will be put"
+" in the environment for interaction."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
+#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
+#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+msgid "The state."
+msgstr "状态。"
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12 of
+msgid "This key will be used to seed the test environment."
+msgstr "此密钥将会作为测试环境的随机数种子。"
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:15 of
+msgid "**weights**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:15 of
+msgid "A single set of weights for your policy."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:41 of
+msgid "**ale_render_mode**"
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:18 of
+msgid "'rgb_array' or 'human'."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:20 of
+msgid ""
+"In 'rgb_array' mode, this function will return a list of frames, each "
+"frame is a numpy array."
+msgstr ""
+
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:23 of
+msgid ""
+"In 'human' mode, the frame should be displayed directly onto your screen."
+" However, if your using remote python environment, for example vscode ssh"
+" or jupyter notebook, this method may fail to find a valid display. "
+"Default to 'rgb_array'."
 msgstr ""
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/index.rst:3
 msgid "Reinforcement Learning"
-msgstr ""
+msgstr "强化学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/index.rst:3
 msgid "Supervised Learning"
-msgstr ""
+msgstr "监督学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/torchvision.rst:3
 msgid "Torchvision Dataset"
@@ -1747,7 +1909,7 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/index.md:1
 msgid "Test functions"
-msgstr ""
+msgstr "测试函数"
 
 #: ../../source/api/problems/numerical/test_functions/rastrigin.rst:3
 msgid "Rastrigin"
@@ -1755,6 +1917,14 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/rosenbrock.rst:3
 msgid "Rosenbrock"
+msgstr ""
+
+#: ../../source/api/problems/numerical/test_functions/schwefel.rst:3
+msgid "Schwefel"
+msgstr ""
+
+#: evox.problems.numerical.schwefel.Schwefel:2 of
+msgid "The Schwefel function The minimum is x = [420.9687462275036, ...]"
 msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/sphere.rst:3
@@ -1937,27 +2107,17 @@ msgstr ""
 msgid "The problem."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:23 of
-msgid "**pop_size**"
-msgstr ""
-
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
-msgid ""
-"Population size, this argument together with num_workers will be used to "
-"determine the sharding strategy."
-msgstr ""
-
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26 of
 msgid "Number of workers."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:30
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26
 #: evox.workflows.standard.StdWorkflow.__init__:18
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:18 of
 msgid "**opt_direction**"
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:25
 #: evox.workflows.standard.StdWorkflow.__init__:17
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:17 of
 msgid ""
@@ -1965,35 +2125,35 @@ msgid ""
 " \"min\"/\"max\" to specific the direction for each objective."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:33 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "**options**"
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:33 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "The runtime options of the worker actor."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:36 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "**pop_transform:**"
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:36 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "Population transform, this transform is applied at each worker node."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:39 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "**fitness_transform:**"
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:39 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "Fitness transform, this transform is applied at each worker node."
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:55 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:51 of
 msgid "**global_fitness_transform:**"
 msgstr ""
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:42 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:38 of
 msgid "This transform is applied at the main node."
 msgstr ""
 
@@ -2047,7 +2207,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
 msgid "Whether to record the population if monitor is enabled."
-msgstr ""
+msgstr "如果启用了monitor，是否要记录种群数据。"
 
 #: evox.workflows.standard.StdWorkflow.__init__:49
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
@@ -2064,7 +2224,7 @@ msgstr ""
 
 #: evox.workflows.standard.StdWorkflow.sample:2 of
 msgid "Sample the algorithm but don't change it's state"
-msgstr ""
+msgstr "对算法采样但不改变它的状态"
 
 #: ../../source/api/workflows/uni.rst:3
 msgid "Universal Workflow"
@@ -2122,18 +2282,13 @@ msgid ""
 " with different parameters in `jax.distributed.initialize`."
 msgstr ""
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
-msgid "The state."
-msgstr ""
-
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:16 of
 msgid "The sharded state, distributed amoung all nodes."
 msgstr ""
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:2 of
 msgid "Enable the workflow to run on multiple local devices."
-msgstr ""
+msgstr "允许workflow利用单台机器的多个设备（GPU）。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:12 of
 msgid "**devices**"
@@ -2158,6 +2313,9 @@ msgid ""
 "image here. Please follow the instructions [here](https://github.com"
 "/Farama-Foundation/AutoROM) to install the image."
 msgstr ""
+"运行这个文档需要先安装 evox，gymnasium，ale-"
+"py以及Pong这个游戏的镜像文件。由于版权问题，我们无法在这里给出游戏镜像文件。请按照这里[AutoROM](https://github.com"
+"/Farama-Foundation/AutoROM)的教程安装游戏镜像。"
 
 #: ../../source/example/custom_algorithm_and_problem.ipynb:10002
 msgid "Custom algorithm and problem"
@@ -2171,6 +2329,8 @@ msgid ""
 "the goal is to maximize the number of ones in a binary string. For "
 "example, the string `01011` has a fitness of 3."
 msgstr ""
+"在这个文档中，我们将会展示如何通过`Algorithm`和`Problem`两个类来写一个自定义的算法和问题。我们将会以one-max问题为例"
+"。one-max问题是一个非常简单的问题，这个问题的目标是最大化一个由0或1组成的字符串中1的数量。比如说字符串`01011`的适应度值是3。"
 
 #: ../../source/example/gym_classic_control.ipynb:10002
 msgid "Classic control with Gym"
@@ -2180,11 +2340,11 @@ msgstr ""
 msgid ""
 "In this notebook, we will use the Gym to train an agent that solves "
 "classic control problems."
-msgstr ""
+msgstr "在这个文档里，我们会借助Gym来训练一个解决经典控制问题的智能体。"
 
 #: ../../source/example/gym_classic_control.ipynb:70002
 msgid "Now run the workflow. You may see warnings like"
-msgstr ""
+msgstr "现在运行workflow。你可能会看到这样的警报"
 
 #: ../../source/example/gym_classic_control.ipynb:70007
 msgid ""
@@ -2201,17 +2361,17 @@ msgstr ""
 
 #: ../../source/example/index.md:1
 msgid "EvoX's examples"
-msgstr ""
+msgstr "EvoX的样例"
 
 #: ../../source/example/pso_ackley.ipynb:10002
 msgid "Numerical Optimization"
-msgstr ""
+msgstr "数值优化"
 
 #: ../../source/example/pso_ackley.ipynb:10004
 msgid ""
 "In this notebook, we will use the Particle Swarm Optimization (PSO) "
 "algorithm to find the minimum of the Ackley function."
-msgstr ""
+msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试问题的最小值。"
 
 #: ../../source/guide/advanced/1-state.md:1
 msgid "Working with state in EvoX"
@@ -2236,7 +2396,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:9
 msgid "The idea behind the design"
-msgstr ""
+msgstr "设计背后的想法"
 
 #: ../../source/guide/advanced/1-state.md:11
 msgid "hierarchical state"
@@ -2418,7 +2578,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:11
 msgid "The Algorithm Class"
-msgstr ""
+msgstr "算法类"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:13
 msgid ""
@@ -2429,17 +2589,17 @@ msgid ""
 msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Method"
 msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Signature"
 msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:87
+#: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Usage"
 msgstr ""
 
@@ -2458,7 +2618,7 @@ msgid ""
 msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
 msgid "setup"
 msgstr ""
 
@@ -2496,40 +2656,60 @@ msgid ""
 "algorithm's state."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:24
-#: ../../source/guide/advanced/3-custom-alg-pro.md:79
-msgid "Migrate from traditional EC library"
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "init_ask (Optional)"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid ""
+"Gives initial population for evaluation. The population can have "
+"different shape than `ask`."
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid "init_tell (Optional)"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md
+msgid ""
+"Receive the fitness for the initial population and update the algorithm's"
+" state."
 msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:26
+#: ../../source/guide/advanced/3-custom-alg-pro.md:81
+msgid "Migrate from traditional EC library"
+msgstr ""
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:28
 msgid ""
 "In traditional EC library, algorithm usually calls the objective function"
 " internally, which gives the following layout"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:34
+#: ../../source/guide/advanced/3-custom-alg-pro.md:36
 msgid "But in EvoX, we have a flat layout"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:40
+#: ../../source/guide/advanced/3-custom-alg-pro.md:42
 msgid "Here is a pseudocode of a genetic algorithm."
-msgstr ""
+msgstr "这是一个遗传算法的伪代码。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:55
+#: ../../source/guide/advanced/3-custom-alg-pro.md:57
 msgid "And Here is what each part of the algorithm correspond to in EvoX."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:75
-msgid "The Problem Class"
-msgstr ""
-
 #: ../../source/guide/advanced/3-custom-alg-pro.md:77
+msgid "The Problem Class"
+msgstr "问题类"
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:79
 msgid ""
 "The Problem class is quite simple, beside `__init__` and `setup`, the "
 "only required the method is `evaluate`."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:81
+#: ../../source/guide/advanced/3-custom-alg-pro.md:83
 msgid ""
 "There is one thing to notice here, `evaluate` is a stateful function, "
 "meaning it should accept a state and return a new state. So, if you are "
@@ -2538,55 +2718,55 @@ msgid ""
 "have to use this stateful interface."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
 msgid "__init__"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
 msgid ":python:`(self, ...)`"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:91
 msgid "Initialize the settings of the problem."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
 msgid ":python:`(self, RRNGKey) -> State`"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:93
 msgid "Initialize mutable state of this problem."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid "evaluate"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid ":python:`(self, State, Array) -> Array, State`"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid "Evaluate the fitness of the given candidate solution."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:97
+#: ../../source/guide/advanced/3-custom-alg-pro.md:99
 msgid "More on the problem's state"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:99
+#: ../../source/guide/advanced/3-custom-alg-pro.md:101
 msgid ""
 "If you still wonders what the problem's state actually do, here are the "
 "explanations."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:101
+#: ../../source/guide/advanced/3-custom-alg-pro.md:103
 msgid ""
 "Unlike numerical benchmark functions, real-life problems are more "
 "complex, and may require stateful computations. Here are some examples:"
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:104
+#: ../../source/guide/advanced/3-custom-alg-pro.md:106
 msgid ""
 "When dealing with ANN training, we often have training, validation and "
 "testing phase. This implies that the same solution could have different "
@@ -2595,7 +2775,7 @@ msgid ""
 "mechanism, simple put an value in the state to indicate the phase."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:108
+#: ../../source/guide/advanced/3-custom-alg-pro.md:110
 msgid ""
 "Virtual batch norm is a effective trick especially when dealing with RL "
 "tasks. To implement this mechanism, the problem must be stateful, as the "
@@ -2603,11 +2783,11 @@ msgid ""
 "first run."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:112
-msgid "Example"
-msgstr ""
-
 #: ../../source/guide/advanced/3-custom-alg-pro.md:114
+msgid "Example"
+msgstr "样例"
+
+#: ../../source/guide/advanced/3-custom-alg-pro.md:116
 msgid ""
 "Here we give an exmaple of implementing the OneMax problem, along with a "
 "genetic algorithm that solves this problem. The problem itself is "
@@ -2616,21 +2796,21 @@ msgid ""
 "gives 2."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:118
+#: ../../source/guide/advanced/3-custom-alg-pro.md:120
 msgid ""
 "Let's starts with implementing the OneMax problem. In JAX a bitstring can"
 " be easily represented with a tensor of type bool."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:143
+#: ../../source/guide/advanced/3-custom-alg-pro.md:145
 msgid ""
 "Then we implement a genetic algorithm that uses bitflip mutation and one-"
 "point crossover."
 msgstr ""
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:195
+#: ../../source/guide/advanced/3-custom-alg-pro.md:205
 msgid "Now, you can assemble a workflow and run it."
-msgstr ""
+msgstr "现在你可以组合出一个workflow并运行。"
 
 #: ../../source/guide/advanced/4-container.md:1
 msgid "Container Algorithms"
@@ -2701,25 +2881,13 @@ msgstr ""
 
 #: ../../source/guide/advanced/index.md:1
 msgid "Advanced Tutorial"
-msgstr ""
+msgstr "进阶教程"
 
 #: ../../source/guide/basics/1-start.ipynb:10002
 msgid "Quick Start"
-msgstr ""
+msgstr "快速开始"
 
-#: ../../source/guide/basics/1-start.ipynb:10004
-msgid ""
-"[![Open in Colab](https://colab.research.google.com/assets/colab-"
-"badge.svg)](https://colab.research.google.com/github/EMI-"
-"Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb)"
-msgstr ""
-
-#: ../../source/guide/basics/1-start.ipynb:10004
-#: ../../source/guide/basics/2-problems.ipynb:10004
-msgid "Open in Colab"
-msgstr ""
-
-#: ../../source/guide/basics/1-start.ipynb:10006
+#: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:36
 msgid ""
 "EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
 " computation."
@@ -2727,7 +2895,7 @@ msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
-msgstr ""
+msgstr "创建一个算法和一个问题"
 
 #: ../../source/guide/basics/1-start.ipynb:50002
 msgid "To demostrate, we will create a PSO algorithm and an Ackley function."
@@ -2769,7 +2937,7 @@ msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:140002
 msgid "To run multiple iterations, wrap it inside a for-loop."
-msgstr ""
+msgstr "想要执行多次迭代，只要在这外面套一个for循环即可。"
 
 #: ../../source/guide/basics/1-start.ipynb:160002
 msgid ""
@@ -2853,13 +3021,6 @@ msgid "Working with extended applications"
 msgstr ""
 
 #: ../../source/guide/basics/2-problems.ipynb:10004
-msgid ""
-"[![Open in Colab](https://colab.research.google.com/assets/colab-"
-"badge.svg)](https://colab.research.google.com/github/EMI-"
-"Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb)"
-msgstr ""
-
-#: ../../source/guide/basics/2-problems.ipynb:10006
 msgid "Working with extended applications in EvoX is easy."
 msgstr ""
 
@@ -2907,15 +3068,15 @@ msgstr ""
 
 #: ../../source/guide/basics/2-problems.ipynb:110002
 msgid "Now, `adapter` can help us convert the data back-and-forth."
-msgstr ""
+msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110004
 msgid "`to_vector` can convert a tree into a vector."
-msgstr ""
+msgstr "`to_vector` 可以将树转化成向量形式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110005
 msgid "`to_tree` can convert a vector back to a tree."
-msgstr ""
+msgstr "`to_tree` 可以把向量转化回树的形式。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110007
 msgid "There are also batched version conversion."
@@ -2990,7 +3151,7 @@ msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
-msgstr ""
+msgstr "这里有一个简单的本地集群搭建方法。"
 
 #: ../../source/guide/basics/3-distributed.md:15
 msgid "On the head node"
@@ -3007,7 +3168,7 @@ msgid ""
 msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:26
-#: ../../source/guide/basics/3-distributed.md:73
+#: ../../source/guide/basics/3-distributed.md:72
 msgid "Setup EvoX"
 msgstr ""
 
@@ -3024,13 +3185,13 @@ msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:36
 msgid "then create your algorithm, problem, monitor object as usual."
-msgstr ""
+msgstr "接下来创建algorithm，problem，monitor对象。"
 
 #: ../../source/guide/basics/3-distributed.md:44
 msgid "Now use `RayDistributedWorkflow`"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:58
+#: ../../source/guide/basics/3-distributed.md:57
 msgid ""
 "The `RayDistributedWorkflow` also uses the `workflow.step` function to "
 "execute iterations. However, under the hood, it employs a distinct "
@@ -3038,7 +3199,7 @@ msgid ""
 "different machines."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:61
+#: ../../source/guide/basics/3-distributed.md:60
 #, python-format
 msgid ""
 "It is recommanded that one set the environment variable "
@@ -3050,11 +3211,11 @@ msgid ""
 " on this matter."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:67
+#: ../../source/guide/basics/3-distributed.md:66
 msgid "UniWorkflow"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:69
+#: ../../source/guide/basics/3-distributed.md:68
 msgid ""
 "UniWorkflow is short for \"Universal Workflow\", which aims to use pure "
 "JAX to build a workflow that fits any requirement. Since `UniWorkflow` is"
@@ -3062,26 +3223,26 @@ msgid ""
 "dependencies."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:75
+#: ../../source/guide/basics/3-distributed.md:74
 msgid ""
 "Use `UniWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:91
+#: ../../source/guide/basics/3-distributed.md:90
 msgid ""
 "Then, at the start of your program, before any JAX function is called, do"
 " this:"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:97
+#: ../../source/guide/basics/3-distributed.md:96
 msgid ""
 "In this system, the `coordinator` serves as the primary or head node. The"
 " total number of participating processes is indicated by `num_process`. "
 "The process with `process_id=0` acts as the coordinator."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:99
+#: ../../source/guide/basics/3-distributed.md:98
 msgid ""
 "From more information, please refer to "
 "[jax.distributed.initialize](https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)"
@@ -3089,11 +3250,11 @@ msgid ""
 "environments](https://jax.readthedocs.io/en/latest/multi_process.html)."
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:101
+#: ../../source/guide/basics/3-distributed.md:100
 msgid "Run in a cluster"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:103
+#: ../../source/guide/basics/3-distributed.md:102
 msgid ""
 "Unlike Ray, JAX's doesn't have the concept of cluster or scheduler. "
 "Instead, it offers tools for enabling distributed interactions among "
@@ -3105,13 +3266,13 @@ msgid ""
 "`jax.distributed.initialize`:"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:111
+#: ../../source/guide/basics/3-distributed.md:110
 msgid ""
 "To have `process_id` in the argument, one can use `argparse` to parse the"
 " argument from the commandline. For example:"
 msgstr ""
 
-#: ../../source/guide/basics/3-distributed.md:126
+#: ../../source/guide/basics/3-distributed.md:125
 msgid ""
 "Then call `python main.py 0` on the first machine, `python main 1` on the"
 " second machine and so on."
@@ -3119,27 +3280,23 @@ msgstr ""
 
 #: ../../source/guide/basics/index.md:1
 msgid "Getting Started"
-msgstr ""
-
-#: ../../source/guide/index.md:1
-msgid "EvoX's guide!"
-msgstr ""
+msgstr "开始"
 
 #: ../../source/guide/install.md:1
 msgid "Installation Guide"
-msgstr ""
+msgstr "安装教程"
 
 #: ../../source/guide/install.md:3
 msgid "Install EvoX"
-msgstr ""
+msgstr "安装EvoX"
 
 #: ../../source/guide/install.md:5
 msgid "EvoX is available at Pypi and can be installed via:"
-msgstr ""
+msgstr "EvoX 可以在 PyPI 上找到，可以通过以下方式安装："
 
 #: ../../source/guide/install.md:11
 msgid "To install EvoX with optional dependencies:"
-msgstr ""
+msgstr "要安装带有可选依赖项的 EvoX："
 
 #: ../../source/guide/install.md:17
 msgid ""
@@ -3147,16 +3304,19 @@ msgid ""
 "`distributed`, and `full` which concludes all features. For example, to "
 "install EvoX with all features, do:"
 msgstr ""
+"EvoX 提供多种可选特性，包括 "
+"`gymnasium`、`neuroevolution`、`envpool`、`distributed`和`full`（包含所有特性）。例如，要安装包含所有特性的"
+" EvoX，您可以使用以下命令："
 
 #: ../../source/guide/install.md:24
 msgid "Install JAX with accelerator support"
-msgstr ""
+msgstr "安装支持GPU加速的JAX"
 
 #: ../../source/guide/install.md:26
 msgid ""
 "`EvoX` relies on `JAX` to provide hardware acceleration. The overall "
 "architecture of these Python packages looks like this:"
-msgstr ""
+msgstr "`EvoX`依赖于`JAX`来提供硬件加速的能力。这些Python包的整体架构如下："
 
 #: ../../source/guide/install.md:43
 msgid ""
@@ -3164,6 +3324,8 @@ msgid ""
 "utilize JAX's hardware acceleration ability, make sure to install the "
 "correct `jaxlib` version."
 msgstr ""
+"`JAX`本身是纯 Python 库，而`jaxlib`则提供了支持加速器的 C/C++ "
+"代码。要充分利用JAX的硬件加速能力，必须确保安装了正确的`jaxlib`版本。"
 
 #: ../../source/guide/install.md:47
 msgid ""
@@ -3171,24 +3333,27 @@ msgid ""
 "[official installation guide](https://github.com/google/jax/?tab=readme-"
 "ov-file#installation)."
 msgstr ""
+"想要了解更多信息，比如在其他平台上安装的教程，请查阅JAX的[官方安装指南](https://github.com/google/jax/?tab"
+"=readme-ov-file#installation)。"
 
 #: ../../source/guide/install.md:50
 msgid "CPU only"
-msgstr ""
+msgstr "纯CPU版"
 
 #: ../../source/guide/install.md:56
 msgid "CUDA (NVIDIA GPU)"
-msgstr ""
+msgstr "CUDA版 （NVIDIA GPU）"
 
 #: ../../source/guide/install.md:58
 msgid ""
 "To enable CUDA acceleration, please ensure that the following components "
 "are installed in a compatible manner:"
-msgstr ""
+msgstr "为了能正确启用 CUDA 加速，请确保以下组件以能够兼容的方式安装："
 
 #: ../../source/guide/install.md:85
-msgid "If your using any visualization technology, like WSL, docker."
-msgstr ""
+#, fuzzy
+msgid "If your using any virtualization technology, like WSL, docker."
+msgstr "如果你正在使用任何虚拟化技术，例如 WSL 或 Docker。"
 
 #: ../../source/guide/install.md:86
 msgid ""
@@ -3198,18 +3363,20 @@ msgid ""
 "docker), then the driver should be installed on your host OS (outside "
 "docker)."
 msgstr ""
+"**内核空间组件**：应安装在您的宿主机系统上。例如，如果您在 Windows 上使用 WSL，则应在 Windows 上安装驱动程序，而不是在 "
+"WSL 内部安装。如果您使用容器（例如 Docker），则应在您的宿主机操作系统（Docker 外部）上安装驱动程序。"
 
 #: ../../source/guide/install.md:89
 msgid "**user space components**: need to be installed inside WSL or docker."
-msgstr ""
+msgstr "**用户空间组件**：需要安装在 WSL 或 Docker 内部。"
 
 #: ../../source/guide/install.md:92
 msgid "Install NVIDIA's proprietary driver"
-msgstr ""
+msgstr "安装 NVIDIA 的闭源驱动程序"
 
 #: ../../source/guide/install.md:95
 msgid "Windows WSL 2"
-msgstr ""
+msgstr "Windows WSL 2"
 
 #: ../../source/guide/install.md:97
 msgid ""
@@ -3217,6 +3384,8 @@ msgid ""
 "Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and "
 "install it."
 msgstr ""
+"下载 [最新的NVIDIA Windows "
+"GPU驱动](https://www.nvidia.com/Download/index.aspx?lang=en-us)，并安装."
 
 #: ../../source/guide/install.md:100
 msgid ""
@@ -3224,12 +3393,16 @@ msgid ""
 "driver this a kernel space program, so it should be installed on the "
 "Windows side."
 msgstr ""
+"请**不要**在 WSL 2 内部安装任何 NVIDIA GPU Linux 驱动程序。GPU 驱动程序属于内核空间程序，应安装在 Windows"
+" 主机系统上。"
 
 #: ../../source/guide/install.md:105
 msgid ""
 "NVIDIA has a detailed [CUDA on WSL User "
 "Guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)"
 msgstr ""
+"NVIDIA官方有一个详细的教程 [CUDA on WSL User Guide](https://docs.nvidia.com/cuda"
+"/wsl-user-guide/index.html)"
 
 #: ../../source/guide/install.md:108
 msgid "GNU/Linux"
@@ -3241,18 +3414,20 @@ msgid ""
 "the package manager of your Linux distribution. Please do **NOT** install"
 " the driver from NVIDIA's website."
 msgstr ""
+"如果您使用 GNU/Linux 系统，我强烈建议您通过您的 Linux 发行版的包管理器（比如apt，pacman）来安装驱动程序，而不是从 "
+"NVIDIA 的网站下载安装包。"
 
 #: ../../source/guide/install.md:117
 msgid ""
 "Only NVIDIA's proprietary driver works with CUDA, open-source drivers "
 "like Nouveau do not."
-msgstr ""
+msgstr "仅有NVIDIA的闭源驱动支持CUDA，像Nouveau这样的开源驱动则不支持。"
 
 #: ../../source/guide/install.md:120
 msgid ""
 "The detailed installation guide depends on your operating system, for "
 "example"
-msgstr ""
+msgstr "具体的安装方法取决于您的操作系统，例如"
 
 #: ../../source/guide/install.md:122 ../../source/guide/install.md:153
 msgid "ArchLinux"
@@ -3270,7 +3445,7 @@ msgstr ""
 
 #: ../../source/guide/install.md:136
 msgid "After installing the driver, please reboot."
-msgstr ""
+msgstr "安装完驱动后，请重启电脑。"
 
 #: ../../source/guide/install.md:139
 msgid "Cluster (e.g. slurm, k8s)"
@@ -3293,14 +3468,14 @@ msgstr ""
 
 #: ../../source/guide/install.md:148
 msgid "Install CUDA libraries"
-msgstr ""
+msgstr "安装CUDA库"
 
 #: ../../source/guide/install.md:150
 msgid ""
 "CUDA libraries are user space libraries, so you don't need to reboot "
 "after installation. Again, it depends on your operating system, for "
 "example"
-msgstr ""
+msgstr "CUDA 库是安装在用户空间的，所以在安装后您不需要重启。 具体的安装方式取决于您的操作系统，例如"
 
 #: ../../source/guide/install.md:163
 msgid "Now, you can check your do"
@@ -3314,13 +3489,13 @@ msgstr ""
 
 #: ../../source/guide/install.md:191
 msgid "Then check your jaxlib version by"
-msgstr ""
+msgstr "之后通过其检查您的jaxlib版本"
 
 #: ../../source/guide/install.md:197
 msgid ""
 "Please make sure you CUDA version is smaller or equal to the version of "
 "`jaxlib-cuda`."
-msgstr ""
+msgstr "请确保您的CUDA版本小于或等于`jaxlib-cuda`的版本。"
 
 #: ../../source/guide/install.md:210
 msgid ""
@@ -3335,56 +3510,128 @@ msgid ""
 " might still be lower than the version of that jaxlib requires. In this "
 "case, try to install `jax[cuda11]`."
 msgstr ""
+"由于安装 jax[cuda12] 通常会安装到使用最新 CUDA 版本编译的 jaxlib，即使您有 CUDA 12，您的 CUDA "
+"版本也可能低于 jaxlib 要求的版本（小版本号不够）。 在这种情况下，请尝试安装 jax[cuda11]。"
 
 #: ../../source/guide/install.md:218
 msgid "Verify your installation"
-msgstr ""
+msgstr "验证安装是否正确"
 
 #: ../../source/guide/install.md:220
 msgid "Open a Python terminal, and run the following:"
-msgstr ""
+msgstr "打开 Python 终端，并运行以下命令："
 
 #: ../../source/guide/install.md:228
 msgid "Here are some possible output:"
-msgstr ""
+msgstr "这里是几种可能的输出结果："
 
 #: ../../source/guide/install.md
 msgid "Correct"
-msgstr ""
+msgstr "正确"
 
 #: ../../source/guide/install.md
 msgid "EvoX not installed"
-msgstr ""
+msgstr "未安装EvoX"
 
 #: ../../source/guide/install.md
 msgid "Wrong jaxlib version"
-msgstr ""
+msgstr "jaxlib版本错误"
 
 #: ../../source/guide/install.md
 msgid "Wrong driver/library"
-msgstr ""
+msgstr "驱动或库版本错误"
 
-#: ../../source/index.md:3
+#: ../../source/index.md:4
 msgid "User Guide"
+msgstr "用户指引"
+
+#: ../../source/index.md:14
+msgid "API Reference"
 msgstr ""
 
-#: ../../source/index.md:3
-msgid "API reference"
-msgstr ""
-
-#: ../../source/index.md:3
+#: ../../source/index.md:26
 msgid "Examples"
 msgstr ""
 
-#: ../../source/index.md:3
-msgid "Contents:"
-msgstr ""
+#: ../../source/index.md:26
+msgid "Additional Resources"
+msgstr "补充资源"
 
 #: ../../source/index.md:1
 msgid "Welcome to EvoX's documentation!"
+msgstr "欢迎来到EvoX的文档！"
+
+#: ../../source/index.md:34
+msgid ""
+"[[English Version]](https://evox.readthedocs.io/en/latest/)   "
+"[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
 msgstr ""
 
-#: ../../source/index.md:17
+#: ../../source/index.md:40
+msgid "Key Features"
+msgstr ""
+
+#: ../../source/index.md:42
+msgid "🚀 **Fast Performance**:"
+msgstr "🚀 **超高性能**："
+
+#: ../../source/index.md:43
+msgid ""
+"Experience **GPU-Accelerated** optimization, achieving speeds 100x faster"
+" than traditional methods."
+msgstr "体验**GPU 加速**的优化，速度比传统方法快 100 倍。"
+
+#: ../../source/index.md:44
+msgid ""
+"Leverage the power of {class}`Distributed Workflows "
+"<evox.workflows.RayDistributedWorkflow>` for even more rapid "
+"optimization."
+msgstr ""
+
+#: ../../source/index.md:46
+msgid "🌐 **Versatile Optimization Suite**:"
+msgstr ""
+
+#: ../../source/index.md:47
+msgid ""
+"Cater to all your needs with both {doc}`Single-objective "
+"<api/algorithms/so/index>` and {doc}`Multi-objective "
+"<api/algorithms/mo/index>` optimization capabilities."
+msgstr ""
+
+#: ../../source/index.md:48
+msgid ""
+"Dive into a comprehensive library of {doc}`Benchmark Problems "
+"<api/problems/numerical/index>`, ensuring robust testing and evaluation."
+msgstr ""
+
+#: ../../source/index.md:49
+msgid ""
+"Explore the frontier of AI with extensive tools for {doc}`Neuroevolution "
+"<api/problems/neuroevolution/index>` tasks."
+msgstr ""
+
+#: ../../source/index.md:51
+msgid "🛠️ **Designed for Simplicity**:"
+msgstr ""
+
+#: ../../source/index.md:52
+msgid ""
+"Embrace the elegance of **Functional Programming**, simplifying complex "
+"algorithmic compositions."
+msgstr "拥抱优雅的**函数式编程**，化繁为简，轻松构建复杂算法。"
+
+#: ../../source/index.md:53
+msgid ""
+"Benefit from **Hierarchical State Management**, ensuring modular and "
+"clean programming."
+msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
+
+#: ../../source/index.md:56
+msgid "<br></br>"
+msgstr ""
+
+#: ../../source/index.md:63
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-"
@@ -3402,8 +3649,23 @@ msgid ""
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"></path></svg> "
 "Installation Guide"
 msgstr ""
+"<path fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 "
+"9.005 0 015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
+"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
+"100 8 4 4 0 000-8z\"><path d=\"M17.29 8c-.148 0-.292.01-.434.03a.75.75 0 "
+"11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 6.69 0 013.956 6.107.75.75 0 "
+"01-1.5 0 5.193 5.193 0 00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03"
+" 0 0017.29 8z\"><path fill-rule=\"evenodd\" d=\"M2.5 3.75a.25.25 0 "
+"01.25-.25h5.5a.75.75 0 100-1.5h-5.5A1.75 1.75 0 001 3.75v11.5c0 .966.784 "
+"1.75 1.75 1.75h6.204c-.171 1.375-.805 2.652-1.77 3.757A.75.75 0 007.75 "
+"22h8.5a.75.75 0 "
+"00.565-1.243c-.964-1.105-1.598-2.382-1.769-3.757h6.204A1.75 1.75 0 0023 "
+"15.25V3.75A1.75 1.75 0 0021.25 2h-5.5a.75.75 0 000 1.5h5.5a.25.25 0 "
+"01.25.25v11.5a.25.25 0 01-.25.25H2.75a.25.25 0 01-.25-.25V3.75zM10.463 "
+"17c-.126 1.266-.564 2.445-1.223 "
+"3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"> 安装教程"
 
-#: ../../source/index.md:23
+#: ../../source/index.md:69
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -3416,8 +3678,18 @@ msgid ""
 "00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
 "8z\"></path></svg> Getting Started"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 "
+"015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
+"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
+"100 8 4 4 0 000-8z\"></path><path d=\"M17.29 8c-.148 "
+"0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 "
+"6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
+"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
+"8z\"></path></svg> 新手教程"
 
-#: ../../source/index.md:29
+#: ../../source/index.md:75
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
@@ -3440,7 +3712,7 @@ msgid ""
 "11.436z\"></path></svg> Advanced Guide"
 msgstr ""
 
-#: ../../source/index.md:39
+#: ../../source/index.md:85
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3451,7 +3723,7 @@ msgid ""
 "2z\"></path></svg> Algorithms"
 msgstr ""
 
-#: ../../source/index.md:45
+#: ../../source/index.md:91
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3462,7 +3734,7 @@ msgid ""
 "2z\"></path></svg> Problems"
 msgstr ""
 
-#: ../../source/index.md:52
+#: ../../source/index.md:98
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3473,19 +3745,57 @@ msgid ""
 "2z\"></path></svg> Metrics"
 msgstr ""
 
-#: ../../source/index.md:59
-msgid "Indices and tables"
-msgstr ""
+#~ msgid "EvoX's API"
+#~ msgstr "EvoX的API"
 
-#: ../../source/index.md:61
-msgid "{ref}`genindex`"
-msgstr ""
+#~ msgid "**env_per_worker**"
+#~ msgstr ""
 
-#: ../../source/index.md:62
-msgid "{ref}`modindex`"
-msgstr ""
+#~ msgid "Number of gym environment per worker."
+#~ msgstr ""
 
-#: ../../source/index.md:63
-msgid "{ref}`search`"
-msgstr ""
+#~ msgid "**pop_size**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Population size, this argument together "
+#~ "with num_workers will be used to "
+#~ "determine the sharding strategy."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "[![Open in Colab](https://colab.research.google.com/assets"
+#~ "/colab-badge.svg)](https://colab.research.google.com/github/EMI-"
+#~ "Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb)"
+#~ msgstr ""
+
+#~ msgid "Open in Colab"
+#~ msgstr "在Colab中打开"
+
+#~ msgid ""
+#~ "[![Open in Colab](https://colab.research.google.com/assets"
+#~ "/colab-badge.svg)](https://colab.research.google.com/github/EMI-"
+#~ "Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb)"
+#~ msgstr ""
+
+#~ msgid "EvoX's guide!"
+#~ msgstr ""
+
+#~ msgid "API reference"
+#~ msgstr ""
+
+#~ msgid "Contents:"
+#~ msgstr ""
+
+#~ msgid "Indices and tables"
+#~ msgstr ""
+
+#~ msgid "{ref}`genindex`"
+#~ msgstr ""
+
+#~ msgid "{ref}`modindex`"
+#~ msgstr ""
+
+#~ msgid "{ref}`search`"
+#~ msgstr "{ref}`search`"
 
