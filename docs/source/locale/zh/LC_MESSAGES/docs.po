@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  EvoX\n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-13 06:06+0000\n"
-"Last-Translator: ZackYu <nw1109225291@outlook.com>\n"
+"PO-Revision-Date: 2024-01-16 04:14+0000\n"
+"Last-Translator: Tao Jiang <jiangt2023@mail.sustech.edu.cn>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: Chinese (Simplified) "
-"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.4-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -1797,7 +1798,7 @@ msgstr "gym 环境的选项。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "**env_creator**"
-msgstr ""
+msgstr "**env_creator**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:21 of
 msgid "A function with zero argument that returns an environment when called."
@@ -1862,11 +1863,11 @@ msgstr ""
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:41 of
 msgid "**ale_render_mode**"
-msgstr ""
+msgstr "**ale_render_mode**"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:18 of
 msgid "'rgb_array' or 'human'."
-msgstr ""
+msgstr "'rgb_array' 或 'human'。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:20 of
 msgid ""
@@ -1900,7 +1901,7 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/ackley.rst:3
 msgid "Ackley"
-msgstr ""
+msgstr "Ackley"
 
 #: ../../source/api/problems/numerical/test_functions/griewank.rst:3
 msgid "Griewank"
@@ -1916,11 +1917,11 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/rosenbrock.rst:3
 msgid "Rosenbrock"
-msgstr ""
+msgstr "Rosenbrock"
 
 #: ../../source/api/problems/numerical/test_functions/schwefel.rst:3
 msgid "Schwefel"
-msgstr ""
+msgstr "Schwefel"
 
 #: evox.problems.numerical.schwefel.Schwefel:2 of
 msgid "The Schwefel function The minimum is x = [420.9687462275036, ...]"
@@ -1928,11 +1929,11 @@ msgstr ""
 
 #: ../../source/api/problems/numerical/test_functions/sphere.rst:3
 msgid "Sphere"
-msgstr ""
+msgstr "Sphere"
 
 #: ../../source/api/problems/numerical/test_suits/cec2022.rst:3
 msgid "CEC2022 Test Suit"
-msgstr ""
+msgstr "CEC2022 测试套件"
 
 #: evox.problems.numerical.cec2022_so.CEC2022TestSuit:2 of
 msgid ""
@@ -1977,7 +1978,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:2
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:2 of
 msgid "init"
-msgstr ""
+msgstr "init"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:8
@@ -1989,7 +1990,7 @@ msgstr ""
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:8 of
 msgid "**d**"
-msgstr ""
+msgstr "**维度**"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:8
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:8
@@ -3802,4 +3803,3 @@ msgstr ""
 
 #~ msgid "{ref}`search`"
 #~ msgstr "{ref}`search`"
-
