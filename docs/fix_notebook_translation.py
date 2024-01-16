@@ -54,14 +54,12 @@ for entry in po:
             "nbformat": 4,
             "nbformat_minor": 2,
         }
-        entry.msgctxt = "from notebook file"
         entry.msgstr = json.dumps(wrapped)
 
         if from_normal:
             normal_entry = copy.copy(entry)
             normal_entry.msgstr = original_msgstr
             normal_entry.occurrences = from_normal
-            normal_entry.msgctxt = "from normal file"
             normal_entries.append(normal_entry)
 
 for entry in normal_entries:
