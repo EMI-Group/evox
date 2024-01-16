@@ -1706,7 +1706,6 @@ msgid "The module that contains all pre-defined problems"
 msgstr "包含所有预定义的问题的模块"
 
 #: ../../source/api/problems/neuroevolution/index.rst:3
-#: ../../source/guide/basics/2-problems.ipynb:40002
 msgid "Neuroevolution"
 msgstr "神经演化"
 
@@ -3023,6 +3022,11 @@ msgstr ""
 #: ../../source/guide/basics/2-problems.ipynb:10004
 msgid "Working with extended applications in EvoX is easy."
 msgstr ""
+
+#: ../../source/guide/basics/2-problems.ipynb:40002
+#, fuzzy
+msgid "Neuroevolution Tasks"
+msgstr "神经演化任务"
 
 #: ../../source/guide/basics/2-problems.ipynb:40004
 msgid ""
