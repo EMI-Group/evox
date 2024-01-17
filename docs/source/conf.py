@@ -67,7 +67,7 @@ autodoc_mock_imports = [
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-html_logo = "_static/evox_logo_with_title.svg"
+html_logo = "_static/evox_logo_light.png"
 html_theme_options = {
     "repository_branch": "main",
     "path_to_docs": "/docs/source",
@@ -77,6 +77,8 @@ html_theme_options = {
         "colab_url": "https://colab.research.google.com"
     },
     "logo": {
+        "image_light": "_static/evox_logo_light.png",
+        "image_dark": "_static/evox_logo_dark.png",
         "alt_text": "EvoX logo image",
         "text": "",
     },
