@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-17 02:32+0000\n"
-"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
+"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2654,7 +2654,7 @@ msgstr "签名"
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Usage"
-msgstr ""
+msgstr "使用情况"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "\\_\\_init\\_\\_"
@@ -2673,7 +2673,7 @@ msgstr "初始化在整个优化过程中固定的超参数，例如，`populati
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:93
 msgid "setup"
-msgstr ""
+msgstr "设置"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "{python}`(self, RRNGKey) -> State`"
@@ -2693,7 +2693,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "Gives a candidate population for evaluation."
-msgstr ""
+msgstr "给出用于评估的候选种群。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "tell"
@@ -2707,7 +2707,7 @@ msgstr ""
 msgid ""
 "Receive the fitness for the candidate population and update the "
 "algorithm's state."
-msgstr ""
+msgstr "接收候选种群的适应度并更新算法的状态。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "init_ask (Optional)"
@@ -2727,18 +2727,18 @@ msgstr ""
 msgid ""
 "Receive the fitness for the initial population and update the algorithm's"
 " state."
-msgstr ""
+msgstr "接收初始种群的适应度并更新算法的状态。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:26
 #: ../../source/guide/advanced/3-custom-alg-pro.md:81
 msgid "Migrate from traditional EC library"
-msgstr ""
+msgstr "迁移自传统的EC库"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:28
 msgid ""
 "In traditional EC library, algorithm usually calls the objective function"
 " internally, which gives the following layout"
-msgstr ""
+msgstr "在传统的EC库中，算法通常在内部调用目标函数，其布局如下"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:36
 msgid "But in EvoX, we have a flat layout"
@@ -2793,7 +2793,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid "evaluate"
-msgstr ""
+msgstr "评估"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid ":python:`(self, State, Array) -> Array, State`"
@@ -2801,7 +2801,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:95
 msgid "Evaluate the fitness of the given candidate solution."
-msgstr ""
+msgstr "评估给定候选解的适应度。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:99
 msgid "More on the problem's state"
@@ -2811,7 +2811,7 @@ msgstr ""
 msgid ""
 "If you still wonders what the problem's state actually do, here are the "
 "explanations."
-msgstr ""
+msgstr "如果您仍然想知道问题的状态实际上是做什么的，以下是解释。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:103
 msgid ""
