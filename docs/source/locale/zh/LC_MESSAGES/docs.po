@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-17 02:07+0000\n"
+"PO-Revision-Date: 2024-01-17 02:32+0000\n"
 "Last-Translator: WLS2002 <cvgcvg@163.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -2279,7 +2279,7 @@ msgstr "问题是否可以通过JAX进行jit编译。默认为True。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:44 of
 msgid "**jit_monitor**"
-msgstr ""
+msgstr "**jit_monitor**"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:43 of
 msgid "If the monitor can be jit compiled by JAX or not. Default to False."
@@ -2287,14 +2287,15 @@ msgstr "监视器是否可以通过JAX进行jit编译。默认为False。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:63 of
 msgid "**num_objectives**"
-msgstr ""
+msgstr "**num_objectives**"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:47 of
 msgid ""
 "Number of objectives. When the problem can be jit compiled, this field is"
 " not needed. When the problem cannot be jit compiled, this field should "
 "be set, if not, default to 1."
-msgstr ""
+msgstr "目标数量。当问题可以被 JIT（即时编译）时，这个字段不是必需的。当问题不能被 "
+"JIT 编译时，应设置这个字段，如果没有设置，默认为 1。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:2 of
 msgid ""
@@ -2302,10 +2303,13 @@ msgid ""
 "jax's distribution ability, one need to run the same program on all nodes"
 " with different parameters in `jax.distributed.initialize`."
 msgstr ""
+"启用分布式工作流在多个节点上运行。要使用 JAX "
+"的分布式处理能力，需要在所有节点上运行相同的程序，并在 "
+"jax.distributed.initialize 中使用不同的参数。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:16 of
 msgid "The sharded state, distributed amoung all nodes."
-msgstr ""
+msgstr "分布在所有节点上的分片状态。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:2 of
 msgid "Enable the workflow to run on multiple local devices."
@@ -2321,7 +2325,7 @@ msgstr "设备列表。如果设置为“None”，将使用所有本地设备�
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:17 of
 msgid "The sharded state, distributed amoung all devices."
-msgstr ""
+msgstr "分布在所有设备上的分片状态。"
 
 #: ../../source/example/atari_pong.ipynb:10002
 msgid "Solving Pong with EvoX"
@@ -2355,7 +2359,7 @@ msgstr ""
 
 #: ../../source/example/gym_classic_control.ipynb:10002
 msgid "Classic control with Gym"
-msgstr ""
+msgstr "基于Gym的经典控制问题"
 
 #: ../../source/example/gym_classic_control.ipynb:10004
 msgid ""
@@ -2372,13 +2376,15 @@ msgid ""
 "This is expected behaivor, because we have a controller thread that "
 "manages a group of Gym workers, and the controller thread does not use "
 "GPU."
-msgstr ""
+msgstr "这是预期的行为，因为我们有一个控制器线程来管理一组Gym工作线程，而控制器线程并"
+"不使用GPU。"
 
 #: ../../source/example/gym_classic_control.ipynb:70010
 msgid ""
 "If the program stucks, you may want to check whether is `num_workers` is "
 "larger than the number of available cores on your computer."
-msgstr ""
+msgstr "如果程序卡住了，你可能需要检查 num_workers "
+"设置的值是否大于你电脑上可用核心的数量。"
 
 #: ../../source/example/index.md:1
 msgid "EvoX's examples"
@@ -2396,7 +2402,7 @@ msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试
 
 #: ../../source/guide/advanced/1-state.md:1
 msgid "Working with state in EvoX"
-msgstr ""
+msgstr "在EvoX中使用State"
 
 #: ../../source/guide/advanced/1-state.md:3
 msgid "EvoX is designed around the stateful computation."
@@ -2406,7 +2412,8 @@ msgstr "EvoX是基于状态计算设计的。"
 msgid ""
 "There are two most fundamental classes, namely {class}`Stateful "
 "<evox.Stateful>` and {class}`State <evox.State>`."
-msgstr ""
+msgstr "有两个最基本的类，即 {class}Stateful <evox.Stateful> 和 {class}State <evox."
+"State>。"
 
 #: ../../source/guide/advanced/1-state.md:7
 msgid ""
@@ -2414,6 +2421,8 @@ msgid ""
 "`Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are"
 " all stateful."
 msgstr ""
+"所有涉及状态计算的类都继承自 Stateful。在EvoX中，Algorithm（算法）、Problem（"
+"问题）、Operator（操作符）和工作流都是有状态的。"
 
 #: ../../source/guide/advanced/1-state.md:9
 msgid "The idea behind the design"
@@ -2433,13 +2442,19 @@ msgid ""
 "must contains the state of both operators, the state `workflow` level "
 "actual need to handle states from all 5 components."
 msgstr ""
+"这里我们有五个不同的对象，注意它们具有层次结构。为了处理这种结构，在每个层级"
+"我们必须通过管理子组件的状态来“提升状态”。因此，workflow 层级的状态必须包含 "
+"algorithm（算法）和 problem（问题）的状态，由于 algorithm "
+"层级的状态必须包含所有操作符的状态，所以 workflow "
+"层级的状态实际上需要处理来自所有5个组件的状态。"
 
 #: ../../source/guide/advanced/1-state.md:22
 msgid ""
 "However, it is frustrating to managing the hierarchy manually, and it is "
 "not good for modular design. To solve this problem, we introduce "
 "`Stateful` and `State`."
-msgstr ""
+msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问"
+"题，我们引入了 Stateful 和 State。"
 
 #: ../../source/guide/advanced/1-state.md:25
 msgid "An overview of Stateful"
@@ -2452,12 +2467,15 @@ msgid ""
 "method and private methods(start with \"\\_\"), all other methods are "
 "wrapped with `use_state`."
 msgstr ""
+"在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，初始的可变状态在 "
+"setup 中生成，除了这两个方法和私有方法（以 \"_\" 开头）之外，"
+"所有其他方法都用 use_state 包装。"
 
 #: ../../source/guide/advanced/1-state.md:48
 msgid ""
 "will be wrapped with `use_state` decorator. This decorator requires the "
 "method have the following signature:"
-msgstr ""
+msgstr "将会用 use_state 装饰器包装。这个装饰器要求方法具有以下签名："
 
 #: ../../source/guide/advanced/1-state.md:54
 msgid "which is common pattern in stateful computation."
@@ -2467,7 +2485,7 @@ msgstr "这是状态计算中常见的模式。"
 msgid ""
 ":::{warning} Currently, for all user defined private methods, the name of"
 " the method should starts with `_`. :::"
-msgstr ""
+msgstr ":::{警告} 目前，对于所有用户定义的私有方法，方法名称应该以 _ 开头。 :::"
 
 #: ../../source/guide/advanced/1-state.md:60
 msgid "An overview of State"
@@ -2487,7 +2505,7 @@ msgstr "结合一起"
 msgid ""
 "When combined together, they will automatically go 1 level down in the "
 "tree of states, and merge the subtree back to current level."
-msgstr ""
+msgstr "当它们组合在一起时，将自动下降到状态树的下一层，并将子树合并回当前层。"
 
 #: ../../source/guide/advanced/1-state.md:70
 msgid "So you could write code like this."
@@ -2500,10 +2518,13 @@ msgid ""
 " state of the algorithm, and after the call, the state of the algorithm "
 "is automatically merged back into the state of the workflow."
 msgstr ""
+"请注意，当调用 step 方法时，state 是工作流的状态，但是当调用 "
+"self.algorithm.ask 时，state "
+"的行为就像是算法的状态，调用之后，算法的状态会自动合并回工作流的状态。"
 
 #: ../../source/guide/advanced/2-jit-able.md:1
 msgid "Jit-able components"
-msgstr ""
+msgstr "Jit-able 组件"
 
 #: ../../source/guide/advanced/2-jit-able.md:3
 msgid "A common pitfall in jit"
@@ -2515,6 +2536,8 @@ msgid ""
 "jit-compile one function, then all other functions used within this "
 "function must also be jit-compiled."
 msgstr ""
+"在 JAX 中，跳出一个 JIT 编译的函数是困难的，这意味着如果你 JIT "
+"编译了一个函数，那么在这个函数内部使用的所有其他函数也必须被 JIT 编译。"
 
 #: ../../source/guide/advanced/2-jit-able.md:8
 msgid "For example, the follow code will result in compilation error"
@@ -2526,6 +2549,8 @@ msgid ""
 "`foo` calls `bar`. And since bar uses dynamic index, which is not "
 "compatible with `jax.jit`, an error will occur."
 msgstr ""
+"尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 "
+"bar 使用了动态索引，这与 jax.jit 不兼容，因此会发生错误。"
 
 #: ../../source/guide/advanced/2-jit-able.md:22
 msgid "Solution"
@@ -2537,22 +2562,24 @@ msgid ""
 "components, thus give high level components more freedom. In EvoX, we "
 "have some general rules on whether a function should be jit-able or not."
 msgstr ""
+"为了解决这个问题，通常的做法是 JIT 编译低层组件，从而给高层组件更多的自由。"
+"在 EvoX 中，我们有一些关于函数是否应该是可 JIT 编译的通用规则。"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Component"
-msgstr ""
+msgstr "组件"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "jit-able"
-msgstr ""
+msgstr "可以被jit编译的"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Workflow"
-msgstr ""
+msgstr "工作流"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Optional"
-msgstr ""
+msgstr "可选的"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Algorithm"
@@ -2586,6 +2613,8 @@ msgid ""
 "compiled, there isn't much performance gain. For problems, it depends on "
 "the task."
 msgstr ""
+"对于标准工作流，当不使用监视器并且处理可 JIT 编译的问题时，可以进行 JIT "
+"编译。但即使工作流可以被编译，性能提升也不大。对于问题，这取决于任务。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:7
 msgid "Custom algorithms and problems in EvoX"
@@ -2595,7 +2624,7 @@ msgstr "EvoX中的自定义算法和问题"
 msgid ""
 "In this chapter, we will introduce how to implement your own algorithm in"
 " EvoX."
-msgstr ""
+msgstr "在本章中，我们将介绍如何在 EvoX 中实现您自己的算法。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:11
 msgid "The Algorithm Class"
@@ -2608,6 +2637,9 @@ msgid ""
 " should also implement a `ask` and a `tell` method. In total, there are "
 "four methods one need to implement."
 msgstr ""
+"{class}Algorithm <evox.Algorithm> 类继承自 {class}Stateful <evox.Stateful>。"
+"除了 Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell "
+"方法。总共有四个方法需要实现。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
@@ -2617,7 +2649,7 @@ msgstr "方法"
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Signature"
-msgstr ""
+msgstr "签名"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
@@ -2626,17 +2658,17 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "\\_\\_init\\_\\_"
-msgstr ""
+msgstr "\\_\\_init\\_\\_"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "{python}`(self, ...)`"
-msgstr ""
+msgstr "{python}`(self, ...)`"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid ""
 "Initialize hyperparameters that are fixed though out the optimization "
 "process, for example, the `population size`."
-msgstr ""
+msgstr "初始化在整个优化过程中固定的超参数，例如，`population size`。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:93
@@ -2645,11 +2677,11 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "{python}`(self, RRNGKey) -> State`"
-msgstr ""
+msgstr "{python}`(self, RRNGKey) -> State`"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "Initialize mutable state, for example the `momentum`."
-msgstr ""
+msgstr "初始化可变状态，例如`momentum`。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 msgid "ask"
