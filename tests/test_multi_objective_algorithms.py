@@ -16,7 +16,6 @@ ITER = 10
 def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
     monitor = StdMOMonitor(record_pf=False)
-    # problem = problems.numerical.DTLZ2(m=M)
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,

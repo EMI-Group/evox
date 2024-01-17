@@ -45,9 +45,9 @@ def test_schwefel():
     schwefel = problems.numerical.Schwefel()
     key = jax.random.PRNGKey(12345)
     state = schwefel.init(key)
-    X = jnp.array([[420.9687462275036, 420.9687462275036]])
+    X = jnp.full(shape=(2, 2), fill_value=420.9687462275036)
     F, state = schwefel.evaluate(state, X)
-    chex.assert_trees_all_close(F, jnp.zeros((1,)), atol=1e-4)
+    chex.assert_trees_all_close(F, jnp.zeros((2,)), atol=1e-4)
 
 
 def test_dtlz1():

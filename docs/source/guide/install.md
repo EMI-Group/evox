@@ -82,7 +82,7 @@ stateDiagram-v2
 ```
 
 ```{note}
-If your using any visualization technology, like WSL, docker.
+If your using any virtualization technology, like WSL, docker.
 - **kernel space components**: should be installed on your host system.
   For example, if you are using WSL with Windows, then the driver should be installed on Windows, not inside WSL.
   If you are using container (e.g. docker), then the driver should be installed on your host OS (outside docker).
