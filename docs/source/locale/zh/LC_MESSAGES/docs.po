@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-17 01:56+0000\n"
-"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
+"PO-Revision-Date: 2024-01-17 02:07+0000\n"
+"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2275,7 +2275,7 @@ msgstr ""
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:39 of
 msgid "If the problem can be jit compiled by JAX or not. Default to True."
-msgstr ""
+msgstr "问题是否可以通过JAX进行jit编译。默认为True。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:44 of
 msgid "**jit_monitor**"
@@ -2283,7 +2283,7 @@ msgstr ""
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:43 of
 msgid "If the monitor can be jit compiled by JAX or not. Default to False."
-msgstr ""
+msgstr "监视器是否可以通过JAX进行jit编译。默认为False。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:63 of
 msgid "**num_objectives**"
@@ -2313,11 +2313,11 @@ msgstr "允许workflow利用单台机器的多个设备（GPU）。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:12 of
 msgid "**devices**"
-msgstr ""
+msgstr "**设备**"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:11 of
 msgid "A list of devices. If set to None, all local devices will be used."
-msgstr ""
+msgstr "设备列表。如果设置为“None”，将使用所有本地设备。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:17 of
 msgid "The sharded state, distributed amoung all devices."
@@ -2325,7 +2325,7 @@ msgstr ""
 
 #: ../../source/example/atari_pong.ipynb:10002
 msgid "Solving Pong with EvoX"
-msgstr ""
+msgstr "用EvoX解决Pong问题"
 
 #: ../../source/example/atari_pong.ipynb:10005
 msgid ""
@@ -2340,7 +2340,7 @@ msgstr ""
 
 #: ../../source/example/custom_algorithm_and_problem.ipynb:10002
 msgid "Custom algorithm and problem"
-msgstr ""
+msgstr "自定义算法和问题"
 
 #: ../../source/example/custom_algorithm_and_problem.ipynb:10004
 msgid ""
@@ -2400,7 +2400,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:3
 msgid "EvoX is designed around the stateful computation."
-msgstr ""
+msgstr "EvoX是基于状态计算设计的。"
 
 #: ../../source/guide/advanced/1-state.md:5
 msgid ""
@@ -2421,7 +2421,7 @@ msgstr "设计背后的想法"
 
 #: ../../source/guide/advanced/1-state.md:11
 msgid "hierarchical state"
-msgstr ""
+msgstr "分层状态"
 
 #: ../../source/guide/advanced/1-state.md:16
 msgid ""
@@ -2443,7 +2443,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:25
 msgid "An overview of Stateful"
-msgstr ""
+msgstr "关于状态的概述"
 
 #: ../../source/guide/advanced/1-state.md:27
 msgid ""
@@ -2461,7 +2461,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:54
 msgid "which is common pattern in stateful computation."
-msgstr ""
+msgstr "这是状态计算中常见的模式。"
 
 #: ../../source/guide/advanced/1-state.md:56
 msgid ""
@@ -2471,17 +2471,17 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:60
 msgid "An overview of State"
-msgstr ""
+msgstr "关于状态的概述"
 
 #: ../../source/guide/advanced/1-state.md:62
 msgid ""
 "In EvoX `State` represents a tree of states, which stores the state of "
 "the current object and all child objects."
-msgstr ""
+msgstr "在EvoX中，“State”代表一个状态树，它存储当前对象和所有子对象的状态。"
 
 #: ../../source/guide/advanced/1-state.md:64
 msgid "Combined together"
-msgstr ""
+msgstr "结合一起"
 
 #: ../../source/guide/advanced/1-state.md:66
 msgid ""
@@ -2491,7 +2491,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/1-state.md:70
 msgid "So you could write code like this."
-msgstr ""
+msgstr "所以你可以这样写代码。"
 
 #: ../../source/guide/advanced/1-state.md:81
 msgid ""
@@ -2507,7 +2507,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/2-jit-able.md:3
 msgid "A common pitfall in jit"
-msgstr ""
+msgstr "jit中常见的一个陷阱"
 
 #: ../../source/guide/advanced/2-jit-able.md:5
 msgid ""
@@ -2518,7 +2518,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/2-jit-able.md:8
 msgid "For example, the follow code will result in compilation error"
-msgstr ""
+msgstr "例如，下面的代码将导致编译错误"
 
 #: ../../source/guide/advanced/2-jit-able.md:19
 msgid ""
@@ -2529,7 +2529,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/2-jit-able.md:22
 msgid "Solution"
-msgstr ""
+msgstr "解决方案"
 
 #: ../../source/guide/advanced/2-jit-able.md:24
 msgid ""
@@ -2556,28 +2556,28 @@ msgstr ""
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Algorithm"
-msgstr ""
+msgstr "算法"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Yes"
-msgstr ""
+msgstr "是的"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Problem"
-msgstr ""
+msgstr "问题"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Operators"
-msgstr ""
+msgstr "操作符"
 
 #: ../../source/guide/advanced/2-jit-able.md
 #: ../../source/guide/basics/1-start.ipynb:180002
 msgid "Monitor"
-msgstr ""
+msgstr "监控器"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "No"
-msgstr ""
+msgstr "不是"
 
 #: ../../source/guide/advanced/2-jit-able.md:35
 msgid ""
@@ -2589,7 +2589,7 @@ msgstr ""
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:7
 msgid "Custom algorithms and problems in EvoX"
-msgstr ""
+msgstr "EvoX中的自定义算法和问题"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:9
 msgid ""
@@ -2612,7 +2612,7 @@ msgstr ""
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
 msgid "Method"
-msgstr ""
+msgstr "方法"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
 #: ../../source/guide/advanced/3-custom-alg-pro.md:89
