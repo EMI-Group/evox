@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-17 01:56+0000\n"
-"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
+"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2222,7 +2222,7 @@ msgstr "可选适应度变换函数，通常用于应用适应度整形。"
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
 msgid "**record_pop**"
-msgstr ""
+msgstr "**种群记录**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
