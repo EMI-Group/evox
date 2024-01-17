@@ -2248,7 +2248,7 @@ msgstr "对算法采样但不改变它的状态"
 
 #: ../../source/api/workflows/uni.rst:3
 msgid "Universal Workflow"
-msgstr ""
+msgstr "通用工作流"
 
 #: evox.workflows.uni_workflow.UniWorkflow:2 of
 msgid ""
