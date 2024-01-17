@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-17 01:55+0000\n"
-"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
+"PO-Revision-Date: 2024-01-17 01:56+0000\n"
+"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2198,7 +2198,7 @@ msgstr "可选监控器。"
 #: evox.workflows.standard.StdWorkflow.__init__:23
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:23 of
 msgid "**pop_transform**"
-msgstr ""
+msgstr "**pop_transform**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:21
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:21 of
@@ -2210,7 +2210,7 @@ msgstr "可选种群变换函数，通常用于将种群解码为问题能够理
 #: evox.workflows.standard.StdWorkflow.__init__:27
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:27 of
 msgid "**fit_transform**"
-msgstr ""
+msgstr "**fit_transform**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:26
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:26 of
