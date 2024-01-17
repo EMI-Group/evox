@@ -40,7 +40,7 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
 ## Key Features
 
 - 🚀 **Fast Performance**:
-  - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
+  - Experience **GPU-Accelerated** optimization, achieving speeds over 100x faster than traditional methods.
   - Leverage the power of {class}`Distributed Workflows <evox.workflows.RayDistributedWorkflow>` for even more rapid optimization.
 
 - 🌐 **Versatile Optimization Suite**:
