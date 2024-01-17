@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-16 04:14+0000\n"
-"Last-Translator: Li Hao <12132340@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-17 01:55+0000\n"
+"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2147,7 +2147,7 @@ msgstr ""
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "**options**"
-msgstr ""
+msgstr "**options**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "The runtime options of the worker actor."
@@ -2155,15 +2155,15 @@ msgstr "工作者（worker）actor的运行时选项。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "**pop_transform:**"
-msgstr ""
+msgstr "**pop_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "Population transform, this transform is applied at each worker node."
-msgstr ""
+msgstr "Population transform，这种转换会被应用到每一个worker节点。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "**fitness_transform:**"
-msgstr ""
+msgstr "**fitness_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "Fitness transform, this transform is applied at each worker node."
@@ -2171,7 +2171,7 @@ msgstr "适应度变换，这个变换在每个工作节点上应用。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:51 of
 msgid "**global_fitness_transform:**"
-msgstr ""
+msgstr "**global_fitness_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:38 of
 msgid "This transform is applied at the main node."
