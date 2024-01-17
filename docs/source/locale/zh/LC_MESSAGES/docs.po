@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-17 01:55+0000\n"
-"Last-Translator: Tao Jiang <jiangt2023@mail.sustech.edu.cn>\n"
+"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2188,7 +2188,7 @@ msgstr "标准工作流"
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
 msgid "**monitor**"
-msgstr ""
+msgstr "**监控器**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
@@ -2232,7 +2232,7 @@ msgstr "如果启用了monitor，是否要记录种群数据。"
 #: evox.workflows.standard.StdWorkflow.__init__:49
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
 msgid "**record_time**"
-msgstr ""
+msgstr "**时间记录**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:33
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:33 of
