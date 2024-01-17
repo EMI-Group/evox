@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-17 02:07+0000\n"
-"Last-Translator: Kelvin Wu <1577265248@qq.com>\n"
+"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2255,23 +2255,23 @@ msgstr "通用工作流"
 msgid ""
 "Experimental unified workflow, designed to provide unparallel performance"
 " for EC workflow."
-msgstr ""
+msgstr "实验中的统一workflow，设计目的是大幅提升EC的性能."
 
 #: evox.workflows.uni_workflow.UniWorkflow:5 of
 msgid ""
 "Provide automatic multi-device (e.g. multiple gpus) computation as well "
 "as distributed computation using JAX's native components."
-msgstr ""
+msgstr "提供自动多设备（例如，多个GPU）计算以及使用JAX的原生组件进行分布式计算。"
 
 #: evox.workflows.uni_workflow.UniWorkflow:8 of
 msgid ""
 "Monitor is called using JAX's asynchronous host callback, thus closing "
 "the monitor is needed to wait for the callback to complete."
-msgstr ""
+msgstr "监视器是使用JAX的异步主机回调调用的，因此需要关闭监视器以等待回调完成。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:40 of
 msgid "**jit_problem**"
-msgstr ""
+msgstr "**jit_problem**"
 
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:39 of
 msgid "If the problem can be jit compiled by JAX or not. Default to True."
