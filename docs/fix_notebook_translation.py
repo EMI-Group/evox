@@ -4,20 +4,29 @@ This script is used to wrap the translated strings in jupyter notebooks in the d
 
 import polib
 import json
+import copy
 
 po = polib.pofile("docs/source/locale/zh/LC_MESSAGES/docs.po")
 
 
-def is_from_notebook(occurrences):
-    for filename, _linenum in occurrences:
+def split_msg_from_notebook(occurrences):
+    normal = []
+    notebook = []
+    for filename, linenum in occurrences:
         if filename.endswith(".ipynb"):
-            return True
+            notebook.append((filename, linenum))
+        else:
+            normal.append((filename, linenum))
 
-    return False
+    return normal, notebook
 
 
+normal_entries = []
 for entry in po:
-    if is_from_notebook(entry.occurrences) and entry.msgstr != "":
+    from_normal, from_notebook = split_msg_from_notebook(entry.occurrences)
+    if from_notebook and entry.msgstr != "":
+        original_msgstr = entry.msgstr
+        entry.occurrences = from_notebook
         wrapped = {
             "cells": [
                 {
@@ -46,5 +55,14 @@ for entry in po:
             "nbformat_minor": 2,
         }
         entry.msgstr = json.dumps(wrapped)
+
+        if from_normal:
+            normal_entry = copy.copy(entry)
+            normal_entry.msgstr = original_msgstr
+            normal_entry.occurrences = from_normal
+            normal_entries.append(normal_entry)
+
+for entry in normal_entries:
+    po.append(entry)
 
 po.save("docs/source/locale/zh/LC_MESSAGES/docs.po")
