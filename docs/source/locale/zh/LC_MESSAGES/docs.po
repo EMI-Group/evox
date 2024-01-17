@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-16 04:14+0000\n"
-"Last-Translator: Li Hao <12132340@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-17 01:56+0000\n"
+"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2025,7 +2025,7 @@ msgstr "决策空间的维度"
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:11
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:11 of
 msgid "**m**"
-msgstr ""
+msgstr "**目标数目**"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:11
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:11
@@ -2049,7 +2049,7 @@ msgstr "目标数量"
 #: evox.problems.numerical.lsmop.LSMOP8.__init__:27
 #: evox.problems.numerical.lsmop.LSMOP9.__init__:27 of
 msgid "**ref_num**"
-msgstr ""
+msgstr "**ref_num**"
 
 #: evox.problems.numerical.lsmop.LSMOP1.__init__:14
 #: evox.problems.numerical.lsmop.LSMOP2.__init__:14
@@ -2105,7 +2105,7 @@ msgstr ""
 #: evox.workflows.standard.StdWorkflow.__init__:8
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
 msgid "**algorithm**"
-msgstr ""
+msgstr "**算法**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
 #: evox.workflows.standard.StdWorkflow.__init__:8
@@ -2117,23 +2117,23 @@ msgstr "算法。"
 #: evox.workflows.standard.StdWorkflow.__init__:11
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
 msgid "**problem**"
-msgstr ""
+msgstr "**问题**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
 #: evox.workflows.standard.StdWorkflow.__init__:11
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
 msgid "The problem."
-msgstr ""
+msgstr "问题。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
 msgid "Number of workers."
-msgstr ""
+msgstr "工作者的数目。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:26
 #: evox.workflows.standard.StdWorkflow.__init__:18
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:18 of
 msgid "**opt_direction**"
-msgstr ""
+msgstr "**opt_direction**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:25
 #: evox.workflows.standard.StdWorkflow.__init__:17
@@ -2147,7 +2147,7 @@ msgstr ""
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "**options**"
-msgstr ""
+msgstr "**options**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "The runtime options of the worker actor."
@@ -2155,15 +2155,15 @@ msgstr "工作者（worker）actor的运行时选项。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "**pop_transform:**"
-msgstr ""
+msgstr "**pop_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
 msgid "Population transform, this transform is applied at each worker node."
-msgstr ""
+msgstr "Population transform，这种转换会被应用到每一个worker节点。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "**fitness_transform:**"
-msgstr ""
+msgstr "**fitness_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
 msgid "Fitness transform, this transform is applied at each worker node."
@@ -2171,7 +2171,7 @@ msgstr "适应度变换，这个变换在每个工作节点上应用。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:51 of
 msgid "**global_fitness_transform:**"
-msgstr ""
+msgstr "**global_fitness_transform:**"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:38 of
 msgid "This transform is applied at the main node."
@@ -2188,7 +2188,7 @@ msgstr "标准工作流"
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
 msgid "**monitor**"
-msgstr ""
+msgstr "**监控器**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:14
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
@@ -2198,7 +2198,7 @@ msgstr "可选监控器。"
 #: evox.workflows.standard.StdWorkflow.__init__:23
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:23 of
 msgid "**pop_transform**"
-msgstr ""
+msgstr "**pop_transform**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:21
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:21 of
@@ -2210,7 +2210,7 @@ msgstr "可选种群变换函数，通常用于将种群解码为问题能够理
 #: evox.workflows.standard.StdWorkflow.__init__:27
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:27 of
 msgid "**fit_transform**"
-msgstr ""
+msgstr "**fit_transform**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:26
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:26 of
@@ -2222,7 +2222,7 @@ msgstr "可选适应度变换函数，通常用于应用适应度整形。"
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
 msgid "**record_pop**"
-msgstr ""
+msgstr "**种群记录**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:30
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
@@ -2232,7 +2232,7 @@ msgstr "如果启用了monitor，是否要记录种群数据。"
 #: evox.workflows.standard.StdWorkflow.__init__:49
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
 msgid "**record_time**"
-msgstr ""
+msgstr "**时间记录**"
 
 #: evox.workflows.standard.StdWorkflow.__init__:33
 #: evox.workflows.uni_workflow.UniWorkflow.__init__:33 of
@@ -2240,7 +2240,8 @@ msgid ""
 "Whether to record the time at the end of each generation. Due to its "
 "timing nature, record_time requires synchronized functional call. Default"
 " to False."
-msgstr ""
+msgstr "是否记录每代结束的时间。由于它的计时性质，record_time需要同步的函数调用。默认"
+"为False。"
 
 #: evox.workflows.standard.StdWorkflow.sample:2 of
 msgid "Sample the algorithm but don't change it's state"
@@ -2248,7 +2249,7 @@ msgstr "对算法采样但不改变它的状态"
 
 #: ../../source/api/workflows/uni.rst:3
 msgid "Universal Workflow"
-msgstr ""
+msgstr "通用工作流"
 
 #: evox.workflows.uni_workflow.UniWorkflow:2 of
 msgid ""
