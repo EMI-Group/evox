@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 06:44+0000\n"
-"Last-Translator: Shepherd29 <1449405401@qq.com>\n"
+"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3352,10 +3352,12 @@ msgid ""
 msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:74
+#, fuzzy
 msgid ""
 "Use `UniWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
-msgstr ""
+msgstr "使用'UniWorkflow'创建一个工作流然后使用'enable_distributed'并且传入相应状态来"
+"启用此功能。"
 
 #: ../../source/guide/basics/3-distributed.md:90
 #, fuzzy
@@ -3380,8 +3382,9 @@ msgid ""
 msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:100
+#, fuzzy
 msgid "Run in a cluster"
-msgstr ""
+msgstr "在一个集群中启动"
 
 #: ../../source/guide/basics/3-distributed.md:102
 msgid ""
