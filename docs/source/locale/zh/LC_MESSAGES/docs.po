@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-18 06:44+0000\n"
-"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
+"PO-Revision-Date: 2024-01-18 07:01+0000\n"
+"Last-Translator: Shepherd29 <1449405401@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3350,6 +3350,9 @@ msgid ""
 " written in pure JAX, it has less overhead and don't need any additional "
 "dependencies."
 msgstr ""
+"\"UniWorkflow\"是“Universal Workflow”的缩写，其目的是使用纯JAX构建一个适应任"
+"何需求的工作流。由于UniWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外"
+"的依赖。"
 
 #: ../../source/guide/basics/3-distributed.md:74
 #, fuzzy
@@ -3372,6 +3375,8 @@ msgid ""
 " total number of participating processes is indicated by `num_process`. "
 "The process with `process_id=0` acts as the coordinator."
 msgstr ""
+"在这个系统中，“coordinator”（协调器）充当主节点或头节点的角色。参与进程的总数"
+"由num_process指示。具有process_id=0的进程充当协调器。"
 
 #: ../../source/guide/basics/3-distributed.md:98
 msgid ""
@@ -3380,6 +3385,10 @@ msgid ""
 " and [Using JAX in multi-host and multi-process "
 "environments](https://jax.readthedocs.io/en/latest/multi_process.html)."
 msgstr ""
+"有关更多信息，请参考jax.distributed.initialize(https://jax.readthedocs.io/en/"
+"latest/_autosummary/jax.distributed.initialize."
+"html)和在多主机和多进程环境中使用JAX的文档(https://jax.readthedocs.io/en/"
+"latest/multi_process.html)。"
 
 #: ../../source/guide/basics/3-distributed.md:100
 #, fuzzy
@@ -3397,12 +3406,17 @@ msgid ""
 "all participating machines with different `process_id` argument in "
 "`jax.distributed.initialize`:"
 msgstr ""
+"不同于Ray，JAX没有集群或调度器的概念。相反，它提供了工具来实现多个JAX实例之间"
+"的分布式交互。JAX遵循SPMD（单程序多数据）范式。要在JAX中启动一个分布式程序，"
+"你只需在不同的机器上运行相同的脚本。例如，如果你的程序名为main."
+"py，你应该在所有参与的机器上执行以下命令，并在jax.distributed."
+"initialize中为不同的机器设置不同的process_id参数："
 
 #: ../../source/guide/basics/3-distributed.md:110
 msgid ""
 "To have `process_id` in the argument, one can use `argparse` to parse the"
 " argument from the commandline. For example:"
-msgstr ""
+msgstr "为了在参数中包含process_id，可以使用argparse库从命令行解析参数。例如："
 
 #: ../../source/guide/basics/3-distributed.md:125
 msgid ""
