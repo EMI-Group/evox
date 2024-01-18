@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-19 08:00+0000\n"
-"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
+"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3550,7 +3550,7 @@ msgstr ""
 
 #: ../../source/guide/install.md:108
 msgid "GNU/Linux"
-msgstr ""
+msgstr "GNU/Linux"
 
 #: ../../source/guide/install.md:111
 msgid ""
@@ -3575,7 +3575,7 @@ msgstr "具体的安装方法取决于您的操作系统，例如"
 
 #: ../../source/guide/install.md:122 ../../source/guide/install.md:153
 msgid "ArchLinux"
-msgstr ""
+msgstr "ArchLinux"
 
 #: ../../source/guide/install.md:126 ../../source/guide/install.md:157
 #, fuzzy
@@ -3586,7 +3586,7 @@ msgstr "Ubuntu 22.04"
 msgid ""
 "NixOS first enable unfree software, and then add the following to your "
 "configuration."
-msgstr ""
+msgstr "NixOS首先启用非自由软件，然后添加以下配置。"
 
 #: ../../source/guide/install.md:136
 msgid "After installing the driver, please reboot."
@@ -3594,7 +3594,7 @@ msgstr "安装完驱动后，请重启电脑。"
 
 #: ../../source/guide/install.md:139
 msgid "Cluster (e.g. slurm, k8s)"
-msgstr ""
+msgstr "聚类（如slurm, k8s）"
 
 #: ../../source/guide/install.md:141
 #, fuzzy
@@ -3628,7 +3628,7 @@ msgstr "CUDA 库是安装在用户空间的，所以在安装后您不需要重�
 
 #: ../../source/guide/install.md:163
 msgid "Now, you can check your do"
-msgstr ""
+msgstr "现在您可以检查您做的"
 
 #: ../../source/guide/install.md:167
 #, fuzzy
