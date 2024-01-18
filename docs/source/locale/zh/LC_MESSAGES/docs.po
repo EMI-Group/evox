@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 06:35+0000\n"
-"Last-Translator: EMI_Ran <ranchengcn@gmail.com>\n"
+"Last-Translator: Hgh <854081165@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3269,11 +3269,11 @@ msgstr "这里有一个简单的本地集群搭建方法。"
 
 #: ../../source/guide/basics/3-distributed.md:15
 msgid "On the head node"
-msgstr ""
+msgstr "在头节点上"
 
 #: ../../source/guide/basics/3-distributed.md:19
 msgid "On worker nodes"
-msgstr ""
+msgstr "在工作节点上"
 
 #: ../../source/guide/basics/3-distributed.md:24
 msgid ""
