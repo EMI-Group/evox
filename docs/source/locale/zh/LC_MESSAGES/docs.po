@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 07:01+0000\n"
-"Last-Translator: Shepherd29 <1449405401@qq.com>\n"
+"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2944,6 +2944,7 @@ msgstr ""
 "某种类型的启发式算法。"
 
 #: ../../source/guide/advanced/4-container.md:30
+#, fuzzy
 msgid ""
 "We offer Cooperative Coevolution (CC) framework for all algorithms. "
 "Currently, there are two types of CC container in EvoX, "
@@ -2955,11 +2956,11 @@ msgid ""
 "`VectorizedCoevolution` is faster, but `Coevolution` could be better in "
 "terms of best fitness with a limited number of evaluations."
 msgstr ""
-"我们为所有的算法提供了合作协同进化（CC）框架。目前，再EvoX中有两种类型的CC容"
-"器，分别是{class}`evox.algorithms.Coevolution` 和 {class}`evox.algorithms.Vec"
-"torizedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更"
-"新所有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`Vectori"
-"zedCoevolution` "
+"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，"
+"分别是{class}`evox.algorithms.Coevolution` 和 {class}`evox.algorithms.Vectori"
+"zedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更新所"
+"有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`VectorizedC"
+"oevolution` "
 "更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
 
 #: ../../source/guide/advanced/index.md:1
@@ -3393,7 +3394,7 @@ msgstr ""
 #: ../../source/guide/basics/3-distributed.md:100
 #, fuzzy
 msgid "Run in a cluster"
-msgstr "在一个集群中启动"
+msgstr "在一个集群中运行"
 
 #: ../../source/guide/basics/3-distributed.md:102
 msgid ""
@@ -3419,10 +3420,12 @@ msgid ""
 msgstr "为了在参数中包含process_id，可以使用argparse库从命令行解析参数。例如："
 
 #: ../../source/guide/basics/3-distributed.md:125
+#, fuzzy
 msgid ""
 "Then call `python main.py 0` on the first machine, `python main 1` on the"
 " second machine and so on."
-msgstr ""
+msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py "
+"1'，依此类推。"
 
 #: ../../source/guide/basics/index.md:1
 msgid "Getting Started"
@@ -3580,8 +3583,9 @@ msgid "ArchLinux"
 msgstr ""
 
 #: ../../source/guide/install.md:126 ../../source/guide/install.md:157
+#, fuzzy
 msgid "Ubuntu 22.04"
-msgstr ""
+msgstr "Ubuntu 22.04"
 
 #: ../../source/guide/install.md:130
 msgid ""
@@ -3598,10 +3602,11 @@ msgid "Cluster (e.g. slurm, k8s)"
 msgstr ""
 
 #: ../../source/guide/install.md:141
+#, fuzzy
 msgid ""
 "If the latest driver has already been installed in the cluster, please go"
 " ahead and skip this section."
-msgstr ""
+msgstr "如果集群中已经安装了最新的驱动，请跳过这个部分并继续。"
 
 #: ../../source/guide/install.md:143
 msgid ""
@@ -3628,10 +3633,11 @@ msgid "Now, you can check your do"
 msgstr ""
 
 #: ../../source/guide/install.md:167
+#, fuzzy
 msgid ""
 "to see if your GPU is recognized by the driver. If you see something like"
 " this, then you are good to go."
-msgstr ""
+msgstr "查看您的GPU是否被驱动识别。如果您看到类似的信息，那么您可以开始了。"
 
 #: ../../source/guide/install.md:191
 msgid "Then check your jaxlib version by"
@@ -3692,12 +3698,14 @@ msgid "User Guide"
 msgstr "用户指引"
 
 #: ../../source/index.md:14
+#, fuzzy
 msgid "API Reference"
-msgstr ""
+msgstr "API文档"
 
 #: ../../source/index.md:26
+#, fuzzy
 msgid "Examples"
-msgstr ""
+msgstr "示例"
 
 #: ../../source/index.md:26
 msgid "Additional Resources"
@@ -3714,8 +3722,9 @@ msgid ""
 msgstr ""
 
 #: ../../source/index.md:40
+#, fuzzy
 msgid "Key Features"
-msgstr ""
+msgstr "关键特征"
 
 #: ../../source/index.md:42
 msgid "🚀 **Fast Performance**:"
