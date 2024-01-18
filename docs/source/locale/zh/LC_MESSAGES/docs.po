@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 06:38+0000\n"
-"Last-Translator: Hgh <854081165@qq.com>\n"
+"Last-Translator: YueweiSun <291244081@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3309,7 +3309,7 @@ msgstr "接下来创建algorithm，problem，monitor对象。"
 
 #: ../../source/guide/basics/3-distributed.md:44
 msgid "Now use `RayDistributedWorkflow`"
-msgstr ""
+msgstr "现在使用 `RayDistributedWorkflow`"
 
 #: ../../source/guide/basics/3-distributed.md:57
 msgid ""
