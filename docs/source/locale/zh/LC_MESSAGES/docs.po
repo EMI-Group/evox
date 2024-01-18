@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-19 08:00+0000\n"
-"Last-Translator: Li Hao <12132340@mail.sustech.edu.cn>\n"
+"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2944,7 +2944,6 @@ msgstr ""
 "某种类型的启发式算法。"
 
 #: ../../source/guide/advanced/4-container.md:30
-#, fuzzy
 msgid ""
 "We offer Cooperative Coevolution (CC) framework for all algorithms. "
 "Currently, there are two types of CC container in EvoX, "
@@ -3125,7 +3124,6 @@ msgid "Working with extended applications in EvoX is easy."
 msgstr "在EvoX中处理扩展应用很简单。"
 
 #: ../../source/guide/basics/2-problems.ipynb:40002
-#, fuzzy
 msgid "Neuroevolution Tasks"
 msgstr "神经演化任务"
 
@@ -3245,7 +3243,6 @@ msgid "RayDistributedWorkflow"
 msgstr "RayDistributedWorkflow"
 
 #: ../../source/guide/basics/3-distributed.md:7
-#, fuzzy
 msgid ""
 "RayDistributedWorkflow is built upon Ray. It can be used on any ray "
 "cluster. The Ray cluster should be setup before running the EvoX program."
@@ -3607,6 +3604,7 @@ msgid ""
 msgstr "如果集群中已经安装了最新的驱动，请跳过这个部分并继续。"
 
 #: ../../source/guide/install.md:143
+#, fuzzy
 msgid ""
 "Otherwise, please contact the administrator of the cluster to upgrade the"
 " GPU driver version. It is important to note that the driver must be "
@@ -3614,6 +3612,8 @@ msgid ""
 "(e.g. docker, singularity) meaningless. Thus only the administrator can "
 "solve this problem."
 msgstr ""
+"如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿"
+"主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
 
 #: ../../source/guide/install.md:148
 msgid "Install CUDA libraries"
@@ -3714,10 +3714,13 @@ msgid "Welcome to EvoX's documentation!"
 msgstr "欢迎来到EvoX的文档！"
 
 #: ../../source/index.md:34
+#, fuzzy
 msgid ""
 "[[English Version]](https://evox.readthedocs.io/en/latest/)   "
 "[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
 msgstr ""
+"[[English Version]](https://evox.readthedocs.io/en/latest/)   "
+"[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
 
 #: ../../source/index.md:40
 #, fuzzy
@@ -3742,8 +3745,9 @@ msgid ""
 msgstr ""
 
 #: ../../source/index.md:46
+#, fuzzy
 msgid "🌐 **Versatile Optimization Suite**:"
-msgstr ""
+msgstr "🌐 **多功能优化套件**:"
 
 #: ../../source/index.md:47
 msgid ""
@@ -3759,14 +3763,18 @@ msgid ""
 msgstr ""
 
 #: ../../source/index.md:49
+#, fuzzy
 msgid ""
 "Explore the frontier of AI with extensive tools for {doc}`Neuroevolution "
 "<api/problems/neuroevolution/index>` tasks."
 msgstr ""
+"探索人工智能前沿领域，利用广泛的工具进行 {doc}`Neuroevolution <api/problems/"
+"neuroevolution/index>` 任务。"
 
 #: ../../source/index.md:51
+#, fuzzy
 msgid "🛠️ **Designed for Simplicity**:"
-msgstr ""
+msgstr "🛠️ **简易性设计**:"
 
 #: ../../source/index.md:52
 msgid ""
@@ -3781,8 +3789,9 @@ msgid ""
 msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
 
 #: ../../source/index.md:56
+#, fuzzy
 msgid "<br></br>"
-msgstr ""
+msgstr "<br></br>"
 
 #: ../../source/index.md:63
 msgid ""
@@ -3843,6 +3852,7 @@ msgstr ""
 "8z\"></path></svg> 新手教程"
 
 #: ../../source/index.md:75
+#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
@@ -3864,8 +3874,26 @@ msgid ""
 "1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
 "11.436z\"></path></svg> Advanced Guide"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-"
+"rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 00-.584 0L.458 6.81a.75.75 0 000 "
+"1.38L4.25 9.793v3.803a2.901 2.901 0 00-1.327.757c-.579.58-.923 1.41-.923 "
+"2.43v4.5c0 ."
+"248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
+"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 2.11 "
+"0 00.21-.117A.762.762 0 008 21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 "
+"0 00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
+"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 1."
+"021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113 "
+"1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84 "
+"2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 000-1."
+"382l-11.25-4.75zM5 15c-.377 0-.745.141-1.017.413-.265.265-.483.7-.483 "
+"1.368v4.022c.299.105.797.228 1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1."
+"103-.483-1.368A1.431 1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 "
+"12 11.436z\"></path></svg> 高级指南"
 
 #: ../../source/index.md:85
+#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3875,8 +3903,15 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Algorithms"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
+"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
+"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
+"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 算法"
 
 #: ../../source/index.md:91
+#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3886,8 +3921,15 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Problems"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
+"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
+"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
+"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 问题"
 
 #: ../../source/index.md:98
+#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3897,6 +3939,12 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Metrics"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
+"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
+"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
+"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg>指标"
 
 #~ msgid "EvoX's API"
 #~ msgstr "EvoX的API"
