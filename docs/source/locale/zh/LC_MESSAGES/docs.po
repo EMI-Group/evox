@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-19 08:00+0000\n"
-"Last-Translator: Zhenyu <zhenyuliang97@gmail.com>\n"
+"Last-Translator: Shepherd29 <1449405401@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3652,6 +3652,8 @@ msgid ""
 "For example, we have `0.4.18+cuda11.cudnn86` installed, and 11 < 12.2 "
 "(displayed by `nvidia-smi`). So we are good to go."
 msgstr ""
+"例如，我们安装了0.4.18+cuda11.cudnn86版本，且nvidia-"
+"smi显示的CUDA版本是11，小于12.2。因此，我们可以开始使用了。"
 
 #: ../../source/guide/install.md:213
 msgid ""
@@ -3742,7 +3744,8 @@ msgid ""
 "Leverage the power of {class}`Distributed Workflows "
 "<evox.workflows.RayDistributedWorkflow>` for even more rapid "
 "optimization."
-msgstr ""
+msgstr "利用'分布式工作流 <evox.workflows."
+"RayDistributedWorkflow>'的强大功能，实现更快速的优化。"
 
 #: ../../source/index.md:46
 #, fuzzy
@@ -3755,12 +3758,15 @@ msgid ""
 "<api/algorithms/so/index>` and {doc}`Multi-objective "
 "<api/algorithms/mo/index>` optimization capabilities."
 msgstr ""
+"满足您所有需求，包括{doc}单目标 <api/algorithms/so/index>和{doc}多目标 <api/"
+"algorithms/mo/index>优化功能。"
 
 #: ../../source/index.md:48
 msgid ""
 "Dive into a comprehensive library of {doc}`Benchmark Problems "
 "<api/problems/numerical/index>`, ensuring robust testing and evaluation."
-msgstr ""
+msgstr "深入了解全面的{doc}基准测试问题库 <api/problems/numerical/"
+"index>，确保进行稳健的测试和评估。"
 
 #: ../../source/index.md:49
 #, fuzzy
