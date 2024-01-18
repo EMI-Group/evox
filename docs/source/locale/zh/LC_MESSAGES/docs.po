@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 06:35+0000\n"
-"Last-Translator: WLS2002 <cvgcvg@163.com>\n"
+"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -2920,15 +2920,16 @@ msgid ""
 "Usually, algorithms expect the decision variables to be in the form of a "
 "1D-vector. PyTrees are tree-like structures that are not directly "
 "compatible with normal algorithms. So, there are two solutions out there:"
-msgstr ""
+msgstr "一般来说，算法期望决策变量以一维形式呈现。但是Pytrees是树类结构不能直接与常见"
+"的算法兼容。所以这里有两种解决方法："
 
 #: ../../source/guide/advanced/4-container.md:21
 msgid "Flatten the PyTree to 1D-vector."
-msgstr ""
+msgstr "将Pytree平展成一维向量。"
 
 #: ../../source/guide/advanced/4-container.md:22
 msgid "Use a specialized algorithm that work with PyTree directly."
-msgstr ""
+msgstr "使用经过特殊化算法来直接处理Pytree。"
 
 #: ../../source/guide/advanced/4-container.md:24
 msgid ""
@@ -2938,6 +2939,9 @@ msgid ""
 "algorithm could see the tree structure and apply some type of heuristic "
 "here."
 msgstr ""
+"在EvoX中方法1被命名为adapter并且非常简单，这里不再进行赘述。方法2更为复杂，但"
+"是保留原本的信息结构是他的一个优点，这意味着算法可以知道树的结构并且在此使用"
+"某种类型的启发式算法。"
 
 #: ../../source/guide/advanced/4-container.md:30
 msgid ""
@@ -2951,6 +2955,12 @@ msgid ""
 "`VectorizedCoevolution` is faster, but `Coevolution` could be better in "
 "terms of best fitness with a limited number of evaluations."
 msgstr ""
+"我们为所有的算法提供了合作协同进化（CC）框架。目前，再EvoX中有两种类型的CC容"
+"器，分别是{class}`evox.algorithms.Coevolution` 和 {class}`evox.algorithms.Vec"
+"torizedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更"
+"新所有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`Vectori"
+"zedCoevolution` "
+"更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
 
 #: ../../source/guide/advanced/index.md:1
 msgid "Advanced Tutorial"
@@ -2964,7 +2974,7 @@ msgstr "快速开始"
 msgid ""
 "EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
 " computation."
-msgstr ""
+msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
 
 #: ../../source/guide/basics/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
@@ -2972,7 +2982,7 @@ msgstr "创建一个算法和一个问题"
 
 #: ../../source/guide/basics/1-start.ipynb:50002
 msgid "To demostrate, we will create a PSO algorithm and an Ackley function."
-msgstr ""
+msgstr "我们将创建一个PSO算法和一个Ackley函数来进行证明。"
 
 #: ../../source/guide/basics/1-start.ipynb:50004
 msgid ""
@@ -3237,11 +3247,12 @@ msgstr "RayDistributedWorkflow"
 msgid ""
 "RayDistributedWorkflow is built upon Ray. It can be used on any ray "
 "cluster. The Ray cluster should be setup before running the EvoX program."
-msgstr ""
+msgstr "RayDistributedWorkflow是基于Ray构建的。它可以在任何Ray集群上使用。在运行EvoX"
+"程序之前，应该先设置Ray集群。"
 
 #: ../../source/guide/basics/3-distributed.md:9
 msgid "Setup Ray cluster"
-msgstr ""
+msgstr "设置Ray集群"
 
 #: ../../source/guide/basics/3-distributed.md:11
 msgid ""
@@ -3249,6 +3260,8 @@ msgid ""
 "documentation](https://docs.ray.io/en/latest/cluster/getting-"
 "started.html) for guide on setting up an Ray cluster."
 msgstr ""
+"请参考Ray的官方文档(https://docs.ray.io/en/latest/cluster/getting-started."
+"html)来获取关于设置Ray集群的指南。"
 
 #: ../../source/guide/basics/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
@@ -3266,7 +3279,8 @@ msgstr ""
 msgid ""
 "If you only have 1 machine, but multiple devices, then there is nothing "
 "needs to be done. Ray will setup itself in this case."
-msgstr ""
+msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进"
+"行配置。"
 
 #: ../../source/guide/basics/3-distributed.md:26
 #: ../../source/guide/basics/3-distributed.md:72
@@ -3282,7 +3296,7 @@ msgstr ""
 
 #: ../../source/guide/basics/3-distributed.md:30
 msgid "First, import `workflows` from evox"
-msgstr ""
+msgstr "首先，从evox中导入'workflows'"
 
 #: ../../source/guide/basics/3-distributed.md:36
 msgid "then create your algorithm, problem, monitor object as usual."
