@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 06:38+0000\n"
-"Last-Translator: 周舟 <12332482@mail.sustech.edu.cn>\n"
+"Last-Translator: Hgh <854081165@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -3279,6 +3279,7 @@ msgid "On worker nodes"
 msgstr "在工作节点上"
 
 #: ../../source/guide/basics/3-distributed.md:24
+#, fuzzy
 msgid ""
 "If you only have 1 machine, but multiple devices, then there is nothing "
 "needs to be done. Ray will setup itself in this case."
@@ -3287,8 +3288,9 @@ msgstr "如果你只有一台机器但是有多个设备，这种情况下，不
 
 #: ../../source/guide/basics/3-distributed.md:26
 #: ../../source/guide/basics/3-distributed.md:72
+#, fuzzy
 msgid "Setup EvoX"
-msgstr ""
+msgstr "设置 EvoX"
 
 #: ../../source/guide/basics/3-distributed.md:28
 msgid ""
