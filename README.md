@@ -34,7 +34,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 ## Key Features
 
 - 🚀 **Fast Performance**:
-  - Experience **GPU-Accelerated** optimization, achieving speeds 100x faster than traditional methods.
+  - Experience **GPU-Accelerated** optimization, achieving speeds over 100x faster than traditional methods.
   - Leverage the power of **Distributed Workflows** for even more rapid optimization.
 
 - 🌐 **Versatile Optimization Suite**:
