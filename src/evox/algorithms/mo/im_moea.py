@@ -13,6 +13,7 @@ from evox.operators import (
     mutation,
 )
 from evox.utils import cos_dist
+from evox.operators.gaussian_processes.regression import GPRegression
 import gpjax as gpx
 from gpjax.kernels import Linear
 from gpjax.likelihoods import Gaussian
@@ -41,7 +42,6 @@ class IMMOEA(Algorithm):
         k = 10,
         selection_op=None,
         mutation_op=None,
-        crossover_op=None,
     ):
         self.lb = lb
         self.ub = ub
@@ -134,27 +134,19 @@ class IMMOEA(Algorithm):
             fmin = 1.5 * jnp.min(sub_fit, axis=0) - 0.5 * jnp.max(sub_fit, axis=0)
             fmax = 1.5 * jnp.max(sub_fit, axis=0) - 0.5 * jnp.min(sub_fit, axis=0)
             # Train one groups of GP models for each objective
-            # 定义高斯过程参数
-            log_likelihood_noise = jnp.log(0.01)
-            # 定义均值函数、协方差函数和似然函数
-            mean_function = Zero()
-            kernel = Linear()
-            likelihood = Gaussian(log_likelihood_noise)
-            # create gp model
-            prior = gpx.gps.Prior(kernel=kernel, mean_function=mean_function)
-            posterior = gpx.gps.NonConjugatePosterior(prior=prior, likelihood=likelihood)
             for m in range(self.n_objs):
                 permutation = jax.random.permutation(sel_key1, N)
                 parents = permutation[:jnp.floor(N / self.n_objs).astype(jnp.int32)]
+                number = len(parents)
                 offDec = sub_pop[parents,:]
                 permutation = jax.random.permutation(x_key, D)
                 for d in permutation[:L]:
                     # 定义输入数据
                     inputs = jnp.linspace(fmin[m], fmax[m], offDec.shape[0])
-                    model = gpx.GaussianProcess(kernel, mean_function, likelihood)
-                    # 使用确切推理来获取后代的决策的均值和方差
-                    # 这里需要你根据你的模型来定义infExact函数
-                    ymu, ys2 = inf_exact(posterior, sub_pop[parents, m], sub_pop[parents, d], inputs)
+                    likelihood = Gaussian(num_datapoints=number)
+                    model = GPRegression(likelihood=likelihood)
+                    model.fit(x=offDec, y=sub_fit[parents,:])
+                    ymu, ys2 = model.predict(inputs)
                     # 生成后代的决策
                     offDec = offDec.at[:,d].set( ymu + jax.random.normal(x_key, shape=ys2.shape) * jnp.sqrt(ys2))
                 OffDec = jnp.vstack((OffDec, offDec))
