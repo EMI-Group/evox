@@ -21,12 +21,13 @@ class GPRegression:
         self.prior = gpx.gps.Prior(mean_function=meanfun, kernel=kernel)
         self.likelihood = likelihood
         self.optimizer = optimizer
+        self.posterior = self.prior * self.likelihood
 
 
     def fit(self, x, y):
         self.dataset = gpx.Dataset(X=x, y=y)
         # self.likelihood.num_datapoints = self.dataset.n
-        self.posterior = self.prior * self.likelihood
+
         self.optimizer(self.posterior, train_data=self.dataset)
         # add jit
         self.opt_posterior, self.history = gpx.fit_scipy(
