@@ -4,7 +4,7 @@ from evox import Algorithm, Problem, Stateful, State
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-class StdWorkflow(Stateful):
+class NonJitWorkflow(Stateful):
     def __init__(
         self,
         algorithm: Algorithm,
