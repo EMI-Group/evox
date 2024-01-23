@@ -75,7 +75,7 @@ class NSGA2(Algorithm):
 
     def ask(self, state):
         key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
-        crossovered = self.selection(sel_key1, state.population, state.fitness)
+        # crossovered = self.selection(sel_key1, state.population, state.fitness)
         crossovered = self.crossover(x_key, state.population)
         next_generation = self.mutation(mut_key, crossovered)
 

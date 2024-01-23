@@ -16,4 +16,4 @@ sphinx_copybutton
 sphinx_design
 sphinx-favicon
 sphinxcontrib-mermaid
-
+gpjax

@@ -63,6 +63,8 @@ full = [
   "envpool >= 0.8.0",
 ]
 
+gp = ["gpjax >= 0.8.0"]
+
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
