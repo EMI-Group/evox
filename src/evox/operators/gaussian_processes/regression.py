@@ -5,11 +5,12 @@ from jax import jit
 import jax.numpy as jnp
 import jax.random as jr
 import gpjax as gpx
-from gpjax.kernels import RBF
+# from gpjax.kernels import RBF
 from gpjax.mean_functions import Zero
-from gpjax.likelihoods import Gaussian
+# from gpjax.likelihoods import Gaussian
 from gpjax.objectives import ConjugateMLL
-
+from evox.operators.gaussian_processes.kernels import RBF
+from evox.operators.gaussian_processes.likelihoods import Gaussian
 # the demand of gpJAX. Enable Float64 for more stable matrix inversions.
 config.update("jax_enable_x64", True)
 class GPRegression:
