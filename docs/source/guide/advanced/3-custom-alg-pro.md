@@ -81,7 +81,7 @@ The Problem class is quite simple, beside `__init__` and `setup`, the only requi
 ### Migrate from traditional EC library
 
 There is one thing to notice here, `evaluate` is a stateful function, meaning it should accept a state and return a new state.
-So, if you are working with numerical benchmark functions, which don't need to statefule,
+So, if you are working with numerical benchmark functions, which don't need to stateful,
 you can simply ignore the state, but remember that you still have to use this stateful interface.
 
 ```{eval-rst}
@@ -113,7 +113,7 @@ Here are some examples:
 
 ## Example
 
-Here we give an exmaple of implementing the OneMax problem, along with a genetic algorithm that solves this problem.
+Here we give an example of implementing the OneMax problem, along with a genetic algorithm that solves this problem.
 The problem itself is straight forward, the fitness is defined as the sum of every digits in a fixed-length bitstring.
 For example, "100111" gives 4 and "000101" gives 2.
 
