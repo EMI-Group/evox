@@ -12,37 +12,74 @@ from evox.operators import (
     selection,
     mutation,
 )
+import jax.lax as lax
+from functools import partial
 
-
+# @partial(jax.jit, static_argnums=[1, 2])
 def local_pca(pop_dec, M, K, key):
     n, d = pop_dec.shape  # Dimensions
-    model = [
-        {
+    # model = [
+    #     {
+    #         "mean": pop_dec[k],  # The mean of the model
+    #         "PI": jnp.eye(d),  # The matrix PI
+    #         "e_vector": [],  # The eigenvectors
+    #         "e_value": [],  # The eigenvalues
+    #         "a": [],  # The lower bound of the projections
+    #         "b": [],
+    #     }
+    #     for k in range(K)
+    # ]  # The upper bound of the projections
+
+    def create_model(k):
+        return {
             "mean": pop_dec[k],  # The mean of the model
             "PI": jnp.eye(d),  # The matrix PI
-            "e_vector": [],  # The eigenvectors
-            "e_value": [],  # The eigenvalues
-            "a": [],  # The lower bound of the projections
-            "b": [],
+            "e_vector": jnp.array([]),  # The eigenvectors
+            "e_value": jnp.array([]),  # The eigenvalues
+            "a": jnp.array([]),  # The lower bound of the projections
+            "b": jnp.array([]),  # The upper bound of the projections
         }
-        for k in range(K)
-    ]  # The upper bound of the projections
+    arr = jnp.arange(K)
+    model = jax.vmap(create_model)(arr)
 
     ## Modeling
     for iteration in range(50):
         # Calculte the distance between each solution and its projection in affine principal subspace of each cluster
-        distance = jnp.zeros((n, K))  # matrix of zeros N*K
-        for k in range(K):
-            diff = pop_dec - jnp.tile(model[k]["mean"], (n, 1))
-            distance = distance.at[:, k].set(
-                jnp.sum(diff.dot(model[k]["PI"]) * diff, axis=1)
-            )
+        # distance = jnp.zeros((n, K))
+        # for k in range(K):
+        #     diff = pop_dec - jnp.tile(model[k]["mean"], (n, 1))
+        #     distance = distance.at[:, k].set(
+        #         jnp.sum(diff.dot(model[k]["PI"]) * diff, axis=1)
+        #     )
+        # def body_fun(k, distance):
+        #     diff = pop_dec - jnp.tile(model[k]["mean"], (n, 1))
+        #     distance = distance.at[:, k].set(
+        #         jnp.sum(diff.dot(model[k]["PI"]) * diff, axis=1)
+        #     )
+        #     return distance
+        # distance = lax.fori_loop(0, K, body_fun, distance)
+
+        def body_fun1(k):
+            diff = pop_dec - jnp.tile(model["mean"][k], (n, 1))
+
+            return jnp.sum(diff.dot(model["PI"][k]) * diff, axis=1)
+
+            # return distance
+        # tt = lax.map(body_fun1, arr)
+        # distance = lax.fori_loop(0, K, body_fun1, model)
+        distance = jax.vmap(body_fun1)(arr)
+        # distance = jnp.stack(lax.map(body_fun1, arr), axis=1)
+        # _, distance = lax.scan(body_fun1, model, arr)
+
+
+
         # Partition
         partition = jnp.argmin(distance, axis=1)
         # Update the model of each cluster
         updated = jnp.zeros(K, dtype=bool)
-        for k in range(K):
-            old_mean = model[k]["mean"]
+        # for k in range(K):
+        def body_fun2(k):
+            old_mean = model["mean"][k]
             # select current cluster
             current = partition == k
             if jnp.sum(current) < 2:
@@ -51,16 +88,16 @@ def local_pca(pop_dec, M, K, key):
                         [random.randint(shape=(1,), key=key, maxval=n, minval=0)],
                         dtype=int,
                     )
-                model[k]["mean"] = pop_dec[current]
-                model[k]["PI"] = jnp.eye(d)
-                model[k]["e_vector"] = []
-                model[k]["e_value"] = []
+                model["mean"][k] = pop_dec[current]
+                model["PI"][k] = jnp.eye(d)
+                model["e_vector"][k] = []
+                model["e_value"][k] = []
             else:
                 model[k]["mean"] = jnp.mean(pop_dec[current], axis=0)
                 cc = jnp.cov(
                     (
                         pop_dec[current]
-                        - jnp.tile(model[k]["mean"], (jnp.sum(current), 1))
+                        - jnp.tile(model["mean"][k], (jnp.sum(current), 1))
                     ).T
                 )
                 e_value, e_vector = jnp.linalg.eigh(
@@ -68,23 +105,27 @@ def local_pca(pop_dec, M, K, key):
                 )  # Using eigh for Hermitian matrices
                 rank = jnp.argsort(e_value)
                 e_value = jnp.sort(e_value)
-                model[k]["e_value"] = e_value
-                model[k]["e_vector"] = e_vector[:, rank]
+                model["e_value"][k] = e_value
+                model["e_vector"][k] = e_vector[:, rank]
                 # Note: this code using maximum eigenvalues instead of minimum eigenvalues in PlateEmo
-                model[k]["PI"] = model[k]["e_vector"][:, (M - 1) :].dot(
-                    model[k]["e_vector"][:, (M - 1) :].T
+                model["PI"][k] = model["e_vector"][k][:, (M - 1) :].dot(
+                    model["e_vector"][k][:, (M - 1) :].T
                 )
 
-            updated = updated.at[k].set(
-                (not jnp.any(current))
-                or (jnp.sqrt(jnp.sum((old_mean - model[k]["mean"]) ** 2)) > 1e-5)
-            )
-
+            # updated = updated.at[k].set(
+            #     (not jnp.any(current))
+            #     or (jnp.sqrt(jnp.sum((old_mean - model[k]["mean"]) ** 2)) > 1e-5)
+            # )
+            return (not jnp.any(current)) or (jnp.sqrt(jnp.sum((old_mean - model["mean"][k]) ** 2)) > 1e-5)
+        # updated = lax.fori_loop(0, K, body_fun2, updated)
+        updated = jax.vmap(body_fun2)(arr)
         # Break if no change is made
         if not jnp.any(updated):
             break
+
     # Calculate the smallest hyper-rectangle of each model
-    for k in range(K):
+    # for k in range(K):
+    def body_fun3(k):
         if len(model[k]["e_vector"]) != 0:
             hyper_rectangle = (
                 pop_dec[partition == k]
@@ -95,7 +136,7 @@ def local_pca(pop_dec, M, K, key):
         else:
             model[k]["a"] = jnp.zeros(M - 1)
             model[k]["b"] = jnp.zeros(M - 1)
-
+    lax.map(body_fun3, jnp.arange(K))
     ## Calculate the probability of each cluster for reproduction
     # Calculate the volume of each cluster
     volume = jnp.asarray([model[k]["b"] for k in range(K)]) - jnp.asarray(
