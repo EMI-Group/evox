@@ -27,7 +27,7 @@
 ---
 
 ##
-Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/).
+Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/).
 
 ---
 
@@ -138,9 +138,8 @@ For more use-cases and applications, pleae check out [Example Directory](https:/
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
 - Join our QQ group (ID: 297969717).
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
+We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
 - Official Website: https://evox.group/
-
-![Translation status](https://hosted.weblate.org/widget/evox/evox/multi-auto.svg)
 
 ## Sister Projects
 
