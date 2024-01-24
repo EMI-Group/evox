@@ -29,8 +29,8 @@ class StdWorkflow(Stateful):
         problem: Union[Problem, List[Problem]],
         monitors: List[Monitor] = [],
         opt_direction: Union[str, List[str]] = "min",
-        sol_transform: List[Callable] = [],
-        fit_transform: List[Callable] = [],
+        sol_transforms: List[Callable] = [],
+        fit_transforms: List[Callable] = [],
         pop_transform: List[Callable] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
@@ -57,7 +57,7 @@ class StdWorkflow(Stateful):
             into the format that can be understood by the problem.
             Should be a list of functions,
             and the functions will be applied in the order of the list.
-        fit_transform
+        fit_transforms
             Optional fitness transform function.
             usually used to apply fitness shaping.
             Should be a list of functions,
@@ -99,11 +99,15 @@ class StdWorkflow(Stateful):
         for monitor in self.monitors:
             monitor.set_opt_direction(self.opt_direction)
 
-        self.sol_transform = sol_transform
+        self.sol_transforms = sol_transforms
         # for compatibility purpose
         if pop_transform is not None:
-            self.sol_transform = pop_transform
-        self.fit_transform = fit_transform
+            warnings.warn(
+                "`pop_transform` is deprecated, use `sol_transforms` with a list of transforms instead",
+                DeprecationWarning,
+            )
+            self.sol_transforms = [pop_transform]
+        self.fit_transforms = fit_transforms
         self.jit_problem = jit_problem
         self.num_objectives = num_objectives
         self.distributed_step = False
@@ -147,7 +151,7 @@ class StdWorkflow(Stateful):
                 )
 
             transformed_cand_sol = cand_sol
-            for transform in self.sol_transform:
+            for transform in self.sol_transforms:
                 transformed_cand_sol = transform(transformed_cand_sol)
 
             for monitor in self.registered_hooks["pre_eval"]:
@@ -180,7 +184,7 @@ class StdWorkflow(Stateful):
                 monitor.post_eval(state, cand_sol, transformed_cand_sol, fitness)
 
             transformed_fitness = fitness
-            for transform in self.fit_transform:
+            for transform in self.fit_transforms:
                 transformed_fitness = transform(transformed_fitness)
 
             for monitor in self.registered_hooks["pre_tell"]:
