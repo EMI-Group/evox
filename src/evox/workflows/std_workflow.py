@@ -27,13 +27,15 @@ class StdWorkflow(Stateful):
         self,
         algorithm: Algorithm,
         problem: Union[Problem, List[Problem]],
-        monitors: Optional[List[Monitor]] = None,
+        monitors: List[Monitor] = [],
         opt_direction: Union[str, List[str]] = "min",
-        pop_transform: Optional[Union[Callable, List[Problem]]] = None,
-        fit_transform: Optional[Callable] = None,
+        sol_transform: List[Callable] = [],
+        fit_transform: List[Callable] = [],
+        pop_transform: List[Callable] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
+        monitor=None,
     ):
         """
         Parameters
@@ -49,19 +51,20 @@ class StdWorkflow(Stateful):
         opt_direction
             The optimization direction, can be either "min" or "max"
             or a list of "min"/"max" to specific the direction for each objective.
-        pop_transform
-            Optional population transform function,
-            usually used to decode the population
+        sol_transform
+            Optional candidate solution transform function,
+            usually used to decode the candidate solution
             into the format that can be understood by the problem.
+            Should be a list of functions,
+            and the functions will be applied in the order of the list.
         fit_transform
             Optional fitness transform function.
             usually used to apply fitness shaping.
+            Should be a list of functions,
+            and the functions will be applied in the order of the list.
         jit_problem
             If the problem can be jit compiled by JAX or not.
             Default to True.
-        jit_monitor
-            If the monitor can be jit compiled by JAX or not.
-            Default to False.
         num_objectives
             Number of objectives.
             When the problem can be jit compiled, this field is not needed.
@@ -71,6 +74,12 @@ class StdWorkflow(Stateful):
         self.algorithm = algorithm
         self.problem = problem
         self.monitors = monitors
+        if monitor is not None:
+            warnings.warn(
+                "`monitor` is deprecated, use the `monitors` parameter with a list of monitors instead",
+                DeprecationWarning,
+            )
+            self.monitors = [monitor]
         self.registered_hooks = {
             "pre_step": [],
             "pre_ask": [],
@@ -90,10 +99,12 @@ class StdWorkflow(Stateful):
         for monitor in self.monitors:
             monitor.set_opt_direction(self.opt_direction)
 
-        self.pop_transform = pop_transform
+        self.sol_transform = sol_transform
+        # for compatibility purpose
+        if pop_transform is not None:
+            self.sol_transform = pop_transform
         self.fit_transform = fit_transform
         self.jit_problem = jit_problem
-        self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
         self.distributed_step = False
         if jit_problem is False and self.num_objectives is None:
@@ -123,41 +134,33 @@ class StdWorkflow(Stateful):
                 ask = self.algorithm.ask
                 tell = self.algorithm.tell
 
-            pop, state = ask(state)
-            pop_size = pop.shape[0]
+            # candidate solution
+            cand_sol, state = ask(state)
+            cand_sol_size = cand_sol.shape[0]
 
             for monitor in self.registered_hooks["post_ask"]:
-                monitor.post_ask(state, pop)
+                monitor.post_ask(state, cand_sol)
 
             if self.distributed_step is True:
-                pop = jax.lax.dynamic_slice_in_dim(
-                    pop, state.start_index, self.slice_size, axis=0
+                cand_sol = jax.lax.dynamic_slice_in_dim(
+                    cand_sol, state.start_index, self.slice_size, axis=0
                 )
 
-            if self.pop_transform:
-                if isinstance(self.pop_transform, list):
-                    pop = [transform(pop) for transform in self.pop_transform]
-                else:
-                    pop = self.pop_transform(pop)
+            transformed_cand_sol = cand_sol
+            for transform in self.sol_transform:
+                transformed_cand_sol = transform(transformed_cand_sol)
 
             for monitor in self.registered_hooks["pre_eval"]:
-                monitor.pre_eval(state, pop)
+                monitor.pre_eval(state, cand_sol, transformed_cand_sol)
 
             # if the function is jitted
             if self.jit_problem:
-                if isinstance(self.problem, list):
-                    fitness = []
-                    for decoded in pop:
-                        fit, state = self.problem.evaluate(state, decoded)
-                        fitness.append(fit)
-                    fitness = jnp.concatenate(fitness, axis=0)
-                else:
-                    fitness, state = self.problem.evaluate(state, pop)
+                fitness, state = self.problem.evaluate(state, transformed_cand_sol)
             else:
                 if self.num_objectives == 1:
-                    fit_shape = (pop_size,)
+                    fit_shape = (cand_sol_size,)
                 else:
-                    fit_shape = (pop_size, self.num_objectives)
+                    fit_shape = (cand_sol_size, self.num_objectives)
                 fitness, state = pure_callback(
                     self.problem.evaluate,
                     (
@@ -165,7 +168,7 @@ class StdWorkflow(Stateful):
                         state,
                     ),
                     state,
-                    pop,
+                    transformed_cand_sol,
                 )
 
             if self.distributed_step is True:
@@ -174,15 +177,18 @@ class StdWorkflow(Stateful):
             fitness = fitness * self.opt_direction
 
             for monitor in self.registered_hooks["post_eval"]:
-                monitor.post_eval(state, fitness)
+                monitor.post_eval(state, cand_sol, transformed_cand_sol, fitness)
 
-            if self.fit_transform:
-                fitness = self.fit_transform(fitness)
+            transformed_fitness = fitness
+            for transform in self.fit_transform:
+                transformed_fitness = transform(transformed_fitness)
 
             for monitor in self.registered_hooks["pre_tell"]:
-                monitor.pre_tell(state, fitness)
+                monitor.pre_tell(
+                    state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
+                )
 
-            state = tell(state, fitness)
+            state = tell(state, transformed_fitness)
 
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)

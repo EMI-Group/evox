@@ -1,7 +1,8 @@
-from typing import Callable, Dict, Optional, Union, List
+import warnings
+from typing import Callable, Dict, List, Optional, Union
 
-from evox import Algorithm, Problem, Stateful, State
-from evox.utils import parse_opt_direction, algorithm_has_init_ask
+from evox import Algorithm, Monitor, Problem, State, Stateful
+from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 
 class NonJitWorkflow(Stateful):
@@ -9,13 +10,12 @@ class NonJitWorkflow(Stateful):
         self,
         algorithm: Algorithm,
         problem: Problem,
-        monitor=None,
+        monitors: List[Monitor] = [],
         opt_direction: Union[str, List[str]] = "min",
+        sol_transform: List[Callable] = [],
+        fit_transform: List[Callable] = [],
         pop_transform: Optional[Callable] = None,
-        fitness_transform: Optional[Callable] = None,
-        record_pop: bool = False,
-        record_time: bool = False,
-        metrics: Optional[Dict[str, Callable]] = None,
+        monitor=None,
     ):
         """
         Parameters
@@ -29,74 +29,103 @@ class NonJitWorkflow(Stateful):
         opt_direction
             The optimization direction, can be either "min" or "max"
             or a list of "min"/"max" to specific the direction for each objective.
-        pop_transform
-            Optional population transform function,
-            usually used to decode the population
+        sol_transform
+            Optional candidate solution transform function,
+            usually used to decode the candidate solution
             into the format that can be understood by the problem.
-        fit_transform
-            Optional fitness transform function.
-            usually used to apply fitness shaping.
-        record_pop
-            Whether to record the population if monitor is enabled.
-        record_time
-            Whether to record the time at the end of each generation.
-            Due to its timing nature,
-            record_time requires synchronized functional call.
-            Default to False.
+            Should be a list of functions,
+            and the functions will be applied in the order of the list.
         """
         self.algorithm = algorithm
         self.problem = problem
-        self.monitor = monitor
-        self.record_pop = record_pop
-        self.record_time = record_time
-        self.metrics = metrics
-        self.pop_transform = pop_transform
-        self.fitness_transform = fitness_transform
+        self.sol_transform = sol_transform
+        if pop_transform is not None:
+            self.sol_transform = pop_transform
+        self.fit_transform = fit_transform
+
+        self.registered_hooks = {
+            "pre_step": [],
+            "pre_ask": [],
+            "post_ask": [],
+            "pre_eval": [],
+            "post_eval": [],
+            "pre_tell": [],
+            "post_tell": [],
+            "post_step": [],
+        }
+        self.monitors = monitors
+        if monitor is not None:
+            warnings.warn(
+                "`monitor` is deprecated, use the `monitors` parameter with a list of monitors instead",
+                DeprecationWarning,
+            )
+            self.monitors = [monitor]
+        for monitor in self.monitors:
+            hooks = monitor.hooks()
+            for hook in hooks:
+                self.registered_hooks[hook].append(monitor)
+
         self.opt_direction = parse_opt_direction(opt_direction)
-        self.monitor.set_opt_direction(self.opt_direction)
+        for monitor in self.monitors:
+            monitor.set_opt_direction(self.opt_direction)
 
     def setup(self, key):
         return State(generation=0)
 
     def step(self, state):
+        for monitor in self.registered_hooks["pre_step"]:
+            monitor.pre_step(state)
+
+        for monitor in self.registered_hooks["pre_ask"]:
+            monitor.pre_ask(state)
+
         is_init = False
         if state.generation == 0:
             is_init = algorithm_has_init_ask(self.algorithm, state)
         else:
             is_init = False
 
-        if self.monitor and self.record_time:
-            self.monitor.record_time()
-
         if is_init:
-            pop, state = self.algorithm.init_ask(state)
+            cand_sol, state = self.algorithm.init_ask(state)
         else:
-            pop, state = self.algorithm.ask(state)
+            cand_sol, state = self.algorithm.ask(state)
 
-        if self.monitor and self.record_pop:
-            self.monitor.record_pop(pop)
+        for monitor in self.registered_hooks["post_ask"]:
+            monitor.post_ask(state, cand_sol)
 
-        if self.pop_transform is not None:
-            pop = self.pop_transform(pop)
+        transformed_cand_sol = cand_sol
+        for transform in self.sol_transform:
+            transformed_cand_sol = transform(transformed_cand_sol)
 
-        fitness, state = self.problem.evaluate(state, pop)
+        for monitor in self.registered_hooks["pre_eval"]:
+            monitor.pre_eval(state, cand_sol, transformed_cand_sol)
+
+        fitness, state = self.problem.evaluate(state, transformed_cand_sol)
 
         fitness = fitness * self.opt_direction
 
-        if self.monitor:
-            if self.metrics:
-                metrics = {name: func(fitness) for name, func in self.metrics.items()}
-            else:
-                metrics = None
-            self.monitor.record_fit(fitness, metrics)
+        for monitor in self.registered_hooks["post_eval"]:
+            monitor.post_eval(state, cand_sol, transformed_cand_sol, fitness)
 
-        if self.fitness_transform is not None:
-            fitness = self.fitness_transform(fitness)
+        transformed_fitness = fitness
+        for transform in self.fit_transform:
+            transformed_fitness = transform(transformed_fitness)
+
+        for monitor in self.registered_hooks["pre_tell"]:
+            monitor.pre_tell(
+                state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
+            )
 
         if is_init:
             state = self.algorithm.init_tell(state, fitness)
         else:
             state = self.algorithm.tell(state, fitness)
+
+        for monitor in self.registered_hooks["post_tell"]:
+            monitor.post_tell(state)
+
+        for monitor in self.registered_hooks["post_step"]:
+            monitor.post_step(state)
 
         return state.update(generation=state.generation + 1)
 

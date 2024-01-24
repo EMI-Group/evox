@@ -1,7 +1,13 @@
+import warnings
+
+import jax
+import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
 import numpy as np
+from jax.experimental import io_callback
+from jax.sharding import SingleDeviceSharding
+
 from ..operators.non_dominated_sort import non_dominated_sort
-import jax.experimental.host_callback as hcb
 
 
 class StdMOMonitor:
@@ -25,6 +31,10 @@ class StdMOMonitor:
     def __init__(
         self, record_pf=False, record_fit_history=True, record_pop_history=False
     ):
+        warnings.warn(
+            "The StdMOMonitor is deprecated in favor of the new EvalMonitor.",
+            DeprecationWarning,
+        )
         self.record_pf = record_pf
         self.record_fit_history = record_fit_history
         self.record_pop_history = record_pop_history
@@ -37,6 +47,22 @@ class StdMOMonitor:
 
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
+
+    def hooks(self):
+        return ["post_ask", "post_eval"]
+
+    def post_ask(self, _state, cand_sol):
+        monitor_device = SingleDeviceSharding(jax.devices()[0])
+        io_callback(self.record_pop, None, cand_sol, sharding=monitor_device)
+
+    def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
+        monitor_device = SingleDeviceSharding(jax.devices()[0])
+        io_callback(
+            self.record_fit,
+            None,
+            fitness,
+            sharding=monitor_device,
+        )
 
     def record_pop(self, pop, tranform=None):
         if self.record_pop_history:

@@ -28,15 +28,15 @@ def run_single_objective_algorithm(
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()
     if fitness_shaping is True:
-        fitness_transform = rank_based_fitness
+        fit_transform = [rank_based_fitness]
     else:
-        fitness_transform = None
+        fit_transform = []
 
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
         monitor=monitor,
-        fitness_transform=fitness_transform,
+        fit_transform=fit_transform,
     )
 
     state = workflow.init(key)

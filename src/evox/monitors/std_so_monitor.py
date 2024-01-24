@@ -1,6 +1,10 @@
-import jax.numpy as jnp
 import warnings
+
+import jax
 import jax.experimental.host_callback as hcb
+import jax.numpy as jnp
+from jax.experimental import io_callback
+from jax.sharding import SingleDeviceSharding
 
 
 class StdSOMonitor:
@@ -21,6 +25,10 @@ class StdSOMonitor:
     def __init__(
         self, record_topk=1, record_fit_history=True, record_pop_history=False
     ):
+        warnings.warn(
+            "The StdSOMonitor is deprecated in favor of the new EvalMonitor.",
+            DeprecationWarning,
+        )
         self.record_fit_history = record_fit_history
         self.record_pop_history = record_pop_history
         self.fitness_history = []
@@ -33,6 +41,22 @@ class StdSOMonitor:
 
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
+
+    def hooks(self):
+        return ["post_ask", "post_eval"]
+
+    def post_ask(self, _state, cand_sol):
+        monitor_device = SingleDeviceSharding(jax.devices()[0])
+        io_callback(self.record_pop, None, cand_sol, sharding=monitor_device)
+
+    def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
+        monitor_device = SingleDeviceSharding(jax.devices()[0])
+        io_callback(
+            self.record_fit,
+            None,
+            fitness,
+            sharding=monitor_device,
+        )
 
     def record_pop(self, pop, tranform=None):
         if self.record_pop_history:
@@ -98,7 +122,6 @@ class StdSOMonitor:
 
     def get_history(self):
         return [self.opt_direction * fit for fit in self.fitness_history]
-
 
     def flush(self):
         hcb.barrier_wait()

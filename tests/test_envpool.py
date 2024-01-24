@@ -32,7 +32,7 @@ def test_envpool_cartpole():
     )
     center = adapter.to_vector(params)
     # create a workflow
-    workflow = workflows.UniWorkflow(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,

@@ -63,20 +63,20 @@ This variable disables the GPU memory preallocation, otherwise running multiple 
 For more information, please refer to [JAX's documentation](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html) on this matter.
 ```
 
-## UniWorkflow
+## StdWorkflow
 
-UniWorkflow is short for "Universal Workflow",
+StdWorkflow is short for "Universal Workflow",
 which aims to use pure JAX to build a workflow that fits any requirement.
-Since `UniWorkflow` is written in pure JAX, it has less overhead and don't need any additional dependencies.
+Since `StdWorkflow` is written in pure JAX, it has less overhead and don't need any additional dependencies.
 
 ### Setup EvoX
 
-Use `UniWorkflow` to create an workflow,
+Use `StdWorkflow` to create an workflow,
 and use `enable_distributed` and pass in the state to enable this feature.
 
 ```python
 key = jax.random.PRNGKey(0) # a PRNGKey
-workflow = workflows.UniWorkflow(
+workflow = workflows.StdWorkflow(
   algorithm,
   problem
   monitor
@@ -128,7 +128,7 @@ Then call `python main.py 0` on the first machine, `python main 1` on the second
 
 ### Run on a single machine
 
-In addition to distributed execution across multiple machines, `UniWorkflow` also supports running on a single machine with multiple GPUs. In this scenario, communication between different devices is facilitated by `nccl`, which is considerably more efficient than cross-machine communication.
+In addition to distributed execution across multiple machines, `StdWorkflow` also supports running on a single machine with multiple GPUs. In this scenario, communication between different devices is facilitated by `nccl`, which is considerably more efficient than cross-machine communication.
 
 The setup process remains unchanged from the previous instructions mentioned above. However, since you are working with only a single machine, the subsequent step for multiple machines is no longer necessary:
 

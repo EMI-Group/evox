@@ -26,16 +26,18 @@ class Monitor:
     def pre_ask(self, state):
         pass
 
-    def post_ask(self, state, offsprings):
+    def post_ask(self, state, cand_sol):
         pass
 
-    def pre_eval(self, state, offsprings):
+    def pre_eval(self, state, cand_sol, transformed_cand_sol):
         pass
 
-    def post_eval(self, state, fitness):
+    def post_eval(self, state, cand_sol, transformed_cand_sol, fitness):
         pass
 
-    def pre_tell(self, state, fitness):
+    def pre_tell(
+        self, state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
+    ):
         pass
 
     def post_tell(self, state):

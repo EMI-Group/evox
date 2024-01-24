@@ -39,7 +39,7 @@ def test_cartpole(batch_policy):
     )
     center = adapter.to_vector(params)
     # create a workflow
-    workflow = workflows.UniWorkflow(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithms.CSO(
             lb=jnp.full_like(center, -10.0),
             ub=jnp.full_like(center, 10.0),

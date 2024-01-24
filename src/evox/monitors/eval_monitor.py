@@ -22,8 +22,8 @@ class EvalMonitor(Monitor):
     full_fit_history
         Whether to record the full history of fitness value.
         Default to True. Setting it to False may reduce memory usage.
-    full_pop_history
-        Whether to record the full history of population.
+    full_sol_history
+        Whether to record the full history of solutions.
         Default to False. Setting it to True may increase memory usage.
     topk
         Only affect Single-objective optimization. The number of elite solutions to record.
@@ -38,14 +38,14 @@ class EvalMonitor(Monitor):
     """
 
     def __init__(
-        self, full_fit_history=True, full_pop_history=False, topk=1, calc_pf=False
+        self, full_fit_history=True, full_sol_history=False, topk=1, calc_pf=False
     ):
         self.full_fit_history = full_fit_history
-        self.full_pop_history = full_pop_history
+        self.full_sol_history = full_sol_history
         self.topk = topk
         self.calc_pf = calc_pf
         self.fitness_history = []
-        self.population_history = []
+        self.solution_history = []
         self.current_population = None
         self.pf_solutions = None
         self.pf_fitness = None
@@ -58,11 +58,11 @@ class EvalMonitor(Monitor):
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
 
-    def post_ask(self, _state, offsprings):
+    def post_ask(self, _state, cand_sol):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
-        io_callback(self.record_pop, None, offsprings, sharding=monitor_device)
+        io_callback(self.record_pop, None, cand_sol, sharding=monitor_device)
 
-    def post_eval(self, _state, fitness):
+    def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
         if fitness.ndim == 1:
             recorder = self.record_fit_single_obj
@@ -76,10 +76,10 @@ class EvalMonitor(Monitor):
             sharding=monitor_device,
         )
 
-    def record_pop(self, pop):
+    def record_sol(self, sols):
         if self.record_pop_history:
-            self.population_history.append(pop)
-        self.current_population = pop
+            self.solution_history.append(sols)
+        self.current_solutions = sols
 
     def record_fit_single_obj(self, fitness):
         if self.record_fit_history:
