@@ -28,12 +28,6 @@ class GPRegression:
 
     def fit(self, x, y, optimzer=ox.GradientTransformation):
         self.dataset = gpx.Dataset(X=x, y=y)
-        # self.likelihood.num_datapoints = self.dataset.n
-        # static_tree = jax.tree_map(lambda x: not (x), self.posterior.trainables)
-        # optim = ox.chain(
-        #     ox.adam(learning_rate=0.01),
-        #     ox.masked(ox.set_to_zero(), static_tree)
-        #     )
         self.object(self.posterior, train_data=self.dataset)
         # add jit
         self.opt_posterior, self.history = gpx.fit(
@@ -44,13 +38,15 @@ class GPRegression:
             num_iters=500,
             key=self.key
         )
-        # self.opt_posterior, self.history = gpx.fit_scipy(
-        #     model= self.posterior,
-        #     objective= self.object,
-        #     train_data= self.dataset,
-        #     max_iters=1000
-        # )
 
+    def fit_scipy(self,x,y):
+        self.dataset = gpx.Dataset(X=x, y=y)
+        self.object(self.posterior, train_data=self.dataset)
+        self.opt_posterior, self.history = gpx.fit_scipy(
+            model= self.posterior,
+            objective= self.object,
+            train_data= self.dataset,
+        )
 
 
     def predict(self,x):

@@ -18,18 +18,8 @@ import gpjax as gpx
 from gpjax.kernels import Linear
 from gpjax.likelihoods import Gaussian
 from gpjax.mean_functions import Zero
-
-# 定义一个函数来计算后验均值和方差
-def inf_exact(posterior, X, y, test_inputs):
-    Kff = posterior.kernel(X, X) + posterior.likelihood.jitter * jnp.eye(X.shape[0])
-    Kfs = posterior.kernel(X, test_inputs)
-    Kss = posterior.kernel(test_inputs, test_inputs)
-    Lf = jnp.linalg.cholesky(Kff)
-    A = jnp.linalg.solve(Lf, Kfs)
-    mu = Zero(test_inputs) + A.T @ jnp.linalg.solve(Lf.T, y - Zero(X))
-    v = jnp.linalg.solve(Lf, y - Zero(X))
-    cov = Kss - A.T @ A + jnp.outer(v, v)
-    return mu, cov
+import optax as ox
+import logging
 
 class IMMOEA(Algorithm):
     def __init__(
@@ -83,12 +73,13 @@ class IMMOEA(Algorithm):
 
     # generate next generation
     def ask(self, state):
+        logging.basicConfig(level=logging.CRITICAL)
         population = state.population
         fitness = state.fitness
         K = self.k
         W = jax.random.uniform(state.key, (K, self.n_objs))
         W = jnp.fliplr(jnp.sort(jnp.fliplr(W), axis=1))
-        self.pop_size = jnp.ceil(self.pop_size / K) * K
+        self.pop_size = int(jnp.ceil(self.pop_size / K) * K)
         distances = cos_dist(fitness, W)
         partition = jnp.argmax(distances, axis=1)
         sub_pops = []
@@ -104,6 +95,7 @@ class IMMOEA(Algorithm):
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
+
         rank = non_dominated_sort(merged_fitness)
         order = jnp.argsort(rank)
         worst_rank = rank[order[self.pop_size]]
@@ -115,46 +107,56 @@ class IMMOEA(Algorithm):
             order = jnp.argsort(crowding_dis)
             mask[order[-1]] = False
             last -= 1
+
         survivor = merged_pop[mask]
         survivor_fitness = merged_fitness[mask]
         state = state.update(population=survivor, fitness=survivor_fitness)
         return state
 
+
     def _gen_offspring(self, state, sub_pop, sub_fit):
-        key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
+        key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         N, D = sub_pop.shape
         L = 3
-        OffDec = sub_pop
-        # Gaussian process based reproduction
-        # if len(sub_pop) < 2 * self.n_objs:
-        #     OffDec = sub_pop
+        Offspring = sub_pop
         if len(sub_pop) >= 2 * self.n_objs:
+            indices = jnp.arange(D)
+            shuffled_indices = random.permutation(x_key, indices)
+            while len(shuffled_indices) < L * self.n_objs:
+                _key, x_key = random.split(x_key)
+                shuffled_indices = jnp.vstack((shuffled_indices, random.permutation(x_key, indices)))
+            start = 0
             fmin = 1.5 * jnp.min(sub_fit, axis=0) - 0.5 * jnp.max(sub_fit, axis=0)
             fmax = 1.5 * jnp.max(sub_fit, axis=0) - 0.5 * jnp.min(sub_fit, axis=0)
+            Offspring = None
+            sel_keys = jax.random.split(sel_key, num=self.n_objs)
+            x_keys = jax.random.split(x_key, num=L * self.n_objs)
             # Train one groups of GP models for each objective
             for m in range(self.n_objs):
-                permutation = jax.random.permutation(sel_key1, N)
+                permutation = random.permutation(sel_keys[m], N)
                 parents = permutation[:jnp.floor(N / self.n_objs).astype(jnp.int32)]
-                offDec = sub_pop[parents,:]
-                permutation = jax.random.permutation(x_key, D)
-                for d in permutation[:L]:
-                    # 定义输入数据
-                    inputs = jnp.linspace(fmin[m], fmax[m], offDec.shape[0])
-                    likelihood = Gaussian(num_datapoints=len(parents))
-                    model = GPRegression(likelihood=likelihood)
-                    model.fit(x=offDec, y=sub_fit[parents,:])
-                    ymu, ys2 = model.predict(inputs)
-                    # 生成后代的决策
-                    offDec = offDec.at[:,d].set( ymu + jax.random.normal(x_key, shape=ys2.shape) * jnp.sqrt(ys2))
-                OffDec = jnp.vstack((OffDec, offDec))
+                sub_off = sub_pop[parents,:]
+                indices = shuffled_indices[start:start+L]
+                keys = x_keys[start:start+L]
+                start += L
+                likelihood = Gaussian(num_datapoints=len(parents))
+                model = GPRegression(likelihood=likelihood)
+                for d, key in zip(indices, keys):
+                    model.fit_scipy(x=sub_fit[parents,m:m+1], y=sub_off[:,d:d+1])
+                    inputs = jnp.linspace(fmin[m], fmax[m], sub_off.shape[0])
+                    ymu, ystd = model.predict(inputs)
+                    # get next generation
+                    sub_off = sub_off.at[:,d].set(ymu + random.normal(key, shape=ystd.shape) * ystd)
+                if Offspring is None:
+                    Offspring = sub_off
+                else:
+                    Offspring = jnp.vstack((Offspring, sub_off))
 
         # Convert invalid values to random values
-        # Lower = jnp.tile(self.lb, (N, D))
-        # Upper = jnp.tile(self.ub, (N, D))
-        randDec = jax.random.uniform(x_key, OffDec.shape, minval=self.lb, maxval=self.ub)
-        invalid = (OffDec < self.lb) | (OffDec > self.ub)
-        OffDec = jnp.where(invalid, randDec, sub_pop)
+        randDec = jax.random.uniform(x_key, Offspring.shape, minval=self.lb, maxval=self.ub)
+        invalid = (Offspring < self.lb) | (Offspring > self.ub)
+        Offspring = jnp.where(invalid, randDec, Offspring)
 
-        OffDec = self.mutation(mut_key, OffDec)
-        next_generation = jnp.clip(OffDec, self.lb, self.ub)
+        Offspring = self.mutation(mut_key, Offspring)
+        next_generation = jnp.clip(Offspring, self.lb, self.ub)
         return next_generation
