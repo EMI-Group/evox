@@ -5,7 +5,7 @@
 In JAX, it's hard to jump out of a jit-compiled function, meaning if you jit-compile one function,
 then all other functions used within this function must also be jit-compiled.
 
-For example, the follow code will result in compilation error
+For example, the following code will result in a compilation error.
 
 ```python
 @jax.jit
@@ -17,11 +17,11 @@ def bar(x):
 ```
 
 Even though `bar` is not marked with `jax.jit`, it is still compiled as `foo` calls `bar`.
-And since bar uses dynamic index, which is not compatible with `jax.jit`, an error will occur.
+And since `bar` uses the dynamic index, which is not compatible with `jax.jit`, an error will occur.
 
 ## Solution
 
-To solve is problem, it is common practice to jit-compile low level components, thus give high level components more freedom.
+To solve is problem, it is common practice to jit-compile low-level components, thus giving high-level components more freedom.
 In EvoX, we have some general rules on whether a function should be jit-able or not.
 
 | Component | jit-able |

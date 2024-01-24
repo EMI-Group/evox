@@ -1,10 +1,10 @@
 # Working with state in EvoX
 
-EvoX is designed around the stateful computation.
+EvoX is designed around stateful computation.
 
 There are two most fundamental classes, namely {class}`Stateful <evox.Stateful>` and {class}`State <evox.State>`.
 
-All class that involves stateful computation are inherented from `Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are all stateful.
+All class that involves stateful computation are inherited from `Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are all stateful.
 
 ## The idea behind the design
 
@@ -14,20 +14,20 @@ All class that involves stateful computation are inherented from `Stateful`. In 
 ```
 
 Here we have five different objects, and notice that they have a hierarchical structure.
-To work with such structure, at each level we must "lift the state" by managing the states of child components.
-So, the state at the `workflow` level must contains the state of both `algorithm` and `problem`,
-and since the state at the `algorithm` level must contains the state of both operators,
-the state `workflow` level actual need to handle states from all 5 components.
+To work with such structures, at each level, we must "lift the state" by managing the states of child components.
+So, the state at the `workflow` level must contain the state of both `algorithm` and `problem`,
+and since the state at the `algorithm` level must contain the state of both operators,
+the state `workflow` level actually needs to handle states from all 5 components.
 
-However, it is frustrating to managing the hierarchy manually, and it is not good for modular design.
+However, it is frustrating to manage the hierarchy manually, and it is not good for modular design.
 To solve this problem, we introduce `Stateful` and `State`.
 
-## An overview of Stateful
+## An Overview of Stateful
 
 In a `Stateful` class,
 all immutable data are initialized in `__init__`,
 the initial mutable state is generated in `setup`,
-besides these two method and private methods(start with "\_"),
+besides these two methods and private methods(start with "\_"),
 all other methods are wrapped with `use_state`.
 
 ```python
@@ -51,10 +51,10 @@ will be wrapped with `use_state` decorator. This decorator requires the method h
 def func(self, state: State, ...) -> Tuple[..., State]
 ```
 
-which is common pattern in stateful computation.
+which is a common pattern in stateful computation.
 
 :::{warning}
-Currently, for all user defined private methods, the name of the method should starts with `_`.
+Currently, for all user-defined private methods, the name of the method should start with `_``.
 :::
 
 ## An overview of State
@@ -65,7 +65,7 @@ In EvoX `State` represents a tree of states, which stores the state of the curre
 
 When combined together,
 they will automatically go 1 level down in the tree of states,
-and merge the subtree back to current level.
+and merge the subtree back to the current level.
 
 So you could write code like this.
 
