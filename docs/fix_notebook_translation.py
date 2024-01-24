@@ -24,7 +24,15 @@ def split_msg_from_notebook(occurrences):
 normal_entries = []
 for entry in po:
     from_normal, from_notebook = split_msg_from_notebook(entry.occurrences)
-    if from_notebook and entry.msgstr != "":
+
+    if from_normal and from_notebook:
+        print("potential conflict found at:", entry.msgid, entry.occurrences)
+
+    if entry.msgstr == entry.msgid:
+        # having the msgstr equals to msgid in a notebook file
+        # can somehow cause the build to fail
+        entry.msgstr = ""
+    elif from_notebook and entry.msgstr != "":
         original_msgstr = entry.msgstr
         entry.occurrences = from_notebook
         wrapped = {
