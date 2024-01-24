@@ -146,10 +146,10 @@ class IMMOEA(Algorithm):
                 keys = x_keys[start:start+L]
                 start += L
                 likelihood = Gaussian(num_datapoints=len(parents))
-                model = GPRegression(likelihood=likelihood)
+                model = GPRegression(likelihood=likelihood, kernel=Linear())
                 for d, key in zip(indices, keys):
                     model.fit_scipy(x=sub_fit[parents,m:m+1], y=sub_off[:,d:d+1])
-                    inputs = jnp.linspace(fmin[m], fmax[m], sub_off.shape[0])
+                    inputs = jnp.linspace(fmin[m], fmax[m], sub_off.shape[0])[:,jnp.newaxis]
                     ymu, ystd = model.predict(inputs)
                     # get next generation
                     sub_off = sub_off.at[:,d].set(ymu + random.normal(key, shape=ystd.shape) * ystd)
