@@ -41,7 +41,7 @@ class GPRegression:
             objective= self.object,
             train_data= self.dataset,
             optim = optimzer,
-            num_iters=1000,
+            num_iters=500,
             key=self.key
         )
         # self.opt_posterior, self.history = gpx.fit_scipy(
