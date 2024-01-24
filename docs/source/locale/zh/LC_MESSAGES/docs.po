@@ -5,19 +5,18 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: EvoX\n"
+"Project-Id-Version:  EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-19 08:00+0000\n"
 "Last-Translator: Shepherd29 <1449405401@qq.com>\n"
-"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
-"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
+"Language-Team: Chinese (Simplified) "
+"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.4-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -1230,9 +1229,7 @@ msgid ""
 "Cooperative particle swarm optimizer. Implemented using EvoX's built-in "
 "coevolution framework. CPSOS essentially a wrapper around PSO and "
 "Coevolution."
-msgstr ""
-"协同粒子群优化器（CPSO）在EvoX库中通过其内置的协同演化框架得以实现，实质上，C"
-"PSOS本质上是对PSO（粒子群优化算法）和协同演化的封装。"
+msgstr "协同粒子群优化器（CPSO）在EvoX库中通过其内置的协同演化框架得以实现，实质上，CPSOS本质上是对PSO（粒子群优化算法）和协同演化的封装。"
 
 #: evox.algorithms.so.pso_variants.cpso_s.CPSOS:6 of
 msgid "https://ieeexplore.ieee.org/document/1304845"
@@ -1669,8 +1666,7 @@ msgid ""
 "A Built-in plot function for visualizing the population of single-"
 "objective algorithm. Use plotly internally, so you need to install plotly"
 " to use this function."
-msgstr "内置的单目标算法种群可视化绘图函数。内部使用plotly库，因此要使用此功能，您需"
-"要先安装plotly。"
+msgstr "内置的单目标算法种群可视化绘图函数。内部使用plotly库，因此要使用此功能，您需要先安装plotly。"
 
 #: evox.monitors.std_mo_monitor.StdMOMonitor.plot:5
 #: evox.monitors.std_so_monitor.StdSOMonitor.plot:5 of
@@ -1817,10 +1813,7 @@ msgid ""
 " the keys for accessing the objective values in the info dictionary. The "
 "objective values will be returned in the same order as specified in "
 "`mo_keys`."
-msgstr ""
-"可选参数，一个字符串列表。如果设置，环境被视为一个多目标问题，不同的目标值通"
-"过Gym返回的`info`项获取。`mo_keys`参数提供了在info字典中访问目标值的键。目标"
-"值将按照在`mo_keys`中指定的顺序返回。"
+msgstr "可选参数，一个字符串列表。如果设置，环境被视为一个多目标问题，不同的目标值通过Gym返回的`info`项获取。`mo_keys`参数提供了在info字典中访问目标值的键。目标值将按照在`mo_keys`中指定的顺序返回。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:36 of
 msgid "**controller_options**"
@@ -1831,9 +1824,7 @@ msgid ""
 "The runtime options for controller actor. This actor is used to control "
 "workers and run the policy at each step. For example, to enable GPU "
 "acceleration on the policy network, set this field to::"
-msgstr ""
-"控制器actor的运行时选项。这个actor用于控制工作者worker，并在每一步运行策略。"
-"例如，要启用策略网络的GPU加速功能，请将此字段设置为::"
+msgstr "控制器actor的运行时选项。这个actor用于控制工作者worker，并在每一步运行策略。例如，要启用策略网络的GPU加速功能，请将此字段设置为::"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:52 of
 msgid "**worker_options**"
@@ -1888,9 +1879,8 @@ msgid ""
 " or jupyter notebook, this method may fail to find a valid display. "
 "Default to 'rgb_array'."
 msgstr ""
-"在\"human\"模式下，帧应直接显示在屏幕上。但是，如果您正在使用远程Python环境（"
-"例如VSCode SSH或Jupyter Notebook），这种方法可能无法找到有效的显示器，"
-"因此默认设置为\"rgb_array\"模式。"
+"在\"human\"模式下，帧应直接显示在屏幕上。但是，如果您正在使用远程Python环境（例如VSCode SSH或Jupyter "
+"Notebook），这种方法可能无法找到有效的显示器，因此默认设置为\"rgb_array\"模式。"
 
 #: ../../source/api/problems/neuroevolution/reinforcement_learning/index.rst:3
 msgid "Reinforcement Learning"
@@ -2085,21 +2075,14 @@ msgid ""
 "will create num_workers copies of the workflows with the same seed, and "
 "at each step each workflow only evaluate part of the population, then "
 "pass the fitness to other nodes to recreate the whole fitness array."
-msgstr ""
-"分布式工作流能够将工作流程分布到不同的节点上。它会使用相同的随机种子创建num_w"
-"orkers个相同工作流程副本，并且在每一步中，每个工作流程仅评估种群的一部分，然"
-"后将适应度值传递给其他节点以重建整个适应度数组。这样，通过各节点间的协作，实"
-"现大规模并行计算和优化过程的高效执行。"
+msgstr "分布式工作流能够将工作流程分布到不同的节点上。它会使用相同的随机种子创建num_workers个相同工作流程副本，并且在每一步中，每个工作流程仅评估种群的一部分，然后将适应度值传递给其他节点以重建整个适应度数组。这样，通过各节点间的协作，实现大规模并行计算和优化过程的高效执行。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:9 of
 msgid ""
 "pop_transform and fitness_transform are applied at each node, while "
 "global_fitness_transform is applied at the main node once per step, so "
 "monitor should be passed as global_fitness_transform."
-msgstr ""
-"pop_transform和fitness_transform在每个节点上分别应用，而global_fitness_transf"
-"orm则在主节点上每一步执行一次。因此，monitor应当作为global_fitness_transform"
-"传递。"
+msgstr "pop_transform和fitness_transform在每个节点上分别应用，而global_fitness_transform则在主节点上每一步执行一次。因此，monitor应当作为global_fitness_transform传递。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
 #: evox.workflows.standard.StdWorkflow.__init__:8
@@ -2141,9 +2124,7 @@ msgstr "**opt_direction**"
 msgid ""
 "The optimization direction, can be either \"min\" or \"max\" or a list of"
 " \"min\"/\"max\" to specific the direction for each objective."
-msgstr ""
-"优化方向，可以是\"min\"（最小化）或\"max\"（最大化），也可以是一个包含\"min\""
-"/\"max\"的列表来指定每个目标的具体优化方向。"
+msgstr "优化方向，可以是\"min\"（最小化）或\"max\"（最大化），也可以是一个包含\"min\"/\"max\"的列表来指定每个目标的具体优化方向。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
 msgid "**options**"
@@ -2240,8 +2221,7 @@ msgid ""
 "Whether to record the time at the end of each generation. Due to its "
 "timing nature, record_time requires synchronized functional call. Default"
 " to False."
-msgstr "是否记录每代结束的时间。由于它的计时性质，record_time需要同步的函数调用。默认"
-"为False。"
+msgstr "是否记录每代结束的时间。由于它的计时性质，record_time需要同步的函数调用。默认为False。"
 
 #: evox.workflows.standard.StdWorkflow.sample:2 of
 msgid "Sample the algorithm but don't change it's state"
@@ -2294,8 +2274,7 @@ msgid ""
 "Number of objectives. When the problem can be jit compiled, this field is"
 " not needed. When the problem cannot be jit compiled, this field should "
 "be set, if not, default to 1."
-msgstr "目标数量。当问题可以被 JIT（即时编译）时，这个字段不是必需的。当问题不能被 "
-"JIT 编译时，应设置这个字段，如果没有设置，默认为 1。"
+msgstr "目标数量。当问题可以被 JIT（即时编译）时，这个字段不是必需的。当问题不能被 JIT 编译时，应设置这个字段，如果没有设置，默认为 1。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:2 of
 msgid ""
@@ -2303,8 +2282,7 @@ msgid ""
 "jax's distribution ability, one need to run the same program on all nodes"
 " with different parameters in `jax.distributed.initialize`."
 msgstr ""
-"启用分布式工作流在多个节点上运行。要使用 JAX "
-"的分布式处理能力，需要在所有节点上运行相同的程序，并在 "
+"启用分布式工作流在多个节点上运行。要使用 JAX 的分布式处理能力，需要在所有节点上运行相同的程序，并在 "
 "jax.distributed.initialize 中使用不同的参数。"
 
 #: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:16 of
@@ -2376,15 +2354,13 @@ msgid ""
 "This is expected behaivor, because we have a controller thread that "
 "manages a group of Gym workers, and the controller thread does not use "
 "GPU."
-msgstr "这是预期的行为，因为我们有一个控制器线程来管理一组Gym工作线程，而控制器线程并"
-"不使用GPU。"
+msgstr "这是预期的行为，因为我们有一个控制器线程来管理一组Gym工作线程，而控制器线程并不使用GPU。"
 
 #: ../../source/example/gym_classic_control.ipynb:70010
 msgid ""
 "If the program stucks, you may want to check whether is `num_workers` is "
 "larger than the number of available cores on your computer."
-msgstr "如果程序卡住了，你可能需要检查 num_workers "
-"设置的值是否大于你电脑上可用核心的数量。"
+msgstr "如果程序卡住了，你可能需要检查 num_workers 设置的值是否大于你电脑上可用核心的数量。"
 
 #: ../../source/example/index.md:1
 msgid "EvoX's examples"
@@ -2405,24 +2381,25 @@ msgid "Working with state in EvoX"
 msgstr "在EvoX中使用State"
 
 #: ../../source/guide/advanced/1-state.md:3
-msgid "EvoX is designed around the stateful computation."
+#, fuzzy
+msgid "EvoX is designed around stateful computation."
 msgstr "EvoX是基于状态计算设计的。"
 
 #: ../../source/guide/advanced/1-state.md:5
 msgid ""
 "There are two most fundamental classes, namely {class}`Stateful "
 "<evox.Stateful>` and {class}`State <evox.State>`."
-msgstr "有两个最基本的类，即 {class}Stateful <evox.Stateful> 和 {class}State <evox."
-"State>。"
+msgstr "有两个最基本的类，即 {class}Stateful <evox.Stateful> 和 {class}State <evox.State>。"
 
 #: ../../source/guide/advanced/1-state.md:7
+#, fuzzy
 msgid ""
-"All class that involves stateful computation are inherented from "
+"All class that involves stateful computation are inherited from "
 "`Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are"
 " all stateful."
 msgstr ""
-"所有涉及状态计算的类都继承自 Stateful。在EvoX中，Algorithm（算法）、Problem（"
-"问题）、Operator（操作符）和工作流都是有状态的。"
+"所有涉及状态计算的类都继承自 "
+"Stateful。在EvoX中，Algorithm（算法）、Problem（问题）、Operator（操作符）和工作流都是有状态的。"
 
 #: ../../source/guide/advanced/1-state.md:9
 msgid "The idea behind the design"
@@ -2433,43 +2410,43 @@ msgid "hierarchical state"
 msgstr "分层状态"
 
 #: ../../source/guide/advanced/1-state.md:16
+#, fuzzy
 msgid ""
 "Here we have five different objects, and notice that they have a "
-"hierarchical structure. To work with such structure, at each level we "
+"hierarchical structure. To work with such structures, at each level, we "
 "must \"lift the state\" by managing the states of child components. So, "
-"the state at the `workflow` level must contains the state of both "
+"the state at the `workflow` level must contain the state of both "
 "`algorithm` and `problem`, and since the state at the `algorithm` level "
-"must contains the state of both operators, the state `workflow` level "
-"actual need to handle states from all 5 components."
+"must contain the state of both operators, the state `workflow` level "
+"actually needs to handle states from all 5 components."
 msgstr ""
-"这里我们有五个不同的对象，注意它们具有层次结构。为了处理这种结构，在每个层级"
-"我们必须通过管理子组件的状态来“提升状态”。因此，workflow 层级的状态必须包含 "
-"algorithm（算法）和 problem（问题）的状态，由于 algorithm "
-"层级的状态必须包含所有操作符的状态，所以 workflow "
-"层级的状态实际上需要处理来自所有5个组件的状态。"
+"这里我们有五个不同的对象，注意它们具有层次结构。为了处理这种结构，在每个层级我们必须通过管理子组件的状态来“提升状态”。因此，workflow "
+"层级的状态必须包含 algorithm（算法）和 problem（问题）的状态，由于 algorithm 层级的状态必须包含所有操作符的状态，所以"
+" workflow 层级的状态实际上需要处理来自所有5个组件的状态。"
 
 #: ../../source/guide/advanced/1-state.md:22
+#, fuzzy
 msgid ""
-"However, it is frustrating to managing the hierarchy manually, and it is "
+"However, it is frustrating to manage the hierarchy manually, and it is "
 "not good for modular design. To solve this problem, we introduce "
 "`Stateful` and `State`."
-msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问"
-"题，我们引入了 Stateful 和 State。"
+msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问题，我们引入了 Stateful 和 State。"
 
 #: ../../source/guide/advanced/1-state.md:25
-msgid "An overview of Stateful"
+#, fuzzy
+msgid "An Overview of Stateful"
 msgstr "关于状态的概述"
 
 #: ../../source/guide/advanced/1-state.md:27
+#, fuzzy
 msgid ""
 "In a `Stateful` class, all immutable data are initialized in `__init__`, "
 "the initial mutable state is generated in `setup`, besides these two "
-"method and private methods(start with \"\\_\"), all other methods are "
+"methods and private methods(start with \"\\_\"), all other methods are "
 "wrapped with `use_state`."
 msgstr ""
-"在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，初始的可变状态在 "
-"setup 中生成，除了这两个方法和私有方法（以 \"_\" 开头）之外，"
-"所有其他方法都用 use_state 包装。"
+"在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，初始的可变状态在 setup 中生成，除了这两个方法和私有方法（以 "
+"\"_\" 开头）之外，所有其他方法都用 use_state 包装。"
 
 #: ../../source/guide/advanced/1-state.md:48
 msgid ""
@@ -2478,13 +2455,15 @@ msgid ""
 msgstr "将会用 use_state 装饰器包装。这个装饰器要求方法具有以下签名："
 
 #: ../../source/guide/advanced/1-state.md:54
-msgid "which is common pattern in stateful computation."
+#, fuzzy
+msgid "which is a common pattern in stateful computation."
 msgstr "这是状态计算中常见的模式。"
 
 #: ../../source/guide/advanced/1-state.md:56
+#, fuzzy
 msgid ""
-":::{warning} Currently, for all user defined private methods, the name of"
-" the method should starts with `_`. :::"
+":::{warning} Currently, for all user-defined private methods, the name of"
+" the method should start with `_``. :::"
 msgstr ":::{警告} 目前，对于所有用户定义的私有方法，方法名称应该以 _ 开头。 :::"
 
 #: ../../source/guide/advanced/1-state.md:60
@@ -2502,9 +2481,10 @@ msgid "Combined together"
 msgstr "结合一起"
 
 #: ../../source/guide/advanced/1-state.md:66
+#, fuzzy
 msgid ""
 "When combined together, they will automatically go 1 level down in the "
-"tree of states, and merge the subtree back to current level."
+"tree of states, and merge the subtree back to the current level."
 msgstr "当它们组合在一起时，将自动下降到状态树的下一层，并将子树合并回当前层。"
 
 #: ../../source/guide/advanced/1-state.md:70
@@ -2518,8 +2498,7 @@ msgid ""
 " state of the algorithm, and after the call, the state of the algorithm "
 "is automatically merged back into the state of the workflow."
 msgstr ""
-"请注意，当调用 step 方法时，state 是工作流的状态，但是当调用 "
-"self.algorithm.ask 时，state "
+"请注意，当调用 step 方法时，state 是工作流的状态，但是当调用 self.algorithm.ask 时，state "
 "的行为就像是算法的状态，调用之后，算法的状态会自动合并回工作流的状态。"
 
 #: ../../source/guide/advanced/2-jit-able.md:1
@@ -2536,34 +2515,37 @@ msgid ""
 "jit-compile one function, then all other functions used within this "
 "function must also be jit-compiled."
 msgstr ""
-"在 JAX 中，跳出一个 JIT 编译的函数是困难的，这意味着如果你 JIT "
-"编译了一个函数，那么在这个函数内部使用的所有其他函数也必须被 JIT 编译。"
+"在 JAX 中，跳出一个 JIT 编译的函数是困难的，这意味着如果你 JIT 编译了一个函数，那么在这个函数内部使用的所有其他函数也必须被 JIT"
+" 编译。"
 
 #: ../../source/guide/advanced/2-jit-able.md:8
-msgid "For example, the follow code will result in compilation error"
+#, fuzzy
+msgid "For example, the following code will result in a compilation error."
 msgstr "例如，下面的代码将导致编译错误"
 
 #: ../../source/guide/advanced/2-jit-able.md:19
+#, fuzzy
 msgid ""
 "Even though `bar` is not marked with `jax.jit`, it is still compiled as "
-"`foo` calls `bar`. And since bar uses dynamic index, which is not "
+"`foo` calls `bar`. And since `bar` uses the dynamic index, which is not "
 "compatible with `jax.jit`, an error will occur."
 msgstr ""
-"尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 "
-"bar 使用了动态索引，这与 jax.jit 不兼容，因此会发生错误。"
+"尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 bar 使用了动态索引，这与 jax.jit "
+"不兼容，因此会发生错误。"
 
 #: ../../source/guide/advanced/2-jit-able.md:22
 msgid "Solution"
 msgstr "解决方案"
 
 #: ../../source/guide/advanced/2-jit-able.md:24
+#, fuzzy
 msgid ""
-"To solve is problem, it is common practice to jit-compile low level "
-"components, thus give high level components more freedom. In EvoX, we "
+"To solve is problem, it is common practice to jit-compile low-level "
+"components, thus giving high-level components more freedom. In EvoX, we "
 "have some general rules on whether a function should be jit-able or not."
 msgstr ""
-"为了解决这个问题，通常的做法是 JIT 编译低层组件，从而给高层组件更多的自由。"
-"在 EvoX 中，我们有一些关于函数是否应该是可 JIT 编译的通用规则。"
+"为了解决这个问题，通常的做法是 JIT 编译低层组件，从而给高层组件更多的自由。在 EvoX 中，我们有一些关于函数是否应该是可 JIT "
+"编译的通用规则。"
 
 #: ../../source/guide/advanced/2-jit-able.md
 msgid "Component"
@@ -2631,28 +2613,28 @@ msgid "The Algorithm Class"
 msgstr "算法类"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:13
+#, fuzzy
 msgid ""
-"The {class}`Algorithm <evox.Algorithm>` class is inherented from "
-"{class}`Stateful <evox.Stateful>`. Besides the things in `Stateful`, your"
-" should also implement a `ask` and a `tell` method. In total, there are "
-"four methods one need to implement."
+"The {class}`Algorithm <evox.Algorithm>` class is inherited from "
+"{class}`Stateful <evox.Stateful>`. Besides the things in `Stateful`, you "
+"should also implement an `ask` and a `tell` method. In total, there are "
+"four methods one needs to implement."
 msgstr ""
-"{class}Algorithm <evox.Algorithm> 类继承自 {class}Stateful <evox.Stateful>。"
-"除了 Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell "
-"方法。总共有四个方法需要实现。"
+"{class}Algorithm <evox.Algorithm> 类继承自 {class}Stateful <evox.Stateful>。除了"
+" Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell 方法。总共有四个方法需要实现。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:88
 msgid "Method"
 msgstr "方法"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:88
 msgid "Signature"
 msgstr "签名"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:89
+#: ../../source/guide/advanced/3-custom-alg-pro.md:88
 msgid "Usage"
 msgstr "使用情况"
 
@@ -2671,7 +2653,7 @@ msgid ""
 msgstr "初始化在整个优化过程中固定的超参数，例如，`population size`。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:92
 msgid "setup"
 msgstr "设置"
 
@@ -2731,13 +2713,15 @@ msgstr "接收初始种群的适应度并更新算法的状态。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:26
 #: ../../source/guide/advanced/3-custom-alg-pro.md:81
-msgid "Migrate from traditional EC library"
+#, fuzzy
+msgid "Migrate from traditional EC libraries"
 msgstr "迁移自传统的EC库"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:28
+#, fuzzy
 msgid ""
-"In traditional EC library, algorithm usually calls the objective function"
-" internally, which gives the following layout"
+"In a traditional EC library, algorithms usually call the objective "
+"function internally, which gives the following layout"
 msgstr "在传统的EC库中，算法通常在内部调用目标函数，其布局如下"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:36
@@ -2749,7 +2733,8 @@ msgid "Here is a pseudocode of a genetic algorithm."
 msgstr "这是一个遗传算法的伪代码。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:57
-msgid "And Here is what each part of the algorithm correspond to in EvoX."
+#, fuzzy
+msgid "And here is what each part of the algorithm corresponds to in EvoX."
 msgstr "这里是算法的每个部分在 EvoX 中对应的内容。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:77
@@ -2757,125 +2742,124 @@ msgid "The Problem Class"
 msgstr "问题类"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:79
+#, fuzzy
 msgid ""
 "The Problem class is quite simple, beside `__init__` and `setup`, the "
-"only required the method is `evaluate`."
-msgstr "`Problem` 类相当简单，除了 `__init__` 和 `setup`，唯一必需的方法是 "
-"`evaluate`。"
+"only required method is `evaluate``."
+msgstr "`Problem` 类相当简单，除了 `__init__` 和 `setup`，唯一必需的方法是 `evaluate`。"
 
 #: ../../source/guide/advanced/3-custom-alg-pro.md:83
+#, fuzzy
 msgid ""
 "There is one thing to notice here, `evaluate` is a stateful function, "
 "meaning it should accept a state and return a new state. So, if you are "
-"working with numerical benchmark functions, which don't need to "
-"statefule, you can simply ignore the state, but remember that you still "
+"working with numerical benchmark functions, which don't need to be "
+"stateful, you can simply ignore the state, but remember that you still "
 "have to use this stateful interface."
 msgstr ""
-"这里有一点需要注意，`evaluate` 是一个有状态的函数，这意味着它应该接受一个状态"
-"并返回一个新状态。所以，如果你正在处理不需要有状态的数值基准函数，你可以简单"
-"地忽略状态，但请记住，你仍然需要使用这个有状态的接口。"
+"这里有一点需要注意，`evaluate` "
+"是一个有状态的函数，这意味着它应该接受一个状态并返回一个新状态。所以，如果你正在处理不需要有状态的数值基准函数，你可以简单地忽略状态，但请记住，你仍然需要使用这个有状态的接口。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:90
 msgid "__init__"
 msgstr "__init__"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:90
 msgid ":python:`(self, ...)`"
 msgstr ":python:`(self, ...)`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:91
+#: ../../source/guide/advanced/3-custom-alg-pro.md:90
 msgid "Initialize the settings of the problem."
 msgstr "为问题初始化设置。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:92
 msgid ":python:`(self, RRNGKey) -> State`"
 msgstr ":python:`(self, RRNGKey) -> State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:93
+#: ../../source/guide/advanced/3-custom-alg-pro.md:92
 msgid "Initialize mutable state of this problem."
 msgstr "初始化这个问题的可变状态。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:95
+#: ../../source/guide/advanced/3-custom-alg-pro.md:94
 msgid "evaluate"
 msgstr "评估"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:95
+#: ../../source/guide/advanced/3-custom-alg-pro.md:94
 msgid ":python:`(self, State, Array) -> Array, State`"
 msgstr ":python:`(self, State, Array) -> Array, State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:95
+#: ../../source/guide/advanced/3-custom-alg-pro.md:94
 msgid "Evaluate the fitness of the given candidate solution."
 msgstr "评估给定候选解的适应度。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:99
+#: ../../source/guide/advanced/3-custom-alg-pro.md:98
 msgid "More on the problem's state"
 msgstr "关于问题的状态的更多信息"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:101
+#: ../../source/guide/advanced/3-custom-alg-pro.md:100
+#, fuzzy
 msgid ""
-"If you still wonders what the problem's state actually do, here are the "
+"If you still wonder what the problem's state actually does, here are the "
 "explanations."
 msgstr "如果您仍然想知道问题的状态实际上是做什么的，以下是解释。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:103
+#: ../../source/guide/advanced/3-custom-alg-pro.md:102
+#, fuzzy
 msgid ""
-"Unlike numerical benchmark functions, real-life problems are more "
-"complex, and may require stateful computations. Here are some examples:"
-msgstr "与数值基准函数不同，现实生活中的问题更加复杂，可能需要有状态的计算。以下是一"
-"些例子："
+"Unlike numerical benchmark functions, real-life problems are more complex"
+" and may require stateful computations. Here are some examples:"
+msgstr "与数值基准函数不同，现实生活中的问题更加复杂，可能需要有状态的计算。以下是一些例子："
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:106
+#: ../../source/guide/advanced/3-custom-alg-pro.md:105
+#, fuzzy
 msgid ""
-"When dealing with ANN training, we often have training, validation and "
-"testing phase. This implies that the same solution could have different "
-"fitness values during different phases. So clearly, we can't model the "
-"`evaluate` as a stateless pure function any more. To implement this "
-"mechanism, simple put an value in the state to indicate the phase."
-msgstr ""
-"在处理人工神经网络(ANN)训练时，我们通常有训练、验证和测试阶段。这意味着同一个"
-"解决方案在不同阶段可能有不同的适应度值。因此，显然我们不能再将`evaluate`建模"
-"为一个无状态的纯函数。要实现这种机制，只需在状态中放置一个值来指示阶段。"
+"When dealing with ANN training, we often have the training, validation "
+"and testing phases. This implies that the same solution could have "
+"different fitness values during different phases. So clearly, we can't "
+"model the `evaluate` as a stateless pure function anymore. To implement "
+"this mechanism, simply put a value in the state to indicate the phase."
+msgstr "在处理人工神经网络(ANN)训练时，我们通常有训练、验证和测试阶段。这意味着同一个解决方案在不同阶段可能有不同的适应度值。因此，显然我们不能再将`evaluate`建模为一个无状态的纯函数。要实现这种机制，只需在状态中放置一个值来指示阶段。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:110
+#: ../../source/guide/advanced/3-custom-alg-pro.md:109
+#, fuzzy
 msgid ""
-"Virtual batch norm is a effective trick especially when dealing with RL "
+"Virtual batch norm is an effective trick especially when dealing with RL "
 "tasks. To implement this mechanism, the problem must be stateful, as the "
-"problem have to remember the initial batch norm parameters during the "
+"problem has to remember the initial batch norm parameters during the "
 "first run."
-msgstr ""
-"虚拟批量归一化是一个有效的技巧，特别是在处理强化学习(RL)任务时。要实现这种机"
-"制，问题必须是有状态的，因为问题需要记住第一次运行时的初始批量归一化参数。"
+msgstr "虚拟批量归一化是一个有效的技巧，特别是在处理强化学习(RL)任务时。要实现这种机制，问题必须是有状态的，因为问题需要记住第一次运行时的初始批量归一化参数。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:114
+#: ../../source/guide/advanced/3-custom-alg-pro.md:113
 msgid "Example"
 msgstr "样例"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:116
+#: ../../source/guide/advanced/3-custom-alg-pro.md:115
+#, fuzzy
 msgid ""
-"Here we give an exmaple of implementing the OneMax problem, along with a "
+"Here we give an example of implementing the OneMax problem, along with a "
 "genetic algorithm that solves this problem. The problem itself is "
-"straight forward, the fitness is defined as the sum of every digits in a "
+"straightforward, the fitness is defined as the sum of every digit in a "
 "fixed-length bitstring. For example, \"100111\" gives 4 and \"000101\" "
 "gives 2."
 msgstr ""
-"这里我们给出了一个实现 OneMax 问题的例子，以及解决这个问题的遗传算法。这个问"
-"题本身很直接，适应度定义为固定长度比特串中每个数字的总和。例如，\"100111\" "
-"的适应度是 4，而 \"000101\" 的适应度是 2。"
+"这里我们给出了一个实现 OneMax "
+"问题的例子，以及解决这个问题的遗传算法。这个问题本身很直接，适应度定义为固定长度比特串中每个数字的总和。例如，\"100111\" 的适应度是 "
+"4，而 \"000101\" 的适应度是 2。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:120
+#: ../../source/guide/advanced/3-custom-alg-pro.md:119
+#, fuzzy
 msgid ""
-"Let's starts with implementing the OneMax problem. In JAX a bitstring can"
-" be easily represented with a tensor of type bool."
-msgstr "让我们从实现 OneMax 问题开始。在 JAX "
-"中，比特串可以很容易地用布尔类型的张量来表示。"
+"Let's start with implementing the OneMax problem. In JAX a bitstring can "
+"be easily represented with a tensor of type bool."
+msgstr "让我们从实现 OneMax 问题开始。在 JAX 中，比特串可以很容易地用布尔类型的张量来表示。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:145
+#: ../../source/guide/advanced/3-custom-alg-pro.md:144
 msgid ""
 "Then we implement a genetic algorithm that uses bitflip mutation and one-"
 "point crossover."
 msgstr "然后我们实现了一个遗传算法，使用位翻转变异和单点交叉。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:205
+#: ../../source/guide/advanced/3-custom-alg-pro.md:204
 msgid "Now, you can assemble a workflow and run it."
 msgstr "现在你可以组合出一个workflow并运行。"
 
@@ -2884,32 +2868,31 @@ msgid "Container Algorithms"
 msgstr "容器算法"
 
 #: ../../source/guide/advanced/4-container.md:3
+#, fuzzy
 msgid ""
-"Container algorithms are a special type of algorithms that works by "
-"containing other algorithms and cannot work on its own. Container "
+"Container algorithms are a special type of algorithms that work by "
+"containing other algorithms and cannot work on their own. Container "
 "algorithms can be used to compose a series of normal algorithms together."
-msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法"
-"可以用来将一系列普通算法组合在一起。"
+msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法可以用来将一系列普通算法组合在一起。"
 
 #: ../../source/guide/advanced/4-container.md:6
 msgid "Working with expensive algorithms"
 msgstr "处理高成本算法"
 
 #: ../../source/guide/advanced/4-container.md:8
+#, fuzzy
 msgid ""
-"Many algorithms are expensive in term of space or time. For example, CMA-"
-"ES requires $O(N^2)$ space. Thus, it is costly to run CMA-ES on high-"
-"dimension problems. Sep-CMA-ES scales better, but sacrifice the "
-"performance. That's where container algorithm comes in. With it, we can "
-"easily construct a variant of CMA-ES that uses $O((\\frac{N}{M})^2)$ "
-"space, where $M$ is the number of block. This variant is a balance "
+"Many algorithms are expensive in terms of space or time. For example, "
+"CMA-ES requires $O(N^2)$ space. Thus, it is costly to run CMA-ES on high-"
+"dimension problems. Sep-CMA-ES scales better but sacrifices the "
+"performance. That's where the container algorithm comes in. With it, we "
+"can easily construct a variant of CMA-ES that uses $O((\\frac{N}{M})^2)$ "
+"space, where $M$ is the number of blocks. This variant is a balance "
 "between the normal CMA-ES and Sep-CMA-ES."
 msgstr ""
-"许多算法在空间或时间方面的成本都很高。例如，CMA-ES需要$O(N^2)$的空间。因此"
-"，在高维问题上运行CMA-ES的成本很高。Sep-CMA-ES的扩展性更好，但牺牲了性能。这"
-"就是容器算法的用武之地。有了它，我们可以轻松构建一个使用$O((\\frac{N}{M})^2"
-")$空间的CMA-ES变体，其中$M$是块的数量。这种变体是普通CMA-ES和Sep-CMA-"
-"ES之间的平衡。"
+"许多算法在空间或时间方面的成本都很高。例如，CMA-ES需要$O(N^2)$的空间。因此，在高维问题上运行CMA-ES的成本很高。Sep-CMA-"
+"ES的扩展性更好，但牺牲了性能。这就是容器算法的用武之地。有了它，我们可以轻松构建一个使用$O((\\frac{N}{M})^2)$空间的CMA-"
+"ES变体，其中$M$是块的数量。这种变体是普通CMA-ES和Sep-CMA-ES之间的平衡。"
 
 #: ../../source/guide/advanced/4-container.md:15
 msgid "Working with PyTree"
@@ -2920,8 +2903,7 @@ msgid ""
 "Usually, algorithms expect the decision variables to be in the form of a "
 "1D-vector. PyTrees are tree-like structures that are not directly "
 "compatible with normal algorithms. So, there are two solutions out there:"
-msgstr "一般来说，算法期望决策变量以一维形式呈现。但是Pytrees是树类结构不能直接与常见"
-"的算法兼容。所以这里有两种解决方法："
+msgstr "一般来说，算法期望决策变量以一维形式呈现。但是Pytrees是树类结构不能直接与常见的算法兼容。所以这里有两种解决方法："
 
 #: ../../source/guide/advanced/4-container.md:21
 msgid "Flatten the PyTree to 1D-vector."
@@ -2938,29 +2920,25 @@ msgid ""
 "advantage is that the structural information is preserved, meaning the "
 "algorithm could see the tree structure and apply some type of heuristic "
 "here."
-msgstr ""
-"在EvoX中方法1被命名为adapter并且非常简单，这里不再进行赘述。方法2更为复杂，但"
-"是保留原本的信息结构是他的一个优点，这意味着算法可以知道树的结构并且在此使用"
-"某种类型的启发式算法。"
+msgstr "在EvoX中方法1被命名为adapter并且非常简单，这里不再进行赘述。方法2更为复杂，但是保留原本的信息结构是他的一个优点，这意味着算法可以知道树的结构并且在此使用某种类型的启发式算法。"
 
 #: ../../source/guide/advanced/4-container.md:30
+#, fuzzy
 msgid ""
 "We offer Cooperative Coevolution (CC) framework for all algorithms. "
 "Currently, there are two types of CC container in EvoX, "
 "{class}`evox.algorithms.Coevolution` and "
 "{class}`evox.algorithms.VectorizedCoevolution`. The difference is that "
-"`VectorizedCoevolution` update all sub-populations at the same time in "
-"each iteration, but `Coevolution` follows traditional approach that "
-"update a single sub-populations at each iteration. Thus "
+"`VectorizedCoevolution` updates all sub-populations at the same time in "
+"each iteration, but `Coevolution` follows the traditional approach that "
+"updates a single sub-populations at each iteration. Thus "
 "`VectorizedCoevolution` is faster, but `Coevolution` could be better in "
 "terms of best fitness with a limited number of evaluations."
 msgstr ""
-"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，"
-"分别是{class}`evox.algorithms.Coevolution` 和 {class}`evox.algorithms.Vectori"
-"zedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更新所"
-"有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`VectorizedC"
-"oevolution` "
-"更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
+"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，分别是{class}`evox.algorithms.Coevolution`"
+" 和 "
+"{class}`evox.algorithms.VectorizedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更新所有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`VectorizedCoevolution`"
+" 更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
 
 #: ../../source/guide/advanced/index.md:1
 msgid "Advanced Tutorial"
@@ -2970,7 +2948,7 @@ msgstr "进阶教程"
 msgid "Quick Start"
 msgstr "快速开始"
 
-#: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:36
+#: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:37
 msgid ""
 "EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
 " computation."
@@ -2991,25 +2969,23 @@ msgid ""
 " and [List of "
 "Problems](https://evox.readthedocs.io/en/latest/api/problems/index.html)."
 msgstr ""
-"有关更详细的列表，请参阅我们的 API 文档。[算法列表](https://evox.readthedocs."
-"io/en/latest/api/algorithms/index.html) 和 [问题列表](https://evox."
-"readthedocs.io/en/latest/api/problems/index.html)。"
+"有关更详细的列表，请参阅我们的 API "
+"文档。[算法列表](https://evox.readthedocs.io/en/latest/api/algorithms/index.html)"
+" 和 [问题列表](https://evox.readthedocs.io/en/latest/api/problems/index.html)。"
 
 #: ../../source/guide/basics/1-start.ipynb:70002
 msgid ""
 "Now we want to run the algorithm against the problem. To accomplish this,"
 " we need to create a `workflow` which represents the overall process of "
 "evolutionary computation."
-msgstr "现在我们想要运行针对问题的算法。为了实现这一点，我们需要创建一个代表进化计算"
-"整体过程的`workflow`。"
+msgstr "现在我们想要运行针对问题的算法。为了实现这一点，我们需要创建一个代表进化计算整体过程的`workflow`。"
 
 #: ../../source/guide/basics/1-start.ipynb:90002
 msgid ""
 "Since we adopt the functional programming paradigm. We must explicitly "
 "initialize and use the state of a module. To initialize, call `init` with"
 " a pseudorandom number generators key (PRNGKey)."
-msgstr "由于我们采用了函数式编程范式。我们必须显式地初始化并使用模块的状态。要进行初"
-"始化，使用伪随机数生成器的键（PRNGKey）调用`init`。"
+msgstr "由于我们采用了函数式编程范式。我们必须显式地初始化并使用模块的状态。要进行初始化，使用伪随机数生成器的键（PRNGKey）调用`init`。"
 
 #: ../../source/guide/basics/1-start.ipynb:110002
 msgid ""
@@ -3018,8 +2994,8 @@ msgid ""
 "`population` in an algorithm is part of the `state`, because it will be "
 "changing across iterations."
 msgstr ""
-"`state`代表整个工作流中的可变变量，包括算法和问题内部的变量。例如，算法中的`p"
-"opulation`（种群）是 state 的一部分，因为它会在迭代过程中发生变化。"
+"`state`代表整个工作流中的可变变量，包括算法和问题内部的变量。例如，算法中的`population`（种群）是 state "
+"的一部分，因为它会在迭代过程中发生变化。"
 
 #: ../../source/guide/basics/1-start.ipynb:120002
 msgid "Now, call `step` on the workflow to execute one iteration."
@@ -3034,27 +3010,21 @@ msgid ""
 "Notice that we are passing `state` as an argument of `step` and it "
 "returns a new `state`. This is exactly how the stateful computation works"
 " in functional programming."
-msgstr ""
-"请注意，我们将 `state` 作为 `step` 的一个参数传递，并且它返回一个新的 "
-"`state`。这正是函数式编程中有状态计算的工作方式。"
+msgstr "请注意，我们将 `state` 作为 `step` 的一个参数传递，并且它返回一个新的 `state`。这正是函数式编程中有状态计算的工作方式。"
 
 #: ../../source/guide/basics/1-start.ipynb:170002
 msgid ""
 "And you may also notice that the `step` doesn't give any feedback, like "
 "the result of the optimization. This is because we are missing another "
 "component in our workflow. Introducing `monitor`."
-msgstr ""
-"你可能还会注意到，`step` "
-"并没有提供任何反馈，比如优化的结果。这是因为我们的工作流中缺少另一个组件。"
-"这里介绍 `monitor`（监视器）。"
+msgstr "你可能还会注意到，`step` 并没有提供任何反馈，比如优化的结果。这是因为我们的工作流中缺少另一个组件。这里介绍 `monitor`（监视器）。"
 
 #: ../../source/guide/basics/1-start.ipynb:180004
 msgid ""
 "Monitor is a standard way to monitor the intermediate values inside a "
 "optimization process. Information like fitness or population can be "
 "easily obtained by the monitor."
-msgstr "监视器是监控优化过程中中间值的标准方法。像适应度或种群这样的信息可以通过监视"
-"器轻松获得。"
+msgstr "监视器是监控优化过程中中间值的标准方法。像适应度或种群这样的信息可以通过监视器轻松获得。"
 
 #: ../../source/guide/basics/1-start.ipynb:190002
 msgid "Now, create a \"Standard single-objective monitor\""
@@ -3111,8 +3081,7 @@ msgid ""
 "workflow as before. This deterministic behavior in EvoX allows others to "
 "easily reproduce your results."
 msgstr ""
-"另外，请注意最佳适应度与上次相同。"
-"这是因为我们在初始化工作流程时使用了与之前相同的 "
+"另外，请注意最佳适应度与上次相同。这是因为我们在初始化工作流程时使用了与之前相同的 "
 "`key`。EvoX中的这种确定性行为使其他人可以轻松复现你的结果。"
 
 #: ../../source/guide/basics/2-problems.ipynb:10002
@@ -3142,8 +3111,7 @@ msgid ""
 "To begin with we will be using Brax, a GPU accelerated physical engine "
 "that is also written in JAX. Since Brax is also using JAX, running EvoX "
 "with Brax is quite easy."
-msgstr "首先，我们将使用Brax，这是一个用JAX编写的GPU加速物理引擎。由于Brax也使用JAX，"
-"因此将EvoX与Brax一起运行相当容易。"
+msgstr "首先，我们将使用Brax，这是一个用JAX编写的GPU加速物理引擎。由于Brax也使用JAX，因此将EvoX与Brax一起运行相当容易。"
 
 #: ../../source/guide/basics/2-problems.ipynb:50007
 msgid "We will be demostrating using the \"swimmer\" environment in Brax."
@@ -3154,25 +3122,21 @@ msgid ""
 "First we will need to decide how we are going to evolve a neural network."
 " In this case, we will be using a fixed-size ANN, and only evolve it's "
 "weights."
-msgstr "首先，我们需要决定如何进化神经网络。在这种情况下，我们将使用固定大小的人工神"
-"经网络（ANN），并仅进化其权重。"
+msgstr "首先，我们需要决定如何进化神经网络。在这种情况下，我们将使用固定大小的人工神经网络（ANN），并仅进化其权重。"
 
 #: ../../source/guide/basics/2-problems.ipynb:90002
 msgid ""
 "However, if we check the weights for this network, we will see that it's "
 "group of parameter sets, and EC algorithms cannot directly work with data"
 " in this format."
-msgstr "然而，如果我们检查这个网络的权重，我们会发现它是一组参数集，而进化计算（EC）"
-"算法无法直接处理这种格式的数据。"
+msgstr "然而，如果我们检查这个网络的权重，我们会发现它是一组参数集，而进化计算（EC）算法无法直接处理这种格式的数据。"
 
 #: ../../source/guide/basics/2-problems.ipynb:90005
 msgid ""
 "Thankfully, EvoX provides some useful utilities to help us bridge the "
 "gap, and in this case, we have `TreeAndVector` to help us convert a tree-"
 "like struct into a vector and back."
-msgstr ""
-"幸运的是，EvoX提供了一些有用的工具来帮助我们弥合这一差距，在这种情况下，我们"
-"有`TreeAndVector`来帮助我们将树状结构转换成向量，然后再转换回来。"
+msgstr "幸运的是，EvoX提供了一些有用的工具来帮助我们弥合这一差距，在这种情况下，我们有`TreeAndVector`来帮助我们将树状结构转换成向量，然后再转换回来。"
 
 #: ../../source/guide/basics/2-problems.ipynb:110002
 msgid "Now, `adapter` can help us convert the data back-and-forth."
@@ -3207,16 +3171,14 @@ msgid ""
 "Now create brax-based problem. The `batch_size` defines how many "
 "environment in a single batch,  and `cap_episode` controls when to "
 "truncate the episode."
-msgstr "现在创建基于Brax的问题。`batch_size` 定义了单个批次中有多少个环境，而 "
-"`cap_episode` 控制了何时截断一个情节。"
+msgstr "现在创建基于Brax的问题。`batch_size` 定义了单个批次中有多少个环境，而 `cap_episode` 控制了何时截断一个情节。"
 
 #: ../../source/guide/basics/2-problems.ipynb:150006
 msgid ""
 "In this case, we set `batch_size` to 4096, which is the same as our "
 "population size. This means the whole population will be evaluated in a "
 "single pass!"
-msgstr "在这种情况下，我们将 `batch_size` "
-"设置为4096，这与我们的种群大小相同。这意味着整个种群将在一次传递中被评估！"
+msgstr "在这种情况下，我们将 `batch_size` 设置为4096，这与我们的种群大小相同。这意味着整个种群将在一次传递中被评估！"
 
 #: ../../source/guide/basics/2-problems.ipynb:170002
 msgid "Assemble our workflow and fire it!"
@@ -3246,8 +3208,7 @@ msgstr "RayDistributedWorkflow"
 msgid ""
 "RayDistributedWorkflow is built upon Ray. It can be used on any ray "
 "cluster. The Ray cluster should be setup before running the EvoX program."
-msgstr "RayDistributedWorkflow是基于Ray构建的。它可以在任何Ray集群上使用。在运行EvoX"
-"程序之前，应该先设置Ray集群。"
+msgstr "RayDistributedWorkflow是基于Ray构建的。它可以在任何Ray集群上使用。在运行EvoX程序之前，应该先设置Ray集群。"
 
 #: ../../source/guide/basics/3-distributed.md:9
 msgid "Setup Ray cluster"
@@ -3260,8 +3221,8 @@ msgid ""
 "documentation](https://docs.ray.io/en/latest/cluster/getting-"
 "started.html) for guide on setting up an Ray cluster."
 msgstr ""
-"请参考Ray的官方文档(https://docs.ray.io/en/latest/cluster/getting-started."
-"html)来获取关于设置Ray集群的指南。"
+"请参考Ray的官方文档(https://docs.ray.io/en/latest/cluster/getting-"
+"started.html)来获取关于设置Ray集群的指南。"
 
 #: ../../source/guide/basics/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
@@ -3280,8 +3241,7 @@ msgstr "在工作节点上"
 msgid ""
 "If you only have 1 machine, but multiple devices, then there is nothing "
 "needs to be done. Ray will setup itself in this case."
-msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进"
-"行配置。"
+msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进行配置。"
 
 #: ../../source/guide/basics/3-distributed.md:26
 #: ../../source/guide/basics/3-distributed.md:72
@@ -3295,8 +3255,8 @@ msgid ""
 "{class}`RayDistributedWorkflow <evox.workflows.RayDistributedWorkflow>` "
 "instead of StdWorkflow."
 msgstr ""
-"要通过Ray使用多台机器扩展工作流，请使用RayDistributedWorkflow <evox.workflows"
-".RayDistributedWorkflow>类替代标准工作流StdWorkflow。"
+"要通过Ray使用多台机器扩展工作流，请使用RayDistributedWorkflow "
+"<evox.workflows.RayDistributedWorkflow>类替代标准工作流StdWorkflow。"
 
 #: ../../source/guide/basics/3-distributed.md:30
 msgid "First, import `workflows` from evox"
@@ -3317,8 +3277,8 @@ msgid ""
 "approach that allows for the utilization of multiple devices across "
 "different machines."
 msgstr ""
-"`RayDistributedWorkflow`同样运用 `workflow.step`函数来执行迭代过程。然而，在"
-"底层实现上，它采用了一种独特的方法，能够跨多台机器利用多个设备。"
+"`RayDistributedWorkflow`同样运用 "
+"`workflow.step`函数来执行迭代过程。然而，在底层实现上，它采用了一种独特的方法，能够跨多台机器利用多个设备。"
 
 #: ../../source/guide/basics/3-distributed.md:60
 #, python-format
@@ -3331,10 +3291,8 @@ msgid ""
 "documentation](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)"
 " on this matter."
 msgstr ""
-"建议设置环境变量XLA_PYTHON_CLIENT_PREALLOCATE=false。默认情况下，JAX会预先分"
-"配设备内存的80%。此变量用于禁用GPU内存预分配，否则运行多个JAX进程可能会导致内"
-"存不足（OOM）。有关此事项的更多信息，请参考JAX的文档(https://jax.readthedocs."
-"io/en/latest/gpu_memory_allocation.html) 。"
+"建议设置环境变量XLA_PYTHON_CLIENT_PREALLOCATE=false。默认情况下，JAX会预先分配设备内存的80%。此变量用于禁用GPU内存预分配，否则运行多个JAX进程可能会导致内存不足（OOM）。有关此事项的更多信息，请参考JAX的文档(https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)"
+" 。"
 
 #: ../../source/guide/basics/3-distributed.md:66
 msgid "UniWorkflow"
@@ -3347,17 +3305,15 @@ msgid ""
 " written in pure JAX, it has less overhead and don't need any additional "
 "dependencies."
 msgstr ""
-"\"UniWorkflow\"是“Universal Workflow”的缩写，其目的是使用纯JAX构建一个适应任"
-"何需求的工作流。由于UniWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外"
-"的依赖。"
+"\"UniWorkflow\"是“Universal "
+"Workflow”的缩写，其目的是使用纯JAX构建一个适应任何需求的工作流。由于UniWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外的依赖。"
 
 #: ../../source/guide/basics/3-distributed.md:74
 #, fuzzy
 msgid ""
 "Use `UniWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
-msgstr "使用'UniWorkflow'创建一个工作流然后使用'enable_distributed'并且传入相应状态来"
-"启用此功能。"
+msgstr "使用'UniWorkflow'创建一个工作流然后使用'enable_distributed'并且传入相应状态来启用此功能。"
 
 #: ../../source/guide/basics/3-distributed.md:90
 msgid ""
@@ -3370,9 +3326,7 @@ msgid ""
 "In this system, the `coordinator` serves as the primary or head node. The"
 " total number of participating processes is indicated by `num_process`. "
 "The process with `process_id=0` acts as the coordinator."
-msgstr ""
-"在这个系统中，“coordinator”（协调器）充当主节点或头节点的角色。参与进程的总数"
-"由num_process指示。具有process_id=0的进程充当协调器。"
+msgstr "在这个系统中，“coordinator”（协调器）充当主节点或头节点的角色。参与进程的总数由num_process指示。具有process_id=0的进程充当协调器。"
 
 #: ../../source/guide/basics/3-distributed.md:98
 msgid ""
@@ -3380,11 +3334,7 @@ msgid ""
 "[jax.distributed.initialize](https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)"
 " and [Using JAX in multi-host and multi-process "
 "environments](https://jax.readthedocs.io/en/latest/multi_process.html)."
-msgstr ""
-"有关更多信息，请参考jax.distributed.initialize(https://jax.readthedocs.io/en/"
-"latest/_autosummary/jax.distributed.initialize."
-"html)和在多主机和多进程环境中使用JAX的文档(https://jax.readthedocs.io/en/"
-"latest/multi_process.html)。"
+msgstr "有关更多信息，请参考jax.distributed.initialize(https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)和在多主机和多进程环境中使用JAX的文档(https://jax.readthedocs.io/en/latest/multi_process.html)。"
 
 #: ../../source/guide/basics/3-distributed.md:100
 #, fuzzy
@@ -3401,12 +3351,7 @@ msgid ""
 "program is named `main.py`, you should execute the following command on "
 "all participating machines with different `process_id` argument in "
 "`jax.distributed.initialize`:"
-msgstr ""
-"不同于Ray，JAX没有集群或调度器的概念。相反，它提供了工具来实现多个JAX实例之间"
-"的分布式交互。JAX遵循SPMD（单程序多数据）范式。要在JAX中启动一个分布式程序，"
-"你只需在不同的机器上运行相同的脚本。例如，如果你的程序名为main."
-"py，你应该在所有参与的机器上执行以下命令，并在jax.distributed."
-"initialize中为不同的机器设置不同的process_id参数："
+msgstr "不同于Ray，JAX没有集群或调度器的概念。相反，它提供了工具来实现多个JAX实例之间的分布式交互。JAX遵循SPMD（单程序多数据）范式。要在JAX中启动一个分布式程序，你只需在不同的机器上运行相同的脚本。例如，如果你的程序名为main.py，你应该在所有参与的机器上执行以下命令，并在jax.distributed.initialize中为不同的机器设置不同的process_id参数："
 
 #: ../../source/guide/basics/3-distributed.md:110
 msgid ""
@@ -3419,8 +3364,7 @@ msgstr "为了在参数中包含process_id，可以使用argparse库从命令行
 msgid ""
 "Then call `python main.py 0` on the first machine, `python main 1` on the"
 " second machine and so on."
-msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py "
-"1'，依此类推。"
+msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py 1'，依此类推。"
 
 #: ../../source/guide/basics/index.md:1
 msgid "Getting Started"
@@ -3611,9 +3555,7 @@ msgid ""
 "installed on the host system, rendering any effort within the container "
 "(e.g. docker, singularity) meaningless. Thus only the administrator can "
 "solve this problem."
-msgstr ""
-"如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿"
-"主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
+msgstr "如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
 
 #: ../../source/guide/install.md:148
 msgid "Install CUDA libraries"
@@ -3666,14 +3608,65 @@ msgstr ""
 "版本也可能低于 jaxlib 要求的版本（小版本号不够）。 在这种情况下，请尝试安装 jax[cuda11]。"
 
 #: ../../source/guide/install.md:218
+msgid "AMD GPU (ROCM)"
+msgstr ""
+
+#: ../../source/guide/install.md:220
+msgid ""
+"Despite being considered experimental, installing AMD GPUs for ROCm is "
+"surprisingly straightforward thanks to their open-source drivers. "
+"However, currently only a limited number of GPUs are supported, notably "
+"the Radeon RX 7900XTX and Radeon PRO W7900 for consumer-grade GPUs. Note "
+"that Windows is not currently supported."
+msgstr ""
+
+#: ../../source/guide/install.md:222
+#, fuzzy
+msgid "Install GPU driver"
+msgstr "安装教程"
+
+#: ../../source/guide/install.md:224
+msgid ""
+"Since the AMD driver is open-source, installation is simplified: simply "
+"install mesa through your Linux distribution's package manager. In many "
+"cases, the driver may already be pre-installed."
+msgstr ""
+
+#: ../../source/guide/install.md:226
+msgid "To verify that the driver is installed, run the following command:"
+msgstr ""
+
+#: ../../source/guide/install.md:232
+msgid "And you should see `amdgpu` in the output."
+msgstr ""
+
+#: ../../source/guide/install.md:234
+#, fuzzy
+msgid "Install ROCm"
+msgstr "安装EvoX"
+
+#: ../../source/guide/install.md:236
+msgid ""
+"The latest version of ROCm (v5.7.1 or later) may not be available in your"
+" Linux distribution's package manager. Therefore, using a containerized "
+"environment is the easiest way to get started."
+msgstr ""
+
+#: ../../source/guide/install.md:242
+msgid ""
+"Please visit [Docker Hub](https://hub.docker.com/r/rocm/jax) for further "
+"instructions."
+msgstr ""
+
+#: ../../source/guide/install.md:244
 msgid "Verify your installation"
 msgstr "验证安装是否正确"
 
-#: ../../source/guide/install.md:220
+#: ../../source/guide/install.md:246
 msgid "Open a Python terminal, and run the following:"
 msgstr "打开 Python 终端，并运行以下命令："
 
-#: ../../source/guide/install.md:228
+#: ../../source/guide/install.md:254
 msgid "Here are some possible output:"
 msgstr "这里是几种可能的输出结果："
 
@@ -3707,6 +3700,10 @@ msgstr "API文档"
 msgid "Examples"
 msgstr "示例"
 
+#: ../../source/index.md:26 ../../source/miscellaneous/index.md:1
+msgid "Miscellaneous"
+msgstr ""
+
 #: ../../source/index.md:26
 msgid "Additional Resources"
 msgstr "补充资源"
@@ -3715,7 +3712,7 @@ msgstr "补充资源"
 msgid "Welcome to EvoX's documentation!"
 msgstr "欢迎来到EvoX的文档！"
 
-#: ../../source/index.md:34
+#: ../../source/index.md:35
 #, fuzzy
 msgid ""
 "[[English Version]](https://evox.readthedocs.io/en/latest/)   "
@@ -3724,82 +3721,81 @@ msgstr ""
 "[[English Version]](https://evox.readthedocs.io/en/latest/)   "
 "[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
 
-#: ../../source/index.md:40
+#: ../../source/index.md:41
 #, fuzzy
 msgid "Key Features"
 msgstr "关键特征"
 
-#: ../../source/index.md:42
+#: ../../source/index.md:43
 msgid "🚀 **Fast Performance**:"
 msgstr "🚀 **超高性能**："
 
-#: ../../source/index.md:43
+#: ../../source/index.md:44
+#, fuzzy
 msgid ""
-"Experience **GPU-Accelerated** optimization, achieving speeds 100x faster"
-" than traditional methods."
+"Experience **GPU-Accelerated** optimization, achieving speeds over 100x "
+"faster than traditional methods."
 msgstr "体验**GPU 加速**的优化，速度比传统方法快百倍以上。"
 
-#: ../../source/index.md:44
+#: ../../source/index.md:45
 msgid ""
 "Leverage the power of {class}`Distributed Workflows "
 "<evox.workflows.RayDistributedWorkflow>` for even more rapid "
 "optimization."
-msgstr "利用'分布式工作流 <evox.workflows."
-"RayDistributedWorkflow>'的强大功能，实现更快速的优化。"
+msgstr "利用'分布式工作流 <evox.workflows.RayDistributedWorkflow>'的强大功能，实现更快速的优化。"
 
-#: ../../source/index.md:46
+#: ../../source/index.md:47
 #, fuzzy
 msgid "🌐 **Versatile Optimization Suite**:"
 msgstr "🌐 **多功能优化套件**:"
 
-#: ../../source/index.md:47
+#: ../../source/index.md:48
 msgid ""
 "Cater to all your needs with both {doc}`Single-objective "
 "<api/algorithms/so/index>` and {doc}`Multi-objective "
 "<api/algorithms/mo/index>` optimization capabilities."
 msgstr ""
-"满足您所有需求，包括{doc}单目标 <api/algorithms/so/index>和{doc}多目标 <api/"
-"algorithms/mo/index>优化功能。"
+"满足您所有需求，包括{doc}单目标 <api/algorithms/so/index>和{doc}多目标 "
+"<api/algorithms/mo/index>优化功能。"
 
-#: ../../source/index.md:48
+#: ../../source/index.md:49
 msgid ""
 "Dive into a comprehensive library of {doc}`Benchmark Problems "
 "<api/problems/numerical/index>`, ensuring robust testing and evaluation."
-msgstr "深入了解全面的{doc}基准测试问题库 <api/problems/numerical/"
-"index>，确保进行稳健的测试和评估。"
+msgstr "深入了解全面的{doc}基准测试问题库 <api/problems/numerical/index>，确保进行稳健的测试和评估。"
 
-#: ../../source/index.md:49
+#: ../../source/index.md:50
 #, fuzzy
 msgid ""
 "Explore the frontier of AI with extensive tools for {doc}`Neuroevolution "
 "<api/problems/neuroevolution/index>` tasks."
 msgstr ""
-"探索人工智能前沿领域，利用广泛的工具进行 {doc}`Neuroevolution <api/problems/"
-"neuroevolution/index>` 任务。"
+"探索人工智能前沿领域，利用广泛的工具进行 {doc}`Neuroevolution "
+"<api/problems/neuroevolution/index>` 任务。"
 
-#: ../../source/index.md:51
+#: ../../source/index.md:52
 #, fuzzy
 msgid "🛠️ **Designed for Simplicity**:"
 msgstr "🛠️ **简易性设计**:"
 
-#: ../../source/index.md:52
+#: ../../source/index.md:53
 msgid ""
 "Embrace the elegance of **Functional Programming**, simplifying complex "
 "algorithmic compositions."
 msgstr "拥抱优雅的**函数式编程**，化繁为简，轻松构建复杂算法。"
 
-#: ../../source/index.md:53
+#: ../../source/index.md:54
 msgid ""
 "Benefit from **Hierarchical State Management**, ensuring modular and "
 "clean programming."
 msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
 
-#: ../../source/index.md:56
+#: ../../source/index.md:57
 #, fuzzy
 msgid "<br></br>"
 msgstr "<br></br>"
 
-#: ../../source/index.md:63
+#: ../../source/index.md:64
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-"
@@ -3833,7 +3829,7 @@ msgstr ""
 "17c-.126 1.266-.564 2.445-1.223 "
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"> 安装教程"
 
-#: ../../source/index.md:69
+#: ../../source/index.md:70
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -3857,7 +3853,7 @@ msgstr ""
 "00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
 "8z\"></path></svg> 新手教程"
 
-#: ../../source/index.md:75
+#: ../../source/index.md:76
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
@@ -3880,25 +3876,27 @@ msgid ""
 "1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
 "11.436z\"></path></svg> Advanced Guide"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-"
-"rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 00-.584 0L.458 6.81a.75.75 0 000 "
-"1.38L4.25 9.793v3.803a2.901 2.901 0 00-1.327.757c-.579.58-.923 1.41-.923 "
-"2.43v4.5c0 ."
-"248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
-"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 2.11 "
-"0 00.21-.117A.762.762 0 008 21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 "
-"0 00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
-"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 1."
-"021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113 "
-"1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84 "
-"2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 000-1."
-"382l-11.25-4.75zM5 15c-.377 0-.745.141-1.017.413-.265.265-.483.7-.483 "
-"1.368v4.022c.299.105.797.228 1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1."
-"103-.483-1.368A1.431 1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 "
-"12 11.436z\"></path></svg> 高级指南"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 "
+"00-.584 0L.458 6.81a.75.75 0 000 1.38L4.25 9.793v3.803a2.901 2.901 0 "
+"00-1.327.757c-.579.58-.923 1.41-.923 2.43v4.5c0 "
+".248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
+"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 "
+"2.11 0 00.21-.117A.762.762 0 008 "
+"21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 0 "
+"00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
+"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 "
+"1.021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113"
+" 1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84"
+" 2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 "
+"000-1.382l-11.25-4.75zM5 15c-.377 "
+"0-.745.141-1.017.413-.265.265-.483.7-.483 1.368v4.022c.299.105.797.228 "
+"1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.431 "
+"1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
+"11.436z\"></path></svg> 高级指南"
 
-#: ../../source/index.md:85
+#: ../../source/index.md:86
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
@@ -3909,14 +3907,15 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Algorithms"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 算法"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> 算法"
 
-#: ../../source/index.md:91
+#: ../../source/index.md:92
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
@@ -3927,14 +3926,15 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Problems"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 问题"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> 问题"
 
-#: ../../source/index.md:98
+#: ../../source/index.md:99
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
@@ -3945,12 +3945,56 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Metrics"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg>指标"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg>指标"
+
+#: ../../source/miscellaneous/high_vram_usage.md:1
+msgid "High VRAM usage"
+msgstr ""
+
+#: ../../source/miscellaneous/high_vram_usage.md:3
+#, python-format
+msgid ""
+"By default, JAX will allocate 75% of the GPU memory regardless of the "
+"program you run. This preallocate is used to avoid memory fragmentation "
+"and improve performance."
+msgstr ""
+
+#: ../../source/miscellaneous/high_vram_usage.md:6
+msgid ""
+"To disable this behavior, you can use the "
+"`XLA_PYTHON_CLIENT_PREALLOCATE=false` environment variable."
+msgstr ""
+
+#: ../../source/miscellaneous/high_vram_usage.md:8
+msgid ""
+"For more information, please refer to the [JAX "
+"documentation](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)."
+msgstr ""
+
+#: ../../source/miscellaneous/selecting_gpu.md:1
+msgid "Selecting GPU"
+msgstr ""
+
+#: ../../source/miscellaneous/selecting_gpu.md:3
+msgid ""
+"To run your program on a specific GPU, you can use the "
+"`CUDA_VISIBLE_DEVICES` environment variable. For example, to run your "
+"program on the second GPU, you can use:"
+msgstr ""
+
+#: ../../source/miscellaneous/selecting_gpu.md:9
+msgid "To run your program on multiple GPUs, you can use:"
+msgstr ""
+
+#: ../../source/miscellaneous/selecting_gpu.md:15
+msgid "To disable GPU usage, you can use:"
+msgstr ""
 
 #~ msgid "EvoX's API"
 #~ msgstr "EvoX的API"
@@ -4005,3 +4049,4 @@ msgstr ""
 
 #~ msgid "{ref}`search`"
 #~ msgstr "{ref}`search`"
+
