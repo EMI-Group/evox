@@ -1,15 +1,15 @@
 # Container Algorithms
 
-Container algorithms are a special type of algorithms that works by containing other algorithms and cannot work on its own.
+Container algorithms are a special type of algorithms that work by containing other algorithms and cannot work on their own.
 Container algorithms can be used to compose a series of normal algorithms together.
 
 ## Working with expensive algorithms
 
-Many algorithms are expensive in term of space or time. For example, CMA-ES requires $O(N^2)$ space.
+Many algorithms are expensive in terms of space or time. For example, CMA-ES requires $O(N^2)$ space.
 Thus, it is costly to run CMA-ES on high-dimension problems.
-Sep-CMA-ES scales better, but sacrifice the performance.
-That's where container algorithm comes in.
-With it, we can easily construct a variant of CMA-ES that uses $O((\frac{N}{M})^2)$ space, where $M$ is the number of block.
+Sep-CMA-ES scales better but sacrifices the performance.
+That's where the container algorithm comes in.
+With it, we can easily construct a variant of CMA-ES that uses $O((\frac{N}{M})^2)$ space, where $M$ is the number of blocks.
 This variant is a balance between the normal CMA-ES and Sep-CMA-ES.
 
 ## Working with PyTree
@@ -29,6 +29,6 @@ meaning the algorithm could see the tree structure and apply some type of heuris
 
 We offer Cooperative Coevolution (CC) framework for all algorithms.
 Currently, there are two types of CC container in EvoX, {class}`evox.algorithms.Coevolution` and {class}`evox.algorithms.VectorizedCoevolution`.
-The difference is that `VectorizedCoevolution` update all sub-populations at the same time in each iteration,
-but `Coevolution` follows traditional approach that update a single sub-populations at each iteration.
+The difference is that `VectorizedCoevolution` updates all sub-populations at the same time in each iteration,
+but `Coevolution` follows the traditional approach that updates a single sub-populations at each iteration.
 Thus `VectorizedCoevolution` is faster, but `Coevolution` could be better in terms of best fitness with a limited number of evaluations.

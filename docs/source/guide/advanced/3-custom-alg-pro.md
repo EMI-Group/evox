@@ -10,9 +10,9 @@ In this chapter, we will introduce how to implement your own algorithm in EvoX.
 
 ## The Algorithm Class
 
-The {class}`Algorithm <evox.Algorithm>` class is inherented from {class}`Stateful <evox.Stateful>`.
-Besides the things in `Stateful`, your should also implement a `ask` and a `tell` method.
-In total, there are four methods one need to implement.
+The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`Stateful <evox.Stateful>`.
+Besides the things in `Stateful`, you should also implement an `ask` and a `tell` method.
+In total, there are four methods one needs to implement.
 
 | Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -23,9 +23,9 @@ In total, there are four methods one need to implement.
 | init_ask (Optional)  | {python}`(self, State) -> Array, State` | Gives initial population for evaluation. The population can have different shape than `ask`.               |
 | init_tell (Optional) | {python}`(self, State, Array) -> State` | Receive the fitness for the initial population and update the algorithm's state.                           |
 
-### Migrate from traditional EC library
+### Migrate from traditional EC libraries
 
-In traditional EC library, algorithm usually calls the objective function internally, which gives the following layout
+In a traditional EC library, algorithms usually call the objective function internally, which gives the following layout
 
 ```
 Algorithm
@@ -54,7 +54,7 @@ Do
 Until stopping criterion
 ```
 
-And Here is what each part of the algorithm correspond to in EvoX.
+And here is what each part of the algorithm corresponds to in EvoX.
 
 ```python
 Set hyperparameters # __init__
@@ -76,13 +76,12 @@ Until stopping criterion
 
 ## The Problem Class
 
-The Problem class is quite simple, beside `__init__` and `setup`, the only required the method is `evaluate`.
+The Problem class is quite simple, beside `__init__` and `setup`, the only required method is `evaluate``.
 
-### Migrate from traditional EC library
+### Migrate from traditional EC libraries
 
 There is one thing to notice here, `evaluate` is a stateful function, meaning it should accept a state and return a new state.
-So, if you are working with numerical benchmark functions, which don't need to stateful,
-you can simply ignore the state, but remember that you still have to use this stateful interface.
+So, if you are working with numerical benchmark functions, which don't need to be stateful, you can simply ignore the state, but remember that you still have to use this stateful interface.
 
 ```{eval-rst}
 +----------+------------------------------------------------+-------------------------------------------------------+
@@ -98,26 +97,26 @@ you can simply ignore the state, but remember that you still have to use this st
 
 ### More on the problem's state
 
-If you still wonders what the problem's state actually do, here are the explanations.
+If you still wonder what the problem's state actually does, here are the explanations.
 
-Unlike numerical benchmark functions, real-life problems are more complex, and may require stateful computations.
+Unlike numerical benchmark functions, real-life problems are more complex and may require stateful computations.
 Here are some examples:
 
-- When dealing with ANN training, we often have training, validation and testing phase.
+- When dealing with ANN training, we often have the training, validation and testing phases.
   This implies that the same solution could have different fitness values during different phases.
-  So clearly, we can't model the `evaluate` as a stateless pure function any more.
-  To implement this mechanism, simple put an value in the state to indicate the phase.
-- Virtual batch norm is a effective trick especially when dealing with RL tasks.
+  So clearly, we can't model the `evaluate` as a stateless pure function anymore.
+  To implement this mechanism, simply put a value in the state to indicate the phase.
+- Virtual batch norm is an effective trick especially when dealing with RL tasks.
   To implement this mechanism, the problem must be stateful,
-  as the problem have to remember the initial batch norm parameters during the first run.
+  as the problem has to remember the initial batch norm parameters during the first run.
 
 ## Example
 
 Here we give an example of implementing the OneMax problem, along with a genetic algorithm that solves this problem.
-The problem itself is straight forward, the fitness is defined as the sum of every digits in a fixed-length bitstring.
+The problem itself is straightforward, the fitness is defined as the sum of every digit in a fixed-length bitstring.
 For example, "100111" gives 4 and "000101" gives 2.
 
-Let's starts with implementing the OneMax problem.
+Let's start with implementing the OneMax problem.
 In JAX a bitstring can be easily represented with a tensor of type bool.
 
 ```python
