@@ -19,7 +19,8 @@ from gpjax.kernels import Linear
 from gpjax.likelihoods import Gaussian
 from gpjax.mean_functions import Zero
 import optax as ox
-import logging
+import sys
+import os
 
 class IMMOEA(Algorithm):
     def __init__(
@@ -73,7 +74,10 @@ class IMMOEA(Algorithm):
 
     # generate next generation
     def ask(self, state):
-        logging.basicConfig(level=logging.CRITICAL)
+        # Block the output of gpjax
+        old_stdout = sys.stdout
+        new_stdout = open(os.devnull, 'w')
+        sys.stdout = new_stdout
         population = state.population
         fitness = state.fitness
         K = self.k
@@ -89,6 +93,8 @@ class IMMOEA(Algorithm):
             sub_fit = fitness[mask]
             sub_pops.append(self._gen_offspring(state, sub_pop, sub_fit))
         OffspringDec = jnp.vstack(sub_pops)
+        sys.stdout = old_stdout
+        new_stdout.close()
         return OffspringDec, state.update(next_generation=OffspringDec, partition=partition)
 
     # select next generation
