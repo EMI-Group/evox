@@ -29,6 +29,7 @@ api/metrics/index
 :hidden:
 
 Examples <example/index>
+Miscellaneous <miscellaneous/index>
 ```
 
 [[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh/latest/)
