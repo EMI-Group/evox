@@ -9,32 +9,47 @@ import gpjax as gpx
 from gpjax.mean_functions import Zero
 # from gpjax.likelihoods import Gaussian
 from gpjax.objectives import ConjugateMLL
+import jax
+import optax as ox
 from evox.operators.gaussian_processes.kernels import RBF
 from evox.operators.gaussian_processes.likelihoods import Gaussian
 # the demand of gpJAX. Enable Float64 for more stable matrix inversions.
 config.update("jax_enable_x64", True)
 class GPRegression:
-    def __init__(self, kernel=RBF(), meanfun=Zero(), likelihood=None, optimizer=ConjugateMLL(negative=True),key=jr.PRNGKey(123)):
+    def __init__(self, kernel=RBF(), meanfun=Zero(), likelihood=None, object=ConjugateMLL(negative=True),key=jr.PRNGKey(123)):
         self.kernel = kernel
         self.mean_fun = meanfun
         self.key = key
         self.prior = gpx.gps.Prior(mean_function=meanfun, kernel=kernel)
         self.likelihood = likelihood
-        self.optimizer = optimizer
+        self.object = object
         self.posterior = self.prior * self.likelihood
 
 
-    def fit(self, x, y):
+    def fit(self, x, y, optimzer=ox.GradientTransformation):
         self.dataset = gpx.Dataset(X=x, y=y)
         # self.likelihood.num_datapoints = self.dataset.n
-
-        self.optimizer(self.posterior, train_data=self.dataset)
+        # static_tree = jax.tree_map(lambda x: not (x), self.posterior.trainables)
+        # optim = ox.chain(
+        #     ox.adam(learning_rate=0.01),
+        #     ox.masked(ox.set_to_zero(), static_tree)
+        #     )
+        self.object(self.posterior, train_data=self.dataset)
         # add jit
-        self.opt_posterior, self.history = gpx.fit_scipy(
+        self.opt_posterior, self.history = gpx.fit(
             model= self.posterior,
-            objective= self.optimizer,
+            objective= self.object,
             train_data= self.dataset,
+            optim = optimzer,
+            num_iters=1000,
+            key=self.key
         )
+        # self.opt_posterior, self.history = gpx.fit_scipy(
+        #     model= self.posterior,
+        #     objective= self.object,
+        #     train_data= self.dataset,
+        #     max_iters=1000
+        # )
 
 
 
