@@ -13,7 +13,7 @@ from evox.operators import (
     mutation,
 )
 from evox.utils import cos_dist
-from evox.operators.gaussian_processes.regression import GPRegression
+from evox.operators.gaussian_process.regression import GPRegression
 import gpjax as gpx
 from gpjax.kernels import Linear
 from gpjax.likelihoods import Gaussian

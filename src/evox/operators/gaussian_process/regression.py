@@ -11,11 +11,13 @@ from gpjax.mean_functions import Zero
 from gpjax.objectives import ConjugateMLL
 import jax
 import optax as ox
-from evox.operators.gaussian_processes.kernels import RBF
-from evox.operators.gaussian_processes.likelihoods import Gaussian
+from evox.operators.gaussian_process.kernels import RBF
+from evox.operators.gaussian_process.likelihoods import Gaussian
 # the demand of gpJAX. Enable Float64 for more stable matrix inversions.
 config.update("jax_enable_x64", True)
 class GPRegression:
+
+
     def __init__(self, kernel=RBF(), meanfun=Zero(), likelihood=None, object=ConjugateMLL(negative=True),key=jr.PRNGKey(123)):
         self.kernel = kernel
         self.mean_fun = meanfun

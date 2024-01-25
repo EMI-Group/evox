@@ -12,7 +12,7 @@ import tensorflow_probability.substrates.jax as tfp
 import gpjax as gpx
 
 from gpjax.mean_functions import Zero
-from evox.operators.gaussian_processes.kernels import RBF
+from evox.operators.gaussian_process.kernels import RBF
 from gpjax.objectives import LogPosteriorDensity
 
 tfd = tfp.distributions
