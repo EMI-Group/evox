@@ -19,7 +19,7 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
     )
     state = workflow.init(key)
     true_pf, state = problem.pf(state)

@@ -5,15 +5,14 @@ from typing import Callable, Dict, List, Optional, Union
 import jax
 import jax.numpy as jnp
 from jax import jit, lax, pmap, pure_callback
-from jax.experimental import io_callback
-from jax.sharding import PositionalSharding, SingleDeviceSharding
+from jax.sharding import PositionalSharding
 from jax.tree_util import tree_map
 
-from evox import Algorithm, Problem, State, Stateful, jit_method
+from evox import Algorithm, Problem, State, Stateful, Monitor, jit_method
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-class UniWorkflow(Stateful):
+class StdWorkflow(Stateful):
     """Experimental unified workflow,
     designed to provide unparallel performance for EC workflow.
 
@@ -28,16 +27,15 @@ class UniWorkflow(Stateful):
         self,
         algorithm: Algorithm,
         problem: Union[Problem, List[Problem]],
-        monitor=None,
+        monitors: List[Monitor] = [],
         opt_direction: Union[str, List[str]] = "min",
-        pop_transform: Optional[Union[Callable, List[Problem]]] = None,
-        fit_transform: Optional[Callable] = None,
-        record_pop: bool = False,
-        record_time: bool = False,
-        metrics: Optional[Dict[str, Callable]] = None,
+        sol_transforms: List[Callable] = [],
+        fit_transforms: List[Callable] = [],
+        pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
+        monitor=None,
     ):
         """
         Parameters
@@ -47,30 +45,26 @@ class UniWorkflow(Stateful):
         problem
             The problem.
         monitor
-            Optional monitor.
+            Optional monitor(s).
+            Configure a single monitor or a list of monitors.
+            The monitors will be called in the order of the list.
         opt_direction
             The optimization direction, can be either "min" or "max"
             or a list of "min"/"max" to specific the direction for each objective.
-        pop_transform
-            Optional population transform function,
-            usually used to decode the population
+        sol_transform
+            Optional candidate solution transform function,
+            usually used to decode the candidate solution
             into the format that can be understood by the problem.
-        fit_transform
+            Should be a list of functions,
+            and the functions will be applied in the order of the list.
+        fit_transforms
             Optional fitness transform function.
             usually used to apply fitness shaping.
-        record_pop
-            Whether to record the population if monitor is enabled.
-        record_time
-            Whether to record the time at the end of each generation.
-            Due to its timing nature,
-            record_time requires synchronized functional call.
-            Default to False.
+            Should be a list of functions,
+            and the functions will be applied in the order of the list.
         jit_problem
             If the problem can be jit compiled by JAX or not.
             Default to True.
-        jit_monitor
-            If the monitor can be jit compiled by JAX or not.
-            Default to False.
         num_objectives
             Number of objectives.
             When the problem can be jit compiled, this field is not needed.
@@ -79,19 +73,44 @@ class UniWorkflow(Stateful):
         """
         self.algorithm = algorithm
         self.problem = problem
-        self.monitor = monitor
+        self.monitors = monitors
+        if monitor is not None:
+            warnings.warn(
+                "`monitor` is deprecated, use the `monitors` parameter with a list of monitors instead",
+                DeprecationWarning,
+            )
+            self.monitors = [monitor]
+        self.registered_hooks = {
+            "pre_step": [],
+            "pre_ask": [],
+            "post_ask": [],
+            "pre_eval": [],
+            "post_eval": [],
+            "pre_tell": [],
+            "post_tell": [],
+            "post_step": [],
+        }
+        for monitor in self.monitors:
+            hooks = monitor.hooks()
+            for hook in hooks:
+                self.registered_hooks[hook].append(monitor)
 
-        self.pop_transform = pop_transform
-        self.fit_transform = fit_transform
-        self.record_pop = record_pop
-        self.record_time = record_time
-        self.metrics = metrics
+        self.opt_direction = parse_opt_direction(opt_direction)
+        for monitor in self.monitors:
+            monitor.set_opt_direction(self.opt_direction)
+
+        self.sol_transforms = sol_transforms
+        # for compatibility purpose
+        if pop_transform is not None:
+            warnings.warn(
+                "`pop_transform` is deprecated, use `sol_transforms` with a list of transforms instead",
+                DeprecationWarning,
+            )
+            self.sol_transforms = [pop_transform]
+        self.fit_transforms = fit_transforms
         self.jit_problem = jit_problem
-        self.jit_monitor = jit_monitor
         self.num_objectives = num_objectives
         self.distributed_step = False
-        self.opt_direction = parse_opt_direction(opt_direction)
-        self.monitor.set_opt_direction(self.opt_direction)
         if jit_problem is False and self.num_objectives is None:
             warnings.warn(
                 (
@@ -109,6 +128,9 @@ class UniWorkflow(Stateful):
         # and jax.lax.cond requires the same shape from two different branches
         # we can only apply lax.cond outside of each `step`
         def _proto_step(self, is_init, state):
+            for monitor in self.registered_hooks["pre_ask"]:
+                monitor.pre_ask(state)
+
             if is_init:
                 ask = self.algorithm.init_ask
                 tell = self.algorithm.init_tell
@@ -116,42 +138,33 @@ class UniWorkflow(Stateful):
                 ask = self.algorithm.ask
                 tell = self.algorithm.tell
 
-            monitor_device = SingleDeviceSharding(jax.devices()[0])
-            if self.monitor and self.record_time:
-                io_callback(self.monitor.record_time, None, sharding=monitor_device)
+            # candidate solution
+            cand_sol, state = ask(state)
+            cand_sol_size = cand_sol.shape[0]
 
-            pop, state = ask(state)
-            pop_size = pop.shape[0]
-
-            if self.monitor and self.record_pop:
-                io_callback(self.monitor.record_pop, None, pop, sharding=monitor_device)
+            for monitor in self.registered_hooks["post_ask"]:
+                monitor.post_ask(state, cand_sol)
 
             if self.distributed_step is True:
-                pop = jax.lax.dynamic_slice_in_dim(
-                    pop, state.start_index, self.slice_size, axis=0
+                cand_sol = jax.lax.dynamic_slice_in_dim(
+                    cand_sol, state.start_index, self.slice_size, axis=0
                 )
 
-            if self.pop_transform:
-                if isinstance(self.pop_transform, list):
-                    pop = [transform(pop) for transform in self.pop_transform]
-                else:
-                    pop = self.pop_transform(pop)
+            transformed_cand_sol = cand_sol
+            for transform in self.sol_transforms:
+                transformed_cand_sol = transform(transformed_cand_sol)
+
+            for monitor in self.registered_hooks["pre_eval"]:
+                monitor.pre_eval(state, cand_sol, transformed_cand_sol)
 
             # if the function is jitted
             if self.jit_problem:
-                if isinstance(self.problem, list):
-                    fitness = []
-                    for decoded in pop:
-                        fit, state = self.problem.evaluate(state, decoded)
-                        fitness.append(fit)
-                    fitness = jnp.concatenate(fitness, axis=0)
-                else:
-                    fitness, state = self.problem.evaluate(state, pop)
+                fitness, state = self.problem.evaluate(state, transformed_cand_sol)
             else:
                 if self.num_objectives == 1:
-                    fit_shape = (pop_size,)
+                    fit_shape = (cand_sol_size,)
                 else:
-                    fit_shape = (pop_size, self.num_objectives)
+                    fit_shape = (cand_sol_size, self.num_objectives)
                 fitness, state = pure_callback(
                     self.problem.evaluate,
                     (
@@ -159,7 +172,7 @@ class UniWorkflow(Stateful):
                         state,
                     ),
                     state,
-                    pop,
+                    transformed_cand_sol,
                 )
 
             if self.distributed_step is True:
@@ -167,25 +180,22 @@ class UniWorkflow(Stateful):
 
             fitness = fitness * self.opt_direction
 
-            if self.monitor:
-                if self.metrics:
-                    metrics = {
-                        name: func(fitness) for name, func in self.metrics.items()
-                    }
-                else:
-                    metrics = None
-                io_callback(
-                    self.monitor.record_fit,
-                    None,
-                    fitness,
-                    metrics,
-                    sharding=monitor_device,
+            for monitor in self.registered_hooks["post_eval"]:
+                monitor.post_eval(state, cand_sol, transformed_cand_sol, fitness)
+
+            transformed_fitness = fitness
+            for transform in self.fit_transforms:
+                transformed_fitness = transform(transformed_fitness)
+
+            for monitor in self.registered_hooks["pre_tell"]:
+                monitor.pre_tell(
+                    state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
                 )
 
-            if self.fit_transform:
-                fitness = self.fit_transform(fitness)
+            state = tell(state, transformed_fitness)
 
-            state = tell(state, fitness)
+            for monitor in self.registered_hooks["post_tell"]:
+                monitor.post_tell(state)
 
             return state.update(generation=state.generation + 1)
 
@@ -215,9 +225,6 @@ class UniWorkflow(Stateful):
                     pop, self.start_index, self.slice_size, axis=0
                 )
 
-            if self.pop_transform is not None:
-                pop = self.pop_transform(pop)
-
             fitness, new_state = self.problem.evaluate(new_state, pop)
 
             if self.distributed_step is True:
@@ -231,7 +238,15 @@ class UniWorkflow(Stateful):
         return State(generation=0)
 
     def step(self, state):
-        return self._step(self, state)
+        for monitor in self.registered_hooks["pre_step"]:
+            monitor.pre_step(state)
+
+        state = self._step(self, state)
+
+        for monitor in self.registered_hooks["post_step"]:
+            monitor.post_step(state)
+
+        return state
 
     def valid(self, state, metric):
         return self._valid(self, state, metric)
