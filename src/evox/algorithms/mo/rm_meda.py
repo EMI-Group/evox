@@ -31,9 +31,10 @@ def local_pca(pop_dec, M, K, key):
 
     arr = jnp.arange(K)
     model = jax.vmap(create_model)(arr)
-
+    partition = None
     ## Modeling
-    for iteration in range(50):
+    def modeling_fun(temp_index, temp):
+    # for iteration in range(50):
         # Calculte the distance between each solution and its projection in affine principal subspace of each cluster
         def distance_fun(k):
             diff = pop_dec - jnp.tile(model["mean"][k], (n, 1))
@@ -41,54 +42,55 @@ def local_pca(pop_dec, M, K, key):
 
         distance = jax.vmap(distance_fun, out_axes=1)(arr)
         partition = jnp.argmin(distance, axis=1)
-        # Update the model of each cluster
-        updated = jnp.zeros(K, dtype=bool)
-        for k in range(K):
-            # def body_fun2(k):
-            old_mean = model["mean"][k]
+        # In platemo, there is a vector "updated" showing the clustering process. If the change is small, the loop will end. Here is no stop beacuse of JIT
+        # updated = jnp.zeros(K, dtype=bool)
+        def clustering(k):
+        # for k in range(K):
+            # old_mean = model["mean"][k]
             # select current cluster
             current = partition == k
-            if jnp.sum(current) < 2:
-                if not jnp.any(current):
-                    current = random.randint(shape=(1,), key=key, maxval=n, minval=0)
-                model["mean"] = model["mean"].at[k].set(pop_dec[current].reshape(-1))
+            def small_fun(current, model):
+                def false_fun(current):
+                    current = current.at[random.randint(shape=(1,), key=key, maxval=n, minval=0)].set(True)
+                    return current
+                current = lax.cond(jnp.any(current), lambda x : x, false_fun, current)
+                index = jnp.argmax(current)
+                model["mean"] = model["mean"].at[k].set(pop_dec[index].reshape(-1))
                 model["PI"] = model["PI"].at[k].set(jnp.eye(d))
                 model["e_vector"] = model["e_vector"].at[k].set([])
                 model["e_value"] = model["e_value"].at[k].set([])
-            else:
-                model["mean"] = (
-                    model["mean"].at[k].set(jnp.mean(pop_dec[current], axis=0))
-                )
-                cc = jnp.cov(
-                    (
-                        pop_dec[current]
-                        - jnp.tile(model["mean"][k], (jnp.sum(current), 1))
-                    ).T
-                )
+            def normal_fun(current, model):
+            # else:
+                cur_pop = jnp.where(current[:, jnp.newaxis], pop_dec, 0)
+                model["mean"] = model["mean"].at[k].set(jnp.mean(cur_pop, axis=0))
+                c_cov = cur_pop - jnp.tile(model["mean"][k], (len(current), 1))
+                c_cov = jnp.where(current[:, jnp.newaxis], c_cov, 0).T
+                cc = jnp.cov(c_cov)
                 # Using eigh for Hermitian matrices
                 e_value, e_vector = jnp.linalg.eigh(cc)
                 rank = jnp.argsort(e_value)
                 e_value = jnp.sort(e_value)
+                _e_vector = e_vector[:, rank]
                 model["e_value"] = model["e_value"].at[k].set(e_value)
-                model["e_vector"] = model["e_vector"].at[k].set(e_vector[:, rank])
-                # Note: this code using maximum eigenvalues instead of minimum eigenvalues in PlateEmo
+                model["e_vector"] = model["e_vector"].at[k].set(_e_vector)
+                # Note: this code using all eigenvalues instead of maximum eigenvalues because of JIT
                 model["PI"] = (
                     model["PI"]
                     .at[k]
                     .set(
-                        model["e_vector"][k : k + 1, (M - 1) :].dot(
-                            model["e_vector"][k : k + 1, (M - 1) :].conj().transpose()
-                        )
+                        _e_vector.dot(_e_vector.conj().transpose())
                     )
                 )
-            updated = updated.at[k].set(
-                (not jnp.any(current))
-                or (jnp.sqrt(jnp.sum((old_mean - model["mean"][k]) ** 2)) > 1e-5)
-            )
+            lax.cond(jnp.sum(current) < 2, small_fun, normal_fun, current, model)
+            # updated = updated.at[k].set(
+            #     (jnp.logical_not(jnp.any(current))) | (jnp.sqrt(jnp.sum((old_mean - model["mean"][k]) ** 2)) > 1e-5)
+            # )
+        jax.vmap(clustering)(jnp.arange(K))
         # Break if no change is made
-        if not jnp.any(updated):
-            break
+        # if jnp.logical_not(jnp.any(updated)):
+        #     break
 
+    lax.fori_loop(0,50, modeling_fun, None)
     # Calculate the smallest hyper-rectangle of each model
     def body_fun(k):
         if len(model["e_vector"][k]) != 0:
@@ -207,18 +209,15 @@ class RMMEDA(Algorithm):
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
+
         rank = non_dominated_sort(merged_fitness)
         order = jnp.argsort(rank)
         worst_rank = rank[order[self.pop_size]]
         mask = rank == worst_rank
-        last = jnp.sum(mask)
-        next = self.pop_size - last
-        while last > self.pop_size - next:
-            crowding_dis = crowding_distance(merged_fitness, mask)
-            order = jnp.argsort(crowding_dis)
-            mask[order[-1]] = False
-            last -= 1
-        survivor = merged_pop[mask]
-        survivor_fitness = merged_fitness[mask]
+        crowding_dis = crowding_distance(merged_fitness, mask)
+
+        combined_order = jnp.lexsort((-crowding_dis, rank))[: self.pop_size]
+        survivor = merged_pop[combined_order]
+        survivor_fitness = merged_fitness[combined_order]
         state = state.update(population=survivor, fitness=survivor_fitness)
         return state

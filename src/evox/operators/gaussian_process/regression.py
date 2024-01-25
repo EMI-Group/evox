@@ -54,8 +54,6 @@ class GPRegression:
         self.posterior = self.prior * self.likelihood
 
     def fit(self, x, y, optimzer=ox.GradientTransformation):
-        self.dataset = gpx.Dataset(X=x, y=y)
-        self.object(self.posterior, train_data=self.dataset)
         """
         Fits the model to the provided data.
 
@@ -68,6 +66,8 @@ class GPRegression:
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Gradient Transformation).
         """
+        self.dataset = gpx.Dataset(X=x, y=y)
+        self.object(self.posterior, train_data=self.dataset)
         self.opt_posterior, self.history = gpx.fit(
             model=self.posterior,
             objective=self.object,
