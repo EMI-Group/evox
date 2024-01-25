@@ -215,6 +215,32 @@ Even if you have CUDA 12, your CUDA version might still be lower than the versio
 In this case, try to install `jax[cuda11]`.
 ```
 
+### AMD GPU (ROCM)
+
+Despite being considered experimental, installing AMD GPUs for ROCm is surprisingly straightforward thanks to their open-source drivers. However, currently only a limited number of GPUs are supported, notably the Radeon RX 7900XTX and Radeon PRO W7900 for consumer-grade GPUs. Note that Windows is not currently supported.
+
+#### Install GPU driver
+
+Since the AMD driver is open-source, installation is simplified: simply install mesa through your Linux distribution's package manager. In many cases, the driver may already be pre-installed.
+
+To verify that the driver is installed, run the following command:
+
+```bash
+lsmod | grep amdgpu
+```
+
+And you should see `amdgpu` in the output.
+
+#### Install ROCm
+
+The latest version of ROCm (v5.7.1 or later) may not be available in your Linux distribution's package manager. Therefore, using a containerized environment is the easiest way to get started.
+
+```bash
+docker run -it --network=host --device=/dev/kfd --device=/dev/dri --ipc=host --shm-size 16G --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined rocm/jax:latest
+```
+
+Please visit [Docker Hub](https://hub.docker.com/r/rocm/jax) for further instructions.
+
 ## Verify your installation
 
 Open a Python terminal, and run the following:

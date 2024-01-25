@@ -32,17 +32,17 @@ def test_envpool_cartpole():
     )
     center = adapter.to_vector(params)
     # create a workflow
-    workflow = workflows.UniWorkflow(
+    workflow = workflows.StdWorkflow(
         algorithm=algorithms.PGPE(
             optimizer="adam",
             center_init=center,
             pop_size=16,
         ),
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
         jit_problem=True,
         num_objectives=1,
-        pop_transform=adapter.batched_to_tree,
+        sol_transforms=[adapter.batched_to_tree],
         opt_direction="max",
     )
     # init the workflow

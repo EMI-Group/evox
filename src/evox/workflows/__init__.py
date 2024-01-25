@@ -1,5 +1,5 @@
-from .standard import StdWorkflow
-from .uni_workflow import UniWorkflow
+from .non_jit_workflow import NonJitWorkflow
+from .std_workflow import StdWorkflow
 
 try:
     # optional dependency: ray

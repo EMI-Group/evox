@@ -7,4 +7,4 @@ Workflows
 
     standard
     distributed
-    uni
+    non_jit
