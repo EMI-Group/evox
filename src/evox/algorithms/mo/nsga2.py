@@ -91,10 +91,15 @@ class NSGA2(Algorithm):
         order = jnp.argsort(rank)
         worst_rank = rank[order[self.pop_size]]
         mask = rank == worst_rank
-        crowding_dis = crowding_distance(merged_fitness, mask)
+        last = jnp.sum(mask)
+        next = self.pop_size - last
+        while last > self.pop_size - next:
+            crowding_dis = crowding_distance(merged_fitness, mask)
+            order = jnp.argsort(crowding_dis)
+            mask[order[-1]] = False
+            last -= 1
 
-        combined_order = jnp.lexsort((-crowding_dis, rank))[: self.pop_size]
-        survivor = merged_pop[combined_order]
-        survivor_fitness = merged_fitness[combined_order]
+        survivor = merged_pop[mask]
+        survivor_fitness = merged_fitness[mask]
         state = state.update(population=survivor, fitness=survivor_fitness)
         return state
