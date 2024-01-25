@@ -22,6 +22,7 @@ import optax as ox
 import sys
 import os
 
+
 class IMMOEA(Algorithm):
     def __init__(
         self,
@@ -30,7 +31,7 @@ class IMMOEA(Algorithm):
         n_objs=3,
         pop_size=100,
         l=3,
-        k = 10,
+        k=10,
         selection_op=None,
         mutation_op=None,
     ):
@@ -76,7 +77,7 @@ class IMMOEA(Algorithm):
     def ask(self, state):
         # Block the output of gpjax
         old_stdout = sys.stdout
-        new_stdout = open(os.devnull, 'w')
+        new_stdout = open(os.devnull, "w")
         sys.stdout = new_stdout
         population = state.population
         fitness = state.fitness
@@ -95,7 +96,9 @@ class IMMOEA(Algorithm):
         OffspringDec = jnp.vstack(sub_pops)
         sys.stdout = old_stdout
         new_stdout.close()
-        return OffspringDec, state.update(next_generation=OffspringDec, partition=partition)
+        return OffspringDec, state.update(
+            next_generation=OffspringDec, partition=partition
+        )
 
     # select next generation
     def tell(self, state, fitness):
@@ -119,7 +122,6 @@ class IMMOEA(Algorithm):
         state = state.update(population=survivor, fitness=survivor_fitness)
         return state
 
-
     def _gen_offspring(self, state, sub_pop, sub_fit):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         N, D = sub_pop.shape
@@ -130,7 +132,9 @@ class IMMOEA(Algorithm):
             shuffled_indices = random.permutation(x_key, indices)
             while len(shuffled_indices) < L * self.n_objs:
                 _key, x_key = random.split(x_key)
-                shuffled_indices = jnp.vstack((shuffled_indices, random.permutation(x_key, indices)))
+                shuffled_indices = jnp.vstack(
+                    (shuffled_indices, random.permutation(x_key, indices))
+                )
             start = 0
             fmin = 1.5 * jnp.min(sub_fit, axis=0) - 0.5 * jnp.max(sub_fit, axis=0)
             fmax = 1.5 * jnp.max(sub_fit, axis=0) - 0.5 * jnp.min(sub_fit, axis=0)
@@ -140,26 +144,34 @@ class IMMOEA(Algorithm):
             # Train one groups of GP models for each objective
             for m in range(self.n_objs):
                 permutation = random.permutation(sel_keys[m], N)
-                parents = permutation[:jnp.floor(N / self.n_objs).astype(jnp.int32)]
-                sub_off = sub_pop[parents,:]
-                indices = shuffled_indices[start:start+L]
-                keys = x_keys[start:start+L]
+                parents = permutation[: jnp.floor(N / self.n_objs).astype(jnp.int32)]
+                sub_off = sub_pop[parents, :]
+                indices = shuffled_indices[start : start + L]
+                keys = x_keys[start : start + L]
                 start += L
                 likelihood = Gaussian(num_datapoints=len(parents))
                 model = GPRegression(likelihood=likelihood, kernel=Linear())
                 for d, key in zip(indices, keys):
-                    model.fit_scipy(x=sub_fit[parents,m:m+1], y=sub_off[:,d:d+1])
-                    inputs = jnp.linspace(fmin[m], fmax[m], sub_off.shape[0])[:,jnp.newaxis]
+                    model.fit_scipy(
+                        x=sub_fit[parents, m : m + 1], y=sub_off[:, d : d + 1]
+                    )
+                    inputs = jnp.linspace(fmin[m], fmax[m], sub_off.shape[0])[
+                        :, jnp.newaxis
+                    ]
                     ymu, ystd = model.predict(inputs)
                     # get next generation
-                    sub_off = sub_off.at[:,d].set(ymu + random.normal(key, shape=ystd.shape) * ystd)
+                    sub_off = sub_off.at[:, d].set(
+                        ymu + random.normal(key, shape=ystd.shape) * ystd
+                    )
                 if Offspring is None:
                     Offspring = sub_off
                 else:
                     Offspring = jnp.vstack((Offspring, sub_off))
 
         # Convert invalid values to random values
-        randDec = jax.random.uniform(x_key, Offspring.shape, minval=self.lb, maxval=self.ub)
+        randDec = jax.random.uniform(
+            x_key, Offspring.shape, minval=self.lb, maxval=self.ub
+        )
         invalid = (Offspring < self.lb) | (Offspring > self.ub)
         Offspring = jnp.where(invalid, randDec, Offspring)
 
