@@ -15,9 +15,11 @@ from evox.operators import (
 import jax.lax as lax
 from functools import partial
 
-# @partial(jax.jit, static_argnums=[1, 2])
+# @partial(jax.jit, static_argnums=[0, 1, 2])
 def local_pca(pop_dec, M, K, key):
     n, d = pop_dec.shape  # Dimensions
+    # d = 12
+
     # model = [
     #     {
     #         "mean": pop_dec[k],  # The mean of the model
@@ -45,102 +47,77 @@ def local_pca(pop_dec, M, K, key):
     ## Modeling
     for iteration in range(50):
         # Calculte the distance between each solution and its projection in affine principal subspace of each cluster
-        # distance = jnp.zeros((n, K))
-        # for k in range(K):
-        #     diff = pop_dec - jnp.tile(model[k]["mean"], (n, 1))
-        #     distance = distance.at[:, k].set(
-        #         jnp.sum(diff.dot(model[k]["PI"]) * diff, axis=1)
-        #     )
-        # def body_fun(k, distance):
-        #     diff = pop_dec - jnp.tile(model[k]["mean"], (n, 1))
-        #     distance = distance.at[:, k].set(
-        #         jnp.sum(diff.dot(model[k]["PI"]) * diff, axis=1)
-        #     )
-        #     return distance
-        # distance = lax.fori_loop(0, K, body_fun, distance)
-
-        def body_fun1(k):
+        def distance_fun(k):
             diff = pop_dec - jnp.tile(model["mean"][k], (n, 1))
-
             return jnp.sum(diff.dot(model["PI"][k]) * diff, axis=1)
-
-            # return distance
-        # tt = lax.map(body_fun1, arr)
-        # distance = lax.fori_loop(0, K, body_fun1, model)
-        distance = jax.vmap(body_fun1)(arr)
-        # distance = jnp.stack(lax.map(body_fun1, arr), axis=1)
-        # _, distance = lax.scan(body_fun1, model, arr)
-
-
-
-        # Partition
+        distance = jax.vmap(distance_fun, out_axes=1)(arr)
         partition = jnp.argmin(distance, axis=1)
         # Update the model of each cluster
         updated = jnp.zeros(K, dtype=bool)
-        # for k in range(K):
-        def body_fun2(k):
+        for k in range(K):
+        # def body_fun2(k):
             old_mean = model["mean"][k]
             # select current cluster
             current = partition == k
             if jnp.sum(current) < 2:
                 if not jnp.any(current):
-                    current = jnp.array(
-                        [random.randint(shape=(1,), key=key, maxval=n, minval=0)],
-                        dtype=int,
-                    )
-                model["mean"][k] = pop_dec[current]
-                model["PI"][k] = jnp.eye(d)
-                model["e_vector"][k] = []
-                model["e_value"][k] = []
+                    current = random.randint(shape=(1,), key=key, maxval=n, minval=0)
+                # def false_fun2(current):
+                #     random_index = random.randint(shape=(1,), key=key, maxval=n, minval=0)
+                #     bool_matrix = jnp.equal(jnp.arange(current.size), random_index)
+                #     # jnp.array([random.randint(shape=(1,), key=key, maxval=n, minval=0)], dtype=int)
+                #     return bool_matrix
+                # current = lax.cond(jnp.any(current), lambda x: x, false_fun2, current)
+                model["mean"] = model['mean'].at[k].set(pop_dec[current].reshape(-1))
+                model["PI"] = model["PI"].at[k].set(jnp.eye(d))
+                model["e_vector"] = model["e_vector"].at[k].set([])
+                model["e_value"] = model["e_value"].at[k].set([])
             else:
-                model[k]["mean"] = jnp.mean(pop_dec[current], axis=0)
+                model["mean"] = model["mean"].at[k].set(jnp.mean(pop_dec[current], axis=0))
                 cc = jnp.cov(
                     (
                         pop_dec[current]
                         - jnp.tile(model["mean"][k], (jnp.sum(current), 1))
                     ).T
                 )
+                # Using eigh for Hermitian matrices
                 e_value, e_vector = jnp.linalg.eigh(
                     cc
-                )  # Using eigh for Hermitian matrices
+                )
                 rank = jnp.argsort(e_value)
                 e_value = jnp.sort(e_value)
-                model["e_value"][k] = e_value
-                model["e_vector"][k] = e_vector[:, rank]
+                model["e_value"] = model["e_value"].at[k].set(e_value)
+                model["e_vector"] = model["e_vector"].at[k].set(e_vector[:, rank])
                 # Note: this code using maximum eigenvalues instead of minimum eigenvalues in PlateEmo
-                model["PI"][k] = model["e_vector"][k][:, (M - 1) :].dot(
-                    model["e_vector"][k][:, (M - 1) :].T
-                )
-
-            # updated = updated.at[k].set(
-            #     (not jnp.any(current))
-            #     or (jnp.sqrt(jnp.sum((old_mean - model[k]["mean"]) ** 2)) > 1e-5)
-            # )
-            return (not jnp.any(current)) or (jnp.sqrt(jnp.sum((old_mean - model["mean"][k]) ** 2)) > 1e-5)
-        # updated = lax.fori_loop(0, K, body_fun2, updated)
-        updated = jax.vmap(body_fun2)(arr)
+                model["PI"] = model["PI"].at[k].set(model["e_vector"][k:k+1, (M - 1):].dot(
+                    model["e_vector"][k:k+1, (M - 1):].conj().transpose()
+                ))
+            updated = updated.at[k].set(
+                (not jnp.any(current))
+                or (jnp.sqrt(jnp.sum((old_mean - model["mean"][k]) ** 2)) > 1e-5)
+            )
         # Break if no change is made
         if not jnp.any(updated):
             break
 
     # Calculate the smallest hyper-rectangle of each model
     # for k in range(K):
-    def body_fun3(k):
-        if len(model[k]["e_vector"]) != 0:
+    def body_fun(k):
+        if len(model["e_vector"][k]) != 0:
             hyper_rectangle = (
                 pop_dec[partition == k]
-                - jnp.tile(model[k]["mean"], (jnp.sum(partition == k), 1))
-            ).dot(model[k]["e_vector"][:, : M - 1])
-            model[k]["a"] = jnp.min(hyper_rectangle, axis=0)
-            model[k]["b"] = jnp.max(hyper_rectangle, axis=0)  # this should by tested
+                - jnp.tile(model["mean"][k], (jnp.sum(partition == k), 1))
+            ).dot(model["e_vector"][k][:, : M - 1])
+            model["a"] = model['a'].at[k].set(jnp.min(hyper_rectangle, axis=0))
+            model["b"] = model['b'].at[k].set(jnp.max(hyper_rectangle, axis=0))  # this should by tested
         else:
-            model[k]["a"] = jnp.zeros(M - 1)
-            model[k]["b"] = jnp.zeros(M - 1)
-    lax.map(body_fun3, jnp.arange(K))
+            model["a"] = model["a"].at[k].set(jnp.zeros(M - 1))
+            model["b"] = model["b"].at[k].set(jnp.zeros(M - 1))
+    jax.vmap(body_fun)(arr)
     ## Calculate the probability of each cluster for reproduction
     # Calculate the volume of each cluster
-    volume = jnp.asarray([model[k]["b"] for k in range(K)]) - jnp.asarray(
-        [model[k]["a"] for k in range(K)]
+    volume = jnp.asarray([model["b"][k] for k in range(K)]) - jnp.asarray(
+        [model["a"][k] for k in range(K)]
     )
     volume = jnp.prod(
         volume, axis=1
@@ -215,21 +192,21 @@ class RMMEDA(Algorithm):
                 axis=0,
             )
             # Generate one offspring
-            if len(Model[k]["e_vector"]) > 0:  # Check if eVector is not empty
-                lower = Model[k]["a"] - 0.25 * (Model[k]["b"] - Model[k]["a"])
-                upper = Model[k]["b"] + 0.25 * (Model[k]["b"] - Model[k]["a"])
+            if len(Model["e_vector"][k]) > 0:  # Check if eVector is not empty
+                lower = Model["a"][k] - 0.25 * (Model["b"][k] - Model["a"][k])
+                upper = Model["b"][k] + 0.25 * (Model["b"][k] - Model["a"][k])
                 trial = (
                     random.uniform(keys[i], shape=(M - 1,)) * (upper - lower) + lower
                 )
-                sigma = jnp.sum(jnp.abs(Model[k]["e_value"][M - 1 : D])) / (D - M + 1)
+                sigma = jnp.sum(jnp.abs(Model["e_value"][k][M - 1 : D])) / (D - M + 1)
                 OffspringDec = OffspringDec.at[i, :].set(
-                    Model[k]["mean"]
-                    + trial @ Model[k]["e_vector"][:, : M - 1].T
+                    Model["mean"][k]
+                    + trial @ Model["e_vector"][k][:, : M - 1].T
                     + (random.normal(keys[i], shape=(D,)) * jnp.sqrt(sigma))
                 )
             else:
                 OffspringDec = OffspringDec.at[i, :].set(
-                    Model[k]["mean"] + random.normal(keys[i], shape=(D,))
+                    Model["mean"][k] + random.normal(keys[i], shape=(D,))
                 )
 
         return OffspringDec, state.update(next_generation=OffspringDec)
