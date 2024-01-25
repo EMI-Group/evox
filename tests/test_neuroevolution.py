@@ -67,7 +67,7 @@ def test_neuroevolution_treemap():
     workflow = workflows.StdWorkflow(
         algorithm=Algorithms.TreeAlgorithm(PartialPGPE, initial_params, center_init),
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     state = workflow.init(workflow_key)
@@ -101,7 +101,7 @@ def test_neuroevolution_adapter():
         algorithm=algorithm,
         problem=problem,
         pop_transform=adapter.batched_to_tree,
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     state = workflow.init(key)

@@ -14,7 +14,7 @@ def run_std_workflow_with_jit_problem():
             pop_size=20,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -40,7 +40,7 @@ def run_std_workflow_with_non_jit_problem():
             pop_size=20,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
         jit_problem=False,
     )
     # init the workflow
@@ -66,7 +66,7 @@ def test_std_workflow_sanity_check():
             pop_size=20,
         ),
         problem=problems.numerical.Sphere(),
-        monitor=monitor,
+        monitors=[monitor],
         jit_problem=True,
     )
 
@@ -98,7 +98,7 @@ def test_non_jit_workflow():
             pop_size=20,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -124,7 +124,7 @@ def test_distributed_cso():
         ),
         problem=problems.numerical.Ackley(),
         num_workers=2,
-        monitor=monitor,
+        monitors=[monitor],
         options={"num_cpus": 0.5, "num_gpus": 0},  # just for testing purpose
     )
     # init the workflow

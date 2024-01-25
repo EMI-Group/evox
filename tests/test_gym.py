@@ -48,7 +48,7 @@ def test_cartpole(batch_policy):
             pop_size=16,
         ),
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
         jit_problem=False,
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,

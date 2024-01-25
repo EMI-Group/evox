@@ -39,7 +39,7 @@ def test_envpool_cartpole():
             pop_size=16,
         ),
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
         jit_problem=True,
         num_objectives=1,
         pop_transform=adapter.batched_to_tree,

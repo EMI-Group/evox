@@ -35,7 +35,7 @@ def run_single_objective_algorithm(
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
-        monitor=monitor,
+        monitors=[monitor],
         fit_transforms=fit_transforms,
     )
 

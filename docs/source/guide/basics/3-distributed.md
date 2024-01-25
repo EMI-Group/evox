@@ -46,7 +46,7 @@ Now use `RayDistributedWorkflow`
 workflow = workflows.RayDistributedWorkflow(
     algorithm=algorithm,
     problem=problem,
-    monitor=monitor,
+    monitors=[monitor],
     num_workers=4, # the number of machines
     options={ # the options that passes to ray
         "num_gpus": 1

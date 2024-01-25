@@ -19,7 +19,7 @@ def test_clustered_cma_es():
             num_cluster=4,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -50,7 +50,7 @@ def test_vectorized_coevolution(random_subpop):
     workflow = workflows.StdWorkflow(
         algorithm,
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -115,7 +115,7 @@ def test_coevolution(random_subpop, num_subpop_iter):
             random_subpop=random_subpop,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -146,7 +146,7 @@ def test_random_mask_cso():
             pop_size=50,
         ),
         problem=problems.numerical.Ackley(),
-        monitor=monitor,
+        monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
