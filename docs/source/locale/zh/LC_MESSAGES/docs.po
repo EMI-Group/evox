@@ -115,8 +115,9 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 #: evox.core.module.Stateful.init evox.core.module.Stateful.setup
 #: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
 #: evox.core.state.State.find_path_to evox.core.state.State.update
-#: evox.metrics.hypervolume.HV.__init__
+#: evox.metrics.hypervolume.HV.__init__ evox.monitors.eval_monitor.EvalMonitor
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__
+#: evox.monitors.pop_monitor.PopMonitor
 #: evox.monitors.std_mo_monitor.StdMOMonitor
 #: evox.monitors.std_so_monitor.StdSOMonitor
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__
@@ -140,12 +141,12 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 #: evox.problems.numerical.lsmop.LSMOP9.__init__
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__
 #: evox.workflows.distributed.RayDistributedWorkflow.setup
-#: evox.workflows.standard.StdWorkflow.__init__
-#: evox.workflows.standard.StdWorkflow.setup
-#: evox.workflows.uni_workflow.UniWorkflow.__init__
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices
-#: evox.workflows.uni_workflow.UniWorkflow.setup of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup
+#: evox.workflows.std_workflow.StdWorkflow.__init__
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices
+#: evox.workflows.std_workflow.StdWorkflow.setup of
 msgid "Parameters"
 msgstr "参数"
 
@@ -185,8 +186,8 @@ msgstr ""
 #: evox.core.algorithm.Algorithm.tell:9 evox.core.problem.Problem.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:11
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:8 of
 msgid "**state**"
 msgstr "**状态**"
 
@@ -272,10 +273,10 @@ msgstr "这个算法的状态。"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
 #: evox.workflows.distributed.RayDistributedWorkflow.setup
-#: evox.workflows.standard.StdWorkflow.setup
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices
-#: evox.workflows.uni_workflow.UniWorkflow.setup of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices
+#: evox.workflows.std_workflow.StdWorkflow.setup of
 msgid "Returns"
 msgstr "返回值"
 
@@ -341,7 +342,7 @@ msgstr "算法的新的状态。"
 #: evox.core.module.Stateful.setup evox.core.problem.Problem.evaluate
 #: evox.core.state.State.__init__ evox.core.state.State.find_path_to
 #: evox.core.state.State.update
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices of
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices of
 msgid "Return type"
 msgstr "返回值类型"
 
@@ -429,8 +430,8 @@ msgstr "算法的新状态"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:2
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:2
-#: evox.workflows.standard.StdWorkflow.setup:2
-#: evox.workflows.uni_workflow.UniWorkflow.setup:2 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:2
+#: evox.workflows.std_workflow.StdWorkflow.setup:2 of
 msgid "Setup mutable state here"
 msgstr "在这里设置可变状态"
 
@@ -492,8 +493,8 @@ msgstr "在这里设置可变状态"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:4
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:4
-#: evox.workflows.standard.StdWorkflow.setup:4
-#: evox.workflows.uni_workflow.UniWorkflow.setup:4 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:4
+#: evox.workflows.std_workflow.StdWorkflow.setup:4 of
 msgid ""
 "The state it self is immutable, but it act as a mutable state by "
 "returning new state each time."
@@ -560,8 +561,8 @@ msgstr "状态本身是不可变的，但是你可以通过生成一个新的状
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:10
-#: evox.workflows.standard.StdWorkflow.setup:10
-#: evox.workflows.uni_workflow.UniWorkflow.setup:10 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:10
+#: evox.workflows.std_workflow.StdWorkflow.setup:10 of
 msgid "**key**"
 msgstr "**随机数生成器密钥**"
 
@@ -625,8 +626,8 @@ msgstr "**随机数生成器密钥**"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:10
-#: evox.workflows.standard.StdWorkflow.setup:10
-#: evox.workflows.uni_workflow.UniWorkflow.setup:10 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:10
+#: evox.workflows.std_workflow.StdWorkflow.setup:10 of
 msgid "A PRNGKey."
 msgstr "一个伪随机数生成器密钥。"
 
@@ -690,10 +691,10 @@ msgstr "一个伪随机数生成器密钥。"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:27
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:27
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:27
-#: evox.workflows.standard.StdWorkflow.setup:27
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:28
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:29
-#: evox.workflows.uni_workflow.UniWorkflow.setup:27 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:27
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:28
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:29
+#: evox.workflows.std_workflow.StdWorkflow.setup:27 of
 msgid "State"
 msgstr "状态"
 
@@ -756,8 +757,8 @@ msgstr "状态"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:15
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:15
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:15
-#: evox.workflows.standard.StdWorkflow.setup:15
-#: evox.workflows.uni_workflow.UniWorkflow.setup:15 of
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:15
+#: evox.workflows.std_workflow.StdWorkflow.setup:15 of
 msgid "The state of this module."
 msgstr "这个模块的状态。"
 
@@ -1554,6 +1555,71 @@ msgstr "反世代距离"
 msgid "Metrics"
 msgstr "度量指标"
 
+#: ../../source/api/monitors/eval.rst:3
+#, fuzzy
+msgid "Evaluation Monitor"
+msgstr "可选监控器。"
+
+#: evox.monitors.eval_monitor.EvalMonitor:2 of
+msgid ""
+"Evaluation monitor. Used for both single-objective and multi-objective "
+"workflow. Hooked around the evaluation process, can monitor the "
+"offspring, their corresponding fitness and keep track of the evaluation "
+"count. Moreover, it can also record the best solution or the pareto front"
+" on-the-fly."
+msgstr ""
+
+#: evox.monitors.eval_monitor.EvalMonitor:13 of
+#, fuzzy
+msgid "**full_fit_history**"
+msgstr "**record_fit_history**"
+
+#: evox.monitors.eval_monitor.EvalMonitor:12
+#: evox.monitors.std_mo_monitor.StdMOMonitor:17
+#: evox.monitors.std_so_monitor.StdSOMonitor:14 of
+msgid ""
+"Whether to record the full history of fitness value. Default to True. "
+"Setting it to False may reduce memory usage."
+msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
+
+#: evox.monitors.eval_monitor.EvalMonitor:17 of
+#, fuzzy
+msgid "**full_sol_history**"
+msgstr "**record_fit_history**"
+
+#: evox.monitors.eval_monitor.EvalMonitor:16 of
+#, fuzzy
+msgid ""
+"Whether to record the full history of solutions. Default to False. "
+"Setting it to True may increase memory usage."
+msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
+
+#: evox.monitors.eval_monitor.EvalMonitor:21 of
+#, fuzzy
+msgid "**topk**"
+msgstr "**record_topk**"
+
+#: evox.monitors.eval_monitor.EvalMonitor:20 of
+#, fuzzy
+msgid ""
+"Only affect Single-objective optimization. The number of elite solutions "
+"to record. Default to 1, which will record the best individual."
+msgstr "控制录制多少精英解决方案。默认为1，它将记录最好的个体。"
+
+#: evox.monitors.eval_monitor.EvalMonitor:42 of
+#, fuzzy
+msgid "**calc_pf**"
+msgstr "**record_pf**"
+
+#: evox.monitors.eval_monitor.EvalMonitor:24 of
+#, fuzzy
+msgid ""
+"Only affect Multi-objective optimization. Whether to keep updating the "
+"pareto front during the run. (The Archive) Default to False. Setting it "
+"to True will cause the monitor to maintain a pareto front of all the "
+"solutions with unlimited size, which may hurt performance."
+msgstr "是否在运行过程中记录帕累托前沿。默认值为假（False）。将其设置为真（True）将导致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性能。"
+
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
 msgstr "EvoXVis 监视器"
@@ -1627,6 +1693,60 @@ msgstr "控制写入文件时使用的压缩算法。可供选择的有None、�
 msgid "Monitors"
 msgstr "监视器"
 
+#: ../../source/api/monitors/pop.rst:3
+#, fuzzy
+msgid "Population Monitor"
+msgstr "可选监控器。"
+
+#: evox.monitors.pop_monitor.PopMonitor:2 of
+msgid ""
+"Population monitor, used to monitor the population inside the genetic "
+"algorithm."
+msgstr ""
+
+#: evox.monitors.pop_monitor.PopMonitor:10 of
+#, fuzzy
+msgid "**population_name**"
+msgstr "种群"
+
+#: evox.monitors.pop_monitor.PopMonitor:9 of
+msgid "The name of the population in the state. Default to \"population\"."
+msgstr ""
+
+#: evox.monitors.pop_monitor.PopMonitor:14 of
+#, fuzzy
+msgid "**fitness_name**"
+msgstr "**适应度**"
+
+#: evox.monitors.pop_monitor.PopMonitor:13 of
+msgid "The name of the fitness in the state. Default to \"fitness\"."
+msgstr ""
+
+#: evox.monitors.pop_monitor.PopMonitor:20 of
+#, fuzzy
+msgid "**to_host**"
+msgstr "**mo_keys**"
+
+#: evox.monitors.pop_monitor.PopMonitor:17 of
+msgid ""
+"Whether to move the population and fitness to host memory (ram). Doing so"
+" can reduce memory usage on device (vram), but also introduces overhead "
+"of data transfer. Default to False."
+msgstr ""
+
+#: evox.monitors.pop_monitor.PopMonitor:40 of
+#, fuzzy
+msgid "**fitness_only**"
+msgstr "**适应度**"
+
+#: evox.monitors.pop_monitor.PopMonitor:23 of
+msgid ""
+"Whether to only record the fitness. Setting it to True will disable the "
+"recording of population (decision space), only the fitness (objective "
+"space) will be recorded. This can reduce memory usage if you only care "
+"about the fitness. Default to False."
+msgstr ""
+
 #: ../../source/api/monitors/std_mo.rst:3
 msgid "Standard Multi-objective Monitor"
 msgstr "标准多目标监视器"
@@ -1652,28 +1772,6 @@ msgstr "是否在运行过程中记录帕累托前沿。默认值为假（False�
 #: evox.monitors.std_so_monitor.StdSOMonitor:28 of
 msgid "**record_fit_history**"
 msgstr "**record_fit_history**"
-
-#: evox.monitors.std_mo_monitor.StdMOMonitor:17
-#: evox.monitors.std_so_monitor.StdSOMonitor:14 of
-msgid ""
-"Whether to record the full history of fitness value. Default to True. "
-"Setting it to False may reduce memory usage."
-msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
-
-#: evox.monitors.std_mo_monitor.StdMOMonitor.plot:2
-#: evox.monitors.std_so_monitor.StdSOMonitor.plot:2 of
-msgid ""
-"A Built-in plot function for visualizing the population of single-"
-"objective algorithm. Use plotly internally, so you need to install plotly"
-" to use this function."
-msgstr "内置的单目标算法种群可视化绘图函数。内部使用plotly库，因此要使用此功能，您需要先安装plotly。"
-
-#: evox.monitors.std_mo_monitor.StdMOMonitor.plot:5
-#: evox.monitors.std_so_monitor.StdSOMonitor.plot:5 of
-msgid ""
-"If the problem is provided, we will plot the fitness landscape of the "
-"problem."
-msgstr "如果提供了问题实例，我们将绘制该问题的适应度landscape。"
 
 #: ../../source/api/monitors/std_so.rst:3
 msgid "Standard Single-objective Monitor"
@@ -1773,7 +1871,7 @@ msgid "Construct a gym problem"
 msgstr "构建一个gym 问题"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:12
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:20 of
 msgid "**num_workers**"
 msgstr "**num_workers**"
 
@@ -1841,8 +1939,8 @@ msgid ""
 msgstr "可视化您的策略，通过传递一组权重，该策略将会被置于环境中进行互动展示。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:11
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:8 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:11
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:8 of
 msgid "The state."
 msgstr "状态。"
 
@@ -2078,205 +2176,183 @@ msgid ""
 msgstr "分布式工作流能够将工作流程分布到不同的节点上。它会使用相同的随机种子创建num_workers个相同工作流程副本，并且在每一步中，每个工作流程仅评估种群的一部分，然后将适应度值传递给其他节点以重建整个适应度数组。这样，通过各节点间的协作，实现大规模并行计算和优化过程的高效执行。"
 
 #: evox.workflows.distributed.RayDistributedWorkflow.__init__:9 of
-msgid ""
-"pop_transform and fitness_transform are applied at each node, while "
-"global_fitness_transform is applied at the main node once per step, so "
-"monitor should be passed as global_fitness_transform."
-msgstr "pop_transform和fitness_transform在每个节点上分别应用，而global_fitness_transform则在主节点上每一步执行一次。因此，monitor应当作为global_fitness_transform传递。"
+#, fuzzy
+msgid "sol_transforms and fit_transforms are applied at each node,"
+msgstr "适应度变换，这个变换在每个工作节点上应用。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
-#: evox.workflows.standard.StdWorkflow.__init__:8
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:14
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:8
+#: evox.workflows.std_workflow.StdWorkflow.__init__:8 of
 msgid "**algorithm**"
 msgstr "**算法**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:16
-#: evox.workflows.standard.StdWorkflow.__init__:8
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:8 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:14
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:8
+#: evox.workflows.std_workflow.StdWorkflow.__init__:8 of
 msgid "The algorithm."
 msgstr "算法。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
-#: evox.workflows.standard.StdWorkflow.__init__:11
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:17
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:11
+#: evox.workflows.std_workflow.StdWorkflow.__init__:11 of
 msgid "**problem**"
 msgstr "**问题**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:19
-#: evox.workflows.standard.StdWorkflow.__init__:11
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:11 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:17
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:11
+#: evox.workflows.std_workflow.StdWorkflow.__init__:11 of
 msgid "The problem."
 msgstr "问题。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:22 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:20 of
 msgid "Number of workers."
 msgstr "工作者的数目。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:26
-#: evox.workflows.standard.StdWorkflow.__init__:18
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:18 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:24
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:18
+#: evox.workflows.std_workflow.StdWorkflow.__init__:20 of
 msgid "**opt_direction**"
 msgstr "**opt_direction**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:25
-#: evox.workflows.standard.StdWorkflow.__init__:17
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:17 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:23
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:17
+#: evox.workflows.std_workflow.StdWorkflow.__init__:19 of
 msgid ""
 "The optimization direction, can be either \"min\" or \"max\" or a list of"
 " \"min\"/\"max\" to specific the direction for each objective."
 msgstr "优化方向，可以是\"min\"（最小化）或\"max\"（最大化），也可以是一个包含\"min\"/\"max\"的列表来指定每个目标的具体优化方向。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:27 of
 msgid "**options**"
 msgstr "**options**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:29 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:27 of
 msgid "The runtime options of the worker actor."
 msgstr "工作者（worker）actor的运行时选项。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
-msgid "**pop_transform:**"
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:30 of
+#, fuzzy
+msgid "**sol_transforms:**"
 msgstr "**pop_transform:**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:32 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:30 of
 msgid "Population transform, this transform is applied at each worker node."
 msgstr "Population transform，这种转换会被应用到每一个worker节点。"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
-msgid "**fitness_transform:**"
-msgstr "**fitness_transform:**"
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:46 of
+#, fuzzy
+msgid "**fit_transforms:**"
+msgstr "**fit_transform**"
 
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:35 of
+#: evox.workflows.distributed.RayDistributedWorkflow.__init__:33 of
 msgid "Fitness transform, this transform is applied at each worker node."
 msgstr "适应度变换，这个变换在每个工作节点上应用。"
-
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:51 of
-msgid "**global_fitness_transform:**"
-msgstr "**global_fitness_transform:**"
-
-#: evox.workflows.distributed.RayDistributedWorkflow.__init__:38 of
-msgid "This transform is applied at the main node."
-msgstr "这个变换在主节点上应用。"
 
 #: ../../source/api/workflows/index.rst:3
 msgid "Workflows"
 msgstr "工作流"
 
+#: ../../source/api/workflows/non_jit.rst:3
+#, fuzzy
+msgid "Non-jit Workflow"
+msgstr "UniWorkflow"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:14
+#: evox.workflows.std_workflow.StdWorkflow.__init__:16 of
+msgid "**monitor**"
+msgstr "**监控器**"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:14 of
+msgid "Optional monitor."
+msgstr "可选监控器。"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:25 of
+#, fuzzy
+msgid "**sol_transforms**"
+msgstr "**pop_transform**"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:21
+#: evox.workflows.std_workflow.StdWorkflow.__init__:23 of
+#, fuzzy
+msgid ""
+"Optional candidate solution transform function, usually used to decode "
+"the candidate solution into the format that can be understood by the "
+"problem. Should be a list of functions, and the functions will be applied"
+" in the order of the list."
+msgstr "可选种群变换函数，通常用于将种群解码为问题能够理解的格式。"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:44
+#: evox.workflows.std_workflow.StdWorkflow.__init__:33 of
+#, fuzzy
+msgid "**fit_transforms**"
+msgstr "**fit_transform**"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:28
+#: evox.workflows.std_workflow.StdWorkflow.__init__:30 of
+#, fuzzy
+msgid ""
+"Optional fitness transform function. usually used to apply fitness "
+"shaping. Should be a list of functions, and the functions will be applied"
+" in the order of the list."
+msgstr "可选适应度变换函数，通常用于应用适应度整形。"
+
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.sample:2 of
+msgid "Sample the algorithm but don't change it's state"
+msgstr "对算法采样但不改变它的状态"
+
 #: ../../source/api/workflows/standard.rst:3
 msgid "Standard Workflow"
 msgstr "标准工作流"
 
-#: evox.workflows.standard.StdWorkflow.__init__:14
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
-msgid "**monitor**"
-msgstr "**监控器**"
-
-#: evox.workflows.standard.StdWorkflow.__init__:14
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:14 of
-msgid "Optional monitor."
-msgstr "可选监控器。"
-
-#: evox.workflows.standard.StdWorkflow.__init__:23
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:23 of
-msgid "**pop_transform**"
-msgstr "**pop_transform**"
-
-#: evox.workflows.standard.StdWorkflow.__init__:21
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:21 of
-msgid ""
-"Optional population transform function, usually used to decode the "
-"population into the format that can be understood by the problem."
-msgstr "可选种群变换函数，通常用于将种群解码为问题能够理解的格式。"
-
-#: evox.workflows.standard.StdWorkflow.__init__:27
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:27 of
-msgid "**fit_transform**"
-msgstr "**fit_transform**"
-
-#: evox.workflows.standard.StdWorkflow.__init__:26
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:26 of
-msgid ""
-"Optional fitness transform function. usually used to apply fitness "
-"shaping."
-msgstr "可选适应度变换函数，通常用于应用适应度整形。"
-
-#: evox.workflows.standard.StdWorkflow.__init__:30
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
-msgid "**record_pop**"
-msgstr "**种群记录**"
-
-#: evox.workflows.standard.StdWorkflow.__init__:30
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:30 of
-msgid "Whether to record the population if monitor is enabled."
-msgstr "如果启用了monitor，是否要记录种群数据。"
-
-#: evox.workflows.standard.StdWorkflow.__init__:49
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:36 of
-msgid "**record_time**"
-msgstr "**时间记录**"
-
-#: evox.workflows.standard.StdWorkflow.__init__:33
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:33 of
-msgid ""
-"Whether to record the time at the end of each generation. Due to its "
-"timing nature, record_time requires synchronized functional call. Default"
-" to False."
-msgstr "是否记录每代结束的时间。由于它的计时性质，record_time需要同步的函数调用。默认为False。"
-
-#: evox.workflows.standard.StdWorkflow.sample:2 of
-msgid "Sample the algorithm but don't change it's state"
-msgstr "对算法采样但不改变它的状态"
-
-#: ../../source/api/workflows/uni.rst:3
-msgid "Universal Workflow"
-msgstr "通用工作流"
-
-#: evox.workflows.uni_workflow.UniWorkflow:2 of
+#: evox.workflows.std_workflow.StdWorkflow:2 of
 msgid ""
 "Experimental unified workflow, designed to provide unparallel performance"
 " for EC workflow."
 msgstr "实验中的统一workflow，设计目的是大幅提升EC的性能."
 
-#: evox.workflows.uni_workflow.UniWorkflow:5 of
+#: evox.workflows.std_workflow.StdWorkflow:5 of
 msgid ""
 "Provide automatic multi-device (e.g. multiple gpus) computation as well "
 "as distributed computation using JAX's native components."
 msgstr "提供自动多设备（例如，多个GPU）计算以及使用JAX的原生组件进行分布式计算。"
 
-#: evox.workflows.uni_workflow.UniWorkflow:8 of
+#: evox.workflows.std_workflow.StdWorkflow:8 of
 msgid ""
 "Monitor is called using JAX's asynchronous host callback, thus closing "
 "the monitor is needed to wait for the callback to complete."
 msgstr "监视器是使用JAX的异步主机回调调用的，因此需要关闭监视器以等待回调完成。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:40 of
+#: evox.workflows.std_workflow.StdWorkflow.__init__:14 of
+msgid ""
+"Optional monitor(s). Configure a single monitor or a list of monitors. "
+"The monitors will be called in the order of the list."
+msgstr ""
+
+#: evox.workflows.std_workflow.StdWorkflow.__init__:27 of
+#, fuzzy
+msgid "**sol_transform**"
+msgstr "**pop_transform**"
+
+#: evox.workflows.std_workflow.StdWorkflow.__init__:37 of
 msgid "**jit_problem**"
 msgstr "**jit_problem**"
 
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:39 of
+#: evox.workflows.std_workflow.StdWorkflow.__init__:36 of
 msgid "If the problem can be jit compiled by JAX or not. Default to True."
 msgstr "问题是否可以通过JAX进行jit编译。默认为True。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:44 of
-msgid "**jit_monitor**"
-msgstr "**jit_monitor**"
-
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:43 of
-msgid "If the monitor can be jit compiled by JAX or not. Default to False."
-msgstr "监视器是否可以通过JAX进行jit编译。默认为False。"
-
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:63 of
+#: evox.workflows.std_workflow.StdWorkflow.__init__:56 of
 msgid "**num_objectives**"
 msgstr "**num_objectives**"
 
-#: evox.workflows.uni_workflow.UniWorkflow.__init__:47 of
+#: evox.workflows.std_workflow.StdWorkflow.__init__:40 of
 msgid ""
 "Number of objectives. When the problem can be jit compiled, this field is"
 " not needed. When the problem cannot be jit compiled, this field should "
 "be set, if not, default to 1."
 msgstr "目标数量。当问题可以被 JIT（即时编译）时，这个字段不是必需的。当问题不能被 JIT 编译时，应设置这个字段，如果没有设置，默认为 1。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:2 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:2 of
 msgid ""
 "Enable the distributed workflow to run across multiple nodes. To use "
 "jax's distribution ability, one need to run the same program on all nodes"
@@ -2285,23 +2361,23 @@ msgstr ""
 "启用分布式工作流在多个节点上运行。要使用 JAX 的分布式处理能力，需要在所有节点上运行相同的程序，并在 "
 "jax.distributed.initialize 中使用不同的参数。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_distributed:16 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:16 of
 msgid "The sharded state, distributed amoung all nodes."
 msgstr "分布在所有节点上的分片状态。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:2 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:2 of
 msgid "Enable the workflow to run on multiple local devices."
 msgstr "允许workflow利用单台机器的多个设备（GPU）。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:12 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:12 of
 msgid "**devices**"
 msgstr "**设备**"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:11 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:11 of
 msgid "A list of devices. If set to None, all local devices will be used."
 msgstr "设备列表。如果设置为“None”，将使用所有本地设备。"
 
-#: evox.workflows.uni_workflow.UniWorkflow.enable_multi_devices:17 of
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:17 of
 msgid "The sharded state, distributed amoung all devices."
 msgstr "分布在所有设备上的分片状态。"
 
@@ -3185,9 +3261,11 @@ msgid "Assemble our workflow and fire it!"
 msgstr "组装我们的工作流程并启动它！"
 
 #: ../../source/guide/basics/2-problems.ipynb:170004
+#, fuzzy
 msgid ""
-"Notice the `pop_transform` option. It's used to convert the population "
-"into the tree-like structure that representing a neural network's weight."
+"Notice the `sol_transforms` option. It's used to convert the candidate "
+"solutions into the tree-like structure that representing a neural "
+"network's weight."
 msgstr "请注意 `pop_transform` 选项。它用于将种群转换成表示神经网络权重的树状结构。"
 
 #: ../../source/guide/basics/3-distributed.md:1
@@ -3295,13 +3373,15 @@ msgstr ""
 " 。"
 
 #: ../../source/guide/basics/3-distributed.md:66
-msgid "UniWorkflow"
-msgstr "UniWorkflow"
+#, fuzzy
+msgid "StdWorkflow"
+msgstr "工作流"
 
 #: ../../source/guide/basics/3-distributed.md:68
+#, fuzzy
 msgid ""
-"UniWorkflow is short for \"Universal Workflow\", which aims to use pure "
-"JAX to build a workflow that fits any requirement. Since `UniWorkflow` is"
+"StdWorkflow is short for \"Universal Workflow\", which aims to use pure "
+"JAX to build a workflow that fits any requirement. Since `StdWorkflow` is"
 " written in pure JAX, it has less overhead and don't need any additional "
 "dependencies."
 msgstr ""
@@ -3311,7 +3391,7 @@ msgstr ""
 #: ../../source/guide/basics/3-distributed.md:74
 #, fuzzy
 msgid ""
-"Use `UniWorkflow` to create an workflow, and use `enable_distributed` and"
+"Use `StdWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
 msgstr "使用'UniWorkflow'创建一个工作流然后使用'enable_distributed'并且传入相应状态来启用此功能。"
 
@@ -4049,4 +4129,62 @@ msgstr ""
 
 #~ msgid "{ref}`search`"
 #~ msgstr "{ref}`search`"
+
+#~ msgid ""
+#~ "A Built-in plot function for "
+#~ "visualizing the population of single-"
+#~ "objective algorithm. Use plotly internally,"
+#~ " so you need to install plotly "
+#~ "to use this function."
+#~ msgstr "内置的单目标算法种群可视化绘图函数。内部使用plotly库，因此要使用此功能，您需要先安装plotly。"
+
+#~ msgid ""
+#~ "If the problem is provided, we "
+#~ "will plot the fitness landscape of "
+#~ "the problem."
+#~ msgstr "如果提供了问题实例，我们将绘制该问题的适应度landscape。"
+
+#~ msgid ""
+#~ "pop_transform and fitness_transform are "
+#~ "applied at each node, while "
+#~ "global_fitness_transform is applied at the "
+#~ "main node once per step, so "
+#~ "monitor should be passed as "
+#~ "global_fitness_transform."
+#~ msgstr "pop_transform和fitness_transform在每个节点上分别应用，而global_fitness_transform则在主节点上每一步执行一次。因此，monitor应当作为global_fitness_transform传递。"
+
+#~ msgid "**fitness_transform:**"
+#~ msgstr "**fitness_transform:**"
+
+#~ msgid "**global_fitness_transform:**"
+#~ msgstr "**global_fitness_transform:**"
+
+#~ msgid "This transform is applied at the main node."
+#~ msgstr "这个变换在主节点上应用。"
+
+#~ msgid "**record_pop**"
+#~ msgstr "**种群记录**"
+
+#~ msgid "Whether to record the population if monitor is enabled."
+#~ msgstr "如果启用了monitor，是否要记录种群数据。"
+
+#~ msgid "**record_time**"
+#~ msgstr "**时间记录**"
+
+#~ msgid ""
+#~ "Whether to record the time at the"
+#~ " end of each generation. Due to "
+#~ "its timing nature, record_time requires "
+#~ "synchronized functional call. Default to "
+#~ "False."
+#~ msgstr "是否记录每代结束的时间。由于它的计时性质，record_time需要同步的函数调用。默认为False。"
+
+#~ msgid "Universal Workflow"
+#~ msgstr "通用工作流"
+
+#~ msgid "**jit_monitor**"
+#~ msgstr "**jit_monitor**"
+
+#~ msgid "If the monitor can be jit compiled by JAX or not. Default to False."
+#~ msgstr "监视器是否可以通过JAX进行jit编译。默认为False。"
 
