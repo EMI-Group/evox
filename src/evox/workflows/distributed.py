@@ -126,9 +126,6 @@ class WorkerWorkflow(Stateful):
         pop, new_state = self.algorithm.ask(new_state)
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
 
-        if self.pop_transform is not None:
-            partial_pop = self.pop_transform(partial_pop)
-
         partial_fitness, new_state = self.problem.evaluate(new_state, partial_pop)
         return partial_fitness, state
 
@@ -254,7 +251,7 @@ class RayDistributedWorkflow(Stateful):
         and at each step each workflow only evaluate part of the population,
         then pass the fitness to other nodes to recreate the whole fitness array.
 
-        pop_transform and fitness_transform are applied at each node,
+        sol_transforms and fit_transforms are applied at each node,
 
         Parameters
         ----------

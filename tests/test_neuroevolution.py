@@ -100,7 +100,7 @@ def test_neuroevolution_adapter():
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
-        pop_transform=adapter.batched_to_tree,
+        sol_transforms=[adapter.batched_to_tree],
         monitors=[monitor],
     )
     # init the workflow

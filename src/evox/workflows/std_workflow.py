@@ -31,7 +31,7 @@ class StdWorkflow(Stateful):
         opt_direction: Union[str, List[str]] = "min",
         sol_transforms: List[Callable] = [],
         fit_transforms: List[Callable] = [],
-        pop_transform: List[Callable] = None,
+        pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
         jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
@@ -224,9 +224,6 @@ class StdWorkflow(Stateful):
                 pop = jax.lax.dynamic_slice_in_dim(
                     pop, self.start_index, self.slice_size, axis=0
                 )
-
-            if self.pop_transform is not None:
-                pop = self.pop_transform(pop)
 
             fitness, new_state = self.problem.evaluate(new_state, pop)
 
