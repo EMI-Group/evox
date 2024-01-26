@@ -73,7 +73,7 @@ def test():
     likelihood = Gaussian(num_datapoints=len(x))
     model = GPRegression(likelihood=likelihood)
     model.fit(x, y, optimzer=ox.sgd(0.001))
-    mu, std = model.predict(pre_x)
+    _, mu, std = model.predict(pre_x)
     print(std)
 
 

@@ -1,11 +1,8 @@
 # https://docs.jaxgaussianprocesses.com/examples/classification/
 
-from jax import config
-
-config.update("jax_enable_x64", True)
-
 import jax
 import jax.random as jr
+import jax.numpy as jnp
 
 import optax as ox
 import gpjax as gpx
@@ -14,7 +11,6 @@ from gpjax.mean_functions import Zero
 from evox.operators.gaussian_process.kernels import RBF
 from gpjax.objectives import LogPosteriorDensity
 
-key = jr.PRNGKey(123)
 
 
 class GPClassification:
@@ -53,7 +49,7 @@ class GPClassification:
         self.object = object
         self.posterior = self.prior * self.likelihood
 
-    def fit(self, x, y, optimizer=ox.adam):
+    def fit(self, x: jax.Array, y: jax.Array, optimizer=ox.adam):
         """
         Fits the model to the provided data.
 
@@ -66,7 +62,7 @@ class GPClassification:
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Adam).
         """
-        self.dataset = gpx.Dataset(X=x, y=y)
+        self.dataset = gpx.Dataset(X=x.astype(jnp.float32), y=y.astype(jnp.float32))
         self.object(self.posterior, train_data=self.dataset)
         self.opt_posterior, self.history = gpx.fit(
             model=self.posterior,

@@ -1,20 +1,16 @@
 # https://docs.jaxgaussianprocesses.com/examples/regression/
 
-from jax import config
-
-config.update("jax_enable_x64", True)
+import jax
+import jax.numpy as jnp
+from jax import jit
+import jax.random as jr
 
 import gpjax as gpx
-import jax
-from jax import jit
 import optax as ox
-import jax.random as jr
 
 from gpjax.objectives import ConjugateMLL
 from gpjax.mean_functions import Zero
 from evox.operators.gaussian_process.kernels import RBF
-
-
 
 
 class GPRegression:
@@ -53,7 +49,7 @@ class GPRegression:
         self.object = object
         self.posterior = self.prior * self.likelihood
 
-    def fit(self, x, y, optimzer:ox.GradientTransformation):
+    def fit(self, x: jax.Array, y: jax.Array, optimzer: ox.GradientTransformation):
         """
         Fits the model to the provided data.
 
@@ -66,7 +62,7 @@ class GPRegression:
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Gradient Transformation).
         """
-        self.dataset = gpx.Dataset(X=x, y=y)
+        self.dataset = gpx.Dataset(X=x.astype(jnp.float32), y=y.astype(jnp.float32))
         self.object(self.posterior, train_data=self.dataset)
         if optimzer == None:
             optimzer = ox.sgd(0.001)
@@ -79,14 +75,14 @@ class GPRegression:
             key=self.key,
         )
 
-    def fit_scipy(self, x, y):
-        self.dataset = gpx.Dataset(X=x, y=y)
-        self.object(self.posterior, train_data=self.dataset)
-        self.opt_posterior, self.history = gpx.fit_scipy(
-            model=self.posterior,
-            objective=self.object,
-            train_data=self.dataset,
-        )
+    # def fit_scipy(self, x, y):
+    #     self.dataset = gpx.Dataset(X=x, y=y)
+    #     self.object(self.posterior, train_data=self.dataset)
+    #     self.opt_posterior, self.history = gpx.fit_scipy(
+    #         model=self.posterior,
+    #         objective=self.object,
+    #         train_data=self.dataset,
+    #     )
 
     def predict(self, x):
         """
@@ -100,7 +96,7 @@ class GPRegression:
 
         Returns:
             A tuple containing the predictive distribution, predictive mean, and predictive standard deviation.
-        """        
+        """
         latent_dist = self.opt_posterior.predict(x, train_data=self.dataset)
         predictive_dist = self.opt_posterior.likelihood(latent_dist)
 
