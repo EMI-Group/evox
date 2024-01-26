@@ -53,7 +53,7 @@ class GPRegression:
         self.object = object
         self.posterior = self.prior * self.likelihood
 
-    def fit(self, x, y, optimzer=ox.GradientTransformation):
+    def fit(self, x, y, optimzer:ox.GradientTransformation):
         """
         Fits the model to the provided data.
 
@@ -68,6 +68,8 @@ class GPRegression:
         """
         self.dataset = gpx.Dataset(X=x, y=y)
         self.object(self.posterior, train_data=self.dataset)
+        if optimzer == None:
+            optimzer = ox.sgd(0.001)
         self.opt_posterior, self.history = gpx.fit(
             model=self.posterior,
             objective=self.object,

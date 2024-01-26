@@ -23,6 +23,18 @@ import sys
 import os
 import jax.lax as lax
 
+
+def random_fill(key, matrix, matrix2, mask, max_value):
+    # new_length = jnp.floor(matrix.shape[0] * new_length_rate).astype(jnp.int32)
+    matrix = jnp.where(mask[:, jnp.newaxis], matrix, jnp.nan)
+    sorted_indices = jnp.argsort(matrix, axis=0)[:, 0:1]
+    sorted_matrix = jnp.take_along_axis(matrix, sorted_indices, axis=0)
+    sorted_matrix2 = jnp.take_along_axis(matrix2, sorted_indices, axis=0)
+    random_array = random.randint(key=key,shape=(matrix.shape[0],), minval=0, maxval=max_value)
+    new_matrix = sorted_matrix[random_array, :]
+    new_matrix2 = sorted_matrix2[random_array, :]
+    return new_matrix, new_matrix2
+
 class IMMOEA(Algorithm):
     def __init__(
         self,
@@ -179,63 +191,57 @@ class IMMOEA(Algorithm):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
         n = jnp.sum(mask)
         N = population.shape[0]
+        new_length = jnp.floor(N / 2).astype(jnp.int32)
         group_num = jnp.floor(N / self.n_objs).astype(jnp.int32)
-        population = jnp.where(mask[:, jnp.newaxis], population, jnp.nan)
-        fitness = jnp.where(mask[:, jnp.newaxis], fitness, jnp.nan)
-        # new_pop = jnp.where(~mask[:, jnp.newaxis], , jnp.nan)
         D = population.shape[1]
         L = 3
         Offspring = population
-        sorted_indices = jnp.argsort(population, axis=0)[:,0:1]
-        sorted_pop = jnp.take_along_axis(population, sorted_indices, axis=0)
-        sorted_fit = jnp.take_along_axis(fitness, sorted_indices, axis=0)
-        random_array = random.randint(key, (N,), 0, n)
-        new_pop = sorted_pop[random_array, :]
-        new_fit = sorted_fit[random_array, :]
-        # fmin = 1.5 * jnp.nanmin(fitness, axis=0) - 0.5 * jnp.nanmax(fitness, axis=0)
-        # fmax = 1.5 * jnp.nanmax(fitness, axis=0) - 0.5 * jnp.nanmin(fitness, axis=0)
+        new_pop, new_fit = random_fill(matrix=population, matrix2=fitness, mask=mask, key=key, max_value=n)
+
         # if N >= 2 * self.n_objs:
         def normal_fun(x_key):
             dim_indices = jnp.arange(D)
             num_indices = jnp.arange(N)
             shuffled_indices = random.permutation(x_key, dim_indices)
-            shuffled_indices_group = [[]*self.n_objs]
-            arr = jnp.array(jnp.arange(self.n_objs))
-            def get_dim_indices(i):
+            shuffled_indices_group = jnp.zeros(shape=(self.n_objs,L),dtype=jnp.int32)
+            arr = jnp.array(jnp.arange(self.n_objs+1))
+            def get_dim_indices(i, shuffled_indices):
             # for i in range(self.n_objs):
-                shuffled_indices_group[i] = lax.dynamic_slice(shuffled_indices, (i*L,), (L,))
-            jax.vmap(get_dim_indices)(arr)
+                return lax.dynamic_slice(shuffled_indices, (i*L,), (L,))
+            shuffled_indices_group = jax.vmap(lambda i: get_dim_indices(i, shuffled_indices))(arr)
             # start = 0
             fmin = 1.5 * jnp.nanmin(new_fit, axis=0) - 0.5 * jnp.nanmax(new_fit, axis=0)
             fmax = 1.5 * jnp.nanmax(new_fit, axis=0) - 0.5 * jnp.nanmin(new_fit, axis=0)
             Offspring = None
-            sel_keys = jax.random.split(sel_key, num=self.n_objs)
+            # sel_keys = jax.random.split(sel_key, num=self.n_objs)
             x_keys = jax.random.split(x_key, num=L * self.n_objs)
-            key_group = [[] * self.n_objs]
-            def get_keys(i):
-                key_group[i] = lax.dynamic_slice(x_keys, (i*L,0), (L,2))
-            jax.vmap(get_keys)(arr)
             # Train one groups of GP models for each objective
-            def gp_body(m, Offspring, shuffled_indices_group, key_group):
+            def gp_body(m, shuffled_indices_group, x_keys):
             # for m in range(self.n_objs):
-                permutation = random.permutation(sel_keys[m], num_indices)
-                # parents = lax.dynamic_slice(permutation,0, group_num)
-                parents = jnp.where((jnp.arange(N) < group_num), permutation, N)
-                sub_off = jnp.where((jnp.arange(N) == parents)[:, jnp.newaxis], new_pop, jnp.nan)
-                sub_fit = jnp.where((jnp.arange(N) == parents)[:, jnp.newaxis], new_fit, jnp.nan)
+                _keys = random.split(x_keys[m], num=3)
+                permutation = random.permutation(_keys[0], num_indices)
+                parents = jnp.where(num_indices, permutation, -1)
+                # parents = jnp.where((jnp.arange(N) < group_num), permutation, N)
+                # sub_off = jnp.where((jnp.arange(N) == parents)[:, jnp.newaxis], new_pop, jnp.nan)
+                # sub_fit = jnp.where((jnp.arange(N) == parents)[:, jnp.newaxis], new_fit, jnp.nan)
+                _mask = jnp.arange(new_pop.shape[0]) == parents
+                sub_off, sub_fit = random_fill(matrix=new_pop, matrix2=new_fit, key=_keys[1], mask=mask, max_value=jnp.sum(_mask))
                 # sub_off = sorted_pop[parents, :]
                 # dim_indices = shuffled_indices[start : start + L]
                 # keys = x_keys[start : start + L]
                 # start += L
 
                 dim_indices = shuffled_indices_group[m]
-                keys = key_group[m]
+                keys = random.split(_keys[2], num=L)
                 likelihood = Gaussian(num_datapoints=len(sub_off))
                 model = GPRegression(likelihood=likelihood, kernel=Linear())
                 for d, key in zip(dim_indices, keys):
-                    model.fit_scipy(
-                        x=sub_fit[:, m:m+1], y=sub_off[:, d: d + 1]
-                    )
+                    _sub_fit = lax.dynamic_slice(sub_fit, (0,m), (sub_fit.shape[0], 1))
+                    _sub_off = lax.dynamic_slice(sub_off, (0,d), (sub_fit.shape[0], 1))
+                    # model.fit_scipy(
+                    #     x=_sub_fit, y=_sub_off
+                    # )
+                    model.fit( x=_sub_fit, y=_sub_off, optimzer=ox.sgd(0.001))
                     inputs = jnp.linspace(fmin[m], fmax[m], len(parents))[
                         :, jnp.newaxis
                     ]
@@ -244,15 +250,16 @@ class IMMOEA(Algorithm):
                     sub_off = sub_off.at[:, d].set(
                         ymu + random.normal(key, shape=ystd.shape) * ystd
                     )
-                Offspring = jax.cond(Offspring is None, lambda x: x, lambda x: jnp.vstack((Offspring, x)), sub_off)
+                # Offspring = jax.cond(Offspring is None, lambda x: x, lambda x: jnp.vstack((Offspring, x)), sub_off)
                 # if Offspring is None:
                 #     Offspring = sub_off
                 # else:
                 #     Offspring = jnp.vstack((Offspring, sub_off))
-                return Offspring
+                return sub_off
 
-            jax.vmap(gp_body)(jnp.arange(self.n_objs), Offspring, shuffled_indices_group, key_group)
-        lax.cond(n >= 2 * self.n_objs, normal_fun, lambda x:None, x_key)
+            Offspring = jax.vmap(lambda i : gp_body(i, shuffled_indices_group, x_keys))(jnp.arange(self.n_objs))
+            return Offspring
+        Offspring = lax.cond(n >= 2 * self.n_objs, normal_fun, lambda x : Offspring, x_key)
 
         # Convert invalid values to random values
         randDec = jax.random.uniform(
@@ -264,3 +271,5 @@ class IMMOEA(Algorithm):
         Offspring = self.mutation(mut_key, Offspring)
         next_generation = jnp.clip(Offspring, self.lb, self.ub)
         return next_generation
+
+
