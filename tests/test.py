@@ -64,7 +64,7 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ2(m=M)):
     # objs = monitor.get_last()
     # print(objs)
 
-def test():
+def run_gp():
     # 假设 matrix 是一个 N x M 的矩阵
     x = jnp.array([1, 2, 3, 12])[:, jnp.newaxis]
     pre_x = jnp.array([4,5,6])[:, jnp.newaxis]
@@ -76,9 +76,24 @@ def test():
     _, mu, std = model.predict(pre_x)
     print(std)
 
+def f(x):
+    # 这里只是一个示例，您可以根据实际需求定义 f
+    return jnp.array([[x, x+1, x+2], [x+3, x+4, x+5], [x+6, x+7, x+8], [x+9, x+10, x+11]])
 
+def rr():
+    # 使用 vmap 对 f 进行三次操作
+    vmap_f = jax.vmap(f, in_axes=0, out_axes=0)
+    result = vmap_f(jnp.array([0, 1, 2]))
+    re_res = jnp.zeros(shape=(4,9))
+    # 展平结果并按列排序
+    for i in range(result.shape[1]):
+        re_res = re_res.at[i].set(result[:,i,:].flatten())
+
+    print(result.shape)
+    print(re_res)
+    # print(b)
 if __name__ == "__main__":
     # rm_meda()
     # nsga2()
     # print("done")
-    test()
+    rr()
