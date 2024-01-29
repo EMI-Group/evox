@@ -11,7 +11,8 @@ import optax as ox
 from gpjax.objectives import ConjugateMLL
 from gpjax.mean_functions import Zero
 from evox.operators.gaussian_process.kernels import RBF
-
+import logging
+# jax.config.update('jax_enable_x64', True)
 
 class GPRegression:
     """
@@ -49,6 +50,7 @@ class GPRegression:
         self.object = object
         self.posterior = self.prior * self.likelihood
 
+
     def fit(self, x: jax.Array, y: jax.Array, optimzer: ox.GradientTransformation):
         """
         Fits the model to the provided data.
@@ -62,7 +64,7 @@ class GPRegression:
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Gradient Transformation).
         """
-        self.dataset = gpx.Dataset(X=x.astype(jnp.float32), y=y.astype(jnp.float32))
+        self.dataset = gpx.Dataset(X=x.astype(jnp.float64), y=y.astype(jnp.float64))
         self.object(self.posterior, train_data=self.dataset)
         if optimzer == None:
             optimzer = ox.sgd(0.001)
@@ -76,7 +78,7 @@ class GPRegression:
         )
 
     # def fit_scipy(self, x, y):
-    #     self.dataset = gpx.Dataset(X=x, y=y)
+    #     self.dataset = gpx.Dataset(X=x.astype(jnp.float64), y=y.astype(jnp.float64))
     #     self.object(self.posterior, train_data=self.dataset)
     #     self.opt_posterior, self.history = gpx.fit_scipy(
     #         model=self.posterior,

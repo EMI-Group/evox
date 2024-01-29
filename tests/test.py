@@ -9,8 +9,18 @@ from gpjax.kernels import Linear
 from gpjax.likelihoods import Gaussian
 from gpjax.mean_functions import Zero
 import optax as ox
+import tqdm
+import logging
+# 设置JAX的日志级别
+logging.disable(logging.WARNING)
+def tqdm_replacement(*args,**kwargs):
+    if args:
+        return args[0]  # 返回第一个位置参数，即迭代对象
+    return None
+tqdm_copy = tqdm.tqdm # store it if you want to use it later
+tqdm.tqdm = tqdm_replacement
 
-
+# import any other module you need after this line
 N = 12
 M = 3
 POP_SIZE = 100
@@ -56,44 +66,53 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ2(m=M)):
     state = workflow.init(key)
     true_pf, state = problem.pf(state)
     ind = IGD(true_pf)
-    for i in range(ITER):
-        state = workflow.step(state)
-        obj = state.get_child_state("algorithm").fitness
-        print(ind(obj))
+    with open("./log.txt",'w') as file:
+        for i in range(ITER):
+            state = workflow.step(state)
+            obj = state.get_child_state("algorithm").fitness
+            file.write(str(ind(obj))+"\n")
+            # print(ind(obj))
 
     # objs = monitor.get_last()
     # print(objs)
-
-def run_gp():
+@jax.jit
+def run_gp(i):
     # 假设 matrix 是一个 N x M 的矩阵
-    x = jnp.array([1, 2, 3, 12])[:, jnp.newaxis]
-    pre_x = jnp.array([4,5,6])[:, jnp.newaxis]
-    y = jnp.array([4, 5, 6, 13])[:, jnp.newaxis]
+    x = jnp.arange(i + 5)[:, jnp.newaxis]
+    pre_x = jnp.array([4, 5, 6, jnp.inf])[:, jnp.newaxis]
+    y = (jnp.arange(i + 5) * 6)[:, jnp.newaxis]
     # 假设 mask 是一个长度为 N 的布尔数组
     likelihood = Gaussian(num_datapoints=len(x))
     model = GPRegression(likelihood=likelihood)
-    model.fit(x, y, optimzer=ox.sgd(0.001))
+    model.fit(x, y, optimzer=ox.sgd(0.001,  nesterov=True))
     _, mu, std = model.predict(pre_x)
-    print(std)
+    return mu
 
-def f(x):
+def f():
     # 这里只是一个示例，您可以根据实际需求定义 f
-    return jnp.array([[x, x+1, x+2], [x+3, x+4, x+5], [x+6, x+7, x+8], [x+9, x+10, x+11]])
+    x = jnp.array([1, 2, 3, 12])[:, jnp.newaxis]
+    pre_x = jnp.array([4, 5, 6, jnp.inf])[:, jnp.newaxis]
+    y = jnp.array([4, 5, 6, 13])[:, jnp.newaxis]
+    mus = jax.vmap(lambda i:run_gp(i,x,y,pre_x))(jnp.arange(3))
 
 def rr():
-    # 使用 vmap 对 f 进行三次操作
-    vmap_f = jax.vmap(f, in_axes=0, out_axes=0)
-    result = vmap_f(jnp.array([0, 1, 2]))
-    re_res = jnp.zeros(shape=(4,9))
-    # 展平结果并按列排序
-    for i in range(result.shape[1]):
-        re_res = re_res.at[i].set(result[:,i,:].flatten())
 
-    print(result.shape)
-    print(re_res)
+    # 假设 arr 是一个二维数组
+    arr = jnp.array([[1, 2, 3], [4, 5, 6], [1, 2, 3], [4, 5, 6]])
+
+    # 使用 unique 按行筛选
+    unique_rows = jnp.unique(arr, axis=0,size=2)
+
+    # result2 = vmap_f(jnp.array([0, 1, 2]), out_axes=1)
+    print(unique_rows.shape)
+    # print(result2.shape)
+    # print(jnp.vstack(result).shape)
     # print(b)
 if __name__ == "__main__":
     # rm_meda()
+    im_moea()
     # nsga2()
     # print("done")
-    rr()
+    # rr()
+    # run_gp()
+    # f()
