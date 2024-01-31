@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-31 08:21+0000\n"
+"PO-Revision-Date: 2024-01-31 08:31+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -3839,7 +3839,6 @@ msgstr ""
 "的强大功能，实现更快速的优化。"
 
 #: ../../source/index.md:47
-#, fuzzy
 msgid "🌐 **Versatile Optimization Suite**:"
 msgstr "🌐 **多功能优化套件**:"
 
@@ -3868,7 +3867,6 @@ msgstr ""
 "neuroevolution/index>` 任务。"
 
 #: ../../source/index.md:52
-#, fuzzy
 msgid "🛠️ **Designed for Simplicity**:"
 msgstr "🛠️ **简易性设计**:"
 
