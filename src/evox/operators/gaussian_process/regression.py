@@ -2,16 +2,16 @@
 
 import jax
 import jax.numpy as jnp
-from jax import jit
 import jax.random as jr
-
+from jax import jit
 import gpjax as gpx
 import optax as ox
 
 from gpjax.objectives import ConjugateMLL
 from gpjax.mean_functions import Zero
-from evox.operators.gaussian_process.kernels import RBF
-import logging
+from gpjax.kernels import RBF
+from gpjax.fit import fit
+
 # jax.config.update('jax_enable_x64', True)
 
 class GPRegression:
@@ -59,7 +59,8 @@ class GPRegression:
         the specified optimization method to fit the model. The process includes setting
         the objective function and optimizing the posterior distribution.
 
-        Args:
+        Parameters
+        ----------
             x: The feature matrix.
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Gradient Transformation).
@@ -68,13 +69,14 @@ class GPRegression:
         self.object(self.posterior, train_data=self.dataset)
         if optimzer == None:
             optimzer = ox.sgd(0.001)
-        self.opt_posterior, self.history = gpx.fit(
+        self.opt_posterior, self.history = fit(
             model=self.posterior,
-            objective=self.object,
+            objective=jit(self.object),
             train_data=self.dataset,
             optim=optimzer,
             num_iters=500,
             key=self.key,
+            verbose=False,
         )
 
     # def fit_scipy(self, x, y):

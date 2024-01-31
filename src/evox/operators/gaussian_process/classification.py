@@ -71,6 +71,7 @@ class GPClassification:
             optim=optimizer,
             num_iters=500,
             key=self.key,
+            verbose=False,
         )
 
     def predict(self, x):

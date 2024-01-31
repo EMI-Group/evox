@@ -10,9 +10,7 @@ from gpjax.likelihoods import Gaussian
 from gpjax.mean_functions import Zero
 import optax as ox
 import tqdm
-import logging
-# 设置JAX的日志级别
-logging.disable(logging.WARNING)
+
 def tqdm_replacement(*args,**kwargs):
     if args:
         return args[0]  # 返回第一个位置参数，即迭代对象
@@ -23,7 +21,7 @@ tqdm.tqdm = tqdm_replacement
 # import any other module you need after this line
 N = 12
 M = 3
-POP_SIZE = 100
+POP_SIZE = 105
 LB = 0
 UB = 1
 ITER = 100
@@ -90,10 +88,13 @@ def run_gp(i):
 
 def f():
     # 这里只是一个示例，您可以根据实际需求定义 f
-    x = jnp.array([1, 2, 3, 12])[:, jnp.newaxis]
-    pre_x = jnp.array([4, 5, 6, jnp.inf])[:, jnp.newaxis]
-    y = jnp.array([4, 5, 6, 13])[:, jnp.newaxis]
-    mus = jax.vmap(lambda i:run_gp(i,x,y,pre_x))(jnp.arange(3))
+    x = jnp.arange(24).reshape(2,3,4)
+    y = jnp.vstack(x)
+    z = jnp.vstack(y)
+    print(x.shape)
+    print(y.shape)
+    print(z.shape)
+
 
 def rr():
 
