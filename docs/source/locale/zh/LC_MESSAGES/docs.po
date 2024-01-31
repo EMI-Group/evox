@@ -3024,11 +3024,9 @@ msgstr "进阶教程"
 msgid "Quick Start"
 msgstr "快速开始"
 
-#: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:37
-msgid ""
-"EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
-" computation."
-msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
+#: ../../source/guide/basics/1-start.ipynb:10004
+msgid "In this notebook, we will guide you through the basic steps of using EvoX."
+msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
@@ -3800,6 +3798,12 @@ msgid ""
 msgstr ""
 "[[English Version]](https://evox.readthedocs.io/en/latest/)   "
 "[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
+
+#: ../../source/index.md:37
+msgid ""
+"EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
+" computation."
+msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
 
 #: ../../source/index.md:41
 #, fuzzy
