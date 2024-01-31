@@ -11,7 +11,11 @@ try:
     from gpjax.kernels import RBF
     from gpjax.objectives import LogPosteriorDensity
 except ImportError:
-    raise ImportError("GPJAX is not installed. Please install it first.")
+    gpx = None
+    ox = None
+    RBF = None
+    Zero = None
+    LogPosteriorDensity = None
 
 # jax.config.update('jax_enable_x64', True)
 

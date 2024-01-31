@@ -1,8 +1,11 @@
 import jax.numpy as jnp
 from evox.operators.gaussian_process.regression import GPRegression
-from gpjax.likelihoods import Gaussian
-import optax as ox
-
+try:
+    from gpjax.likelihoods import Gaussian
+    import optax as ox
+except ImportError:
+    Gaussian = None
+    ox = None
 
 def test_gp():
     i = 0

@@ -25,7 +25,6 @@ try:
 except ImportError:
     Linear = None
     Gaussian = None
-    raise ImportError("GPJAX is not installed. Please install it first.")
 
 
 # jax.config.update('jax_enable_x64', True)
