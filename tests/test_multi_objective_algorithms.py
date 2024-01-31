@@ -200,15 +200,6 @@ def test_lmocso():
     )
     run_moea(algorithm)
 
-# def test_rm_meda():
-#     algorithm = algorithms.RMMEDA(
-#         lb=jnp.full(shape=(N,), fill_value=LB),
-#         ub=jnp.full(shape=(N,), fill_value=UB),
-#         n_objs=M,
-#         pop_size=POP_SIZE,
-#     )
-#     run_moea(algorithm)
-
 def test_im_moea():
     algorithm = algorithms.IMMOEA(
         lb=jnp.full(shape=(N,), fill_value=LB),
