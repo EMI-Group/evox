@@ -24,13 +24,13 @@ And since `bar` uses the dynamic index, which is not compatible with `jax.jit`, 
 To solve is problem, it is common practice to jit-compile low-level components, thus giving high-level components more freedom.
 In EvoX, we have some general rules on whether a function should be jit-able or not.
 
-| Component | jit-able |
-| --------- | -------- |
-| Workflow  | Optional |
-| Algorithm | Yes      |
-| Problem   | Optional |
-| Operators | Yes      |
-| Monitor   | No       |
+|  Component  | jit-able |
+| ----------- | -------- |
+| `Workflow`  | Optional |
+| `Algorithm` | Yes      |
+| `Problem`   | Optional |
+| `Operators` | Yes      |
+| `Monitor`   | No       |
 
 For standard workflow, one can jit compile when not using monitors and working with jit-able problems.
 But even though the workflow can be compiled, there isn't much performance gain.
