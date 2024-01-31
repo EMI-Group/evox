@@ -14,6 +14,7 @@ from gpjax.fit import fit
 
 # jax.config.update('jax_enable_x64', True)
 
+
 class GPRegression:
     """
     Gaussian Process Regreesion model using JAX, Optax and GPJAX.
@@ -50,7 +51,6 @@ class GPRegression:
         self.object = object
         self.posterior = self.prior * self.likelihood
 
-
     def fit(self, x: jax.Array, y: jax.Array, optimzer: ox.GradientTransformation):
         """
         Fits the model to the provided data.
@@ -74,7 +74,7 @@ class GPRegression:
             objective=jit(self.object),
             train_data=self.dataset,
             optim=optimzer,
-            num_iters=500,
+            num_iters=250,
             key=self.key,
             verbose=False,
         )

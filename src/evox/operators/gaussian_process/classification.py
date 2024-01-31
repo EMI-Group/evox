@@ -8,9 +8,8 @@ import optax as ox
 import gpjax as gpx
 
 from gpjax.mean_functions import Zero
-from evox.operators.gaussian_process.kernels import RBF
+from gpjax.kernels import RBF
 from gpjax.objectives import LogPosteriorDensity
-
 
 
 class GPClassification:

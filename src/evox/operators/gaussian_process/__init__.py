@@ -1,2 +1,2 @@
-
-from .mean_functions import Zero, Constant
+from .regression import GPRegression
+from .classification import GPClassification

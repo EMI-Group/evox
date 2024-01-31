@@ -15,6 +15,5 @@ from .sra import SRA
 from .tdea import TDEA
 from .bce_ibea import BCEIBEA
 from .lmocso import LMOCSO
-from .rm_meda import RMMEDA
 from .im_moea import IMMOEA
 

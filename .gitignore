@@ -19,3 +19,5 @@ logs/
 monitor_out/
 tests/maze/
 tests/mujoco_envs/*
+tests/test.py
+src/evox/algorithms/mo/im_moea.py
