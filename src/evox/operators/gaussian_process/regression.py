@@ -4,13 +4,16 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 from jax import jit
-import gpjax as gpx
-import optax as ox
 
-from gpjax.objectives import ConjugateMLL
-from gpjax.mean_functions import Zero
-from gpjax.kernels import RBF
-from gpjax.fit import fit
+try:
+    import gpjax as gpx
+    import optax as ox
+    from gpjax.objectives import ConjugateMLL
+    from gpjax.mean_functions import Zero
+    from gpjax.kernels import RBF
+    from gpjax.fit import fit
+except ImportError:
+    raise ImportError("GPJAX is not installed. Please install it first.")
 
 # jax.config.update('jax_enable_x64', True)
 

@@ -59,6 +59,7 @@ autodoc_mock_imports = [
     "ray",
     "torch",
     "torchvision",
+    "gpjax",
 ]
 
 # -- Options for HTML output -------------------------------------------------

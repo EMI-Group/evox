@@ -4,12 +4,16 @@ import jax
 import jax.random as jr
 import jax.numpy as jnp
 
-import optax as ox
-import gpjax as gpx
+try:
+    import optax as ox
+    import gpjax as gpx
+    from gpjax.mean_functions import Zero
+    from gpjax.kernels import RBF
+    from gpjax.objectives import LogPosteriorDensity
+except ImportError:
+    raise ImportError("GPJAX is not installed. Please install it first.")
 
-from gpjax.mean_functions import Zero
-from gpjax.kernels import RBF
-from gpjax.objectives import LogPosteriorDensity
+# jax.config.update('jax_enable_x64', True)
 
 
 class GPClassification:
