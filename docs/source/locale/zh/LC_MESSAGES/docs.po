@@ -2632,7 +2632,8 @@ msgid "jit-able"
 msgstr "可以被jit编译的"
 
 #: ../../source/guide/advanced/2-jit-able.md
-msgid "Workflow"
+#, fuzzy
+msgid "`Workflow`"
 msgstr "工作流"
 
 #: ../../source/guide/advanced/2-jit-able.md
@@ -2640,7 +2641,8 @@ msgid "Optional"
 msgstr "可选的"
 
 #: ../../source/guide/advanced/2-jit-able.md
-msgid "Algorithm"
+#, fuzzy
+msgid "`Algorithm`"
 msgstr "算法"
 
 #: ../../source/guide/advanced/2-jit-able.md
@@ -2648,16 +2650,18 @@ msgid "Yes"
 msgstr "是的"
 
 #: ../../source/guide/advanced/2-jit-able.md
-msgid "Problem"
+#, fuzzy
+msgid "`Problem`"
 msgstr "问题"
 
 #: ../../source/guide/advanced/2-jit-able.md
-msgid "Operators"
+#, fuzzy
+msgid "`Operators`"
 msgstr "操作符"
 
 #: ../../source/guide/advanced/2-jit-able.md
-#: ../../source/guide/basics/1-start.ipynb:180002
-msgid "Monitor"
+#, fuzzy
+msgid "`Monitor`"
 msgstr "监控器"
 
 #: ../../source/guide/advanced/2-jit-able.md
@@ -3024,11 +3028,9 @@ msgstr "进阶教程"
 msgid "Quick Start"
 msgstr "快速开始"
 
-#: ../../source/guide/basics/1-start.ipynb:10004 ../../source/index.md:37
-msgid ""
-"EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
-" computation."
-msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
+#: ../../source/guide/basics/1-start.ipynb:10004
+msgid "In this notebook, we will guide you through the basic steps of using EvoX."
+msgstr ""
 
 #: ../../source/guide/basics/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
@@ -3094,6 +3096,10 @@ msgid ""
 "the result of the optimization. This is because we are missing another "
 "component in our workflow. Introducing `monitor`."
 msgstr "你可能还会注意到，`step` 并没有提供任何反馈，比如优化的结果。这是因为我们的工作流中缺少另一个组件。这里介绍 `monitor`（监视器）。"
+
+#: ../../source/guide/basics/1-start.ipynb:180002
+msgid "Monitor"
+msgstr "监控器"
 
 #: ../../source/guide/basics/1-start.ipynb:180004
 msgid ""
@@ -3800,6 +3806,12 @@ msgid ""
 msgstr ""
 "[[English Version]](https://evox.readthedocs.io/en/latest/)   "
 "[[中文版本]](https://evox.readthedocs.io/zh/latest/)"
+
+#: ../../source/index.md:37
+msgid ""
+"EvoX is a distributed GPU-accelerated framework for scalable evolutionary"
+" computation."
+msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
 
 #: ../../source/index.md:41
 #, fuzzy
