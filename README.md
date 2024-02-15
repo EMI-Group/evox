@@ -27,7 +27,7 @@
 ---
 
 ##
-Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/).
+Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
 
 ---
 
@@ -56,7 +56,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Category                    | Algorithm Names                             |
 | --------------------------- | ------------------------------------------ |
 | Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| Evolution Strategy        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
 ### Multi-Objective Optimization
