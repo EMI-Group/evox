@@ -54,7 +54,7 @@ class GPRegression:
             self.mean_fun = Zero()
         if object is None:
             self.object = ConjugateMLL(negative=True)
-        self.prior = gpx.gps.Prior(mean_function=mean_fun, kernel=kernel)
+        self.prior = gpx.gps.Prior(mean_function=self.mean_fun, kernel=self.kernel)
         self.posterior = self.prior * self.likelihood
 
     def fit(self, x: jax.Array, y: jax.Array, optimzer: ox.GradientTransformation):
@@ -71,7 +71,7 @@ class GPRegression:
             y: The label vector.
             optimizer: The optimization algorithm implemented by Optax to use (default is Gradient Transformation).
         """
-        self.dataset = gpx.Dataset(X=x.astype(jnp.float64), y=y.astype(jnp.float64))
+        self.dataset = gpx.Dataset(X=x.astype(jnp.float32), y=y.astype(jnp.float32))
         self.object(self.posterior, train_data=self.dataset)
         if optimzer == None:
             optimzer = ox.sgd(0.001)
@@ -84,15 +84,6 @@ class GPRegression:
             key=self.key,
             verbose=False,
         )
-
-    # def fit_scipy(self, x, y):
-    #     self.dataset = gpx.Dataset(X=x.astype(jnp.float64), y=y.astype(jnp.float64))
-    #     self.object(self.posterior, train_data=self.dataset)
-    #     self.opt_posterior, self.history = gpx.fit_scipy(
-    #         model=self.posterior,
-    #         objective=self.object,
-    #         train_data=self.dataset,
-    #     )
 
     def predict(self, x):
         """

@@ -52,7 +52,7 @@ class GPClassification:
             self.mean_fun = Zero()
         if object is None:
             self.object = LogPosteriorDensity(negative=True)
-        self.prior = gpx.gps.Prior(mean_function=mean_fun, kernel=kernel)
+        self.prior = gpx.gps.Prior(mean_function=self.mean_fun, kernel=self.kernel)
         self.posterior = self.prior * self.likelihood
 
     def fit(self, x: jax.Array, y: jax.Array, optimizer=ox.adam):
