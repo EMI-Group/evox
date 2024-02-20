@@ -7,7 +7,7 @@ from jax.sharding import SingleDeviceSharding
 
 from evox import Monitor
 
-from ..operators.non_dominated_sort import non_dominated_sort
+from ..operators import non_dominated_sort
 
 
 class EvalMonitor(Monitor):
