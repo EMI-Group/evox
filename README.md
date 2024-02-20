@@ -56,7 +56,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Category                    | Algorithm Names                             |
 | --------------------------- | ------------------------------------------ |
 | Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| Evolution Strategies        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| Evolution Strategy        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
 ### Multi-Objective Optimization
