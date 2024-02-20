@@ -22,9 +22,18 @@ from evox.operators.selection import non_dominate
 try:
     from gpjax.kernels import Linear
     from gpjax.likelihoods import Gaussian
-except ImportError:
-    Linear = None
-    Gaussian = None
+except ImportError as e:
+    original_error_msg = str(e)
+
+    def Linear(*args, **kwargs):
+        raise ImportError(
+            f'Linear requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def Gaussian(*args, **kwargs):
+        raise ImportError(
+            f'Gaussian requires gpjax, but got "{original_error_msg}" when importing'
+        )
 
 
 # jax.config.update('jax_enable_x64', True)

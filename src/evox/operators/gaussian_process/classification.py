@@ -3,19 +3,36 @@
 import jax
 import jax.random as jr
 import jax.numpy as jnp
+import optax as ox
 
 try:
-    import optax as ox
     import gpjax as gpx
     from gpjax.mean_functions import Zero
     from gpjax.kernels import RBF
     from gpjax.objectives import LogPosteriorDensity
-except ImportError:
-    gpx = None
-    ox = None
-    RBF = None
-    Zero = None
-    LogPosteriorDensity = None
+except ImportError as e:
+    original_error_msg = str(e)
+
+    def gpx(*args, **kwargs):
+        raise ImportError(
+            f'gpjax requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def RBF(*args, **kwargs):
+        raise ImportError(
+            f'RBF requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def Zero(*args, **kwargs):
+        raise ImportError(
+            f'Zero requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def LogPosteriorDensity(*args, **kwargs):
+        raise ImportError(
+            f'LogPosteriorDensity requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
 
 # jax.config.update('jax_enable_x64', True)
 

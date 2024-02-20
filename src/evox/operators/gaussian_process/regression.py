@@ -4,21 +4,42 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 from jax import jit
+import optax as ox
 
 try:
     import gpjax as gpx
-    import optax as ox
     from gpjax.objectives import ConjugateMLL
     from gpjax.mean_functions import Zero
     from gpjax.kernels import RBF
     from gpjax.fit import fit
-except ImportError:
-    gpx = None
-    ox = None
-    RBF = None
-    Zero = None
-    ConjugateMLL = None
-    fit = None
+except ImportError as e:
+    original_error_msg = str(e)
+
+    def gpx(*args, **kwargs):
+        raise ImportError(
+            f'gpjax requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def RBF(*args, **kwargs):
+        raise ImportError(
+            f'RBF requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def Zero(*args, **kwargs):
+        raise ImportError(
+            f'Zero requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def ConjugateMLL(*args, **kwargs):
+        raise ImportError(
+            f'ConjugateMLL requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
+    def fit(*args, **kwargs):
+        raise ImportError(
+            f'fit requires gpjax, but got "{original_error_msg}" when importing'
+        )
+
 
 # jax.config.update('jax_enable_x64', True)
 
