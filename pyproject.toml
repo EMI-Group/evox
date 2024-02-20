@@ -61,6 +61,7 @@ full = [
   "torch >= 1.0.0",
   "torchvision >= 0.1.0",
   "envpool >= 0.8.0",
+  "gpjax >= 0.8.0",
 ]
 
 gp = ["gpjax >= 0.8.0"]
