@@ -4,34 +4,10 @@ import jax
 import jax.random as jr
 import jax.numpy as jnp
 import optax as ox
-
-try:
-    import gpjax as gpx
-    from gpjax.mean_functions import Zero
-    from gpjax.kernels import RBF
-    from gpjax.objectives import LogPosteriorDensity
-except ImportError as e:
-    original_error_msg = str(e)
-
-    def gpx(*args, **kwargs):
-        raise ImportError(
-            f'gpjax requires gpjax, but got "{original_error_msg}" when importing'
-        )
-
-    def RBF(*args, **kwargs):
-        raise ImportError(
-            f'RBF requires gpjax, but got "{original_error_msg}" when importing'
-        )
-
-    def Zero(*args, **kwargs):
-        raise ImportError(
-            f'Zero requires gpjax, but got "{original_error_msg}" when importing'
-        )
-
-    def LogPosteriorDensity(*args, **kwargs):
-        raise ImportError(
-            f'LogPosteriorDensity requires gpjax, but got "{original_error_msg}" when importing'
-        )
+import gpjax as gpx
+from gpjax.mean_functions import Zero
+from gpjax.kernels import RBF
+from gpjax.objectives import LogPosteriorDensity
 
 
 # jax.config.update('jax_enable_x64', True)
@@ -58,19 +34,25 @@ class GPClassification:
 
     def __init__(
         self,
-        kernel=RBF(),
-        meanfun=Zero(),
+        kernel=None,
+        mean_fun=None,
         likelihood=None,
-        object=LogPosteriorDensity(negative=True),
+        object=None,
         key=jr.PRNGKey(123),
     ):
         """Initializes the Gaussian Process Classification model with default parameters."""
         self.kernel = kernel
-        self.mean_fun = meanfun
+        self.mean_fun = mean_fun
         self.key = key
-        self.prior = gpx.gps.Prior(mean_function=meanfun, kernel=kernel)
         self.likelihood = likelihood
         self.object = object
+        if kernel is None:
+            self.kernel = RBF()
+        if mean_fun is None:
+            self.mean_fun = Zero()
+        if object is None:
+            self.object = LogPosteriorDensity(negative=True)
+        self.prior = gpx.gps.Prior(mean_function=mean_fun, kernel=kernel)
         self.posterior = self.prior * self.likelihood
 
     def fit(self, x: jax.Array, y: jax.Array, optimizer=ox.adam):
