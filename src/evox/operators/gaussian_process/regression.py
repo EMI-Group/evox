@@ -83,6 +83,7 @@ class GPRegression:
             num_iters=250,
             key=self.key,
             verbose=False,
+            safe=False,
         )
 
     def predict(self, x):

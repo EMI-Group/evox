@@ -78,6 +78,7 @@ class GPClassification:
             num_iters=500,
             key=self.key,
             verbose=False,
+            safe=False,
         )
 
     def predict(self, x):
