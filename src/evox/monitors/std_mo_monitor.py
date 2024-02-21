@@ -7,7 +7,7 @@ import numpy as np
 from jax.experimental import io_callback
 from jax.sharding import SingleDeviceSharding
 
-from ..operators.non_dominated_sort import non_dominated_sort
+from ..operators import non_dominated_sort
 
 
 class StdMOMonitor:
