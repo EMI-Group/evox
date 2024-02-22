@@ -13,7 +13,7 @@ mypkg = ["*.txt", "*.json"]
 
 [project]
 name = "evox"
-version = "0.6.3"
+version = "0.7.0"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Christina Lee", email = "1315552992@qq.com" },
