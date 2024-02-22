@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from evox.operators.gaussian_process.regression import GPRegression
+from evox.operators.gaussian_process import GPRegression
 import optax as ox
 
 try:

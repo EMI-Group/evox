@@ -13,7 +13,7 @@ from evox.operators import (
     mutation,
 )
 from evox.utils import cos_dist
-from evox.operators.gaussian_process.regression import GPRegression
+from evox.operators.gaussian_process import GPRegression
 import optax as ox
 import jax.lax as lax
 from evox.operators.sampling import UniformSampling
