@@ -23,3 +23,4 @@ tests/test.py
 src/evox/algorithms/mo/_rm_meda.py
 tests/test_.py
 tests/log.txt
+.ipynb_checkpoints/
