@@ -4,7 +4,7 @@ from jax import lax, jit, vmap
 import jax.numpy as jnp
 from evox import Problem, State
 from evox.operators.sampling import UniformSampling
-from evox.operators.non_dominated_sort import non_dominated_sort
+from evox.operators import non_dominated_sort
 import math
 from evox.problems.numerical import Sphere, Griewank
 
