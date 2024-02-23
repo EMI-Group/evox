@@ -35,7 +35,7 @@ except ImportError as e:
 
 try:
     # optional dependency: gym
-    from .neruoevobench import NeuroEvoBench
+    from .neuroevobench import NeuroEvoBench
 except ImportError as e:
     original_neruoevobench_error_msg = str(e)
 

@@ -43,11 +43,10 @@ class NeuroEvoBench(Problem):
         self,
         policy: Callable,
         evaluator: str,
-        dim: int,
+        eval_param: dict,
         seed_id: int = 0,
-        eval_fn: List[str] = bbob_fns,
     ):
-        """Contruct a brax-based problem
+        """Contruct a neuroevobench-based problem
 
         Parameters
         ----------
@@ -56,29 +55,37 @@ class NeuroEvoBench(Problem):
             the first one is the parameter and the second is the input.
         evaluator
             The evaluator name that you use.
-
+        eval_param
+            The evaluator's param that user should set. More information about it will add later.
         """
         self.batched_policy = jit(vmap(policy))
         self.policy = policy
         self.evaluator = evaluator
-        self.dim = dim
+        self.eval_param = eval_param
         self.seed_id = seed_id
-        self.eval_fn = eval_fn
 
     def setup(self, key):
         return State(key=key)
 
     def evaluate(self, state, x):
-        # if self.evaluator == "bbob":
-        # total_reward = jnp.zeros(25)
-        total_reward = 0
-        i = 0
-        rng = jax.random.PRNGKey(0)
-        for fn in self.eval_fn:
-            rng, rng_eval = jax.random.split(rng)
-            evaluator = BBOBFitness(fn, self.dim)
-            fitness = evaluator.rollout(rng_eval, x)
-            # total_reward = total_reward.at[i].set(fitness)
-            total_reward += fitness
-            i += 1
-        return total_reward, state
+        if self.evaluator == "bbob":
+            # total_reward = jnp.zeros(25)
+            total_reward = 0
+            i = 0
+            rng = jax.random.PRNGKey(0)
+            if "eval_fn" in self.eval_param:
+                self.eval_fn = self.eval_param["eval_fn"]
+            else:
+                self.eval_fn = bbob_fns
+            for fn in self.eval_fn:
+                rng, rng_eval = jax.random.split(rng)
+                evaluator = BBOBFitness(fn, self.eval_param["dim"])
+                fitness = evaluator.rollout(rng_eval, x)
+                # total_reward = total_reward.at[i].set(fitness)
+                total_reward += fitness
+                i += 1
+            return total_reward, state
+        else:
+            raise NameError(
+                f'No "{self.evaluator}" exist. Please check the evaluator you choose is right'
+            )
