@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 1980-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-31 08:31+0000\n"
-"Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"PO-Revision-Date: 2024-02-24 08:02+0000\n"
+"Last-Translator: Yifan Zhao <AlpAcA0072@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
 "Language: zh\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.4-dev\n"
+"X-Generator: Weblate 5.5-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -1557,9 +1557,8 @@ msgid "Metrics"
 msgstr "度量指标"
 
 #: ../../source/api/monitors/eval.rst:3
-#, fuzzy
 msgid "Evaluation Monitor"
-msgstr "可选监控器。"
+msgstr "评估监控器"
 
 #: evox.monitors.eval_monitor.EvalMonitor:2 of
 msgid ""
@@ -1569,6 +1568,8 @@ msgid ""
 "count. Moreover, it can also record the best solution or the pareto front"
 " on-the-fly."
 msgstr ""
+"评估监控器被用于单目标和多目标工作流。它与评估流程挂钩，可以监控子代及其相应"
+"的适应度并对评估计数进行跟踪。此外，它还能即时记录最优解或帕累托前沿。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:13 of
 #, fuzzy
@@ -1589,11 +1590,10 @@ msgid "**full_sol_history**"
 msgstr "**record_fit_history**"
 
 #: evox.monitors.eval_monitor.EvalMonitor:16 of
-#, fuzzy
 msgid ""
 "Whether to record the full history of solutions. Default to False. "
 "Setting it to True may increase memory usage."
-msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
+msgstr "是否记录完整的适应度值。默认值为False。将其设置为True可以减少内存占用。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:21 of
 #, fuzzy
@@ -1601,11 +1601,10 @@ msgid "**topk**"
 msgstr "**record_topk**"
 
 #: evox.monitors.eval_monitor.EvalMonitor:20 of
-#, fuzzy
 msgid ""
 "Only affect Single-objective optimization. The number of elite solutions "
 "to record. Default to 1, which will record the best individual."
-msgstr "控制录制多少精英解决方案。默认为1，它将记录最好的个体。"
+msgstr "只影响单目标优化。要记录的精英解决方案的数量。默认为 1，将记录最佳个人。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:42 of
 #, fuzzy
