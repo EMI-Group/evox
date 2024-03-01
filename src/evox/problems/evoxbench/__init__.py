@@ -1,0 +1,1 @@
+from .evoxbench import C10MOP, CitySegMOP, IN1kMOP
