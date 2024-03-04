@@ -18,14 +18,21 @@ from evox.utils import *
 # MetaDE inherits from the problem class and has a different computational flow from the above algorithms.
 # See test_single_objective_algorithms.py for the flow
 
+
 # A decoder function for DE that maps population vectors to algorithm parameters.
 def decoder_de(pop):
     return {
         "differential_weight": pop[:, 0],  # Weight for differential evolution.
         "cross_probability": pop[:, 1],  # Probability of crossover.
-        "basevect_prim_type": jnp.floor(pop[:, 2]).astype(int),  # Primary base vector type.
-        "basevect_sec_type": jnp.floor(pop[:, 3]).astype(int),  # Secondary base vector type.
-        "num_diff_vects": jnp.floor(pop[:, 4]).astype(int),  # Number of difference vectors.
+        "basevect_prim_type": jnp.floor(pop[:, 2]).astype(
+            int
+        ),  # Primary base vector type.
+        "basevect_sec_type": jnp.floor(pop[:, 3]).astype(
+            int
+        ),  # Secondary base vector type.
+        "num_diff_vects": jnp.floor(pop[:, 4]).astype(
+            int
+        ),  # Number of difference vectors.
         "cross_strategy": jnp.floor(pop[:, 5]).astype(int),  # Crossover strategy.
     }
 
@@ -42,8 +49,10 @@ def create_batch_algorithm(base_algorithm, batch_size, num_runs):
         def setup(self, key):
             # Set up the algorithm state for each run in the batch.
             state = vmap(vmap(super().setup))(
-                jnp.broadcast_to(jax.random.split(key, num=self.num_runs),
-                                 (self.batch_size, self.num_runs, 2))
+                jnp.broadcast_to(
+                    jax.random.split(key, num=self.num_runs),
+                    (self.batch_size, self.num_runs, 2),
+                )
             )
             return state
 
@@ -69,13 +78,13 @@ def create_batch_algorithm(base_algorithm, batch_size, num_runs):
 class MetaDE(Problem):
     # MetaDE class for optimizing the hyperparameters of a base algorithm on a given problem.
     def __init__(
-            self,
-            base_algorithm,
-            problem,
-            batch_size,
-            num_runs,
-            base_alg_steps,
-            override=True
+        self,
+        base_algorithm,
+        problem,
+        batch_size,
+        num_runs,
+        base_alg_steps,
+        override=True,
     ):
         super().__init__()
         self.base_algorithm = base_algorithm
@@ -114,7 +123,9 @@ class MetaDE(Problem):
             return min_fitness, state
 
         # Determine the number of base algorithm steps, potentially increasing them if `power_up` is set.
-        base_alg_steps = jax.lax.select(state.power_up, self.base_alg_steps * 5, self.base_alg_steps)
+        base_alg_steps = jax.lax.select(
+            state.power_up, self.base_alg_steps * 5, self.base_alg_steps
+        )
 
         # Run the base algorithm for a specified number of steps.
         min_fitness, state = jax.lax.fori_loop(
@@ -129,17 +140,17 @@ class ParamDE(Algorithm):
     """Parametric DE class."""
 
     def __init__(
-            self,
-            lb,
-            ub,
-            pop_size=100,
-            diff_padding_num=9,
-            differential_weight=0.3471559,
-            cross_probability=0.78762645,
-            basevect_prim_type=0,
-            basevect_sec_type=2,
-            num_diff_vects=3,
-            cross_strategy=2,
+        self,
+        lb,
+        ub,
+        pop_size=100,
+        diff_padding_num=9,
+        differential_weight=0.3471559,
+        cross_probability=0.78762645,
+        basevect_prim_type=0,
+        basevect_sec_type=2,
+        num_diff_vects=3,
+        cross_strategy=2,
     ):
         # Initialize the ParamDE algorithm with given parameters.
         self.num_diff_vects = num_diff_vects
@@ -188,7 +199,9 @@ class ParamDE(Algorithm):
         ask_one_keys = jax.random.split(ask_one_key, self.batch_size)
         indices = jnp.arange(self.batch_size) + state.start_index
 
-        trial_vectors = vmap(partial(self._ask_one, state_inner=state))(ask_one_key=ask_one_keys, index=indices)
+        trial_vectors = vmap(partial(self._ask_one, state_inner=state))(
+            ask_one_key=ask_one_keys, index=indices
+        )
 
         return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
 
@@ -219,9 +232,11 @@ class ParamDE(Algorithm):
         base_vector_prim = vector_merge[params["basevect_prim_type"]]
         base_vector_sec = vector_merge[params["basevect_sec_type"]]
 
-        base_vector = base_vector_prim + params["differential_weight"] * (base_vector_sec - base_vector_prim)
+        base_vector = base_vector_prim + params["differential_weight"] * (
+            base_vector_sec - base_vector_prim
+        )
 
-        mutation_vector = (base_vector + difference_sum * params["differential_weight"])
+        mutation_vector = base_vector + difference_sum * params["differential_weight"]
 
         # Select the crossover strategy and perform crossover.
         cross_funcs = (

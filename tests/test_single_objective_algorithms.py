@@ -54,10 +54,13 @@ def run_single_objective_algorithm(
 def test_cpso_s():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
-    algorithm = CPSOS(lb, ub, 100,
+    algorithm = CPSOS(
+        lb,
+        ub,
+        100,
         inertia_weight=0.6,
         cognitive_coefficient=2.5,
-        social_coefficient=0.8
+        social_coefficient=0.8,
     )
     fitness = run_single_objective_algorithm(algorithm)
     assert fitness < 0.1
@@ -146,7 +149,11 @@ def test_de():
 def test_ode():
     lb = jnp.full((5,), -32.0)
     ub = jnp.full((5,), 32.0)
-    algorithm = ODE(lb=lb, ub=ub, pop_size=100,)
+    algorithm = ODE(
+        lb=lb,
+        ub=ub,
+        pop_size=100,
+    )
     fitness = run_single_objective_algorithm(algorithm, num_iter=60)
     # A real step actually calls the tell function twice, so num_iter is actually 30
     assert fitness < 0.1
@@ -193,24 +200,18 @@ def test_metade():
         lb=param_lb,
         ub=param_ub,
         pop_size=100,
-        base_vector="rand", differential_weight=0.5, cross_probability=0.9
+        base_vector="rand",
+        differential_weight=0.5,
+        cross_probability=0.9,
     )
     BatchDE = create_batch_algorithm(base_algorithm=ParamDE, batch_size=100, num_runs=1)
-    batch_de = BatchDE(
-        lb=jnp.full((5,), -32.0),
-        ub=jnp.full((5,), 32.0),
-        pop_size=100
-    )
+    batch_de = BatchDE(lb=jnp.full((5,), -32.0), ub=jnp.full((5,), 32.0), pop_size=100)
     base_problem = problems.numerical.Sphere()
     decoder = decoder_de
     key = jax.random.PRNGKey(42)
     monitor = StdSOMonitor()
     meta_problem = MetaDE(
-        batch_de,
-        base_problem,
-        batch_size=100,
-        num_runs=1,
-        base_alg_steps=100
+        batch_de, base_problem, batch_size=100, num_runs=1, base_alg_steps=100
     )
 
     workflow = workflows.StdWorkflow(
