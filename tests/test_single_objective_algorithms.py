@@ -17,6 +17,10 @@ from evox.algorithms import (
     SaDE,
     SHADE,
     ODE,
+    create_batch_algorithm,
+    decoder_de,
+    MetaDE,
+    ParamDE,
 )
 from evox.monitors import StdSOMonitor
 from evox.utils import compose, rank_based_fitness
@@ -178,3 +182,50 @@ def test_shade():
     algorithm = SHADE(lb, ub, pop_size=100)
     fitness = run_single_objective_algorithm(algorithm, num_iter=30)
     assert fitness < 0.1
+
+
+def test_metade():
+    # MetaDE inherits from the problem class and has a different computational flow from the above algorithms
+    tiny_num = 1e-5
+    param_lb = jnp.array([0, 0, 0, 0, 1, 0])
+    param_ub = jnp.array([1, 1, 4 - tiny_num, 4 - tiny_num, 5 - tiny_num, 3 - tiny_num])
+    algorithm = DE(
+        lb=param_lb,
+        ub=param_ub,
+        pop_size=100,
+        base_vector="rand", differential_weight=0.5, cross_probability=0.9
+    )
+    BatchDE = create_batch_algorithm(base_algorithm=ParamDE, batch_size=100, num_runs=1)
+    batch_de = BatchDE(
+        lb=jnp.full((5,), -32.0),
+        ub=jnp.full((5,), 32.0),
+        pop_size=100
+    )
+    base_problem = problems.numerical.Sphere()
+    decoder = decoder_de
+    key = jax.random.PRNGKey(42)
+    monitor = StdSOMonitor()
+    meta_problem = MetaDE(
+        batch_de,
+        base_problem,
+        batch_size=100,
+        num_runs=1,
+        base_alg_steps=100
+    )
+
+    workflow = workflows.StdWorkflow(
+        algorithm=algorithm,
+        problem=meta_problem,
+        pop_transform=decoder,
+        monitor=monitor,
+    )
+    key, _ = jax.random.split(key)
+    state = workflow.init(key)
+
+    power_up = 0
+    for i in range(30):
+        if i == 30 - 1:
+            power_up = 1
+        state = state.update_child("problem", {"power_up": power_up})
+        state = workflow.step(state)
+    assert monitor.get_best_fitness() < 0.1
