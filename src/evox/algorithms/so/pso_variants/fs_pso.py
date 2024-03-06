@@ -73,13 +73,8 @@ class FSPSO(Algorithm):
         return state.population, state
 
     def tell(self, state, fitness):
-        # sort the (k-1)th particles with their fitness
-        # select the first half particles as the half of next generation and the parents of the other half
-        # use these parents to crossover and mutation to generate the other half kth particles
         key, rg_key, rp_key, tn_key, mu_key, ma_key = jax.random.split(state.key, 6)
-
-        # Enhancement
-        # -sorting (low to high)
+        
         ranked_index      = jnp.argsort(fitness)
         elite_index       = ranked_index[:self.pop_size//2]
         ranked_population = state.population[ranked_index]
@@ -106,9 +101,6 @@ class FSPSO(Algorithm):
 
         global_best_fitness = jnp.atleast_1d(global_best_fitness)
 
-        # print(elite_population.shape)
-        # print(elite_lbest_location.shape)
-
         updated_elite_velocity = (
             self.w * elite_velocity
             + self.phi_p * rp * (elite_lbest_location - elite_population)
@@ -116,21 +108,16 @@ class FSPSO(Algorithm):
         )
         updated_elite_population = elite_population + updated_elite_velocity
         updated_elite_population = jnp.clip(updated_elite_population, self.lb, self.ub)
-        # Crossover
+        
         tournament1 = jax.random.choice(tn_key, jnp.arange(0,elite_index.shape[0]), (1,self.pop_size-(self.pop_size//2)))
         tournament2 = jax.random.choice(tn_key, jnp.arange(0,elite_index.shape[0]), (1,self.pop_size-(self.pop_size//2)))
         compare = elite_fitness[tournament1]<elite_fitness[tournament2]
         mutating_pool = jnp.where(
             compare, tournament1, tournament2
         )
-        # Extend (mutate and create new generation)
+        
         unmutated_population = elite_population[mutating_pool.flatten()]
         offspring_velocity   = elite_velocity[mutating_pool.flatten()]
-
-        # print(compare.shape)
-        # print(mutating_pool.shape)
-        # print(elite_population.shape)
-        # print(unmutated_population.shape)
 
         offset = jax.random.uniform(key=mu_key,shape=(unmutated_population.shape[0],self.dim),minval=-1,maxval=1)*(self.ub-self.lb)
         mp   = jax.random.uniform(ma_key,(unmutated_population.shape[0],self.dim))
