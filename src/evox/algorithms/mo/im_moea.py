@@ -249,7 +249,7 @@ class IMMOEA(Algorithm):
             mask: n*1 bool array
             fitness: N*M matrix
         """
-        key, pop_key, x_key, mut_key = jax.random.split(state.key, 4)
+        new_key, key, pop_key, x_key, mut_key = jax.random.split(state.key, 5)
         n = jnp.sum(mask)
         N = population.shape[0]
         D = population.shape[1]
@@ -354,4 +354,4 @@ class IMMOEA(Algorithm):
             n >= 2 * self.n_objs, normal_fun, lambda x: population, x_key
         )
         final_pop = self.mutation(mut_key, final_pop)
-        return final_pop, state
+        return final_pop, state.update(key=new_key)
