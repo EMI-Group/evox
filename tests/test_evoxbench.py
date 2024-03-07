@@ -4,6 +4,7 @@ import pytest
 from evox import problems
 
 
+@pytest.mark.skip(reason="requires downloading the evoxbench database")
 def test_c10mop():
     c10mop = problems.evoxbench.C10MOP(1)
     key = jax.random.PRNGKey(12345)
@@ -13,6 +14,7 @@ def test_c10mop():
     assert fitness.shape == (2, c10mop.n_objs)
 
 
+@pytest.mark.skip(reason="requires downloading the evoxbench database")
 def test_citysegmop():
     cityseg = problems.evoxbench.CitySegMOP(1)
     key = jax.random.PRNGKey(12345)
@@ -22,6 +24,7 @@ def test_citysegmop():
     assert fitness.shape == (2, cityseg.n_objs)
 
 
+@pytest.mark.skip(reason="requires downloading the evoxbench database")
 def test_in10kmop():
     in10kmop = problems.evoxbench.IN1kMOP(1)
     key = jax.random.PRNGKey(12345)
