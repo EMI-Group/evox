@@ -15,19 +15,20 @@ from evox.utils import *
 from evox import Algorithm, State, jit_class
 
 
+# FS-PSO: Feature Selection PSO
 @jit_class
 class FSPSO(Algorithm):
     def __init__(
         self,
-        lb,
-        ub,
-        pop_size,
-        inertia_weight=0.6,
-        cognitive_coefficient=2.5,
-        social_coefficient=0.8,
+        lb,  # lower bound of problem
+        ub,  # upper bound of problem
+        pop_size,  # population size
+        inertia_weight=0.6,  # w
+        cognitive_coefficient=2.5,  # c
+        social_coefficient=0.8,  # s
         mean=None,
         stdev=None,
-        mutate_rate=0.01,
+        mutate_rate=0.01,  # mutation ratio
     ):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -73,25 +74,20 @@ class FSPSO(Algorithm):
         return state.population, state
 
     def tell(self, state, fitness):
-        # sort the (k-1)th particles with their fitness
-        # select the first half particles as the half of next generation and the parents of the other half
-        # use these parents to crossover and mutation to generate the other half kth particles
         key, rg_key, rp_key, tn_key, mu_key, ma_key = jax.random.split(state.key, 6)
 
-        # Enhancement
-        # -sorting (low to high)
-        ranked_index      = jnp.argsort(fitness)
-        elite_index       = ranked_index[:self.pop_size//2]
+        # --------------Enhancement------------
+        ranked_index = jnp.argsort(fitness)
+        elite_index = ranked_index[: self.pop_size // 2]
         ranked_population = state.population[ranked_index]
-        ranked_velocity   = state.velocity[ranked_index]
+        ranked_velocity = state.velocity[ranked_index]
         elite_population = state.population[elite_index]
         elite_velocity = state.velocity[elite_index]
-        elite_fitness  = fitness[elite_index]
+        elite_fitness = fitness[elite_index]
         elite_lbest_location = state.local_best_location[elite_index]
-        elite_lbest_fitness  = state.local_best_fitness[elite_index]
-        # -PSO for elites
-        rg = jax.random.uniform(rg_key, shape=(self.pop_size//2, self.dim))
-        rp = jax.random.uniform(rp_key, shape=(self.pop_size//2, self.dim))
+        elite_lbest_fitness = state.local_best_fitness[elite_index]
+        rg = jax.random.uniform(rg_key, shape=(self.pop_size // 2, self.dim))
+        rp = jax.random.uniform(rp_key, shape=(self.pop_size // 2, self.dim))
 
         compare = elite_lbest_fitness > elite_fitness
         lbest_location = jnp.where(
@@ -106,9 +102,6 @@ class FSPSO(Algorithm):
 
         global_best_fitness = jnp.atleast_1d(global_best_fitness)
 
-        # print(elite_population.shape)
-        # print(elite_lbest_location.shape)
-
         updated_elite_velocity = (
             self.w * elite_velocity
             + self.phi_p * rp * (elite_lbest_location - elite_population)
@@ -116,34 +109,44 @@ class FSPSO(Algorithm):
         )
         updated_elite_population = elite_population + updated_elite_velocity
         updated_elite_population = jnp.clip(updated_elite_population, self.lb, self.ub)
-        # Crossover
-        tournament1 = jax.random.choice(tn_key, jnp.arange(0,elite_index.shape[0]), (1,self.pop_size-(self.pop_size//2)))
-        tournament2 = jax.random.choice(tn_key, jnp.arange(0,elite_index.shape[0]), (1,self.pop_size-(self.pop_size//2)))
-        compare = elite_fitness[tournament1]<elite_fitness[tournament2]
-        mutating_pool = jnp.where(
-            compare, tournament1, tournament2
+        # ----------------Crossover----------------
+        tournament1 = jax.random.choice(
+            tn_key,
+            jnp.arange(0, elite_index.shape[0]),
+            (1, self.pop_size - (self.pop_size // 2)),
         )
-        # Extend (mutate and create new generation)
+        tournament2 = jax.random.choice(
+            tn_key,
+            jnp.arange(0, elite_index.shape[0]),
+            (1, self.pop_size - (self.pop_size // 2)),
+        )
+        compare = elite_fitness[tournament1] < elite_fitness[tournament2]
+        mutating_pool = jnp.where(compare, tournament1, tournament2)
+        # -Extend (mutate and create new generation)-
         unmutated_population = elite_population[mutating_pool.flatten()]
-        offspring_velocity   = elite_velocity[mutating_pool.flatten()]
+        offspring_velocity = elite_velocity[mutating_pool.flatten()]
 
-        # print(compare.shape)
-        # print(mutating_pool.shape)
-        # print(elite_population.shape)
-        # print(unmutated_population.shape)
-
-        offset = jax.random.uniform(key=mu_key,shape=(unmutated_population.shape[0],self.dim),minval=-1,maxval=1)*(self.ub-self.lb)
-        mp   = jax.random.uniform(ma_key,(unmutated_population.shape[0],self.dim))
-        mask   = mp < self.mutate_rate
-        offspring_population = unmutated_population + jnp.where(mask,offset,jnp.zeros((unmutated_population.shape[0],self.dim)))
-        offspring_population = jnp.clip(offspring_population,self.lb,self.ub)
+        offset = jax.random.uniform(
+            key=mu_key,
+            shape=(unmutated_population.shape[0], self.dim),
+            minval=-1,
+            maxval=1,
+        ) * (self.ub - self.lb)
+        mp = jax.random.uniform(ma_key, (unmutated_population.shape[0], self.dim))
+        mask = mp < self.mutate_rate
+        offspring_population = unmutated_population + jnp.where(
+            mask, offset, jnp.zeros((unmutated_population.shape[0], self.dim))
+        )
+        offspring_population = jnp.clip(offspring_population, self.lb, self.ub)
         offspring_lbest_location = offspring_population
         offspring_lbest_fitness = jnp.full((offspring_population.shape[0],), jnp.inf)
 
-        new_population = jnp.concatenate((updated_elite_population,offspring_population))
-        new_velocity   = jnp.concatenate((updated_elite_velocity,offspring_velocity))
-        new_lbest_location = jnp.concatenate((lbest_location,offspring_lbest_location))
-        new_lbest_fitness  = jnp.concatenate((lbest_fitness,offspring_lbest_fitness))
+        new_population = jnp.concatenate(
+            (updated_elite_population, offspring_population)
+        )
+        new_velocity = jnp.concatenate((updated_elite_velocity, offspring_velocity))
+        new_lbest_location = jnp.concatenate((lbest_location, offspring_lbest_location))
+        new_lbest_fitness = jnp.concatenate((lbest_fitness, offspring_lbest_fitness))
 
         return state.update(
             population=new_population,
