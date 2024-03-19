@@ -46,6 +46,8 @@ class EvalMonitor(Monitor):
         self.calc_pf = calc_pf
         self.fitness_history = []
         self.solution_history = []
+        self.topk_fitness = None
+        self.topk_solutions = None
         self.current_solutions = None
         self.pf_solutions = None
         self.pf_fitness = None
@@ -148,6 +150,18 @@ class EvalMonitor(Monitor):
 
     def get_pf_solutions(self):
         return self.pf_solutions
+
+    def get_topk_fitness(self):
+        return self.opt_direction * self.topk_fitness
+
+    def get_topk_solutions(self):
+        return self.topk_solutions
+
+    def get_best_solution(self):
+        return self.current_solutions[0]
+
+    def get_best_fitness(self):
+        return self.opt_direction * self.topk_fitness[0]
 
     def get_history(self):
         return [self.opt_direction * fit for fit in self.fitness_history]
