@@ -21,7 +21,7 @@ from evox.operators import (
     sampling,
 )
 from evox import Algorithm, jit_class, State
-
+from evox.utils import cos_dist
 
 @jit_class
 class NSGA3(Algorithm):
@@ -67,7 +67,7 @@ class NSGA3(Algorithm):
             + self.lb
         )
         self.ref = self.sampling(subkey)[0]
-        self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
+        # self.ref = self.ref / jnp.linalg.norm(self.ref, axis=1)[:, None]
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
@@ -87,24 +87,21 @@ class NSGA3(Algorithm):
         crossovered = self.crossover(x_key, state.population)
         next_generation = self.mutation(mut_key, crossovered)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
-        
+
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
-
         rank = non_dominated_sort(merged_fitness)
         order = jnp.argsort(rank)
         rank = rank[order]
         ranked_pop = merged_pop[order]
         ranked_fitness = merged_fitness[order]
-        last_rank = rank[self.pop_size]
-        mark = rank <= last_rank
+        last_rank = rank[self.pop_size-1]
         ranked_fitness = jnp.where(
-           mark[:, None], ranked_fitness, jnp.nan,
+            (rank <= last_rank)[:,None], ranked_fitness, jnp.nan,
         )
-
         # Normalize
         ideal_points = jnp.nanmin(ranked_fitness, axis=0)
         offset_fitness = ranked_fitness - ideal_points
@@ -115,8 +112,6 @@ class NSGA3(Algorithm):
 
         extreme_ind = jax.vmap(get_extreme)(jnp.arange(self.n_objs))
         extreme = offset_fitness[extreme_ind]
-
-        # jax.debug.print("extreme:{}", extreme)
 
         def get_intercept(val):
             # Calculate the intercepts of the hyperplane constructed by the extreme points
@@ -133,88 +128,98 @@ class NSGA3(Algorithm):
             jnp.linalg.matrix_rank(extreme) == self.n_objs,
             get_intercept,
             worst_intercept,
-            (extreme, ranked_fitness)
+            (extreme, offset_fitness)
         )
-        normalized_fitness = ranked_fitness / nadir_point
-        # jax.debug.print("normalized_fitness:{}", normalized_fitness)
-        def cosin_distance(x, y):
-            # normalize
-            y = y / jnp.sqrt(jnp.sum(y**2, axis=1, keepdims=True))
-            x = x / jnp.sqrt(jnp.nansum(x**2, axis=1, keepdims=True))
 
-            cos_sim = x @ y.T
-            cos_dis = 1 - cos_sim
-            distance = jnp.sqrt(jnp.nansum(x ** 2, axis=1, keepdims=True)) * jnp.sqrt(1 - cos_dis ** 2)
-            # jax.debug.print("cons shape:{}",jnp.sqrt(jnp.nansum(x ** 2, axis=1, keepdims=True)).shape)
-            # jax.debug.print("cos_dis shape:{}",jnp.sqrt(1 - cos_dis ** 2).shape)
-            return distance
-
-        # dist = perpendicular_distance(ranked_fitness, self.ref)
-        dist = cosin_distance(normalized_fitness, self.ref)
+        normalized_fitness = offset_fitness / nadir_point
+        dist = 1 - cos_dist(normalized_fitness, self.ref)
 
         # Associate each solution with its nearest reference point
         group_id = jnp.nanargmin(dist, axis=1)
+        group_id = jnp.where(group_id == -1, self.pop_size*3, group_id)
         group_dist = jnp.nanmin(dist, axis=1)
-
         rho = jnp.bincount(
+            jnp.where(rank < last_rank, group_id, len(self.ref)), length=len(self.ref)
+        )
+        rho_last = jnp.bincount(
             jnp.where(rank == last_rank, group_id, len(self.ref)), length=len(self.ref)
         )
-        rho = jnp.where(rho == 0, jnp.nan, rho)
-        group_id = jnp.where(rank == last_rank, group_id, -1)
-        group_dist = jnp.where(rank == last_rank, group_dist, jnp.nan)
-        sleceted_number = jnp.sum(mark)
+        group_id = jnp.where(rank == last_rank, group_id, jnp.inf)
+        group_dist = jnp.where(rank == last_rank, group_dist, jnp.inf)
+        selected_number = jnp.sum(rho)
+        rho_all = jnp.where(rho_last == 0, jnp.inf, rho+rho_last)
+        keys = jax.random.split(state.key, self.pop_size+1)
+
         # Niche
-        def select_loop(val):
-            # def nope(val):
-            #     idx, i, rho, j = val
-            #     rho = rho.at[j].set(self.pop_size)
-            #     return idx, i, rho, j
-            #
-            # def have(val):
-            #     def zero(val):
-            #         idx, i, rho, j = val
-            #         idx = idx.at[i].set(jnp.nanargmin(jnp.where(group_id == j, group_dist, jnp.nan)))
-            #         rho = rho.at[j].add(1)
-            #         return idx, i + 1, rho, j
-            #
-            #     def already(val):
-            #         idx, i, rho, j = val
-            #         key = jax.random.PRNGKey(i * j)
-            #         temp = jax.random.randint(
-            #             key, (1, len(ranked_pop)), 0, self.pop_size
-            #         )
-            #         temp = temp + (group_id == j) * self.pop_size
-            #         idx = idx.at[i].set(jnp.argmax(temp))
-            #         rho = rho.at[j].add(1)
-            #         return idx, i + 1, rho, j
-            #
-            #     return jax.lax.cond(rho[val[3]], already, zero, val)
+        def select_loop(vals):
+            selected_number, rank, group_id, rho, rho_all, rho_last = vals
 
-            rho, rank = val
-            group = jnp.nanargmin(rho)
-            candidates = jnp.where(group_id == group & rank == last_rank, group_dist, jnp.nan)
-            candidate = jnp.nanargmin(candidates)
-            rank[candidate] -= 1
-            rho[group] += 1
+            group = jnp.argmin(rho_all)
+            candidates = jnp.where(group_id == group, group_dist, jnp.inf)
 
-            # idx, i, rho, j = jax.lax.cond(
-            #     jnp.sum(group_id == j), have, nope, (idx, i, rho, j)
-            # )
-            return rho, rank
+            def get_rand_candidate(candidates):
+                order = jnp.sort(jnp.where(jnp.isinf(candidates), jnp.inf, jnp.arange(candidates.size)))
+                rand_index = jax.random.randint(keys[selected_number], (), 0,  rho_last[group])
+                jax.debug.print("max_index: {}",rho_last[group])
+                return order[rand_index].astype(jnp.int32)
 
-        # survivor_idx = jnp.arange(self.pop_size)
+            def get_min_candidate(candidates):
+                return jnp.argmin(candidates)
 
-        # jax.debug.print("len(self.ref):{}", len(self.ref))
-        # jax.debug.print("rho:{}", rho)
+            # candidate = jnp.argmin(candidates)
+            candidate = jax.lax.cond((rho[group] == 0) | (rho_last[group] == 1), get_min_candidate, get_rand_candidate, candidates)
+            rank = rank.at[candidate].set(last_rank - 1)
+            group_id = group_id.at[candidate].set(jnp.nan)
+            rho_last = rho_last.at[group].set(rho_last[group] - 1)
+            def update_(vals):
+                idx, matrix = vals
+                return matrix.at[idx].set(jnp.inf)
 
-        rho, rank = jax.lax.while_loop(
-            lambda val: jnp.nansum(val[0]) < self.pop_size - sleceted_number,
+            def add_(vals):
+                idx, matrix = vals
+                return matrix.at[idx].set(matrix[idx] + 1)
+
+            rho_all = jax.lax.cond(rho_last[group] == 0, update_, add_, (group, rho_all))
+            rho = rho.at[group].set(rho[group] + 1)
+            selected_number += 1
+
+            return selected_number, rank, group_id, rho, rho_all, rho_last
+
+        selected_number, rank, group_id, rho, rho_all, rho_last = jax.lax.while_loop(
+            lambda val: jnp.nansum(val[0]) < self.pop_size,
             select_loop,
-            (rho, rank)
+            (selected_number, rank, group_id, rho, rho_all, rho_last)
         )
 
-        selected_idx = jnp.where(rank<last_rank, jnp.arange(merged_pop.shape[0]), jnp.nan)
+        selected_idx = jnp.sort(jnp.where(rank < last_rank, jnp.arange(merged_pop.shape[0]), jnp.inf))[:self.pop_size].astype(jnp.int32)
         state = state.update(
-            population=ranked_pop[selected_idx], fitness=ranked_fitness[selected_idx]
+            population=ranked_pop[selected_idx], fitness=ranked_fitness[selected_idx],
+            key=keys[0]
         )
         return state
+        # while selected_number < self.pop_size:
+        #     group = jnp.argmin(rho_all)
+        #     candidates = jnp.where(group_id == group, group_dist, jnp.nan)
+        #     def get_rand_candidate(candidates):
+        #         non_nan_count = jnp.sum(jnp.where(jnp.isnan(candidates), 0, 1))
+        #         order = jnp.sort(jnp.where(jnp.isnan(candidates), jnp.inf, jnp.arange(candidates.size)))
+        #         rand_index = jax.random.randint(keys[selected_number], (), 0, non_nan_count)
+        #         jax.debug.print("rand_index: {}",rand_index)
+        #         return candidates[order[rand_index].astype(jnp.int32)].astype(jnp.int32)
+        #     def get_min_candidate(candidates):
+        #         return jnp.argmin(candidates)
+        #
+        #     candidate = jax.lax.cond(rho[group] == 0, get_min_candidate, get_rand_candidate, (candidates))
+        #     rank = rank.at[candidate].set(last_rank - 1)
+        #     group_id = group_id.at[candidate].set(jnp.nan)
+        #     rho_last = rho_last.at[group].set(rho_last[group] - 1)
+        #     def update(vals):
+        #         idx, matrix = vals
+        #         return matrix.at[idx].set(jnp.inf)
+        #     def add(vals):
+        #         idx, matrix = vals
+        #         return matrix.at[idx].set(matrix[idx] + 1)
+        #     rho_all = jax.lax.cond(rho_last[group] == 0, update, add, (group, rho_all))
+        #     rho = rho.at[group].set(rho[group] + 1)
+        #     selected_number += 1
+        #     print(selected_number)
