@@ -194,6 +194,10 @@ class Stateful(metaclass=MetaStatefulModule):
             attr = getattr(self, attr_name)
             if not attr_name.startswith("_") and isinstance(attr, Stateful):
                 submodules.append((attr_name, attr))
+            elif not attr_name.startswith("_") and isinstance(attr, list):
+                for i, subattr in enumerate(attr):
+                    if isinstance(subattr, Stateful):
+                        submodules.append((f"{attr_name}_{i}", subattr))
         submodules.sort()
 
         for attr_name, attr in submodules:
