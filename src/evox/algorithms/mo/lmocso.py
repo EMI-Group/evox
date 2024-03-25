@@ -95,8 +95,6 @@ class LMOCSO(Algorithm):
         velocity = jnp.zeros((self.pop_size // 2 * 2, self.dim))
         fitness = jnp.full((self.pop_size, self.n_objs), jnp.inf)
 
-        # v = v / jnp.linalg.norm(v, axis=0)
-
         return State(
             population=population,
             next_generation=population,
