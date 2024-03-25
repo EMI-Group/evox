@@ -46,7 +46,9 @@ class EvalMonitor(Monitor):
         self.calc_pf = calc_pf
         self.fitness_history = []
         self.solution_history = []
-        self.current_population = None
+        self.topk_fitness = None
+        self.topk_solutions = None
+        self.current_solutions = None
         self.pf_solutions = None
         self.pf_fitness = None
         self.eval_count = 0
@@ -60,7 +62,7 @@ class EvalMonitor(Monitor):
 
     def post_ask(self, _state, cand_sol):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
-        io_callback(self.record_pop, None, cand_sol, sharding=monitor_device)
+        io_callback(self.record_sol, None, cand_sol, sharding=monitor_device)
 
     def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
@@ -77,24 +79,24 @@ class EvalMonitor(Monitor):
         )
 
     def record_sol(self, sols):
-        if self.record_pop_history:
+        if self.full_sol_history:
             self.solution_history.append(sols)
         self.current_solutions = sols
 
     def record_fit_single_obj(self, fitness):
-        if self.record_fit_history:
+        if self.full_fit_history:
             self.fitness_history.append(fitness)
-        if self.record_topk == 1:
+        if self.topk == 1:
             # handle the case where topk = 1
             # don't need argsort / top_k, which are slower
             current_min_fit = jnp.min(fitness, keepdims=True)
             if self.topk_fitness is None or self.topk_fitness > current_min_fit:
                 self.topk_fitness = current_min_fit
-                if self.current_population is not None:
+                if self.current_solutions is not None:
                     individual_index = jnp.argmin(fitness)
                     # use slice to keepdim,
                     # because topk_solutions should have dim of (1, dim)
-                    self.topk_solutions = self.current_population[
+                    self.topk_solutions = self.current_solutions[
                         individual_index : individual_index + 1
                     ]
         else:
@@ -104,35 +106,35 @@ class EvalMonitor(Monitor):
             else:
                 self.topk_fitness = jnp.concatenate([self.topk_fitness, fitness])
 
-            if self.current_population is not None:
+            if self.current_solutions is not None:
                 if self.topk_solutions is None:
-                    self.topk_solutions = self.current_population
+                    self.topk_solutions = self.current_solutions
                 else:
                     self.topk_solutions = jnp.concatenate(
-                        [self.topk_solutions, self.current_population], axis=0
+                        [self.topk_solutions, self.current_solutions], axis=0
                     )
             rank = jnp.argsort(self.topk_fitness)
-            topk_rank = rank[: self.record_topk]
-            if self.current_population is not None:
+            topk_rank = rank[: self.topk]
+            if self.current_solutions is not None:
                 self.topk_solutions = self.topk_solutions[topk_rank]
             self.topk_fitness = self.topk_fitness[topk_rank]
 
     def record_fit_multi_obj(self, fitness):
-        if self.record_fit_history:
+        if self.full_fit_history:
             self.fitness_history.append(fitness)
 
-        if self.record_pf:
+        if self.calc_pf:
             if self.pf_fitness is None:
                 self.pf_fitness = fitness
             else:
                 self.pf_fitness = jnp.concatenate([self.pf_fitness, fitness], axis=0)
 
-            if self.current_population is not None:
+            if self.current_solutions is not None:
                 if self.pf_solutions is None:
-                    self.pf_solutions = self.current_population
+                    self.pf_solutions = self.current_solutions
                 else:
                     self.pf_solutions = jnp.concatenate(
-                        [self.pf_solutions, self.current_population], axis=0
+                        [self.pf_solutions, self.current_solutions], axis=0
                     )
 
             rank = non_dominated_sort(self.pf_fitness)
@@ -148,6 +150,18 @@ class EvalMonitor(Monitor):
 
     def get_pf_solutions(self):
         return self.pf_solutions
+
+    def get_topk_fitness(self):
+        return self.opt_direction * self.topk_fitness
+
+    def get_topk_solutions(self):
+        return self.topk_solutions
+
+    def get_best_solution(self):
+        return self.current_solutions[0]
+
+    def get_best_fitness(self):
+        return self.opt_direction * self.topk_fitness[0]
 
     def get_history(self):
         return [self.opt_direction * fit for fit in self.fitness_history]

@@ -179,12 +179,7 @@ class State:
         return f"State ({self._state_dict}, {list(self._child_states.keys())})"
 
     def __str__(self) -> str:
-        return (
-            "State (\n"
-            f" {pformat(self._state_dict)},\n"
-            f" {pformat(list(self._child_states.keys()))}\n"
-            ")"
-        )
+        return self.sprint_tree()
 
     def sprint_tree(self) -> str:
         if self is State.EMPTY:
