@@ -80,7 +80,9 @@ class IMMOEA(Algorithm):
         key, subkey = jax.random.split(key)
         self.pop_size = int(jnp.ceil(self.pop_size / self.k) * self.k)
         W = UniformSampling(self.k, self.n_objs)()[0]
-        W = jnp.fliplr(jnp.sort(jnp.fliplr(W), axis=0)) # unknown reason, but it is the same as the original code.
+        W = jnp.fliplr(
+            jnp.sort(jnp.fliplr(W), axis=0)
+        )  # unknown reason, but it is the same as the original code.
         population = (
             jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
@@ -315,13 +317,14 @@ class IMMOEA(Algorithm):
                     _, ymu, ystd = model.predict(inputs)
                     return ymu + random.normal(_keys[i], shape=ystd.shape) * ystd
 
-                res = jax.vmap(
-                    lambda i: get_off(i, dim_indices, _keys, sub_off)
-                )(jnp.arange(self.l))
+                res = jax.vmap(lambda i: get_off(i, dim_indices, _keys, sub_off))(
+                    jnp.arange(self.l)
+                )
 
                 def get_offspring(i, sub_off):
                     index = dim_indices[i]
-                    return sub_off.at[:, index].set(res[i,:])
+                    return sub_off.at[:, index].set(res[i, :])
+
                 sub_off = lax.fori_loop(0, self.l, get_offspring, sub_off)
                 sub_off = jnp.where((final_pop_indices >= 0)[:, None], sub_off, jnp.inf)
                 return sub_off
@@ -337,7 +340,7 @@ class IMMOEA(Algorithm):
             # reshape sub_off: L*N*M matrix, to (L*N)*M matrix
             off = jnp.vstack(sub_off)
             # replace the selected dimensions with the offspring.
-            off = jnp.sort(off, axis=0)[:self.pop_size, :]
+            off = jnp.sort(off, axis=0)[: self.pop_size, :]
 
             # Convert invalid values to random values
             rand_pop = jax.random.uniform(
@@ -346,14 +349,17 @@ class IMMOEA(Algorithm):
             invalid = (off < self.lb) | (off > self.ub)
             valid_sum = jnp.sum(~invalid.all())
             num = jnp.sum(mask)
+
             def valid_fun(x):
                 x = jnp.sort(jnp.where(invalid.all(), jnp.inf, x), axis=0)
                 return x
+
             def invalid_fun(x):
                 x = jnp.where(invalid, rand_pop, x)
                 return x
+
             off = jax.lax.cond(valid_sum > num, valid_fun, invalid_fun, off)
-            off = jnp.where((jnp.arange(self.pop_size) > num)[:,None], jnp.inf, off)
+            off = jnp.where((jnp.arange(self.pop_size) > num)[:, None], jnp.inf, off)
             # jax.debug.print("off: {}", off[self.pop_size - 5: , :])
             return off
 
