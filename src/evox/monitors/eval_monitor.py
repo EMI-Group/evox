@@ -141,6 +141,9 @@ class EvalMonitor(Monitor):
             pf = rank == 0
             self.pf_fitness = self.pf_fitness[pf]
             self.pf_solutions = self.pf_solutions[pf]
+        else:
+            self.pf_fitness = fitness
+            self.pf_solutions = self.current_solutions
 
     def get_latest_fitness(self):
         return self.opt_direction * self.fitness_history[-1]
