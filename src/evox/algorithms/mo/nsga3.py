@@ -66,7 +66,7 @@ class NSGA3(Algorithm):
             + self.lb
         )
         self.ref = self.sampling(subkey)[0]
-        self.pop_size = len(self.ref)
+        # self.pop_size = len(self.ref)
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),

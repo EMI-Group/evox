@@ -80,7 +80,7 @@ class IMMOEA(Algorithm):
         key, subkey = jax.random.split(key)
         self.pop_size = int(jnp.ceil(self.pop_size / self.k) * self.k)
         W = UniformSampling(self.k, self.n_objs)()[0]
-        W = jnp.fliplr(jnp.sort(jnp.fliplr(W), axis=1))
+        W = jnp.fliplr(jnp.sort(jnp.fliplr(W), axis=0)) # unknown reason, but it is the same as the original code.
         population = (
             jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
@@ -360,5 +360,5 @@ class IMMOEA(Algorithm):
         final_pop = lax.cond(
             n >= 2 * self.n_objs, normal_fun, lambda x: population, x_key
         )
-        # final_pop = self.mutation(mut_key, final_pop)
+        final_pop = self.mutation(mut_key, final_pop)
         return final_pop, state.update(key=new_key)

@@ -16,5 +16,3 @@ from .tdea import TDEA
 from .bce_ibea import BCEIBEA
 from .lmocso import LMOCSO
 from .im_moea import IMMOEA
-from .nsga3_old import NSGA3_old
-from .im_moea_change import IMMOEA_C
