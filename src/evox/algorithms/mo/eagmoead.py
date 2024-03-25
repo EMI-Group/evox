@@ -22,7 +22,7 @@ from evox.operators import (
     non_dominated_sort,
     crowding_distance,
 )
-from evox.operators.sampling import UniformSampling, LatinHypercubeSampling
+from evox.operators.sampling import LatinHypercubeSampling
 from evox.utils import pairwise_euclidean_dist
 
 
@@ -78,6 +78,7 @@ class EAGMOEAD(Algorithm):
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
+
         ext_archive = (
             jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)

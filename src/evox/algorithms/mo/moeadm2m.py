@@ -115,24 +115,28 @@ class MOEADM2M(Algorithm):
         self.n_objs = n_objs
         self.dim = lb.shape[0]
         self.k = k
-        self.pop_size = (jnp.ceil(pop_size / self.k) * self.k).astype(int)
+        self.pop_size = pop_size
         self.s = int(self.pop_size / self.k)
         self.max_gen = max_gen
 
         self.mutation = Mutation()
         self.crossover = Crossover()
 
-        self.sample = sampling.LatinHypercubeSampling(self.k, self.n_objs)
+        self.sample = sampling.UniformSampling(self.k, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
+
+        w, k = self.sample(subkey2)
+        self.k = int(k)
+        self.pop_size = (jnp.ceil(self.pop_size / self.k) * self.k).astype(int)
+        self.s = int(self.pop_size / self.k)
+
         population = (
             jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
-
-        w = self.sample(subkey2)[0]
 
         return State(
             population=population,
