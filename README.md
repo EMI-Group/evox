@@ -14,10 +14,6 @@
   <a href="https://evox.readthedocs.io/">
     <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=for-the-badge" alt="EvoX Documentation">
   </a>
-
-  <a href="https://github.com/EMI-Group/evox/actions/workflows/python-package.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/EMI-Group/evox/python-package.yml?style=for-the-badge" alt="EvoX Build Status">
-  </a>
 </p>
 
 <p align="center">
