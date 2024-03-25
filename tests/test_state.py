@@ -11,7 +11,7 @@ class Leaf(Stateful):
 
     def run(self, state):
         c = state.c
-        return [2, 7, 1], state.update(c=c*2)
+        return [2, 7, 1], state.update(c=c * 2)
 
     def check(self, state):
         assert state.c == 84
@@ -75,9 +75,9 @@ def test_basic():
     root_state = root_module.init(key=jax.random.PRNGKey(123))
     middle_state = middle_module.init(key=jax.random.PRNGKey(456))
     leaf_state = leaf_module.init(key=jax.random.PRNGKey(789))
-    assert root_state.get_child_state('leaf') == leaf_state
-    assert root_state.get_child_state('middle') == middle_state
-    assert middle_state.get_child_state('leaf') == leaf_state
+    assert root_state.get_child_state("leaf") == leaf_state
+    assert root_state.get_child_state("middle") == middle_state
+    assert middle_state.get_child_state("leaf") == leaf_state
 
     magic, root_state = root_module.run(root_state)
     assert magic == [2, 7, 1, 2, 7, 1, 8, 2, 8]
@@ -87,12 +87,15 @@ def test_basic():
 def test_repl_and_str():
     module = Root()
     state = module.init(key=jax.random.PRNGKey(456))
-    assert repr(state) == "State ({'attr_a': 123, 'attr_b': 456}, ['leaf', 'middle'])"
-    assert str(state) == ("State (\n"
-                          " {'attr_a': 123, 'attr_b': 456},\n"
-                          " ['leaf', 'middle']\n"
-                          ")"
-                          )
+    assert (
+        repr(state)
+        == """State ({'attr_a': 123, 'attr_b': 456}, {'leaf': State ({'c': 42}, {}),'middle': State ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': State ({'c': 42}, {})})})"""
+    )
+    assert str(state) == (
+        "State ({'attr_a': 123, 'attr_b': 456},\n"
+        " {'leaf': ({'c': 42}, {}),\n"
+        "  'middle': ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': ({'c': 42}, {})})})"
+    )
 
 
 def test_jax_pytree():

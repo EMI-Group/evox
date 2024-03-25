@@ -176,24 +176,26 @@ class State:
         raise TypeError("State is immutable")
 
     def __repr__(self) -> str:
-        return f"State ({self._state_dict}, {list(self._child_states.keys())})"
-
-    def __str__(self) -> str:
-        return self.sprint_tree()
-
-    def sprint_tree(self) -> str:
         if self is State.EMPTY:
             return "State.empty"
-        str_children = {
+        str_children = [
+            f"{repr(key)}: {repr(child_state)}"
+            for key, child_state in self._child_states.items()
+        ]
+        str_children = "{" + ",".join(str_children) + "}"
+        return f"State ({repr(self._state_dict)}, {str_children})"
+
+    def __str__(self) -> str:
+        return f"State {pformat(self.sprint_tree())}"
+
+    def sprint_tree(self) -> Union[dict,str]:
+        if self is State.EMPTY:
+            return "State.empty"
+        children = {
             key: child_state.sprint_tree()
             for key, child_state in self._child_states.items()
         }
-        return (
-            "State (\n"
-            f" {pformat(self._state_dict)},\n"
-            f" {pformat(str_children)}\n"
-            ")"
-        )
+        return self._state_dict, children
 
     def tree_flatten(self) -> Tuple[Tuple[dict, dict], None]:
         children = (self._state_dict, self._child_states)
