@@ -1,5 +1,6 @@
 from .non_jit_workflow import NonJitWorkflow
 from .std_workflow import StdWorkflow
+from .multitask_workflow import MultitaskWorkflow
 
 try:
     # optional dependency: ray
