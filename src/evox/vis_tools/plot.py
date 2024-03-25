@@ -134,14 +134,13 @@ def plot_dec_space(
     return fig
 
 
-def plot_obj_space_2d(state, problem, fitness_history, sort_points=False, **kwargs):
+def plot_obj_space_2d(fitness_history, sort_points=False, problem_pf=None, **kwargs):
     try:
         import plotly
         import plotly.express as px
         import plotly.graph_objects as go
     except ImportError:
         raise ImportError("The plot function requires plotly to be installed.")
-    problem_pf, _state = problem.pf(state)
     all_fitness = jnp.concatenate(fitness_history, axis=0)
     x_lb = jnp.min(all_fitness[:, 0])
     x_ub = jnp.max(all_fitness[:, 0])
@@ -156,14 +155,15 @@ def plot_obj_space_2d(state, problem, fitness_history, sort_points=False, **kwar
 
     frames = []
     steps = []
-    pf_fitness = None
-    pf_scatter = go.Scatter(
-        x=problem_pf[:, 0],
-        y=problem_pf[:, 1],
-        mode="markers",
-        marker={"color": "#FFA15A", "size": 2},
-        name="Pareto Front",
-    )
+    if problem_pf is not None:
+        pf_scatter = go.Scatter(
+            x=problem_pf[:, 0],
+            y=problem_pf[:, 1],
+            mode="markers",
+            marker={"color": "#FFA15A", "size": 2},
+            name="Pareto Front",
+        )
+    
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:
@@ -176,7 +176,10 @@ def plot_obj_space_2d(state, problem, fitness_history, sort_points=False, **kwar
             marker={"color": "#636EFA"},
             name="Population",
         )
-        frames.append(go.Frame(data=[pf_scatter, scatter], name=str(i)))
+        if problem_pf is not None:
+            frames.append(go.Frame(data=[pf_scatter, scatter], name=str(i)))
+        else:
+            frames.append(go.Frame(data=[scatter], name=str(i)))
 
         step = {
             "label": i,
@@ -264,7 +267,7 @@ def plot_obj_space_2d(state, problem, fitness_history, sort_points=False, **kwar
     return fig
 
 
-def plot_obj_space_3d(state, problem, fitness_history, sort_points=False, **kwargs):
+def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwargs):
     try:
         import plotly
         import plotly.express as px
@@ -293,7 +296,6 @@ def plot_obj_space_3d(state, problem, fitness_history, sort_points=False, **kwar
 
     frames = []
     steps = []
-    pf_fitness = None
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:
