@@ -120,10 +120,8 @@ class IMMOEA(Algorithm):
         sub_pops = jax.vmap(get_sub_pop, out_axes=0)(jnp.arange(self.k))
         next_generation = jnp.vstack(sub_pops)
         next_generation = jnp.sort(next_generation, axis=0)
-        # jax.debug.print("next_generation: {}", next_generation[self.pop_size-5:self.pop_size+5, :])
         next_generation = lax.dynamic_slice(next_generation, (0, 0), population.shape)
-        # jax.debug.print("next_generation: {}", jnp.isinf(next_generation).all())
-        # next_generation = jnp.clip(next_generation, self.lb, self.ub)
+        next_generation = jnp.clip(next_generation, self.lb, self.ub)
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
@@ -360,7 +358,6 @@ class IMMOEA(Algorithm):
 
             off = jax.lax.cond(valid_sum > num, valid_fun, invalid_fun, off)
             off = jnp.where((jnp.arange(self.pop_size) > num)[:, None], jnp.inf, off)
-            # jax.debug.print("off: {}", off[self.pop_size - 5: , :])
             return off
 
         final_pop = lax.cond(
