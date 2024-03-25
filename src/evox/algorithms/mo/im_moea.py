@@ -80,7 +80,9 @@ class IMMOEA(Algorithm):
         key, subkey = jax.random.split(key)
         self.pop_size = int(jnp.ceil(self.pop_size / self.k) * self.k)
         W = UniformSampling(self.k, self.n_objs)()[0]
-        W = jnp.fliplr(jnp.sort(jnp.fliplr(W), axis=1))
+        W = jnp.fliplr(
+            jnp.sort(jnp.fliplr(W), axis=0)
+        )  # unknown reason, but it is the same as the original code.
         population = (
             jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
@@ -108,7 +110,7 @@ class IMMOEA(Algorithm):
         fitness = state.fitness
         key, key1 = jax.random.split(state.key)
         distances = cos_dist(fitness, state.reference_vector)
-        partition = jnp.argmax(distances, axis=1)
+        partition = jnp.argmin(distances, axis=1)
 
         def get_sub_pop(i):
             mask = partition == i
@@ -117,11 +119,7 @@ class IMMOEA(Algorithm):
 
         sub_pops = jax.vmap(get_sub_pop, out_axes=0)(jnp.arange(self.k))
         next_generation = jnp.vstack(sub_pops)
-        nan_mask = jnp.isnan(next_generation).sum(axis=1).astype(jnp.bool_)
-        indices = jnp.arange(next_generation.shape[0])
-        masked_indices = jnp.where(nan_mask, jnp.inf, indices)
-        sorted_indices = jnp.sort(masked_indices).astype(jnp.int32)
-        next_generation = next_generation[sorted_indices, :]
+        next_generation = jnp.sort(next_generation, axis=0)
         next_generation = lax.dynamic_slice(next_generation, (0, 0), population.shape)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
         return next_generation, state.update(next_generation=next_generation, key=key)
@@ -263,7 +261,7 @@ class IMMOEA(Algorithm):
             # Determine the indices of the population that will be generated. Unselected individuals' indices are marked with -1 and their value will be jnp.nan.
             pop_indices = jnp.arange(N)
             final_pop_indices = jnp.where(
-                pop_indices % jnp.floor(N / n) == 0, pop_indices, -1
+                pop_indices % jnp.floor(N / self.n_objs) == 0, pop_indices, -1
             )
 
             # Randomly classify the dimensions of the population.
@@ -289,7 +287,7 @@ class IMMOEA(Algorithm):
                 # random select the group of population to train GP model.
                 permutation = random.permutation(key_arr[0], pop_indices)
                 parents = jnp.where(
-                    pop_indices <= jnp.ceil(n / self.n_objs), permutation, -1
+                    pop_indices <= jnp.ceil(N / self.n_objs), permutation, -1
                 )
                 _mask = pop_indices == parents
                 sub_off, sub_fit = random_fill(
@@ -303,26 +301,31 @@ class IMMOEA(Algorithm):
                 likelihood = Gaussian(num_datapoints=len(sub_off))
 
                 # get the prediction's input of the GP model
-                inputs = jnp.linspace(fmin[m], fmax[m], N)
-                inputs = jnp.where(final_pop_indices >= 0, inputs, jnp.inf)[
-                    :, jnp.newaxis
-                ]
+                inputs = jnp.linspace(fmin[m], fmax[m], N)[:, jnp.newaxis]
+
                 _sub_fit = lax.dynamic_slice(sub_fit, (0, m), (sub_fit.shape[0], 1))
 
                 # get the offspring of the GP model
-                def get_off(i, dim_indices, _keys, sub_off, sub_fit):
+                def get_off(i, dim_indices, _keys, sub_off):
                     model = GPRegression(likelihood=likelihood, kernel=Linear())
                     _sub_pop = lax.dynamic_slice(
-                        sub_off, (0, dim_indices[i]), (sub_fit.shape[0], 1)
+                        sub_off, (0, dim_indices[i]), (sub_off.shape[0], 1)
                     )
                     model.fit(x=_sub_fit, y=_sub_pop, optimzer=ox.adam(0.001))
                     _, ymu, ystd = model.predict(inputs)
                     return ymu + random.normal(_keys[i], shape=ystd.shape) * ystd
 
-                res = jax.vmap(
-                    lambda i: get_off(i, dim_indices, _keys, sub_off, sub_fit)
-                )(jnp.arange(self.l))
-                return res
+                res = jax.vmap(lambda i: get_off(i, dim_indices, _keys, sub_off))(
+                    jnp.arange(self.l)
+                )
+
+                def get_offspring(i, sub_off):
+                    index = dim_indices[i]
+                    return sub_off.at[:, index].set(res[i, :])
+
+                sub_off = lax.fori_loop(0, self.l, get_offspring, sub_off)
+                sub_off = jnp.where((final_pop_indices >= 0)[:, None], sub_off, jnp.inf)
+                return sub_off
 
             x_keys = jax.random.split(x_key, num=self.n_objs)
             # sub_off is a list of offspring of each objective. M*L*N matrix
@@ -332,23 +335,30 @@ class IMMOEA(Algorithm):
                 )
             )(arr)
 
-            # reshape sub_off: M*L*N matrix, to (M*L*N) matrix
-            off = jnp.vstack(sub_off).T
-
+            # reshape sub_off: L*N*M matrix, to (L*N)*M matrix
+            off = jnp.vstack(sub_off)
             # replace the selected dimensions with the offspring.
-            def get_offspring(i, offspring):
-                index = shuffled_dim_indices[i]
-                return offspring.at[:, index].set(off[:, i])
-
-            offspring = lax.fori_loop(0, self.l * self.n_objs, get_offspring, new_pop)
+            off = jnp.sort(off, axis=0)[: self.pop_size, :]
 
             # Convert invalid values to random values
             rand_pop = jax.random.uniform(
-                pop_key, offspring.shape, minval=self.lb, maxval=self.ub
+                pop_key, off.shape, minval=self.lb, maxval=self.ub
             )
-            invalid = (offspring < self.lb) | (offspring > self.ub)
-            offspring = jnp.where(invalid, rand_pop, offspring)
-            return offspring
+            invalid = (off < self.lb) | (off > self.ub)
+            valid_sum = jnp.sum(~invalid.all())
+            num = jnp.sum(mask)
+
+            def valid_fun(x):
+                x = jnp.sort(jnp.where(invalid.all(), jnp.inf, x), axis=0)
+                return x
+
+            def invalid_fun(x):
+                x = jnp.where(invalid, rand_pop, x)
+                return x
+
+            off = jax.lax.cond(valid_sum > num, valid_fun, invalid_fun, off)
+            off = jnp.where((jnp.arange(self.pop_size) > num)[:, None], jnp.inf, off)
+            return off
 
         final_pop = lax.cond(
             n >= 2 * self.n_objs, normal_fun, lambda x: population, x_key
