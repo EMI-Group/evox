@@ -16,7 +16,7 @@ import jax.numpy as jnp
 
 from evox import Algorithm, State, jit_class
 from evox.operators import crossover, mutation, selection
-from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
+from evox.operators.sampling import LatinHypercubeSampling
 from evox.utils import pairwise_euclidean_dist
 
 
@@ -33,7 +33,6 @@ class MOEADDRA(Algorithm):
         ub,
         n_objs,
         pop_size,
-        # type=1,
         mutation_op=None,
         crossover_op=None,
     ):

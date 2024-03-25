@@ -125,16 +125,18 @@ class TDEA(Algorithm):
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary()
-        self.sampling = sampling.LatinHypercubeSampling(self.pop_size, self.n_objs)
+        self.sample = sampling.UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
+        w, _ = self.sample(subkey2)
+        self.pop_size = w.shape[0]
+
         population = (
             jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
-        w = self.sampling(subkey2)[0]
         return State(
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),

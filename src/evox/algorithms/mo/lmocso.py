@@ -14,7 +14,7 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators import mutation, selection
-from evox.operators.sampling import LatinHypercubeSampling
+from evox.operators.sampling import UniformSampling
 from evox import Algorithm, State, jit_class
 
 
@@ -80,21 +80,20 @@ class LMOCSO(Algorithm):
         if self.mutation is None:
             self.mutation = mutation.Polynomial((lb, ub))
 
-        self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
+        self.sampling = UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         state_key, init_key, vector_key = jax.random.split(key, 3)
+        v = self.sampling(vector_key)[0]
+        self.pop_size = v.shape[0]
 
         population = (
             jax.random.uniform(init_key, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
-        velocity = jnp.zeros((self.pop_size, self.dim))
+        velocity = jnp.zeros((self.pop_size // 2 * 2, self.dim))
         fitness = jnp.full((self.pop_size, self.n_objs), jnp.inf)
-
-        v = self.sampling(vector_key)[0]
-        v = v / jnp.linalg.norm(v, axis=0)
 
         return State(
             population=population,
@@ -117,10 +116,13 @@ class LMOCSO(Algorithm):
         no_nan_pop = ~jnp.isnan(population).all(axis=1)
         max_idx = jnp.sum(no_nan_pop).astype(int)
         pop = population[jnp.where(no_nan_pop, size=self.pop_size, fill_value=-1)]
+
         mating_pool = jax.random.randint(mating_key, (self.pop_size,), 0, max_idx)
         population = pop[mating_pool]
 
-        randperm = jax.random.permutation(pairing_key, self.pop_size).reshape(2, -1)
+        randperm = jax.random.permutation(pairing_key, self.pop_size // 2 * 2).reshape(
+            2, -1
+        )
 
         # calculate the shift-based density estimation(SDE) fitness
         sde_fitness = cal_fitness(state.fitness)

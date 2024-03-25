@@ -9,7 +9,7 @@ import jax
 import jax.numpy as jnp
 
 from evox.operators import mutation, crossover, selection
-from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
+from evox.operators.sampling import UniformSampling
 from evox import Algorithm, State, jit_class
 
 
@@ -59,20 +59,20 @@ class RVEA(Algorithm):
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary()
 
-        if self.n_objs == 2:
-            self.sampling = UniformSampling(self.pop_size, self.n_objs)
-        else:
-            self.sampling = LatinHypercubeSampling(self.pop_size, self.n_objs)
+        self.sampling = UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
+
+        v = self.sampling(subkey2)[0]
+        v0 = v
+        self.pop_size = v.shape[0]
+
         population = (
             jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
-        v = self.sampling(subkey2)[0]
-        v0 = v
 
         return State(
             population=population,

@@ -16,13 +16,13 @@ import jax.numpy as jnp
 
 from evox import Algorithm, State, jit_class
 from evox.operators import crossover, mutation
-from evox.operators.sampling import LatinHypercubeSampling, UniformSampling
+from evox.operators.sampling import UniformSampling
 from evox.utils import pairwise_euclidean_dist
 
 
 @jit_class
 class MOEAD(Algorithm):
-    """MOEA/D algorithm
+    """Parallel MOEA/D algorithm
 
     link: https://ieeexplore.ieee.org/document/4358754
     """
@@ -43,7 +43,7 @@ class MOEAD(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.type = type
-        self.T = int(math.ceil(self.pop_size / 10))
+        self.T = 0
 
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -52,16 +52,20 @@ class MOEAD(Algorithm):
             self.mutation = mutation.Polynomial((lb, ub))
         if self.crossover is None:
             self.crossover = crossover.SimulatedBinary(type=2)
-        self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
+        self.sample = UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
+        w, _ = self.sample(subkey2)
+        self.pop_size = w.shape[0]
+        self.T = int(math.ceil(self.pop_size / 10))
+
         population = (
             jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
-        w, _ = self.sample(subkey2)
+
         B = pairwise_euclidean_dist(w, w)
         B = jnp.argsort(B, axis=1)
         B = B[:, : self.T]
