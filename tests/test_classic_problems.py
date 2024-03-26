@@ -56,6 +56,6 @@ def test_dtlz1():
     state = dtlz1.init(key)
     X = jnp.ones((16, 7)) * 0.5
     F, state = dtlz1.evaluate(state, X)
-    pf, state = dtlz1.pf(state)
+    pf = dtlz1.pf()
     print(pf.shape)
     chex.assert_trees_all_close(jnp.sum(F, axis=1), 0.5 * jnp.ones((16,)), atol=1e-6)
