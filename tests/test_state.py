@@ -6,6 +6,8 @@ from jax.tree_util import tree_map
 
 
 class Leaf(Stateful):
+    stateful_functions = ["run", "check"]
+
     def setup(self, key):
         return State(c=42)
 
@@ -19,6 +21,8 @@ class Leaf(Stateful):
 
 
 class Middle(Stateful):
+    stateful_functions = ["run", "check"]
+
     def __init__(self):
         super().__init__()
         self.leaf = Leaf()
@@ -36,6 +40,8 @@ class Middle(Stateful):
 
 
 class Root(Stateful):
+    stateful_functions = ["run", "check", "test_override_a", "test_override_b"]
+
     def __init__(self):
         super().__init__()
         self.a = 123

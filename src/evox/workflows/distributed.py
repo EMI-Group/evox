@@ -4,16 +4,14 @@ from typing import Callable, Dict, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 import ray
-from jax import jit
-from jax.tree_util import tree_flatten
 
-from evox import Algorithm, Monitor, Problem, State, Stateful, jit_class
+from evox import Algorithm, Problem, State, Workflow
 from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 
-class WorkerWorkflow(Stateful):
+class WorkerWorkflow(Workflow):
+    stateful_functions = ["step1", "step2"]
     def __init__(
         self,
         algorithm: Algorithm,
@@ -228,7 +226,7 @@ class MonitorActor:
         return call_queue
 
 
-class RayDistributedWorkflow(Stateful):
+class RayDistributedWorkflow(Workflow):
     def __init__(
         self,
         algorithm: Algorithm,

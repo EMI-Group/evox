@@ -1,3 +1,4 @@
+from .core.workflow import Workflow
 from .core.algorithm import Algorithm
 from .core.module import *
 from .core.problem import Problem
