@@ -1,6 +1,6 @@
 import warnings
 from functools import partial
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
@@ -8,11 +8,11 @@ from jax import jit, lax, pmap, pure_callback
 from jax.sharding import PositionalSharding
 from jax.tree_util import tree_map
 
-from evox import Algorithm, Problem, State, Stateful, Monitor, jit_method
+from evox import Algorithm, Problem, State, Workflow, Monitor, jit_method
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-class StdWorkflow(Stateful):
+class StdWorkflow(Workflow):
     """Experimental unified workflow,
     designed to provide unparallel performance for EC workflow.
 

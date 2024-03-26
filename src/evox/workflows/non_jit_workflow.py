@@ -1,11 +1,11 @@
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
-from evox import Algorithm, Monitor, Problem, State, Stateful
+from evox import Algorithm, Monitor, Problem, State, Workflow
 from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 
-class NonJitWorkflow(Stateful):
+class NonJitWorkflow(Workflow):
     def __init__(
         self,
         algorithm: Algorithm,
