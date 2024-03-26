@@ -82,9 +82,9 @@ class MaF(Problem):
         pass
         return jax.jit(jax.vmap(self._maf))(X), state
 
-    def pf(self, state):
+    def pf(self):
         f = 1 - UniformSampling(self.ref_num * self.m, self.m)()[0]
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -107,10 +107,10 @@ class MaF1(MaF):
         f = repeat_g - repeat_g * cumprod_term * reversed_term
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         f = 1 - UniformSampling(n, self.m)()[0]
-        return f, state
+        return f
 
 
 class MaF2(MaF):
@@ -162,7 +162,7 @@ class MaF2(MaF):
         f = (1 + g) * f1 * f2
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
         c = jnp.zeros((r.shape[0], self.m - 1))
@@ -195,7 +195,7 @@ class MaF2(MaF):
         f = jnp.fliplr(
             jnp.cumprod(jnp.hstack([jnp.ones((n, 1)), c[:, : self.m - 1]]), axis=1)
         ) * jnp.hstack([jnp.ones((n, 1)), jnp.sqrt(1 - c[:, self.m - 2 :: -1] ** 2)])
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -234,12 +234,12 @@ class MaF3(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0] ** 2
         temp = (jnp.sum(jnp.sqrt(r[:, :-1]), axis=1) + r[:, -1]).reshape((-1, 1))
         f = r / jnp.hstack([jnp.tile(temp**2, (1, r.shape[1] - 1)), temp])
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -273,14 +273,14 @@ class MaF4(MaF):
         f = f1 * jnp.tile(jnp.power(2, jnp.arange(1, self.m + 1)), (n, 1))
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
         r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, None], (1, self.m))
         f = (1 - r1) * jnp.tile(
             jnp.power(2, jnp.arange(1, self.m + 1)), (r.shape[0], 1)
         )
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -310,14 +310,12 @@ class MaF5(MaF):
         f = f1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (n, 1))
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         r = UniformSampling(n, self.m)()[0]
-        r1 = r / jnp.tile(
-            jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1, self.m)
-        )
+        r1 = r / jnp.tile(jnp.sqrt(jnp.sum(r**2, axis=1))[:, jnp.newaxis], (1, self.m))
         f = r1 * jnp.tile(jnp.power(2, jnp.arange(self.m, 0, -1)), (r.shape[0], 1))
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -349,7 +347,7 @@ class MaF6(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         i = 2
         n = self.ref_num * self.m
         r = UniformSampling(n, i)()[0]
@@ -361,7 +359,7 @@ class MaF6(MaF):
         f = r1 / jnp.power(
             jnp.sqrt(2), jnp.tile(jnp.maximum(self.m - i, 0), (r.shape[0], 1))
         )
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -388,7 +386,7 @@ class MaF7(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
         median = (interval[1] - interval[0]) / (
@@ -412,7 +410,7 @@ class MaF7(MaF):
                 ],
             ]
         )
-        return f, state
+        return f
 
     def _grid(self, N, M):
         gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))
@@ -439,7 +437,7 @@ class MaF8(MaF):
         f = self._eucl_dis(X, self.points)
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
         y, x = jnp.meshgrid(temp, temp)
@@ -448,7 +446,7 @@ class MaF8(MaF):
         _points = jnp.column_stack((x, y))
         ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
-        return f, state
+        return f
 
     @evox.jit_method
     def _getPoints(self):
@@ -492,7 +490,7 @@ class MaF9(MaF):
             )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         temp = jnp.linspace(-1, 1, num=jnp.ceil(jnp.sqrt(n)).astype(int))
         y, x = jnp.meshgrid(temp, temp)
@@ -501,7 +499,7 @@ class MaF9(MaF):
         _points = jnp.column_stack((x, y))
         ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
         f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
-        return f, state
+        return f
 
     @evox.jit_method
     def _getPoints(self):
@@ -603,7 +601,7 @@ class MaF10(MaF):
         If result is not correct for some problems, it is necessary to use float64 globally
     """
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
@@ -643,7 +641,7 @@ class MaF10(MaF):
         f = self._convex(x)
         f = f.at[:, M - 1].set(self._mixed(x))
         f = f * jnp.tile(jnp.arange(2, 2 * M + 1, 2), (f.shape[0], 1))
-        return f, state
+        return f
 
     def _s_linear(self, y, A):
         output = jnp.abs(y - A) / jnp.abs(jnp.floor(A - y) + A)
@@ -747,7 +745,7 @@ class MaF11(MaF):
         If result is not correct for some problems, it is necessary to use float64 globally
     """
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
@@ -781,7 +779,7 @@ class MaF11(MaF):
         non_dominated_rank = non_dominated_sort(R)
         f = R[non_dominated_rank == 0, :]
         f = f * jnp.arange(2, 2 * M + 1, 2)
-        return f, state
+        return f
 
     @evox.jit_method
     def _s_linear(self, y, A):
@@ -910,13 +908,13 @@ class MaF12(MaF):
         f = D * x[:, M - 1].reshape(-1, 1) + S * h
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
         R = R / jnp.sqrt(jnp.sum(R**2, axis=1)).reshape(-1, 1)
         f = jnp.arange(2, 2 * M + 1, 2) * R
-        return f, state
+        return f
 
     def _s_decept(self, y, A, B, C):
         return 1 + (jnp.abs(y - A) - B) * (
@@ -1010,7 +1008,7 @@ class MaF13(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, 3)()[0]
@@ -1023,7 +1021,7 @@ class MaF13(MaF):
                 ),
             ]
         )
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -1079,11 +1077,11 @@ class MaF14(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         f = UniformSampling(N, M)()[0]
-        return f, state
+        return f
 
     def _Rastrigin(self, x):
         return jnp.sum(x**2 - 10 * jnp.cos(2 * jnp.pi * x) + 10, axis=1)
@@ -1158,9 +1156,9 @@ class MaF15(MaF):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         M = self.m
         N = self.ref_num * self.m
         R = UniformSampling(N, M)()[0]
         R = 1 - R / jnp.sqrt(jnp.sum(R**2, axis=1)).reshape(-1, 1)
-        return R, state
+        return R

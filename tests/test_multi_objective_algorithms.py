@@ -22,7 +22,7 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
         monitors=[monitor],
     )
     state = workflow.init(key)
-    true_pf, state = problem.pf(state)
+    true_pf = problem.pf()
 
     for i in range(ITER):
         state = workflow.step(state)

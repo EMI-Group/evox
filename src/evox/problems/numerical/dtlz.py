@@ -28,9 +28,9 @@ class DTLZTestSuit(Problem):
     def evaluate(self, state, X):
         return jax.jit(jax.vmap(self._dtlz))(X), state
 
-    def pf(self, state):
+    def pf(self):
         f = self.sample()[0] / 2
-        return f, state
+        return f
 
 
 class DTLZ1(DTLZTestSuit):
@@ -102,10 +102,10 @@ class DTLZ2(DTLZTestSuit):
 
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         f = self.sample()[0]
         f /= jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
-        return f, state
+        return f
 
 
 class DTLZ3(DTLZ2):
@@ -207,7 +207,7 @@ class DTLZ5(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         f = jnp.vstack(
             (
@@ -226,7 +226,7 @@ class DTLZ5(DTLZTestSuit):
             jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
             (jnp.shape(f)[0], 1),
         )
-        return f, state
+        return f
 
 
 class DTLZ6(DTLZTestSuit):
@@ -264,7 +264,7 @@ class DTLZ6(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         n = self.ref_num * self.m
         f = jnp.vstack(
             (
@@ -283,7 +283,7 @@ class DTLZ6(DTLZTestSuit):
             jnp.hstack((self.m - 2, jnp.arange(self.m - 2, -1, -1))),
             (jnp.shape(f)[0], 1),
         )
-        return f, state
+        return f
 
 
 class DTLZ7(DTLZTestSuit):
@@ -321,7 +321,7 @@ class DTLZ7(DTLZTestSuit):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         interval = jnp.array([0, 0.251412, 0.631627, 0.859401])
         median = (interval[1] - interval[0]) / (
             interval[3] - interval[2] + interval[1] - interval[0]
@@ -349,4 +349,4 @@ class DTLZ7(DTLZTestSuit):
         )
 
         pf = jnp.hstack([x, last_col])
-        return pf, state
+        return pf
