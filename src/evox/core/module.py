@@ -129,19 +129,23 @@ class MetaStatefulModule(type):
         name,
         bases,
         class_dict,
-        force_wrap=["__call__"],
-        ignore=["init", "setup"],
-        ignore_prefix="_",
     ):
-        wrapped = {}
+        wrapped = class_dict
+        stateful_functions = []
+        # stateful_functions from parent classes
+        for base in bases:
+            if hasattr(base, "stateful_functions"):
+                stateful_functions += base.stateful_functions
+
+        # stateful_functions from current class
+        if "stateful_functions" in class_dict:
+            stateful_functions += class_dict["stateful_functions"]
 
         for key, value in class_dict.items():
-            if key in force_wrap:
+            if key in stateful_functions:
                 wrapped[key] = use_state(value)
-            elif key.startswith(ignore_prefix) or key in ignore:
-                wrapped[key] = value
-            elif callable(value):
-                wrapped[key] = use_state(value)
+
+        wrapped["stateful_functions"] = stateful_functions
 
         return super().__new__(cls, name, bases, wrapped)
 
@@ -157,6 +161,8 @@ class Stateful(metaclass=MetaStatefulModule):
     The ``init`` method will automatically call the ``setup`` of the current module
     and recursively call ``setup`` methods of all submodules.
     """
+
+    stateful_functions = []
 
     def __init__(self) -> None:
         self._node_id = None
@@ -201,7 +207,9 @@ class Stateful(metaclass=MetaStatefulModule):
                 subkey = None
             else:
                 key, subkey = jax.random.split(key)
-            submodule_state, node_id = attr._recursive_init(subkey, node_id + 1, attr_name)
+            submodule_state, node_id = attr._recursive_init(
+                subkey, node_id + 1, attr_name
+            )
             assert isinstance(
                 submodule_state, State
             ), "setup method must return a State"
