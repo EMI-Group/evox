@@ -478,17 +478,18 @@ class MaF9(MaF):
         super().__init__(d, m, ref_num)
         # Generate vertexes
         self.points = self._getPoints()
+    
+    def _evaluate(self, X):
+        m, _d1 = jnp.shape(self.points)
+        def calc_pf_for_obj(i):
+            return self._Point2Line(X, self.points[jnp.mod(jnp.arange(2) + i, m), :])
+
+        f = jax.vmap(calc_pf_for_obj)(jnp.arange(m)).T
+        return f
 
     @evox.jit_method
     def evaluate(self, state, X):
-        n, d = jnp.shape(X)
-        m, d1 = jnp.shape(self.points)
-        f = jnp.zeros((n, m))
-        for i in range(m):
-            f = f.at[:, i].set(
-                self._Point2Line(X, self.points[jnp.mod(jnp.arange(i, i + 2), m), :])
-            )
-        return f, state
+        return self._evaluate(X), state
 
     def pf(self):
         n = self.ref_num * self.m
@@ -498,7 +499,7 @@ class MaF9(MaF):
         y = y.ravel(order="C")
         _points = jnp.column_stack((x, y))
         ND = jax.vmap(point_in_polygon, in_axes=(None, 0))(self.points, _points)
-        f, state = self.evaluate(state, jnp.column_stack((x[ND], y[ND])))
+        f = self._evaluate(jnp.column_stack((x[ND], y[ND])))
         return f
 
     @evox.jit_method
