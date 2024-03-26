@@ -9,6 +9,7 @@ from .state import State
 
 class Algorithm(Stateful):
     """Base class for all algorithms"""
+    stateful_functions = ['init_ask', 'init_tell', 'ask', 'tell']
 
     def init_ask(self, state: State) -> Tuple[jax.Array, State]:
         """Ask the algorithm for the initial population
