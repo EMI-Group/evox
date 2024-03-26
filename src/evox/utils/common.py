@@ -143,6 +143,8 @@ def rank_based_fitness(raw_fitness):
 
 
 class OptaxWrapper(Stateful):
+    stateful_functions = ["update"]
+
     def __init__(self, optimizer, init_params):
         self.optimizer = optimizer
         self.init_params = init_params

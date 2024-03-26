@@ -16,14 +16,14 @@ import evox
 @jit
 def tree_l2_norm(pytree):
     return jnp.sqrt(
-        tree_reduce(
-            lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree)
-        )
+        tree_reduce(lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree))
     )
 
 
 @evox.jit_class
 class ClipUp(evox.Stateful):
+    stateful_functions = ["update"]
+
     def __init__(self, step_size, max_speed, momentum, params):
         self.step_size = step_size
         self.max_speed = max_speed
