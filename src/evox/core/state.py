@@ -23,9 +23,7 @@ class State:
 
     EMPTY: dict = {}
 
-    def __init__(
-        self, state_dict: dict = EMPTY, child_states: dict[str, State] = EMPTY, **kwargs
-    ) -> None:
+    def __init__(self, _dataclass, /, **kwargs) -> None:
         """Construct a ``State`` from dict or keyword arguments
 
         Example::
@@ -35,7 +33,10 @@ class State:
             >>> State(x=1, y=2) # from keyword arguments
             State ({'x': 1, 'y': 2}, [])
         """
-        self.__dict__["_state_dict"] = kwargs
+        if _dataclass is not None:
+            self.__dict__["_state_dict"] = _dataclass
+        else:
+            self.__dict__["_state_dict"] = kwargs
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
 
@@ -66,7 +67,7 @@ class State:
         self.__dict__["_state_id"] = state_id
         return self
 
-    def update(self, other: Optional[Union[State, dict]] = None, **kwargs) -> State:
+    def update(self, **kwargs) -> State:
         """Update the current State with another State or dict and return new State.
 
         This method also accept keyword arguments.
@@ -78,23 +79,14 @@ class State:
             State ({'x': 1, 'y': 3}, [])
             >>> state # note that State is immutable, so state isn't modified
             State ({'x': 1, 'y': 2}, [])
-            >>> state | {"y": 4} # use the | operator
-            State ({'x': 1, 'y': 4}, [])
         """
-        if other is None:
+        if dataclass.is_dataclass(self._state_dict):
+            return copy(self)._set_state_dict_mut(self._state_dict.replace(**kwargs))
+        else:
             return copy(self)._set_state_dict_mut({**self._state_dict, **kwargs})
 
-        if isinstance(other, State):
-            return (
-                copy(self)
-                ._set_state_dict_mut({**self._state_dict, **other._state_dict})
-                ._set_child_states_mut({**self._child_states, **other._child_states})
-            )
-
-        if isinstance(other, dict):
-            return copy(self)._set_state_dict_mut({**self._state_dict, **other})
-
-        raise ValueError(f"other must be either State or dict, but got {type(other)}.")
+    def replace(self, **kwargs) -> State:
+        return self.update(**kwargs)
 
     def has_child(self, name: str) -> bool:
         return name in self._child_states
@@ -140,25 +132,21 @@ class State:
         else:
             raise ValueError("Path must be either tuple or int")
 
-    def __or__(self, *args, **kwargs) -> State:
-        """| operator
-
-        Same as the update method.
-        """
-        return self.update(*args, **kwargs)
-
     def __getattr__(self, key: str) -> Any:
         if is_magic_method(key):
             return super().__getattr__(key)
         return self._state_dict[key]
 
-    def __getitem__(self, index: Union[str, int]) -> State:
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def index(self, index: Union[str, int]) -> State:
         """
         PyTree index, apply the index to every element in the state.
         """
         return tree_map(lambda x: x[index], self)
 
-    def __getslice__(self, begin: int, end: int) -> State:
+    def slice(self, begin: int, end: int) -> State:
         """
         PyTree index, apply the index to every element in the state.
         """
@@ -188,7 +176,7 @@ class State:
     def __str__(self) -> str:
         return f"State {pformat(self.sprint_tree())}"
 
-    def sprint_tree(self) -> Union[dict,str]:
+    def sprint_tree(self) -> Union[dict, str]:
         if self is State.EMPTY:
             return "State.empty"
         children = {

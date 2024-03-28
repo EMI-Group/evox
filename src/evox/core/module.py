@@ -4,6 +4,7 @@ from typing import Any, Callable, Tuple
 import numpy as np
 import jax
 import jax.numpy as jnp
+import dataclasses
 
 from .state import State
 
@@ -85,17 +86,8 @@ def default_cond_fun(name: str):
     return True
 
 
-def _class_decorator(cls, wrapper, cond_fun=default_cond_fun):
-    """A helper function used to add decorators to methods of a class
-
-    Parameters
-    ----------
-    wrapper
-        The decorator
-    ignore
-        Ignore methods in this list
-    ignore_prefix
-        Ignore methods with certain prefix
+def jit_class(cls):
+    """A helper function used to jit decorators to methods of a class
 
     Returns
     -------
@@ -105,48 +97,15 @@ def _class_decorator(cls, wrapper, cond_fun=default_cond_fun):
     for attr_name in dir(cls):
         func = getattr(cls, attr_name)
         if callable(func) and cond_fun(attr_name):
-            wrapped = wrapper(func)
+            if dataclasses.is_dataclass(cls):
+                wrapped = wrapper(jax.jit(func))
+            else:
+                wrapped = wrapper(jit_method(func))
             setattr(cls, attr_name, wrapped)
     return cls
 
 
-def jit_class(cls, cond_fun=default_cond_fun):
-    return _class_decorator(cls, jit_method, cond_fun)
-
-
-class MetaStatefulModule(type):
-    """Meta class used by Module
-
-    This meta class will try to wrap methods with use_state,
-    which allows easy managing of states.
-
-    It is recommended to use a single underscore as prefix to prevent a method from being wrapped.
-    Still, this behavior can be configured by passing ``force_wrap``, ``ignore`` and ``ignore_prefix``.
-    """
-
-    def __new__(
-        cls,
-        name,
-        bases,
-        class_dict,
-        force_wrap=["__call__"],
-        ignore=["init", "setup"],
-        ignore_prefix="_",
-    ):
-        wrapped = {}
-
-        for key, value in class_dict.items():
-            if key in force_wrap:
-                wrapped[key] = use_state(value)
-            elif key.startswith(ignore_prefix) or key in ignore:
-                wrapped[key] = value
-            elif callable(value):
-                wrapped[key] = use_state(value)
-
-        return super().__new__(cls, name, bases, wrapped)
-
-
-class Stateful(metaclass=MetaStatefulModule):
+class Stateful:
     """Base class for all evox modules.
 
     This module allow easy managing of states.
@@ -160,7 +119,6 @@ class Stateful(metaclass=MetaStatefulModule):
 
     def __init__(self) -> None:
         self._node_id = None
-        self._cache_override = set()
 
     def setup(self, key: jax.Array) -> State:
         """Setup mutable state here
@@ -201,7 +159,9 @@ class Stateful(metaclass=MetaStatefulModule):
                 subkey = None
             else:
                 key, subkey = jax.random.split(key)
-            submodule_state, node_id = attr._recursive_init(subkey, node_id + 1, attr_name)
+            submodule_state, node_id = attr._recursive_init(
+                subkey, node_id + 1, attr_name
+            )
             assert isinstance(
                 submodule_state, State
             ), "setup method must return a State"

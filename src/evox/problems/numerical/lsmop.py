@@ -64,9 +64,9 @@ class LSMOP(Problem):
     def evaluate(self, state, X):
         return jax.jit(jax.vmap(self._lsmop))(X), state
 
-    def pf(self, state):
+    def pf(self):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
-        return f, state
+        return f
 
     """
        it is totally different with schwefel_func in cec2022_so.py
@@ -264,12 +264,10 @@ class LSMOP5(LSMOP):
 
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
-        return (
-            f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m)),
-            state,
-        )
+        return f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
+        
 
 
 @evox.jit_class
@@ -341,10 +339,10 @@ class LSMOP7(LSMOP):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -381,10 +379,10 @@ class LSMOP8(LSMOP):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         f = f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
-        return f, state
+        return f
 
 
 @evox.jit_class
@@ -428,7 +426,7 @@ class LSMOP9(LSMOP):
         )
         return f, state
 
-    def pf(self, state):
+    def pf(self):
         interval = [0, 0.251412, 0.631627, 0.859401]
         median = (interval[1] - interval[0]) / (
             interval[3] - interval[2] + interval[1] - interval[0]
@@ -448,7 +446,7 @@ class LSMOP9(LSMOP):
                 - jnp.sum(X / 2 * (1 + jnp.sin(3 * jnp.pi * X)), axis=1, keepdims=True)
             ),
         ]
-        return p, state
+        return p
 
     def _grid(self, N, M):
         gap = jnp.linspace(0, 1, int(math.ceil(N ** (1 / M))))

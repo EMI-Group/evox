@@ -1,6 +1,6 @@
 import warnings
 from functools import partial
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
@@ -8,11 +8,11 @@ from jax import jit, lax, pmap, pure_callback
 from jax.sharding import PositionalSharding
 from jax.tree_util import tree_map
 
-from evox import Algorithm, Problem, State, Stateful, Monitor, jit_method
+from evox import Algorithm, Problem, State, Workflow, Monitor, jit_method, use_state
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-class StdWorkflow(Stateful):
+class StdWorkflow(Workflow):
     """Experimental unified workflow,
     designed to provide unparallel performance for EC workflow.
 
@@ -139,7 +139,7 @@ class StdWorkflow(Stateful):
                 tell = self.algorithm.tell
 
             # candidate solution
-            cand_sol, state = ask(state)
+            cand_sol, state = use_state(ask)(state)
             cand_sol_size = cand_sol.shape[0]
 
             for monitor in self.registered_hooks["post_ask"]:
@@ -159,7 +159,7 @@ class StdWorkflow(Stateful):
 
             # if the function is jitted
             if self.jit_problem:
-                fitness, state = self.problem.evaluate(state, transformed_cand_sol)
+                fitness, state = use_state(self.problem.evaluate)(state, transformed_cand_sol)
             else:
                 if self.num_objectives == 1:
                     fit_shape = (cand_sol_size,)
@@ -192,7 +192,7 @@ class StdWorkflow(Stateful):
                     state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
                 )
 
-            state = tell(state, transformed_fitness)
+            state = use_state(tell)(state, transformed_fitness)
 
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)

@@ -31,6 +31,6 @@ def test():
 
     state = problem.init(key)
 
-    frames, state = problem.visualize(state, key, seed)
+    frames = problem.visualize(key, seed)
     frames2gif(frames, f"{gym_name}_{seed}.gif")
     assert True

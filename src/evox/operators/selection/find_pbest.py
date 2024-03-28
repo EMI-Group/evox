@@ -1,4 +1,3 @@
-from evox import jit_class, Operator
 from evox.core.state import State
 import jax
 import jax.numpy as jnp
