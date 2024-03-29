@@ -8,19 +8,19 @@
 import jax
 import jax.numpy as jnp
 from evox import Algorithm, State, jit_class
+import jax_dataclasses as jdc
 
 
-@jit_class
+@jitclass
+@jdc.pytree_dataclass
 class CSO(Algorithm):
-    def __init__(self, lb, ub, pop_size, phi=0, mean=None, stdev=None):
-        self.dim = lb.shape[0]
-        self.lb = lb
-        self.ub = ub
-        self.pop_size = pop_size
-        self.phi = phi
-        self.mean = mean
-        self.stdev = stdev
-        assert stdev is None or stdev > 0
+    dim: int
+    lb: jax.Array
+    ub: jax.Array
+    pop_size: int
+    phi: float
+    mean: jax.Array
+    stdev: jax.Array
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)

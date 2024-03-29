@@ -73,7 +73,7 @@ def jit_method(method: Callable):
     )
 
 
-def default_cond_fun(name: str):
+def default_jit_func(name: str):
     if name == "__call__":
         return True
 
@@ -96,7 +96,7 @@ def jit_class(cls):
     """
     for attr_name in dir(cls):
         func = getattr(cls, attr_name)
-        if callable(func) and cond_fun(attr_name):
+        if callable(func) and default_jit_func(attr_name):
             if dataclasses.is_dataclass(cls):
                 wrapped = wrapper(jax.jit(func))
             else:
