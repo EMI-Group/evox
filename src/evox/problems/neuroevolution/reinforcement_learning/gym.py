@@ -8,7 +8,7 @@ import ray
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose, tree_leaves
 
-from evox import Problem, State, Stateful, jit_class, jit_method
+from evox import Problem, State, Stateful, jit_class, jit_method, use_state
 
 
 @jit
@@ -358,7 +358,7 @@ class Gym(Problem):
 
         cap_episode_length = None
         if self.cap_episode:
-            cap_episode_length, state = self.cap_episode.get(state)
+            cap_episode_length, state = use_state(self.cap_episode.get)(state)
             cap_episode_length = cap_episode_length.item()
 
         rewards, acc_mo_values, episode_length = ray.get(
@@ -371,7 +371,7 @@ class Gym(Problem):
         episode_length = jnp.asarray(episode_length)
 
         if self.cap_episode:
-            state = self.cap_episode.update(state, episode_length)
+            state = use_state(self.cap_episode.update)(state, episode_length)
 
         fitness = rewards
 

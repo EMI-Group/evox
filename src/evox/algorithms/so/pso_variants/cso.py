@@ -7,20 +7,25 @@
 
 import jax
 import jax.numpy as jnp
+from typing import Optional
 from evox import Algorithm, State, jit_class
 import jax_dataclasses as jdc
+from dataclasses import field
 
 
-@jitclass
+@jit_class
 @jdc.pytree_dataclass
 class CSO(Algorithm):
-    dim: int
     lb: jax.Array
     ub: jax.Array
-    pop_size: int
-    phi: float
-    mean: jax.Array
-    stdev: jax.Array
+    pop_size: jdc.Static[int]
+    phi: float = 0.0
+    mean: Optional[jax.Array] = None
+    stdev: Optional[jax.Array] = None
+    dim: int = field(init=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "dim", self.lb.shape[0])
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)

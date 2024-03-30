@@ -1,10 +1,12 @@
 import warnings
 from functools import wraps
-from typing import Any, Callable, Tuple
-import numpy as np
+from typing import Any, Callable, Tuple, Optional
+from dataclasses import is_dataclass, field
+
 import jax
 import jax.numpy as jnp
-import dataclasses
+import jax_dataclasses as jdc
+import numpy as np
 
 from .state import State
 
@@ -24,12 +26,16 @@ def use_state(func: Callable):
     err_msg = "Expect last return value must be State, got {}"
 
     @wraps(func)
-    def wrapper(self, state: State, *args, **kwargs):
-        assert isinstance(self, Stateful) and isinstance(state, State)
+    def wrapper(state: State, *args, **kwargs):
+        assert isinstance(
+            state, State
+        ), f"The first argument must be `State`, got {type(state)}"
         # find the state that match the current module
-        path, matched_state = state.find_path_to(self._node_id, self._module_name)
+        path, matched_state = state.find_path_to(
+            func.__self__._node_id, func.__self__._module_name
+        )
 
-        return_value = func(self, matched_state, *args, **kwargs)
+        return_value = func(matched_state, *args, **kwargs)
 
         # single return value, the value must be a State
         if not isinstance(return_value, tuple):
@@ -97,10 +103,10 @@ def jit_class(cls):
     for attr_name in dir(cls):
         func = getattr(cls, attr_name)
         if callable(func) and default_jit_func(attr_name):
-            if dataclasses.is_dataclass(cls):
-                wrapped = wrapper(jax.jit(func))
+            if is_dataclass(cls):
+                wrapped = jax.jit(func)
             else:
-                wrapped = wrapper(jit_method(func))
+                wrapped = jit_method(func)
             setattr(cls, attr_name, wrapped)
     return cls
 
@@ -117,8 +123,10 @@ class Stateful:
     and recursively call ``setup`` methods of all submodules.
     """
 
-    def __init__(self) -> None:
-        self._node_id = None
+    def __init__(self):
+        super().__init__()
+        object.__setattr__(self, "_node_id", None)
+        object.__setattr__(self, "_module_name", None)
 
     def setup(self, key: jax.Array) -> State:
         """Setup mutable state here
@@ -139,8 +147,8 @@ class Stateful:
         return State()
 
     def _recursive_init(self, key, node_id, module_name) -> Tuple[State, int]:
-        self._node_id = node_id
-        self._module_name = module_name
+        object.__setattr__(self, "_node_id", node_id)
+        object.__setattr__(self, "_module_name", module_name)
 
         child_states = {}
 

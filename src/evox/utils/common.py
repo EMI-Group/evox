@@ -11,7 +11,7 @@ from ..core.module import *
 
 
 def algorithm_has_init_ask(algorithm, state):
-    probe = jax.eval_shape(algorithm.init_ask, state)
+    probe = jax.eval_shape(use_state(algorithm.init_ask), state)
     return probe[0] is not None
 
 

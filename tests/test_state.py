@@ -1,13 +1,11 @@
 import chex
 import jax
 import pytest
-from evox import Stateful, State
+from evox import Stateful, State, use_state
 from jax.tree_util import tree_map
 
 
 class Leaf(Stateful):
-    stateful_functions = ["run", "check"]
-
     def setup(self, key):
         return State(c=42)
 
@@ -21,8 +19,6 @@ class Leaf(Stateful):
 
 
 class Middle(Stateful):
-    stateful_functions = ["run", "check"]
-
     def __init__(self):
         super().__init__()
         self.leaf = Leaf()
@@ -31,7 +27,7 @@ class Middle(Stateful):
         return State(d=[3, 1, 4, 1, 5, 9, 2, 6])
 
     def run(self, state):
-        e, state = self.leaf.run(state)
+        e, state = use_state(self.leaf.run)(state)
         return e + [8, 2, 8], state.update(d=3.1415926)
 
     def check(self, state):
@@ -40,8 +36,6 @@ class Middle(Stateful):
 
 
 class Root(Stateful):
-    stateful_functions = ["run", "check", "test_override_a", "test_override_b"]
-
     def __init__(self):
         super().__init__()
         self.a = 123
@@ -55,16 +49,16 @@ class Root(Stateful):
     def run(self, state):
         attr_a = state.attr_a + 2
         attr_b = state.attr_b - 3
-        e1, state = self.leaf.run(state)
-        e2, state = self.middle.run(state)
-        return e1 + e2, state | {"attr_a": attr_a, "attr_b": attr_b}
+        e1, state = use_state(self.leaf.run)(state)
+        e2, state = use_state(self.middle.run)(state)
+        return e1 + e2, state.replace(attr_a=attr_a, attr_b=attr_b)
 
     def check(self, state):
         assert state.attr_a == 125
         assert state.attr_b == 453
 
-        state = self.middle.check(state)
-        state = self.leaf.check(state)
+        state = use_state(self.middle.check)(state)
+        state = use_state(self.leaf.check)(state)
         return state
 
     def test_override_a(self, state):
@@ -95,10 +89,10 @@ def test_repl_and_str():
     state = module.init(key=jax.random.PRNGKey(456))
     assert (
         repr(state)
-        == """State ({'attr_a': 123, 'attr_b': 456}, {'leaf': State ({'c': 42}, {}),'middle': State ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': State ({'c': 42}, {})})})"""
+        == """State({'attr_a': 123, 'attr_b': 456}, {'leaf': State({'c': 42}, {}),'middle': State({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': State({'c': 42}, {})})})"""
     )
     assert str(state) == (
-        "State ({'attr_a': 123, 'attr_b': 456},\n"
+        "State({'attr_a': 123, 'attr_b': 456},\n"
         " {'leaf': ({'c': 42}, {}),\n"
         "  'middle': ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': ({'c': 42}, {})})})"
     )
