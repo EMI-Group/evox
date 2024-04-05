@@ -165,7 +165,7 @@ class StdWorkflow(Workflow):
                 else:
                     fit_shape = (cand_sol_size, self.num_objectives)
                 fitness, state = pure_callback(
-                    self.problem.evaluate,
+                    use_state(self.problem.evaluate),
                     (
                         jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
                         state,
