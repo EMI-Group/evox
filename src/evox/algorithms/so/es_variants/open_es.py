@@ -12,11 +12,11 @@ import jax
 import jax.numpy as jnp
 import optax
 
-import evox
+from evox import Algorithm, State, jit_class, use_state, utils
 
 
-@evox.jit_class
-class OpenES(evox.Algorithm):
+@jit_class
+class OpenES(Algorithm):
     def __init__(
         self,
         center_init,
@@ -47,7 +47,7 @@ class OpenES(evox.Algorithm):
         self.mirrored_sampling = mirrored_sampling
 
         if optimizer == "adam":
-            self.optimizer = evox.utils.OptaxWrapper(
+            self.optimizer = utils.OptaxWrapper(
                 optax.adam(learning_rate=learning_rate), center_init
             )
         else:
@@ -57,7 +57,7 @@ class OpenES(evox.Algorithm):
         # placeholder
         population = jnp.tile(self.center_init, (self.pop_size, 1))
         noise = jnp.tile(self.center_init, (self.pop_size, 1))
-        return evox.State(
+        return State(
             population=population, center=self.center_init, noise=noise, key=key
         )
 
@@ -77,6 +77,6 @@ class OpenES(evox.Algorithm):
         if self.optimizer is None:
             center = state.center - self.learning_rate * grad
         else:
-            updates, state = self.optimizer.update(state, state.center)
+            updates, state = use_state(self.optimizer.update)(state, state.center)
             center = optax.apply_updates(state.center, updates)
         return state.update(center=center)
