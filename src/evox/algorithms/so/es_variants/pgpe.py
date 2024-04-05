@@ -4,17 +4,17 @@
 # Link: https://mediatum.ub.tum.de/doc/1287490/file.pdf
 # --------------------------------------------------------------------------------------
 
-from typing import Union
 from dataclasses import field
+from typing import Union
 
 import jax
 import jax.numpy as jnp
-import jax_dataclasses as jdc
 import optax
 from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
 
-from evox import Algorithm, State, Stateful, jit_class, use_state, utils
+from evox import (Algorithm, State, Stateful, Static, dataclass, jit_class,
+                  use_state, utils)
 
 
 @jit
@@ -25,7 +25,7 @@ def tree_l2_norm(pytree):
 
 
 @jit_class
-@jdc.pytree_dataclass
+@dataclass
 class ClipUp(Stateful):
     step_size: float
     max_speed: float
@@ -58,40 +58,46 @@ class ClipUp(Stateful):
 
 
 @jit_class
-@jdc.pytree_dataclass
+@dataclass
 class PGPE(Algorithm):
-    pop_size: jdc.Static[int]
+    pop_size: Static[int]
     center_init: jax.Array
     optimizer: Union[str, optax.GradientTransformation, Stateful]
     stdev_init: float = 0.1
     center_learning_rate: float = 0.15
     stdev_learning_rate: float = 0.1
     stdev_max_change: float = 0.2
-    dim: int = field(init=False)
+    dim: Static[int] = field(init=False)
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.center_init.shape[0])
         if isinstance(self.optimizer, str):
-            if self.optimizer == "adam":
-                optimizer = optax.adam(learning_rate=self.center_learning_rate)
-            elif self.optimizer == "clipup":
+            if self.optimizer == "clipup":
                 optimizer = ClipUp(
                     step_size=0.15, max_speed=0.3, momentum=0.9, params=self.center_init
+                )
+            elif hasattr(optax, self.optimizer):
+                optimizer = utils.OptaxWrapper(
+                    getattr(optax, self.optimizer)(
+                        learning_rate=self.center_learning_rate
+                    ),
+                    self.center_init,
                 )
             else:
                 raise ValueError(f"Unknown optimizer {self.optimizer}")
             object.__setattr__(self, "optimizer", optimizer)
-        if isinstance(optimizer, optax.GradientTransformation):
-            object.__setattr__(self, "optimizer", utils.OptaxWrapper(optimizer, self.center_init))
-        elif isinstance(optimizer, Stateful):
-            object.__setattr__(self, "optimizer", optimizer)
-        else:
-            raise TypeError(f"{optimizer} is not supported right now")
+        elif isinstance(self.optimizer, optax.GradientTransformation):
+            object.__setattr__(
+                self, "optimizer", utils.OptaxWrapper(self.optimizer, self.center_init)
+            )
+        elif not isinstance(self.optimizer, Stateful):
+            raise TypeError(f"{self.optimizer} is not supported right now")
+        assert isinstance(self.optimizer, Stateful)
 
     def setup(self, key):
         return State(
             center=self.center_init,
-            stdev=jnp.full((self.dim, ), self.stdev_init),
+            stdev=jnp.full((self.dim,), self.stdev_init),
             key=key,
             noise=jnp.empty((self.pop_size // 2, self.dim)),
         )

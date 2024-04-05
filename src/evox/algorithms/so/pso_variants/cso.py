@@ -8,21 +8,20 @@
 import jax
 import jax.numpy as jnp
 from typing import Optional
-from evox import Algorithm, State, jit_class
-import jax_dataclasses as jdc
+from evox import Algorithm, State, Static, jit_class, dataclass
 from dataclasses import field
 
 
 @jit_class
-@jdc.pytree_dataclass
+@dataclass
 class CSO(Algorithm):
     lb: jax.Array
     ub: jax.Array
-    pop_size: jdc.Static[int]
+    pop_size: Static[int]
     phi: float = 0.0
     mean: Optional[jax.Array] = None
     stdev: Optional[jax.Array] = None
-    dim: int = field(init=False)
+    dim: Static[int] = field(init=False)
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.lb.shape[0])
