@@ -12,6 +12,15 @@ from evox import Algorithm, State, Static, jit_class, dataclass
 from dataclasses import field
 
 
+@dataclass
+class CSOState:
+    population: jax.Array
+    fitness: jax.Array
+    velocity: jax.Array
+    students: jax.Array
+    key: jax.random.PRNGKey
+
+
 @jit_class
 @dataclass
 class CSO(Algorithm):
@@ -40,11 +49,13 @@ class CSO(Algorithm):
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
         return State(
-            population=population,
-            fitness=fitness,
-            velocity=velocity,
-            students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
-            key=state_key,
+            CSOState(
+                population=population,
+                fitness=fitness,
+                velocity=velocity,
+                students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
+                key=state_key,
+            )
         )
 
     def init_ask(self, state):
