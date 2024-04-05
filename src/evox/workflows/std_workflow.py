@@ -33,7 +33,6 @@ class StdWorkflow(Workflow):
         fit_transforms: List[Callable] = [],
         pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
-        jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
         monitor=None,
     ):
