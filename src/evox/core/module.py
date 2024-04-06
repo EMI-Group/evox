@@ -271,3 +271,27 @@ class Stateful:
         """
         state, _node_id = self._recursive_init(key, 0, None)
         return state
+
+    def batch_init(self, batch_size: int, key: jax.Array = None) -> State:
+        """Initialize this module and all submodules with batch size
+
+        This method should not be overwritten.
+
+        Parameters
+        ----------
+        batch_size
+            The batch size.
+        key
+            A PRNGKey.
+
+        Returns
+        -------
+        State
+            A batched state of this module and all submodules combined.
+        """
+        states = []
+        for _ in range(batch_size):
+            state, _node_id = self._recursive_init(key, 0, None)
+            states.append(state)
+
+        return State.batch(states)
