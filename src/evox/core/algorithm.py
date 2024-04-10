@@ -33,7 +33,7 @@ class Algorithm(Stateful):
         """
         return None, State()
 
-    def init_tell(self, state: State) -> State:
+    def init_tell(self, state: State, fitness: jax.Array) -> State:
         """Tell the algorithm the fitness of the initial population
         Use in pair with `init_ask`.
 
@@ -41,6 +41,8 @@ class Algorithm(Stateful):
         ----------
         state
             The state of this algorithm
+        fitness
+            The fitness
 
         Returns
         -------
