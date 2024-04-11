@@ -13,14 +13,12 @@ from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
 class StdWorkflow(Stateful):
-    """Experimental unified workflow,
-    designed to provide unparallel performance for EC workflow.
+    """Standard Workflow designed to provide unparallel performance for EC workflow.
+    Suitable for both single-objective and multi-objective workflow,
+    for multitasking workflow, please refer to `MultitaskWorkflow`.
 
     Provide automatic multi-device (e.g. multiple gpus) computation
     as well as distributed computation using JAX's native components.
-
-    Monitor is called using JAX's asynchronous host callback,
-    thus closing the monitor is needed to wait for the callback to complete.
     """
 
     def __init__(
@@ -33,7 +31,6 @@ class StdWorkflow(Stateful):
         fit_transforms: List[Callable] = [],
         pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
-        jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
         monitor=None,
     ):
