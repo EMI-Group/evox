@@ -149,7 +149,7 @@ If you use EvoX in your research and want to cite it in your work, please use:
   title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
   author = {Huang, Beichen and Cheng, Ran and Li, Zhuozhao and Jin, Yaochu and Tan, Kay Chen},
   journal = {IEEE Transactions on Evolutionary Computation},
-  year = {2024}
+  DOI = {10.1109/TEVC.2024.3388550}
 }
 ```
 
