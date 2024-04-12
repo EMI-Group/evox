@@ -27,7 +27,7 @@ def host_rank_from_domination_matrix(dominate_mat, dominate_count):
     return rank
 
 
-@jit
+@partial(jit, static_argnums=(1,))
 def non_dominated_sort(x, method="auto"):
     """Perform non-dominated sort
     Parameters
