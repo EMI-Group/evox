@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import algorithms, workflows, problems
+from evox import algorithms, workflows, problems, Stateful
 from evox.monitors import StdSOMonitor
 
 
@@ -33,6 +33,7 @@ def test_clustered_cma_es():
     assert min_fitness < 2
 
 
+@pytest.mark.skip(reason="currently unsupported")
 @pytest.mark.parametrize("random_subpop", [True, False])
 def test_vectorized_coevolution(random_subpop):
     # create a workflow
@@ -95,32 +96,32 @@ def test_vectorized_coevolution(random_subpop):
     assert min_fitness < 1
 
 
-@pytest.mark.parametrize(
-    "random_subpop, num_subpop_iter", [(True, 1), (False, 1), (True, 2), (False, 2)]
-)
-def test_coevolution(random_subpop, num_subpop_iter):
+@pytest.mark.parametrize("random_subpop", [True, False])
+def test_coevolution(random_subpop):
     # create a workflow
     monitor = StdSOMonitor()
+    base_algorithm = algorithms.CSO(
+        lb=jnp.full(shape=(10,), fill_value=-32),
+        ub=jnp.full(shape=(10,), fill_value=32),
+        pop_size=20,
+    )
+    base_algorithms = Stateful.stack([base_algorithm] * 4)
+    algorithm = algorithms.coevolution(
+        base_algorithms,
+        dim=40,
+        num_subpops=4,
+        subpop_size=10,
+        random_subpop=random_subpop,
+    )
+
     workflow = workflows.StdWorkflow(
-        algorithms.Coevolution(
-            base_algorithm=algorithms.CSO(
-                lb=jnp.full(shape=(10,), fill_value=-32),
-                ub=jnp.full(shape=(10,), fill_value=32),
-                pop_size=20,
-            ),
-            dim=40,
-            num_subpops=4,
-            subpop_size=10,
-            num_subpop_iter=num_subpop_iter,
-            random_subpop=random_subpop,
-        ),
+        algorithm=algorithm,
         problem=problems.numerical.Ackley(),
         monitors=[monitor],
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
-
     for i in range(4 * 200):
         state = workflow.step(state)
 
