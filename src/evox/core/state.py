@@ -225,15 +225,6 @@ class State:
 
         return self._child_states == other._child_states
 
-    @classmethod
-    def stack(cls, states: list[State], axis=0) -> State:
-        """Stack a list of states into a single state"""
-
-        def stack_arrays(array, *araays):
-            return jnp.stack((array, *araays), axis=axis)
-
-        return tree_map(stack_arrays, states[0], states[1:])
-
     def save(self, path: str):
         with open(path, "wb") as f:
             pickle.dump(self, f)
