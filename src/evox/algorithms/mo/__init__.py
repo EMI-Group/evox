@@ -16,3 +16,4 @@ from .tdea import TDEA
 from .bce_ibea import BCEIBEA
 from .lmocso import LMOCSO
 from .im_moea import IMMOEA
+from .rveaa import RVEAa
