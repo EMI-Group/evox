@@ -295,7 +295,7 @@ class StdWorkflow(Workflow):
         if devices is None:
             devices = jax.local_devices()
         device_count = len(devices)
-        dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
+        dummy_pop, _ = jax.eval_shape(use_state(self.algorithm.ask), state)
         pop_size, dim = dummy_pop.shape
         sharding = PositionalSharding(devices).reshape(1, device_count)
         state_sharding = self._auto_shard(state, sharding, pop_size, dim)
