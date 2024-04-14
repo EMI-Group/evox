@@ -1,6 +1,6 @@
 import warnings
 from functools import partial
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
@@ -8,11 +8,11 @@ from jax import jit, lax, pmap, pure_callback
 from jax.sharding import PositionalSharding
 from jax.tree_util import tree_map
 
-from evox import Algorithm, Problem, State, Stateful, Monitor, jit_method
+from evox import Algorithm, Problem, State, Workflow, Monitor, jit_method, use_state
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
 
-class StdWorkflow(Stateful):
+class StdWorkflow(Workflow):
     """Experimental unified workflow,
     designed to provide unparallel performance for EC workflow.
 
@@ -33,7 +33,6 @@ class StdWorkflow(Stateful):
         fit_transforms: List[Callable] = [],
         pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
-        jit_monitor: bool = False,
         num_objectives: Optional[int] = None,
         monitor=None,
     ):
@@ -139,7 +138,7 @@ class StdWorkflow(Stateful):
                 tell = self.algorithm.tell
 
             # candidate solution
-            cand_sol, state = ask(state)
+            cand_sol, state = use_state(ask)(state)
             cand_sol_size = cand_sol.shape[0]
 
             for monitor in self.registered_hooks["post_ask"]:
@@ -159,14 +158,14 @@ class StdWorkflow(Stateful):
 
             # if the function is jitted
             if self.jit_problem:
-                fitness, state = self.problem.evaluate(state, transformed_cand_sol)
+                fitness, state = use_state(self.problem.evaluate)(state, transformed_cand_sol)
             else:
                 if self.num_objectives == 1:
                     fit_shape = (cand_sol_size,)
                 else:
                     fit_shape = (cand_sol_size, self.num_objectives)
                 fitness, state = pure_callback(
-                    self.problem.evaluate,
+                    use_state(self.problem.evaluate),
                     (
                         jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
                         state,
@@ -192,7 +191,7 @@ class StdWorkflow(Stateful):
                     state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
                 )
 
-            state = tell(state, transformed_fitness)
+            state = use_state(tell)(state, transformed_fitness)
 
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)
@@ -296,7 +295,7 @@ class StdWorkflow(Stateful):
         if devices is None:
             devices = jax.local_devices()
         device_count = len(devices)
-        dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
+        dummy_pop, _ = jax.eval_shape(use_state(self.algorithm.ask), state)
         pop_size, dim = dummy_pop.shape
         sharding = PositionalSharding(devices).reshape(1, device_count)
         state_sharding = self._auto_shard(state, sharding, pop_size, dim)

@@ -1,11 +1,11 @@
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
-from evox import Algorithm, Monitor, Problem, State, Stateful
+from evox import Algorithm, Monitor, Problem, State, Workflow, use_state
 from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 
-class NonJitWorkflow(Stateful):
+class NonJitWorkflow(Workflow):
     def __init__(
         self,
         algorithm: Algorithm,
@@ -95,9 +95,9 @@ class NonJitWorkflow(Stateful):
             is_init = False
 
         if is_init:
-            cand_sol, state = self.algorithm.init_ask(state)
+            cand_sol, state = use_state(self.algorithm.init_ask)(state)
         else:
-            cand_sol, state = self.algorithm.ask(state)
+            cand_sol, state = use_state(self.algorithm.ask)(state)
 
         for monitor in self.registered_hooks["post_ask"]:
             monitor.post_ask(state, cand_sol)
@@ -109,7 +109,7 @@ class NonJitWorkflow(Stateful):
         for monitor in self.registered_hooks["pre_eval"]:
             monitor.pre_eval(state, cand_sol, transformed_cand_sol)
 
-        fitness, state = self.problem.evaluate(state, transformed_cand_sol)
+        fitness, state = use_state(self.problem.evaluate)(state, transformed_cand_sol)
 
         fitness = fitness * self.opt_direction
 
@@ -126,9 +126,9 @@ class NonJitWorkflow(Stateful):
             )
 
         if is_init:
-            state = self.algorithm.init_tell(state, fitness)
+            state = use_state(self.algorithm.init_tell)(state, fitness)
         else:
-            state = self.algorithm.tell(state, fitness)
+            state = use_state(self.algorithm.tell)(state, fitness)
 
         for monitor in self.registered_hooks["post_tell"]:
             monitor.post_tell(state)

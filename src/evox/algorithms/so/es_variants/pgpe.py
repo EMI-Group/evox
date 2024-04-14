@@ -4,35 +4,37 @@
 # Link: https://mediatum.ub.tum.de/doc/1287490/file.pdf
 # --------------------------------------------------------------------------------------
 
+from dataclasses import field
+from typing import Union
+
 import jax
 import jax.numpy as jnp
 import optax
 from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
 
-import evox
+from evox import (Algorithm, State, Stateful, Static, dataclass, jit_class,
+                  use_state, utils)
 
 
 @jit
 def tree_l2_norm(pytree):
     return jnp.sqrt(
-        tree_reduce(
-            lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree)
-        )
+        tree_reduce(lambda x, y: x + y, tree_map(lambda leaf: jnp.sum(leaf**2), pytree))
     )
 
 
-@evox.jit_class
-class ClipUp(evox.Stateful):
-    def __init__(self, step_size, max_speed, momentum, params):
-        self.step_size = step_size
-        self.max_speed = max_speed
-        self.momentum = momentum
-        self.params = params
+@jit_class
+@dataclass
+class ClipUp(Stateful):
+    step_size: float
+    max_speed: float
+    momentum: float
+    params: jax.Array
 
     def setup(self, key):
         velocity = tree_map(lambda x: jnp.zeros_like(x), self.params)
-        return evox.State(velocity=velocity)
+        return State(velocity=velocity)
 
     def update(self, state, gradient, _params=None):
         grad_norm = tree_l2_norm(gradient)
@@ -55,43 +57,47 @@ class ClipUp(evox.Stateful):
         return -velocity, state.update(velocity=velocity)
 
 
-@evox.jit_class
-class PGPE(evox.Algorithm):
-    def __init__(
-        self,
-        pop_size: int,
-        center_init: jax.Array,
-        optimizer: str,
-        stdev_init: float = 0.1,
-        center_learning_rate: float = 0.15,
-        stdev_learning_rate: float = 0.1,
-        stdev_max_change: float = 0.2,
-    ):
-        self.dim = center_init.shape[0]
-        self.pop_size = pop_size
-        self.center_init = center_init
-        self.stdev = jnp.full_like(center_init, stdev_init)
-        self.stdev_learning_rate = stdev_learning_rate
-        self.stdev_max_change = stdev_max_change
+@jit_class
+@dataclass
+class PGPE(Algorithm):
+    pop_size: Static[int]
+    center_init: jax.Array
+    optimizer: Union[str, optax.GradientTransformation, Stateful]
+    stdev_init: float = 0.1
+    center_learning_rate: float = 0.15
+    stdev_learning_rate: float = 0.1
+    stdev_max_change: float = 0.2
+    dim: Static[int] = field(init=False)
 
-        if optimizer == "adam":
-            optimizer = optax.adam(learning_rate=center_learning_rate)
-        elif optimizer == "clipup":
-            optimizer = ClipUp(
-                step_size=0.15, max_speed=0.3, momentum=0.9, params=center_init
+    def __post_init__(self):
+        object.__setattr__(self, "dim", self.center_init.shape[0])
+        if isinstance(self.optimizer, str):
+            if self.optimizer == "clipup":
+                optimizer = ClipUp(
+                    step_size=0.15, max_speed=0.3, momentum=0.9, params=self.center_init
+                )
+            elif hasattr(optax, self.optimizer):
+                optimizer = utils.OptaxWrapper(
+                    getattr(optax, self.optimizer)(
+                        learning_rate=self.center_learning_rate
+                    ),
+                    self.center_init,
+                )
+            else:
+                raise ValueError(f"Unknown optimizer {self.optimizer}")
+            object.__setattr__(self, "optimizer", optimizer)
+        elif isinstance(self.optimizer, optax.GradientTransformation):
+            object.__setattr__(
+                self, "optimizer", utils.OptaxWrapper(self.optimizer, self.center_init)
             )
-
-        if isinstance(optimizer, optax.GradientTransformation):
-            self.optimizer = evox.utils.OptaxWrapper(optimizer, center_init)
-        elif isinstance(optimizer, evox.Stateful):
-            self.optimizer = optimizer
-        else:
-            raise TypeError(f"{optimizer} is not supported right now")
+        elif not isinstance(self.optimizer, Stateful):
+            raise TypeError(f"{self.optimizer} is not supported right now")
+        assert isinstance(self.optimizer, Stateful)
 
     def setup(self, key):
-        return evox.State(
+        return State(
             center=self.center_init,
-            stdev=self.stdev,
+            stdev=jnp.full((self.dim,), self.stdev_init),
             key=key,
             noise=jnp.empty((self.pop_size // 2, self.dim)),
         )
@@ -113,7 +119,7 @@ class PGPE(evox.Algorithm):
             * ((state.noise**2 - state.stdev**2) / state.stdev),
             axis=0,
         )
-        updates, state = self.optimizer.update(state, delta_x, state.center)
+        updates, state = use_state(self.optimizer.update)(state, delta_x, state.center)
         center = optax.apply_updates(state.center, updates)
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)

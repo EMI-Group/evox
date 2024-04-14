@@ -21,17 +21,9 @@ And since `bar` uses the dynamic index, which is not compatible with `jax.jit`, 
 
 ## Solution
 
-To solve is problem, it is common practice to jit-compile low-level components, thus giving high-level components more freedom.
-In EvoX, we have some general rules on whether a function should be jit-able or not.
+1. jit-compile low-level components, and give high-level components more freedom.
+2. Use [`host callback`](https://jax.readthedocs.io/en/latest/notebooks/external_callbacks.html) to call a function on CPU in a jit context.
 
-|  Component  | jit-able |
-| ----------- | -------- |
-| `Workflow`  | Optional |
-| `Algorithm` | Yes      |
-| `Problem`   | Optional |
-| `Operators` | Yes      |
-| `Monitor`   | No       |
+In EvoX, we almost guarantee that all low-level components are jit-compiled (all operators), and high-level components (`Workflow`) can have both jit-compiled variants (e.g. {doc}`StdWorkflow <api/workflows/standard>`) and non-jit-compiled variants (e.g. {doc}`StdWorkflow <api/workflows/non_jit>`).
 
-For standard workflow, one can jit compile when not using monitors and working with jit-able problems.
-But even though the workflow can be compiled, there isn't much performance gain.
-For problems, it depends on the task.
+Please be aware that using callbacks to jump out of the jit context is not free. Data needs to be transferred between CPU and GPU, which can be an overhead.

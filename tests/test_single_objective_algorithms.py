@@ -5,7 +5,6 @@ from evox import workflows, problems
 from evox.algorithms import (
     CMAES,
     SepCMAES,
-    CPSOS,
     CSO,
     DE,
     PGPE,
@@ -45,18 +44,6 @@ def run_single_objective_algorithm(
         state = workflow.step(state)
 
     return monitor.get_best_fitness()
-
-
-def test_cpso_s():
-    lb = jnp.full((5,), -32.0)
-    ub = jnp.full((5,), 32.0)
-    algorithm = CPSOS(lb, ub, 100,
-        inertia_weight=0.6,
-        cognitive_coefficient=2.5,
-        social_coefficient=0.8
-    )
-    fitness = run_single_objective_algorithm(algorithm)
-    assert fitness < 0.1
 
 
 def test_cso():

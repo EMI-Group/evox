@@ -74,7 +74,6 @@ class Brax(Problem):
 
     def visualize(
         self,
-        state,
         key,
         weights,
         output_type: str = "HTML",
@@ -102,15 +101,9 @@ class Brax(Problem):
                 break
 
         if output_type == "HTML":
-            return (
-                html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs),
-                state,
-            )
+            return html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs)
         else:
-            return (
-                [
-                    image.render_array(sys=self.env.sys, state=s, **kwargs)
-                    for s in trajectory
-                ],  # can use tqdm here
-                state,
-            )
+            return [
+                image.render_array(sys=self.env.sys, state=s, **kwargs)
+                for s in trajectory
+            ]

@@ -7,20 +7,33 @@
 
 import jax
 import jax.numpy as jnp
-from evox import Algorithm, State, jit_class
+from typing import Optional
+from evox import Algorithm, State, Static, jit_class, dataclass
+from dataclasses import field
+
+
+@dataclass
+class CSOState:
+    population: jax.Array
+    fitness: jax.Array
+    velocity: jax.Array
+    students: jax.Array
+    key: jax.random.PRNGKey
 
 
 @jit_class
+@dataclass
 class CSO(Algorithm):
-    def __init__(self, lb, ub, pop_size, phi=0, mean=None, stdev=None):
-        self.dim = lb.shape[0]
-        self.lb = lb
-        self.ub = ub
-        self.pop_size = pop_size
-        self.phi = phi
-        self.mean = mean
-        self.stdev = stdev
-        assert stdev is None or stdev > 0
+    lb: jax.Array
+    ub: jax.Array
+    pop_size: Static[int]
+    phi: float = 0.0
+    mean: Optional[jax.Array] = None
+    stdev: Optional[jax.Array] = None
+    dim: Static[int] = field(init=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "dim", self.lb.shape[0])
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
@@ -36,11 +49,13 @@ class CSO(Algorithm):
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
         return State(
-            population=population,
-            fitness=fitness,
-            velocity=velocity,
-            students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
-            key=state_key,
+            CSOState(
+                population=population,
+                fitness=fitness,
+                velocity=velocity,
+                students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
+                key=state_key,
+            )
         )
 
     def init_ask(self, state):

@@ -4,7 +4,9 @@ from pprint import pformat
 from typing import Any, Optional, Tuple, Union
 from copy import copy
 import pickle
+import dataclasses
 
+import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class, tree_map
 
 
@@ -23,19 +25,30 @@ class State:
 
     EMPTY: dict = {}
 
-    def __init__(
-        self, state_dict: dict = EMPTY, child_states: dict[str, State] = EMPTY, **kwargs
-    ) -> None:
-        """Construct a ``State`` from dict or keyword arguments
+    def __init__(self, _dataclass=None, /, **kwargs) -> None:
+        """Construct a ``State`` from dataclass instance or keyword arguments
 
         Example::
             >>> from evox import State
-            >>> State({"x": 1, "y": 2}) # from dict
-            State ({'x': 1, 'y': 2}, [])
             >>> State(x=1, y=2) # from keyword arguments
-            State ({'x': 1, 'y': 2}, [])
+            State({'x': 1, 'y': 2}, {})
+            >>> from dataclasses import dataclass
+            >>> @dataclass
+            >>> class Param:
+            ...     x: int
+            ...     y: int
+            ...
+            >>> param = Param(x=1, y=2)
+            >>> State(param) # from dataclass instance
+            State(Param(x=1, y=2), {})
         """
-        self.__dict__["_state_dict"] = kwargs
+        if _dataclass is not None:
+            assert dataclasses.is_dataclass(
+                _dataclass
+            ), "when using the positional argument, it must be a dataclass"
+            self.__dict__["_state_dict"] = _dataclass
+        else:
+            self.__dict__["_state_dict"] = kwargs
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
 
@@ -66,7 +79,7 @@ class State:
         self.__dict__["_state_id"] = state_id
         return self
 
-    def update(self, other: Optional[Union[State, dict]] = None, **kwargs) -> State:
+    def update(self, **kwargs) -> State:
         """Update the current State with another State or dict and return new State.
 
         This method also accept keyword arguments.
@@ -75,26 +88,19 @@ class State:
             >>> from evox import State
             >>> state = State(x=1, y=2)
             >>> state.update(y=3) # use the update method
-            State ({'x': 1, 'y': 3}, [])
+            State ({'x': 1, 'y': 3}, {})
             >>> state # note that State is immutable, so state isn't modified
-            State ({'x': 1, 'y': 2}, [])
-            >>> state | {"y": 4} # use the | operator
-            State ({'x': 1, 'y': 4}, [])
+            State ({'x': 1, 'y': 2}, {})
         """
-        if other is None:
+        if dataclasses.is_dataclass(self._state_dict):
+            return copy(self)._set_state_dict_mut(
+                dataclasses.replace(self._state_dict, **kwargs)
+            )
+        else:
             return copy(self)._set_state_dict_mut({**self._state_dict, **kwargs})
 
-        if isinstance(other, State):
-            return (
-                copy(self)
-                ._set_state_dict_mut({**self._state_dict, **other._state_dict})
-                ._set_child_states_mut({**self._child_states, **other._child_states})
-            )
-
-        if isinstance(other, dict):
-            return copy(self)._set_state_dict_mut({**self._state_dict, **other})
-
-        raise ValueError(f"other must be either State or dict, but got {type(other)}.")
+    def replace(self, **kwargs) -> State:
+        return self.update(**kwargs)
 
     def has_child(self, name: str) -> bool:
         return name in self._child_states
@@ -102,9 +108,9 @@ class State:
     def get_child_state(self, name: str) -> State:
         return self._child_states[name]
 
-    def update_child(self, name: str, child_state: dict) -> State:
+    def update_child(self, name: str, child_state: State) -> State:
         return copy(self)._set_child_states_mut(
-            {**self._child_states, name: self._child_states[name].update(child_state)}
+            {**self._child_states, name: child_state}
         )
 
     def find_path_to(
@@ -140,25 +146,25 @@ class State:
         else:
             raise ValueError("Path must be either tuple or int")
 
-    def __or__(self, *args, **kwargs) -> State:
-        """| operator
-
-        Same as the update method.
-        """
-        return self.update(*args, **kwargs)
-
     def __getattr__(self, key: str) -> Any:
         if is_magic_method(key):
             return super().__getattr__(key)
-        return self._state_dict[key]
 
-    def __getitem__(self, index: Union[str, int]) -> State:
+        if dataclasses.is_dataclass(self._state_dict):
+            return getattr(self._state_dict, key)
+        else:
+            return self._state_dict[key]
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def index(self, index: Union[str, int]) -> State:
         """
         PyTree index, apply the index to every element in the state.
         """
         return tree_map(lambda x: x[index], self)
 
-    def __getslice__(self, begin: int, end: int) -> State:
+    def slice(self, begin: int, end: int) -> State:
         """
         PyTree index, apply the index to every element in the state.
         """
@@ -183,12 +189,12 @@ class State:
             for key, child_state in self._child_states.items()
         ]
         str_children = "{" + ",".join(str_children) + "}"
-        return f"State ({repr(self._state_dict)}, {str_children})"
+        return f"State({repr(self._state_dict)}, {str_children})"
 
     def __str__(self) -> str:
-        return f"State {pformat(self.sprint_tree())}"
+        return f"State{pformat(self.sprint_tree())}"
 
-    def sprint_tree(self) -> Union[dict,str]:
+    def sprint_tree(self) -> Union[dict, str]:
         if self is State.EMPTY:
             return "State.empty"
         children = {

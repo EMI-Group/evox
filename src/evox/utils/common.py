@@ -1,17 +1,21 @@
 from collections.abc import Iterable
 from functools import partial
 from typing import List, Union
+from dataclasses import field
 
 import jax
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
+import optax
 
 from ..core.module import *
 
 
 def algorithm_has_init_ask(algorithm, state):
-    probe = jax.eval_shape(algorithm.init_ask, state)
+    if not hasattr(algorithm, "init_ask"):
+        return False
+    probe = jax.eval_shape(use_state(algorithm.init_ask), state)
     return probe[0] is not None
 
 
@@ -142,10 +146,10 @@ def rank_based_fitness(raw_fitness):
     return fitness_rank / (num_elems - 1) - 0.5
 
 
+@dataclass
 class OptaxWrapper(Stateful):
-    def __init__(self, optimizer, init_params):
-        self.optimizer = optimizer
-        self.init_params = init_params
+    optimizer: Static[optax.GradientTransformation]
+    init_params: jax.Array
 
     def setup(self, key):
         opt_state = self.optimizer.init(self.init_params)

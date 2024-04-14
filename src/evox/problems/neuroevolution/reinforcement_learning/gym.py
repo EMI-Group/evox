@@ -8,7 +8,7 @@ import ray
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose, tree_leaves
 
-from evox import Problem, State, Stateful, jit_class, jit_method
+from evox import Problem, State, Stateful, jit_class, jit_method, use_state
 
 
 @jit
@@ -358,7 +358,7 @@ class Gym(Problem):
 
         cap_episode_length = None
         if self.cap_episode:
-            cap_episode_length, state = self.cap_episode.get(state)
+            cap_episode_length, state = use_state(self.cap_episode.get)(state)
             cap_episode_length = cap_episode_length.item()
 
         rewards, acc_mo_values, episode_length = ray.get(
@@ -371,7 +371,7 @@ class Gym(Problem):
         episode_length = jnp.asarray(episode_length)
 
         if self.cap_episode:
-            state = self.cap_episode.update(state, episode_length)
+            state = use_state(self.cap_episode.update)(state, episode_length)
 
         fitness = rewards
 
@@ -380,7 +380,7 @@ class Gym(Problem):
         else:
             return fitness, state.update(key=key)
 
-    def visualize(self, state, key, weights, ale_render_mode="rgb_array"):
+    def visualize(self, key, weights, ale_render_mode="rgb_array"):
         """Visualize your policy, passin a single set of weights,
         and it will be put in the environment for interaction.
 
@@ -408,7 +408,7 @@ class Gym(Problem):
         seed = jax.random.randint(key, (1,), 0, jnp.iinfo(jnp.int32).max).item()
         env = gym.make(self.env_name, render_mode=ale_render_mode)
 
-        observation, info = env.reset(seed=seed)
+        observation, _info = env.reset(seed=seed)
         frames = []
         if ale_render_mode == "rgb_array":
             frames.append(env.render())
@@ -418,9 +418,9 @@ class Gym(Problem):
             observation = jnp.array(observation)
             action = self.policy(weights, observation)
             action = np.array(action)
-            observation, _reward, terminated, _truncated, info = env.step(action)
+            observation, _reward, terminated, _truncated, _info = env.step(action)
 
             if ale_render_mode == "rgb_array":
                 frames.append(env.render())
 
-        return frames, state
+        return frames

@@ -4,16 +4,14 @@ from typing import Callable, Dict, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 import ray
-from jax import jit
-from jax.tree_util import tree_flatten
 
-from evox import Algorithm, Monitor, Problem, State, Stateful, jit_class
+from evox import Algorithm, Problem, State, Workflow, use_state
 from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 
-class WorkerWorkflow(Stateful):
+class WorkerWorkflow(Workflow):
+    stateful_functions = ["step1", "step2"]
     def __init__(
         self,
         algorithm: Algorithm,
@@ -56,9 +54,9 @@ class WorkerWorkflow(Stateful):
             is_init = False
 
         if is_init:
-            cand_sol, state = self.algorithm.init_ask(state)
+            cand_sol, state = use_state(self.algorithm.init_ask)(state)
         else:
-            cand_sol, state = self.algorithm.ask(state)
+            cand_sol, state = use_state(self.algorithm.ask)(state)
 
         if "post_ask" in self.non_empty_hooks:
             ray.get(self.monitor_actor.push.remote("post_ask", None, cand_sol))
@@ -77,7 +75,7 @@ class WorkerWorkflow(Stateful):
                 )
             )
 
-        partial_fitness, state = self.problem.evaluate(state, transformed_partial_sol)
+        partial_fitness, state = use_state(self.problem.evaluate)(state, transformed_partial_sol)
 
         return partial_fitness, state
 
@@ -112,9 +110,9 @@ class WorkerWorkflow(Stateful):
             )
 
         if is_init:
-            state = self.algorithm.init_tell(state, fitness)
+            state = use_state(self.algorithm.init_tell)(state, fitness)
         else:
-            state = self.algorithm.tell(state, fitness)
+            state = use_state(self.algorithm.tell)(state, fitness)
 
         if "post_tell" in self.non_empty_hooks:
             ray.get(self.monitor_actor.push.remote("post_tell", state))
@@ -122,15 +120,15 @@ class WorkerWorkflow(Stateful):
         return state.update(generation=state.generation + 1)
 
     def valid(self, state: State, metric: str):
-        new_state = self.problem.valid(state, metric=metric)
-        pop, new_state = self.algorithm.ask(new_state)
+        new_state = use_state(self.problem.valid)(state, metric=metric)
+        pop, new_state = use_state(self.algorithm.ask)(new_state)
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
 
-        partial_fitness, new_state = self.problem.evaluate(new_state, partial_pop)
+        partial_fitness, new_state = use_state(self.problem.evaluate)(new_state, partial_pop)
         return partial_fitness, state
 
     def sample(self, state: State):
-        return self.algorithm.ask(state)
+        return use_state(self.algorithm.ask)(state)
 
 
 @ray.remote
@@ -228,7 +226,7 @@ class MonitorActor:
         return call_queue
 
 
-class RayDistributedWorkflow(Stateful):
+class RayDistributedWorkflow(Workflow):
     def __init__(
         self,
         algorithm: Algorithm,

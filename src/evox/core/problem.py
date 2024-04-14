@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union, Any
 
 import jax
 
@@ -9,7 +9,9 @@ from .state import State
 class Problem(Stateful):
     """Base class for all algorithms"""
 
-    def evaluate(self, state: State, pop: jax.Array) -> Tuple[jax.Array, State]:
+    def evaluate(
+        self, state: State, pop: Union[jax.Array, Any]
+    ) -> Tuple[jax.Array, State]:
         """Evaluate the fitness at given points
 
         Parameters
@@ -22,7 +24,7 @@ class Problem(Stateful):
         Returns
         -------
         dict
-            The new state of the algorithm.
+            The new state of the problem.
         ndarray
             The fitness.
         """
