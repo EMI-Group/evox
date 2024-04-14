@@ -92,12 +92,11 @@ class RVEA(Algorithm):
         return state
 
     def ask(self, state):
-        key, subkey, x_key, x1_key, x2_key, mut_key = jax.random.split(state.key, 6)
-        population = state.population
+        key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
 
+        population = state.population
         no_nan_pop = ~jnp.isnan(population).all(axis=1)
         max_idx = jnp.sum(no_nan_pop).astype(int)
-
         pop = population[jnp.where(no_nan_pop, size=self.pop_size, fill_value=-1)]
 
         mating_pool = jax.random.randint(subkey, (self.pop_size,), 0, max_idx)
@@ -117,19 +116,10 @@ class RVEA(Algorithm):
             merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
 
-        def rv_adaptation(pop_obj, v):
-            v_temp = v * jnp.tile(
-                (jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0)), (len(v), 1)
-            )
+        def rv_adaptation(pop_obj, v, v0):
+            return v0 * (jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0))
 
-            next_v = v_temp / jnp.tile(
-                jnp.sqrt(jnp.sum(v_temp**2, axis=1)).reshape(len(v), 1),
-                (1, jnp.shape(v)[1]),
-            )
-
-            return next_v
-
-        def no_update(_pop_obj, v):
+        def no_update(_pop_obj, v, v0):
             return v
 
         v = jax.lax.cond(
@@ -137,6 +127,7 @@ class RVEA(Algorithm):
             rv_adaptation,
             no_update,
             survivor_fitness,
+            v,
             state.init_v,
         )
 
