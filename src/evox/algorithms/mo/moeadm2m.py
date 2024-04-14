@@ -109,6 +109,7 @@ class MOEADM2M(Algorithm):
         max_gen=100,
         mutation_op=None,
         crossover_op=None,
+        seed=0,
     ):
         self.lb = lb
         self.ub = ub
@@ -123,17 +124,18 @@ class MOEADM2M(Algorithm):
         self.crossover = Crossover()
 
         self.sample = sampling.UniformSampling(self.k, self.n_objs)
-
-    def setup(self, key):
-        key, subkey1, subkey2 = jax.random.split(key, 3)
-
-        w, k = self.sample(subkey2)
+        key = jax.random.PRNGKey(seed)
+        w, k = self.sample(key)
+        self.w = w
         self.k = int(k)
-        self.pop_size = (jnp.ceil(self.pop_size / self.k) * self.k).astype(int)
+        self.pop_size = (jnp.ceil(self.pop_size / self.k) * self.k).astype(int).item()
         self.s = int(self.pop_size / self.k)
 
+    def setup(self, key):
+        key, subkey = jax.random.split(key, 2)
+
         population = (
-            jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
+            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
         )
@@ -142,7 +144,6 @@ class MOEADM2M(Algorithm):
             population=population,
             fitness=jnp.zeros((self.pop_size, self.n_objs)),
             next_generation=population,
-            w=w,
             key=key,
             gen=0,
         )
@@ -184,7 +185,7 @@ class MOEADM2M(Algorithm):
     def init_tell(self, state, fitness):
         key, subkey = jax.random.split(state.key)
         population = state.population
-        population, fitness = associate(subkey, population, fitness, state.w, self.s)
+        population, fitness = associate(subkey, population, fitness, self.w, self.s)
 
         state = state.update(population=population, fitness=fitness, key=key)
         return state
@@ -195,7 +196,7 @@ class MOEADM2M(Algorithm):
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
 
         population, pop_obj = associate(
-            subkey, merged_pop, merged_fitness, state.w, self.s
+            subkey, merged_pop, merged_fitness, self.w, self.s
         )
 
         state = state.update(population=population, fitness=pop_obj, key=key)
