@@ -158,7 +158,16 @@ def plot_obj_space_1d(fitness_history):
             go.Scatter(x=generation, y=max_fitness, mode="lines", name="Max"),
             go.Scatter(x=generation, y=median_fitness, mode="lines", name="Median"),
             go.Scatter(x=generation, y=avg_fitness, mode="lines", name="Average"),
-        ]
+        ],
+        layout=go.Layout(
+            legend={
+                "x": 1,
+                "y": 1,
+                "xanchor": "auto",
+                "xanchor": "auto",
+            },
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        ),
     )
 
     return fig

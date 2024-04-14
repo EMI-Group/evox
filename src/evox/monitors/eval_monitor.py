@@ -169,7 +169,7 @@ class EvalMonitor(Monitor):
     def get_history(self):
         return [self.opt_direction * fit for fit in self.fitness_history]
 
-    def plot(self, **kwargs):
+    def plot(self, problem_pf=None, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -182,9 +182,9 @@ class EvalMonitor(Monitor):
         if n_objs == 1:
             return plot.plot_obj_space_1d(self.fitness_history, **kwargs)
         elif n_objs == 2:
-            return plot.plot_obj_space_2d(self.fitness_history, **kwargs)
+            return plot.plot_obj_space_2d(self.fitness_history, problem_pf, **kwargs)
         elif n_objs == 3:
-            return plot.plot_obj_space_3d(self.fitness_history, **kwargs)
+            return plot.plot_obj_space_3d(self.fitness_history, problem_pf, **kwargs)
         else:
             warnings.warn("Not supported yet.")
 

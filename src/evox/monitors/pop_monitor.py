@@ -66,7 +66,7 @@ class PopMonitor(Monitor):
             fitness = jax.device_put(fitness, self.host)
         self.fitness_history.append(fitness)
 
-    def plot(self, **kwargs):
+    def plot(self, problem_pf=None, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -79,9 +79,9 @@ class PopMonitor(Monitor):
         if n_objs == 1:
             return plot.plot_obj_space_1d(self.fitness_history, **kwargs)
         elif n_objs == 2:
-            return plot.plot_obj_space_2d(self.fitness_history, **kwargs)
+            return plot.plot_obj_space_2d(self.fitness_history, problem_pf, **kwargs)
         elif n_objs == 3:
-            return plot.plot_obj_space_3d(self.fitness_history, **kwargs)
+            return plot.plot_obj_space_3d(self.fitness_history, problem_pf, **kwargs)
         else:
             warnings.warn("Not supported yet.")
 
@@ -90,4 +90,3 @@ class PopMonitor(Monitor):
 
     def get_fitness_history(self):
         return self.fitness_history
-
