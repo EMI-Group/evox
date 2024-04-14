@@ -1,12 +1,10 @@
 import jax.numpy as jnp
 
+from evox import use_state
+
 
 def plot_dec_space(
     population_history,
-    problem=None,
-    state=None,
-    meshgrid=None,
-    meshgrid_density=1,
     **kwargs,
 ):
     """A Built-in plot function for visualizing the population of single-objective algorithm.
@@ -33,27 +31,12 @@ def plot_dec_space(
     y_lb = y_lb - 0.1 * y_range
     y_ub = y_ub + 0.1 * y_range
 
-    [(mesh_x_lb, mesh_x_ub), (mesh_y_lb, mesh_y_ub)] = meshgrid
-    X = jnp.arange(x_lb, x_ub + meshgrid_density, meshgrid_density)
-    Y = jnp.arange(y_lb, y_ub + meshgrid_density, meshgrid_density)
-    mesh = jnp.stack(jnp.meshgrid(X, Y), axis=2)
-    Z, _ = problem.evaluate(state, mesh.reshape(-1, 2))
-    Z = Z.reshape(Y.shape[0], X.shape[0])
-
-    background_contour = go.Contour(
-        z=Z,
-        x=X,  # horizontal axis
-        y=Y,  # vertical axis
-        colorscale="Sunset",
-    )
-
     frames = []
     steps = []
-    for i, pop in enumerate(self.population_history):
+    for i, pop in enumerate(population_history):
         frames.append(
             go.Frame(
                 data=[
-                    background_contour,
                     go.Scatter(
                         x=pop[:, 0],
                         y=pop[:, 1],
@@ -61,7 +44,6 @@ def plot_dec_space(
                         marker={"color": "#636EFA"},
                     ),
                 ],
-                traces=[0, 1],
                 name=str(i),
             )
         )
@@ -71,9 +53,9 @@ def plot_dec_space(
             "args": [
                 [str(i)],
                 {
-                    "frame": {"duration": 200, "redraw": True},
+                    "frame": {"duration": 200, "redraw": False},
                     "mode": "immediate",
-                    "transition": {"duration": 0},
+                    "transition": {"duration": 200},
                 },
             ],
         }
@@ -83,6 +65,12 @@ def plot_dec_space(
         {
             "currentvalue": {"prefix": "Generation: "},
             "pad": {"t": 50},
+            "pad": {"b": 1, "t": 10},
+            "len": 0.8,
+            "x": 0.2,
+            "y": 0,
+            "yanchor": "top",
+            "xanchor": "left",
             "steps": steps,
         }
     ]
@@ -90,6 +78,13 @@ def plot_dec_space(
     fig = go.Figure(
         data=frames[0].data,
         layout=go.Layout(
+            legend={
+                "x": 1,
+                "y": 1,
+                "xanchor": "auto",
+                "xanchor": "auto",
+            },
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
             sliders=sliders,
             xaxis={"range": [x_lb, x_ub]},
             yaxis={"range": [y_lb, y_ub]},
@@ -101,9 +96,12 @@ def plot_dec_space(
                             "args": [
                                 None,
                                 {
-                                    "frame": {"duration": 500, "redraw": True},
+                                    "frame": {"duration": 200, "redraw": False},
                                     "fromcurrent": True,
-                                    "transition": {"duration": 0},
+                                    "transition": {
+                                        "duration": 200,
+                                        "easing": "linear",
+                                    },
                                     "mode": "immediate",
                                 },
                             ],
@@ -124,6 +122,12 @@ def plot_dec_space(
                             "method": "animate",
                         },
                     ],
+                    "x": 0.2,
+                    "xanchor": "right",
+                    "y": 0,
+                    "yanchor": "top",
+                    "direction": "left",
+                    "pad": {"r": 10, "t": 30},
                 },
             ],
             **kwargs,
@@ -134,7 +138,33 @@ def plot_dec_space(
     return fig
 
 
-def plot_obj_space_2d(fitness_history, sort_points=False, problem_pf=None, **kwargs):
+def plot_obj_space_1d(fitness_history):
+    try:
+        import plotly
+        import plotly.express as px
+        import plotly.graph_objects as go
+    except ImportError:
+        raise ImportError("The plot function requires plotly to be installed.")
+
+    min_fitness = [jnp.min(x) for x in fitness_history]
+    max_fitness = [jnp.max(x) for x in fitness_history]
+    median_fitness = [jnp.median(x) for x in fitness_history]
+    avg_fitness = [jnp.mean(x) for x in fitness_history]
+    generation = jnp.arange(len(fitness_history))
+
+    fig = go.Figure(
+        [
+            go.Scatter(x=generation, y=min_fitness, mode="lines", name="Min"),
+            go.Scatter(x=generation, y=max_fitness, mode="lines", name="Max"),
+            go.Scatter(x=generation, y=median_fitness, mode="lines", name="Median"),
+            go.Scatter(x=generation, y=avg_fitness, mode="lines", name="Average"),
+        ]
+    )
+
+    return fig
+
+
+def plot_obj_space_2d(fitness_history, problem_pf=None, sort_points=False, **kwargs):
     try:
         import plotly
         import plotly.express as px
@@ -163,7 +193,7 @@ def plot_obj_space_2d(fitness_history, sort_points=False, problem_pf=None, **kwa
             marker={"color": "#FFA15A", "size": 2},
             name="Pareto Front",
         )
-    
+
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:

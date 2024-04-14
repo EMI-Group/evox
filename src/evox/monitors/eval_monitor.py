@@ -6,7 +6,7 @@ from jax.experimental import io_callback
 from jax.sharding import SingleDeviceSharding
 
 from evox import Monitor
-
+from evox.vis_tools import plot
 from ..operators import non_dominated_sort
 
 
@@ -168,6 +168,25 @@ class EvalMonitor(Monitor):
 
     def get_history(self):
         return [self.opt_direction * fit for fit in self.fitness_history]
+
+    def plot(self, **kwargs):
+        if not self.fitness_history:
+            warnings.warn("No fitness history recorded, return None")
+            return
+
+        if self.fitness_history[0].ndim == 1:
+            n_objs = 1
+        else:
+            n_objs = self.fitness_history[0].shape[1]
+
+        if n_objs == 1:
+            return plot.plot_obj_space_1d(self.fitness_history, **kwargs)
+        elif n_objs == 2:
+            return plot.plot_obj_space_2d(self.fitness_history, **kwargs)
+        elif n_objs == 3:
+            return plot.plot_obj_space_3d(self.fitness_history, **kwargs)
+        else:
+            warnings.warn("Not supported yet.")
 
     def flush(self):
         hcb.barrier_wait()

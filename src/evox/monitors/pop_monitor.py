@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 
 from evox import Monitor
-from evox.vis_tools.plot import plot_obj_space_2d, plot_obj_space_3d
+from evox.vis_tools import plot
 
 
 class PopMonitor(Monitor):
@@ -66,13 +66,7 @@ class PopMonitor(Monitor):
             fitness = jax.device_put(fitness, self.host)
         self.fitness_history.append(fitness)
 
-    def get_population_history(self):
-        return self.population_history
-
-    def get_fitness_history(self):
-        return self.fitness_history
-
-    def plot(self, state, problem, **kwargs):
+    def plot(self, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -82,9 +76,18 @@ class PopMonitor(Monitor):
         else:
             n_objs = self.fitness_history[0].shape[1]
 
-        if n_objs == 2:
-            return plot_obj_space_2d(state, problem, self.fitness_history, **kwargs)
+        if n_objs == 1:
+            return plot.plot_obj_space_1d(self.fitness_history, **kwargs)
+        elif n_objs == 2:
+            return plot.plot_obj_space_2d(self.fitness_history, **kwargs)
         elif n_objs == 3:
-            return plot_obj_space_3d(state, problem, self.fitness_history, **kwargs)
+            return plot.plot_obj_space_3d(self.fitness_history, **kwargs)
         else:
             warnings.warn("Not supported yet.")
+
+    def get_population_history(self):
+        return self.population_history
+
+    def get_fitness_history(self):
+        return self.fitness_history
+

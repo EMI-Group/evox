@@ -45,6 +45,11 @@ test = [
   "pytest >= 6.0.0",
 ]
 
+vis = [
+  "plotly >= 5.0.0",
+  "pandas >= 2.0.0",
+]
+
 gymnasium = ["gymnasium >= 0.29.0"]
 
 envpool = ["envpool >= 0.8.0"]
@@ -63,6 +68,8 @@ full = [
   "torchvision >= 0.1.0",
   "envpool >= 0.8.0",
   "gpjax >= 0.8.0",
+  "plotly >= 5.0.0",
+  "pandas >= 2.0.0",
 ]
 
 gp = ["gpjax >= 0.8.0"]
