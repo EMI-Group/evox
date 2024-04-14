@@ -71,7 +71,7 @@ class XNES(Algorithm):
 
     def setup(self, key):
         mean = self.init_mean
-        sigma = math.pow(jnp.prod(jnp.diag(self.init_covar)), 1 / self.dim)
+        sigma = jnp.pow(jnp.prod(jnp.diag(self.init_covar)), 1 / self.dim)
         B = self.init_covar / sigma
         population = jnp.empty((self.pop_size, self.dim))
         noise = jnp.empty_like(population)
