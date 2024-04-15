@@ -13,6 +13,23 @@ from evox import Algorithm, State, Static, Stack, dataclass, jit_class, use_stat
 @jit_class
 @dataclass
 class VectorizedCoevolution(Algorithm):
+    """A container for vectorized co-evolutionary algorithms.
+
+    Parameters
+    ----------
+    base_algorithms:
+        A batch of base algorithms.
+        Usually created from `Stateful.stack(...)`, where ... is a list of algorithms.
+    dim:
+        The dimension of the problem in full.
+    num_subpops:
+        The number of subpopulations.
+    random_subpop:
+        Whether to shuffle the problem dimension before co-evolution.
+        When set to False, each subpopulation will corespond to a contiguous block of the decision variables,
+        for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
+        When set to True, the decision variables will be shuffled.
+    """
     base_algorithms: Stack[Algorithm]
     dim: Static[int]
     num_subpops: Static[int]
@@ -122,6 +139,23 @@ class VectorizedCoevolution(Algorithm):
 @jit_class
 @dataclass
 class Coevolution(Algorithm):
+    """A container for co-evolutionary algorithms.
+
+    Parameters
+    ----------
+    base_algorithms:
+        A batch of base algorithms.
+        Usually created from `Stateful.stack(...)`, where ... is a list of algorithms.
+    dim:
+        The dimension of the problem in full.
+    num_subpops:
+        The number of subpopulations.
+    random_subpop:
+        Whether to shuffle the problem dimension before co-evolution.
+        When set to False, each subpopulation will corespond to a contiguous block of the decision variables,
+        for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
+        When set to True, the decision variables will be shuffled.
+    """
     base_algorithms: Stack[Algorithm]
     dim: Static[int]
     num_subpops: Static[int]
