@@ -22,3 +22,5 @@ Multi-objective
     spea2
     sra
     tdea
+    rveaa
+    im_moea
