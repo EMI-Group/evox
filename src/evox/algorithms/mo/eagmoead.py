@@ -13,6 +13,7 @@
 import jax
 import jax.numpy as jnp
 from functools import partial
+import math
 
 from evox import jit_class, Algorithm, State
 from evox.operators import (
@@ -62,7 +63,7 @@ class EAGMOEAD(Algorithm):
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         self.LGs = LGs
-        self.T = jnp.ceil(self.pop_size / 10).astype(int)
+        self.T = math.ceil(self.pop_size / 10)
 
         self.selection = selection_op
         self.mutation = mutation_op

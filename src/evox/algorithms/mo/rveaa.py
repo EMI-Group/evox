@@ -11,11 +11,57 @@ import jax.numpy as jnp
 from evox.operators import mutation, crossover, selection
 from evox.operators.sampling import UniformSampling
 from evox import Algorithm, State, jit_class
+from evox.utils import cos_dist
+from evox.operators import non_dominated_sort
+
+
+@jax.jit
+def rv_regeneration(pop_obj, v, key):
+    """
+    Regenerate reference vectors regenerate strategy.
+    """
+    pop_obj = pop_obj - jnp.nanmin(pop_obj, axis=0)
+    cosine = cos_dist(pop_obj, v)
+
+    associate = jnp.nanargmax(cosine, axis=1)
+
+    invalid = jnp.sum(associate[:, jnp.newaxis] == jnp.arange(v.shape[0]), axis=0)
+    rand = jax.random.uniform(key, (v.shape[0], v.shape[1])) * jnp.nanmax(
+        pop_obj, axis=0
+    )
+    v = jnp.where(invalid[:, jnp.newaxis] == 0, rand, v)
+
+    return v
+
+
+@jax.jit
+def batch_truncation(pop, obj):
+    """
+    Use the batch truncation operator to select the best n solutions.
+    """
+    n = jnp.shape(pop)[0] // 2
+    cosine = cos_dist(obj, obj)
+    not_all_nan_rows = ~jnp.isnan(cosine).all(axis=1)
+    mask = jnp.eye(jnp.shape(cosine)[0], dtype=bool) & not_all_nan_rows[:, None]
+    cosine = jnp.where(mask, 0, cosine)
+
+    sorted_indices = jnp.sort(-cosine, axis=1)
+    rank = jnp.argsort(
+        jnp.where(jnp.isnan(sorted_indices[:, 0]), -jnp.inf, sorted_indices[:, 0])
+    )
+
+    mask = jnp.ones(jnp.shape(rank)[0], dtype=bool)
+    mask = mask.at[rank[:n]].set(False)[:, jnp.newaxis]
+
+    new_pop = jnp.where(mask, pop, jnp.nan)
+    new_obj = jnp.where(mask, obj, jnp.nan)
+
+    return new_pop, new_obj
 
 
 @jit_class
-class RVEA(Algorithm):
-    """RVEA algorithms
+class RVEAa(Algorithm):
+    """RVEAa algorithms (RVEA embedded with the reference vector regeneration strategy)
 
     link: https://ieeexplore.ieee.org/document/7386636
 
@@ -62,22 +108,32 @@ class RVEA(Algorithm):
         self.sampling = UniformSampling(self.pop_size, self.n_objs)
 
     def setup(self, key):
-        key, subkey1, subkey2 = jax.random.split(key, 3)
+        key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
 
-        v = self.sampling(subkey2)[0]
+        v = self.sampling(subkey1)[0]
         v0 = v
         self.pop_size = v.shape[0]
 
-        population = (
-            jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
+        population0 = (
+            jax.random.uniform(subkey2, shape=(self.pop_size, self.dim))
             * (self.ub - self.lb)
             + self.lb
+        )
+        population = jnp.concatenate(
+            [
+                population0,
+                jnp.full(shape=(self.pop_size, self.dim), fill_value=jnp.nan),
+            ],
+            axis=0,
+        )
+        v = jnp.concatenate(
+            [v, jax.random.uniform(subkey3, shape=(self.pop_size, self.n_objs))], axis=0
         )
 
         return State(
             population=population,
-            fitness=jnp.zeros((self.pop_size, self.n_objs)),
-            next_generation=population,
+            fitness=jnp.zeros((self.pop_size * 2, self.n_objs)),
+            next_generation=population0,
             reference_vector=v,
             init_v=v0,
             key=key,
@@ -107,10 +163,17 @@ class RVEA(Algorithm):
         return next_generation, state.update(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
+        key, subkey = jax.random.split(state.key, 2)
         current_gen = state.gen + 1
+
         v = state.reference_vector
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
+
         merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
+
+        rank = non_dominated_sort(merged_fitness)
+        merged_fitness = jnp.where(rank[:, jnp.newaxis] == 0, merged_fitness, jnp.nan)
+        merged_pop = jnp.where(rank[:, jnp.newaxis] == 0, merged_pop, jnp.nan)
 
         survivor, survivor_fitness = self.selection(
             merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
@@ -122,13 +185,24 @@ class RVEA(Algorithm):
         def no_update(_pop_obj, v, v0):
             return v
 
-        v = jax.lax.cond(
+        v_adapt = jax.lax.cond(
             current_gen % (1 / self.fr) == 0,
             rv_adaptation,
             no_update,
             survivor_fitness,
-            v,
+            v[: self.pop_size],
             state.init_v,
+        )
+
+        v_regen = rv_regeneration(survivor_fitness, v[self.pop_size :], subkey)
+        v = jnp.concatenate([v_adapt, v_regen], axis=0)
+
+        survivor, survivor_fitness = jax.lax.cond(
+            current_gen + 1 == self.max_gen,
+            batch_truncation,
+            lambda x, y: (x, y),
+            survivor,
+            survivor_fitness,
         )
 
         state = state.update(
@@ -136,5 +210,6 @@ class RVEA(Algorithm):
             fitness=survivor_fitness,
             reference_vector=v,
             gen=current_gen,
+            key=key,
         )
         return state
