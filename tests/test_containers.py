@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from evox import algorithms, workflows, problems, Stateful
-from evox.monitors import StdSOMonitor
+from evox.monitors import EvalMonitor
 
 
 @pytest.mark.skip(
@@ -11,7 +11,7 @@ from evox.monitors import StdSOMonitor
 def test_clustered_cma_es():
     # create a workflow
     init_mean = jnp.full((10,), fill_value=-20)
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     workflow = workflows.StdWorkflow(
         algorithms.ClusterdAlgorithm(
             base_algorithm=algorithms.CMAES(init_mean, init_stdev=10, pop_size=10),
@@ -33,17 +33,18 @@ def test_clustered_cma_es():
     assert min_fitness < 2
 
 
-@pytest.mark.skip(reason="currently unsupported")
 @pytest.mark.parametrize("random_subpop", [True, False])
 def test_vectorized_coevolution(random_subpop):
     # create a workflow
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
+    base_algorithm = algorithms.CSO(
+        lb=jnp.full(shape=(20,), fill_value=-32),
+        ub=jnp.full(shape=(20,), fill_value=32),
+        pop_size=100,
+    )
+    base_algorithms = Stateful.stack([base_algorithm] * 2)
     algorithm = algorithms.VectorizedCoevolution(
-        base_algorithm=algorithms.CSO(
-            lb=jnp.full(shape=(20,), fill_value=-32),
-            ub=jnp.full(shape=(20,), fill_value=32),
-            pop_size=30,
-        ),
+        base_algorithms=base_algorithms,
         dim=40,
         num_subpops=2,
         random_subpop=random_subpop,
@@ -57,60 +58,29 @@ def test_vectorized_coevolution(random_subpop):
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
 
-    if not random_subpop:
-        # test the population given by VectorizedCoevolution
-        # is the same as manually concatenate the population
-        # given by two base algorithms.
-        cso1 = algorithms.CSO(
-            lb=jnp.full(shape=(20,), fill_value=-32),
-            ub=jnp.full(shape=(20,), fill_value=32),
-            pop_size=30,
-        )
-        cso2 = algorithms.CSO(
-            lb=jnp.full(shape=(20,), fill_value=-32),
-            ub=jnp.full(shape=(20,), fill_value=32),
-            pop_size=30,
-        )
-        _, alg_key = jax.random.split(key)
-        key1, key2 = jax.random.split(alg_key)
-        cso1_state = cso1.init(key1)
-        cso2_state = cso2.init(key2)
-
-        cso1_subpop, _ = cso1.ask(cso1_state)
-        cso2_subpop, _ = cso2.ask(cso2_state)
-        vcc_cso_pop, _ = algorithm.ask(state)
-        pop_size = cso1_subpop.shape[0]
-        cso1_pop = jnp.concatenate(
-            [cso1_subpop, jnp.tile(cso2_subpop[0, :], (pop_size, 1))], axis=1
-        )
-        cso2_pop = jnp.concatenate(
-            [jnp.tile(cso1_subpop[0, :], (pop_size, 1)), cso2_subpop], axis=1
-        )
-        target_pop = jnp.concatenate([cso1_pop, cso2_pop], axis=0)
-        assert (jnp.abs(vcc_cso_pop - target_pop) < 1e-4).all()
-
     for i in range(200):
         state = workflow.step(state)
+    
+    monitor.close()
 
     min_fitness = monitor.get_best_fitness()
-    assert min_fitness < 1
+    assert min_fitness < 0.5
 
 
 @pytest.mark.parametrize("random_subpop", [True, False])
 def test_coevolution(random_subpop):
     # create a workflow
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     base_algorithm = algorithms.CSO(
-        lb=jnp.full(shape=(10,), fill_value=-32),
-        ub=jnp.full(shape=(10,), fill_value=32),
-        pop_size=20,
+        lb=jnp.full(shape=(20,), fill_value=-32),
+        ub=jnp.full(shape=(20,), fill_value=32),
+        pop_size=100,
     )
-    base_algorithms = Stateful.stack([base_algorithm] * 4)
-    algorithm = algorithms.coevolution(
+    base_algorithms = Stateful.stack([base_algorithm] * 2)
+    algorithm = algorithms.Coevolution(
         base_algorithms,
         dim=40,
-        num_subpops=4,
-        subpop_size=10,
+        num_subpops=2,
         random_subpop=random_subpop,
     )
 
@@ -122,17 +92,19 @@ def test_coevolution(random_subpop):
     # init the workflow
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
-    for i in range(4 * 200):
+    for i in range(400):
         state = workflow.step(state)
+    
+    monitor.close()
 
     min_fitness = monitor.get_best_fitness()
-    assert min_fitness < 2
+    assert min_fitness < 0.5
 
 
 @pytest.mark.skip(reason="currently random_mask is unstable")
 def test_random_mask_cso():
     # create a workflow
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     workflow = workflows.StdWorkflow(
         algorithms.RandomMaskAlgorithm(
             base_algorithm=algorithms.CSO(
