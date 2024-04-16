@@ -29,9 +29,17 @@ class TensorflowDataset(Problem):
     """Wrap a tensorflow dataset as a problem.
 
     TensorFlow Datasets (TFDS) directly depends on the package `tensorflow-datasets` and `grain`.
-    Additionally, when downloading the dataset for the first time, it requires `tensorflow` to be installed.
+    Additionally, when downloading the dataset for the first time, it requires `tensorflow` to be installed and a active internet connection.
     If you want to avoid installing `tensorflow`, you can prepare the dataset beforehand in another environment with `tensorflow` installed,
-    and then copy the dataset to `~/tensorflow_datasets`. `~/` means the home directory of the user.
+    run:
+
+    .. code-block:: python
+
+        import tensorflow_datasets as tfds
+        tfds.data_source(self.dataset)
+
+    and then copy the dataset to the target machine.
+    The default location is`~/tensorflow_datasets`. `~/` means the home directory of the user.
 
     Please notice that the data is loaded under JAX's jit context, so the data should be valid JAX data type,
     namely JAX or Numpy arrays, or Python's int, float, list, and dict.
