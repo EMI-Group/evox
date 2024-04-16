@@ -1,16 +1,14 @@
-from typing import Any, Callable, Tuple, Any
 from dataclasses import field
+from typing import Any, Callable, List
+
+import grain.python as pygrain
 import jax
 import jax.numpy as jnp
+import tensorflow_datasets as tfds
 from jax.tree_util import tree_map
 
-from evox.core.module import Any, Tuple
-from evox.core.state import State
-import grain.python as pygrain
-import tensorflow_datasets as tfds
+from evox import Problem, Static, dataclass, jit_class
 from evox.utils.io import x32_func_call
-
-from evox import Problem, Static, dataclass
 
 
 def get_dtype_shape(data):
@@ -25,11 +23,22 @@ def get_dtype_shape(data):
     return tree_map(to_dtype_struct, data)
 
 
+@jit_class
 @dataclass
 class TensorflowDataset(Problem):
-    """Wrap a tensorflow dataset as a problem
+    """Wrap a tensorflow dataset as a problem.
+
+    TensorFlow Datasets (TFDS) directly depends on the package `tensorflow-datasets` and `grain`.
+    Additionally, when downloading the dataset for the first time, it requires `tensorflow` to be installed.
+    If you want to avoid installing `tensorflow`, you can prepare the dataset beforehand in another environment with `tensorflow` installed,
+    and then copy the dataset to `~/tensorflow_datasets`. `~/` means the home directory of the user.
+
+    Please notice that the data is loaded under JAX's jit context, so the data should be valid JAX data type,
+    namely JAX or Numpy arrays, or Python's int, float, list, and dict.
+    If the data contains other types like strings, you should convert them into arrays using the `operations` parameter.
 
     The details of the dataset can be found at https://www.tensorflow.org/datasets/catalog/overview
+    The details about operations/transformations can be found at https://github.com/google/grain/blob/main/docs/transformations.md
 
     Parameters
     ----------
@@ -41,6 +50,10 @@ class TensorflowDataset(Problem):
         The loss function.
         The function signature is loss(weights, data) -> loss_value, and it should be jittable.
         The `weight` is the weight of the neural network, and the `data` is the data from TFDS, which is a dictionary.
+    operations
+        The list of transformations to apply to the data.
+        Default to [].
+        After the transformations, we will always apply a batch operation to create a batch of data.
     seed
         The random seed used to seed the dataloader.
         Given the same seed, the dataloader should data in the same order.
@@ -50,6 +63,7 @@ class TensorflowDataset(Problem):
     dataset: Static[str]
     batch_size: Static[int]
     loss_func: Static[Callable]
+    operations: Static[List[Any]] = field(default=[])
     seed: Static[int] = field(default=0)
     iterator: Static[pygrain.PyGrainDatasetIterator] = field(init=False)
     data_shape_dtypes: Static[Any] = field(init=False)
@@ -62,9 +76,14 @@ class TensorflowDataset(Problem):
             shuffle=True,
             seed=self.seed,
         )
+
+        operations = self.operations + [
+            pygrain.Batch(batch_size=self.batch_size, drop_remainder=True)
+        ]
+
         loader = pygrain.DataLoader(
             data_source=data_source,
-            operations=[pygrain.Batch(batch_size=self.batch_size, drop_remainder=True)],
+            operations=operations,
             sampler=sampler,
             worker_count=0,
         )
