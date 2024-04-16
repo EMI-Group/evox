@@ -63,7 +63,7 @@ class TensorflowDataset(Problem):
     dataset: Static[str]
     batch_size: Static[int]
     loss_func: Static[Callable]
-    operations: Static[List[Any]] = field(default=[])
+    operations: Static[List[Any]] = field(default_factory=list)
     seed: Static[int] = field(default=0)
     iterator: Static[pygrain.PyGrainDatasetIterator] = field(init=False)
     data_shape_dtypes: Static[Any] = field(init=False)
