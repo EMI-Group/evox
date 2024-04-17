@@ -154,5 +154,9 @@ If you use EvoX in your research and want to cite it in your work, please use:
 }
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
+
 
 
