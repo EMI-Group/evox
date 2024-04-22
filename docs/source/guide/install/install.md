@@ -1,4 +1,4 @@
-# Installation Guide
+# EvoX Installation Guide
 
 ## Install EvoX
 

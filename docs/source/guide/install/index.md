@@ -1,4 +1,4 @@
-# Developer Guide
+# Installation Guide
 
 ```{toctree}
 :maxdepth: 1
