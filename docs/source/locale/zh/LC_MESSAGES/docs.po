@@ -5,32 +5,29 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: EvoX\n"
+"Project-Id-Version:  EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 1980-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-22 16:17+0800\n"
 "PO-Revision-Date: 2024-02-24 08:02+0000\n"
 "Last-Translator: Yifan Zhao <AlpAcA0072@gmail.com>\n"
-"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
-"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
+"Language-Team: Chinese (Simplified) "
+"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.5-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
-#: ../../source/guide/advanced/4-container.md:28
+#: ../../source/guide/user/4-container.md:6
 msgid "Cooperative Coevolution"
 msgstr "协同演化"
 
 #: evox.algorithms.containers.coevolution.VectorizedCoevolution:2 of
-msgid ""
-"Automatically apply cooperative coevolution to any algorithm. The process"
-" of cooperative coevolution is vectorized, meaning all sub-populations "
-"will evolve at the same time in each generation."
-msgstr "将协同演化自动应用于任何算法。协同演化的过程被向量化，意味着在每一代中，所有的子种群将同时进化。"
+#, fuzzy
+msgid "A container for vectorized co-evolutionary algorithms."
+msgstr "基于θ优势的演化算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.__init__
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
@@ -42,71 +39,38 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
+#: evox.algorithms.containers.coevolution.Coevolution
 #: evox.algorithms.containers.coevolution.Coevolution.__init__
-#: evox.algorithms.containers.coevolution.Coevolution.setup
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution
 #: evox.algorithms.containers.coevolution.VectorizedCoevolution.__init__
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup evox.algorithms.mo.bige.BiGE.setup
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup
-#: evox.algorithms.mo.gde3.GDE3.setup evox.algorithms.mo.hype.HypE.setup
-#: evox.algorithms.mo.ibea.IBEA.setup evox.algorithms.mo.knea.KnEA.setup
-#: evox.algorithms.mo.lmocso.LMOCSO.setup evox.algorithms.mo.moead.MOEAD.setup
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup
-#: evox.algorithms.mo.nsga2.NSGA2.setup evox.algorithms.mo.nsga3.NSGA3.setup
-#: evox.algorithms.mo.rvea.RVEA.setup evox.algorithms.mo.spea2.SPEA2.setup
-#: evox.algorithms.mo.sra.SRA.setup evox.algorithms.mo.tdea.TDEA.setup
-#: evox.algorithms.so.de_variants.code.CoDE.setup
-#: evox.algorithms.so.de_variants.de.DE.setup
-#: evox.algorithms.so.de_variants.jade.JaDE.setup
-#: evox.algorithms.so.de_variants.ode.ODE.setup
-#: evox.algorithms.so.de_variants.sade.SaDE.setup
-#: evox.algorithms.so.de_variants.shade.SHADE.setup
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
+#: evox.algorithms.mo.im_moea.IMMOEA.ask
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell
+#: evox.algorithms.mo.im_moea.IMMOEA.setup
+#: evox.algorithms.mo.im_moea.IMMOEA.tell evox.algorithms.mo.nsga3.NSGA3.ask
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell
+#: evox.algorithms.mo.nsga3.NSGA3.setup evox.algorithms.mo.nsga3.NSGA3.tell
 #: evox.algorithms.so.es_variants.ars.ARS.__init__
-#: evox.algorithms.so.es_variants.ars.ARS.setup
 #: evox.algorithms.so.es_variants.asebo.ASEBO.__init__
 #: evox.algorithms.so.es_variants.asebo.ASEBO.ask
 #: evox.algorithms.so.es_variants.asebo.ASEBO.setup
 #: evox.algorithms.so.es_variants.asebo.ASEBO.tell
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup
 #: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.__init__
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup
 #: evox.algorithms.so.es_variants.des.DES.__init__
-#: evox.algorithms.so.es_variants.des.DES.setup
 #: evox.algorithms.so.es_variants.esmc.ESMC.__init__
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup
 #: evox.algorithms.so.es_variants.guided_es.GuidedES.__init__
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup
 #: evox.algorithms.so.es_variants.les.LES.__init__
-#: evox.algorithms.so.es_variants.les.LES.setup
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup
-#: evox.algorithms.so.es_variants.nes.XNES.setup
 #: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.__init__
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup
 #: evox.algorithms.so.es_variants.persistent_es.PersistentES.__init__
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup
 #: evox.algorithms.so.es_variants.pgpe.PGPE.__init__
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup
-#: evox.algorithms.so.es_variants.rmes.RMES.setup
 #: evox.algorithms.so.es_variants.snes.SNES.__init__
-#: evox.algorithms.so.es_variants.snes.SNES.setup
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS.__init__
-#: evox.algorithms.so.pso_variants.cso.CSO.setup
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
+#: evox.algorithms.so.pso_variants.cso.CSO.__init__
 #: evox.algorithms.so.pso_variants.fips.FIPS.__init__
 #: evox.algorithms.so.pso_variants.fips.FIPS.ask
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup
 #: evox.algorithms.so.pso_variants.fips.FIPS.tell
-#: evox.algorithms.so.pso_variants.pso.PSO.setup
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.__init__
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
@@ -114,8 +78,8 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 #: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
 #: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
 #: evox.core.module.Stateful.init evox.core.module.Stateful.setup
-#: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
-#: evox.core.state.State.find_path_to evox.core.state.State.update
+#: evox.core.problem.Problem.evaluate evox.core.state.State.find_path_to
+#: evox.core.state.State.index evox.core.state.State.slice
 #: evox.metrics.hypervolume.HV.__init__ evox.monitors.eval_monitor.EvalMonitor
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__
 #: evox.monitors.pop_monitor.PopMonitor
@@ -124,13 +88,11 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
 #: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.__init__
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize
 #: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.__init__
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
 #: evox.problems.numerical.lsmop.LSMOP1.__init__
 #: evox.problems.numerical.lsmop.LSMOP2.__init__
 #: evox.problems.numerical.lsmop.LSMOP3.__init__
@@ -151,416 +113,95 @@ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向
 msgid "Parameters"
 msgstr "参数"
 
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:2
-#: evox.core.algorithm.Algorithm.init_ask:2 of
-msgid "Ask the algorithm for the initial population"
-msgstr "向算法获取初始化种群"
+#: evox.algorithms.containers.coevolution.Coevolution:9
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:9 of
+#, fuzzy
+msgid "**base_algorithms:**"
+msgstr "**算法**"
 
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:4
-#: evox.core.algorithm.Algorithm.init_ask:4 of
+#: evox.algorithms.containers.coevolution.Coevolution:8
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:8 of
 msgid ""
-"Override this method if you need to initialize the population in a "
-"special way. For example, Genetic Algorithm needs to evaluate the fitness"
-" of the initial population of size N, but after that, it only need to "
-"evaluate the fitness of the offspring of size M, and N != M. Since JAX "
-"requires the function return to have static shape, we need to have two "
-"different functions, one is the normal `ask` and another is `init_ask`."
+"A batch of base algorithms. Usually created from `Stateful.stack(...)`, "
+"where ... is a list of algorithms."
 msgstr ""
-"如果您需要以特殊的方式初始化种群，请重写此方法。例如，遗传算法需要评估大小为 N 的初始种群的适应度，但在那之后，它只需要评估大小为 M "
-"的后代的适应度，并且 N != M。由于 JAX 要求函数返回具有静态形状，因此我们需要有两个不同的函数，一个是常规的 `ask`，另一个是 "
-"`init_ask`。"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
-#: evox.core.algorithm.Algorithm.ask:9
-#: evox.core.algorithm.Algorithm.init_ask:13
-#: evox.core.algorithm.Algorithm.init_tell:9
-#: evox.core.algorithm.Algorithm.tell:9 evox.core.problem.Problem.evaluate:8
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
-#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:11
-#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:8 of
-msgid "**state**"
-msgstr "**状态**"
+#: evox.algorithms.containers.coevolution.Coevolution:12
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:12 of
+#, fuzzy
+msgid "**dim:**"
+msgstr "**目标数目**"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
-#: evox.core.algorithm.Algorithm.ask:9
-#: evox.core.algorithm.Algorithm.init_ask:13 of
-msgid "The state of this algorithm."
-msgstr "这个算法的状态。"
+#: evox.algorithms.containers.coevolution.Coevolution:12
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:12 of
+#, fuzzy
+msgid "The dimension of the problem in full."
+msgstr "这个问题的状态。"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
+#: evox.algorithms.containers.coevolution.Coevolution:15
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:15 of
+#, fuzzy
+msgid "**num_subpops:**"
+msgstr "**样本数量**"
+
+#: evox.algorithms.containers.coevolution.Coevolution:15
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:15 of
+#, fuzzy
+msgid "The number of subpopulations."
+msgstr "种群。"
+
+#: evox.algorithms.containers.coevolution.Coevolution:34
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:34 of
+msgid "**random_subpop:**"
+msgstr ""
+
+#: evox.algorithms.containers.coevolution.Coevolution:18
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution:18 of
+msgid ""
+"Whether to shuffle the problem dimension before co-evolution. When set to"
+" False, each subpopulation will corespond to a contiguous block of the "
+"decision variables, for example, dimension 0~9 for subpopulation 0, 10~19"
+" for subpopulation 1, etc. When set to True, the decision variables will "
+"be shuffled."
+msgstr ""
+
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
-#: evox.algorithms.containers.coevolution.Coevolution.setup
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup evox.algorithms.mo.bige.BiGE.setup
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup
-#: evox.algorithms.mo.gde3.GDE3.setup evox.algorithms.mo.hype.HypE.setup
-#: evox.algorithms.mo.ibea.IBEA.setup evox.algorithms.mo.knea.KnEA.setup
-#: evox.algorithms.mo.lmocso.LMOCSO.setup evox.algorithms.mo.moead.MOEAD.setup
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup
-#: evox.algorithms.mo.nsga2.NSGA2.setup evox.algorithms.mo.nsga3.NSGA3.setup
-#: evox.algorithms.mo.rvea.RVEA.setup evox.algorithms.mo.spea2.SPEA2.setup
-#: evox.algorithms.mo.sra.SRA.setup evox.algorithms.mo.tdea.TDEA.setup
-#: evox.algorithms.so.de_variants.code.CoDE.setup
-#: evox.algorithms.so.de_variants.de.DE.setup
-#: evox.algorithms.so.de_variants.jade.JaDE.setup
-#: evox.algorithms.so.de_variants.ode.ODE.setup
-#: evox.algorithms.so.de_variants.sade.SaDE.setup
-#: evox.algorithms.so.de_variants.shade.SHADE.setup
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup
-#: evox.algorithms.so.es_variants.ars.ARS.setup
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup
-#: evox.algorithms.so.es_variants.des.DES.setup
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup
-#: evox.algorithms.so.es_variants.les.LES.setup
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup
-#: evox.algorithms.so.es_variants.nes.XNES.setup
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup
-#: evox.algorithms.so.es_variants.rmes.RMES.setup
-#: evox.algorithms.so.es_variants.snes.SNES.setup
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup
-#: evox.algorithms.so.pso_variants.cso.CSO.setup
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell
-#: evox.algorithms.so.pso_variants.pso.PSO.setup
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
+#: evox.algorithms.containers.coevolution.Coevolution.__init__
+#: evox.algorithms.containers.coevolution.VectorizedCoevolution.__init__
+#: evox.algorithms.so.es_variants.pgpe.PGPE.__init__
+#: evox.algorithms.so.pso_variants.cso.CSO.__init__
 #: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
 #: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
 #: evox.core.module.Stateful.init evox.core.module.Stateful.setup
-#: evox.core.problem.Problem.evaluate
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup
-#: evox.workflows.distributed.RayDistributedWorkflow.setup
-#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup
-#: evox.workflows.std_workflow.StdWorkflow.enable_distributed
-#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices
-#: evox.workflows.std_workflow.StdWorkflow.setup of
-msgid "Returns"
-msgstr "返回值"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
-#: evox.core.algorithm.Algorithm.ask:14
-#: evox.core.algorithm.Algorithm.init_ask:18 of
-msgid "population"
-msgstr "种群"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
-#: evox.core.algorithm.Algorithm.ask:14
-#: evox.core.algorithm.Algorithm.init_ask:18 of
-msgid "The candidate solution."
-msgstr "候选解。"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:29
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:33
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:29
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:29
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:29
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:29
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:29
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:29
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:29
-#: evox.core.algorithm.Algorithm.ask:29
-#: evox.core.algorithm.Algorithm.init_ask:33
-#: evox.core.algorithm.Algorithm.init_tell:26
-#: evox.core.algorithm.Algorithm.tell:29 of
-msgid "state"
-msgstr "状态"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:21
-#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:17
-#: evox.algorithms.so.pso_variants.fips.FIPS.ask:17
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:17
-#: evox.core.algorithm.Algorithm.ask:17
-#: evox.core.algorithm.Algorithm.init_ask:21
-#: evox.core.problem.Problem.evaluate:16
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
-msgid "The new state of the algorithm."
-msgstr "算法的新的状态。"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
-#: evox.algorithms.containers.coevolution.Coevolution.setup
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup
-#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
-#: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
-#: evox.core.module.Stateful.__init__ evox.core.module.Stateful.init
-#: evox.core.module.Stateful.setup evox.core.problem.Problem.evaluate
-#: evox.core.state.State.__init__ evox.core.state.State.find_path_to
-#: evox.core.state.State.update
+#: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
+#: evox.core.state.State.find_path_to evox.core.state.State.index
+#: evox.core.state.State.slice evox.core.state.State.update
 #: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices of
 msgid "Return type"
 msgstr "返回值类型"
 
-#: evox.core.algorithm.Algorithm.init_tell:2 of
-msgid ""
-"Tell the algorithm the fitness of the initial population Use in pair with"
-" `init_ask`."
-msgstr "告诉算法初始种群的适应度并应该与`init_ask`函数配对使用。"
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:2
+#: evox.core.module.Stateful.init:2 of
+msgid "Initialize this module and all submodules"
+msgstr "初始化这个模块和所有的子模块"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
-#: evox.core.algorithm.Algorithm.init_tell:9
-#: evox.core.algorithm.Algorithm.tell:9 of
-msgid "The state of this algorithm"
-msgstr "算法的状态"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
-#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:17
-#: evox.algorithms.so.pso_variants.fips.FIPS.tell:17
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:17
-#: evox.core.algorithm.Algorithm.init_tell:14
-#: evox.core.algorithm.Algorithm.tell:17 of
-msgid "The new state of the algorithm"
-msgstr "算法的新状态"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:2
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:2
-#: evox.algorithms.containers.coevolution.Coevolution.setup:2
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:2
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:2
-#: evox.algorithms.mo.bige.BiGE.setup:2
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:2
-#: evox.algorithms.mo.gde3.GDE3.setup:2 evox.algorithms.mo.hype.HypE.setup:2
-#: evox.algorithms.mo.ibea.IBEA.setup:2 evox.algorithms.mo.knea.KnEA.setup:2
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:2
-#: evox.algorithms.mo.moead.MOEAD.setup:2
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:2
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:2
-#: evox.algorithms.mo.nsga2.NSGA2.setup:2
-#: evox.algorithms.mo.nsga3.NSGA3.setup:2 evox.algorithms.mo.rvea.RVEA.setup:2
-#: evox.algorithms.mo.spea2.SPEA2.setup:2 evox.algorithms.mo.sra.SRA.setup:2
-#: evox.algorithms.mo.tdea.TDEA.setup:2
-#: evox.algorithms.so.de_variants.code.CoDE.setup:2
-#: evox.algorithms.so.de_variants.de.DE.setup:2
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:2
-#: evox.algorithms.so.de_variants.ode.ODE.setup:2
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:2
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:2
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:2
-#: evox.algorithms.so.es_variants.ars.ARS.setup:2
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:2
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:2
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:2
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:2
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:2
-#: evox.algorithms.so.es_variants.des.DES.setup:2
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:2
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:2
-#: evox.algorithms.so.es_variants.les.LES.setup:2
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:2
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:2
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:2
-#: evox.algorithms.so.es_variants.nes.XNES.setup:2
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:2
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:2
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:2
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:2
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:2
-#: evox.algorithms.so.es_variants.snes.SNES.setup:2
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:2
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:2
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:2
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:2
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:2
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:2
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:2
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:2
-#: evox.core.module.Stateful.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:2
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:2
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:2
-#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:2
-#: evox.workflows.std_workflow.StdWorkflow.setup:2 of
-msgid "Setup mutable state here"
-msgstr "在这里设置可变状态"
-
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
-#: evox.algorithms.containers.coevolution.Coevolution.setup:4
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:4
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:4
-#: evox.algorithms.mo.bige.BiGE.setup:4
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:4
-#: evox.algorithms.mo.gde3.GDE3.setup:4 evox.algorithms.mo.hype.HypE.setup:4
-#: evox.algorithms.mo.ibea.IBEA.setup:4 evox.algorithms.mo.knea.KnEA.setup:4
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:4
-#: evox.algorithms.mo.moead.MOEAD.setup:4
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:4
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:4
-#: evox.algorithms.mo.nsga2.NSGA2.setup:4
-#: evox.algorithms.mo.nsga3.NSGA3.setup:4 evox.algorithms.mo.rvea.RVEA.setup:4
-#: evox.algorithms.mo.spea2.SPEA2.setup:4 evox.algorithms.mo.sra.SRA.setup:4
-#: evox.algorithms.mo.tdea.TDEA.setup:4
-#: evox.algorithms.so.de_variants.code.CoDE.setup:4
-#: evox.algorithms.so.de_variants.de.DE.setup:4
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:4
-#: evox.algorithms.so.de_variants.ode.ODE.setup:4
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:4
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:4
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:4
-#: evox.algorithms.so.es_variants.ars.ARS.setup:4
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:4
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:4
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:4
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:4
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:4
-#: evox.algorithms.so.es_variants.des.DES.setup:4
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:4
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:4
-#: evox.algorithms.so.es_variants.les.LES.setup:4
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:4
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:4
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:4
-#: evox.algorithms.so.es_variants.nes.XNES.setup:4
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:4
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:4
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:4
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:4
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:4
-#: evox.algorithms.so.es_variants.snes.SNES.setup:4
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:4
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:4
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:4
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:4
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:4
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:4
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:4
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:4
-#: evox.core.module.Stateful.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:4
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:4
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:4
-#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:4
-#: evox.workflows.std_workflow.StdWorkflow.setup:4 of
-msgid ""
-"The state it self is immutable, but it act as a mutable state by "
-"returning new state each time."
-msgstr "状态本身是不可变的，但是你可以通过生成一个新的状态来实现修改的操作。"
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:4
+#: evox.core.module.Stateful.init:4 of
+msgid "This method should not be overwritten."
+msgstr "此方法不应被复写。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
-#: evox.algorithms.containers.coevolution.Coevolution.setup:10
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
-#: evox.algorithms.mo.bige.BiGE.setup:10
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
-#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
-#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
-#: evox.algorithms.mo.moead.MOEAD.setup:10
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
-#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:10
 #: evox.algorithms.mo.nsga3.NSGA3.setup:10
-#: evox.algorithms.mo.rvea.RVEA.setup:10
-#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
-#: evox.algorithms.mo.tdea.TDEA.setup:10
-#: evox.algorithms.so.de_variants.code.CoDE.setup:10
-#: evox.algorithms.so.de_variants.de.DE.setup:10
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
-#: evox.algorithms.so.de_variants.ode.ODE.setup:10
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
-#: evox.algorithms.so.es_variants.ars.ARS.setup:10
 #: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
-#: evox.algorithms.so.es_variants.des.DES.setup:10
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
-#: evox.algorithms.so.es_variants.les.LES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
-#: evox.algorithms.so.es_variants.nes.XNES.setup:10
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
-#: evox.algorithms.so.es_variants.snes.SNES.setup:10
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
 #: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:12
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:10
 #: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:10
 #: evox.workflows.std_workflow.StdWorkflow.setup:10 of
@@ -570,127 +211,71 @@ msgstr "**随机数生成器密钥**"
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:10
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:9
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:10
-#: evox.algorithms.containers.coevolution.Coevolution.setup:10
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:10
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:10
-#: evox.algorithms.mo.bige.BiGE.setup:10
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:10
-#: evox.algorithms.mo.gde3.GDE3.setup:10 evox.algorithms.mo.hype.HypE.setup:10
-#: evox.algorithms.mo.ibea.IBEA.setup:10 evox.algorithms.mo.knea.KnEA.setup:10
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:10
-#: evox.algorithms.mo.moead.MOEAD.setup:10
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:10
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:10
-#: evox.algorithms.mo.nsga2.NSGA2.setup:10
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:10
 #: evox.algorithms.mo.nsga3.NSGA3.setup:10
-#: evox.algorithms.mo.rvea.RVEA.setup:10
-#: evox.algorithms.mo.spea2.SPEA2.setup:10 evox.algorithms.mo.sra.SRA.setup:10
-#: evox.algorithms.mo.tdea.TDEA.setup:10
-#: evox.algorithms.so.de_variants.code.CoDE.setup:10
-#: evox.algorithms.so.de_variants.de.DE.setup:10
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:10
-#: evox.algorithms.so.de_variants.ode.ODE.setup:10
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:10
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:10
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:10
-#: evox.algorithms.so.es_variants.ars.ARS.setup:10
 #: evox.algorithms.so.es_variants.asebo.ASEBO.setup:10
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:10
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:10
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:10
-#: evox.algorithms.so.es_variants.des.DES.setup:10
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:10
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:10
-#: evox.algorithms.so.es_variants.les.LES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:10
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:10
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:10
-#: evox.algorithms.so.es_variants.nes.XNES.setup:10
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:10
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:10
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:10
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:10
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:10
-#: evox.algorithms.so.es_variants.snes.SNES.setup:10
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:10
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:10
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:10
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup:10
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:10
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:10
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:10
 #: evox.core.module.Stateful.init:9 evox.core.module.Stateful.setup:10
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:10
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:10
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:10
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:10
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:10
 #: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:10
 #: evox.workflows.std_workflow.StdWorkflow.setup:10 of
 msgid "A PRNGKey."
 msgstr "一个伪随机数生成器密钥。"
 
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell
+#: evox.algorithms.mo.im_moea.IMMOEA.ask
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell
+#: evox.algorithms.mo.im_moea.IMMOEA.setup
+#: evox.algorithms.mo.im_moea.IMMOEA.tell evox.algorithms.mo.nsga3.NSGA3.ask
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell
+#: evox.algorithms.mo.nsga3.NSGA3.setup evox.algorithms.mo.nsga3.NSGA3.tell
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell
+#: evox.core.algorithm.Algorithm.ask evox.core.algorithm.Algorithm.init_ask
+#: evox.core.algorithm.Algorithm.init_tell evox.core.algorithm.Algorithm.tell
+#: evox.core.module.Stateful.init evox.core.module.Stateful.setup
+#: evox.core.problem.Problem.evaluate
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
+#: evox.workflows.distributed.RayDistributedWorkflow.setup
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices
+#: evox.workflows.std_workflow.StdWorkflow.setup of
+msgid "Returns"
+msgstr "返回值"
+
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:27
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:26
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:27
-#: evox.algorithms.containers.coevolution.Coevolution.setup:27
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:27
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:27
-#: evox.algorithms.mo.bige.BiGE.setup:27
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:27
-#: evox.algorithms.mo.gde3.GDE3.setup:27 evox.algorithms.mo.hype.HypE.setup:27
-#: evox.algorithms.mo.ibea.IBEA.setup:27 evox.algorithms.mo.knea.KnEA.setup:27
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:27
-#: evox.algorithms.mo.moead.MOEAD.setup:27
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:27
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:27
-#: evox.algorithms.mo.nsga2.NSGA2.setup:27
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:27
 #: evox.algorithms.mo.nsga3.NSGA3.setup:27
-#: evox.algorithms.mo.rvea.RVEA.setup:27
-#: evox.algorithms.mo.spea2.SPEA2.setup:27 evox.algorithms.mo.sra.SRA.setup:27
-#: evox.algorithms.mo.tdea.TDEA.setup:27
-#: evox.algorithms.so.de_variants.code.CoDE.setup:27
-#: evox.algorithms.so.de_variants.de.DE.setup:27
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:27
-#: evox.algorithms.so.de_variants.ode.ODE.setup:27
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:27
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:27
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:27
-#: evox.algorithms.so.es_variants.ars.ARS.setup:27
 #: evox.algorithms.so.es_variants.asebo.ASEBO.setup:27
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:27
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:27
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:27
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:27
-#: evox.algorithms.so.es_variants.des.DES.setup:27
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:27
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:27
-#: evox.algorithms.so.es_variants.les.LES.setup:27
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:27
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:27
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:27
-#: evox.algorithms.so.es_variants.nes.XNES.setup:27
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:27
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:27
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:27
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:27
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:27
-#: evox.algorithms.so.es_variants.snes.SNES.setup:27
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:27
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:27
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:27
 #: evox.algorithms.so.pso_variants.fips.FIPS.setup:27
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:27
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:27
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:27
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:27
 #: evox.core.module.Stateful.init:26 evox.core.module.Stateful.setup:27
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:27
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:27
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:27
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:27
 #: evox.workflows.distributed.RayDistributedWorkflow.setup:27
 #: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:27
 #: evox.workflows.std_workflow.StdWorkflow.enable_distributed:28
@@ -699,76 +284,15 @@ msgstr "一个伪随机数生成器密钥。"
 msgid "State"
 msgstr "状态"
 
-#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:15
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:15
-#: evox.algorithms.containers.coevolution.Coevolution.setup:15
-#: evox.algorithms.containers.coevolution.VectorizedCoevolution.setup:15
-#: evox.algorithms.mo.bce_ibea.BCEIBEA.setup:15
-#: evox.algorithms.mo.bige.BiGE.setup:15
-#: evox.algorithms.mo.eagmoead.EAGMOEAD.setup:15
-#: evox.algorithms.mo.gde3.GDE3.setup:15 evox.algorithms.mo.hype.HypE.setup:15
-#: evox.algorithms.mo.ibea.IBEA.setup:15 evox.algorithms.mo.knea.KnEA.setup:15
-#: evox.algorithms.mo.lmocso.LMOCSO.setup:15
-#: evox.algorithms.mo.moead.MOEAD.setup:15
-#: evox.algorithms.mo.moeaddra.MOEADDRA.setup:15
-#: evox.algorithms.mo.moeadm2m.MOEADM2M.setup:15
-#: evox.algorithms.mo.nsga2.NSGA2.setup:15
-#: evox.algorithms.mo.nsga3.NSGA3.setup:15
-#: evox.algorithms.mo.rvea.RVEA.setup:15
-#: evox.algorithms.mo.spea2.SPEA2.setup:15 evox.algorithms.mo.sra.SRA.setup:15
-#: evox.algorithms.mo.tdea.TDEA.setup:15
-#: evox.algorithms.so.de_variants.code.CoDE.setup:15
-#: evox.algorithms.so.de_variants.de.DE.setup:15
-#: evox.algorithms.so.de_variants.jade.JaDE.setup:15
-#: evox.algorithms.so.de_variants.ode.ODE.setup:15
-#: evox.algorithms.so.de_variants.sade.SaDE.setup:15
-#: evox.algorithms.so.de_variants.shade.SHADE.setup:15
-#: evox.algorithms.so.es_variants.amalgam.IndependentAMaLGaM.setup:15
-#: evox.algorithms.so.es_variants.ars.ARS.setup:15
-#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:15
-#: evox.algorithms.so.es_variants.cma_es.CMAES.setup:15
-#: evox.algorithms.so.es_variants.cma_es.IPOPCMAES.setup:15
-#: evox.algorithms.so.es_variants.cma_es.SepCMAES.setup:15
-#: evox.algorithms.so.es_variants.cr_fm_nes.CR_FM_NES.setup:15
-#: evox.algorithms.so.es_variants.des.DES.setup:15
-#: evox.algorithms.so.es_variants.esmc.ESMC.setup:15
-#: evox.algorithms.so.es_variants.guided_es.GuidedES.setup:15
-#: evox.algorithms.so.es_variants.les.LES.setup:15
-#: evox.algorithms.so.es_variants.ma_es.LMMAES.setup:15
-#: evox.algorithms.so.es_variants.ma_es.MAES.setup:15
-#: evox.algorithms.so.es_variants.nes.SeparableNES.setup:15
-#: evox.algorithms.so.es_variants.nes.XNES.setup:15
-#: evox.algorithms.so.es_variants.noise_reuse_es.Noise_reuse_es.setup:15
-#: evox.algorithms.so.es_variants.open_es.OpenES.setup:15
-#: evox.algorithms.so.es_variants.persistent_es.PersistentES.setup:15
-#: evox.algorithms.so.es_variants.pgpe.PGPE.setup:15
-#: evox.algorithms.so.es_variants.rmes.RMES.setup:15
-#: evox.algorithms.so.es_variants.snes.SNES.setup:15
-#: evox.algorithms.so.pso_variants.clpso.CLPSO.setup:15
-#: evox.algorithms.so.pso_variants.cso.CSO.setup:15
-#: evox.algorithms.so.pso_variants.dms_pso_el.DMSPSOEL.setup:15
-#: evox.algorithms.so.pso_variants.fips.FIPS.setup:15
-#: evox.algorithms.so.pso_variants.pso.PSO.setup:15
-#: evox.algorithms.so.pso_variants.sl_pso_gs.SLPSOGS.setup:15
-#: evox.algorithms.so.pso_variants.sl_pso_us.SLPSOUS.setup:15
-#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:15
-#: evox.core.module.Stateful.setup:15
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:15
-#: evox.problems.neuroevolution.reinforcement_learning.env_pool.EnvPool.setup:15
-#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:15
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.setup:15
-#: evox.workflows.distributed.RayDistributedWorkflow.setup:15
-#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:15
-#: evox.workflows.std_workflow.StdWorkflow.setup:15 of
-msgid "The state of this module."
-msgstr "这个模块的状态。"
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:14
+#: evox.core.module.Stateful.init:14 of
+msgid "The state of this module and all submodules combined."
+msgstr "该模块及其所有子模块的组合之和。"
 
 #: evox.algorithms.containers.coevolution.Coevolution:2 of
-msgid ""
-"Automatically apply cooperative coevolution to any algorithm. The process"
-" of cooperative coevolution is not vectorized, meaning all sub-"
-"populations will evolve one at a time (round-robin) in each generation."
-msgstr "将协同演化自动应用于任何算法。协同演化的过程未被向量化，这意味着在每一代中，所有子种群将逐一（轮流）进行进化。"
+#, fuzzy
+msgid "A container for co-evolutionary algorithms."
+msgstr "容器算法"
 
 #: ../../source/api/algorithms/containers/clustered.rst:3
 msgid "Clustered Algorithm"
@@ -792,6 +316,7 @@ msgstr ""
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:2
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:2 evox.algorithms.mo.nsga3.NSGA3.ask:2
 #: evox.algorithms.so.es_variants.asebo.ASEBO.ask:2
 #: evox.algorithms.so.pso_variants.fips.FIPS.ask:2
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:2
@@ -801,6 +326,7 @@ msgstr "询问这个算法"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:4
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:4 evox.algorithms.mo.nsga3.NSGA3.ask:4
 #: evox.algorithms.so.es_variants.asebo.ASEBO.ask:4
 #: evox.algorithms.so.pso_variants.fips.FIPS.ask:4
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:4
@@ -808,8 +334,176 @@ msgstr "询问这个算法"
 msgid "Ask the algorithm for points to explore"
 msgstr "向算法询问要探索的点"
 
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:9
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:13
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:9
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:9
+#: evox.algorithms.mo.nsga3.NSGA3.ask:9
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:13
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:9
+#: evox.algorithms.mo.nsga3.NSGA3.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.ask:9
+#: evox.core.algorithm.Algorithm.init_ask:13
+#: evox.core.algorithm.Algorithm.init_tell:9
+#: evox.core.algorithm.Algorithm.tell:9 evox.core.problem.Problem.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:9
+#: evox.workflows.std_workflow.StdWorkflow.enable_distributed:11
+#: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices:8 of
+msgid "**state**"
+msgstr "**状态**"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:13
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:9
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:13
+#: evox.algorithms.mo.nsga3.NSGA3.ask:9
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:13
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:9
+#: evox.core.algorithm.Algorithm.ask:9
+#: evox.core.algorithm.Algorithm.init_ask:13 of
+msgid "The state of this algorithm."
+msgstr "这个算法的状态。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:14
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:18
+#: evox.algorithms.mo.nsga3.NSGA3.ask:14
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:18
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14
+#: evox.core.algorithm.Algorithm.init_ask:18 of
+msgid "population"
+msgstr "种群"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:14
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:18
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:14
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:18
+#: evox.algorithms.mo.nsga3.NSGA3.ask:14
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:18
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:14
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:14
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:14
+#: evox.core.algorithm.Algorithm.ask:14
+#: evox.core.algorithm.Algorithm.init_ask:18 of
+msgid "The candidate solution."
+msgstr "候选解。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:29
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:33
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:29
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:29
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:33
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:29
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:29
+#: evox.algorithms.mo.nsga3.NSGA3.ask:29
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:33
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:29
+#: evox.algorithms.mo.nsga3.NSGA3.tell:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:29
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:29
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:29
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:29
+#: evox.core.algorithm.Algorithm.ask:29
+#: evox.core.algorithm.Algorithm.init_ask:33
+#: evox.core.algorithm.Algorithm.init_tell:29
+#: evox.core.algorithm.Algorithm.tell:29 of
+msgid "state"
+msgstr "状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:21
+#: evox.algorithms.mo.im_moea.IMMOEA.ask:17
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:21
+#: evox.algorithms.mo.nsga3.NSGA3.ask:17
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:21
+#: evox.algorithms.so.es_variants.asebo.ASEBO.ask:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.ask:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:17
+#: evox.core.algorithm.Algorithm.ask:17
+#: evox.core.algorithm.Algorithm.init_ask:21 of
+msgid "The new state of the algorithm."
+msgstr "算法的新的状态。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:2
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:2
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:2
+#: evox.algorithms.mo.nsga3.NSGA3.setup:2
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:2
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:2
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:2
+#: evox.core.module.Stateful.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:2
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:2
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:2
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:2
+#: evox.workflows.std_workflow.StdWorkflow.setup:2 of
+msgid "Setup mutable state here"
+msgstr "在这里设置可变状态"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:4
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:4
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:4
+#: evox.algorithms.mo.nsga3.NSGA3.setup:4
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:4
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:4
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:4
+#: evox.core.module.Stateful.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:4
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:4
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:4
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:4
+#: evox.workflows.std_workflow.StdWorkflow.setup:4 of
+msgid ""
+"The state it self is immutable, but it act as a mutable state by "
+"returning new state each time."
+msgstr "状态本身是不可变的，但是你可以通过生成一个新的状态来实现修改的操作。"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:15
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:15
+#: evox.algorithms.mo.im_moea.IMMOEA.setup:15
+#: evox.algorithms.mo.nsga3.NSGA3.setup:15
+#: evox.algorithms.so.es_variants.asebo.ASEBO.setup:15
+#: evox.algorithms.so.pso_variants.fips.FIPS.setup:15
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.setup:15
+#: evox.core.module.Stateful.setup:15
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.setup:15
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup:15
+#: evox.workflows.distributed.RayDistributedWorkflow.setup:15
+#: evox.workflows.non_jit_workflow.NonJitWorkflow.setup:15
+#: evox.workflows.std_workflow.StdWorkflow.setup:15 of
+msgid "The state of this module."
+msgstr "这个模块的状态。"
+
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:2
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:2
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:2
+#: evox.algorithms.mo.nsga3.NSGA3.tell:2
 #: evox.algorithms.so.es_variants.asebo.ASEBO.tell:2
 #: evox.algorithms.so.pso_variants.fips.FIPS.tell:2
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:2
@@ -819,6 +513,8 @@ msgstr "告诉算法更多的信息"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:4
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:4
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:4
+#: evox.algorithms.mo.nsga3.NSGA3.tell:4
 #: evox.algorithms.so.es_variants.asebo.ASEBO.tell:4
 #: evox.algorithms.so.pso_variants.fips.FIPS.tell:4
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:4
@@ -828,23 +524,61 @@ msgid ""
 "fitness"
 msgstr "告诉算法它选择的点以及它们对应的适应度"
 
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:9
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:9
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:9
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:9
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:9
+#: evox.algorithms.mo.nsga3.NSGA3.tell:9
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:9
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:9
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:9
+#: evox.core.algorithm.Algorithm.init_tell:9
+#: evox.core.algorithm.Algorithm.tell:9 of
+msgid "The state of this algorithm"
+msgstr "算法的状态"
+
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:12
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:12
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:12
+#: evox.algorithms.mo.nsga3.NSGA3.tell:12
 #: evox.algorithms.so.es_variants.asebo.ASEBO.tell:12
 #: evox.algorithms.so.pso_variants.fips.FIPS.tell:12
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
+#: evox.core.algorithm.Algorithm.init_tell:12
 #: evox.core.algorithm.Algorithm.tell:12 of
 msgid "**fitness**"
 msgstr "**适应度**"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:12
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:12
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:12
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:12
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:12
+#: evox.algorithms.mo.nsga3.NSGA3.tell:12
 #: evox.algorithms.so.es_variants.asebo.ASEBO.tell:12
 #: evox.algorithms.so.pso_variants.fips.FIPS.tell:12
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:12
+#: evox.core.algorithm.Algorithm.init_tell:12
 #: evox.core.algorithm.Algorithm.tell:12 of
 msgid "The fitness"
 msgstr "适应度值"
+
+#: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.tell:17
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.tell:17
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:17
+#: evox.algorithms.mo.im_moea.IMMOEA.tell:17
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:17
+#: evox.algorithms.mo.nsga3.NSGA3.tell:17
+#: evox.algorithms.so.es_variants.asebo.ASEBO.tell:17
+#: evox.algorithms.so.pso_variants.fips.FIPS.tell:17
+#: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.tell:17
+#: evox.core.algorithm.Algorithm.init_tell:17
+#: evox.core.algorithm.Algorithm.tell:17 of
+msgid "The new state of the algorithm"
+msgstr "算法的新状态"
 
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm:2 of
 msgid "Cluster container with random mask"
@@ -856,20 +590,28 @@ msgid ""
 "it will try to read pop_size from base_algorithm"
 msgstr "需要指定种群大小（pop_size），因为 JAX 需要静态形状，如果种群大小（pop_size）未设定，系统将尝试从基础算法中读取种群大小"
 
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:2
-#: evox.core.module.Stateful.init:2 of
-msgid "Initialize this module and all submodules"
-msgstr "初始化这个模块和所有的子模块"
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:2
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:2
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:2
+#: evox.core.algorithm.Algorithm.init_ask:2 of
+msgid "Ask the algorithm for the initial population"
+msgstr "向算法获取初始化种群"
 
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:4
-#: evox.core.module.Stateful.init:4 of
-msgid "This method should not be overwritten."
-msgstr "此方法不应被复写。"
-
-#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init:14
-#: evox.core.module.Stateful.init:14 of
-msgid "The state of this module and all submodules combined."
-msgstr "该模块及其所有子模块的组合之和。"
+#: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.init_ask:4
+#: evox.algorithms.mo.im_moea.IMMOEA.init_ask:4
+#: evox.algorithms.mo.nsga3.NSGA3.init_ask:4
+#: evox.core.algorithm.Algorithm.init_ask:4 of
+msgid ""
+"Override this method if you need to initialize the population in a "
+"special way. For example, Genetic Algorithm needs to evaluate the fitness"
+" of the initial population of size N, but after that, it only need to "
+"evaluate the fitness of the offspring of size M, and N != M. Since JAX "
+"requires the function return to have static shape, we need to have two "
+"different functions, one is the normal `ask` and another is `init_ask`."
+msgstr ""
+"如果您需要以特殊的方式初始化种群，请重写此方法。例如，遗传算法需要评估大小为 N 的初始种群的适应度，但在那之后，它只需要评估大小为 M "
+"的后代的适应度，并且 N != M。由于 JAX 要求函数返回具有静态形状，因此我们需要有两个不同的函数，一个是常规的 `ask`，另一个是 "
+"`init_ask`。"
 
 #: ../../source/api/algorithms/containers/index.rst:3
 msgid "Containers"
@@ -878,6 +620,14 @@ msgstr "容器"
 #: ../../source/api/algorithms/containers/tree.rst:3
 msgid "Tree Algorithm"
 msgstr "树算法"
+
+#: evox.algorithms.mo.im_moea.IMMOEA.init_tell:2
+#: evox.algorithms.mo.nsga3.NSGA3.init_tell:2
+#: evox.core.algorithm.Algorithm.init_tell:2 of
+msgid ""
+"Tell the algorithm the fitness of the initial population Use in pair with"
+" `init_ask`."
+msgstr "告诉算法初始种群的适应度并应该与`init_ask`函数配对使用。"
 
 #: ../../source/api/algorithms/index.rst:3
 msgid "Algorithms"
@@ -908,7 +658,8 @@ msgid ""
 msgstr "注意：外部迭代次数需要设置为最大代数（Maximum Generation）的两倍加一。"
 
 #: evox.algorithms.mo.bce_ibea.BCEIBEA:25 evox.algorithms.mo.ibea.IBEA:21
-#: evox.algorithms.mo.lmocso.LMOCSO:23 evox.algorithms.mo.rvea.RVEA:24 of
+#: evox.algorithms.mo.lmocso.LMOCSO:23 evox.algorithms.mo.rvea.RVEA:24
+#: evox.algorithms.mo.rveaa.RVEAa:24 of
 msgid "Args:"
 msgstr "参数："
 
@@ -1012,6 +763,38 @@ msgstr "链接：https://link.springer.com/chapter/10.1007/978-3-540-30217-9_84"
 msgid "kappa: fitness scaling factor. Default: 0.05"
 msgstr "kappa：适应度缩放因子。默认值：0.05"
 
+#: ../../source/api/algorithms/mo/im_moea.rst:3
+#, fuzzy
+msgid "IMMOEA"
+msgstr "MOEA/D"
+
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_:2 of
+msgid "get sub_population by Gaussian Process and mutation."
+msgstr ""
+
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_:8 of
+#, fuzzy
+msgid "**state: State**"
+msgstr "**状态**"
+
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_:11 of
+#, fuzzy
+msgid "**population: N*D matrix**"
+msgstr "种群"
+
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_:14 of
+msgid "**mask: n*1 bool array**"
+msgstr ""
+
+#: evox.algorithms.mo.im_moea.IMMOEA.gp_offspring_:30 of
+#, fuzzy
+msgid "**fitness: N*M matrix**"
+msgstr "**适应度**"
+
+#: evox.algorithms.mo.im_moea.IMMOEA.nsgaii_selection:2 of
+msgid "select certain number of sub_population by NSGA-II's selection algorithm."
+msgstr ""
+
 #: ../../source/api/algorithms/mo/index.rst:3
 msgid "Multi-objective"
 msgstr "多目标"
@@ -1053,7 +836,8 @@ msgid "MOEA/D"
 msgstr "MOEA/D"
 
 #: evox.algorithms.mo.moead.MOEAD:2 of
-msgid "MOEA/D algorithm"
+#, fuzzy
+msgid "Parallel MOEA/D algorithm"
 msgstr "MOEA/D算法"
 
 #: evox.algorithms.mo.moead.MOEAD:4 of
@@ -1116,11 +900,11 @@ msgstr "RVEA"
 msgid "RVEA algorithms"
 msgstr "RVEA算法"
 
-#: evox.algorithms.mo.rvea.RVEA:4 of
+#: evox.algorithms.mo.rvea.RVEA:4 evox.algorithms.mo.rveaa.RVEAa:4 of
 msgid "link: https://ieeexplore.ieee.org/document/7386636"
 msgstr "链接：https://ieeexplore.ieee.org/document/7386636"
 
-#: evox.algorithms.mo.rvea.RVEA:7 of
+#: evox.algorithms.mo.rvea.RVEA:7 evox.algorithms.mo.rveaa.RVEAa:7 of
 msgid ""
 "alpha : The parameter controlling the rate of change of penalty. Defaults"
 " to 2. fr : The frequency of reference vector adaptation. Defaults to "
@@ -1128,6 +912,17 @@ msgid ""
 " number of iterations is not 100, change the value based on the actual "
 "value."
 msgstr "alpha：控制罚分变化率的参数。默认值为2。fr：参考向量适应频率。默认值为0.1。max_gen：最大代数。默认值为100。如果迭代次数不是100，根据实际值更改该值。"
+
+#: ../../source/api/algorithms/mo/rveaa.rst:3
+#, fuzzy
+msgid "RVEAa"
+msgstr "RVEA"
+
+#: evox.algorithms.mo.rveaa.RVEAa:2 of
+msgid ""
+"RVEAa algorithms (RVEA embedded with the reference vector regeneration "
+"strategy)"
+msgstr ""
 
 #: ../../source/api/algorithms/mo/spea2.rst:3
 msgid "SPEA2"
@@ -1221,21 +1016,6 @@ msgstr ""
 "CoDE Wang Y, Cai Z, Zhang Q. Differential evolution with composite trial "
 "vector generation strategies and control parameters[J]. IEEE transactions"
 " on evolutionary computation, 2011, 15(1): 55-66."
-
-#: ../../source/api/algorithms/so/cpso_s.rst:3
-msgid "CPSO_S"
-msgstr "CPSO_S"
-
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS:2 of
-msgid ""
-"Cooperative particle swarm optimizer. Implemented using EvoX's built-in "
-"coevolution framework. CPSOS essentially a wrapper around PSO and "
-"Coevolution."
-msgstr "协同粒子群优化器（CPSO）在EvoX库中通过其内置的协同演化框架得以实现，实质上，CPSOS本质上是对PSO（粒子群优化算法）和协同演化的封装。"
-
-#: evox.algorithms.so.pso_variants.cpso_s.CPSOS:6 of
-msgid "https://ieeexplore.ieee.org/document/1304845"
-msgstr "https://ieeexplore.ieee.org/document/1304845"
 
 #: ../../source/api/algorithms/so/cr_fm_nes.rst:3
 msgid "CR-FM-NES"
@@ -1457,6 +1237,12 @@ msgstr "ndarray"
 msgid "The population."
 msgstr "种群。"
 
+#: evox.core.problem.Problem.evaluate:16
+#: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:16 of
+#, fuzzy
+msgid "The new state of the problem."
+msgstr "这个问题的状态。"
+
 #: evox.core.problem.Problem.evaluate:19
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:19 of
 msgid "The fitness."
@@ -1482,10 +1268,11 @@ msgstr ""
 "pytree 使用。"
 
 #: evox.core.state.State.__init__:2 of
-msgid "Construct a ``State`` from dict or keyword arguments"
+#, fuzzy
+msgid "Construct a ``State`` from dataclass instance or keyword arguments"
 msgstr "从Python字典（dict）或关键字（keyword arguments）构建一个状态（State）对象"
 
-#: evox.core.state.State.__init__:23 evox.core.state.State.update:28 of
+#: evox.core.state.State.__init__:30 evox.core.state.State.update:26 of
 msgid "Example::"
 msgstr "例子："
 
@@ -1494,6 +1281,10 @@ msgid ""
 "Find the state with node_id matching the state_id A hint can be given "
 "with the module_name"
 msgstr "找到节点 ID 与状态 ID 匹配的状态。可以通过模块名称给出提示"
+
+#: evox.core.state.State.index:2 evox.core.state.State.slice:2 of
+msgid "PyTree index, apply the index to every element in the state."
+msgstr ""
 
 #: evox.core.state.State.update:2 of
 msgid "Update the current State with another State or dict and return new State."
@@ -1567,9 +1358,7 @@ msgid ""
 "offspring, their corresponding fitness and keep track of the evaluation "
 "count. Moreover, it can also record the best solution or the pareto front"
 " on-the-fly."
-msgstr ""
-"评估监控器被用于单目标和多目标工作流。它与评估流程挂钩，可以监控子代及其相应"
-"的适应度并对评估计数进行跟踪。此外，它还能即时记录最优解或帕累托前沿。"
+msgstr "评估监控器被用于单目标和多目标工作流。它与评估流程挂钩，可以监控子代及其相应的适应度并对评估计数进行跟踪。此外，它还能即时记录最优解或帕累托前沿。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:13 of
 #, fuzzy
@@ -1584,34 +1373,36 @@ msgid ""
 "Setting it to False may reduce memory usage."
 msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
 
-#: evox.monitors.eval_monitor.EvalMonitor:17 of
+#: evox.monitors.eval_monitor.EvalMonitor:19 of
 #, fuzzy
 msgid "**full_sol_history**"
 msgstr "**record_fit_history**"
 
 #: evox.monitors.eval_monitor.EvalMonitor:16 of
+#, fuzzy
 msgid ""
 "Whether to record the full history of solutions. Default to False. "
-"Setting it to True may increase memory usage."
+"Setting it to True may increase memory usage, and adding a significant "
+"overhead of transfering the entire solutions set from GPU to CPU."
 msgstr "是否记录完整的适应度值。默认值为False。将其设置为True可以减少内存占用。"
 
-#: evox.monitors.eval_monitor.EvalMonitor:21 of
+#: evox.monitors.eval_monitor.EvalMonitor:23 of
 #, fuzzy
 msgid "**topk**"
 msgstr "**record_topk**"
 
-#: evox.monitors.eval_monitor.EvalMonitor:20 of
+#: evox.monitors.eval_monitor.EvalMonitor:22 of
 msgid ""
 "Only affect Single-objective optimization. The number of elite solutions "
 "to record. Default to 1, which will record the best individual."
 msgstr "只影响单目标优化。要记录的精英解决方案的数量。默认为 1，将记录最佳个人。"
 
-#: evox.monitors.eval_monitor.EvalMonitor:42 of
+#: evox.monitors.eval_monitor.EvalMonitor:44 of
 #, fuzzy
 msgid "**calc_pf**"
 msgstr "**record_pf**"
 
-#: evox.monitors.eval_monitor.EvalMonitor:24 of
+#: evox.monitors.eval_monitor.EvalMonitor:26 of
 #, fuzzy
 msgid ""
 "Only affect Multi-objective optimization. Whether to keep updating the "
@@ -2452,22 +2243,22 @@ msgid ""
 "algorithm to find the minimum of the Ackley function."
 msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试问题的最小值。"
 
-#: ../../source/guide/advanced/1-state.md:1
+#: ../../source/guide/developer/1-state.md:1
 msgid "Working with state in EvoX"
 msgstr "在EvoX中使用State"
 
-#: ../../source/guide/advanced/1-state.md:3
+#: ../../source/guide/developer/1-state.md:3
 #, fuzzy
 msgid "EvoX is designed around stateful computation."
 msgstr "EvoX是基于状态计算设计的。"
 
-#: ../../source/guide/advanced/1-state.md:5
+#: ../../source/guide/developer/1-state.md:5
 msgid ""
 "There are two most fundamental classes, namely {class}`Stateful "
 "<evox.Stateful>` and {class}`State <evox.State>`."
 msgstr "有两个最基本的类，即 {class}Stateful <evox.Stateful> 和 {class}State <evox.State>。"
 
-#: ../../source/guide/advanced/1-state.md:7
+#: ../../source/guide/developer/1-state.md:7
 #, fuzzy
 msgid ""
 "All class that involves stateful computation are inherited from "
@@ -2477,15 +2268,15 @@ msgstr ""
 "所有涉及状态计算的类都继承自 "
 "Stateful。在EvoX中，Algorithm（算法）、Problem（问题）、Operator（操作符）和工作流都是有状态的。"
 
-#: ../../source/guide/advanced/1-state.md:9
+#: ../../source/guide/developer/1-state.md:9
 msgid "The idea behind the design"
 msgstr "设计背后的想法"
 
-#: ../../source/guide/advanced/1-state.md:11
+#: ../../source/guide/developer/1-state.md:11
 msgid "hierarchical state"
 msgstr "分层状态"
 
-#: ../../source/guide/advanced/1-state.md:16
+#: ../../source/guide/developer/1-state.md:16
 #, fuzzy
 msgid ""
 "Here we have five different objects, and notice that they have a "
@@ -2500,7 +2291,7 @@ msgstr ""
 "层级的状态必须包含 algorithm（算法）和 problem（问题）的状态，由于 algorithm 层级的状态必须包含所有操作符的状态，所以"
 " workflow 层级的状态实际上需要处理来自所有5个组件的状态。"
 
-#: ../../source/guide/advanced/1-state.md:22
+#: ../../source/guide/developer/1-state.md:22
 #, fuzzy
 msgid ""
 "However, it is frustrating to manage the hierarchy manually, and it is "
@@ -2508,66 +2299,88 @@ msgid ""
 "`Stateful` and `State`."
 msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问题，我们引入了 Stateful 和 State。"
 
-#: ../../source/guide/advanced/1-state.md:25
+#: ../../source/guide/developer/1-state.md:25
 #, fuzzy
 msgid "An Overview of Stateful"
 msgstr "关于状态的概述"
 
-#: ../../source/guide/advanced/1-state.md:27
+#: ../../source/guide/developer/1-state.md:27
 #, fuzzy
 msgid ""
 "In a `Stateful` class, all immutable data are initialized in `__init__`, "
-"the initial mutable state is generated in `setup`, besides these two "
-"methods and private methods(start with \"\\_\"), all other methods are "
-"wrapped with `use_state`."
+"or with dataclass, the initial mutable state is generated in `setup`."
 msgstr ""
 "在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，初始的可变状态在 setup 中生成，除了这两个方法和私有方法（以 "
 "\"_\" 开头）之外，所有其他方法都用 use_state 包装。"
 
-#: ../../source/guide/advanced/1-state.md:48
-msgid ""
-"will be wrapped with `use_state` decorator. This decorator requires the "
-"method have the following signature:"
-msgstr "将会用 use_state 装饰器包装。这个装饰器要求方法具有以下签名："
+#: ../../source/guide/developer/1-state.md:46
+msgid "Notice that all stateful functions should have the following signature:"
+msgstr ""
 
-#: ../../source/guide/advanced/1-state.md:54
+#: ../../source/guide/developer/1-state.md:50
 #, fuzzy
 msgid "which is a common pattern in stateful computation."
 msgstr "这是状态计算中常见的模式。"
 
-#: ../../source/guide/advanced/1-state.md:56
-#, fuzzy
+#: ../../source/guide/developer/1-state.md:52
 msgid ""
-":::{warning} Currently, for all user-defined private methods, the name of"
-" the method should start with `_``. :::"
-msgstr ":::{警告} 目前，对于所有用户定义的私有方法，方法名称应该以 _ 开头。 :::"
+"Stateful defines the standard for stateful modules in EvoX. All other "
+"classes, such as `Algorithm`, `Problem`, and `Workflow`, are inherited "
+"from `Stateful`. Then Stateful will provide a `init` method, which we "
+"will discuss later."
+msgstr ""
 
-#: ../../source/guide/advanced/1-state.md:60
+#: ../../source/guide/developer/1-state.md:56
 msgid "An overview of State"
 msgstr "关于状态的概述"
 
-#: ../../source/guide/advanced/1-state.md:62
+#: ../../source/guide/developer/1-state.md:58
 msgid ""
 "In EvoX `State` represents a tree of states, which stores the state of "
 "the current object and all child objects."
 msgstr "在EvoX中，“State”代表一个状态树，它存储当前对象和所有子对象的状态。"
 
-#: ../../source/guide/advanced/1-state.md:64
+#: ../../source/guide/developer/1-state.md:60
+msgid "The structure of `State` is roughly like this:"
+msgstr ""
+
+#: ../../source/guide/developer/1-state.md:68
+msgid ""
+"Where `self_state` stores the state of the current object (the one "
+"returned by `setup`), and `child_states` stores the states of all child "
+"objects. Besides normal dicts as `self_state`, we also support the use of"
+" `dataclass` to define the state of the object."
+msgstr ""
+
+#: ../../source/guide/developer/1-state.md:71
 msgid "Combined together"
 msgstr "结合一起"
 
-#: ../../source/guide/advanced/1-state.md:66
+#: ../../source/guide/developer/1-state.md:73
+#, fuzzy
+msgid "Initialization"
+msgstr "安装教程"
+
+#: ../../source/guide/developer/1-state.md:75
+msgid ""
+"To initialize a hierarchy of Stateful objects, and initialize the state "
+"of each object, you could write code like this. You can to call `init` "
+"method of the top module. `init` will recursively call the `setup` method"
+" of each module, and construct the complete state."
+msgstr ""
+
+#: ../../source/guide/developer/1-state.md:80
 #, fuzzy
 msgid ""
 "When combined together, they will automatically go 1 level down in the "
 "tree of states, and merge the subtree back to the current level."
 msgstr "当它们组合在一起时，将自动下降到状态树的下一层，并将子树合并回当前层。"
 
-#: ../../source/guide/advanced/1-state.md:70
+#: ../../source/guide/developer/1-state.md:84
 msgid "So you could write code like this."
 msgstr "所以你可以这样写代码。"
 
-#: ../../source/guide/advanced/1-state.md:81
+#: ../../source/guide/developer/1-state.md:95
 msgid ""
 "Notice that, when calling the method `step`, `state` is the state of the "
 "workflow, but when calling `self.algorithm.ask`, `state` behaves like the"
@@ -2577,15 +2390,15 @@ msgstr ""
 "请注意，当调用 step 方法时，state 是工作流的状态，但是当调用 self.algorithm.ask 时，state "
 "的行为就像是算法的状态，调用之后，算法的状态会自动合并回工作流的状态。"
 
-#: ../../source/guide/advanced/2-jit-able.md:1
+#: ../../source/guide/developer/2-jit-able.md:1
 msgid "Jit-able components"
 msgstr "Jit-able 组件"
 
-#: ../../source/guide/advanced/2-jit-able.md:3
+#: ../../source/guide/developer/2-jit-able.md:3
 msgid "A common pitfall in jit"
 msgstr "jit中常见的一个陷阱"
 
-#: ../../source/guide/advanced/2-jit-able.md:5
+#: ../../source/guide/developer/2-jit-able.md:5
 msgid ""
 "In JAX, it's hard to jump out of a jit-compiled function, meaning if you "
 "jit-compile one function, then all other functions used within this "
@@ -2594,12 +2407,12 @@ msgstr ""
 "在 JAX 中，跳出一个 JIT 编译的函数是困难的，这意味着如果你 JIT 编译了一个函数，那么在这个函数内部使用的所有其他函数也必须被 JIT"
 " 编译。"
 
-#: ../../source/guide/advanced/2-jit-able.md:8
+#: ../../source/guide/developer/2-jit-able.md:8
 #, fuzzy
 msgid "For example, the following code will result in a compilation error."
 msgstr "例如，下面的代码将导致编译错误"
 
-#: ../../source/guide/advanced/2-jit-able.md:19
+#: ../../source/guide/developer/2-jit-able.md:19
 #, fuzzy
 msgid ""
 "Even though `bar` is not marked with `jax.jit`, it is still compiled as "
@@ -2609,90 +2422,54 @@ msgstr ""
 "尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 bar 使用了动态索引，这与 jax.jit "
 "不兼容，因此会发生错误。"
 
-#: ../../source/guide/advanced/2-jit-able.md:22
+#: ../../source/guide/developer/2-jit-able.md:22
 msgid "Solution"
 msgstr "解决方案"
 
-#: ../../source/guide/advanced/2-jit-able.md:24
-#, fuzzy
+#: ../../source/guide/developer/2-jit-able.md:24
 msgid ""
-"To solve is problem, it is common practice to jit-compile low-level "
-"components, thus giving high-level components more freedom. In EvoX, we "
-"have some general rules on whether a function should be jit-able or not."
+"jit-compile low-level components, and give high-level components more "
+"freedom."
 msgstr ""
-"为了解决这个问题，通常的做法是 JIT 编译低层组件，从而给高层组件更多的自由。在 EvoX 中，我们有一些关于函数是否应该是可 JIT "
-"编译的通用规则。"
 
-#: ../../source/guide/advanced/2-jit-able.md
-msgid "Component"
-msgstr "组件"
-
-#: ../../source/guide/advanced/2-jit-able.md
-msgid "jit-able"
-msgstr "可以被jit编译的"
-
-#: ../../source/guide/advanced/2-jit-able.md
-#, fuzzy
-msgid "`Workflow`"
-msgstr "工作流"
-
-#: ../../source/guide/advanced/2-jit-able.md
-msgid "Optional"
-msgstr "可选的"
-
-#: ../../source/guide/advanced/2-jit-able.md
-#, fuzzy
-msgid "`Algorithm`"
-msgstr "算法"
-
-#: ../../source/guide/advanced/2-jit-able.md
-msgid "Yes"
-msgstr "是的"
-
-#: ../../source/guide/advanced/2-jit-able.md
-#, fuzzy
-msgid "`Problem`"
-msgstr "问题"
-
-#: ../../source/guide/advanced/2-jit-able.md
-#, fuzzy
-msgid "`Operators`"
-msgstr "操作符"
-
-#: ../../source/guide/advanced/2-jit-able.md
-#, fuzzy
-msgid "`Monitor`"
-msgstr "监控器"
-
-#: ../../source/guide/advanced/2-jit-able.md
-msgid "No"
-msgstr "不是"
-
-#: ../../source/guide/advanced/2-jit-able.md:35
+#: ../../source/guide/developer/2-jit-able.md:25
 msgid ""
-"For standard workflow, one can jit compile when not using monitors and "
-"working with jit-able problems. But even though the workflow can be "
-"compiled, there isn't much performance gain. For problems, it depends on "
-"the task."
+"Use [`host "
+"callback`](https://jax.readthedocs.io/en/latest/notebooks/external_callbacks.html)"
+" to call a function on CPU in a jit context."
 msgstr ""
-"对于标准工作流，当不使用监视器并且处理可 JIT 编译的问题时，可以进行 JIT "
-"编译。但即使工作流可以被编译，性能提升也不大。对于问题，这取决于任务。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:7
+#: ../../source/guide/developer/2-jit-able.md:27
+msgid ""
+"In EvoX, we almost guarantee that all low-level components are jit-"
+"compiled (all operators), and high-level components (`Workflow`) can have"
+" both jit-compiled variants (e.g. {doc}`StdWorkflow "
+"</api/workflows/standard>`) and non-jit-compiled variants (e.g. "
+"{doc}`StdWorkflow </api/workflows/non_jit>`)."
+msgstr ""
+
+#: ../../source/guide/developer/2-jit-able.md:29
+msgid ""
+"Please be aware that using callbacks to jump out of the jit context is "
+"not free. Data needs to be transferred between CPU and GPU, which can be "
+"an overhead."
+msgstr ""
+
+#: ../../source/guide/developer/3-custom-alg-pro.md:7
 msgid "Custom algorithms and problems in EvoX"
 msgstr "EvoX中的自定义算法和问题"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:9
+#: ../../source/guide/developer/3-custom-alg-pro.md:9
 msgid ""
 "In this chapter, we will introduce how to implement your own algorithm in"
 " EvoX."
 msgstr "在本章中，我们将介绍如何在 EvoX 中实现您自己的算法。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:11
+#: ../../source/guide/developer/3-custom-alg-pro.md:11
 msgid "The Algorithm Class"
 msgstr "算法类"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:13
+#: ../../source/guide/developer/3-custom-alg-pro.md:13
 #, fuzzy
 msgid ""
 "The {class}`Algorithm <evox.Algorithm>` class is inherited from "
@@ -2703,132 +2480,132 @@ msgstr ""
 "{class}Algorithm <evox.Algorithm> 类继承自 {class}Stateful <evox.Stateful>。除了"
 " Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell 方法。总共有四个方法需要实现。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:88
+#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md:88
 msgid "Method"
 msgstr "方法"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:88
+#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md:88
 msgid "Signature"
 msgstr "签名"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:88
+#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md:88
 msgid "Usage"
 msgstr "使用情况"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "\\_\\_init\\_\\_"
 msgstr "\\_\\_init\\_\\_"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "{python}`(self, ...)`"
 msgstr "{python}`(self, ...)`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid ""
 "Initialize hyperparameters that are fixed though out the optimization "
 "process, for example, the `population size`."
 msgstr "初始化在整个优化过程中固定的超参数，例如，`population size`。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
-#: ../../source/guide/advanced/3-custom-alg-pro.md:92
+#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md:92
 msgid "setup"
 msgstr "设置"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "{python}`(self, RRNGKey) -> State`"
 msgstr "{python}`(self, RRNGKey) -> State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "Initialize mutable state, for example the `momentum`."
 msgstr "初始化可变状态，例如`momentum`。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "ask"
 msgstr "ask"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "{python}`(self, State) -> Array, State`"
 msgstr "{python}`(self, State) -> Array, State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "Gives a candidate population for evaluation."
 msgstr "给出用于评估的候选种群。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "tell"
 msgstr "tell"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "{python}`(self, State, Array) -> State`"
 msgstr "{python}`(self, State, Array) -> State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid ""
 "Receive the fitness for the candidate population and update the "
 "algorithm's state."
 msgstr "接收候选种群的适应度并更新算法的状态。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "init_ask (Optional)"
 msgstr "init_ask (可选的)"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid ""
 "Gives initial population for evaluation. The population can have "
 "different shape than `ask`."
 msgstr "提供用于评估的初始种群。种群的形状可以与`ask`不同。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "init_tell (Optional)"
 msgstr "init_tell (可选的 )"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md
+#: ../../source/guide/developer/3-custom-alg-pro.md
 msgid ""
 "Receive the fitness for the initial population and update the algorithm's"
 " state."
 msgstr "接收初始种群的适应度并更新算法的状态。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:26
-#: ../../source/guide/advanced/3-custom-alg-pro.md:81
+#: ../../source/guide/developer/3-custom-alg-pro.md:26
+#: ../../source/guide/developer/3-custom-alg-pro.md:81
 #, fuzzy
 msgid "Migrate from traditional EC libraries"
 msgstr "迁移自传统的EC库"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:28
+#: ../../source/guide/developer/3-custom-alg-pro.md:28
 #, fuzzy
 msgid ""
 "In a traditional EC library, algorithms usually call the objective "
 "function internally, which gives the following layout"
 msgstr "在传统的EC库中，算法通常在内部调用目标函数，其布局如下"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:36
+#: ../../source/guide/developer/3-custom-alg-pro.md:36
 msgid "But in EvoX, we have a flat layout"
 msgstr "但在 EvoX 中，我们采用了扁平布局"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:42
+#: ../../source/guide/developer/3-custom-alg-pro.md:42
 msgid "Here is a pseudocode of a genetic algorithm."
 msgstr "这是一个遗传算法的伪代码。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:57
+#: ../../source/guide/developer/3-custom-alg-pro.md:57
 #, fuzzy
 msgid "And here is what each part of the algorithm corresponds to in EvoX."
 msgstr "这里是算法的每个部分在 EvoX 中对应的内容。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:77
+#: ../../source/guide/developer/3-custom-alg-pro.md:77
 msgid "The Problem Class"
 msgstr "问题类"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:79
+#: ../../source/guide/developer/3-custom-alg-pro.md:79
 #, fuzzy
 msgid ""
 "The Problem class is quite simple, beside `__init__` and `setup`, the "
 "only required method is `evaluate``."
 msgstr "`Problem` 类相当简单，除了 `__init__` 和 `setup`，唯一必需的方法是 `evaluate`。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:83
+#: ../../source/guide/developer/3-custom-alg-pro.md:83
 #, fuzzy
 msgid ""
 "There is one thing to notice here, `evaluate` is a stateful function, "
@@ -2840,57 +2617,57 @@ msgstr ""
 "这里有一点需要注意，`evaluate` "
 "是一个有状态的函数，这意味着它应该接受一个状态并返回一个新状态。所以，如果你正在处理不需要有状态的数值基准函数，你可以简单地忽略状态，但请记住，你仍然需要使用这个有状态的接口。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:90
+#: ../../source/guide/developer/3-custom-alg-pro.md:90
 msgid "__init__"
 msgstr "__init__"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:90
+#: ../../source/guide/developer/3-custom-alg-pro.md:90
 msgid ":python:`(self, ...)`"
 msgstr ":python:`(self, ...)`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:90
+#: ../../source/guide/developer/3-custom-alg-pro.md:90
 msgid "Initialize the settings of the problem."
 msgstr "为问题初始化设置。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:92
+#: ../../source/guide/developer/3-custom-alg-pro.md:92
 msgid ":python:`(self, RRNGKey) -> State`"
 msgstr ":python:`(self, RRNGKey) -> State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:92
+#: ../../source/guide/developer/3-custom-alg-pro.md:92
 msgid "Initialize mutable state of this problem."
 msgstr "初始化这个问题的可变状态。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:94
+#: ../../source/guide/developer/3-custom-alg-pro.md:94
 msgid "evaluate"
 msgstr "评估"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:94
+#: ../../source/guide/developer/3-custom-alg-pro.md:94
 msgid ":python:`(self, State, Array) -> Array, State`"
 msgstr ":python:`(self, State, Array) -> Array, State`"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:94
+#: ../../source/guide/developer/3-custom-alg-pro.md:94
 msgid "Evaluate the fitness of the given candidate solution."
 msgstr "评估给定候选解的适应度。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:98
+#: ../../source/guide/developer/3-custom-alg-pro.md:98
 msgid "More on the problem's state"
 msgstr "关于问题的状态的更多信息"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:100
+#: ../../source/guide/developer/3-custom-alg-pro.md:100
 #, fuzzy
 msgid ""
 "If you still wonder what the problem's state actually does, here are the "
 "explanations."
 msgstr "如果您仍然想知道问题的状态实际上是做什么的，以下是解释。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:102
+#: ../../source/guide/developer/3-custom-alg-pro.md:102
 #, fuzzy
 msgid ""
 "Unlike numerical benchmark functions, real-life problems are more complex"
 " and may require stateful computations. Here are some examples:"
 msgstr "与数值基准函数不同，现实生活中的问题更加复杂，可能需要有状态的计算。以下是一些例子："
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:105
+#: ../../source/guide/developer/3-custom-alg-pro.md:105
 #, fuzzy
 msgid ""
 "When dealing with ANN training, we often have the training, validation "
@@ -2900,7 +2677,7 @@ msgid ""
 "this mechanism, simply put a value in the state to indicate the phase."
 msgstr "在处理人工神经网络(ANN)训练时，我们通常有训练、验证和测试阶段。这意味着同一个解决方案在不同阶段可能有不同的适应度值。因此，显然我们不能再将`evaluate`建模为一个无状态的纯函数。要实现这种机制，只需在状态中放置一个值来指示阶段。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:109
+#: ../../source/guide/developer/3-custom-alg-pro.md:109
 #, fuzzy
 msgid ""
 "Virtual batch norm is an effective trick especially when dealing with RL "
@@ -2909,11 +2686,11 @@ msgid ""
 "first run."
 msgstr "虚拟批量归一化是一个有效的技巧，特别是在处理强化学习(RL)任务时。要实现这种机制，问题必须是有状态的，因为问题需要记住第一次运行时的初始批量归一化参数。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:113
+#: ../../source/guide/developer/3-custom-alg-pro.md:113
 msgid "Example"
 msgstr "样例"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:115
+#: ../../source/guide/developer/3-custom-alg-pro.md:115
 #, fuzzy
 msgid ""
 "Here we give an example of implementing the OneMax problem, along with a "
@@ -2926,121 +2703,543 @@ msgstr ""
 "问题的例子，以及解决这个问题的遗传算法。这个问题本身很直接，适应度定义为固定长度比特串中每个数字的总和。例如，\"100111\" 的适应度是 "
 "4，而 \"000101\" 的适应度是 2。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:119
+#: ../../source/guide/developer/3-custom-alg-pro.md:119
 #, fuzzy
 msgid ""
 "Let's start with implementing the OneMax problem. In JAX a bitstring can "
 "be easily represented with a tensor of type bool."
 msgstr "让我们从实现 OneMax 问题开始。在 JAX 中，比特串可以很容易地用布尔类型的张量来表示。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:144
+#: ../../source/guide/developer/3-custom-alg-pro.md:144
 msgid ""
 "Then we implement a genetic algorithm that uses bitflip mutation and one-"
 "point crossover."
 msgstr "然后我们实现了一个遗传算法，使用位翻转变异和单点交叉。"
 
-#: ../../source/guide/advanced/3-custom-alg-pro.md:204
+#: ../../source/guide/developer/3-custom-alg-pro.md:204
 msgid "Now, you can assemble a workflow and run it."
 msgstr "现在你可以组合出一个workflow并运行。"
 
-#: ../../source/guide/advanced/4-container.md:1
-msgid "Container Algorithms"
-msgstr "容器算法"
-
-#: ../../source/guide/advanced/4-container.md:3
+#: ../../source/guide/developer/4-doc.md:1
 #, fuzzy
-msgid ""
-"Container algorithms are a special type of algorithms that work by "
-"containing other algorithms and cannot work on their own. Container "
-"algorithms can be used to compose a series of normal algorithms together."
-msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法可以用来将一系列普通算法组合在一起。"
+msgid "Write & Build the Documentation"
+msgstr "欢迎来到EvoX的文档！"
 
-#: ../../source/guide/advanced/4-container.md:6
-msgid "Working with expensive algorithms"
-msgstr "处理高成本算法"
-
-#: ../../source/guide/advanced/4-container.md:8
-#, fuzzy
-msgid ""
-"Many algorithms are expensive in terms of space or time. For example, "
-"CMA-ES requires $O(N^2)$ space. Thus, it is costly to run CMA-ES on high-"
-"dimension problems. Sep-CMA-ES scales better but sacrifices the "
-"performance. That's where the container algorithm comes in. With it, we "
-"can easily construct a variant of CMA-ES that uses $O((\\frac{N}{M})^2)$ "
-"space, where $M$ is the number of blocks. This variant is a balance "
-"between the normal CMA-ES and Sep-CMA-ES."
+#: ../../source/guide/developer/4-doc.md:3
+msgid "This documentation is about how to write and build EvoX's documentation."
 msgstr ""
-"许多算法在空间或时间方面的成本都很高。例如，CMA-ES需要$O(N^2)$的空间。因此，在高维问题上运行CMA-ES的成本很高。Sep-CMA-"
-"ES的扩展性更好，但牺牲了性能。这就是容器算法的用武之地。有了它，我们可以轻松构建一个使用$O((\\frac{N}{M})^2)$空间的CMA-"
-"ES变体，其中$M$是块的数量。这种变体是普通CMA-ES和Sep-CMA-ES之间的平衡。"
 
-#: ../../source/guide/advanced/4-container.md:15
-msgid "Working with PyTree"
-msgstr "处理 PyTree"
+#: ../../source/guide/developer/4-doc.md:5
+msgid "Documentation structure"
+msgstr ""
 
-#: ../../source/guide/advanced/4-container.md:17
+#: ../../source/guide/developer/4-doc.md:7
 msgid ""
-"Usually, algorithms expect the decision variables to be in the form of a "
-"1D-vector. PyTrees are tree-like structures that are not directly "
-"compatible with normal algorithms. So, there are two solutions out there:"
-msgstr "一般来说，算法期望决策变量以一维形式呈现。但是Pytrees是树类结构不能直接与常见的算法兼容。所以这里有两种解决方法："
+"There are mainly two types of documentation in EvoX: **Guide** and "
+"**API**. **Guide** is for users who want to learn how to use EvoX, mainly"
+" written in jupyter notebook format. **API** is for users/developers who "
+"want to know the details of EvoX's code, mainly written as docstrings in "
+"the code."
+msgstr ""
 
-#: ../../source/guide/advanced/4-container.md:21
-msgid "Flatten the PyTree to 1D-vector."
-msgstr "将Pytree平展成一维向量。"
+#: ../../source/guide/developer/4-doc.md:11
+msgid "Multi-language support"
+msgstr ""
 
-#: ../../source/guide/advanced/4-container.md:22
-msgid "Use a specialized algorithm that work with PyTree directly."
-msgstr "使用经过特殊化算法来直接处理Pytree。"
-
-#: ../../source/guide/advanced/4-container.md:24
+#: ../../source/guide/developer/4-doc.md:13
 msgid ""
-"Solution 1 is called `adapter` in EvoX, which is quite simple, but we are"
-" not talking about this here. Solution 2 seems more complicated, but the "
-"advantage is that the structural information is preserved, meaning the "
-"algorithm could see the tree structure and apply some type of heuristic "
-"here."
-msgstr "在EvoX中方法1被命名为adapter并且非常简单，这里不再进行赘述。方法2更为复杂，但是保留原本的信息结构是他的一个优点，这意味着算法可以知道树的结构并且在此使用某种类型的启发式算法。"
+"EvoX's documentation supports multiple languages. Currently, we support "
+"English and Chinese."
+msgstr ""
 
-#: ../../source/guide/advanced/4-container.md:30
+#: ../../source/guide/developer/4-doc.md:15
+msgid "Build the documentation in another language"
+msgstr ""
+
+#: ../../source/guide/developer/4-doc.md:17
+msgid "You will need to install `sphinx-intl`."
+msgstr ""
+
+#: ../../source/guide/developer/4-doc.md:26
+#, fuzzy
+msgid "Translate the documentation"
+msgstr "欢迎来到EvoX的文档！"
+
+#: ../../source/guide/developer/4-doc.md:28
+msgid ""
+"The translation is hosted on "
+"[Weblate](https://hosted.weblate.org/projects/evox/evox/). You can "
+"contribute to the translation there."
+msgstr ""
+
+#: ../../source/guide/developer/index.md:1
+#, fuzzy
+msgid "Developer Guide"
+msgstr "用户指引"
+
+#: ../../source/guide/install/index.md:1
+msgid "Installation Guide"
+msgstr "安装教程"
+
+#: ../../source/guide/install/install.md:1
+#, fuzzy
+msgid "EvoX Installation Guide"
+msgstr "安装教程"
+
+#: ../../source/guide/install/install.md:3
+msgid "Install EvoX"
+msgstr "安装EvoX"
+
+#: ../../source/guide/install/install.md:5
+msgid "EvoX is available at Pypi and can be installed via:"
+msgstr "EvoX 可以在 PyPI 上找到，可以通过以下方式安装："
+
+#: ../../source/guide/install/install.md:11
+msgid "To install EvoX with optional dependencies:"
+msgstr "要安装带有可选依赖项的 EvoX："
+
+#: ../../source/guide/install/install.md:17
+msgid ""
+"available features are `gymnasium`, `neuroevolution`, `envpool`, "
+"`distributed`, and `full` which concludes all features. For example, to "
+"install EvoX with all features, do:"
+msgstr ""
+"EvoX 提供多种可选特性，包括 "
+"`gymnasium`、`neuroevolution`、`envpool`、`distributed`和`full`（包含所有特性）。例如，要安装包含所有特性的"
+" EvoX，您可以使用以下命令："
+
+#: ../../source/guide/install/install.md:24
+msgid "Install JAX with accelerator support"
+msgstr "安装支持GPU加速的JAX"
+
+#: ../../source/guide/install/install.md:26
+msgid ""
+"`EvoX` relies on `JAX` to provide hardware acceleration. The overall "
+"architecture of these Python packages looks like this:"
+msgstr "`EvoX`依赖于`JAX`来提供硬件加速的能力。这些Python包的整体架构如下："
+
+#: ../../source/guide/install/install.md:43
+msgid ""
+"`JAX` itself is pure Python, and `jaxlib` provides the C/C++ code. To "
+"utilize JAX's hardware acceleration ability, make sure to install the "
+"correct `jaxlib` version."
+msgstr ""
+"`JAX`本身是纯 Python 库，而`jaxlib`则提供了支持加速器的 C/C++ "
+"代码。要充分利用JAX的硬件加速能力，必须确保安装了正确的`jaxlib`版本。"
+
+#: ../../source/guide/install/install.md:46
+msgid ""
+"To summarize, you will need the follow 3 things to enable accelerator "
+"support:"
+msgstr ""
+
+#: ../../source/guide/install/install.md:47
+#, fuzzy
+msgid "GPU driver"
+msgstr "安装教程"
+
+#: ../../source/guide/install/install.md:48
+#, fuzzy
+msgid "CUDA libraries"
+msgstr "安装CUDA库"
+
+#: ../../source/guide/install/install.md:49
+#, fuzzy
+msgid "The correct jaxlib version (the one with accelerator support)."
+msgstr "安装支持GPU加速的JAX"
+
+#: ../../source/guide/install/install.md:52
+msgid ""
+"For more information, e.g. other platforms, please check out JAX's "
+"[official installation guide](https://github.com/google/jax/?tab=readme-"
+"ov-file#installation)."
+msgstr ""
+"想要了解更多信息，比如在其他平台上安装的教程，请查阅JAX的[官方安装指南](https://github.com/google/jax/?tab"
+"=readme-ov-file#installation)。"
+
+#: ../../source/guide/install/install.md:55
+msgid "CPU only"
+msgstr "纯CPU版"
+
+#: ../../source/guide/install/install.md:61
+msgid "CUDA (NVIDIA GPU)"
+msgstr "CUDA版 （NVIDIA GPU）"
+
+#: ../../source/guide/install/install.md:63
+msgid ""
+"To enable CUDA acceleration, please ensure that the following components "
+"are installed in a compatible manner:"
+msgstr "为了能正确启用 CUDA 加速，请确保以下组件以能够兼容的方式安装："
+
+#: ../../source/guide/install/install.md:90
+#, fuzzy
+msgid "If your using any virtualization technology, like WSL, docker."
+msgstr "如果你正在使用任何虚拟化技术，例如 WSL 或 Docker。"
+
+#: ../../source/guide/install/install.md:91
+msgid ""
+"**kernel space components**: should be installed on your host system. For"
+" example, if you are using WSL with Windows, then the driver should be "
+"installed on Windows, not inside WSL. If you are using container (e.g. "
+"docker), then the driver should be installed on your host OS (outside "
+"docker)."
+msgstr ""
+"**内核空间组件**：应安装在您的宿主机系统上。例如，如果您在 Windows 上使用 WSL，则应在 Windows 上安装驱动程序，而不是在 "
+"WSL 内部安装。如果您使用容器（例如 Docker），则应在您的宿主机操作系统（Docker 外部）上安装驱动程序。"
+
+#: ../../source/guide/install/install.md:94
+msgid "**user space components**: need to be installed inside WSL or docker."
+msgstr "**用户空间组件**：需要安装在 WSL 或 Docker 内部。"
+
+#: ../../source/guide/install/install.md:97
+msgid "Install NVIDIA's proprietary driver"
+msgstr "安装 NVIDIA 的闭源驱动程序"
+
+#: ../../source/guide/install/install.md:99
+msgid ""
+"Please notice that this step requires administrative privileges and a "
+"reboot. So, if you are using a shared server, please contact the server's"
+" administrator for support."
+msgstr ""
+
+#: ../../source/guide/install/install.md:102
+msgid "Windows WSL 2"
+msgstr "Windows WSL 2"
+
+#: ../../source/guide/install/install.md:104
+msgid ""
+"Download the [latest NVIDIA Windows GPU "
+"Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and "
+"install it."
+msgstr ""
+"下载 [最新的NVIDIA Windows "
+"GPU驱动](https://www.nvidia.com/Download/index.aspx?lang=en-us)，并安装."
+
+#: ../../source/guide/install/install.md:107
+#: ../../source/guide/install/windows_gpu.md:14
+msgid ""
+"You must **NOT** install any NVIDIA GPU Linux driver within WSL 2. GPU "
+"driver this a kernel space program, so it should be installed on the "
+"Windows side."
+msgstr ""
+"请**不要**在 WSL 2 内部安装任何 NVIDIA GPU Linux 驱动程序。GPU 驱动程序属于内核空间程序，应安装在 Windows"
+" 主机系统上。"
+
+#: ../../source/guide/install/install.md:112
+msgid ""
+"NVIDIA has a detailed [CUDA on WSL User "
+"Guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)"
+msgstr ""
+"NVIDIA官方有一个详细的教程 [CUDA on WSL User Guide](https://docs.nvidia.com/cuda"
+"/wsl-user-guide/index.html)"
+
+#: ../../source/guide/install/install.md:115
+msgid "GNU/Linux"
+msgstr "GNU/Linux"
+
+#: ../../source/guide/install/install.md:118
+msgid ""
+"If you are on GNU/Linux, I strongly recommend to install the driver via "
+"the package manager of your Linux distribution. Please do **NOT** install"
+" the driver from NVIDIA's website."
+msgstr ""
+"如果您使用 GNU/Linux 系统，我强烈建议您通过您的 Linux 发行版的包管理器（比如apt，pacman）来安装驱动程序，而不是从 "
+"NVIDIA 的网站下载安装包。"
+
+#: ../../source/guide/install/install.md:124
+msgid ""
+"Only NVIDIA's proprietary driver works with CUDA, open-source drivers "
+"like Nouveau do not."
+msgstr "仅有NVIDIA的闭源驱动支持CUDA，像Nouveau这样的开源驱动则不支持。"
+
+#: ../../source/guide/install/install.md:127
+msgid ""
+"The detailed installation guide depends on your operating system, for "
+"example"
+msgstr "具体的安装方法取决于您的操作系统，例如"
+
+#: ../../source/guide/install/install.md:129
+#: ../../source/guide/install/install.md:160
+msgid "ArchLinux"
+msgstr "ArchLinux"
+
+#: ../../source/guide/install/install.md:133
+#: ../../source/guide/install/install.md:164
+#, fuzzy
+msgid "Ubuntu 22.04"
+msgstr "Ubuntu 22.04"
+
+#: ../../source/guide/install/install.md:137
+msgid ""
+"NixOS first enable unfree software, and then add the following to your "
+"configuration."
+msgstr "NixOS首先启用非自由软件，然后添加以下配置。"
+
+#: ../../source/guide/install/install.md:143
+msgid "After installing the driver, please reboot."
+msgstr "安装完驱动后，请重启电脑。"
+
+#: ../../source/guide/install/install.md:146
+msgid "Cluster (e.g. slurm, k8s)"
+msgstr "聚类（如slurm, k8s）"
+
+#: ../../source/guide/install/install.md:148
 #, fuzzy
 msgid ""
-"We offer Cooperative Coevolution (CC) framework for all algorithms. "
-"Currently, there are two types of CC container in EvoX, "
-"{class}`evox.algorithms.Coevolution` and "
-"{class}`evox.algorithms.VectorizedCoevolution`. The difference is that "
-"`VectorizedCoevolution` updates all sub-populations at the same time in "
-"each iteration, but `Coevolution` follows the traditional approach that "
-"updates a single sub-populations at each iteration. Thus "
-"`VectorizedCoevolution` is faster, but `Coevolution` could be better in "
-"terms of best fitness with a limited number of evaluations."
+"If the latest driver has already been installed in the cluster, please go"
+" ahead and skip this section."
+msgstr "如果集群中已经安装了最新的驱动，请跳过这个部分并继续。"
+
+#: ../../source/guide/install/install.md:150
+#, fuzzy
+msgid ""
+"Otherwise, please contact the administrator of the cluster to upgrade the"
+" GPU driver version. It is important to note that the driver must be "
+"installed on the host system, rendering any effort within the container "
+"(e.g. docker, singularity) meaningless. Thus only the administrator can "
+"solve this problem."
+msgstr "如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
+
+#: ../../source/guide/install/install.md:155
+msgid "Install CUDA libraries"
+msgstr "安装CUDA库"
+
+#: ../../source/guide/install/install.md:157
+msgid ""
+"CUDA libraries are user space libraries, so you don't need to reboot "
+"after installation. Again, it depends on your operating system, for "
+"example"
+msgstr "CUDA 库是安装在用户空间的，所以在安装后您不需要重启。 具体的安装方式取决于您的操作系统，例如"
+
+#: ../../source/guide/install/install.md:170
+msgid "Now, you can check your do"
+msgstr "现在您可以检查您做的"
+
+#: ../../source/guide/install/install.md:174
+#, fuzzy
+msgid ""
+"to see if your GPU is recognized by the driver. If you see something like"
+" this, then you are good to go."
+msgstr "查看您的GPU是否被驱动识别。如果您看到类似的信息，那么您可以开始了。"
+
+#: ../../source/guide/install/install.md:198
+msgid "Then check your jaxlib version by"
+msgstr "之后通过其检查您的jaxlib版本"
+
+#: ../../source/guide/install/install.md:204
+#, fuzzy
+msgid ""
+"Please make sure you jaxlib's CUDA version is smaller or equal to the "
+"CUDA version of this host."
+msgstr "请确保您的CUDA版本小于或等于`jaxlib-cuda`的版本。"
+
+#: ../../source/guide/install/install.md:217
+msgid ""
+"For example, we have `0.4.18+cuda11.cudnn86` installed, and 11 < 12.2 "
+"(displayed by `nvidia-smi`). So we are good to go."
 msgstr ""
-"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，分别是{class}`evox.algorithms.Coevolution`"
-" 和 "
-"{class}`evox.algorithms.VectorizedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更新所有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`VectorizedCoevolution`"
-" 更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
+"例如，我们安装了0.4.18+cuda11.cudnn86版本，且nvidia-"
+"smi显示的CUDA版本是11，小于12.2。因此，我们可以开始使用了。"
 
-#: ../../source/guide/advanced/index.md:1
-msgid "Advanced Tutorial"
-msgstr "进阶教程"
+#: ../../source/guide/install/install.md:220
+msgid ""
+"Since installing `jax[cuda12]` will usually install the jaxlib compiled "
+"with the latest CUDA version. Even if you have CUDA 12, your CUDA version"
+" might still be lower than the version of that jaxlib requires. In this "
+"case, try to install `jax[cuda11]`."
+msgstr ""
+"由于安装 jax[cuda12] 通常会安装到使用最新 CUDA 版本编译的 jaxlib，即使您有 CUDA 12，您的 CUDA "
+"版本也可能低于 jaxlib 要求的版本（小版本号不够）。 在这种情况下，请尝试安装 jax[cuda11]。"
 
-#: ../../source/guide/basics/1-start.ipynb:10002
+#: ../../source/guide/install/install.md:225
+msgid "AMD GPU (ROCM)"
+msgstr ""
+
+#: ../../source/guide/install/install.md:227
+msgid ""
+"Despite being considered experimental, installing AMD GPUs for ROCm is "
+"surprisingly straightforward thanks to their open-source drivers. "
+"However, currently only a limited number of GPUs are supported, notably "
+"the Radeon RX 7900XTX and Radeon PRO W7900 for consumer-grade GPUs. Note "
+"that Windows is not currently supported."
+msgstr ""
+
+#: ../../source/guide/install/install.md:229
+#, fuzzy
+msgid "Install GPU driver"
+msgstr "安装教程"
+
+#: ../../source/guide/install/install.md:231
+msgid ""
+"Since the AMD driver is open-source, installation is simplified: simply "
+"install mesa through your Linux distribution's package manager. In many "
+"cases, the driver may already be pre-installed."
+msgstr ""
+
+#: ../../source/guide/install/install.md:233
+msgid "To verify that the driver is installed, run the following command:"
+msgstr ""
+
+#: ../../source/guide/install/install.md:239
+msgid "And you should see `amdgpu` in the output."
+msgstr ""
+
+#: ../../source/guide/install/install.md:241
+#, fuzzy
+msgid "Install ROCm"
+msgstr "安装EvoX"
+
+#: ../../source/guide/install/install.md:243
+msgid ""
+"The latest version of ROCm (v5.7.1 or later) may not be available in your"
+" Linux distribution's package manager. Therefore, using a containerized "
+"environment is the easiest way to get started."
+msgstr ""
+
+#: ../../source/guide/install/install.md:249
+msgid ""
+"Please visit [Docker Hub](https://hub.docker.com/r/rocm/jax) for further "
+"instructions."
+msgstr ""
+
+#: ../../source/guide/install/install.md:251
+msgid "Verify your installation"
+msgstr "验证安装是否正确"
+
+#: ../../source/guide/install/install.md:253
+msgid "Open a Python terminal, and run the following:"
+msgstr "打开 Python 终端，并运行以下命令："
+
+#: ../../source/guide/install/install.md:261
+msgid "Here are some possible output:"
+msgstr "这里是几种可能的输出结果："
+
+#: ../../source/guide/install/install.md
+msgid "Correct"
+msgstr "正确"
+
+#: ../../source/guide/install/install.md
+msgid "EvoX not installed"
+msgstr "未安装EvoX"
+
+#: ../../source/guide/install/install.md
+msgid "Wrong jaxlib version"
+msgstr "jaxlib版本错误"
+
+#: ../../source/guide/install/install.md
+msgid "Wrong driver/library"
+msgstr "驱动或库版本错误"
+
+#: ../../source/guide/install/python.md:1
+#, fuzzy
+msgid "Python Installation Guide"
+msgstr "安装教程"
+
+#: ../../source/guide/install/python.md:3
+msgid ""
+"EvoX is written in Python, so you will need to have Python installed on "
+"your system. EvoX support Python 3.9 and above, and we recommend using "
+"the latest version of Python."
+msgstr ""
+
+#: ../../source/guide/install/python.md:6
+#, fuzzy
+msgid "Windows Version"
+msgstr "Windows WSL 2"
+
+#: ../../source/guide/install/python.md:8
+msgid ""
+"Go to [Download Python](https://www.python.org/downloads/) and download "
+"the latest version of Python."
+msgstr ""
+
+#: ../../source/guide/install/python.md:11
+msgid ""
+"Make sure to check the box that says \"Add Python to PATH\" during the "
+"installation process."
+msgstr ""
+
+#: ../../source/guide/install/python.md:14
+#, fuzzy
+msgid "Linux Version"
+msgstr "jaxlib版本错误"
+
+#: ../../source/guide/install/python.md:16
+msgid ""
+"Different Linux distributions have different ways to install Python. It "
+"depends on the package manager of your distribution. Here are some "
+"examples:"
+msgstr ""
+
+#: ../../source/guide/install/python.md:19
+msgid "Debian/Ubuntu: `apt`"
+msgstr ""
+
+#: ../../source/guide/install/python.md:20
+#, fuzzy
+msgid "Archlinux: `pacman`"
+msgstr "ArchLinux"
+
+#: ../../source/guide/install/python.md:21
+msgid "Fedora: `dnf`"
+msgstr ""
+
+#: ../../source/guide/install/windows_gpu.md:1
+msgid "Windows with GPU acceleration"
+msgstr ""
+
+#: ../../source/guide/install/windows_gpu.md:3
+msgid ""
+"Currently the easiest way to install JAX with GPU acceleration on Windows"
+" is to use the `WSL 2`."
+msgstr ""
+
+#: ../../source/guide/install/windows_gpu.md:5
+#, fuzzy
+msgid "Install WSL 2"
+msgstr "Windows WSL 2"
+
+#: ../../source/guide/install/windows_gpu.md:7
+msgid ""
+"Windows has a detailed guide on how to install WSL 2 "
+"[here](https://learn.microsoft.com/en-us/windows/wsl/install)"
+msgstr ""
+
+#: ../../source/guide/install/windows_gpu.md:9
+msgid ""
+"The simple way to install a Linux distribution is to use the `Windows "
+"Store` and search for the name of the distribution (e.g. ubuntu, debian) "
+"and click the install button."
+msgstr ""
+
+#: ../../source/guide/install/windows_gpu.md:11
+#, fuzzy
+msgid "Install NVIDIA driver"
+msgstr "安装教程"
+
+#: ../../source/guide/install/windows_gpu.md:18
+msgid ""
+"Go to [here](https://www.nvidia.com/Download/index.aspx), to download the"
+" latest NVIDIA Windows GPU Driver, and install it."
+msgstr ""
+
+#: ../../source/guide/user/1-start.ipynb:10002
 msgid "Quick Start"
 msgstr "快速开始"
 
-#: ../../source/guide/basics/1-start.ipynb:10004
+#: ../../source/guide/user/1-start.ipynb:10004
 msgid "In this notebook, we will guide you through the basic steps of using EvoX."
 msgstr ""
 
-#: ../../source/guide/basics/1-start.ipynb:40002
+#: ../../source/guide/user/1-start.ipynb:40002
 msgid "Create an algorithm and a problem"
 msgstr "创建一个算法和一个问题"
 
-#: ../../source/guide/basics/1-start.ipynb:50002
+#: ../../source/guide/user/1-start.ipynb:50002
 msgid "To demostrate, we will create a PSO algorithm and an Ackley function."
 msgstr "我们将创建一个PSO算法和一个Ackley函数来进行证明。"
 
-#: ../../source/guide/basics/1-start.ipynb:50004
+#: ../../source/guide/user/1-start.ipynb:50004
 msgid ""
 "For more detailed list, please refer to our API documentation. [List of "
 "Algorithms](https://evox.readthedocs.io/en/latest/api/algorithms/index.html)"
@@ -3051,21 +3250,21 @@ msgstr ""
 "文档。[算法列表](https://evox.readthedocs.io/en/latest/api/algorithms/index.html)"
 " 和 [问题列表](https://evox.readthedocs.io/en/latest/api/problems/index.html)。"
 
-#: ../../source/guide/basics/1-start.ipynb:70002
+#: ../../source/guide/user/1-start.ipynb:70002
 msgid ""
 "Now we want to run the algorithm against the problem. To accomplish this,"
 " we need to create a `workflow` which represents the overall process of "
 "evolutionary computation."
 msgstr "现在我们想要运行针对问题的算法。为了实现这一点，我们需要创建一个代表进化计算整体过程的`workflow`。"
 
-#: ../../source/guide/basics/1-start.ipynb:90002
+#: ../../source/guide/user/1-start.ipynb:90002
 msgid ""
 "Since we adopt the functional programming paradigm. We must explicitly "
 "initialize and use the state of a module. To initialize, call `init` with"
 " a pseudorandom number generators key (PRNGKey)."
 msgstr "由于我们采用了函数式编程范式。我们必须显式地初始化并使用模块的状态。要进行初始化，使用伪随机数生成器的键（PRNGKey）调用`init`。"
 
-#: ../../source/guide/basics/1-start.ipynb:110002
+#: ../../source/guide/user/1-start.ipynb:110002
 msgid ""
 "The `state` represents the mutatable variables within the whole workflow,"
 " including those inside the algorithm and the problem. For example, the "
@@ -3075,88 +3274,72 @@ msgstr ""
 "`state`代表整个工作流中的可变变量，包括算法和问题内部的变量。例如，算法中的`population`（种群）是 state "
 "的一部分，因为它会在迭代过程中发生变化。"
 
-#: ../../source/guide/basics/1-start.ipynb:120002
+#: ../../source/guide/user/1-start.ipynb:120002
 msgid "Now, call `step` on the workflow to execute one iteration."
 msgstr "现在，调用工作流上的 `step` 来执行一个迭代。"
 
-#: ../../source/guide/basics/1-start.ipynb:140002
+#: ../../source/guide/user/1-start.ipynb:140002
 msgid "To run multiple iterations, wrap it inside a for-loop."
 msgstr "想要执行多次迭代，只要在这外面套一个for循环即可。"
 
-#: ../../source/guide/basics/1-start.ipynb:160002
+#: ../../source/guide/user/1-start.ipynb:160002
 msgid ""
 "Notice that we are passing `state` as an argument of `step` and it "
 "returns a new `state`. This is exactly how the stateful computation works"
 " in functional programming."
 msgstr "请注意，我们将 `state` 作为 `step` 的一个参数传递，并且它返回一个新的 `state`。这正是函数式编程中有状态计算的工作方式。"
 
-#: ../../source/guide/basics/1-start.ipynb:170002
+#: ../../source/guide/user/1-start.ipynb:170002
 msgid ""
 "And you may also notice that the `step` doesn't give any feedback, like "
 "the result of the optimization. This is because we are missing another "
 "component in our workflow. Introducing `monitor`."
 msgstr "你可能还会注意到，`step` 并没有提供任何反馈，比如优化的结果。这是因为我们的工作流中缺少另一个组件。这里介绍 `monitor`（监视器）。"
 
-#: ../../source/guide/basics/1-start.ipynb:180002
+#: ../../source/guide/user/1-start.ipynb:180002
 msgid "Monitor"
 msgstr "监控器"
 
-#: ../../source/guide/basics/1-start.ipynb:180004
+#: ../../source/guide/user/1-start.ipynb:180004
 msgid ""
 "Monitor is a standard way to monitor the intermediate values inside a "
 "optimization process. Information like fitness or population can be "
 "easily obtained by the monitor."
 msgstr "监视器是监控优化过程中中间值的标准方法。像适应度或种群这样的信息可以通过监视器轻松获得。"
 
-#: ../../source/guide/basics/1-start.ipynb:190002
-msgid "Now, create a \"Standard single-objective monitor\""
+#: ../../source/guide/user/1-start.ipynb:190002
+#, fuzzy
+msgid "Now, create a \"Evalution monitor\""
 msgstr "现在，创建一个“标准单目标监视器”"
 
-#: ../../source/guide/basics/1-start.ipynb:210002
+#: ../../source/guide/user/1-start.ipynb:210002
 msgid "The monitor can be plugged into the workflow."
 msgstr "监视器可以插入到工作流中。"
 
-#: ../../source/guide/basics/1-start.ipynb:230002
+#: ../../source/guide/user/1-start.ipynb:230002
 msgid "Now, re-initialize the workflow, and executed it again."
 msgstr "现在，重新初始化工作流，并再次执行它。"
 
-#: ../../source/guide/basics/1-start.ipynb:250002
+#: ../../source/guide/user/1-start.ipynb:250002
 msgid ""
 "This time, we can access the minimum fitness achieved through the "
 "`monitor`."
 msgstr "这次，我们可以通过 `monitor` 访问达到的最小适应度。"
 
-#: ../../source/guide/basics/1-start.ipynb:270002
+#: ../../source/guide/user/1-start.ipynb:270002
 msgid ""
 "Execute another 5 iterations, and the minimum fitness will change "
 "accordingly."
 msgstr "再执行5次迭代，最小适应度将相应改变。"
 
-#: ../../source/guide/basics/1-start.ipynb:290002
+#: ../../source/guide/user/1-start.ipynb:300002
+#, fuzzy
 msgid ""
-"To record information related to the population as well, turn on "
-"`record_pop` option in the workflow."
-msgstr "要同时记录与种群相关的信息，请在工作流中打开 `record_pop` 选项。"
-
-#: ../../source/guide/basics/1-start.ipynb:290004
-msgid ""
-"This will cause the population be sent to the monitor as well, and the "
-"monitor can then determine the best solution on the fly."
-msgstr "这将导致种群也被发送到监视器，监视器随后可以即时确定最佳解决方案。"
-
-#: ../../source/guide/basics/1-start.ipynb:290006
-msgid ""
-"Please note that when the population size is very large, is option can "
-"harm the overall performance."
-msgstr "请注意，当种群规模非常大时，这个选项可能会影响整体性能。"
-
-#: ../../source/guide/basics/1-start.ipynb:330002
-msgid ""
-"It show the best solution is (-0.02271652, -0.19201761), which is close "
-"to the global minimum at (0,0). 🥳"
+"It shows the best solution is (-8.6565415e-05,  5.9473794e-05), which is "
+"close to the global minimum at (0,0). 🥳"
 msgstr "它显示最佳解为 (-0.02271652, -0.19201761)，这接近于全局最小值 (0,0)。🥳"
 
-#: ../../source/guide/basics/1-start.ipynb:330004
+#: ../../source/guide/user/1-start.ipynb:300004
 msgid ""
 "Additionally, please note that the best fitness remains the same as last "
 "time. This is because we are using the same `key` when initializing the "
@@ -3166,107 +3349,111 @@ msgstr ""
 "另外，请注意最佳适应度与上次相同。这是因为我们在初始化工作流程时使用了与之前相同的 "
 "`key`。EvoX中的这种确定性行为使其他人可以轻松复现你的结果。"
 
-#: ../../source/guide/basics/2-problems.ipynb:10002
+#: ../../source/guide/user/1-start.ipynb:300006
+msgid "finally, we can use the built-in `plot` function to plot the loss curve."
+msgstr ""
+
+#: ../../source/guide/user/2-problems.ipynb:10002
 msgid "Working with extended applications"
 msgstr "处理扩展应用"
 
-#: ../../source/guide/basics/2-problems.ipynb:10004
+#: ../../source/guide/user/2-problems.ipynb:10004
 msgid "Working with extended applications in EvoX is easy."
 msgstr "在EvoX中处理扩展应用很简单。"
 
-#: ../../source/guide/basics/2-problems.ipynb:40002
+#: ../../source/guide/user/2-problems.ipynb:40002
 msgid "Neuroevolution Tasks"
 msgstr "神经演化任务"
 
-#: ../../source/guide/basics/2-problems.ipynb:40004
+#: ../../source/guide/user/2-problems.ipynb:40004
 msgid ""
 "Here we will be focusing on neuroevolution tasks, where one need to "
 "evolve a neural network that suits a certain tasks."
 msgstr "在这里，我们将专注于神经进化任务，其中需要进化出适合特定任务的神经网络。"
 
-#: ../../source/guide/basics/2-problems.ipynb:50002
+#: ../../source/guide/user/2-problems.ipynb:50002
 msgid "Brax"
 msgstr "Brax"
 
-#: ../../source/guide/basics/2-problems.ipynb:50004
+#: ../../source/guide/user/2-problems.ipynb:50004
 msgid ""
 "To begin with we will be using Brax, a GPU accelerated physical engine "
 "that is also written in JAX. Since Brax is also using JAX, running EvoX "
 "with Brax is quite easy."
 msgstr "首先，我们将使用Brax，这是一个用JAX编写的GPU加速物理引擎。由于Brax也使用JAX，因此将EvoX与Brax一起运行相当容易。"
 
-#: ../../source/guide/basics/2-problems.ipynb:50007
+#: ../../source/guide/user/2-problems.ipynb:50007
 msgid "We will be demostrating using the \"swimmer\" environment in Brax."
 msgstr "我们将演示在Brax中使用“swimmer”环境。"
 
-#: ../../source/guide/basics/2-problems.ipynb:60002
+#: ../../source/guide/user/2-problems.ipynb:60002
 msgid ""
 "First we will need to decide how we are going to evolve a neural network."
 " In this case, we will be using a fixed-size ANN, and only evolve it's "
 "weights."
 msgstr "首先，我们需要决定如何进化神经网络。在这种情况下，我们将使用固定大小的人工神经网络（ANN），并仅进化其权重。"
 
-#: ../../source/guide/basics/2-problems.ipynb:90002
+#: ../../source/guide/user/2-problems.ipynb:90002
 msgid ""
 "However, if we check the weights for this network, we will see that it's "
 "group of parameter sets, and EC algorithms cannot directly work with data"
 " in this format."
 msgstr "然而，如果我们检查这个网络的权重，我们会发现它是一组参数集，而进化计算（EC）算法无法直接处理这种格式的数据。"
 
-#: ../../source/guide/basics/2-problems.ipynb:90005
+#: ../../source/guide/user/2-problems.ipynb:90005
 msgid ""
 "Thankfully, EvoX provides some useful utilities to help us bridge the "
 "gap, and in this case, we have `TreeAndVector` to help us convert a tree-"
 "like struct into a vector and back."
 msgstr "幸运的是，EvoX提供了一些有用的工具来帮助我们弥合这一差距，在这种情况下，我们有`TreeAndVector`来帮助我们将树状结构转换成向量，然后再转换回来。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110002
+#: ../../source/guide/user/2-problems.ipynb:110002
 msgid "Now, `adapter` can help us convert the data back-and-forth."
 msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110004
+#: ../../source/guide/user/2-problems.ipynb:110004
 msgid "`to_vector` can convert a tree into a vector."
 msgstr "`to_vector` 可以将树转化成向量形式。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110005
+#: ../../source/guide/user/2-problems.ipynb:110005
 msgid "`to_tree` can convert a vector back to a tree."
 msgstr "`to_tree` 可以把向量转化回树的形式。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110007
+#: ../../source/guide/user/2-problems.ipynb:110007
 msgid "There are also batched version conversion."
 msgstr "还有批量版本的转换。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110009
+#: ../../source/guide/user/2-problems.ipynb:110009
 msgid "`batched_to_vector` can convert a batch of trees into a batch of vectors."
 msgstr "`batched_to_vector`可以将一批树状结构转换为一批向量。"
 
-#: ../../source/guide/basics/2-problems.ipynb:110010
+#: ../../source/guide/user/2-problems.ipynb:110010
 msgid "`batched_to_tree` can convert a batch of vectors into a batch of trees."
 msgstr "`batched_to_tree` 可以将一批向量转换为一批树状结构。"
 
-#: ../../source/guide/basics/2-problems.ipynb:130002
+#: ../../source/guide/user/2-problems.ipynb:130002
 msgid "Now we can create an algorithm object."
 msgstr "现在我们可以创建一个算法对象。"
 
-#: ../../source/guide/basics/2-problems.ipynb:150002
+#: ../../source/guide/user/2-problems.ipynb:150002
 msgid ""
 "Now create brax-based problem. The `batch_size` defines how many "
 "environment in a single batch,  and `cap_episode` controls when to "
 "truncate the episode."
 msgstr "现在创建基于Brax的问题。`batch_size` 定义了单个批次中有多少个环境，而 `cap_episode` 控制了何时截断一个情节。"
 
-#: ../../source/guide/basics/2-problems.ipynb:150006
+#: ../../source/guide/user/2-problems.ipynb:150006
 msgid ""
 "In this case, we set `batch_size` to 4096, which is the same as our "
 "population size. This means the whole population will be evaluated in a "
 "single pass!"
 msgstr "在这种情况下，我们将 `batch_size` 设置为4096，这与我们的种群大小相同。这意味着整个种群将在一次传递中被评估！"
 
-#: ../../source/guide/basics/2-problems.ipynb:170002
+#: ../../source/guide/user/2-problems.ipynb:170002
 msgid "Assemble our workflow and fire it!"
 msgstr "组装我们的工作流程并启动它！"
 
-#: ../../source/guide/basics/2-problems.ipynb:170004
+#: ../../source/guide/user/2-problems.ipynb:170004
 #, fuzzy
 msgid ""
 "Notice the `sol_transforms` option. It's used to convert the candidate "
@@ -3274,31 +3461,42 @@ msgid ""
 "network's weight."
 msgstr "请注意 `pop_transform` 选项。它用于将种群转换成表示神经网络权重的树状结构。"
 
-#: ../../source/guide/basics/3-distributed.md:1
+#: ../../source/guide/user/2-problems.ipynb:190002
+#, fuzzy
+msgid "Run the workflow and see the magic!"
+msgstr "现在运行workflow。你可能会看到这样的警报"
+
+#: ../../source/guide/user/2-problems.ipynb:190005
+msgid ""
+"The following block will take around 10 mins to run. The time may vary "
+"depending on your hardware."
+msgstr ""
+
+#: ../../source/guide/user/3-distributed.md:1
 msgid "Distribute the workflow"
 msgstr "分发工作流程"
 
-#: ../../source/guide/basics/3-distributed.md:3
+#: ../../source/guide/user/3-distributed.md:3
 msgid ""
 "EvoX provides two distributed workflow implementation, one is based on "
 "Ray, and the other one is based on jax.distribute."
 msgstr "EvoX 提供了两种分布式工作流实现，一种基于 Ray，另一种基于 jax.distribute。"
 
-#: ../../source/guide/basics/3-distributed.md:5
+#: ../../source/guide/user/3-distributed.md:5
 msgid "RayDistributedWorkflow"
 msgstr "RayDistributedWorkflow"
 
-#: ../../source/guide/basics/3-distributed.md:7
+#: ../../source/guide/user/3-distributed.md:7
 msgid ""
 "RayDistributedWorkflow is built upon Ray. It can be used on any ray "
 "cluster. The Ray cluster should be setup before running the EvoX program."
 msgstr "RayDistributedWorkflow是基于Ray构建的。它可以在任何Ray集群上使用。在运行EvoX程序之前，应该先设置Ray集群。"
 
-#: ../../source/guide/basics/3-distributed.md:9
+#: ../../source/guide/user/3-distributed.md:9
 msgid "Setup Ray cluster"
 msgstr "设置Ray集群"
 
-#: ../../source/guide/basics/3-distributed.md:11
+#: ../../source/guide/user/3-distributed.md:11
 #, fuzzy
 msgid ""
 "Please refer to [Ray's official "
@@ -3308,53 +3506,53 @@ msgstr ""
 "请参考Ray的官方文档(https://docs.ray.io/en/latest/cluster/getting-"
 "started.html)来获取关于设置Ray集群的指南。"
 
-#: ../../source/guide/basics/3-distributed.md:13
+#: ../../source/guide/user/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
 msgstr "这里有一个简单的本地集群搭建方法。"
 
-#: ../../source/guide/basics/3-distributed.md:15
+#: ../../source/guide/user/3-distributed.md:15
 msgid "On the head node"
 msgstr "在头节点上"
 
-#: ../../source/guide/basics/3-distributed.md:19
+#: ../../source/guide/user/3-distributed.md:19
 msgid "On worker nodes"
 msgstr "在工作节点上"
 
-#: ../../source/guide/basics/3-distributed.md:24
+#: ../../source/guide/user/3-distributed.md:24
 #, fuzzy
 msgid ""
 "If you only have 1 machine, but multiple devices, then there is nothing "
 "needs to be done. Ray will setup itself in this case."
 msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进行配置。"
 
-#: ../../source/guide/basics/3-distributed.md:26
-#: ../../source/guide/basics/3-distributed.md:72
+#: ../../source/guide/user/3-distributed.md:26
+#: ../../source/guide/user/3-distributed.md:72
 #, fuzzy
 msgid "Setup EvoX"
 msgstr "设置 EvoX"
 
-#: ../../source/guide/basics/3-distributed.md:28
+#: ../../source/guide/user/3-distributed.md:28
 msgid ""
 "To scale the workflow using multiple machines through Ray, use the "
 "{class}`RayDistributedWorkflow <evox.workflows.RayDistributedWorkflow>` "
 "instead of StdWorkflow."
 msgstr ""
-"要通过Ray使用多台机器扩展工作流，请使用 {class}`RayDistributedWorkflow <evox."
-"workflows.RayDistributedWorkflow>` 类替代标准工作流StdWorkflow。"
+"要通过Ray使用多台机器扩展工作流，请使用 {class}`RayDistributedWorkflow "
+"<evox.workflows.RayDistributedWorkflow>` 类替代标准工作流StdWorkflow。"
 
-#: ../../source/guide/basics/3-distributed.md:30
+#: ../../source/guide/user/3-distributed.md:30
 msgid "First, import `workflows` from evox"
 msgstr "首先，从evox中导入'workflows'"
 
-#: ../../source/guide/basics/3-distributed.md:36
+#: ../../source/guide/user/3-distributed.md:36
 msgid "then create your algorithm, problem, monitor object as usual."
 msgstr "接下来创建algorithm，problem，monitor对象。"
 
-#: ../../source/guide/basics/3-distributed.md:44
+#: ../../source/guide/user/3-distributed.md:44
 msgid "Now use `RayDistributedWorkflow`"
 msgstr "现在使用 `RayDistributedWorkflow`"
 
-#: ../../source/guide/basics/3-distributed.md:57
+#: ../../source/guide/user/3-distributed.md:57
 msgid ""
 "The `RayDistributedWorkflow` also uses the `workflow.step` function to "
 "execute iterations. However, under the hood, it employs a distinct "
@@ -3364,7 +3562,7 @@ msgstr ""
 "`RayDistributedWorkflow`同样运用 "
 "`workflow.step`函数来执行迭代过程。然而，在底层实现上，它采用了一种独特的方法，能够跨多台机器利用多个设备。"
 
-#: ../../source/guide/basics/3-distributed.md:60
+#: ../../source/guide/user/3-distributed.md:60
 #, python-format
 msgid ""
 "It is recommanded that one set the environment variable "
@@ -3378,12 +3576,12 @@ msgstr ""
 "建议设置环境变量XLA_PYTHON_CLIENT_PREALLOCATE=false。默认情况下，JAX会预先分配设备内存的80%。此变量用于禁用GPU内存预分配，否则运行多个JAX进程可能会导致内存不足（OOM）。有关此事项的更多信息，请参考JAX的文档(https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)"
 " 。"
 
-#: ../../source/guide/basics/3-distributed.md:66
+#: ../../source/guide/user/3-distributed.md:66
 #, fuzzy
 msgid "StdWorkflow"
 msgstr "工作流"
 
-#: ../../source/guide/basics/3-distributed.md:68
+#: ../../source/guide/user/3-distributed.md:68
 #, fuzzy
 msgid ""
 "StdWorkflow is short for \"Universal Workflow\", which aims to use pure "
@@ -3394,27 +3592,27 @@ msgstr ""
 "\"UniWorkflow\"是“Universal "
 "Workflow”的缩写，其目的是使用纯JAX构建一个适应任何需求的工作流。由于UniWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外的依赖。"
 
-#: ../../source/guide/basics/3-distributed.md:74
+#: ../../source/guide/user/3-distributed.md:74
 #, fuzzy
 msgid ""
 "Use `StdWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
 msgstr "使用'UniWorkflow'创建一个工作流然后使用'enable_distributed'并且传入相应状态来启用此功能。"
 
-#: ../../source/guide/basics/3-distributed.md:90
+#: ../../source/guide/user/3-distributed.md:90
 msgid ""
 "Then, at the start of your program, before any JAX function is called, do"
 " this:"
 msgstr "在你的程序开始之前进行的任何JAX函数调用，需要做这些操作："
 
-#: ../../source/guide/basics/3-distributed.md:96
+#: ../../source/guide/user/3-distributed.md:96
 msgid ""
 "In this system, the `coordinator` serves as the primary or head node. The"
 " total number of participating processes is indicated by `num_process`. "
 "The process with `process_id=0` acts as the coordinator."
 msgstr "在这个系统中，“coordinator”（协调器）充当主节点或头节点的角色。参与进程的总数由num_process指示。具有process_id=0的进程充当协调器。"
 
-#: ../../source/guide/basics/3-distributed.md:98
+#: ../../source/guide/user/3-distributed.md:98
 msgid ""
 "From more information, please refer to "
 "[jax.distributed.initialize](https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)"
@@ -3422,12 +3620,12 @@ msgid ""
 "environments](https://jax.readthedocs.io/en/latest/multi_process.html)."
 msgstr "有关更多信息，请参考jax.distributed.initialize(https://jax.readthedocs.io/en/latest/_autosummary/jax.distributed.initialize.html)和在多主机和多进程环境中使用JAX的文档(https://jax.readthedocs.io/en/latest/multi_process.html)。"
 
-#: ../../source/guide/basics/3-distributed.md:100
+#: ../../source/guide/user/3-distributed.md:100
 #, fuzzy
 msgid "Run in a cluster"
 msgstr "在一个集群中运行"
 
-#: ../../source/guide/basics/3-distributed.md:102
+#: ../../source/guide/user/3-distributed.md:102
 msgid ""
 "Unlike Ray, JAX's doesn't have the concept of cluster or scheduler. "
 "Instead, it offers tools for enabling distributed interactions among "
@@ -3439,340 +3637,110 @@ msgid ""
 "`jax.distributed.initialize`:"
 msgstr "不同于Ray，JAX没有集群或调度器的概念。相反，它提供了工具来实现多个JAX实例之间的分布式交互。JAX遵循SPMD（单程序多数据）范式。要在JAX中启动一个分布式程序，你只需在不同的机器上运行相同的脚本。例如，如果你的程序名为main.py，你应该在所有参与的机器上执行以下命令，并在jax.distributed.initialize中为不同的机器设置不同的process_id参数："
 
-#: ../../source/guide/basics/3-distributed.md:110
+#: ../../source/guide/user/3-distributed.md:110
 msgid ""
 "To have `process_id` in the argument, one can use `argparse` to parse the"
 " argument from the commandline. For example:"
 msgstr "为了在参数中包含process_id，可以使用argparse库从命令行解析参数。例如："
 
-#: ../../source/guide/basics/3-distributed.md:125
+#: ../../source/guide/user/3-distributed.md:125
 #, fuzzy
 msgid ""
 "Then call `python main.py 0` on the first machine, `python main 1` on the"
 " second machine and so on."
 msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py 1'，依此类推。"
 
-#: ../../source/guide/basics/index.md:1
-msgid "Getting Started"
-msgstr "开始"
+#: ../../source/guide/user/4-container.md:1
+msgid "Container Algorithms"
+msgstr "容器算法"
 
-#: ../../source/guide/install.md:1
-msgid "Installation Guide"
-msgstr "安装教程"
-
-#: ../../source/guide/install.md:3
-msgid "Install EvoX"
-msgstr "安装EvoX"
-
-#: ../../source/guide/install.md:5
-msgid "EvoX is available at Pypi and can be installed via:"
-msgstr "EvoX 可以在 PyPI 上找到，可以通过以下方式安装："
-
-#: ../../source/guide/install.md:11
-msgid "To install EvoX with optional dependencies:"
-msgstr "要安装带有可选依赖项的 EvoX："
-
-#: ../../source/guide/install.md:17
-msgid ""
-"available features are `gymnasium`, `neuroevolution`, `envpool`, "
-"`distributed`, and `full` which concludes all features. For example, to "
-"install EvoX with all features, do:"
-msgstr ""
-"EvoX 提供多种可选特性，包括 "
-"`gymnasium`、`neuroevolution`、`envpool`、`distributed`和`full`（包含所有特性）。例如，要安装包含所有特性的"
-" EvoX，您可以使用以下命令："
-
-#: ../../source/guide/install.md:24
-msgid "Install JAX with accelerator support"
-msgstr "安装支持GPU加速的JAX"
-
-#: ../../source/guide/install.md:26
-msgid ""
-"`EvoX` relies on `JAX` to provide hardware acceleration. The overall "
-"architecture of these Python packages looks like this:"
-msgstr "`EvoX`依赖于`JAX`来提供硬件加速的能力。这些Python包的整体架构如下："
-
-#: ../../source/guide/install.md:43
-msgid ""
-"`JAX` itself is pure Python, and `jaxlib` provides the C/C++ code. To "
-"utilize JAX's hardware acceleration ability, make sure to install the "
-"correct `jaxlib` version."
-msgstr ""
-"`JAX`本身是纯 Python 库，而`jaxlib`则提供了支持加速器的 C/C++ "
-"代码。要充分利用JAX的硬件加速能力，必须确保安装了正确的`jaxlib`版本。"
-
-#: ../../source/guide/install.md:47
-msgid ""
-"For more information, e.g. other platforms, please check out JAX's "
-"[official installation guide](https://github.com/google/jax/?tab=readme-"
-"ov-file#installation)."
-msgstr ""
-"想要了解更多信息，比如在其他平台上安装的教程，请查阅JAX的[官方安装指南](https://github.com/google/jax/?tab"
-"=readme-ov-file#installation)。"
-
-#: ../../source/guide/install.md:50
-msgid "CPU only"
-msgstr "纯CPU版"
-
-#: ../../source/guide/install.md:56
-msgid "CUDA (NVIDIA GPU)"
-msgstr "CUDA版 （NVIDIA GPU）"
-
-#: ../../source/guide/install.md:58
-msgid ""
-"To enable CUDA acceleration, please ensure that the following components "
-"are installed in a compatible manner:"
-msgstr "为了能正确启用 CUDA 加速，请确保以下组件以能够兼容的方式安装："
-
-#: ../../source/guide/install.md:85
-#, fuzzy
-msgid "If your using any virtualization technology, like WSL, docker."
-msgstr "如果你正在使用任何虚拟化技术，例如 WSL 或 Docker。"
-
-#: ../../source/guide/install.md:86
-msgid ""
-"**kernel space components**: should be installed on your host system. For"
-" example, if you are using WSL with Windows, then the driver should be "
-"installed on Windows, not inside WSL. If you are using container (e.g. "
-"docker), then the driver should be installed on your host OS (outside "
-"docker)."
-msgstr ""
-"**内核空间组件**：应安装在您的宿主机系统上。例如，如果您在 Windows 上使用 WSL，则应在 Windows 上安装驱动程序，而不是在 "
-"WSL 内部安装。如果您使用容器（例如 Docker），则应在您的宿主机操作系统（Docker 外部）上安装驱动程序。"
-
-#: ../../source/guide/install.md:89
-msgid "**user space components**: need to be installed inside WSL or docker."
-msgstr "**用户空间组件**：需要安装在 WSL 或 Docker 内部。"
-
-#: ../../source/guide/install.md:92
-msgid "Install NVIDIA's proprietary driver"
-msgstr "安装 NVIDIA 的闭源驱动程序"
-
-#: ../../source/guide/install.md:95
-msgid "Windows WSL 2"
-msgstr "Windows WSL 2"
-
-#: ../../source/guide/install.md:97
-msgid ""
-"Download the [latest NVIDIA Windows GPU "
-"Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and "
-"install it."
-msgstr ""
-"下载 [最新的NVIDIA Windows "
-"GPU驱动](https://www.nvidia.com/Download/index.aspx?lang=en-us)，并安装."
-
-#: ../../source/guide/install.md:100
-msgid ""
-"You must **NOT** install any NVIDIA GPU Linux driver within WSL 2. GPU "
-"driver this a kernel space program, so it should be installed on the "
-"Windows side."
-msgstr ""
-"请**不要**在 WSL 2 内部安装任何 NVIDIA GPU Linux 驱动程序。GPU 驱动程序属于内核空间程序，应安装在 Windows"
-" 主机系统上。"
-
-#: ../../source/guide/install.md:105
-msgid ""
-"NVIDIA has a detailed [CUDA on WSL User "
-"Guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)"
-msgstr ""
-"NVIDIA官方有一个详细的教程 [CUDA on WSL User Guide](https://docs.nvidia.com/cuda"
-"/wsl-user-guide/index.html)"
-
-#: ../../source/guide/install.md:108
-msgid "GNU/Linux"
-msgstr "GNU/Linux"
-
-#: ../../source/guide/install.md:111
-msgid ""
-"If you are on GNU/Linux, I strongly recommend to install the driver via "
-"the package manager of your Linux distribution. Please do **NOT** install"
-" the driver from NVIDIA's website."
-msgstr ""
-"如果您使用 GNU/Linux 系统，我强烈建议您通过您的 Linux 发行版的包管理器（比如apt，pacman）来安装驱动程序，而不是从 "
-"NVIDIA 的网站下载安装包。"
-
-#: ../../source/guide/install.md:117
-msgid ""
-"Only NVIDIA's proprietary driver works with CUDA, open-source drivers "
-"like Nouveau do not."
-msgstr "仅有NVIDIA的闭源驱动支持CUDA，像Nouveau这样的开源驱动则不支持。"
-
-#: ../../source/guide/install.md:120
-msgid ""
-"The detailed installation guide depends on your operating system, for "
-"example"
-msgstr "具体的安装方法取决于您的操作系统，例如"
-
-#: ../../source/guide/install.md:122 ../../source/guide/install.md:153
-msgid "ArchLinux"
-msgstr "ArchLinux"
-
-#: ../../source/guide/install.md:126 ../../source/guide/install.md:157
-#, fuzzy
-msgid "Ubuntu 22.04"
-msgstr "Ubuntu 22.04"
-
-#: ../../source/guide/install.md:130
-msgid ""
-"NixOS first enable unfree software, and then add the following to your "
-"configuration."
-msgstr "NixOS首先启用非自由软件，然后添加以下配置。"
-
-#: ../../source/guide/install.md:136
-msgid "After installing the driver, please reboot."
-msgstr "安装完驱动后，请重启电脑。"
-
-#: ../../source/guide/install.md:139
-msgid "Cluster (e.g. slurm, k8s)"
-msgstr "聚类（如slurm, k8s）"
-
-#: ../../source/guide/install.md:141
+#: ../../source/guide/user/4-container.md:3
 #, fuzzy
 msgid ""
-"If the latest driver has already been installed in the cluster, please go"
-" ahead and skip this section."
-msgstr "如果集群中已经安装了最新的驱动，请跳过这个部分并继续。"
+"Container algorithms are a special type of algorithms that work by "
+"containing other algorithms and cannot work on their own. Container "
+"algorithms can be used to compose a series of normal algorithms together."
+msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法可以用来将一系列普通算法组合在一起。"
 
-#: ../../source/guide/install.md:143
+#: ../../source/guide/user/4-container.md:8
 #, fuzzy
 msgid ""
-"Otherwise, please contact the administrator of the cluster to upgrade the"
-" GPU driver version. It is important to note that the driver must be "
-"installed on the host system, rendering any effort within the container "
-"(e.g. docker, singularity) meaningless. Thus only the administrator can "
-"solve this problem."
-msgstr "如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
+"We offer Cooperative Coevolution (CC) framework for all algorithms. "
+"Currently, there are two types of CC container in EvoX, "
+"{class}`evox.algorithms.Coevolution` and "
+"{class}`evox.algorithms.VectorizedCoevolution`. The difference is that "
+"`VectorizedCoevolution` updates all sub-populations at the same time in "
+"each generation, but `Coevolution` follows the traditional approach that "
+"updates a single sub-populations at each generation."
+msgstr ""
+"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，分别是{class}`evox.algorithms.Coevolution`"
+" 和 "
+"{class}`evox.algorithms.VectorizedCoevolution`。两者的不同在于`VectorizedCoevolution`在每次迭代的同时更新所有子代，而`Coevolution`沿用传统的方法在每迭代时更新单个子代。因此`VectorizedCoevolution`"
+" 更快，但是`Coevolution`在有限数量的评估下最佳适应度方案可能会更好。"
 
-#: ../../source/guide/install.md:148
-msgid "Install CUDA libraries"
-msgstr "安装CUDA库"
-
-#: ../../source/guide/install.md:150
+#: ../../source/guide/user/4-container.md:13
 msgid ""
-"CUDA libraries are user space libraries, so you don't need to reboot "
-"after installation. Again, it depends on your operating system, for "
-"example"
-msgstr "CUDA 库是安装在用户空间的，所以在安装后您不需要重启。 具体的安装方式取决于您的操作系统，例如"
+"The difference can be illustrated as follows, where $pop1$ and $pop2$ are"
+" two sub-populations, and together they form the whole population."
+msgstr ""
 
-#: ../../source/guide/install.md:163
-msgid "Now, you can check your do"
-msgstr "现在您可以检查您做的"
-
-#: ../../source/guide/install.md:167
+#: ../../source/guide/user/4-container.md:15
 #, fuzzy
-msgid ""
-"to see if your GPU is recognized by the driver. If you see something like"
-" this, then you are good to go."
-msgstr "查看您的GPU是否被驱动识别。如果您看到类似的信息，那么您可以开始了。"
+msgid "Coevolution:"
+msgstr "神经演化"
 
-#: ../../source/guide/install.md:191
-msgid "Then check your jaxlib version by"
-msgstr "之后通过其检查您的jaxlib版本"
-
-#: ../../source/guide/install.md:197
-msgid ""
-"Please make sure you CUDA version is smaller or equal to the version of "
-"`jaxlib-cuda`."
-msgstr "请确保您的CUDA版本小于或等于`jaxlib-cuda`的版本。"
-
-#: ../../source/guide/install.md:210
-msgid ""
-"For example, we have `0.4.18+cuda11.cudnn86` installed, and 11 < 12.2 "
-"(displayed by `nvidia-smi`). So we are good to go."
-msgstr ""
-"例如，我们安装了0.4.18+cuda11.cudnn86版本，且nvidia-"
-"smi显示的CUDA版本是11，小于12.2。因此，我们可以开始使用了。"
-
-#: ../../source/guide/install.md:213
-msgid ""
-"Since installing `jax[cuda12]` will usually install the jaxlib compiled "
-"with the latest CUDA version. Even if you have CUDA 12, your CUDA version"
-" might still be lower than the version of that jaxlib requires. In this "
-"case, try to install `jax[cuda11]`."
-msgstr ""
-"由于安装 jax[cuda12] 通常会安装到使用最新 CUDA 版本编译的 jaxlib，即使您有 CUDA 12，您的 CUDA "
-"版本也可能低于 jaxlib 要求的版本（小版本号不够）。 在这种情况下，请尝试安装 jax[cuda11]。"
-
-#: ../../source/guide/install.md:218
-msgid "AMD GPU (ROCM)"
-msgstr ""
-
-#: ../../source/guide/install.md:220
-msgid ""
-"Despite being considered experimental, installing AMD GPUs for ROCm is "
-"surprisingly straightforward thanks to their open-source drivers. "
-"However, currently only a limited number of GPUs are supported, notably "
-"the Radeon RX 7900XTX and Radeon PRO W7900 for consumer-grade GPUs. Note "
-"that Windows is not currently supported."
-msgstr ""
-
-#: ../../source/guide/install.md:222
+#: ../../source/guide/user/4-container.md:20
 #, fuzzy
-msgid "Install GPU driver"
-msgstr "安装教程"
+msgid "VectorizedCoevolution:"
+msgstr "神经演化"
 
-#: ../../source/guide/install.md:224
+#: ../../source/guide/user/4-container.md:25
 msgid ""
-"Since the AMD driver is open-source, installation is simplified: simply "
-"install mesa through your Linux distribution's package manager. In many "
-"cases, the driver may already be pre-installed."
+"Coevolution will update each sub-population one by one, so later sub-"
+"population can utilize the most up-to-date information from the previous "
+"sub-populations. Vectorized Coevolution on the other hand, updates all "
+"sub-populations at the same time, thus gives a more parallelized "
+"computation. In conclusion `VectorizedCoevolution` is faster, but "
+"`Coevolution` could be better in terms of optimization result with a "
+"limited number of evaluations."
 msgstr ""
 
-#: ../../source/guide/install.md:226
-msgid "To verify that the driver is installed, run the following command:"
-msgstr ""
-
-#: ../../source/guide/install.md:232
-msgid "And you should see `amdgpu` in the output."
-msgstr ""
-
-#: ../../source/guide/install.md:234
+#: ../../source/guide/user/4-container.md:29
 #, fuzzy
-msgid "Install ROCm"
-msgstr "安装EvoX"
+msgid "Code Example"
+msgstr "样例"
 
-#: ../../source/guide/install.md:236
-msgid ""
-"The latest version of ROCm (v5.7.1 or later) may not be available in your"
-" Linux distribution's package manager. Therefore, using a containerized "
-"environment is the easiest way to get started."
+#: ../../source/guide/user/4-container.md:31
+#, fuzzy
+msgid "Coevolution with 2 CSO algorithms."
+msgstr "处理高成本算法"
+
+#: ../../source/guide/user/4-container.md:66
+msgid "In summary to apply the container algorithm, you need to:"
 msgstr ""
 
-#: ../../source/guide/install.md:242
-msgid ""
-"Please visit [Docker Hub](https://hub.docker.com/r/rocm/jax) for further "
-"instructions."
+#: ../../source/guide/user/4-container.md:68
+#, fuzzy
+msgid "Create a list of base algorithms."
+msgstr "这个算法的状态。"
+
+#: ../../source/guide/user/4-container.md:69
+#, fuzzy
+msgid "Use `Stateful.stack` to stack the base algorithms."
+msgstr "这个算法的状态。"
+
+#: ../../source/guide/user/4-container.md:70
+msgid "Create a container algorithm with the stacked base algorithms."
 msgstr ""
 
-#: ../../source/guide/install.md:244
-msgid "Verify your installation"
-msgstr "验证安装是否正确"
+#: ../../source/guide/user/4-container.md:72
+msgid ""
+"Please notice that the coevolution implementation in EvoX is still under "
+"development, so there might be some rough edges, and does not reflect the"
+" latest research results in the coevolution field."
+msgstr ""
 
-#: ../../source/guide/install.md:246
-msgid "Open a Python terminal, and run the following:"
-msgstr "打开 Python 终端，并运行以下命令："
-
-#: ../../source/guide/install.md:254
-msgid "Here are some possible output:"
-msgstr "这里是几种可能的输出结果："
-
-#: ../../source/guide/install.md
-msgid "Correct"
-msgstr "正确"
-
-#: ../../source/guide/install.md
-msgid "EvoX not installed"
-msgstr "未安装EvoX"
-
-#: ../../source/guide/install.md
-msgid "Wrong jaxlib version"
-msgstr "jaxlib版本错误"
-
-#: ../../source/guide/install.md
-msgid "Wrong driver/library"
-msgstr "驱动或库版本错误"
-
-#: ../../source/index.md:4
+#: ../../source/guide/user/index.md:1 ../../source/index.md:4
 msgid "User Guide"
 msgstr "用户指引"
 
@@ -3833,9 +3801,7 @@ msgid ""
 "Leverage the power of {class}`Distributed Workflows "
 "<evox.workflows.RayDistributedWorkflow>` for even more rapid "
 "optimization."
-msgstr ""
-"利用 {class}`分布式工作流 <evox.workflows.RayDistributedWorkflow>` "
-"的强大功能，实现更快速的优化。"
+msgstr "利用 {class}`分布式工作流 <evox.workflows.RayDistributedWorkflow>` 的强大功能，实现更快速的优化。"
 
 #: ../../source/index.md:47
 msgid "🌐 **Versatile Optimization Suite**:"
@@ -3854,16 +3820,13 @@ msgstr ""
 msgid ""
 "Dive into a comprehensive library of {doc}`Benchmark Problems "
 "<api/problems/numerical/index>`, ensuring robust testing and evaluation."
-msgstr "深入了解全面的{doc}`基准测试问题库 <api/problems/numerical/"
-"index>`，确保进行稳健的测试和评估。"
+msgstr "深入了解全面的{doc}`基准测试问题库 <api/problems/numerical/index>`，确保进行稳健的测试和评估。"
 
 #: ../../source/index.md:50
 msgid ""
 "Explore the frontier of AI with extensive tools for {doc}`Neuroevolution "
 "<api/problems/neuroevolution/index>` tasks."
-msgstr ""
-"探索人工智能前沿领域，利用广泛的工具进行 {doc}`神经演化 <api/problems/"
-"neuroevolution/index>` 任务。"
+msgstr "探索人工智能前沿领域，利用广泛的工具进行 {doc}`神经演化 <api/problems/neuroevolution/index>` 任务。"
 
 #: ../../source/index.md:52
 msgid "🛠️ **Designed for Simplicity**:"
@@ -3921,6 +3884,7 @@ msgstr ""
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"> 安装教程"
 
 #: ../../source/index.md:70
+#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -3931,7 +3895,7 @@ msgid ""
 "0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 "
 "6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
 "00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
-"8z\"></path></svg> Getting Started"
+"8z\"></path></svg> User Guide"
 msgstr ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -3965,7 +3929,7 @@ msgid ""
 "0-.745.141-1.017.413-.265.265-.483.7-.483 1.368v4.022c.299.105.797.228 "
 "1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.431 "
 "1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
-"11.436z\"></path></svg> Advanced Guide"
+"11.436z\"></path></svg> Developer Guide"
 msgstr ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
@@ -4198,3 +4162,178 @@ msgstr ""
 
 #~ msgid "If the monitor can be jit compiled by JAX or not. Default to False."
 #~ msgstr "监视器是否可以通过JAX进行jit编译。默认为False。"
+
+#~ msgid ""
+#~ "Automatically apply cooperative coevolution to"
+#~ " any algorithm. The process of "
+#~ "cooperative coevolution is vectorized, meaning"
+#~ " all sub-populations will evolve at"
+#~ " the same time in each generation."
+#~ msgstr "将协同演化自动应用于任何算法。协同演化的过程被向量化，意味着在每一代中，所有的子种群将同时进化。"
+
+#~ msgid ""
+#~ "Automatically apply cooperative coevolution to"
+#~ " any algorithm. The process of "
+#~ "cooperative coevolution is not vectorized, "
+#~ "meaning all sub-populations will evolve"
+#~ " one at a time (round-robin) in"
+#~ " each generation."
+#~ msgstr "将协同演化自动应用于任何算法。协同演化的过程未被向量化，这意味着在每一代中，所有子种群将逐一（轮流）进行进化。"
+
+#~ msgid "CPSO_S"
+#~ msgstr "CPSO_S"
+
+#~ msgid ""
+#~ "Cooperative particle swarm optimizer. "
+#~ "Implemented using EvoX's built-in "
+#~ "coevolution framework. CPSOS essentially a "
+#~ "wrapper around PSO and Coevolution."
+#~ msgstr "协同粒子群优化器（CPSO）在EvoX库中通过其内置的协同演化框架得以实现，实质上，CPSOS本质上是对PSO（粒子群优化算法）和协同演化的封装。"
+
+#~ msgid "https://ieeexplore.ieee.org/document/1304845"
+#~ msgstr "https://ieeexplore.ieee.org/document/1304845"
+
+#~ msgid ""
+#~ "will be wrapped with `use_state` "
+#~ "decorator. This decorator requires the "
+#~ "method have the following signature:"
+#~ msgstr "将会用 use_state 装饰器包装。这个装饰器要求方法具有以下签名："
+
+#~ msgid ""
+#~ ":::{warning} Currently, for all user-"
+#~ "defined private methods, the name of "
+#~ "the method should start with `_``. "
+#~ ":::"
+#~ msgstr ":::{警告} 目前，对于所有用户定义的私有方法，方法名称应该以 _ 开头。 :::"
+
+#~ msgid ""
+#~ "To solve is problem, it is common"
+#~ " practice to jit-compile low-level"
+#~ " components, thus giving high-level "
+#~ "components more freedom. In EvoX, we "
+#~ "have some general rules on whether "
+#~ "a function should be jit-able or"
+#~ " not."
+#~ msgstr ""
+#~ "为了解决这个问题，通常的做法是 JIT 编译低层组件，从而给高层组件更多的自由。在 EvoX "
+#~ "中，我们有一些关于函数是否应该是可 JIT 编译的通用规则。"
+
+#~ msgid "Component"
+#~ msgstr "组件"
+
+#~ msgid "jit-able"
+#~ msgstr "可以被jit编译的"
+
+#~ msgid "`Workflow`"
+#~ msgstr "工作流"
+
+#~ msgid "Optional"
+#~ msgstr "可选的"
+
+#~ msgid "`Algorithm`"
+#~ msgstr "算法"
+
+#~ msgid "Yes"
+#~ msgstr "是的"
+
+#~ msgid "`Problem`"
+#~ msgstr "问题"
+
+#~ msgid "`Operators`"
+#~ msgstr "操作符"
+
+#~ msgid "`Monitor`"
+#~ msgstr "监控器"
+
+#~ msgid "No"
+#~ msgstr "不是"
+
+#~ msgid ""
+#~ "For standard workflow, one can jit "
+#~ "compile when not using monitors and "
+#~ "working with jit-able problems. But "
+#~ "even though the workflow can be "
+#~ "compiled, there isn't much performance "
+#~ "gain. For problems, it depends on "
+#~ "the task."
+#~ msgstr ""
+#~ "对于标准工作流，当不使用监视器并且处理可 JIT 编译的问题时，可以进行 JIT "
+#~ "编译。但即使工作流可以被编译，性能提升也不大。对于问题，这取决于任务。"
+
+#~ msgid ""
+#~ "Many algorithms are expensive in terms"
+#~ " of space or time. For example, "
+#~ "CMA-ES requires $O(N^2)$ space. Thus,"
+#~ " it is costly to run CMA-ES "
+#~ "on high-dimension problems. Sep-CMA-"
+#~ "ES scales better but sacrifices the "
+#~ "performance. That's where the container "
+#~ "algorithm comes in. With it, we "
+#~ "can easily construct a variant of "
+#~ "CMA-ES that uses $O((\\frac{N}{M})^2)$ "
+#~ "space, where $M$ is the number of"
+#~ " blocks. This variant is a balance"
+#~ " between the normal CMA-ES and "
+#~ "Sep-CMA-ES."
+#~ msgstr ""
+#~ "许多算法在空间或时间方面的成本都很高。例如，CMA-ES需要$O(N^2)$的空间。因此，在高维问题上运行CMA-"
+#~ "ES的成本很高。Sep-CMA-"
+#~ "ES的扩展性更好，但牺牲了性能。这就是容器算法的用武之地。有了它，我们可以轻松构建一个使用$O((\\frac{N}{M})^2"
+#~ ")$空间的CMA-ES变体，其中$M$是块的数量。这种变体是普通CMA-ES和Sep-CMA-"
+#~ "ES之间的平衡。"
+
+#~ msgid "Working with PyTree"
+#~ msgstr "处理 PyTree"
+
+#~ msgid ""
+#~ "Usually, algorithms expect the decision "
+#~ "variables to be in the form of "
+#~ "a 1D-vector. PyTrees are tree-like"
+#~ " structures that are not directly "
+#~ "compatible with normal algorithms. So, "
+#~ "there are two solutions out there:"
+#~ msgstr "一般来说，算法期望决策变量以一维形式呈现。但是Pytrees是树类结构不能直接与常见的算法兼容。所以这里有两种解决方法："
+
+#~ msgid "Flatten the PyTree to 1D-vector."
+#~ msgstr "将Pytree平展成一维向量。"
+
+#~ msgid "Use a specialized algorithm that work with PyTree directly."
+#~ msgstr "使用经过特殊化算法来直接处理Pytree。"
+
+#~ msgid ""
+#~ "Solution 1 is called `adapter` in "
+#~ "EvoX, which is quite simple, but "
+#~ "we are not talking about this "
+#~ "here. Solution 2 seems more complicated,"
+#~ " but the advantage is that the "
+#~ "structural information is preserved, meaning"
+#~ " the algorithm could see the tree "
+#~ "structure and apply some type of "
+#~ "heuristic here."
+#~ msgstr "在EvoX中方法1被命名为adapter并且非常简单，这里不再进行赘述。方法2更为复杂，但是保留原本的信息结构是他的一个优点，这意味着算法可以知道树的结构并且在此使用某种类型的启发式算法。"
+
+#~ msgid "Advanced Tutorial"
+#~ msgstr "进阶教程"
+
+#~ msgid ""
+#~ "To record information related to the "
+#~ "population as well, turn on `record_pop`"
+#~ " option in the workflow."
+#~ msgstr "要同时记录与种群相关的信息，请在工作流中打开 `record_pop` 选项。"
+
+#~ msgid ""
+#~ "This will cause the population be "
+#~ "sent to the monitor as well, and"
+#~ " the monitor can then determine the"
+#~ " best solution on the fly."
+#~ msgstr "这将导致种群也被发送到监视器，监视器随后可以即时确定最佳解决方案。"
+
+#~ msgid ""
+#~ "Please note that when the population "
+#~ "size is very large, is option can"
+#~ " harm the overall performance."
+#~ msgstr "请注意，当种群规模非常大时，这个选项可能会影响整体性能。"
+
+#~ msgid "Getting Started"
+#~ msgstr "开始"
+
