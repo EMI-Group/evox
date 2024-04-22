@@ -1,3 +1,5 @@
+import warnings
+
 import jax
 import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
@@ -7,6 +9,7 @@ from jax.sharding import SingleDeviceSharding
 
 from evox import Monitor
 from evox.vis_tools import plot
+
 from ..operators import non_dominated_sort
 
 
@@ -24,7 +27,9 @@ class EvalMonitor(Monitor):
         Default to True. Setting it to False may reduce memory usage.
     full_sol_history
         Whether to record the full history of solutions.
-        Default to False. Setting it to True may increase memory usage.
+        Default to False.
+        Setting it to True may increase memory usage,
+        and adding a significant overhead of transfering the entire solutions set from GPU to CPU.
     topk
         Only affect Single-objective optimization. The number of elite solutions to record.
         Default to 1, which will record the best individual.
@@ -48,57 +53,67 @@ class EvalMonitor(Monitor):
         self.solution_history = []
         self.topk_fitness = None
         self.topk_solutions = None
-        self.current_solutions = None
         self.pf_solutions = None
         self.pf_fitness = None
         self.eval_count = 0
         self.opt_direction = 1  # default to min, so no transformation is needed
 
     def hooks(self):
-        return ["post_ask", "post_eval"]
+        return ["post_eval"]
 
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
 
-    def post_ask(self, _state, cand_sol):
-        monitor_device = SingleDeviceSharding(jax.devices()[0])
-        io_callback(self.record_sol, None, cand_sol, sharding=monitor_device)
-
-    def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
+    def post_eval(self, _state, cand_sol, _transformed_cand_sol, fitness):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
         if fitness.ndim == 1:
-            recorder = self.record_fit_single_obj
+            if self.full_sol_history:
+                cand_fit = None
+            else:
+                # when not recording full solution history,
+                # only send the topk solutions to the host to save bandwidth
+                rank = jnp.argsort(fitness)
+                topk_rank = rank[: self.topk]
+                cand_sol = cand_sol[topk_rank]
+                cand_fit = fitness[topk_rank]
+
+            io_callback(
+                self.record_fit_single_obj,
+                None,
+                cand_sol,
+                cand_fit,
+                fitness,
+                sharding=monitor_device,
+            )
         else:
-            recorder = self.record_fit_multi_obj
+            io_callback(
+                self.record_fit_multi_obj,
+                None,
+                cand_sol,
+                fitness,
+                sharding=monitor_device,
+            )
 
-        io_callback(
-            recorder,
-            None,
-            fitness,
-            sharding=monitor_device,
-        )
+    def record_fit_single_obj(self, cand_sol, cand_fit, fitness):
+        if cand_fit is None:
+            cand_fit = fitness
 
-    def record_sol(self, sols):
         if self.full_sol_history:
-            self.solution_history.append(sols)
-        self.current_solutions = sols
+            self.solution_history.append(cand_sol)
 
-    def record_fit_single_obj(self, fitness):
         if self.full_fit_history:
             self.fitness_history.append(fitness)
+
         if self.topk == 1:
             # handle the case where topk = 1
             # don't need argsort / top_k, which are slower
-            current_min_fit = jnp.min(fitness, keepdims=True)
+            current_min_fit = jnp.min(cand_fit, keepdims=True)
             if self.topk_fitness is None or self.topk_fitness > current_min_fit:
                 self.topk_fitness = current_min_fit
-                if self.current_solutions is not None:
-                    individual_index = jnp.argmin(fitness)
-                    # use slice to keepdim,
-                    # because topk_solutions should have dim of (1, dim)
-                    self.topk_solutions = self.current_solutions[
-                        individual_index : individual_index + 1
-                    ]
+                individual_index = jnp.argmin(cand_fit)
+                # use slice to keepdim,
+                # because topk_solutions should have dim of (1, dim)
+                self.topk_solutions = cand_sol[individual_index : individual_index + 1]
         else:
             # since topk > 1, we have to sort the fitness
             if self.topk_fitness is None:
@@ -106,20 +121,24 @@ class EvalMonitor(Monitor):
             else:
                 self.topk_fitness = jnp.concatenate([self.topk_fitness, fitness])
 
-            if self.current_solutions is not None:
-                if self.topk_solutions is None:
-                    self.topk_solutions = self.current_solutions
-                else:
-                    self.topk_solutions = jnp.concatenate(
-                        [self.topk_solutions, self.current_solutions], axis=0
-                    )
+            if self.topk_solutions is None:
+                self.topk_solutions = cand_fit
+            else:
+                self.topk_solutions = jnp.concatenate(
+                    [self.topk_solutions, cand_sol], axis=0
+                )
             rank = jnp.argsort(self.topk_fitness)
             topk_rank = rank[: self.topk]
-            if self.current_solutions is not None:
-                self.topk_solutions = self.topk_solutions[topk_rank]
+            self.topk_solutions = self.topk_solutions[topk_rank]
             self.topk_fitness = self.topk_fitness[topk_rank]
 
-    def record_fit_multi_obj(self, fitness):
+    def record_fit_multi_obj(self, cand_sol, fitness):
+        if cand_fit is None:
+            cand_fit = fitness
+
+        if self.full_sol_history:
+            self.solution_history.append(cand_sol)
+
         if self.full_fit_history:
             self.fitness_history.append(fitness)
 
@@ -129,13 +148,12 @@ class EvalMonitor(Monitor):
             else:
                 self.pf_fitness = jnp.concatenate([self.pf_fitness, fitness], axis=0)
 
-            if self.current_solutions is not None:
-                if self.pf_solutions is None:
-                    self.pf_solutions = self.current_solutions
-                else:
-                    self.pf_solutions = jnp.concatenate(
-                        [self.pf_solutions, self.current_solutions], axis=0
-                    )
+            if self.pf_solutions is None:
+                self.pf_solutions = cand_sol
+            else:
+                self.pf_solutions = jnp.concatenate(
+                    [self.pf_solutions, cand_sol], axis=0
+                )
 
             rank = non_dominated_sort(self.pf_fitness)
             pf = rank == 0
@@ -143,7 +161,7 @@ class EvalMonitor(Monitor):
             self.pf_solutions = self.pf_solutions[pf]
         else:
             self.pf_fitness = fitness
-            self.pf_solutions = self.current_solutions
+            self.pf_solutions = cand_sol
 
     def get_latest_fitness(self):
         return self.opt_direction * self.fitness_history[-1]
@@ -161,7 +179,7 @@ class EvalMonitor(Monitor):
         return self.topk_solutions
 
     def get_best_solution(self):
-        return self.current_solutions[0]
+        return self.topk_solutions[0]
 
     def get_best_fitness(self):
         return self.opt_direction * self.topk_fitness[0]
@@ -180,11 +198,11 @@ class EvalMonitor(Monitor):
             n_objs = self.fitness_history[0].shape[1]
 
         if n_objs == 1:
-            return plot.plot_obj_space_1d(self.fitness_history, **kwargs)
+            return plot.plot_obj_space_1d(self.get_history(), **kwargs)
         elif n_objs == 2:
-            return plot.plot_obj_space_2d(self.fitness_history, problem_pf, **kwargs)
+            return plot.plot_obj_space_2d(self.get_history(), problem_pf, **kwargs)
         elif n_objs == 3:
-            return plot.plot_obj_space_3d(self.fitness_history, problem_pf, **kwargs)
+            return plot.plot_obj_space_3d(self.get_history(), problem_pf, **kwargs)
         else:
             warnings.warn("Not supported yet.")
 

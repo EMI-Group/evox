@@ -289,7 +289,6 @@ class Stateful:
             # attr should be a list, or tuple of modules
             if _has_annotation(type_hint, StackAnnotation):
                 num_copies = len(attr)
-                submodule_states = []
                 subkeys = jax.random.split(subkey, num_copies)
                 current_node_id = node_id
                 _, node_id = attr._recursive_init(None, node_id + 1, attr_name, True)
