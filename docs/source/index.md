@@ -6,9 +6,9 @@
 :maxdepth: 1
 :hidden:
 
-guide/install
-guide/basics/index
-guide/advanced/index
+guide/install/index
+guide/user/index
+guide/developer/index
 ```
 
 ```{toctree}
