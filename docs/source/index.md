@@ -64,19 +64,19 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
    .. grid-item-card:: :octicon:`desktop-download;1.5em` Installation Guide
       :padding: 3
       :margin: 0
-      :link: guide/install
+      :link: guide/install/index
       :link-type: doc
 
-   .. grid-item-card:: :octicon:`people;1.5em` Getting Started
+   .. grid-item-card:: :octicon:`people;1.5em` User Guide
       :padding: 3
       :margin: 0
-      :link: guide/basics/index
+      :link: guide/user/index
       :link-type: doc
 
-   .. grid-item-card:: :octicon:`mortar-board;1.5em` Advanced Guide
+   .. grid-item-card:: :octicon:`mortar-board;1.5em` Developer Guide
       :padding: 3
       :margin: 0
-      :link: guide/advanced/index
+      :link: guide/developer/index
       :link-type: doc
 
 .. grid:: 3
