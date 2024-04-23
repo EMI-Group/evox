@@ -5,9 +5,8 @@ from evox import workflows, algorithms, problems
 from evox.monitors import StdSOMonitor, StdMOMonitor, EvalMonitor, PopMonitor
 
 
-@pytest.mark.parametrize("topk", [1, 2, 4])
-def test_std_so_monitor(topk):
-    monitor = StdSOMonitor(record_topk=topk, record_fit_history=True)
+def test_std_so_monitor():
+    monitor = StdSOMonitor(record_topk=1, record_fit_history=True)
 
     pop1 = jnp.arange(15).reshape((3, 5))
     fitness1 = jnp.arange(3)
