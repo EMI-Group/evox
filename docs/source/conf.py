@@ -57,8 +57,8 @@ autodoc_mock_imports = [
     "envpool",
     "gymnasium",
     "ray",
-    "torch",
-    "torchvision",
+    "tensorflow_datasets",
+    "grain",
     "gpjax",
 ]
 
