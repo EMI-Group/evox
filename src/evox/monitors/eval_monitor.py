@@ -117,12 +117,12 @@ class EvalMonitor(Monitor):
         else:
             # since topk > 1, we have to sort the fitness
             if self.topk_fitness is None:
-                self.topk_fitness = fitness
+                self.topk_fitness = cand_fit
             else:
-                self.topk_fitness = jnp.concatenate([self.topk_fitness, fitness])
+                self.topk_fitness = jnp.concatenate([self.topk_fitness, cand_fit])
 
             if self.topk_solutions is None:
-                self.topk_solutions = cand_fit
+                self.topk_solutions = cand_sol
             else:
                 self.topk_solutions = jnp.concatenate(
                     [self.topk_solutions, cand_sol], axis=0
