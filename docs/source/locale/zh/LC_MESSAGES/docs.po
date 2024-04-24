@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-04-22 16:17+0800\n"
-"PO-Revision-Date: 2024-04-22 11:35+0000\n"
+"PO-Revision-Date: 2024-04-24 05:14+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "evox/evox/zh_Hans/>\n"
@@ -2319,7 +2319,7 @@ msgstr "在EvoX中，“State”代表一个状态树，它存储当前对象和
 
 #: ../../source/guide/developer/1-state.md:60
 msgid "The structure of `State` is roughly like this:"
-msgstr ""
+msgstr "`State` 的结构大概如如下所示："
 
 #: ../../source/guide/developer/1-state.md:68
 msgid ""
@@ -2328,6 +2328,9 @@ msgid ""
 "objects. Besides normal dicts as `self_state`, we also support the use of"
 " `dataclass` to define the state of the object."
 msgstr ""
+"其中，`self_state` 存储当前对象的状态（由 setup 返回的对象），而 "
+"child_states 存储所有子对象的状态。除了字典作为 self_state "
+"外，我们还支持使用数据类（dataclass）来定义对象的状态。"
 
 #: ../../source/guide/developer/1-state.md:71
 msgid "Combined together"
