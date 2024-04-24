@@ -8,12 +8,17 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2301.12457">
-    <img src="https://img.shields.io/badge/paper-arxiv-red?style=for-the-badge" alt="EvoX Paper on arXiv">
+    <img src="https://img.shields.io/badge/paper-arxiv-red" alt="EvoX Paper on arXiv">
   </a>
-
   <a href="https://evox.readthedocs.io/">
-    <img src="https://img.shields.io/badge/docs-readthedocs-blue?style=for-the-badge" alt="EvoX Documentation">
+    <img src="https://img.shields.io/badge/docs-readthedocs-blue" alt="EvoX Documentation">
   </a>
+  <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/evox">
+  <img alt="Discord" src="https://img.shields.io/discord/1232519710562844683?logo=discord">
+  <a href="https://qm.qq.com/q/vTPvoMUGAw">
+    <img alt="Static Badge" src="https://img.shields.io/badge/QQ-297969717-%231db4f4">
+  </a>
+  <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
 </p>
 
 <p align="center">
