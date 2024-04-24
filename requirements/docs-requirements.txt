@@ -2,6 +2,7 @@
 jax
 jaxlib
 flax
+grain
 optax
 pyarrow
 polib
