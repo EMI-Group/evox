@@ -56,8 +56,6 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
   - Jumpstart your journey with our [Detailed Tutorial](https://evox.readthedocs.io/en/latest/guide/basics/index.html).
 
----
-
 ## Comprehensive Evolutionary Algorithms
 
 ### Single-Objective Optimization
