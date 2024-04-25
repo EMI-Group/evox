@@ -161,7 +161,9 @@ class EAGMOEAD(Algorithm):
 
         def body_fun(i, vals):
             population, pop_obj = vals
-            g_old = self.aggregate_func(pop_obj[B[offspring_loc[i], :]], w[B[offspring_loc[i], :]])
+            g_old = self.aggregate_func(
+                pop_obj[B[offspring_loc[i], :]], w[B[offspring_loc[i], :]]
+            )
             g_new = self.aggregate_func(offspring_obj[i], w[B[offspring_loc[i], :]])
             idx = B[offspring_loc[i]]
             g_new = g_new[:, jnp.newaxis]

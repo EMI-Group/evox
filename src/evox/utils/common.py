@@ -267,6 +267,7 @@ def frames2gif(frames, save_path, duration=0.1):
 
     print("Gif saved to: ", save_path)
 
+
 @jit_class
 class AggregationFunction:
     """
@@ -276,6 +277,7 @@ class AggregationFunction:
     Args:
         function_name (str): name of the aggregation function.
     """
+
     def __init__(self, function_name):
         if function_name == "pbi":
             self.function = self.pbi
@@ -294,7 +296,9 @@ class AggregationFunction:
         norm_w = jnp.linalg.norm(w, axis=1)
         f = f - z
         d1 = jnp.sum(f * w, axis=1) / norm_w
-        d2 = jnp.linalg.norm(f - (d1[:, jnp.newaxis] * w / norm_w[:, jnp.newaxis]), axis=1)
+        d2 = jnp.linalg.norm(
+            f - (d1[:, jnp.newaxis] * w / norm_w[:, jnp.newaxis]), axis=1
+        )
         return d1 + 5 * d2
 
     def tchebycheff(self, f, w, z, *args):
