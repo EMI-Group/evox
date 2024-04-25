@@ -31,8 +31,7 @@
     <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
   </a>
 
-
-##
+---
 
 <p align="center">
   <b>🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟</b>
