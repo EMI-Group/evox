@@ -8,16 +8,29 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2301.12457">
-    <img src="https://img.shields.io/badge/paper-arxiv-red" alt="EvoX Paper on arXiv">
+    <img src="https://img.shields.io/badge/arxiv-paper-red?logo=arxiv" alt="EvoX Paper on arXiv">
   </a>
   <a href="https://evox.readthedocs.io/">
-    <img src="https://img.shields.io/badge/docs-readthedocs-blue" alt="EvoX Documentation">
+    <img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="EvoX Documentation">
   </a>
-  <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/evox">
+  <a href="https://discord.gg/Vbtgcpy7G4">
+    <img alt="Discord Server" src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord">
+  </a>
   <a href="https://qm.qq.com/q/vTPvoMUGAw">
-    <img alt="Static Badge" src="https://img.shields.io/badge/QQ-297969717-%231db4f4">
+    <img alt="QQ Group" src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq">
   </a>
-  <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
+  <a href="https://pypi.org/project/evox/">
+    <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/evox?logo=python">
+  </a>
+  <a href="https://pypi.org/project/evox/">
+    <img alt="Python - Version" src="https://img.shields.io/badge/python-3.9+-orange?logo=python">
+  </a>
+  <a href="https://pypi.org/project/evox/">
+    <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/evox?color=orange&logo=python">
+  </a>
+  <a href="https://github.com/EMI-Group/evox">
+    <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
+  </a>
 </p>
 
 <p align="center">
@@ -53,28 +66,28 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 ### Single-Objective Optimization
 
-| Category                    | Algorithm Names                             |
+| Category                    | Algorithm Names                            |
 | --------------------------- | ------------------------------------------ |
 | Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| Evolution Strategy        | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+| Evolution Strategy          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
 ### Multi-Objective Optimization
 
-| Category           | Algorithm Names                                 |
-| ------------------ | ---------------------------------------------- |
-| Dominance-based    | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
-| Decomposition-based| MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-| Indicator-based    | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
+| Category            | Algorithm Names                                |
+| ------------------- | ---------------------------------------------- |
+| Dominance-based     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
+| Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
+| Indicator-based     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
 
 For a comprehensive list and further details of all algorithms, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html).
 
 ## Diverse Benchmark Problems
 
-| Category      | Problem Names                           |
-| ------------- | --------------------------------------- |
-| Numerical     | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ...    |
-| Neuroevolution| Brax, Gym, TorchVision Dataset, ...    |
+| Category       | Problem Names                       |
+| -------------- | ----------------------------------- |
+| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
+| Neuroevolution | Brax, Gym, TorchVision Dataset, ... |
 
 For a comprehensive list and further details of all benchmark problems, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
@@ -123,12 +136,12 @@ for i in range(100):
 
 Try out ready-to-play examples in your browser with Colab:
 
-| Example | Link |
-| ------- | ---- |
-| Basic Usage | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb) |
-| Numerical Optimization | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb) |
-| Neuroevolution with Gym | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb) |
-| Neuroevolution with Brax | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb) |
+| Example                  | Link                                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Basic Usage              | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb)                 |
+| Numerical Optimization   | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb)                   |
+| Neuroevolution with Gym  | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb)          |
+| Neuroevolution with Brax | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb)              |
 | Custom Algorithm/Problem | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/custom_algorithm_and_problem.ipynb) |
 
 For more use-cases and applications, pleae check out [Example Directory](https://evox.readthedocs.io/en/latest/example/index.html).
