@@ -31,9 +31,9 @@
     <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
   </a>
 
-<h1 align="center">
+<h2 align="center">
   🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟
-</h1>
+</h2>
 
 
 Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
