@@ -85,6 +85,35 @@ def test_eval_monitor_with_so(full_fit_history, full_sol_history, topk):
     assert (monitor.get_topk_solutions() == pop2[-topk:][::-1]).all()
 
 
+@pytest.mark.parametrize(
+    "full_fit_history,full_sol_history",
+    [
+        (False, False),
+        (False, True),
+        (True, False),
+        (True, True),
+    ],
+)
+def test_eval_monitor_with_mo(full_fit_history, full_sol_history):
+    monitor = EvalMonitor(
+        full_fit_history=full_fit_history, full_sol_history=full_sol_history
+    )
+    monitor.set_opt_direction = 1
+
+    pop1 = jnp.arange(15).reshape((3, 5))
+    fitness1 = jnp.arange(6).reshape(3, 2)
+
+    monitor.post_eval(None, pop1, None, fitness1)
+    assert (monitor.get_latest_fitness() == fitness1).all()
+    assert (monitor.get_latest_solution() == pop1).all()
+
+    pop2 = -jnp.arange(15).reshape((3, 5))
+    fitness2 = -jnp.arange(6).reshape(3, 2)
+    monitor.post_eval(None, pop2, None, fitness2)
+    assert (monitor.get_latest_fitness() == fitness2).all()
+    assert (monitor.get_latest_solution() == pop2).all()
+
+
 @pytest.mark.parametrize("fitness_only", [True, False])
 def test_pop_monitor(fitness_only):
     monitor = PopMonitor(fitness_only=fitness_only)
@@ -94,6 +123,11 @@ def test_pop_monitor(fitness_only):
     key = jax.random.PRNGKey(0)
     state = workflow.init(key)
     state = workflow.step(state)
-    assert (monitor.get_latest_fitness() == state.get_child_state("algorithm").fitness).all()
+    assert (
+        monitor.get_latest_fitness() == state.get_child_state("algorithm").fitness
+    ).all()
     if not fitness_only:
-        assert (monitor.get_latest_population() == state.get_child_state("algorithm").population).all()
+        assert (
+            monitor.get_latest_population()
+            == state.get_child_state("algorithm").population
+        ).all()

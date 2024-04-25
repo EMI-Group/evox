@@ -55,6 +55,8 @@ class EvalMonitor(Monitor):
         self.topk_solutions = None
         self.pf_solutions = None
         self.pf_fitness = None
+        self.latest_solution = None
+        self.latest_fitness = None
         self.eval_count = 0
         self.opt_direction = 1  # default to min, so no transformation is needed
 
@@ -133,9 +135,6 @@ class EvalMonitor(Monitor):
             self.topk_fitness = self.topk_fitness[topk_rank]
 
     def record_fit_multi_obj(self, cand_sol, fitness):
-        if cand_fit is None:
-            cand_fit = fitness
-
         if self.full_sol_history:
             self.solution_history.append(cand_sol)
 
@@ -159,12 +158,15 @@ class EvalMonitor(Monitor):
             pf = rank == 0
             self.pf_fitness = self.pf_fitness[pf]
             self.pf_solutions = self.pf_solutions[pf]
-        else:
-            self.pf_fitness = fitness
-            self.pf_solutions = cand_sol
+
+        self.latest_fitness = fitness
+        self.latest_solution = cand_sol
 
     def get_latest_fitness(self):
-        return self.opt_direction * self.fitness_history[-1]
+        return self.opt_direction * self.latest_fitness
+
+    def get_latest_solution(self):
+        return self.latest_solution
 
     def get_pf_fitness(self):
         return self.opt_direction * self.pf_fitness
