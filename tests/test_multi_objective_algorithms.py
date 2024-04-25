@@ -46,7 +46,6 @@ def test_moead():
         ub=jnp.full(shape=(N,), fill_value=UB),
         n_objs=M,
         pop_size=POP_SIZE,
-        type=1,
     )
     run_moea(algorithm)
 
