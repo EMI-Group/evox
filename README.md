@@ -14,7 +14,6 @@
     <img src="https://img.shields.io/badge/docs-readthedocs-blue" alt="EvoX Documentation">
   </a>
   <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/evox">
-  <img alt="Discord" src="https://img.shields.io/discord/1232519710562844683?logo=discord">
   <a href="https://qm.qq.com/q/vTPvoMUGAw">
     <img alt="Static Badge" src="https://img.shields.io/badge/QQ-297969717-%231db4f4">
   </a>
