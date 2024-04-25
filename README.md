@@ -4,6 +4,8 @@
     <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_logo_light.png">
     <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_logo_light.png">
   </picture>
+</h1>
+
     <a href="https://arxiv.org/abs/2301.12457">
     <img src="https://img.shields.io/badge/arxiv-paper-red?logo=arxiv" alt="EvoX Paper on arXiv">
   </a>
@@ -28,7 +30,6 @@
   <a href="https://github.com/EMI-Group/evox">
     <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
   </a>
-</h1>
 
 
 <p align="center">
