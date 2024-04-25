@@ -32,9 +32,9 @@
   </a>
 
 ---
-<p align="center">
-  <b>🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟</b>
-</p>
+<h1 align="center">
+  🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟
+</h1>
 
 ---
 
