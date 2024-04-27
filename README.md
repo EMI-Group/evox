@@ -94,7 +94,7 @@ Install `evox` effortlessly via `pip`:
 pip install evox
 ```
 
-**Note**: To install EvoX with JAX and hardware acceleration capabilities, please refer to our comprehensive [Installation Guide](https://evox.readthedocs.io/en/latest/guide/install.html).
+**Note**: To install EvoX with JAX and hardware acceleration capabilities, please refer to our comprehensive [Installation Guide](https://evox.readthedocs.io/en/latest/guide/install/index.html).
 
 
 ## Quick Start
