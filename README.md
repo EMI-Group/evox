@@ -56,9 +56,9 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
 
-## Comprehensive Evolutionary Algorithms
+## Comprehensive Contents
 
-### Single-Objective Optimization
+### Evolutionary Algorithms for Single-Objective Optimization
 
 | Category                    | Algorithm Names                            |
 | --------------------------- | ------------------------------------------ |
@@ -66,7 +66,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Evolution Strategy          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-### Multi-Objective Optimization
+### Evolutionary Algorithms for Multi-Objective Optimization
 
 | Category            | Algorithm Names                                |
 | ------------------- | ---------------------------------------------- |
@@ -76,12 +76,12 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 For a comprehensive list and further details of all algorithms, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/algorithms/index.html).
 
-## Diverse Benchmark Problems
+### Benchmark Problems/Environments
 
 | Category       | Problem Names                       |
 | -------------- | ----------------------------------- |
 | Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
-| Neuroevolution | Brax, Gym, TorchVision Dataset, ... |
+| Neuroevolution/RL | Brax, Gym, TorchVision Dataset, ... |
 
 For a comprehensive list and further details of all benchmark problems, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
