@@ -95,7 +95,7 @@ pip install evox
 
 **Note**: To setup EvoX with **GPU acceleration** capabilities, you will need to setup **JAX** first. For detials, please refer to our comprehensive [Installation Guide](https://evox.readthedocs.io/en/latest/guide/install/index.html). 
 
-Additionally, you can watch our **Instructional Videos**:
+Additionally, you can watch our **instructional videos**:
 
 [EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)
 
