@@ -97,13 +97,13 @@ pip install evox
 
 Additionally, you can watch our **instructional videos**:
 
-[EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)
+🎥 [EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)
 
-[EvoX Installation Guide (Windows)](https://youtu.be/7f8Uz1rqvn8)
+🎥 [EvoX Installation Guide (Windows)](https://youtu.be/7f8Uz1rqvn8)
 
-[EvoX 安装指南 (Linux)](https://www.bilibili.com/video/BV1Zt421c7GN/?share_source=copy_web&vd_source=1045e8eb64490d22683228ac8045741b)
+🎥 [EvoX 安装指南 (Linux)](https://www.bilibili.com/video/BV1Zt421c7GN/?share_source=copy_web&vd_source=1045e8eb64490d22683228ac8045741b)
 
-[EvoX 安装指南 (Windows)]( https://www.bilibili.com/video/BV1Bb421h7bG/?share_source=copy_web&vd_source=1045e8eb64490d22683228ac8045741b)
+🎥 [EvoX 安装指南 (Windows)]( https://www.bilibili.com/video/BV1Bb421h7bG/?share_source=copy_web&vd_source=1045e8eb64490d22683228ac8045741b)
 
 
 
