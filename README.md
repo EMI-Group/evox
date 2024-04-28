@@ -83,7 +83,7 @@ For a comprehensive list and further details of all algorithms, please check the
 | Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution/RL | Brax, Gym, TorchVision Dataset, ... |
 
-For a comprehensive list and further details of all benchmark problems, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+For a comprehensive list and further details of all benchmark problems/environments, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
 
 ## Setting Up EvoX
