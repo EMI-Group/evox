@@ -56,7 +56,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
 
-## Comprehensive Contents
+## Main Contents
 
 ### Evolutionary Algorithms for Single-Objective Optimization
 
