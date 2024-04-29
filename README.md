@@ -49,8 +49,8 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 - 🌐 **Versatile Optimization Suite**:
   - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
-  - Dive into a comprehensive library of **Benchmark Problems**, ensuring robust testing and evaluation.
-  - Explore the frontier of AI with extensive tools for **Neuroevolution** tasks.
+  - Dive into a comprehensive library of **Benchmark Problems/Environments**, ensuring robust testing and evaluation.
+  - Explore the frontier of AI with extensive tools for **Neuroevolution/RL** tasks.
 
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
