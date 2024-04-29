@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  EvoX\n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-04-29 10:45+0800\n"
-"PO-Revision-Date: 2024-04-24 05:14+0000\n"
+"PO-Revision-Date: 2024-04-29 02:49+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: Chinese (Simplified) "
-"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.5.1\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -2894,7 +2895,7 @@ msgstr "安装教程"
 
 #: ../../source/guide/install/install.md:1
 msgid "EvoX Installation Guide"
-msgstr "EvoX安装指引"
+msgstr "EvoX安装教程"
 
 #: ../../source/guide/install/install.md:3
 msgid "Install EvoX"
@@ -3285,17 +3286,16 @@ msgid "Fedora: `dnf`"
 msgstr ""
 
 #: ../../source/guide/install/video_guide.md:1
-#, fuzzy
 msgid "Video Installation Guide"
-msgstr "EvoX安装指引"
+msgstr "视频安装教程"
 
 #: ../../source/guide/install/video_guide.md:3
 msgid "🎥 [EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)"
-msgstr ""
+msgstr "🎥 [EvoX 安装指南 (Linux)](https://www.bilibili.com/video/BV1Zt421c7GN)"
 
 #: ../../source/guide/install/video_guide.md:5
 msgid "🎥 [EvoX Installation Guide (Windows)](https://youtu.be/7f8Uz1rqvn8)"
-msgstr ""
+msgstr "🎥 [EvoX 安装指南 (Windows)]( https://www.bilibili.com/video/BV1Bb421h7bG)"
 
 #: ../../source/guide/install/windows_gpu.md:1
 msgid "Windows with GPU acceleration"
@@ -4425,4 +4425,3 @@ msgstr "如果要禁用GPU，你可以用："
 
 #~ msgid "Getting Started"
 #~ msgstr "开始"
-
