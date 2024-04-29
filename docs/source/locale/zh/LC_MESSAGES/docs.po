@@ -5,19 +5,18 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: EvoX\n"
+"Project-Id-Version:  EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 16:17+0800\n"
+"POT-Creation-Date: 2024-04-29 10:45+0800\n"
 "PO-Revision-Date: 2024-04-24 05:14+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
-"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
-"evox/evox/zh_Hans/>\n"
 "Language: zh\n"
+"Language-Team: Chinese (Simplified) "
+"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.5-dev\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -92,7 +91,8 @@ msgstr "向量化的协同演化算法容器"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.setup
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize
-#: evox.problems.neuroevolution.supervised_learning.torchvision_dataset.TorchvisionDataset.__init__
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset.__init__
 #: evox.problems.numerical.lsmop.LSMOP1.__init__
 #: evox.problems.numerical.lsmop.LSMOP2.__init__
 #: evox.problems.numerical.lsmop.LSMOP3.__init__
@@ -123,8 +123,7 @@ msgstr "**基础算法：**"
 msgid ""
 "A batch of base algorithms. Usually created from `Stateful.stack(...)`, "
 "where ... is a list of algorithms."
-msgstr "一批基础算法。通常是由`Stateful.stack(...)`创建出来的，其中..."
-"是一个算法的列表。"
+msgstr "一批基础算法。通常是由`Stateful.stack(...)`创建出来的，其中...是一个算法的列表。"
 
 #: evox.algorithms.containers.coevolution.Coevolution:12
 #: evox.algorithms.containers.coevolution.VectorizedCoevolution:12 of
@@ -160,10 +159,7 @@ msgid ""
 "decision variables, for example, dimension 0~9 for subpopulation 0, 10~19"
 " for subpopulation 1, etc. When set to True, the decision variables will "
 "be shuffled."
-msgstr ""
-"是否打乱问题的维度。如果设置为False，那么每个子种群会对应原始的问题中连续的一"
-"段决策变量，比如说，0-9维会分配给0号子种群，10-19维会分配给1号子种群。当设置"
-"为True的时候，决策变量将会被打乱。"
+msgstr "是否打乱问题的维度。如果设置为False，那么每个子种群会对应原始的问题中连续的一段决策变量，比如说，0-9维会分配给0号子种群，10-19维会分配给1号子种群。当设置为True的时候，决策变量将会被打乱。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup
 #: evox.algorithms.containers.coevolution.Coevolution.__init__
@@ -176,6 +172,7 @@ msgstr ""
 #: evox.core.problem.Problem.evaluate evox.core.state.State.__init__
 #: evox.core.state.State.find_path_to evox.core.state.State.index
 #: evox.core.state.State.slice evox.core.state.State.update
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset.__init__
 #: evox.workflows.std_workflow.StdWorkflow.enable_multi_devices of
 msgid "Return type"
 msgstr "返回值类型"
@@ -1262,8 +1259,7 @@ msgstr ""
 
 #: evox.core.state.State.__init__:2 of
 msgid "Construct a ``State`` from dataclass instance or keyword arguments"
-msgstr "从Python数据类（dataclass）或关键字（keyword "
-"arguments）构建一个状态（State）对象"
+msgstr "从Python数据类（dataclass）或关键字（keyword arguments）构建一个状态（State）对象"
 
 #: evox.core.state.State.__init__:30 evox.core.state.State.update:26 of
 msgid "Example::"
@@ -1374,8 +1370,7 @@ msgid ""
 "Whether to record the full history of solutions. Default to False. "
 "Setting it to True may increase memory usage, and adding a significant "
 "overhead of transfering the entire solutions set from GPU to CPU."
-msgstr "是否记录完整的解集的历史。默认值为False。将其设置为True可能会减少内存占用，并"
-"会带来很大的GPU/CPU间数据传输开销。"
+msgstr "是否记录完整的解集的历史。默认值为False。将其设置为True可能会减少内存占用，并会带来很大的GPU/CPU间数据传输开销。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:23 of
 msgid "**topk**"
@@ -1397,10 +1392,7 @@ msgid ""
 "pareto front during the run. (The Archive) Default to False. Setting it "
 "to True will cause the monitor to maintain a pareto front of all the "
 "solutions with unlimited size, which may hurt performance."
-msgstr ""
-"只影响多目标优化。是否在运行过程中记录整个帕累托前沿。默认值为False。将其设置"
-"为True将导致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性"
-"能。"
+msgstr "只影响多目标优化。是否在运行过程中记录整个帕累托前沿。默认值为False。将其设置为True将导致监视器维护一个无限大小的所有解决方案的帕累托前沿，这可能会影响性能。"
 
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
@@ -1448,7 +1440,9 @@ msgstr ""
 "https://arrow.apache.org/docs/python/ipc.html"
 
 #: evox.monitors.evoxvis_monitor.EvoXVisMonitor.__init__:29
-#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
+#: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:33
+#: of
 msgid "**batch_size**"
 msgstr "**batch_size**"
 
@@ -1765,9 +1759,155 @@ msgstr "强化学习"
 msgid "Supervised Learning"
 msgstr "监督学习"
 
-#: ../../source/api/problems/neuroevolution/supervised_learning/torchvision.rst:3
-msgid "Torchvision Dataset"
+#: ../../source/api/problems/neuroevolution/supervised_learning/tfds.rst:3
+#, fuzzy
+msgid "Tensorflow Dataset"
 msgstr "Torchvision 数据集"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:2 of
+msgid "Wrap a tensorflow dataset as a problem."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:4 of
+msgid ""
+"TensorFlow Datasets (TFDS) directly depends on the package `tensorflow-"
+"datasets` and `grain`. Additionally, when downloading the dataset for the"
+" first time, it requires `tensorflow` to be installed and a active "
+"internet connection. If you want to avoid installing `tensorflow`, you "
+"can prepare the dataset beforehand in another environment with "
+"`tensorflow` installed, run:"
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:14
+#: of
+msgid ""
+"and then copy the dataset to the target machine. The default location "
+"is`~/tensorflow_datasets`. `~/` means the home directory of the user."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:17
+#: of
+msgid ""
+"Please notice that the data is loaded under JAX's jit context, so the "
+"data should be valid JAX data type, namely JAX or Numpy arrays, or "
+"Python's int, float, list, and dict. If the data contains other types "
+"like strings, you should convert them into arrays using the `operations` "
+"parameter."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:21
+#: of
+msgid ""
+"You can also download the dataset through a proxy server by setting the "
+"environment variable `TFDS_HTTP_PROXY` and `TFDS_HTTPS_PROXY`, for http "
+"and https proxy respectively."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:24
+#: of
+msgid ""
+"The details of the dataset can be found at "
+"https://www.tensorflow.org/datasets/catalog/overview The details about "
+"operations/transformations can be found at "
+"https://github.com/google/grain/blob/main/docs/transformations.md"
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:30
+#: of
+#, fuzzy
+msgid "**dataset**"
+msgstr "**状态**"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:30
+#: of
+#, fuzzy
+msgid "The dataset name."
+msgstr "状态。"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:33
+#: of
+#, fuzzy
+msgid "The batch size."
+msgstr "状态。"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:38
+#: of
+msgid "**loss_func**"
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:36
+#: of
+msgid ""
+"The loss function. The function signature is loss(weights, data) -> "
+"loss_value, and it should be jittable. The `weight` is the weight of the "
+"neural network, and the `data` is the data from TFDS, which is a "
+"dictionary."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:42
+#: of
+#, fuzzy
+msgid "**split**"
+msgstr "**策略**"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:41
+#: of
+#, fuzzy
+msgid "Which split of the dataset to use. Default to \"train\"."
+msgstr "状态之中对应适应度的变量的变量名。默认是“fitness”。"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:47
+#: of
+#, fuzzy
+msgid "**operations**"
+msgstr "**options**"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:45
+#: of
+msgid ""
+"The list of transformations to apply to the data. Default to []. After "
+"the transformations, we will always apply a batch operation to create a "
+"batch of data."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:51
+#: of
+#, fuzzy
+msgid "**datadir**"
+msgstr "**out_dir**"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:50
+#: of
+msgid ""
+"The directory to store the dataset. Default to None, which means "
+"tensorflow-datasets will automatically determine the directory."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:56
+#: of
+#, fuzzy
+msgid "**seed**"
+msgstr "**维度**"
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:54
+#: of
+msgid ""
+"The random seed used to seed the dataloader. Given the same seed, the "
+"dataloader should data in the same order. Default to 0."
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:73
+#: of
+msgid "**try_gcs**"
+msgstr ""
+
+#: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:59
+#: of
+msgid ""
+"Whether to try to download the dataset from Google Cloud Storage. Usually"
+" Google's storage server is faster than the original server of the "
+"dataset."
+msgstr ""
 
 #: ../../source/api/problems/numerical/index.rst:3
 msgid "Numerical Benchmarks"
@@ -2051,8 +2191,7 @@ msgid ""
 "the candidate solution into the format that can be understood by the "
 "problem. Should be a list of functions, and the functions will be applied"
 " in the order of the list."
-msgstr "可选的候选解变换函数，通常用于将种群解码为问题能够理解的格式。这应该是一个函"
-"数的列表，其中的函数将会被依次调用。"
+msgstr "可选的候选解变换函数，通常用于将种群解码为问题能够理解的格式。这应该是一个函数的列表，其中的函数将会被依次调用。"
 
 #: evox.workflows.non_jit_workflow.NonJitWorkflow.__init__:44
 #: evox.workflows.std_workflow.StdWorkflow.__init__:33 of
@@ -2065,8 +2204,7 @@ msgid ""
 "Optional fitness transform function. usually used to apply fitness "
 "shaping. Should be a list of functions, and the functions will be applied"
 " in the order of the list."
-msgstr "可选适应度变换函数，通常用于应用适应度整形。应当是一个列表的函数，列表中的函"
-"数将会被依次调用。"
+msgstr "可选适应度变换函数，通常用于应用适应度整形。应当是一个列表的函数，列表中的函数将会被依次调用。"
 
 #: evox.workflows.non_jit_workflow.NonJitWorkflow.sample:2 of
 msgid "Sample the algorithm but don't change it's state"
@@ -2223,6 +2361,16 @@ msgid ""
 "algorithm to find the minimum of the Ackley function."
 msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试问题的最小值。"
 
+#: ../../source/example/tfds.ipynb:10002
+msgid "Tensorflow datasets in EvoX"
+msgstr ""
+
+#: ../../source/example/tfds.ipynb:10004
+msgid ""
+"Use tensorflow-datasets to load machine learning dataset and train a "
+"model in EvoX."
+msgstr ""
+
 #: ../../source/guide/developer/1-state.md:1
 msgid "Working with state in EvoX"
 msgstr "在EvoX中使用State"
@@ -2236,8 +2384,8 @@ msgid ""
 "There are two most fundamental classes, namely {class}`Stateful "
 "<evox.Stateful>` and {class}`State <evox.State>`."
 msgstr ""
-"有两个最基本的类，即 {class}`Stateful <evox.Stateful>` 和 {class}`State <evox"
-".State>`。"
+"有两个最基本的类，即 {class}`Stateful <evox.Stateful>` 和 {class}`State "
+"<evox.State>`。"
 
 #: ../../source/guide/developer/1-state.md:7
 msgid ""
@@ -2245,8 +2393,8 @@ msgid ""
 "`Stateful`. In EvoX, `Algorithm`, `Problem`, `Operator` and workflows are"
 " all stateful."
 msgstr ""
-"所有涉及状态计算的类都继承自 Stateful。在EvoX中，Algorithm（算法）、Problem（"
-"问题）、Operator（操作符）和Workflow（工作流）都是有状态的。"
+"所有涉及状态计算的类都继承自 "
+"Stateful。在EvoX中，Algorithm（算法）、Problem（问题）、Operator（操作符）和Workflow（工作流）都是有状态的。"
 
 #: ../../source/guide/developer/1-state.md:9
 msgid "The idea behind the design"
@@ -2276,8 +2424,7 @@ msgid ""
 "However, it is frustrating to manage the hierarchy manually, and it is "
 "not good for modular design. To solve this problem, we introduce "
 "`Stateful` and `State`."
-msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问"
-"题，我们引入了 Stateful 和 State。"
+msgstr "然而，手动管理这种层次结构是令人沮丧的，而且不利于模块化设计。为了解决这个问题，我们引入了 Stateful 和 State。"
 
 #: ../../source/guide/developer/1-state.md:25
 #, fuzzy
@@ -2288,8 +2435,7 @@ msgstr "关于状态的概述"
 msgid ""
 "In a `Stateful` class, all immutable data are initialized in `__init__`, "
 "or with dataclass, the initial mutable state is generated in `setup`."
-msgstr "在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，可变的状态在 setup "
-"中初始化。"
+msgstr "在 Stateful 类中，所有不可变数据都在 __init__ 中初始化，可变的状态在 setup 中初始化。"
 
 #: ../../source/guide/developer/1-state.md:46
 msgid "Notice that all stateful functions should have the following signature:"
@@ -2328,9 +2474,8 @@ msgid ""
 "objects. Besides normal dicts as `self_state`, we also support the use of"
 " `dataclass` to define the state of the object."
 msgstr ""
-"其中，`self_state` 存储当前对象的状态（由 setup 返回的对象），而 "
-"child_states 存储所有子对象的状态。除了字典作为 self_state "
-"外，我们还支持使用数据类（dataclass）来定义对象的状态。"
+"其中，`self_state` 存储当前对象的状态（由 setup 返回的对象），而 child_states 存储所有子对象的状态。除了字典作为"
+" self_state 外，我们还支持使用数据类（dataclass）来定义对象的状态。"
 
 #: ../../source/guide/developer/1-state.md:71
 msgid "Combined together"
@@ -2396,8 +2541,8 @@ msgid ""
 "`foo` calls `bar`. And since `bar` uses the dynamic index, which is not "
 "compatible with `jax.jit`, an error will occur."
 msgstr ""
-"尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 "
-"bar 使用了动态索引，这与 jax.jit 不兼容，因此会发生错误。"
+"尽管 bar 没有被标记为 jax.jit，但由于 foo 调用了 bar，它仍然会被编译。由于 bar 使用了动态索引，这与 jax.jit "
+"不兼容，因此会发生错误。"
 
 #: ../../source/guide/developer/2-jit-able.md:22
 msgid "Solution"
@@ -2453,8 +2598,8 @@ msgid ""
 "should also implement an `ask` and a `tell` method. In total, there are "
 "four methods one needs to implement."
 msgstr ""
-"{class}`Algorithm <evox.Algorithm>` 类继承自 {class}`Stateful <evox."
-"Stateful>`。除了 Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell "
+"{class}`Algorithm <evox.Algorithm>` 类继承自 {class}`Stateful "
+"<evox.Stateful>`。除了 Stateful 中的内容外，您还应该实现一个 ask 方法和一个 tell "
 "方法。总共有四个方法需要实现。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
@@ -2587,9 +2732,8 @@ msgid ""
 "stateful, you can simply ignore the state, but remember that you still "
 "have to use this stateful interface."
 msgstr ""
-"这里有一点需要注意，`evaluate` 是一个有状态的函数，这意味着它应该接受一个状态"
-"并返回一个新状态。所以，如果你正在处理不需要有状态的数值基准函数，你可以简单"
-"地忽略状态，但请记住，你仍然需要使用这个有状态的接口。"
+"这里有一点需要注意，`evaluate` "
+"是一个有状态的函数，这意味着它应该接受一个状态并返回一个新状态。所以，如果你正在处理不需要有状态的数值基准函数，你可以简单地忽略状态，但请记住，你仍然需要使用这个有状态的接口。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:90
 msgid "__init__"
@@ -2637,8 +2781,7 @@ msgstr "如果您仍然想知道问题的状态实际上是做什么的，以下
 msgid ""
 "Unlike numerical benchmark functions, real-life problems are more complex"
 " and may require stateful computations. Here are some examples:"
-msgstr "与数值基准函数不同，现实生活中的问题更加复杂，可能需要有状态的计算。以下是一"
-"些例子："
+msgstr "与数值基准函数不同，现实生活中的问题更加复杂，可能需要有状态的计算。以下是一些例子："
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:105
 msgid ""
@@ -2647,10 +2790,7 @@ msgid ""
 "different fitness values during different phases. So clearly, we can't "
 "model the `evaluate` as a stateless pure function anymore. To implement "
 "this mechanism, simply put a value in the state to indicate the phase."
-msgstr ""
-"在处理人工神经网络(ANN)训练时，我们通常有训练、验证和测试阶段。这意味着同一个"
-"解决方案在不同阶段可能有不同的适应度值。因此，显然我们不能再将`evaluate`建模"
-"为一个无状态的纯函数。要实现这种机制，只需在状态中放置一个值来指示阶段。"
+msgstr "在处理人工神经网络(ANN)训练时，我们通常有训练、验证和测试阶段。这意味着同一个解决方案在不同阶段可能有不同的适应度值。因此，显然我们不能再将`evaluate`建模为一个无状态的纯函数。要实现这种机制，只需在状态中放置一个值来指示阶段。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:109
 msgid ""
@@ -2658,9 +2798,7 @@ msgid ""
 "tasks. To implement this mechanism, the problem must be stateful, as the "
 "problem has to remember the initial batch norm parameters during the "
 "first run."
-msgstr ""
-"虚拟批量归一化是一个有效的技巧，特别是在处理强化学习(RL)任务时。要实现这种机"
-"制，问题必须是有状态的，因为问题需要记住第一次运行时的初始批量归一化参数。"
+msgstr "虚拟批量归一化是一个有效的技巧，特别是在处理强化学习(RL)任务时。要实现这种机制，问题必须是有状态的，因为问题需要记住第一次运行时的初始批量归一化参数。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:113
 msgid "Example"
@@ -2674,16 +2812,15 @@ msgid ""
 "fixed-length bitstring. For example, \"100111\" gives 4 and \"000101\" "
 "gives 2."
 msgstr ""
-"这里我们给出了一个实现 OneMax 问题的例子，以及解决这个问题的遗传算法。这个问"
-"题本身很直接，适应度定义为固定长度比特串中每个数字的总和。例如，\"100111\" "
-"的适应度是 4，而 \"000101\" 的适应度是 2。"
+"这里我们给出了一个实现 OneMax "
+"问题的例子，以及解决这个问题的遗传算法。这个问题本身很直接，适应度定义为固定长度比特串中每个数字的总和。例如，\"100111\" 的适应度是 "
+"4，而 \"000101\" 的适应度是 2。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:119
 msgid ""
 "Let's start with implementing the OneMax problem. In JAX a bitstring can "
 "be easily represented with a tensor of type bool."
-msgstr "让我们从实现 OneMax 问题开始。在 JAX "
-"中，比特串可以很容易地用布尔类型的张量来表示。"
+msgstr "让我们从实现 OneMax 问题开始。在 JAX 中，比特串可以很容易地用布尔类型的张量来表示。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:144
 msgid ""
@@ -2715,10 +2852,8 @@ msgid ""
 "want to know the details of EvoX's code, mainly written as docstrings in "
 "the code."
 msgstr ""
-"在 EvoX 中主要有两种类型的文档：教程（Guide）和API。"
-"教程适用于想要学习如何使用 EvoX 的用户，主要以 Jupyter Notebook 的格式编写。"
-"API适用于想要了解 EvoX "
-"代码细节的用户/开发者，主要作为代码中的文档字符串（docstring）编写。"
+"在 EvoX 中主要有两种类型的文档：教程（Guide）和API。教程适用于想要学习如何使用 EvoX 的用户，主要以 Jupyter "
+"Notebook 的格式编写。API适用于想要了解 EvoX 代码细节的用户/开发者，主要作为代码中的文档字符串（docstring）编写。"
 
 #: ../../source/guide/developer/4-doc.md:11
 msgid "Multi-language support"
@@ -2747,9 +2882,7 @@ msgid ""
 "The translation is hosted on "
 "[Weblate](https://hosted.weblate.org/projects/evox/evox/). You can "
 "contribute to the translation there."
-msgstr ""
-"翻译的入口在[Weblate](https://hosted.weblate.org/projects/evox/evox/"
-")。你可以在这里帮助我们翻译文档。"
+msgstr "翻译的入口在[Weblate](https://hosted.weblate.org/projects/evox/evox/)。你可以在这里帮助我们翻译文档。"
 
 #: ../../source/guide/developer/index.md:1
 msgid "Developer Guide"
@@ -2873,8 +3006,7 @@ msgid ""
 "Please notice that this step requires administrative privileges and a "
 "reboot. So, if you are using a shared server, please contact the server's"
 " administrator for support."
-msgstr "请注意，这一步会需要管理员权限。所以，如果你在使用一个共享的服务器，请联系服"
-"务器的管理员来寻求帮助。"
+msgstr "请注意，这一步会需要管理员权限。所以，如果你在使用一个共享的服务器，请联系服务器的管理员来寻求帮助。"
 
 #: ../../source/guide/install/install.md:102
 msgid "Windows WSL 2"
@@ -2969,9 +3101,7 @@ msgid ""
 "installed on the host system, rendering any effort within the container "
 "(e.g. docker, singularity) meaningless. Thus only the administrator can "
 "solve this problem."
-msgstr ""
-"如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿"
-"主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
+msgstr "如果没有，请联系集群的管理员来升级GPU驱动版本。需要注意的是，驱动必须安装在宿主系统上，在容器内进行的任何尝试都是无效的。因此只有管理员才能解决这个问题。"
 
 #: ../../source/guide/install/install.md:155
 msgid "Install CUDA libraries"
@@ -3035,9 +3165,8 @@ msgid ""
 "that Windows is not currently supported."
 msgstr ""
 "虽然这目前是实验性的支持，由于AMD GPU的驱动是开源的，所以安装AMD "
-"GPU的驱动其实很简单。不过，需要注意的是，目前只有一小部分GPU是支持的，"
-"其中消费者级的GPU中主要是Radeon RX 7900XTX和Radeon PRO "
-"W7900。请注意这目前还不支持Windows。"
+"GPU的驱动其实很简单。不过，需要注意的是，目前只有一小部分GPU是支持的，其中消费者级的GPU中主要是Radeon RX "
+"7900XTX和Radeon PRO W7900。请注意这目前还不支持Windows。"
 
 #: ../../source/guide/install/install.md:229
 msgid "Install GPU driver"
@@ -3048,9 +3177,7 @@ msgid ""
 "Since the AMD driver is open-source, installation is simplified: simply "
 "install mesa through your Linux distribution's package manager. In many "
 "cases, the driver may already be pre-installed."
-msgstr ""
-"由于AMD的驱动是开源的，所以安装非常简单：只需要通过您的Linux发行版上的包管理"
-"器安装mesa这个包。大部分情况下，这个驱动已经被预先安装好了。"
+msgstr "由于AMD的驱动是开源的，所以安装非常简单：只需要通过您的Linux发行版上的包管理器安装mesa这个包。大部分情况下，这个驱动已经被预先安装好了。"
 
 #: ../../source/guide/install/install.md:233
 msgid "To verify that the driver is installed, run the following command:"
@@ -3069,8 +3196,7 @@ msgid ""
 "The latest version of ROCm (v5.7.1 or later) may not be available in your"
 " Linux distribution's package manager. Therefore, using a containerized "
 "environment is the easiest way to get started."
-msgstr "由于新版本的ROCm库很可能不在你的Linux发行版的仓库中。所以我们推荐使用容器，这"
-"是最简单的方式。"
+msgstr "由于新版本的ROCm库很可能不在你的Linux发行版的仓库中。所以我们推荐使用容器，这是最简单的方式。"
 
 #: ../../source/guide/install/install.md:249
 msgid ""
@@ -3116,8 +3242,8 @@ msgid ""
 "your system. EvoX support Python 3.9 and above, and we recommend using "
 "the latest version of Python."
 msgstr ""
-"EvoX是用Python写的，所以你需要先在你的系统上安装Python。EvoX支持Python 3."
-"9及以上，同时我们推荐使用最新版的Python。"
+"EvoX是用Python写的，所以你需要先在你的系统上安装Python。EvoX支持Python "
+"3.9及以上，同时我们推荐使用最新版的Python。"
 
 #: ../../source/guide/install/python.md:6
 msgid "Windows Version"
@@ -3127,8 +3253,7 @@ msgstr "Windows 版本"
 msgid ""
 "Go to [Download Python](https://www.python.org/downloads/) and download "
 "the latest version of Python."
-msgstr "访问[Download Python](https://www.python.org/downloads/) "
-"来下载最新版的Python。"
+msgstr "访问[Download Python](https://www.python.org/downloads/) 来下载最新版的Python。"
 
 #: ../../source/guide/install/python.md:11
 msgid ""
@@ -3145,8 +3270,7 @@ msgid ""
 "Different Linux distributions have different ways to install Python. It "
 "depends on the package manager of your distribution. Here are some "
 "examples:"
-msgstr "不同的Linux发行版有不同的安装Python的方式。这取决于发行版所用的包管理器。这里"
-"有些例子："
+msgstr "不同的Linux发行版有不同的安装Python的方式。这取决于发行版所用的包管理器。这里有些例子："
 
 #: ../../source/guide/install/python.md:19
 msgid "Debian/Ubuntu: `apt`"
@@ -3158,6 +3282,19 @@ msgstr ""
 
 #: ../../source/guide/install/python.md:21
 msgid "Fedora: `dnf`"
+msgstr ""
+
+#: ../../source/guide/install/video_guide.md:1
+#, fuzzy
+msgid "Video Installation Guide"
+msgstr "EvoX安装指引"
+
+#: ../../source/guide/install/video_guide.md:3
+msgid "🎥 [EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)"
+msgstr ""
+
+#: ../../source/guide/install/video_guide.md:5
+msgid "🎥 [EvoX Installation Guide (Windows)](https://youtu.be/7f8Uz1rqvn8)"
 msgstr ""
 
 #: ../../source/guide/install/windows_gpu.md:1
@@ -3179,8 +3316,8 @@ msgid ""
 "Windows has a detailed guide on how to install WSL 2 "
 "[here](https://learn.microsoft.com/en-us/windows/wsl/install)"
 msgstr ""
-"Windows有一个详细的安装WSL 2的教程在[这里](https://learn.microsoft.com/en-us/"
-"windows/wsl/install)"
+"Windows有一个详细的安装WSL 2的教程在[这里](https://learn.microsoft.com/en-"
+"us/windows/wsl/install)"
 
 #: ../../source/guide/install/windows_gpu.md:9
 msgid ""
@@ -3198,8 +3335,8 @@ msgid ""
 "Go to [here](https://www.nvidia.com/Download/index.aspx), to download the"
 " latest NVIDIA Windows GPU Driver, and install it."
 msgstr ""
-"访问[这里](https://www.nvidia.com/Download/index.aspx)，"
-"下载最新的英伟达Windows GPU驱动，并安装。"
+"访问[这里](https://www.nvidia.com/Download/index.aspx)，下载最新的英伟达Windows "
+"GPU驱动，并安装。"
 
 #: ../../source/guide/user/1-start.ipynb:10002
 msgid "Quick Start"
@@ -3476,8 +3613,8 @@ msgid ""
 "documentation](https://docs.ray.io/en/latest/cluster/getting-"
 "started.html) for guide on setting up an Ray cluster."
 msgstr ""
-"请参考[Ray的官方文档](https://docs.ray.io/en/latest/cluster/getting-started."
-"html)来获取关于设置Ray集群的指南。"
+"请参考[Ray的官方文档](https://docs.ray.io/en/latest/cluster/getting-"
+"started.html)来获取关于设置Ray集群的指南。"
 
 #: ../../source/guide/user/3-distributed.md:13
 msgid "Here is a simple way to setup the cluster locally."
@@ -3495,8 +3632,7 @@ msgstr "在工作节点上"
 msgid ""
 "If you only have 1 machine, but multiple devices, then there is nothing "
 "needs to be done. Ray will setup itself in this case."
-msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进"
-"行配置。"
+msgstr "如果你只有一台机器但是有多个设备，这种情况下，不需要进行别的设置，Ray会自行进行配置。"
 
 #: ../../source/guide/user/3-distributed.md:26
 #: ../../source/guide/user/3-distributed.md:72
@@ -3559,16 +3695,14 @@ msgid ""
 " written in pure JAX, it has less overhead and don't need any additional "
 "dependencies."
 msgstr ""
-"\"StdWorkflow\"是“Standard Workflow”的缩写，其目的是使用纯JAX构建一个适应任何"
-"需求的工作流。由于StdWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外的"
-"依赖。"
+"\"StdWorkflow\"是“Standard "
+"Workflow”的缩写，其目的是使用纯JAX构建一个适应任何需求的工作流。由于StdWorkflow是用纯JAX编写的，它的开销较小，不需要任何额外的依赖。"
 
 #: ../../source/guide/user/3-distributed.md:74
 msgid ""
 "Use `StdWorkflow` to create an workflow, and use `enable_distributed` and"
 " pass in the state to enable this feature."
-msgstr "使用`StdWorkflow`创建一个工作流然后使用`enable_distributed`并且传入相应状态来"
-"启用此功能。"
+msgstr "使用`StdWorkflow`创建一个工作流然后使用`enable_distributed`并且传入相应状态来启用此功能。"
 
 #: ../../source/guide/user/3-distributed.md:90
 msgid ""
@@ -3617,8 +3751,7 @@ msgstr "为了在参数中包含process_id，可以使用argparse库从命令行
 msgid ""
 "Then call `python main.py 0` on the first machine, `python main 1` on the"
 " second machine and so on."
-msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py "
-"1'，依此类推。"
+msgstr "然后在第一台机器上调用'python main.py 0'，在第二台机器上调用'python main.py 1'，依此类推。"
 
 #: ../../source/guide/user/4-container.md:1
 msgid "Container Algorithms"
@@ -3629,8 +3762,7 @@ msgid ""
 "Container algorithms are a special type of algorithms that work by "
 "containing other algorithms and cannot work on their own. Container "
 "algorithms can be used to compose a series of normal algorithms together."
-msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法"
-"可以用来将一系列普通算法组合在一起。"
+msgstr "容器算法是一种特殊类型的算法，通过包含其他算法来工作，不能单独工作。容器算法可以用来将一系列普通算法组合在一起。"
 
 #: ../../source/guide/user/4-container.md:8
 msgid ""
@@ -3642,11 +3774,10 @@ msgid ""
 "each generation, but `Coevolution` follows the traditional approach that "
 "updates a single sub-populations at each generation."
 msgstr ""
-"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，"
-"分别是{class}`evox.algorithms.Coevolution` 和 {class}`evox.algorithms."
-"VectorizedCoevolution`。它们的区别在于，`VectorizedCoevolution` "
-"在每一代中同时更新所有子种群，而 `Coevolution` "
-"则遵循传统方法，在每一代中更新单个子种群。"
+"我们为所有的算法提供了协同演化（CC）框架。目前，再EvoX中有两种类型的CC容器，分别是{class}`evox.algorithms.Coevolution`"
+" 和 "
+"{class}`evox.algorithms.VectorizedCoevolution`。它们的区别在于，`VectorizedCoevolution`"
+" 在每一代中同时更新所有子种群，而 `Coevolution` 则遵循传统方法，在每一代中更新单个子种群。"
 
 #: ../../source/guide/user/4-container.md:13
 msgid ""
@@ -3672,10 +3803,8 @@ msgid ""
 "`Coevolution` could be better in terms of optimization result with a "
 "limited number of evaluations."
 msgstr ""
-"协同进化将逐个更新每个子种群，因此后续子种群可以利用前面子种群的最新信息。另"
-"一方面，向量化协同进化同时更新所有子种群，因此提供了更并行化的计算。总的来说"
-"，`VectorizedCoevolution` 更快，但在有限次数的评估中，`Coevolution` "
-"在优化结果方面可能更好。"
+"协同进化将逐个更新每个子种群，因此后续子种群可以利用前面子种群的最新信息。另一方面，向量化协同进化同时更新所有子种群，因此提供了更并行化的计算。总的来说，`VectorizedCoevolution`"
+" 更快，但在有限次数的评估中，`Coevolution` 在优化结果方面可能更好。"
 
 #: ../../source/guide/user/4-container.md:29
 msgid "Code Example"
@@ -3706,8 +3835,7 @@ msgid ""
 "Please notice that the coevolution implementation in EvoX is still under "
 "development, so there might be some rough edges, and does not reflect the"
 " latest research results in the coevolution field."
-msgstr "请注意，EvoX 中的协同进化实现仍在开发中，因此可能存在一些不完善之处，并且可能"
-"不反映协同进化领域的最新研究结果。"
+msgstr "请注意，EvoX 中的协同进化实现仍在开发中，因此可能存在一些不完善之处，并且可能不反映协同进化领域的最新研究结果。"
 
 #: ../../source/guide/user/index.md:1 ../../source/index.md:4
 msgid "User Guide"
@@ -3860,15 +3988,16 @@ msgid ""
 "00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
 "8z\"></path></svg> User Guide"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule="
-"\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 015.9 "
-"8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 01-1.499-.044 9.005 "
-"9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 100 8 4 4 0 000-8z\"></"
-"path><path d=\"M17.29 8c-.148 0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 "
-"4.53 0 013.38 8.097 6.69 6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
-"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 8z\"></path></"
-"svg> 用户教程"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 "
+"015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
+"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
+"100 8 4 4 0 000-8z\"></path><path d=\"M17.29 8c-.148 "
+"0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 "
+"6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
+"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
+"8z\"></path></svg> 用户教程"
 
 #: ../../source/index.md:76
 msgid ""
@@ -3892,23 +4021,25 @@ msgid ""
 "1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
 "11.436z\"></path></svg> Developer Guide"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-"
-"rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 00-.584 0L.458 6.81a.75.75 0 000 "
-"1.38L4.25 9.793v3.803a2.901 2.901 0 00-1.327.757c-.579.58-.923 1.41-.923 "
-"2.43v4.5c0 ."
-"248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
-"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 2.11 "
-"0 00.21-.117A.762.762 0 008 21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 "
-"0 00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
-"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 1."
-"021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113 "
-"1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84 "
-"2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 000-1."
-"382l-11.25-4.75zM5 15c-.377 0-.745.141-1.017.413-.265.265-.483.7-.483 "
-"1.368v4.022c.299.105.797.228 1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1."
-"103-.483-1.368A1.431 1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 "
-"12 11.436z\"></path></svg> 开发者教程"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M12.292 2.06a.75.75 0 "
+"00-.584 0L.458 6.81a.75.75 0 000 1.38L4.25 9.793v3.803a2.901 2.901 0 "
+"00-1.327.757c-.579.58-.923 1.41-.923 2.43v4.5c0 "
+".248.128.486.335.624.06.04.117.073.22.124.124.062.297.138.52.213.448.149 "
+"1.09.288 1.925.288s1.477-.14 1.925-.288c.223-.075.396-.15.52-.213a2.11 "
+"2.11 0 00.21-.117A.762.762 0 008 "
+"21.28v-4.5c0-1.018-.344-1.85-.923-2.428a2.9 2.9 0 "
+"00-1.327-.758v-3.17l5.958 2.516a.75.75 0 00.584 0l5.208-2.2v4.003a2.552 "
+"2.552 0 01-.079.085 4.057 4.057 0 01-.849.65c-.826.488-2.255 1.021-4.572 "
+"1.021-.612 0-1.162-.037-1.654-.1a.75.75 0 00-.192 1.487c.56.072 1.173.113"
+" 1.846.113 2.558 0 4.254-.592 5.334-1.23.538-.316.914-.64 1.163-.896a2.84"
+" 2.84 0 00.392-.482h.001A.75.75 0 0019 15v-4.892l4.542-1.917a.75.75 0 "
+"000-1.382l-11.25-4.75zM5 15c-.377 "
+"0-.745.141-1.017.413-.265.265-.483.7-.483 1.368v4.022c.299.105.797.228 "
+"1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.431 "
+"1.431 0 005 15zm7-3.564L2.678 7.5 12 3.564 21.322 7.5 12 "
+"11.436z\"></path></svg> 开发者教程"
 
 #: ../../source/index.md:86
 msgid ""
@@ -3920,12 +4051,13 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Algorithms"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 算法"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> 算法"
 
 #: ../../source/index.md:92
 msgid ""
@@ -3937,12 +4069,13 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Problems"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 问题"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> 问题"
 
 #: ../../source/index.md:99
 msgid ""
@@ -3954,12 +4087,13 @@ msgid ""
 "000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
 "2z\"></path></svg> Metrics"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
-"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 000 2zm4.75-1.5a.75.75 0 "
-"000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-"
-"1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zM5 12a1 1 0 11-2 0 "
-"1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 2z\"></path></svg> 指标"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
+"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
+"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
+"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
+" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
+"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
+"2z\"></path></svg> 指标"
 
 #: ../../source/miscellaneous/high_vram_usage.md:1
 msgid "High VRAM usage"
@@ -3971,8 +4105,7 @@ msgid ""
 "By default, JAX will allocate 75% of the GPU memory regardless of the "
 "program you run. This preallocate is used to avoid memory fragmentation "
 "and improve performance."
-msgstr "默认情况下，无论运行哪个程序，JAX 都将分配 "
-"75%的显存。这种预分配是为了避免内存碎片化并提高性能。"
+msgstr "默认情况下，无论运行哪个程序，JAX 都将分配 75%的显存。这种预分配是为了避免内存碎片化并提高性能。"
 
 #: ../../source/miscellaneous/high_vram_usage.md:6
 msgid ""
@@ -3984,9 +4117,7 @@ msgstr "要禁用此行为，您可以使用 `XLA_PYTHON_CLIENT_PREALLOCATE=fals
 msgid ""
 "For more information, please refer to the [JAX "
 "documentation](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)."
-msgstr ""
-"更多信息，请参考[JAX文档](https://jax.readthedocs.io/en/latest/"
-"gpu_memory_allocation.html)."
+msgstr "更多信息，请参考[JAX文档](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)."
 
 #: ../../source/miscellaneous/selecting_gpu.md:1
 msgid "Selecting GPU"
@@ -3998,8 +4129,8 @@ msgid ""
 "`CUDA_VISIBLE_DEVICES` environment variable. For example, to run your "
 "program on the second GPU, you can use:"
 msgstr ""
-"要在特定的 GPU 上运行程序，您可以使用 `CUDA_VISIBLE_DEVICES` 环境变量。例如，"
-"要在第二个 GPU 上运行程序，您可以使用："
+"要在特定的 GPU 上运行程序，您可以使用 `CUDA_VISIBLE_DEVICES` 环境变量。例如，要在第二个 GPU "
+"上运行程序，您可以使用："
 
 #: ../../source/miscellaneous/selecting_gpu.md:9
 msgid "To run your program on multiple GPUs, you can use:"
@@ -4294,3 +4425,4 @@ msgstr "如果要禁用GPU，你可以用："
 
 #~ msgid "Getting Started"
 #~ msgstr "开始"
+
