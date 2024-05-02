@@ -58,7 +58,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 ## Main Contents
 
-### Evolutionary Algorithms for Single-Objective Optimization
+### Evolutionary Algorithms for Single-objective Optimization
 
 | Category                    | Algorithm Names                            |
 | --------------------------- | ------------------------------------------ |
@@ -66,7 +66,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 | Evolution Strategy          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
 | Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
 
-### Evolutionary Algorithms for Multi-Objective Optimization
+### Evolutionary Algorithms for Multi-objective Optimization
 
 | Category            | Algorithm Names                                |
 | ------------------- | ---------------------------------------------- |
@@ -78,7 +78,7 @@ For a comprehensive list and further details of all algorithms, please check the
 
 ### Benchmark Problems/Environments
 
-| Category       | Problem Names                       |
+| Category       | Problems/Environments               |
 | -------------- | ----------------------------------- |
 | Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution/RL | Brax, Gym, TorchVision Dataset, ... |
