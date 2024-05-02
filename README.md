@@ -60,7 +60,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 ### Evolutionary Algorithms for Single-objective Optimization
 
-| Category                    | Algorithm Names                            |
+| Category                    | Algorithms                                 |
 | --------------------------- | ------------------------------------------ |
 | Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
 | Evolution Strategy          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
@@ -68,7 +68,7 @@ Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/
 
 ### Evolutionary Algorithms for Multi-objective Optimization
 
-| Category            | Algorithm Names                                |
+| Category            | Algorithms                                     |
 | ------------------- | ---------------------------------------------- |
 | Dominance-based     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
 | Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
