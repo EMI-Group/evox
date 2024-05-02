@@ -6,7 +6,6 @@
   </picture>
 </h1>
 
-  [![arxiv](https://img.shields.io/badge/arxiv-2212.05652-red)](https://arxiv.org/abs/2301.12457)
   <a href="https://arxiv.org/abs/2301.12457">
     <img src="https://img.shields.io/badge/arxiv-paper-red?logo=arxiv" alt="EvoX Paper on arXiv">
   </a>
