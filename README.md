@@ -15,31 +15,6 @@
   [![Python-Version](https://img.shields.io/badge/python-3.9+-orange?logo=python)](https://pypi.org/project/evox/)
   [![PyPI-Downloads](https://img.shields.io/pypi/dm/evox?color=orange&logo=python)](https://pypi.org/project/evox/)
   [![GitHub User's Stars](https://img.shields.io/github/stars/EMI-Group%2Fevox)](https://github.com/EMI-Group/evox)
-  
-  <a href="https://arxiv.org/abs/2301.12457">
-    <img src="https://img.shields.io/badge/arxiv-paper-red?logo=arxiv" alt="EvoX Paper on arXiv">
-  </a>
-  <a href="https://evox.readthedocs.io/">
-    <img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="EvoX Documentation">
-  </a>
-  <a href="https://discord.gg/Vbtgcpy7G4">
-    <img alt="Discord Server" src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord">
-  </a>
-  <a href="https://qm.qq.com/q/vTPvoMUGAw">
-    <img alt="QQ Group" src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq">
-  </a>
-  <a href="https://pypi.org/project/evox/">
-    <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/evox?logo=python">
-  </a>
-  <a href="https://pypi.org/project/evox/">
-    <img alt="Python - Version" src="https://img.shields.io/badge/python-3.9+-orange?logo=python">
-  </a>
-  <a href="https://pypi.org/project/evox/">
-    <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/evox?color=orange&logo=python">
-  </a>
-  <a href="https://github.com/EMI-Group/evox">
-    <img alt="GitHub User's stars" src="https://img.shields.io/github/stars/EMI-Group%2Fevox">
-  </a>
 
 ---
 
