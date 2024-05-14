@@ -11,7 +11,7 @@ from jax.tree_util import tree_map
 from evox import Algorithm, Problem, State, Workflow, Monitor, jit_method, use_state
 from evox.utils import parse_opt_direction, algorithm_has_init_ask
 
-
+from evox.metrics import TrainInfo
 
 
 class StdWorkflow(Workflow):
@@ -198,7 +198,9 @@ class StdWorkflow(Workflow):
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)
 
-            return state.update(generation=state.generation + 1)
+            train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
+
+            return train_info, state.update(generation=state.generation + 1)
 
         # wrap around _proto_step
         # to handle init_ask and init_tell
@@ -242,12 +244,12 @@ class StdWorkflow(Workflow):
         for monitor in self.registered_hooks["pre_step"]:
             monitor.pre_step(state)
 
-        state = self._step(self, state)
+        train_info, state = self._step(self, state)
 
         for monitor in self.registered_hooks["post_step"]:
             monitor.post_step(state)
 
-        return state
+        return train_info, state
 
     def valid(self, state, metric):
         return self._valid(self, state, metric)
