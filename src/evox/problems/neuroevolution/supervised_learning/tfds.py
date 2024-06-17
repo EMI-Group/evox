@@ -1,4 +1,5 @@
-from dataclasses import field
+# from dataclasses import field
+from evox import pytree_field
 from typing import Any, Callable, List, Optional
 
 import grain.python as pygrain
@@ -80,16 +81,16 @@ class TensorflowDataset(Problem):
         Usually Google's storage server is faster than the original server of the dataset.
     """
 
-    dataset: Static[str]
-    batch_size: Static[int]
-    loss_func: Static[Callable]
-    split: Static[str] = field(default="train")
-    operations: Static[List[Any]] = field(default_factory=list)
-    datadir: Static[Optional[str]] = field(default=None)
-    seed: Static[int] = field(default=0)
-    try_gcs: Static[bool] = field(default=True)
-    iterator: Static[pygrain.PyGrainDatasetIterator] = field(init=False)
-    data_shape_dtypes: Static[Any] = field(init=False)
+    dataset: str = pytree_field(static=True)
+    batch_size: int = pytree_field(static=True)
+    loss_func: Callable = pytree_field(static=True)
+    split: str = pytree_field(static=True, default="train")
+    operations: List[Any] = pytree_field(static=True, default_factory=list)
+    datadir: Optional[str] = pytree_field(static=True, default=None)
+    seed: int = pytree_field(static=True, default=0)
+    try_gcs: bool = pytree_field(static=True, default=True)
+    iterator: pygrain.PyGrainDatasetIterator = pytree_field(static=True, init=False)
+    data_shape_dtypes: Any = pytree_field(static=True, init=False)
 
     def __post_init__(self):
         if self.datadir is None:

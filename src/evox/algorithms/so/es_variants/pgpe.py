@@ -4,7 +4,6 @@
 # Link: https://mediatum.ub.tum.de/doc/1287490/file.pdf
 # --------------------------------------------------------------------------------------
 
-from dataclasses import field
 from typing import Union
 
 import jax
@@ -13,8 +12,11 @@ import optax
 from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
 
-from evox import (Algorithm, State, Stateful, Static, dataclass, jit_class,
-                  use_state, utils)
+from evox import (
+    Algorithm, State, Stateful, 
+    dataclass, pytree_field, jit_class, 
+    use_state, utils
+)
 
 
 @jit
@@ -60,14 +62,14 @@ class ClipUp(Stateful):
 @jit_class
 @dataclass
 class PGPE(Algorithm):
-    pop_size: Static[int]
+    pop_size: int = pytree_field(static=True)
     center_init: jax.Array
     optimizer: Union[str, optax.GradientTransformation, Stateful]
     stdev_init: float = 0.1
     center_learning_rate: float = 0.15
     stdev_learning_rate: float = 0.1
     stdev_max_change: float = 0.2
-    dim: Static[int] = field(init=False)
+    dim: int = pytree_field(static=True, init=False)
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.center_init.shape[0])

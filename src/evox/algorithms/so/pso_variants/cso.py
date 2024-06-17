@@ -8,8 +8,8 @@
 import jax
 import jax.numpy as jnp
 from typing import Optional
-from evox import Algorithm, State, Static, jit_class, dataclass
-from dataclasses import field
+from evox import Algorithm, State, jit_class, dataclass, pytree_field
+
 
 
 @dataclass
@@ -26,11 +26,11 @@ class CSOState:
 class CSO(Algorithm):
     lb: jax.Array
     ub: jax.Array
-    pop_size: Static[int]
+    pop_size: int = pytree_field(static=True)
     phi: float = 0.0
     mean: Optional[jax.Array] = None
     stdev: Optional[jax.Array] = None
-    dim: Static[int] = field(init=False)
+    dim: int = pytree_field(static=True, init=False)
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.lb.shape[0])

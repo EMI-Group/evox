@@ -1,13 +1,13 @@
 from collections.abc import Iterable
 from functools import partial
 from typing import List, Union
-from dataclasses import field
 
 import jax
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 import optax
+from evox import dataclass, pytree_field
 
 from ..core.module import *
 
@@ -148,7 +148,7 @@ def rank_based_fitness(raw_fitness):
 
 @dataclass
 class OptaxWrapper(Stateful):
-    optimizer: Static[optax.GradientTransformation]
+    optimizer: optax.GradientTransformation = pytree_field(static=True) 
     init_params: jax.Array
 
     def setup(self, key):

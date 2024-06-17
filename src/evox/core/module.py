@@ -9,6 +9,8 @@ import jax.numpy as jnp
 import numpy as np
 from jax.tree_util import register_pytree_node, tree_map, tree_leaves
 
+
+
 from .state import State
 
 
@@ -137,78 +139,6 @@ def jit_class(cls):
     return cls
 
 
-StaticAnnotation = "evox_dataclass_static_field"
-Static = Annotated[TypeVar("T"), StaticAnnotation]
-StackAnnotation = "evox_dataclass_stack_field"
-Stack = Annotated[TypeVar("T"), StackAnnotation]
-
-
-def _has_annotation(type_hint, annotation):
-    return hasattr(type_hint, "__metadata__") and annotation in type_hint.__metadata__
-
-
-def dataclass(cls, *args, **kwargs):
-    cls = dataclasses.dataclass(cls, *args, **kwargs)
-
-    type_hints = get_type_hints(cls, include_extras=True)
-
-    field_info = []
-    # normal dataclass fields
-    for field in dataclasses.fields(cls):
-        if _has_annotation(type_hints[field.name], StaticAnnotation):
-            is_static = True
-        else:
-            is_static = False
-        field_info.append((field.name, field.init, is_static))
-    # evox Stateful fields
-    field_info.append(("_node_id", False, True))
-    field_info.append(("_module_name", False, True))
-
-    def flatten(dataclass_obj):
-        children = []
-        aux_data = []
-        for field_name, _, is_static in field_info:
-            if hasattr(dataclass_obj, field_name):
-                value = getattr(dataclass_obj, field_name)
-            else:
-                value = None
-
-            if is_static:
-                aux_data.append(value)
-            else:
-                children.append(value)
-
-        return (children, aux_data)
-
-    def unflatten(aux_data, children):
-        init_params = {}
-        non_init_params = {}
-        iter_aux = iter(aux_data)
-        iter_children = iter(children)
-        for field_name, is_init, is_static in field_info:
-            if is_init:
-                if is_static:
-                    init_params[field_name] = next(iter_aux)
-                else:
-                    init_params[field_name] = next(iter_children)
-            else:
-                if is_static:
-                    non_init_params[field_name] = next(iter_aux)
-                else:
-                    non_init_params[field_name] = next(iter_children)
-
-        obj = object.__new__(cls)
-        for key, value in init_params.items():
-            object.__setattr__(obj, key, value)
-        for key, value in non_init_params.items():
-            object.__setattr__(obj, key, value)
-
-        return obj
-
-    register_pytree_node(cls, flatten, unflatten)
-    return cls
-
-
 class Stateful:
     """Base class for all evox modules.
 
@@ -256,20 +186,19 @@ class Stateful:
         # Find all submodules and sort them according to their name.
         # Sorting is important because it makes sure that the node_id
         # is deterministic across different runs.
-        SubmoduleInfo = namedtuple("Submodule", ["name", "module", "type_hint"])
+        SubmoduleInfo = namedtuple("Submodule", ["name", "module", "metadata"])
 
         submodules = []
         # preprocess and sort to make sure the order is deterministic
         # otherwise the node_id will be different across different runs
         # making save/load impossible
         if dataclasses.is_dataclass(self):
-            type_hints = get_type_hints(self, include_extras=True)
             for field in dataclasses.fields(self):
                 attr = getattr(self, field.name)
 
                 if isinstance(attr, Stateful):
                     submodules.append(
-                        SubmoduleInfo(field.name, attr, type_hints[field.name])
+                        SubmoduleInfo(field.name, attr, field.metadata)
                     )
         else:
             for attr_name in vars(self):
@@ -279,7 +208,7 @@ class Stateful:
 
         submodules.sort()
 
-        for attr_name, attr, type_hint in submodules:
+        for attr_name, attr, metadata in submodules:
             if key is None:
                 subkey = None
             else:
@@ -287,7 +216,7 @@ class Stateful:
 
             # handle "StackAnnotation"
             # attr should be a list, or tuple of modules
-            if _has_annotation(type_hint, StackAnnotation):
+            if metadata.get("stack", False):
                 num_copies = len(attr)
                 subkeys = jax.random.split(subkey, num_copies)
                 current_node_id = node_id

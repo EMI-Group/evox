@@ -9,6 +9,8 @@ import dataclasses
 import jax.numpy as jnp
 from jax.tree_util import register_pytree_node_class, tree_map
 
+import orbax.checkpoint as ocp
+
 
 def is_magic_method(name: str):
     return name.startswith("__") and name.endswith("__")
@@ -225,10 +227,29 @@ class State:
 
         return self._child_states == other._child_states
 
-    def save(self, path: str):
-        with open(path, "wb") as f:
-            pickle.dump(self, f)
+    def save(self, path: str, orbax: bool = True):
+        """Save the state to local filesystem
 
-    def load(self, path: str) -> State:
-        with open(path, "rb") as f:
-            return pickle.load(f)
+        Parameters
+        ----------
+        path: str
+            The path to save the state
+        orbax: bool (default: True)
+            If True, use orbax to save the state, otherwise use pickle
+        """
+        if orbax:
+            ckpt = ocp.StandardCheckpointer()
+            ckpt.save(path, args=ocp.args.StandardSave(self))
+        else:
+            with open(path, "wb") as f:
+                pickle.dump(self, f)
+
+    def load(self, path: str, orbax: bool = True) -> State:
+        if orbax:
+            ckpt = ocp.StandardCheckpointer()
+            state = ckpt.restore(path, args=ocp.args.StandardRestore(self))
+        else:
+            with open(path, "rb") as f:
+                state = pickle.load(f)
+
+        return state
