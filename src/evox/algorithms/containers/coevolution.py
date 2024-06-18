@@ -155,11 +155,11 @@ class Coevolution(Algorithm):
         for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
         When set to True, the decision variables will be shuffled.
     """
-    base_algorithms: Stack[Algorithm]
-    dim: Static[int]
-    num_subpops: Static[int]
-    random_subpop: Static[bool]
-    dtype: Static[jnp.dtype] = jnp.float32
+    base_algorithms: Algorithm = pytree_field(stack=True)
+    dim: int = pytree_field(static=True)
+    num_subpops: int = pytree_field(static=True)
+    random_subpop: bool = pytree_field(static=True)
+    dtype: jnp.dtype = pytree_field(static=True, default=jnp.float32)
 
     def setup(self, key: jax.Array) -> State:
         if self.random_subpop:
