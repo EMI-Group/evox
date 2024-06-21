@@ -61,7 +61,7 @@ class ARS(evox.Algorithm):
         )
         z = jnp.concatenate([z_plus, -1.0 * z_plus])
         x = state.center + self.sigma * z
-        return x, state.update(key=key, population=x, noise=z)
+        return x, state.replace(key=key, population=x, noise=z)
 
     def tell(self, state, fitness):
         noise_1 = state.noise[: int(self.pop_size / 2)]
@@ -79,4 +79,4 @@ class ARS(evox.Algorithm):
         updates, state = self.optimizer.update(state, theta_grad, state.center)
         center = optax.apply_updates(state.center, updates)
 
-        return state.update(center=center)
+        return state.replace(center=center)

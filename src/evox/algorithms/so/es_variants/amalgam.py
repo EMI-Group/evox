@@ -60,7 +60,7 @@ class AMaLGaM(CMAES):
             C,
         )
 
-        return state.update(
+        return state.replace(
             mean=mean, ps=ps, pc=pc, C=C, sigma=sigma, B=B, D=D, invsqrtC=invsqrtC
         )
 
@@ -107,7 +107,7 @@ class IndependentAMaLGaM(AMaLGaM):
         # Scale the noise for each dimension using C
         population = state.mean + state.sigma * (jnp.sqrt(state.C) * noise)
 
-        new_state = state.update(
+        new_state = state.replace(
             population=population, count_iter=state.count_iter + 1, key=key
         )
 
@@ -130,4 +130,4 @@ class IndependentAMaLGaM(AMaLGaM):
         C = self._update_C(state.C, pc, state.sigma, population, state.mean, hsig)
         sigma = self._update_sigma(state.sigma, ps)
 
-        return state.update(mean=mean, ps=ps, pc=pc, C=C, sigma=sigma)
+        return state.replace(mean=mean, ps=ps, pc=pc, C=C, sigma=sigma)

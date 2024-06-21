@@ -110,10 +110,10 @@ class RandomMaskAlgorithm(Algorithm):
         child_state, xs = vmap(self.base_algorithm.ask)(
             state.get_child_state(self.submodule_name)
         )
-        state = state.update_child(self.submodule_name, child_state)
+        state = state.replace_child(self.submodule_name, child_state)
         # concatenate different parts as a whole
         pop = jnp.concatenate(xs, axis=1)
-        return pop, state.update(sub_pops=xs)
+        return pop, state.replace(sub_pops=xs)
 
     def ask(self, state: State):
         state = self._try_change_mask(state)
@@ -121,7 +121,7 @@ class RandomMaskAlgorithm(Algorithm):
         masked_child_state = _mask_state(old_state, state.permutation)
         new_child_state, xs = vmap(self.base_algorithm.ask)(masked_child_state)
         full_pop = jnp.concatenate(state.sub_pops.at[state.permutation].set(xs), axis=1)
-        state = state.update_child(
+        state = state.replace_child(
             self.submodule_name,
             _unmask_state(old_state, new_child_state, state.permutation),
         )
@@ -133,16 +133,16 @@ class RandomMaskAlgorithm(Algorithm):
         new_child_state = vmap(self.base_algorithm.tell, in_axes=(0, None))(
             masked_child_state, fitness
         )
-        state = state.update_child(
+        state = state.replace_child(
             self.submodule_name,
             _unmask_state(old_state, new_child_state, state.permutation),
         )
-        return state.update(count=state.count + 1)
+        return state.replace(count=state.count + 1)
 
     def _try_change_mask(self, state: State):
         def change_mask(state: State):
             key, subkey = jax.random.split(state.key)
-            return state.update(
+            return state.replace(
                 key=key,
                 permutation=jax.random.choice(
                     subkey, self.num_cluster, (self.num_valid,)

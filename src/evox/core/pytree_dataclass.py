@@ -6,11 +6,11 @@ from typing_extensions import (
     dataclass_transform,  # pytype: disable=not-supported-yet
 )
 
+from .distributed import ShardingType
 
-def pytree_field(*, static=False, stack=False, sharding=None, **kwargs):
+def pytree_field(*, static=False, stack=False, sharding=ShardingType.REPLICATED, **kwargs):
     """
-        lazy_init: When set to True, the field will not be initialized in __init__,
-            and we can use set_frozen_attr to set the value after __init__
+    
     """
     metadata={'static': static, 'stack': stack, 'sharding': sharding}
     kwargs.setdefault('metadata', {}).update(metadata)
@@ -19,6 +19,9 @@ def pytree_field(*, static=False, stack=False, sharding=None, **kwargs):
 
 
 def dataclass(cls, *args, **kwargs):
+    """
+    A dataclass decorator that also registers the dataclass as a pytree node.
+    """
     cls = dataclasses.dataclass(cls, *args, **kwargs)
 
     field_info = []
@@ -72,6 +75,9 @@ def dataclass(cls, *args, **kwargs):
         return obj
 
     register_pytree_node(cls, flatten, unflatten)
+    
+    # Add a method to set frozen attributes after init
+    cls.set_frozen_attr = lambda self, key, value: object.__setattr__(self, key, value)
     return cls
 
 

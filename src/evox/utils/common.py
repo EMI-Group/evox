@@ -12,13 +12,6 @@ from evox import dataclass, pytree_field
 from ..core.module import *
 
 
-def algorithm_has_init_ask(algorithm, state):
-    if not hasattr(algorithm, "init_ask"):
-        return False
-    probe = jax.eval_shape(use_state(algorithm.init_ask), state)
-    return probe[0] is not None
-
-
 def min_by(
     values: Union[jax.Array, List[jax.Array]],
     keys: Union[jax.Array, List[jax.Array]],
@@ -148,7 +141,7 @@ def rank_based_fitness(raw_fitness):
 
 @dataclass
 class OptaxWrapper(Stateful):
-    optimizer: optax.GradientTransformation = pytree_field(static=True) 
+    optimizer: optax.GradientTransformation = pytree_field(static=True)
     init_params: jax.Array
 
     def setup(self, key):
@@ -156,8 +149,9 @@ class OptaxWrapper(Stateful):
         return State(opt_state=opt_state)
 
     def update(self, state, grads, params=None):
-        updates, opt_state = self.optimizer.update(grads, state.opt_state, params)
-        return updates, state.update(opt_state=opt_state)
+        updates, opt_state = self.optimizer.update(
+            grads, state.opt_state, params)
+        return updates, state.replace(opt_state=opt_state)
 
 
 @jit_class
@@ -190,7 +184,8 @@ class TreeAndVector:
             self.start_indices, self.slice_sizes, self.shapes
         ):
             leaves.append(
-                jax.lax.dynamic_slice(x, (start_index,), (slice_size,)).reshape(shape)
+                jax.lax.dynamic_slice(
+                    x, (start_index,), (slice_size,)).reshape(shape)
             )
         return tree_unflatten(self.treedef, leaves)
 
@@ -244,7 +239,8 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
             elif d == "max":
                 result.append(-1)
             else:
-                raise ValueError(f"opt_direction is either 'min' or 'max', got {d}")
+                raise ValueError(
+                    f"opt_direction is either 'min' or 'max', got {d}")
         return jnp.array(result)
     else:
         raise ValueError(

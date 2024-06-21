@@ -101,7 +101,7 @@ class IMMOEA(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     # generate next generation
@@ -122,7 +122,7 @@ class IMMOEA(Algorithm):
         next_generation = jnp.sort(next_generation, axis=0)
         next_generation = lax.dynamic_slice(next_generation, (0, 0), population.shape)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
@@ -137,7 +137,7 @@ class IMMOEA(Algorithm):
         combined_order = jnp.lexsort((-crowding_dis, rank))[: self.pop_size]
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fitness[combined_order]
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        state = state.replace(population=survivor, fitness=survivor_fitness)
         return state
 
     # select next generation, but add clustering. The effect is not good, but it is the IM-MOEA's selection in PlatEMO.
@@ -183,7 +183,7 @@ class IMMOEA(Algorithm):
         indices = jnp.argsort(all_fit[:, 0])[: self.pop_size]
         next_generation = all_pop[indices]
         next_fitness = all_fit[indices]
-        return state.update(population=next_generation, fitness=next_fitness)
+        return state.replace(population=next_generation, fitness=next_fitness)
 
     def get_class_num(self, state, partition):
         class_num = jnp.zeros((self.k,))
@@ -364,4 +364,4 @@ class IMMOEA(Algorithm):
             n >= 2 * self.n_objs, normal_fun, lambda x: population, x_key
         )
         final_pop = self.mutation(mut_key, final_pop)
-        return final_pop, state.update(key=new_key)
+        return final_pop, state.replace(key=new_key)

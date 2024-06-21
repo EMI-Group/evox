@@ -56,7 +56,7 @@ class ClipUp(Stateful):
             lambda v: v,  # identity function
             velocity,
         )
-        return -velocity, state.update(velocity=velocity)
+        return -velocity, state.replace(velocity=velocity)
 
 
 @jit_class
@@ -108,7 +108,7 @@ class PGPE(Algorithm):
         key, subkey = jax.random.split(state.key)
         noise = jax.random.normal(subkey, (self.pop_size // 2, self.dim)) * state.stdev
         D = jnp.concatenate([state.center + noise, state.center - noise], axis=0)
-        return D, state.update(key=key, noise=noise)
+        return D, state.replace(key=key, noise=noise)
 
     def tell(self, state, fitness):
         F_pos = fitness[: self.pop_size // 2]
@@ -126,7 +126,7 @@ class PGPE(Algorithm):
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)
         stdev_updates = jnp.clip(stdev_updates, -bound, bound)
-        return state.update(
+        return state.replace(
             center=center,
             stdev=state.stdev - stdev_updates,
         )

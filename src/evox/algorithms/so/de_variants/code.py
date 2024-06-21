@@ -93,7 +93,7 @@ class CoDE(Algorithm):
         )(self.strategies, ask_one_keys, indices, param_ids)
         trial_vectors = trial_vectors.reshape(3*self.batch_size, -1)
 
-        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
+        return trial_vectors, state.replace(trial_vectors=trial_vectors, key=key)
 
     def _ask_one(self, state, strategy, key, index, param_idx):
         diff_sum_key, pbest_key, recom_key = jax.random.split(key, 3)
@@ -185,7 +185,7 @@ class CoDE(Algorithm):
         )
         best_index = jnp.argmin(fitness)
         start_index = (state.start_index + self.batch_size) % self.pop_size
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

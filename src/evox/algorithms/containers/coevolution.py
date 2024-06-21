@@ -62,7 +62,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             init_pop = init_pop.at[:, state.permutation].set(init_pop)
 
-        return init_pop, state.update(coop_pops=init_pop)
+        return init_pop, state.replace(coop_pops=init_pop)
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
         subpop, state = use_state(vmap(self.base_algorithms.__class__.ask))(
@@ -83,7 +83,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             coop_pops = coop_pops.at[:, state.permutation].set(coop_pops)
 
-        return coop_pops, state.update(coop_pops=coop_pops)
+        return coop_pops, state.replace(coop_pops=coop_pops)
 
     def init_tell(self, state, fitness):
         best_fit = jnp.min(fitness)
@@ -94,7 +94,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             best_dec = best_dec[state.permutation]
 
-        return state.update(
+        return state.replace(
             best_fit=jnp.tile(best_fit, self.num_subpops),
             best_dec=best_dec,
             coop_pops=None,
@@ -128,7 +128,7 @@ class VectorizedCoevolution(Algorithm):
             state.best_dec.reshape(self.num_subpops, -1),
         ).reshape(self.dim)
 
-        return state.update(
+        return state.replace(
             best_dec=best_dec,
             best_fit=jnp.minimum(state.best_fit, min_fit_each_subpop),
             coop_pops=None,
@@ -189,7 +189,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             init_pop = init_pop.at[:, state.permutation].set(init_pop)
 
-        return init_pop, state.update(coop_pops=init_pop)
+        return init_pop, state.replace(coop_pops=init_pop)
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
         subpop_index = state.iter_counter % self.num_subpops
@@ -211,7 +211,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             coop_pops = coop_pops.at[:, state.permutation].set(coop_pops)
 
-        return coop_pops, state.update(coop_pops=coop_pops)
+        return coop_pops, state.replace(coop_pops=coop_pops)
 
     def init_tell(self, state, fitness):
         best_fit = jnp.min(fitness)
@@ -222,7 +222,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             best_dec = best_dec[state.permutation]
 
-        return state.update(
+        return state.replace(
             best_fit=jnp.tile(best_fit, self.num_subpops),
             best_dec=best_dec,
             coop_pops=None,
@@ -248,7 +248,7 @@ class Coevolution(Algorithm):
 
         best_fit = state.best_fit.at[subpop_index].min(min_fitness)
 
-        return state.update(
+        return state.replace(
             best_dec=best_dec,
             best_fit=best_fit,
             iter_counter=state.iter_counter + 1,

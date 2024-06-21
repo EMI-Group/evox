@@ -11,7 +11,7 @@ class Leaf(Stateful):
 
     def run(self, state):
         c = state.c
-        return [2, 7, 1], state.update(c=c * 2)
+        return [2, 7, 1], state.replace(c=c * 2)
 
     def check(self, state):
         assert state.c == 84
@@ -28,7 +28,7 @@ class Middle(Stateful):
 
     def run(self, state):
         e, state = use_state(self.leaf.run)(state)
-        return e + [8, 2, 8], state.update(d=3.1415926)
+        return e + [8, 2, 8], state.replace(d=3.1415926)
 
     def check(self, state):
         assert state.d == 3.1415926

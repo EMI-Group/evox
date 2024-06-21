@@ -71,7 +71,7 @@ class ESMC(evox.Algorithm):
         )
         z = jnp.concatenate([jnp.zeros((1, self.num_dims)), z_plus, -1.0 * z_plus])
         x = state.center + z * state.sigma.reshape(1, self.num_dims)
-        return x, state.update(key=key, x=x)
+        return x, state.replace(key=key, x=x)
 
     def tell(self, state, fitness):
         noise = (state.x - state.center) / state.sigma
@@ -90,4 +90,4 @@ class ESMC(evox.Algorithm):
 
         sigma = state.sigma * self.sigma_decay
         sigma = jnp.maximum(sigma, self.sigma_limit)
-        return state.update(center=center, sigma=sigma)
+        return state.replace(center=center, sigma=sigma)

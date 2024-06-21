@@ -77,4 +77,4 @@ class EnvPool(Problem):
             ),
         )
 
-        return total_reward, state.update(key=key)
+        return total_reward, state.replace(key=key)

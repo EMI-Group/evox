@@ -144,7 +144,7 @@ class RVEAa(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def ask(self, state):
@@ -160,7 +160,7 @@ class RVEAa(Algorithm):
         next_generation = self.mutation(mut_key, crossovered)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         key, subkey = jax.random.split(state.key, 2)
@@ -205,7 +205,7 @@ class RVEAa(Algorithm):
             survivor_fitness,
         )
 
-        state = state.update(
+        state = state.replace(
             population=survivor,
             fitness=survivor_fitness,
             reference_vector=v,

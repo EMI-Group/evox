@@ -53,7 +53,7 @@ class RMES(CMAES):
         t_gap = jnp.zeros(self.memory_size)
         s_rank_rate = 0.0
         fitness_archive = jnp.zeros(self.pop_size) + 1e20
-        return base_state.update(
+        return base_state.replace(
             P=P,
             t_gap=t_gap,
             s_rank_rate=s_rank_rate,
@@ -86,7 +86,7 @@ class RMES(CMAES):
             C,
         )
 
-        new_state = state.update(
+        new_state = state.replace(
             mean=mean, ps=ps, pc=pc, C=C, sigma=sigma, B=B, D=D, invsqrtC=invsqrtC
         )
         # RmES specific updates
@@ -98,7 +98,7 @@ class RMES(CMAES):
         )
         s_rank_rate = self._rank_success_rule(fitness, state.fitness_archive)
 
-        return new_state.update(
+        return new_state.replace(
             mean=mean,
             p_sigma=p_sigma_new,
             P=P,

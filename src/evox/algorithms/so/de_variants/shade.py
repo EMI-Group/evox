@@ -105,7 +105,7 @@ class SHADE(Algorithm):
             )
         )(ask_one_key=ask_one_keys, index=indices, F=F_vect, CR=CR_vect)
 
-        return trial_vectors, state.update(
+        return trial_vectors, state.replace(
             trial_vectors=trial_vectors, key=key, F_vect=F_vect, CR_vect=CR_vect
         )
 
@@ -208,7 +208,7 @@ class SHADE(Algorithm):
         is_S_nan = jnp.all(jnp.isnan(compare))
         Memory_FCR = lax.select(is_S_nan, state.Memory_FCR, Memory_FCR_update)
 
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

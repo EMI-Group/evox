@@ -7,10 +7,13 @@ import pickle
 import dataclasses
 
 import jax.numpy as jnp
-from jax.tree_util import register_pytree_node_class, tree_map
+from jax.tree_util import register_pytree_node_class, tree_map, tree_structure, tree_unflatten
+
+from dataclasses import fields, is_dataclass
+from .distributed import ShardingType
 
 import orbax.checkpoint as ocp
-
+import warnings
 
 def is_magic_method(name: str):
     return name.startswith("__") and name.endswith("__")
@@ -82,6 +85,12 @@ class State:
         return self
 
     def update(self, **kwargs) -> State:
+        warnings.warn(
+            'update() is depreacred, use replace() instead'
+        )
+        return self.replace(**kwargs)
+
+    def replace(self, **kwargs) -> State:
         """Update the current State with another State or dict and return new State.
 
         This method also accept keyword arguments.
@@ -89,7 +98,7 @@ class State:
         Example::
             >>> from evox import State
             >>> state = State(x=1, y=2)
-            >>> state.update(y=3) # use the update method
+            >>> state.replace(y=3) # use the update method
             State ({'x': 1, 'y': 3}, {})
             >>> state # note that State is immutable, so state isn't modified
             State ({'x': 1, 'y': 2}, {})
@@ -100,10 +109,7 @@ class State:
             )
         else:
             return copy(self)._set_state_dict_mut({**self._state_dict, **kwargs})
-
-    def replace(self, **kwargs) -> State:
-        return self.update(**kwargs)
-
+        
     def has_child(self, name: str) -> bool:
         return name in self._child_states
 
@@ -111,6 +117,12 @@ class State:
         return self._child_states[name]
 
     def update_child(self, name: str, child_state: State) -> State:
+        warnings.warn(
+            'update_child() is depreacred, use replace_child() instead'
+        )
+        return self.replace_child(name, child_state)
+
+    def replace_child(self, name: str, child_state: State) -> State:
         return copy(self)._set_child_states_mut(
             {**self._child_states, name: child_state}
         )
@@ -135,7 +147,7 @@ class State:
 
         return None
 
-    def update_path(self, path, new_state):
+    def replace_by_path(self, path, new_state):
         if isinstance(path, int):
             assert path == self._state_id
             return new_state
@@ -143,7 +155,7 @@ class State:
             child_id, path = path
             return self.update_child(
                 child_id,
-                self._child_states[child_id].update_path(path, new_state),
+                self._child_states[child_id].replace_by_path(path, new_state),
             )
         else:
             raise ValueError("Path must be either tuple or int")
@@ -222,6 +234,7 @@ class State:
         )
 
     def __eq__(self, other: State):
+        # TODO: verify the correctness of the comparison
         if self._state_dict != other._state_dict:
             return False
 
@@ -253,3 +266,35 @@ class State:
                 state = pickle.load(f)
 
         return state
+
+
+def _get_state_sharding(obj, devices=None):
+    """
+        Apply DFS like tree_flatten
+    """
+    sharding = []
+    if isinstance(obj, State):
+        # TODO: check the order:
+        sharding.extend(_get_state_sharding(obj._state_dict, devices))
+        for child_state in obj._child_states.values():
+            sharding.extend(_get_state_sharding(child_state, devices))
+
+    elif is_dataclass(obj):
+        for field in fields(obj):
+            sharding.append(
+                field.metadata.get(
+                    "sharding", ShardingType.REPLICATED).get_sharding(devices)
+            )
+    elif isinstance(obj, dict):
+        # backward compatibility for dict
+        # for key, value in obj.items():
+        for key in obj.keys():
+            sharding.append(ShardingType.REPLICATED.get_sharding(devices))
+
+    return sharding
+
+
+def get_state_sharding(state: State, devices=None):
+    flatten_sharding = _get_state_sharding(state, devices)
+
+    return tree_unflatten(tree_structure(state), flatten_sharding)

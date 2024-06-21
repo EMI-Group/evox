@@ -85,7 +85,7 @@ class MOEAD(Algorithm):
 
     def init_tell(self, state, fitness):
         Z = jnp.min(fitness, axis=0)
-        state = state.update(fitness=fitness, Z=Z)
+        state = state.replace(fitness=fitness, Z=Z)
         return state
 
     def ask(self, state):
@@ -99,7 +99,7 @@ class MOEAD(Algorithm):
         crossovered = self.crossover(sel_key, selected_p)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(
+        return next_generation, state.replace(
             next_generation=next_generation, parent=parent, key=key
         )
 
@@ -188,5 +188,5 @@ class MOEAD(Algorithm):
 
         population, pop_obj, Z = jax.lax.fori_loop(0, self.pop_size, out_body, out_vals)
 
-        state = state.update(population=population, fitness=pop_obj, Z=Z)
+        state = state.replace(population=population, fitness=pop_obj, Z=Z)
         return state

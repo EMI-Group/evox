@@ -263,7 +263,7 @@ class BCEIBEA(Algorithm):
 
         pop = jax.lax.cond(jnp.sum(s) != 0, true_fun, lambda x: x, pop)
 
-        return pop, state.update(new_pc=pop, key=key)
+        return pop, state.replace(new_pc=pop, key=key)
 
     def _ask_even(self, state):
         key, sel_key, x_key, mut_key = jax.random.split(state.key, 4)
@@ -272,11 +272,11 @@ class BCEIBEA(Algorithm):
         crossovered = self.crossover(x_key, selected)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(new_npc=next_generation, key=key)
+        return next_generation, state.replace(new_npc=next_generation, key=key)
 
     def init_tell(self, state, fitness):
         pc, pc_obj, n_nd = pc_selection(state.population, fitness, self.pop_size)
-        state = state.update(
+        state = state.replace(
             population=pc,
             fitness=pc_obj,
             npc_obj=fitness,
@@ -298,7 +298,7 @@ class BCEIBEA(Algorithm):
         npc, npc_obj = environmental_selection(
             merged_pop, merged_fitness, self.pop_size, self.kappa
         )
-        return state.update(
+        return state.replace(
             npc=npc, fitness=npc_obj, counter=state.counter + 1, new_pc_obj=new_pc_obj
         )
 
@@ -320,7 +320,7 @@ class BCEIBEA(Algorithm):
 
         pc, pc_obj, n_nd = pc_selection(merged_pop, merged_fitness, self.pop_size)
 
-        state = state.update(
+        state = state.replace(
             population=pc,
             fitness=pc_obj,
             n_nd=n_nd,

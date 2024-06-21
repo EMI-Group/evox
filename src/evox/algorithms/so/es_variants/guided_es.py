@@ -79,7 +79,7 @@ class GuidedES(evox.Algorithm):
         z_plus = jnp.swapaxes(z_plus, 0, 1)
         z = jnp.concatenate([z_plus, -1.0 * z_plus])
         x = state.center + z
-        return x, state.update(key=key, z=z)
+        return x, state.replace(key=key, z=z)
 
     def tell(self, state, fitness):
         noise = state.z / state.sigma
@@ -93,7 +93,7 @@ class GuidedES(evox.Algorithm):
         grad_subspace = jnp.zeros((self.subspace_dims, self.num_dims))
         grad_subspace = grad_subspace.at[:-1, :].set(state.grad_subspace[1:, :])
         grad_subspace = grad_subspace.at[-1, :].set(theta_grad)
-        state = state.update(grad_subspace=grad_subspace)
+        state = state.replace(grad_subspace=grad_subspace)
 
         # Grad update using optimizer instance - decay lrate if desired
         updates, state = self.optimizer.update(state, theta_grad, state.center)
@@ -105,5 +105,5 @@ class GuidedES(evox.Algorithm):
         sigma = self.sigma_decay * state.sigma
         sigma = jnp.maximum(sigma, self.sigma_limit)
 
-        state = state.update(center=center, sigma=sigma)
+        state = state.replace(center=center, sigma=sigma)
         return state

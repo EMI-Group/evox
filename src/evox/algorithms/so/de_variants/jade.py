@@ -101,7 +101,7 @@ class JaDE(Algorithm):
             )
         )(ask_one_key=ask_one_keys, index=indices, F=F_vect, CR=CR_vect)
 
-        return trial_vectors, state.update(
+        return trial_vectors, state.replace(
             trial_vectors=trial_vectors, key=key, F_vect=F_vect, CR_vect=CR_vect
         )
 
@@ -185,7 +185,7 @@ class JaDE(Algorithm):
         )
         CR_u = (1 - self.c) * state.CR_u + self.c * jnp.nanmean(S_CR)
 
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

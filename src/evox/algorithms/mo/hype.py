@@ -106,7 +106,7 @@ class HypE(Algorithm):
 
     def init_tell(self, state, fitness):
         ref_point = jnp.zeros((self.n_objs,)) + jnp.max(fitness) * 1.2
-        state = state.update(fitness=fitness, ref_point=ref_point)
+        state = state.replace(fitness=fitness, ref_point=ref_point)
         return state
 
     def ask(self, state):
@@ -119,7 +119,7 @@ class HypE(Algorithm):
         crossovered = self.crossover(x_key, selected)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(next_generation=next_generation)
+        return next_generation, state.replace(next_generation=next_generation)
 
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
@@ -142,6 +142,6 @@ class HypE(Algorithm):
         survivor = merged_pop[combined_indices]
         survivor_fitness = merged_obj[combined_indices]
 
-        state = state.update(population=survivor, fitness=survivor_fitness, key=key)
+        state = state.replace(population=survivor, fitness=survivor_fitness, key=key)
 
         return state

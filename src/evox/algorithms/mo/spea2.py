@@ -125,10 +125,10 @@ class SPEA2(Algorithm):
         crossovered = self.crossover(x_key, selected)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(next_generation=next_generation)
+        return next_generation, state.replace(next_generation=next_generation)
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -154,5 +154,5 @@ class SPEA2(Algorithm):
 
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fitness[combined_order]
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        state = state.replace(population=survivor, fitness=survivor_fitness)
         return state

@@ -42,7 +42,7 @@ class EvoXBenchProblem(Problem):
             seed,
             pop,
         )
-        return fitness, state.update(key=key)
+        return fitness, state.replace(key=key)
 
 
 @jit_class

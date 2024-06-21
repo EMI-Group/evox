@@ -158,12 +158,12 @@ class TDEA(Algorithm):
         crossovered = self.crossover(x_key, population)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def init_tell(self, state, fitness):
         z = jnp.min(fitness, axis=0)
         z_nad = jnp.max(fitness, axis=0)
-        state = state.update(fitness=fitness, z=z, z_nad=z_nad)
+        state = state.replace(fitness=fitness, z=z, z_nad=z_nad)
         return state
 
     def tell(self, state, fitness):
@@ -174,5 +174,5 @@ class TDEA(Algorithm):
             merged_pop, merged_fitness, state.w, self.pop_size, state.z, state.z_nad
         )
 
-        state = state.update(population=population, fitness=pop_obj, z=z, z_nad=z_nad)
+        state = state.replace(population=population, fitness=pop_obj, z=z, z_nad=z_nad)
         return state

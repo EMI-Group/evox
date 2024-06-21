@@ -5,13 +5,18 @@ from typing import Callable, List, Optional, Union
 import jax
 import jax.numpy as jnp
 from jax import jit, lax, pmap, pure_callback
-from jax.sharding import PositionalSharding
-from jax.tree_util import tree_map
 
-from evox import Algorithm, Problem, State, Workflow, Monitor, jit_method, use_state
-from evox.utils import parse_opt_direction, algorithm_has_init_ask
+from evox import Algorithm, Problem, State, Workflow, Monitor, use_state, dataclass, pytree_field
+from evox.core.distributed import POP_AXIS_NAME, all_gather
+from evox.utils import parse_opt_direction
 
-from evox.metrics import TrainInfo
+
+@dataclass
+class StdWorkflowState:
+    generation: int
+    first_step: bool = pytree_field(static=True)
+    rank: int
+    world_size: int = pytree_field(static=True)
 
 
 class StdWorkflow(Workflow):
@@ -36,7 +41,6 @@ class StdWorkflow(Workflow):
         pop_transform: Optional[Callable] = None,
         jit_problem: bool = True,
         num_objectives: Optional[int] = None,
-        monitor=None,
     ):
         """
         Parameters
@@ -75,12 +79,7 @@ class StdWorkflow(Workflow):
         self.algorithm = algorithm
         self.problem = problem
         self.monitors = monitors
-        if monitor is not None:
-            warnings.warn(
-                "`monitor` is deprecated, use the `monitors` parameter with a list of monitors instead",
-                DeprecationWarning,
-            )
-            self.monitors = [monitor]
+
         self.registered_hooks = {
             "pre_step": [],
             "pre_ask": [],
@@ -122,50 +121,30 @@ class StdWorkflow(Workflow):
             )
             self.num_objectives = 1
 
-        # a prototype step function
-        # will be then wrapped to get _step
-        # We are doing this as a workaround for JAX's static shape requirement
-        # Since init_ask and ask can return different shape
-        # and jax.lax.cond requires the same shape from two different branches
-        # we can only apply lax.cond outside of each `step`
-        def _proto_step(self, is_init, state):
-            for monitor in self.registered_hooks["pre_ask"]:
-                monitor.pre_ask(state)
-
-            if is_init:
+        def _ask(self, state):
+            if has_init_ask(self.algorithm) and state.first_step:
                 ask = self.algorithm.init_ask
-                tell = self.algorithm.init_tell
             else:
                 ask = self.algorithm.ask
-                tell = self.algorithm.tell
 
-            # candidate solution
-            cand_sol, state = use_state(ask)(state)
-            cand_sol_size = cand_sol.shape[0]
+            # candidate: individuals that need to be evaluated (may differ from population)
+            # Note: num_cands can be different from init_ask() and ask()
+            cands, state = use_state(ask)(state)
 
-            for monitor in self.registered_hooks["post_ask"]:
-                monitor.post_ask(state, cand_sol)
+            return cands, state
 
-            if self.distributed_step is True:
-                cand_sol = jax.lax.dynamic_slice_in_dim(
-                    cand_sol, state.start_index, self.slice_size, axis=0
-                )
-
-            transformed_cand_sol = cand_sol
-            for transform in self.sol_transforms:
-                transformed_cand_sol = transform(transformed_cand_sol)
-
-            for monitor in self.registered_hooks["pre_eval"]:
-                monitor.pre_eval(state, cand_sol, transformed_cand_sol)
+        def _evaluate(self, state, transformed_cands):
+            num_cands = transformed_cands.shape[0]
 
             # if the function is jitted
             if self.jit_problem:
-                fitness, state = use_state(self.problem.evaluate)(state, transformed_cand_sol)
+                fitness, state = use_state(self.problem.evaluate)(
+                    state, transformed_cands)
             else:
                 if self.num_objectives == 1:
-                    fit_shape = (cand_sol_size,)
+                    fit_shape = (num_cands,)
                 else:
-                    fit_shape = (cand_sol_size, self.num_objectives)
+                    fit_shape = (num_cands, self.num_objectives)
                 fitness, state = pure_callback(
                     use_state(self.problem.evaluate),
                     (
@@ -173,16 +152,56 @@ class StdWorkflow(Workflow):
                         state,
                     ),
                     state,
-                    transformed_cand_sol,
+                    transformed_cands,
                 )
 
-            if self.distributed_step is True:
-                fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
-
+            fitness = all_gather(fitness, self.pmap_axis_name, axis=0, tiled=True)
             fitness = fitness * self.opt_direction
 
+            return fitness, state
+
+        def _tell(self, state, transformed_fitness):
+            if has_init_tell(self.algorithm) and state.first_step:
+                tell = self.algorithm.init_tell
+            else:
+                tell = self.algorithm.tell
+
+            state = use_state(tell)(state, transformed_fitness)
+
+            return state
+
+        def _step(self, state):
+            for monitor in self.registered_hooks["pre_ask"]:
+                monitor.pre_ask(state)
+
+            cands, state = _ask(self, state)
+
+            for monitor in self.registered_hooks["post_ask"]:
+                monitor.post_ask(state, cands)
+
+            num_cands = cands.shape[0]
+            # in multi-device|host mode, each device only evaluates a slice of the population
+            if num_cands % state.world_size != 0:
+                raise ValueError(
+                    f"#Candidates ({num_cands}) should be divisible by the number of devices ({state.world_size})"
+                )
+            # Note: slice_size is static
+            slice_size = num_cands // state.world_size
+            cands = jax.lax.dynamic_slice_in_dim(
+                cands, state.rank*slice_size, slice_size, axis=0)
+
+            transformed_cands = cands
+            for transform in self.sol_transforms:
+                transformed_cands = transform(transformed_cands)
+
+            for monitor in self.registered_hooks["pre_eval"]:
+                monitor.pre_eval(state, cands, transformed_cands)
+
+            fitness, state = _evaluate(self, state, transformed_cands)
+
             for monitor in self.registered_hooks["post_eval"]:
-                monitor.post_eval(state, cand_sol, transformed_cand_sol, fitness)
+                monitor.post_eval(
+                    state, cands, transformed_cands, fitness)
 
             transformed_fitness = fitness
             for transform in self.fit_transforms:
@@ -190,55 +209,45 @@ class StdWorkflow(Workflow):
 
             for monitor in self.registered_hooks["pre_tell"]:
                 monitor.pre_tell(
-                    state, cand_sol, transformed_cand_sol, fitness, transformed_fitness
+                    state, cands, transformed_cands, fitness, transformed_fitness
                 )
 
-            state = use_state(tell)(state, transformed_fitness)
+            state = _tell(self, state, transformed_fitness)
 
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)
 
-            train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
+            train_info = dict(
+                fitness=fitness,
+                transformed_fitness=transformed_fitness
+            )
 
-            return train_info, state.update(generation=state.generation + 1)
-
-        # wrap around _proto_step
-        # to handle init_ask and init_tell
-        def _step(self, state):
-            # probe if self.algorithm has override the init_ask function
-            if algorithm_has_init_ask(self.algorithm, state):
-                return lax.cond(
-                    state.generation == 0,
-                    partial(_proto_step, self, True),
-                    partial(_proto_step, self, False),
-                    state,
+            if state.first_step:
+                state = state.replace(
+                    generation=state.generation + 1,
+                    first_step=False
                 )
             else:
-                return _proto_step(self, False, state)
+                state = state.replace(generation=state.generation + 1)
+
+            return train_info, state
 
         # the first argument is self, which should be static
-        self._step = jit(_step, static_argnums=[0])
+        self._step = jit(_step, static_argnums=(0,))
 
-        def _valid(self, state, metric):
-            new_state = self.problem.valid(state, metric=metric)
-            pop, new_state = self.algorithm.ask(new_state)
-
-            if self.distributed_step is True:
-                pop = jax.lax.dynamic_slice_in_dim(
-                    pop, self.start_index, self.slice_size, axis=0
-                )
-
-            fitness, new_state = self.problem.evaluate(new_state, pop)
-
-            if self.distributed_step is True:
-                fitness = jax.lax.all_gather(fitness, "node", axis=0, tiled=True)
-
-            return fitness, state
-
-        self._valid = jit_method(_valid)
+        # by default, use the first device
+        self.devices = jax.local_devices()[:1]
+        self.pmap_axis_name = None
 
     def setup(self, key):
-        return State(generation=0)
+        return State(
+            StdWorkflowState(
+                generation=0,
+                first_step=True,
+                rank=0,
+                world_size=1
+            )
+        )
 
     def step(self, state):
         for monitor in self.registered_hooks["pre_step"]:
@@ -250,28 +259,6 @@ class StdWorkflow(Workflow):
             monitor.post_step(state)
 
         return train_info, state
-
-    def valid(self, state, metric):
-        return self._valid(self, state, metric)
-
-    def _auto_shard(self, state, sharding, pop_size, dim):
-        def get_shard_for_array(arr):
-            if isinstance(arr, jax.Array):
-                if arr.ndim == 2:
-                    if arr.shape == (pop_size, dim):
-                        return sharding
-                    elif arr.shape[0] == pop_size:
-                        return sharding.replicate(1)
-                    elif arr.shape[1] == dim:
-                        return sharding.replicate(0)
-                elif arr.ndim == 1 and arr.shape[0] == dim:
-                    return sharding.replicate(0, keepdims=False)
-                elif arr.ndim == 1 and arr.shape[0] == pop_size:
-                    return sharding.replicate(1, keepdims=False)
-
-            return sharding.replicate()
-
-        return tree_map(get_shard_for_array, state)
 
     def enable_multi_devices(
         self, state: State, devices: Optional[list] = None
@@ -297,53 +284,32 @@ class StdWorkflow(Workflow):
                 "multi-devices with non jit problem isn't currently supported"
             )
         if devices is None:
-            devices = jax.local_devices()
-        device_count = len(devices)
-        dummy_pop, _ = jax.eval_shape(use_state(self.algorithm.ask), state)
-        pop_size, dim = dummy_pop.shape
-        sharding = PositionalSharding(devices).reshape(1, device_count)
-        state_sharding = self._auto_shard(state, sharding, pop_size, dim)
-        state = jax.device_put(state, state_sharding)
-        self._step = jit(
+            devices = jax.devices()
+
+        num_devices = len(devices)
+
+        self._step = jax.pmap(
             self._step,
-            in_shardings=(state_sharding,),
-            out_shardings=state_sharding,
-            static_argnums=0,
+            axis_name=POP_AXIS_NAME,
+            static_broadcasted_argnums=0
         )
+        self.pmap_axis_name = POP_AXIS_NAME
+
+        state = jax.device_put_replicated(state, devices)
+        state = state.replace(
+            rank=jax.device_put_sharded(
+                [*jnp.arange(0, num_devices, dtype=jnp.int32)],
+                devices
+            ),
+            world_size=num_devices
+        )
+
         return state
 
-    def enable_distributed(self, state):
-        """
-        Enable the distributed workflow to run across multiple nodes.
-        To use jax's distribution ability,
-        one need to run the same program on all nodes
-        with different parameters in `jax.distributed.initialize`.
 
-        Parameters
-        ----------
-        state
-            The state.
+def has_init_ask(algorithm):
+    return hasattr(algorithm, "init_ask") and callable(algorithm.init_ask)
 
-        Returns
-        -------
-        State
-            The sharded state, distributed amoung all nodes.
-        """
-        # auto determine pop_size and dimension
-        dummy_pop, _ = jax.eval_shape(self.algorithm.ask, state)
-        pop_size, _dim = dummy_pop.shape
-        total_device_count = jax.device_count()
-        local_device_count = jax.local_device_count()
-        self.slice_size = pop_size // total_device_count
-        process_index = jax.process_index()
-        start_index = process_index * local_device_count * self.slice_size
-        start_indices = [
-            start_index + i * self.slice_size for i in range(local_device_count)
-        ]
-        self.distributed_step = True
-        # enter pmap env, thus allowing collective ops in _step and _valid
-        self._step = pmap(self._step, axis_name="node", static_broadcasted_argnums=0)
-        # pmap requires an extra dimension
-        state = jax.device_put_replicated(state, jax.local_devices())
-        start_index = jax.device_put_sharded(start_indices, jax.local_devices())
-        return state.update(start_index=start_index)
+
+def has_init_tell(algorithm):
+    return hasattr(algorithm, "init_tell") and callable(algorithm.init_tell)

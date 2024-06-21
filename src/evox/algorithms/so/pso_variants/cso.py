@@ -21,7 +21,7 @@ class CSOState:
     key: jax.random.PRNGKey
 
 
-@jit_class
+# @jit_class
 @dataclass
 class CSO(Algorithm):
     lb: jax.Array
@@ -33,7 +33,7 @@ class CSO(Algorithm):
     dim: int = pytree_field(static=True, init=False)
 
     def __post_init__(self):
-        object.__setattr__(self, "dim", self.lb.shape[0])
+        self.set_frozen_attr("dim", self.lb.shape[0])
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
@@ -62,7 +62,7 @@ class CSO(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        return state.update(fitness=fitness)
+        return state.replace(fitness=fitness)
 
     def ask(self, state):
         key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(
@@ -90,7 +90,7 @@ class CSO(Algorithm):
 
         return (
             candidates,
-            state.update(
+            state.replace(
                 population=new_population,
                 velocity=new_velocity,
                 students=students,
@@ -100,4 +100,4 @@ class CSO(Algorithm):
 
     def tell(self, state, fitness):
         fitness = state.fitness.at[state.students].set(fitness)
-        return state.update(fitness=fitness)
+        return state.replace(fitness=fitness)

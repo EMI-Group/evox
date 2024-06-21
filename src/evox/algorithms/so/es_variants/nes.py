@@ -88,7 +88,7 @@ class XNES(Algorithm):
         key, normal_key = jax.random.split(state.key)
         noise = jax.random.normal(normal_key, shape=(self.pop_size, self.dim))
         population = state.mean + state.sigma * (noise @ state.B.T)
-        return population, state.update(noise=noise, key=key)
+        return population, state.replace(noise=noise, key=key)
 
     def tell(self, state, fitness):
         if self.recombination_weights is None:
@@ -107,7 +107,7 @@ class XNES(Algorithm):
         sigma = state.sigma * jnp.exp(self.learning_rate_var / 2 * grad_sigma)
         B = state.B @ expm(self.learning_rate_B / 2 * grad_B)
 
-        return state.update(
+        return state.replace(
             mean=mean,
             sigma=sigma,
             B=B,
@@ -200,7 +200,7 @@ class SeparableNES(Algorithm):
         sigma *= jnp.exp(self.learning_rate_var / 2 * grad_sigma)
 
         population, zero_mean_pop, key = self._new_pop(state.key, mean, sigma)
-        return state.update(
+        return state.replace(
             population=population,
             zero_mean_pop=zero_mean_pop,
             mean=mean,

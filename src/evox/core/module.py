@@ -76,7 +76,7 @@ def use_state(func: Callable, index: int = None):
                 new_state,
             )
 
-        state = state.update_path(path, new_state)
+        state = state.replace_by_path(path, new_state)
 
         if aux is None:
             return state
@@ -204,7 +204,7 @@ class Stateful:
             for attr_name in vars(self):
                 attr = getattr(self, attr_name)
                 if not attr_name.startswith("_") and isinstance(attr, Stateful):
-                    submodules.append(SubmoduleInfo(attr_name, attr, False))
+                    submodules.append(SubmoduleInfo(attr_name, attr, {}))
 
         submodules.sort()
 

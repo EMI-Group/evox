@@ -114,7 +114,7 @@ class ODE(Algorithm):
             indices, R, state.population, state.best_index, random_choices, masks
         )
 
-        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
+        return trial_vectors, state.replace(trial_vectors=trial_vectors, key=key)
 
     def _ask_one_odd(self, index, R, population, best_index, random_choiced, mask):
         random_choiced = jnp.where(
@@ -178,7 +178,7 @@ class ODE(Algorithm):
         )
         best_index = jnp.argmin(fitness)
         start_index = (state.start_index + self.batch_size) % self.pop_size
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

@@ -85,7 +85,7 @@ class Noise_reuse_es(evox.Algorithm):
         )
         # Add the perturbations from this unroll to the perturbation accumulators
         x = state.center + unroll_pert
-        return x, state.update(key=key, unroll_pert=unroll_pert, population=x)
+        return x, state.replace(key=key, unroll_pert=unroll_pert, population=x)
 
     def tell(self, state, fitness):
         theta_grad = jnp.mean(
@@ -100,6 +100,6 @@ class Noise_reuse_es(evox.Algorithm):
         inner_step_counter = jax.lax.select(reset, 0, inner_step_counter)
         sigma = self.sigma_decay * state.sigma
         sigma = jnp.maximum(sigma, self.sigma_limit)
-        return state.update(
+        return state.replace(
             center=center, inner_step_counter=inner_step_counter, sigma=sigma
         )

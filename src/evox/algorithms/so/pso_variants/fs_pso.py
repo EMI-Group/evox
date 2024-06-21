@@ -148,7 +148,7 @@ class FSPSO(Algorithm):
         new_lbest_location = jnp.concatenate((lbest_location, offspring_lbest_location))
         new_lbest_fitness = jnp.concatenate((lbest_fitness, offspring_lbest_fitness))
 
-        return state.update(
+        return state.replace(
             population=new_population,
             velocity=new_velocity,
             local_best_location=new_lbest_location,

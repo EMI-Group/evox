@@ -131,7 +131,7 @@ class CMAES(Algorithm):
         key, sample_key = jax.random.split(state.key)
         noise = jax.random.normal(sample_key, (self.pop_size, self.dim))
         population = state.mean + state.sigma * (state.D * noise) @ state.B.T
-        new_state = state.update(
+        new_state = state.replace(
             population=population, count_iter=state.count_iter + 1, key=key
         )
         return population, new_state
@@ -159,7 +159,7 @@ class CMAES(Algorithm):
             C,
         )
 
-        return state.update(
+        return state.replace(
             mean=mean, ps=ps, pc=pc, C=C, sigma=sigma, B=B, D=D, invsqrtC=invsqrtC
         )
 
@@ -218,7 +218,7 @@ class SepCMAES(CMAES):
         key, sample_key = jax.random.split(state.key)
         noise = jax.random.normal(sample_key, (self.pop_size, self.dim))
         population = state.mean + state.sigma * jnp.sqrt(state.C) * noise
-        new_state = state.update(
+        new_state = state.replace(
             population=population, count_iter=state.count_iter + 1, key=key
         )
         return population, new_state
@@ -239,7 +239,7 @@ class SepCMAES(CMAES):
         C = self._update_C(state.C, pc, state.sigma, population, state.mean, hsig)
         sigma = self._update_sigma(state.sigma, ps)
 
-        return state.update(mean=mean, ps=ps, pc=pc, C=C, sigma=sigma)
+        return state.replace(mean=mean, ps=ps, pc=pc, C=C, sigma=sigma)
 
     def _update_ps(self, ps, C, sigma, delta_mean):
         return (1 - self.cs) * ps + jnp.sqrt(
@@ -316,11 +316,11 @@ class IPOPCMAES(CMAES):
         current_best_fitness = jnp.min(fitness)
 
         def improve_fn():
-            return state.update(best_fitness=current_best_fitness, stagnation_count=0)
+            return state.replace(best_fitness=current_best_fitness, stagnation_count=0)
 
         def no_improve_fn():
             new_stagnation_count = self.stagnation_count + 1
-            return state.update(
+            return state.replace(
                 best_fitness=state.best_fitness, stagnation_count=new_stagnation_count
             )
 
@@ -340,7 +340,7 @@ class IPOPCMAES(CMAES):
     def _restart(self, state):
         new_restarts = self.restarts + 1
         new_pop_size = self.original_pop_size * (2**new_restarts)
-        return state.update(
+        return state.replace(
             restarts=new_restarts,
             pop_size=new_pop_size,
             sigma=self.init_stdev,
@@ -348,7 +348,7 @@ class IPOPCMAES(CMAES):
         )
 
     def _remain(self, state):
-        return state.update(
+        return state.replace(
             restarts=state.restarts,
             pop_size=state.pop_size,
             sigma=self.init_stdev,
@@ -362,7 +362,7 @@ class BIPOPCMAES(IPOPCMAES):
         def back_to_original_fn(_):
             new_restarts = self.restarts + 1
             new_pop_size = self.original_pop_size
-            return state.update(
+            return state.replace(
                 restarts=new_restarts,
                 pop_size=new_pop_size,
                 sigma=self.init_stdev,
@@ -372,7 +372,7 @@ class BIPOPCMAES(IPOPCMAES):
         def double_population_fn(_):
             new_restarts = self.restarts + 1
             new_pop_size = self.original_pop_size * (2**new_restarts)
-            return state.update(
+            return state.replace(
                 restarts=new_restarts,
                 pop_size=new_pop_size,
                 sigma=self.init_stdev,

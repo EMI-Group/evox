@@ -170,10 +170,10 @@ class SRA(Algorithm):
         crossovered = self.crossover(sel_key, population)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -187,5 +187,5 @@ class SRA(Algorithm):
             env_key, merged_pop, merged_fitness, self.pop_size, pc
         )
 
-        state = state.update(population=population, fitness=pop_obj)
+        state = state.replace(population=population, fitness=pop_obj)
         return state

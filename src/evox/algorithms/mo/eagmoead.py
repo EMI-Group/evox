@@ -134,12 +134,12 @@ class EAGMOEAD(Algorithm):
         crossovered = self.crossover(x_key, selected_p)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(
+        return next_generation, state.replace(
             next_generation=next_generation, offspring_loc=offspring_loc, key=key
         )
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness, inner_obj=fitness)
+        state = state.replace(fitness=fitness, inner_obj=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -200,7 +200,7 @@ class EAGMOEAD(Algorithm):
             return s
 
         s = jax.lax.cond(num_valid != 0, update_s, no_update, s)
-        state = state.update(
+        state = state.replace(
             population=survivor,
             fitness=survivor_fitness,
             inner_pop=inner_pop,

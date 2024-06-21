@@ -253,7 +253,7 @@ class LES(evox.Algorithm):
         noise = jax.random.normal(state.key, (self.popsize, self.num_dims))
         x = state.mean + noise * state.sigma.reshape(1, self.num_dims)
         x = jnp.clip(x, self.clip_min, self.clip_max)
-        return x, state.update(key=key, x=x, noises=noise)
+        return x, state.replace(key=key, x=x, noises=noise)
 
     def tell(self, state, fitness):
         x = state.x
@@ -278,7 +278,7 @@ class LES(evox.Algorithm):
         sigma = state.sigma + sigma_change
         mean = jnp.clip(mean, self.clip_min, self.clip_max)
         sigma = jnp.clip(sigma, 0, self.clip_max)
-        return state.update(
+        return state.replace(
             mean=mean,
             sigma=sigma,
             path_c=path_c,
