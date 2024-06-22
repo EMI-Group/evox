@@ -6,8 +6,11 @@ import jax
 import jax.numpy as jnp
 from jax import jit, lax, pmap, pure_callback
 
-from evox import Algorithm, Problem, State, Workflow, Monitor, use_state, dataclass, pytree_field
-from evox.core.distributed import POP_AXIS_NAME, all_gather
+from evox import (
+    Algorithm, Problem, State, Workflow, Monitor, 
+    use_state, dataclass, pytree_field, has_init_ask, has_init_tell
+)
+from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
 from evox.utils import parse_opt_direction
 
 
@@ -222,7 +225,8 @@ class StdWorkflow(Workflow):
                 transformed_fitness=transformed_fitness
             )
 
-            if state.first_step:
+            if has_init_ask(self.algorithm) and state.first_step:
+                # this ensures that _step() will be re-jitted
                 state = state.replace(
                     generation=state.generation + 1,
                     first_step=False
@@ -264,14 +268,15 @@ class StdWorkflow(Workflow):
         self, state: State, devices: Optional[list] = None
     ) -> State:
         """
-        Enable the workflow to run on multiple local devices.
+        Enable the workflow to run on multiple devices.
+        Multiple nodes(processes) are also supported.
 
         Parameters
         ----------
         state
             The state.
         devices
-            A list of devices.
+            A list of devices for current process.
             If set to None, all local devices will be used.
 
         Returns
@@ -284,9 +289,11 @@ class StdWorkflow(Workflow):
                 "multi-devices with non jit problem isn't currently supported"
             )
         if devices is None:
-            devices = jax.devices()
+            devices = jax.local_devices()
 
-        num_devices = len(devices)
+        self.devices = devices
+        num_devices = jax.device_count()
+        num_local_devices = len(devices)
 
         self._step = jax.pmap(
             self._step,
@@ -295,10 +302,14 @@ class StdWorkflow(Workflow):
         )
         self.pmap_axis_name = POP_AXIS_NAME
 
+        # multi-node case
+        process_id = get_process_id()
+        ranks = process_id * num_local_devices + jnp.arange(num_local_devices, dtype=jnp.int32)
+
         state = jax.device_put_replicated(state, devices)
         state = state.replace(
             rank=jax.device_put_sharded(
-                [*jnp.arange(0, num_devices, dtype=jnp.int32)],
+                [*ranks],
                 devices
             ),
             world_size=num_devices
@@ -306,10 +317,4 @@ class StdWorkflow(Workflow):
 
         return state
 
-
-def has_init_ask(algorithm):
-    return hasattr(algorithm, "init_ask") and callable(algorithm.init_ask)
-
-
-def has_init_tell(algorithm):
-    return hasattr(algorithm, "init_tell") and callable(algorithm.init_tell)
+# TODO: add mpi4jax support

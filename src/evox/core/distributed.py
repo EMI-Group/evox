@@ -8,6 +8,8 @@ from jax.sharding import NamedSharding, PositionalSharding
 from jax.experimental import mesh_utils
 from jax.experimental.shard_map import shard_map
 
+from jax._src.distributed import global_state
+
 from enum import Enum
 
 from typing import Optional
@@ -68,3 +70,14 @@ def unpmap(x, axis_name: Optional[str] = None):
 
 def tree_unpmap(tree, axis_name: Optional[str] = None):
     return jax.tree_map(lambda x: unpmap(x, axis_name), tree)
+
+
+def is_dist_initialized():
+    # Note: global_state is a JAX internal API
+    return global_state.coordinator_address is not None
+
+def get_process_id():
+    if is_dist_initialized():
+        return global_state.process_id
+    else:
+        raise RuntimeError("Distributed is not initialized.")
