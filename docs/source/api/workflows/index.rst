@@ -6,5 +6,5 @@ Workflows
     :maxdepth: 1
 
     standard
-    distributed
-    non_jit
+    .. distributed
+    .. non_jit
