@@ -115,6 +115,18 @@ class State:
 
     def get_child_state(self, name: str) -> State:
         return self._child_states[name]
+    
+    def find_state(self, name: str) -> State:
+        """
+        Recursively find a sub-state by a query name.
+        eg: `'foo.bar'` will find a sub state named foo, then find `bar` under
+        sub-states of `foo`
+        """
+        child_state = self
+        for child_state_name in name.split('.'):
+            child_state = child_state.get_child_state(child_state_name)
+
+        return child_state
 
     def update_child(self, name: str, child_state: State) -> State:
         warnings.warn(
@@ -153,7 +165,7 @@ class State:
             return new_state
         elif isinstance(path, tuple):
             child_id, path = path
-            return self.update_child(
+            return self.replace_child(
                 child_id,
                 self._child_states[child_id].replace_by_path(path, new_state),
             )
