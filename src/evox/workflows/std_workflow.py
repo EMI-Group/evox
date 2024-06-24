@@ -1,14 +1,19 @@
-import warnings
-from functools import partial
 from typing import Callable, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
-from jax import jit, lax, pmap, pure_callback
 
 from evox import (
-    Algorithm, Problem, State, Workflow, Monitor, 
-    use_state, dataclass, pytree_field, has_init_ask, has_init_tell
+    Algorithm,
+    Problem,
+    State,
+    Workflow,
+    Monitor,
+    use_state,
+    dataclass,
+    pytree_field,
+    has_init_ask,
+    has_init_tell,
 )
 from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
 from evox.utils import parse_opt_direction
@@ -39,9 +44,8 @@ class StdWorkflow(Workflow):
         problem: Union[Problem, List[Problem]],
         monitors: List[Monitor] = [],
         opt_direction: Union[str, List[str]] = "min",
-        sol_transforms: List[Callable] = [],
-        fit_transforms: List[Callable] = [],
-        pop_transform: Optional[Callable] = None,
+        candidate_transforms: List[Callable] = [],
+        fitness_transforms: List[Callable] = [],
         jit_problem: bool = True,
         num_objectives: Optional[int] = None,
     ):
@@ -59,25 +63,24 @@ class StdWorkflow(Workflow):
         opt_direction
             The optimization direction, can be either "min" or "max"
             or a list of "min"/"max" to specific the direction for each objective.
-        sol_transform
+        candidate_transforms
             Optional candidate solution transform function,
             usually used to decode the candidate solution
             into the format that can be understood by the problem.
             Should be a list of functions,
             and the functions will be applied in the order of the list.
-        fit_transforms
+        fitness_transforms
             Optional fitness transform function.
             usually used to apply fitness shaping.
             Should be a list of functions,
             and the functions will be applied in the order of the list.
         jit_problem
-            If the problem can be jit compiled by JAX or not.
+            Tell workflow whether the problem can be jitted by JAX or not.
             Default to True.
         num_objectives
-            Number of objectives.
-            When the problem can be jit compiled, this field is not needed.
-            When the problem cannot be jit compiled, this field should be set,
-            if not, default to 1.
+            Number of objectives. Used when jit_problem=False.
+            When the problem cannot be jitted, JAX cannot infer the shape, and 
+            this field should be manually set.
         """
         self.algorithm = algorithm
         self.problem = problem
@@ -102,27 +105,14 @@ class StdWorkflow(Workflow):
         for monitor in self.monitors:
             monitor.set_opt_direction(self.opt_direction)
 
-        self.sol_transforms = sol_transforms
-        # for compatibility purpose
-        if pop_transform is not None:
-            warnings.warn(
-                "`pop_transform` is deprecated, use `sol_transforms` with a list of transforms instead",
-                DeprecationWarning,
-            )
-            self.sol_transforms = [pop_transform]
-        self.fit_transforms = fit_transforms
+        self.candidate_transforms = candidate_transforms
+        self.fitness_transforms = fitness_transforms
         self.jit_problem = jit_problem
         self.num_objectives = num_objectives
-        self.distributed_step = False
         if jit_problem is False and self.num_objectives is None:
-            warnings.warn(
-                (
-                    "Using external problem "
-                    "but num_objectives isn't set "
-                    "assuming to be 1."
-                )
+            raise ValueError(
+                ("Using external problem " "but num_objectives isn't set ")
             )
-            self.num_objectives = 1
 
         def _ask(self, state):
             if has_init_ask(self.algorithm) and state.first_step:
@@ -142,20 +132,21 @@ class StdWorkflow(Workflow):
             # if the function is jitted
             if self.jit_problem:
                 fitness, state = use_state(self.problem.evaluate)(
-                    state, transformed_cands)
+                    state, transformed_cands
+                )
             else:
                 if self.num_objectives == 1:
                     fit_shape = (num_cands,)
                 else:
                     fit_shape = (num_cands, self.num_objectives)
-                fitness, state = pure_callback(
+                fitness, state = jax.pure_callback(
                     use_state(self.problem.evaluate),
                     (
                         jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
                         state,
                     ),
                     state,
-                    transformed_cands,
+                    transformed_cands
                 )
 
             fitness = all_gather(fitness, self.pmap_axis_name, axis=0, tiled=True)
@@ -191,7 +182,8 @@ class StdWorkflow(Workflow):
             # Note: slice_size is static
             slice_size = num_cands // state.world_size
             cands = jax.lax.dynamic_slice_in_dim(
-                cands, state.rank*slice_size, slice_size, axis=0)
+                cands, state.rank * slice_size, slice_size, axis=0
+            )
 
             transformed_cands = cands
             for transform in self.sol_transforms:
@@ -203,8 +195,7 @@ class StdWorkflow(Workflow):
             fitness, state = _evaluate(self, state, transformed_cands)
 
             for monitor in self.registered_hooks["post_eval"]:
-                monitor.post_eval(
-                    state, cands, transformed_cands, fitness)
+                monitor.post_eval(state, cands, transformed_cands, fitness)
 
             transformed_fitness = fitness
             for transform in self.fit_transforms:
@@ -220,24 +211,18 @@ class StdWorkflow(Workflow):
             for monitor in self.registered_hooks["post_tell"]:
                 monitor.post_tell(state)
 
-            train_info = dict(
-                fitness=fitness,
-                transformed_fitness=transformed_fitness
-            )
+            train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
 
             if has_init_ask(self.algorithm) and state.first_step:
                 # this ensures that _step() will be re-jitted
-                state = state.replace(
-                    generation=state.generation + 1,
-                    first_step=False
-                )
+                state = state.replace(generation=state.generation + 1, first_step=False)
             else:
                 state = state.replace(generation=state.generation + 1)
 
             return train_info, state
 
         # the first argument is self, which should be static
-        self._step = jit(_step, static_argnums=(0,))
+        self._step = jax.jit(_step, static_argnums=(0,))
 
         # by default, use the first device
         self.devices = jax.local_devices()[:1]
@@ -245,12 +230,7 @@ class StdWorkflow(Workflow):
 
     def setup(self, key):
         return State(
-            StdWorkflowState(
-                generation=0,
-                first_step=True,
-                rank=0,
-                world_size=1
-            )
+            StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
         )
 
     def step(self, state):
@@ -277,12 +257,13 @@ class StdWorkflow(Workflow):
             The state.
         devices
             A list of devices for current process.
-            If set to None, all local devices will be used.
+            Default is `None`, that all local devices will be used.
 
         Returns
         -------
         State
-            The sharded state, distributed amoung all devices.
+            The replicated state, distributed amoung all local devices
+            with additional distributed information.
         """
         if self.jit_problem is False:
             raise ValueError(
@@ -296,25 +277,22 @@ class StdWorkflow(Workflow):
         num_local_devices = len(devices)
 
         self._step = jax.pmap(
-            self._step,
-            axis_name=POP_AXIS_NAME,
-            static_broadcasted_argnums=0
+            self._step, axis_name=POP_AXIS_NAME, static_broadcasted_argnums=0
         )
         self.pmap_axis_name = POP_AXIS_NAME
 
         # multi-node case
         process_id = get_process_id()
-        ranks = process_id * num_local_devices + jnp.arange(num_local_devices, dtype=jnp.int32)
+        ranks = process_id * num_local_devices + jnp.arange(
+            num_local_devices, dtype=jnp.int32
+        )
 
         state = jax.device_put_replicated(state, devices)
         state = state.replace(
-            rank=jax.device_put_sharded(
-                [*ranks],
-                devices
-            ),
-            world_size=num_devices
+            rank=jax.device_put_sharded([*ranks], devices), world_size=num_devices
         )
 
         return state
+
 
 # TODO: add mpi4jax support

@@ -35,7 +35,7 @@ def run_single_objective_algorithm(
         algorithm=algorithm,
         problem=problem,
         monitors=[monitor],
-        fit_transforms=fit_transforms,
+        fitness_transforms=fit_transforms,
     )
 
     state = workflow.init(key)
