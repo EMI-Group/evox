@@ -296,3 +296,4 @@ class StdWorkflow(Workflow):
 
 
 # TODO: add mpi4jax support
+# TODO: test Nvidia GPU deterministic in our parallel model, with XLA_FLAGS=--xla_gpu_deterministic_ops=true; see https://github.com/google/jax/discussions/10674
