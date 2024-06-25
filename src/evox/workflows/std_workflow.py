@@ -2,6 +2,7 @@ from typing import Callable, List, Optional, Union
 
 import jax
 import jax.numpy as jnp
+import jax.tree_util as jtu
 
 from evox import (
     Algorithm,
@@ -181,12 +182,15 @@ class StdWorkflow(Workflow):
                 )
             # Note: slice_size is static
             slice_size = num_cands // state.world_size
-            cands = jax.lax.dynamic_slice_in_dim(
-                cands, state.rank * slice_size, slice_size, axis=0
+            cands = jtu.tree_map(
+                lambda x: jax.lax.dynamic_slice_in_dim(
+                    x, state.rank * slice_size, slice_size, axis=0
+                ),
+                cands,
             )
 
             transformed_cands = cands
-            for transform in self.sol_transforms:
+            for transform in self.candidate_transforms:
                 transformed_cands = transform(transformed_cands)
 
             for monitor in self.registered_hooks["pre_eval"]:
