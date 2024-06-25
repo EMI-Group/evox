@@ -8,6 +8,7 @@ except ImportError as e:
             f'Brax requires brax but got "{original_brax_error_msg}" when importing'
         )
 
+
 try:
     # optional dependency: gym
     from .gym import Gym
@@ -18,6 +19,7 @@ except ImportError as e:
         raise ImportError(
             f'Gym requires gym, ray but got "{original_gym_error_msg}" when importing'
         )
+
 
 try:
     # optional dependency: gym

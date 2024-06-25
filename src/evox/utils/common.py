@@ -149,8 +149,7 @@ class OptaxWrapper(Stateful):
         return State(opt_state=opt_state)
 
     def update(self, state, grads, params=None):
-        updates, opt_state = self.optimizer.update(
-            grads, state.opt_state, params)
+        updates, opt_state = self.optimizer.update(grads, state.opt_state, params)
         return updates, state.replace(opt_state=opt_state)
 
 
@@ -184,8 +183,7 @@ class TreeAndVector:
             self.start_indices, self.slice_sizes, self.shapes
         ):
             leaves.append(
-                jax.lax.dynamic_slice(
-                    x, (start_index,), (slice_size,)).reshape(shape)
+                jax.lax.dynamic_slice(x, (start_index,), (slice_size,)).reshape(shape)
             )
         return tree_unflatten(self.treedef, leaves)
 
@@ -239,8 +237,7 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
             elif d == "max":
                 result.append(-1)
             else:
-                raise ValueError(
-                    f"opt_direction is either 'min' or 'max', got {d}")
+                raise ValueError(f"opt_direction is either 'min' or 'max', got {d}")
         return jnp.array(result)
     else:
         raise ValueError(

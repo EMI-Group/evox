@@ -29,6 +29,7 @@ class VectorizedCoevolution(Algorithm):
         for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
         When set to True, the decision variables will be shuffled.
     """
+
     base_algorithms: Algorithm = pytree_field(stack=True)
     dim: int = pytree_field(static=True)
     num_subpops: int = pytree_field(static=True)
@@ -155,6 +156,7 @@ class Coevolution(Algorithm):
         for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
         When set to True, the decision variables will be shuffled.
     """
+
     base_algorithms: Algorithm = pytree_field(stack=True)
     dim: int = pytree_field(static=True)
     num_subpops: int = pytree_field(static=True)

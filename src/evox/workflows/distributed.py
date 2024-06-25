@@ -12,6 +12,7 @@ from evox.utils import algorithm_has_init_ask, parse_opt_direction
 
 class WorkerWorkflow(Workflow):
     stateful_functions = ["step1", "step2"]
+
     def __init__(
         self,
         algorithm: Algorithm,
@@ -75,7 +76,9 @@ class WorkerWorkflow(Workflow):
                 )
             )
 
-        partial_fitness, state = use_state(self.problem.evaluate)(state, transformed_partial_sol)
+        partial_fitness, state = use_state(self.problem.evaluate)(
+            state, transformed_partial_sol
+        )
 
         return partial_fitness, state
 
@@ -124,7 +127,9 @@ class WorkerWorkflow(Workflow):
         pop, new_state = use_state(self.algorithm.ask)(new_state)
         partial_pop = pop[self.start_indices : self.start_indices + self.slice_sizes]
 
-        partial_fitness, new_state = use_state(self.problem.evaluate)(new_state, partial_pop)
+        partial_fitness, new_state = use_state(self.problem.evaluate)(
+            new_state, partial_pop
+        )
         return partial_fitness, state
 
     def sample(self, state: State):

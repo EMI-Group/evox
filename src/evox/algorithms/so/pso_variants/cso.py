@@ -11,7 +11,6 @@ from typing import Optional
 from evox import Algorithm, State, jit_class, dataclass, pytree_field
 
 
-
 @dataclass
 class CSOState:
     population: jax.Array

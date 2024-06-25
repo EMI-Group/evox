@@ -20,6 +20,7 @@ from evox import State
 from .sort_utils import sort_by_key
 from .cma_es import CMAES
 
+
 @evox.jit_class
 class MAES(CMAES):
     def __init__(self, *args, **kwargs):

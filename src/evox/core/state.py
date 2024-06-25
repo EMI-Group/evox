@@ -7,13 +7,19 @@ import pickle
 import dataclasses
 
 import jax.numpy as jnp
-from jax.tree_util import register_pytree_node_class, tree_map, tree_structure, tree_unflatten
+from jax.tree_util import (
+    register_pytree_node_class,
+    tree_map,
+    tree_structure,
+    tree_unflatten,
+)
 
 from dataclasses import fields, is_dataclass
 from .distributed import ShardingType
 
 import orbax.checkpoint as ocp
 import warnings
+
 
 def is_magic_method(name: str):
     return name.startswith("__") and name.endswith("__")
@@ -85,9 +91,7 @@ class State:
         return self
 
     def update(self, **kwargs) -> State:
-        warnings.warn(
-            'update() is depreacred, use replace() instead'
-        )
+        warnings.warn("update() is depreacred, use replace() instead")
         return self.replace(**kwargs)
 
     def replace(self, **kwargs) -> State:
@@ -109,13 +113,13 @@ class State:
             )
         else:
             return copy(self)._set_state_dict_mut({**self._state_dict, **kwargs})
-        
+
     def has_child(self, name: str) -> bool:
         return name in self._child_states
 
     def get_child_state(self, name: str) -> State:
         return self._child_states[name]
-    
+
     def find_state(self, name: str) -> State:
         """
         Recursively find a sub-state by a query name.
@@ -123,15 +127,13 @@ class State:
         sub-states of `foo`
         """
         child_state = self
-        for child_state_name in name.split('.'):
+        for child_state_name in name.split("."):
             child_state = child_state.get_child_state(child_state_name)
 
         return child_state
 
     def update_child(self, name: str, child_state: State) -> State:
-        warnings.warn(
-            'update_child() is depreacred, use replace_child() instead'
-        )
+        warnings.warn("update_child() is depreacred, use replace_child() instead")
         return self.replace_child(name, child_state)
 
     def replace_child(self, name: str, child_state: State) -> State:
@@ -282,7 +284,7 @@ class State:
 
 def _get_state_sharding(obj, devices=None):
     """
-        Apply DFS like tree_flatten
+    Apply DFS like tree_flatten
     """
     sharding = []
     if isinstance(obj, State):
@@ -294,8 +296,9 @@ def _get_state_sharding(obj, devices=None):
     elif is_dataclass(obj):
         for field in fields(obj):
             sharding.append(
-                field.metadata.get(
-                    "sharding", ShardingType.REPLICATED).get_sharding(devices)
+                field.metadata.get("sharding", ShardingType.REPLICATED).get_sharding(
+                    devices
+                )
             )
     elif isinstance(obj, dict):
         # backward compatibility for dict

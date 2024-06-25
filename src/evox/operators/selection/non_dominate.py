@@ -187,7 +187,7 @@ def non_dominate(population, fitness, topk):
     rank = non_dominated_sort(fitness)
     # then find the worst rank within topk, and use crodwing_distance_sort as tiebreaker
     order = jnp.argsort(rank)
-    worst_rank = rank[order[topk-1]]
+    worst_rank = rank[order[topk - 1]]
     mask = rank == worst_rank
     crowding_distance = crowding_distance_sort(fitness, mask)
 

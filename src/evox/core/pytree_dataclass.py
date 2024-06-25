@@ -8,12 +8,13 @@ from typing_extensions import (
 
 from .distributed import ShardingType
 
-def pytree_field(*, static=False, stack=False, sharding=ShardingType.REPLICATED, **kwargs):
-    """
-    
-    """
-    metadata={'static': static, 'stack': stack, 'sharding': sharding}
-    kwargs.setdefault('metadata', {}).update(metadata)
+
+def pytree_field(
+    *, static=False, stack=False, sharding=ShardingType.REPLICATED, **kwargs
+):
+    """ """
+    metadata = {"static": static, "stack": stack, "sharding": sharding}
+    kwargs.setdefault("metadata", {}).update(metadata)
 
     return dataclasses.field(**kwargs)
 
@@ -27,7 +28,7 @@ def dataclass(cls, *args, **kwargs):
     field_info = []
     # normal dataclass fields
     for field in dataclasses.fields(cls):
-        is_static = field.metadata.get('static', False)
+        is_static = field.metadata.get("static", False)
         field_info.append((field.name, field.init, is_static))
     # evox Stateful fields
     field_info.append(("_node_id", False, True))
@@ -75,7 +76,7 @@ def dataclass(cls, *args, **kwargs):
         return obj
 
     register_pytree_node(cls, flatten, unflatten)
-    
+
     # Add a method to set frozen attributes after init
     cls.set_frozen_attr = lambda self, key, value: object.__setattr__(self, key, value)
     return cls

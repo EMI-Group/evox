@@ -5,6 +5,7 @@ from evox.utils import *
 from evox import Algorithm
 from evox import jit_class
 
+
 @jit_class
 class FlattenParam:
     def __init__(self, dummy_input):

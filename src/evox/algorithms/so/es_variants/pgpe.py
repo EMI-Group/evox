@@ -13,9 +13,14 @@ from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
 
 from evox import (
-    Algorithm, State, Stateful, 
-    dataclass, pytree_field, jit_class, 
-    use_state, utils
+    Algorithm,
+    State,
+    Stateful,
+    dataclass,
+    pytree_field,
+    jit_class,
+    use_state,
+    utils,
 )
 
 

@@ -79,7 +79,7 @@ class StdWorkflow(Workflow):
             Default to True.
         num_objectives
             Number of objectives. Used when jit_problem=False.
-            When the problem cannot be jitted, JAX cannot infer the shape, and 
+            When the problem cannot be jitted, JAX cannot infer the shape, and
             this field should be manually set.
         """
         self.algorithm = algorithm
@@ -146,7 +146,7 @@ class StdWorkflow(Workflow):
                         state,
                     ),
                     state,
-                    transformed_cands
+                    transformed_cands,
                 )
 
             fitness = all_gather(fitness, self.pmap_axis_name, axis=0, tiled=True)

@@ -48,6 +48,7 @@ class Algorithm(Stateful):
         """
         return State()
 
+
 def has_init_ask(algorithm):
     # def init_ask(self, state: State) -> Tuple[jax.Array, State]:
     #     """Ask the algorithm for the initial population

@@ -180,9 +180,7 @@ class JaDE(Algorithm):
         S_F, S_CR = lax.fori_loop(
             0, self.pop_size, body_fun=get_success_part, init_val=(S_F_init, S_CR_init)
         )
-        F_u = (1 - self.c) * state.F_u + self.c * (
-            jnp.nansum(S_F**2) / jnp.nansum(S_F)
-        )
+        F_u = (1 - self.c) * state.F_u + self.c * (jnp.nansum(S_F**2) / jnp.nansum(S_F))
         CR_u = (1 - self.c) * state.CR_u + self.c * jnp.nanmean(S_CR)
 
         return state.replace(

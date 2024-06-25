@@ -111,7 +111,12 @@ class ODE(Algorithm):
             state.counter % 2 == 0,
             vmap(self._ask_one_even, in_axes=[0, 0, None, None, 0, 0]),
             vmap(self._ask_one_odd, in_axes=[0, 0, None, None, 0, 0]),
-            indices, R, state.population, state.best_index, random_choices, masks
+            indices,
+            R,
+            state.population,
+            state.best_index,
+            random_choices,
+            masks,
         )
 
         return trial_vectors, state.replace(trial_vectors=trial_vectors, key=key)

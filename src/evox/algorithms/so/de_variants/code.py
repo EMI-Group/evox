@@ -91,7 +91,7 @@ class CoDE(Algorithm):
             vmap(partial(self._ask_one, state), in_axes=(None, 0, 0, 0)),
             in_axes=(0, 0, None, 0),
         )(self.strategies, ask_one_keys, indices, param_ids)
-        trial_vectors = trial_vectors.reshape(3*self.batch_size, -1)
+        trial_vectors = trial_vectors.reshape(3 * self.batch_size, -1)
 
         return trial_vectors, state.replace(trial_vectors=trial_vectors, key=key)
 

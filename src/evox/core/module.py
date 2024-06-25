@@ -10,7 +10,6 @@ import numpy as np
 from jax.tree_util import register_pytree_node, tree_map, tree_leaves
 
 
-
 from .state import State
 
 
@@ -197,9 +196,7 @@ class Stateful:
                 attr = getattr(self, field.name)
 
                 if isinstance(attr, Stateful):
-                    submodules.append(
-                        SubmoduleInfo(field.name, attr, field.metadata)
-                    )
+                    submodules.append(SubmoduleInfo(field.name, attr, field.metadata))
         else:
             for attr_name in vars(self):
                 attr = getattr(self, attr_name)

@@ -100,9 +100,7 @@ class CMAES(Algorithm):
             1 + 2 * max(0, math.sqrt((self.mueff - 1) / (self.dim + 1)) - 1) + self.cs
         )
 
-        self.chiN = self.dim**0.5 * (
-            1 - 1 / (4 * self.dim) + 1 / (21 * self.dim**2)
-        )
+        self.chiN = self.dim**0.5 * (1 - 1 / (4 * self.dim) + 1 / (21 * self.dim**2))
         self.decomp_per_iter = 1 / (self.c1 + self.cmu) / self.dim / 10
         self.decomp_per_iter = max(jnp.floor(self.decomp_per_iter).astype(jnp.int32), 1)
 
