@@ -202,7 +202,7 @@ class StdWorkflow(Workflow):
                 monitor.post_eval(state, cands, transformed_cands, fitness)
 
             transformed_fitness = fitness
-            for transform in self.fit_transforms:
+            for transform in self.fitness_transforms:
                 transformed_fitness = transform(transformed_fitness)
 
             for monitor in self.registered_hooks["pre_tell"]:
