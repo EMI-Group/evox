@@ -84,4 +84,4 @@ def get_process_id():
     if is_dist_initialized():
         return global_state.process_id
     else:
-        raise RuntimeError("Distributed is not initialized.")
+        return 0
