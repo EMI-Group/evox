@@ -128,7 +128,7 @@ class StdWorkflow(Workflow):
             return cands, state
 
         def _evaluate(self, state, transformed_cands):
-            num_cands = transformed_cands.shape[0]
+            num_cands = jtu.tree_leaves(transformed_cands)[0].shape[0]
 
             # if the function is jitted
             if self.jit_problem:
@@ -174,7 +174,7 @@ class StdWorkflow(Workflow):
             for monitor in self.registered_hooks["post_ask"]:
                 monitor.post_ask(state, cands)
 
-            num_cands = cands.shape[0]
+            num_cands = jtu.tree_leaves(cands)[0].shape[0]
             # in multi-device|host mode, each device only evaluates a slice of the population
             if num_cands % state.world_size != 0:
                 raise ValueError(
