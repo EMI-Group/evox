@@ -97,6 +97,12 @@ def test_repl_and_str():
         "  'middle': ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': ({'c': 42}, {})})})"
     )
 
+def test_query():
+    module = Root()
+    state = module.init(key=jax.random.PRNGKey(456))
+    assert state.query_state("leaf").c == 42
+    assert state.query_state("middle").d== [3, 1, 4, 1, 5, 9, 2, 6]
+    assert state.query_state("middle.leaf").c == 42
 
 def test_jax_pytree():
     module = Root()

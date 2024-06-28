@@ -120,7 +120,7 @@ class State:
     def get_child_state(self, name: str) -> Self:
         return self._child_states[name]
 
-    def find_state(self, name: str) -> Self:
+    def query_state(self, name: str) -> Self:
         """
         Recursively find a sub-state by a query name.
         eg: `'foo.bar'` will find a sub state named foo, then find `bar` under
