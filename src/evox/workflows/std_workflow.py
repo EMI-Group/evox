@@ -47,6 +47,7 @@ class StdWorkflow(Workflow):
         opt_direction: Union[str, List[str]] = "min",
         candidate_transforms: List[Callable] = [],
         fitness_transforms: List[Callable] = [],
+        jit_step: bool = True,
         jit_problem: bool = True,
         num_objectives: Optional[int] = None,
     ):
@@ -75,6 +76,9 @@ class StdWorkflow(Workflow):
             usually used to apply fitness shaping.
             Should be a list of functions,
             and the functions will be applied in the order of the list.
+        jit_step:
+            Whether jit the entire step function.
+            Default to True
         jit_problem
             Tell workflow whether the problem can be jitted by JAX or not.
             Default to True.
@@ -108,6 +112,7 @@ class StdWorkflow(Workflow):
 
         self.candidate_transforms = candidate_transforms
         self.fitness_transforms = fitness_transforms
+        self.jit_step = jit_step
         self.jit_problem = jit_problem
         self.num_objectives = num_objectives
         if jit_problem is False and self.num_objectives is None:
@@ -231,8 +236,11 @@ class StdWorkflow(Workflow):
 
             return train_info, state
 
-        # the first argument is self, which should be static
-        self._step = jax.jit(_step, static_argnums=(0,))
+        if self.jit_step:
+            # the first argument is self, which should be static
+            self._step = jax.jit(_step, static_argnums=(0,))
+        else:
+            self._step = _step
 
         # by default, use the first device
         self.devices = jax.local_devices()[:1]
