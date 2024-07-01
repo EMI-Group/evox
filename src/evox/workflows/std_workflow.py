@@ -248,9 +248,7 @@ class StdWorkflow(Workflow):
 
         return train_info, state
 
-    def enable_multi_devices(
-        self, state: State
-    ) -> State:
+    def enable_multi_devices(self, state: State, pmap_axis_name=POP_AXIS_NAME) -> State:
         """
         Enable the workflow to run on multiple devices.
         Multiple nodes(processes) are also supported.
@@ -276,10 +274,10 @@ class StdWorkflow(Workflow):
         num_devices = jax.device_count()
         num_local_devices = len(self.devices)
 
+        self.pmap_axis_name = pmap_axis_name
         self._step = jax.pmap(
-            self._step, axis_name=POP_AXIS_NAME, static_broadcasted_argnums=0
+            self._step, axis_name=pmap_axis_name, static_broadcasted_argnums=0
         )
-        self.pmap_axis_name = POP_AXIS_NAME
 
         # multi-node case
         process_id = get_process_id()
