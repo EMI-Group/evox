@@ -249,19 +249,17 @@ class StdWorkflow(Workflow):
         return train_info, state
 
     def enable_multi_devices(
-        self, state: State, devices: Optional[list] = None
+        self, state: State
     ) -> State:
         """
         Enable the workflow to run on multiple devices.
         Multiple nodes(processes) are also supported.
+        To specify which devices are used, use env vars like `CUDA_VISIBLE_DEVICES`
 
         Parameters
         ----------
         state
             The state.
-        devices
-            A list of devices for current process.
-            Default is `None`, that all local devices will be used.
 
         Returns
         -------
@@ -273,12 +271,10 @@ class StdWorkflow(Workflow):
             raise ValueError(
                 "multi-devices with non jit problem isn't currently supported"
             )
-        if devices is None:
-            devices = jax.local_devices()
 
-        self.devices = devices
+        self.devices = jax.local_devices()
         num_devices = jax.device_count()
-        num_local_devices = len(devices)
+        num_local_devices = len(self.devices)
 
         self._step = jax.pmap(
             self._step, axis_name=POP_AXIS_NAME, static_broadcasted_argnums=0
@@ -291,9 +287,9 @@ class StdWorkflow(Workflow):
             num_local_devices, dtype=jnp.int32
         )
 
-        state = jax.device_put_replicated(state, devices)
+        state = jax.device_put_replicated(state, self.devices)
         state = state.replace(
-            rank=jax.device_put_sharded([*ranks], devices), world_size=num_devices
+            rank=jax.device_put_sharded([*ranks], self.devices), world_size=num_devices
         )
 
         return state
