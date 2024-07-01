@@ -1,6 +1,6 @@
-from collections.abc import Iterable
 from functools import partial
-from typing import List, Union
+from typing import Union
+from collections.abc import Iterable
 
 import jax
 import jax.numpy as jnp
@@ -13,8 +13,8 @@ from ..core.module import *
 
 
 def min_by(
-    values: Union[jax.Array, List[jax.Array]],
-    keys: Union[jax.Array, List[jax.Array]],
+    values: Union[jax.Array, list[jax.Array]],
+    keys: Union[jax.Array, list[jax.Array]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
@@ -219,7 +219,7 @@ class TreeAndVector:
         self.slice_sizes = state_dict["slice_sizes"]
 
 
-def parse_opt_direction(opt_direction: Union[str, List[str]]):
+def parse_opt_direction(opt_direction: Union[str, Iterable[str]]):
     if isinstance(opt_direction, str):
         if opt_direction == "min":
             return 1
@@ -229,7 +229,7 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
             raise ValueError(
                 f"opt_direction is either 'min' or 'max', got {opt_direction}"
             )
-    elif isinstance(opt_direction, list):
+    elif isinstance(opt_direction, Iterable[str]):
         result = []
         for d in opt_direction:
             if d == "min":
