@@ -229,7 +229,7 @@ def parse_opt_direction(opt_direction: Union[str, Iterable[str]]):
             raise ValueError(
                 f"opt_direction is either 'min' or 'max', got {opt_direction}"
             )
-    elif isinstance(opt_direction, Iterable[str]):
+    elif isinstance(opt_direction, Iterable):
         result = []
         for d in opt_direction:
             if d == "min":
