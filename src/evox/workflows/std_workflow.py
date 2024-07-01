@@ -166,6 +166,9 @@ class StdWorkflow(Workflow):
             return state
 
         def _step(self, state):
+            for monitor in self.registered_hooks["pre_step"]:
+                monitor.pre_step(state)
+
             for monitor in self.registered_hooks["pre_ask"]:
                 monitor.pre_ask(state)
 
@@ -223,6 +226,9 @@ class StdWorkflow(Workflow):
             else:
                 state = state.replace(generation=state.generation + 1)
 
+            for monitor in self.registered_hooks["post_step"]:
+                monitor.post_step(state)
+
             return train_info, state
 
         # the first argument is self, which should be static
@@ -238,15 +244,7 @@ class StdWorkflow(Workflow):
         )
 
     def step(self, state):
-        for monitor in self.registered_hooks["pre_step"]:
-            monitor.pre_step(state)
-
-        train_info, state = self._step(self, state)
-
-        for monitor in self.registered_hooks["post_step"]:
-            monitor.post_step(state)
-
-        return train_info, state
+        return self._step(self, state)
 
     def enable_multi_devices(self, state: State, pmap_axis_name=POP_AXIS_NAME) -> State:
         """
@@ -287,7 +285,7 @@ class StdWorkflow(Workflow):
 
         state = jax.device_put_replicated(state, self.devices)
         state = state.replace(
-            rank=jax.device_put_sharded([*ranks], self.devices), world_size=num_devices
+            rank=jax.device_put_sharded(tuple(ranks), self.devices), world_size=num_devices
         )
 
         return state
