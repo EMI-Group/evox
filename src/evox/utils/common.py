@@ -241,7 +241,7 @@ def parse_opt_direction(opt_direction: Union[str, Iterable[str]]):
         return jnp.array(result)
     else:
         raise ValueError(
-            f"opt_direction should have type 'str' or 'list', got {type(opt_direction)}"
+            f"opt_direction should have type 'str' or 'Iterable[str]', got {type(opt_direction)}"
         )
 
 
