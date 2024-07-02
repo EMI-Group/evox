@@ -49,7 +49,7 @@ def test_cartpole(batch_policy):
         ),
         problem=problem,
         monitors=[monitor],
-        jit_problem=False,
+        external_problem=True,
         num_objectives=1,
         candidate_transforms=[adapter.batched_to_tree],
         opt_direction="max",

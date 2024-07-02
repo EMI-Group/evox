@@ -40,7 +40,7 @@ def test_envpool_cartpole():
         ),
         problem=problem,
         monitors=[monitor],
-        jit_problem=True,
+        external_problem=True,
         num_objectives=1,
         candidate_transforms=[adapter.batched_to_tree],
         opt_direction="max",

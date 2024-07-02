@@ -41,7 +41,7 @@ def run_std_workflow_with_non_jit_problem():
         ),
         problem=problems.numerical.Ackley(),
         monitors=[monitor],
-        jit_problem=False,
+        external_problem=True,
     )
     # init the workflow
     key = jax.random.PRNGKey(42)
@@ -67,7 +67,7 @@ def test_std_workflow_sanity_check():
         ),
         problem=problems.numerical.Sphere(),
         monitors=[monitor],
-        jit_problem=True,
+        external_problem=True,
     )
 
     key = jax.random.PRNGKey(42)

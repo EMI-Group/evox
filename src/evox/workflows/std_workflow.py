@@ -48,7 +48,7 @@ class StdWorkflow(Workflow):
         candidate_transforms: List[Callable] = [],
         fitness_transforms: List[Callable] = [],
         jit_step: bool = True,
-        jit_problem: bool = True,
+        external_problem: bool = False,
         num_objectives: Optional[int] = None,
     ):
         """
@@ -79,11 +79,11 @@ class StdWorkflow(Workflow):
         jit_step:
             Whether jit the entire step function.
             Default to True
-        jit_problem
-            Tell workflow whether the problem can be jitted by JAX or not.
-            Default to True.
+        external_problem
+            Tell workflow whether the problem is external that cannot be jitted.
+            Default to False.
         num_objectives
-            Number of objectives. Used when jit_problem=False.
+            Number of objectives. Used when external_problem=True.
             When the problem cannot be jitted, JAX cannot infer the shape, and
             this field should be manually set.
         """
@@ -113,11 +113,11 @@ class StdWorkflow(Workflow):
         self.candidate_transforms = candidate_transforms
         self.fitness_transforms = fitness_transforms
         self.jit_step = jit_step
-        self.jit_problem = jit_problem
+        self.external_problem = external_problem
         self.num_objectives = num_objectives
-        if jit_problem is False and self.num_objectives is None:
+        if self.external_problem is True and self.num_objectives is None:
             raise ValueError(
-                ("Using external problem " "but num_objectives isn't set ")
+                ("Using external problem, but num_objectives isn't set ")
             )
 
         def _ask(self, state):
@@ -136,7 +136,7 @@ class StdWorkflow(Workflow):
             num_cands = jtu.tree_leaves(transformed_cands)[0].shape[0]
 
             # if the function is jitted
-            if self.jit_problem:
+            if not self.external_problem:
                 fitness, state = use_state(self.problem.evaluate)(
                     state, transformed_cands
                 )
@@ -271,11 +271,6 @@ class StdWorkflow(Workflow):
             The replicated state, distributed amoung all local devices
             with additional distributed information.
         """
-        if self.jit_problem is False:
-            raise ValueError(
-                "multi-devices with non jit problem isn't currently supported"
-            )
-
         self.devices = jax.local_devices()
         num_devices = jax.device_count()
         num_local_devices = len(self.devices)
