@@ -1,5 +1,5 @@
-from typing import Callable, List, Optional, Union
-
+from typing import Optional, Union
+from collections.abc import Callable, Sequence
 import jax
 import jax.numpy as jnp
 import jax.tree_util as jtu
@@ -42,11 +42,11 @@ class StdWorkflow(Workflow):
     def __init__(
         self,
         algorithm: Algorithm,
-        problem: Union[Problem, List[Problem]],
-        monitors: List[Monitor] = [],
-        opt_direction: Union[str, List[str]] = "min",
-        candidate_transforms: List[Callable] = [],
-        fitness_transforms: List[Callable] = [],
+        problem: Problem,
+        monitors: Sequence[Monitor] = (),
+        opt_direction: Union[str, Sequence[str]] = "min",
+        candidate_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
+        fitness_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
         jit_step: bool = True,
         external_problem: bool = False,
         num_objectives: Optional[int] = None,
