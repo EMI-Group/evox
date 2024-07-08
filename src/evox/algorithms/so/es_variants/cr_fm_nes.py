@@ -126,7 +126,7 @@ class CR_FM_NES(evox.Algorithm):
         y = z + (jnp.sqrt(1 + normv2) - 1) * vbar @ (vbar.T @ z)
         x = state.center[:, None] + state.sigma * y * state.D
         x = jnp.swapaxes(x, 0, 1)
-        return x, state.update(z=z, y=y, key=key, x=x)
+        return x, state.replace(z=z, y=y, key=key, x=x)
 
     def tell(self, state, fitness):
         ranks = fitness.argsort()
@@ -217,6 +217,6 @@ class CR_FM_NES(evox.Algorithm):
             / self.num_dims
         )
         sigma = state.sigma * jnp.exp(lrate_sigma / 2 * G_s)
-        return state.update(
+        return state.replace(
             p_sigma=p_sigma, center=center, p_c=p_c, v=v, D=D, sigma=sigma
         )

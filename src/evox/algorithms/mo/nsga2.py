@@ -73,7 +73,7 @@ class NSGA2(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def ask(self, state):
@@ -84,7 +84,7 @@ class NSGA2(Algorithm):
 
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
@@ -92,5 +92,5 @@ class NSGA2(Algorithm):
 
         survivor, survivor_fitness = self.survivor_selection(merged_pop, merged_fitness)
 
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        state = state.replace(population=survivor, fitness=survivor_fitness)
         return state

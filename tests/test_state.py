@@ -11,7 +11,7 @@ class Leaf(Stateful):
 
     def run(self, state):
         c = state.c
-        return [2, 7, 1], state.update(c=c * 2)
+        return [2, 7, 1], state.replace(c=c * 2)
 
     def check(self, state):
         assert state.c == 84
@@ -28,7 +28,7 @@ class Middle(Stateful):
 
     def run(self, state):
         e, state = use_state(self.leaf.run)(state)
-        return e + [8, 2, 8], state.update(d=3.1415926)
+        return e + [8, 2, 8], state.replace(d=3.1415926)
 
     def check(self, state):
         assert state.d == 3.1415926
@@ -97,6 +97,12 @@ def test_repl_and_str():
         "  'middle': ({'d': [3, 1, 4, 1, 5, 9, 2, 6]}, {'leaf': ({'c': 42}, {})})})"
     )
 
+def test_query():
+    module = Root()
+    state = module.init(key=jax.random.PRNGKey(456))
+    assert state.query_state("leaf").c == 42
+    assert state.query_state("middle").d== [3, 1, 4, 1, 5, 9, 2, 6]
+    assert state.query_state("middle.leaf").c == 42
 
 def test_jax_pytree():
     module = Root()

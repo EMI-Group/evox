@@ -86,7 +86,7 @@ class IBEA(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def ask(self, state):
@@ -99,7 +99,7 @@ class IBEA(Algorithm):
         crossovered = self.crossover(x_key, selected)
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
@@ -127,6 +127,6 @@ class IBEA(Algorithm):
         survivor = merged_pop[next_ind]
         survivor_fitness = merged_obj[next_ind]
 
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        state = state.replace(population=survivor, fitness=survivor_fitness)
 
         return state

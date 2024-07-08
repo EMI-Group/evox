@@ -81,7 +81,7 @@ class MOEAD(Algorithm):
 
     def init_tell(self, state, fitness):
         z = jnp.min(fitness, axis=0)
-        state = state.update(fitness=fitness, z=z)
+        state = state.replace(fitness=fitness, z=z)
         return state
 
     def ask(self, state):
@@ -97,7 +97,7 @@ class MOEAD(Algorithm):
         next_generation = self.mutation(mut_key, crossovered)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
 
-        return next_generation, state.update(
+        return next_generation, state.replace(
             next_generation=next_generation, key=key
         )
 
@@ -107,7 +107,6 @@ class MOEAD(Algorithm):
         offspring = state.next_generation
         obj = fitness
         w = state.weight_vector
-
         z = jnp.minimum(state.z, jnp.min(obj, axis=0))
         z_max = jnp.max(pop_obj, axis=0)
         neighbors = state.neighbors
@@ -130,5 +129,5 @@ class MOEAD(Algorithm):
         (population, pop_obj), _ = jax.lax.scan(scan_body, (population, pop_obj), (offspring, obj, neighbors))
 
 
-        state = state.update(population=population, fitness=pop_obj, z=z)
+        state = state.replace(population=population, fitness=pop_obj, z=z)
         return state

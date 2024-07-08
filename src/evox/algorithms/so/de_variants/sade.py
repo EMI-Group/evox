@@ -148,7 +148,7 @@ class SaDE(Algorithm):
             CR=CRs_vect,
         )
 
-        return trial_vectors, state.update(
+        return trial_vectors, state.replace(
             trial_vectors=trial_vectors,
             key=key,
             CRs=CRs,
@@ -265,7 +265,7 @@ class SaDE(Algorithm):
             0, self.pop_size, body_fun=manage_CR_menory_part, init_val=state.CR_memory
         )
 
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

@@ -153,7 +153,7 @@ class LMOCSO(Algorithm):
 
         return (
             next_generation,
-            state.update(
+            state.replace(
                 next_generation=next_generation,
                 velocity=new_velocity,
                 key=key,
@@ -161,7 +161,7 @@ class LMOCSO(Algorithm):
         )
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -176,7 +176,7 @@ class LMOCSO(Algorithm):
             merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
         )
 
-        state = state.update(
+        state = state.replace(
             population=survivor,
             fitness=survivor_fitness,
             gen=current_gen,

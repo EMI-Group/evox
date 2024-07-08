@@ -4,7 +4,6 @@
 # Link: https://mediatum.ub.tum.de/doc/1287490/file.pdf
 # --------------------------------------------------------------------------------------
 
-from dataclasses import field
 from typing import Union
 
 import jax
@@ -13,8 +12,16 @@ import optax
 from jax import jit, lax
 from jax.tree_util import tree_map, tree_reduce
 
-from evox import (Algorithm, State, Stateful, Static, dataclass, jit_class,
-                  use_state, utils)
+from evox import (
+    Algorithm,
+    State,
+    Stateful,
+    dataclass,
+    pytree_field,
+    jit_class,
+    use_state,
+    utils,
+)
 
 
 @jit
@@ -54,20 +61,20 @@ class ClipUp(Stateful):
             lambda v: v,  # identity function
             velocity,
         )
-        return -velocity, state.update(velocity=velocity)
+        return -velocity, state.replace(velocity=velocity)
 
 
 @jit_class
 @dataclass
 class PGPE(Algorithm):
-    pop_size: Static[int]
+    pop_size: int = pytree_field(static=True)
     center_init: jax.Array
     optimizer: Union[str, optax.GradientTransformation, Stateful]
     stdev_init: float = 0.1
     center_learning_rate: float = 0.15
     stdev_learning_rate: float = 0.1
     stdev_max_change: float = 0.2
-    dim: Static[int] = field(init=False)
+    dim: int = pytree_field(static=True, init=False)
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.center_init.shape[0])
@@ -106,7 +113,7 @@ class PGPE(Algorithm):
         key, subkey = jax.random.split(state.key)
         noise = jax.random.normal(subkey, (self.pop_size // 2, self.dim)) * state.stdev
         D = jnp.concatenate([state.center + noise, state.center - noise], axis=0)
-        return D, state.update(key=key, noise=noise)
+        return D, state.replace(key=key, noise=noise)
 
     def tell(self, state, fitness):
         F_pos = fitness[: self.pop_size // 2]
@@ -124,7 +131,7 @@ class PGPE(Algorithm):
         stdev_updates = self.stdev_learning_rate * delta_stdev
         bound = jnp.abs(state.stdev * self.stdev_max_change)
         stdev_updates = jnp.clip(stdev_updates, -bound, bound)
-        return state.update(
+        return state.replace(
             center=center,
             stdev=state.stdev - stdev_updates,
         )

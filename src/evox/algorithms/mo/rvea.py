@@ -88,7 +88,7 @@ class RVEA(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def ask(self, state):
@@ -104,7 +104,7 @@ class RVEA(Algorithm):
         next_generation = self.mutation(mut_key, crossovered)
         next_generation = jnp.clip(next_generation, self.lb, self.ub)
 
-        return next_generation, state.update(next_generation=next_generation, key=key)
+        return next_generation, state.replace(next_generation=next_generation, key=key)
 
     def tell(self, state, fitness):
         current_gen = state.gen + 1
@@ -131,7 +131,7 @@ class RVEA(Algorithm):
             state.init_v,
         )
 
-        state = state.update(
+        state = state.replace(
             population=survivor,
             fitness=survivor_fitness,
             reference_vector=v,

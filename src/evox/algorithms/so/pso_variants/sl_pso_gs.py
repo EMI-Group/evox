@@ -11,17 +11,18 @@ import jax.numpy as jnp
 from evox.utils import *
 from evox import Algorithm, State, jit_class
 
+
 # SL-PSO: Social Learning PSO
 # SL-PSO-GS: Using Gaussian Sampling for Demonstator Choice
 @jit_class
 class SLPSOGS(Algorithm):
     def __init__(
         self,
-        lb, # lower bound of problem
-        ub, # upper bound of problem
+        lb,  # lower bound of problem
+        ub,  # upper bound of problem
         pop_size,
-        social_influence_factor, # epsilon
-        demonstrator_choice_factor, # theta
+        social_influence_factor,  # epsilon
+        demonstrator_choice_factor,  # theta
     ):
         self.dim = lb.shape[0]
         self.lb = lb
@@ -33,9 +34,7 @@ class SLPSOGS(Algorithm):
     def setup(self, key):
         state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
         length = self.ub - self.lb
-        population = jax.random.uniform(
-            init_pop_key, shape=(self.pop_size, self.dim)
-        )
+        population = jax.random.uniform(init_pop_key, shape=(self.pop_size, self.dim))
         population = population * length + self.lb
         velocity = jax.random.uniform(init_v_key, shape=(self.pop_size, self.dim))
         velocity = velocity * length * 2 - length
@@ -52,7 +51,9 @@ class SLPSOGS(Algorithm):
         return state.population, state
 
     def tell(self, state, fitness):
-        key, r1_key, r2_key, r3_key, demonstrator_choice_key = jax.random.split(state.key, num=5)
+        key, r1_key, r2_key, r3_key, demonstrator_choice_key = jax.random.split(
+            state.key, num=5
+        )
 
         r1 = jax.random.uniform(r1_key, shape=(self.pop_size, self.dim))
         r2 = jax.random.uniform(r2_key, shape=(self.pop_size, self.dim))
@@ -67,13 +68,21 @@ class SLPSOGS(Algorithm):
         # ----------------- Demonstator Choice -----------------
         # sort from largest fitness to smallest fitness (worst to best)
         ranked_population = state.population[jnp.argsort(-fitness)]
-        sigma = self.demonstrator_choice_factor * (self.pop_size - (jnp.arange(self.pop_size) + 1))
-        standard_normal_distribution = jax.random.normal(demonstrator_choice_key, shape=(self.pop_size,))
+        sigma = self.demonstrator_choice_factor * (
+            self.pop_size - (jnp.arange(self.pop_size) + 1)
+        )
+        standard_normal_distribution = jax.random.normal(
+            demonstrator_choice_key, shape=(self.pop_size,)
+        )
         # normal distribution (shape=(self.pop_size,)) means
         # each individual choose a demonstrator by normal distribution
         # with mean = pop_size and std = sigma
-        normal_distribution = sigma * (-jnp.abs(standard_normal_distribution)) + self.pop_size
-        index_k = jnp.floor(jnp.clip(normal_distribution, 1, self.pop_size)).astype(int) - 1
+        normal_distribution = (
+            sigma * (-jnp.abs(standard_normal_distribution)) + self.pop_size
+        )
+        index_k = (
+            jnp.floor(jnp.clip(normal_distribution, 1, self.pop_size)).astype(int) - 1
+        )
         X_k = ranked_population[index_k]
         # ------------------------------------------------------
 
@@ -85,7 +94,7 @@ class SLPSOGS(Algorithm):
         )
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
-        return state.update(
+        return state.replace(
             population=population,
             velocity=velocity,
             global_best_location=global_best_location,

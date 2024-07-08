@@ -75,10 +75,10 @@ class GDE3(Algorithm):
         p = jax.random.choice(keys[1], state.population, (3, self.pop_size))
         differentiated = self.de(keys[2], p[0], p[1], p[2])
         next_gen = jnp.clip(differentiated, self.lb, self.ub)
-        return next_gen, state.update(next_generation=next_gen, key=keys[0])
+        return next_gen, state.replace(next_generation=next_gen, key=keys[0])
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -94,5 +94,5 @@ class GDE3(Algorithm):
         combined_order = jnp.lexsort((-crowding_dis, rank))[: self.pop_size]
         survivor = merged_pop[combined_order]
         survivor_fitness = merged_fit[combined_order]
-        state = state.update(population=survivor, fitness=survivor_fitness)
+        state = state.replace(population=survivor, fitness=survivor_fitness)
         return state

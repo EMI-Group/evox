@@ -36,7 +36,7 @@ class Tournament:
         n_round: int,
         tournament_func: Callable = jnp.argmin,
         tournament_size: int = 2,
-        multi_objective: bool = False
+        multi_objective: bool = False,
     ):
         """
         Parameters

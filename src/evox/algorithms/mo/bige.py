@@ -117,10 +117,10 @@ class BiGE(Algorithm):
         crossovered = self.crossover(keys[2], selected)
         mutated = self.mutation(keys[3], crossovered)
         next_gen = jnp.clip(mutated, self.lb, self.ub)
-        return next_gen, state.update(next_generation=next_gen, key=keys[0])
+        return next_gen, state.replace(next_generation=next_gen, key=keys[0])
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -138,5 +138,5 @@ class BiGE(Algorithm):
 
         fin_rank = jnp.where(rank >= last_rank, bi_rank, -1)
         idx = jnp.argsort(fin_rank)[: self.pop_size]
-        state = state.update(population=ranked_pop[idx], fitness=ranked_fit[idx])
+        state = state.replace(population=ranked_pop[idx], fitness=ranked_fit[idx])
         return state

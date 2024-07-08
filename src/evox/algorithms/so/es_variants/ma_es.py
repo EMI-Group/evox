@@ -20,6 +20,7 @@ from evox import State
 from .sort_utils import sort_by_key
 from .cma_es import CMAES
 
+
 @evox.jit_class
 class MAES(CMAES):
     def __init__(self, *args, **kwargs):
@@ -46,7 +47,7 @@ class MAES(CMAES):
         key, sample_key = jax.random.split(state.key)
         noise = jax.random.normal(sample_key, (self.pop_size, self.dim))
         population = state.mean + state.sigma * noise @ state.M.T
-        new_state = state.update(
+        new_state = state.replace(
             population=population, count_iter=state.count_iter + 1, key=key
         )
         return population, new_state
@@ -68,7 +69,7 @@ class MAES(CMAES):
         M = self._update_M(state.M, pc, state.sigma, population, state.mean, hsig)
         sigma = self._update_sigma(state.sigma, ps)
 
-        return state.update(mean=mean, ps=ps, pc=pc, M=M, sigma=sigma)
+        return state.replace(mean=mean, ps=ps, pc=pc, M=M, sigma=sigma)
 
     def _update_M(self, M, pc, sigma, population, old_mean, hsig):
         y = (population[: self.mu] - old_mean) / sigma
@@ -92,7 +93,7 @@ class LMMAES(MAES):
     def setup(self, key):
         state = super().setup(key)
         y_memory = jnp.zeros((self.memory_size, self.dim))
-        return state.update(y_memory=y_memory)
+        return state.replace(y_memory=y_memory)
 
     def _update_M(self, M, pc, hsig, y_memory):
         weights_reshaped = jnp.reshape(self.weights, (-1, 1))
@@ -121,6 +122,6 @@ class LMMAES(MAES):
         y_memory = y_memory.at[-self.mu :].set(y)
 
         M = self._update_M(state.M, state.pc, hsig, y_memory)
-        return state.update(
+        return state.replace(
             mean=mean, ps=ps, pc=pc, M=M, sigma=sigma, y_memory=y_memory
         )

@@ -237,7 +237,7 @@ class DMSPSOEL(Algorithm):
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
 
-        return state.update(
+        return state.replace(
             iteration=state.iteration + 1,
             population=population,
             velocity=velocity,
@@ -280,7 +280,7 @@ class DMSPSOEL(Algorithm):
             : self.following_sub_swarm_size
         ]
 
-        return state.update(
+        return state.replace(
             iteration=state.iteration,
             population=population,
             velocity=velocity,
@@ -323,7 +323,7 @@ class DMSPSOEL(Algorithm):
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
 
-        return state.update(
+        return state.replace(
             iteration=state.iteration + 1,
             population=population,
             velocity=velocity,

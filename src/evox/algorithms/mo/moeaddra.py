@@ -121,7 +121,7 @@ class MOEADDRA(Algorithm):
         )
         next_generation = self.mutation(mut_key, crossovered)
 
-        return next_generation, state.update(
+        return next_generation, state.replace(
             next_generation=next_generation, choosed_p=choosed_p, key=key, I_all=I_all
         )
 
@@ -131,7 +131,7 @@ class MOEADDRA(Algorithm):
             jnp.abs((fitness - jnp.tile(Z, (self.pop_size, 1))) * state.weight_vector),
             axis=1,
         )
-        state = state.update(fitness=fitness, Z=Z, old_obj=old_obj)
+        state = state.replace(fitness=fitness, Z=Z, old_obj=old_obj)
         return state
 
     def tell(self, state, fitness):
@@ -192,7 +192,7 @@ class MOEADDRA(Algorithm):
             old_obj,
         )
 
-        state = state.update(
+        state = state.replace(
             population=population,
             fitness=pop_obj,
             Z=Z,

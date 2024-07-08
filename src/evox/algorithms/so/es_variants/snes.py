@@ -73,7 +73,7 @@ class SNES(evox.Algorithm):
         key, _ = jax.random.split(state.key)
         noise = jax.random.normal(key, (self.popsize, self.num_dims))
         x = state.center + noise * state.sigma.reshape(1, self.num_dims)
-        return x, state.update(key=key, noise=noise, population=x)
+        return x, state.replace(key=key, noise=noise, population=x)
 
     def tell(self, state, fitness):
         s = state.noise
@@ -83,4 +83,4 @@ class SNES(evox.Algorithm):
         grad_sigma = (state.weights * (sorted_noise**2 - 1)).sum(axis=0)
         center = state.center + self.lrate_mean * state.sigma * grad_mean
         sigma = state.sigma * jnp.exp(self.lrate_sigma / 2 * grad_sigma)
-        return state.update(center=center, sigma=sigma)
+        return state.replace(center=center, sigma=sigma)

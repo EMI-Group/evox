@@ -478,9 +478,10 @@ class MaF9(MaF):
         super().__init__(d, m, ref_num)
         # Generate vertexes
         self.points = self._getPoints()
-    
+
     def _evaluate(self, X):
         m, _d1 = jnp.shape(self.points)
+
         def calc_pf_for_obj(i):
             return self._Point2Line(X, self.points[jnp.mod(jnp.arange(2) + i, m), :])
 

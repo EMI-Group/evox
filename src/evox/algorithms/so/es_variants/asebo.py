@@ -102,7 +102,7 @@ class ASEBO(evox.Algorithm):
         x = state.center + z
         return (
             x,
-            state.update(
+            state.replace(
                 key=key,
                 population=x,
                 noise=z,
@@ -132,4 +132,4 @@ class ASEBO(evox.Algorithm):
         center = optax.apply_updates(state.center, updates)
         sigma = state.sigma * self.sigma_decay
         sigma = jnp.maximum(sigma, self.sigma_limit)
-        return state.update(center=center, sigma=sigma, alpha=alpha)
+        return state.replace(center=center, sigma=sigma, alpha=alpha)

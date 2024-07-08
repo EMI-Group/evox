@@ -1,13 +1,24 @@
-from __future__ import annotations
-
+import os
 from pprint import pformat
 from typing import Any, Optional, Tuple, Union
+from typing_extensions import Self
 from copy import copy
+from pathlib import Path
 import pickle
 import dataclasses
 
-import jax.numpy as jnp
-from jax.tree_util import register_pytree_node_class, tree_map
+import orbax.checkpoint as ocp
+import warnings
+from jax.tree_util import (
+    register_pytree_node_class,
+    tree_map,
+    tree_structure,
+    tree_unflatten,
+)
+from .distributed import ShardingType
+
+
+PathLike = Union[str, bytes, os.PathLike]
 
 
 def is_magic_method(name: str):
@@ -52,7 +63,7 @@ class State:
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
 
-    def _set_state_dict_mut(self, state_dict: dict) -> State:
+    def _set_state_dict_mut(self, state_dict: dict) -> Self:
         """Force set child state and return self
 
         This method mutate the struture itself and is not pure.
@@ -61,7 +72,7 @@ class State:
         self.__dict__["_state_dict"] = state_dict
         return self
 
-    def _set_child_states_mut(self, child_states: dict) -> State:
+    def _set_child_states_mut(self, child_states: dict) -> Self:
         """Force set child state and return self
 
         This method mutate the struture itself and is not pure.
@@ -70,7 +81,7 @@ class State:
         self.__dict__["_child_states"] = child_states
         return self
 
-    def _set_state_id_mut(self, state_id) -> State:
+    def _set_state_id_mut(self, state_id) -> Self:
         """Force set the state id and return self
 
         This method mutate the struture itself and is not pure.
@@ -79,7 +90,11 @@ class State:
         self.__dict__["_state_id"] = state_id
         return self
 
-    def update(self, **kwargs) -> State:
+    def update(self, **kwargs) -> Self:
+        warnings.warn("update() is depreacred, use replace() instead")
+        return self.replace(**kwargs)
+
+    def replace(self, **kwargs) -> Self:
         """Update the current State with another State or dict and return new State.
 
         This method also accept keyword arguments.
@@ -87,7 +102,7 @@ class State:
         Example::
             >>> from evox import State
             >>> state = State(x=1, y=2)
-            >>> state.update(y=3) # use the update method
+            >>> state.replace(y=3) # use the update method
             State ({'x': 1, 'y': 3}, {})
             >>> state # note that State is immutable, so state isn't modified
             State ({'x': 1, 'y': 2}, {})
@@ -99,23 +114,36 @@ class State:
         else:
             return copy(self)._set_state_dict_mut({**self._state_dict, **kwargs})
 
-    def replace(self, **kwargs) -> State:
-        return self.update(**kwargs)
-
     def has_child(self, name: str) -> bool:
         return name in self._child_states
 
-    def get_child_state(self, name: str) -> State:
+    def get_child_state(self, name: str) -> Self:
         return self._child_states[name]
 
-    def update_child(self, name: str, child_state: State) -> State:
+    def query_state(self, name: str) -> Self:
+        """
+        Recursively find a sub-state by a query name.
+        eg: `'foo.bar'` will find a sub state named foo, then find `bar` under
+        sub-states of `foo`
+        """
+        child_state = self
+        for child_state_name in name.split("."):
+            child_state = child_state.get_child_state(child_state_name)
+
+        return child_state
+
+    def update_child(self, name: str, child_state: Self) -> Self:
+        warnings.warn("update_child() is depreacred, use replace_child() instead")
+        return self.replace_child(name, child_state)
+
+    def replace_child(self, name: str, child_state: Self) -> Self:
         return copy(self)._set_child_states_mut(
             {**self._child_states, name: child_state}
         )
 
     def find_path_to(
         self, node_id: int, hint: Optional[str] = None
-    ) -> Optional[Tuple[Union[Tuple, int], State]]:
+    ) -> Optional[Tuple[Union[Tuple, int], Self]]:
         """Find the state with node_id matching the state_id
         A hint can be given with the module_name
         """
@@ -133,15 +161,15 @@ class State:
 
         return None
 
-    def update_path(self, path, new_state):
+    def replace_by_path(self, path, new_state):
         if isinstance(path, int):
             assert path == self._state_id
             return new_state
         elif isinstance(path, tuple):
             child_id, path = path
-            return self.update_child(
+            return self.replace_child(
                 child_id,
-                self._child_states[child_id].update_path(path, new_state),
+                self._child_states[child_id].replace_by_path(path, new_state),
             )
         else:
             raise ValueError("Path must be either tuple or int")
@@ -158,22 +186,11 @@ class State:
     def __getitem__(self, key: str) -> Any:
         return getattr(self, key)
 
-    def index(self, index: Union[str, int]) -> State:
+    def index(self, index: Union[str, int]) -> Self:
         """
         PyTree index, apply the index to every element in the state.
         """
         return tree_map(lambda x: x[index], self)
-
-    def slice(self, begin: int, end: int) -> State:
-        """
-        PyTree index, apply the index to every element in the state.
-        """
-        if isinstance(begin, int) and isinstance(end, int):
-            return tree_map(lambda x: x[begin:end], self)
-        else:
-            raise TypeError(
-                f"begin and end should be int, but got {type(begin)} and {type(end)}"
-            )
 
     def __setattr__(self, _key: str, _value: Any) -> None:
         raise TypeError("State is immutable")
@@ -219,16 +236,81 @@ class State:
             ._set_child_states_mut(child_states)
         )
 
-    def __eq__(self, other: State):
+    def __eq__(self, other: Self):
+        # TODO: verify the correctness of the comparison
         if self._state_dict != other._state_dict:
             return False
 
         return self._child_states == other._child_states
 
-    def save(self, path: str):
-        with open(path, "wb") as f:
-            pickle.dump(self, f)
+    def save(self, path: PathLike, orbax: bool = True) -> None:
+        """Save the state to local filesystem
 
-    def load(self, path: str) -> State:
-        with open(path, "rb") as f:
-            return pickle.load(f)
+        Parameters
+        ----------
+        path: str
+            The path to save the state
+        orbax: bool, default: True
+            If True, use orbax to save the state, otherwise use pickle
+        """
+        path = Path(path).resolve()
+
+        if orbax:
+            ckpt = ocp.StandardCheckpointer()
+            ckpt.save(path, args=ocp.args.StandardSave(self))
+        else:
+            with path.open("wb") as f:
+                pickle.dump(self, f)
+
+    def load(self, path: PathLike, orbax: bool = True) -> Self:
+        """Load the saved state from disk
+
+        Parameters
+        ----------
+        path: str
+            The path to load the state
+        orbax: bool, default: True
+            If True, use orbax to load the state, otherwise use pickle
+        """
+        path = Path(path).resolve()
+        if orbax:
+            ckpt = ocp.StandardCheckpointer()
+            state = ckpt.restore(path, args=ocp.args.StandardRestore(self))
+        else:
+            with path.open("rb") as f:
+                state = pickle.load(f)
+
+        return state
+
+
+def _get_state_sharding(obj, devices=None):
+    """
+    Apply DFS like tree_flatten
+    """
+    sharding = []
+    if isinstance(obj, State):
+        # TODO: check the order:
+        sharding.extend(_get_state_sharding(obj._state_dict, devices))
+        for child_state in obj._child_states.values():
+            sharding.extend(_get_state_sharding(child_state, devices))
+
+    elif dataclasses.is_dataclass(obj):
+        for field in dataclasses.fields(obj):
+            sharding.append(
+                field.metadata.get("sharding", ShardingType.REPLICATED).get_sharding(
+                    devices
+                )
+            )
+    elif isinstance(obj, dict):
+        # backward compatibility for dict
+        # for key, value in obj.items():
+        for key in obj.keys():
+            sharding.append(ShardingType.REPLICATED.get_sharding(devices))
+
+    return sharding
+
+
+def get_state_sharding(state: Self, devices=None):
+    flatten_sharding = _get_state_sharding(state, devices)
+
+    return tree_unflatten(tree_structure(state), flatten_sharding)

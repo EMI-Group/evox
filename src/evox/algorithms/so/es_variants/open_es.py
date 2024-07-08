@@ -70,7 +70,7 @@ class OpenES(Algorithm):
             noise = jax.random.normal(noise_key, shape=(self.pop_size, self.dim))
         population = state.center[jnp.newaxis, :] + self.noise_stdev * noise
 
-        return population, state.update(population=population, key=key, noise=noise)
+        return population, state.replace(population=population, key=key, noise=noise)
 
     def tell(self, state, fitness):
         grad = state.noise.T @ fitness / self.pop_size / self.noise_stdev
@@ -79,4 +79,4 @@ class OpenES(Algorithm):
         else:
             updates, state = use_state(self.optimizer.update)(state, state.center)
             center = optax.apply_updates(state.center, updates)
-        return state.update(center=center)
+        return state.replace(center=center)

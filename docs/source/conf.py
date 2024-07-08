@@ -59,6 +59,7 @@ autodoc_mock_imports = [
     "ray",
     "tensorflow_datasets",
     "gpjax",
+    "orbax-checkpoint"
 ]
 
 # -- Options for HTML output -------------------------------------------------

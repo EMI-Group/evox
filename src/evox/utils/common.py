@@ -1,27 +1,20 @@
-from collections.abc import Iterable
 from functools import partial
-from typing import List, Union
-from dataclasses import field
+from typing import Union
+from collections.abc import Iterable
 
 import jax
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten
 import optax
+from evox import dataclass, pytree_field
 
 from ..core.module import *
 
 
-def algorithm_has_init_ask(algorithm, state):
-    if not hasattr(algorithm, "init_ask"):
-        return False
-    probe = jax.eval_shape(use_state(algorithm.init_ask), state)
-    return probe[0] is not None
-
-
 def min_by(
-    values: Union[jax.Array, List[jax.Array]],
-    keys: Union[jax.Array, List[jax.Array]],
+    values: Union[jax.Array, list[jax.Array]],
+    keys: Union[jax.Array, list[jax.Array]],
 ):
     if isinstance(values, list):
         values = jnp.concatenate(values)
@@ -148,7 +141,7 @@ def rank_based_fitness(raw_fitness):
 
 @dataclass
 class OptaxWrapper(Stateful):
-    optimizer: Static[optax.GradientTransformation]
+    optimizer: optax.GradientTransformation = pytree_field(static=True)
     init_params: jax.Array
 
     def setup(self, key):
@@ -157,7 +150,7 @@ class OptaxWrapper(Stateful):
 
     def update(self, state, grads, params=None):
         updates, opt_state = self.optimizer.update(grads, state.opt_state, params)
-        return updates, state.update(opt_state=opt_state)
+        return updates, state.replace(opt_state=opt_state)
 
 
 @jit_class
@@ -226,7 +219,7 @@ class TreeAndVector:
         self.slice_sizes = state_dict["slice_sizes"]
 
 
-def parse_opt_direction(opt_direction: Union[str, List[str]]):
+def parse_opt_direction(opt_direction: Union[str, Iterable[str]]):
     if isinstance(opt_direction, str):
         if opt_direction == "min":
             return 1
@@ -236,7 +229,7 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
             raise ValueError(
                 f"opt_direction is either 'min' or 'max', got {opt_direction}"
             )
-    elif isinstance(opt_direction, list):
+    elif isinstance(opt_direction, Iterable):
         result = []
         for d in opt_direction:
             if d == "min":
@@ -248,7 +241,7 @@ def parse_opt_direction(opt_direction: Union[str, List[str]]):
         return jnp.array(result)
     else:
         raise ValueError(
-            f"opt_direction should have type 'str' or 'list', got {type(opt_direction)}"
+            f"opt_direction should have type 'str' or 'Iterable[str]', got {type(opt_direction)}"
         )
 
 

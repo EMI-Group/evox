@@ -8,8 +8,7 @@
 import jax
 import jax.numpy as jnp
 from typing import Optional
-from evox import Algorithm, State, Static, jit_class, dataclass
-from dataclasses import field
+from evox import Algorithm, State, jit_class, dataclass, pytree_field
 
 
 @dataclass
@@ -21,19 +20,19 @@ class CSOState:
     key: jax.random.PRNGKey
 
 
-@jit_class
+# @jit_class
 @dataclass
 class CSO(Algorithm):
     lb: jax.Array
     ub: jax.Array
-    pop_size: Static[int]
+    pop_size: int = pytree_field(static=True)
     phi: float = 0.0
     mean: Optional[jax.Array] = None
     stdev: Optional[jax.Array] = None
-    dim: Static[int] = field(init=False)
+    dim: int = pytree_field(static=True, init=False)
 
     def __post_init__(self):
-        object.__setattr__(self, "dim", self.lb.shape[0])
+        self.set_frozen_attr("dim", self.lb.shape[0])
 
     def setup(self, key):
         state_key, init_key = jax.random.split(key)
@@ -62,7 +61,7 @@ class CSO(Algorithm):
         return state.population, state
 
     def init_tell(self, state, fitness):
-        return state.update(fitness=fitness)
+        return state.replace(fitness=fitness)
 
     def ask(self, state):
         key, pairing_key, lambda1_key, lambda2_key, lambda3_key = jax.random.split(
@@ -90,7 +89,7 @@ class CSO(Algorithm):
 
         return (
             candidates,
-            state.update(
+            state.replace(
                 population=new_population,
                 velocity=new_velocity,
                 students=students,
@@ -100,4 +99,4 @@ class CSO(Algorithm):
 
     def tell(self, state, fitness):
         fitness = state.fitness.at[state.students].set(fitness)
-        return state.update(fitness=fitness)
+        return state.replace(fitness=fitness)

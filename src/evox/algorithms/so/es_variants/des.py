@@ -12,6 +12,7 @@ import jax
 import jax.numpy as jnp
 import evox
 
+
 def get_des_weights(popsize: int, temperature: float = 12.5):
     """Compute discovered recombination weights."""
     ranks = jnp.arange(popsize)
@@ -60,7 +61,7 @@ class DES(evox.Algorithm):
         key, _ = jax.random.split(state.key)
         z = jax.random.normal(state.key, (self.popsize, self.num_dims))
         x = state.center + z * state.sigma.reshape(1, self.num_dims)
-        return x, state.update(key=key, x=x)
+        return x, state.replace(key=key, x=x)
 
     def tell(self, state, fitness):
         x = state.x[fitness.argsort()]
@@ -72,4 +73,4 @@ class DES(evox.Algorithm):
         )
         center = state.center + self.lrate_mean * (weighted_mean - state.center)
         sigma = state.sigma + self.lrate_sigma * (weighted_sigma - state.sigma)
-        return state.update(center=center, sigma=sigma)
+        return state.replace(center=center, sigma=sigma)

@@ -178,7 +178,7 @@ class MOEADM2M(Algorithm):
         )
         current_gen = current_gen + 1
 
-        return next_generation, state.update(
+        return next_generation, state.replace(
             next_generation=next_generation, key=key, gen=current_gen
         )
 
@@ -187,7 +187,7 @@ class MOEADM2M(Algorithm):
         population = state.population
         population, fitness = associate(subkey, population, fitness, self.w, self.s)
 
-        state = state.update(population=population, fitness=fitness, key=key)
+        state = state.replace(population=population, fitness=fitness, key=key)
         return state
 
     def tell(self, state, fitness):
@@ -199,5 +199,5 @@ class MOEADM2M(Algorithm):
             subkey, merged_pop, merged_fitness, self.w, self.s
         )
 
-        state = state.update(population=population, fitness=pop_obj, key=key)
+        state = state.replace(population=population, fitness=pop_obj, key=key)
         return state

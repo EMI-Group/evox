@@ -1,4 +1,3 @@
-from dataclasses import field
 from functools import partial
 from typing import List, Optional, Tuple, Union
 
@@ -7,7 +6,7 @@ import jax.numpy as jnp
 from jax import vmap
 from jax.tree_util import tree_map
 
-from evox import Algorithm, State, Static, Stack, dataclass, jit_class, use_state
+from evox import Algorithm, State, dataclass, pytree_field, jit_class, use_state
 
 
 @jit_class
@@ -30,11 +29,12 @@ class VectorizedCoevolution(Algorithm):
         for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
         When set to True, the decision variables will be shuffled.
     """
-    base_algorithms: Stack[Algorithm]
-    dim: Static[int]
-    num_subpops: Static[int]
-    random_subpop: Static[bool]
-    dtype: Static[jnp.dtype] = jnp.float32
+
+    base_algorithms: Algorithm = pytree_field(stack=True)
+    dim: int = pytree_field(static=True)
+    num_subpops: int = pytree_field(static=True)
+    random_subpop: bool = pytree_field(static=True)
+    dtype: jnp.dtype = pytree_field(static=True, default=jnp.float32)
 
     def setup(self, key: jax.Array) -> State:
         if self.random_subpop:
@@ -63,7 +63,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             init_pop = init_pop.at[:, state.permutation].set(init_pop)
 
-        return init_pop, state.update(coop_pops=init_pop)
+        return init_pop, state.replace(coop_pops=init_pop)
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
         subpop, state = use_state(vmap(self.base_algorithms.__class__.ask))(
@@ -84,7 +84,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             coop_pops = coop_pops.at[:, state.permutation].set(coop_pops)
 
-        return coop_pops, state.update(coop_pops=coop_pops)
+        return coop_pops, state.replace(coop_pops=coop_pops)
 
     def init_tell(self, state, fitness):
         best_fit = jnp.min(fitness)
@@ -95,7 +95,7 @@ class VectorizedCoevolution(Algorithm):
         if self.random_subpop:
             best_dec = best_dec[state.permutation]
 
-        return state.update(
+        return state.replace(
             best_fit=jnp.tile(best_fit, self.num_subpops),
             best_dec=best_dec,
             coop_pops=None,
@@ -129,7 +129,7 @@ class VectorizedCoevolution(Algorithm):
             state.best_dec.reshape(self.num_subpops, -1),
         ).reshape(self.dim)
 
-        return state.update(
+        return state.replace(
             best_dec=best_dec,
             best_fit=jnp.minimum(state.best_fit, min_fit_each_subpop),
             coop_pops=None,
@@ -156,11 +156,12 @@ class Coevolution(Algorithm):
         for example, dimension 0~9 for subpopulation 0, 10~19 for subpopulation 1, etc.
         When set to True, the decision variables will be shuffled.
     """
-    base_algorithms: Stack[Algorithm]
-    dim: Static[int]
-    num_subpops: Static[int]
-    random_subpop: Static[bool]
-    dtype: Static[jnp.dtype] = jnp.float32
+
+    base_algorithms: Algorithm = pytree_field(stack=True)
+    dim: int = pytree_field(static=True)
+    num_subpops: int = pytree_field(static=True)
+    random_subpop: bool = pytree_field(static=True)
+    dtype: jnp.dtype = pytree_field(static=True, default=jnp.float32)
 
     def setup(self, key: jax.Array) -> State:
         if self.random_subpop:
@@ -190,7 +191,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             init_pop = init_pop.at[:, state.permutation].set(init_pop)
 
-        return init_pop, state.update(coop_pops=init_pop)
+        return init_pop, state.replace(coop_pops=init_pop)
 
     def ask(self, state: State) -> Tuple[jax.Array, State]:
         subpop_index = state.iter_counter % self.num_subpops
@@ -212,7 +213,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             coop_pops = coop_pops.at[:, state.permutation].set(coop_pops)
 
-        return coop_pops, state.update(coop_pops=coop_pops)
+        return coop_pops, state.replace(coop_pops=coop_pops)
 
     def init_tell(self, state, fitness):
         best_fit = jnp.min(fitness)
@@ -223,7 +224,7 @@ class Coevolution(Algorithm):
         if self.random_subpop:
             best_dec = best_dec[state.permutation]
 
-        return state.update(
+        return state.replace(
             best_fit=jnp.tile(best_fit, self.num_subpops),
             best_dec=best_dec,
             coop_pops=None,
@@ -249,7 +250,7 @@ class Coevolution(Algorithm):
 
         best_fit = state.best_fit.at[subpop_index].min(min_fitness)
 
-        return state.update(
+        return state.replace(
             best_dec=best_dec,
             best_fit=best_fit,
             iter_counter=state.iter_counter + 1,

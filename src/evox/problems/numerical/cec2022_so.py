@@ -128,7 +128,9 @@ class OperatFunc:
         term2 = jnp.exp(-0.5 * diff_square_sum / (sigma**2 * D))
         W = term1 * term2
         term1_nan = jnp.isnan(term1)
-        W_norm = lax.select(jnp.any(term1_nan), term1_nan / jnp.count_nonzero(term1_nan), W / jnp.sum(W))
+        W_norm = lax.select(
+            jnp.any(term1_nan), term1_nan / jnp.count_nonzero(term1_nan), W / jnp.sum(W)
+        )
 
         f = jnp.sum(W_norm * (lamb * fs + bias))
 

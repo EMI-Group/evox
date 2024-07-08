@@ -88,7 +88,7 @@ class PersistentES(evox.Algorithm):
         # Add the perturbations from this unroll to the perturbation accumulators
         pert_accum = state.pert_accum + perts
         x = state.center + perts
-        return x, state.update(key=key, pert_accum=pert_accum, population=x)
+        return x, state.replace(key=key, pert_accum=pert_accum, population=x)
 
     def tell(self, state, fitness):
         theta_grad = jnp.mean(
@@ -110,7 +110,7 @@ class PersistentES(evox.Algorithm):
         sigma = self.sigma_decay * state.sigma
         sigma = jnp.maximum(sigma, self.sigma_limit)
 
-        return state.update(
+        return state.replace(
             center=center,
             sigma=sigma,
             pert_accum=pert_accum,

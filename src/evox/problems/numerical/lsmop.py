@@ -267,7 +267,6 @@ class LSMOP5(LSMOP):
     def pf(self):
         f = UniformSampling(self.ref_num * self.m, self.m)()[0] / 2
         return f / jnp.tile(jnp.sqrt(jnp.sum(f**2, axis=1, keepdims=True)), (1, self.m))
-        
 
 
 @evox.jit_class

@@ -4,8 +4,13 @@ from brax.io import html, image
 import jax
 from jax import jit, vmap
 import jax.numpy as jnp
-from jax.tree_util import tree_leaves
+import jax.tree_util as jtu
 from evox import Problem, State, jit_method
+
+
+def vmap_rng_split(key: jax.Array, num: int = 2) -> jax.Array:
+    # batched_key [B, 2] -> batched_keys [num, B, 2]
+    return jax.vmap(jax.random.split, in_axes=(0, None), out_axes=1)(key, num)
 
 
 class Brax(Problem):
@@ -13,7 +18,9 @@ class Brax(Problem):
         self,
         policy: Callable,
         env_name: str,
-        cap_episode: int,
+        max_episode_length: int,
+        num_episodes: int,
+        reduce_fn: Callable[[jax.Array, int], jax.Array] = jnp.mean,
         backend: str = "generalized",
     ):
         """Contruct a brax-based problem
@@ -21,56 +28,73 @@ class Brax(Problem):
         Parameters
         ----------
         policy
-            A function that accept two arguments
-            the first one is the parameter and the second is the input.
+            a callable: fn(weights, obs) -> action
         env_name
             The environment name.
         batch_size
             The number of brax environments to run in parallel.
             Usually this should match the population size at the algorithm side.
-        cap_episode
-            The maximum number episodes to run.
+        max_episode_length
+            The maximum number of timesteps of an episode.
+        num_episodes
+            Evaluating the number of episodes for each individual.
         backend
             Brax's backend, one of "generalized", "positional", "spring".
             Default to "generalized".
         """
-        self.batched_policy = jit(vmap(policy))
+        self.batched_policy = jit(vmap(vmap(policy, in_axes=(None, 0))))
         self.policy = policy
         self.env_name = env_name
         self.backend = backend
         self.env = envs.wrappers.training.VmapWrapper(
             envs.get_environment(env_name=env_name, backend=backend)
         )
-        self.cap_episode = cap_episode
-        self.jit_reset = jit(self.env.reset)
-        self.jit_env_step = jit(self.env.step)
+        self.max_episode_length = max_episode_length
+        self.num_episodes = num_episodes
+        self.reduce_fn = reduce_fn
+
+        self.jit_reset = jit(vmap(self.env.reset))
+        self.jit_env_step = jit(vmap(self.env.step))
 
     def setup(self, key):
         return State(key=key)
 
     @jit_method
     def evaluate(self, state, weights):
-        batch_size = tree_leaves(weights)[0].shape[0]
-        brax_state = self.jit_reset(jnp.tile(state.key, (batch_size, 1)))
+        pop_size = jtu.tree_leaves(weights)[0].shape[0]
+        key, eval_key = jax.random.split(state.key)
 
-        def cond_func(val):
-            counter, state, _total_reward = val
-            return (counter < self.cap_episode) & (~state.done.all())
+        def _cond_func(carry):
+            counter, state, done, _total_reward = carry
+            return (counter < self.max_episode_length) & (~done.all())
 
-        def body_func(val):
-            counter, brax_state, total_reward = val
+        def _body_func(carry):
+            counter, brax_state, done, total_reward = carry
             action = self.batched_policy(weights, brax_state.obs)
             brax_state = self.jit_env_step(brax_state, action)
-            total_reward += (1 - brax_state.done) * brax_state.reward
-            return counter + 1, brax_state, total_reward
+            done = brax_state.done * (1 - done)
+            total_reward += (1 - done) * brax_state.reward
+            return counter + 1, brax_state, done, total_reward
 
-        init_val = (0, brax_state, jnp.zeros((batch_size,)))
-
-        _counter, _brax_state, total_reward = jax.lax.while_loop(
-            cond_func, body_func, init_val
+        brax_state = self.jit_reset(
+            vmap_rng_split(jax.random.split(eval_key, self.num_episodes), pop_size)
         )
 
-        return total_reward, state
+        # [pop_size, num_episodes]
+        _, _, _, total_reward = jax.lax.while_loop(
+            _cond_func,
+            _body_func,
+            (
+                0,
+                brax_state,
+                jnp.zeros((pop_size, self.num_episodes)),
+                jnp.zeros((pop_size, self.num_episodes)),
+            ),
+        )
+
+        total_reward = self.reduce_fn(total_reward, axis=-1)
+
+        return total_reward, state.replace(key=key)
 
     def visualize(
         self,

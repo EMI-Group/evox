@@ -141,7 +141,7 @@ class FIPS(Algorithm):
         population = state.population + velocity
         population = jnp.clip(population, self.lb, self.ub)
 
-        return state.update(
+        return state.replace(
             population=population,
             velocity=velocity,
             local_best_location=local_best_location,

@@ -31,14 +31,14 @@ class Normalizer(Stateful):
         newCount = state.count + 1
         newSum = state.sum + x
         newSumOfSquares = state.sumOfSquares + x**2
-        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
+        state = state.replace(count=newCount, sum=newSum, sumOfSquares=newSumOfSquares)
         mean, state = self.mean(state)
         std, state = self.std(state)
         return state, (x - mean) / std
 
     def mean(self, state):
         mean = state.sum / state.count
-        return state.update(mean=mean), mean
+        return state.replace(mean=mean), mean
 
     def std(self, state):
         return state, jnp.sqrt(
@@ -49,7 +49,7 @@ class Normalizer(Stateful):
         newCount = state.count + len(obvs)
         newSum = state.sum + jnp.sum(obvs, axis=0)
         newSumOFsquares = state.sumOfSquares + jnp.sum(obvs**2, axis=0)
-        state = state.update(count=newCount, sum=newSum, sumOfSquares=newSumOFsquares)
+        state = state.replace(count=newCount, sum=newSum, sumOfSquares=newSumOFsquares)
 
         mean, state = self.mean(state)
         std, state = self.std(state)
@@ -273,7 +273,7 @@ class CapEpisode(Stateful):
         return State(cap=self.init_cap)
 
     def update(self, state, episode_length):
-        return state.update(
+        return state.replace(
             cap=jnp.rint(jnp.mean(episode_length) * 2).astype(jnp.int32)
         )
 
@@ -376,9 +376,9 @@ class Gym(Problem):
         fitness = rewards
 
         if self.mo_keys:
-            return acc_mo_values, state.update(key=key)
+            return acc_mo_values, state.replace(key=key)
         else:
-            return fitness, state.update(key=key)
+            return fitness, state.replace(key=key)
 
     def visualize(self, key, weights, ale_render_mode="rgb_array"):
         """Visualize your policy, passin a single set of weights,

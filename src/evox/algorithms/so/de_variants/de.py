@@ -105,7 +105,7 @@ class DE(Algorithm):
             )
         )(indices, R, random_choiced=random_choices, mask=masks)
 
-        return trial_vectors, state.update(trial_vectors=trial_vectors, key=key)
+        return trial_vectors, state.replace(trial_vectors=trial_vectors, key=key)
 
     def _ask_one(self, index, R, population, best_index, random_choiced, mask):
         random_choiced = jnp.where(
@@ -158,7 +158,7 @@ class DE(Algorithm):
         )
         best_index = jnp.argmin(fitness)
         start_index = (state.start_index + self.batch_size) % self.pop_size
-        return state.update(
+        return state.replace(
             population=population,
             fitness=fitness,
             best_index=best_index,

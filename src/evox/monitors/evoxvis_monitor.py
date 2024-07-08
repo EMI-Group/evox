@@ -121,7 +121,7 @@ class EvoXVisMonitor:
             if self.metrics:
                 # store the metric_names
                 # so we can fix the order of these keys
-                self.metric_names = self.metrics[0].keys()                
+                self.metric_names = self.metrics[0].keys()
                 for name in self.metric_names:
                     print(name)
                     fields.append((name, pa.float64()))

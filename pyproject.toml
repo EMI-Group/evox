@@ -33,9 +33,9 @@ classifiers = [
 dependencies = [
   "jax >= 0.4.16",
   "jaxlib >= 0.3.0",
-  "jax_dataclasses >= 1.6.0",
   "optax >= 0.1.0",
   "pyarrow >= 10.0.0",
+  "orbax-checkpoint >= 0.5.0",
 ]
 
 [project.optional-dependencies]

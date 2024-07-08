@@ -58,8 +58,8 @@ def test_tfds():
             stdev_init=0.1,
         ),
         problem=problem,
-        sol_transforms=[adapter.batched_to_tree],
-        fit_transforms=[rank_based_fitness],
+        candidate_transforms=[adapter.batched_to_tree],
+        fitness_transforms=[rank_based_fitness],
         monitors=[monitor],
     )
     # init the workflow

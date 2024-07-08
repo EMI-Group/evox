@@ -99,10 +99,10 @@ class KnEA(Algorithm):
         crossovered = self.crossover(keys[2], selected)
         mutated = self.mutation(keys[3], crossovered)
         next_gen = jnp.clip(mutated, self.lb, self.ub)
-        return next_gen, state.update(next_generation=next_gen, key=keys[0])
+        return next_gen, state.replace(next_generation=next_gen, key=keys[0])
 
     def init_tell(self, state, fitness):
-        state = state.update(fitness=fitness)
+        state = state.replace(fitness=fitness)
         return state
 
     def tell(self, state, fitness):
@@ -211,7 +211,7 @@ class KnEA(Algorithm):
         idx = jnp.where(selected, jnp.arange(len(selected)), len(selected)).sort()[
             : self.pop_size
         ]
-        state = state.update(
+        state = state.replace(
             population=ranked_pop[idx],
             fitness=ranked_fitness[idx],
             knee=knee[idx],
