@@ -6,4 +6,5 @@
 python
 install
 windows_gpu
+video_guide
 ```

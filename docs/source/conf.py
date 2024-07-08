@@ -58,7 +58,6 @@ autodoc_mock_imports = [
     "gymnasium",
     "ray",
     "tensorflow_datasets",
-    "grain",
     "gpjax",
     "orbax-checkpoint"
 ]
@@ -68,6 +67,9 @@ autodoc_mock_imports = [
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+html_js_files = [
+    "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
+]
 html_theme = "sphinx_book_theme"
 html_logo = "_static/evox_logo_light.png"
 html_theme_options = {
@@ -75,9 +77,7 @@ html_theme_options = {
     "path_to_docs": "/docs/source",
     "repository_url": "https://github.com/EMI-Group/evox",
     "use_repository_button": True,
-    "launch_buttons": {
-        "colab_url": "https://colab.research.google.com"
-    },
+    "launch_buttons": {"colab_url": "https://colab.research.google.com"},
     "logo": {
         "image_light": "_static/evox_logo_light.png",
         "image_dark": "_static/evox_logo_dark.png",

@@ -17,7 +17,7 @@ import jax.numpy as jnp
 from evox import Algorithm, State, jit_class
 from evox.operators import crossover, mutation, selection
 from evox.operators.sampling import LatinHypercubeSampling
-from evox.utils import pairwise_euclidean_dist
+from evox.utils import pairwise_euclidean_dist, AggregationFunction
 
 
 @jit_class
@@ -55,6 +55,7 @@ class MOEADDRA(Algorithm):
         if self.crossover is None:
             self.crossover = crossover.DifferentialEvolve()
         self.sample = LatinHypercubeSampling(self.pop_size, self.n_objs)
+        self.aggergate_func = AggregationFunction("tchebycheff")
 
     def setup(self, key):
         key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -155,10 +156,8 @@ class MOEADDRA(Algorithm):
             ind_obj = off_obj[i]
             Z = jnp.minimum(Z, ind_obj)
 
-            g_old = jnp.max(
-                jnp.abs(pop_obj[p] - jnp.tile(Z, (len(p), 1))) * w[p], axis=1
-            )
-            g_new = jnp.max(jnp.abs(jnp.tile(ind_obj - Z, (len(p), 1))) * w[p], axis=1)
+            g_old = self.aggergate_func(pop_obj[p], w[p], Z)
+            g_new = self.aggergate_func(ind_obj[jnp.newaxis, :], w[p], Z)
 
             g_new = g_new[:, jnp.newaxis]
             g_old = g_old[:, jnp.newaxis]

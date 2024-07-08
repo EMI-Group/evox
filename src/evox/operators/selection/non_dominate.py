@@ -1,5 +1,6 @@
 from functools import partial
 
+import numpy as np
 import jax
 import jax.numpy as jnp
 from jax import jit, lax, pure_callback, vmap
@@ -179,11 +180,33 @@ def crowding_distance_sort(x: jax.Array, mask: jax.Array = None):
     return jnp.argsort(distance)
 
 
-@partial(jit, static_argnums=[2])
-def non_dominate(population, fitness, topk):
+@partial(jit, static_argnums=[2, 3])
+def non_dominate(population, fitness, topk, deduplicate):
     """Selection the topk individuals besed on their ranking with non-dominated sort,
     returns the selected population and the corresponding fitness.
     """
+    if deduplicate:
+        # remove duplicated individuals by assigning their fitness to inf
+        _, unique_index, unique_count = jnp.unique(
+            population,
+            axis=0,
+            size=population.shape[0],
+            return_index=True,
+            return_counts=True,
+        )
+        population = population[unique_index]
+        fitness = fitness[unique_index]
+        count = jnp.sum(unique_count > 0)
+        # backup the original fitness
+        # so even when a duplicated individual is selected, the original fitness is used
+        # this will happen if the topk is larger than the number of unique individuals
+        fitness_bak = fitness
+        fitness = jnp.where(
+            (jnp.arange(fitness.shape[0]) < count)[:, jnp.newaxis],
+            fitness,
+            jnp.inf,
+        )
+
     # first apply non_dominated sort
     rank = non_dominated_sort(fitness)
     # then find the worst rank within topk, and use crodwing_distance_sort as tiebreaker
@@ -193,13 +216,17 @@ def non_dominate(population, fitness, topk):
     crowding_distance = crowding_distance_sort(fitness, mask)
 
     combined_order = jnp.lexsort((-crowding_distance, rank))[:topk]
-    return population[combined_order], fitness[combined_order]
+    if deduplicate:
+        return population[combined_order], fitness_bak[combined_order]
+    else:
+        return population[combined_order], fitness[combined_order]
 
 
 @jit_class
 class NonDominate:
-    def __init__(self, topk):
+    def __init__(self, topk, deduplicate=False):
         self.topk = topk
+        self.deduplicate = deduplicate
 
     def __call__(self, population, fitness):
-        return non_dominate(population, fitness, self.topk)
+        return non_dominate(population, fitness, self.topk, self.deduplicate)

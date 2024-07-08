@@ -259,3 +259,52 @@ def frames2gif(frames, save_path, duration=0.1):
             writer.append_data(formatted_image)
 
     print("Gif saved to: ", save_path)
+
+
+@jit_class
+class AggregationFunction:
+    """
+    Aggregation function: PBI approach, Tchebycheff approach, Tchebycheff approach with normalization,
+    modified Tchebycheff approach, weighted sum approach.
+
+    Args:
+        function_name (str): name of the aggregation function.
+    """
+
+    def __init__(self, function_name):
+        if function_name == "pbi":
+            self.function = self.pbi
+        elif function_name == "tchebycheff":
+            self.function = self.tchebycheff
+        elif function_name == "tchebycheff_norm":
+            self.function = self.tchebycheff_norm
+        elif function_name == "modified_tchebycheff":
+            self.function = self.modified_tchebycheff
+        elif function_name == "weighted_sum":
+            self.function = self.weighted_sum
+        else:
+            raise ValueError("Unsupported function")
+
+    def pbi(self, f, w, z, *args):
+        norm_w = jnp.linalg.norm(w, axis=1)
+        f = f - z
+        d1 = jnp.sum(f * w, axis=1) / norm_w
+        d2 = jnp.linalg.norm(
+            f - (d1[:, jnp.newaxis] * w / norm_w[:, jnp.newaxis]), axis=1
+        )
+        return d1 + 5 * d2
+
+    def tchebycheff(self, f, w, z, *args):
+        return jnp.max(jnp.abs(f - z) * w, axis=1)
+
+    def tchebycheff_norm(self, f, w, z, z_max, *args):
+        return jnp.max(jnp.abs(f - z) / (z_max - z) * w, axis=1)
+
+    def modified_tchebycheff(self, f, w, z, *args):
+        return jnp.max(jnp.abs(f - z) / w, axis=1)
+
+    def weighted_sum(self, f, w, *args):
+        return jnp.sum(f * w, axis=1)
+
+    def __call__(self, *args, **kwargs):
+        return self.function(*args, **kwargs)
