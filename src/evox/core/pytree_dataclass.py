@@ -1,6 +1,5 @@
 from jax.tree_util import register_pytree_node
 import dataclasses
-from typing import Annotated, Any, Callable, Optional, Tuple, TypeVar, get_type_hints
 
 from typing_extensions import (
     dataclass_transform,  # pytype: disable=not-supported-yet
