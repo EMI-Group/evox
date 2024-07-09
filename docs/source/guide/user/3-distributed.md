@@ -70,7 +70,7 @@ workflow = workflows.StdWorkflow(cso, ackley)
 
 key = jax.random.PRNGKey(42)
 state = workflow.init(key)
-state = workflow.enable_multi_devices(state, devices)
+state = workflow.enable_multi_devices(state)
 
 for i in range(10):
     train_info, state = workflow.step(state)
