@@ -45,8 +45,8 @@ class StdWorkflow(Workflow):
         problem: Problem,
         monitors: Sequence[Monitor] = (),
         opt_direction: Union[str, Sequence[str]] = "min",
-        candidate_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
-        fitness_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
+        candidate_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
+        fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
         jit_step: bool = True,
         external_problem: bool = False,
         num_objectives: Optional[int] = None,
@@ -116,9 +116,7 @@ class StdWorkflow(Workflow):
         self.external_problem = external_problem
         self.num_objectives = num_objectives
         if self.external_problem is True and self.num_objectives is None:
-            raise ValueError(
-                ("Using external problem, but num_objectives isn't set ")
-            )
+            raise ValueError("Using external problem, but num_objectives isn't set ")
 
         def _ask(self, state):
             if has_init_ask(self.algorithm) and state.first_step:
@@ -248,7 +246,12 @@ class StdWorkflow(Workflow):
 
     def setup(self, key):
         return State(
-            StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
+            StdWorkflowState(
+                generation=jnp.zeros((), dtype=jnp.uint32),
+                first_step=True,
+                rank=jnp.zeros((), dtype=jnp.int32),
+                world_size=1,
+            )
         )
 
     def step(self, state):
@@ -277,7 +280,7 @@ class StdWorkflow(Workflow):
 
         self.pmap_axis_name = pmap_axis_name
         self._step = jax.pmap(
-            self._step, axis_name=pmap_axis_name, static_broadcasted_argnums=0
+            self._step, axis_name=pmap_axis_name, static_broadcasted_argnums=(0,)
         )
 
         # multi-node case
@@ -288,7 +291,8 @@ class StdWorkflow(Workflow):
 
         state = jax.device_put_replicated(state, self.devices)
         state = state.replace(
-            rank=jax.device_put_sharded(tuple(ranks), self.devices), world_size=num_devices
+            rank=jax.device_put_sharded(tuple(ranks), self.devices),
+            world_size=num_devices,
         )
 
         return state
