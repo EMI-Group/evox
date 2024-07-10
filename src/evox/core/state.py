@@ -120,17 +120,35 @@ class State:
     def get_child_state(self, name: str) -> Self:
         return self._child_states[name]
 
-    def query_state(self, name: str) -> Self:
+    def query_state(self, path: str) -> Self:
         """
         Recursively find a sub-state by a query name.
         eg: `'foo.bar'` will find a sub state named foo, then find `bar` under
         sub-states of `foo`
         """
         child_state = self
-        for child_state_name in name.split("."):
+        for child_state_name in path.split("."):
             child_state = child_state.get_child_state(child_state_name)
 
         return child_state
+    
+    def replace_state(self, path: str, new_state: Self) -> Self:
+        """
+            replace a (sub) state by a given path
+        """
+        if len(path)==0:
+            return new_state
+
+        split = path.split(".", maxsplit=1)
+        if len(split)==2:
+            child_name, path = split
+        else:
+            child_name, path = split[0], ""
+
+        return self.replace_child(
+            child_name,
+            self._child_states[child_name].replace_state(path, new_state),
+        )
 
     def update_child(self, name: str, child_state: Self) -> Self:
         warnings.warn("update_child() is depreacred, use replace_child() instead")
@@ -141,38 +159,39 @@ class State:
             {**self._child_states, name: child_state}
         )
 
-    def find_path_to(
-        self, node_id: int, hint: Optional[str] = None
-    ) -> Optional[Tuple[Union[Tuple, int], Self]]:
-        """Find the state with node_id matching the state_id
-        A hint can be given with the module_name
+    def _query_state_by_id(
+        self, node_id: int, module_name: Optional[str] = None
+    ) -> Tuple[str, Optional[Self]]:
+        """Find the state with state_id that matching the node_id
+
+        Returns
+        -------
+        path: str
+            the sub module path like `foo.bar.baz`
+        state:
+            the sub state with specified node_id
         """
         if node_id == self._state_id:
-            return node_id, self
+            return "", self
+        
+        # shortcut if module_name is provided
+        if module_name is not None and module_name in self._child_states:
+            state = self._child_states[module_name]
+            if state._state_id == node_id:
+                return module_name, state
 
-        if hint in self._child_states and node_id == self._child_states[hint]._state_id:
-            return (hint, node_id), self._child_states[hint]
 
-        for child_id, child_state in self._child_states.items():
-            result = child_state.find_path_to(node_id)
-            if result is not None:
-                path, state = result
-                return (child_id, path), state
+        for child_name, child_state in self._child_states.items():
+            path, state = child_state._query_state_by_id(node_id, module_name)
+            if state is None:
+                pass
+            elif len(path) > 0:
+                return f"{child_name}.{path}", state
+            else:
+                return child_name, state
 
-        return None
+        return '', None
 
-    def replace_by_path(self, path, new_state):
-        if isinstance(path, int):
-            assert path == self._state_id
-            return new_state
-        elif isinstance(path, tuple):
-            child_id, path = path
-            return self.replace_child(
-                child_id,
-                self._child_states[child_id].replace_by_path(path, new_state),
-            )
-        else:
-            raise ValueError("Path must be either tuple or int")
 
     def __getattr__(self, key: str) -> Any:
         if is_magic_method(key):
@@ -199,8 +218,8 @@ class State:
         raise TypeError("State is immutable")
 
     def __repr__(self) -> str:
-        if self is State.EMPTY:
-            return "State.empty"
+        # if self is State.EMPTY:
+        #     return "State.empty"
         str_children = [
             f"{repr(key)}: {repr(child_state)}"
             for key, child_state in self._child_states.items()
