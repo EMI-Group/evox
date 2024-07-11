@@ -5,7 +5,7 @@ import jax
 from jax import jit, vmap
 import jax.numpy as jnp
 import jax.tree_util as jtu
-from evox import Problem, State, jit_method
+from evox import Problem, State, jit_cls_method
 
 
 def vmap_rng_split(key: jax.Array, num: int = 2) -> jax.Array:
@@ -59,7 +59,7 @@ class Brax(Problem):
     def setup(self, key):
         return State(key=key)
 
-    @jit_method
+    @jit_cls_method
     def evaluate(self, state, weights):
         pop_size = jtu.tree_leaves(weights)[0].shape[0]
         key, eval_key = jax.random.split(state.key)

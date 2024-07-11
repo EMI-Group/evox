@@ -40,7 +40,9 @@ def use_state(func: Callable):
             )
 
         # find the state that match the current module
-        path, extracted_state = state._query_state_by_id(self._node_id, self._module_name)
+        path, extracted_state = state._query_state_by_id(
+            self._node_id, self._module_name
+        )
 
         if hasattr(func, "__self__"):
             # bounded method, don't pass self
@@ -70,7 +72,7 @@ def use_state(func: Callable):
         return wraps(func)(wrapper)
 
 
-def jit_method(method: Callable):
+def jit_cls_method(method: Callable):
     """Decorator for methods, wrapper the method with jax.jit, and set self as static argument.
 
     Parameters
@@ -110,7 +112,7 @@ def jit_class(cls):
             if dataclasses.is_dataclass(cls):
                 wrapped = jax.jit(func)
             else:
-                wrapped = jit_method(func)
+                wrapped = jit_cls_method(func)
             setattr(cls, attr_name, wrapped)
     return cls
 
@@ -155,20 +157,15 @@ class Stateful:
 
     def _recursive_init(
         self, key: jax.Array, node_id: int, module_name: str
-    ) -> Tuple[State, int]:
+    ) -> tuple[State, int]:
         # the unique id of this module, matching its state._state_id
-        object.__setattr__(self, "_node_id", node_id) 
+        object.__setattr__(self, "_node_id", node_id)
         object.__setattr__(self, "_module_name", module_name)
 
-        # Find all submodules and sort them according to their name.
-        # Sorting is important because it makes sure that the node_id
-        # is deterministic across different runs.
-
-        child_states = {}
-        submodule_infos = []
         # preprocess and sort to make sure the order is deterministic
         # otherwise the node_id will be different across different runs
         # making save/load impossible
+        submodule_infos = []
         if dataclasses.is_dataclass(self):  # TODO: use robust check
             for field in dataclasses.fields(self):
                 attr = getattr(self, field.name)
@@ -182,8 +179,11 @@ class Stateful:
                 if isinstance(attr, Stateful):
                     submodule_infos.append(SubmoduleInfo(attr_name, attr, {}))
 
+        # Find all submodules and sort them according to their name.
+        # Sorting is important because it makes sure that the node_id
+        # is deterministic across different runs.
         submodule_infos.sort()
-
+        child_states = {}
         for attr_name, attr, metadata in submodule_infos:
             key, subkey = jax.random.split(key)
             submodule_state, node_id = attr._recursive_init(
@@ -213,7 +213,7 @@ class Stateful:
         State
             The state of this module and all submodules combined.
         """
-        state, _ = self._recursive_init(key, 0, "root")
+        state, _ = self._recursive_init(key, 0, self.__class__.__name__)
         return state
 
     # @classmethod
@@ -234,3 +234,27 @@ class Stateful:
     #     assert dataclasses.is_dataclass(self), "Length is only supported for dataclass"
 
     #     return len(tree_leaves(self)[0])
+
+
+class StatefulWrapper(Stateful):
+    """
+    A wrapper class for Stateful modules.
+    """
+
+    def __init__(self, module: Stateful):
+        super().__init__()
+        self._module = module
+
+    def _recursive_init(
+        self, key: jax.Array, node_id: int, module_name: str
+    ) -> tuple[State, int]:
+        """Skip the wrapper during init"""
+
+        # the unique id of this module, matching its state._state_id
+        object.__setattr__(self, "_node_id", node_id)
+        object.__setattr__(self, "_module_name", module_name)
+
+        return self._module._recursive_init(key, node_id, module_name)
+
+    def setup(self, key: jax.Array) -> State:
+        raise NotImplementedError("This method should not be called")

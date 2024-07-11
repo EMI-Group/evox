@@ -131,16 +131,16 @@ class State:
             child_state = child_state.get_child_state(child_state_name)
 
         return child_state
-    
+
     def replace_state(self, path: str, new_state: Self) -> Self:
         """
-            replace a (sub) state by a given path
+        replace a (sub) state by a given path
         """
-        if len(path)==0:
+        if len(path) == 0:
             return new_state
 
         split = path.split(".", maxsplit=1)
-        if len(split)==2:
+        if len(split) == 2:
             child_name, path = split
         else:
             child_name, path = split[0], ""
@@ -164,22 +164,28 @@ class State:
     ) -> Tuple[str, Optional[Self]]:
         """Find the state with state_id that matching the node_id
 
+        Parameters
+        -------
+        node_id: int
+            find the state for the module with the specified node_id
+        module_name: str
+            An optional module name if available
+            
         Returns
         -------
         path: str
             the sub module path like `foo.bar.baz`
         state:
-            the sub state with specified node_id
+            the sub state with specified node_id. If not found, return None
         """
         if node_id == self._state_id:
             return "", self
-        
+
         # shortcut if module_name is provided
         if module_name is not None and module_name in self._child_states:
             state = self._child_states[module_name]
             if state._state_id == node_id:
                 return module_name, state
-
 
         for child_name, child_state in self._child_states.items():
             path, state = child_state._query_state_by_id(node_id, module_name)
@@ -190,8 +196,7 @@ class State:
             else:
                 return child_name, state
 
-        return '', None
-
+        return "", None
 
     def __getattr__(self, key: str) -> Any:
         if is_magic_method(key):
@@ -218,17 +223,15 @@ class State:
         raise TypeError("State is immutable")
 
     def __repr__(self) -> str:
-        # if self is State.EMPTY:
-        #     return "State.empty"
         str_children = [
             f"{repr(key)}: {repr(child_state)}"
             for key, child_state in self._child_states.items()
         ]
         str_children = "{" + ",".join(str_children) + "}"
-        return f"State({repr(self._state_dict)}, {str_children})"
+        return f"State({repr(self._state_dict)}, {str_children}, node_id: {self._state_id})"
 
     def __str__(self) -> str:
-        return f"State{pformat(self.sprint_tree())}"
+        return f"State({pformat(self.sprint_tree())}, node_id: {self._state_id})"
 
     def sprint_tree(self) -> Union[dict, str]:
         if self is State.EMPTY:

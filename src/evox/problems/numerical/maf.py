@@ -117,7 +117,7 @@ class MaF2(MaF):
     def __init__(self, d=None, m=None, ref_num=1000):
         super().__init__(d, m, ref_num)
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def evaluate(self, state, X):
         m = self.m
         n, d = jnp.shape(X)
@@ -430,7 +430,7 @@ class MaF8(MaF):
         super().__init__(d, m, ref_num)
         self.points = self._getPoints()
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def evaluate(self, state, X):
         if X.shape[1] != 2:
             X = X[:, :2]
@@ -448,26 +448,26 @@ class MaF8(MaF):
         f = self._eucl_dis(jnp.column_stack([x[ND], y[ND]]), self.points)
         return f
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
         return jnp.column_stack([x, y])
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
         theta = jnp.arctan2(y, x)
         return theta, rho
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _pol2cart(self, theta, rho):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _eucl_dis(self, x, y):
         dist_matrix = jnp.linalg.norm(x[:, None] - y, axis=-1)
         return dist_matrix
@@ -488,7 +488,7 @@ class MaF9(MaF):
         f = jax.vmap(calc_pf_for_obj)(jnp.arange(m)).T
         return f
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def evaluate(self, state, X):
         return self._evaluate(X), state
 
@@ -503,26 +503,26 @@ class MaF9(MaF):
         f = self._evaluate(jnp.column_stack((x[ND], y[ND])))
         return f
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _getPoints(self):
         thera, rho = self._cart2pol(0, 1)
         temp = jnp.arange(1, self.m + 1).reshape((-1, 1))
         x, y = self._pol2cart(thera - temp * 2 * jnp.pi / self.m, rho)
         return jnp.column_stack([x, y])
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _cart2pol(self, x, y):
         rho = jnp.sqrt(jnp.power(x, 2) + jnp.power(y, 2))
         theta = jnp.arctan2(y, x)
         return theta, rho
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _pol2cart(self, theta, rho):
         x = rho * jnp.cos(theta)
         y = rho * jnp.sin(theta)
         return (x, y)
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _Point2Line(self, PopDec, Line):
         Distance = jnp.abs(
             (Line[0, 0] - PopDec[:, 0]) * (Line[1, 1] - PopDec[:, 1])
@@ -690,7 +690,7 @@ class MaF11(MaF):
             self.d = d
         self.d = jnp.ceil((self.d - self.m + 1) / 2) * 2 + self.m - 1
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def evaluate(self, state, X):
         N, D = X.shape
         M = self.m
@@ -783,11 +783,11 @@ class MaF11(MaF):
         f = f * jnp.arange(2, 2 * M + 1, 2)
         return f
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _s_linear(self, y, A):
         return jnp.abs(y - A) / jnp.abs(jnp.floor(A - y) + A)
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _r_nonsep(self, y, A):
         Output = jnp.zeros((y.shape[0], 1))
         for j in range(y.shape[1]):
@@ -798,11 +798,11 @@ class MaF11(MaF):
         Output /= (y.shape[1] / A) / jnp.ceil(A / 2) / (1 + 2 * A - 2 * jnp.ceil(A / 2))
         return Output
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _r_sum(self, y, w):
         return jnp.sum(y * w, axis=1) / jnp.sum(w)
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _convex(self, x):
         return jnp.fliplr(
             jnp.cumprod(
@@ -818,7 +818,7 @@ class MaF11(MaF):
             )
         )
 
-    @evox.jit_method
+    @evox.jit_cls_method
     def _disc(self, x):
         return 1 - x[:, 0] * (jnp.cos(5 * jnp.pi * x[:, 0])) ** 2
 

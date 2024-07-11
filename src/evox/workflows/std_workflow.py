@@ -114,8 +114,7 @@ class StdWorkflow(Workflow):
         self.fitness_transforms = fitness_transforms
         self.jit_step = jit_step
         self.external_problem = external_problem
-        self.num_objectives = num_objectives
-        if self.external_problem is True and self.num_objectives is None:
+        if self.external_problem is True and num_objectives is None:
             raise ValueError("Using external problem, but num_objectives isn't set ")
 
         def _ask(self, state):

@@ -8,7 +8,7 @@ import ray
 from jax import jit, vmap
 from jax.tree_util import tree_map, tree_structure, tree_transpose, tree_leaves
 
-from evox import Problem, State, Stateful, jit_class, jit_method, use_state
+from evox import Problem, State, Stateful, jit_class, jit_cls_method, use_state
 
 
 @jit
@@ -163,7 +163,7 @@ class Controller:
         self.batch_policy = batch_policy
         self.num_obj = len(mo_keys)
 
-    @jit_method
+    @jit_cls_method
     def slice_pop(self, pop):
         def reshape_weight(w):
             # first dim is batch
@@ -196,7 +196,7 @@ class Controller:
         acc_mo_values = np.array(acc_mo_values)
         return rewards, acc_mo_values, episode_length
 
-    @jit_method
+    @jit_cls_method
     def batch_policy_evaluation(self, observations, pop):
         actions = jax.vmap(self.policy)(
             pop,
