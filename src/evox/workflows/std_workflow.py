@@ -1,20 +1,22 @@
-from typing import Optional, Union
 from collections.abc import Callable, Sequence
+from typing import Optional, Union
+
 import jax
 import jax.numpy as jnp
 import jax.tree_util as jtu
+from jax import lax
 
 from evox import (
     Algorithm,
+    Monitor,
     Problem,
     State,
     Workflow,
-    Monitor,
-    use_state,
     dataclass,
-    pytree_field,
     has_init_ask,
     has_init_tell,
+    pytree_field,
+    use_state,
 )
 from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
 from evox.utils import parse_opt_direction
@@ -45,11 +47,12 @@ class StdWorkflow(Workflow):
         problem: Problem,
         monitors: Sequence[Monitor] = (),
         opt_direction: Union[str, Sequence[str]] = "min",
-        candidate_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
-        fitness_transforms: Sequence[Callable[[jax.Array],jax.Array]] = (),
+        candidate_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
+        fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
         jit_step: bool = True,
         external_problem: bool = False,
         num_objectives: Optional[int] = None,
+        migrate_helper: Optional[Callable] = None,
     ):
         """
         Parameters
@@ -115,10 +118,9 @@ class StdWorkflow(Workflow):
         self.jit_step = jit_step
         self.external_problem = external_problem
         self.num_objectives = num_objectives
+        self.migrate_helper = migrate_helper
         if self.external_problem is True and self.num_objectives is None:
-            raise ValueError(
-                ("Using external problem, but num_objectives isn't set ")
-            )
+            raise ValueError(("Using external problem, but num_objectives isn't set "))
 
         def _ask(self, state):
             if has_init_ask(self.algorithm) and state.first_step:
@@ -225,6 +227,22 @@ class StdWorkflow(Workflow):
 
             train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
 
+            if self.migrate_helper is not None:
+                do_migrate, foreign_populations, foreign_fitness = (
+                    self.migrate_helper.migrate_from_human()
+                )
+
+                state = lax.cond(
+                    do_migrate,
+                    lambda state, pop, fit: use_state(self.algorithm.migrate)(
+                        state, pop, fit
+                    ),
+                    lambda state, _pop, _fit: state,
+                    state,
+                    foreign_populations,
+                    foreign_fitness,
+                )
+
             if has_init_ask(self.algorithm) and state.first_step:
                 # this ensures that _step() will be re-jitted
                 state = state.replace(generation=state.generation + 1, first_step=False)
@@ -288,11 +306,8 @@ class StdWorkflow(Workflow):
 
         state = jax.device_put_replicated(state, self.devices)
         state = state.replace(
-            rank=jax.device_put_sharded(tuple(ranks), self.devices), world_size=num_devices
+            rank=jax.device_put_sharded(tuple(ranks), self.devices),
+            world_size=num_devices,
         )
 
         return state
-
-
-# TODO: add mpi4jax support
-# TODO: test Nvidia GPU deterministic in our parallel model, with XLA_FLAGS=--xla_gpu_deterministic_ops=true; see https://github.com/google/jax/discussions/10674
