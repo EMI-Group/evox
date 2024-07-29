@@ -1,7 +1,6 @@
 import warnings
 
 import jax
-import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
 import numpy as np
 from jax.experimental import io_callback

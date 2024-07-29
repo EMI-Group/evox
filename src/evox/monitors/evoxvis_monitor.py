@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 
 import jax
-import jax.experimental.host_callback as hcb
 import pyarrow as pa
 
 
