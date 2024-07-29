@@ -124,7 +124,7 @@ class StdSOMonitor:
         return [self.opt_direction * fit for fit in self.fitness_history]
 
     def flush(self):
-        hcb.barrier_wait()
+        jax.effects_barrier()
 
     def close(self):
         self.flush()

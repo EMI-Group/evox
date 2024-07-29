@@ -209,7 +209,7 @@ class EvalMonitor(Monitor):
             warnings.warn("Not supported yet.")
 
     def flush(self):
-        hcb.barrier_wait()
+        jax.effects_barrier()
 
     def close(self):
         self.flush()

@@ -1,9 +1,10 @@
 import tempfile
 import time
+import warnings
 from pathlib import Path
 from typing import Optional
-import warnings
 
+import jax
 import jax.experimental.host_callback as hcb
 import pyarrow as pa
 
@@ -201,7 +202,7 @@ class EvoXVisMonitor:
         self.duration.append(time.monotonic() - self.ref_time)
 
     def flush(self):
-        hcb.barrier_wait()
+        jax.effects_barrier()
         batch_size = len(self.fitness)
         self._write_batch(batch_size)
 
