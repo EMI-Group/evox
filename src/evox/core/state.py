@@ -79,7 +79,7 @@ class State:
             >>> State.from_dataclass(param)
             State(Param(x=1, y=2), {})
         """
-        return cls(_dataclass=dataclass)
+        return cls(dataclass)
 
     def _set_state_dict_mut(self, state_dict: dict) -> Self:
         """Force set child state and return self
