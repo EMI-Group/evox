@@ -1,6 +1,6 @@
 import os
 from pprint import pformat
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, Callable
 from typing_extensions import Self
 from copy import copy
 from pathlib import Path
@@ -62,6 +62,11 @@ class State:
             self.__dict__["_state_dict"] = kwargs
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
+        # store closures in the state
+        # and restore the value separately so that they are compatible with jax's transformation
+        # it's stored as a linked list to satisfy the functional programming paradigm
+        self.__dict__["_callbacks"] = ()
+        self.__dict__["_closure_values"] = ()
 
     @classmethod
     def from_dataclass(cls, dataclass) -> Self:
@@ -209,6 +214,37 @@ class State:
         PyTree index, apply the index to every element in the state.
         """
         return tree_map(lambda x: x[index], self)
+    
+    def register_callback(self, callback: Callable, *args, **kwargs) -> Self:
+        """
+        Add a callback to the state
+        """
+        new_state = copy(self)
+        new_state._callbacks = (callback, self._callbacks)
+        new_state._closure_values = ((args, kwargs), self._closure_values)
+        return new_state
+
+    def execute_callbacks(self) -> Self:
+        """
+        Execute all the callbacks in the state
+        """
+        closures = []
+        iter_callback = self._callbacks
+        iter_values = self._closure_values
+        while iter_callback:
+            callback, iter_callback = iter_callback
+            (args, kwargs), iter_values = iter_values
+            closures.append((callback, args, kwargs))
+        
+        closures.reverse()
+        for callback, args, kwargs in closures:
+            callback(self, *args, **kwargs)
+        
+        new_state = copy(self)
+        new_state._callbacks = ()
+        new_state._closure_values = ()
+
+        return new_state
 
     def __setattr__(self, _key: str, _value: Any) -> None:
         raise TypeError("State is immutable")
