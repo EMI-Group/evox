@@ -109,7 +109,7 @@ class State:
         return self
 
     def update(self, **kwargs) -> Self:
-        warnings.warn("update() is depreacred, use replace() instead")
+        warnings.warn("update() is depreacred, use replace() instead", DeprecationWarning)
         return self.replace(**kwargs)
 
     def replace(self, **kwargs) -> Self:
