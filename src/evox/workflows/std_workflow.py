@@ -252,7 +252,7 @@ class StdWorkflow(Workflow):
             for monitor in self.registered_hooks["post_step"]:
                 monitor.post_step(state)
 
-            return train_info, state
+            return state
 
         if self.jit_step:
             # the first argument is self, which should be static
