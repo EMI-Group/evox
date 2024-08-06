@@ -63,6 +63,24 @@ class State:
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
 
+    @classmethod
+    def from_dataclass(cls, dataclass) -> Self:
+        """Construct a ``State`` from dataclass instance
+
+        Example::
+            >>> from evox import State
+            >>> from dataclasses import dataclass
+            >>> @dataclass
+            >>> class Param:
+            ...     x: int
+            ...     y: int
+            ...
+            >>> param = Param(x=1, y=2)
+            >>> State.from_dataclass(param)
+            State(Param(x=1, y=2), {})
+        """
+        return cls(_dataclass=dataclass)
+
     def _set_state_dict_mut(self, state_dict: dict) -> Self:
         """Force set child state and return self
 

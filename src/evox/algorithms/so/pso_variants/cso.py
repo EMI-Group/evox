@@ -47,14 +47,12 @@ class CSO(Algorithm):
         velocity = jnp.zeros((self.pop_size, self.dim))
         fitness = jnp.full((self.pop_size,), jnp.inf)
 
-        return State(
-            CSOState(
-                population=population,
-                fitness=fitness,
-                velocity=velocity,
-                students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
-                key=state_key,
-            )
+        return CSOState(
+            population=population,
+            fitness=fitness,
+            velocity=velocity,
+            students=jnp.empty((self.pop_size // 2,), dtype=jnp.int32),
+            key=state_key,
         )
 
     def init_ask(self, state):
