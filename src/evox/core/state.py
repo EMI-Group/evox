@@ -113,8 +113,15 @@ class State:
         self.__dict__["_state_id"] = state_id
         return self
 
+    def _set_closures_mut(self, callbacks, closure_values) -> Self:
+        self.__dict__["_callbacks"] = callbacks
+        self.__dict__["_closure_values"] = closure_values
+        return self
+
     def update(self, **kwargs) -> Self:
-        warnings.warn("update() is depreacred, use replace() instead", DeprecationWarning)
+        warnings.warn(
+            "update() is depreacred, use replace() instead", DeprecationWarning
+        )
         return self.replace(**kwargs)
 
     def replace(self, **kwargs) -> Self:
@@ -214,15 +221,14 @@ class State:
         PyTree index, apply the index to every element in the state.
         """
         return tree_map(lambda x: x[index], self)
-    
+
     def register_callback(self, callback: Callable, *args, **kwargs) -> Self:
         """
         Add a callback to the state
         """
-        new_state = copy(self)
-        new_state._callbacks = (callback, self._callbacks)
-        new_state._closure_values = ((args, kwargs), self._closure_values)
-        return new_state
+        callbacks = (callback, self._callbacks)
+        closure_values = ((args, kwargs), self._closure_values)
+        return copy(self)._set_closures_mut(callbacks, closure_values)
 
     def execute_callbacks(self) -> Self:
         """
@@ -235,11 +241,11 @@ class State:
             callback, iter_callback = iter_callback
             (args, kwargs), iter_values = iter_values
             closures.append((callback, args, kwargs))
-        
+
         closures.reverse()
         for callback, args, kwargs in closures:
             callback(self, *args, **kwargs)
-        
+
         new_state = copy(self)
         new_state._callbacks = ()
         new_state._closure_values = ()
@@ -275,19 +281,20 @@ class State:
         return self._state_dict, children
 
     def tree_flatten(self) -> Tuple[Tuple[dict, dict], None]:
-        children = (self._state_dict, self._child_states)
-        aux_data = self._state_id
+        children = (self._state_dict, self._child_states, self._closure_values)
+        aux_data = (self._state_id, self._callbacks)
         return (children, aux_data)
 
     @classmethod
     def tree_unflatten(cls, aux_data: None, children: Tuple[dict, dict]):
-        state_dict, child_states = children
-        state_id = aux_data
+        state_dict, child_states, closure_values = children
+        state_id, callbacks = aux_data
         return (
             cls()
             ._set_state_id_mut(state_id)
             ._set_state_dict_mut(state_dict)
             ._set_child_states_mut(child_states)
+            ._set_closures_mut(callbacks, closure_values)
         )
 
     def __eq__(self, other: Self):
