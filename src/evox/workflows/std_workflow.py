@@ -265,9 +265,7 @@ class StdWorkflow(Workflow):
         self.pmap_axis_name = None
 
     def setup(self, key):
-        return State(
-            StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
-        )
+        return StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
 
     def step(self, state):
         return self._step(self, state)
