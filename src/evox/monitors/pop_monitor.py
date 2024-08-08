@@ -52,7 +52,6 @@ class PopMonitor(Monitor):
         return ["post_step"]
 
     def post_step(self, state):
-        monitor_device = SingleDeviceSharding(jax.devices()[0])
         if not self.fitness_only:
             population = getattr(
                 state.get_child_state("algorithm"), self.population_name
@@ -61,13 +60,7 @@ class PopMonitor(Monitor):
             population = None
 
         fitness = getattr(state.get_child_state("algorithm"), self.fitness_name)
-        io_callback(
-            self._record,
-            None,
-            population,
-            fitness,
-            sharding=monitor_device,
-        )
+        return state.register_callback(self._record, population, fitness)
 
     def _record(self, population, fitness):
         if population is not None:

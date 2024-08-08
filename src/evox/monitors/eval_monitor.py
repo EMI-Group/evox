@@ -65,8 +65,7 @@ class EvalMonitor(Monitor):
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
 
-    def post_eval(self, _state, cand_sol, _transformed_cand_sol, fitness):
-        monitor_device = SingleDeviceSharding(jax.devices()[0])
+    def post_eval(self, state, cand_sol, _transformed_cand_sol, fitness):
         if fitness.ndim == 1:
             if self.full_sol_history:
                 cand_fit = None
@@ -78,21 +77,17 @@ class EvalMonitor(Monitor):
                 cand_sol = cand_sol[topk_rank]
                 cand_fit = fitness[topk_rank]
 
-            io_callback(
+            return state.register_callback(
                 self.record_fit_single_obj,
-                None,
                 cand_sol,
                 cand_fit,
                 fitness,
-                sharding=monitor_device,
             )
         else:
-            io_callback(
+            return state.register_callback(
                 self.record_fit_multi_obj,
-                None,
                 cand_sol,
                 fitness,
-                sharding=monitor_device,
             )
 
     def record_fit_single_obj(self, cand_sol, cand_fit, fitness):

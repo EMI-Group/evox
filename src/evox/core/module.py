@@ -75,7 +75,7 @@ def use_state(func: Callable, index: int = None):
                 new_state,
             )
 
-        state = state.replace_by_path(path, new_state)
+        state = state.replace_by_path(path, new_state).prepend_closure(new_state)
 
         if aux is None:
             return state
@@ -246,7 +246,7 @@ class Stateful:
 
             self_state._set_state_id_mut(self._node_id)._set_child_states_mut(
                 child_states
-            ),
+            )
             return self_state, node_id
 
     def init(self, key: jax.Array = None, no_state: bool = False) -> State:
