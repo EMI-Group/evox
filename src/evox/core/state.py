@@ -254,7 +254,7 @@ class State:
         closure_values = ((args, kwargs), self._closure_values)
         return copy(self)._set_closures_mut(callbacks, closure_values)
 
-    def execute_callbacks(self) -> Self:
+    def execute_callbacks(self, clear_closures=True) -> Self:
         """
         Execute all the callbacks in the state
         """
@@ -270,9 +270,10 @@ class State:
         for callback, args, kwargs in closures:
             callback(*args, **kwargs)
 
-        new_state = copy(self)._set_closures_mut((), ())
-
-        return new_state
+        if clear_closures:
+            return copy(self)._set_closures_mut((), ())
+        else:
+            return self
 
     def prepend_closure(self, other: Self) -> Self:
         """Prepare closures stored in others to the current state"""
