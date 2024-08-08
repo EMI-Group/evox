@@ -1,5 +1,6 @@
 from collections.abc import Callable, Sequence
 from typing import Optional, Union
+import warnings
 
 import jax
 import jax.numpy as jnp
@@ -51,6 +52,7 @@ class StdWorkflow(Workflow):
         fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
         jit_step: bool = True,
         external_problem: bool = False,
+        auto_exec_callbacks: bool = True,
         num_objectives: Optional[int] = None,
         migrate_helper: Optional[Callable] = None,
     ):
@@ -117,6 +119,7 @@ class StdWorkflow(Workflow):
         self.fitness_transforms = fitness_transforms
         self.jit_step = jit_step
         self.external_problem = external_problem
+        self.auto_exec_callbacks = auto_exec_callbacks
         self.num_objectives = num_objectives
         self.migrate_helper = migrate_helper
         if self.external_problem is True and self.num_objectives is None:
@@ -174,15 +177,15 @@ class StdWorkflow(Workflow):
 
         def _step(self, state):
             for monitor in self.registered_hooks["pre_step"]:
-                monitor.pre_step(state)
+                state = monitor.pre_step(state)
 
             for monitor in self.registered_hooks["pre_ask"]:
-                monitor.pre_ask(state)
+                state = monitor.pre_ask(state)
 
             cands, state = _ask(self, state)
 
             for monitor in self.registered_hooks["post_ask"]:
-                monitor.post_ask(state, cands)
+                state = monitor.post_ask(state, cands)
 
             num_cands = jtu.tree_leaves(cands)[0].shape[0]
             # in multi-device|host mode, each device only evaluates a slice of the population
@@ -204,26 +207,26 @@ class StdWorkflow(Workflow):
                 transformed_cands = transform(transformed_cands)
 
             for monitor in self.registered_hooks["pre_eval"]:
-                monitor.pre_eval(state, cands, transformed_cands)
+                state = monitor.pre_eval(state, cands, transformed_cands)
 
             fitness, state = _evaluate(self, state, transformed_cands)
 
             for monitor in self.registered_hooks["post_eval"]:
-                monitor.post_eval(state, cands, transformed_cands, fitness)
+                state = monitor.post_eval(state, cands, transformed_cands, fitness)
 
             transformed_fitness = fitness
             for transform in self.fitness_transforms:
                 transformed_fitness = transform(transformed_fitness)
 
             for monitor in self.registered_hooks["pre_tell"]:
-                monitor.pre_tell(
+                state = monitor.pre_tell(
                     state, cands, transformed_cands, fitness, transformed_fitness
                 )
 
             state = _tell(self, state, transformed_fitness)
 
             for monitor in self.registered_hooks["post_tell"]:
-                monitor.post_tell(state)
+                state = monitor.post_tell(state)
 
             train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
 
@@ -250,7 +253,7 @@ class StdWorkflow(Workflow):
                 state = state.replace(generation=state.generation + 1)
 
             for monitor in self.registered_hooks["post_step"]:
-                monitor.post_step(state)
+                state = monitor.post_step(state)
 
             return state
 
@@ -268,7 +271,17 @@ class StdWorkflow(Workflow):
         return StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
 
     def step(self, state):
-        return self._step(self, state)
+        if self.auto_exec_callbacks and state._callbacks:
+            warnings.warn(
+                "`step` is called with a state that has leftover callbacks."
+                "Did you forget to call `execute_callbacks`?"
+            )
+
+        state = self._step(self, state)
+
+        if self.auto_exec_callbacks:
+            state = state.execute_callbacks(state)
+        return state
 
     def enable_multi_devices(self, state: State, pmap_axis_name=POP_AXIS_NAME) -> State:
         """

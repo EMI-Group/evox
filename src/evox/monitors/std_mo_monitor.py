@@ -50,11 +50,12 @@ class StdMOMonitor:
     def hooks(self):
         return ["post_ask", "post_eval"]
 
-    def post_ask(self, _state, cand_sol):
+    def post_ask(self, state, cand_sol):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
         io_callback(self.record_pop, None, cand_sol, sharding=monitor_device)
+        return state
 
-    def post_eval(self, _state, _cand_sol, _transformed_cand_sol, fitness):
+    def post_eval(self, state, _cand_sol, _transformed_cand_sol, fitness):
         monitor_device = SingleDeviceSharding(jax.devices()[0])
         io_callback(
             self.record_fit,
@@ -62,6 +63,7 @@ class StdMOMonitor:
             fitness,
             sharding=monitor_device,
         )
+        return state
 
     def record_pop(self, pop, tranform=None):
         if self.record_pop_history:
