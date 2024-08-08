@@ -25,6 +25,30 @@ def is_magic_method(name: str):
     return name.startswith("__") and name.endswith("__")
 
 
+def linkedlist_prepend(lst, item):
+    return (item, lst)
+
+
+def linkedlist_concat(lst1, lst2):
+    """Return the concatenation of two linked lists"""
+    result = lst2
+    for elem in reversed(linkedlist_to_list(lst1)):
+        result = linkedlist_prepend(result, elem)
+
+    return result
+
+
+def linkedlist_to_list(lst):
+    """Convert a linked list to a python list"""
+    result = []
+    iter_lst = lst
+    while iter_lst:
+        first, iter_lst = iter_lst
+        result.append(first)
+
+    return result
+
+
 @register_pytree_node_class
 class State:
     """A class represents state
@@ -244,13 +268,17 @@ class State:
 
         closures.reverse()
         for callback, args, kwargs in closures:
-            callback(self, *args, **kwargs)
+            callback(*args, **kwargs)
 
-        new_state = copy(self)
-        new_state._callbacks = ()
-        new_state._closure_values = ()
+        new_state = copy(self)._set_closures_mut((), ())
 
         return new_state
+
+    def prepend_closure(self, other: Self) -> Self:
+        """Prepare closures stored in others to the current state"""
+        callbacks = linkedlist_concat(other._callbacks, self._callbacks)
+        closure_values = linkedlist_concat(other._closure_values, self._closure_values)
+        return copy(self)._set_closures_mut(callbacks, closure_values)
 
     def __setattr__(self, _key: str, _value: Any) -> None:
         raise TypeError("State is immutable")
