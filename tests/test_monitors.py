@@ -1,8 +1,9 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import workflows, algorithms, problems
-from evox.monitors import StdSOMonitor, StdMOMonitor, EvalMonitor, PopMonitor
+
+from evox import State, algorithms, problems, workflows
+from evox.monitors import EvalMonitor, PopMonitor, StdMOMonitor, StdSOMonitor
 
 
 def test_std_so_monitor():
@@ -70,7 +71,10 @@ def test_eval_monitor_with_so(full_fit_history, full_sol_history, topk):
     pop1 = jnp.arange(15).reshape((3, 5))
     fitness1 = jnp.arange(3)
 
-    monitor.post_eval(None, pop1, None, fitness1)
+    state = State()
+
+    state = monitor.post_eval(state, pop1, None, fitness1)
+    state = state.execute_callbacks()
     assert monitor.get_best_fitness() == 0
     assert (monitor.get_topk_fitness() == fitness1[:topk]).all()
     assert (monitor.get_best_solution() == pop1[0]).all()
@@ -78,7 +82,8 @@ def test_eval_monitor_with_so(full_fit_history, full_sol_history, topk):
 
     pop2 = -jnp.arange(15).reshape((3, 5))
     fitness2 = -jnp.arange(3)
-    monitor.post_eval(None, pop2, None, fitness2)
+    state = monitor.post_eval(state, pop2, None, fitness2)
+    state = state.execute_callbacks()
     assert monitor.get_best_fitness() == -2
     assert (monitor.get_topk_fitness() == fitness2[-topk:][::-1]).all()
     assert (monitor.get_best_solution() == pop2[-1]).all()
@@ -103,13 +108,17 @@ def test_eval_monitor_with_mo(full_fit_history, full_sol_history):
     pop1 = jnp.arange(15).reshape((3, 5))
     fitness1 = jnp.arange(6).reshape(3, 2)
 
-    monitor.post_eval(None, pop1, None, fitness1)
+    state = State()
+
+    state = monitor.post_eval(state, pop1, None, fitness1)
+    state = state.execute_callbacks()
     assert (monitor.get_latest_fitness() == fitness1).all()
     assert (monitor.get_latest_solution() == pop1).all()
 
     pop2 = -jnp.arange(15).reshape((3, 5))
     fitness2 = -jnp.arange(6).reshape(3, 2)
-    monitor.post_eval(None, pop2, None, fitness2)
+    state = monitor.post_eval(state, pop2, None, fitness2)
+    state = state.execute_callbacks()
     assert (monitor.get_latest_fitness() == fitness2).all()
     assert (monitor.get_latest_solution() == pop2).all()
 
