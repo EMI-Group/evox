@@ -1,4 +1,7 @@
-class Monitor:
+from .module import *
+
+
+class Monitor(Stateful):
     """Monitor base class.
     Monitors are used to monitor the evolutionary process.
     They contains a set of callbacks,
