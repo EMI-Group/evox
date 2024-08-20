@@ -2,14 +2,21 @@ import warnings
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jax.experimental import io_callback
 from jax.sharding import SingleDeviceSharding
 
-from evox import Monitor
+from evox import Monitor, dataclass, pytree_field
 from evox.vis_tools import plot
 
 from ..operators import non_dominated_sort
+
+
+@dataclass
+class EvalMonitorState:
+    first_step: bool = pytree_field(static=True)
+    candidate: jnp.ndarray
+    topk_solution: jnp.ndarray
+    topk_fitness: jnp.ndarray
 
 
 class EvalMonitor(Monitor):
@@ -21,6 +28,9 @@ class EvalMonitor(Monitor):
 
     Parameters
     ----------
+    multi_obj
+        Whether the optimization is multi-objective.
+        Default to False.
     full_fit_history
         Whether to record the full history of fitness value.
         Default to True. Setting it to False may reduce memory usage.
@@ -39,15 +49,27 @@ class EvalMonitor(Monitor):
         Setting it to True will cause the monitor to
         maintain a pareto front of all the solutions with unlimited size,
         which may hurt performance.
+    parallel_monitor
+        Enable the use of parallel monitor,
+        that is monitoring multiple optimization process in parallel.
+        Typically used in meta-optimization settings where the use of vmap of a workflow is needed.
     """
 
     def __init__(
-        self, full_fit_history=True, full_sol_history=False, topk=1, calc_pf=False
+        self,
+        multi_obj=False,
+        full_fit_history=True,
+        full_sol_history=False,
+        topk=1,
+        calc_pf=False,
+        parallel_monitor=False,
     ):
+        self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
         self.topk = topk
         self.calc_pf = calc_pf
+        self.parallel_monitor = parallel_monitor
         self.fitness_history = []
         self.solution_history = []
         self.topk_fitness = None
@@ -60,22 +82,36 @@ class EvalMonitor(Monitor):
         self.opt_direction = 1  # default to min, so no transformation is needed
 
     def hooks(self):
-        return ["post_eval"]
+        return ["post_ask", "post_eval"]
 
     def set_opt_direction(self, opt_direction):
         self.opt_direction = opt_direction
 
-    def post_eval(self, state, cand_sol, _transformed_cand_sol, fitness):
-        if fitness.ndim == 1:
+    def setup(self, key):
+        return EvalMonitorState(
+            first_step=True,
+            candidate=None,
+            candidate_fitness=None,
+            topk_solution=None,
+            topk_fitness=None,
+        )
+
+    def post_ask(self, state, _workflow_state, candidate):
+        return state.replace(candidate=candidate)
+
+    def post_eval(
+        self, state, _workflow_state, fitness
+    ):
+        if not self.parallel_monitor and fitness.ndim == 1:
             if self.full_sol_history:
                 cand_fit = None
             else:
                 # when not recording full solution history,
                 # only send the topk solutions to the host to save bandwidth
                 rank = jnp.argsort(fitness)
-                topk_rank = rank[: self.topk]
-                cand_sol = cand_sol[topk_rank]
-                cand_fit = fitness[topk_rank]
+                topk_rank = rank[..., : self.topk]
+                cand_sol = cand_sol[..., topk_rank]
+                cand_fit = fitness[..., topk_rank]
 
             return state.register_callback(
                 self.record_fit_single_obj,
@@ -89,6 +125,12 @@ class EvalMonitor(Monitor):
                 cand_sol,
                 fitness,
             )
+
+    def record_history(self, solution, fitness):
+        # since history is a list, which doesn't have a static shape
+        # we need to use register_callback to record the history
+        self.solution_history.append(solution)
+        self.fitness_history.append(fitness)
 
     def record_fit_single_obj(self, cand_sol, cand_fit, fitness):
         if cand_fit is None:
