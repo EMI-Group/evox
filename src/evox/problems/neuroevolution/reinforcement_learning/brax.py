@@ -69,11 +69,12 @@ class Brax(Problem):
             return (counter < self.max_episode_length) & (~done.all())
 
         def _body_func(carry):
-            counter, brax_state, done, total_reward = carry
+            counter, brax_state, prev_done, total_reward = carry
             action = self.batched_policy(weights, brax_state.obs)
             brax_state = self.jit_env_step(brax_state, action)
-            done = brax_state.done * (1 - done)
-            total_reward += (1 - done) * brax_state.reward
+            total_reward += (1 - prev_done) * brax_state.reward
+            done = jnp.logical_or(brax_state.done, prev_done)
+            
             return counter + 1, brax_state, done, total_reward
 
         brax_state = self.jit_reset(
@@ -87,7 +88,7 @@ class Brax(Problem):
             (
                 0,
                 brax_state,
-                jnp.zeros((pop_size, self.num_episodes)),
+                jnp.zeros((pop_size, self.num_episodes), dtype=jnp.bool),
                 jnp.zeros((pop_size, self.num_episodes)),
             ),
         )
@@ -111,7 +112,7 @@ class Brax(Problem):
         ], "output_type must be either HTML or rgb_array"
 
         env = envs.get_environment(env_name=self.env_name, backend=self.backend)
-        brax_state = jax.jit(env.reset)(key)
+        brax_state = jit(env.reset)(key)
         jit_env_step = jit(env.step)
         trajectory = [brax_state.pipeline_state]
         episode_length = 1
