@@ -128,7 +128,7 @@ class StdWorkflow(Workflow):
         def _step(self, state):
             self._pre_step_hook(state)
             self._pre_ask_hook(state)
-            cands, state = self._ask(self, state)
+            cands, state = self._ask(state)
             self._post_ask_hook(state, cands)
 
             num_cands = jtu.tree_leaves(cands)[0].shape[0]
@@ -151,7 +151,7 @@ class StdWorkflow(Workflow):
                 transformed_cands = transform(transformed_cands)
 
             self._pre_eval_hook(state, transformed_cands)
-            fitness, state = self._evaluate(self, state, transformed_cands)
+            fitness, state = self._evaluate(state, transformed_cands)
             self._post_eval_hook(state, fitness)
 
             transformed_fitness = fitness
@@ -159,7 +159,7 @@ class StdWorkflow(Workflow):
                 transformed_fitness = transform(transformed_fitness)
 
             self._pre_tell_hook(state, transformed_fitness)
-            state = self._tell(self, state, transformed_fitness)
+            state = self._tell(state, transformed_fitness)
             self._post_tell_hook(state)
 
             if self.migrate_helper is not None:
