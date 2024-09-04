@@ -3,11 +3,16 @@ import warnings
 
 import jax
 import jax.numpy as jnp
-from jax.experimental import io_callback
-from jax.sharding import SingleDeviceSharding
 
-from evox import Monitor
+from evox import Monitor, pytree_field, dataclass
 from evox.vis_tools import plot
+
+
+@dataclass
+class PopMonitorState:
+    first_step: bool = pytree_field(static=True)
+    latest_population: jax.Array
+    latest_fitness: jax.Array
 
 
 class PopMonitor(Monitor):
@@ -39,33 +44,48 @@ class PopMonitor(Monitor):
         self,
         population_name="population",
         fitness_name="fitness",
-        fitness_only=False,
+        full_pop_history=True,
+        full_fit_history=True,
     ):
         super().__init__()
         self.population_name = population_name
         self.fitness_name = fitness_name
         self.population_history = []
         self.fitness_history = []
-        self.fitness_only = fitness_only
+        self.full_pop_history = full_pop_history
+        self.full_fit_history = full_fit_history
 
     def hooks(self):
         return ["post_step"]
 
-    def post_step(self, state):
-        if not self.fitness_only:
-            population = getattr(
-                state.get_child_state("algorithm"), self.population_name
-            )
-        else:
-            population = None
+    def setup(self, key: jax.Array) -> Any:
+        return PopMonitorState(
+            first_step=True,
+            latest_population=None,
+            latest_fitness=None,
+        )
 
-        fitness = getattr(state.get_child_state("algorithm"), self.fitness_name)
-        return state.register_callback(self._record, population, fitness)
+    def post_step(self, state, workflow_state):
+        algorithm_state = workflow_state.get_child_state("algorithm")
+        population = getattr(algorithm_state, self.population_name)
+        fitness = getattr(algorithm_state, self.fitness_name)
 
-    def _record(self, population, fitness):
-        if population is not None:
+        state = state.replace(
+            latest_population=population,
+            latest_fitness=fitness,
+        )
+        if state.first_step:
+            state = state.replace(first_step=False)
+
+        return state.register_callback(self._record_history, population, fitness)
+
+    def _record_history(self, population, fitness):
+        # since history is a list, which doesn't have a static shape
+        # we need to use register_callback to record the history
+        if self.full_pop_history:
             self.population_history.append(population)
-        self.fitness_history.append(fitness)
+        if self.full_fit_history:
+            self.fitness_history.append(fitness)
 
     def plot(self, problem_pf=None, **kwargs):
         if not self.fitness_history:
@@ -86,14 +106,14 @@ class PopMonitor(Monitor):
         else:
             warnings.warn("Not supported yet.")
 
-    def get_latest_fitness(self):
-        return self.fitness_history[-1]
+    def get_latest_fitness(self, state):
+        return state.latest_fitness, state
 
-    def get_latest_population(self):
-        return self.population_history[-1]
+    def get_latest_population(self, state):
+        return state.latest_population, state
 
-    def get_population_history(self):
-        return self.population_history
+    def get_population_history(self, state):
+        return self.population_history, state
 
-    def get_fitness_history(self):
-        return self.fitness_history
+    def get_fitness_history(self, state):
+        return self.fitness_history, state
