@@ -106,10 +106,11 @@ class StdWorkflow(Workflow):
             "post_tell": [],
             "post_step": [],
         }
-        for monitor in self.monitors:
+        for i, monitor in enumerate(self.monitors):
             hooks = monitor.hooks()
             for hook in hooks:
                 self.registered_hooks[hook].append(monitor)
+            setattr(self, f"monitor{i}", monitor)
 
         self.opt_direction = parse_opt_direction(opt_direction)
         for monitor in self.monitors:
@@ -126,10 +127,10 @@ class StdWorkflow(Workflow):
             raise ValueError(("Using external problem, but num_objectives isn't set "))
 
         def _step(self, state):
-            self._pre_step_hook(state)
-            self._pre_ask_hook(state)
+            state = self._pre_step_hook(state)
+            state = self._pre_ask_hook(state)
             cands, state = self._ask(state)
-            self._post_ask_hook(state, cands)
+            state = self._post_ask_hook(state, cands)
 
             num_cands = jtu.tree_leaves(cands)[0].shape[0]
             # in multi-device|host mode, each device only evaluates a slice of the population
@@ -150,17 +151,17 @@ class StdWorkflow(Workflow):
             for transform in self.candidate_transforms:
                 transformed_cands = transform(transformed_cands)
 
-            self._pre_eval_hook(state, transformed_cands)
+            state = self._pre_eval_hook(state, transformed_cands)
             fitness, state = self._evaluate(state, transformed_cands)
-            self._post_eval_hook(state, fitness)
+            state = self._post_eval_hook(state, fitness)
 
             transformed_fitness = fitness
             for transform in self.fitness_transforms:
                 transformed_fitness = transform(transformed_fitness)
 
-            self._pre_tell_hook(state, transformed_fitness)
+            state = self._pre_tell_hook(state, transformed_fitness)
             state = self._tell(state, transformed_fitness)
-            self._post_tell_hook(state)
+            state = self._post_tell_hook(state)
 
             if self.migrate_helper is not None:
                 do_migrate, foreign_populations, foreign_fitness = (
@@ -184,7 +185,7 @@ class StdWorkflow(Workflow):
             else:
                 state = state.replace(generation=state.generation + 1)
 
-            self._post_step_hook(state)
+            state = self._post_step_hook(state)
 
             return state
 
@@ -249,34 +250,42 @@ class StdWorkflow(Workflow):
     def _pre_step_hook(self, state):
         for monitor in self.registered_hooks["pre_step"]:
             state = use_state(monitor.pre_step)(state, state)
+        return state
 
     def _pre_ask_hook(self, state):
         for monitor in self.registered_hooks["pre_ask"]:
             state = use_state(monitor.pre_ask)(state, state)
+        return state
 
     def _post_ask_hook(self, state, cands):
         for monitor in self.registered_hooks["post_ask"]:
             state = use_state(monitor.post_ask)(state, state, cands)
+        return state
 
     def _pre_eval_hook(self, state, transformed_cands):
         for monitor in self.registered_hooks["pre_eval"]:
             state = use_state(monitor.pre_eval)(state, state, transformed_cands)
+        return state
 
     def _post_eval_hook(self, state, fitness):
         for monitor in self.registered_hooks["post_eval"]:
             state = use_state(monitor.post_eval)(state, state, fitness)
+        return state
 
     def _pre_tell_hook(self, state, transformed_fitness):
         for monitor in self.registered_hooks["pre_tell"]:
             state = use_state(monitor.pre_tell)(state, state, transformed_fitness)
+        return state
 
     def _post_tell_hook(self, state):
         for monitor in self.registered_hooks["post_tell"]:
             state = use_state(monitor.post_tell)(state, state)
+        return state
 
     def _post_step_hook(self, state):
         for monitor in self.registered_hooks["post_step"]:
             state = use_state(monitor.post_step)(state, state)
+        return state
 
     def setup(self, key):
         return StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
