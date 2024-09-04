@@ -132,14 +132,13 @@ class WorkerWorkflow(Workflow):
 
         if "post_tell" in self.non_empty_hooks:
             ray.get(self.monitor_actor.push.remote("post_tell", state))
-        
-        
+
         if has_init_ask(self.algorithm) and state.first_step:
             # this ensures that _step() will be re-jitted
             state = state.replace(generation=state.generation + 1, first_step=False)
         else:
             state = state.replace(generation=state.generation + 1)
-        
+
         return state
 
     def valid(self, state: State, metric: str):
@@ -313,10 +312,11 @@ class RayDistributedWorkflow(Workflow):
                 DeprecationWarning,
             )
             self.monitors = [monitor]
-        for monitor in self.monitors:
+        for i, monitor in enumerate(self.monitors):
             hooks = monitor.hooks()
             for hook in hooks:
                 self.registered_hooks[hook].append(monitor)
+            setattr(self, f"monitor{i}", monitor)
 
         self.opt_direction = parse_opt_direction(opt_direction)
         for monitor in self.monitors:
@@ -346,8 +346,7 @@ class RayDistributedWorkflow(Workflow):
         return State()
 
     def step(self, state: State, block=False):
-        for monitor in self.registered_hooks["pre_step"]:
-            monitor.pre_step(state)
+        state = self._pre_step_hook(state)
 
         fitness, worker_futures = ray.get(self.supervisor.step.remote())
 
@@ -355,8 +354,7 @@ class RayDistributedWorkflow(Workflow):
         fitness = ray.get(fitness)
         fitness = jnp.concatenate(fitness, axis=0)
 
-        for monitor in self.registered_hooks["post_eval"]:
-            monitor.post_eval(state, None, None, fitness)
+        state = self._post_eval_hook(state, fitness)
 
         self.async_dispatch_list.append(worker_futures)
         while not len(self.async_dispatch_list) < self.async_dispatch:
@@ -373,8 +371,7 @@ class RayDistributedWorkflow(Workflow):
             for monitor in self.registered_hooks[hook]:
                 getattr(monitor, hook)(*args, **kwargs)
 
-        for monitor in self.registered_hooks["post_step"]:
-            monitor.post_step(state)
+        state = self._post_step_hook(state)
 
         return state
 
@@ -384,3 +381,43 @@ class RayDistributedWorkflow(Workflow):
 
     def sample(self, state: State):
         return ray.get(self.supervisor.sample.remote()), state
+
+    def _pre_step_hook(self, state):
+        for monitor in self.registered_hooks["pre_step"]:
+            state = use_state(monitor.pre_step)(state, state)
+        return state
+
+    def _pre_ask_hook(self, state):
+        for monitor in self.registered_hooks["pre_ask"]:
+            state = use_state(monitor.pre_ask)(state, state)
+        return state
+
+    def _post_ask_hook(self, state, cands):
+        for monitor in self.registered_hooks["post_ask"]:
+            state = use_state(monitor.post_ask)(state, state, cands)
+        return state
+
+    def _pre_eval_hook(self, state, transformed_cands):
+        for monitor in self.registered_hooks["pre_eval"]:
+            state = use_state(monitor.pre_eval)(state, state, transformed_cands)
+        return state
+
+    def _post_eval_hook(self, state, fitness):
+        for monitor in self.registered_hooks["post_eval"]:
+            state = use_state(monitor.post_eval)(state, state, fitness)
+        return state
+
+    def _pre_tell_hook(self, state, transformed_fitness):
+        for monitor in self.registered_hooks["pre_tell"]:
+            state = use_state(monitor.pre_tell)(state, state, transformed_fitness)
+        return state
+
+    def _post_tell_hook(self, state):
+        for monitor in self.registered_hooks["post_tell"]:
+            state = use_state(monitor.post_tell)(state, state)
+        return state
+
+    def _post_step_hook(self, state):
+        for monitor in self.registered_hooks["post_step"]:
+            state = use_state(monitor.post_step)(state, state)
+        return state
