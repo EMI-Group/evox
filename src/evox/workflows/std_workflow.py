@@ -342,3 +342,6 @@ class StdWorkflow(Workflow):
         )
 
         return state
+
+    def call_monitor(self, state, monitor_fn):
+        return use_state(monitor_fn)(state)

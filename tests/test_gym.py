@@ -1,5 +1,5 @@
-from evox import workflows, algorithms, problems
-from evox.monitors import StdSOMonitor
+from evox import workflows, algorithms, problems, use_state
+from evox.monitors import EvalMonitor
 from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
@@ -25,7 +25,7 @@ def test_cartpole(batch_policy):
     model = CartpolePolicy()
     params = model.init(model_key, jnp.zeros((4,)))
     adapter = TreeAndVector(params)
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     problem = problems.neuroevolution.Gym(
         env_name="CartPole-v1",
         policy=jax.jit(model.apply),
@@ -62,7 +62,7 @@ def test_cartpole(batch_policy):
         state = workflow.step(state)
 
     monitor.flush()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     # gym is deterministic, so the result should always be the same
     assert min_fitness == 40.0
 
@@ -70,6 +70,5 @@ def test_cartpole(batch_policy):
     for i in range(25):
         state = workflow.step(state)
 
-    monitor.flush()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness == 48.0

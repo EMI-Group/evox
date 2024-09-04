@@ -1,5 +1,5 @@
-from evox import workflows, algorithms, problems
-from evox.monitors import StdMOMonitor
+from evox import workflows, algorithms, problems, use_state
+from evox.monitors import EvalMonitor
 from evox.metrics import IGD
 import jax
 import jax.numpy as jnp
@@ -15,7 +15,7 @@ ITER = 10
 
 def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     key = jax.random.PRNGKey(42)
-    monitor = StdMOMonitor(record_pf=False)
+    monitor = EvalMonitor()
     workflow = workflows.StdWorkflow(
         algorithm=algorithm,
         problem=problem,
@@ -27,7 +27,7 @@ def run_moea(algorithm, problem=problems.numerical.DTLZ1(m=M)):
     for i in range(ITER):
         state = workflow.step(state)
 
-    objs = monitor.get_last()
+    latest_solution, state = use_state(monitor.get_latest_solution)(state)
 
 
 def test_ibea():

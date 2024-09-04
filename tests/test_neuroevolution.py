@@ -67,5 +67,5 @@ def test_tfds():
     for i in range(3):
         state = workflow.step(state)
 
-    best_fitness = monitor.get_best_fitness().item()
+    best_fitness = monitor.get_best_fitness(state).item()
     assert math.isclose(best_fitness, 0.07662, abs_tol=0.01)
