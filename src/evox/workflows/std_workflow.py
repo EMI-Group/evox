@@ -1,5 +1,6 @@
 from collections.abc import Callable, Sequence
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
+from functools import partial
 import warnings
 
 import jax
@@ -21,6 +22,13 @@ from evox import (
 )
 from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
 from evox.utils import parse_opt_direction
+
+
+def _leftover_callbacks_warning(method_name):
+    warnings.warn(
+        f"`{method_name}` is called with a state that has leftover callbacks. "
+        "Did you forget to call `execute_callbacks`?"
+    )
 
 
 @dataclass
@@ -189,11 +197,12 @@ class StdWorkflow(Workflow):
 
             return state
 
+        self._step = partial(_step, self)
+        self._parallel_step = jax.vmap(self._step)
         if self.jit_step:
             # the first argument is self, which should be static
-            self._step = jax.jit(_step, static_argnums=(0,))
-        else:
-            self._step = _step
+            self._step = jax.jit(self._step)
+            self._parallel_step = jax.jit(self._parallel_step)
 
         # by default, use the first device
         self.devices = jax.local_devices()[:1]
@@ -292,12 +301,19 @@ class StdWorkflow(Workflow):
 
     def step(self, state):
         if self.auto_exec_callbacks and state._callbacks:
-            warnings.warn(
-                "`step` is called with a state that has leftover callbacks."
-                "Did you forget to call `execute_callbacks`?"
-            )
+            _leftover_callbacks_warning("step")
 
-        state = self._step(self, state)
+        state = self._step(state)
+
+        if self.auto_exec_callbacks:
+            state = state.execute_callbacks(state)
+        return state
+
+    def parallel_step(self, state):
+        if self.auto_exec_callbacks and state._callbacks:
+            _leftover_callbacks_warning("parallel_step")
+
+        state = self._parallel_step(state)
 
         if self.auto_exec_callbacks:
             state = state.execute_callbacks(state)

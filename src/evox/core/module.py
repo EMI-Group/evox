@@ -269,6 +269,30 @@ class Stateful:
         state, _node_id = self._recursive_init(key, 0, None, no_state)
         return state
 
+    def parallel_init(
+        self, key: jax.Array, num_copies: int, no_state: bool = False
+    ) -> Tuple[State, int]:
+        """Initialize multiple copies of this module in parallel
+
+        This method should not be overwritten.
+
+        Parameters
+        ----------
+        key
+            A PRNGKey.
+        num_copies
+            The number of copies to be initialized
+        no_state
+            Whether to skip the state initialization
+
+        Returns
+        -------
+        Tuple[State, int]
+            The state of this module and all submodules combined, and the last node_id
+        """
+        subkeys = jax.random.split(key, num_copies)
+        return jax.vmap(self.init, in_axes=(0, None))(subkeys, no_state)
+
     @classmethod
     def stack(cls, stateful_objs, axis=0):
         for obj in stateful_objs:
