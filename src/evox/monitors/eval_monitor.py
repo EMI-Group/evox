@@ -88,6 +88,7 @@ class EvalMonitor(Monitor):
     def post_eval(self, state, _workflow_state, fitness):
         if fitness.ndim == 1:
             # single-objective
+            self.multi_obj = False
             if state.first_step:
                 topk_solutions = state.latest_solution
                 topk_fitness = fitness
@@ -107,6 +108,7 @@ class EvalMonitor(Monitor):
             )
         else:
             # multi-objective
+            self.multi_obj = True
             state = state.replace(latest_fitness=fitness)
 
         if self.full_fit_history or self.full_sol_history:
@@ -139,10 +141,12 @@ class EvalMonitor(Monitor):
         return state.topk_solutions, state
 
     def get_best_solution(self, state):
-        return state.topk_solutions[0], state
+        return state.topk_solutions[..., 0, :], state
 
     def get_best_fitness(self, state):
-        return self.opt_direction * state.topk_fitness[0], state
+        if self.multi_obj:
+            raise ValueError("Multi-objective optimization does not have a single best fitness.")
+        return self.opt_direction * state.topk_fitness[..., 0], state
 
     def get_fitness_history(self, state):
         return [self.opt_direction * fit for fit in self.fitness_history], state
