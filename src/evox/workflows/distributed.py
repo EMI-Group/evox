@@ -19,8 +19,6 @@ from evox.utils import parse_opt_direction
 
 
 class WorkerWorkflow(Workflow):
-    stateful_functions = ["step1", "step2"]
-
     def __init__(
         self,
         algorithm: Algorithm,
@@ -264,7 +262,7 @@ class RayDistributedWorkflow(Workflow):
         fit_transforms: List[Callable] = [],
         global_fit_transform: List[Callable] = [],
         async_dispatch: int = 4,
-        monitor=None,
+        auto_exec_callbacks=True,
     ):
         """Create a distributed workflow
 
@@ -306,12 +304,6 @@ class RayDistributedWorkflow(Workflow):
             "post_step": [],
         }
         self.monitors = monitors
-        if monitor is not None:
-            warnings.warn(
-                "`monitor` is deprecated, use the `monitors` parameter with a list of monitors instead",
-                DeprecationWarning,
-            )
-            self.monitors = [monitor]
         for i, monitor in enumerate(self.monitors):
             hooks = monitor.hooks()
             for hook in hooks:
@@ -340,6 +332,7 @@ class RayDistributedWorkflow(Workflow):
             sol_transforms,
             fit_transforms,
         )
+        self.auto_exec_callbacks = auto_exec_callbacks
 
     def setup(self, key: jax.Array):
         ray.get(self.supervisor.setup_all_workers.remote(key))
@@ -372,6 +365,9 @@ class RayDistributedWorkflow(Workflow):
                 getattr(monitor, hook)(*args, **kwargs)
 
         state = self._post_step_hook(state)
+
+        if self.auto_exec_callbacks:
+            state = state.execute_callbacks(state)
 
         return state
 
