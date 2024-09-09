@@ -254,6 +254,12 @@ class State:
         closure_values = ((args, kwargs), self._closure_values)
         return copy(self)._set_closures_mut(callbacks, closure_values)
 
+    def clear_callbacks(self) -> Self:
+        """
+        Clear all the callbacks in the state
+        """
+        return copy(self)._set_closures_mut((), ())
+
     def execute_callbacks(self, clear_closures=True) -> Self:
         """
         Execute all the callbacks in the state
@@ -271,7 +277,7 @@ class State:
             callback(*args, **kwargs)
 
         if clear_closures:
-            return copy(self)._set_closures_mut((), ())
+            return self.clear_callbacks()
         else:
             return self
 
