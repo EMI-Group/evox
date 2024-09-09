@@ -19,7 +19,6 @@ def run_std_workflow_with_jit_problem():
     # init the workflow
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
-    state = workflow.enable_multi_devices(state)
 
     # run the workflow for 100 steps
     for i in range(100):
