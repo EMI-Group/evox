@@ -75,7 +75,9 @@ def use_state(func: Callable, index: int = None):
                 new_state,
             )
 
-        state = state.replace_by_path(path, new_state).prepend_closure(new_state)
+        state = state.replace_by_path(
+            path, new_state.clear_callbacks()
+        ).prepend_closure(new_state)
 
         if aux is None:
             return state
