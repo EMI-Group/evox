@@ -150,6 +150,10 @@ class Stateful:
 
     The ``init`` method will automatically call the ``setup`` of the current module
     and recursively call ``setup`` methods of all submodules.
+
+    Currently, there are two special metadata that can be used to control the behavior of the module initialization:
+    - ``stack``: If set to True, the module will be initialized multiple times, and the states will be stacked together.
+    - ``nested``: If set to True, the a list of modules, that is [module1, module2, ...], will be iterated and initialized.
     """
 
     def __init__(self):
@@ -199,6 +203,15 @@ class Stateful:
 
                 if isinstance(attr, Stateful):
                     submodules.append(SubmoduleInfo(field.name, attr, field.metadata))
+
+                # handle "nested" field
+                if field.metadata.get("nested", False):
+                    for idx, nested_module in enumerate(attr):
+                        submodules.append(
+                            SubmoduleInfo(
+                                field.name + str(idx), nested_module, field.metadata
+                            )
+                        )
         else:
             for attr_name in vars(self):
                 attr = getattr(self, attr_name)
@@ -213,7 +226,7 @@ class Stateful:
             else:
                 key, subkey = jax.random.split(key)
 
-            # handle "StackAnnotation"
+            # handle "Stack"
             # attr should be a list, or tuple of modules
             if metadata.get("stack", False):
                 num_copies = len(attr)
