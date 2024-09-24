@@ -1,5 +1,7 @@
 from collections.abc import Callable, Sequence
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
+from functools import partial
+import warnings
 
 import jax
 import jax.numpy as jnp
@@ -20,6 +22,13 @@ from evox import (
 )
 from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
 from evox.utils import parse_opt_direction
+
+
+def _leftover_callbacks_warning(method_name):
+    warnings.warn(
+        f"`{method_name}` is called with a state that has leftover callbacks. "
+        "Did you forget to call `execute_callbacks`?"
+    )
 
 
 @dataclass
@@ -51,6 +60,7 @@ class StdWorkflow(Workflow):
         fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = (),
         jit_step: bool = True,
         external_problem: bool = False,
+        auto_exec_callbacks: bool = True,
         num_objectives: Optional[int] = None,
         migrate_helper: Optional[Callable] = None,
     ):
@@ -104,10 +114,11 @@ class StdWorkflow(Workflow):
             "post_tell": [],
             "post_step": [],
         }
-        for monitor in self.monitors:
+        for i, monitor in enumerate(self.monitors):
             hooks = monitor.hooks()
             for hook in hooks:
                 self.registered_hooks[hook].append(monitor)
+            setattr(self, f"monitor{i}", monitor)
 
         self.opt_direction = parse_opt_direction(opt_direction)
         for monitor in self.monitors:
@@ -117,72 +128,17 @@ class StdWorkflow(Workflow):
         self.fitness_transforms = fitness_transforms
         self.jit_step = jit_step
         self.external_problem = external_problem
+        self.auto_exec_callbacks = auto_exec_callbacks
         self.num_objectives = num_objectives
         self.migrate_helper = migrate_helper
         if self.external_problem is True and self.num_objectives is None:
             raise ValueError(("Using external problem, but num_objectives isn't set "))
 
-        def _ask(self, state):
-            if has_init_ask(self.algorithm) and state.first_step:
-                ask = self.algorithm.init_ask
-            else:
-                ask = self.algorithm.ask
-
-            # candidate: individuals that need to be evaluated (may differ from population)
-            # Note: num_cands can be different from init_ask() and ask()
-            cands, state = use_state(ask)(state)
-
-            return cands, state
-
-        def _evaluate(self, state, transformed_cands):
-            num_cands = jtu.tree_leaves(transformed_cands)[0].shape[0]
-
-            # if the function is jitted
-            if not self.external_problem:
-                fitness, state = use_state(self.problem.evaluate)(
-                    state, transformed_cands
-                )
-            else:
-                if self.num_objectives == 1:
-                    fit_shape = (num_cands,)
-                else:
-                    fit_shape = (num_cands, self.num_objectives)
-                fitness, state = jax.pure_callback(
-                    use_state(self.problem.evaluate),
-                    (
-                        jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
-                        state,
-                    ),
-                    state,
-                    transformed_cands,
-                )
-
-            fitness = all_gather(fitness, self.pmap_axis_name, axis=0, tiled=True)
-            fitness = fitness * self.opt_direction
-
-            return fitness, state
-
-        def _tell(self, state, transformed_fitness):
-            if has_init_tell(self.algorithm) and state.first_step:
-                tell = self.algorithm.init_tell
-            else:
-                tell = self.algorithm.tell
-
-            state = use_state(tell)(state, transformed_fitness)
-
-            return state
-
         def _step(self, state):
-            for monitor in self.registered_hooks["pre_step"]:
-                monitor.pre_step(state)
-
-            for monitor in self.registered_hooks["pre_ask"]:
-                monitor.pre_ask(state)
-
-            cands, state = _ask(self, state)
-
-            for monitor in self.registered_hooks["post_ask"]:
-                monitor.post_ask(state, cands)
+            state = self._pre_step_hook(state)
+            state = self._pre_ask_hook(state)
+            cands, state = self._ask(state)
+            state = self._post_ask_hook(state, cands)
 
             num_cands = jtu.tree_leaves(cands)[0].shape[0]
             # in multi-device|host mode, each device only evaluates a slice of the population
@@ -203,29 +159,17 @@ class StdWorkflow(Workflow):
             for transform in self.candidate_transforms:
                 transformed_cands = transform(transformed_cands)
 
-            for monitor in self.registered_hooks["pre_eval"]:
-                monitor.pre_eval(state, cands, transformed_cands)
-
-            fitness, state = _evaluate(self, state, transformed_cands)
-
-            for monitor in self.registered_hooks["post_eval"]:
-                monitor.post_eval(state, cands, transformed_cands, fitness)
+            state = self._pre_eval_hook(state, transformed_cands)
+            fitness, state = self._evaluate(state, transformed_cands)
+            state = self._post_eval_hook(state, fitness)
 
             transformed_fitness = fitness
             for transform in self.fitness_transforms:
                 transformed_fitness = transform(transformed_fitness)
 
-            for monitor in self.registered_hooks["pre_tell"]:
-                monitor.pre_tell(
-                    state, cands, transformed_cands, fitness, transformed_fitness
-                )
-
-            state = _tell(self, state, transformed_fitness)
-
-            for monitor in self.registered_hooks["post_tell"]:
-                monitor.post_tell(state)
-
-            train_info = dict(fitness=fitness, transformed_fitness=transformed_fitness)
+            state = self._pre_tell_hook(state, transformed_fitness)
+            state = self._tell(state, transformed_fitness)
+            state = self._post_tell_hook(state)
 
             if self.migrate_helper is not None:
                 do_migrate, foreign_populations, foreign_fitness = (
@@ -249,28 +193,131 @@ class StdWorkflow(Workflow):
             else:
                 state = state.replace(generation=state.generation + 1)
 
-            for monitor in self.registered_hooks["post_step"]:
-                monitor.post_step(state)
+            state = self._post_step_hook(state)
 
             return state
 
+        self._step = partial(_step, self)
+        self._parallel_step = jax.vmap(self._step)
         if self.jit_step:
             # the first argument is self, which should be static
-            self._step = jax.jit(_step, static_argnums=(0,))
-        else:
-            self._step = _step
+            self._step = jax.jit(self._step)
+            self._parallel_step = jax.jit(self._parallel_step)
 
         # by default, use the first device
         self.devices = jax.local_devices()[:1]
         self.pmap_axis_name = None
 
+    def _ask(self, state):
+        if has_init_ask(self.algorithm) and state.first_step:
+            ask = self.algorithm.init_ask
+        else:
+            ask = self.algorithm.ask
+
+        # candidate: individuals that need to be evaluated (may differ from population)
+        # Note: num_cands can be different from init_ask() and ask()
+        cands, state = use_state(ask)(state)
+
+        return cands, state
+
+    def _evaluate(self, state, transformed_cands):
+        num_cands = jtu.tree_leaves(transformed_cands)[0].shape[0]
+
+        # if the function is jitted
+        if not self.external_problem:
+            fitness, state = use_state(self.problem.evaluate)(state, transformed_cands)
+        else:
+            if self.num_objectives == 1:
+                fit_shape = (num_cands,)
+            else:
+                fit_shape = (num_cands, self.num_objectives)
+            fitness, state = jax.pure_callback(
+                use_state(self.problem.evaluate),
+                (
+                    jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
+                    state,
+                ),
+                state,
+                transformed_cands,
+            )
+
+        fitness = all_gather(fitness, self.pmap_axis_name, axis=0, tiled=True)
+        fitness = fitness * self.opt_direction
+
+        return fitness, state
+
+    def _tell(self, state, transformed_fitness):
+        if has_init_tell(self.algorithm) and state.first_step:
+            tell = self.algorithm.init_tell
+        else:
+            tell = self.algorithm.tell
+
+        state = use_state(tell)(state, transformed_fitness)
+
+        return state
+
+    def _pre_step_hook(self, state):
+        for monitor in self.registered_hooks["pre_step"]:
+            state = use_state(monitor.pre_step)(state, state)
+        return state
+
+    def _pre_ask_hook(self, state):
+        for monitor in self.registered_hooks["pre_ask"]:
+            state = use_state(monitor.pre_ask)(state, state)
+        return state
+
+    def _post_ask_hook(self, state, cands):
+        for monitor in self.registered_hooks["post_ask"]:
+            state = use_state(monitor.post_ask)(state, state, cands)
+        return state
+
+    def _pre_eval_hook(self, state, transformed_cands):
+        for monitor in self.registered_hooks["pre_eval"]:
+            state = use_state(monitor.pre_eval)(state, state, transformed_cands)
+        return state
+
+    def _post_eval_hook(self, state, fitness):
+        for monitor in self.registered_hooks["post_eval"]:
+            state = use_state(monitor.post_eval)(state, state, fitness)
+        return state
+
+    def _pre_tell_hook(self, state, transformed_fitness):
+        for monitor in self.registered_hooks["pre_tell"]:
+            state = use_state(monitor.pre_tell)(state, state, transformed_fitness)
+        return state
+
+    def _post_tell_hook(self, state):
+        for monitor in self.registered_hooks["post_tell"]:
+            state = use_state(monitor.post_tell)(state, state)
+        return state
+
+    def _post_step_hook(self, state):
+        for monitor in self.registered_hooks["post_step"]:
+            state = use_state(monitor.post_step)(state, state)
+        return state
+
     def setup(self, key):
-        return State(
-            StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
-        )
+        return StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
 
     def step(self, state):
-        return self._step(self, state)
+        if self.auto_exec_callbacks and state._callbacks:
+            _leftover_callbacks_warning("step")
+
+        state = self._step(state)
+
+        if self.auto_exec_callbacks:
+            state = state.execute_callbacks(state)
+        return state
+
+    def parallel_step(self, state):
+        if self.auto_exec_callbacks and state._callbacks:
+            _leftover_callbacks_warning("parallel_step")
+
+        state = self._parallel_step(state)
+
+        if self.auto_exec_callbacks:
+            state = state.execute_callbacks(state)
+        return state
 
     def enable_multi_devices(self, state: State, pmap_axis_name=POP_AXIS_NAME) -> State:
         """
@@ -311,3 +358,6 @@ class StdWorkflow(Workflow):
         )
 
         return state
+
+    def call_monitor(self, state, monitor_fn):
+        return use_state(monitor_fn)(state)

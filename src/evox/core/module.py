@@ -75,7 +75,9 @@ def use_state(func: Callable, index: int = None):
                 new_state,
             )
 
-        state = state.replace_by_path(path, new_state)
+        state = state.replace_by_path(
+            path, new_state.clear_callbacks()
+        ).prepend_closure(new_state)
 
         if aux is None:
             return state
@@ -246,7 +248,7 @@ class Stateful:
 
             self_state._set_state_id_mut(self._node_id)._set_child_states_mut(
                 child_states
-            ),
+            )
             return self_state, node_id
 
     def init(self, key: jax.Array = None, no_state: bool = False) -> State:
@@ -266,6 +268,30 @@ class Stateful:
         """
         state, _node_id = self._recursive_init(key, 0, None, no_state)
         return state
+
+    def parallel_init(
+        self, key: jax.Array, num_copies: int, no_state: bool = False
+    ) -> Tuple[State, int]:
+        """Initialize multiple copies of this module in parallel
+
+        This method should not be overwritten.
+
+        Parameters
+        ----------
+        key
+            A PRNGKey.
+        num_copies
+            The number of copies to be initialized
+        no_state
+            Whether to skip the state initialization
+
+        Returns
+        -------
+        Tuple[State, int]
+            The state of this module and all submodules combined, and the last node_id
+        """
+        subkeys = jax.random.split(key, num_copies)
+        return jax.vmap(self.init, in_axes=(0, None))(subkeys, no_state)
 
     @classmethod
     def stack(cls, stateful_objs, axis=0):

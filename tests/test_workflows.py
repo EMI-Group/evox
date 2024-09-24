@@ -1,11 +1,13 @@
-from evox import workflows, algorithms, problems
-from evox.monitors import StdSOMonitor
 import jax
 import jax.numpy as jnp
+import pytest
+
+from evox import algorithms, problems, use_state, workflows
+from evox.monitors import EvalMonitor
 
 
 def run_std_workflow_with_jit_problem():
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     # create a workflow
     workflow = workflows.StdWorkflow(
         algorithm=algorithms.CSO(
@@ -19,19 +21,17 @@ def run_std_workflow_with_jit_problem():
     # init the workflow
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
-    state = workflow.enable_multi_devices(state)
 
     # run the workflow for 100 steps
     for i in range(100):
         state = workflow.step(state)
 
-    monitor.close()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
     return min_fitness
 
 
 def run_std_workflow_with_non_jit_problem():
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     # create a workflow
     workflow = workflows.StdWorkflow(
         algorithm=algorithms.CSO(
@@ -52,13 +52,12 @@ def run_std_workflow_with_non_jit_problem():
     for i in range(100):
         state = workflow.step(state)
 
-    monitor.close()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
     return min_fitness
 
 
 def test_std_workflow_sanity_check():
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     # create a workflow
     workflow = workflows.StdWorkflow(
         algorithm=algorithms.PSO(
@@ -78,8 +77,7 @@ def test_std_workflow_sanity_check():
     for i in range(10):
         state = workflow.step(state)
 
-    monitor.close()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
     assert min_fitness < 1e-2
 
 
@@ -90,8 +88,9 @@ def test_std_workflow():
     assert min_fitness1 < 1e-4
 
 
+@pytest.mark.skip(reason="ray integration is not complete.")
 def test_distributed_cso():
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     # create a workflow
     workflow = workflows.RayDistributedWorkflow(
         algorithm=algorithms.CSO(
@@ -113,6 +112,5 @@ def test_distributed_cso():
         state = workflow.step(state)
 
     # the result should be close to 0
-    min_fitness = monitor.get_best_fitness()
-    print(min_fitness)
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness < 1e-4

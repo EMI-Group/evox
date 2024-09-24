@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import algorithms, workflows, problems, Stateful
+from evox import algorithms, workflows, problems, Stateful, use_state
 from evox.monitors import EvalMonitor
 
 
@@ -29,7 +29,7 @@ def test_clustered_cma_es():
     for i in range(200):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, _state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness < 2
 
 
@@ -60,10 +60,8 @@ def test_vectorized_coevolution(random_subpop):
 
     for i in range(200):
         state = workflow.step(state)
-    
-    monitor.close()
 
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, _state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness < 0.5
 
 
@@ -94,10 +92,8 @@ def test_coevolution(random_subpop):
     state = workflow.init(key)
     for i in range(400):
         state = workflow.step(state)
-    
-    monitor.close()
 
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, _state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness < 0.5
 
 
@@ -129,6 +125,5 @@ def test_random_mask_cso():
     for i in range(10):
         state = workflow.step(state)
 
-    min_fitness = monitor.get_best_fitness()
-    print(min_fitness)
+    min_fitness, _state = use_state(monitor.get_best_fitness)(state)
     assert abs(min_fitness - 19.6) < 0.1
