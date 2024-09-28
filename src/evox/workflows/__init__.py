@@ -11,3 +11,5 @@ from .std_workflow import StdWorkflow
 #         raise ImportError(
 #             f'RayDistributedWorkflow requires ray, but got "{original_error_msg}" when importing'
 #         )
+
+from .surrogate_workflow import SurrogateWorkflow
