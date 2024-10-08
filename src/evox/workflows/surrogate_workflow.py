@@ -34,7 +34,7 @@ class SurrogateWorkflowState:
 class SurrogateWorkflow(Workflow):
     """Experimental unified surrogate workflow,
     designed to provide surrogate model support for EC workflow.
-    
+
     Example:
     ```python
     from evox import workflows, algorithms, problems
@@ -45,7 +45,7 @@ class SurrogateWorkflow(Workflow):
     import jax.numpy as jnp
     import optax
     from flax import linen as nn
-    
+
     monitor = StdSOMonitor()
     #creat a surrogate model
     class MLP(nn.Module):
@@ -81,11 +81,11 @@ class SurrogateWorkflow(Workflow):
     #init the surrogate workflow
     key = jax.random.PRNGKey(42)
     state = workflow.init(key)
-    
+
     #run the workflow for 100 steps
     for i in range(100):
         _, state = workflow.step(state)
-        
+
     monitor.close()
     min_fitness = monitor.get_best_fitness()
     ```
