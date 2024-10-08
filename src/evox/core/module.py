@@ -239,12 +239,15 @@ class Stateful:
         if no_state:
             return None, node_id
         else:
-            return (
-                self.setup(key)
-                ._set_state_id_mut(self._node_id)
-                ._set_child_states_mut(child_states),
-                node_id,
-            )
+            self_state = self.setup(key)
+            if dataclasses.is_dataclass(self_state):
+                # if the setup method return a dataclass, convert it to State first
+                self_state = State.from_dataclass(self_state)
+
+            self_state._set_state_id_mut(self._node_id)._set_child_states_mut(
+                child_states
+            ),
+            return self_state, node_id
 
     def init(self, key: jax.Array = None, no_state: bool = False) -> State:
         """Initialize this module and all submodules

@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import tensorflow_datasets as tfds
 from jax.tree_util import tree_map
 
-from evox import Problem, Static, dataclass, jit_class
+from evox import Problem, dataclass, jit_class
 from evox.utils.io import x32_func_call
 
 

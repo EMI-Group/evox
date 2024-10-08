@@ -60,7 +60,7 @@ class CitySegMOP(EvoXBenchProblem):
     def __init__(self, problem_id) -> None:
         assert (
             isinstance(problem_id, int) and 1 <= problem_id and problem_id <= 15
-        ), "For citysegmop, problem_id must be an integer between 1 and 9"
+        ), "For citysegmop, problem_id must be an integer between 1 and 15"
         benchmark = citysegmop(problem_id)
         super().__init__(benchmark)
 

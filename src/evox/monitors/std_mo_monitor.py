@@ -1,7 +1,6 @@
 import warnings
 
 import jax
-import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
 import numpy as np
 from jax.experimental import io_callback
@@ -105,7 +104,7 @@ class StdMOMonitor:
         return [self.opt_direction * fit for fit in self.fitness_history]
 
     def flush(self):
-        hcb.barrier_wait()
+        jax.effects_barrier()
 
     def close(self):
         self.flush()
