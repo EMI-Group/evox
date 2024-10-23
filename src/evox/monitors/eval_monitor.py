@@ -16,6 +16,7 @@ class EvalMonitorState:
     topk_fitness: jax.Array
 
 
+@dataclass
 class EvalMonitor(Monitor):
     """Evaluation monitor.
     Used for both single-objective and multi-objective workflow.
@@ -52,26 +53,25 @@ class EvalMonitor(Monitor):
         Typically used in meta-optimization settings where the use of vmap of a workflow is needed.
     """
 
-    def __init__(
-        self,
-        multi_obj=False,
-        full_fit_history=True,
-        full_sol_history=False,
-        topk=1,
-    ):
-        self.multi_obj = multi_obj
-        self.full_fit_history = full_fit_history
-        self.full_sol_history = full_sol_history
-        self.topk = topk
-        self.fitness_history = []
-        self.solution_history = []
-        self.opt_direction = 1  # default to min, so no transformation is needed
+    multi_obj: bool = pytree_field(default=False, static=True)
+    full_fit_history: bool = pytree_field(default=True, static=True)
+    full_sol_history: bool = pytree_field(default=False, static=True)
+    topk: int = pytree_field(default=1, static=True)
+
+    fitness_history: list = pytree_field(static=True, init=False)
+    solution_history: list = pytree_field(static=True, init=False)
+    opt_direction: int = pytree_field(static=True, init=False)
+
+    def __post_init__(self):
+        self.set_frozen_attr("opt_direction", 1)
+        self.set_frozen_attr("fitness_history", [])
+        self.set_frozen_attr("solution_history", [])
 
     def hooks(self):
         return ["post_ask", "post_eval"]
 
     def set_opt_direction(self, opt_direction):
-        self.opt_direction = opt_direction
+        self.set_frozen_attr("opt_direction", opt_direction)
 
     def setup(self, _key):
         return EvalMonitorState(
@@ -145,7 +145,9 @@ class EvalMonitor(Monitor):
 
     def get_best_fitness(self, state):
         if self.multi_obj:
-            raise ValueError("Multi-objective optimization does not have a single best fitness.")
+            raise ValueError(
+                "Multi-objective optimization does not have a single best fitness."
+            )
         return self.opt_direction * state.topk_fitness[..., 0], state
 
     def get_fitness_history(self, state):
