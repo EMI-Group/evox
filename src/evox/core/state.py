@@ -1,6 +1,6 @@
 import os
 from pprint import pformat
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, Callable
 from typing_extensions import Self
 from copy import copy
 from pathlib import Path
@@ -23,6 +23,30 @@ PathLike = Union[str, bytes, os.PathLike]
 
 def is_magic_method(name: str):
     return name.startswith("__") and name.endswith("__")
+
+
+def linkedlist_prepend(lst, item):
+    return (item, lst)
+
+
+def linkedlist_concat(lst1, lst2):
+    """Return the concatenation of two linked lists"""
+    result = lst2
+    for elem in reversed(linkedlist_to_list(lst1)):
+        result = linkedlist_prepend(result, elem)
+
+    return result
+
+
+def linkedlist_to_list(lst):
+    """Convert a linked list to a python list"""
+    result = []
+    iter_lst = lst
+    while iter_lst:
+        first, iter_lst = iter_lst
+        result.append(first)
+
+    return result
 
 
 @register_pytree_node_class
@@ -62,6 +86,11 @@ class State:
             self.__dict__["_state_dict"] = kwargs
         self.__dict__["_child_states"] = State.EMPTY
         self.__dict__["_state_id"] = None
+        # store closures in the state
+        # and restore the value separately so that they are compatible with jax's transformation
+        # it's stored as a linked list to satisfy the functional programming paradigm
+        self.__dict__["_callbacks"] = ()
+        self.__dict__["_closure_values"] = ()
 
     @classmethod
     def from_dataclass(cls, dataclass) -> Self:
@@ -108,8 +137,15 @@ class State:
         self.__dict__["_state_id"] = state_id
         return self
 
+    def _set_closures_mut(self, callbacks, closure_values) -> Self:
+        self.__dict__["_callbacks"] = callbacks
+        self.__dict__["_closure_values"] = closure_values
+        return self
+
     def update(self, **kwargs) -> Self:
-        warnings.warn("update() is depreacred, use replace() instead", DeprecationWarning)
+        warnings.warn(
+            "update() is depreacred, use replace() instead", DeprecationWarning
+        )
         return self.replace(**kwargs)
 
     def replace(self, **kwargs) -> Self:
@@ -210,6 +246,47 @@ class State:
         """
         return tree_map(lambda x: x[index], self)
 
+    def register_callback(self, callback: Callable, *args, **kwargs) -> Self:
+        """
+        Add a callback to the state
+        """
+        callbacks = (callback, self._callbacks)
+        closure_values = ((args, kwargs), self._closure_values)
+        return copy(self)._set_closures_mut(callbacks, closure_values)
+
+    def clear_callbacks(self) -> Self:
+        """
+        Clear all the callbacks in the state
+        """
+        return copy(self)._set_closures_mut((), ())
+
+    def execute_callbacks(self, clear_closures=True) -> Self:
+        """
+        Execute all the callbacks in the state
+        """
+        closures = []
+        iter_callback = self._callbacks
+        iter_values = self._closure_values
+        while iter_callback:
+            callback, iter_callback = iter_callback
+            (args, kwargs), iter_values = iter_values
+            closures.append((callback, args, kwargs))
+
+        closures.reverse()
+        for callback, args, kwargs in closures:
+            callback(*args, **kwargs)
+
+        if clear_closures:
+            return self.clear_callbacks()
+        else:
+            return self
+
+    def prepend_closure(self, other: Self) -> Self:
+        """Prepare closures stored in others to the current state"""
+        callbacks = linkedlist_concat(other._callbacks, self._callbacks)
+        closure_values = linkedlist_concat(other._closure_values, self._closure_values)
+        return copy(self)._set_closures_mut(callbacks, closure_values)
+
     def __setattr__(self, _key: str, _value: Any) -> None:
         raise TypeError("State is immutable")
 
@@ -239,19 +316,20 @@ class State:
         return self._state_dict, children
 
     def tree_flatten(self) -> Tuple[Tuple[dict, dict], None]:
-        children = (self._state_dict, self._child_states)
-        aux_data = self._state_id
+        children = (self._state_dict, self._child_states, self._closure_values)
+        aux_data = (self._state_id, self._callbacks)
         return (children, aux_data)
 
     @classmethod
     def tree_unflatten(cls, aux_data: None, children: Tuple[dict, dict]):
-        state_dict, child_states = children
-        state_id = aux_data
+        state_dict, child_states, closure_values = children
+        state_id, callbacks = aux_data
         return (
             cls()
             ._set_state_id_mut(state_id)
             ._set_state_dict_mut(state_dict)
             ._set_child_states_mut(child_states)
+            ._set_closures_mut(callbacks, closure_values)
         )
 
     def __eq__(self, other: Self):

@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from evox import workflows, problems
+from evox import workflows, problems, use_state
 from evox.algorithms import (
     CMAES,
     SepCMAES,
@@ -17,7 +17,7 @@ from evox.algorithms import (
     SHADE,
     ODE,
 )
-from evox.monitors import StdSOMonitor
+from evox.monitors import EvalMonitor
 from evox.utils import compose, rank_based_fitness
 
 
@@ -25,7 +25,7 @@ def run_single_objective_algorithm(
     algorithm, problem=problems.numerical.Sphere(), num_iter=200, fitness_shaping=False
 ):
     key = jax.random.PRNGKey(42)
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     if fitness_shaping is True:
         fit_transforms = [rank_based_fitness]
     else:
@@ -43,7 +43,8 @@ def run_single_objective_algorithm(
     for i in range(num_iter):
         state = workflow.step(state)
 
-    return monitor.get_best_fitness()
+    best_fitness, state = use_state(monitor.get_best_fitness)(state)
+    return best_fitness
 
 
 def test_cso():

@@ -1,10 +1,9 @@
-from jax.tree_util import register_pytree_node
+import copy
 import dataclasses
 from typing import Annotated, Any, Callable, Optional, Tuple, TypeVar, get_type_hints
 
-from typing_extensions import (
-    dataclass_transform,  # pytype: disable=not-supported-yet
-)
+from jax.tree_util import register_pytree_node
+from typing_extensions import dataclass_transform  # pytype: disable=not-supported-yet
 
 from .distributed import ShardingType
 
@@ -19,10 +18,26 @@ def pytree_field(
     return dataclasses.field(**kwargs)
 
 
+def _dataclass_set_frozen_attr(self, key, value):
+    object.__setattr__(self, key, value)
+
+
+def _dataclass_replace(self, **kwargs):
+    """Add a replace method to dataclasses.
+    It's different from dataclasses.replace in that it doesn't call the __init__,
+    instead it copies the object and sets the new values.
+    """
+    new_obj = copy.copy(self)
+    for key, value in kwargs.items():
+        object.__setattr__(new_obj, key, value)
+    return new_obj
+
+
 def dataclass(cls, *args, **kwargs):
     """
     A dataclass decorator that also registers the dataclass as a pytree node.
     """
+    kwargs = {"unsafe_hash": False, "eq": False, **kwargs}
     cls = dataclasses.dataclass(cls, *args, **kwargs)
 
     field_info = []
@@ -78,7 +93,8 @@ def dataclass(cls, *args, **kwargs):
     register_pytree_node(cls, flatten, unflatten)
 
     # Add a method to set frozen attributes after init
-    cls.set_frozen_attr = lambda self, key, value: object.__setattr__(self, key, value)
+    cls.set_frozen_attr = _dataclass_set_frozen_attr
+    cls.replace = _dataclass_replace
     return cls
 
 

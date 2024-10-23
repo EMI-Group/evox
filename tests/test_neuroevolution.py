@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 from flax import linen as nn
 
-from evox import algorithms, problems, workflows
+from evox import algorithms, problems, workflows, use_state
 from evox.monitors import EvalMonitor
 from evox.utils import TreeAndVector, rank_based_fitness
 
@@ -67,5 +67,5 @@ def test_tfds():
     for i in range(3):
         state = workflow.step(state)
 
-    best_fitness = monitor.get_best_fitness().item()
-    assert math.isclose(best_fitness, 0.07662, abs_tol=0.01)
+    best_fitness, _state = use_state(monitor.get_best_fitness)(state)
+    assert math.isclose(best_fitness.item(), 0.07662, abs_tol=0.01)

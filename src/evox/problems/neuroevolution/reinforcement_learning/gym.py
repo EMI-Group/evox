@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Any
 
 import gymnasium as gym
 import jax
@@ -58,10 +58,19 @@ class Normalizer(Stateful):
 
 @ray.remote(num_cpus=1)
 class Worker:
-    def __init__(self, env_creator, policy=None, mo_keys=None):
+    def __init__(
+        self,
+        env_creator,
+        policy=None,
+        stateful_policy=False,
+        initial_state=None,
+        mo_keys=None,
+    ):
         self.envs = []
         self.env_creator = env_creator
         self.policy = policy
+        self.stateful_policy = stateful_policy
+        self.initial_state = initial_state
         self.mo_keys = mo_keys
 
     def step(self, actions):
@@ -124,9 +133,14 @@ class Worker:
         assert self.policy is not None
         self.reset(seed, num_env)
         i = 0
+        policy_state = self.initial_state
         while True:
             observations = jnp.asarray(self.observations)
-            actions = np.asarray(self.policy(subpop, observations))
+            if self.stateful_policy:
+                actions, policy_state = self.policy(policy_state, subpop, observations)
+            else:
+                actions = self.policy(subpop, observations)
+            actions = np.asarray(actions)
             self.step(actions)
 
             if np.all(self.terminated | self.truncated):
@@ -144,6 +158,8 @@ class Controller:
     def __init__(
         self,
         policy,
+        stateful_policy,
+        initial_state,
         num_workers,
         env_creator,
         worker_options,
@@ -155,11 +171,15 @@ class Controller:
             Worker.options(**worker_options).remote(
                 env_creator,
                 None if batch_policy else jit(vmap(policy)),
+                stateful_policy,
+                initial_state,
                 mo_keys,
             )
             for _ in range(num_workers)
         ]
         self.policy = policy
+        self.stateful_policy = stateful_policy
+        self.initial_state = initial_state
         self.batch_policy = batch_policy
         self.num_obj = len(mo_keys)
 
@@ -197,15 +217,22 @@ class Controller:
         return rewards, acc_mo_values, episode_length
 
     @jit_method
-    def batch_policy_evaluation(self, observations, pop):
-        actions = jax.vmap(self.policy)(
-            pop,
-            observations,
-        )
+    def batch_policy_evaluation(self, policy_state, observations, pop):
+        if self.stateful_policy:
+            actions, policy_state = jax.vmap(self.policy)(
+                policy_state,
+                pop,
+                observations,
+            )
+        else:
+            actions = jax.vmap(self.policy)(
+                pop,
+                observations,
+            )
         # reshape in order to distribute to different workers
         action_dim = actions.shape[1:]
         actions = jnp.array_split(actions, self.num_workers, axis=0)
-        return actions
+        return actions, policy_state
 
     def _batched_evaluate(self, seed, pop, cap_episode_length):
         pop_size = tree_batch_size(pop)
@@ -225,13 +252,18 @@ class Controller:
         episode_length = 0
 
         i = 0
+        policy_state = self.initial_state
+        if self.stateful_policy:
+            policy_state = [policy_state for _ in range(pop_size)]
         while True:
             # flatten observations
             observations = [obs for worker_obs in observations for obs in worker_obs]
             observations = np.stack(observations, axis=0)
             observations = jnp.asarray(observations)
             # get action from policy
-            actions = self.batch_policy_evaluation(observations, pop)
+            actions, policy_state = self.batch_policy_evaluation(
+                policy_state, observations, pop
+            )
 
             futures = [
                 worker.step.remote(np.asarray(action))
@@ -294,6 +326,8 @@ class Gym(Problem):
         worker_options: dict = {},
         init_cap: Optional[int] = None,
         batch_policy: bool = False,
+        stateful_policy: bool = False,
+        initial_state: Any = None,
     ):
         """Construct a gym problem
 
@@ -334,6 +368,8 @@ class Gym(Problem):
         self.mo_keys = mo_keys
         self.controller = Controller.options(**controller_options).remote(
             policy,
+            stateful_policy,
+            initial_state,
             num_workers,
             env_creator,
             worker_options,
@@ -343,6 +379,8 @@ class Gym(Problem):
         self.num_workers = num_workers
         self.env_name = env_name
         self.policy = policy
+        self.stateful_policy = stateful_policy
+        self.initial_state = initial_state
         if init_cap is not None:
             self.cap_episode = CapEpisode(init_cap=init_cap)
         else:

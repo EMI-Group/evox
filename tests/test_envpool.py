@@ -1,5 +1,5 @@
-from evox import workflows, algorithms, problems
-from evox.monitors import StdSOMonitor
+from evox import workflows, algorithms, problems, use_state
+from evox.monitors import EvalMonitor
 from evox.utils import TreeAndVector
 import jax
 import jax.numpy as jnp
@@ -24,7 +24,7 @@ def test_envpool_cartpole():
     model = CartpolePolicy()
     params = model.init(model_key, jnp.zeros((4,)))
     adapter = TreeAndVector(params)
-    monitor = StdSOMonitor()
+    monitor = EvalMonitor()
     problem = problems.neuroevolution.EnvPool(
         env_name="CartPole-v1",
         num_envs=16,
@@ -53,6 +53,6 @@ def test_envpool_cartpole():
         state = workflow.step(state)
 
     monitor.close()
-    min_fitness = monitor.get_best_fitness()
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     # envpool is deterministic, so the result should always be the same
     assert min_fitness == 59.0
