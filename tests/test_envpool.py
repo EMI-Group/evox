@@ -52,7 +52,6 @@ def test_envpool_cartpole():
     for i in range(5):
         state = workflow.step(state)
 
-    monitor.close()
     min_fitness, state = use_state(monitor.get_best_fitness)(state)
     # envpool is deterministic, so the result should always be the same
     assert min_fitness == 59.0
