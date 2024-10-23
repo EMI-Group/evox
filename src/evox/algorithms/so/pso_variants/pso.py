@@ -5,38 +5,30 @@
 # Link: https://ieeexplore.ieee.org/document/494215
 # --------------------------------------------------------------------------------------
 
-from functools import partial
+from typing import Optional
 
 import jax
 import jax.numpy as jnp
-import copy
 
+from evox import Algorithm, State, dataclass, pytree_field
 from evox.utils import *
-from evox import Algorithm, State, jit_class
 
 
-@jit_class
+@dataclass
 class PSO(Algorithm):
-    def __init__(
-        self,
-        lb,
-        ub,
-        pop_size,
-        inertia_weight=0.6,
-        cognitive_coefficient=2.5,
-        social_coefficient=0.8,
-        mean=None,
-        stdev=None,
-    ):
-        self.dim = lb.shape[0]
-        self.lb = lb
-        self.ub = ub
-        self.pop_size = pop_size
-        self.w = inertia_weight
-        self.phi_p = cognitive_coefficient
-        self.phi_g = social_coefficient
-        self.mean = mean
-        self.stdev = stdev
+    dim: jax.Array = pytree_field(static=True, init=False)
+    lb: jax.Array
+    ub: jax.Array
+    pop_size: jax.Array = pytree_field(static=True)
+    w: jax.Array = pytree_field(default=0.6)
+    phi_p: jax.Array = pytree_field(default=2.5)
+    phi_g: jax.Array = pytree_field(default=0.8)
+    mean: Optional[jax.Array] = pytree_field(default=None)
+    stdev: Optional[jax.Array] = pytree_field(default=None)
+    bound_method: str = pytree_field(static=True, default="clip")
+
+    def __post_init__(self):
+        self.set_frozen_attr("dim", self.lb.shape[0])
 
     def setup(self, key):
         state_key, init_pop_key, init_v_key = jax.random.split(key, 3)
@@ -95,7 +87,23 @@ class PSO(Algorithm):
             + self.phi_g * rg * (global_best_location - state.population)
         )
         population = state.population + velocity
-        population = jnp.clip(population, self.lb, self.ub)
+
+        if self.bound_method == "clip":
+            population = jnp.clip(population, self.lb, self.ub)
+        elif self.bound_method == "reflect":
+            lower_bound_violation = population < self.lb
+            upper_bound_violation = population > self.ub
+
+            population = jnp.where(
+                lower_bound_violation, 2 * self.lb - population, population
+            )
+            population = jnp.where(
+                upper_bound_violation, 2 * self.ub - population, population
+            )
+
+            velocity = jnp.where(
+                lower_bound_violation | upper_bound_violation, -velocity, velocity
+            )
 
         return state.replace(
             population=population,

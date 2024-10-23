@@ -1,4 +1,5 @@
 from collections.abc import Callable, Sequence
+import dataclasses
 from typing import Optional, Tuple, Union
 from functools import partial
 import warnings
@@ -199,7 +200,7 @@ class StdWorkflow(Workflow):
 
         if self.jit_step:
             # the first argument is self, which should be static
-            if dataclass.is_dataclass(self.algorithm):
+            if dataclasses.is_dataclass(self.algorithm):
                 _step = jax.jit(_step)
             else:
                 _step = jax.jit(_step, static_argnums=(0,))

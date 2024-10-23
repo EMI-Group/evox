@@ -37,6 +37,7 @@ def dataclass(cls, *args, **kwargs):
     """
     A dataclass decorator that also registers the dataclass as a pytree node.
     """
+    kwargs = {"unsafe_hash": False, "eq": False, **kwargs}
     cls = dataclasses.dataclass(cls, *args, **kwargs)
 
     field_info = []

@@ -180,10 +180,16 @@ class Stateful:
         return State()
 
     def _recursive_init(
-        self, key: jax.Array, node_id: int, module_name: str, no_state: bool
+        self,
+        key: jax.Array,
+        node_id: int,
+        module_name: str,
+        no_state: bool,
+        re_init: bool,
     ) -> Tuple[State, int]:
-        object.__setattr__(self, "_node_id", node_id)
-        object.__setattr__(self, "_module_name", module_name)
+        if not re_init:
+            object.__setattr__(self, "_node_id", node_id)
+            object.__setattr__(self, "_module_name", module_name)
 
         if not no_state:
             child_states = {}
@@ -232,18 +238,21 @@ class Stateful:
                 num_copies = len(attr)
                 subkeys = jax.random.split(subkey, num_copies)
                 current_node_id = node_id
-                _, node_id = attr._recursive_init(None, node_id + 1, attr_name, True)
+                _, node_id = attr._recursive_init(
+                    None, node_id + 1, attr_name, True, re_init
+                )
                 submodule_state, _node_id = jax.vmap(
                     partial(
                         Stateful._recursive_init,
                         node_id=current_node_id + 1,
                         module_name=attr_name,
                         no_state=no_state,
+                        re_init=re_init,
                     )
                 )(attr, subkeys)
             else:
                 submodule_state, node_id = attr._recursive_init(
-                    subkey, node_id + 1, attr_name, no_state
+                    subkey, node_id + 1, attr_name, no_state, re_init
                 )
 
             if not no_state:
@@ -264,7 +273,9 @@ class Stateful:
             )
             return self_state, node_id
 
-    def init(self, key: jax.Array = None, no_state: bool = False) -> State:
+    def init(
+        self, key: jax.Array = None, no_state: bool = False, re_init: bool = False
+    ) -> State:
         """Initialize this module and all submodules
 
         This method should not be overwritten.
@@ -279,7 +290,7 @@ class Stateful:
         State
             The state of this module and all submodules combined.
         """
-        state, _node_id = self._recursive_init(key, 0, None, no_state)
+        state, _node_id = self._recursive_init(key, 0, None, no_state, re_init)
         return state
 
     def parallel_init(
