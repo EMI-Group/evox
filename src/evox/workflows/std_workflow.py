@@ -105,7 +105,6 @@ class StdWorkflow(Workflow):
 
     # inner
     _step: Callable[[State], State] = pytree_field(static=True, init=False)
-    _parallel_step: Callable[[State], State] = pytree_field(static=True, init=False)
     _registered_hooks: dict = pytree_field(static=True, init=False)
     _pmap_axis_name: str = pytree_field(static=True, init=False)
     _opt_direction_mask: jnp.array = pytree_field(init=False)
@@ -200,7 +199,7 @@ class StdWorkflow(Workflow):
 
         if self.jit_step:
             # the first argument is self, which should be static
-            if dataclasses.is_dataclass(self.algorithm):
+            if dataclasses.is_dataclass(self.algorithm) and dataclasses.is_dataclass(self.problem):
                 _step = jax.jit(_step)
             else:
                 _step = jax.jit(_step, static_argnums=(0,))
