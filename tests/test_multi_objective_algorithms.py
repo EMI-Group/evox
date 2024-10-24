@@ -1,6 +1,6 @@
 from evox import workflows, algorithms, problems, use_state
 from evox.monitors import EvalMonitor
-from evox.metrics import IGD
+import pytest
 import jax
 import jax.numpy as jnp
 
@@ -200,6 +200,7 @@ def test_lmocso():
     run_moea(algorithm)
 
 
+@pytest.mark.skip(reason="GPJax is unstable at the moment")
 def test_im_moea():
     algorithm = algorithms.IMMOEA(
         lb=jnp.full(shape=(N,), fill_value=LB),
