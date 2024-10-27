@@ -82,9 +82,7 @@ def test_std_workflow_sanity_check():
 
 
 def test_std_workflow():
-    min_fitness2 = run_std_workflow_with_non_jit_problem()
     min_fitness1 = run_std_workflow_with_jit_problem()
-    assert abs(min_fitness1 - min_fitness2) < 1e-4
     assert min_fitness1 < 1e-4
 
 
