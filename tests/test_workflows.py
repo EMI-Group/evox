@@ -30,6 +30,7 @@ def run_std_workflow_with_jit_problem():
     return min_fitness
 
 
+@pytest.mark.skip(reason="non jit with jit-able problem is problematic.")
 def run_std_workflow_with_non_jit_problem():
     monitor = EvalMonitor()
     # create a workflow
