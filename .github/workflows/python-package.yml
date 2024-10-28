@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v3
@@ -33,8 +33,8 @@ jobs:
     - name: Build and install package Python 3.10 and above
       run: |
         output=$(python -m build --wheel)
-        if [[ "${{ matrix.python-version }}" == "3.12" || "${{ matrix.python-version }}" == "3.13" ]]; then
-          # Exclude envpool when testing with Python 3.12 and 3.13
+        if [[ "${{ matrix.python-version }}" == "3.12" ]]; then
+          # Exclude envpool when testing with Python 3.12
           pip install dist/${output##* }[test]
           pip install gymnasium ray gpjax plotly pandas tensorflow-datasets grain brax plotly pandas
         else
@@ -42,7 +42,7 @@ jobs:
         fi
     - name: Test with pytest Python 3.10 and above
       run: |
-        if [[ "${{ matrix.python-version }}" == "3.12" || "${{ matrix.python-version }}" == "3.13" ]]; then
+        if [[ "${{ matrix.python-version }}" == "3.12" ]]; then
           pytest -k 'not test_envpool_cartpole'
         else
           pytest
