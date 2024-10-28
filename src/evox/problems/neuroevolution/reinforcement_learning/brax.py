@@ -30,7 +30,7 @@ class Brax(Problem):
         Parameters
         ----------
         policy
-            a callable: fn(weights, obs) -> action
+            A callable if stateful: ``fn(state, weight, obs) -> action, state`` otherwise ``fn(weights, obs) -> action``
         env_name
             The environment name.
         batch_size
@@ -56,7 +56,10 @@ class Brax(Problem):
             Brax's backend, one of "generalized", "positional", "spring".
             Default to "generalized".
         """
-        self.batched_policy = jit(vmap(vmap(policy, in_axes=(None, 0))))
+        if stateful_policy:
+            self.batched_policy = jit(vmap(vmap(policy, in_axes=(0, None, 0))))
+        else:
+            self.batched_policy = jit(vmap(vmap(policy, in_axes=(None, 0))))
         self.policy = policy
         self.env_name = env_name
         self.backend = backend
@@ -104,7 +107,11 @@ class Brax(Problem):
         )
 
         if self.stateful_policy:
-            rollout_state = (self.initial_state, brax_state)
+            initial_state = jax.tree.map(
+                lambda x: jnp.broadcast_to(x, (pop_size, self.num_episodes, *x.shape)),
+                self.initial_state,
+            )
+            rollout_state = (initial_state, brax_state)
         else:
             rollout_state = (brax_state,)
 
@@ -166,7 +173,8 @@ class Brax(Problem):
         else:
             rollout_state = (brax_state,)
 
-        for _ in range(self.num_episodes):
+        num_episodes = num_episodes or self.num_episodes
+        for _ in range(num_episodes):
             if self.stateful_policy:
                 state, brax_state = rollout_state
                 action, state = self.policy(state, weights, brax_state.obs)
@@ -187,7 +195,4 @@ class Brax(Problem):
         if output_type == "HTML":
             return html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs)
         else:
-            return [
-                image.render_array(sys=self.env.sys, state=s, **kwargs)
-                for s in trajectory
-            ]
+            return image.render_array(sys=self.env.sys, trajectory=trajectory, **kwargs)
