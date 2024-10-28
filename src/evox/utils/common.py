@@ -3,6 +3,7 @@ from typing import Union
 from collections.abc import Iterable
 
 import jax
+import numpy as np
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.tree_util import tree_flatten, tree_leaves, tree_unflatten

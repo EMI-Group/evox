@@ -16,22 +16,36 @@ def random_policy(rand_seed, x):  # weights, observation
     )
 
 
-@pytest.mark.skip(
-    reason="cost too much time"
-)
-def test():
+def random_stateful_policy(state, rand_seed, x):  # state, weights, observation
+    return jnp.tanh(
+        jax.random.normal(
+            jax.random.PRNGKey(jnp.array(x[0] * 1e7, dtype=jnp.int32) + rand_seed),
+            shape=(8,),
+        )
+    ), state
+
+
+@pytest.mark.parametrize("stateful_policy", [False, True])
+def test_brax(stateful_policy):
     seed = 41
     key = jax.random.PRNGKey(seed)
 
-    #  It takes too much time to render 500 frames (474s on Nvidia RTX 3090)
-    #  I think it is good to add a progress bar to shrink waiting experience.
+    if stateful_policy:
+        policy = random_stateful_policy
+    else:
+        policy = random_policy
+
     problem = problems.neuroevolution.Brax(
         env_name=gym_name,
-        policy=jax.jit(random_policy),
-        cap_episode=500,
+        policy=policy,
+        num_episodes=1,
+        max_episode_length=3,
+        stateful_policy=stateful_policy,
+        initial_state=jnp.zeros(10) if stateful_policy else None,
     )
 
     state = problem.init(key)
-    frames = problem.visualize(key, seed, output_type="rgb_array", width=250, height=250)
-    frames2gif(frames, f"{gym_name}_{seed}.gif")
+    problem.evaluate(state, jnp.arange(3))
+
+    problem.visualize(key, seed, output_type="HTML")
     assert True
