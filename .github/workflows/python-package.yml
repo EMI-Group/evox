@@ -34,7 +34,9 @@ jobs:
       run: |
         output=$(python -m build --wheel)
         if [[ "${{ matrix.python-version }}" == "3.12" || "${{ matrix.python-version }}" == "3.13" ]]; then
-          pip install dist/${output##* }[full,test] --no-deps envpool
+          # Exclude envpool when testing with Python 3.12 and 3.13
+          pip install dist/${output##* }[test]
+          pip install gymnasium ray gpjax plotly pandas tensorflow-datasets grain brax plotly pandas
         else
           pip install dist/${output##* }[full,test]
         fi
