@@ -58,7 +58,7 @@ envpool = ["envpool >= 0.8.0"]
 neuroevolution = [
   "tensorflow-datasets >= 4.0.0",
   "grain >= 0.1.0",
-  "brax >= 0.1.0",
+  "brax >= 0.11.0",
 ]
 
 distributed = ["ray >= 2.0.0"]
@@ -72,7 +72,7 @@ full = [
   "pandas >= 2.0.0",
   "tensorflow-datasets >= 4.0.0",
   "grain >= 0.1.0",
-  "brax >= 0.1.0",
+  "brax >= 0.11.0",
   "plotly >= 5.0.0",
   "pandas >= 2.0.0",
 ]

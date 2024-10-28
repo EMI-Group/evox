@@ -193,6 +193,6 @@ class Brax(Problem):
                 break
 
         if output_type == "HTML":
-            return html.render(env.sys.replace(dt=env.dt), trajectory, *args, **kwargs)
+            return html.render(env.sys, trajectory, *args, **kwargs)
         else:
-            return image.render_array(sys=self.env.sys, trajectory=trajectory, **kwargs)
+            return image.render_array(env.sys, trajectory, **kwargs)
