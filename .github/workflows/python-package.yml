@@ -33,7 +33,15 @@ jobs:
     - name: Build and install package Python 3.10 and above
       run: |
         output=$(python -m build --wheel)
-        pip install dist/${output##* }[full,test]
+        if [[ "${{ matrix.python-version }}" == "3.12" || "${{ matrix.python-version }}" == "3.13" ]]; then
+          pip install dist/${output##* }[full,test] --no-deps envpool
+        else
+          pip install dist/${output##* }[full,test]
+        fi
     - name: Test with pytest Python 3.10 and above
       run: |
-        pytest
+        if [[ "${{ matrix.python-version }}" == "3.12" || "${{ matrix.python-version }}" == "3.13" ]]; then
+          pytest -k 'not test_envpool_cartpole'
+        else
+          pytest
+        fi
