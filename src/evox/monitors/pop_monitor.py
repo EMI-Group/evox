@@ -15,6 +15,7 @@ class PopMonitorState:
     latest_fitness: jax.Array
 
 
+@dataclass
 class PopMonitor(Monitor):
     """Population monitor,
     used to monitor the population inside the genetic algorithm.
@@ -40,23 +41,22 @@ class PopMonitor(Monitor):
         Default to False.
     """
 
-    def __init__(
-        self,
-        population_name="population",
-        fitness_name="fitness",
-        full_pop_history=True,
-        full_fit_history=True,
-    ):
-        super().__init__()
-        self.population_name = population_name
-        self.fitness_name = fitness_name
-        self.population_history = []
-        self.fitness_history = []
-        self.full_pop_history = full_pop_history
-        self.full_fit_history = full_fit_history
+    population_name: str = pytree_field(default="population", static=True)
+    fitness_name: str = pytree_field(default="fitness", static=True)
+    full_fit_history: bool = pytree_field(default=True, static=True)
+    full_pop_history: bool = pytree_field(default=True, static=True)
+
+    opt_direction: int = pytree_field(static=True, init=False, default=1)
+    fitness_history: list = pytree_field(static=True, init=False, default_factory=list)
+    population_history: list = pytree_field(
+        static=True, init=False, default_factory=list
+    )
 
     def hooks(self):
         return ["post_step"]
+
+    def set_opt_direction(self, opt_direction):
+        self.set_frozen_attr("opt_direction", opt_direction)
 
     def setup(self, key: jax.Array) -> Any:
         return PopMonitorState(
@@ -87,7 +87,7 @@ class PopMonitor(Monitor):
         if self.full_fit_history:
             self.fitness_history.append(fitness)
 
-    def plot(self, problem_pf=None, **kwargs):
+    def plot(self, state=None, problem_pf=None, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -112,8 +112,8 @@ class PopMonitor(Monitor):
     def get_latest_population(self, state):
         return state.latest_population, state
 
-    def get_population_history(self, state):
+    def get_population_history(self, state=None):
         return self.population_history, state
 
-    def get_fitness_history(self, state):
+    def get_fitness_history(self, state=None):
         return self.fitness_history, state

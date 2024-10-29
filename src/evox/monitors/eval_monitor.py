@@ -58,14 +58,9 @@ class EvalMonitor(Monitor):
     full_sol_history: bool = pytree_field(default=False, static=True)
     topk: int = pytree_field(default=1, static=True)
 
-    fitness_history: list = pytree_field(static=True, init=False)
-    solution_history: list = pytree_field(static=True, init=False)
-    opt_direction: int = pytree_field(static=True, init=False)
-
-    def __post_init__(self):
-        self.set_frozen_attr("opt_direction", 1)
-        self.set_frozen_attr("fitness_history", [])
-        self.set_frozen_attr("solution_history", [])
+    opt_direction: int = pytree_field(static=True, init=False, default=1)
+    fitness_history: list = pytree_field(static=True, init=False, default_factory=list)
+    solution_history: list = pytree_field(static=True, init=False, default_factory=list)
 
     def hooks(self):
         return ["post_ask", "post_eval"]
@@ -150,13 +145,13 @@ class EvalMonitor(Monitor):
             )
         return self.opt_direction * state.topk_fitness[..., 0], state
 
-    def get_fitness_history(self, state):
+    def get_fitness_history(self, state=None):
         return [self.opt_direction * fit for fit in self.fitness_history], state
 
-    def get_solution_history(self, state):
+    def get_solution_history(self, state=None):
         return self.solution_history, state
 
-    def plot(self, problem_pf=None, **kwargs):
+    def plot(self, state=None, problem_pf=None, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -166,11 +161,13 @@ class EvalMonitor(Monitor):
         else:
             n_objs = self.fitness_history[0].shape[1]
 
+        fitness_history, _ = self.get_fitness_history(state)
+
         if n_objs == 1:
-            return plot.plot_obj_space_1d(self.get_history(), **kwargs)
+            return plot.plot_obj_space_1d(fitness_history, **kwargs)
         elif n_objs == 2:
-            return plot.plot_obj_space_2d(self.get_history(), problem_pf, **kwargs)
+            return plot.plot_obj_space_2d(fitness_history, problem_pf, **kwargs)
         elif n_objs == 3:
-            return plot.plot_obj_space_3d(self.get_history(), problem_pf, **kwargs)
+            return plot.plot_obj_space_3d(fitness_history, problem_pf, **kwargs)
         else:
             warnings.warn("Not supported yet.")
