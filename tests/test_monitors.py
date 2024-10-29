@@ -48,6 +48,9 @@ def test_eval_monitor_with_so(full_fit_history, full_sol_history, topk):
     assert (monitor.get_best_solution(state)[0] == pop2[-1]).all()
     assert (monitor.get_topk_solutions(state)[0] == pop2[-topk:][::-1]).all()
 
+    if full_fit_history:
+        monitor.plot(state)
+
 
 @pytest.mark.parametrize(
     "full_fit_history,full_sol_history",
@@ -83,6 +86,9 @@ def test_eval_monitor_with_mo(full_fit_history, full_sol_history):
     assert (monitor.get_latest_fitness(state)[0] == fitness2).all()
     assert (monitor.get_latest_solution(state)[0] == pop2).all()
 
+    if full_fit_history:
+        monitor.plot(state)
+
 
 @pytest.mark.parametrize(
     "full_fit_history,full_pop_history",
@@ -104,9 +110,13 @@ def test_pop_monitor(full_fit_history, full_pop_history):
     state = workflow.init(key)
     state = workflow.step(state)
     assert (
-        use_state(monitor.get_latest_fitness)(state)[0] == state.get_child_state("algorithm").fitness
+        use_state(monitor.get_latest_fitness)(state)[0]
+        == state.get_child_state("algorithm").fitness
     ).all()
     assert (
         use_state(monitor.get_latest_population)(state)[0]
         == state.get_child_state("algorithm").population
     ).all()
+
+    if full_fit_history:
+        monitor.plot(state)
