@@ -1,3 +1,4 @@
+from typing import Tuple
 import warnings
 
 import jax
@@ -5,6 +6,7 @@ import jax.numpy as jnp
 
 from evox import Monitor, dataclass, pytree_field
 from evox.vis_tools import plot
+from evox.operators import non_dominated_sort
 
 
 @dataclass
@@ -40,17 +42,6 @@ class EvalMonitor(Monitor):
     topk
         Only affect Single-objective optimization. The number of elite solutions to record.
         Default to 1, which will record the best individual.
-    calc_pf
-        Only affect Multi-objective optimization.
-        Whether to keep updating the pareto front during the run. (The Archive)
-        Default to False.
-        Setting it to True will cause the monitor to
-        maintain a pareto front of all the solutions with unlimited size,
-        which may hurt performance.
-    parallel_monitor
-        Enable the use of parallel monitor,
-        that is monitoring multiple optimization process in parallel.
-        Typically used in meta-optimization settings where the use of vmap of a workflow is needed.
     """
 
     multi_obj: bool = pytree_field(default=False, static=True)
@@ -123,33 +114,94 @@ class EvalMonitor(Monitor):
         if self.full_fit_history:
             self.fitness_history.append(fitness)
 
-    def get_latest_fitness(self, state):
+    def get_latest_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the fitness values from the latest iteration."""
         return self.opt_direction * state.latest_fitness, state
 
-    def get_latest_solution(self, state):
+    def get_latest_solution(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the solution from the latest iteration."""
         return state.latest_solution, state
 
-    def get_topk_fitness(self, state):
+    def get_topk_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the topk fitness values so far."""
         return self.opt_direction * state.topk_fitness, state
 
-    def get_topk_solutions(self, state):
+    def get_topk_solutions(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the topk solutions so far."""
         return state.topk_solutions, state
 
-    def get_best_solution(self, state):
+    def get_best_solution(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the best solution so far."""
         return state.topk_solutions[..., 0, :], state
 
-    def get_best_fitness(self, state):
+    def get_best_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the best fitness value so far."""
         if self.multi_obj:
             raise ValueError(
                 "Multi-objective optimization does not have a single best fitness."
             )
         return self.opt_direction * state.topk_fitness[..., 0], state
 
-    def get_fitness_history(self, state=None):
+    def get_fitness_history(
+        self, state=None
+    ) -> Tuple[list[jax.Array], EvalMonitorState]:
+        """Get the full history of fitness values."""
         return [self.opt_direction * fit for fit in self.fitness_history], state
 
-    def get_solution_history(self, state=None):
+    def get_solution_history(
+        self, state=None
+    ) -> Tuple[list[jax.Array], EvalMonitorState]:
+        """Get the full history of solutions."""
         return self.solution_history, state
+
+    def get_pf_fitness(self, state=None) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the approximate pareto front fitness values of all the solutions evaluated so far.
+        Requires enabling `full_fit_history`."""
+        if not self.full_fit_history:
+            warnings.warn("`get_pf_fitness` requires enabling `full_fit_history`.")
+        all_fitness, _ = self.get_fitness_history(state)
+        all_fitness = jnp.concatenate(all_fitness, axis=0)
+        all_fitness = jnp.unique(all_fitness, axis=0)
+        rank = non_dominated_sort(all_fitness)
+        return all_fitness[rank == 0], state
+
+    def get_pf_solutions(
+        self, state=None, deduplicate=True
+    ) -> Tuple[jax.Array, EvalMonitorState]:
+        """Get the approximate pareto front solutions of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        pf_solutions, _pf_fitness, _ = self.get_pf(state, deduplicate)
+        return pf_solutions, state
+
+    def get_pf(
+        self, state=None, deduplicate=True
+    ) -> Tuple[jax.Array, jax.Array, EvalMonitorState]:
+        """Get the approximate pareto front solutions and fitness values of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        if not self.full_fit_history or not self.full_sol_history:
+            warnings.warn(
+                "`get_pf` requires enabling both `full_sol_history` and `full_sol_history`."
+            )
+        all_solutions, _ = self.get_solution_history(state)
+        all_solutions = jnp.concatenate(all_solutions, axis=0)
+        all_fitness, _ = self.get_fitness_history(state)
+        all_fitness = jnp.concatenate(all_fitness, axis=0)
+
+        if deduplicate:
+            _, unique_index = jnp.unique(
+                all_solutions,
+                axis=0,
+                return_index=True,
+            )
+            all_solutions = all_solutions[unique_index]
+            all_fitness = all_fitness[unique_index]
+
+        rank = non_dominated_sort(all_fitness)
+        pf_fitness = all_fitness[rank == 0]
+        pf_solutions = all_solutions[rank == 0]
+        return pf_solutions, pf_fitness, state
 
     def plot(self, state=None, problem_pf=None, **kwargs):
         if not self.fitness_history:
