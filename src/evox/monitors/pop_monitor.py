@@ -65,6 +65,12 @@ class PopMonitor(Monitor):
             latest_fitness=None,
         )
 
+    def clear_history(self):
+        """Clear the history of fitness and solutions.
+        Normally it will be called at the initialization of Workflow object."""
+        self.fitness_history = []
+        self.population_history = []
+
     def post_step(self, state, workflow_state):
         algorithm_state = workflow_state.get_child_state("algorithm")
         population = getattr(algorithm_state, self.population_name)

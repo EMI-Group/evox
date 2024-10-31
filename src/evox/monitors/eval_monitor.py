@@ -68,6 +68,12 @@ class EvalMonitor(Monitor):
             topk_fitness=None,
         )
 
+    def clear_history(self):
+        """Clear the history of fitness and solutions.
+        Normally it will be called at the initialization of Workflow object."""
+        self.fitness_history = []
+        self.solution_history = []
+
     def post_ask(self, state, _workflow_state, candidate):
         return state.replace(latest_solution=candidate)
 

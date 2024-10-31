@@ -81,6 +81,12 @@ class StdWorkflow(Workflow):
     external_problem
         Tell workflow whether the problem is external that cannot be jitted.
         Default to False.
+    auto_exec_callbacks
+        Whether to automatically call `execute_callbacks` on the state at the end of each step.
+        Default to True.
+    clear_monitor_history
+        Whether to clear the monitor history at the beginning of the workflow.
+        Default to True.
     num_objectives
         Number of objectives. Used when external_problem=True.
         When the problem cannot be jitted, JAX cannot infer the shape, and
@@ -100,6 +106,7 @@ class StdWorkflow(Workflow):
     jit_step: bool = pytree_field(default=True, static=True)
     external_problem: bool = pytree_field(default=False, static=True)
     auto_exec_callbacks: bool = pytree_field(default=True, static=True)
+    clear_monitor_history: bool = pytree_field(default=True, static=True)
     num_objectives: Optional[int] = pytree_field(default=None, static=True)
     migrate_helper: Optional[Callable] = pytree_field(default=None, static=True)
 
@@ -199,13 +206,19 @@ class StdWorkflow(Workflow):
 
         if self.jit_step:
             # the first argument is self, which should be static
-            if dataclasses.is_dataclass(self.algorithm) and dataclasses.is_dataclass(self.problem):
+            if dataclasses.is_dataclass(self.algorithm) and dataclasses.is_dataclass(
+                self.problem
+            ):
                 _step = jax.jit(_step)
             else:
                 _step = jax.jit(_step, static_argnums=(0,))
 
         self.set_frozen_attr("_step", _step)
         self.set_frozen_attr("_pmap_axis_name", None)
+
+        if self.clear_monitor_history:
+            for monitor in self.monitors:
+                monitor.clear_history()
 
     def _ask(self, state):
         if has_init_ask(self.algorithm) and state.first_step:
