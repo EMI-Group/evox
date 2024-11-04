@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  EvoX\n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-05 00:32+0800\n"
-"PO-Revision-Date: 2024-04-29 02:49+0000\n"
+"PO-Revision-Date: 2024-11-04 17:07+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
+"projects/evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: Chinese (Simplified) "
-"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.8.2\n"
 "Generated-By: Babel 2.14.0\n"
 
 #: ../../source/api/algorithms/containers/cc.rst:3
@@ -335,12 +336,11 @@ msgstr "目标数量"
 
 #: evox.core.module.Stateful.parallel_init:7 of
 msgid "Whether to skip the state initialization"
-msgstr ""
+msgstr "是否跳过状态初始化"
 
 #: evox.core.module.Stateful.parallel_init:9 of
-#, fuzzy
 msgid "The state of this module and all submodules combined, and the last node_id"
-msgstr "该模块及其所有子模块的组合之和。"
+msgstr "该模块及其所有子模块，以及最后的node_id。"
 
 #: evox.core.pytree_dataclass._dataclass_replace:1 of
 msgid ""
@@ -432,9 +432,8 @@ msgstr ""
 #: evox.algorithms.so.pso_variants.pso.PSO.ask:7
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:7
 #: evox.core.algorithm.Algorithm.ask:7 of
-#, fuzzy
 msgid "*population* -- The candidate solution."
-msgstr "候选解。"
+msgstr "*population* -- 候选解。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:8
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:8
@@ -445,9 +444,8 @@ msgstr "候选解。"
 #: evox.algorithms.so.pso_variants.pso.PSO.ask:8
 #: evox.algorithms.so.pso_variants.swmmpso.SwmmPSO.ask:8
 #: evox.core.algorithm.Algorithm.ask:8 of
-#, fuzzy
 msgid "*state* -- The new state of the algorithm."
-msgstr "算法的新的状态。"
+msgstr "*state* -- 算法的新的状态。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.setup:1
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.setup:1
@@ -777,9 +775,8 @@ msgid "MOEA/D"
 msgstr "MOEA/D"
 
 #: evox.algorithms.mo.moead.MOEAD:1 of
-#, fuzzy
 msgid "Parallel MOEA/D algorithm"
-msgstr "MOEA/D算法"
+msgstr "并行MOEA/D算法"
 
 #: evox.algorithms.mo.moead.MOEAD:3 of
 msgid "link: https://ieeexplore.ieee.org/document/4358754"
@@ -1244,11 +1241,11 @@ msgstr "例子："
 
 #: evox.core.state.State.clear_callbacks:1 of
 msgid "Clear all the callbacks in the state"
-msgstr ""
+msgstr "清除这个状态里的回调函数"
 
 #: evox.core.state.State.execute_callbacks:1 of
 msgid "Execute all the callbacks in the state"
-msgstr ""
+msgstr "执行状态里的回调函数"
 
 #: evox.core.state.State.find_path_to:1 of
 msgid ""
@@ -1257,9 +1254,8 @@ msgid ""
 msgstr "找到节点 ID 与状态 ID 匹配的状态。可以通过模块名称给出提示"
 
 #: evox.core.state.State.from_dataclass:1 of
-#, fuzzy
 msgid "Construct a ``State`` from dataclass instance"
-msgstr "从Python数据类（dataclass）或关键字（keyword arguments）构建一个状态（State）对象"
+msgstr "从Python数据类（``dataclass``）构建一个状态（``State``）对象"
 
 #: evox.core.state.State.index:1 of
 msgid "PyTree index, apply the index to every element in the state."
@@ -1267,15 +1263,15 @@ msgstr "对Pytree进行索引，将对Pytree中的每个元素使用索引。"
 
 #: evox.core.state.State.load:1 of
 msgid "Load the saved state from disk"
-msgstr ""
+msgstr "从硬盘上加载保存的状态"
 
 #: evox.core.state.State.load:3 of
 msgid "The path to load the state"
-msgstr ""
+msgstr "到状态保存位置的路径"
 
 #: evox.core.state.State.load:5 of
 msgid "If True, use orbax to load the state, otherwise use pickle"
-msgstr ""
+msgstr "如果为True，则使用orbax加载状态，否则使用pickle"
 
 #: evox.core.state.State.prepend_closure:1 of
 msgid "Prepare closures stored in others to the current state"
@@ -1289,7 +1285,7 @@ msgstr ""
 
 #: evox.core.state.State.register_callback:1 of
 msgid "Add a callback to the state"
-msgstr ""
+msgstr "将一个回调函数加入状态中"
 
 #: evox.core.state.State.replace:1 of
 msgid "Update the current State with another State or dict and return new State."
@@ -1301,11 +1297,11 @@ msgstr "这个方法也接受关键字参数。"
 
 #: evox.core.state.State.save:1 of
 msgid "Save the state to local filesystem"
-msgstr ""
+msgstr "将状态保存至本地的文件系统"
 
 #: evox.core.state.State.save:3 of
 msgid "The path to save the state"
-msgstr ""
+msgstr "到状态保存位置的路径"
 
 #: evox.core.state.State.save:5 of
 msgid "If True, use orbax to save the state, otherwise use pickle"
@@ -1367,7 +1363,7 @@ msgstr "评估监控器被用于单目标和多目标工作流。它与评估流
 
 #: evox.monitors.eval_monitor.EvalMonitor:7 of
 msgid "Whether the optimization is multi-objective. Default to False."
-msgstr ""
+msgstr "是否是多目标优化。默认为False。"
 
 #: evox.monitors.eval_monitor.EvalMonitor:10 of
 msgid ""
@@ -1393,27 +1389,28 @@ msgstr "只影响单目标优化。要记录的精英解决方案的数量。默
 msgid ""
 "Clear the history of fitness and solutions. Normally it will be called at"
 " the initialization of Workflow object."
-msgstr ""
+msgstr "清楚历史适应度值和解集。正常情况下，Workflow对象在初始化的时候会自动调用此方"
+"法。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_best_fitness:1 of
 msgid "Get the best fitness value so far."
-msgstr ""
+msgstr "获取当前的最优适应度值。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_best_solution:1 of
 msgid "Get the best solution so far."
-msgstr ""
+msgstr "获取当前的最优解。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_fitness_history:1 of
 msgid "Get the full history of fitness values."
-msgstr ""
+msgstr "获取完整的适应度值历史记录。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_latest_fitness:1 of
 msgid "Get the fitness values from the latest iteration."
-msgstr ""
+msgstr "获取最近一代的适应度值。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_latest_solution:1 of
 msgid "Get the solution from the latest iteration."
-msgstr ""
+msgstr "获取最近一代的解。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_pf:1 of
 msgid ""
@@ -1422,12 +1419,14 @@ msgid ""
 " `full_sol_history`. If `deduplicate` is set to True, the duplicated "
 "solutions will be removed."
 msgstr ""
+"获取当前的近似帕勒托前沿的解集和对应的适应度值。需要同时启用`full_sol_history"
+"`和`full_sol_history`选项。如果`deduplicate`为True，则会对解集进行去重。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_pf_fitness:1 of
 msgid ""
 "Get the approximate pareto front fitness values of all the solutions "
 "evaluated so far. Requires enabling `full_fit_history`."
-msgstr ""
+msgstr "获取当前的近似帕勒托前沿的适应度值部分。需要启用`full_fit_history`。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_pf_solutions:1 of
 msgid ""
@@ -1436,18 +1435,20 @@ msgid ""
 "`full_sol_history`. If `deduplicate` is set to True, the duplicated "
 "solutions will be removed."
 msgstr ""
+"获取当前的近似帕勒托前沿的解集部分。需要同时启用`full_sol_history`和`full_sol"
+"_history`。如果`deduplicate`为True，则会对解集进行去重。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_solution_history:1 of
 msgid "Get the full history of solutions."
-msgstr ""
+msgstr "获取完整的解集历史记录。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_topk_fitness:1 of
 msgid "Get the topk fitness values so far."
-msgstr ""
+msgstr "获取当前前k优的适应度值。"
 
 #: evox.monitors.eval_monitor.EvalMonitor.get_topk_solutions:1 of
 msgid "Get the topk solutions so far."
-msgstr ""
+msgstr "获取当前前k优的解。"
 
 #: ../../source/api/monitors/evoxvis.rst:3
 msgid "EvoXVis Monitor"
@@ -1564,25 +1565,34 @@ msgid ""
 "the rewards (default to average). Different individuals will share the "
 "same set of random keys in each iteration."
 msgstr ""
+"构建一个基于Brax的问题。首先，需要定义一个可编译的策略函数（policy "
+"function）。策略函数应该具有以下签名： 如果您的策略是无状态的：:code:`fn("
+"weights, obs) -> action`， 如果您的策略是有状态的：:code:`fn(state, weights, "
+"obs) -> action, state`。接下来，您需要设置`环境名称 <https://github.com/"
+"google/brax/tree/main/brax/envs>`_，最大幕长度，以及每个个体需要评估的幕的个"
+"数。对于每个个体，策略会在环境中运行`num_episodes`次，并使用不同的随机种子。"
+"然后使用`reduce_fn`来聚合奖励（默认为平均值）。在每次迭代中，不同的个体将共享"
+"相同的随机种子集合。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:14 of
 msgid ""
 "A callable if stateful: :code:`fn(state, weight, obs) -> action, state` "
 "otherwise :code:`fn(weights, obs) -> action`"
 msgstr ""
+"一个可调用的对象，如果是有状态的，签名为：:code:`fn(state, weight, obs) -> "
+"action, state` 否则为：:code:`fn(weights, obs) -> action`"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:15 of
 msgid "The environment name."
 msgstr "环境名。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:16 of
-#, fuzzy
 msgid "The maximum number of timesteps of each episode."
-msgstr "运行的最大episode数量。"
+msgstr "运行的最大的时间步的数量。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:17 of
 msgid "The number of episodes to evaluate for each individual."
-msgstr ""
+msgstr "用于评估每个个体的幕数量。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:18 of
 msgid ""
@@ -1593,12 +1603,16 @@ msgid ""
 "values across iterations.  If False, the random key remains the same for "
 "all iterations, ensuring consistent fitness evaluations."
 msgstr ""
+"是否在每次迭代后轮换随机数种子（默认值为 True）。   如果设置为 True，则在每次"
+"迭代后随机数种子会轮换，从而导致非适应度评估带有噪声的。这意味着相同的权重在"
+"不同迭代中可能返回不同的适应度值。   如果设置为 "
+"False，则随机数种子在所有迭代中保持不变，从而确保适应度评估的一致性。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:18 of
 msgid ""
 "Indicates whether to rotate the random key for each iteration (default is"
 " True)."
-msgstr ""
+msgstr "指示是否在每次迭代后轮换随机键（默认值为 True）。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:20 of
 msgid ""
@@ -1607,12 +1621,14 @@ msgid ""
 "that identical policy weights may yield different fitness values across "
 "iterations."
 msgstr ""
+"如果为 True，则在每次迭代后随机键会轮换，从而导致非确定性且可能带有噪声的适应"
+"度评估。这意味着相同的策略权重在不同迭代中可能会产生不同的适应度值。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:24 of
 msgid ""
 "If False, the random key remains the same for all iterations, ensuring "
 "consistent fitness evaluations."
-msgstr ""
+msgstr "如果为 False，则随机键在所有迭代中保持不变，从而确保适应度评估的一致性。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:26 of
 msgid ""
@@ -1622,18 +1638,22 @@ msgid ""
 "stateful function with signature :code:`fn(state, weight, obs) -> action,"
 " state`."
 msgstr ""
+"指示策略是否为有状态的（例如 RNN）。默认为 False。如果为 False，"
+"则策略应为具有签名 :code:`fn(weights, obs) -> action` 的纯函数。如果为 True，"
+"则策略应为具有签名 :code:`fn(state, weight, obs) -> action, state` "
+"的有状态函数。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:30 of
 msgid ""
 "The initial state of the stateful policy. Default to None. Only used when"
 " stateful_policy is True."
-msgstr ""
+msgstr "有状态策略的初始状态。默认为 None，仅在 `stateful_policy` 为 True 时使用。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:33 of
 msgid ""
 "The function to reduce the rewards of multiple episodes. Default to "
 "jnp.mean."
-msgstr ""
+msgstr "用于聚合多个幕奖励值的函数。默认值为 `jnp.mean`。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:35 of
 msgid ""
@@ -1642,15 +1662,14 @@ msgid ""
 msgstr "Brax的后端，是“generalized”、“positional”、“spring”中的其中一个。默认为“generalized”。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:39 of
-#, fuzzy
 msgid "Notes"
-msgstr "xNES"
+msgstr "Notes"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:40 of
 msgid ""
 "When rotating keys, fitness evaluation is non-deterministic and may "
 "introduce noise."
-msgstr ""
+msgstr "在轮换随机键时，适应度评估是非确定性的，可能会引入噪声。"
 
 #: ../../source/index.md:26
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.__init__:43 of
@@ -1659,24 +1678,23 @@ msgstr "示例"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:1 of
 msgid "Visualize the brax environment with the given policy and weights."
-msgstr ""
+msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:3 of
 msgid "The random key."
-msgstr ""
+msgstr "随机键。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:4 of
-#, fuzzy
 msgid "The weights of the policy."
-msgstr "这个问题的新的状态。"
+msgstr "策略的权重。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:5 of
 msgid "The output type, either \"HTML\" or \"rgb_array\"."
-msgstr ""
+msgstr "输出类型，可以是 \"HTML\" 或 \"rgb_array\"。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:6 of
 msgid "Whether to respect the done signal."
-msgstr ""
+msgstr "是否遵循环境的完成（done）信号。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.brax.Brax.visualize:7 of
 msgid ""
@@ -1807,9 +1825,8 @@ msgid "Supervised Learning"
 msgstr "监督学习"
 
 #: ../../source/api/problems/neuroevolution/supervised_learning/tfds.rst:3
-#, fuzzy
 msgid "Tensorflow Dataset"
-msgstr "Torchvision 数据集"
+msgstr "Tensorflow 数据集"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:1 of
 msgid "Wrap a tensorflow dataset as a problem."
@@ -1861,15 +1878,13 @@ msgstr ""
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:26
 #: of
-#, fuzzy
 msgid "The dataset name."
-msgstr "状态。"
+msgstr "数据集名称。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:28
 #: of
-#, fuzzy
 msgid "The batch size."
-msgstr "状态。"
+msgstr ""
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:30
 #: of
@@ -1882,9 +1897,8 @@ msgstr ""
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:34
 #: of
-#, fuzzy
 msgid "Which split of the dataset to use. Default to \"train\"."
-msgstr "状态之中对应适应度的变量的变量名。默认是“fitness”。"
+msgstr "要使用的数据集分割。默认为 \"train\"。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:37
 #: of
@@ -1915,6 +1929,9 @@ msgid ""
 " Google's storage server is faster than the original server of the "
 "dataset."
 msgstr ""
+"是否尝试从 Google Cloud Storage 下载数据集。通常来说，Google "
+"的存储服务器的速度比数据集的原始服务器更快，但是如果您访问 Google Cloud "
+"本身很慢的话则会得不偿失。"
 
 #: ../../source/api/problems/numerical/index.rst:3
 msgid "Numerical Benchmarks"
@@ -4807,4 +4824,3 @@ msgstr "如果要禁用GPU，你可以用："
 #~ "1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.431 1.431 0"
 #~ " 005 15zm7-3.564L2.678 7.5 12 3.564 "
 #~ "21.322 7.5 12 11.436z\"></path></svg> 开发者教程"
-
