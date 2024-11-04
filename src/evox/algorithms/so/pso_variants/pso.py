@@ -90,6 +90,7 @@ class PSO(Algorithm):
 
         if self.bound_method == "clip":
             population = jnp.clip(population, self.lb, self.ub)
+            velocity = jnp.clip(velocity, self.lb, self.ub)
         elif self.bound_method == "reflect":
             lower_bound_violation = population < self.lb
             upper_bound_violation = population > self.ub
@@ -100,10 +101,12 @@ class PSO(Algorithm):
             population = jnp.where(
                 upper_bound_violation, 2 * self.ub - population, population
             )
-
             velocity = jnp.where(
                 lower_bound_violation | upper_bound_violation, -velocity, velocity
             )
+            # enforce the bounds in case the reflected particles are still out of bounds
+            population = jnp.clip(population, self.lb, self.ub)
+            velocity = jnp.clip(velocity, self.lb, self.ub)
 
         return state.replace(
             population=population,
