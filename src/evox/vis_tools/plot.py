@@ -1,7 +1,5 @@
 import jax.numpy as jnp
 
-from evox import use_state
-
 
 def plot_dec_space(
     population_history,
@@ -64,7 +62,6 @@ def plot_dec_space(
     sliders = [
         {
             "currentvalue": {"prefix": "Generation: "},
-            "pad": {"t": 50},
             "pad": {"b": 1, "t": 10},
             "len": 0.8,
             "x": 0.2,
@@ -81,7 +78,6 @@ def plot_dec_space(
             legend={
                 "x": 1,
                 "y": 1,
-                "xanchor": "auto",
                 "xanchor": "auto",
             },
             margin={"l": 0, "r": 0, "t": 0, "b": 0},
@@ -115,7 +111,6 @@ def plot_dec_space(
                                     "frame": {"duration": 0, "redraw": False},
                                     "mode": "immediate",
                                     "transition": {"duration": 0},
-                                    "mode": "immediate",
                                 },
                             ],
                             "label": "Pause",
@@ -170,7 +165,6 @@ def plot_obj_space_1d_no_animation(fitness_history, **kwargs):
             legend={
                 "x": 1,
                 "y": 1,
-                "xanchor": "auto",
                 "xanchor": "auto",
             },
             margin={"l": 0, "r": 0, "t": 0, "b": 0},
@@ -267,7 +261,6 @@ def plot_obj_space_1d_animation(fitness_history, **kwargs):
             legend={
                 "x": 1,
                 "y": 1,
-                "xanchor": "auto",
                 "xanchor": "auto",
             },
             margin={"l": 0, "r": 0, "t": 0, "b": 0},
@@ -397,7 +390,6 @@ def plot_obj_space_2d(fitness_history, problem_pf=None, sort_points=False, **kwa
                 "x": 1,
                 "y": 1,
                 "xanchor": "auto",
-                "xanchor": "auto",
             },
             margin={"l": 0, "r": 0, "t": 0, "b": 0},
             sliders=sliders,
@@ -479,6 +471,17 @@ def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwa
 
     frames = []
     steps = []
+
+    if problem_pf is not None:
+        pf_scatter = go.Scatter3d(
+            x=problem_pf[:, 0],
+            y=problem_pf[:, 1],
+            z=problem_pf[:, 2],
+            mode="markers",
+            marker={"color": "#FFA15A", "size": 2},
+            name="Pareto Front",
+        )
+
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:
@@ -492,7 +495,10 @@ def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwa
             mode="markers",
             marker={"color": "#636EFA", "size": 2},
         )
-        frames.append(go.Frame(data=[scatter], name=str(i)))
+        if problem_pf is not None:
+            frames.append(go.Frame(data=[pf_scatter, scatter], name=str(i)))
+        else:
+            frames.append(go.Frame(data=[scatter], name=str(i)))
 
         step = {
             "label": i,
