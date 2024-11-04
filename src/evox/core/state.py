@@ -232,10 +232,17 @@ class State:
         if is_magic_method(key):
             return super().__getattr__(key)
 
-        if dataclasses.is_dataclass(self._state_dict):
-            return getattr(self._state_dict, key)
-        else:
-            return self._state_dict[key]
+        try:
+            if dataclasses.is_dataclass(self._state_dict):
+                return getattr(self._state_dict, key)
+            else:
+                return self._state_dict[key]
+        except (AttributeError, KeyError) as e:
+            raise KeyError(
+                f"State has no attribute '{key}'."
+                "This may be due to a mismatch between the state and the module. "
+                "If you're trying to fit the state to a submodule, please use the `use_state` wrapper."
+            ) from e
 
     def __getitem__(self, key: str) -> Any:
         return getattr(self, key)
