@@ -8,11 +8,6 @@ import jax.tree_util as jtu
 from evox import Problem, State, jit_method
 
 
-def vmap_rng_split(key: jax.Array, num: int = 2) -> jax.Array:
-    # batched_key [B, 2] -> batched_keys [num, B, 2]
-    return jax.vmap(jax.random.split, in_axes=(0, None), out_axes=1)(key, num)
-
-
 class Brax(Problem):
     def __init__(
         self,
@@ -20,6 +15,7 @@ class Brax(Problem):
         env_name: str,
         max_episode_length: int,
         num_episodes: int,
+        rotate_key: bool = True,
         stateful_policy: bool = False,
         initial_state: Any = None,
         reduce_fn: Callable[[jax.Array, int], jax.Array] = jnp.mean,
@@ -34,7 +30,9 @@ class Brax(Problem):
         Then you need to set the `environment name <https://github.com/google/brax/tree/main/brax/envs>`_,
         the maximum episode length, the number of episodes to evaluate for each individual.
         For each individual,
-        it will run the policy with the environment for num_episodes times and use the reduce_fn to reduce the rewards (default to average).
+        it will run the policy with the environment for num_episodes times with different seed,
+        and use the reduce_fn to reduce the rewards (default to average).
+        Different individuals will share the same set of random keys in each iteration.
 
         Parameters
         ----------
@@ -46,6 +44,16 @@ class Brax(Problem):
             The maximum number of timesteps of each episode.
         num_episodes
             The number of episodes to evaluate for each individual.
+        rotate_key
+            Indicates whether to rotate the random key for each iteration (default is True).
+
+            If True, the random key will rotate after each iteration,
+            resulting in non-deterministic and potentially noisy fitness evaluations.
+            This means that identical policy weights may yield different fitness values across iterations.
+
+            If False, the random key remains the same for all iterations,
+            ensuring consistent fitness evaluations.
+
         stateful_policy
             Whether the policy is stateful (for example, RNN).
             Default to False.
@@ -61,6 +69,21 @@ class Brax(Problem):
         backend
             Brax's backend, one of "generalized", "positional", "spring".
             Default to "generalized".
+
+        Notes
+        -----
+        When rotating keys, fitness evaluation is non-deterministic and may introduce noise.
+
+        Examples
+        --------
+        >>> from evox import problems
+        >>> problem = problems.neuroevolution.Brax(
+        ...    env_name="swimmer",
+        ...    policy=jit(model.apply),
+        ...    max_episode_length=1000,
+        ...    num_episodes=3,
+        ...    rotate_key=False,
+        ...)
         """
         if stateful_policy:
             self.batched_policy = jit(vmap(vmap(policy, in_axes=(0, None, 0))))
@@ -76,6 +99,7 @@ class Brax(Problem):
         self.initial_state = initial_state
         self.max_episode_length = max_episode_length
         self.num_episodes = num_episodes
+        self.rotate_key = rotate_key
         self.reduce_fn = reduce_fn
 
         self.jit_reset = jit(vmap(self.env.reset))
@@ -87,7 +111,10 @@ class Brax(Problem):
     @jit_method
     def evaluate(self, state, weights):
         pop_size = jtu.tree_leaves(weights)[0].shape[0]
-        key, eval_key = jax.random.split(state.key)
+        if self.rotate_key:
+            key, eval_key = jax.random.split(state.key)
+        else:
+            key, eval_key = state.key, state.key
 
         def _cond_func(carry):
             counter, _state, done, _total_reward = carry
@@ -108,9 +135,11 @@ class Brax(Problem):
             total_reward += (1 - done) * brax_state.reward
             return counter + 1, rollout_state, done, total_reward
 
-        brax_state = self.jit_reset(
-            vmap_rng_split(jax.random.split(eval_key, self.num_episodes), pop_size)
-        )
+        # For each episode, we need a different random key.
+        keys = jax.random.split(eval_key, self.num_episodes)
+        # For each individual in the population, we need the same set of keys.
+        keys = jnp.broadcast_to(keys, (pop_size, *keys.shape))
+        brax_state = self.jit_reset(keys)
 
         if self.stateful_policy:
             initial_state = jax.tree.map(
