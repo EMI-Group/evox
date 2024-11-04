@@ -51,7 +51,7 @@ def test_cartpole(batch_policy):
         monitors=[monitor],
         external_problem=True,
         num_objectives=1,
-        candidate_transforms=[adapter.batched_to_tree],
+        solution_transforms=[adapter.batched_to_tree],
         opt_direction="max",
     )
     # init the workflow

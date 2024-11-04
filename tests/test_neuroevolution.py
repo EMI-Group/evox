@@ -58,7 +58,7 @@ def test_tfds():
             stdev_init=0.1,
         ),
         problem=problem,
-        candidate_transforms=[adapter.batched_to_tree],
+        solution_transforms=[adapter.batched_to_tree],
         fitness_transforms=[rank_based_fitness],
         monitors=[monitor],
     )

@@ -64,17 +64,21 @@ class StdWorkflow(Workflow):
     opt_direction
         The optimization direction, can be either "min" or "max"
         or a list of "min"/"max" to specific the direction for each objective.
-    candidate_transforms
+    solution_transforms
         Optional candidate solution transform function,
-        usually used to decode the candidate solution
+        usually used to decode the candidate solutions
         into the format that can be understood by the problem.
         Should be a list of functions,
         and the functions will be applied in the order of the list.
+        Each function should have the signature :code:`fn(solutions) -> solutions`,
+        where solutions outputed by the EC algorithm.
     fitness_transforms
         Optional fitness transform function.
         usually used to apply fitness shaping.
         Should be a list of functions,
         and the functions will be applied in the order of the list.
+        Each function should have the signature :code:`fn(fitness) -> fitness`,
+        where fitness outputed by the problem.
     jit_step:
         Whether jit the entire step function.
         Default to True
@@ -97,7 +101,7 @@ class StdWorkflow(Workflow):
     problem: Problem
     monitors: Sequence[Monitor] = pytree_field(default=(), metadata={"nested": True})
     opt_direction: Union[str, Sequence[str]] = pytree_field(default="min", static=True)
-    candidate_transforms: Sequence[Callable[[jax.Array], jax.Array]] = pytree_field(
+    solution_transforms: Sequence[Callable[[jax.Array], jax.Array]] = pytree_field(
         default=(), static=True
     )
     fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = pytree_field(
@@ -163,7 +167,7 @@ class StdWorkflow(Workflow):
             )
 
             transformed_cands = cands
-            for transform in self.candidate_transforms:
+            for transform in self.solution_transforms:
                 transformed_cands = transform(transformed_cands)
 
             state = self._pre_eval_hook(state, transformed_cands)
