@@ -9,7 +9,6 @@ polib
 # for docs generation
 sphinx-book-theme > 1.0
 sphinx
-numpydoc
 myst-nb
 nbsphinx
 myst-parser
