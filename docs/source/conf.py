@@ -58,7 +58,7 @@ autodoc_mock_imports = [
     "ray",
     "tensorflow_datasets",
     "gpjax",
-    "orbax-checkpoint"
+    "orbax-checkpoint",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -83,6 +83,8 @@ html_theme_options = {
         "alt_text": "EvoX logo image",
         "text": "",
     },
+    "pygments_light_style": "default",
+    "pygments_dark_style": "monokai",
 }
 favicons = [
     "favicon-16x16.ico",
