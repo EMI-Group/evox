@@ -42,9 +42,6 @@ class Brax(Problem):
             A callable if stateful: :code:`fn(state, weight, obs) -> action, state` otherwise :code:`fn(weights, obs) -> action`
         env_name
             The environment name.
-        batch_size
-            The number of brax environments to run in parallel.
-            Usually this should match the population size at the algorithm side.
         max_episode_length
             The maximum number of timesteps of each episode.
         num_episodes
