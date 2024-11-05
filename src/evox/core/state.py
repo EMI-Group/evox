@@ -289,7 +289,7 @@ class State:
             return self
 
     def prepend_closure(self, other: Self) -> Self:
-        """Prepare closures stored in others to the current state"""
+        """Prepend closures stored in others to the current state"""
         callbacks = linkedlist_concat(other._callbacks, self._callbacks)
         closure_values = linkedlist_concat(other._closure_values, self._closure_values)
         return copy(self)._set_closures_mut(callbacks, closure_values)
