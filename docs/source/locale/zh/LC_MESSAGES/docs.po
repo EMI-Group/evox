@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-05 00:32+0800\n"
-"PO-Revision-Date: 2024-11-04 17:07+0000\n"
+"PO-Revision-Date: 2024-11-05 08:25+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
 "projects/evox/evox/zh_Hans/>\n"
@@ -325,14 +325,12 @@ msgid "The state of this module and all submodules combined."
 msgstr "该模块及其所有子模块的组合之和。"
 
 #: evox.core.module.Stateful.parallel_init:1 of
-#, fuzzy
 msgid "Initialize multiple copies of this module in parallel"
-msgstr "初始化这个问题的可变状态。"
+msgstr "并行初始化多个此模块。"
 
 #: evox.core.module.Stateful.parallel_init:6 of
-#, fuzzy
 msgid "The number of copies to be initialized"
-msgstr "目标数量"
+msgstr "需要初始化的拷贝的数量"
 
 #: evox.core.module.Stateful.parallel_init:7 of
 msgid "Whether to skip the state initialization"
@@ -348,6 +346,8 @@ msgid ""
 "dataclasses.replace in that it doesn't call the __init__, instead it "
 "copies the object and sets the new values."
 msgstr ""
+"为数据类添加一个 replace 方法。它与 dataclasses.replace 不同，后者会调用 "
+"__init__ 方法，而此方法不会调用 __init__ 方法，而是复制对象并设置新的值。"
 
 #: evox.algorithms.containers.coevolution.Coevolution:1 of
 msgid "A container for co-evolutionary algorithms."
@@ -421,7 +421,7 @@ msgstr "这个算法的状态。"
 msgid ""
 "* *population* -- The candidate solution. * *state* -- The new state of "
 "the algorithm."
-msgstr ""
+msgstr "**population** —— 候选解。**state** —— 算法的新状态。"
 
 #: evox.algorithms.containers.clustered_algorithm.ClusterdAlgorithm.ask:7
 #: evox.algorithms.containers.clustered_algorithm.RandomMaskAlgorithm.ask:7
@@ -1168,6 +1168,10 @@ msgid ""
 " together. - ``nested``: If set to True, the a list of modules, that is "
 "[module1, module2, ...], will be iterated and initialized."
 msgstr ""
+"目前，有两个特殊的元数据可以用于控制模块初始化的行为：- ``stack``："
+"如果设置为 `True`，模块将被多次初始化，状态将堆叠在一起。- ``nested``："
+"如果设置为 `True`，则会遍历并初始化一个模块列表，即 `[module1, module2, "
+"...]`。"
 
 #: ../../source/api/core/problem.rst:3
 msgid "Problem Class"
@@ -1195,21 +1199,19 @@ msgstr "种群。"
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
 #: evox.problems.numerical.ackley.Ackley.evaluate:8 of
 msgid "* *dict* -- The new state of the problem. * *ndarray* -- The fitness."
-msgstr ""
+msgstr "**dict** —— 问题的新状态。**ndarray** —— 适应度（fitness）。"
 
 #: evox.core.problem.Problem.evaluate:8
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:8
 #: evox.problems.numerical.ackley.Ackley.evaluate:8 of
-#, fuzzy
 msgid "*dict* -- The new state of the problem."
-msgstr "这个问题的新的状态。"
+msgstr "*dict* -- 这个问题的新的状态。"
 
 #: evox.core.problem.Problem.evaluate:9
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.evaluate:9
 #: evox.problems.numerical.ackley.Ackley.evaluate:9 of
-#, fuzzy
 msgid "*ndarray* -- The fitness."
-msgstr "适应度值。"
+msgstr "*ndarray* -- 适应度值。"
 
 #: ../../source/api/core/state.rst:3
 msgid "State Class"
@@ -1281,7 +1283,8 @@ msgstr ""
 msgid ""
 "Recursively find a sub-state by a query name. eg: `'foo.bar'` will find a"
 " sub state named foo, then find `bar` under sub-states of `foo`"
-msgstr ""
+msgstr "递归地通过查询名称查找子状态。例如：`foo.bar` 将先查找名为 `foo` 的子状态，"
+"然后在 `foo` 的子状态中查找 `bar`"
 
 #: evox.core.state.State.register_callback:1 of
 msgid "Add a callback to the state"
@@ -1305,7 +1308,7 @@ msgstr "到状态保存位置的路径"
 
 #: evox.core.state.State.save:5 of
 msgid "If True, use orbax to save the state, otherwise use pickle"
-msgstr ""
+msgstr "如果为True，则使用 `orbax` 保存状态，否则使用 `pickle` 保存状态"
 
 #: ../../source/api/metrics/gd.rst:3
 msgid "Generational Distance"
@@ -1525,7 +1528,8 @@ msgid ""
 "Whether to move the population and fitness to host memory (ram). Doing so"
 " can reduce memory usage on device (vram), but also introduces overhead "
 "of data transfer. Default to False."
-msgstr ""
+msgstr "是否将种群和适应度移动到内存（RAM）。这样做可以减少显存（VRAM）使用，但也会引"
+"入数据传输的开销。默认值为 False。"
 
 #: evox.monitors.pop_monitor.PopMonitor:14 of
 msgid ""
@@ -1534,6 +1538,9 @@ msgid ""
 "space) will be recorded. This can reduce memory usage if you only care "
 "about the fitness. Default to False."
 msgstr ""
+"是否仅记录适应度。将其设置为 `True` 将禁用种群（决策空间）的记录，只有适应度"
+"（目标空间）会被记录。如果您只关心适应度，这可以减少内存使用。默认值为 "
+"`False`。"
 
 #: ../../source/api/problems/index.rst:3
 msgid "Problems"
@@ -1747,13 +1754,15 @@ msgid ""
 msgstr "可选参数，一个字符串列表。如果设置，环境被视为一个多目标问题，不同的目标值通过Gym返回的`info`项获取。`mo_keys`参数提供了在info字典中访问目标值的键。目标值将按照在`mo_keys`中指定的顺序返回。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:14 of
-#, fuzzy
 msgid ""
 "The runtime options for controller actor. This actor is used to control "
 "workers and run the policy at each step. For example, to enable GPU "
 "acceleration on the policy network, set this field to::      "
 "{\"num_gpus\": 1}"
-msgstr "控制器actor的运行时选项。这个actor用于控制工作者worker，并在每一步运行策略。例如，要启用策略网络的GPU加速功能，请将此字段设置为::"
+msgstr ""
+"控制器 `actor` 的运行时选项。该 `actor` "
+"用于控制工作者并在每一步运行策略。例如，要在策略网络上启用 GPU "
+"加速，可将此字段设置为：{\"num_gpus\": 1}"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.__init__:14 of
 msgid ""
@@ -1785,7 +1794,6 @@ msgid "A single set of weights for your policy."
 msgstr "策略的一组权重。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:7 of
-#, fuzzy
 msgid ""
 "'rgb_array' or 'human'.  In 'rgb_array' mode, this function will return a"
 " list of frames, each frame is a numpy array.  In 'human' mode, the frame"
@@ -1793,8 +1801,10 @@ msgid ""
 "remote python environment, for example vscode ssh or jupyter notebook, "
 "this method may fail to find a valid display. Default to 'rgb_array'."
 msgstr ""
-"在\"human\"模式下，帧应直接显示在屏幕上。但是，如果您正在使用远程Python环境（例如VSCode SSH或Jupyter "
-"Notebook），这种方法可能无法找到有效的显示器，因此默认设置为\"rgb_array\"模式。"
+"'rgb_array' 或 'human'。在 'rgb_array' 模式下，此函数将返回一个帧列表，"
+"每个帧是一个 numpy 数组。在 'human' 模式下，画面将直接显示在屏幕上。然而，"
+"如果您使用的是远程 Python 环境，例如 VSCode SSH 或 Jupyter "
+"Notebook，此方法可能无法找到的显示器。默认值为 'rgb_array'。"
 
 #: evox.problems.neuroevolution.reinforcement_learning.gym.Gym.visualize:7 of
 msgid "'rgb_array' or 'human'."
@@ -1830,7 +1840,7 @@ msgstr "Tensorflow 数据集"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:1 of
 msgid "Wrap a tensorflow dataset as a problem."
-msgstr ""
+msgstr "将 TensorFlow 数据集包装为一个问题。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:3 of
 msgid ""
@@ -1841,13 +1851,18 @@ msgid ""
 "can prepare the dataset beforehand in another environment with "
 "`tensorflow` installed, run:"
 msgstr ""
+"TensorFlow Datasets（TFDS）直接依赖于 `tensorflow-datasets` 和 `grain` "
+"包。此外，首次下载数据集时，需要安装 `tensorflow` 并具备有效的互联网连接。"
+"如果您想避免安装 `tensorflow`，可以在另一个已安装 `tensorflow` "
+"的环境中预先准备好数据集，运行以下命令："
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:13
 #: of
 msgid ""
 "and then copy the dataset to the target machine. The default location "
 "is`~/tensorflow_datasets`. `~/` means the home directory of the user."
-msgstr ""
+msgstr "然后将数据集复制到目标机器。默认位置是 `~/tensorflow_datasets`。`~/` "
+"表示用户的主目录。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:16
 #: of
@@ -1858,6 +1873,10 @@ msgid ""
 "like strings, you should convert them into arrays using the `operations` "
 "parameter."
 msgstr ""
+"请注意，数据是在 JAX 的 `jit` 环境中加载的，所以数据应为有效的 JAX 数据类型，"
+"即 JAX / Numpy 数组，或 Python 的 `int`、`float`、`list` 和 "
+"`dict`。如果数据包含其他类型（例如字符串），则应使用 `operations` "
+"参数将其转换为数组。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:20
 #: of
@@ -1866,6 +1885,8 @@ msgid ""
 "environment variable `TFDS_HTTP_PROXY` and `TFDS_HTTPS_PROXY`, for http "
 "and https proxy respectively."
 msgstr ""
+"您还可以通过设置环境变量 `TFDS_HTTP_PROXY` 和 `TFDS_HTTPS_PROXY` "
+"来通过代理服务器下载数据集，分别用于 HTTP 和 HTTPS 代理。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:23
 #: of
@@ -1875,6 +1896,9 @@ msgid ""
 "operations/transformations can be found at "
 "https://github.com/google/grain/blob/main/docs/transformations.md"
 msgstr ""
+"数据集的详细信息可以在 https://www.tensorflow.org/datasets/catalog/overview "
+"找到。关于operations/transformations的详细信息可以在 https://github.com/"
+"google/grain/blob/main/docs/transformations.md 找到"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:26
 #: of
@@ -1884,7 +1908,7 @@ msgstr "数据集名称。"
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:28
 #: of
 msgid "The batch size."
-msgstr ""
+msgstr "批处理大小。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:30
 #: of
@@ -1894,6 +1918,8 @@ msgid ""
 "neural network, and the `data` is the data from TFDS, which is a "
 "dictionary."
 msgstr ""
+"损失函数。函数签名为 `loss(weights, data) -> loss_value`，并且应支持 `jit` "
+"编译。`weights` 是神经网络的权重，`data` 是来自 TFDS 的数据，为一个字典。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:34
 #: of
@@ -1906,21 +1932,23 @@ msgid ""
 "The list of transformations to apply to the data. Default to []. After "
 "the transformations, we will always apply a batch operation to create a "
 "batch of data."
-msgstr ""
+msgstr "要应用于数据的转换列表。默认值为 "
+"[]。在这些转换之后，我们始终会应用批处理操作来创建一个数据批次。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:41
 #: of
 msgid ""
 "The directory to store the dataset. Default to None, which means "
 "tensorflow-datasets will automatically determine the directory."
-msgstr ""
+msgstr "存储数据集的目录。默认值为 `None`，表示 tensorflow-datasets 将自动确定目录。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:44
 #: of
 msgid ""
 "The random seed used to seed the dataloader. Given the same seed, the "
 "dataloader should data in the same order. Default to 0."
-msgstr ""
+msgstr "用于为数据加载器设置种子的随机数种子。给定相同的种子，数据加载器应以相同的顺"
+"序加载数据。默认值为 0。"
 
 #: evox.problems.neuroevolution.supervised_learning.tfds.TensorflowDataset:48
 #: of
@@ -2114,7 +2142,6 @@ msgid ""
 msgstr "优化方向，可以是\"min\"（最小化）或\"max\"（最大化），也可以是一个包含\"min\"/\"max\"的列表来指定每个目标的具体优化方向。"
 
 #: evox.workflows.std_workflow.StdWorkflow:20 of
-#, fuzzy
 msgid ""
 "Optional candidate solution transform function, usually used to decode "
 "the candidate solutions into the format that can be understood by the "
@@ -2122,38 +2149,43 @@ msgid ""
 " in the order of the list. Each function should have the signature "
 ":code:`fn(solutions) -> solutions`, where solutions outputed by the EC "
 "algorithm."
-msgstr "可选的候选解变换函数，通常用于将种群解码为问题能够理解的格式。这应该是一个函数的列表，其中的函数将会被依次调用。"
+msgstr ""
+"可选的候选解转换函数，通常用于将候选解解码为问题可以理解的格式。应为函数列表"
+"，函数将按列表中的顺序依次应用。每个函数的签名应为 `fn(solutions) -> "
+"solutions`，其中 `solutions` 是进化计算（EC）算法输出的候选解。"
 
 #: evox.workflows.std_workflow.StdWorkflow:28 of
-#, fuzzy
 msgid ""
 "Optional fitness transform function. usually used to apply fitness "
 "shaping. Should be a list of functions, and the functions will be applied"
 " in the order of the list. Each function should have the signature "
 ":code:`fn(fitness) -> fitness`, where fitness outputed by the problem."
-msgstr "可选适应度变换函数，通常用于应用适应度整形。应当是一个列表的函数，列表中的函数将会被依次调用。"
+msgstr ""
+"可选的适应度转换函数，通常用于应用适应度整形。应为函数列表，函数将按列表中的"
+"顺序依次应用。每个函数的签名应为 `fn(fitness) -> fitness`，其中 `fitness` "
+"是问题输出的适应度。"
 
 #: evox.workflows.std_workflow.StdWorkflow:35 of
 msgid "Whether jit the entire step function. Default to True"
-msgstr ""
+msgstr "是否对整个步骤函数进行 `jit` 编译。默认值为 `True`"
 
 #: evox.workflows.std_workflow.StdWorkflow:38 of
 msgid ""
 "Tell workflow whether the problem is external that cannot be jitted. "
 "Default to False."
-msgstr ""
+msgstr "告知工作流问题是否为无法进行 `jit` 编译的外部问题。默认值为 `False`。"
 
 #: evox.workflows.std_workflow.StdWorkflow:41 of
 msgid ""
 "Whether to automatically call `execute_callbacks` on the state at the end"
 " of each step. Default to True."
-msgstr ""
+msgstr "是否在每个步骤结束时自动调用 `execute_callbacks` 处理状态。默认值为True。"
 
 #: evox.workflows.std_workflow.StdWorkflow:44 of
 msgid ""
 "Whether to clear the monitor history at the beginning of the workflow. "
 "Default to True."
-msgstr ""
+msgstr "是否在工作流开始时清除监视器历史记录。默认值为 `True`。"
 
 #: evox.workflows.std_workflow.StdWorkflow:47 of
 msgid ""
@@ -2161,6 +2193,8 @@ msgid ""
 "cannot be jitted, JAX cannot infer the shape, and this field should be "
 "manually set. the monitor is needed to wait for the callback to complete."
 msgstr ""
+"目标数。用于 `external_problem=True` 的情况。当问题无法进行 `jit` 编译时，"
+"JAX 无法推断目标数，因此应手动设置此字段。监视器需要等待回调完成。"
 
 #: ../../source/example/atari_pong.ipynb:10002
 msgid "Solving Pong with EvoX"
@@ -2268,7 +2302,7 @@ msgstr ""
 msgid ""
 "Use tensorflow-datasets to load machine learning dataset and train a "
 "model in EvoX."
-msgstr ""
+msgstr "使用 `tensorflow-datasets` 加载机器学习数据集并在 EvoX 中训练模型。"
 
 #: ../../source/guide/developer/1-state.md:1
 msgid "Working with state in EvoX"
@@ -2351,6 +2385,9 @@ msgid ""
 "from `Stateful`. Then Stateful will provide a `init` method, which we "
 "will discuss later."
 msgstr ""
+"`Stateful` 定义了 EvoX 中有状态模块的标准。所有其他类（如 "
+"`Algorithm`、`Problem` 和 `Workflow`）均继承自 `Stateful`。然后，`Stateful` "
+"将提供一个 `init` 方法，我们稍后会讨论。"
 
 #: ../../source/guide/developer/1-state.md:56
 msgid "An overview of State"
@@ -2391,6 +2428,9 @@ msgid ""
 "method of the top module. `init` will recursively call the `setup` method"
 " of each module, and construct the complete state."
 msgstr ""
+"要初始化 `Stateful` 对象的层级结构并初始化每个对象的状态，可以编写如下代码。"
+"您可以调用顶层模块的 `init` 方法。`init` 将递归调用每个模块的 `setup` "
+"方法，并构建完整的状态。"
 
 #: ../../source/guide/developer/1-state.md:80
 #, fuzzy
@@ -2459,6 +2499,8 @@ msgid ""
 "callback`](https://jax.readthedocs.io/en/latest/notebooks/external_callbacks.html)"
 " to call a function on CPU in a jit context."
 msgstr ""
+"在 `jit` 上下文中使用 [`host callback`](https://jax.readthedocs.io/en/latest/"
+"notebooks/external_callbacks.html) 在 CPU 上调用函数。"
 
 #: ../../source/guide/developer/2-jit-able.md:27
 msgid ""
@@ -2467,13 +2509,17 @@ msgid ""
 " both jit-compiled variants (e.g. {doc}`StdWorkflow "
 "</api/workflows/standard>`)."
 msgstr ""
+"在 EvoX 中，我们几乎可以保证所有低级组件都经过 `jit` "
+"编译（所有操作符），而高级组件（`Workflow`）可以有 `jit` 编译的变体（例如 "
+"{doc}`StdWorkflow </api/workflows/standard>`）。"
 
 #: ../../source/guide/developer/2-jit-able.md:29
 msgid ""
 "Please be aware that using callbacks to jump out of the jit context is "
 "not free. Data needs to be transferred between CPU and GPU, which can be "
 "an overhead."
-msgstr ""
+msgstr "请注意，使用回调跳出 `jit` 上下文并非没有代价。数据需要在 CPU 和 GPU "
+"之间传输，这可能会带来一定的开销。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:7
 msgid "Custom algorithms and problems in EvoX"
@@ -2616,11 +2662,11 @@ msgid "The Problem Class"
 msgstr "问题类"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:79
-#, fuzzy
 msgid ""
 "The Problem class is quite simple, beside `__init__` and `setup`, the "
 "only required method is `evaluate``."
-msgstr "`Problem` 类相当简单，除了 `__init__` 和 `setup`，唯一必需的方法是 `evaluate`。"
+msgstr "`Problem` 类相当简单，除了 `__init__` 和 `setup`，唯一必需的方法是 "
+"`evaluate`。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:83
 msgid ""
@@ -2765,11 +2811,11 @@ msgstr "EvoX的文档支持多种语言。目前我们支持英语和中文。"
 
 #: ../../source/guide/developer/4-doc.md:15
 msgid "Build the documentation in another language"
-msgstr ""
+msgstr "构建此文档的多语言版本"
 
 #: ../../source/guide/developer/4-doc.md:17
 msgid "You will need to install `sphinx-intl`."
-msgstr ""
+msgstr "您需要安装 `sphinx-intl`。"
 
 #: ../../source/guide/developer/4-doc.md:26
 msgid "Translate the documentation"
@@ -3338,6 +3384,9 @@ msgid ""
 "it cannot be accessed directly by its submodule, `monitor`. Instead, we "
 "need to use the `use_state` wrapper."
 msgstr ""
+"要访问达到的最小适应度值，我们使用 `monitor` 子模块。然而，由于 `state` "
+"变量属于 `workflow` 变量，因此无法直接通过其子模块 `monitor` 访问。所以，"
+"我们需要使用 `use_state` 包装器。"
 
 #: ../../source/guide/user/1-start.ipynb:250005
 msgid ""
@@ -3345,6 +3394,8 @@ msgid ""
 "`use_state` wrapper is required. This wrapper handles nested submodules "
 "at any depth, so you don’t need to worry about the module structure."
 msgstr ""
+"在 EvoX 中，每当您想从子模块调用方法时，都需要使用 `use_state` "
+"包装器。该包装器能够处理任意深度的嵌套子模块，因此您不必担心模块结构。"
 
 #: ../../source/guide/user/1-start.ipynb:270002
 msgid ""
@@ -3462,18 +3513,21 @@ msgid ""
 "steps for each episode, and the average reward of 3 episodes will be "
 "returned as the fitness value."
 msgstr ""
+"现在创建基于 Brax 的问题，其中 `max_episode_length` "
+"是每个回合的最大步数，`num_episodes` 是每次评估要运行的回合数。在此情况下，"
+"我们将每个回合设置为 1000 步，3 个回合的平均奖励将作为适应度值返回。"
 
 #: ../../source/guide/user/2-problems.ipynb:170002
 msgid "Assemble our workflow and fire it!"
 msgstr "组装我们的工作流程并启动它！"
 
 #: ../../source/guide/user/2-problems.ipynb:170004
-#, fuzzy
 msgid ""
 "Notice the `solution_transforms` option. It's used to convert the "
 "candidate solutions into the tree-like structure that representing a "
 "neural network's weight."
-msgstr "请注意 `sol_transforms` 选项。它用于将种群转换成表示神经网络权重的树状结构。"
+msgstr "请注意 `solution_transforms` "
+"选项。该选项用于将候选解转换为表示神经网络权重的树状结构。"
 
 #: ../../source/guide/user/2-problems.ipynb:190002
 msgid "Run the workflow and see the magic!"
@@ -3492,11 +3546,12 @@ msgid ""
 " just a demonstration, and vanilla PSO wasn’t designed for this type of "
 "task, so its performance limitations here are expected."
 msgstr ""
+"该算法在优化策略方面有所进展，但结果仍然远未达到理想状态。需要记住，这只是一"
+"个演示，而基础 PSO 并非为此类任务设计，因此在这里性能受限是预料之中的。"
 
 #: ../../source/guide/user/3-distributed.md:1
-#, fuzzy
 msgid "Distributed Training"
-msgstr "分布式工作流程"
+msgstr "分布式训练"
 
 #: ../../source/guide/user/3-distributed.md:3
 #, fuzzy
@@ -3514,6 +3569,11 @@ msgid ""
 "use it as our default distributed strategy, as it offers EC algorithms "
 "maximum flexibility."
 msgstr ""
+"所有状态（包括种群）都会在所有设备上进行复制。然后，在每个设备上，"
+"将分片的候选解传递给 `problem.evaluate()`，适应度值通过 `all_gather` 在所有设"
+"备间共享。这确保了所有设备共享相同的状态数据而无需显式同步。换句话说，这种并"
+"行模型仅加速了问题的评估部分，无法减少内存消耗。我们将其作为默认的分布式策略"
+"，因为它为进化计算（EC）算法提供了最大的灵活性。"
 
 #: ../../source/guide/user/3-distributed.md:7
 msgid "Multiple devices on a single node"
@@ -3530,11 +3590,11 @@ msgstr ""
 
 #: ../../source/guide/user/3-distributed.md:39
 msgid "Example of script `dist_train.py`"
-msgstr ""
+msgstr "以下是 `dist_train.py` 脚本的示例"
 
 #: ../../source/guide/user/3-distributed.md:83
 msgid "Run script on each node:"
-msgstr ""
+msgstr "在每个节点上执行此脚本："
 
 #: ../../source/guide/user/3-distributed-old.md:1
 msgid "Distribute the workflow"
@@ -3891,7 +3951,6 @@ msgid "<br></br>"
 msgstr "<br></br>"
 
 #: ../../source/index.md:64
-#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-"
@@ -3908,24 +3967,20 @@ msgid ""
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5Z\"></path></svg> Installation "
 "Guide"
 msgstr ""
-"<path fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 "
-"9.005 0 015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
-"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
-"100 8 4 4 0 000-8z\"><path d=\"M17.29 8c-.148 0-.292.01-.434.03a.75.75 0 "
-"11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 6.69 0 013.956 6.107.75.75 0 "
-"01-1.5 0 5.193 5.193 0 00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03"
-" 0 0017.29 8z\"><path fill-rule=\"evenodd\" d=\"M2.5 3.75a.25.25 0 "
-"01.25-.25h5.5a.75.75 0 100-1.5h-5.5A1.75 1.75 0 001 3.75v11.5c0 .966.784 "
-"1.75 1.75 1.75h6.204c-.171 1.375-.805 2.652-1.77 3.757A.75.75 0 007.75 "
-"22h8.5a.75.75 0 "
-"00.565-1.243c-.964-1.105-1.598-2.382-1.769-3.757h6.204A1.75 1.75 0 0023 "
-"15.25V3.75A1.75 1.75 0 0021.25 2h-5.5a.75.75 0 000 1.5h5.5a.25.25 0 "
-"01.25.25v11.5a.25.25 0 01-.25.25H2.75a.25.25 0 01-.25-.25V3.75zM10.463 "
-"17c-.126 1.266-.564 2.445-1.223 "
-"3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5h-3.074z\"> 安装教程"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
+"d=\"M11.25 9.331V.75a.75.75 0 0 1 1.5 0v8.58l1.949-2.11A.75.75 0 1 1 15.8 8."
+"237l-3.25 3.52a.75.75 0 0 1-1.102 0l-3.25-3.52A.75.75 0 1 1 9.3 7.22l1.949 2."
+"111Z\"></path><path d=\"M2.5 3.75v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 "
+".25-.25V3.75a.25.25 0 0 0-.25-.25h-5.5a.75.75 0 0 1 0-1.5h5.5c.966 0 "
+"1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 "
+"1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.566-1.243c.965-1.105 1"
+".599-2.382 1.77-3.757H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 "
+"2h5.5a.75.75 0 0 1 0 1.5h-5.5a.25.25 0 0 0-.25.25ZM10.463 17c-.126 1.266-."
+"564 2.445-1.223 3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5Z\"></path></svg> "
+"安装教程"
 
 #: ../../source/index.md:70
-#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -3937,16 +3992,14 @@ msgid ""
 " 0 0-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0 0 17.29 "
 "8Z\"></path></svg> User Guide"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
-"sd-octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
-"fill-rule=\"evenodd\" d=\"M3.5 8a5.5 5.5 0 118.596 4.547 9.005 9.005 0 "
-"015.9 8.18.75.75 0 01-1.5.045 7.5 7.5 0 00-14.993 0 .75.75 0 "
-"01-1.499-.044 9.005 9.005 0 015.9-8.181A5.494 5.494 0 013.5 8zM9 4a4 4 0 "
-"100 8 4 4 0 000-8z\"></path><path d=\"M17.29 8c-.148 "
-"0-.292.01-.434.03a.75.75 0 11-.212-1.484 4.53 4.53 0 013.38 8.097 6.69 "
-"6.69 0 013.956 6.107.75.75 0 01-1.5 0 5.193 5.193 0 "
-"00-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0017.29 "
-"8z\"></path></svg> 用户教程"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-people\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3.5 "
+"8a5.5 5.5 0 1 1 8.596 4.547 9.005 9.005 0 0 1 5.9 8.18.751.751 0 0 1-1.5.045 "
+"7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.499-.044 9.005 9.005 0 0 1 5.9-"
+"8.181A5.496 5.496 0 0 1 3.5 8ZM9 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8.29 4c-.148 "
+"0-.292.01-.434.03a.75.75 0 1 1-.212-1.484 4.53 4.53 0 0 1 3.38 8.097 6.69 "
+"6.69 0 0 1 3.956 6.107.75.75 0 0 1-1.5 0 5.193 5.193 0 0 0-3.696-4.972l-.534-"
+".16v-1.676l.41-.209A3.03 3.03 0 0 0 17.29 8Z\"></path></svg> 用户教程"
 
 #: ../../source/index.md:76
 msgid ""
@@ -3970,9 +4023,24 @@ msgid ""
 "1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.433 1.433 0 0 0 5 "
 "15Z\"></path></svg> Developer Guide"
 msgstr ""
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d="
+"\"M12.292 2.06v-.001l11.25 4.75a.749.749 0 0 1 0 1.382L19 10.108V15a.75.75 0 "
+"0 1-.11.391h-.001a2.84 2.84 0 0 1-.392.482c-.249.256-.625.58-1.163.896-1.08."
+"638-2.776 1.23-5.334 1.23-.673 0-1.286-.041-1.846-.113a.75.75 0 0 1 .192-"
+"1.487c.492.063 1.042.1 1.654.1 2.317 0 3.746-.533 4.572-1.021.31-.178.596-."
+"397.849-.65l.079-.085V10.74l-5.208 2.2a.75.75 0 0 1-.584 0L5.75 "
+"10.424v3.17c.502.129.96.391 1.327.758.579.578.923 1.41.923 "
+"2.428v4.5a.761.761 0 0 1-.345.634 2.157 2.157 0 0 1-.21.117 3.923 3.923 0 0 "
+"1-.52.213A6.121 6.121 0 0 1 5 22.532a6.092 6.092 0 0 1-1.925-.288 4.065 "
+"4.065 0 0 1-.52-.213 1.816 1.816 0 0 1-.22-.124.757.757 0 0 1-.335-.624v-4."
+"5c0-1.02.344-1.85.923-2.43a2.904 2.904 0 0 1 1.327-.757V9.793L.458 "
+"8.19a.75.75 0 0 1 0-1.38l11.25-4.75a.75.75 0 0 1 .584 0ZM12 11.436 21.322 "
+"7.5 12 3.564 2.678 7.5ZM5 15c-.377 0-.745.141-1.017.413-.265.265-.483.7-.483 "
+"1.368v4.022c.299.105.797.228 1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1."
+"103-.483-1.368A1.433 1.433 0 0 0 5 15Z\"></path></svg> 开发者教程"
 
 #: ../../source/index.md:86
-#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -3982,16 +4050,14 @@ msgid ""
 " 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1"
 " 0 2Z\"></path></svg> Algorithms"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
-"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
-"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
-"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
-" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
-"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
-"2z\"></path></svg> 算法"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d="
+"\"M8.75 5.5h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 "
+"0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 "
+"0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 "
+"2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 算法"
 
 #: ../../source/index.md:92
-#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -4001,16 +4067,14 @@ msgid ""
 " 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1"
 " 0 2Z\"></path></svg> Problems"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
-"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
-"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
-"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
-" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
-"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
-"2z\"></path></svg> 问题"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d="
+"\"M8.75 5.5h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 "
+"0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 "
+"0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 "
+"2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 问题"
 
 #: ../../source/index.md:99
-#, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
 "sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
@@ -4020,13 +4084,12 @@ msgid ""
 " 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1"
 " 0 2Z\"></path></svg> Metrics"
 msgstr ""
-"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon "
-"sd-octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-"
-"hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M4 7a1 1 0 100-2 1 1 0 "
-"000 2zm4.75-1.5a.75.75 0 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0"
-" 000 1.5h11.5a.75.75 0 000-1.5H8.75zm0 6a.75.75 0 000 1.5h11.5a.75.75 0 "
-"000-1.5H8.75zM5 12a1 1 0 11-2 0 1 1 0 012 0zm-1 7a1 1 0 100-2 1 1 0 000 "
-"2z\"></path></svg> 指标"
+"<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
+"octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d="
+"\"M8.75 5.5h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 "
+"0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 "
+"0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 "
+"2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 指标"
 
 #: ../../source/miscellaneous/high_vram_usage.md:1
 msgid "High VRAM usage"
@@ -4053,9 +4116,8 @@ msgid ""
 msgstr "更多信息，请参考[JAX文档](https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html)."
 
 #: ../../source/miscellaneous/selecting_gpu.md:1
-#, fuzzy
 msgid "Selecting GPU / CPU"
-msgstr "选择GPU"
+msgstr "选择 GPU / CPU"
 
 #: ../../source/miscellaneous/selecting_gpu.md:3
 msgid ""
@@ -4071,9 +4133,8 @@ msgid "To run your program on multiple GPUs, you can use:"
 msgstr "要在多个GPU上跑你的程序，你可以用："
 
 #: ../../source/miscellaneous/selecting_gpu.md:15
-#, fuzzy
 msgid "To disable GPU usage (use CPU), you can use:"
-msgstr "如果要禁用GPU，你可以用："
+msgstr "如果要禁用GPU（即使用CPU），你可以用："
 
 #~ msgid "EvoX's API"
 #~ msgstr "EvoX的API"
