@@ -7,7 +7,7 @@ from .state import State
 
 
 class Problem(Stateful):
-    """Base class for all algorithms"""
+    """Base class for all problems"""
 
     def evaluate(
         self, state: State, pop: Union[jax.Array, Any]
