@@ -391,24 +391,20 @@ def _get_state_sharding(obj, devices=None):
     Apply DFS like tree_flatten
     """
     sharding = []
-    if isinstance(obj, State):
+    if isinstance(obj._state_dict, dict):
         # TODO: check the order:
         sharding.extend(_get_state_sharding(obj._state_dict, devices))
         for child_state in obj._child_states.values():
             sharding.extend(_get_state_sharding(child_state, devices))
-
-    elif dataclasses.is_dataclass(obj):
-        for field in dataclasses.fields(obj):
+    elif dataclasses.is_dataclass(obj._state_dict):
+        for field in dataclasses.fields(obj._state_dict):
             sharding.append(
                 field.metadata.get("sharding", ShardingType.REPLICATED).get_sharding(
                     devices
                 )
             )
-    elif isinstance(obj, dict):
-        # backward compatibility for dict
-        # for key, value in obj.items():
-        for key in obj.keys():
-            sharding.append(ShardingType.REPLICATED.get_sharding(devices))
+    else:
+        raise ValueError(f"Unsupported type: {type(obj)}")
 
     return sharding
 

@@ -325,5 +325,56 @@ class StdWorkflow(Workflow):
             state = state.execute_callbacks(state)
         return state
 
-    def call_monitor(self, state, monitor_fn):
-        return use_state(monitor_fn)(state)
+    def enable_multi_devices(
+        self,
+        state: State,
+        devices: Optional[list[jax.Device]] = None,
+        world_size: Optional[int] = None,
+        pmap_axis_name=POP_AXIS_NAME,
+    ) -> State:
+        """
+        Enable the workflow to run on multiple devices.
+        Multiple nodes(processes) are also supported.
+        To specify which devices are used, use env vars like `CUDA_VISIBLE_DEVICES`
+
+        Parameters
+        ----------
+        state
+            The state.
+        devices
+            The devices to use.
+            If "all", use all local devices, which is `jax.local_devices()`.
+            Otherwise, specify a list of jax.Device.
+
+        Returns
+        -------
+        State
+            The replicated state, distributed amoung all local devices
+            with additional distributed information.
+        """
+        if not devices:
+            # auto select all local devices
+            devices = jax.local_devices()
+            num_local_devices = len(devices)
+        if not world_size:
+            # auto use all devices as world_size
+            world_size = jax.device_count()
+
+        self.pmap_axis_name = pmap_axis_name
+        self._step = jax.pmap(
+            self._step, axis_name=pmap_axis_name, static_broadcasted_argnums=0
+        )
+
+        # multi-node case
+        process_id = get_process_id()
+        ranks = process_id * num_local_devices + jnp.arange(
+            num_local_devices, dtype=jnp.int32
+        )
+
+        state = jax.device_put_replicated(state, devices)
+        state = state.replace(
+            rank=jax.device_put_sharded(tuple(ranks), devices),
+            world_size=world_size,
+        )
+
+        return state
