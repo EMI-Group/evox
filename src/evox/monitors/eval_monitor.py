@@ -1,5 +1,6 @@
 from typing import Tuple
 import warnings
+import time
 
 import jax
 import jax.numpy as jnp
@@ -52,6 +53,9 @@ class EvalMonitor(Monitor):
     opt_direction: int = pytree_field(static=True, init=False, default=1)
     fitness_history: list = pytree_field(static=True, init=False, default_factory=list)
     solution_history: list = pytree_field(static=True, init=False, default_factory=list)
+    timestamp_history: list = pytree_field(
+        static=True, init=False, default_factory=list
+    )
 
     def hooks(self):
         return ["post_ask", "post_eval"]
@@ -119,6 +123,7 @@ class EvalMonitor(Monitor):
             self.solution_history.append(solution)
         if self.full_fit_history:
             self.fitness_history.append(fitness)
+        self.timestamp_history.append(time.time())
 
     def get_latest_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:
         """Get the fitness values from the latest iteration."""

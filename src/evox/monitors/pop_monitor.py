@@ -1,5 +1,6 @@
 from typing import Any
 import warnings
+import time
 
 import jax
 import jax.numpy as jnp
@@ -51,6 +52,9 @@ class PopMonitor(Monitor):
     population_history: list = pytree_field(
         static=True, init=False, default_factory=list
     )
+    timestamp_history: list = pytree_field(
+        static=True, init=False, default_factory=list
+    )
 
     def hooks(self):
         return ["post_step"]
@@ -92,6 +96,7 @@ class PopMonitor(Monitor):
             self.population_history.append(population)
         if self.full_fit_history:
             self.fitness_history.append(fitness)
+        self.timestamp_history.append(time.time())
 
     def plot(self, state=None, problem_pf=None, **kwargs):
         if not self.fitness_history:
