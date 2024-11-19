@@ -26,7 +26,7 @@ def run_std_workflow_with_jit_problem():
     for i in range(100):
         state = workflow.step(state)
 
-    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
+    min_fitness, state = use_state(state, monitor.get_best_fitness)(state)
     return min_fitness
 
 
@@ -52,7 +52,7 @@ def run_std_workflow_with_non_jit_problem():
     for i in range(100):
         state = workflow.step(state)
 
-    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     return min_fitness
 
 
@@ -77,7 +77,7 @@ def test_std_workflow_sanity_check():
     for i in range(10):
         state = workflow.step(state)
 
-    min_fitness, state = workflow.call_monitor(state, monitor.get_best_fitness)
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     assert min_fitness < 1e-2
 
 
