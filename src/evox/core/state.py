@@ -386,29 +386,37 @@ class State:
         return state
 
     def get_sharding(self, devices=None):
-        flatten_sharding = _get_state_sharding(self, devices)
-
-        return tree_unflatten(tree_structure(self), flatten_sharding)
+        state_dict = _get_state_sharding(self._state_dict, devices)
+        child_states = {
+            key: child_state.get_sharding(devices)
+            for key, child_state in self._child_states.items()
+        }
+        sharding_plan = (
+            copy(self)
+            ._set_state_dict_mut(state_dict)
+            ._set_child_states_mut(child_states)
+        )
+        return sharding_plan
 
 
 def _get_state_sharding(obj, devices=None):
     """
     Apply DFS like tree_flatten
     """
-    sharding = []
-    if isinstance(obj._state_dict, dict):
-        # TODO: check the order:
-        sharding.extend(_get_state_sharding(obj._state_dict, devices))
-        for child_state in obj._child_states.values():
-            sharding.extend(_get_state_sharding(child_state, devices))
-    elif dataclasses.is_dataclass(obj._state_dict):
-        for field in dataclasses.fields(obj._state_dict):
-            sharding.append(
-                field.metadata.get("sharding", ShardingType.REPLICATED).get_sharding(
-                    devices
-                )
-            )
+    if isinstance(obj, dict):
+        # dict type does not have metadata, so always return replicated sharding
+        return {
+            key: ShardingType.REPLICATED.get_sharding(devices) for key in obj.keys()
+        }
+    elif dataclasses.is_dataclass(obj):
+        # dataclass type has metadata, so we can get the sharding type from the metadata
+        sharding_plan = {}
+        for field in dataclasses.fields(obj):
+            sharding = field.metadata.get("sharding", ShardingType.REPLICATED)
+            static = field.metadata.get("static", False)
+            if not static:
+                # static field does not need to be sharded
+                sharding_plan[field.name] = sharding.get_sharding(devices)
+        return obj.replace(**sharding_plan)
     else:
         raise ValueError(f"Unsupported type: {type(obj)}")
-
-    return sharding
