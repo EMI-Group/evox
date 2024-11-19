@@ -26,7 +26,7 @@ def run_std_workflow_with_jit_problem():
     for i in range(100):
         state = workflow.step(state)
 
-    min_fitness, state = use_state(state, monitor.get_best_fitness)(state)
+    min_fitness, state = use_state(monitor.get_best_fitness)(state)
     return min_fitness
 
 
