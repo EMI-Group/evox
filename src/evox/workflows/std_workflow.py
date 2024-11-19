@@ -340,7 +340,7 @@ class StdWorkflow(Workflow):
             The state.
         devices
             The devices to use.
-            If "all", use all local devices, which is `jax.local_devices()`.
+            If None, then by default the function will use all local devices (`jax.local_devices()`).
             Otherwise, specify a list of jax.Device.
 
         Returns
@@ -348,6 +348,12 @@ class StdWorkflow(Workflow):
         State
             The sharded state, distributed amoung all devices
             with additional distributed information.
+
+        Examples
+        --------
+        >>> state = workflow.enable_multi_devices(state)
+        >>> for i in range(100):
+        ...     state = workflow.step(state) # now it runs on multiple devices
         """
         self.multi_device_config = MultiDeviceConfig(
             devices=devices,
