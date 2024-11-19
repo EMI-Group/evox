@@ -385,6 +385,11 @@ class State:
 
         return state
 
+    def get_sharding(self, devices=None):
+        flatten_sharding = _get_state_sharding(self, devices)
+
+        return tree_unflatten(tree_structure(self), flatten_sharding)
+
 
 def _get_state_sharding(obj, devices=None):
     """
@@ -407,9 +412,3 @@ def _get_state_sharding(obj, devices=None):
         raise ValueError(f"Unsupported type: {type(obj)}")
 
     return sharding
-
-
-def get_state_sharding(state: Self, devices=None):
-    flatten_sharding = _get_state_sharding(state, devices)
-
-    return tree_unflatten(tree_structure(state), flatten_sharding)
