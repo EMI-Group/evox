@@ -21,7 +21,7 @@ from evox import (
     pytree_field,
     use_state,
 )
-from evox.core.distributed import POP_AXIS_NAME, all_gather, get_process_id
+from evox.core.distributed import all_gather
 from evox.utils import parse_opt_direction
 
 
@@ -36,8 +36,6 @@ def _leftover_callbacks_warning(method_name):
 class StdWorkflowState:
     generation: int
     first_step: bool = pytree_field(static=True)
-    rank: int
-    world_size: int = pytree_field(static=True)
 
 
 @dataclass
@@ -112,6 +110,7 @@ class StdWorkflow(Workflow):
     auto_exec_callbacks: bool = pytree_field(default=True, static=True)
     clear_monitor_history: bool = pytree_field(default=True, static=True)
     num_objectives: Optional[int] = pytree_field(default=None, static=True)
+    multi_devices: bool = pytree_field(default=False, static=True)
     migrate_helper: Optional[Callable] = pytree_field(default=None, static=True)
 
     # inner
@@ -149,22 +148,12 @@ class StdWorkflow(Workflow):
             state = self._pre_step_hook(state)
             state = self._pre_ask_hook(state)
             cands, state = self._ask(state)
-            state = self._post_ask_hook(state, cands)
-
-            num_cands = jtu.tree_leaves(cands)[0].shape[0]
-            # in multi-device|host mode, each device only evaluates a slice of the population
-            if num_cands % state.world_size != 0:
-                raise ValueError(
-                    f"#Candidates ({num_cands}) should be divisible by the number of devices ({state.world_size})"
+            if self.multi_devices:
+                cands = jax.lax.with_sharding_constraint(
+                    x,
                 )
-            # Note: slice_size is static
-            slice_size = num_cands // state.world_size
-            cands = jtu.tree_map(
-                lambda x: jax.lax.dynamic_slice_in_dim(
-                    x, state.rank * slice_size, slice_size, axis=0
-                ),
-                cands,
-            )
+
+            state = self._post_ask_hook(state, cands)
 
             transformed_cands = cands
             for transform in self.solution_transforms:
@@ -313,7 +302,7 @@ class StdWorkflow(Workflow):
         return state
 
     def setup(self, key):
-        return StdWorkflowState(generation=0, first_step=True, rank=0, world_size=1)
+        return StdWorkflowState(generation=0, first_step=True)
 
     def step(self, state):
         if self.auto_exec_callbacks and state._callbacks:
@@ -329,8 +318,6 @@ class StdWorkflow(Workflow):
         self,
         state: State,
         devices: Optional[list[jax.Device]] = None,
-        world_size: Optional[int] = None,
-        pmap_axis_name=POP_AXIS_NAME,
     ) -> State:
         """
         Enable the workflow to run on multiple devices.
@@ -349,33 +336,15 @@ class StdWorkflow(Workflow):
         Returns
         -------
         State
-            The replicated state, distributed amoung all local devices
+            The sharded state, distributed amoung all devices
             with additional distributed information.
         """
+        self.enable_multi_devices = True
         if not devices:
-            # auto select all local devices
-            devices = jax.local_devices()
-            num_local_devices = len(devices)
-        if not world_size:
-            # auto use all devices as world_size
-            world_size = jax.device_count()
-
-        self.pmap_axis_name = pmap_axis_name
-        self._step = jax.pmap(
-            self._step, axis_name=pmap_axis_name, static_broadcasted_argnums=0
-        )
-
-        # multi-node case
-        process_id = get_process_id()
-        ranks = process_id * num_local_devices + jnp.arange(
-            num_local_devices, dtype=jnp.int32
-        )
+            # auto select all devices
+            devices = jax.devices()
 
         sharding = state.get_sharding(devices)
         state = jax.device_put(state, sharding)
-        state = state.replace(
-            rank=jax.device_put_sharded(tuple(ranks), devices),
-            world_size=world_size,
-        )
 
         return state
