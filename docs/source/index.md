@@ -9,6 +9,7 @@
 guide/install/index
 guide/user/index
 guide/developer/index
+guide/experimental/index
 ```
 
 ```{toctree}
