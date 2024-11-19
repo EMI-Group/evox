@@ -1,7 +1,6 @@
 from collections.abc import Callable, Sequence
 import dataclasses
-from typing import Optional, Tuple, Union
-from functools import partial
+from typing import NamedTuple, Optional, Union
 import warnings
 
 import jax
@@ -21,7 +20,7 @@ from evox import (
     pytree_field,
     use_state,
 )
-from evox.core.distributed import all_gather
+from evox.core.distributed import all_gather, POP_AXIS_NAME, ShardingType
 from evox.utils import parse_opt_direction
 
 
@@ -36,6 +35,12 @@ def _leftover_callbacks_warning(method_name):
 class StdWorkflowState:
     generation: int
     first_step: bool = pytree_field(static=True)
+
+
+class MultiDeviceConfig(NamedTuple):
+    devices: list[jax.Device]
+    sharding: jax.Sharding
+    axis_name: str
 
 
 @dataclass
@@ -110,7 +115,9 @@ class StdWorkflow(Workflow):
     auto_exec_callbacks: bool = pytree_field(default=True, static=True)
     clear_monitor_history: bool = pytree_field(default=True, static=True)
     num_objectives: Optional[int] = pytree_field(default=None, static=True)
-    multi_devices: bool = pytree_field(default=False, static=True)
+    multi_device_config: Optional[MultiDeviceConfig] = pytree_field(
+        default=None, static=True
+    )
     migrate_helper: Optional[Callable] = pytree_field(default=None, static=True)
 
     # inner
@@ -148,9 +155,12 @@ class StdWorkflow(Workflow):
             state = self._pre_step_hook(state)
             state = self._pre_ask_hook(state)
             cands, state = self._ask(state)
-            if self.multi_devices:
+
+            if self.multi_device_config:
+                # when using multi devices
+                # force the candidates to be sharded along the first axis
                 cands = jax.lax.with_sharding_constraint(
-                    x,
+                    cands, self.multi_device_config.sharding
                 )
 
             state = self._post_ask_hook(state, cands)
@@ -339,7 +349,11 @@ class StdWorkflow(Workflow):
             The sharded state, distributed amoung all devices
             with additional distributed information.
         """
-        self.enable_multi_devices = True
+        self.multi_device_config = MultiDeviceConfig(
+            devices=devices,
+            sharding=ShardingType.SHARED_FIRST_DIM.get_sharding(devices),
+            axis_name=POP_AXIS_NAME,
+        )
         if not devices:
             # auto select all devices
             devices = jax.devices()
