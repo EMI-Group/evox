@@ -9,12 +9,7 @@ import dataclasses
 
 import orbax.checkpoint as ocp
 import warnings
-from jax.tree_util import (
-    register_pytree_node_class,
-    tree_map,
-    tree_structure,
-    tree_unflatten,
-)
+from jax.tree_util import register_pytree_node_class, tree_map
 from .distributed import ShardingType
 
 
