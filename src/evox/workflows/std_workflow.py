@@ -371,7 +371,7 @@ class StdWorkflow(Workflow):
             num_local_devices, dtype=jnp.int32
         )
 
-        sharding = state.get_sharding()
+        sharding = state.get_sharding(devices)
         state = jax.device_put(state, sharding)
         state = state.replace(
             rank=jax.device_put_sharded(tuple(ranks), devices),
