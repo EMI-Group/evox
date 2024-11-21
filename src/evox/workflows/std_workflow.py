@@ -1,6 +1,6 @@
 from collections.abc import Callable, Sequence
 import dataclasses
-from typing import NamedTuple, Optional, Union
+from typing import NamedTuple, Optional, Union, Any
 import warnings
 
 import jax
@@ -39,7 +39,7 @@ class StdWorkflowState:
 
 class MultiDeviceConfig(NamedTuple):
     devices: list[jax.Device]
-    sharding: jax.Sharding
+    sharding: Any
     axis_name: str
 
 
