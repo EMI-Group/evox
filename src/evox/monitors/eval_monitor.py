@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import warnings
 import time
 
@@ -8,6 +8,7 @@ import jax.numpy as jnp
 from evox import Monitor, dataclass, pytree_field
 from evox.vis_tools import plot
 from evox.operators import non_dominated_sort
+from .evoxvision_adapter import EvoXVisionAdapter, new_exv_metadata
 
 
 @dataclass
@@ -55,6 +56,9 @@ class EvalMonitor(Monitor):
     solution_history: list = pytree_field(static=True, init=False, default_factory=list)
     timestamp_history: list = pytree_field(
         static=True, init=False, default_factory=list
+    )
+    evoxvision_adapter: Optional[EvoXVisionAdapter] = pytree_field(
+        default=None, static=True
     )
 
     def hooks(self):
@@ -110,8 +114,8 @@ class EvalMonitor(Monitor):
         if self.full_fit_history or self.full_sol_history:
             return state.register_callback(
                 self._record_history,
-                state.latest_solution if self.full_sol_history else None,
-                fitness if self.full_fit_history else None,
+                state.latest_solution,
+                fitness,
             )
         else:
             return state
@@ -119,11 +123,38 @@ class EvalMonitor(Monitor):
     def _record_history(self, solution, fitness):
         # since history is a list, which doesn't have a static shape
         # we need to use register_callback to record the history
-        if self.full_sol_history:
-            self.solution_history.append(solution)
-        if self.full_fit_history:
-            self.fitness_history.append(fitness)
-        self.timestamp_history.append(time.time())
+        if self.evoxvision_adapter:
+            if not self.evoxvision_adapter.header_written:
+                # wait for the first two iterations
+                self.solution_history.append(jax.device_get(solution))
+                self.fitness_history.append(jax.device_get(fitness))
+                if len(self.solution_history) >= 2:
+                    metadata = new_exv_metadata(
+                        self.solution_history[0],
+                        self.solution_history[1],
+                        self.fitness_history[0],
+                        self.fitness_history[1],
+                    )
+                    self.evoxvision_adapter.set_metadata(metadata)
+                    self.evoxvision_adapter.write_header()
+                    self.evoxvision_adapter.write(
+                        self.solution_history[0].tobytes(),
+                        self.fitness_history[0].tobytes(),
+                    )
+                    self.evoxvision_adapter.write(
+                        self.solution_history[1].tobytes(),
+                        self.fitness_history[1].tobytes(),
+                    )
+                    self.solution_history = []
+                    self.fitness_history = []
+            else:
+                self.evoxvision_adapter.write(solution.tobytes(), fitness.tobytes())
+        else:
+            if self.full_sol_history:
+                self.solution_history.append(jax.device_get(solution))
+            if self.full_fit_history:
+                self.fitness_history.append(jax.device_get(fitness))
+            self.timestamp_history.append(time.time())
 
     def get_latest_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:
         """Get the fitness values from the latest iteration."""

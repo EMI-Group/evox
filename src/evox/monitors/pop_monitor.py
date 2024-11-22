@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import warnings
 import time
 
@@ -7,6 +7,7 @@ import jax.numpy as jnp
 
 from evox import Monitor, pytree_field, dataclass
 from evox.vis_tools import plot
+from .evoxvision_adapter import EvoXVisionAdapter, new_exv_metadata
 
 
 @dataclass
@@ -55,6 +56,9 @@ class PopMonitor(Monitor):
     timestamp_history: list = pytree_field(
         static=True, init=False, default_factory=list
     )
+    evoxvision_adapter: Optional[EvoXVisionAdapter] = pytree_field(
+        default=None, static=True
+    )
 
     def hooks(self):
         return ["post_step"]
@@ -90,13 +94,38 @@ class PopMonitor(Monitor):
         return state.register_callback(self._record_history, population, fitness)
 
     def _record_history(self, population, fitness):
-        # since history is a list, which doesn't have a static shape
-        # we need to use register_callback to record the history
-        if self.full_pop_history:
-            self.population_history.append(population)
-        if self.full_fit_history:
-            self.fitness_history.append(fitness)
-        self.timestamp_history.append(time.time())
+        if self.evoxvision_adapter:
+            if not self.evoxvision_adapter.header_written:
+                # wait for the first two iterations
+                self.population_history.append(jax.device_get(population))
+                self.fitness_history.append(jax.device_get(fitness))
+                if len(self.population_history) >= 2:
+                    metadata = new_exv_metadata(
+                        self.population_history[0],
+                        self.population_history[1],
+                        self.fitness_history[0],
+                        self.fitness_history[1],
+                    )
+                    self.evoxvision_adapter.set_metadata(metadata)
+                    self.evoxvision_adapter.write_header()
+                    self.evoxvision_adapter.write(
+                        self.population_history[0].tobytes(),
+                        self.fitness_history[0].tobytes(),
+                    )
+                    self.evoxvision_adapter.write(
+                        self.population_history[1].tobytes(),
+                        self.fitness_history[1].tobytes(),
+                    )
+                    self.population_history = []
+                    self.fitness_history = []
+            else:
+                self.evoxvision_adapter.write(population.tobytes(), fitness.tobytes())
+        else:
+            if self.full_pop_history:
+                self.population_history.append(population)
+            if self.full_fit_history:
+                self.fitness_history.append(fitness)
+            self.timestamp_history.append(time.time())
 
     def plot(self, state=None, problem_pf=None, **kwargs):
         if not self.fitness_history:
