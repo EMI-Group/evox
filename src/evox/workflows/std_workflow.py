@@ -1,6 +1,6 @@
 from collections.abc import Callable, Sequence
 import dataclasses
-from typing import NamedTuple, Optional, Union, Any
+from typing import NamedTuple, Optional, Union
 import warnings
 
 import jax
@@ -39,7 +39,6 @@ class StdWorkflowState:
 
 class MultiDeviceConfig(NamedTuple):
     devices: list[jax.Device]
-    sharding: Any
     axis_name: str
 
 
@@ -160,7 +159,10 @@ class StdWorkflow(Workflow):
                 # when using multi devices
                 # force the candidates to be sharded along the first axis
                 cands = jax.lax.with_sharding_constraint(
-                    cands, self.multi_device_config.sharding
+                    cands,
+                    ShardingType.SHARED_FIRST_DIM.get_sharding(
+                        self.multi_device_config.devices
+                    ),
                 )
 
             state = self._post_ask_hook(state, cands)
@@ -171,6 +173,17 @@ class StdWorkflow(Workflow):
 
             state = self._pre_eval_hook(state, transformed_cands)
             fitness, state = self._evaluate(state, transformed_cands)
+
+            if self.multi_device_config:
+                # when using multi devices
+                # force the fitness to be replicated
+                fitness = jax.lax.with_sharding_constraint(
+                    fitness,
+                    ShardingType.REPLICATED.get_sharding(
+                        self.multi_device_config.devices
+                    ),
+                )
+
             state = self._post_eval_hook(state, fitness)
 
             transformed_fitness = fitness
@@ -357,7 +370,6 @@ class StdWorkflow(Workflow):
         """
         self.multi_device_config = MultiDeviceConfig(
             devices=devices,
-            sharding=ShardingType.SHARED_FIRST_DIM.get_sharding(devices),
             axis_name=POP_AXIS_NAME,
         )
         if not devices:
