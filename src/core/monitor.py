@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any
 
-from .module import *
+from module import *
 
 
 class Monitor(ModuleBase, ABC):
@@ -35,18 +35,31 @@ class Monitor(ModuleBase, ABC):
     def pre_ask(self):
         raise NotImplementedError()
     
-    def post_ask(self, cand_sol: Union[torch.Tensor, Any]):
+    def post_ask(self, candidate_solution: Union[torch.Tensor, Any]):
         raise NotImplementedError()
     
-    def pre_eval(self, cand_sol: Union[torch.Tensor, Any], transformed_cand_sol: Union[torch.Tensor, Any]):
+    def pre_eval(
+        self,
+        candidate_solution: Union[torch.Tensor, Any],
+        transformed_candidate_solution: Union[torch.Tensor, Any],
+    ):
         raise NotImplementedError()
     
-    def post_eval(self, cand_sol: Union[torch.Tensor, Any], transformed_cand_sol: Union[torch.Tensor, Any],
-                  fitness: torch.Tensor):
+    def post_eval(
+        self,
+        candidate_solution: Union[torch.Tensor, Any],
+        transformed_candidate_solution: Union[torch.Tensor, Any],
+        fitness: torch.Tensor,
+    ):
         raise NotImplementedError()
     
-    def pre_tell(self, cand_sol: Union[torch.Tensor, Any], transformed_cand_sol: Union[torch.Tensor, Any],
-                 fitness: torch.Tensor, transformed_fitness: torch.Tensor):
+    def pre_tell(
+        self,
+        candidate_solution: Union[torch.Tensor, Any],
+        transformed_candidate_solution: Union[torch.Tensor, Any],
+        fitness: torch.Tensor,
+        transformed_fitness: torch.Tensor,
+    ):
         raise NotImplementedError()
     
     def post_tell(self):
