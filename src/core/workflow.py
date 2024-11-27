@@ -7,13 +7,10 @@ from problem import Problem
 class Workflow(ModuleBase, ABC):
     """The base class for workflow."""
     
-    def step(self) -> ModuleBase:
+    def step(self) -> None:
         """The basic function to step a workflow.
 
         Usually consists of sequence invocation of `algorithm.ask()`, `problem.evaluate()`, and `algorithm.tell()`.
-        
-        Returns:
-            (`Workflow`): This workflow
         """
         raise NotImplementedError()
     
@@ -30,7 +27,7 @@ if __name__ == "__main__":
     class BasicProblem(Problem):
         def __init__(self):
             super().__init__(num_objective=1)
-            self._eval_fn = vmap(BasicProblem._single_eval, in_dims=(0, None), example_shapes=((13, 3), None))
+            self._eval_fn = vmap(BasicProblem._single_eval, example_ndim=2)
         
         def _single_eval(x: torch.Tensor, p: float = 2.0):
             return (x ** p).sum()
@@ -67,19 +64,20 @@ if __name__ == "__main__":
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
         
+        @torch.jit.ignore
+        def trace_step(self):
+            population, algo = torch.cond(self.generation > 1, self.algorithm.ask, self.algorithm.init_ask, ())
+            fitness, prob = self.problem.evaluate(population)
+            algo = torch.cond(self.generation > 1, algo.tell, algo.init_tell, (fitness,))
+            self.algorithm = algo
+            self.problem = prob
+            self.generation += 1
+        
         def step(self):
-            if torch.jit.is_tracing():
-                population, algo = torch.cond(self.generation > 1, self.algorithm.ask, self.algorithm.init_ask, ())
-                fitness, prob = self.problem.evaluate(population)
-                algo = torch.cond(self.generation > 1, algo.tell, algo.init_tell, (fitness,))
-                self.algorithm = algo
-                self.problem = prob
-            else:
-                population = self.algorithm.ask() if self.generation > 1 else self.algorithm.init_ask()
-                fitness = self.problem.evaluate(population)
-                self.algorithm.tell(fitness) if self.generation > 1 else self.algorithm.init_tell(fitness)
-                self.generation = self.generation + 1
-            return self
+            population = self.algorithm.ask() if self.generation > 1 else self.algorithm.init_ask()
+            fitness = self.problem.evaluate(population)
+            self.algorithm.tell(fitness) if self.generation > 1 else self.algorithm.init_tell(fitness)
+            self.generation += 1
         
         def loop(self, max_iterations: int):
             for _ in range(max_iterations):
@@ -92,14 +90,10 @@ if __name__ == "__main__":
     workflow = BasicWorkflow(algo, prob)
     print(workflow.step.inlined_graph)
     workflow.step()
-    print(workflow.algorithm.fit)
+    print(workflow.generation, workflow.algorithm.fit)
     workflow.step()
-    print(workflow.algorithm.fit)
+    print(workflow.generation, workflow.algorithm.fit)
     
     workflow = BasicWorkflow(algo, prob)
     workflow.loop(100)
     print(workflow.algorithm.fit)
-    
-    # workflow = torch.jit.script(BasicWorkflow(algo, prob))
-    # workflow.loop_until(lambda wf: (wf.algorithm.fit < 1).any())
-    # print(workflow.algorithm.fit)

@@ -15,17 +15,15 @@ def vmap(func: Callable,
          strict: bool = False,
          example_ndim: Tuple[int | None] | int = 1,
          example_shapes: Optional[Tuple[Tuple[int] | Any] | Tuple[int | Any]] = None,
-         example_inputs: Optional[Tuple | Dict] = None) -> Callable:
+         example_inputs: Optional[Tuple[torch.Tensor | Any]] = None) -> Callable:
+    
+    VMAP_DIM_CONST = 13
+    
     mapped = torch.vmap(func, in_dims, out_dims, randomness)
     # when tracing, do nothing
     if torch.jit.is_tracing():
         return mapped
-    # when example inputs are provided
-    if example_inputs is not None:
-        if isinstance(example_inputs, dict):
-            return torch.jit.trace(mapped, example_kwarg_inputs=example_inputs, strict=strict)
-        else:
-            return torch.jit.trace(mapped, example_inputs=example_inputs, strict=strict)
+    
     # otherwise
     signature = inspect.signature(func).parameters
     args = []
@@ -54,53 +52,47 @@ def vmap(func: Callable,
         else:
             assert len(example_ndim) == len(args), f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
     # create example inputs
-    example_inputs: List = []
-    for arg, default, annotation, shape, ndim in zip(args, defaults, annotations, example_shapes, example_ndim):
-        if shape is not None and (isinstance(shape, int) or isinstance(shape, tuple)):
-            example_inputs.append(torch.empty(shape))
-            continue
-        if default is not None:
-            example_inputs.append(default)
-            continue
-        if ndim is not None:
+    example_inputs: List = [None] * len(args) if example_inputs is None else list(example_inputs)
+    static_inputs = {}
+    final_inputs = []
+    default_tensor_inputs = {}
+    for arg, default, annotation, input, shape, ndim in zip(args, defaults, annotations, example_inputs, example_shapes,
+                                                            example_ndim):
+        if input is not None:
+            final_inputs.append(input)
+        elif shape is not None and (isinstance(shape, int) or isinstance(shape, tuple)):
+            final_inputs.append(torch.empty(shape))
+        elif default is not None:
+            if isinstance(default, torch.Tensor):
+                default_tensor_inputs[arg] = default
+            else:
+                static_inputs[arg] = default
+        elif ndim is not None:
             assert annotation is not None and annotation == torch.Tensor, \
                 f"Vector map of functions with argument {arg} of non-tensor type at compilation is not supported"
-            example_inputs.append(torch.empty(tuple([13] * ndim)))
-            continue
-        if annotation is not None:
-            try:
-                example_inputs.append(annotation())
-            except Exception as e:
-                raise TypeError(f"Cannot create default value from annotation {annotation}", e)
-    args_to_tensor = []
-    for i, arg in enumerate(args):
-        try:
-            example_inputs[i] = torch.as_tensor(example_inputs[i])
-            args_to_tensor.append(True)
-        except Exception as e:
-            warnings.warn(f"Cannot convert argument {arg} to tensor, it will be treated as STATIC argument" +
-                          " and shall be REMOVED during invocation.",
-                          source=e)
-            args_to_tensor.append(False)
-    example_inputs = tuple(example_inputs)
-    args_to_tensor = tuple(args_to_tensor)
+            final_inputs.append(torch.empty(tuple([VMAP_DIM_CONST] * ndim)))
+        elif annotation is not None:
+            if annotation == torch.Tensor:
+                final_inputs.append(torch.empty(()))
+            else:
+                raise TypeError(f"Cannot create default value from annotation {annotation}")
     # JIT
-    jit_func = torch.jit.trace(mapped, example_inputs, strict=strict)
-    def wrapped(x: torch.Tensor, p: float = 2.0):
-        p = torch.as_tensor(p)
-        return jit_func(x, p)
-    return wrapped
+    final_inputs = tuple(final_inputs)
+    static_inputs = {**static_inputs, **default_tensor_inputs}
+    if len(static_inputs) > 0:
+        warnings.warn(f"The arguments {tuple(static_inputs.keys())} are not tensors or have default values," +
+                      f" they will be set to {tuple(static_inputs.items())}" +
+                      " PERMANENTLY and shall be REMOVED during later invocation(s).",
+                      stacklevel=-1)
     
-#     wrapped_func = \
-# f"""def wrapped({", ".join(a + ": " + ("" if t.__module__ == "builtins" else t.__module__ + ".") + t.__name__ for a, t in zip(args, annotations))}):
-#     {"; ".join((a + " = torch.as_tensor(" + a + ")") if t \
-#                 else ("") for a, t in zip(args, args_to_tensor))}
-#     return jit_func({", ".join(args)})
-# """
-#     g = globals()
-#     g["jit_func"] = jit_func
-#     exec(wrapped_func, g, locals())
-#     return locals()["wrapped"]
+    # def _wrapped(*input_args):
+    #     input_pos_args = input_args[:-1]
+    #     input_kwargs = input_args[-1]
+    #     return mapped(*input_pos_args, **input_kwargs)
+    
+    # jit_func = torch.jit.trace(_wrapped, final_inputs + (default_tensor_inputs, ), strict=strict)
+    jit_func = torch.jit.trace(mapped, final_inputs, strict=strict)
+    return jit_func
 
 
 def jit(func: Callable,
@@ -196,15 +188,17 @@ def jit_class(cls, trace=False):
     _jit_module = None
     for name, method in cls.__dict__.items():
         if callable(method):
-            args_specs = inspect.getfullargspec(method)
-            if len(args_specs.args) == 0 or args_specs.args[0] != "self":
+            method_sign = inspect.signature(method)
+            if len(method_sign.parameters) == 0 or "self" not in method_sign.parameters:
                 continue
             if name.startswith("__") and name.endswith("__"):
+                continue
+            if hasattr(method, "_torchscript_modifier"):
                 continue
             if not trace:
                 torch.jit.export(method)
             _original_methods[name] = method
-            _method_argnames[name] = args_specs.args[1:]
+            _method_argnames[name] = list(method_sign.parameters.keys())[1:]
     
     class WrappedModuleType(type):
         
@@ -219,64 +213,67 @@ def jit_class(cls, trace=False):
         
         def __init__(self, *args, **kwargs):
             self.__inner_module__ = cls(*args, **kwargs)
+            self.__jit_module__ = None
+            
+        def __get_module__(self):
+            return self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
         
         def __str__(self) -> str:
-            return object.__str__(self.__inner_module__)
+            return object.__str__(self.__get_module__())
         
         def __repr__(self) -> str:
-            return object.__repr__(self.__inner_module__)
+            return object.__repr__(self.__get_module__())
         
         def __hash__(self) -> int:
-            return object.__hash__(self.__inner_module__)
+            return object.__hash__(self.__get_module__())
         
         def __format__(self, format_spec: str) -> str:
-            return object.__format__(self.__inner_module__, format_spec)
+            return object.__format__(self.__get_module__(), format_spec)
         
         def __getitem__(self, key):
-            return self.__inner_module__.__getitem__(key)
+            return (self.__get_module__()).__getitem__(key)
         
         def __setitem__(self, value, key):
-            self.__inner_module__.__setitem__(value, key)
+            (self.__get_module__()).__setitem__(value, key)
         
         def __setattr__(self, name, value):
-            if name != "__inner_module__":
-                setattr(self.__inner_module__, name, value)
+            if name not in ["__inner_module__", "__jit_module__"]:
+                setattr(self.__get_module__(), name, value)
             else:
                 object.__setattr__(self, name, value)
         
         def __delattr__(self, name, value):
-            if name != "__inner_module__":
-                delattr(self.__inner_module__, name, value)
+            if name not in ["__inner_module__", "__jit_module__"]:
+                delattr(self.__get_module__(), name, value)
             else:
                 object.__delattr__(self, name, value)
         
         def __getattr__(self, name):
-            nonlocal _original_methods, _trace_method_args, _jit_module
-            if name == "__inner_module__":
+            nonlocal _original_methods, _trace_method_args
+            if name in ["__inner_module__", "__jit_module__"]:
                 return object.__getattribute__(self, name)
             if name not in _original_methods:
-                return getattr(self.__inner_module__, name)
+                return getattr(self.__get_module__(), name)
             
             # deal with script
             if not trace:
-                if _jit_module is None:
-                    _jit_module = torch.jit.script(self.__inner_module__)
-                return _jit_module.__getattr__(name)
+                if self.__jit_module__ is None:
+                    self.__jit_module__ = torch.jit.script(self.__inner_module__)
+                return self.__jit_module__.__getattr__(name)
             
             # deal with trace
             attr = object.__getattribute__(self.__inner_module__, name)
             
             @wraps(attr)
             def method_wrapper(*args, **kwargs):
-                nonlocal _jit_module
                 if torch.jit.is_tracing():
                     return attr(*args, **kwargs)
                 if name not in _trace_method_args:
                     _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
-                    _jit_module = torch.jit.trace_module(self.__inner_module__,
-                                                         _trace_method_args,
-                                                         example_inputs_is_kwarg=True)
-                return _jit_module.__getattr__(name)(*args, **kwargs)
+                    self.__jit_module__ = torch.jit.trace_module(self.__inner_module__,
+                                                                 _trace_method_args,
+                                                                 example_inputs_is_kwarg=True)
+                return self.__jit_module__.__getattr__(name)(*args, **kwargs)
             
             return method_wrapper
     
@@ -402,45 +399,38 @@ class ModuleBase(nn.Module):
 
 
 if __name__ == "__main__":
+    from functools import partial
     
-    # @torch.jit.script
-    def _single_eval(x: torch.Tensor, p: float = 2.0):
-        return (x**p).sum()
+    @partial(vmap, example_ndim=2)
+    def _single_eval(x: torch.Tensor, p: float = 2.0, q: torch.Tensor = torch.as_tensor(range(2))):
+        return (x**p).sum() * q.sum()
     
-    mapped = torch.vmap(_single_eval)
-    inspect.getsource(mapped)
-    _multi_eval = torch.jit.script(mapped)
-    print(_multi_eval(2 * torch.ones(10, 2)))
-    print(_multi_eval(2 * torch.ones(10, 2), p=3.0))
+    print(_single_eval(2 * torch.ones(10, 2)))
+    print(torch.jit.script(_single_eval)(2 * torch.ones(10, 2)))
     
-    # _multi_eval = vmap(_single_eval, in_dims=(0, None), example_ndim=2)
-    # _multi_eval = torch.jit.script(_multi_eval)
-    # print(_multi_eval(2 * torch.ones(10, 2), 3.0))
-    # print(_multi_eval(2 * torch.ones(10, 2)))
+    @jit_class
+    class Test(ModuleBase):
+        
+        def __init__(self, threshold=0.5):
+            super().__init__()
+            self.threshold = threshold
+        
+        def h(self, q: torch.Tensor) -> torch.Tensor:
+            if q.flatten()[0] > self.threshold:
+                x = torch.sin(q)
+            else:
+                x = torch.tan(q)
+            return x * x.shape[1]
+        
+        def g(self, p: torch.Tensor) -> torch.Tensor:
+            x = torch.cos(p)
+            return x * p.shape[0]
     
-    # @jit_class
-    # class Test(ModuleBase):
-    
-    #     def __init__(self, threshold=0.5):
-    #         super().__init__()
-    #         self.threshold = threshold
-    
-    #     def h(self, q: torch.Tensor) -> torch.Tensor:
-    #         if q.flatten()[0] > self.threshold:
-    #             x = torch.sin(q)
-    #         else:
-    #             x = torch.tan(q)
-    #         return x * x.shape[1]
-    
-    #     def g(self, p: torch.Tensor) -> torch.Tensor:
-    #         x = torch.cos(p)
-    #         return x * p.shape[0]
-    
-    # t = Test()
-    # print(t.h.inlined_graph)
-    # result = t.g(torch.randn(100, 4))
-    # print(result)
-    # t.add_mutable("mut_list", [torch.zeros(10), torch.ones(10)])
-    # t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
-    # print(t.mut_list[0])
-    # print(t.mut_dict["b"])
+    t = Test()
+    print(t.h.inlined_graph)
+    result = t.g(torch.randn(100, 4))
+    print(result)
+    t.add_mutable("mut_list", [torch.zeros(10), torch.ones(10)])
+    t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
+    print(t.mut_list[0])
+    print(t.mut_dict["b"])
