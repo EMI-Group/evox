@@ -24,6 +24,7 @@ class Workflow(ModuleBase, ABC):
 
 
 if __name__ == "__main__":
+    @jit_class
     class BasicProblem(Problem):
         def __init__(self):
             super().__init__(num_objective=1)
@@ -35,6 +36,7 @@ if __name__ == "__main__":
         def evaluate(self, pop):
             return self._eval_fn(pop)
 
+    @jit_class
     class BasicAlgorithm(Algorithm):
         def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
             super().__init__(pop_size=pop_size)
@@ -64,19 +66,19 @@ if __name__ == "__main__":
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
         
-        @torch.jit.ignore
+        def step(self):
+            population = self.algorithm.ask() if self.generation > 1 else self.algorithm.init_ask()
+            fitness = self.problem.evaluate(population)
+            self.algorithm.tell(fitness) if self.generation > 1 else self.algorithm.init_tell(fitness)
+            self.generation += 1
+            
+        @trace_impl(step)
         def trace_step(self):
             population, algo = torch.cond(self.generation > 1, self.algorithm.ask, self.algorithm.init_ask, ())
             fitness, prob = self.problem.evaluate(population)
             algo = torch.cond(self.generation > 1, algo.tell, algo.init_tell, (fitness,))
             self.algorithm = algo
             self.problem = prob
-            self.generation += 1
-        
-        def step(self):
-            population = self.algorithm.ask() if self.generation > 1 else self.algorithm.init_ask()
-            fitness = self.problem.evaluate(population)
-            self.algorithm.tell(fitness) if self.generation > 1 else self.algorithm.init_tell(fitness)
             self.generation += 1
         
         def loop(self, max_iterations: int):
@@ -89,6 +91,7 @@ if __name__ == "__main__":
     prob = BasicProblem()
     workflow = BasicWorkflow(algo, prob)
     print(workflow.step.inlined_graph)
+    print(workflow.trace_step)
     workflow.step()
     print(workflow.generation, workflow.algorithm.fit)
     workflow.step()

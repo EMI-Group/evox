@@ -1,4 +1,3 @@
-import ast
 import inspect
 import warnings
 from functools import wraps
@@ -11,11 +10,29 @@ from torch import nn
 def vmap(func: Callable,
          in_dims: Optional[int | Tuple[int, ...]] = 0,
          out_dims: Optional[int | Tuple[int, ...]] = 0,
-         randomness: str = "error",
+         randomness: str = "different",
          strict: bool = False,
          example_ndim: Tuple[int | None] | int = 1,
          example_shapes: Optional[Tuple[Tuple[int] | Any] | Tuple[int | Any]] = None,
          example_inputs: Optional[Tuple[torch.Tensor | Any]] = None) -> Callable:
+    """Vectorize map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
+
+    Args:
+        func (Callable): The function to be mapped. See `torch.vmap`.
+        in_dims (`int | Tuple[int, ...]`, optional): The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
+        out_dims (`int | Tuple[int, ...]`, optional): The outputs' batch dimensions. See `torch.vmap`. Defaults to 0.
+        randomness (str, optional): The randomness in this vmap. See `torch.vmap`. Defaults to "different".
+        strict (bool, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
+        example_ndim (`Tuple[int | None] | int`): The `ndim` of the expected inputs of the batched function; thus, it must be at least 1. Giving a single integer means same `ndim` for all inputs. Defaults to 1.
+        example_shapes (`Tuple[Tuple[int]  |  Any]  |  Tuple[int  |  Any]`, optional): The . Defaults to None.
+        example_inputs (`Tuple[torch.Tensor  |  Any]`, optional): _description_. Defaults to None.
+
+    Raises:
+        NotImplementedError: If the function argument types are not supported
+
+    Returns:
+        `Callable`: The “batched” (vectorized mapped) version of `func`.
+    """
     
     VMAP_DIM_CONST = 13
     
@@ -55,7 +72,6 @@ def vmap(func: Callable,
     example_inputs: List = [None] * len(args) if example_inputs is None else list(example_inputs)
     static_inputs = {}
     final_inputs = []
-    default_tensor_inputs = {}
     for arg, default, annotation, input, shape, ndim in zip(args, defaults, annotations, example_inputs, example_shapes,
                                                             example_ndim):
         if input is not None:
@@ -63,35 +79,31 @@ def vmap(func: Callable,
         elif shape is not None and (isinstance(shape, int) or isinstance(shape, tuple)):
             final_inputs.append(torch.empty(shape))
         elif default is not None:
-            if isinstance(default, torch.Tensor):
-                default_tensor_inputs[arg] = default
-            else:
-                static_inputs[arg] = default
-        elif ndim is not None:
-            assert annotation is not None and annotation == torch.Tensor, \
-                f"Vector map of functions with argument {arg} of non-tensor type at compilation is not supported"
-            final_inputs.append(torch.empty(tuple([VMAP_DIM_CONST] * ndim)))
-        elif annotation is not None:
+            # if isinstance(default, torch.Tensor):
+            #     static_inputs[arg] = default
+            # else:
+            #     static_inputs[arg] = default
+            static_inputs[arg] = default
+        else:
             if annotation == torch.Tensor:
-                final_inputs.append(torch.empty(()))
+                final_inputs.append(torch.empty(()) if ndim is None else torch.empty(tuple([VMAP_DIM_CONST] * ndim)))
             else:
-                raise TypeError(f"Cannot create default value from annotation {annotation}")
+                try:
+                    static_inputs[arg] = annotation()
+                except Exception as e:
+                    raise NotImplementedError(f"Cannot create default value from annotation {annotation}", e)
     # JIT
     final_inputs = tuple(final_inputs)
-    static_inputs = {**static_inputs, **default_tensor_inputs}
     if len(static_inputs) > 0:
         warnings.warn(f"The arguments {tuple(static_inputs.keys())} are not tensors or have default values," +
                       f" they will be set to {tuple(static_inputs.items())}" +
                       " PERMANENTLY and shall be REMOVED during later invocation(s).",
-                      stacklevel=-1)
+                      stacklevel=2)
     
-    # def _wrapped(*input_args):
-    #     input_pos_args = input_args[:-1]
-    #     input_kwargs = input_args[-1]
-    #     return mapped(*input_pos_args, **input_kwargs)
+    def wrapper(*args):
+        return mapped(*args, **static_inputs)
     
-    # jit_func = torch.jit.trace(_wrapped, final_inputs + (default_tensor_inputs, ), strict=strict)
-    jit_func = torch.jit.trace(mapped, final_inputs, strict=strict)
+    jit_func = torch.jit.trace(wrapper, final_inputs, strict=strict)
     return jit_func
 
 
@@ -145,6 +157,79 @@ def jit(func: Callable,
     return wrapper
 
 
+_TRACE_WRAP_NAME = "__trace_wrapped__"
+global _TORCHSCRIPT_MODIFIER
+_TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
+
+
+def trace_impl(target: Callable):
+    # deal with torchscript_modifier in case the implementation changed
+    global _TORCHSCRIPT_MODIFIER
+    torch.jit.export(target)
+    for k in target.__dict__.keys():
+        if "torch" in k and "modifier" in k:
+            _TORCHSCRIPT_MODIFIER = k
+            break
+    
+    def wrapping_fn(func: Callable) -> Callable:
+        torch.jit.ignore(func)
+        setattr(func, _TRACE_WRAP_NAME, target)
+        return func
+    
+    return wrapping_fn
+
+
+def use_state(func: Callable) -> Callable:
+    if not hasattr(func, "__self__"):
+        return func
+    
+    func_self = func.__self__
+    unbound_func = func.__func__
+    
+    class SelfStateWrapper:
+        
+        def __init__(self, state_dict: Dict[str, torch.Tensor]):
+            self.__state_dict__ = state_dict
+        
+        def __getitem__(self, key):
+            return func_self.__getitem__(key)
+        
+        def __setitem__(self, value, key):
+            func_self.__setitem__(value, key)
+        
+        def __setattr__(self, name, value):
+            if name != "__state_dict__":
+                if name in self.__state_dict__:
+                    self.__state_dict__[name] = value
+                else:
+                    setattr(func_self, name, value)
+            else:
+                object.__setattr__(self, name, value)
+        
+        def __getattribute__(self, name):
+            if name != "__state_dict__":
+                if name in self.__state_dict__:
+                    return self.__state_dict__[name]
+                else:
+                    value = getattr(func_self, name)
+                    if hasattr(value, "__use_state__"):
+                        return value
+                    if callable(value):
+                        value = use_state(value)
+                        self.__state_dict__[name] = value
+                        return value
+            else:
+                return object.__getattribute__(self, name)
+    
+    @wraps(func)
+    def wrapper(self_dict, *args, **kwargs):
+        state = SelfStateWrapper(self_dict)
+        return state.__state_dict__, unbound_func(state, *args, **kwargs)
+    
+    wrapper.__use_state__ = True
+    return wrapper
+
+
 def jit_class(cls, trace=False):
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
@@ -185,7 +270,6 @@ def jit_class(cls, trace=False):
     _original_methods = {}
     _method_argnames = {}
     _trace_method_args = {}
-    _jit_module = None
     for name, method in cls.__dict__.items():
         if callable(method):
             method_sign = inspect.signature(method)
@@ -193,7 +277,7 @@ def jit_class(cls, trace=False):
                 continue
             if name.startswith("__") and name.endswith("__"):
                 continue
-            if hasattr(method, "_torchscript_modifier"):
+            if hasattr(method, _TRACE_WRAP_NAME):
                 continue
             if not trace:
                 torch.jit.export(method)
@@ -214,65 +298,68 @@ def jit_class(cls, trace=False):
         def __init__(self, *args, **kwargs):
             self.__inner_module__ = cls(*args, **kwargs)
             self.__jit_module__ = None
-            
-        def __get_module__(self):
-            return self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
         
         def __str__(self) -> str:
-            return object.__str__(self.__get_module__())
+            return object.__str__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
         
         def __repr__(self) -> str:
-            return object.__repr__(self.__get_module__())
+            return object.__repr__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
         
         def __hash__(self) -> int:
-            return object.__hash__(self.__get_module__())
+            return object.__hash__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
         
         def __format__(self, format_spec: str) -> str:
-            return object.__format__(self.__get_module__(), format_spec)
+            return object.__format__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__,
+                                     format_spec)
         
         def __getitem__(self, key):
-            return (self.__get_module__()).__getitem__(key)
+            return (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__getitem__(key)
         
         def __setitem__(self, value, key):
-            (self.__get_module__()).__setitem__(value, key)
+            (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__setitem__(value, key)
         
         def __setattr__(self, name, value):
             if name not in ["__inner_module__", "__jit_module__"]:
-                setattr(self.__get_module__(), name, value)
+                setattr(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, name, value)
             else:
                 object.__setattr__(self, name, value)
         
         def __delattr__(self, name, value):
             if name not in ["__inner_module__", "__jit_module__"]:
-                delattr(self.__get_module__(), name, value)
+                delattr(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, name, value)
             else:
                 object.__delattr__(self, name, value)
         
-        def __getattr__(self, name):
+        def __getattribute__(self, name):
             nonlocal _original_methods, _trace_method_args
             if name in ["__inner_module__", "__jit_module__"]:
                 return object.__getattribute__(self, name)
+            jit_mod = self.__jit_module__
+            org_mod = self.__inner_module__
             if name not in _original_methods:
-                return getattr(self.__get_module__(), name)
+                if jit_mod is None:
+                    return getattr(org_mod, name)
+                else:
+                    return getattr(jit_mod, name) if hasattr(jit_mod, name) else getattr(org_mod, name)
             
             # deal with script
-            if not trace:
-                if self.__jit_module__ is None:
-                    self.__jit_module__ = torch.jit.script(self.__inner_module__)
+            if not trace and not torch.jit.is_tracing():
+                if jit_mod is None:
+                    self.__jit_module__ = torch.jit.script(org_mod)
                 return self.__jit_module__.__getattr__(name)
             
-            # deal with trace
-            attr = object.__getattribute__(self.__inner_module__, name)
+            # deal with pure trace
+            func = _original_methods[name]
+            func = use_state(func)
             
-            @wraps(attr)
+            @wraps(func)
             def method_wrapper(*args, **kwargs):
                 if torch.jit.is_tracing():
-                    return attr(*args, **kwargs)
+                    return func(*args, **kwargs)
                 if name not in _trace_method_args:
+                    # TODO: deal with use state
                     _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
-                    self.__jit_module__ = torch.jit.trace_module(self.__inner_module__,
-                                                                 _trace_method_args,
-                                                                 example_inputs_is_kwarg=True)
+                    self.__jit_module__ = torch.jit.trace_module(org_mod, _trace_method_args, example_inputs_is_kwarg=True)
                 return self.__jit_module__.__getattr__(name)(*args, **kwargs)
             
             return method_wrapper
