@@ -8,6 +8,124 @@ import torch
 from torch import nn
 
 
+def _if_none(a, b):
+    return b if a is None else a
+
+
+class ModuleBase(nn.Module):
+    """
+    The base module for all algorithms and problems in the library.
+
+    ## Notice
+    1. This module is an object-oriented one that can contain mutable values.
+    2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
+    
+    ## Usage
+    1. Static methods to be JIT shall be defined as is, e.g.,
+    ```
+    @jit
+    def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        pass
+    ```
+    2. If a member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
+    ```
+    def ExampleModule(ModuleBase):
+        @partial(jit, trace=False)
+        def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
+            if x.flatten()[0] > threshold:
+                return torch.sin(x)
+            else:
+                return torch.tan(x)
+        @jit
+        def jit_func(self, p: torch.Tensor) -> torch.Tensor:
+            x = ExampleModule.static_func(p, self.threshold)
+            ...
+    ```
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.train(False)
+    
+    def load_state_dict(self, state_dict, strict=True, assign=True):
+        return super().load_state_dict(state_dict, strict, assign)
+    
+    def add_mutable(
+        self,
+        name: str,
+        value: Union[torch.Tensor, Sequence[torch.Tensor], Dict[str, torch.Tensor]],
+    ) -> None:
+        """Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place.
+
+        Args:
+            name (`str`): The mutable value's name.
+            value (`torch.Tensor | Tuple[torch.Tensor, ...], List[torch.Tensor], Dict[str, torch.Tensor]`): The mutable value, can be a tuple, list, dictionary of a `torch.Tensor`.
+
+        Raises:
+            NotImplementedError: If the mutable value's type is not supported yet.
+            AssertionError: If the `name` is invalid.
+        """
+        assert name.isdigit() or str.isidentifier(name), f"Name {name} is not a valid Python name."
+        if isinstance(value, torch.Tensor):
+            setattr(self, name, nn.Buffer(value))
+        elif isinstance(value, tuple) or isinstance(value, list):
+            sub_module = ModuleBase()
+            for i, v in enumerate(value):
+                sub_module.add_mutable(str(i), v)
+            self.add_module(name, sub_module)
+        elif isinstance(value, dict):
+            sub_module = ModuleBase()
+            for k, v in value.items():
+                assert isinstance(k, str), f"Mutable with name type {type(k)} is not supported yet."
+                sub_module.add_mutable(k, v)
+            self.add_module(name, sub_module)
+        else:
+            raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
+    
+    def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
+        """Get the mutable value(s) stored in this list-like module.
+
+        Args:
+            key (`int | slice | str`): The key used to index mutable value(s).
+
+        Raises:
+            IndexError: If `key` is out of range.
+            TypeError: If `key` is of wrong type.
+
+        Returns:
+            `torch.Tensor | List[torch.Tensor]`: The indexed mutable value(s).
+        """
+        buffers = list(self.named_buffers(recurse=False))
+        if isinstance(key, slice):
+            key = range(_if_none(key.start, 0), key.stop, _if_none(key.step, 1))
+            return [self.__getitem__(k) for k in key]
+        elif isinstance(key, int):
+            if key < 0:
+                raise IndexError(f"The index {key} cannot be negative.")
+            return self.get_buffer(str(key))
+        elif isinstance(key, str):
+            return self.get_buffer(key)
+        else:
+            raise TypeError(f"Invalid argument type {type(key)}.")
+    
+    def __setitem__(self, value: Union[torch.Tensor, Sequence[torch.Tensor]], key: Union[slice, int]) -> None:
+        """Set the mutable value(s) stored in this list-like module.
+
+        Args:
+            value (`torch.Tensor | Sequence[torch.Tensor]`): The new mutable value(s).
+            key (`int | slice`): The key used to index mutable value(s).
+        """
+        targets = self.__getitem__(key)
+        if isinstance(targets, list):
+            value = list(value)
+            assert len(value) == len(targets), f"Length of value mismatch, expected {len(targets)}, got {len(value)}"
+            for t, v in zip(targets, value):
+                t.set_(v)
+        else:
+            assert isinstance(value, torch.Tensor), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
+            targets.set_(value)
+
+
 def vmap(func: Callable,
          in_dims: Optional[int | Tuple[int, ...]] = 0,
          out_dims: Optional[int | Tuple[int, ...]] = 0,
@@ -165,6 +283,16 @@ _TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
 
 
 def trace_impl(target: Callable):
+    """A helper function used to annotate that the wrapped method shall be treated as a trace-JIT-time proxy of the given `target` method.
+    
+    Can ONLY be used inside a `jit_class` for a member method.
+
+    Args:
+        target (`Callable`): The target method invoked when not tracing JIT.
+
+    Returns:
+        The wrapping function to annotate the member method.
+    """
     # deal with torchscript_modifier in case the implementation changed
     global _TORCHSCRIPT_MODIFIER
     torch.jit.export(target)
@@ -179,86 +307,6 @@ def trace_impl(target: Callable):
         return func
     
     return wrapping_fn
-
-
-def _get_inner_state_func(state_wrapper, func):
-    func = use_state(func)
-    
-    @wraps(func)
-    def _inner_state_func(*args, **kwargs):
-        _new_state_dict, ret = func(state_wrapper.__state_dict__, *args, **kwargs)
-        state_wrapper.__state_dict__.update(_new_state_dict)
-        return ret
-    
-    return _inner_state_func
-
-
-def _is_bound_method(value):
-    return callable(value) and hasattr(value, "__self__") and not hasattr(value, "__use_state__") and \
-            not (value.__name__.startswith("__") and value.__name__.endswith("__"))
-
-
-def use_state(func: Callable) -> Callable:
-    if not _is_bound_method(func):
-        return func
-    
-    parameters = inspect.signature(func).parameters
-    assert _SELF_STATE_DICT_NAME not in parameters, \
-        f"The function parameter cannot be named as internal preserved '{_SELF_STATE_DICT_NAME}'"
-    func_self = func.__self__
-    unbound_func = func.__func__
-    
-    class SelfStateWrapper:
-        
-        def __init__(self, state_dict: Dict[str, torch.Tensor]):
-            self.__state_dict__ = state_dict
-        
-        def __getitem__(self, key):
-            return func_self.__getitem__(key)
-        
-        def __setitem__(self, value, key):
-            func_self.__setitem__(value, key)
-        
-        def __setattr__(self, name, value):
-            if name != "__state_dict__":
-                if name in self.__state_dict__:
-                    self.__state_dict__[name] = value
-                else:
-                    setattr(func_self, name, value)
-            else:
-                object.__setattr__(self, name, value)
-        
-        def __getattribute__(self, name):
-            if name == "__state_dict__":
-                return object.__getattribute__(self, name)
-            # has cache
-            if name in self.__state_dict__:
-                return self.__state_dict__[name]
-            value = getattr(func_self, name)
-            # sub module
-            if isinstance(value, nn.Module):
-                for name, method in value.__dict__.items():
-                    if not _is_bound_method(method):
-                        continue
-                    # TODO: not correct
-                    setattr(value, name, use_state(method))
-                # TODO: return what?
-            # function
-            if _is_bound_method(value):
-                value = _get_inner_state_func(self, value)
-                self.__state_dict__[name] = value
-                return value
-            # else
-            return value
-    
-    @wraps(func)
-    def wrapper(__self_state_dict__, *args, **kwargs):
-        state = SelfStateWrapper(__self_state_dict__)
-        ret = unbound_func(state, *args, **kwargs)
-        return state.__state_dict__, ret
-    
-    wrapper.__use_state__ = True
-    return wrapper
 
 
 def jit_class(cls, trace=False):
@@ -386,7 +434,6 @@ def jit_class(cls, trace=False):
             
             # deal with pure trace
             func = _original_methods[name]
-            func = use_state(func)
             
             @wraps(func)
             def method_wrapper(*args, **kwargs):
@@ -397,138 +444,125 @@ def jit_class(cls, trace=False):
                         else:
                             bounded_trace_target_func = types.MethodType(_trace_correspond_methods[name], org_mod)
                             _trace_correspond_methods[name] = bounded_trace_target_func
-                        func = use_state(bounded_trace_target_func)
-                    return func(org_mod.state_dict(), *args, **kwargs)
+                        func = bounded_trace_target_func
+                    return func(*args, **kwargs)
+                # else, the outer-most method is tracing
                 if name not in _trace_method_args:
-                    _trace_method_args[name] = {
-                        _SELF_STATE_DICT_NAME: org_mod.state_dict(),
-                        **dict(zip(_method_argnames[name], args)),
-                        **kwargs
-                    }
-                    traced_func = torch.jit.trace(func, _trace_method_args, example_inputs_is_kwarg=True)
-                return traced_func(*args, **kwargs)
+                    _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
+                    self.__jit_module__ = torch.jit.trace_module(org_mod, _trace_method_args, example_inputs_is_kwarg=True)
+                return getattr(self.__jit_module__, name)(*args, **kwargs)
             
             return method_wrapper
     
     return WrappedModule
 
 
-def _if_none(a, b):
-    return b if a is None else a
-
-
-class ModuleBase(nn.Module):
-    """
-    The base module for all algorithms and problems in the library.
-
-    ## Notice
-    1. This module is an object-oriented one that can contain mutable values.
-    2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
+def use_state(func: Callable) -> Callable:
+    vars = inspect.getclosurevars(func)
+    vars = {**vars.globals, **vars.nonlocals}
+    modules = {}
+    for k, v in vars.items():
+        if isinstance(v, nn.Module):
+            v.state_dict(destination=modules, prefix=k + ".")
     
-    ## Usage
-    1. Static methods to be JIT shall be defined as is, e.g.,
-    ```
-    @jit
-    def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        pass
-    ```
-    2. If a member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
-    ```
-    def ExampleModule(ModuleBase):
-        @partial(jit, trace=False)
-        def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
-            if x.flatten()[0] > threshold:
-                return torch.sin(x)
-            else:
-                return torch.tan(x)
-        @jit
-        def jit_func(self, p: torch.Tensor) -> torch.Tensor:
-            x = ExampleModule.static_func(p, self.threshold)
-            ...
-    ```
-    """
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.train(False)
+    @wraps(func)
+    def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
+        for k, v in vars.items():
+            v: nn.Module
+            this_state = {".".join(key.split(".")[1:]): val for key, val in state.items() if key.split(".")[0] == k}
+            if len(this_state) > 0:
+                v.load_state_dict(this_state, assign=True)
+        
+        ret = func(*args, **kwargs)
+        
+        mutable_modules = {}
+        for k, v in vars.items():
+            if isinstance(v, nn.Module):
+                v.state_dict(destination=mutable_modules, prefix=k + ".")
+                
+        return mutable_modules, ret
     
-    def load_state_dict(self, state_dict, strict=True, assign=True):
-        return super().load_state_dict(state_dict, strict, assign)
-    
-    def add_mutable(
-        self,
-        name: str,
-        value: Union[torch.Tensor, Sequence[torch.Tensor], Dict[str, torch.Tensor]],
-    ) -> None:
-        """Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place.
+    wrapper.init_state = modules
+    return wrapper
 
-        Args:
-            name (`str`): The mutable value's name.
-            value (`torch.Tensor | Tuple[torch.Tensor, ...], List[torch.Tensor], Dict[str, torch.Tensor]`): The mutable value, can be a tuple, list, dictionary of a `torch.Tensor`.
 
-        Raises:
-            NotImplementedError: If the mutable value's type is not supported yet.
-            AssertionError: If the `name` is invalid.
-        """
-        assert name.isdigit() or str.isidentifier(name), f"Name {name} is not a valid Python name."
-        if isinstance(value, torch.Tensor):
-            setattr(self, name, nn.Buffer(value))
-        elif isinstance(value, tuple) or isinstance(value, list):
-            sub_module = ModuleBase()
-            for i, v in enumerate(value):
-                sub_module.add_mutable(str(i), v)
-            self.add_module(name, sub_module)
-        elif isinstance(value, dict):
-            sub_module = ModuleBase()
-            for k, v in value.items():
-                assert isinstance(k, str), f"Mutable with name type {type(k)} is not supported yet."
-                sub_module.add_mutable(k, v)
-            self.add_module(name, sub_module)
-        else:
-            raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
-    
-    def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
-        """Get the mutable value(s) stored in this list-like module.
+# def _get_inner_use_state_func(state_wrapper, func):
+#     func = use_state(func)
 
-        Args:
-            key (`int | slice | str`): The key used to index mutable value(s).
+#     @wraps(func)
+#     def _inner_state_func(*args, **kwargs):
+#         _new_state_dict, ret = func(state_wrapper.__state_dict__, *args, **kwargs)
+#         state_wrapper.__state_dict__.update(_new_state_dict)
+#         return ret
 
-        Raises:
-            IndexError: If `key` is out of range.
-            TypeError: If `key` is of wrong type.
+#     return _inner_state_func
 
-        Returns:
-            `torch.Tensor | List[torch.Tensor]`: The indexed mutable value(s).
-        """
-        buffers = list(self.named_buffers(recurse=False))
-        if isinstance(key, slice):
-            key = range(_if_none(key.start, 0), key.stop, _if_none(key.step, 1))
-            return [self.__getitem__(k) for k in key]
-        elif isinstance(key, int):
-            if key < 0:
-                raise IndexError(f"The index {key} cannot be negative.")
-            return self.get_buffer(str(key))
-        elif isinstance(key, str):
-            return self.get_buffer(key)
-        else:
-            raise TypeError(f"Invalid argument type {type(key)}.")
-    
-    def __setitem__(self, value: Union[torch.Tensor, Sequence[torch.Tensor]], key: Union[slice, int]) -> None:
-        """Set the mutable value(s) stored in this list-like module.
+# def _is_bound_method(value):
+#     return callable(value) and hasattr(value, "__self__") and not hasattr(value, "__use_state__") and \
+#             not (value.__name__.startswith("__") and value.__name__.endswith("__"))
 
-        Args:
-            value (`torch.Tensor | Sequence[torch.Tensor]`): The new mutable value(s).
-            key (`int | slice`): The key used to index mutable value(s).
-        """
-        targets = self.__getitem__(key)
-        if isinstance(targets, list):
-            value = list(value)
-            assert len(value) == len(targets), f"Length of value mismatch, expected {len(targets)}, got {len(value)}"
-            for t, v in zip(targets, value):
-                t.set_(v)
-        else:
-            assert isinstance(value, torch.Tensor), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
-            targets.set_(value)
+# def use_state(func: Callable) -> Callable:
+#     if not _is_bound_method(func):
+#         return func
+
+#     parameters = inspect.signature(func).parameters
+#     assert _SELF_STATE_DICT_NAME not in parameters, \
+#         f"The function parameter cannot be named as internal preserved '{_SELF_STATE_DICT_NAME}'"
+#     func_self = func.__self__
+#     unbound_func = func.__func__
+
+#     class SelfStateWrapper:
+
+#         def __init__(self, state_dict: Dict[str, torch.Tensor]):
+#             self.__state_dict__ = state_dict
+
+#         def __getitem__(self, key):
+#             return func_self.__getitem__(key)
+
+#         def __setitem__(self, value, key):
+#             func_self.__setitem__(value, key)
+
+#         def __setattr__(self, name, value):
+#             if name != "__state_dict__":
+#                 if name in self.__state_dict__:
+#                     self.__state_dict__[name] = value
+#                 else:
+#                     setattr(func_self, name, value)
+#             else:
+#                 object.__setattr__(self, name, value)
+
+#         def __getattribute__(self, name):
+#             if name == "__state_dict__":
+#                 return object.__getattribute__(self, name)
+#             # has cache
+#             if name in self.__state_dict__:
+#                 return self.__state_dict__[name]
+#             value = getattr(func_self, name)
+#             # sub module
+#             if isinstance(value, nn.Module):
+#                 for name, method in value.__dict__.items():
+#                     if not _is_bound_method(method):
+#                         continue
+#                     # TODO: incorrect
+#                     setattr(value, name, use_state(method))
+#                 # TODO: return what?
+#             # function
+#             if _is_bound_method(value):
+#                 value = _get_inner_use_state_func(self, value)
+#                 self.__state_dict__[name] = value
+#                 return value
+#             # else
+#             return value
+
+#     @wraps(func)
+#     def wrapper(__self_state_dict__, *args, **kwargs):
+#         state = SelfStateWrapper(__self_state_dict__)
+#         ret = unbound_func(state, *args, **kwargs)
+#         return state.__state_dict__, ret
+
+#     wrapper.__use_state__ = True
+#     return wrapper
 
 
 if __name__ == "__main__":
@@ -559,10 +593,11 @@ if __name__ == "__main__":
         
         @trace_impl(h)
         def th(self, q: torch.Tensor) -> torch.Tensor:
-            x = torch.where(q.flatten()[0] > self.threshold, torch.sin(q), torch.tan(q))
-            x += self.g(x)
+            x = torch.where(q.flatten()[0] > self.threshold, q * 2, q + 5)
+            x += self.g(x).abs()
+            x *= x.shape[1]
             self.sub_mod.buf = x.sum()
-            return x * x.shape[1]
+            return x
         
         def g(self, p: torch.Tensor) -> torch.Tensor:
             x = torch.cos(p)
@@ -578,9 +613,24 @@ if __name__ == "__main__":
     # print(t.mut_dict["b"])
     
     t = Test()
+    
     def fn(q: torch.Tensor):
         return t.h(q)
     
-    trace_fn = torch.jit.trace(fn, torch.empty(10, 1))
-    print(trace_fn.inlined_graph)
+    fn = use_state(fn)
+    trace_fn = torch.jit.trace(fn, (fn.init_state, torch.ones(10, 1)), strict=False)
     
+    @torch.jit.script
+    def loop(init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int):
+        state = init_state
+        ret = init_x
+        rets: List[torch.Tensor] = []
+        for _ in range(n):
+            state, ret = trace_fn(state, ret)
+            print(ret)
+            rets.append(state["t.sub_mod.buf"])
+        return rets
+    
+    print(trace_fn.code)
+    print(loop.code)
+    print(loop(fn.init_state, torch.rand(10, 2), 10))
