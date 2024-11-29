@@ -1,4 +1,5 @@
 import inspect
+import types
 import warnings
 from functools import wraps
 from typing import Callable, Optional, Sequence, Union, Tuple, List, Dict, Any
@@ -158,6 +159,7 @@ def jit(func: Callable,
 
 
 _TRACE_WRAP_NAME = "__trace_wrapped__"
+_SELF_STATE_DICT_NAME = "__self_state_dict__"
 global _TORCHSCRIPT_MODIFIER
 _TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
 
@@ -179,10 +181,30 @@ def trace_impl(target: Callable):
     return wrapping_fn
 
 
+def _get_inner_state_func(state_wrapper, func):
+    func = use_state(func)
+    
+    @wraps(func)
+    def _inner_state_func(*args, **kwargs):
+        _new_state_dict, ret = func(state_wrapper.__state_dict__, *args, **kwargs)
+        state_wrapper.__state_dict__.update(_new_state_dict)
+        return ret
+    
+    return _inner_state_func
+
+
+def _is_bound_method(value):
+    return callable(value) and hasattr(value, "__self__") and not hasattr(value, "__use_state__") and \
+            not (value.__name__.startswith("__") and value.__name__.endswith("__"))
+
+
 def use_state(func: Callable) -> Callable:
-    if not hasattr(func, "__self__"):
+    if not _is_bound_method(func):
         return func
     
+    parameters = inspect.signature(func).parameters
+    assert _SELF_STATE_DICT_NAME not in parameters, \
+        f"The function parameter cannot be named as internal preserved '{_SELF_STATE_DICT_NAME}'"
     func_self = func.__self__
     unbound_func = func.__func__
     
@@ -207,24 +229,33 @@ def use_state(func: Callable) -> Callable:
                 object.__setattr__(self, name, value)
         
         def __getattribute__(self, name):
-            if name != "__state_dict__":
-                if name in self.__state_dict__:
-                    return self.__state_dict__[name]
-                else:
-                    value = getattr(func_self, name)
-                    if hasattr(value, "__use_state__"):
-                        return value
-                    if callable(value):
-                        value = use_state(value)
-                        self.__state_dict__[name] = value
-                        return value
-            else:
+            if name == "__state_dict__":
                 return object.__getattribute__(self, name)
+            # has cache
+            if name in self.__state_dict__:
+                return self.__state_dict__[name]
+            value = getattr(func_self, name)
+            # sub module
+            if isinstance(value, nn.Module):
+                for name, method in value.__dict__.items():
+                    if not _is_bound_method(method):
+                        continue
+                    # TODO: not correct
+                    setattr(value, name, use_state(method))
+                # TODO: return what?
+            # function
+            if _is_bound_method(value):
+                value = _get_inner_state_func(self, value)
+                self.__state_dict__[name] = value
+                return value
+            # else
+            return value
     
     @wraps(func)
-    def wrapper(self_dict, *args, **kwargs):
-        state = SelfStateWrapper(self_dict)
-        return state.__state_dict__, unbound_func(state, *args, **kwargs)
+    def wrapper(__self_state_dict__, *args, **kwargs):
+        state = SelfStateWrapper(__self_state_dict__)
+        ret = unbound_func(state, *args, **kwargs)
+        return state.__state_dict__, ret
     
     wrapper.__use_state__ = True
     return wrapper
@@ -267,22 +298,27 @@ def jit_class(cls, trace=False):
     print(exp.h(torch.rand(10, 2)))
     ```
     """
+    assert issubclass(cls, nn.Module), f"Expect the wrapping class to inherit `torch.nn.Module`, got {cls}"
+    
     _original_methods = {}
+    _trace_correspond_methods = {}
     _method_argnames = {}
     _trace_method_args = {}
     for name, method in cls.__dict__.items():
-        if callable(method):
-            method_sign = inspect.signature(method)
-            if len(method_sign.parameters) == 0 or "self" not in method_sign.parameters:
-                continue
-            if name.startswith("__") and name.endswith("__"):
-                continue
-            if hasattr(method, _TRACE_WRAP_NAME):
-                continue
-            if not trace:
-                torch.jit.export(method)
-            _original_methods[name] = method
-            _method_argnames[name] = list(method_sign.parameters.keys())[1:]
+        if not callable(method):
+            continue
+        method_sign = inspect.signature(method)
+        if len(method_sign.parameters) == 0 or "self" not in method_sign.parameters:
+            continue
+        if name.startswith("__") and name.endswith("__"):
+            continue
+        if hasattr(method, _TRACE_WRAP_NAME):
+            _trace_correspond_methods[getattr(method, _TRACE_WRAP_NAME).__name__] = method
+            continue
+        if not trace:
+            torch.jit.export(method)
+        _original_methods[name] = method
+        _method_argnames[name] = list(method_sign.parameters.keys())[1:]
     
     class WrappedModuleType(type):
         
@@ -334,8 +370,8 @@ def jit_class(cls, trace=False):
             nonlocal _original_methods, _trace_method_args
             if name in ["__inner_module__", "__jit_module__"]:
                 return object.__getattribute__(self, name)
-            jit_mod = self.__jit_module__
-            org_mod = self.__inner_module__
+            jit_mod: torch.jit.ScriptModule = self.__jit_module__
+            org_mod: nn.Module = self.__inner_module__
             if name not in _original_methods:
                 if jit_mod is None:
                     return getattr(org_mod, name)
@@ -355,12 +391,22 @@ def jit_class(cls, trace=False):
             @wraps(func)
             def method_wrapper(*args, **kwargs):
                 if torch.jit.is_tracing():
-                    return func(*args, **kwargs)
+                    if not trace and name in _trace_correspond_methods:
+                        if hasattr(_trace_correspond_methods[name], "__self__"):
+                            bounded_trace_target_func = _trace_correspond_methods[name]
+                        else:
+                            bounded_trace_target_func = types.MethodType(_trace_correspond_methods[name], org_mod)
+                            _trace_correspond_methods[name] = bounded_trace_target_func
+                        func = use_state(bounded_trace_target_func)
+                    return func(org_mod.state_dict(), *args, **kwargs)
                 if name not in _trace_method_args:
-                    # TODO: deal with use state
-                    _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
-                    self.__jit_module__ = torch.jit.trace_module(org_mod, _trace_method_args, example_inputs_is_kwarg=True)
-                return self.__jit_module__.__getattr__(name)(*args, **kwargs)
+                    _trace_method_args[name] = {
+                        _SELF_STATE_DICT_NAME: org_mod.state_dict(),
+                        **dict(zip(_method_argnames[name], args)),
+                        **kwargs
+                    }
+                    traced_func = torch.jit.trace(func, _trace_method_args, example_inputs_is_kwarg=True)
+                return traced_func(*args, **kwargs)
             
             return method_wrapper
     
@@ -501,6 +547,8 @@ if __name__ == "__main__":
         def __init__(self, threshold=0.5):
             super().__init__()
             self.threshold = threshold
+            self.sub_mod = nn.Module()
+            self.sub_mod.buf = nn.Buffer(torch.zeros(()))
         
         def h(self, q: torch.Tensor) -> torch.Tensor:
             if q.flatten()[0] > self.threshold:
@@ -509,15 +557,30 @@ if __name__ == "__main__":
                 x = torch.tan(q)
             return x * x.shape[1]
         
+        @trace_impl(h)
+        def th(self, q: torch.Tensor) -> torch.Tensor:
+            x = torch.where(q.flatten()[0] > self.threshold, torch.sin(q), torch.tan(q))
+            x += self.g(x)
+            self.sub_mod.buf = x.sum()
+            return x * x.shape[1]
+        
         def g(self, p: torch.Tensor) -> torch.Tensor:
             x = torch.cos(p)
             return x * p.shape[0]
     
+    # t = Test()
+    # print(t.h.inlined_graph)
+    # result = t.g(torch.randn(100, 4))
+    # print(result)
+    # t.add_mutable("mut_list", [torch.zeros(10), torch.ones(10)])
+    # t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
+    # print(t.mut_list[0])
+    # print(t.mut_dict["b"])
+    
     t = Test()
-    print(t.h.inlined_graph)
-    result = t.g(torch.randn(100, 4))
-    print(result)
-    t.add_mutable("mut_list", [torch.zeros(10), torch.ones(10)])
-    t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
-    print(t.mut_list[0])
-    print(t.mut_dict["b"])
+    def fn(q: torch.Tensor):
+        return t.h(q)
+    
+    trace_fn = torch.jit.trace(fn, torch.empty(10, 1))
+    print(trace_fn.inlined_graph)
+    
