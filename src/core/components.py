@@ -4,8 +4,8 @@ from typing import Optional, Final, Union, Any
 import torch
 from torch import nn
 
-from module import ModuleBase, jit_class, trace_impl
-from jit_util import vmap
+from module import ModuleBase, jit_class, trace_impl, use_state
+from jit_util import vmap, jit
 
 
 class Algorithm(ModuleBase, ABC):
@@ -196,11 +196,11 @@ if __name__ == "__main__":
         def ask(self):
             pop = torch.rand(self.pop_size, self.lb.shape[0], dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
-            self.pop = pop
+            self.pop.copy_(pop)
             return self.pop
         
         def tell(self, fitness):
-            self.fit = fitness
+            self.fit.copy_(fitness)
     
     @jit_class
     class BasicWorkflow(Workflow):
@@ -212,35 +212,56 @@ if __name__ == "__main__":
             self.algorithm = algorithm
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
+            self.max_iterations = 0
+            self._use_init = True
         
         def step(self):
-            population = self.algorithm.ask() if self.generation > 1 else self.algorithm.init_ask()
+            population = self.algorithm.ask() if self._use_init else self.algorithm.init_ask()
             fitness = self.problem.evaluate(population)
-            self.algorithm.tell(fitness) if self.generation > 1 else self.algorithm.init_tell(fitness)
+            self.algorithm.tell(fitness) if self._use_init else self.algorithm.init_tell(fitness)
             self.generation += 1
+            self._use_init = False
         
         @trace_impl(step)
         def trace_step(self):
-            population = torch.select(self.generation > 1, self.algorithm.ask(), self.algorithm.init_ask())
+            population = self.algorithm.ask() if self._use_init else self.algorithm.init_ask()
             fitness = self.problem.evaluate(population)
-            torch.select(self.generation > 1, self.problem.tell(fitness), self.problem.init_tell(fitness))
+            self.algorithm.tell(fitness) if self._use_init else self.algorithm.init_tell(fitness)
             self.generation += 1
         
-        def loop(self, max_iterations: int):
+        def loop(self, max_iterations: Optional[int] = None):
+            max_iterations = self.max_iterations if max_iterations is None else max_iterations
             for _ in range(max_iterations):
                 self.step()
     
+    # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    algo = BasicAlgorithm(100, -10 * torch.ones(5), 10 * torch.ones(5))
+    algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
     workflow = BasicWorkflow(algo, prob)
-    print(workflow.step.inlined_graph)
-    print(workflow.trace_step)
-    workflow.step()
-    print(workflow.generation, workflow.algorithm.fit)
-    workflow.step()
-    print(workflow.generation, workflow.algorithm.fit)
     
-    workflow = BasicWorkflow(algo, prob)
-    workflow.loop(100)
-    print(workflow.algorithm.fit)
+    ## classic workflow
+    # print(workflow.step.inlined_graph)
+    # print(workflow.trace_step)
+    # workflow.step()
+    # print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
+    # workflow.step()
+    # print(workflow.generation, workflow.algorithm.fit)
+    # workflow = BasicWorkflow(algo, prob)
+    # workflow.loop(100)
+    # print(workflow.algorithm.fit)
+    
+    ## stateful workflow
+    # state_step = use_state(lambda: workflow.step, True)
+    # print(state_step.init_state())
+    # jit_step = jit(state_step, trace=True, lazy=True)
+    # jit_step(state_step.init_state())
+    # print(jit_step(state_step.init_state()))
+    
+    # vmap workflow
+    init_state_step = use_state(lambda: workflow.step, True)
+    vmap_init_state_step = vmap(init_state_step)
+    print(vmap_init_state_step.init_state(3))
+    vmap_init_state_step(vmap_init_state_step.init_state(3))
+    jit_step = jit(vmap_init_state_step, trace=True, example_inputs=(vmap_init_state_step.init_state(3),))
+    print(jit_step(vmap_init_state_step.init_state(3)))
