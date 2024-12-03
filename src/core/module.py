@@ -2,11 +2,13 @@ from abc import ABC
 import inspect
 import types
 from functools import wraps
-from typing import Mapping, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
+from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
 
 import torch
 from torch import nn
 
+
+_WRAPPING_MODULE_NAME = "__wrapping_module__"
 
 def _if_none(a, b):
     return b if a is None else a
@@ -19,6 +21,7 @@ class ModuleBase(nn.Module):
     ## Notice
     1. This module is an object-oriented one that can contain mutable values.
     2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
+    3. The module initialization for non-static members should be written in the overwritten method of `__setup__` rather than `__init__`.
     
     ## Usage
     1. Static methods to be JIT shall be defined as is, e.g.,
@@ -30,6 +33,11 @@ class ModuleBase(nn.Module):
     2. If a member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
     ```
     def ExampleModule(ModuleBase):
+        def __setup__(self, mut: torch.Tensor):
+            self.add_mutable("mut", mut)
+            # or
+            self.mut = torch.nn.Buffer(mut)
+    
         @partial(jit, trace=False)
         def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
             if x.flatten()[0] > threshold:
@@ -46,6 +54,10 @@ class ModuleBase(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.train(False)
+        
+    def __setup__(self, *args, **kwargs):
+        """Setup the module. Module initialization lines should be written in the overwritten method of `__setup__` rather than `__init__`."""
+        pass
     
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
         """Copy parameters and buffers from state_dict into this module and its descendants.
@@ -111,10 +123,18 @@ class ModuleBase(nn.Module):
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
     
     def __setattr__(self, name, value):
-        if type(value) != nn.Module:
-            return super().__setattr__(name, value)
-        else:  # an empty nn.Module, change to ModuleBase
-            return super().__setattr__(name, ModuleBase())
+        if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
+            super().__setattr__(name, ModuleBase())
+        elif hasattr(self, _WRAPPING_MODULE_NAME):
+            object.__getattribute__(self, _WRAPPING_MODULE_NAME).__setattr__(name, value)
+        else:
+            super().__setattr__(name, value)
+    
+    def __setattr_inner__(self, name, value):
+        if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
+            super().__setattr__(name, ModuleBase())
+        else:
+            super().__setattr__(name, value)
     
     def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
@@ -190,7 +210,9 @@ def tracing_or_using_state():
 
 class _WrapClassBase(ABC):
     
-    def __init__(self, inner: nn.Module):
+    def __init__(self, inner: ModuleBase):
+        assert isinstance(inner, ModuleBase), f"Inner module must be a `ModuleBase`, got {type(inner)}"
+        object.__setattr__(inner, _WRAPPING_MODULE_NAME, self)
         self.__inner_module__ = inner
         self.__jit_module__ = None
     
@@ -211,12 +233,20 @@ class _WrapClassBase(ABC):
     
     def __setitem__(self, value, key):
         (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__setitem__(value, key)
-    
+       
     def __setattr__(self, name, value):
-        if name not in ["__inner_module__", "__jit_module__"]:
-            setattr(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, name, value)
-        else:
-            object.__setattr__(self, name, value)
+        if name in ["__inner_module__", "__jit_module__"]:
+            return object.__setattr__(self, name, value)
+        # else
+        if not isinstance(value, _WrapClassBase):
+            self.__inner_module__.__setattr_inner__(name, value)
+            if self.__jit_module__ is not None:
+                self.__jit_module__.__setattr__(name, value)
+            return
+        # special treatment for compatibility with `trace_impl` of sub modules
+        inner_sub_mod = value.__inner_module__
+        self.__inner_module__.__setattr_inner__(name, inner_sub_mod)
+        object.__setattr__(self, name, value)
     
     def __delattr__(self, name, value):
         if name not in ["__inner_module__", "__jit_module__"]:
@@ -232,9 +262,19 @@ _STATE_ARG_NAME = "state"
 class UseStateFunc(Protocol):
     
     def init_state(self) -> Dict[str, torch.Tensor]:
+        """Get the cloned state of the closures of the function when it is wrapped by `use_state`.
+
+        Returns:
+            `Dict[str, torch.Tensor]`: The cloned state of the closures.
+        """
         pass
     
-    def set_state(self, state: Dict[str, torch.Tensor]) -> None:
+    def set_state(self, state: Optional[Dict[str, torch.Tensor]] = None) -> None:
+        """Set the closures of the function to the given state.
+
+        Args:
+            state (`Dict[str, torch.Tensor]`, optional): The new state to set to. If `state=None`, the new state would be the original state when the function is wrapped by `use_state`. Defaults to None.
+        """
         pass
     
     def __call__(self, state: Dict[str, torch.Tensor], *args,
@@ -321,7 +361,7 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
         modules: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
             v.state_dict(destination=modules, prefix=k + ".", keep_vars=True)
-        modules = {k: v.clone() for k, v in modules.items()}
+        modules = {k: v for k, v in modules.items()}
         
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
@@ -340,7 +380,9 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
                 else:
                     return mutable_modules, ret
         
-        def _set_state(state: Dict[str, torch.Tensor]):
+        def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
+            if state is None:
+                state = modules
             for k, v in vars.items():
                 this_state = {".".join(key.split(".")[1:]): val for key, val in state.items() if key.split(".")[0] == k}
                 if len(this_state) > 0:
@@ -400,7 +442,7 @@ def jit_class(cls, trace: bool = False):
     ## Notice:
     1. In many cases, it is not necessary to wrap your custom algorithms or problems with `jit_class`, the workflow(s) will do the trick for you.
     2. With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional 
-    3. While direct setting of mutable values like `self.mutable_1 = new_mutable_1` can be treated by `jit_class` via explicit synchronizing the JIT module to the original module; yet, it may still cause performance and memory issues since tensors are created and destroyed frequently when calling functions like `use_state`. Therefore, we recommend using in-place operations like `self.mutable_1.copy_(new_mutable_1)`.
+    3. Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.
     
     ## Usage:
     ```
@@ -463,27 +505,35 @@ def jit_class(cls, trace: bool = False):
             inner = cls(*args, **kwargs)
             super().__init__(inner)
         
-        def __getattribute__(self, name):
+        def __getattr__(self, name: str):
             if name in ["__inner_module__", "__jit_module__"]:
                 return object.__getattribute__(self, name)
             
             nonlocal _original_methods, _trace_method_args
             jit_mod: torch.jit.ScriptModule = self.__jit_module__
             org_mod: nn.Module = self.__inner_module__
+            
+            # special treatment for compatibility with `trace_impl` of sub modules
+            if tracing_or_using_state() and name in self.__dict__:
+                attr = object.__getattribute__(self, name)
+                if isinstance(attr, _WrapClassBase):
+                    return attr
+            
+            # basic case, get from jit module or original module
             if name not in _original_methods:
-                if jit_mod is None:
+                if jit_mod is None or tracing_or_using_state():
                     return getattr(org_mod, name)
                 else:
                     return getattr(jit_mod, name) if hasattr(jit_mod, name) else getattr(org_mod, name)
             
-            # deal with script
+            # is a member method, deal with script
             if not trace and not tracing_or_using_state():
                 if jit_mod is None:
                     self.__jit_module__ = torch.jit.script(org_mod)
                     org_mod.load_state_dict(self.__jit_module__.state_dict(keep_vars=True))
                 return getattr(self.__jit_module__, name)
             
-            # deal with pure trace
+            # is a member method, deal with trace
             func = getattr(org_mod, name)
             
             @wraps(func)
@@ -493,7 +543,7 @@ def jit_class(cls, trace: bool = False):
                         if hasattr(_trace_correspond_methods[name], "__self__"):
                             bounded_trace_target_func = _trace_correspond_methods[name]
                         else:
-                            bounded_trace_target_func = types.MethodType(_trace_correspond_methods[name], org_mod)
+                            bounded_trace_target_func = types.MethodType(_trace_correspond_methods[name], self)
                             _trace_correspond_methods[name] = bounded_trace_target_func
                         func = bounded_trace_target_func
                     return func(*args, **kwargs)

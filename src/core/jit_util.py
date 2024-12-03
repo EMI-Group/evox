@@ -6,7 +6,7 @@ from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
 import torch
 
-from module import tracing_or_using_state, _USE_STATE_NAME, _STATE_ARG_NAME
+from module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
 
 
 class MappedUseStateFunc(Protocol):
@@ -24,6 +24,7 @@ def vmap(
     in_dims: Optional[int | Tuple[int, ...]] = 0,
     out_dims: Optional[int | Tuple[int, ...]] = 0,
     randomness: str = "different",
+    trace: bool = True,
     example_ndim: Tuple[int | None] | int = 1,
     example_shapes: Optional[Tuple[Tuple[int] | Any] | Tuple[int | Any]] = None,
     example_inputs: Optional[Tuple[torch.Tensor | Any]] = None,
@@ -36,12 +37,13 @@ def vmap(
         func (Callable): The function to be mapped. See `torch.vmap`.
         in_dims (`int | Tuple[int, ...]`, optional): The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
         out_dims (`int | Tuple[int, ...]`, optional): The outputs' batch dimensions. See `torch.vmap`. Defaults to 0.
-        randomness (str, optional): The randomness in this vmap. See `torch.vmap`. Defaults to "different".
+        randomness (`str`, optional): The randomness in this vmap. See `torch.vmap`. Defaults to "different".
+        trace (`bool`, optional): Whether to trace the mapped function with [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html) or simply use `torch.vmap. NOTICE: if `trace=False`, all of the following inputs related to tracing will be ignored.
         example_ndim (`Tuple[int | None] | int`): The `ndim` of the expected inputs of the batched function; thus, it must be at least 1. Giving a single integer means same `ndim` for all inputs. Defaults to 1.
         example_shapes (`Tuple[Tuple[int]  |  Any]  |  Tuple[int  |  Any]`, optional): The . Defaults to None.
         example_inputs (`Tuple[torch.Tensor  |  Any]`, optional): _description_. Defaults to None.
-        strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
-        check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
+        strict (`bool`, optional): Strictly check the inputs or not. See `torch.jit.trace`. Defaults to False.
+        check_trace (`bool`, optional): Check the traced function or not. See `torch.jit.trace`. Defaults to False.
 
     Raises:
         NotImplementedError: If the function argument types are not supported
@@ -49,13 +51,16 @@ def vmap(
     Returns:
         `Callable`: The “batched” (vectorized mapped) version of `func`.
         If the given `func` is wrapped by `use_state`, the returned function will have a `init_state(batch_size: int) -> batched_state`.
+        
+    ## Notice:
+    When tracing, the example inputs may be broadcasted with additional dimension(s) of size `VMAP_DIM_CONST = 13`.
     """
     
     VMAP_DIM_CONST = 13
     
     mapped = torch.vmap(func, in_dims, out_dims, randomness)
     # when tracing, do nothing
-    if tracing_or_using_state():
+    if not trace or tracing_or_using_state():
         return mapped
     if hasattr(func, _USE_STATE_NAME):
         mapped.init_state = lambda batch_size: {k: torch.stack([v] * batch_size) for k, v in func.init_state().items()}
@@ -120,14 +125,16 @@ def vmap(
                       " PERMANENTLY and shall be REMOVED during later invocation(s).",
                       stacklevel=2)
     
-    def wrapper(*args):
-        return mapped(*args, **static_inputs)
-    
-    jit_func = torch.jit.trace(wrapper, final_inputs, strict=strict, check_trace=check_trace)
+    # TODO: no jit when called inside 
+    wrapped = wraps(func)(lambda *args: mapped(*args, **static_inputs))
+    jit_func = torch.jit.trace(wrapped,
+                               final_inputs,
+                               strict=strict,
+                               check_trace=check_trace)
     return jit_func
 
 
-def jit(func: Callable,
+def jit(func: Callable | UseStateFunc | MappedUseStateFunc,
         trace: bool = False,
         lazy: bool = False,
         example_inputs: Optional[Union[Tuple, Dict]] = None,
@@ -171,7 +178,7 @@ def jit(func: Callable,
                                        check_trace=check_trace,
                                        _store_inputs=check_trace)
         if hasattr(func, _USE_STATE_NAME):
-            func.set_state(func.init_state())  # reset global vars if using state
+            func.set_state()  # reset global vars if using state
         return jit_func
     
     if hasattr(func, _USE_STATE_NAME):
@@ -207,7 +214,7 @@ def jit(func: Callable,
                                        check_trace=check_trace,
                                        _store_inputs=check_trace)
             if hasattr(func, _USE_STATE_NAME):
-                func.set_state(func.init_state())  # reset global vars if using state
+                func.set_state()  # reset global vars if using state
         return jit_func(*args, **kwargs)
     
     return wrapper

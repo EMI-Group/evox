@@ -170,45 +170,52 @@ class Monitor(ModuleBase, ABC):
 # Test
 if __name__ == "__main__":
     
+    @jit_class
     class BasicProblem(Problem):
         
         def __init__(self):
             super().__init__(num_objective=1)
-            self._eval_fn = vmap(BasicProblem._single_eval, example_ndim=2)
+            self._eval_fn = vmap(BasicProblem._single_eval, trace=False)
+            self._eval_fn_traced = vmap(BasicProblem._single_eval, example_ndim=2)
         
         def _single_eval(x: torch.Tensor, p: float = 2.0):
             return (x**p).sum()
         
-        def evaluate(self, pop):
+        def evaluate(self, pop: torch.Tensor):
+            return self._eval_fn_traced(pop)
+        
+        @trace_impl(evaluate)
+        def trace_evaluate(self, pop: torch.Tensor):
             return self._eval_fn(pop)
     
     class BasicAlgorithm(Algorithm):
         
-        def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
-            super().__init__(pop_size=pop_size)
+        def __init__(self, pop_size: int):
+            super().__init__(pop_size)
+        
+        def __setup__(self, lb: torch.Tensor, ub: torch.Tensor):
             assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
             assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
             self.lb = lb
             self.ub = ub
-            self.pop = nn.Buffer(torch.empty(pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
-            self.fit = nn.Buffer(torch.empty(pop_size, dtype=lb.dtype, device=lb.device))
+            self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+            self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
         
         def ask(self):
             pop = torch.rand(self.pop_size, self.lb.shape[0], dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
-            self.pop.copy_(pop)
+            self.pop = pop
             return self.pop
         
         def tell(self, fitness):
-            self.fit.copy_(fitness)
+            self.fit = fitness
     
     @jit_class
     class BasicWorkflow(Workflow):
         
-        def __init__(self, algorithm: Algorithm, problem: Problem, device: Optional[Union[str, torch.device, int]] = None):
-            super().__init__()
-            algorithm = algorithm.to(device=device)
-            problem = problem.to(device=device)
+        def __setup__(self, algorithm: Algorithm, problem: Problem, device: Optional[Union[str, torch.device, int]] = None):
+            algorithm.to(device=device)
+            problem.to(device=device)
             self.algorithm = algorithm
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
@@ -236,15 +243,16 @@ if __name__ == "__main__":
     
     # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
+    algo = BasicAlgorithm(10)
+    algo.__setup__(-10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
-    workflow = BasicWorkflow(algo, prob)
+    workflow = BasicWorkflow()
+    workflow.__setup__(algo, prob)
     
     ## classic workflow
-    # print(workflow.step.inlined_graph)
-    # print(workflow.trace_step)
-    # workflow.step()
-    # print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
+    print(workflow.step.inlined_graph)
+    workflow.step()
+    print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
     # workflow.step()
     # print(workflow.generation, workflow.algorithm.fit)
     # workflow = BasicWorkflow(algo, prob)
@@ -254,7 +262,7 @@ if __name__ == "__main__":
     ## stateful workflow
     # state_step = use_state(lambda: workflow.step, True)
     # print(state_step.init_state())
-    # jit_step = jit(state_step, trace=True, lazy=True)
+    # jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
     # jit_step(state_step.init_state())
     # print(jit_step(state_step.init_state()))
     
