@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Optional, Final, Union, Any
 
+import functorch._src
 import torch
 from torch import nn
 
@@ -169,6 +170,7 @@ class Monitor(ModuleBase, ABC):
 
 # Test
 if __name__ == "__main__":
+    import _vmap_fix
     
     @jit_class
     class BasicProblem(Problem):
@@ -188,32 +190,56 @@ if __name__ == "__main__":
         def trace_evaluate(self, pop: torch.Tensor):
             return self._eval_fn(pop)
     
+    @jit_class
     class BasicAlgorithm(Algorithm):
         
         def __init__(self, pop_size: int):
             super().__init__(pop_size)
         
-        def __setup__(self, lb: torch.Tensor, ub: torch.Tensor):
+        def setup(self, lb: torch.Tensor, ub: torch.Tensor):
             assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
             assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
             self.lb = lb
             self.ub = ub
-            self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+            self.dim = lb.shape[0]
+            self.pop = nn.Buffer(
+                torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
             self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
         
         def ask(self):
-            pop = torch.rand(self.pop_size, self.lb.shape[0], dtype=self.lb.dtype, device=self.lb.device)
+            pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
             self.pop = pop
             return self.pop
         
-        def tell(self, fitness):
+        def tell(self, fitness: torch.Tensor):
             self.fit = fitness
+        
+        @trace_impl(ask)
+        def trace_ask(self):
+            # TODO: rand
+            _pop = torch.rand(self.pop_size,
+                             self.lb.shape[0],
+                             dtype=self.lb.dtype,
+                             device=self.lb.device)
+            if _vmap_fix.get_level(_pop) > 0:
+                _vmap_fix.vmap_decrement_nesting()
+                pop = torch.rand(_vmap_fix.get_unwrapped(self.pop).size(), dtype=_pop.dtype, device=_pop.device)
+                _vmap_fix.vmap_increment_nesting(_vmap_fix.get_unwrapped(self.pop).size(0), "different")
+                pop = _vmap_fix.add_batch_dim(pop, _vmap_fix.get_batch_dim(_pop), _vmap_fix.get_level(_pop))
+            # pop = 0.5 * torch.ones(
+            #     self.pop_size, self.lb.shape[0], dtype=self.lb.dtype, device=self.lb.device)
+            pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
+            self.pop = pop
+            return self.pop
     
     @jit_class
     class BasicWorkflow(Workflow):
         
-        def __setup__(self, algorithm: Algorithm, problem: Problem, device: Optional[Union[str, torch.device, int]] = None):
+        def setup(self,
+                  algorithm: Algorithm,
+                  problem: Problem,
+                  device: Optional[Union[str, torch.device, int]] = None):
             algorithm.to(device=device)
             problem.to(device=device)
             self.algorithm = algorithm
@@ -244,10 +270,10 @@ if __name__ == "__main__":
     # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     algo = BasicAlgorithm(10)
-    algo.__setup__(-10 * torch.ones(2), 10 * torch.ones(2))
+    algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
     workflow = BasicWorkflow()
-    workflow.__setup__(algo, prob)
+    workflow.setup(algo, prob)
     
     ## classic workflow
     print(workflow.step.inlined_graph)
@@ -270,6 +296,8 @@ if __name__ == "__main__":
     init_state_step = use_state(lambda: workflow.step, True)
     vmap_init_state_step = vmap(init_state_step)
     print(vmap_init_state_step.init_state(3))
-    vmap_init_state_step(vmap_init_state_step.init_state(3))
-    jit_step = jit(vmap_init_state_step, trace=True, example_inputs=(vmap_init_state_step.init_state(3),))
+    jit_step = jit(vmap_init_state_step,
+                   trace=True,
+                   example_inputs=(vmap_init_state_step.init_state(3), ))
+    print(jit_step.code)
     print(jit_step(vmap_init_state_step.init_state(3)))

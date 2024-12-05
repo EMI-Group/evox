@@ -7,6 +7,9 @@ from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union
 import torch
 from torch import nn
 
+import _vmap_fix
+from torch.utils._pytree import tree_flatten, tree_unflatten
+
 
 _WRAPPING_MODULE_NAME = "__wrapping_module__"
 
@@ -21,7 +24,7 @@ class ModuleBase(nn.Module):
     ## Notice
     1. This module is an object-oriented one that can contain mutable values.
     2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
-    3. The module initialization for non-static members should be written in the overwritten method of `__setup__` rather than `__init__`.
+    3. The module initialization for non-static members should be written in the overwritten method of `setup` rather than `__init__`.
     
     ## Usage
     1. Static methods to be JIT shall be defined as is, e.g.,
@@ -33,7 +36,7 @@ class ModuleBase(nn.Module):
     2. If a member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
     ```
     def ExampleModule(ModuleBase):
-        def __setup__(self, mut: torch.Tensor):
+        def setup(self, mut: torch.Tensor):
             self.add_mutable("mut", mut)
             # or
             self.mut = torch.nn.Buffer(mut)
@@ -55,8 +58,8 @@ class ModuleBase(nn.Module):
         super().__init__(*args, **kwargs)
         self.train(False)
         
-    def __setup__(self, *args, **kwargs):
-        """Setup the module. Module initialization lines should be written in the overwritten method of `__setup__` rather than `__init__`."""
+    def setup(self, *args, **kwargs):
+        """Setup the module. Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`."""
         pass
     
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
@@ -237,6 +240,29 @@ class _WrapClassBase(ABC):
     def __setattr__(self, name, value):
         if name in ["__inner_module__", "__jit_module__"]:
             return object.__setattr__(self, name, value)
+        # special treatment for compatibility with `vmap`
+        if isinstance(value, torch.Tensor):
+            if not _vmap_fix.is_batched_tensor(value):
+                original_value = getattr(self.__inner_module__, name, None)
+                if original_value is not None and _vmap_fix.is_batched_tensor(original_value):
+                    level = _vmap_fix.get_level(original_value)
+                    base_value = original_value
+                    batch_dims = []
+                    batch_sizes = []
+                    while level >= 1:
+                        batch_dim = _vmap_fix.get_batch_dim(base_value)
+                        base_value, _ = _vmap_fix.unwrap_batched(base_value, level)
+                        batch_dims.append(batch_dim)
+                        batch_sizes.append(base_value.size(batch_dim))
+                        level -= 1
+                    batch_dims = tuple(batch_dims[::-1])
+                    batch_sizes = tuple(batch_sizes[::-1])
+                    for dim, size in zip(batch_dims, batch_sizes):
+                        value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
+                    expand_value = value
+                    for level, dim in enumerate(batch_dims, 1):
+                        value = _vmap_fix.add_batch_dim(value, dim, level)
+                    _vmap_fix._transform_in_dim(batch_dims, value, expand_value)
         # else
         if not isinstance(value, _WrapClassBase):
             self.__inner_module__.__setattr_inner__(name, value)
@@ -342,7 +368,7 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
         assert _STATE_ARG_NAME not in func_args, f"Use-state functions cannot have argument of name `{_STATE_ARG_NAME}`"
         vars = inspect.getclosurevars(func)
         vars = {**vars.globals, **vars.nonlocals}
-        vars = {k: v for k, v in vars.items() if isinstance(v, nn.Module)}
+        vars = {k: v for k, v in vars.items() if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase)}
         # remove duplicate self
         if hasattr(inspect.unwrap(func), "__self__") and "self" in vars:
             self_v: Tuple[nn.Module, ...] = vars["self"]
@@ -424,12 +450,35 @@ def trace_impl(target: Callable):
     def wrapping_fn(func: Callable) -> Callable:
         torch.jit.ignore(func)
         setattr(func, _TRACE_WRAP_NAME, target)
-        return func
+        
+        # special treatment for compatibility with `vmap`
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            flat_args, flat_spec = tree_flatten((args, kwargs))
+            for arg in flat_args:
+                if not isinstance(arg, torch.Tensor):
+                    continue
+                if not _vmap_fix.is_batched_tensor(arg):
+                    continue
+                level = _vmap_fix.get_level(arg)
+                base_arg = arg
+                batch_dims = []
+                while level >= 1:
+                    batch_dim = _vmap_fix.get_batch_dim(base_arg)
+                    base_arg, _ = _vmap_fix.unwrap_batched(base_arg, level)
+                    batch_dims.append(batch_dim)
+                    level -= 1
+                batch_dims = tuple(batch_dims[::-1])
+                _vmap_fix._transform_in_dim(batch_dims, arg, base_arg)
+            args, kwargs = tree_unflatten(flat_args, flat_spec)
+            return func(*args, **kwargs)
+        
+        return wrapper
     
     return wrapping_fn
 
 
-def jit_class(cls, trace: bool = False):
+def jit_class[cls](cls: type, trace: bool = False) -> cls:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
     Args:
@@ -480,7 +529,7 @@ def jit_class(cls, trace: bool = False):
         method_sign = inspect.signature(method)
         if len(method_sign.parameters) == 0 or "self" not in method_sign.parameters:
             continue
-        if name.startswith("__") and name.endswith("__"):
+        if (name.startswith("__") and name.endswith("__")) or name == "setup":
             continue
         if hasattr(method, _TRACE_WRAP_NAME):
             _trace_correspond_methods[getattr(method, _TRACE_WRAP_NAME).__name__] = method
@@ -511,7 +560,7 @@ def jit_class(cls, trace: bool = False):
             
             nonlocal _original_methods, _trace_method_args
             jit_mod: torch.jit.ScriptModule = self.__jit_module__
-            org_mod: nn.Module = self.__inner_module__
+            base_mod: nn.Module = self.__inner_module__
             
             # special treatment for compatibility with `trace_impl` of sub modules
             if tracing_or_using_state() and name in self.__dict__:
@@ -522,22 +571,23 @@ def jit_class(cls, trace: bool = False):
             # basic case, get from jit module or original module
             if name not in _original_methods:
                 if jit_mod is None or tracing_or_using_state():
-                    return getattr(org_mod, name)
+                    return getattr(base_mod, name)
                 else:
-                    return getattr(jit_mod, name) if hasattr(jit_mod, name) else getattr(org_mod, name)
+                    return getattr(jit_mod, name) if hasattr(jit_mod, name) else getattr(base_mod, name)
             
             # is a member method, deal with script
             if not trace and not tracing_or_using_state():
                 if jit_mod is None:
-                    self.__jit_module__ = torch.jit.script(org_mod)
-                    org_mod.load_state_dict(self.__jit_module__.state_dict(keep_vars=True))
+                    self.__jit_module__ = torch.jit.script(base_mod)
+                    base_mod.load_state_dict(self.__jit_module__.state_dict(keep_vars=True))
                 return getattr(self.__jit_module__, name)
             
             # is a member method, deal with trace
-            func = getattr(org_mod, name)
+            func = getattr(base_mod, name)
             
             @wraps(func)
             def method_wrapper(*args, **kwargs):
+                nonlocal func
                 if tracing_or_using_state():
                     if not trace and name in _trace_correspond_methods:
                         if hasattr(_trace_correspond_methods[name], "__self__"):
@@ -550,7 +600,7 @@ def jit_class(cls, trace: bool = False):
                 # else, the outer-most method is tracing
                 if name not in _trace_method_args:
                     _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
-                    self.__jit_module__ = torch.jit.trace_module(org_mod, _trace_method_args, example_inputs_is_kwarg=True)
+                    self.__jit_module__ = torch.jit.trace_module(base_mod, _trace_method_args, example_inputs_is_kwarg=True)
                 return getattr(self.__jit_module__, name)(*args, **kwargs)
             
             return method_wrapper

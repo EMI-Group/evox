@@ -1,4 +1,3 @@
-import types
 import inspect
 import warnings
 from functools import wraps
@@ -63,7 +62,10 @@ def vmap(
     if not trace or tracing_or_using_state():
         return mapped
     if hasattr(func, _USE_STATE_NAME):
-        mapped.init_state = lambda batch_size: {k: torch.stack([v] * batch_size) for k, v in func.init_state().items()}
+        mapped.init_state = lambda batch_size: {
+            k: torch.stack([v] * batch_size)
+            for k, v in func.init_state().items()
+        }
         return mapped
     
     # otherwise
@@ -72,9 +74,13 @@ def vmap(
     defaults = []
     annotations = []
     for k, v in signature.items():
-        if v.kind in [inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL]:
-            raise NotImplementedError("Vector map of functions with variable or keyword-only arguments" +
-                                      " are not supported when the example inputs are not provided")
+        if v.kind in [
+                inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.VAR_KEYWORD,
+                inspect.Parameter.VAR_POSITIONAL
+        ]:
+            raise NotImplementedError(
+                "Vector map of functions with variable or keyword-only arguments" +
+                " are not supported when the example inputs are not provided")
         args.append(k)
         defaults.append(None if v.default is inspect.Parameter.empty else v.default)
         annotations.append(None if v.annotation is inspect.Parameter.empty else v.annotation)
@@ -84,7 +90,8 @@ def vmap(
         annotations = annotations[1:]
     # check example shapes
     if example_shapes is not None:
-        assert len(example_shapes) == len(args), f"Expect example shapes to have size {len(args)}, got {len(example_shapes)}"
+        assert len(example_shapes) == len(args), \
+            f"Expect example shapes to have size {len(args)}, got {len(example_shapes)}"
         example_ndim = tuple([None] * len(args))
     else:
         example_shapes = tuple([None] * len(args))
@@ -92,12 +99,14 @@ def vmap(
             assert example_ndim >= 1, f"Expect example ndim >= 1, got {example_ndim}"
             example_ndim = tuple([example_ndim] * len(args))
         else:
-            assert len(example_ndim) == len(args), f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
+            assert len(example_ndim) == len(args), \
+                f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
     # create example inputs
     example_inputs: List = [None] * len(args) if example_inputs is None else list(example_inputs)
     static_inputs = {}
     final_inputs = []
-    for arg, default, annotation, input, shape, ndim in zip(args, defaults, annotations, example_inputs, example_shapes,
+    for arg, default, annotation, input, shape, ndim in zip(args, defaults, annotations,
+                                                            example_inputs, example_shapes,
                                                             example_ndim):
         if input is not None:
             final_inputs.append(input)
@@ -111,26 +120,28 @@ def vmap(
             static_inputs[arg] = default
         else:
             if annotation == torch.Tensor:
-                final_inputs.append(torch.empty(()) if ndim is None else torch.empty(tuple([VMAP_DIM_CONST] * ndim)))
+                final_inputs.append(
+                    torch.empty(()) if ndim is None else \
+                        torch.empty(tuple([VMAP_DIM_CONST] * ndim))
+                    )
             else:
                 try:
                     static_inputs[arg] = annotation()
                 except Exception as e:
-                    raise NotImplementedError(f"Cannot create default value from annotation {annotation}", e)
+                    raise NotImplementedError(
+                        f"Cannot create default value from annotation {annotation}", e)
     # JIT
     final_inputs = tuple(final_inputs)
     if len(static_inputs) > 0:
-        warnings.warn(f"The arguments {tuple(static_inputs.keys())} are not tensors or have default values," +
-                      f" they will be set to {tuple(static_inputs.values())}" +
-                      " PERMANENTLY and shall be REMOVED during later invocation(s).",
-                      stacklevel=2)
+        warnings.warn(
+            f"The arguments {tuple(static_inputs.keys())} are not tensors or have default values," +
+            f" they will be set to {tuple(static_inputs.values())}" +
+            " PERMANENTLY and shall be REMOVED during later invocation(s).",
+            stacklevel=2)
     
-    # TODO: no jit when called inside 
+    # TODO: no jit when called inside
     wrapped = wraps(func)(lambda *args: mapped(*args, **static_inputs))
-    jit_func = torch.jit.trace(wrapped,
-                               final_inputs,
-                               strict=strict,
-                               check_trace=check_trace)
+    jit_func = torch.jit.trace(wrapped, final_inputs, strict=strict, check_trace=check_trace)
     return jit_func
 
 
