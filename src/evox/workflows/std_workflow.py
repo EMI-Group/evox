@@ -368,13 +368,14 @@ class StdWorkflow(Workflow):
         >>> for i in range(100):
         ...     state = workflow.step(state) # now it runs on multiple devices
         """
+        if not devices:
+            # auto select all local devices
+            devices = jax.devices()
+
         self.multi_device_config = MultiDeviceConfig(
             devices=devices,
             axis_name=POP_AXIS_NAME,
         )
-        if not devices:
-            # auto select all devices
-            devices = jax.devices()
 
         sharding = state.get_sharding(devices)
         state = jax.device_put(state, sharding)
