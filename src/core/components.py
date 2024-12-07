@@ -278,22 +278,22 @@ if __name__ == "__main__":
     workflow = BasicWorkflow()
     workflow.setup(algo, prob)
 
-    ## classic workflow
-    # print(workflow.step.inlined_graph)
-    # workflow.step()
-    # print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
-    # workflow.step()
-    # print(workflow.generation, workflow.algorithm.fit)
-    # workflow = BasicWorkflow(algo, prob)
-    # workflow.loop(100)
-    # print(workflow.algorithm.fit)
+    # classic workflow
+    print(workflow.step.inlined_graph)
+    workflow.step()
+    print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
+    workflow.step()
+    print(workflow.generation, workflow.algorithm.fit)
+    workflow = BasicWorkflow(algo, prob)
+    workflow.loop(100)
+    print(workflow.algorithm.fit)
 
-    ## stateful workflow
-    # state_step = use_state(lambda: workflow.step, True)
-    # print(state_step.init_state())
-    # jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
-    # jit_step(state_step.init_state())
-    # print(jit_step(state_step.init_state()))
+    # stateful workflow
+    state_step = use_state(lambda: workflow.step, True)
+    print(state_step.init_state())
+    jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
+    jit_step(state_step.init_state())
+    print(jit_step(state_step.init_state()))
 
     # vmap workflow
     init_state_step = use_state(lambda: workflow.step, True)
