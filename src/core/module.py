@@ -8,10 +8,10 @@ import torch
 from torch import nn
 
 import _vmap_fix
-from torch.utils._pytree import tree_flatten, tree_unflatten
 
 
 _WRAPPING_MODULE_NAME = "__wrapping_module__"
+
 
 def _if_none(a, b):
     return b if a is None else a
@@ -25,7 +25,7 @@ class ModuleBase(nn.Module):
     1. This module is an object-oriented one that can contain mutable values.
     2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
     3. The module initialization for non-static members should be written in the overwritten method of `setup` rather than `__init__`.
-    
+
     ## Usage
     1. Static methods to be JIT shall be defined as is, e.g.,
     ```
@@ -40,7 +40,7 @@ class ModuleBase(nn.Module):
             self.add_mutable("mut", mut)
             # or
             self.mut = torch.nn.Buffer(mut)
-    
+
         @partial(jit, trace=False)
         def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
             if x.flatten()[0] > threshold:
@@ -53,46 +53,47 @@ class ModuleBase(nn.Module):
             ...
     ```
     """
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.train(False)
-        
+
     def setup(self, *args, **kwargs):
         """Setup the module. Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`."""
         pass
-    
+
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
         """Copy parameters and buffers from state_dict into this module and its descendants.
-        Overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict). 
+        Overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict).
 
         Args:
             state_dict (`Mapping[str, torch.Tensor]`): _description_
             copy (`bool`, optional): Use the original `torch.nn.Module.load_state_dict` to copy the `state_dict` to current state (`copy=True`) or use this implementation that assigns the values of this module to the ones in the `state_dict` (`copy=False`). Defaults to False.
-            kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored 
+            kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored
 
         Returns:
             `NamedTuple | None`: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
         """
         if copy:
-            assert any(map(torch._C._functorch.is_batchedtensor, state_dict.values())) == False, \
-                    "`copy=True` is not compatible with `vmap`"
+            assert (
+                any(map(torch._C._functorch.is_batchedtensor, state_dict.values())) == False
+            ), "`copy=True` is not compatible with `vmap`"
             return super().load_state_dict(state_dict, **kwargs)
         # else
         sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
         for k, v in state_dict.items():
-            if '.' in k:
-                sub_key = k[k.find('.') + 1:]
-                sub_mod = k[:k.find('.')]
+            if "." in k:
+                sub_key = k[k.find(".") + 1 :]
+                sub_mod = k[: k.find(".")]
                 if sub_mod not in sub_modules:
                     sub_modules[sub_mod] = {}
                 sub_modules[sub_mod][sub_key] = v
             else:
-                setattr(self, k, v)
+                self.__setattr_inner__(k, v)
         if len(sub_modules) > 0:
             for k, v in sub_modules.items():
                 getattr(self, k).load_state_dict(v, copy=False)
-    
+
     def add_mutable(
         self,
         name: str,
@@ -124,7 +125,19 @@ class ModuleBase(nn.Module):
             self.add_module(name, sub_module)
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
-    
+
+    def __getattr__(self, name):
+        if not tracing_or_using_state() or not hasattr(self, _WRAPPING_MODULE_NAME):
+            return super().__getattr__(name)
+        return object.__getattribute__(self, _WRAPPING_MODULE_NAME).__getattr__(name)
+
+    def __getattr_inner__(self, name):
+        try:
+            value = object.__getattribute__(self, name)
+        except:
+            value = super(ModuleBase, self).__getattr__(name)
+        return value
+
     def __setattr__(self, name, value):
         if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
@@ -132,13 +145,13 @@ class ModuleBase(nn.Module):
             object.__getattribute__(self, _WRAPPING_MODULE_NAME).__setattr__(name, value)
         else:
             super().__setattr__(name, value)
-    
+
     def __setattr_inner__(self, name, value):
         if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
         else:
             super().__setattr__(name, value)
-    
+
     def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
 
@@ -163,8 +176,10 @@ class ModuleBase(nn.Module):
             return self.get_buffer(key)
         else:
             raise TypeError(f"Invalid argument type {type(key)}.")
-    
-    def __setitem__(self, value: Union[torch.Tensor, Sequence[torch.Tensor]], key: Union[slice, int]) -> None:
+
+    def __setitem__(
+        self, value: Union[torch.Tensor, Sequence[torch.Tensor]], key: Union[slice, int]
+    ) -> None:
         """Set the mutable value(s) stored in this list-like module.
 
         Args:
@@ -174,11 +189,15 @@ class ModuleBase(nn.Module):
         targets = self.__getitem__(key)
         if isinstance(targets, list):
             value = list(value)
-            assert len(value) == len(targets), f"Length of value mismatch, expected {len(targets)}, got {len(value)}"
+            assert len(value) == len(
+                targets
+            ), "Length of value mismatch, expected {len(targets)}, got {len(value)}"
             for t, v in zip(targets, value):
                 t.set_(v)
         else:
-            assert isinstance(value, torch.Tensor), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
+            assert isinstance(
+                value, torch.Tensor
+            ), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
             targets.set_(value)
 
 
@@ -187,20 +206,20 @@ _using_state = False
 
 
 class UseStateContext:
-    
+
     def __init__(self, new_use_state: bool = True):
         global _using_state
         self.prev = _using_state
         self.now = new_use_state
-    
+
     def __enter__(self):
         global _using_state
         _using_state = self.now
-    
+
     def __exit__(self, *args):
         global _using_state
         _using_state = self.prev
-    
+
     @staticmethod
     def is_using_state():
         global _using_state
@@ -212,57 +231,48 @@ def tracing_or_using_state():
 
 
 class _WrapClassBase(ABC):
-    
+
     def __init__(self, inner: ModuleBase):
         assert isinstance(inner, ModuleBase), f"Inner module must be a `ModuleBase`, got {type(inner)}"
         object.__setattr__(inner, _WRAPPING_MODULE_NAME, self)
         self.__inner_module__ = inner
         self.__jit_module__ = None
-    
+
     def __str__(self) -> str:
-        return object.__str__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
-    
+        return object.__str__(
+            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
+        )
+
     def __repr__(self) -> str:
-        return object.__repr__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
-    
+        return object.__repr__(
+            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
+        )
+
     def __hash__(self) -> int:
-        return object.__hash__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__)
-    
+        return object.__hash__(
+            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
+        )
+
     def __format__(self, format_spec: str) -> str:
-        return object.__format__(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, format_spec)
-    
+        return object.__format__(
+            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, format_spec
+        )
+
     def __getitem__(self, key):
-        return (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__getitem__(key)
-    
+        return (
+            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
+        ).__getitem__(key)
+
     def __setitem__(self, value, key):
-        (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__setitem__(value, key)
-       
+        (self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__).__setitem__(
+            value, key
+        )
+
     def __setattr__(self, name, value):
         if name in ["__inner_module__", "__jit_module__"]:
             return object.__setattr__(self, name, value)
         # special treatment for compatibility with `vmap`
-        if isinstance(value, torch.Tensor):
-            if not _vmap_fix.is_batched_tensor(value):
-                original_value = getattr(self.__inner_module__, name, None)
-                if original_value is not None and _vmap_fix.is_batched_tensor(original_value):
-                    level = _vmap_fix.get_level(original_value)
-                    base_value = original_value
-                    batch_dims = []
-                    batch_sizes = []
-                    while level >= 1:
-                        batch_dim = _vmap_fix.get_batch_dim(base_value)
-                        base_value, _ = _vmap_fix.unwrap_batched(base_value, level)
-                        batch_dims.append(batch_dim)
-                        batch_sizes.append(base_value.size(batch_dim))
-                        level -= 1
-                    batch_dims = tuple(batch_dims[::-1])
-                    batch_sizes = tuple(batch_sizes[::-1])
-                    for dim, size in zip(batch_dims, batch_sizes):
-                        value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
-                    expand_value = value
-                    for level, dim in enumerate(batch_dims, 1):
-                        value = _vmap_fix.add_batch_dim(value, dim, level)
-                    _vmap_fix._transform_in_dim(batch_dims, value, expand_value)
+        value = _vmap_fix.align_vmap_tensor(value, getattr(self.__inner_module__, name, None))
         # else
         if not isinstance(value, _WrapClassBase):
             self.__inner_module__.__setattr_inner__(name, value)
@@ -273,10 +283,14 @@ class _WrapClassBase(ABC):
         inner_sub_mod = value.__inner_module__
         self.__inner_module__.__setattr_inner__(name, inner_sub_mod)
         object.__setattr__(self, name, value)
-    
+
     def __delattr__(self, name, value):
         if name not in ["__inner_module__", "__jit_module__"]:
-            delattr(self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__, name, value)
+            delattr(
+                self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__,
+                name,
+                value,
+            )
         else:
             object.__delattr__(self, name, value)
 
@@ -286,7 +300,7 @@ _STATE_ARG_NAME = "state"
 
 
 class UseStateFunc(Protocol):
-    
+
     def init_state(self) -> Dict[str, torch.Tensor]:
         """Get the cloned state of the closures of the function when it is wrapped by `use_state`.
 
@@ -294,7 +308,7 @@ class UseStateFunc(Protocol):
             `Dict[str, torch.Tensor]`: The cloned state of the closures.
         """
         pass
-    
+
     def set_state(self, state: Optional[Dict[str, torch.Tensor]] = None) -> None:
         """Set the closures of the function to the given state.
 
@@ -302,33 +316,34 @@ class UseStateFunc(Protocol):
             state (`Dict[str, torch.Tensor]`, optional): The new state to set to. If `state=None`, the new state would be the original state when the function is wrapped by `use_state`. Defaults to None.
         """
         pass
-    
-    def __call__(self, state: Dict[str, torch.Tensor], *args,
-                 **kwargs) -> Dict[str, torch.Tensor] | Tuple[Dict[str, torch.Tensor], Any]:
+
+    def __call__(
+        self, state: Dict[str, torch.Tensor], *args, **kwargs
+    ) -> Dict[str, torch.Tensor] | Tuple[Dict[str, torch.Tensor], Any]:
         pass
 
 
-def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
+def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True) -> UseStateFunc:
     """Transform the given stateful function (which in-place alters `nn.Module`s) to a pure-functional version that receives an additional `state` parameter (of type `Dict[str, torch.Tensor]`) and returns the altered state additionally.
 
     Args:
-        func (`Callable`): The stateful function to be transformed.
-        is_generator (`bool`, optional): Whether `func` is a function or a function generator (e.g. a lambda that returns the stateful function). Defaults to `False`.
+        func (`Callable`): The stateful function to be transformed or its generator function.
+        is_generator (`bool`, optional): Whether `func` is a function or a function generator (e.g. a lambda that returns the stateful function). Defaults to `True`.
 
     Returns:
         `Callable`: The transformed pure-functional version of `func`. It contains a `init_state() -> state` attribute that returns the copy of the current state that `func` uses and can be used as example inputs of the additional `state` parameter. It also contains a `set_state(state)` attribute to set the global state to the given one (of course not JIT-compatible).
-        
+
     ## Usage:
     ```
     @jit_class
     class Example(ModuleBase):
-        
+
         def __init__(self, threshold=0.5):
             super().__init__()
             self.threshold = threshold
             self.sub_mod = nn.Module()
             self.sub_mod.buf = nn.Buffer(torch.zeros(()))
-        
+
         def h(self, q: torch.Tensor) -> torch.Tensor:
             if q.flatten()[0] > self.threshold:
                 x = torch.sin(q)
@@ -338,18 +353,18 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
             x *= x.shape[1]
             self.sub_mod.buf = x.sum()
             return x
-        
+
         @trace_impl(h)
         def th(self, q: torch.Tensor) -> torch.Tensor:
             x += self.g(x).abs()
             x *= x.shape[1]
             self.sub_mod.buf = x.sum()
             return x
-        
+
         def g(self, p: torch.Tensor) -> torch.Tensor:
             x = torch.cos(p)
             return x * p.shape[0]
-    
+
     t = Test()
     fn = use_state(lambda: t.h, is_generator=True)
     jit_fn = jit(fn, trace=True, lazy=True)
@@ -365,20 +380,24 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
         if is_generator:
             func = func()
         func_args = inspect.signature(func).parameters.keys()
-        assert _STATE_ARG_NAME not in func_args, f"Use-state functions cannot have argument of name `{_STATE_ARG_NAME}`"
+        assert (
+            _STATE_ARG_NAME not in func_args
+        ), f"Use-state functions cannot have argument of name `{_STATE_ARG_NAME}`"
         vars = inspect.getclosurevars(func)
         vars = {**vars.globals, **vars.nonlocals}
-        vars = {k: v for k, v in vars.items() if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase)}
+        vars = {
+            k: v for k, v in vars.items() if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase)
+        }
         # remove duplicate self
         if hasattr(inspect.unwrap(func), "__self__") and "self" in vars:
             self_v: Tuple[nn.Module, ...] = vars["self"]
             if isinstance(self_v, _WrapClassBase):
                 if self_v.__jit_module__ is None:
-                    self_v = (self_v.__inner_module__, )
+                    self_v = (self_v.__inner_module__,)
                 else:
                     self_v = (self_v.__inner_module__, self_v.__jit_module__)
             else:
-                self_v = (self_v, )
+                self_v = (self_v,)
             if len(self_v) > 1:
                 self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
             vars = {k: v for k, v in vars.items() if v not in self_v}
@@ -388,7 +407,7 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
         for k, v in vars.items():
             v.state_dict(destination=modules, prefix=k + ".", keep_vars=True)
         modules = {k: v for k, v in modules.items()}
-        
+
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with UseStateContext():
@@ -405,15 +424,19 @@ def use_state(func: Callable, is_generator: bool = False) -> UseStateFunc:
                     return mutable_modules
                 else:
                     return mutable_modules, ret
-        
+
         def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
             if state is None:
                 state = modules
             for k, v in vars.items():
-                this_state = {".".join(key.split(".")[1:]): val for key, val in state.items() if key.split(".")[0] == k}
+                this_state = {
+                    ".".join(key.split(".")[1:]): val
+                    for key, val in state.items()
+                    if key.split(".")[0] == k
+                }
                 if len(this_state) > 0:
                     v.load_state_dict(this_state)
-        
+
         wrapper.init_state = lambda: {k: v.clone() for k, v in modules.items()}
         wrapper.set_state = _set_state
         setattr(wrapper, _USE_STATE_NAME, True)
@@ -427,9 +450,9 @@ _TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
 
 def trace_impl(target: Callable):
     """A helper function used to annotate that the wrapped method shall be treated as a trace-JIT-time proxy of the given `target` method.
-    
+
     Can ONLY be used inside a `jit_class` for a member method.
-    
+
     ## Notice:
     The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
 
@@ -446,53 +469,31 @@ def trace_impl(target: Callable):
         if "torch" in k and "modifier" in k:
             _TORCHSCRIPT_MODIFIER = k
             break
-    
-    def wrapping_fn(func: Callable) -> Callable:
+
+    def wrapping_fn[T: Callable](func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _TRACE_WRAP_NAME, target)
-        
         # special treatment for compatibility with `vmap`
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            flat_args, flat_spec = tree_flatten((args, kwargs))
-            for arg in flat_args:
-                if not isinstance(arg, torch.Tensor):
-                    continue
-                if not _vmap_fix.is_batched_tensor(arg):
-                    continue
-                level = _vmap_fix.get_level(arg)
-                base_arg = arg
-                batch_dims = []
-                while level >= 1:
-                    batch_dim = _vmap_fix.get_batch_dim(base_arg)
-                    base_arg, _ = _vmap_fix.unwrap_batched(base_arg, level)
-                    batch_dims.append(batch_dim)
-                    level -= 1
-                batch_dims = tuple(batch_dims[::-1])
-                _vmap_fix._transform_in_dim(batch_dims, arg, base_arg)
-            args, kwargs = tree_unflatten(flat_args, flat_spec)
-            return func(*args, **kwargs)
-        
-        return wrapper
-    
+        return _vmap_fix.wrap_vmap_inputs(func)
+
     return wrapping_fn
 
 
-def jit_class[cls](cls: type, trace: bool = False) -> cls:
+def jit_class[T](cls: type, trace: bool = False) -> T:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
     Args:
         cls (`type`): The original class whose member methods are to be lazy JIT.
         trace (`bool`, optional): Whether to trace the module or to script the module. Default to False.
-    
+
     Returns:
         The wrapped class.
-    
+
     ## Notice:
     1. In many cases, it is not necessary to wrap your custom algorithms or problems with `jit_class`, the workflow(s) will do the trick for you.
-    2. With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional 
+    2. With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional
     3. Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.
-    
+
     ## Usage:
     ```
     @jit_class
@@ -501,7 +502,7 @@ def jit_class[cls](cls: type, trace: bool = False) -> cls:
         def __init__(self, threshold = 0.5):
             super().__init__()
             self.threshold = threshold
-        
+
         # `torch.jit.export` is automatically added to this member method
         def h(self, q: torch.Tensor) -> torch.Tensor:
             if q.flatten()[0] > self.threshold:
@@ -509,7 +510,7 @@ def jit_class[cls](cls: type, trace: bool = False) -> cls:
             else:
                 x = torch.tan(q)
             return x * x.shape[1]
-            
+
     exp = Example(0.75)
     print(exp.h(torch.rand(10, 2)))
     # equivalent to
@@ -517,8 +518,8 @@ def jit_class[cls](cls: type, trace: bool = False) -> cls:
     print(exp.h(torch.rand(10, 2)))
     ```
     """
-    assert issubclass(cls, nn.Module), f"Expect the wrapping class to inherit `torch.nn.Module`, got {cls}"
-    
+    assert issubclass(cls, ModuleBase), f"Expect the wrapping class to inherit `ModuleBase`, got {cls}"
+
     _original_methods = {}
     _trace_correspond_methods = {}
     _method_argnames = {}
@@ -538,53 +539,57 @@ def jit_class[cls](cls: type, trace: bool = False) -> cls:
             torch.jit.export(method)
         _original_methods[name] = method
         _method_argnames[name] = list(method_sign.parameters.keys())[1:]
-    
+
     class WrappedModuleType(type(_WrapClassBase)):
-        
+
         def __getattr__(cls_new, name):
             return getattr(cls, name)
-        
+
         def __setattr__(cls_new, name, value):
             return setattr(cls, name, value)
-    
+
     @wraps(cls, updated=())
     class WrappedModule(_WrapClassBase, metaclass=WrappedModuleType):
-        
+
         def __init__(self, *args, **kwargs):
             inner = cls(*args, **kwargs)
             super().__init__(inner)
-        
+
         def __getattr__(self, name: str):
             if name in ["__inner_module__", "__jit_module__"]:
                 return object.__getattribute__(self, name)
-            
+
             nonlocal _original_methods, _trace_method_args
             jit_mod: torch.jit.ScriptModule = self.__jit_module__
-            base_mod: nn.Module = self.__inner_module__
-            
+            base_mod = self.__inner_module__
+
             # special treatment for compatibility with `trace_impl` of sub modules
             if tracing_or_using_state() and name in self.__dict__:
                 attr = object.__getattribute__(self, name)
                 if isinstance(attr, _WrapClassBase):
                     return attr
-            
+
             # basic case, get from jit module or original module
             if name not in _original_methods:
                 if jit_mod is None or tracing_or_using_state():
-                    return getattr(base_mod, name)
+                    return base_mod.__getattr_inner__(name)
                 else:
-                    return getattr(jit_mod, name) if hasattr(jit_mod, name) else getattr(base_mod, name)
-            
+                    return (
+                        getattr(jit_mod, name)
+                        if hasattr(jit_mod, name)
+                        else base_mod.__getattr_inner__(name)
+                    )
+
             # is a member method, deal with script
             if not trace and not tracing_or_using_state():
                 if jit_mod is None:
                     self.__jit_module__ = torch.jit.script(base_mod)
                     base_mod.load_state_dict(self.__jit_module__.state_dict(keep_vars=True))
                 return getattr(self.__jit_module__, name)
-            
+
             # is a member method, deal with trace
-            func = getattr(base_mod, name)
-            
+            func = base_mod.__getattr_inner__(name)
+
             @wraps(func)
             def method_wrapper(*args, **kwargs):
                 nonlocal func
@@ -593,40 +598,44 @@ def jit_class[cls](cls: type, trace: bool = False) -> cls:
                         if hasattr(_trace_correspond_methods[name], "__self__"):
                             bounded_trace_target_func = _trace_correspond_methods[name]
                         else:
-                            bounded_trace_target_func = types.MethodType(_trace_correspond_methods[name], self)
+                            bounded_trace_target_func = types.MethodType(
+                                _trace_correspond_methods[name], self
+                            )
                             _trace_correspond_methods[name] = bounded_trace_target_func
                         func = bounded_trace_target_func
                     return func(*args, **kwargs)
                 # else, the outer-most method is tracing
                 if name not in _trace_method_args:
                     _trace_method_args[name] = {**dict(zip(_method_argnames[name], args)), **kwargs}
-                    self.__jit_module__ = torch.jit.trace_module(base_mod, _trace_method_args, example_inputs_is_kwarg=True)
+                    self.__jit_module__ = torch.jit.trace_module(
+                        base_mod, _trace_method_args, example_inputs_is_kwarg=True
+                    )
                 return getattr(self.__jit_module__, name)(*args, **kwargs)
-            
+
             return method_wrapper
-    
+
     return WrappedModule
 
 
 # Test
 if __name__ == "__main__":
-    
+
     @jit_class
     class Test(ModuleBase):
-        
+
         def __init__(self, threshold=0.5):
             super().__init__()
             self.threshold = threshold
             self.sub_mod = nn.Module()
             self.sub_mod.buf = nn.Buffer(torch.zeros(()))
-        
+
         def h(self, q: torch.Tensor) -> torch.Tensor:
             if q.flatten()[0] > self.threshold:
                 x = torch.sin(q)
             else:
                 x = torch.tan(q)
             return x * x.shape[1]
-        
+
         @trace_impl(h)
         def th(self, q: torch.Tensor) -> torch.Tensor:
             x = torch.where(q.flatten()[0] > self.threshold, q + 2, q + 5)
@@ -634,11 +643,11 @@ if __name__ == "__main__":
             x *= x.shape[1]
             self.sub_mod.buf = x.sum()
             return x
-        
+
         def g(self, p: torch.Tensor) -> torch.Tensor:
             x = torch.cos(p)
             return x * p.shape[0]
-    
+
     t = Test()
     print(t.h.inlined_graph)
     result = t.g(torch.rand(100, 4))
@@ -647,11 +656,11 @@ if __name__ == "__main__":
     t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
     print(t.mut_list[0])
     print(t.mut_dict["b"])
-    
+
     t = Test()
     fn = use_state(lambda: t.h, is_generator=True)
     trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
-    
+
     def loop(init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int = 10):
         state = init_state
         ret = init_x
@@ -660,7 +669,7 @@ if __name__ == "__main__":
             state, ret = trace_fn(state, ret)
             rets.append(state["self.sub_mod.buf"])
         return rets
-    
+
     print(trace_fn.code)
     loop = torch.jit.trace(loop, (fn.init_state(), torch.rand(10, 2)), strict=False)
     print(loop.code)
