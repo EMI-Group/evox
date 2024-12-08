@@ -127,7 +127,7 @@ if __name__ == "__main__":
     from core import vmap, Problem, Workflow, use_state, jit
     import time
     from torch.profiler import profile, record_function, ProfilerActivity
-
+    
     class Sphere(Problem):
 
         def __init__(self):
@@ -190,8 +190,8 @@ if __name__ == "__main__":
     # jit_state_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
     # state = state_step.init_state()
     t = time.time()
-    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
-        workflow.loop(1000)
-    print(prof.key_averages().table())
+    # with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
+    workflow.loop(1000)
+    # print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)
