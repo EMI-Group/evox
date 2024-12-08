@@ -7,7 +7,7 @@ from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union
 import torch
 from torch import nn
 
-import _vmap_fix
+from . import _vmap_fix
 
 
 _WRAPPING_MODULE_NAME = "__wrapping_module__"

@@ -5,8 +5,8 @@ from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
 import torch
 
-from module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
-import _vmap_fix
+from .module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
+from .import _vmap_fix
 
 
 class MappedUseStateFunc(Protocol):

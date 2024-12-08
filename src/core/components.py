@@ -4,12 +4,16 @@ from typing import Optional, Final, Union, Any
 import torch
 from torch import nn
 
-from module import ModuleBase, jit_class, trace_impl, use_state
-from jit_util import vmap, jit
+from .module import ModuleBase, jit_class, trace_impl, use_state
+from .jit_util import vmap, jit
 
 
 class Algorithm(ModuleBase, ABC):
-    """Base class for all algorithms"""
+    """Base class for all algorithms
+    
+    ## Notice:
+    If a subclass have defined `trace_impl` of `ask` or `tell`, its corresponding `init_ask` or `init_tell` must be overwritten even though nothing special is to be included, because Python cannot correctly find the `trace_impl` version of these function due to otherwise.
+    """
 
     pop_size: Final[int]
 
@@ -26,7 +30,7 @@ class Algorithm(ModuleBase, ABC):
         Returns:
             `torch.Tensor`: The initial candidate solution.
         """
-        return super().__getattr__("ask")()
+        return self.ask()
 
     def ask(self) -> torch.Tensor:
         """Ask the algorithm.
@@ -46,7 +50,7 @@ class Algorithm(ModuleBase, ABC):
         Args:
             fitness (`torch.Tensor`): The fitness.
         """
-        return self.tell(fitness)
+        return self.tell()
 
     def tell(self, fitness: torch.Tensor) -> None:
         """Tell the algorithm more information.
@@ -237,6 +241,11 @@ if __name__ == "__main__":
     @jit_class
     class BasicWorkflow(Workflow):
 
+        def __init__(self, max_iterations: int | None = None):
+            super().__init__()
+            self.max_iterations = 0 if max_iterations is None else max_iterations
+            self._use_init = True
+        
         def setup(
             self,
             algorithm: Algorithm,
@@ -248,8 +257,6 @@ if __name__ == "__main__":
             self.algorithm = algorithm
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
-            self.max_iterations = 0
-            self._use_init = True
 
         def step(self):
             population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
@@ -263,7 +270,8 @@ if __name__ == "__main__":
             population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
             fitness = self.problem.evaluate(population)
             self.algorithm.init_tell(fitness) if self._use_init else self.algorithm.tell(fitness)
-            self.generation = self.generation + 1 # if in-place operations, you must use non-lazy JIT
+            self.generation = self.generation + 1
+            self._use_init = False
 
         def loop(self, max_iterations: Optional[int] = None):
             max_iterations = self.max_iterations if max_iterations is None else max_iterations
@@ -284,7 +292,8 @@ if __name__ == "__main__":
     print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
     workflow.step()
     print(workflow.generation, workflow.algorithm.fit)
-    workflow = BasicWorkflow(algo, prob)
+    workflow = BasicWorkflow()
+    workflow.setup(algo, prob)
     workflow.loop(100)
     print(workflow.algorithm.fit)
 
@@ -301,7 +310,6 @@ if __name__ == "__main__":
     jit_state_step = jit(vmap_init_state_step, trace=True, lazy=True)
     step1_state = jit_state_step(vmap_init_state_step.init_state(3))
     print(step1_state)
-    workflow._use_init = False
     state_step = use_state(lambda: workflow.step, True)
     vmap_state_step = vmap(state_step, batched_state=step1_state)
     jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
