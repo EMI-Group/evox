@@ -218,7 +218,7 @@ if __name__ == "__main__":
 
         def ask(self):
             pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
-            pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
+            pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             self.pop.copy_(pop)
             return self.pop
 
@@ -230,7 +230,7 @@ if __name__ == "__main__":
             pop = _vmap_fix.batched_random(
                 torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
             )
-            pop = pop * (self.ub - self.lb)[torch.newaxis, :] + self.lb[torch.newaxis, :]
+            pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             self.pop = pop
             return self.pop
 

@@ -1,21 +1,32 @@
-import contextlib
 from functools import wraps
 from typing import Any, Callable, List, Sequence, Tuple
 
 import torch
+import torch._C._functorch as _functorch
 from torch._C._functorch import (
     _add_batch_dim as add_batch_dim,
     maybe_get_bdim as get_batch_dim,
     maybe_get_level as get_level,
-    maybe_current_level as current_level,
     is_batchedtensor as is_batched_tensor,
-    get_unwrapped,
     _unwrap_batched as unwrap_batched,
-    _vmap_increment_nesting as vmap_increment_nesting,
-    _vmap_decrement_nesting as vmap_decrement_nesting,
 )
 
+if "maybe_current_level" not in _functorch.__dict__:
+
+    def current_level() -> int | None:
+        try:
+            return _functorch.current_level()
+        except:
+            return None
+
+else:
+    current_level = _functorch.maybe_current_level
+
 from torch.utils._pytree import tree_flatten, tree_unflatten
+from torch import nn
+
+if "Buffer" not in nn.__dict__:
+    nn.Buffer = lambda x: x
 
 
 def _transform_in_dim(

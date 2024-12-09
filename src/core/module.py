@@ -57,6 +57,7 @@ class ModuleBase(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.train(False)
+        self.__static_names__ = []
 
     def setup(self, *args, **kwargs):
         """Setup the module. Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`."""
@@ -144,13 +145,20 @@ class ModuleBase(nn.Module):
         elif hasattr(self, _WRAPPING_MODULE_NAME):
             object.__getattribute__(self, _WRAPPING_MODULE_NAME).__setattr__(name, value)
         else:
+            old_names = set(self.__dict__.keys())
             super().__setattr__(name, value)
+            new_names = set(self.__dict__.keys())
+            new_names.difference_update(old_names)
+            new_names = list(new_names)
+            if len(new_names) > 0 and not (new_names[0].startswith("__") and new_names[0].endswith("__")):
+                self.__static_names__.append(new_names[0])
 
     def __setattr_inner__(self, name, value):
         if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
         else:
             super().__setattr__(name, value)
+            
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
@@ -200,6 +208,14 @@ class ModuleBase(nn.Module):
             ), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
             targets.set_(value)
 
+    def __sync_with__(self, jit_module: torch.jit.ScriptModule):
+        self.load_state_dict(jit_module.state_dict(keep_vars=True))
+        for k in self.__static_names__:
+            self.__setattr_inner__(k, jit_module.__getattr__(k))
+        for sub_name, sub_mod in self.named_modules():
+            if len(sub_name) > 0:
+                sub_mod.__sync_with__(jit_module.__getattr__(sub_name))
+
 
 global _using_state
 _using_state = False
@@ -236,7 +252,7 @@ class _WrapClassBase(ABC):
         assert isinstance(inner, ModuleBase), f"Inner module must be a `ModuleBase`, got {type(inner)}"
         object.__setattr__(inner, _WRAPPING_MODULE_NAME, self)
         self.__inner_module__ = inner
-        self.__jit_module__ = None
+        self.__jit_module__: torch.jit.ScriptModule | None = None
 
     def __str__(self) -> str:
         return object.__str__(
@@ -293,6 +309,9 @@ class _WrapClassBase(ABC):
             )
         else:
             object.__delattr__(self, name, value)
+
+    def __sync__(self):
+        self.__inner_module__.__sync_with__(self.__jit_module__)
 
 
 _USE_STATE_NAME = "__use_state__"
@@ -584,7 +603,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             if not trace and not tracing_or_using_state():
                 if jit_mod is None:
                     self.__jit_module__ = torch.jit.script(base_mod)
-                    base_mod.load_state_dict(self.__jit_module__.state_dict(keep_vars=True))
+                    object.__getattribute__(self, "__sync__")()
                 return getattr(self.__jit_module__, name)
 
             # is a member method, deal with trace

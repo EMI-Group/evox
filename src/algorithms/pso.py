@@ -1,7 +1,6 @@
-import os
 import sys
 
-sys.path.append(os.getcwd() + "/src")
+sys.path.append(__file__ + "/../..")
 
 import torch
 from torch import nn
@@ -21,8 +20,8 @@ class PSO(Algorithm):
         assert lb.ndim == 1 and ub.ndim == 1
         self.dim = lb.shape[0]
         # setup
-        lb = lb[torch.newaxis, :]
-        ub = ub[torch.newaxis, :]
+        lb = lb[None, :]
+        ub = ub[None, :]
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim)
         population = length * population + lb
@@ -31,7 +30,6 @@ class PSO(Algorithm):
         # write to self
         self.lb = lb
         self.ub = ub
-        self.length = length
         # mutable
         self.population = nn.Buffer(population)
         self.velocity = nn.Buffer(velocity)
@@ -43,91 +41,70 @@ class PSO(Algorithm):
     def ask(self):
         return self.population
 
-    def _calc_new(self, rg: torch.Tensor, rp: torch.Tensor, fitness: torch.Tensor):
-        compare = self.local_best_fitness > fitness
-        local_best_location = torch.where(
-            compare[:, torch.newaxis], self.population, self.local_best_location
-        )
-        local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
-
-        all_fitness = torch.cat([torch.atleast_1d(self.global_best_fitness), fitness])
-        all_population = torch.cat([self.global_best_location[torch.newaxis, :], self.population])
-        global_best_index = torch.argmin(all_fitness)
-        global_best_location = all_population[global_best_index]
-        global_best_fitness = all_fitness[global_best_index]
-
-        velocity = (
-            self.w * self.velocity
-            + self.phi_p * rp * (local_best_location - self.population)
-            + self.phi_g * rg * (global_best_location - self.population)
-        )
-        population = self.population + velocity
-        population = torch.clip(population, self.lb, self.ub)
-        velocity = torch.clip(velocity, self.lb, self.ub)
-
-        return (
-            population,
-            velocity,
-            local_best_location,
-            local_best_fitness,
-            global_best_location,
-            global_best_fitness,
-        )
-
     def tell(self, fitness: torch.Tensor):
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         compare = self.local_best_fitness > fitness
-        torch.where(
-            compare[:, torch.newaxis],
-            self.population,
-            self.local_best_location,
-            out=self.local_best_location,
+        self.local_best_location = torch.where(
+            compare[:, None], self.population, self.local_best_location
         )
-        torch.minimum(self.local_best_fitness, fitness, out=self.local_best_fitness)
+        self.local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
         best_new_index = torch.argmin(fitness)
         best_new_fitness = fitness[best_new_index]
         if best_new_fitness < self.global_best_fitness:
             self.global_best_fitness = best_new_fitness
             self.global_best_location = self.population[best_new_index]
+        velocity = (
+            self.w * self.velocity
+            + self.phi_p * rp * (self.local_best_location - self.population)
+            + self.phi_g * rg * (self.global_best_location - self.population)
+        )
+        population = self.population + velocity
+        self.population = torch.clip(population, self.lb, self.ub)
+        self.velocity = torch.clip(velocity, self.lb, self.ub)
+
+    @trace_impl(tell)
+    def trace_tell(self, fitness: torch.Tensor):
+        compare = self.local_best_fitness > fitness
+        self.local_best_location = torch.where(
+            compare[:, None], self.population, self.local_best_location
+        )
+        self.local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
+
+        all_fitness = torch.cat([torch.atleast_1d(self.global_best_fitness), fitness])
+        all_population = torch.cat([self.global_best_location[None, :], self.population])
+        global_best_index = torch.argmin(all_fitness)
+        self.global_best_location = all_population[global_best_index]
+        self.global_best_fitness = all_fitness[global_best_index]
+
+        rg = batched_random(
+            torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
+        )
+        rp = batched_random(
+            torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
+        )
         self.velocity = (
             self.w * self.velocity
             + self.phi_p * rp * (self.local_best_location - self.population)
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
-        self.population.add_(self.velocity)
-        torch.clip(self.population, self.lb, self.ub, out=self.population)
-        torch.clip(self.velocity, self.lb, self.ub, out=self.velocity)
-
-    @trace_impl(tell)
-    def trace_tell(self, fitness: torch.Tensor):
-        rg = batched_random(
-            torch.rand, self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device
-        )
-        rp = batched_random(
-            torch.rand, self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device
-        )
-        (
-            self.population,
-            self.velocity,
-            self.local_best_location,
-            self.local_best_fitness,
-            self.global_best_location,
-            self.global_best_fitness,
-        ) = self._calc_new(rg, rp, fitness)
-
-    def init_ask(self):
-        return self.ask()
+        self.population = self.population + self.velocity
+        self.population = torch.clamp(self.population, self.lb, self.ub)
+        self.velocity = torch.clamp(self.velocity, self.lb, self.ub)
 
     def init_tell(self, fitness: torch.Tensor):
         return self.tell(fitness)
+
+    @trace_impl(init_tell)
+    def trace_init_tell(self, fitness: torch.Tensor):
+        return self.trace_tell(fitness)
 
 
 if __name__ == "__main__":
     from core import vmap, Problem, Workflow, use_state, jit
     import time
     from torch.profiler import profile, record_function, ProfilerActivity
-    
+
     class Sphere(Problem):
 
         def __init__(self):
@@ -177,21 +154,31 @@ if __name__ == "__main__":
                 self.step()
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+    print(torch.get_default_device())
     algo = PSO(pop_size=100000)
     algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
     prob = Sphere()
-    workflow = BasicWorkflow()
+    workflow = BasicWorkflow(max_iterations=1000)
     workflow.setup(algo, prob)
     workflow.loop(10)
+    workflow.__sync__()
     print(workflow.generation)
-    with open("tests/a.md", 'w') as ff:
+    with open("tests/a.md", "w") as ff:
         ff.write(workflow.step.inlined_graph.__str__())
-    # state_step = use_state(lambda: workflow.step)
-    # jit_state_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
-    # state = state_step.init_state()
+    state_step = use_state(lambda: workflow.step)
+    state = state_step.init_state()
+    ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
+    jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+    state = state_step.init_state()
+    with open("tests/b.md", "w") as ff:
+        ff.write(jit_state_step.inlined_graph.__str__())
     t = time.time()
-    # with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
-    workflow.loop(1000)
-    # print(prof.key_averages().table())
+    with profile(
+        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
+    ) as prof:
+        # workflow.loop()
+        for _ in range(1000):
+            state = jit_state_step(state)
+    print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)
