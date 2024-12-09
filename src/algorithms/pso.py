@@ -7,6 +7,12 @@ from torch import nn
 from core import Algorithm, jit_class, trace_impl, batched_random
 
 
+def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
+    lb = torch.relu(lb - a)
+    ub = torch.relu(a - ub)
+    return a + lb - ub
+
+
 @jit_class
 class PSO(Algorithm):
     def __init__(self, pop_size: int, w: float = 0.6, phi_p: float = 2.5, phi_g: float = 0.8):
@@ -42,34 +48,34 @@ class PSO(Algorithm):
         return self.population
 
     def tell(self, fitness: torch.Tensor):
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        compare = self.local_best_fitness > fitness
+        compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
-            compare[:, None], self.population, self.local_best_location
+            compare[:, None] > 0, self.population, self.local_best_location
         )
-        self.local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
+        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
         best_new_index = torch.argmin(fitness)
         best_new_fitness = fitness[best_new_index]
         if best_new_fitness < self.global_best_fitness:
             self.global_best_fitness = best_new_fitness
             self.global_best_location = self.population[best_new_index]
+        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         velocity = (
             self.w * self.velocity
             + self.phi_p * rp * (self.local_best_location - self.population)
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
         population = self.population + velocity
-        self.population = torch.clip(population, self.lb, self.ub)
-        self.velocity = torch.clip(velocity, self.lb, self.ub)
+        self.population = clamp(population, self.lb, self.ub)
+        self.velocity = clamp(velocity, self.lb, self.ub)
 
     @trace_impl(tell)
     def trace_tell(self, fitness: torch.Tensor):
-        compare = self.local_best_fitness > fitness
+        compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
-            compare[:, None], self.population, self.local_best_location
+            compare[:, None] > 0, self.population, self.local_best_location
         )
-        self.local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
+        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
 
         all_fitness = torch.cat([torch.atleast_1d(self.global_best_fitness), fitness])
         all_population = torch.cat([self.global_best_location[None, :], self.population])
@@ -89,8 +95,8 @@ class PSO(Algorithm):
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
         self.population = self.population + self.velocity
-        self.population = torch.clamp(self.population, self.lb, self.ub)
-        self.velocity = torch.clamp(self.velocity, self.lb, self.ub)
+        self.population = clamp(self.population, self.lb, self.ub)
+        self.velocity = clamp(self.velocity, self.lb, self.ub)
 
     def init_tell(self, fitness: torch.Tensor):
         return self.tell(fitness)
@@ -176,9 +182,9 @@ if __name__ == "__main__":
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
     ) as prof:
-        # workflow.loop()
-        for _ in range(1000):
-            state = jit_state_step(state)
+        workflow.loop()
+        # for _ in range(1000):
+        #     state = jit_state_step(state)
     print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)
