@@ -1,16 +1,19 @@
 from abc import ABC
+import sys
 from typing import Optional, Final, Union, Any
+
+sys.path.append(__file__ + "/../..")
 
 import torch
 from torch import nn
 
-from .module import ModuleBase, jit_class, trace_impl, use_state
-from .jit_util import vmap, jit
+from core.module import ModuleBase, jit_class, trace_impl, use_state
+from core.jit_util import vmap, jit
 
 
 class Algorithm(ModuleBase, ABC):
     """Base class for all algorithms
-    
+
     ## Notice:
     If a subclass have defined `trace_impl` of `ask` or `tell`, its corresponding `init_ask` or `init_tell` must be overwritten even though nothing special is to be included, because Python cannot correctly find the `trace_impl` version of these function due to otherwise.
     """
@@ -40,7 +43,7 @@ class Algorithm(ModuleBase, ABC):
         Returns:
             `torch.Tensor`: The candidate solution.
         """
-        raise NotImplementedError()
+        pass
 
     def init_tell(self, fitness: torch.Tensor) -> None:
         """Tell the algorithm more information, defaults to `self.tell(fitness)`.
@@ -50,7 +53,7 @@ class Algorithm(ModuleBase, ABC):
         Args:
             fitness (`torch.Tensor`): The fitness.
         """
-        return self.tell()
+        return self.tell(fitness)
 
     def tell(self, fitness: torch.Tensor) -> None:
         """Tell the algorithm more information.
@@ -60,7 +63,7 @@ class Algorithm(ModuleBase, ABC):
         Args:
             fitness (`torch.Tensor`): The fitness.
         """
-        raise NotImplementedError()
+        pass
 
 
 class Problem(ModuleBase, ABC):
@@ -73,7 +76,7 @@ class Problem(ModuleBase, ABC):
         assert num_objective > 0, f"Number of objectives shall be larger than 0"
         self.num_obj = num_objective
 
-    def evaluate(self, pop: Union[torch.Tensor, Any]) -> torch.Tensor:
+    def evaluate(self, pop: torch.Tensor | Any) -> torch.Tensor:
         """Evaluate the fitness at given points
 
         Args:
@@ -81,8 +84,11 @@ class Problem(ModuleBase, ABC):
 
         Returns:
             `torch.Tensor`: The fitness.
+
+        ## Notice:
+        If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
         """
-        raise NotImplementedError()
+        pass
 
     def eval(self):
         assert False, "Problem.eval() shall never be invoked to prevent ambiguity."
@@ -96,16 +102,7 @@ class Workflow(ModuleBase, ABC):
 
         Usually consists of sequence invocation of `algorithm.ask()`, `problem.evaluate()`, and `algorithm.tell()`.
         """
-        raise NotImplementedError()
-
-    def loop(self, max_iterations: Optional[int] = None) -> None:
-        """Loop the workflow until the maximum number of iterations (`max_iterations`) is reached.
-
-        Args:
-            max_iterations (`int`, optional): The desired maximum number of iterations.
-            If it is None, this workflow must contains attribute `max_iterations`.
-        """
-        raise NotImplementedError()
+        pass
 
 
 class Monitor(ModuleBase, ABC):
@@ -124,193 +121,37 @@ class Monitor(ModuleBase, ABC):
     `pre_step`, `post_step`, `pre_ask`, `post_ask`, `pre_eval`, `post_eval`, `pre_tell`, `post_tell`, and `post_step`.
     """
 
-    def __init__(self):
-        raise NotImplementedError()
+    def set_config(self, **config):
+        """Set the static variables according to `config`.
 
-    def set_opt_direction(self, opt_direction):
-        raise NotImplementedError()
-
-    def hooks(self):
-        raise NotImplementedError
+        Args:
+            config: The configuration.
+            
+        Returns:
+            This module.
+        """
+        return self
 
     def pre_step(self):
-        raise NotImplementedError()
+        pass
 
     def pre_ask(self):
-        raise NotImplementedError()
+        pass
 
     def post_ask(self, candidate_solution: Union[torch.Tensor, Any]):
-        raise NotImplementedError()
+        pass
 
-    def pre_eval(
-        self,
-        candidate_solution: Union[torch.Tensor, Any],
-        transformed_candidate_solution: Union[torch.Tensor, Any],
-    ):
-        raise NotImplementedError()
+    def pre_eval(self, transformed_candidate_solution: Union[torch.Tensor, Any]):
+        pass
 
-    def post_eval(
-        self,
-        candidate_solution: Union[torch.Tensor, Any],
-        transformed_candidate_solution: Union[torch.Tensor, Any],
-        fitness: torch.Tensor,
-    ):
-        raise NotImplementedError()
+    def post_eval(self, fitness: torch.Tensor):
+        pass
 
-    def pre_tell(
-        self,
-        candidate_solution: Union[torch.Tensor, Any],
-        transformed_candidate_solution: Union[torch.Tensor, Any],
-        fitness: torch.Tensor,
-        transformed_fitness: torch.Tensor,
-    ):
-        raise NotImplementedError()
+    def pre_tell(self, transformed_fitness: torch.Tensor):
+        pass
 
     def post_tell(self):
-        raise NotImplementedError()
+        pass
 
     def post_step(self):
-        raise NotImplementedError()
-
-
-# Test
-if __name__ == "__main__":
-    import _vmap_fix
-
-    @jit_class
-    class BasicProblem(Problem):
-
-        def __init__(self):
-            super().__init__(num_objective=1)
-            self._eval_fn = vmap(BasicProblem._single_eval, trace=False)
-            self._eval_fn_traced = vmap(BasicProblem._single_eval, example_ndim=2)
-
-        def _single_eval(x: torch.Tensor, p: float = 2.0):
-            return (x**p).sum()
-
-        def evaluate(self, pop: torch.Tensor):
-            return self._eval_fn_traced(pop)
-
-        @trace_impl(evaluate)
-        def trace_evaluate(self, pop: torch.Tensor):
-            return self._eval_fn(pop)
-
-    @jit_class
-    class BasicAlgorithm(Algorithm):
-
-        def __init__(self, pop_size: int):
-            super().__init__(pop_size)
-
-        def setup(self, lb: torch.Tensor, ub: torch.Tensor):
-            assert (
-                lb.ndim == 1 and ub.ndim == 1
-            ), f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
-            assert (
-                lb.shape == ub.shape
-            ), f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
-            self.lb = lb
-            self.ub = ub
-            self.dim = lb.shape[0]
-            self.pop = nn.Buffer(
-                torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device)
-            )
-            self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
-
-        def ask(self):
-            pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
-            pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-            self.pop.copy_(pop)
-            return self.pop
-
-        def tell(self, fitness: torch.Tensor):
-            self.fit.copy_(fitness)
-
-        @trace_impl(ask)
-        def trace_ask(self):
-            pop = _vmap_fix.batched_random(
-                torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-            )
-            pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-            self.pop = pop
-            return self.pop
-
-        @trace_impl(tell)
-        def trace_tell(self, fitness: torch.Tensor):
-            self.fit = fitness
-
-    @jit_class
-    class BasicWorkflow(Workflow):
-
-        def __init__(self, max_iterations: int | None = None):
-            super().__init__()
-            self.max_iterations = 0 if max_iterations is None else max_iterations
-            self._use_init = True
-        
-        def setup(
-            self,
-            algorithm: Algorithm,
-            problem: Problem,
-            device: Optional[Union[str, torch.device, int]] = None,
-        ):
-            algorithm.to(device=device)
-            problem.to(device=device)
-            self.algorithm = algorithm
-            self.problem = problem
-            self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
-
-        def step(self):
-            population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
-            fitness = self.problem.evaluate(population)
-            self.algorithm.init_tell(fitness) if self._use_init else self.algorithm.tell(fitness)
-            self.generation.add_(1)
-            self._use_init = False
-
-        @trace_impl(step)
-        def trace_step(self):
-            population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
-            fitness = self.problem.evaluate(population)
-            self.algorithm.init_tell(fitness) if self._use_init else self.algorithm.tell(fitness)
-            self.generation = self.generation + 1
-            self._use_init = False
-
-        def loop(self, max_iterations: Optional[int] = None):
-            max_iterations = self.max_iterations if max_iterations is None else max_iterations
-            for _ in range(max_iterations):
-                self.step()
-
-    # basic
-    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    algo = BasicAlgorithm(10)
-    algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
-    prob = BasicProblem()
-    workflow = BasicWorkflow()
-    workflow.setup(algo, prob)
-
-    # classic workflow
-    print(workflow.step.inlined_graph)
-    workflow.step()
-    print(workflow._use_init, workflow.generation, workflow.algorithm.fit)
-    workflow.step()
-    print(workflow.generation, workflow.algorithm.fit)
-    workflow = BasicWorkflow()
-    workflow.setup(algo, prob)
-    workflow.loop(100)
-    print(workflow.algorithm.fit)
-
-    # stateful workflow
-    state_step = use_state(lambda: workflow.step, True)
-    print(state_step.init_state())
-    jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
-    jit_step(state_step.init_state())
-    print(jit_step(state_step.init_state()))
-
-    # vmap workflow
-    init_state_step = use_state(lambda: workflow.step, True)
-    vmap_init_state_step = vmap(init_state_step)
-    jit_state_step = jit(vmap_init_state_step, trace=True, lazy=True)
-    step1_state = jit_state_step(vmap_init_state_step.init_state(3))
-    print(step1_state)
-    state_step = use_state(lambda: workflow.step, True)
-    vmap_state_step = vmap(state_step, batched_state=step1_state)
-    jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
-    print(jit_state_step(step1_state))
+        pass

@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, List, Sequence, Tuple
+from typing import Any, Callable, List, Tuple
 
 import torch
 import torch._C._functorch as _functorch

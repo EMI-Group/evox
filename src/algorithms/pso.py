@@ -138,6 +138,7 @@ if __name__ == "__main__":
             self.algorithm = algorithm
             self.problem = problem
             self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
+            return self
 
         def step(self):
             population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()

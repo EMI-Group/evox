@@ -1,12 +1,15 @@
 import inspect
+import sys
 import warnings
 from functools import wraps
 from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
+sys.path.append(__file__ + "/../..")
+
 import torch
 
-from .module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
-from .import _vmap_fix
+from core.module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
+from core import _vmap_fix
 
 
 class MappedUseStateFunc(Protocol):

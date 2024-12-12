@@ -1,13 +1,16 @@
 from abc import ABC
 import inspect
+import sys
 import types
 from functools import wraps
 from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
 
+sys.path.append(__file__ + "/../..")
+
 import torch
 from torch import nn
 
-from . import _vmap_fix
+from core import _vmap_fix
 
 
 _WRAPPING_MODULE_NAME = "__wrapping_module__"
@@ -40,6 +43,7 @@ class ModuleBase(nn.Module):
             self.add_mutable("mut", mut)
             # or
             self.mut = torch.nn.Buffer(mut)
+            return self
 
         @partial(jit, trace=False)
         def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
@@ -60,8 +64,17 @@ class ModuleBase(nn.Module):
         self.__static_names__ = []
 
     def setup(self, *args, **kwargs):
-        """Setup the module. Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`."""
-        pass
+        """Setup the module.
+        Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`.
+        
+        Returns:
+            This module.
+        
+        ## Notice:
+        The static initialization can still be written in the `__init__` while the mutable initialization cannot.
+        Therefore, multiple calls of `setup` for multiple initializations are possible.
+        """
+        return self
 
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
         """Copy parameters and buffers from state_dict into this module and its descendants.
@@ -208,7 +221,18 @@ class ModuleBase(nn.Module):
             ), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
             targets.set_(value)
 
-    def __sync_with__(self, jit_module: torch.jit.ScriptModule):
+    def __iter__(self):
+        self.__iter_count__ = 0
+        return self
+    
+    def __next__(self):
+        value = self[self.__iter_count__]
+        self.__iter_count__ += 1
+        return value
+
+    def __sync_with__(self, jit_module: torch.jit.ScriptModule | None):
+        if jit_module is None:
+            return
         self.load_state_dict(jit_module.state_dict(keep_vars=True))
         for k in self.__static_names__:
             self.__setattr_inner__(k, jit_module.__getattr__(k))
@@ -472,14 +496,15 @@ def trace_impl(target: Callable):
 
     Can ONLY be used inside a `jit_class` for a member method.
 
-    ## Notice:
-    The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
-
     Args:
         target (`Callable`): The target method invoked when not tracing JIT.
 
     Returns:
         The wrapping function to annotate the member method.
+        
+    ## Notice:
+    1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
+    2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
     """
     # deal with torchscript_modifier in case the implementation changed
     global _TORCHSCRIPT_MODIFIER
