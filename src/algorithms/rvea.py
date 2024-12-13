@@ -180,14 +180,14 @@ if __name__ == "__main__":
     # workflow.loop(10)
     workflow.__sync__()
     print(workflow.generation)
-    with open("../tests/a.md", "w") as ff:
+    with open("tests/a.md", "w") as ff:
         ff.write(workflow.step.inlined_graph.__str__())
     state_step = use_state(lambda: workflow.step)
     state = state_step.init_state()
     ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
     jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
     state = state_step.init_state()
-    with open("../tests/b.md", "w") as ff:
+    with open("tests/b.md", "w") as ff:
         ff.write(jit_state_step.inlined_graph.__str__())
     t = time.time()
     with profile(
