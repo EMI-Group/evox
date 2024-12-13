@@ -53,7 +53,7 @@ class StdWorkflow(Workflow):
         Args:
             algorithm (`Algorithm`): The algorithm to be used in the workflow.
             problem (`Problem`): The problem to be used in the workflow.
-            monitors (`Sequence[Monitor] | None`, optional): The monitors to be used in the workflow. Defaults to None.
+            monitors (`Sequence[Monitor] | None`, optional): The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
             device (`str | torch.device | int | None`, optional): The device of the workflow. Defaults to None.
 
         ## Notice:
@@ -73,8 +73,7 @@ class StdWorkflow(Workflow):
                 for m in monitors
             )
         )
-        self.monitors: Tuple[Monitor] | ModuleBase
-        self.add_mutable("monitors", monitors)
+        self.monitors = monitors
         self._has_init = (
             type(algorithm).init_ask != Algorithm.init_ask
             or type(algorithm).init_tell != Algorithm.init_tell

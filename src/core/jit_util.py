@@ -203,6 +203,8 @@ def jit[
     Returns:
         `Callable`: The JIT version of `func`
     """
+    if isinstance(func, torch.jit.ScriptFunction):
+        return func
     if not trace:
         return torch.jit.script_if_tracing(func) if lazy else torch.jit.script(func)
     elif not lazy:
