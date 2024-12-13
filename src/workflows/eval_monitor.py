@@ -33,6 +33,7 @@ class EvalMonitor(Monitor):
             full_sol_history (`bool`, optional): Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
             topk (`int`, optional): Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
         """
+        super().__init__()
         assert opt_direction in ["min", "max"]
         self.opt_direction = 1 if opt_direction == "min" else -1
         self.multi_obj = multi_obj
@@ -71,35 +72,25 @@ class EvalMonitor(Monitor):
             # single-objective
             self.multi_obj = False
             if self.latest_solution.ndim <= 1:
-                topk_solutions = state.latest_solution
+                topk_solutions = self.latest_solution
                 topk_fitness = fitness
-                state = state.replace(first_step=False)
             else:
-                topk_solutions = jnp.concatenate(
-                    [state.topk_solutions, state.latest_solution]
-                )
-                topk_fitness = jnp.concatenate([state.topk_fitness, fitness])
-            rank = jnp.argsort(topk_fitness)
+                topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
+                topk_fitness = torch.concatenate([self.topk_fitness, fitness])
+            rank = torch.argsort(topk_fitness)
             topk_solutions = topk_solutions[rank[: self.topk]]
             topk_fitness = topk_fitness[rank[: self.topk]]
-            state = state.replace(
-                topk_solutions=topk_solutions,
-                topk_fitness=topk_fitness,
-                latest_fitness=fitness,
-            )
+            self.topk_fitness = topk_fitness
+            self.topk_solutions = topk_solutions
         else:
             # multi-objective
             self.multi_obj = True
-            state = state.replace(latest_fitness=fitness)
 
         if self.full_fit_history or self.full_sol_history:
-            return state.register_callback(
-                self._record_history,
-                state.latest_solution if self.full_sol_history else None,
-                fitness if self.full_fit_history else None,
-            )
-        else:
-            return state
+            if self.full_sol_history:
+                self.solution_history.append(self.latest_solution)
+            if self.full_fit_history:
+                self.fitness_history.append(self.latest_fitness)
 
     # TODO: modify the commented methods to fit this framework
     # def get_latest_fitness(self, state) -> Tuple[jax.Array, EvalMonitorState]:

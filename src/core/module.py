@@ -66,10 +66,10 @@ class ModuleBase(nn.Module):
     def setup(self, *args, **kwargs):
         """Setup the module.
         Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`.
-        
+
         Returns:
             This module.
-        
+
         ## Notice:
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
         Therefore, multiple calls of `setup` for multiple initializations are possible.
@@ -111,7 +111,11 @@ class ModuleBase(nn.Module):
     def add_mutable(
         self,
         name: str,
-        value: Union[torch.Tensor, Sequence[torch.Tensor], Dict[str, torch.Tensor]],
+        value: Union[
+            torch.Tensor | nn.Module,
+            Sequence[torch.Tensor | nn.Module],
+            Dict[str, torch.Tensor | nn.Module],
+        ],
     ) -> None:
         """Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place.
 
@@ -126,6 +130,8 @@ class ModuleBase(nn.Module):
         assert name.isdigit() or str.isidentifier(name), f"Name {name} is not a valid Python name."
         if isinstance(value, torch.Tensor):
             setattr(self, name, nn.Buffer(value))
+        elif isinstance(value, nn.Module):
+            super().__setattr__(name, value)
         elif isinstance(value, tuple) or isinstance(value, list):
             sub_module = ModuleBase()
             for i, v in enumerate(value):
@@ -163,17 +169,17 @@ class ModuleBase(nn.Module):
             new_names = set(self.__dict__.keys())
             new_names.difference_update(old_names)
             new_names = list(new_names)
-            if len(new_names) > 0 and not (new_names[0].startswith("__") and new_names[0].endswith("__")):
+            if len(new_names) > 0 and not (
+                new_names[0].startswith("__") and new_names[0].endswith("__")
+            ):
                 self.__static_names__.append(new_names[0])
 
     def __setattr_inner__(self, name, value):
-        if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
-            super().__setattr__(name, ModuleBase())
-        else:
-            super().__setattr__(name, value)
-            
+        super().__setattr__(name, value)
 
-    def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
+    def __getitem__(
+        self, key: Union[int, slice, str]
+    ) -> Union[torch.Tensor | nn.Module, List[torch.Tensor | nn.Module]]:
         """Get the mutable value(s) stored in this list-like module.
 
         Args:
@@ -192,14 +198,19 @@ class ModuleBase(nn.Module):
         elif isinstance(key, int):
             if key < 0:
                 raise IndexError(f"The index {key} cannot be negative.")
-            return self.get_buffer(str(key))
-        elif isinstance(key, str):
-            return self.get_buffer(key)
+            key = str(key)
+        if isinstance(key, str):
+            if key in self._buffers:
+                return self.get_buffer(key)
+            else:
+                return self.get_submodule(key)
         else:
             raise TypeError(f"Invalid argument type {type(key)}.")
 
     def __setitem__(
-        self, value: Union[torch.Tensor, Sequence[torch.Tensor]], key: Union[slice, int]
+        self,
+        value: Union[torch.Tensor | nn.Module, List[torch.Tensor | nn.Module]],
+        key: Union[slice, int],
     ) -> None:
         """Set the mutable value(s) stored in this list-like module.
 
@@ -221,21 +232,21 @@ class ModuleBase(nn.Module):
             ), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
             targets.set_(value)
 
-    def __iter__(self):
-        self.__iter_count__ = 0
-        return self
-    
-    def __next__(self):
-        value = self[self.__iter_count__]
-        self.__iter_count__ += 1
-        return value
+    def iter(self) -> Tuple[torch.Tensor | nn.Module]:
+        if len(self._buffers) > 0:
+            return tuple(self.buffers(recurse=False))
+        else:
+            return tuple(self.modules())
 
     def __sync_with__(self, jit_module: torch.jit.ScriptModule | None):
         if jit_module is None:
             return
         self.load_state_dict(jit_module.state_dict(keep_vars=True))
         for k in self.__static_names__:
-            self.__setattr_inner__(k, jit_module.__getattr__(k))
+            try:
+                self.__setattr_inner__(k, jit_module.__getattr__(k))
+            except:
+                self.__static_names__.remove(k)
         for sub_name, sub_mod in self.named_modules():
             if len(sub_name) > 0:
                 sub_mod.__sync_with__(jit_module.__getattr__(sub_name))
@@ -501,7 +512,7 @@ def trace_impl(target: Callable):
 
     Returns:
         The wrapping function to annotate the member method.
-        
+
     ## Notice:
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
     2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.

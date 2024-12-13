@@ -1,5 +1,5 @@
 import sys
-from typing import Sequence, Tuple, Callable, Any
+from typing import Sequence, Callable, Any
 
 sys.path.append(__file__ + "/../..")
 
@@ -67,87 +67,60 @@ class StdWorkflow(Workflow):
             ()
             if monitors is None
             else tuple(
-                m.set_config({"opt_direction": self.opt_direction, "multi_obj": problem.num_obj > 1})
+                m.set_config(opt_direction=self.opt_direction, multi_obj=problem.num_obj > 1)
                 .setup()
                 .to(device=device)
                 for m in monitors
             )
         )
-        self.monitors = monitors
+        self.monitors: ModuleBase
+        self.add_mutable("monitors", monitors)
         self._has_init = (
             type(algorithm).init_ask != Algorithm.init_ask
             or type(algorithm).init_tell != Algorithm.init_tell
         )
 
-    def init_step(self):
-        """The initial step of the workflow. Does nothing if the algorithm does not contain a specific `init_ask` and `init_tell`."""
-        if not self._has_init:
-            return
-        # ask
-        for monitor in self.monitors:
-            monitor.pre_ask()
-        population = self.algorithm.init_ask()  ####
-        for monitor in self.monitors:
-            monitor.post_ask(population)
-        # transform population
-        for trans in self.solution_transforms:
-            population = trans(population)
-        # evaluate
-        for monitor in self.monitors:
-            monitor.pre_eval(population)
-        fitness = self.problem.evaluate(population)  ####
-        for monitor in self.monitors:
-            monitor.post_eval(fitness)
-        # transform fitness
-        fitness *= self.opt_direction
-        for trans in self.fitness_transforms:
-            fitness = trans(fitness)
-        # tell
-        for monitor in self.monitors:
-            monitor.pre_tell(fitness)
-        self.algorithm.init_tell(fitness)  ####
-        for monitor in self.monitors:
-            monitor.post_tell()
-        # final
-        for monitor in self.monitors:
-            monitor.post_step()
+    def step(self, init: bool = False):
+        """The general step of the workflow.
 
-    def step(self):
-        """The general step of the workflow."""
+        Args:
+            init (`bool`, optional): Whether to execute the initial step or following normal step. Defaults to False.
+        """
         # ask
-        for monitor in self.monitors:
+        for monitor in self.monitors.iter():
             monitor.pre_ask()
-        population = self.algorithm.ask()  ####
-        for monitor in self.monitors:
+        population = self.algorithm.init_ask() if init else self.algorithm.ask()  ####
+        for monitor in self.monitors.iter():
             monitor.post_ask(population)
         # transform population
         for trans in self.solution_transforms:
             population = trans(population)
         # evaluate
-        for monitor in self.monitors:
+        for monitor in self.monitors.iter():
             monitor.pre_eval(population)
         fitness = self.problem.evaluate(population)  ####
-        for monitor in self.monitors:
+        for monitor in self.monitors.iter():
             monitor.post_eval(fitness)
         # transform fitness
         fitness *= self.opt_direction
         for trans in self.fitness_transforms:
             fitness = trans(fitness)
         # tell
-        for monitor in self.monitors:
+        for monitor in self.monitors.iter():
             monitor.pre_tell(fitness)
-        self.algorithm.tell(fitness)  ####
-        for monitor in self.monitors:
+        self.algorithm.init_tell(fitness) if init else self.algorithm.tell(fitness)  ####
+        for monitor in self.monitors.iter():
             monitor.post_tell()
         # final
-        for monitor in self.monitors:
+        for monitor in self.monitors.iter():
             monitor.post_step()
 
 
 # Test
 if __name__ == "__main__":
     from torch import nn
-    from core import vmap, trace_impl, batched_random, use_state, jit
+    from core import vmap, trace_impl, batched_random
+    from eval_monitor import EvalMonitor
 
     @jit_class
     class BasicProblem(Problem):
@@ -217,35 +190,34 @@ if __name__ == "__main__":
     algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
     workflow = StdWorkflow()
-    workflow.setup(
-        algo,
-        prob,
-    )
+    workflow.setup(algo, prob)
 
     # classic workflow
-    print(workflow.step.inlined_graph)
-    workflow.init_step()
-    print(workflow.algorithm.fit)
-    workflow.step()
-    print(workflow.algorithm.fit)
+    monitor = EvalMonitor(full_sol_history=True)
     workflow = StdWorkflow()
-    workflow.setup(algo, prob)
-    print(workflow.algorithm.fit)
+    workflow.setup(algo, prob, monitors=(monitor,))
+    print(workflow.step.inlined_graph)
+    workflow.step(init=True)
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
 
-    # stateful workflow
-    state_step = use_state(lambda: workflow.step, True)
-    print(state_step.init_state())
-    jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
-    jit_step(state_step.init_state())
-    print(jit_step(state_step.init_state()))
+    # # stateful workflow
+    # state_step = use_state(lambda: workflow.step, True)
+    # print(state_step.init_state())
+    # jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
+    # jit_step(state_step.init_state())
+    # print(jit_step(state_step.init_state()))
 
-    # vmap workflow
-    init_state_step = use_state(lambda: workflow.init_step, True)
-    vmap_init_state_step = vmap(init_state_step)
-    jit_state_step = jit(vmap_init_state_step, trace=True, lazy=True)
-    step1_state = jit_state_step(vmap_init_state_step.init_state(3))
-    print(step1_state)
-    state_step = use_state(lambda: workflow.step, True)
-    vmap_state_step = vmap(state_step, batched_state=step1_state)
-    jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
-    print(jit_state_step(step1_state))
+    # # vmap workflow
+    # init_state_step = use_state(lambda: workflow.init_step, True)
+    # vmap_init_state_step = vmap(init_state_step)
+    # jit_state_step = jit(vmap_init_state_step, trace=True, lazy=True)
+    # step1_state = jit_state_step(vmap_init_state_step.init_state(3))
+    # print(step1_state)
+    # state_step = use_state(lambda: workflow.step, True)
+    # vmap_state_step = vmap(state_step, batched_state=step1_state)
+    # jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
+    # print(jit_state_step(step1_state))
