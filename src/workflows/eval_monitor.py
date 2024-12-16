@@ -43,7 +43,7 @@ class EvalMonitor(Monitor):
 
     def set_config(self, **config):
         if "opt_direction" in config:
-            self.multi_obj = config["opt_direction"]
+            self.opt_direction = config["opt_direction"]
         if "multi_obj" in config:
             self.multi_obj = config["multi_obj"]
         if "full_fit_history" in config:
@@ -59,11 +59,11 @@ class EvalMonitor(Monitor):
         self.latest_fitness = nn.Buffer(torch.empty(0))
         self.topk_solutions = nn.Buffer(torch.empty(0))
         self.topk_fitness = nn.Buffer(torch.empty(0))
-        self.fitness_history: List[torch.Tensor] = []
-        self.solution_history: List[torch.Tensor] = []
+        self.fitness_history: List[torch.Tensor] = [torch.empty(0)]
+        self.solution_history: List[torch.Tensor] = [torch.empty(0)]
         return self
 
-    def post_ask(self, candidate_solution: torch.Tensor | Any):
+    def post_ask(self, candidate_solution: torch.Tensor):
         self.latest_solution = candidate_solution
 
     def post_eval(self, fitness: torch.Tensor):
@@ -71,17 +71,18 @@ class EvalMonitor(Monitor):
         if fitness.ndim == 1:
             # single-objective
             self.multi_obj = False
-            if self.latest_solution.ndim <= 1:
+            if self.topk_solutions.ndim <= 1:
                 topk_solutions = self.latest_solution
                 topk_fitness = fitness
+                rank = torch.argsort(topk_fitness)[: self.topk]
+                self.topk_fitness = topk_fitness[rank]
+                self.topk_solutions = topk_solutions[rank]
             else:
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
-            rank = torch.argsort(topk_fitness)
-            topk_solutions = topk_solutions[rank[: self.topk]]
-            topk_fitness = topk_fitness[rank[: self.topk]]
-            self.topk_fitness = topk_fitness
-            self.topk_solutions = topk_solutions
+                rank = torch.argsort(topk_fitness)[: self.topk]
+                self.topk_fitness.copy_(topk_fitness[rank])
+                self.topk_solutions.copy_(topk_solutions[rank])
         else:
             # multi-objective
             self.multi_obj = True

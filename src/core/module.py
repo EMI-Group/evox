@@ -63,6 +63,9 @@ class ModuleBase(nn.Module):
         self.train(False)
         self.__static_names__ = []
 
+    def eval(self):
+        assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
+        
     def setup(self, *args, **kwargs):
         """Setup the module.
         Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`.
@@ -133,15 +136,10 @@ class ModuleBase(nn.Module):
         elif isinstance(value, nn.Module):
             super().__setattr__(name, value)
         elif isinstance(value, tuple) or isinstance(value, list):
-            sub_module = ModuleBase()
-            for i, v in enumerate(value):
-                sub_module.add_mutable(str(i), v)
+            sub_module = nn.ModuleList(value)
             self.add_module(name, sub_module)
         elif isinstance(value, dict):
-            sub_module = ModuleBase()
-            for k, v in value.items():
-                assert isinstance(k, str), f"Mutable with name type {type(k)} is not supported yet."
-                sub_module.add_mutable(k, v)
+            sub_module = nn.ModuleDict(value)
             self.add_module(name, sub_module)
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
@@ -179,7 +177,7 @@ class ModuleBase(nn.Module):
 
     def __getitem__(
         self, key: Union[int, slice, str]
-    ) -> Union[torch.Tensor | nn.Module, List[torch.Tensor | nn.Module]]:
+    ) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
 
         Args:
@@ -199,17 +197,14 @@ class ModuleBase(nn.Module):
             if key < 0:
                 raise IndexError(f"The index {key} cannot be negative.")
             key = str(key)
-        if isinstance(key, str):
-            if key in self._buffers:
-                return self.get_buffer(key)
-            else:
-                return self.get_submodule(key)
+        if isinstance(key, str) and key in self._buffers:
+            return self.get_buffer(key)
         else:
             raise TypeError(f"Invalid argument type {type(key)}.")
 
     def __setitem__(
         self,
-        value: Union[torch.Tensor | nn.Module, List[torch.Tensor | nn.Module]],
+        value: Union[torch.Tensor, List[torch.Tensor]],
         key: Union[slice, int],
     ) -> None:
         """Set the mutable value(s) stored in this list-like module.
@@ -232,7 +227,7 @@ class ModuleBase(nn.Module):
             ), f"Type of value mismatch, expected torch.Tensor, got {type(value)}"
             targets.set_(value)
 
-    def iter(self) -> Tuple[torch.Tensor | nn.Module]:
+    def iter(self) -> Tuple[torch.Tensor]:
         if len(self._buffers) > 0:
             return tuple(self.buffers(recurse=False))
         else:
@@ -247,8 +242,8 @@ class ModuleBase(nn.Module):
                 self.__setattr_inner__(k, jit_module.__getattr__(k))
             except:
                 self.__static_names__.remove(k)
-        for sub_name, sub_mod in self.named_modules():
-            if len(sub_name) > 0:
+        for sub_name, sub_mod in self._modules.items():
+            if len(sub_name) > 0 and isinstance(sub_mod, ModuleBase):
                 sub_mod.__sync_with__(jit_module.__getattr__(sub_name))
 
 
@@ -589,6 +584,8 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             continue
         if hasattr(method, _TRACE_WRAP_NAME):
             _trace_correspond_methods[getattr(method, _TRACE_WRAP_NAME).__name__] = method
+            continue
+        if hasattr(method, _TORCHSCRIPT_MODIFIER) and "ignore" in getattr(method, _TORCHSCRIPT_MODIFIER):
             continue
         if not trace:
             torch.jit.export(method)

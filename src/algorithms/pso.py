@@ -16,7 +16,8 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
 @jit_class
 class PSO(Algorithm):
     def __init__(self, pop_size: int, w: float = 0.6, phi_p: float = 2.5, phi_g: float = 0.8):
-        super().__init__(pop_size)
+        super().__init__()
+        self.pop_size = pop_size
         self.w = w
         self.phi_p = phi_p
         self.phi_g = phi_g
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     class Sphere(Problem):
 
         def __init__(self):
-            super().__init__(num_objective=1)
+            super().__init__()
 
         def evaluate(self, pop: torch.Tensor):
             return (pop**2).sum(-1)

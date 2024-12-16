@@ -18,65 +18,21 @@ class Algorithm(ModuleBase, ABC):
     If a subclass have defined `trace_impl` of `ask` or `tell`, its corresponding `init_ask` or `init_tell` must be overwritten even though nothing special is to be included, because Python cannot correctly find the `trace_impl` version of these function due to otherwise.
     """
 
-    pop_size: Final[int]
-
-    def __init__(self, pop_size: int):
+    def __init__(self):
         super().__init__()
-        assert pop_size > 0, f"Population size shall be larger than 0"
-        self.pop_size = pop_size
-
-    def init_ask(self) -> torch.Tensor:
-        """Ask the algorithm for the first time, defaults to `self.ask()`.
-
-        Workflows only call `init_ask()` for one time, the following asks will all invoke `ask()`.
-
-        Returns:
-            `torch.Tensor`: The initial candidate solution.
-        """
-        return self.ask()
-
-    def ask(self) -> torch.Tensor:
-        """Ask the algorithm.
-
-        Ask the algorithm for points to explore.
-
-        Returns:
-            `torch.Tensor`: The candidate solution.
-        """
-        pass
-
-    def init_tell(self, fitness: torch.Tensor) -> None:
-        """Tell the algorithm more information, defaults to `self.tell(fitness)`.
-
-        Workflows only call `init_tell()` for one time, the following tells will all invoke `tell()`.
-
-        Args:
-            fitness (`torch.Tensor`): The fitness.
-        """
-        return self.tell(fitness)
-
-    def tell(self, fitness: torch.Tensor) -> None:
-        """Tell the algorithm more information.
-
-        Tell the algorithm about the points it chose and their corresponding fitness.
-
-        Args:
-            fitness (`torch.Tensor`): The fitness.
-        """
+        
+    def step(self) -> None:
+        """Execute the algorithm procedure for one step."""
         pass
 
 
 class Problem(ModuleBase, ABC):
     """Base class for all problems"""
 
-    num_obj: Final[int]
-
-    def __init__(self, num_objective: int):
+    def __init__(self):
         super().__init__()
-        assert num_objective > 0, f"Number of objectives shall be larger than 0"
-        self.num_obj = num_objective
 
-    def evaluate(self, pop: torch.Tensor | Any) -> torch.Tensor:
+    def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
         """Evaluate the fitness at given points
 
         Args:
@@ -89,9 +45,6 @@ class Problem(ModuleBase, ABC):
         If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
         """
         pass
-
-    def eval(self):
-        assert False, "Problem.eval() shall never be invoked to prevent ambiguity."
 
 
 class Workflow(ModuleBase, ABC):
@@ -118,7 +71,7 @@ class Monitor(ModuleBase, ABC):
     The hooks method should return a list of strings, which are the names of the callbacks.
     Currently the supported callbacks are:
 
-    `pre_step`, `post_step`, `pre_ask`, `post_ask`, `pre_eval`, `post_eval`, `pre_tell`, `post_tell`, and `post_step`.
+    `post_ask`, `pre_eval`, `post_eval`, and `pre_tell`.
     """
 
     def set_config(self, **config):
@@ -132,26 +85,34 @@ class Monitor(ModuleBase, ABC):
         """
         return self
 
-    def pre_step(self):
+    def post_ask(self, candidate_solution: torch.Tensor):
+        """The hook function to be executed before the solution transformation.
+
+        Args:
+            candidate_solution (`torch.Tensor`): The population (candidate solutions) before the solution transformation.
+        """
         pass
 
-    def pre_ask(self):
-        pass
+    def pre_eval(self, transformed_candidate_solution: torch.Tensor):
+        """The hook function to be executed after the solution transformation.
 
-    def post_ask(self, candidate_solution: Union[torch.Tensor, Any]):
-        pass
-
-    def pre_eval(self, transformed_candidate_solution: Union[torch.Tensor, Any]):
+        Args:
+            transformed_candidate_solution (`torch.Tensor`): The population (candidate solutions) after the solution transformation.
+        """
         pass
 
     def post_eval(self, fitness: torch.Tensor):
+        """The hook function to be executed before the fitness transformation.
+
+        Args:
+            fitness (`torch.Tensor`): The fitnesses before the fitness transformation.
+        """
         pass
 
     def pre_tell(self, transformed_fitness: torch.Tensor):
-        pass
+        """The hook function to be executed after the fitness transformation.
 
-    def post_tell(self):
-        pass
-
-    def post_step(self):
+        Args:
+            transformed_fitness (`torch.Tensor`): The fitnesses after the fitness transformation.
+        """
         pass

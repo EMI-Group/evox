@@ -14,15 +14,15 @@ class StdWorkflow(Workflow):
     def __init__(
         self,
         opt_direction: str = "min",
-        solution_transforms: Sequence[Callable[[torch.Tensor], torch.Tensor | Any]] | None = None,
-        fitness_transforms: Sequence[Callable[[torch.Tensor], torch.Tensor]] | None = None,
+        solution_transform: torch.jit.ScriptFunction | None = None,
+        fitness_transform: torch.jit.ScriptFunction | None = None,
     ):
         """Initialize the standard workflow with static arguments.
 
         Args:
             opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min".
-            solution_transforms (`Sequence[Callable[[torch.Tensor], torch.Tensor | Any]] | None`, optional): The sequence of solution transformation functions. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
-            fitness_transforms (`Sequence[Callable[[torch.Tensor], torch.Tensor]] | None`, optional): The sequence of fitness transformation functions. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
+            solution_transform (`Callable[[torch.Tensor], torch.Tensor | Any] | None`, optional): The solution transformation function. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
+            fitness_transforms (`Callable[[torch.Tensor], torch.Tensor] | None`, optional): The fitness transformation function. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
         """
         super().__init__()
         assert opt_direction in [
@@ -30,22 +30,24 @@ class StdWorkflow(Workflow):
             "max",
         ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
         self.opt_direction = 1 if opt_direction == "min" else -1
-        if solution_transforms is None:
-            solution_transforms = ()
-        if fitness_transforms is None:
-            fitness_transforms = ()
-        for trans in solution_transforms:
-            assert callable(trans), f"Expect solution transforms to be callable, got {trans}"
-        for trans in fitness_transforms:
-            assert callable(trans), f"Expect fitness transforms to be callable, got {trans}"
-        self.solution_transforms = tuple(solution_transforms)
-        self.fitness_transforms = tuple(fitness_transforms)
+        if solution_transform is None or fitness_transform is None:
+            self._identity_ = torch.nn.Identity()
+        if solution_transform is None:
+            solution_transform = self._identity_.forward
+        if fitness_transform is None:
+            fitness_transform = self._identity_.forward
+        callable(
+            solution_transform
+        ), f"Expect solution transform to be callable, got {solution_transform}"
+        callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
+        self._solution_transform_ = solution_transform
+        self._fitness_transform_ = fitness_transform
 
     def setup(
         self,
         algorithm: Algorithm,
         problem: Problem,
-        monitors: Sequence[Monitor] | None = None,
+        monitor: Monitor | None = None,
         device: str | torch.device | int | None = None,
     ):
         """Setup the module with submodule initialization.
@@ -57,76 +59,61 @@ class StdWorkflow(Workflow):
             device (`str | torch.device | int | None`, optional): The device of the workflow. Defaults to None.
 
         ## Notice:
-        The algorithm, problem and monitors will be IN-PLACE transformed to the target device.
+        The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
         algorithm.to(device=device)
         problem.to(device=device)
         self.algorithm = algorithm
-        self.problem = problem
-        monitors = (
-            ()
-            if monitors is None
-            else tuple(
-                m.set_config(opt_direction=self.opt_direction, multi_obj=problem.num_obj > 1)
-                .setup()
-                .to(device=device)
-                for m in monitors
-            )
+        monitor = (
+            Monitor()
+            if monitor is None
+            else monitor.set_config(opt_direction=self.opt_direction).setup().to(device=device)
         )
-        self.monitors: ModuleBase
-        self.add_mutable("monitors", monitors)
-        self._has_init = (
-            type(algorithm).init_ask != Algorithm.init_ask
-            or type(algorithm).init_tell != Algorithm.init_tell
-        )
+        
+        # set algorithm evaluate
+        self.algorithm.evaluate = self._evaluate
+        self.algorithm._problem_ = problem
+        self.algorithm._monitor_ = monitor
+        self.algorithm._solution_transform_ = self._solution_transform_
+        self.algorithm._fitness_transform_ = self._fitness_transform_
+        # for compilation
+        self._monitor_ = monitor
+        self._problem_ = problem
 
-    def step(self, init: bool = False):
-        """The general step of the workflow.
+    @torch.jit.ignore
+    def monitor(self):
+        return self.algorithm._monitor_
+    
+    @torch.jit.ignore
+    def problem(self):
+        return self.algorithm._problem_
 
-        Args:
-            init (`bool`, optional): Whether to execute the initial step or following normal step. Defaults to False.
-        """
-        # ask
-        for monitor in self.monitors.iter():
-            monitor.pre_ask()
-        population = self.algorithm.init_ask() if init else self.algorithm.ask()  ####
-        for monitor in self.monitors.iter():
-            monitor.post_ask(population)
-        # transform population
-        for trans in self.solution_transforms:
-            population = trans(population)
-        # evaluate
-        for monitor in self.monitors.iter():
-            monitor.pre_eval(population)
-        fitness = self.problem.evaluate(population)  ####
-        for monitor in self.monitors.iter():
-            monitor.post_eval(fitness)
-        # transform fitness
-        fitness *= self.opt_direction
-        for trans in self.fitness_transforms:
-            fitness = trans(fitness)
-        # tell
-        for monitor in self.monitors.iter():
-            monitor.pre_tell(fitness)
-        self.algorithm.init_tell(fitness) if init else self.algorithm.tell(fitness)  ####
-        for monitor in self.monitors.iter():
-            monitor.post_tell()
-        # final
-        for monitor in self.monitors.iter():
-            monitor.post_step()
+    def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
+        self._monitor_.post_ask(population)
+        population = self._solution_transform_(population)
+        self._monitor_.pre_eval(population)
+        fitness = self._problem_.evaluate(population)
+        self._monitor_.post_eval(fitness)
+        fitness = self._fitness_transform_(fitness)
+        self._monitor_.pre_tell(fitness)
+        return fitness
+
+    def step(self):
+        """The general step of the workflow."""
+        self.algorithm.step()
 
 
 # Test
 if __name__ == "__main__":
     from torch import nn
-    from core import vmap, trace_impl, batched_random
+    from core import vmap, trace_impl, batched_random, use_state, jit
     from eval_monitor import EvalMonitor
 
     @jit_class
     class BasicProblem(Problem):
 
         def __init__(self):
-            super().__init__(num_objective=1)
+            super().__init__()
             self._eval_fn = vmap(BasicProblem._single_eval, trace=False)
             self._eval_fn_traced = vmap(BasicProblem._single_eval, example_ndim=2)
 
@@ -144,7 +131,8 @@ if __name__ == "__main__":
     class BasicAlgorithm(Algorithm):
 
         def __init__(self, pop_size: int):
-            super().__init__(pop_size)
+            super().__init__()
+            self.pop_size = pop_size
 
         def setup(self, lb: torch.Tensor, ub: torch.Tensor):
             assert (
@@ -162,27 +150,20 @@ if __name__ == "__main__":
             self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
             return self
 
-        def ask(self):
+        def step(self):
             pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             self.pop.copy_(pop)
-            return self.pop
+            self.fit.copy_(self.evaluate(pop))
 
-        def tell(self, fitness: torch.Tensor):
-            self.fit.copy_(fitness)
-
-        @trace_impl(ask)
-        def trace_ask(self):
+        @trace_impl(step)
+        def trace_step(self):
             pop = batched_random(
                 torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
             )
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             self.pop = pop
-            return self.pop
-
-        @trace_impl(tell)
-        def trace_tell(self, fitness: torch.Tensor):
-            self.fit = fitness
+            self.fit = self.evaluate(pop)
 
     # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
@@ -192,17 +173,24 @@ if __name__ == "__main__":
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
 
-    # classic workflow
-    monitor = EvalMonitor(full_sol_history=True)
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob, monitors=(monitor,))
-    print(workflow.step.inlined_graph)
-    workflow.step(init=True)
-    print(monitor.topk_fitness)
-    workflow.step()
-    print(monitor.topk_fitness)
-    workflow.step()
-    print(monitor.topk_fitness)
+    # # classic workflow
+    # @torch.jit.script
+    # def solution_transform(x: torch.Tensor):
+    #     return x / 5
+    # @torch.jit.script
+    # def fitness_transform(f: torch.Tensor):
+    #     return -f
+    # monitor = EvalMonitor(full_sol_history=True)
+    # workflow = StdWorkflow(solution_transform=solution_transform, fitness_transform=fitness_transform)
+    # workflow.setup(algo, prob, monitor=monitor)
+    # print(workflow.step.inlined_graph)
+    # workflow.step()
+    # monitor = workflow.monitor()
+    # print(monitor.topk_fitness)
+    # workflow.step()
+    # print(monitor.topk_fitness)
+    # workflow.step()
+    # print(monitor.topk_fitness)
 
     # # stateful workflow
     # state_step = use_state(lambda: workflow.step, True)
@@ -212,12 +200,9 @@ if __name__ == "__main__":
     # print(jit_step(state_step.init_state()))
 
     # # vmap workflow
-    # init_state_step = use_state(lambda: workflow.init_step, True)
-    # vmap_init_state_step = vmap(init_state_step)
-    # jit_state_step = jit(vmap_init_state_step, trace=True, lazy=True)
-    # step1_state = jit_state_step(vmap_init_state_step.init_state(3))
-    # print(step1_state)
     # state_step = use_state(lambda: workflow.step, True)
-    # vmap_state_step = vmap(state_step, batched_state=step1_state)
+    # vmap_state_step = vmap(state_step)
+    # state = vmap_state_step.init_state(3)
+    # print(state)
     # jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
-    # print(jit_state_step(step1_state))
+    # print(jit_state_step(state))
