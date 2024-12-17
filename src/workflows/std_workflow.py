@@ -33,9 +33,9 @@ class StdWorkflow(Workflow):
         if solution_transform is None or fitness_transform is None:
             self._identity_ = torch.nn.Identity()
         if solution_transform is None:
-            solution_transform = self._identity_.forward
+            solution_transform = self._identity_
         if fitness_transform is None:
-            fitness_transform = self._identity_.forward
+            fitness_transform = self._identity_
         callable(
             solution_transform
         ), f"Expect solution transform to be callable, got {solution_transform}"

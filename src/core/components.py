@@ -1,11 +1,9 @@
 from abc import ABC
 import sys
-from typing import Optional, Final, Union, Any
 
 sys.path.append(__file__ + "/../..")
 
 import torch
-from torch import nn
 
 from core.module import ModuleBase, jit_class, trace_impl, use_state
 from core.jit_util import vmap, jit
@@ -20,10 +18,23 @@ class Algorithm(ModuleBase, ABC):
 
     def __init__(self):
         super().__init__()
-        
+
     def step(self) -> None:
         """Execute the algorithm procedure for one step."""
         pass
+    
+    def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
+        """Evaluate the fitness at given points.
+        This function is a proxy function of `Problem.evaluate` set by workflow.
+        By default, this functions returns an empty tensor.
+
+        Args:
+            pop (`torch.Tensor` or any): The population.
+
+        Returns:
+            `torch.Tensor`: The fitness.
+        """
+        return torch.empty(0)
 
 
 class Problem(ModuleBase, ABC):
@@ -79,7 +90,7 @@ class Monitor(ModuleBase, ABC):
 
         Args:
             config: The configuration.
-            
+
         Returns:
             This module.
         """
