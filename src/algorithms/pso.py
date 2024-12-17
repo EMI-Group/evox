@@ -1,9 +1,9 @@
+import os
 import sys
-
-sys.path.append(__file__ + "/../..")
+sys.path.append(os.path.abspath(__file__ + "/../.."))
 
 import torch
-from torch import nn
+import torch.nn as nn
 from core import Algorithm, jit_class, trace_impl, batched_random
 
 

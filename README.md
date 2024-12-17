@@ -73,6 +73,13 @@ For a comprehensive list and further details of all benchmark problems/environme
 
 ## Setting Up EvoX
 
+
+## Prerequisites
+
+- **Python**: Version 3.12 (or higher)
+- **CUDA**: Version 12.1 (or higher)
+- **PyTorch**: Version 2.5.0 (or higher recommended)
+
 Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
@@ -164,6 +171,3 @@ If you use EvoX in your research and want to cite it in your work, please use:
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
-
-
-
