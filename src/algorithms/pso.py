@@ -4,7 +4,7 @@ sys.path.append(__file__ + "/../..")
 
 import torch
 from torch import nn
-from core import Algorithm, jit_class, trace_impl, batched_random
+from core import Parameter, Algorithm, jit_class, trace_impl, batched_random
 
 
 def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
@@ -15,14 +15,51 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
 
 @jit_class
 class PSO(Algorithm):
+    """The basic Particle Swarm Optimization (PSO) algorithm.
+    
+    ## Class Methods
+
+    * `__init__`: Initializes the PSO algorithm with given parameters (population size, inertia weight, cognitive weight, and social weight).
+    * `setup`: Initializes the PSO algorithm with given lower and upper bounds for particle positions, and sets up initial population, velocity, and buffers for tracking best local and global positions and fitness values.
+    * `step`: Performs a single optimization step using Particle Swarm Optimization (PSO), updating local best positions and fitness values, and adjusting velocity and positions based on inertia, cognitive, and social components.
+
+    Note that the `evaluate` method is not defined in this class, it is a proxy function of `Problem.evaluate` set by workflow; therefore, it cannot be used in class methods other than `step`.
+    """
     def __init__(self, pop_size: int, w: float = 0.6, phi_p: float = 2.5, phi_g: float = 0.8):
+        """
+        Initialize the PSO algorithm with the given parameters.
+
+        Args:
+            pop_size (`int`): The size of the population.
+            w (`float`, optional): The inertia weight. Defaults to 0.6.
+            phi_p (`float`, optional): The cognitive weight. Defaults to 2.5.
+            phi_g (`float`, optional): The social weight. Defaults to 0.8.
+        """
+
         super().__init__()
         self.pop_size = pop_size
-        self.w = w
-        self.phi_p = phi_p
-        self.phi_g = phi_g
+        self.w = Parameter(w)
+        self.phi_p = Parameter(phi_p)
+        self.phi_g = Parameter(phi_g)
 
     def setup(self, lb: torch.Tensor, ub: torch.Tensor):
+        """
+        Initialize the PSO algorithm with the given lower and upper bounds.
+
+        This function sets up the initial population and velocity for the 
+        particles within the specified bounds. It also initializes buffers 
+        for tracking the best local and global positions and fitness values.
+
+        Args:
+            lb (`torch.Tensor`): The lower bounds of the particle positions. 
+                            Must be a 1D tensor.
+            ub (`torch.Tensor`): The upper bounds of the particle positions. 
+                            Must be a 1D tensor.
+
+        Raises:
+            `AssertionError`: If the shapes of lb and ub do not match or if 
+                            they are not 1D tensors.
+        """
         assert lb.shape == ub.shape
         assert lb.ndim == 1 and ub.ndim == 1
         self.dim = lb.shape[0]
@@ -71,6 +108,24 @@ class PSO(Algorithm):
         return rg, rp
 
     def step(self):
+        """
+        Perform a single optimization step using PSO.
+
+        This function evaluates the fitness of the current population, updates the 
+        local best positions and fitness values, and adjusts the velocity and 
+        positions of particles based on inertia, cognitive, and social components. 
+        It ensures that the updated positions and velocities are clamped within the 
+        specified bounds.
+
+        The local best positions and fitness values are updated if the current 
+        fitness is better than the recorded local best. The global best position 
+        and fitness are determined using helper functions.
+
+        The velocity is updated based on the weighted sum of the previous velocity, 
+        the cognitive component (personal best), and the social component (global 
+        best). The population positions are then updated using the new velocities.
+        """
+
         fitness = self.evaluate(self.population)
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(

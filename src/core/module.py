@@ -20,6 +20,19 @@ def _if_none(a, b):
     return b if a is None else a
 
 
+def Parameter[T](value: T) -> T:
+    """
+    Wraps a value as parameter with `requires_grad=False`.
+
+    Args:
+        value (T): The parameter value.
+
+    Returns:
+        T: The parameter.
+    """
+    return nn.Parameter(torch.as_tensor(value), requires_grad=False)
+
+
 class ModuleBase(nn.Module):
     """
     The base module for all algorithms and problems in the library.
@@ -59,13 +72,23 @@ class ModuleBase(nn.Module):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize the ModuleBase.
+
+        Args:
+            *args: Variable length argument list, passed to the parent class initializer.
+            **kwargs: Arbitrary keyword arguments, passed to the parent class initializer.
+
+        Attributes:
+            __static_names__ (list): A list to store static member names.
+        """
+
         super().__init__(*args, **kwargs)
         self.train(False)
         self.__static_names__ = []
 
     def eval(self):
         assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
-        
+
     def setup(self, *args, **kwargs):
         """Setup the module.
         Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`.
@@ -175,9 +198,7 @@ class ModuleBase(nn.Module):
     def __setattr_inner__(self, name, value):
         super().__setattr__(name, value)
 
-    def __getitem__(
-        self, key: Union[int, slice, str]
-    ) -> Union[torch.Tensor, List[torch.Tensor]]:
+    def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
 
         Args:
@@ -252,7 +273,7 @@ _using_state = False
 
 
 class UseStateContext:
-
+    """The context used to control whether or not the use_state function is enabled within a given scope."""
     def __init__(self, new_use_state: bool = True):
         global _using_state
         self.prev = _using_state
@@ -273,6 +294,15 @@ class UseStateContext:
 
 
 def tracing_or_using_state():
+    """
+    Check if we are currently tracing or in a `UseStateContext`.
+
+    The first condition `torch.jit.is_tracing()` is to check if we are currently compiling a JIT function.
+    The second condition `UseStateContext.is_using_state()` is to check if we are currently in a UseStateContext, which is a special context used to determine whether to use the `state` argument in the transformed `UseStateFunc`.
+
+    Returns:
+        `bool`: True if either condition is true, False otherwise.
+    """
     return torch.jit.is_tracing() or UseStateContext.is_using_state()
 
 
@@ -708,7 +738,7 @@ if __name__ == "__main__":
     t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
     print(t.mut_list[0])
     print(t.mut_dict["b"])
-
+    
     t = Test()
     fn = use_state(lambda: t.h, is_generator=True)
     trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
