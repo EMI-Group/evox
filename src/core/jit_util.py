@@ -69,6 +69,7 @@ def vmap[
         return mapped
     if hasattr(func, _USE_STATE_NAME):
         if batched_state is None:
+            init_state = func.init_state()
 
             def _batched_init_state(batch_size: int | None = None):
                 if batch_size is None:
@@ -77,10 +78,18 @@ def vmap[
                     dim = in_dims[0]
                 else:
                     dim = in_dims
-                return {
-                    k: torch.unsqueeze(v, dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
-                    for k, v in func.init_state().items()
-                }
+                state = {}
+                for k, v in init_state.items():
+                    if isinstance(v, torch.nn.Parameter):
+                        vv = v.data
+                    else:
+                        vv = v
+                    vv = vv.unsqueeze(dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
+                    if isinstance(v, torch.nn.Parameter):
+                        state[k] = torch.nn.Parameter(vv, requires_grad=v.requires_grad)
+                    else:
+                        state[k] = vv
+                return state
 
             mapped.init_state = _batched_init_state
         else:
