@@ -5,7 +5,9 @@ sys.path.append(__file__ + "/../..")
 import torch
 from torch import nn
 from core import Algorithm, jit_class, trace_impl, batched_random
-from operators import ReferenceVectorGuided, Polynomial, SimulatedBinary, UniformSampling
+from operators import simulated_binary, uniform_sampling, polynomial_mutation # ReferenceVectorGuided,
+from typing import Optional, Callable
+
 
 def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     lb = torch.relu(lb - a)
@@ -15,11 +17,12 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
 
 @jit_class
 class RVEA(Algorithm):
-    def __init__(self, pop_size: int, n_objs, seed=None, alpha=2, fr=0.1, max_gen=100,
-        selection_op=None,
-        mutation_op=None,
-        crossover_op=None,):
-        super().__init__(pop_size)
+    def __init__(self, pop_size: int, n_objs: int, seed: Optional[int] = None, alpha: float = 2, fr: float = 0.1, max_gen: int = 100,
+                 selection_op: Optional[Callable] = None,
+                 mutation_op: Optional[Callable] = None,
+                 crossover_op: Optional[Callable] = None):
+        super().__init__()
+        self.pop_size = pop_size
 
         if seed is None:
             seed = torch.seed()
@@ -49,7 +52,7 @@ class RVEA(Algorithm):
         if self.selection is None:
             self.selection = ReferenceVectorGuided()
         if self.mutation is None:
-            self.mutation = Polynomial((lb, ub))
+            self.mutation = polynomial_mutation
         if self.crossover is None:
             self.crossover = SimulatedBinary()
         self.sampling = UniformSampling(self.pop_size, self.n_objs)
@@ -63,66 +66,37 @@ class RVEA(Algorithm):
         population = torch.rand(self.pop_size, self.dim)
         population = length * population + lb
 
-        self.population = nn.Buffer(population)
-        self.fitness = nn.Buffer(torch.empty((self.pop_size, self.n_objs)).fill_(torch.inf))
+
+        self.pop = nn.Buffer(population)
+        print(self.pop)
+        self.fit = nn.Buffer(torch.empty((self.pop_size, self.n_objs)).fill_(torch.inf))
         self.offspring = nn.Buffer(population)
         self.offspring_fitness = nn.Buffer(torch.empty((self.pop_size, self.n_objs)).fill_(torch.inf))
         self.reference_vector = nn.Buffer(v)
         self.init_v = nn.Buffer(v0)
         self.gen = 0
 
-    def ask(self):
-        return self.population
+    def step(self):
+        mating_pool = torch.randint(0, self.pop.shape[0], (self.pop_size,))
+        pop = self.pop[mating_pool]
+        pop += torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
+        merge_pop = torch.cat([self.pop, pop], dim=0)
+        print(merge_pop)
+        print(merge_pop.device)
+        fit = self.evaluate(pop)
+        merge_fit = torch.cat([self.fit, fit], dim=0)
+        print(merge_fit)
+        self.pop = merge_pop[5:self.pop_size+2]
+        self.fit = merge_fit[5:self.pop_size+2]
 
-    def tell(self, fitness: torch.Tensor):
-        compare = self.local_best_fitness - fitness
-        self.local_best_location = torch.where(
-            compare[:, None] > 0, self.population, self.local_best_location
+    @trace_impl(step)
+    def trace_step(self):
+        pop = batched_random(
+            torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
         )
-        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
-        best_new_index = torch.argmin(fitness)
-        best_new_fitness = fitness[best_new_index]
-        if best_new_fitness < self.global_best_fitness:
-            self.global_best_fitness = best_new_fitness
-            self.global_best_location = self.population[best_new_index]
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        velocity = (
-            self.w * self.velocity
-            + self.phi_p * rp * (self.local_best_location - self.population)
-            + self.phi_g * rg * (self.global_best_location - self.population)
-        )
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
-        self.velocity = clamp(velocity, self.lb, self.ub)
-
-    @trace_impl(ask)
-    def trace_ask(self):
-        self.offspring = self.population + batched_random(
-            torch.rand, self.pop_size, self.dim, dtype=self.population.dtype, device=self.population.device
-        )
-        return self.offspring
-
-    @trace_impl(tell)
-    def trace_tell(self, fitness: torch.Tensor):
-        all_fitness = torch.cat([self.fitness, fitness])
-        all_population = torch.cat([self.offspring, self.population])
-        self.population = all_population[torch.argsort(all_fitness)][5: self.pop_size+3]
-        self.fitness = all_fitness[torch.argsort(all_fitness)][5: self.pop_size+3]
-
-    def init_tell(self, fitness: torch.Tensor):
-        self.fitness = fitness
-
-    def init_ask(self):
-        return self.population
-
-    @trace_impl(init_ask)
-    def trace_init_ask(self, fitness: torch.Tensor):
-        return self.population
-
-    @trace_impl(init_tell)
-    def trace_init_tell(self, fitness: torch.Tensor):
-        self.fitness = fitness
+        pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
+        self.pop = pop
+        self.fit = self.evaluate(pop)
 
 
 if __name__ == "__main__":
@@ -130,54 +104,16 @@ if __name__ == "__main__":
     import time
     from torch.profiler import profile, record_function, ProfilerActivity
     from problems import DTLZ2
-    @jit_class
-    class BasicWorkflow(Workflow):
-
-        def __init__(self, max_iterations: int | None = None):
-            super().__init__()
-            self.max_iterations = 0 if max_iterations is None else max_iterations
-            self._use_init = True
-
-        def setup(
-            self,
-            algorithm: Algorithm,
-            problem: Problem,
-            device: str | torch.device | int | None = None,
-        ):
-            algorithm.to(device=device)
-            problem.to(device=device)
-            self.algorithm = algorithm
-            self.problem = problem
-            self.generation = nn.Buffer(torch.zeros((), dtype=torch.int32, device=device))
-
-        def step(self):
-            population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
-            fitness = self.problem.evaluate(population)
-            self.algorithm.init_tell(fitness) if self._use_init else self.algorithm.tell(fitness)
-            self.generation.add_(1)
-            self._use_init = False
-
-        @trace_impl(step)
-        def trace_step(self):
-            population = self.algorithm.init_ask() if self._use_init else self.algorithm.ask()
-            fitness = self.problem.evaluate(population)
-            self.algorithm.init_tell(fitness) if self._use_init else self.algorithm.tell(fitness)
-            self.generation = self.generation + 1
-            self._use_init = False
-
-        def loop(self, max_iterations: int | None = None):
-            max_iterations = self.max_iterations if max_iterations is None else max_iterations
-            for _ in range(max_iterations):
-                self.step()
+    from workflows import StdWorkflow
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.get_default_device())
     algo = RVEA(pop_size=100000)
     algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
     prob = DTLZ2(m=3)
-    workflow = BasicWorkflow(max_iterations=1000)
+    workflow = StdWorkflow()
     workflow.setup(algo, prob)
-    # workflow.loop(10)
+    workflow.step()
     workflow.__sync__()
     print(workflow.generation)
     with open("tests/a.md", "w") as ff:
@@ -193,9 +129,8 @@ if __name__ == "__main__":
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
     ) as prof:
-        # workflow.loop()
-        for _ in range(100):
-            state = jit_state_step(state)
+        for i in range(5):
+            workflow.step()
     print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)

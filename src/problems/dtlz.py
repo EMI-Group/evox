@@ -15,6 +15,7 @@ class DTLZTestSuit(Problem):
             self.ref_num * self.m, self.m
         )  # Assuming UniformSampling is defined
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         return self
 
     def evaluate(self, X):
@@ -27,7 +28,7 @@ class DTLZTestSuit(Problem):
 
 class DTLZ1(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__(num_objective=m)
+        super().__init__()
         if m is None:
             self.m = 3
         else:
@@ -74,7 +75,7 @@ class DTLZ1(DTLZTestSuit):
 
 class DTLZ2(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__(num_objective=m)
+        super().__init__()
         if m is None:
             self.m = 3
         else:
@@ -96,7 +97,7 @@ class DTLZ2(DTLZTestSuit):
                 torch.cumprod(
                     torch.cat(
                         [
-                            torch.ones((X.shape[0], 1)),
+                            torch.ones((X.shape[0], 1), device=X.device),
                             torch.maximum(
                                 torch.cos(X[:, : m - 1] * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
@@ -110,7 +111,7 @@ class DTLZ2(DTLZTestSuit):
             )
             * torch.cat(
                 [
-                    torch.ones((X.shape[0], 1)),
+                    torch.ones((X.shape[0], 1), device=X.device),
                     torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
@@ -149,7 +150,7 @@ class DTLZ3(DTLZ2):
                 torch.cumprod(
                     torch.cat(
                         [
-                            torch.ones((n, 1)),
+                            torch.ones((n, 1), device=X.device),
                             torch.maximum(
                                 torch.cos(X[:, : m - 1] * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
@@ -163,7 +164,7 @@ class DTLZ3(DTLZ2):
             )
             * torch.cat(
                 [
-                    torch.ones((n, 1)),
+                    torch.ones((n, 1), device=X.device),
                     torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
@@ -189,7 +190,7 @@ class DTLZ4(DTLZ2):
                 torch.cumprod(
                     torch.cat(
                         [
-                            torch.ones((g.shape[0], 1)),
+                            torch.ones((g.shape[0], 1), device=X.device),
                             torch.maximum(
                                 torch.cos(X[:, : m - 1] * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
@@ -203,7 +204,7 @@ class DTLZ4(DTLZ2):
             )
             * torch.cat(
                 [
-                    torch.ones((g.shape[0], 1)),
+                    torch.ones((g.shape[0], 1), device=X.device),
                     torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
@@ -215,7 +216,7 @@ class DTLZ4(DTLZ2):
 
 class DTLZ5(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__(num_objective=m)
+        super().__init__()
         if m is None:
             self.m = 3
         else:
@@ -307,7 +308,7 @@ class DTLZ5(DTLZTestSuit):
 
 class DTLZ6(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__(num_objective=m)
+        super().__init__()
         if m is None:
             self.m = 3
         else:
@@ -396,7 +397,7 @@ class DTLZ6(DTLZTestSuit):
 
 class DTLZ7(DTLZTestSuit):
     def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__(num_objective=m)
+        super().__init__()
         if m is None:
             self.m = 3
         else:
