@@ -1,11 +1,12 @@
 from abc import ABC
 import inspect
 import sys
+import os
 import types
 from functools import wraps
 from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
 
-sys.path.append(__file__ + "/../..")
+sys.path.append(os.path.abspath(__file__ + "/../.."))
 
 import torch
 from torch import nn
