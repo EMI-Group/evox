@@ -269,30 +269,44 @@ class ModuleBase(nn.Module):
                 sub_mod.__sync_with__(jit_module.__getattr__(sub_name))
 
 
-global _using_state
-_using_state = False
+from contextvars import ContextVar, Token
+from contextlib import contextmanager
+_using_state: ContextVar[bool] = ContextVar('using_state', default=False)
 
+@contextmanager
+def use_state_context(new_use_state: bool = True):
+    """
+    A context manager to set the value of `using_state` temporarily.
 
-class UseStateContext:
-    """The context used to control whether or not the use_state function is enabled within a given scope."""
-    def __init__(self, new_use_state: bool = True):
-        global _using_state
-        self.prev = _using_state
-        self.now = new_use_state
+    When entering the context, the value of `using_state` is set to `new_use_state` and a token is obtained.
+    When exiting the context, the value of `using_state` is reset to its previous value.
 
-    def __enter__(self):
-        global _using_state
-        _using_state = self.now
+    Args:
+        new_use_state (bool): The new value of `using_state`. Defaults to True.
 
-    def __exit__(self, *args):
-        global _using_state
-        _using_state = self.prev
+    ## Examples:
+    ```
+    >>> with use_state_context(True):
+    ...     assert is_using_state()
+    >>> assert not is_using_state()
+    ```
+    """
+    # Set the new state and obtain a token
+    token: Token = _using_state.set(new_use_state)
+    try:
+        yield token
+    finally:
+        # Reset the state to its previous value
+        _using_state.reset(token)
+        
+def is_using_state() -> bool:
+    """
+    Get the current state of the `using_state`.
 
-    @staticmethod
-    def is_using_state():
-        global _using_state
-        return _using_state
-
+    Returns:
+        bool: The current state of the `using_state`.
+    """
+    return _using_state.get()
 
 def tracing_or_using_state():
     """
@@ -304,7 +318,7 @@ def tracing_or_using_state():
     Returns:
         `bool`: True if either condition is true, False otherwise.
     """
-    return torch.jit.is_tracing() or UseStateContext.is_using_state()
+    return torch.jit.is_tracing() or is_using_state()
 
 
 class _WrapClassBase(ABC):
@@ -455,7 +469,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
     fn.set_state(results[0])
     ```
     """
-    with UseStateContext():
+    with use_state_context():
         # get function closure
         if is_generator:
             func = func()
@@ -483,14 +497,14 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             vars = {k: v for k, v in vars.items() if v not in self_v}
             vars["self"] = self_v[0]
         # get module states
-        modules: Dict[str, torch.Tensor] = {}
+        modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
-            v.state_dict(destination=modules, prefix=k + ".", keep_vars=True)
-        modules = {k: v for k, v in modules.items()}
+            v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
+        modules_vars = {k: v for k, v in modules_vars.items()}
 
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
-            with UseStateContext():
+            with use_state_context():
                 # apply new state dict
                 _set_state(state)
                 # get actual output
@@ -507,7 +521,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
 
         def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
             if state is None:
-                state = modules
+                state = modules_vars
             for k, v in vars.items():
                 this_state = {
                     ".".join(key.split(".")[1:]): val
@@ -517,7 +531,16 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 if len(this_state) > 0:
                     v.load_state_dict(this_state)
 
-        wrapper.init_state = lambda: {k: v.clone() for k, v in modules.items()}
+        def _init_state():
+            state = {}
+            for k, v in modules_vars.items():
+                if isinstance(v, nn.Parameter):
+                    state[k] = nn.Parameter(v.data.clone(), requires_grad=v.requires_grad)
+                else:
+                    state[k] = v.clone()
+            return state
+        
+        wrapper.init_state = _init_state
         wrapper.set_state = _set_state
         setattr(wrapper, _USE_STATE_NAME, True)
         return wrapper

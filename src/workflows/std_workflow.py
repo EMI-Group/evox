@@ -64,7 +64,7 @@ class StdWorkflow(Workflow):
         algorithm.to(device=device)
         problem.to(device=device)
         self.algorithm = algorithm
-        self._has_init_ = algorithm.init_step.__func__ != Algorithm.init_step
+        self._has_init_ = type(algorithm).init_step != Algorithm.init_step
         monitor = (
             Monitor()
             if monitor is None
@@ -80,6 +80,13 @@ class StdWorkflow(Workflow):
         # for compilation, not used
         self._monitor_ = Monitor()
         self._problem_ = Problem()
+
+    def __getattribute__(self, name: str):
+        if name == "_monitor_":
+            return self.algorithm._monitor_
+        elif name == "_problem_":
+            return self.algorithm._problem_
+        return super().__getattribute__(name)
 
     @torch.jit.ignore
     def monitor(self):
