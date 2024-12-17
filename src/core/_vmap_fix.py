@@ -117,6 +117,26 @@ vmap._unwrap_batched = _unwrap_batched
 
 
 def align_vmap_tensor(value: Any, current_value: Any | None):
+    """
+    Aligns a tensor with the batching dimensions of a current batched tensor.
+
+    This function adjusts the input tensor `value` to match the batch dimensions
+    of `current_value`, which is assumed to be a batched tensor. If `value` is
+    already a batched tensor or `current_value` is not a batched tensor, it
+    returns `value` unchanged.
+
+    Args:
+        value (Any): The tensor to be aligned. If not a `torch.Tensor`, it is
+                     returned unchanged.
+        current_value (Any | None): The reference batched tensor. If `None` or
+                                    not a batched tensor, `value` is returned
+                                    unchanged.
+
+    Returns:
+        `torch.Tensor`: The input `value` aligned with the batch dimensions of
+                      `current_value`, if applicable.
+    """
+
     if not isinstance(value, torch.Tensor):
         return value
     if is_batched_tensor(value):
@@ -145,6 +165,22 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
 
 
 def wrap_vmap_inputs[T: Callable](func: T) -> T:
+    """
+    Wraps a function to adjust its input tensors for vmap compatibility.
+
+    This decorator modifies the input tensors of the wrapped function to align
+    with the batching dimensions expected by `vmap`. It ensures that tensors
+    which are already batched or not tensors remain unchanged, while tensors
+    that need to be batched are transformed accordingly.
+
+    Args:
+        func (`Callable`): The function to be wrapped, which will have its input
+                         tensors adjusted for vmap.
+
+    Returns:
+        `Callable`: A wrapped version of `func` that ensures its input tensors
+                  are compatible with vmap's batching requirements.
+    """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -171,6 +207,22 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
 
 
 def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwargs) -> torch.Tensor:
+    """
+    Generate a batched tensor of random values.
+
+    Given a random function (e.g. [`torch.randn`](https://pytorch.org/docs/stable/generated/torch.randn.html),
+    [`torch.rand`](https://pytorch.org/docs/stable/generated/torch.rand.html), etc.) and its size arguments, this function
+    generates a batched tensor of random values by applying the given function to
+    the size extended with the current vmap batch size.
+
+    Args:
+        rand_func (Callable): A function that generates a tensor of random values.
+        *size (Tuple[int | torch.SymInt]): The size arguments to the given function.
+        **kwargs: The keyword arguments to the given function.
+
+    Returns:
+        torch.Tensor: The batched tensor of random values.
+    """
     level = current_level()
     if level is None or level <= 0:
         return rand_func(*size, **kwargs)
