@@ -14,15 +14,15 @@ class StdWorkflow(Workflow):
     def __init__(
         self,
         opt_direction: str = "min",
-        solution_transform: torch.jit.ScriptFunction | None = None,
-        fitness_transform: torch.jit.ScriptFunction | None = None,
+        solution_transform: torch.nn.Module | None = None,
+        fitness_transform: torch.nn.Module | None = None,
     ):
         """Initialize the standard workflow with static arguments.
 
         Args:
             opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min".
-            solution_transform (`Callable[[torch.Tensor], torch.Tensor | Any] | None`, optional): The solution transformation function. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
-            fitness_transforms (`Callable[[torch.Tensor], torch.Tensor] | None`, optional): The fitness transformation function. MUST be JIT-compatible function(s) for JIT trace mode or JITed ones for JIT script mode (default mode). Defaults to None.
+            solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+            fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
         """
         super().__init__()
         assert opt_direction in [
@@ -64,6 +64,7 @@ class StdWorkflow(Workflow):
         algorithm.to(device=device)
         problem.to(device=device)
         self.algorithm = algorithm
+        self._has_init_ = algorithm.init_step.__func__ != Algorithm.init_step
         monitor = (
             Monitor()
             if monitor is None
@@ -76,9 +77,9 @@ class StdWorkflow(Workflow):
         self.algorithm._monitor_ = monitor
         self.algorithm._solution_transform_ = self._solution_transform_
         self.algorithm._fitness_transform_ = self._fitness_transform_
-        # for compilation
-        self._monitor_ = monitor
-        self._problem_ = problem
+        # for compilation, not used
+        self._monitor_ = Monitor()
+        self._problem_ = Problem()
 
     @torch.jit.ignore
     def monitor(self):
@@ -98,9 +99,23 @@ class StdWorkflow(Workflow):
         self._monitor_.pre_tell(fitness)
         return fitness
 
+    def _step(self, init: bool):
+        if init and self._has_init_:
+            self.algorithm.init_step()
+        else:
+            self.algorithm.step()
+        
+    def init_step(self):
+        """
+        Perform the first optimization step of the workflow.
+
+        Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self._step(init=True)
+    
     def step(self):
-        """The general step of the workflow."""
-        self.algorithm.step()
+        """Perform a single optimization step using the algorithm and the problem."""
+        self._step(init=False)
 
 
 # Test
@@ -174,14 +189,14 @@ if __name__ == "__main__":
     workflow.setup(algo, prob)
 
     # # classic workflow
-    # @torch.jit.script
-    # def solution_transform(x: torch.Tensor):
-    #     return x / 5
-    # @torch.jit.script
-    # def fitness_transform(f: torch.Tensor):
-    #     return -f
+    # class solution_transform(nn.Module):
+    #     def forward(self, x: torch.Tensor):
+    #         return x / 5
+    # class fitness_transform(nn.Module):
+    #     def forward(self, f: torch.Tensor):
+    #         return -f
     # monitor = EvalMonitor(full_sol_history=True)
-    # workflow = StdWorkflow(solution_transform=solution_transform, fitness_transform=fitness_transform)
+    # workflow = StdWorkflow(solution_transform=solution_transform(), fitness_transform=fitness_transform())
     # workflow.setup(algo, prob, monitor=monitor)
     # print(workflow.step.inlined_graph)
     # workflow.step()

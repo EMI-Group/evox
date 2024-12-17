@@ -23,10 +23,14 @@ class Algorithm(ModuleBase, ABC):
         """Execute the algorithm procedure for one step."""
         pass
     
+    def init_step(self) -> None:
+        """Initialize the algorithm and execute the algorithm procedure for the first step."""
+        self.step()
+
     def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
         """Evaluate the fitness at given points.
         This function is a proxy function of `Problem.evaluate` set by workflow.
-        By default, this functions returns an empty tensor.
+        By default, this functions raises `NotImplementedError`.
 
         Args:
             pop (`torch.Tensor` or any): The population.
@@ -34,7 +38,9 @@ class Algorithm(ModuleBase, ABC):
         Returns:
             `torch.Tensor`: The fitness.
         """
-        return torch.empty(0)
+        raise NotImplementedError(
+            "Evaluate function is not implemented. It is a proxy function of `Problem.evaluate` set by workflow."
+        )
 
 
 class Problem(ModuleBase, ABC):
@@ -55,7 +61,7 @@ class Problem(ModuleBase, ABC):
         ## Notice:
         If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
         """
-        pass
+        return torch.empty(0)
 
 
 class Workflow(ModuleBase, ABC):
@@ -85,7 +91,7 @@ class Monitor(ModuleBase, ABC):
     `post_ask`, `pre_eval`, `post_eval`, and `pre_tell`.
     """
 
-    def set_config(self, **config):
+    def set_config(self, **config) -> "Monitor":
         """Set the static variables according to `config`.
 
         Args:
@@ -96,7 +102,7 @@ class Monitor(ModuleBase, ABC):
         """
         return self
 
-    def post_ask(self, candidate_solution: torch.Tensor):
+    def post_ask(self, candidate_solution: torch.Tensor) -> None:
         """The hook function to be executed before the solution transformation.
 
         Args:
@@ -104,7 +110,7 @@ class Monitor(ModuleBase, ABC):
         """
         pass
 
-    def pre_eval(self, transformed_candidate_solution: torch.Tensor):
+    def pre_eval(self, transformed_candidate_solution: torch.Tensor) -> None:
         """The hook function to be executed after the solution transformation.
 
         Args:
@@ -112,7 +118,7 @@ class Monitor(ModuleBase, ABC):
         """
         pass
 
-    def post_eval(self, fitness: torch.Tensor):
+    def post_eval(self, fitness: torch.Tensor) -> None:
         """The hook function to be executed before the fitness transformation.
 
         Args:
@@ -120,7 +126,7 @@ class Monitor(ModuleBase, ABC):
         """
         pass
 
-    def pre_tell(self, transformed_fitness: torch.Tensor):
+    def pre_tell(self, transformed_fitness: torch.Tensor) -> None:
         """The hook function to be executed after the fitness transformation.
 
         Args:
