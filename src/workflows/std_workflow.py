@@ -1,10 +1,5 @@
-import sys
-from typing import Sequence, Callable, Any
-
-sys.path.append(__file__ + "/../..")
-
 import torch
-from core import ModuleBase, Algorithm, Problem, Workflow, Monitor, jit_class
+from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
 
 
 @jit_class
@@ -70,7 +65,7 @@ class StdWorkflow(Workflow):
             if monitor is None
             else monitor.set_config(opt_direction=self.opt_direction).setup().to(device=device)
         )
-        
+
         # set algorithm evaluate
         self.algorithm.evaluate = self._evaluate
         self.algorithm._problem_ = problem
@@ -91,7 +86,7 @@ class StdWorkflow(Workflow):
     @torch.jit.ignore
     def monitor(self):
         return self.algorithm._monitor_
-    
+
     @torch.jit.ignore
     def problem(self):
         return self.algorithm._problem_
@@ -111,7 +106,7 @@ class StdWorkflow(Workflow):
             self.algorithm.init_step()
         else:
             self.algorithm.step()
-        
+
     def init_step(self):
         """
         Perform the first optimization step of the workflow.
@@ -119,7 +114,7 @@ class StdWorkflow(Workflow):
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
         self._step(init=True)
-    
+
     def step(self):
         """Perform a single optimization step using the algorithm and the problem."""
         self._step(init=False)
@@ -127,6 +122,10 @@ class StdWorkflow(Workflow):
 
 # Test
 if __name__ == "__main__":
+    import sys
+
+    sys.path.append(__file__ + "/../..")
+    
     from torch import nn
     from core import vmap, trace_impl, batched_random, use_state, jit
     from eval_monitor import EvalMonitor

@@ -1,12 +1,8 @@
-import os
-import sys
-sys.path.append(os.path.abspath(__file__ + "/../.."))
-
 import torch
 from torch import nn
 
-from utils import clamp
-from core import Parameter, Algorithm, jit_class, trace_impl, batched_random
+from ..utils import clamp
+from ..core import Parameter, Algorithm, jit_class, trace_impl, batched_random
 
 
 @jit_class
@@ -162,7 +158,10 @@ class PSO(Algorithm):
 
 if __name__ == "__main__":
     import time
+    import sys
     from torch.profiler import profile, ProfilerActivity
+    
+    sys.path.append(__file__ + "/../..")
 
     from core import vmap, Problem, use_state, jit
     from workflows import StdWorkflow

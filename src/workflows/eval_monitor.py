@@ -1,11 +1,8 @@
-import sys
-from typing import List, Sequence, Tuple, Callable, Any
-
-sys.path.append(__file__ + "/../..")
+from typing import List
 
 import torch
 from torch import nn
-from core import Monitor
+from ..core import Monitor
 
 
 class EvalMonitor(Monitor):

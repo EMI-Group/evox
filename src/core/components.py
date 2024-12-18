@@ -1,12 +1,8 @@
 from abc import ABC
-import sys
-
-sys.path.append(__file__ + "/../..")
 
 import torch
 
-from core.module import ModuleBase, jit_class, trace_impl, use_state
-from core.jit_util import vmap, jit
+from ..core.module import ModuleBase
 
 
 class Algorithm(ModuleBase, ABC):
@@ -22,7 +18,7 @@ class Algorithm(ModuleBase, ABC):
     def step(self) -> None:
         """Execute the algorithm procedure for one step."""
         pass
-    
+
     def init_step(self) -> None:
         """Initialize the algorithm and execute the algorithm procedure for the first step."""
         self.step()
@@ -67,11 +63,12 @@ class Problem(ModuleBase, ABC):
 class Workflow(ModuleBase, ABC):
     """The base class for workflow."""
 
-    def step(self) -> None:
-        """The basic function to step a workflow.
+    def init_step(self):
+        """Perform the first optimization step of the workflow."""
+        pass
 
-        Usually consists of sequence invocation of `algorithm.ask()`, `problem.evaluate()`, and `algorithm.tell()`.
-        """
+    def step(self) -> None:
+        """The basic function to step a workflow."""
         pass
 
 
