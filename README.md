@@ -73,6 +73,13 @@ For a comprehensive list and further details of all benchmark problems/environme
 
 ## Setting Up EvoX
 
+
+## Prerequisites
+
+- **Python**: Version 3.12 (or higher)
+- **CUDA**: Version 12.1 (or higher)
+- **PyTorch**: Version 2.5.0 (or higher recommended)
+
 Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
@@ -134,6 +141,18 @@ Try out ready-to-play examples in your browser with Colab:
 
 For more use-cases and applications, pleae check out [Example Directory](https://evox.readthedocs.io/en/latest/example/index.html).
 
+
+## Unit Test Commands
+
+```shell
+python ./unit_test/algorithms/test_pso.py
+
+python ./unit_test/core/test_jit_util.py
+python ./unit_test/core/test_module.py
+
+python ./unit_test/workflows/test_std_workflow.py
+```
+
 ## Community & Support
 
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
@@ -164,6 +183,3 @@ If you use EvoX in your research and want to cite it in your work, please use:
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
-
-
-
