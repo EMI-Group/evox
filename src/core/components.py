@@ -63,9 +63,9 @@ class Problem(ModuleBase, ABC):
 class Workflow(ModuleBase, ABC):
     """The base class for workflow."""
 
-    def init_step(self):
+    def init_step(self) -> None:
         """Perform the first optimization step of the workflow."""
-        pass
+        return self.step()
 
     def step(self) -> None:
         """The basic function to step a workflow."""
