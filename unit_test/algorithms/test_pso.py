@@ -1,15 +1,19 @@
 import time
-import os
 import torch
 from torch.profiler import profile, ProfilerActivity
 
-from src.core import Problem, use_state, jit
+import os
+import sys
+current_directory = os.getcwd()
+if current_directory not in sys.path:
+    sys.path.append(current_directory)
+
+from src.core import vmap, Problem, use_state, jit
+from src.workflows import StdWorkflow 
 from src.algorithms import PSO
-from src.workflows import StdWorkflow
 
 
 if __name__ == "__main__":
-
     class Sphere(Problem):
         def __init__(self):
             super().__init__()
@@ -19,33 +23,25 @@ if __name__ == "__main__":
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.get_default_device())
-    algo = PSO(pop_size=100000)
-    algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
+    algo = PSO(pop_size=10)
+    algo.setup(lb=-10 * torch.ones(3), ub=10 * torch.ones(3))
     prob = Sphere()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
+    workflow.init_step()
+    workflow.__sync__()
     workflow.step()
     workflow.__sync__()
-
-    log_root = "./tests"
-    os.makedirs(log_root, exist_ok=True)
-
-    log_file_a = os.path.join(log_root, "a.md")
-    with open(log_file_a, "w") as ff:
-        ff.write(workflow.step.inlined_graph.__str__())
-    print(f"Please see the result log at `{log_file_a}`.")
-
+    # with open("tests/a.md", "w") as ff:
+    #     ff.write(workflow.step.inlined_graph.__str__())
     state_step = use_state(lambda: workflow.step)
+    vmap_state_step = vmap(state_step)
+    print(vmap_state_step.init_state(2))
     state = state_step.init_state()
-    ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
     jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
     state = state_step.init_state()
-
-    log_file_b = os.path.join(log_root, "b.md")
-    with open(log_file_b, "w") as ff:
-        ff.write(jit_state_step.inlined_graph.__str__())
-    print(f"Please see the result log at `{log_file_b}`.")
-
+    # with open("tests/b.md", "w") as ff:
+    #     ff.write(jit_state_step.inlined_graph.__str__())
     t = time.time()
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
