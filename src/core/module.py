@@ -156,15 +156,39 @@ class ModuleBase(nn.Module):
         elif isinstance(value, nn.Module):
             super().__setattr__(name, value)
         elif isinstance(value, tuple) or isinstance(value, list):
-            sub_module = nn.ModuleList(value)
-            self.add_module(name, sub_module)
+            all_tensors = all(map(lambda x: isinstance(x, torch.Tensor), value))
+            all_modules = all(map(lambda x: isinstance(x, nn.Module), value))
+            assert (
+                all_tensors or all_modules
+            ), "Expect a tuple or list of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            if all_modules:
+                sub_module = nn.ModuleList(value)
+                self.add_module(name, sub_module)
+            else:
+                sub_module = ModuleBase()
+                for i, v in enumerate(value):
+                    sub_module.add_mutable(str(i), v)
+                self.add_module(name, sub_module)
         elif isinstance(value, dict):
-            sub_module = nn.ModuleDict(value)
-            self.add_module(name, sub_module)
+            all_tensors = all(map(lambda x: isinstance(x, torch.Tensor), value.values()))
+            all_modules = all(map(lambda x: isinstance(x, nn.Module), value.values()))
+            assert (
+                all_tensors or all_modules
+            ), "Expect a dict of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            if all_modules:
+                sub_module = nn.ModuleDict(value)
+                self.add_module(name, sub_module)
+            else:
+                sub_module = ModuleBase()
+                for k, v in value.items():
+                    sub_module.add_mutable(k, v)
+                self.add_module(name, sub_module)
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
 
     def __getattr__(self, name):
+        if name == _WRAPPING_MODULE_NAME:
+            return self.__getattr_inner__(name)
         if not tracing_or_using_state() or not hasattr(self, _WRAPPING_MODULE_NAME):
             return super().__getattr__(name)
         return object.__getattribute__(self, _WRAPPING_MODULE_NAME).__getattr__(name)
@@ -726,9 +750,9 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
 # Test
 if __name__ == "__main__":
     import sys
-    
+
     sys.path.append(__file__ + "/../..")
-    
+
     @jit_class
     class Test(ModuleBase):
 

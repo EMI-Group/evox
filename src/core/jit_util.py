@@ -91,6 +91,7 @@ def vmap[
             mapped.init_state = _batched_init_state
         else:
             mapped.init_state = lambda: batched_state
+        object.__setattr__(mapped, _USE_STATE_NAME, True)
         return mapped
 
     # otherwise
