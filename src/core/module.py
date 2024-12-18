@@ -1,16 +1,13 @@
 from abc import ABC
 import inspect
-import sys
 import types
 from functools import wraps
 from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
 
-sys.path.append(__file__ + "/../..")
-
 import torch
 from torch import nn
 
-from core import _vmap_fix
+from ..core import _vmap_fix
 
 
 _WRAPPING_MODULE_NAME = "__wrapping_module__"
@@ -270,7 +267,9 @@ class ModuleBase(nn.Module):
 
 from contextvars import ContextVar, Token
 from contextlib import contextmanager
-_using_state: ContextVar[bool] = ContextVar('using_state', default=False)
+
+_using_state: ContextVar[bool] = ContextVar("using_state", default=False)
+
 
 @contextmanager
 def use_state_context(new_use_state: bool = True):
@@ -297,7 +296,8 @@ def use_state_context(new_use_state: bool = True):
     finally:
         # Reset the state to its previous value
         _using_state.reset(token)
-        
+
+
 def is_using_state() -> bool:
     """
     Get the current state of the `using_state`.
@@ -306,6 +306,7 @@ def is_using_state() -> bool:
         bool: The current state of the `using_state`.
     """
     return _using_state.get()
+
 
 def tracing_or_using_state():
     """
@@ -538,7 +539,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 else:
                     state[k] = v.clone()
             return state
-        
+
         wrapper.init_state = _init_state
         wrapper.set_state = _set_state
         setattr(wrapper, _USE_STATE_NAME, True)
@@ -724,7 +725,10 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
 
 # Test
 if __name__ == "__main__":
-
+    import sys
+    
+    sys.path.append(__file__ + "/../..")
+    
     @jit_class
     class Test(ModuleBase):
 
@@ -761,7 +765,7 @@ if __name__ == "__main__":
     t.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
     print(t.mut_list[0])
     print(t.mut_dict["b"])
-    
+
     t = Test()
     fn = use_state(lambda: t.h, is_generator=True)
     trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)

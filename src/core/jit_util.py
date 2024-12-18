@@ -1,15 +1,12 @@
 import inspect
-import sys
 import warnings
 from functools import wraps
 from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
-sys.path.append(__file__ + "/../..")
-
 import torch
 
-from core.module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
-from core import _vmap_fix
+from ..core.module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
+from ..core import _vmap_fix
 
 
 class MappedUseStateFunc(Protocol):
@@ -289,7 +286,10 @@ def jit[
 
 
 if __name__ == "__main__":
+    import sys
     from functools import partial
+    
+    sys.path.append(__file__ + "/../..")
 
     @partial(vmap, example_ndim=2)
     def _single_eval(x: torch.Tensor, p: float = 2.0, q: torch.Tensor = torch.as_tensor(range(2))):
