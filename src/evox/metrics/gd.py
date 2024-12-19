@@ -20,6 +20,5 @@ def gd(objs: torch.Tensor, pf: torch.Tensor):
     """
     distances = torch.cdist(objs, pf, p=2)
     min_distances = torch.min(distances, dim=1).values
-    print(torch.norm(min_distances))
     score = torch.norm(min_distances) / min_distances.size(0)
     return score
