@@ -590,6 +590,9 @@ def trace_impl(target: Callable):
     ## Notice:
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
     2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
+    
+    ## Usage:
+    See `use_state`.
     """
     # deal with torchscript_modifier in case the implementation changed
     global _TORCHSCRIPT_MODIFIER
@@ -606,6 +609,11 @@ def trace_impl(target: Callable):
         return _vmap_fix.wrap_vmap_inputs(func)
 
     return wrapping_fn
+
+# TODO
+# @vmap_impl(_set_global_and_random)
+# def _vmap_set_global_and_random(self, fitness: torch.Tensor, fitness_map_dims: Tuple[int, ...]):
+#     utils.scripted_vmap_while_loop
 
 
 def jit_class[T](cls: type, trace: bool = False) -> T:

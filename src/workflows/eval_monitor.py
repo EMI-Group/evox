@@ -15,7 +15,6 @@ class EvalMonitor(Monitor):
 
     def __init__(
         self,
-        opt_direction: str = "min",
         multi_obj: bool = False,
         full_fit_history: bool = True,
         full_sol_history: bool = False,
@@ -24,23 +23,18 @@ class EvalMonitor(Monitor):
         """Initialize the monitor.
 
         Args:
-            opt_direction (`str`, optional): The optimization direction ("min" or "max"). Defaults to "min".
-            multi_obj (`bool`, optional): Whether the optimization is multi-objective.. Defaults to False.
+            multi_obj (`bool`, optional): Whether the optimization is multi-objective. Defaults to False.
             full_fit_history (`bool`, optional): Whether to record the full history of fitness value. Default to True. Setting it to False may reduce memory usage.
             full_sol_history (`bool`, optional): Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
             topk (`int`, optional): Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
         """
         super().__init__()
-        assert opt_direction in ["min", "max"]
-        self.opt_direction = 1 if opt_direction == "min" else -1
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
         self.topk = topk
 
     def set_config(self, **config):
-        if "opt_direction" in config:
-            self.opt_direction = config["opt_direction"]
         if "multi_obj" in config:
             self.multi_obj = config["multi_obj"]
         if "full_fit_history" in config:
@@ -63,7 +57,7 @@ class EvalMonitor(Monitor):
     def post_ask(self, candidate_solution: torch.Tensor):
         self.latest_solution = candidate_solution
 
-    def post_eval(self, fitness: torch.Tensor):
+    def pre_tell(self, fitness: torch.Tensor):
         self.latest_fitness = fitness
         if fitness.ndim == 1:
             # single-objective

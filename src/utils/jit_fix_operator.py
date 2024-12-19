@@ -1,6 +1,16 @@
 import torch
 
 
+################### NOTICE ###################
+#
+# 1. The functions in this module are all for JIT operator fusion since their original implementations are not supported in fusion.
+# 2. When using `core.vmap`, all input tensors are assumed to be float tensors. If integer tensors are used, please use `core.vmap(..., trace=False)` and manually JIT it afterward using `core.jit(..., trace=True, example_inputs=(...))`.
+# 3. When using `core.vmap`, two batched tensors cannot directly slice-gathered like `tensor_a[tensor_idx]`. Please use `torch.index_select(tensor_a, 0, tensor_idx)` instead.
+# 4. Python's while loops cannot be vector-mapped directly, please use the function in this module instead.
+#
+################# END NOTICE #################
+
+
 def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     """
     Clamp the values of the input tensor `a` to be within the given lower (`lb`) and upper (`ub`) bounds.

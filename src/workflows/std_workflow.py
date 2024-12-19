@@ -15,7 +15,7 @@ class StdWorkflow(Workflow):
         """Initialize the standard workflow with static arguments.
 
         Args:
-            opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min".
+            opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
             solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
             fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
         """
@@ -96,6 +96,7 @@ class StdWorkflow(Workflow):
         population = self._solution_transform_(population)
         self._monitor_.pre_eval(population)
         fitness = self._problem_.evaluate(population)
+        fitness *= self.opt_direction
         self._monitor_.post_eval(fitness)
         fitness = self._fitness_transform_(fitness)
         self._monitor_.pre_tell(fitness)

@@ -89,7 +89,7 @@ class PSO(Algorithm):
 
     @trace_impl(_set_global_and_random)
     def _trace_set_global_and_random(self, fitness: torch.Tensor):
-        all_fitness = torch.cat([torch.atleast_1d(self.global_best_fitness), fitness])
+        all_fitness = torch.cat([self.global_best_fitness.unsqueeze(0), fitness])
         all_population = torch.cat([self.global_best_location[None, :], self.population])
         global_best_index = torch.argmin(all_fitness)
         self.global_best_location = all_population[global_best_index]

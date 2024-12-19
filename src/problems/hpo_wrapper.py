@@ -1,8 +1,41 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 from torch import nn
-from core import Problem, Workflow, jit_class, use_state, vmap, jit
+
+from ..core import Problem, Workflow, Monitor, jit_class, use_state, vmap, jit
+from .. import utils
+
+
+class HpoFitnessMonitor(Monitor):
+    def __init__(self, multi_obj_indicator: Optional[str] = None):
+        super().__init__()
+        assert multi_obj_indicator is None or isinstance(
+            multi_obj_indicator, str
+        ), f"Expect `multi_obj_indicator` to be `None` or `str`, got {multi_obj_indicator}"
+        multi_obj_indicator = multi_obj_indicator.capitalize()
+        assert multi_obj_indicator in [
+            "IGD",
+            "HV",
+        ], f"Currently we only support `IGD` or `HV`, got {multi_obj_indicator}"
+        self.multi_obj_indicator = multi_obj_indicator
+
+    def setup(self):
+        super().setup()
+        self.best_fitness = nn.Buffer(torch.tensor(torch.inf))
+        return self
+
+    def pre_tell(self, fitness: torch.Tensor):
+        if fitness.ndim == 1:
+            # single-objective
+            self.best_fitness = torch.min(torch.min(fitness), self.best_fitness)
+        else:
+            pass
+            # # multi-objective, TODO: add indicators
+            # if self.multi_obj_indicator == "IGD":
+            #     self.best_fitness = torch.min(utils.IGD(fitness), self.best_fitness)
+            # elif self.multi_obj_indicator == "HV":
+            #     self.best_fitness = torch.max(utils.HV(fitness), self.best_fitness)
 
 
 @jit_class
@@ -15,11 +48,14 @@ class HpoProblemWrapper(Problem):
         self.iterations = iterations
         self.num_instances = num_instances
 
-    def setup(
-        self,
-        workflow: Workflow
-    ):
+    def setup(self, workflow: Workflow):
         self.workflow = workflow
+        assert "monitor" in workflow.__dict__, "workflow should have a monitor"
+        if callable(workflow.monitor):
+            monitor = workflow.monitor()
+        else:
+            monitor = workflow.monitor
+        
         # JIT workflow step
         state_step = use_state(lambda: workflow.step)
         vmap_state_step = vmap(state_step)
@@ -53,4 +89,3 @@ class HpoProblemWrapper(Problem):
         state = self._workflow_init_step_(state)
         for _ in range(self.iterations - 1):
             state = self._workflow_step_(state)
-        
