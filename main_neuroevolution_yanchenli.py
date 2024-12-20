@@ -1,14 +1,77 @@
 import time
 import os
 import torch
+import torch.nn as nn
+import torchvision
+from torch.utils.data import DataLoader
 from torch.profiler import profile, ProfilerActivity
 
 from src.core import Problem, use_state, jit
 from src.algorithms import PSO
 from src.workflows import StdWorkflow
+from src.problems.neuroevolution import SupervisedLearningProblem
 
+
+class SimpleCNN(nn.Module):
+    def __init__(self):
+        super(SimpleCNN, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 6, kernel_size=5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(6, 16, kernel_size=5),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(16 * 5 * 5, 120),
+            nn.ReLU(),
+            nn.Linear(120, 84),
+            nn.ReLU(),
+            nn.Linear(84, 10)
+        )
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+    
 
 if __name__ == "__main__":
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    device = "cuda:0"
+    data_root = "./data"
+    os.makedirs(data_root, exist_ok=True)
+
+    train_dataset = torchvision.datasets.MNIST(
+        root      = data_root,
+        train     = True,
+        download  = True,
+        transform = torchvision.transforms.ToTensor(),
+    )
+    train_loader = DataLoader(train_dataset,
+        batch_size = 100,
+        shuffle    = True,
+        collate_fn = None,
+    )
+
+    model = SimpleCNN()
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Total number of parameters: {total_params}")
+
+    problem = SupervisedLearningProblem(
+        data_loader = train_loader,
+        model       = model,
+        loss_func   = nn.CrossEntropyLoss(),
+        device      = device,
+    )
+
+    print("Result: ", problem.evaluate())
+
+    # -----------------------------------------
+    import sys; sys.exit(1)
+    # -----------------------------------------
 
     class Sphere(Problem):
         def __init__(self):
@@ -16,12 +79,13 @@ if __name__ == "__main__":
 
         def evaluate(self, pop: torch.Tensor):
             return (pop**2).sum(-1)
+    prob = Sphere()
+    prob.setup()
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.get_default_device())
     algo = PSO(pop_size=100000)
     algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
-    prob = Sphere()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
     workflow.step()
