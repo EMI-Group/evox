@@ -2,6 +2,12 @@ import torch
 from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
 
 
+class _NegModule(torch.nn.Module):
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return -x
+
+
 @jit_class
 class StdWorkflow(Workflow):
     """The standard workflow"""
@@ -25,16 +31,21 @@ class StdWorkflow(Workflow):
             "max",
         ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
         self.opt_direction = 1 if opt_direction == "min" else -1
-        if solution_transform is None or fitness_transform is None:
-            self._identity_ = torch.nn.Identity()
         if solution_transform is None:
-            solution_transform = self._identity_
+            solution_transform = torch.nn.Identity()
         if fitness_transform is None:
-            fitness_transform = self._identity_
-        callable(
+            if opt_direction == -1:
+                fitness_transform = _NegModule()
+            else:
+                fitness_transform = torch.nn.Identity()
+        else:
+            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
+        assert callable(
             solution_transform
         ), f"Expect solution transform to be callable, got {solution_transform}"
-        callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
+        assert callable(
+            fitness_transform
+        ), f"Expect fitness transform to be callable, got {fitness_transform}"
         self._solution_transform_ = solution_transform
         self._fitness_transform_ = fitness_transform
 
@@ -84,19 +95,18 @@ class StdWorkflow(Workflow):
         return super().__getattribute__(name)
 
     @torch.jit.ignore
-    def monitor(self):
-        return self.algorithm._monitor_
-
-    @torch.jit.ignore
-    def problem(self):
-        return self.algorithm._problem_
+    def get_submodule(self, target: str):
+        if target == "monitor":
+            return self.algorithm._monitor_
+        elif target == "problem":
+            return self.algorithm._problem_
+        return super().get_submodule(target)
 
     def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
         self._monitor_.post_ask(population)
         population = self._solution_transform_(population)
         self._monitor_.pre_eval(population)
         fitness = self._problem_.evaluate(population)
-        fitness *= self.opt_direction
         self._monitor_.post_eval(fitness)
         fitness = self._fitness_transform_(fitness)
         self._monitor_.pre_tell(fitness)

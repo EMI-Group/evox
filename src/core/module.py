@@ -420,8 +420,11 @@ _STATE_ARG_NAME = "state"
 
 class UseStateFunc(Protocol):
 
-    def init_state(self) -> Dict[str, torch.Tensor]:
+    def init_state(self, clone: bool = True) -> Dict[str, torch.Tensor]:
         """Get the cloned state of the closures of the function when it is wrapped by `use_state`.
+        
+        Args:
+            clone (`bool`, optional): Whether to clone the original state or not. Defaults to True.
 
         Returns:
             `Dict[str, torch.Tensor]`: The cloned state of the closures.
@@ -525,7 +528,6 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
-        modules_vars = {k: v for k, v in modules_vars.items()}
 
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
@@ -556,7 +558,9 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 if len(this_state) > 0:
                     v.load_state_dict(this_state)
 
-        def _init_state():
+        def _init_state(clone: bool = True):
+            if not clone:
+                return modules_vars
             state = {}
             for k, v in modules_vars.items():
                 if isinstance(v, nn.Parameter):
@@ -590,7 +594,7 @@ def trace_impl(target: Callable):
     ## Notice:
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
     2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
-    
+
     ## Usage:
     See `use_state`.
     """
@@ -609,6 +613,7 @@ def trace_impl(target: Callable):
         return _vmap_fix.wrap_vmap_inputs(func)
 
     return wrapping_fn
+
 
 # TODO
 # @vmap_impl(_set_global_and_random)
