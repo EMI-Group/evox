@@ -9,6 +9,8 @@ from torch._C._functorch import (
     maybe_get_level as get_level,
     is_batchedtensor as is_batched_tensor,
     _unwrap_batched as unwrap_batched,
+    _vmap_decrement_nesting as vmap_decrement_nesting,
+    _vmap_increment_nesting as vmap_increment_nesting,
 )
 
 if "maybe_current_level" not in _functorch.__dict__:
@@ -116,6 +118,20 @@ vmap._create_batched_inputs = _create_batched_inputs
 vmap._unwrap_batched = _unwrap_batched
 
 
+def unwrap_batch_tensor(tensor: torch.Tensor):
+    level = get_level(tensor)
+    batch_dims = []
+    batch_sizes = []
+    while level >= 1:
+        batch_dim = get_batch_dim(tensor)
+        tensor, _ = unwrap_batched(tensor, level)
+        batch_dims.append(batch_dim)
+        batch_sizes.append(tensor.size(batch_dim))
+        level -= 1
+    batch_dims = tuple(batch_dims[::-1])
+    batch_sizes = tuple(batch_sizes[::-1])
+    return tensor, batch_dims, batch_sizes
+
 def align_vmap_tensor(value: Any, current_value: Any | None):
     """
     Aligns a tensor with the batching dimensions of a current batched tensor.
@@ -143,18 +159,19 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
         return value
     if current_value is None or not is_batched_tensor(current_value):
         return value
-    level = get_level(current_value)
-    base_value = current_value
-    batch_dims = []
-    batch_sizes = []
-    while level >= 1:
-        batch_dim = get_batch_dim(base_value)
-        base_value, _ = unwrap_batched(base_value, level)
-        batch_dims.append(batch_dim)
-        batch_sizes.append(base_value.size(batch_dim))
-        level -= 1
-    batch_dims = tuple(batch_dims[::-1])
-    batch_sizes = tuple(batch_sizes[::-1])
+    # level = get_level(current_value)
+    # base_value = current_value
+    # batch_dims = []
+    # batch_sizes = []
+    # while level >= 1:
+    #     batch_dim = get_batch_dim(base_value)
+    #     base_value, _ = unwrap_batched(base_value, level)
+    #     batch_dims.append(batch_dim)
+    #     batch_sizes.append(base_value.size(batch_dim))
+    #     level -= 1
+    # batch_dims = tuple(batch_dims[::-1])
+    # batch_sizes = tuple(batch_sizes[::-1])
+    value, batch_dims, batch_sizes = unwrap_batch_tensor(current_value)
     for dim, size in zip(batch_dims, batch_sizes):
         value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
     expand_value = value
@@ -190,16 +207,17 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
                 continue
             if not is_batched_tensor(arg):
                 continue
-            level = get_level(arg)
-            base_arg = arg
-            batch_dims = []
-            while level >= 1:
-                batch_dim = get_batch_dim(base_arg)
-                base_arg, _ = unwrap_batched(base_arg, level)
-                batch_dims.append(batch_dim)
-                level -= 1
-            batch_dims = tuple(batch_dims[::-1])
-            _transform_in_dim(batch_dims, arg, base_arg)
+            # level = get_level(arg)
+            # base_arg = arg
+            # batch_dims = []
+            # while level >= 1:
+            #     batch_dim = get_batch_dim(base_arg)
+            #     base_arg, _ = unwrap_batched(base_arg, level)
+            #     batch_dims.append(batch_dim)
+            #     level -= 1
+            # batch_dims = tuple(batch_dims[::-1])
+            unwrap_arg, batch_dims, _ = unwrap_batch_tensor(arg)
+            _transform_in_dim(batch_dims, arg, unwrap_arg)
         args, kwargs = tree_unflatten(flat_args, flat_spec)
         return func(*args, **kwargs)
 

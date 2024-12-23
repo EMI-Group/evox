@@ -422,7 +422,7 @@ class UseStateFunc(Protocol):
 
     def init_state(self, clone: bool = True) -> Dict[str, torch.Tensor]:
         """Get the cloned state of the closures of the function when it is wrapped by `use_state`.
-        
+
         Args:
             clone (`bool`, optional): Whether to clone the original state or not. Defaults to True.
 
@@ -528,10 +528,14 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
-
+        is_empty_state = len(modules_vars) == 0
+        
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
+                if is_empty_state:
+                    ret = func(state, *args, **kwargs)
+                    return ret
                 # apply new state dict
                 _set_state(state)
                 # get actual output
@@ -575,9 +579,20 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         return wrapper
 
 
-_TRACE_WRAP_NAME = "__trace_wrapped__"
 global _TORCHSCRIPT_MODIFIER
 _TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
+
+
+def _torch_script_modifier(target: Callable):
+    global _TORCHSCRIPT_MODIFIER
+    torch.jit.export(target)
+    for k in target.__dict__.keys():
+        if "torch" in k and "modifier" in k:
+            _TORCHSCRIPT_MODIFIER = k
+            break
+
+
+_TRACE_WRAP_NAME = "__trace_wrapped__"
 
 
 def trace_impl(target: Callable):
@@ -598,13 +613,7 @@ def trace_impl(target: Callable):
     ## Usage:
     See `use_state`.
     """
-    # deal with torchscript_modifier in case the implementation changed
-    global _TORCHSCRIPT_MODIFIER
-    torch.jit.export(target)
-    for k in target.__dict__.keys():
-        if "torch" in k and "modifier" in k:
-            _TORCHSCRIPT_MODIFIER = k
-            break
+    # _torch_script_modifier(target)
 
     def wrapping_fn[T: Callable](func: T) -> T:
         torch.jit.ignore(func)
@@ -615,10 +624,36 @@ def trace_impl(target: Callable):
     return wrapping_fn
 
 
-# TODO
-# @vmap_impl(_set_global_and_random)
-# def _vmap_set_global_and_random(self, fitness: torch.Tensor, fitness_map_dims: Tuple[int, ...]):
-#     utils.scripted_vmap_while_loop
+_VMAP_WRAP_NAME = "__vmap_wrapped__"
+
+
+def vmap_impl(target: Callable):
+    """A helper function used to annotate that the wrapped method shall be treated as a vmap-JIT-time proxy of the given `target` method.
+
+    Can ONLY be used inside a `jit_class` for a member method.
+
+    Args:
+        target (`Callable`): The target method invoked when not tracing JIT.
+
+    Returns:
+        The wrapping function to annotate the member method.
+
+    ## Notice:
+    1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
+    2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
+
+    ## Usage:
+    See `use_state`.
+    """
+    # _torch_script_modifier(target)
+
+    def wrapping_fn[T: Callable](func: T) -> T:
+        torch.jit.ignore(func)
+        setattr(func, _VMAP_WRAP_NAME, target)
+        # special treatment for compatibility with `vmap`
+        return _vmap_fix.wrap_vmap_inputs(func)
+
+    return wrapping_fn
 
 
 def jit_class[T](cls: type, trace: bool = False) -> T:
@@ -664,6 +699,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
 
     _original_methods = {}
     _trace_correspond_methods = {}
+    _vmap_correspond_methods = {}
     _method_argnames = {}
     _trace_method_args = {}
     for name, method in cls.__dict__.items():
@@ -672,12 +708,22 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
         method_sign = inspect.signature(method)
         if len(method_sign.parameters) == 0 or "self" not in method_sign.parameters:
             continue
-        if (name.startswith("__") and name.endswith("__")) or name == "setup":
+        if name == "setup":
             continue
         if hasattr(method, _TRACE_WRAP_NAME):
-            _trace_correspond_methods[getattr(method, _TRACE_WRAP_NAME).__name__] = method
+            original_method = getattr(method, _TRACE_WRAP_NAME)
+            _trace_correspond_methods[original_method.__name__] = method
+            _original_methods[original_method.__name__] = original_method
             continue
-        if hasattr(method, _TORCHSCRIPT_MODIFIER) and "ignore" in getattr(method, _TORCHSCRIPT_MODIFIER):
+        if hasattr(method, _VMAP_WRAP_NAME):
+            original_method = getattr(method, _VMAP_WRAP_NAME)
+            _vmap_correspond_methods[original_method.__name__] = method
+            _original_methods[original_method.__name__] = original_method
+            continue
+        if hasattr(method, _TORCHSCRIPT_MODIFIER):
+            if "export" not in getattr(method, _TORCHSCRIPT_MODIFIER):
+                continue
+        elif name.startswith("__") and name.endswith("__"):
             continue
         if not trace:
             torch.jit.export(method)
@@ -714,7 +760,9 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                     return attr
 
             # basic case, get from jit module or original module
-            if name not in _original_methods:
+            if name not in _method_argnames and (
+                name not in _original_methods or not tracing_or_using_state()
+            ):
                 if jit_mod is None or tracing_or_using_state():
                     return base_mod.__getattr_inner__(name)
                 else:
@@ -737,16 +785,25 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             @wraps(func)
             def method_wrapper(*args, **kwargs):
                 nonlocal func
+                # special treatment for compatibility with `vmap_impl`
+                if _vmap_fix.current_level() is not None:
+                    if not trace and name in _vmap_correspond_methods:
+                        if hasattr(_vmap_correspond_methods[name], "__self__"):
+                            bounded_target_func = _vmap_correspond_methods[name]
+                        else:
+                            bounded_target_func = types.MethodType(_vmap_correspond_methods[name], self)
+                            _vmap_correspond_methods[name] = bounded_target_func
+                        func = bounded_target_func
+                    return func(*args, **kwargs)
+                # special treatment for compatibility with `trace_impl`
                 if tracing_or_using_state():
                     if not trace and name in _trace_correspond_methods:
                         if hasattr(_trace_correspond_methods[name], "__self__"):
-                            bounded_trace_target_func = _trace_correspond_methods[name]
+                            bounded_target_func = _trace_correspond_methods[name]
                         else:
-                            bounded_trace_target_func = types.MethodType(
-                                _trace_correspond_methods[name], self
-                            )
-                            _trace_correspond_methods[name] = bounded_trace_target_func
-                        func = bounded_trace_target_func
+                            bounded_target_func = types.MethodType(_trace_correspond_methods[name], self)
+                            _trace_correspond_methods[name] = bounded_target_func
+                        func = bounded_target_func
                     return func(*args, **kwargs)
                 # else, the outer-most method is tracing
                 if name not in _trace_method_args:

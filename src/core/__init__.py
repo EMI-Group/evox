@@ -3,6 +3,7 @@ __all__ = [
     "ModuleBase",
     "use_state",
     "trace_impl",
+    "vmap_impl",
     "jit_class",
     "vmap",
     "jit",
@@ -17,6 +18,6 @@ __all__ = [
 from ._vmap_fix import batched_random
 
 # export symbols
-from .module import Parameter, ModuleBase, use_state, trace_impl, jit_class
+from .module import Parameter, ModuleBase, use_state, trace_impl, vmap_impl, jit_class
 from .jit_util import vmap, jit
 from .components import Algorithm, Problem, Workflow, Monitor

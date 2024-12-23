@@ -1,4 +1,10 @@
+from functools import wraps
+from typing import Callable, Tuple, TypeVarTuple
+
 import torch
+
+from ..core import trace_impl, vmap_impl, jit_class, vmap, jit, ModuleBase
+from ..core import _vmap_fix
 
 
 ################### NOTICE ###################
@@ -11,13 +17,143 @@ import torch
 ################# END NOTICE #################
 
 
+Ts = TypeVarTuple("Ts")
+
+
+@jit_class
+class TracingWhileLoop(ModuleBase):
+
+    def __init__(
+        self,
+        cond: Callable[[*Ts], torch.Tensor],
+        body: Callable[[*Ts], Tuple[torch.Tensor, ...]],
+    ):
+        super().__init__()
+        self.cond = torch.jit.script(cond)
+        self.body = torch.jit.script(body)
+        self._cond = cond
+        self._body = body
+
+    @torch.jit.ignore
+    def loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
+        while self.cond(*x):
+            x = self.body(*x)
+        return x
+
+    @trace_impl(loop)
+    def trace_loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
+        cond: torch.jit.ScriptFunction = self.cond
+        body: torch.jit.ScriptFunction = self.body
+
+        def _loop1(x1: torch.Tensor) -> torch.Tensor:
+            while cond(x1):
+                x1 = body(x1)
+            return x1
+
+        def _loop2(x1: torch.Tensor, x2: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+            while cond(x1, x2):
+                x1, x2 = body(x1, x2)
+            return x1, x2
+
+        def _loop3(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3):
+                x1, x2, x3 = body(x1, x2, x3)
+            return x1, x2, x3
+
+        def _loop4(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3, x4):
+                x1, x2, x3, x4 = body(x1, x2, x3, x4)
+            return x1, x2, x3, x4
+
+        def _loop5(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3, x4, x5):
+                x1, x2, x3, x4, x5 = body(x1, x2, x3, x4, x5)
+            return x1, x2, x3, x4, x5
+
+        loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5}
+
+        compiled_loop = torch.jit.script(loops_dict[len(x)])
+        return compiled_loop(*x)
+
+    @vmap_impl(loop)
+    def vmap_loop(self, *x: torch.Tensor) -> torch.Tensor:
+        # get vmap dims and original arguments
+        vmap_dims = []
+        original_args = []
+        args = list(x)
+        for arg in args:
+            assert isinstance(
+                arg, torch.Tensor
+            ), f"Expect all arguments in `vmap` to be `torch.Tensor`, got {type(arg)}"
+            arg, in_dim, _ = _vmap_fix.unwrap_batch_tensor(arg)
+            vmap_dims.append(in_dim)
+            original_args.append(arg)
+        original_args = tuple(original_args)
+        vmap_dims = tuple(zip(*vmap_dims))
+        # run
+        # vmap
+        vmap_cond = self._cond
+        vmap_body = self._body
+        for d in vmap_dims:
+            vmap_cond = vmap(vmap_cond, in_dims=d, trace=False)
+            vmap_body = vmap(vmap_body, in_dims=d, out_dims=d, trace=False)
+        # JIT
+        body = jit(vmap_body, trace=True, example_inputs=original_args)
+        cond = jit(vmap_cond, trace=True, example_inputs=original_args)
+
+        def _loop1(x1: torch.Tensor) -> torch.Tensor:
+            cond_res = cond(x1)
+            while cond_res.any():
+                x1_new = body(x1)
+                x1 = torch.where(cond_res, x1_new, x1)
+            return x1
+
+        def _loop2(x1: torch.Tensor, x2: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+            while cond(x1, x2):
+                x1, x2 = body(x1, x2)
+            return x1, x2
+
+        def _loop3(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3):
+                x1, x2, x3 = body(x1, x2, x3)
+            return x1, x2, x3
+
+        def _loop4(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3, x4):
+                x1, x2, x3, x4 = body(x1, x2, x3, x4)
+            return x1, x2, x3, x4
+
+        def _loop5(
+            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
+        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+            while cond(x1, x2, x3, x4, x5):
+                x1, x2, x3, x4, x5 = body(x1, x2, x3, x4, x5)
+            return x1, x2, x3, x4, x5
+
+        loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5}
+
+        _vmap_loop_compiled = torch.jit.script(loops_dict[len(x)])
+        # return
+        return _vmap_loop_compiled(*x)
+
+
 def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     """
     Clamp the values of the input tensor `a` to be within the given lower (`lb`) and upper (`ub`) bounds.
 
-    This function ensures that each element of the tensor `a` is not less than the corresponding element 
+    This function ensures that each element of the tensor `a` is not less than the corresponding element
     of `lb` and not greater than the corresponding element of `ub`.
-    
+
     Notice: This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
 
     Args:
@@ -47,10 +183,11 @@ def clip(a: torch.Tensor) -> torch.Tensor:
     """
     return clamp(a, 0, 1)
 
+
 def maximum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Element-wise maximum of two input tensors `a` and `b`.
-    
+
     Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
 
     Args:
@@ -63,10 +200,11 @@ def maximum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     diff = torch.relu(b - a)
     return a + diff
 
+
 def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Element-wise minimum of two input tensors `a` and `b`.
-    
+
     Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion.
 
     Args:

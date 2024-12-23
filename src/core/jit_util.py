@@ -188,6 +188,7 @@ def jit[
     example_inputs: Optional[Union[Tuple, Dict]] = None,
     strict: bool = False,
     check_trace: bool = False,
+    is_generator: bool = False,
 ) -> T:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
@@ -206,16 +207,21 @@ def jit[
         example_inputs (`tuple | dict`, optional): When `trace=True` and `lazy=False`, the example inputs must be provided immediately, otherwise ignored.
         strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
+        is_generator (`bool`, optional): Whether `func` is a generator or not. Defaults to False.
 
     Returns:
         `Callable`: The JIT version of `func`
     """
+    if is_generator:
+        func = func()
     if isinstance(func, torch.jit.ScriptFunction):
         return func
     if not trace:
         return torch.jit.script_if_tracing(func) if lazy else torch.jit.script(func)
     elif not lazy:
         assert example_inputs is not None
+        if isinstance(example_inputs, list):
+            example_inputs = tuple(example_inputs)
         if isinstance(example_inputs, tuple):
             jit_func = torch.jit.trace(
                 func,
