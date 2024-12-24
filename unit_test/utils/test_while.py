@@ -29,6 +29,6 @@ if __name__ == "__main__":
     
     x = torch.tensor([0, 1, 2], dtype=torch.int)
     y = torch.tensor([[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]])
-    vmap_loop = vmap(use_state(lambda: while_loop.loop), trace=False)
+    vmap_loop = jit(vmap(use_state(lambda: while_loop.loop)), trace=True, lazy=False, example_inputs=(x, y))
     x1, y1 = vmap_loop(x, y)
     print(x1, y1)

@@ -189,6 +189,7 @@ def jit[
     strict: bool = False,
     check_trace: bool = False,
     is_generator: bool = False,
+    no_cache: bool = False,
 ) -> T:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
@@ -204,10 +205,11 @@ def jit[
         func (`Callable`): The target function to be JIT
         trace (`bool`, optional): Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
         lazy (`bool`, optional): Whether JIT lazily or immediately. Defaults to False.
-        example_inputs (`tuple | dict`, optional): When `trace=True` and `lazy=False`, the example inputs must be provided immediately, otherwise ignored.
+        example_inputs (`tuple` or `dict`, optional): When `trace=True` and `lazy=False`, the example inputs must be provided immediately, otherwise ignored.
         strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         is_generator (`bool`, optional): Whether `func` is a generator or not. Defaults to False.
+        no_cache (`bool`, optional): Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. No effect when `trace=False` or `lazy=True`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
 
     Returns:
         `Callable`: The JIT version of `func`
@@ -223,6 +225,8 @@ def jit[
         if isinstance(example_inputs, list):
             example_inputs = tuple(example_inputs)
         if isinstance(example_inputs, tuple):
+            if not no_cache:
+                _ = func(*example_inputs)
             jit_func = torch.jit.trace(
                 func,
                 example_inputs,
@@ -231,6 +235,8 @@ def jit[
                 _store_inputs=check_trace,
             )
         else:
+            if not no_cache:
+                _ = func(**example_inputs)
             jit_func = torch.jit.trace(
                 func,
                 example_kwarg_inputs=example_inputs,
