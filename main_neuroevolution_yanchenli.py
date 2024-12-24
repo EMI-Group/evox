@@ -6,6 +6,7 @@ import torchvision
 from torch.utils.data import DataLoader
 from torch.profiler import profile, ProfilerActivity
 
+from src.utils import ParamsAndVector
 from src.core import Problem, use_state, jit
 from src.algorithms import PSO
 from src.workflows import StdWorkflow
@@ -16,23 +17,22 @@ class SimpleCNN(nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(1, 6, kernel_size=5, padding=2),
+            nn.Conv2d(1, 3, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(6, 16, kernel_size=5),
+            nn.Conv2d(3, 3, kernel_size=3),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(16 * 5 * 5, 120),
+            nn.Linear(108, 32),
             nn.ReLU(),
-            nn.Linear(120, 84),
-            nn.ReLU(),
-            nn.Linear(84, 10)
+            nn.Linear(32, 10)
         )
     def forward(self, x):
         x = self.features(x)
+        print(x.shape)
         x = self.classifier(x)
         return x
     
@@ -60,18 +60,32 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total number of parameters: {total_params}")
 
-    problem = SupervisedLearningProblem(
-        data_loader = train_loader,
-        model       = model,
-        loss_func   = nn.CrossEntropyLoss(),
-        device      = device,
-    )
+    adapter = ParamsAndVector(dummy_module=model)
+    model_params = dict(model.named_parameters())
+    
+    flat_params = adapter.to_vector(model_params)
+    restored_params = adapter.to_params(flat_params)
 
-    print("Result: ", problem.evaluate())
+    x = torch.rand(size=(5, 1, 28, 28))
+    model.load_state_dict(model_params)
+    print("1: ", model(x).sum())
 
+    model.load_state_dict(restored_params)
+    print("2: ", model(x).sum())
     # -----------------------------------------
     import sys; sys.exit(1)
     # -----------------------------------------
+
+    problem = SupervisedLearningProblem(
+        model       = model,
+        data_loader = train_loader,
+        criterion   = nn.CrossEntropyLoss(),
+        adapter     = adapter,
+    )
+    problem.to(device)
+    problem.setup()
+
+    center = adapter.to_vector(model)
 
     class Sphere(Problem):
         def __init__(self):
