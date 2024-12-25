@@ -3,13 +3,20 @@ import torch.nn as nn
 
 import os
 import sys
+
 current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
 
 from src.core import (
-    vmap, trace_impl, batched_random, use_state, jit, jit_class, 
-    Algorithm, Problem,
+    vmap,
+    trace_impl,
+    batched_random,
+    use_state,
+    jit,
+    jit_class,
+    Algorithm,
+    Problem,
 )
 from src.workflows import StdWorkflow, EvalMonitor
 
@@ -33,7 +40,6 @@ if __name__ == "__main__":
         @trace_impl(evaluate)
         def trace_evaluate(self, pop: torch.Tensor):
             return self._eval_fn(pop)
-
 
     @jit_class
     class BasicAlgorithm(Algorithm):
@@ -73,7 +79,6 @@ if __name__ == "__main__":
             self.pop = pop
             self.fit = self.evaluate(pop)
 
-
     # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     algo = BasicAlgorithm(10)
@@ -82,24 +87,31 @@ if __name__ == "__main__":
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
 
-    # # classic workflow
-    # class solution_transform(nn.Module):
-    #     def forward(self, x: torch.Tensor):
-    #         return x / 5
-    # class fitness_transform(nn.Module):
-    #     def forward(self, f: torch.Tensor):
-    #         return -f
-    # monitor = EvalMonitor(full_sol_history=True)
-    # workflow = StdWorkflow(solution_transform=solution_transform(), fitness_transform=fitness_transform())
-    # workflow.setup(algo, prob, monitor=monitor)
-    # print(workflow.step.inlined_graph)
-    # workflow.step()
-    # monitor = workflow.monitor()
-    # print(monitor.topk_fitness)
-    # workflow.step()
-    # print(monitor.topk_fitness)
-    # workflow.step()
-    # print(monitor.topk_fitness)
+    # classic workflow
+    class solution_transform(nn.Module):
+        def forward(self, x: torch.Tensor):
+            return x / 5
+
+    class fitness_transform(nn.Module):
+        def forward(self, f: torch.Tensor):
+            return -f
+
+    monitor = EvalMonitor(full_sol_history=True)
+    workflow = StdWorkflow()
+    workflow.setup(
+        algo,
+        prob,
+        solution_transform=solution_transform(),
+        fitness_transform=fitness_transform(),
+        monitor=monitor,
+    )
+    workflow.init_step()
+    monitor = workflow.get_submodule("monitor")
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
 
     # # stateful workflow
     # state_step = use_state(lambda: workflow.step, True)

@@ -1,5 +1,6 @@
 import torch
 from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
+from ..core.module import _WrapClassBase
 
 
 class _NegModule(torch.nn.Module):
@@ -10,20 +11,38 @@ class _NegModule(torch.nn.Module):
 
 @jit_class
 class StdWorkflow(Workflow):
-    """The standard workflow"""
+    """The standard workflow.
 
-    def __init__(
-        self,
-        opt_direction: str = "min",
-        solution_transform: torch.nn.Module | None = None,
-        fitness_transform: torch.nn.Module | None = None,
-    ):
+    ## Usage:
+    ```
+    algo = BasicAlgorithm(10)
+    algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
+    prob = BasicProblem()
+
+    class solution_transform(nn.Module):
+        def forward(self, x: torch.Tensor):
+            return x / 5
+    class fitness_transform(nn.Module):
+        def forward(self, f: torch.Tensor):
+            return -f
+
+    monitor = EvalMonitor(full_sol_history=True)
+    workflow = StdWorkflow()
+    workflow.setup(algo, prob, solution_transform=solution_transform(), fitness_transform=fitness_transform(), monitor=monitor)
+    monitor = workflow.get_submodule("monitor")
+    workflow.init_step()
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
+    # run rest of the steps ...
+    ```
+    """
+
+    def __init__(self, opt_direction: str = "min"):
         """Initialize the standard workflow with static arguments.
 
         Args:
             opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
-            solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
-            fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
         """
         super().__init__()
         assert opt_direction in [
@@ -31,29 +50,14 @@ class StdWorkflow(Workflow):
             "max",
         ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
         self.opt_direction = 1 if opt_direction == "min" else -1
-        if solution_transform is None:
-            solution_transform = torch.nn.Identity()
-        if fitness_transform is None:
-            if opt_direction == -1:
-                fitness_transform = _NegModule()
-            else:
-                fitness_transform = torch.nn.Identity()
-        else:
-            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
-        assert callable(
-            solution_transform
-        ), f"Expect solution transform to be callable, got {solution_transform}"
-        assert callable(
-            fitness_transform
-        ), f"Expect fitness transform to be callable, got {fitness_transform}"
-        self._solution_transform_ = solution_transform
-        self._fitness_transform_ = fitness_transform
 
     def setup(
         self,
         algorithm: Algorithm,
         problem: Problem,
         monitor: Monitor | None = None,
+        solution_transform: torch.nn.Module | None = None,
+        fitness_transform: torch.nn.Module | None = None,
         device: str | torch.device | int | None = None,
     ):
         """Setup the module with submodule initialization.
@@ -62,11 +66,36 @@ class StdWorkflow(Workflow):
             algorithm (`Algorithm`): The algorithm to be used in the workflow.
             problem (`Problem`): The problem to be used in the workflow.
             monitors (`Sequence[Monitor] | None`, optional): The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
+            solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+            fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
             device (`str | torch.device | int | None`, optional): The device of the workflow. Defaults to None.
 
         ## Notice:
         The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
+        # transform
+        if solution_transform is None:
+            solution_transform = torch.nn.Identity()
+        elif isinstance(solution_transform, _WrapClassBase):  # ensure correct results for jit_class
+            solution_transform = solution_transform.__inner_module__
+        if fitness_transform is None:
+            fitness_transform = torch.nn.Identity()
+        elif isinstance(fitness_transform, _WrapClassBase):  # ensure correct results for jit_class
+            fitness_transform = fitness_transform.__inner_module__
+        if self.opt_direction == -1:
+            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
+        assert callable(
+            solution_transform
+        ), f"Expect solution transform to be callable, got {solution_transform}"
+        assert callable(
+            fitness_transform
+        ), f"Expect fitness transform to be callable, got {fitness_transform}"
+        if isinstance(solution_transform, torch.nn.Module):
+            solution_transform.to(device=device)
+        if isinstance(fitness_transform, torch.nn.Module):
+            fitness_transform.to(device=device)
+
+        # algorithm and problem
         algorithm.to(device=device)
         problem.to(device=device)
         self.algorithm = algorithm
@@ -81,18 +110,31 @@ class StdWorkflow(Workflow):
         self.algorithm.evaluate = self._evaluate
         self.algorithm._problem_ = problem
         self.algorithm._monitor_ = monitor
-        self.algorithm._solution_transform_ = self._solution_transform_
-        self.algorithm._fitness_transform_ = self._fitness_transform_
-        # for compilation, not used
-        self._monitor_ = Monitor()
-        self._problem_ = Problem()
+        self.algorithm._solution_transform_ = solution_transform
+        self.algorithm._fitness_transform_ = fitness_transform
+        # for compilation, will be removed later
+        self._monitor_ = monitor
+        self._problem_ = problem
+        self._solution_transform_ = solution_transform
+        self._fitness_transform_ = fitness_transform
 
     def __getattribute__(self, name: str):
         if name == "_monitor_":
             return self.algorithm._monitor_
         elif name == "_problem_":
             return self.algorithm._problem_
+        elif name == "_solution_transform_":
+            return self.algorithm._solution_transform_
+        elif name == "_fitness_transform_":
+            return self.algorithm._fitness_transform_
         return super().__getattribute__(name)
+
+    def __sync_with__(self, jit_module):
+        del self._monitor_
+        del self._problem_
+        del self._fitness_transform_
+        del self._solution_transform_
+        return super().__sync_with__(jit_module)
 
     @torch.jit.ignore
     def get_submodule(self, target: str):

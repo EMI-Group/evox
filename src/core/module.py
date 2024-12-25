@@ -201,6 +201,20 @@ class ModuleBase(nn.Module):
             value = super(ModuleBase, self).__getattr__(name)
         return value
 
+    def __delattr__(self, name):
+        if name == _WRAPPING_MODULE_NAME:
+            self.__delattr_inner__(name)
+        elif not hasattr(self, _WRAPPING_MODULE_NAME):
+            self.__delattr_inner__(name)
+        else:
+            object.__getattribute__(self, _WRAPPING_MODULE_NAME).__delattr__(name)
+
+    def __delattr_inner__(self, name):
+        try:
+            object.__delattr__(self, name)
+        except:
+            super(ModuleBase, self).__delattr__(name)
+
     def __setattr__(self, name, value):
         if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
@@ -400,15 +414,20 @@ class _WrapClassBase(ABC):
         self.__inner_module__.__setattr_inner__(name, inner_sub_mod)
         object.__setattr__(self, name, value)
 
-    def __delattr__(self, name, value):
+    def __delattr__(self, name):
         if name not in ["__inner_module__", "__jit_module__"]:
-            delattr(
-                self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__,
-                name,
-                value,
-            )
+            self.__inner_module__.__delattr_inner__(name)
+            if self.__jit_module__ is not None:
+                if name in self.__jit_module__._modules:
+                    del self.__jit_module__._modules._python_modules[name]
+                # elif name in self.__jit_module__._parameters:
+                #     del self.__jit_module__._parameters._python_parameters[name]
+                # elif name in self.__jit_module__._buffers:
+                #     del self.__jit_module__._buffers._python_buffers[name]
+                else:
+                    pass # cannot delete JIT module parameters, buffers and attributes
         else:
-            object.__delattr__(self, name, value)
+            object.__delattr__(self, name)
 
     def __sync__(self):
         self.__inner_module__.__sync_with__(self.__jit_module__)
