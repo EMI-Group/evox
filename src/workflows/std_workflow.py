@@ -130,10 +130,11 @@ class StdWorkflow(Workflow):
         return super().__getattribute__(name)
 
     def __sync_with__(self, jit_module):
-        del self._monitor_
-        del self._problem_
-        del self._fitness_transform_
-        del self._solution_transform_
+        if "_monitor_" in self._modules:
+            del self._monitor_
+            del self._problem_
+            del self._fitness_transform_
+            del self._solution_transform_
         return super().__sync_with__(jit_module)
 
     @torch.jit.ignore

@@ -8,7 +8,7 @@ if current_directory not in sys.path:
 import torch
 from torch import nn
 
-from src.core import jit_class, Problem, Algorithm, trace_impl, batched_random
+from src.core import jit_class, Problem, Algorithm, trace_impl, batched_random, Parameter
 from src.workflows import StdWorkflow
 from src.problems.hpo_wrapper import HPOProblemWrapper, HPOFitnessMonitor
 
@@ -30,6 +30,7 @@ if __name__ == "__main__":
         def __init__(self, pop_size: int):
             super().__init__()
             self.pop_size = pop_size
+            self.hp = Parameter(1.0)
 
         def setup(self, lb: torch.Tensor, ub: torch.Tensor):
             assert (
@@ -50,8 +51,9 @@ if __name__ == "__main__":
         def step(self):
             pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-            self.pop.copy_(pop)
-            self.fit.copy_(self.evaluate(pop))
+            pop = pop * self.hp
+            self.pop = pop
+            self.fit = self.evaluate(pop)
 
         @trace_impl(step)
         def trace_step(self):
@@ -59,6 +61,7 @@ if __name__ == "__main__":
                 torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
             )
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
+            pop = pop * self.hp
             self.pop = pop
             self.fit = self.evaluate(pop)
 
@@ -74,4 +77,5 @@ if __name__ == "__main__":
     hpo_prob.setup(workflow)
     params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
     print(params)
+    params["self.algorithm.hp"] = torch.nn.Parameter(torch.rand(7, device="cuda"), requires_grad=False)
     print(hpo_prob.evaluate(params))

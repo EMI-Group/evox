@@ -425,7 +425,7 @@ class _WrapClassBase(ABC):
                 # elif name in self.__jit_module__._buffers:
                 #     del self.__jit_module__._buffers._python_buffers[name]
                 else:
-                    pass # cannot delete JIT module parameters, buffers and attributes
+                    pass  # cannot delete JIT module parameters, buffers and attributes
         else:
             object.__delattr__(self, name)
 
@@ -548,7 +548,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         for k, v in vars.items():
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
         is_empty_state = len(modules_vars) == 0
-        
+
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
@@ -572,11 +572,16 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
             if state is None:
                 state = modules_vars
+            wrap_param_fn = lambda key, val: (
+                nn.Parameter(val, requires_grad=modules_vars[key].requires_grad)
+                if isinstance(modules_vars[key], nn.Parameter)
+                else val
+            )
             for k, v in vars.items():
                 this_state = {
-                    ".".join(key.split(".")[1:]): val
+                    t[1]: wrap_param_fn(key, val)
                     for key, val in state.items()
-                    if key.split(".")[0] == k
+                    if (t := key.split(".", 1))[0] == k
                 }
                 if len(this_state) > 0:
                     v.load_state_dict(this_state)

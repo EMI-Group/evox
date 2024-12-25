@@ -5,6 +5,7 @@ import torch
 from torch import nn
 
 from ..core import Problem, Workflow, Monitor, jit_class, use_state, vmap, jit
+from ..core.module import _WrapClassBase, _WRAPPING_MODULE_NAME
 from .. import utils
 
 
@@ -69,8 +70,32 @@ class HPOFitnessMonitor(HPOMonitor):
 
 @jit_class
 class HPOProblemWrapper(Problem):
-
+    """The problem for hyper parameter optimization (HPO).
+    
+    ## Usage
+    ```
+    algo = SomeAlgorithm(...)
+    algo.setup(...)
+    prob = SomeProblem(...)
+    prob.setup(...)
+    monitor = HPOFitnessMonitor()
+    workflow = StdWorkflow()
+    workflow.setup(algo, prob, monitor=monitor)
+    hpo_prob = HPOProblemWrapper(iterations=..., num_instances=...)
+    hpo_prob.setup(workflow)
+    params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
+    hpo_prob.evaluate(params) # execute the evaluation
+    # ...
+    ```
+    """
+    
     def __init__(self, iterations: int, num_instances: int):
+        """Initialize the HPO problem wrapper.
+
+        Args:
+            iterations (`int`): The number of iterations to be executed in the optimization process.
+            num_instances (`int`): The number of instances to be executed in parallel in the optimization process.
+        """
         super().__init__()
         assert iterations > 0, f"`iterations` should be greater than 0, got {iterations}"
         assert num_instances > 0, f"`num_instances` should be greater than 0, got {num_instances}"
@@ -78,7 +103,14 @@ class HPOProblemWrapper(Problem):
         self.num_instances = num_instances
 
     def setup(self, workflow: Workflow):
-        self.workflow = workflow
+        """
+        Setup the HPO problem wrapper with a workflow.
+
+        Args:
+            workflow (`Workflow`): The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
+        """
+        assert isinstance(workflow, _WrapClassBase), f"Expect `workflow` to be wrapped by `jit_class`, got {type(workflow)}"
+        workflow.__sync__()
         # check monitor
         monitor = workflow.get_submodule("monitor")
         assert isinstance(
@@ -125,6 +157,15 @@ class HPOProblemWrapper(Problem):
         )
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
+        """
+        Evaluate the fitness (given by the internal workflow's monitor) of the batch of hyper parameters by running the internal workflow.
+
+        Args:
+            hyper_parameters (`Dict[str, nn.Parameter]`): The hyper parameters to evaluate.
+
+        Returns:
+            `torch.Tensor`: The final fitness of the hyper parameters.
+        """
         # hyper parameters check
         for k, v in hyper_parameters.items():
             assert (
