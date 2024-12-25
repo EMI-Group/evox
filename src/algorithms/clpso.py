@@ -1,33 +1,65 @@
-import sys
-
-sys.path.append(__file__ + "/../..")
-
 import torch
 from torch import nn
-from core import Algorithm, jit_class, trace_impl, batched_random
 
-
-def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
-    lb = torch.relu(lb - a)
-    ub = torch.relu(a - ub)
-    return a + lb - ub
+from ..utils import clamp
+from ..core import Parameter, Algorithm, jit_class, trace_impl, batched_random
 
 
 @jit_class
 class CLPSO(Algorithm):
+    """The basic Particle Swarm Optimization (CLPSO) algorithm.
+
+    ## Class Methods
+
+    * `__init__`: Initializes the CLPSO algorithm with given parameters (population size, inertia weight, cognitive weight, and social weight).
+    * `setup`: Initializes the CLPSO algorithm with given lower and upper bounds for particle positions, and sets up initial population, velocity, and buffers for tracking best local and global positions and fitness values.
+    * `step`: Performs a single optimization step using Particle Swarm Optimization (CLPSO), updating local best positions and fitness values, and adjusting velocity and positions based on inertia, cognitive, and social components.
+
+    Note that the `evaluate` method is not defined in this class, it is a proxy function of `Problem.evaluate` set by workflow; therefore, it cannot be used in class methods other than `step`.
+    
+    """
     def __init__(self,
         pop_size: int,  # population size
-        inertia_weight: float,  # w
-        const_coefficient: float,  # c
-        learning_probability: torch.Tensor,  # P_c. shape:(pop_size,). It can be different for each particle
+        inertia_weight: float = 0.5,  # w
+        const_coefficient: float = 1.5,  # c
+        learning_probability: float = 0.05,  # P_c. shape:(pop_size,). It can be different for each particle
     ):
+        """
+        Initialize the CLPSO algorithm with the given parameters.
+
+        Args:
+            pop_size (`int`): The size of the population.
+            w (`float`, optional): The inertia weight. Defaults to 0.5.
+            c (`float`, optional): The cognitive weight. Defaults to 1.5.
+            P_c (`float`, optional): The social weight. Defaults to 0.05.
+
+        """
+         
         super().__init__()
         self.pop_size = pop_size
-        self.w = inertia_weight
-        self.c = const_coefficient
-        self.P_c = learning_probability
+        self.w = Parameter(inertia_weight)
+        self.c = Parameter(const_coefficient)
+        self.P_c = Parameter(learning_probability)
 
     def setup(self, lb: torch.Tensor, ub: torch.Tensor):
+        """
+        Initialize the CLPSO algorithm with the given lower and upper bounds.
+
+        This function sets up the initial population and velocity for the
+        particles within the specified bounds. It also initializes buffers
+        for tracking the best local and global positions and fitness values.
+
+        Args:
+            lb (`torch.Tensor`): The lower bounds of the particle positions.
+                            Must be a 1D tensor.
+            ub (`torch.Tensor`): The upper bounds of the particle positions.
+                            Must be a 1D tensor.
+
+        Raises: 
+            `AssertionError`: If the shapes of lb and ub do not match or if
+                            they are not 1D tensors.
+        """
+
         assert lb.shape == ub.shape
         assert lb.ndim == 1 and ub.ndim == 1
         self.dim = lb.shape[0]
@@ -101,7 +133,7 @@ class CLPSO(Algorithm):
 
         # ------------------ Choose personal_best ----------------------
         learning_personal_best = self.personal_best_location[learning_index, :]
-        personal_best = torch.where((rand_possibility < self.P_c)[:, None], learning_personal_best, self.personal_best_location)
+        personal_best = torch.where((rand_possibility < self.P_c[None])[:, None], learning_personal_best, self.personal_best_location)
 
         # ------------------------------------------------------
         velocity = self.w * self.velocity + self.c * random_coefficient * (personal_best - self.population)
@@ -109,48 +141,19 @@ class CLPSO(Algorithm):
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)
 
+    # def init_step(self):
+    #     """Perform the first step of the PSO optimization.
+    #     See `step` for more details.
+    #     """
 
-if __name__ == "__main__":
-    import time
-    from torch.profiler import profile, ProfilerActivity
-    
-    from core import vmap, Problem, use_state, jit
-    from workflows import StdWorkflow
+    #     fitness = self.evaluate(self.population)
+    #     self.local_best_fitness = fitness
+    #     self.local_best_location = self.population
 
-    class Sphere(Problem):
-
-        def __init__(self):
-            super().__init__()
-
-        def evaluate(self, pop: torch.Tensor):
-            return (pop**2).sum(-1)
-
-    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    print(torch.get_default_device())
-    algo = CLPSO(pop_size=100000,inertia_weight=0.5,const_coefficient=2,learning_probability=torch.full((100000,), 0.5))
-    algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
-    prob = Sphere()
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob)
-    workflow.step()
-    workflow.__sync__()
-    with open("tests/a.md", "w") as ff:
-        ff.write(workflow.step.inlined_graph.__str__())
-    state_step = use_state(lambda: workflow.step)
-    state = state_step.init_state()
-    ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
-    jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
-    state = state_step.init_state()
-    with open("tests/b.md", "w") as ff:
-        ff.write(jit_state_step.inlined_graph.__str__())
-    t = time.time()
-    with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-    ) as prof:
-        # for _ in range(1000):
-        #     workflow.step()
-        for _ in range(1000):
-            state = jit_state_step(state)
-    print(prof.key_averages().table())
-    torch.cuda.synchronize()
-    print(time.time() - t)
+    #     rg, _ = self._set_global_and_random(fitness)
+    #     velocity = self.w * self.velocity + self.phi_g * rg * (
+    #         self.global_best_location - self.population
+    #     )
+    #     population = self.population + velocity
+    #     self.population = clamp(population, self.lb, self.ub)
+    #     self.velocity = clamp(velocity, self.lb, self.ub)
