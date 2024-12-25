@@ -153,8 +153,13 @@ python ./unit_test/algorithms/pso_variants/test_pso.py
 python ./unit_test/algorithms/pso_variants/test_sl_pso_gs.py
 python ./unit_test/algorithms/pso_variants/test_sl_pso_us.py
 
-python ./unit_test/core/test_jit_util.py
-python ./unit_test/core/test_module.py
+python ./unit_test/core/test_jit_util.py 
+python ./unit_test/core/test_module.py 
+
+python ./unit_test/problems/test_hpo_wrapper.py 
+
+python ./unit_test/utils/test_parameters_and_vector.py
+python ./unit_test/utils/test_while.py 
 
 python ./unit_test/workflows/test_std_workflow.py
 ```
