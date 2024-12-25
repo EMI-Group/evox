@@ -35,8 +35,8 @@ def switch(label: torch.Tensor, values: List[torch.Tensor]) -> torch.Tensor:
     """
     num_labels = len(values)
     value = values[0]
-    for i in range(num_labels):
-        value = torch.where(label <= i, value, values[i])
+    for i in range(1, num_labels):
+        value = torch.where(label <= i - 1, value, values[i])
     return value
 
 

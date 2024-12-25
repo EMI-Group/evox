@@ -1,6 +1,7 @@
 import inspect
 import warnings
 from functools import wraps
+import typing
 from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
 import torch
