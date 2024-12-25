@@ -51,8 +51,8 @@ class SupervisedLearningProblem(Problem):
             pop_fitness = result / n_inputs
 
         else: # Single evaluation
-            params = pop_params if pop_params.ndim == 1 else pop_params[0]
-            # TODO: params.unfold()
+            flat_params = pop_params if pop_params.ndim == 1 else pop_params[0]
+            params = self.adapter.to_params(flat_params)
             self.model.load_state_dict(params)
 
             result = torch.tensor(0, device=pop_params.device)

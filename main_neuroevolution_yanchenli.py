@@ -60,7 +60,7 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total number of parameters: {total_params}")
 
-    adapter = ParamsAndVector(dummy_module=model)
+    adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
     
     flat_params = adapter.to_vector(model_params)
@@ -72,6 +72,10 @@ if __name__ == "__main__":
 
     model.load_state_dict(restored_params)
     print("2: ", model(x).sum())
+
+    # print("-"*30)
+    # print(restored_params)
+    # print(dict(model.named_parameters()))
     # -----------------------------------------
     import sys; sys.exit(1)
     # -----------------------------------------

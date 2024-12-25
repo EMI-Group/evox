@@ -2,7 +2,7 @@ __all__ = ["switch", "clamp", "clip", "maximum", "minimum", "TracingWhile", "Tra
 
 from .jit_fix_operator import switch, clamp, clip, maximum, minimum
 from .control_flow import TracingWhile, TracingCond, TracingSwitch
-from .module_and_vector import ParamsAndVector
+from .parameters_and_vector import ParamsAndVector
 
 
 ################### NOTICE ###################

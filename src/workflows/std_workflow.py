@@ -3,6 +3,7 @@ from typing import Any, Dict
 import torch
 from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
 from ..core.module import _WrapClassBase
+from ..core.module import _WrapClassBase
 
 
 class _NegModule(torch.nn.Module):
@@ -52,6 +53,24 @@ class StdWorkflow(Workflow):
             "max",
         ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
         self.opt_direction = 1 if opt_direction == "min" else -1
+        if solution_transform is None:
+            solution_transform = torch.nn.Identity()
+        elif isinstance(solution_transform, _WrapClassBase): # ensure correct results for jit_class
+            solution_transform = solution_transform.__inner_module__
+        if fitness_transform is None:
+            fitness_transform = torch.nn.Identity()
+        elif isinstance(fitness_transform, _WrapClassBase): # ensure correct results for jit_class
+            fitness_transform = fitness_transform.__inner_module__
+        if opt_direction == -1:
+            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
+        assert callable(
+            solution_transform
+        ), f"Expect solution transform to be callable, got {solution_transform}"
+        assert callable(
+            fitness_transform
+        ), f"Expect fitness transform to be callable, got {fitness_transform}"
+        self._solution_transform_ = solution_transform
+        self._fitness_transform_ = fitness_transform
 
     def setup(
         self,
