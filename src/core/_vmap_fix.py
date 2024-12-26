@@ -39,10 +39,11 @@ def _transform_in_dim(
     if not isinstance(in_dim, tuple):
         in_dim = (in_dim,)
     shape = original.size()
-    batch_shape = tuple(s for i, s in enumerate(shape) if i in in_dim)
+    batch_dims_shape = tuple(s for i, s in enumerate(shape) if i in in_dim)
     shape = tuple(s for i, s in enumerate(shape) if i not in in_dim)
     batched.size = lambda i=None: shape if i is None else shape[i]
-    return batch_shape if len(batch_shape) > 1 else batch_shape[0]
+    batched.__dict__["shape"] = shape
+    return batch_dims_shape if len(batch_dims_shape) > 1 else batch_dims_shape[0]
 
 
 import torch._functorch.vmap as vmap

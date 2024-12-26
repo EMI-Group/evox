@@ -31,6 +31,36 @@ def Parameter[T](value: T) -> T:
     return nn.Parameter(torch.as_tensor(value), requires_grad=False)
 
 
+def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
+    """Copy parameters and buffers from state_dict into this module and its descendants.
+    
+    This method is used to mimic the behavior of `ModuleBase.load_state_dict` so that a regular `nn.Module` can be used with `vmap`.
+    
+    ## Usage:
+    ```
+    import types
+    # ...
+    model = ... # define your model
+    model.load_state_dict = types.MethodType(assign_load_state_dict, model)
+    vmap_forward = vmap(use_state(model.forward))
+    jit_forward = jit(vmap_forward, trace=True, example_inputs=(vmap_forward.init_state(), ...)) # JIT trace forward pass of the model
+    ```
+    """
+    assert not isinstance(self, ModuleBase), f"Cannot call `assign_load_state_dict` on `ModuleBase`"
+    sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
+    for k, v in state_dict.items():
+        if "." in k:
+            sub_key, sub_mod = ((t := k.split('.', 1))[1], t[0])
+            if sub_mod not in sub_modules:
+                sub_modules[sub_mod] = {}
+            sub_modules[sub_mod][sub_key] = v
+        else:
+            setattr(self, k, v)
+    if len(sub_modules) > 0:
+        for k, v in sub_modules.items():
+            assign_load_state_dict(getattr(self, k), v)
+
+
 class ModuleBase(nn.Module):
     """
     The base module for all algorithms and problems in the library.
@@ -105,9 +135,9 @@ class ModuleBase(nn.Module):
         Overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict).
 
         Args:
-            state_dict (`Mapping[str, torch.Tensor]`): _description_
+            state_dict (`Mapping[str, torch.Tensor]`): A dict containing parameters and buffers used to update this module. See `torch.nn.Module.load_state_dict`.
             copy (`bool`, optional): Use the original `torch.nn.Module.load_state_dict` to copy the `state_dict` to current state (`copy=True`) or use this implementation that assigns the values of this module to the ones in the `state_dict` (`copy=False`). Defaults to False.
-            kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored
+            kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored if `copy=False`.
 
         Returns:
             `NamedTuple | None`: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
@@ -121,8 +151,7 @@ class ModuleBase(nn.Module):
         sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
         for k, v in state_dict.items():
             if "." in k:
-                sub_key = k[k.find(".") + 1 :]
-                sub_mod = k[: k.find(".")]
+                sub_key, sub_mod = ((t := k.split('.', 1))[1], t[0])
                 if sub_mod not in sub_modules:
                     sub_modules[sub_mod] = {}
                 sub_modules[sub_mod][sub_key] = v
@@ -550,7 +579,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             vars = {k: v for k, v in vars.items() if v not in self_v}
             vars["self"] = self_v[0]
         elif hasattr(func, "__self__") and isinstance(func.__self__, nn.Module):
-            vars["self"] = func.__self__.state_dict(prefix="self.", keep_vars=True)
+            vars["self"] = func.__self__
         # get module states
         modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
