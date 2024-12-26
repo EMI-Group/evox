@@ -58,7 +58,7 @@ if __name__ == "__main__":
         transform = torchvision.transforms.ToTensor(),
     )
     train_loader = DataLoader(train_dataset,
-        batch_size = 100,
+        batch_size = 19,
         shuffle    = True,
         collate_fn = None,
     )
@@ -71,17 +71,15 @@ if __name__ == "__main__":
     model_params = dict(model.named_parameters())
     
     prob = SupervisedLearningProblem(
-        model       = model,
-        data_loader = train_loader,
         criterion   = nn.CrossEntropyLoss(),
-        adapter     = adapter,
+        data_loader=train_loader,
     )
+    prob.setup(model=model, adapter=adapter)
     prob.to(device)
-    prob.setup()
 
     center = adapter.to_vector(model_params)
 
-    algo = PSO(pop_size=10000).to(device)
+    algo = PSO(pop_size=11).to(device)
     algo.setup(lb=center - 10, ub=center + 10)
     workflow = StdWorkflow()
     workflow.setup(
@@ -90,7 +88,6 @@ if __name__ == "__main__":
         solution_transform = adapter,
     )
     workflow.step()
-    workflow.__sync__()
 
     # -----------------------------------------
     import sys; sys.exit(1)
