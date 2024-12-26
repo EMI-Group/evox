@@ -39,7 +39,7 @@ class SimpleCNN(nn.Module):
         )
     def forward(self, x):
         x = self.features(x)
-        print(x.shape)
+        # print(x.size())
         x = self.classifier(x)
         return x
     
@@ -47,7 +47,7 @@ class SimpleCNN(nn.Module):
 if __name__ == "__main__":
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    device = "cuda:0"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     data_root = "./data"
     os.makedirs(data_root, exist_ok=True)
 
@@ -70,38 +70,31 @@ if __name__ == "__main__":
     adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
     
-    problem = SupervisedLearningProblem(
+    prob = SupervisedLearningProblem(
         model       = model,
         data_loader = train_loader,
         criterion   = nn.CrossEntropyLoss(),
         adapter     = adapter,
     )
-    problem.to(device)
-    problem.setup()
+    prob.to(device)
+    prob.setup()
 
-    center = adapter.to_vector(model)
+    center = adapter.to_vector(model_params)
+
+    algo = PSO(pop_size=10000).to(device)
+    algo.setup(lb=center - 10, ub=center + 10)
+    workflow = StdWorkflow()
+    workflow.setup(
+        algorithm          = algo, 
+        problem            = prob,
+        solution_transform = adapter,
+    )
+    workflow.step()
+    workflow.__sync__()
 
     # -----------------------------------------
     import sys; sys.exit(1)
     # -----------------------------------------
-
-    class Sphere(Problem):
-        def __init__(self):
-            super().__init__()
-
-        def evaluate(self, pop: torch.Tensor):
-            return (pop**2).sum(-1)
-    prob = Sphere()
-    prob.setup()
-
-    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    print(torch.get_default_device())
-    algo = PSO(pop_size=100000)
-    algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob)
-    workflow.step()
-    workflow.__sync__()
 
     log_root = "./tests"
     os.makedirs(log_root, exist_ok=True)
