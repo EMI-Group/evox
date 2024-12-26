@@ -1,13 +1,14 @@
 import torch
-from operators import UniformSampling, GridSampling
-from core import vmap, Problem, jit_class
+from ..operators import uniform_sampling, grid_sampling
+from ..core import vmap, Problem, jit_class
 
 
 class DTLZTestSuit(Problem):
     """DTLZ Test Suite"""
 
-    def setup(self, d, m, ref_num=1000):
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         """Override the setup method to initialize the parameters"""
+        super().__init__()
         self.d = d
         self.m = m
         self.ref_num = ref_num
@@ -16,9 +17,7 @@ class DTLZTestSuit(Problem):
         )  # Assuming UniformSampling is defined
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        return self
-
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
 
     def pf(self):
@@ -27,21 +26,14 @@ class DTLZTestSuit(Problem):
 
 
 class DTLZ1(DTLZTestSuit):
-    def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__()
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         if m is None:
-            self.m = 3
-        else:
-            self.m = m
+            m = 3
         if d is None:
-            self.d = self.m + 4
-        else:
-            self.d = d
+            d = m + 4
+        super().__init__(d, m, ref_num)
 
-    def setup(self, d=None, m=None, ref_num=1000):
-        super().setup(d, m, ref_num)
-
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
         n, d = X.shape
         g = 100 * (
@@ -74,21 +66,15 @@ class DTLZ1(DTLZTestSuit):
 
 
 class DTLZ2(DTLZTestSuit):
-    def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__()
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         if m is None:
-            self.m = 3
-        else:
-            self.m = m
+            m = 3
         if d is None:
-            self.d = self.m + 9
-        else:
-            self.d = d
+            d = m + 9
+        super().__init__(d, m, ref_num)
 
-    def setup(self, d=None, m=None, ref_num=1000):
-        super().setup(d, m, ref_num)
 
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
         g = torch.sum((X[:, m - 1 :] - 0.5) ** 2, dim=1, keepdim=True)
         f = (
@@ -127,10 +113,10 @@ class DTLZ2(DTLZTestSuit):
 
 
 class DTLZ3(DTLZ2):
-    def __init__(self, d=None, m=None, ref_num=1000):
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         n, d = X.shape
         m = self.m
         g = 100 * (
@@ -174,10 +160,10 @@ class DTLZ3(DTLZ2):
 
 
 class DTLZ4(DTLZ2):
-    def __init__(self, d=None, m=None, ref_num=1000):
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
 
         X[:, : m - 1] = X[:, : m - 1].pow(100)
@@ -215,22 +201,15 @@ class DTLZ4(DTLZ2):
 
 
 class DTLZ5(DTLZTestSuit):
-    def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__()
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+
         if m is None:
-            self.m = 3
-        else:
-            self.m = m
-
+            m = 3
         if d is None:
-            self.d = self.m + 9
-        else:
-            self.d = d
+            d = m + 9
+        super().__init__(d, m, ref_num)
 
-    def setup(self, d=None, m=None, ref_num=1000):
-        super().setup(d, m, ref_num)
-
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
 
         g = torch.sum((X[:, m - 1 :] - 0.5) ** 2, dim=1, keepdim=True)
@@ -307,21 +286,15 @@ class DTLZ5(DTLZTestSuit):
 
 
 class DTLZ6(DTLZTestSuit):
-    def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__()
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+
         if m is None:
-            self.m = 3
-        else:
-            self.m = m
+            m = 3
         if d is None:
-            self.d = self.m + 9
-        else:
-            self.d = d
+            d = m + 9
+        super().__init__(d, m, ref_num)
 
-    def setup(self, d=None, m=None, ref_num=1000):
-        super().setup(d, m, ref_num)
-
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
         g = torch.sum((X[:, m - 1 :] ** 0.1), dim=1, keepdim=True)
         temp = torch.tile(g, (1, m - 2))
@@ -396,22 +369,20 @@ class DTLZ6(DTLZTestSuit):
 
 
 class DTLZ7(DTLZTestSuit):
-    def __init__(self, d=None, m=None, ref_num=1000):
-        super().__init__()
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+
         if m is None:
-            self.m = 3
-        else:
-            self.m = m
+            m = 3
         if d is None:
-            self.d = self.m + 19
-        else:
-            self.d = d
+            d = m + 19
+        super().__init__(d, m, ref_num)
+        self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
 
-    def setup(self, d=None, m=None, ref_num=1000):
-        super().setup(d, m, ref_num)
-        self.sample = GridSampling(self.ref_num * self.m, self.m - 1)
+    # def setup(self, d=None, m=None, ref_num=1000):
+    #     super().setup(d, m, ref_num)
+    #     self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
 
-    def evaluate(self, X):
+    def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         n, d = X.shape
         m = self.m
         f = torch.zeros((n, m), device=X.device)
@@ -468,8 +439,7 @@ if __name__ == "__main__":
     ref_num = 1000
 
     # Create an instance of the DTLZ1 problem
-    problem = DTLZ4(d=d, m=m, ref_num=ref_num)
-    problem.setup(d=d, m=m, ref_num=ref_num)
+    problem = DTLZ1(d=d, m=m, ref_num=ref_num)
 
     # Generate a random population (100 individuals, each with d features)
     # population = torch.rand(100, d)
