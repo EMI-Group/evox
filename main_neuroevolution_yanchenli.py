@@ -12,11 +12,18 @@ from src.algorithms import PSO
 from src.workflows import StdWorkflow
 from src.problems.neuroevolution import SupervisedLearningProblem
 
+class Print(nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        print(x.shape)
+        return x
 
 class SimpleCNN(nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
         self.features = nn.Sequential(
+            Print(),
             nn.Conv2d(1, 3, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -63,23 +70,6 @@ if __name__ == "__main__":
     adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
     
-    flat_params = adapter.to_vector(model_params)
-    restored_params = adapter.to_params(flat_params)
-
-    x = torch.rand(size=(5, 1, 28, 28))
-    model.load_state_dict(model_params)
-    print("1: ", model(x).sum())
-
-    model.load_state_dict(restored_params)
-    print("2: ", model(x).sum())
-
-    # print("-"*30)
-    # print(restored_params)
-    # print(dict(model.named_parameters()))
-    # -----------------------------------------
-    import sys; sys.exit(1)
-    # -----------------------------------------
-
     problem = SupervisedLearningProblem(
         model       = model,
         data_loader = train_loader,
@@ -90,6 +80,10 @@ if __name__ == "__main__":
     problem.setup()
 
     center = adapter.to_vector(model)
+
+    # -----------------------------------------
+    import sys; sys.exit(1)
+    # -----------------------------------------
 
     class Sphere(Problem):
         def __init__(self):

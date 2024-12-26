@@ -158,6 +158,7 @@ python ./unit_test/core/test_module.py
 
 python ./unit_test/problems/test_hpo_wrapper.py 
 
+python ./unit_test/utils/test_jit_fix.py 
 python ./unit_test/utils/test_parameters_and_vector.py
 python ./unit_test/utils/test_while.py 
 
