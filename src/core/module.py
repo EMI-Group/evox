@@ -219,7 +219,8 @@ class ModuleBase(nn.Module):
         if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
         elif hasattr(self, _WRAPPING_MODULE_NAME):
-            object.__getattribute__(self, _WRAPPING_MODULE_NAME).__setattr__(name, value)
+            wrapper = object.__getattribute__(self, _WRAPPING_MODULE_NAME)
+            wrapper.__setattr__(name, value)
         else:
             old_names = set(self.__dict__.keys())
             super().__setattr__(name, value)
@@ -360,6 +361,9 @@ def tracing_or_using_state():
     return torch.jit.is_tracing() or is_using_state()
 
 
+_SUBMODULE_PREFIX = "__submodule_"
+
+
 class _WrapClassBase(ABC):
 
     def __init__(self, inner: ModuleBase):
@@ -412,11 +416,13 @@ class _WrapClassBase(ABC):
         # special treatment for compatibility with `trace_impl` of sub modules
         inner_sub_mod = value.__inner_module__
         self.__inner_module__.__setattr_inner__(name, inner_sub_mod)
-        object.__setattr__(self, name, value)
+        object.__setattr__(self, _SUBMODULE_PREFIX + name, value)
 
     def __delattr__(self, name):
         if name not in ["__inner_module__", "__jit_module__"]:
             self.__inner_module__.__delattr_inner__(name)
+            if name in self.__dict__:
+                object.__delattr__(self, name)
             if self.__jit_module__ is not None:
                 if name in self.__jit_module__._modules:
                     del self.__jit_module__._modules._python_modules[name]
@@ -543,6 +549,8 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
             vars = {k: v for k, v in vars.items() if v not in self_v}
             vars["self"] = self_v[0]
+        elif hasattr(func, "__self__") and isinstance(func.__self__, nn.Module):
+            vars["self"] = func.__self__.state_dict(prefix="self.", keep_vars=True)
         # get module states
         modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
@@ -778,8 +786,8 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             base_mod = self.__inner_module__
 
             # special treatment for compatibility with `trace_impl` of sub modules
-            if tracing_or_using_state() and name in self.__dict__:
-                attr = object.__getattribute__(self, name)
+            if tracing_or_using_state() and (_SUBMODULE_PREFIX + name) in self.__dict__:
+                attr = object.__getattribute__(self, _SUBMODULE_PREFIX + name)
                 if isinstance(attr, _WrapClassBase):
                     return attr
 
@@ -818,7 +826,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                             bounded_target_func = types.MethodType(_vmap_correspond_methods[name], self)
                             _vmap_correspond_methods[name] = bounded_target_func
                         func = bounded_target_func
-                    return func(*args, **kwargs)
+                        return func(*args, **kwargs)
                 # special treatment for compatibility with `trace_impl`
                 if tracing_or_using_state():
                     if not trace and name in _trace_correspond_methods:

@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Any
 
 import torch
 
@@ -107,11 +108,11 @@ class Monitor(ModuleBase, ABC):
         """
         pass
 
-    def pre_eval(self, transformed_candidate_solution: torch.Tensor) -> None:
+    def pre_eval(self, transformed_candidate_solution: Any) -> None:
         """The hook function to be executed after the solution transformation.
 
         Args:
-            transformed_candidate_solution (`torch.Tensor`): The population (candidate solutions) after the solution transformation.
+            transformed_candidate_solution (`torch.Tensor` or any): The population (candidate solutions) after the solution transformation.
         """
         pass
 

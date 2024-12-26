@@ -87,6 +87,21 @@ if __name__ == "__main__":
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
 
+    # stateful workflow
+    state_step = use_state(lambda: workflow.step)
+    print(state_step.init_state())
+    jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
+    jit_step(state_step.init_state())
+    print(jit_step(state_step.init_state()))
+
+    # vmap workflow
+    state_step = use_state(lambda: workflow.step)
+    vmap_state_step = vmap(state_step)
+    state = vmap_state_step.init_state(3)
+    print(state)
+    jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
+    print(jit_state_step(state))
+    
     # classic workflow
     class solution_transform(nn.Module):
         def forward(self, x: torch.Tensor):
@@ -112,18 +127,3 @@ if __name__ == "__main__":
     print(monitor.topk_fitness)
     workflow.step()
     print(monitor.topk_fitness)
-
-    # # stateful workflow
-    # state_step = use_state(lambda: workflow.step, True)
-    # print(state_step.init_state())
-    # jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
-    # jit_step(state_step.init_state())
-    # print(jit_step(state_step.init_state()))
-
-    # # vmap workflow
-    # state_step = use_state(lambda: workflow.step, True)
-    # vmap_state_step = vmap(state_step)
-    # state = vmap_state_step.init_state(3)
-    # print(state)
-    # jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
-    # print(jit_state_step(state))

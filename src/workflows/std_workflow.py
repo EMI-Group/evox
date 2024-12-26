@@ -73,6 +73,8 @@ class StdWorkflow(Workflow):
         ## Notice:
         The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
+        if device is None:
+            device = torch.get_default_device()
         # transform
         if solution_transform is None:
             solution_transform = torch.nn.Identity()

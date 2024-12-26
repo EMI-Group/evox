@@ -11,6 +11,7 @@ from torch import nn
 from src.core import jit_class, Problem, Algorithm, trace_impl, batched_random, Parameter
 from src.workflows import StdWorkflow
 from src.problems.hpo_wrapper import HPOProblemWrapper, HPOFitnessMonitor
+from src.algorithms import PSO
 
 
 if __name__ == "__main__":
@@ -30,7 +31,7 @@ if __name__ == "__main__":
         def __init__(self, pop_size: int):
             super().__init__()
             self.pop_size = pop_size
-            self.hp = Parameter(1.0)
+            self.hp = Parameter([1.0, 2.0])
 
         def setup(self, lb: torch.Tensor, ub: torch.Tensor):
             assert (
@@ -51,9 +52,9 @@ if __name__ == "__main__":
         def step(self):
             pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-            pop = pop * self.hp
-            self.pop = pop
-            self.fit = self.evaluate(pop)
+            pop = pop * self.hp[0]
+            self.pop.copy_(pop)
+            self.fit.copy_(self.evaluate(pop))
 
         @trace_impl(step)
         def trace_step(self):
@@ -61,7 +62,7 @@ if __name__ == "__main__":
                 torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
             )
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-            pop = pop * self.hp
+            pop = pop * self.hp[0]
             self.pop = pop
             self.fit = self.evaluate(pop)
 
@@ -77,5 +78,19 @@ if __name__ == "__main__":
     hpo_prob.setup(workflow)
     params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
     print(params)
-    params["self.algorithm.hp"] = torch.nn.Parameter(torch.rand(7, device="cuda"), requires_grad=False)
+    params["self.algorithm.hp"] = torch.nn.Parameter(torch.rand(7, 2, device="cuda"), requires_grad=False)
     print(hpo_prob.evaluate(params))
+
+    class solution_transform(torch.nn.Module):
+        def forward(self, x: torch.Tensor):
+            return {"self.algorithm.hp": x}
+        
+    pso = PSO(pop_size=7)
+    pso.setup(
+        -10 * torch.ones(2),
+        10 * torch.ones(2),
+    )
+    outer_workflow = StdWorkflow()
+    outer_workflow.setup(pso, hpo_prob, solution_transform=solution_transform())
+    outer_workflow.init_step()
+    print(outer_workflow.algorithm.local_best_fitness)

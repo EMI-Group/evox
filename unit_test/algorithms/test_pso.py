@@ -29,9 +29,7 @@ if __name__ == "__main__":
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
     workflow.init_step()
-    workflow.__sync__()
     workflow.step()
-    workflow.__sync__()
     # with open("tests/a.md", "w") as ff:
     #     ff.write(workflow.step.inlined_graph.__str__())
     state_step = use_state(lambda: workflow.step)
