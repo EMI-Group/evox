@@ -263,6 +263,36 @@ def _batch_randint_like(like_tensor, **kwargs):
     return batched_random_like(_original_randint_like, like_tensor, **kwargs)
 
 
+def _batch_randperm(n, **kwargs):
+    level = current_level()
+    if level is None or level <= 0:
+        return _original_randperm(n, **kwargs)
+    # else
+    global __vmap_batch_sizes__
+    size = tuple(__vmap_batch_sizes__) + (n,)
+    num_levels = len(__vmap_batch_sizes__)
+    rand_values = _original_rand(size, **kwargs)
+    rand_values = torch.argsort(rand_values, dim=-1)
+    rand_values = rand_values.to(**kwargs)
+    batched_rand_values = rand_values
+    for level in range(1, num_levels + 1):
+        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
+    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    return batched_rand_values
+
+
+def _batch_rand_like(like_tensor, **kwargs):
+    return batched_random_like(_original_rand_like, like_tensor, **kwargs)
+
+
+def _batch_randn_like(like_tensor, **kwargs):
+    return batched_random_like(_original_randn_like, like_tensor, **kwargs)
+
+
+def _batch_randint_like(like_tensor, **kwargs):
+    return batched_random_like(_original_randint_like, like_tensor, **kwargs)
+
+
 def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)

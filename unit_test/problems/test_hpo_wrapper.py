@@ -68,7 +68,7 @@ if __name__ == "__main__":
     workflow = StdWorkflow()
     workflow.setup(algo, prob, monitor=monitor)
 
-    hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=workflow, copy_init_state=True)
+    hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=workflow)
     params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
     print(params)
     params["self.algorithm.hp"] = torch.nn.Parameter(
