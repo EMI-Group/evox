@@ -2,11 +2,11 @@ import torch
 from ..utils import clamp, maximum, nanmin, cos_dist
 from ..core import vmap, jit
 
+
 def apd_func(x: torch.Tensor, y: torch.Tensor, z: torch.Tensor, obj: torch.Tensor, theta: torch.Tensor):
     return (1 + obj.shape[1] * theta * torch.index_select(z, 0, torch.relu(x)) / y[None]) * torch.linalg.vector_norm(obj[x, :], dim=1)
- # torch.norm(obj[x, :], p=2, dim=1) #torch.sqrt(torch.sum(obj[x, :] ** 2, dim=1))
 
-# torch.sqrt(torch.matmul(obj * obj, torch.ones(squared.size(1), device=obj.device)))
+
 apd_fn = vmap(apd_func, in_dims=(1, 0, 1, None, None), out_dims=1, trace=False)
 apd_fn = jit(apd_fn, trace=True, lazy=False, example_inputs=(torch.zeros(10000, 6000, dtype=torch.int64, device="cuda"), torch.empty(6000, device="cuda"), torch.empty(10000, 6000, device="cuda"), torch.empty(10000, 3, device="cuda"), torch.tensor(0.5, device="cuda")))
 
@@ -38,17 +38,13 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
     nan_mask = torch.isnan(obj).any(dim=1)
     associate = torch.argmin(angle, dim=1)
     associate = torch.where(nan_mask, torch.tensor(-1, device=f.device), associate)
-    associate = associate[:, None] # (n, nv*)
-    partition = torch.arange(0, n, device=f.device)[:, None] # (n, nv*)
-    I = torch.arange(0, nv, device=f.device)[None, :] # (n*, nv)
+    associate = associate[:, None]
+    partition = torch.arange(0, n, device=f.device)[:, None]
+    I = torch.arange(0, nv, device=f.device)[None, :]
     partition = (associate == I) * partition + (associate != I) * -1
 
     mask = associate != I
     mask_null = mask.sum(dim=0) == n
-    # mask_null = torch.all(mask == 0, dim=0)
-    # mask_null = torch.count_nonzero(mask, dim=0) == 0
-
-    # print(mask_null)
 
     apd = apd_fn(partition, gamma, angle, obj, theta)
     apd = torch.where(mask, float('inf'), apd)
@@ -58,25 +54,3 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
     next_f = torch.where(mask_null.unsqueeze(1), torch.nan, f[next_ind])
 
     return next_x, next_f
-
-
-# Testing the function
-if __name__ == "__main__":
-    # Generate random test data for x, f, v
-    seed = 42
-    torch.manual_seed(seed)
-
-    n, m, nv = 10, 3, 6
-    x = torch.randn(n, 10)  # Random solutions
-    print(x)
-    f = torch.randn(n, m)   # Random objective values
-    f[1] = torch.tensor([float('nan')] * m)
-    print(f)
-    v = torch.randn(nv, m)  # Random reference vectors
-    print(v)
-    theta = 0.5  # Arbitrary theta value
-
-    next_x, next_f = ref_vec_guided(x, f, v, theta)
-
-    print("Next x:", next_x)
-    print("Next f:", next_f)

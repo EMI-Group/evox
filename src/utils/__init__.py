@@ -1,9 +1,30 @@
-__all__ = ["switch", "clamp", "clip", "maximum", "minimum", "TracingWhile", "TracingCond", "TracingSwitch", "ParamsAndVector"]
+__all__ = [
+    "switch",
+    "clamp",
+    "clip",
+    "maximum",
+    "minimum",
+    "TracingWhile",
+    "TracingCond",
+    "TracingSwitch",
+    "ParamsAndVector",
+    "lexsort",
+    "nanmin",
+    "nanmax",
+]
 
-from .jit_fix_operator import switch, clamp, clip, maximum, minimum
+from .jit_fix_operator import (
+    switch,
+    clamp,
+    clip,
+    maximum,
+    minimum,
+    lexsort,
+    nanmin,
+    nanmax,
+)
 from .control_flow import TracingWhile, TracingCond, TracingSwitch
 from .parameters_and_vector import ParamsAndVector
-
 
 ################### NOTICE ###################
 #

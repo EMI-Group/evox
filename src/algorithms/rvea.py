@@ -2,13 +2,11 @@ import torch
 from torch import nn
 from typing import Optional, Callable
 
-from ..core import Algorithm, jit_class, trace_impl, batched_random
+from ..core import Algorithm, jit_class, trace_impl
 from ..operators import simulated_binary, uniform_sampling, polynomial_mutation, ref_vec_guided
-from ..utils import maximum, clamp, nanmin, nanmax, pairwise_euclidean_dist
+from ..utils import clamp, nanmin, nanmax, pairwise_euclidean_dist
+from ..metrics import igd
 
-def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
-    min_dis = pairwise_euclidean_dist(pf, objs).min(dim=1).values
-    return (min_dis.pow(p).sum() / pf.shape[0]).pow(1 / p)
 
 @jit_class
 class RVEA(Algorithm):
@@ -43,7 +41,6 @@ class RVEA(Algorithm):
         # write to self
         self.lb = lb
         self.ub = ub
-        # mutable
 
         if self.selection is None:
             self.selection = ref_vec_guided
@@ -66,7 +63,6 @@ class RVEA(Algorithm):
         self.fit = nn.Buffer(torch.empty((self.pop_size, self.n_objs)).fill_(torch.inf))
         self.reference_vector = nn.Buffer(v)
         self.init_v = nn.Buffer(v0)
-        self.gen = 0
 
     def init_step(self):
         """
@@ -75,6 +71,7 @@ class RVEA(Algorithm):
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
         self.fit = self.evaluate(self.pop)
+        self.gen = 0
 
     def rv_adaptation(self, pop_obj, v0):
         max_vals = nanmax(pop_obj, dim=0)[0]
@@ -92,7 +89,6 @@ class RVEA(Algorithm):
         merge_pop = torch.cat([self.pop, offspring], dim=0)
         merge_fit = torch.cat([self.fit, off_fit], dim=0)
 
-        # print(merge_fit)
         survivor, survivor_fit = self.selection(merge_pop, merge_fit, self.reference_vector, torch.tensor((self.gen / self.max_gen) ** self.alpha, device=merge_fit.device))
 
         nan_mask_survivor = torch.isnan(survivor).any(dim=1)
@@ -105,18 +101,11 @@ class RVEA(Algorithm):
         print(self.gen)
         print(igd(self.fit, self.pf))
 
-
-        # print(merge_pop)
-        # print(merge_fit)
-
-
-
     @trace_impl(step)
     def trace_step(self):
         self.gen += 1
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
-        # pop = self.pop[no_nan_pop]
         mating_pool = torch.randint(0, max_idx, (self.pop_size,))
         torch.nonzero(no_nan_pop)
         pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
@@ -130,44 +119,5 @@ class RVEA(Algorithm):
         self.pop, self.fit = self.selection(merge_pop, merge_fit, self.reference_vector,
                                                 torch.tensor((self.gen / self.max_gen) ** self.alpha, device=merge_fit.device))
 
-        # nan_mask_survivor = torch.isnan(survivor).any(dim=1)
-        # self.pop = survivor[~nan_mask_survivor]
-        # self.fit = survivor_fit[~nan_mask_survivor]
-
         if self.gen % (1 / self.fr) == 0:
             self.reference_vector = self.rv_adaptation(self.fit, self.init_v)
-        # print(self.gen)
-        # print(igd(self.fit, self.pf))
-
-
-if __name__ == "__main__":
-    from core import vmap, Problem, Workflow, use_state, jit
-    import time
-    from torch.profiler import profile, record_function, ProfilerActivity
-    from problems import DTLZ2
-    from workflows import StdWorkflow
-
-    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    print(torch.get_default_device())
-    algo = RVEA(pop_size=100000)
-    algo.setup(lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
-    prob = DTLZ2(m=3)
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob)
-    workflow.step()
-    workflow.__sync__()
-    state_step = use_state(lambda: workflow.step)
-    state = state_step.init_state()
-    jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
-    t = time.time()
-    with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-    ) as prof:
-        workflow.init_step()
-        for i in range(1000):
-            workflow.step()
-        for i in range(100):
-            state = jit_state_step(state)
-    print(prof.key_averages().table())
-    torch.cuda.synchronize()
-    print(time.time() - t)

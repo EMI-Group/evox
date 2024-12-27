@@ -35,90 +35,41 @@ def cos_dist(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
 
 def pairwise_euclidean_dist(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """
+    Compute the pairwise Euclidean distances between two tensors x and y.
+
+    Given two tensors x and y with shapes (N, D) and (M, D), where N is the number
+    of samples and D is the feature dimension, this function computes the Euclidean
+    distance between each pair of samples in x and y. The result is a tensor of shape
+    (N, M), where each element represents the Euclidean distance between a sample
+    from x and a sample from y.
+
+    Args:
+        x (torch.Tensor): A tensor of shape (N, D) representing N samples with D features.
+        y (torch.Tensor): A tensor of shape (M, D) representing M samples with D features.
+
+    Returns:
+        torch.Tensor: A tensor of shape (N, M) where each element (i, j) represents the
+                      Euclidean distance between x[i] and y[j].
+
+    Note:
+        - The function calculates the squared norms of x and y, computes the matrix product
+          of x and y, and then applies the Euclidean distance formula.
+        - The `maximum` function is used to ensure that the computed distances are non-negative
+          due to floating-point errors.
+
+    Example:
+        x = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+        y = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
+        pairwise_euclidean_dist(x, y)
+        tensor([[5.6569, 8.4853],
+                [2.8284, 2.8284]])
+
+    This function calculates the Euclidean distance between every pair of samples from
+    x and y and returns a tensor containing those distances.
+    """
     x_sq = x.pow(2).sum(dim=1, keepdim=True)
     y_sq = y.pow(2).sum(dim=1, keepdim=True)
     dist = x_sq + y_sq.t() - 2.0 * torch.matmul(x, y.t())
     dist = maximum(dist, torch.tensor(0.0, device=dist.device))
     return dist.sqrt()
-
-
-def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
-    """
-    Compute the minimum of a tensor along a specified dimension, ignoring NaN values.
-
-    This function replaces `NaN` values in the input tensor with `infinity` (`float('inf')`),
-    and then computes the minimum over the specified dimension, effectively ignoring `NaN` values.
-
-    Args:
-        input_tensor (`torch.Tensor`): The input tensor, which may contain `NaN` values.
-            It can be of any shape.
-        dim (int, optional): The dimension along which to compute the minimum. Default is `-1`,
-            which corresponds to the last dimension.
-        keepdim (bool, optional): Whether to retain the reduced dimension in the result.
-            Default is `False`. If `True`, the output tensor will have the same number of dimensions
-            as the input, with the size of the reduced dimension set to 1.
-
-    Returns:
-        `torch.return_types.min`: A named tuple with two fields:
-            - `values` (`torch.Tensor`): A tensor containing the minimum values computed along the specified dimension,
-              ignoring `NaN` values.
-            - `indices` (`torch.Tensor`): A tensor containing the indices of the minimum values along the specified dimension.
-
-        The returned tensors `values` and `indices` will have the same shape as the input tensor, except for the dimension(s) over which the operation was performed.
-
-    Example:
-        ```python
-        x = torch.tensor([[1.0, 2.0], [float('nan'), 4.0]])
-        result = nanmin(x, dim=0)
-        print(result.values)  # Output: tensor([1.0, 2.0])
-        print(result.indices)  # Output: tensor([0, 0])
-        ```
-
-    Notes:
-        - `NaN` values are ignored by replacing them with `infinity` before computing the minimum.
-        - If all values along a dimension are `NaN`, the result will be `infinity` for that dimension, and the index will be returned as the first valid index.
-    """
-    mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(mask, torch.tensor(float('inf'), device=input_tensor.device), input_tensor)
-    return input_tensor.min(dim=dim, keepdim=keepdim)
-
-
-def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
-    """
-    Compute the maximum of a tensor along a specified dimension, ignoring NaN values.
-
-    This function replaces `NaN` values in the input tensor with `-infinity` (`float('-inf')`),
-    and then computes the maximum over the specified dimension, effectively ignoring `NaN` values.
-
-    Args:
-        input_tensor (`torch.Tensor`): The input tensor, which may contain `NaN` values.
-            It can be of any shape.
-        dim (int, optional): The dimension along which to compute the maximum. Default is `-1`,
-            which corresponds to the last dimension.
-        keepdim (bool, optional): Whether to retain the reduced dimension in the result.
-            Default is `False`. If `True`, the output tensor will have the same number of dimensions
-            as the input, with the size of the reduced dimension set to 1.
-
-    Returns:
-        `torch.return_types.max`: A named tuple with two fields:
-            - `values` (`torch.Tensor`): A tensor containing the maximum values computed along the specified dimension,
-              ignoring `NaN` values.
-            - `indices` (`torch.Tensor`): A tensor containing the indices of the maximum values along the specified dimension.
-
-        The returned tensors `values` and `indices` will have the same shape as the input tensor, except for the dimension(s) over which the operation was performed.
-
-    Example:
-        ```python
-        x = torch.tensor([[1.0, 2.0], [float('nan'), 4.0]])
-        result = nanmax(x, dim=0)
-        print(result.values)  # Output: tensor([1.0, 4.0])
-        print(result.indices)  # Output: tensor([0, 1])
-        ```
-
-    Notes:
-        - `NaN` values are ignored by replacing them with `-infinity` before computing the maximum.
-        - If all values along a dimension are `NaN`, the result will be `-infinity` for that dimension, and the index will be returned as the first valid index.
-    """
-    mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(mask, torch.tensor(float('-inf'), device=input_tensor.device), input_tensor)
-    return input_tensor.max(dim=dim, keepdim=keepdim)
