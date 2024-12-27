@@ -33,9 +33,9 @@ def Parameter[T](value: T) -> T:
 
 def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
     """Copy parameters and buffers from state_dict into this module and its descendants.
-    
+
     This method is used to mimic the behavior of `ModuleBase.load_state_dict` so that a regular `nn.Module` can be used with `vmap`.
-    
+
     ## Usage:
     ```
     import types
@@ -50,7 +50,7 @@ def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tenso
     sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
     for k, v in state_dict.items():
         if "." in k:
-            sub_key, sub_mod = ((t := k.split('.', 1))[1], t[0])
+            sub_key, sub_mod = ((t := k.split(".", 1))[1], t[0])
             if sub_mod not in sub_modules:
                 sub_modules[sub_mod] = {}
             sub_modules[sub_mod][sub_key] = v
@@ -151,7 +151,7 @@ class ModuleBase(nn.Module):
         sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
         for k, v in state_dict.items():
             if "." in k:
-                sub_key, sub_mod = ((t := k.split('.', 1))[1], t[0])
+                sub_key, sub_mod = ((t := k.split(".", 1))[1], t[0])
                 if sub_mod not in sub_modules:
                     sub_modules[sub_mod] = {}
                 sub_modules[sub_mod][sub_key] = v
@@ -159,7 +159,7 @@ class ModuleBase(nn.Module):
                 self.__setattr_inner__(k, v)
         if len(sub_modules) > 0:
             for k, v in sub_modules.items():
-                getattr(self, k).load_state_dict(v, copy=False)
+                getattr(self, k).load_state_dict(v)
 
     def add_mutable(
         self,
@@ -509,6 +509,9 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
     Returns:
         `Callable`: The transformed pure-functional version of `func`. It contains a `init_state() -> state` attribute that returns the copy of the current state that `func` uses and can be used as example inputs of the additional `state` parameter. It also contains a `set_state(state)` attribute to set the global state to the given one (of course not JIT-compatible).
 
+    ## Notice:
+    Since PyTorch cannot JIT or vectorized-map a function with empty dictionary, list, or tuple as its input, this function transforms the given function to a function WITHOUT the additional `state` parameter (of type `Dict[str, torch.Tensor]`) and does NOT return the altered state additionally.
+
     ## Usage:
     ```
     @jit_class
@@ -584,12 +587,14 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         modules_vars: Dict[str, torch.Tensor] = {}
         for k, v in vars.items():
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
+        # special case for empty state
         is_empty_state = len(modules_vars) == 0
 
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
-                if is_empty_state:
+                # special case for empty state
+                if is_empty_state and (not isinstance(state, dict) or len(state) > 0):
                     ret = func(state, *args, **kwargs)
                     return ret
                 # apply new state dict
