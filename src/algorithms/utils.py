@@ -86,4 +86,4 @@ def select_from_mask(mask: torch.Tensor, s: int) -> torch.Tensor:
     result_mask = torch.zeros_like(mask)
     result_mask[sorted_idx[:s]] = 1
 
-    return result_mask
+    return result_mask.to(dtype=torch.bool)

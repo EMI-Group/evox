@@ -43,7 +43,7 @@ class SLPSOGS(Algorithm):
 
     def setup(self, lb: torch.Tensor, ub: torch.Tensor):
         """
-        Initialize the PSO algorithm with the given lower and upper bounds.
+        Initialize the SLPSOGS algorithm with the given lower and upper bounds.
 
         This function sets up the initial population and velocity for the
         particles within the specified bounds. It also initializes buffers
@@ -103,7 +103,7 @@ class SLPSOGS(Algorithm):
 
     def step(self):
         """
-        Perform a normal optimization step using PSO.
+        Perform a normal optimization step using SLPSOGS.
 
         This function evaluates the fitness of the current population, updates the
         local best positions and fitness values, and adjusts the velocity and
@@ -162,7 +162,7 @@ class SLPSOGS(Algorithm):
         self.global_best_fitness = global_best_fitness
         
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the SLPSOGS optimization.
     #     See `step` for more details.
     #     """
 

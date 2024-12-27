@@ -2,6 +2,8 @@ import torch
 import math
 import numpy as np
 
+from ..utils import clamp
+
 from .utils import (
     row_argsort,
     get_distance_matrix,
@@ -56,46 +58,50 @@ def get_ring_neighbour(population: torch.Tensor, K: int) -> torch.Tensor:
 
     return adjacancy_matrix
 
-def get_square_neighbour(population: torch.Tensor) -> torch.Tensor:
-    """
-    "The square is a graph representing a rectangular lattice that folds like a torus.
-    This structure, albeit artificial, is commonly used to represent neighborhoods in 
-    the Evolutionary Computation and Cellular Automata communities,
-    and is referred to as the von Neumann neighborhood"
+def get_square_neighbour(population: torch.Tensor):
+        """
+        Constructs a square topology for the population, where each individual connects
+        to its upper, lower, left, and right neighbors in a toroidal grid.
 
-    according to PyGMO, reshape N individual into row*col 
-    where number rows and cols are as close as possible.
-    Each connect to the upper, lower, left and right neighbour
-    """
-    N = population.shape[0]
-    device = population.device
+        Args:
+            population (torch.Tensor): Population tensor of shape (N, ...), where N is the number of individuals.
 
-    col = math.floor(math.sqrt(N))
-    while col > 1 and N % col != 0:
-        col -= 1
-    row = N // col
-    
-    if col <= 2:
-        print(
-            f"Population size is {N}, when creating square topology, "
-            f"{row}*{col} may cause strange topo"
-        )
+        Returns:
+            torch.Tensor: Adjacency matrix of shape (N, N) representing the neighborhood connections.
+        """
+        N = population.shape[0]
+        # Calculate the number of columns and rows for the toroidal grid
+        col = int(torch.floor(torch.sqrt(torch.tensor(N, dtype=torch.float32))).item())
+        while col > 1 and N % col != 0:
+            col -= 1
+        row = (N // col)
 
-    np_mat = np.arange(N).reshape((col, row))
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        # Warn if the topology is degenerate (e.g., ring topology)
+        if col <= 2:
+            print(
+                f"Population size is {N}. When creating square topology, number of rows and cols {row}x{col} "
+                f"may cause unusual topology."
+            )
 
-    adj_mat = np.zeros((N, N), dtype=np.int32)
-    for i in range(col):
-        for j in range(row):
-            x = np_mat[i, j]
-            for dx, dy in directions:
-                nx = (i + dx) % col
-                ny = (j + dy) % row
-                y = np_mat[nx, ny]
-                adj_mat[x, y] = 1
+        # Create a 2D grid of indices
+        grid_indices = torch.arange(N).reshape(col, row)
 
-    adjacancy_matrix = torch.from_numpy(adj_mat).to(device=device, dtype=torch.int32)
-    return adjacancy_matrix
+        # Define neighborhood directions (right, down, left, up)
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        # Initialize the adjacency matrix
+        adjacancy_matrix = torch.zeros((N, N), dtype=torch.float32)
+
+        # Iterate over the grid and connect neighbors
+        for i in range(col):
+            for j in range(row):
+                x = grid_indices[i, j]
+                for di, dj in directions:
+                    ni, nj = (i + di) % col, (j + dj) % row
+                    y = grid_indices[ni, nj]
+                    adjacancy_matrix[x, y] = 1
+
+        return adjacancy_matrix
 
 def get_neighbour_best_fitness(
     fitness: torch.Tensor, 
@@ -148,30 +154,51 @@ def build_adjacancy_list_from_matrix(
     keep_self_loop: bool = True
 ):
     """
-    given N*N adjacancy matrix, for every row i, output the outgoing neighbour in length N.
-    fill the rest as its own indice.
-    output the masking at the same time, indicating the mapping.
+    Given N x N adjacency matrix, for every row i, output the outgoing neighbors in length N.
+    Fill the rest as its own index.
+    Output the masking at the same time, indicating the mapping.
+    
+    Args:
+        adjacancy_matrix (torch.Tensor): Input adjacency matrix of shape (N, N).
+        keep_self_loop (bool): Whether to keep self-loops in the adjacency list.
+        
+    Returns:
+        tuple: (adjacancy_list, adjacancy_list_masking)
+            - adjacancy_list (torch.Tensor): Tensor of shape (N, N) with neighbor indices.
+            - adjacancy_list_masking (torch.Tensor): Tensor of shape (N, N) indicating the mapping (1 for valid, 0 for padding).
     """
     N = adjacancy_matrix.shape[0]
 
-    adjacancy_list = []
-    for i in range(N):
-        row = adjacancy_matrix[i]
-        indices = torch.nonzero(row, as_tuple=True)[0]
-        if indices.shape[0] < N:
-            pad_len = N - indices.shape[0]
-            pad_vals = torch.full((pad_len,), i, dtype=indices.dtype, device=indices.device)
-            indices = torch.cat([indices, pad_vals], dim=0)
-        adjacancy_list.append(indices[:N].view(1, -1))
+    # Initialize masking with all ones
+    adjacancy_list_masking = torch.ones((N, N), dtype=torch.float32, device=adjacancy_matrix.device)
 
-    adjacancy_list = torch.cat(adjacancy_list, dim=0)  # shape (N, N)
+    # Get the row indices of non-zero elements for each row
+    adjacancy_list = torch.stack([get_row_indices(adjacancy_matrix[i], N) for i in range(N)])
 
-    adjacancy_list_masking = torch.ones((N, N), dtype=torch.int32, device=adjacancy_matrix.device)
+    # Update masking to indicate valid indices
+    adjacancy_list_masking = torch.where(adjacancy_list == -1, 0, adjacancy_list_masking)
+
+    # Identity matrix for self-loops
+    row_indices = torch.arange(N, dtype=torch.int64, device=adjacancy_matrix.device)
+    identity = row_indices.unsqueeze(0).repeat(N, 1)
+
     if not keep_self_loop:
-        self_mask = (adjacancy_list == torch.arange(N, device=adjacancy_matrix.device).unsqueeze(1))
-        adjacancy_list_masking[self_mask] = 0
+        adjacancy_list_masking = torch.where(
+            adjacancy_list == identity, 0, adjacancy_list_masking
+        )
+
+    # Replace -1 with self-loop indices
+    adjacancy_list = torch.where(adjacancy_list == -1, identity, adjacancy_list)
 
     return adjacancy_list, adjacancy_list_masking
+
+def get_row_indices(row: torch.Tensor, N: int) -> torch.Tensor:
+    nonzero_indices = torch.nonzero(row).flatten()
+    if len(nonzero_indices) < N:
+        # Pad with -1 to maintain consistent length
+        padding = -torch.ones(N - len(nonzero_indices), dtype=torch.int64, device=row.device)
+        return torch.cat([nonzero_indices, padding], dim=0)
+    return nonzero_indices    
 
 def mutate_shortcut(
     adjacancy_matrix: torch.Tensor, 
@@ -190,15 +217,15 @@ def mutate_shortcut(
     rows = torch.arange(N, device=adjacancy_matrix.device).repeat_interleave(N)
     cols = torch.arange(N, device=adjacancy_matrix.device).repeat(N)
 
-    upper_tri_mask = (rows < cols)
-    rows = rows[upper_tri_mask]
-    cols = cols[upper_tri_mask]
+    # upper_tri_mask = (rows < cols)
+    # rows = rows[upper_tri_mask]
+    # cols = cols[upper_tri_mask]
 
     mutate_mask = select_from_mask(flatten, num_shortcut)
 
     row_or_col = torch.randint(
-        low=0, high=2, size=(rows.shape[0],), device = rows.device
-    ).bool()  # True->变 row, False->变 col
+        low=0, high=2, size=(rows.shape[0],), device=rows.device
+    ).to(dtype=torch.bool)
 
     new_nodes = torch.randint(
         low=0, high=N, size=(rows.shape[0],), device=rows.device
@@ -207,13 +234,13 @@ def mutate_shortcut(
     new_rows = torch.where(row_or_col, new_nodes, rows)
     new_cols = torch.where(~row_or_col, new_nodes, cols)
 
-    final_rows = torch.where(mutate_mask.bool(), new_rows, rows)
-    final_cols = torch.where(mutate_mask.bool(), new_cols, cols)
+    final_rows = torch.where(mutate_mask, new_rows, rows)
+    final_cols = torch.where(mutate_mask, new_cols, cols)
 
     mutated = torch.zeros_like(adjacancy_matrix)
     mutated[final_rows, final_cols] = 1
     mutated[final_cols, final_rows] = 1
 
-    mutated = torch.clamp(mutated + diag_matrix, min=0, max=1)
+    mutated = clamp(mutated + diag_matrix, torch.as_tensor(0), torch.as_tensor(1)) # TODO
 
     return mutated

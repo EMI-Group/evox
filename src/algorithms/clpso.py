@@ -82,7 +82,7 @@ class CLPSO(Algorithm):
         self.global_best_location = nn.Buffer(population[0])
         self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
 
-    def _get_params(self, fitness: torch.Tensor):
+    def _set_params(self, fitness: torch.Tensor):
         random_coefficient = torch.rand(self.pop_size, self.dim, device=self.population.device)
         rand1_index = torch.floor(
             torch.rand(self.pop_size, device=self.population.device) * self.pop_size
@@ -96,8 +96,8 @@ class CLPSO(Algorithm):
         # print("rand_possibility.shape0",rand_possibility.shape)
         return random_coefficient, rand1_index, rand2_index, rand_possibility
 
-    @trace_impl(_get_params)
-    def _trace_get_params(self, fitness: torch.Tensor):
+    @trace_impl(_set_params)
+    def _trace_set_params(self, fitness: torch.Tensor):
         random_coefficient = batched_random(torch.rand,self.pop_size, self.dim, device=self.population.device)
         rand1_index = torch.floor(
             batched_random(torch.rand,self.pop_size, device=self.population.device) * self.pop_size
@@ -142,7 +142,7 @@ class CLPSO(Algorithm):
         self.population = clamp(population, self.lb, self.ub)
 
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the CLPSO optimization.
     #     See `step` for more details.
     #     """
 

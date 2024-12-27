@@ -3,6 +3,8 @@ import torch.nn as nn
 
 from ..utils import clamp
 from ..core import Parameter, Algorithm, jit_class, trace_impl, batched_random
+from .utils import get_distance_matrix
+from .topology_utils import get_square_neighbour, get_full_neighbour, build_adjacancy_list_from_matrix
 
 from typing import Literal
 
@@ -99,9 +101,9 @@ class FIPS(Algorithm):
             velocity = velocity * length * 2 - length
 
         if self.topology in ["Square", "USquare"]:
-            adjacancy_matrix = self._get_square_neighbour(population)
+            adjacancy_matrix = get_square_neighbour(population)
         elif self.topology in ["All", "UAll"]:
-            adjacancy_matrix = self._get_full_neighbour(population)
+            adjacancy_matrix = get_full_neighbour(population)
         else:
             raise NotImplementedError()
 
@@ -139,7 +141,7 @@ class FIPS(Algorithm):
 
         adjacancy_matrix = self.adjacancy_matrix
 
-        neighbour_list, neighbour_list_masking = self._build_adjacancy_list_from_matrix(
+        neighbour_list, neighbour_list_masking = build_adjacancy_list_from_matrix(
             adjacancy_matrix=adjacancy_matrix, keep_self_loop=True
         )
 
@@ -176,7 +178,7 @@ class FIPS(Algorithm):
     def _get_PM(
         self, weight_list, adjacancy_list, adjacancy_list_mapping, location
     ):
-        phik = torch.rand((self.pop_size, self.pop_size, self.dim), device=location.device)
+        phik = self._set_random()
         phik = adjacancy_list_mapping[:,:,None] * phik * self.max_phi
         weight_phi = weight_list[:,:,None] * phik
 
@@ -184,6 +186,15 @@ class FIPS(Algorithm):
             [self._calculate_pm(location, weight_phi[i], adjacancy_list[i]) for i in range(self.pop_size)]
         )
         return result
+    
+    def _set_random(self):
+        phik = torch.rand(self.pop_size, self.pop_size, self.dim, device=self.population.device)
+        return phik
+
+    @trace_impl(_set_random)
+    def _trace_set_random(self):
+        phik = batched_random(torch.rand,self.pop_size, self.pop_size, self.dim, device=self.population.device)
+        return phik
     
     def _calculate_pm(self, location: torch.Tensor, row_weight, row_adjacancy_list):
             upper = location[row_adjacancy_list] * row_weight
@@ -204,7 +215,7 @@ class FIPS(Algorithm):
         return weight
 
     def _calculate_weight_by_distance(self, location, adjacancy_list):
-        distance_matrix = self._get_distance_matrix(location)
+        distance_matrix = get_distance_matrix(location)
         distance_list = torch.stack(
             [
                 distance_matrix[i, adjacancy_list[i]]
@@ -212,132 +223,10 @@ class FIPS(Algorithm):
             ]
         )
         return distance_list
-    
-    def _get_distance_matrix(self, location: torch.Tensor) -> torch.Tensor:
-        """
-        Compute the pairwise Euclidean distance matrix for given locations.
-        
-        Args:
-            location (torch.Tensor): A tensor of shape (N, dim), representing the positions of N particles.
-        
-        Returns:
-            torch.Tensor: A tensor of shape (N, N), containing the pairwise distances.
-        """
-        diff = location.unsqueeze(1) - location.unsqueeze(0)  # Shape: (N, N, dim)
-        distance_matrix = torch.sqrt((diff ** 2).sum(-1))  # Compute Euclidean distance
-        return distance_matrix
-    
-    def _build_adjacancy_list_from_matrix(self, adjacancy_matrix, keep_self_loop: bool = True):
-        """
-        Given N x N adjacency matrix, for every row i, output the outgoing neighbors in length N.
-        Fill the rest as its own index.
-        Output the masking at the same time, indicating the mapping.
-        
-        Args:
-            adjacancy_matrix (torch.Tensor): Input adjacency matrix of shape (N, N).
-            keep_self_loop (bool): Whether to keep self-loops in the adjacency list.
-        
-        Returns:
-            tuple: (adjacancy_list, adjacancy_list_masking)
-                - adjacancy_list (torch.Tensor): Tensor of shape (N, N) with neighbor indices.
-                - adjacancy_list_masking (torch.Tensor): Tensor of shape (N, N) indicating the mapping (1 for valid, 0 for padding).
-        """
-        N = adjacancy_matrix.shape[0]
-
-        # Initialize masking with all ones
-        adjacancy_list_masking = torch.ones((N, N), dtype=torch.float32, device=adjacancy_matrix.device)
-
-        # Get the row indices of non-zero elements for each row
-        
-
-        adjacancy_list = torch.stack([self._get_row_indices(adjacancy_matrix[i], N) for i in range(N)])
-
-        # Update masking to indicate valid indices
-        adjacancy_list_masking = torch.where(adjacancy_list == -1, 0, adjacancy_list_masking)
-
-        # Identity matrix for self-loops
-        row_indices = torch.arange(N, dtype=torch.int64, device=adjacancy_matrix.device)
-        identity = row_indices.unsqueeze(0).repeat(N, 1)
-
-        if not keep_self_loop:
-            adjacancy_list_masking = torch.where(
-                adjacancy_list == identity, 0, adjacancy_list_masking
-            )
-
-        # Replace -1 with self-loop indices
-        adjacancy_list = torch.where(adjacancy_list == -1, identity, adjacancy_list)
-
-        return adjacancy_list, adjacancy_list_masking
-    
-    def _get_row_indices(self, row: torch.Tensor, N: int) -> torch.Tensor:
-            nonzero_indices = torch.nonzero(row).flatten()
-            if len(nonzero_indices) < N:
-                # Pad with -1 to maintain consistent length
-                padding = -torch.ones(N - len(nonzero_indices), dtype=torch.int64, device=row.device)
-                return torch.cat([nonzero_indices, padding], dim=0)
-            return nonzero_indices
-
-    def _get_square_neighbour(self, population: torch.Tensor):
-        """
-        Constructs a square topology for the population, where each individual connects
-        to its upper, lower, left, and right neighbors in a toroidal grid.
-
-        Args:
-            population (torch.Tensor): Population tensor of shape (N, ...), where N is the number of individuals.
-
-        Returns:
-            torch.Tensor: Adjacency matrix of shape (N, N) representing the neighborhood connections.
-        """
-        N = population.shape[0]
-        # Calculate the number of columns and rows for the toroidal grid
-        col = int(torch.floor(torch.sqrt(torch.tensor(N, dtype=torch.float32))).item())
-        while col > 1 and N % col != 0:
-            col -= 1
-        row = (N // col)
-
-        # Warn if the topology is degenerate (e.g., ring topology)
-        if col <= 2:
-            print(
-                f"Population size is {N}. When creating square topology, number of rows and cols {row}x{col} "
-                f"may cause unusual topology."
-            )
-
-        # Create a 2D grid of indices
-        grid_indices = torch.arange(N).reshape(col, row)
-
-        # Define neighborhood directions (right, down, left, up)
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-
-        # Initialize the adjacency matrix
-        adj_mat = torch.zeros((N, N), dtype=torch.float32)
-
-        # Iterate over the grid and connect neighbors
-        for i in range(col):
-            for j in range(row):
-                x = grid_indices[i, j]
-                for di, dj in directions:
-                    ni, nj = (i + di) % col, (j + dj) % row
-                    y = grid_indices[ni, nj]
-                    adj_mat[x, y] = 1
-
-        return adj_mat
-
-    def _get_full_neighbour(self, population: torch.Tensor):
-        """
-        Constructs a fully connected adjacency matrix for the population.
-
-        Args:
-            population (torch.Tensor): Population tensor of shape (N, ...), where N is the number of individuals.
-
-        Returns:
-            torch.Tensor: Adjacency matrix of shape (N, N) with all entries set to 1 (except diagonal if necessary).
-        """
-        N = population.shape[0]
-        adjacancy_matrix = torch.ones((N, N), dtype=torch.int32, device=population.device)
-        return adjacancy_matrix
+           
     
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the FIPS optimization.
     #     See `step` for more details.
     #     """
 

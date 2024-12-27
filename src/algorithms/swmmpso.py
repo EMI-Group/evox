@@ -14,7 +14,7 @@ from typing import Literal
 
 @jit_class
 class SWMMPSO(Algorithm):
-    """The basic Particle Swarm Optimization (SWMMPSO) algorithm.
+    """The basic SWMMPSO algorithm.
 
     ## Class Methods
 
@@ -40,7 +40,14 @@ class SWMMPSO(Algorithm):
         Initialize the SWMMPSO algorithm with the given parameters.
 
         Args:
-
+            pop_size (`int`): The size of the population.
+            max_phi_1 (`float`, optional): The maximum phi_1 value. Defaults to 2.05.
+            max_phi_2 (`float`, optional): The maximum phi_2 value. Defaults to 2.05.
+            max_phi (`float`, optional): The maximum phi value. Defaults to 4.1.
+            mean (`float`, optional): The mean of the normal distribution. Defaults to None.
+            stdev (`float`, optional): The standard deviation of the normal distribution. Defaults to None.
+            topology (`str`, optional): The topology of the swarm. Defaults to "Circles".
+            shortcut (`int`, optional): The shortcut value. Defaults to 0.
 
         Raises:
             `ValueError`: If the topology is not one of the allowed options.
@@ -60,7 +67,7 @@ class SWMMPSO(Algorithm):
 
     def setup(self, lb: torch.Tensor, ub: torch.Tensor):
         """
-        Initialize the PSO algorithm with the given lower and upper bounds.
+        Initialize the SWMMPSO algorithm with the given lower and upper bounds.
 
         This function sets up the initial population and velocity for the
         particles within the specified bounds. It also initializes buffers
@@ -107,7 +114,7 @@ class SWMMPSO(Algorithm):
         # the proper coefficient are chi = 2/(phi - 2 + jnp.sqrt(jnp.abs(phi * (phi - 4))))
         chi = 2 / (phi - 2 + torch.sqrt(torch.abs(phi * (phi - 4))))
 
-        adjacancy_matrix = self._get_topo(population=population)
+        adjacancy_matrix = self._get_topo(population)
         # mutable
         self.population = nn.Buffer(population)
         self.velocity = nn.Buffer(velocity)
@@ -121,34 +128,20 @@ class SWMMPSO(Algorithm):
         # self.global_best_location = nn.Buffer(population[0])
         # self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
 
-    # def _set_random(self, fitness: torch.Tensor):
-    #     best_new_index = torch.argmin(fitness)
-    #     best_new_fitness = fitness[best_new_index]
-    #     if best_new_fitness < self.global_best_fitness:
-    #         self.global_best_fitness = best_new_fitness
-    #         self.global_best_location = self.population[best_new_index]
-    #     rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-    #     rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-    #     return rg, rp
+    def _set_random(self):
+        phi1 = torch.rand(self.pop_size, self.dim, device=self.population.device) * self.max_phi_1
+        phi2 = torch.rand(self.pop_size, self.dim, device=self.population.device) * self.max_phi_2
+        return phi1, phi2
 
-    # @trace_impl(_set_random)
-    # def _trace_set_random(self, fitness: torch.Tensor):
-    #     all_fitness = torch.cat([torch.atleast_1d(self.global_best_fitness), fitness])
-    #     all_population = torch.cat([self.global_best_location[None, :], self.population])
-    #     global_best_index = torch.argmin(all_fitness)
-    #     self.global_best_location = all_population[global_best_index]
-    #     self.global_best_fitness = all_fitness[global_best_index]
-    #     rg = batched_random(
-    #         torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
-    #     )
-    #     rp = batched_random(
-    #         torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
-    #     )
-    #     return rg, rp
+    @trace_impl(_set_random)
+    def _trace_set_random(self):
+        phi1 = batched_random(torch.rand, self.pop_size, self.dim, device=self.population.device) * self.max_phi_1
+        phi2 = batched_random(torch.rand, self.pop_size, self.dim, device=self.population.device) * self.max_phi_2
+        return phi1, phi2
 
     def step(self):
         """
-        Perform a normal optimization step using PSO.
+        Perform a normal optimization step using SWMMPSO.
 
         This function evaluates the fitness of the current population, updates the
         local best positions and fitness values, and adjusts the velocity and
@@ -194,6 +187,26 @@ class SWMMPSO(Algorithm):
         population = self.population + velocity
         population = clamp(population, self.lb, self.ub)
 
+    def _get_topo(self, population: torch.Tensor):
+        """
+        Return the adjacency matrix based on the given population and topology.
+
+        Args:
+            population (`torch.Tensor`): The current population of particles.
+
+        Returns:
+            `torch.Tensor`: The adjacency matrix.
+        """
+
+        if self.topology == "Circles":
+            adjacancy_matrix = get_circles_neighbour(
+                population=population, K=2, shortcut=self.shortcut
+            )
+        else:
+            adjacancy_matrix = torch.zeros(population.size(0), population.size(0), device=population.device)
+        return adjacancy_matrix
+    
+    
     # def init_step(self):
     #     """Perform the first step of the PSO optimization.
     #     See `step` for more details.
@@ -210,24 +223,3 @@ class SWMMPSO(Algorithm):
     #     population = self.population + velocity
     #     self.population = clamp(population, self.lb, self.ub)
     #     self.velocity = clamp(velocity, self.lb, self.ub)
-
-    def _get_topo(self, population):
-        """
-        Return the adjacency matrix based on the given population and topology.
-
-        Parameters
-        ----------
-        population : torch.Tensor
-            The population to compute the adjacency matrix from.
-
-        Returns
-        -------
-        adjacancy_matrix : torch.Tensor
-            The computed adjacency matrix.
-        """
-
-        if self.topology == "Circles":
-            adjacancy_matrix = get_circles_neighbour(
-                population=population, K=2, shortcut=self.shortcut
-            )
-        return adjacancy_matrix

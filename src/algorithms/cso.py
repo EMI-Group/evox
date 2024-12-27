@@ -40,15 +40,15 @@ class CSO(Algorithm):
         self.velocity = nn.Buffer(velocity)
 
 
-    def _get_params(self):
+    def _set_params(self):
         shuffle_idx = torch.randperm(self.pop_size, dtype=torch.int32, device=self.population.device)
         lambda1 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
         lambda2 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
         lambda3 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
         return shuffle_idx, lambda1, lambda2, lambda3
 
-    @trace_impl(_get_params)
-    def _trace_get_params(self):
+    @trace_impl(_set_params)
+    def _trace_set_params(self):
         shuffle_idx = batched_random(torch.randperm, self.pop_size, dtype=torch.int32, device=self.population.device)
         lambda1 = batched_random(torch.rand, self.pop_size // 2, self.dim, device=self.population.device)
         lambda2 = batched_random(torch.rand, self.pop_size // 2, self.dim, device=self.population.device)
@@ -90,7 +90,7 @@ class CSO(Algorithm):
         self.velocity = vec
 
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the CSO optimization.
     #     See `step` for more details.
     #     """
 

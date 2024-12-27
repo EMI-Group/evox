@@ -99,28 +99,28 @@ class FSPSO(Algorithm):
         self.global_best_location = nn.Buffer(population[0])
         self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
 
-    def _get_random(self, elite_index: torch.Tensor):
+    def _set_random1(self, elite_index: torch.Tensor):
         rg = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
         rp = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
         tournament1 = torch.randint(0, elite_index.shape[0], (1, self.pop_size - self.pop_size // 2), device=self.population.device)
         tournament2 = torch.randint(0, elite_index.shape[0], (1, self.pop_size - self.pop_size // 2), device=self.population.device)
         return rg, rp, tournament1, tournament2
 
-    @trace_impl(_get_random)
-    def _trace_get_random(self, elite_index: torch.Tensor):
+    @trace_impl(_set_random1)
+    def _trace_set_random1(self, elite_index: torch.Tensor):
         rg = batched_random(torch.rand, self.pop_size // 2, self.dim, device=self.population.device)
         rp = batched_random(torch.rand, self.pop_size // 2, self.dim, device=self.population.device)
         tournament1 = batched_random(torch.randint, 0, elite_index.shape[0], (1, self.pop_size - self.pop_size // 2), device=self.population.device)
         tournament2 = batched_random(torch.randint, 0, elite_index.shape[0], (1, self.pop_size - self.pop_size // 2), device=self.population.device)
         return rg, rp, tournament1, tournament2
     
-    def _get_offset_and_mp(self, unmutated_population: torch.Tensor):
+    def _set_random2(self, unmutated_population: torch.Tensor):
         offset = torch.rand(unmutated_population.shape[0], self.dim, device=unmutated_population.device) * (self.ub - self.lb) * 2 - (self.ub - self.lb)
         mp = torch.rand(unmutated_population.shape[0], self.dim, device=unmutated_population.device)
         return offset, mp
 
-    @trace_impl(_get_random)
-    def _trace_get_offset_and_mp(self, unmutated_population: torch.Tensor):
+    @trace_impl(_set_random2)
+    def _trace_set_random2(self, unmutated_population: torch.Tensor):
         offset = batched_random(torch.rand,unmutated_population.shape[0], self.dim, device=unmutated_population.device) * (self.ub - self.lb) * 2 - (self.ub - self.lb)
         mp = batched_random(torch.rand,unmutated_population.shape[0], self.dim, device=unmutated_population.device)
         return offset, mp
@@ -157,7 +157,7 @@ class FSPSO(Algorithm):
         elite_local_best_location = self.local_best_location[elite_index]
         elite_local_best_fitness = self.local_best_fitness[elite_index]
 
-        rg, rp, tournament1, tournament2 = self._get_random(elite_index)
+        rg, rp, tournament1, tournament2 = self._set_random1(elite_index)
 
         compare = elite_local_best_fitness > elite_fitness
         local_best_location = torch.where(
@@ -191,7 +191,7 @@ class FSPSO(Algorithm):
         unmutated_population = elite_population[mutating_pool.flatten()]
         offspring_velocity = elite_velocity[mutating_pool.flatten()]
 
-        offset, mp = self._get_offset_and_mp(unmutated_population)
+        offset, mp = self._set_random2(unmutated_population)
         mask = mp < self.mutate_rate
         offspring_population = unmutated_population + torch.where(mask, offset, torch.zeros_like(offset))
         offspring_population = clamp(offspring_population, self.lb, self.ub)
@@ -212,7 +212,7 @@ class FSPSO(Algorithm):
         self.global_best_fitness = global_best_fitness
     
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the FSPSO optimization.
     #     See `step` for more details.
     #     """
 

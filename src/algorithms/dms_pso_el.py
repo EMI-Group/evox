@@ -117,26 +117,26 @@ class DMSPSOEL(Algorithm):
         self.global_best_location = nn.Buffer(torch.zeros(self.dim))
         self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
 
-    def _get_rand1(self):
+    def _set_random1(self):
         rand_pbest = torch.rand(self.pop_size, self.dim, device=self.population.device)
         rand_lbest = torch.rand(self.dynamic_sub_swarms_num, self.dynamic_sub_swarm_size, self.dim, device=self.population.device)
         rand_rbest = torch.rand(self.following_sub_swarm_size, self.dim, device=self.population.device)
         return rand_pbest, rand_lbest, rand_rbest
 
-    @trace_impl(_get_rand1)
-    def _trace_get_rand1(self):
+    @trace_impl(_set_random1)
+    def _trace_set_rand1(self):
         rand_pbest = batched_random(torch.rand, self.pop_size, self.dim, device=self.population.device)
         rand_lbest = batched_random(torch.rand, self.dynamic_sub_swarms_num, self.dynamic_sub_swarm_size, self.dim, device=self.population.device)
         rand_rbest = batched_random(torch.rand, self.following_sub_swarm_size, self.dim, device=self.population.device)
         return rand_pbest, rand_lbest, rand_rbest
     
-    def _get_rand2(self):
+    def _set_random2(self):
         rand_pbest = torch.rand(self.pop_size, self.dim, device=self.population.device)
         rand_gbest = torch.rand(self.pop_size, self.dim, device=self.population.device)
         return rand_pbest, rand_gbest
 
-    @trace_impl(_get_rand2)
-    def _trace_get_rand2(self):
+    @trace_impl(_set_random2)
+    def _trace_set_rand2(self):
         rand_pbest = batched_random(torch.rand, self.pop_size, self.dim, device=self.population.device)
         rand_gbest = batched_random(torch.rand, self.pop_size, self.dim, device=self.population.device)
         return rand_pbest, rand_gbest
@@ -325,7 +325,7 @@ class DMSPSOEL(Algorithm):
         self.global_best_fitness = global_best_fitness
 
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
+    #     """Perform the first step of the DMSPSOEL optimization.
     #     See `step` for more details.
     #     """
 
