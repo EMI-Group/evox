@@ -226,19 +226,54 @@ class FIPS(Algorithm):
            
     
     # def init_step(self):
-    #     """Perform the first step of the FIPS optimization.
-    #     See `step` for more details.
+    #     """
+    #     Perform the first step of FIPS.
+
+    #     This function performs a single optimization step using the FIPS algorithm.
+    #     It updates the velocity and position of the particles, and updates the
+    #     best local and global positions and fitness values.
     #     """
 
     #     fitness = self.evaluate(self.population)
-    #     self.local_best_fitness = fitness
-    #     self.local_best_location = self.population
-
-    #     rg, _ = self._set_global_and_random(fitness)
-    #     velocity = self.w * self.velocity + self.phi_g * rg * (
-    #         self.global_best_location - self.population
+    #     compare = self.local_best_fitness > fitness
+    #     local_best_location = torch.where(
+    #         compare[:, None], self.population, self.local_best_location
     #     )
+    #     local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
+
+    #     adjacancy_matrix = self.adjacancy_matrix
+
+    #     neighbour_list, neighbour_list_masking = build_adjacancy_list_from_matrix(
+    #         adjacancy_matrix=adjacancy_matrix, keep_self_loop=True
+    #     )
+
+    #     if self.weight_type == "Constant":
+    #         weight = self._calculate_weight_by_constant(adjacancy_list=neighbour_list)
+    #     elif self.weight_type == "Pbest":
+    #         weight = self._calculate_weight_by_fitness(
+    #             fitness=local_best_fitness, adjacancy_list=neighbour_list
+    #         )
+    #     else:
+    #         weight = self._calculate_weight_by_distance(
+    #             location=local_best_location, adjacancy_list=neighbour_list
+    #         )
+
+    #     calculated_pm = self._get_PM(
+    #         weight_list=weight,
+    #         adjacancy_list=neighbour_list,
+    #         adjacancy_list_mapping=neighbour_list_masking,
+    #         location=local_best_location,
+    #     )
+
+    #     velocity = self.chi * (
+    #         self.velocity + self.phi * (calculated_pm - self.population)
+    #     )
+
     #     population = self.population + velocity
-    #     self.population = clamp(population, self.lb, self.ub)
-    #     self.velocity = clamp(velocity, self.lb, self.ub)
+    #     population = clamp(population, self.lb, self.ub)
+
+    #     self.population = population
+    #     self.velocity = velocity
+    #     self.local_best_location = local_best_location
+    #     self.local_best_fitness = local_best_fitness
     

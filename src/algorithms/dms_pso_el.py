@@ -325,18 +325,20 @@ class DMSPSOEL(Algorithm):
         self.global_best_fitness = global_best_fitness
 
     # def init_step(self):
-    #     """Perform the first step of the DMSPSOEL optimization.
-    #     See `step` for more details.
     #     """
+    #     Perform the first step of the DMSPSOEL algorithm.
 
+    #     This function updates the population, velocity, personal best location,
+    #     and personal best fitness based on the current fitness values. It also
+    #     updates the local and global best positions and fitness values based on
+    #     the dynamic sub-swarm and following sub-swarm. Finally, it updates the
+    #     iteration count. 
+    #     """
+        
     #     fitness = self.evaluate(self.population)
-    #     self.local_best_fitness = fitness
-    #     self.local_best_location = self.population
-
-    #     rg, _ = self._set_global_and_random(fitness)
-    #     velocity = self.w * self.velocity + self.phi_g * rg * (
-    #         self.global_best_location - self.population
-    #     )
-    #     population = self.population + velocity
-    #     self.population = clamp(population, self.lb, self.ub)
-    #     self.velocity = clamp(velocity, self.lb, self.ub)
+    #     fitness = fitness.to(self.population.device)
+    #     if self.iteration < 0.9 * self.max_iteration:
+    #         self._update_strategy_1(fitness)
+    #     else:
+    #         self._update_strategy_2(fitness)
+    #     self.iteration = self.iteration+1

@@ -7,13 +7,13 @@ from ..core import Parameter, Algorithm, jit_class, trace_impl, batched_random
 
 @jit_class
 class CLPSO(Algorithm):
-    """The basic Particle Swarm Optimization (CLPSO) algorithm.
+    """The basic CSO algorithm.
 
     ## Class Methods
 
-    * `__init__`: Initializes the CLPSO algorithm with given parameters (population size, inertia weight, cognitive weight, and social weight).
+    * `__init__`: Initializes the CLPSO algorithm with given parameters.
     * `setup`: Initializes the CLPSO algorithm with given lower and upper bounds for particle positions, and sets up initial population, velocity, and buffers for tracking best local and global positions and fitness values.
-    * `step`: Performs a single optimization step using Particle Swarm Optimization (CLPSO), updating local best positions and fitness values, and adjusting velocity and positions based on inertia, cognitive, and social components.
+    * `step`: Performs a single optimization step using CLPSO, updating local best positions and fitness values, and adjusting velocity and positions based on inertia, cognitive, and social components.
 
     Note that the `evaluate` method is not defined in this class, it is a proxy function of `Problem.evaluate` set by workflow; therefore, it cannot be used in class methods other than `step`.
     
@@ -112,6 +112,24 @@ class CLPSO(Algorithm):
         return random_coefficient, rand1_index, rand2_index, rand_possibility
 
     def step(self):
+        """
+        Perform a single optimization step using CLPSO.
+
+        This function evaluates the fitness of the current population, updates the
+        local best positions and fitness values, and adjusts the velocity and
+        positions of particles based on inertia, cognitive, and social components.
+        It ensures that the updated positions and velocities are clamped within the
+        specified bounds.
+
+        The local best positions and fitness values are updated if the current
+        fitness is better than the recorded local best. The global best position
+        and fitness are determined using helper functions.
+
+        The velocity is updated based on the weighted sum of the previous velocity,
+        the cognitive component (personal best), and the social component (global
+        best). The population positions are then updated using the new velocities.
+        """
+        
         fitness = self.evaluate(self.population)
         random_coefficient, rand1_index, rand2_index, rand_possibility = self._get_params(fitness)
         # rand_possibility = rand_possibility.expand(-1, self.dim)
@@ -142,18 +160,49 @@ class CLPSO(Algorithm):
         self.population = clamp(population, self.lb, self.ub)
 
     # def init_step(self):
-    #     """Perform the first step of the CLPSO optimization.
-    #     See `step` for more details.
     #     """
+    #     Perform the first step of CLPSO.
 
+    #     This function evaluates the fitness of the current population, updates the
+    #     local best positions and fitness values, and adjusts the velocity and
+    #     positions of particles based on inertia, cognitive, and social components.
+    #     It ensures that the updated positions and velocities are clamped within the
+    #     specified bounds.
+
+    #     The local best positions and fitness values are updated if the current
+    #     fitness is better than the recorded local best. The global best position
+    #     and fitness are determined using helper functions.
+
+    #     The velocity is updated based on the weighted sum of the previous velocity,
+    #     the cognitive component (personal best), and the social component (global
+    #     best). The population positions are then updated using the new velocities.
+    #     """
+        
     #     fitness = self.evaluate(self.population)
-    #     self.local_best_fitness = fitness
-    #     self.local_best_location = self.population
-
-    #     rg, _ = self._set_global_and_random(fitness)
-    #     velocity = self.w * self.velocity + self.phi_g * rg * (
-    #         self.global_best_location - self.population
+    #     random_coefficient, rand1_index, rand2_index, rand_possibility = self._get_params(fitness)
+    #     # rand_possibility = rand_possibility.expand(-1, self.dim)
+    #     # print("rand_possibility.shape2",rand_possibility.shape)
+    #     learning_index = torch.where(
+    #         self.personal_best_fitness[rand1_index] < self.personal_best_fitness[rand2_index],
+    #         rand1_index,
+    #         rand2_index,
     #     )
+
+    #     # ----------------- Update personal_best -----------------
+    #     compare = self.personal_best_fitness > fitness
+    #     self.personal_best_location = torch.where(compare[:, None], self.population, self.personal_best_location)
+    #     self.personal_best_fitness = torch.minimum(self.personal_best_fitness, fitness)
+
+    #     # ----------------- Update global_best -----------------
+    #     self.global_best_fitness, global_best_index = torch.min(torch.cat([self.global_best_fitness.unsqueeze(0), fitness]), dim=0)
+    #     self.global_best_location = torch.cat([self.global_best_location.unsqueeze(0), self.population])[global_best_index]
+
+    #     # ------------------ Choose personal_best ----------------------
+    #     learning_personal_best = self.personal_best_location[learning_index, :]
+    #     personal_best = torch.where((rand_possibility < self.P_c[None])[:, None], learning_personal_best, self.personal_best_location)
+
+    #     # ------------------------------------------------------
+    #     velocity = self.w * self.velocity + self.c * random_coefficient * (personal_best - self.population)
+    #     self.velocity = clamp(velocity, self.lb, self.ub)
     #     population = self.population + velocity
     #     self.population = clamp(population, self.lb, self.ub)
-    #     self.velocity = clamp(velocity, self.lb, self.ub)

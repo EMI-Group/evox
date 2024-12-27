@@ -208,18 +208,49 @@ class SWMMPSO(Algorithm):
     
     
     # def init_step(self):
-    #     """Perform the first step of the PSO optimization.
-    #     See `step` for more details.
     #     """
+    #     Perform the first step of SWMMPSO.
 
+    #     This function evaluates the fitness of the current population, updates the
+    #     local best positions and fitness values, and adjusts the velocity and
+    #     positions of particles based on inertia, cognitive, and social components.
+    #     It ensures that the updated positions and velocities are clamped within the
+    #     specified bounds.
+
+    #     The local best positions and fitness values are updated if the current
+    #     fitness is better than the recorded local best. The global best position
+    #     and fitness are determined using helper functions.
+
+    #     The velocity is updated based on the weighted sum of the previous velocity,
+    #     the cognitive component (personal best), and the social component (global
+    #     best). The population positions are then updated using the new velocities.
+    #     """
     #     fitness = self.evaluate(self.population)
-    #     self.local_best_fitness = fitness
-    #     self.local_best_location = self.population
 
-    #     rg, _ = self._set_global_and_random(fitness)
-    #     velocity = self.w * self.velocity + self.phi_g * rg * (
-    #         self.global_best_location - self.population
+    #     # Generate random phi1 and phi2
+    #     phi1 = torch.rand(self.pop_size, self.dim, device=self.population.device) * self.max_phi_1
+    #     phi2 = torch.rand(self.pop_size, self.dim, device=self.population.device) * self.max_phi_2
+
+    #     # Update local best
+    #     compare = self.local_best_fitness > fitness
+    #     local_best_location = torch.where(
+    #         compare[:, None], self.population, self.local_best_location
+    #     )
+    #     local_best_fitness = torch.minimum(self.local_best_fitness, fitness)
+
+    #     # Update adjacency matrix and neighborhood best
+    #     adjacancy_matrix = self.adjacancy_matrix
+    #     neighbour_list, _ = build_adjacancy_list_from_matrix(adjacancy_matrix)
+    #     neighbour_best_fitness, neighbour_best_indice = get_neighbour_best_fitness(
+    #         fitness=local_best_fitness, adjacancy_list=neighbour_list
+    #     )
+    #     neighbour_best_location = local_best_location[neighbour_best_indice, :]
+
+    #     # Update velocity and population
+    #     velocity = self.chi * (
+    #         self.velocity
+    #         + phi1 * (local_best_location - self.population)
+    #         + phi2 * (neighbour_best_location - self.population)
     #     )
     #     population = self.population + velocity
-    #     self.population = clamp(population, self.lb, self.ub)
-    #     self.velocity = clamp(velocity, self.lb, self.ub)
+    #     population = clamp(population, self.lb, self.ub)

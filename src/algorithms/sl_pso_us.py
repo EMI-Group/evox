@@ -161,18 +161,61 @@ class SLPSOUS(Algorithm):
         self.global_best_fitness = global_best_fitness
         
     # def init_step(self):
-    #     """Perform the first step of the SLPSOUS optimization.
-    #     See `step` for more details.
+    #     """
+    #     Perform the first step of SLPSOUS.
+
+    #     This function evaluates the fitness of the current population, updates the
+    #     local best positions and fitness values, and adjusts the velocity and
+    #     positions of particles based on inertia, cognitive, and social components.
+    #     It ensures that the updated positions and velocities are clamped within the
+    #     specified bounds.
+
+    #     The local best positions and fitness values are updated if the current
+    #     fitness is better than the recorded local best. The global best position
+    #     and fitness are determined using helper functions.
+
+    #     The velocity is updated based on the weighted sum of the previous velocity,
+    #     the cognitive component (personal best), and the social component (global
+    #     best). The population positions are then updated using the new velocities.
     #     """
 
     #     fitness = self.evaluate(self.population)
-    #     self.local_best_fitness = fitness
-    #     self.local_best_location = self.population
+        
+    #     global_best_location, global_best_fitness = min_by(
+    #         [self.global_best_location[None, :], self.population],
+    #         [self.global_best_fitness.unsqueeze(0), fitness],
+    #     )
 
-    #     rg, _ = self._set_global_and_random(fitness)
-    #     velocity = self.w * self.velocity + self.phi_g * rg * (
-    #         self.global_best_location - self.population
+    #     # ----------------- Demonstator Choice -----------------
+    #     # sort from largest fitness to smallest fitness (worst to best)
+    #     ranked_population = self.population[torch.argsort(-fitness)]
+    #     # demonstator choice: q to pop_size
+    #     q = clamp(
+    #         self.pop_size
+    #         - torch.ceil(
+    #             self.demonstrator_choice_factor
+    #             * (self.pop_size - (torch.arange(self.pop_size, device=self.population.device) + 1) - 1)
+    #         ),
+    #         torch.as_tensor(1, device=self.population.device),
+    #         torch.as_tensor(self.pop_size, device=self.population.device),
+    #     )
+    #     # uniform distribution (shape: (pop_size,)) means
+    #     # each individual choose a demonstator by uniform distribution in the range of q to pop_size
+    #     r1, r2, r3, uniform_distribution = self._set_random(q)
+    #     index_k = torch.floor(uniform_distribution).long() - 1
+    #     X_k = ranked_population[index_k]
+    #     # ------------------------------------------------------
+
+    #     X_avg = self.population.mean(dim=0)
+    #     velocity = (
+    #         r1 * self.velocity
+    #         + r2 * (X_k - self.population)
+    #         + r3 * self.social_influence_factor * (X_avg - self.population)
     #     )
     #     population = self.population + velocity
-    #     self.population = clamp(population, self.lb, self.ub)
-    #     self.velocity = clamp(velocity, self.lb, self.ub)
+    #     population = clamp(population, self.lb, self.ub)
+
+    #     self.population = population
+    #     self.velocity = velocity
+    #     self.global_best_location = global_best_location
+    #     self.global_best_fitness = global_best_fitness
