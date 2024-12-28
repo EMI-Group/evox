@@ -338,6 +338,7 @@ from contextvars import ContextVar, Token
 from contextlib import contextmanager
 
 _using_state: ContextVar[bool] = ContextVar("using_state", default=False)
+_trace_caching_state: ContextVar[bool] = ContextVar("trace_caching_state", default=False)
 
 
 @contextmanager
@@ -365,6 +366,30 @@ def use_state_context(new_use_state: bool = True):
     finally:
         # Reset the state to its previous value
         _using_state.reset(token)
+        
+@contextmanager
+def trace_caching_state_context(new_trace_caching_state: bool = True):
+    """
+    A context manager to set the value of `trace_caching_state` temporarily.
+
+    When entering the context, the value of `trace_caching_state` is set to `new_trace_caching_state` and a token is obtained.
+    When exiting the context, the value of `trace_caching_state` is reset to its previous value.
+
+    Args:
+        new_trace_caching_state (bool): The new value of `trace_caching_state`. Defaults to True.
+
+    ## Examples:
+    ```
+    >>> with trace_caching_state_context(True):
+    ...     assert is_trace_caching_state()
+    >>> assert not is_trace_caching_state()
+    ```
+    """
+    token: Token = _trace_caching_state.set(new_trace_caching_state)
+    try:
+        yield token
+    finally:
+        _trace_caching_state.reset(token)
 
 
 def is_using_state() -> bool:
@@ -376,18 +401,24 @@ def is_using_state() -> bool:
     """
     return _using_state.get()
 
+def is_trace_caching_state() -> bool:
+    """
+    Get the current state of the `trace_caching_state`.
+
+    Returns:
+        bool: The current state of the `trace_caching_state`.
+    """
+    return _trace_caching_state.get()
+
 
 def tracing_or_using_state():
     """
-    Check if we are currently tracing or in a `UseStateContext`.
-
-    The first condition `torch.jit.is_tracing()` is to check if we are currently compiling a JIT function.
-    The second condition `UseStateContext.is_using_state()` is to check if we are currently in a UseStateContext, which is a special context used to determine whether to use the `state` argument in the transformed `UseStateFunc`.
+    Check if we are currently JIT tracing (inside a `torch.jit.trace`), in a `use_state_context`, or in a `trace_caching_state`.
 
     Returns:
         `bool`: True if either condition is true, False otherwise.
     """
-    return torch.jit.is_tracing() or is_using_state()
+    return torch.jit.is_tracing() or is_using_state() or is_trace_caching_state()
 
 
 _SUBMODULE_PREFIX = "__submodule_"

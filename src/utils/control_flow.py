@@ -7,7 +7,7 @@ from ..core import _vmap_fix
 
 
 @jit_class
-class TracingWhileLoop(ModuleBase):
+class TracingWhile(ModuleBase):
     """A helper class used to trace a while-loop.
 
     ## Usage
@@ -18,7 +18,7 @@ class TracingWhileLoop(ModuleBase):
     def loop_cond(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         return x < 10
 
-    while_loop = TracingWhileLoop(loop_cond, loop_body)
+    while_loop = TracingWhile(loop_cond, loop_body)
     # normal usage
     x = torch.tensor(0, dtype=torch.int)
     y = torch.tensor([2.0, 2.5])
@@ -43,14 +43,14 @@ class TracingWhileLoop(ModuleBase):
         body: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]],
     ):
         """
-        Initialize the `TracingWhileLoop`.
+        Initialize the `TracingWhile`.
 
         Args:
             cond (*torch.Tensor -> torch.Tensor): The condition function. Must be JIT-script compatible.
             body (*torch.Tensor -> *torch.Tensor): The body function. Must be JIT-script compatible.
 
         ## Notice:
-        When using `TracingWhileLoop` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
+        When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         """
         super().__init__()
         self.cond = torch.jit.script(cond)
@@ -65,6 +65,9 @@ class TracingWhileLoop(ModuleBase):
         Executes a while-loop with the given condition and body functions.
 
         When tracing JIT (`core.jit` with `trace=True`), the `trace_loop` function is used instead; when using `core.vmap`, the `vmap_loop` function is used instead.
+
+        ## Notice:
+        During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python while loop directly.
 
         Args:
             *x (`torch.Tensor`): The input tensors / carry for the loop.
@@ -440,3 +443,224 @@ class TracingWhileLoop(ModuleBase):
                 r = _vmap_fix.add_batch_dim(r, dim, level)
             returns.append(r)
         return returns
+
+
+@jit_class
+class TracingCond(ModuleBase):
+    """A helper class used to trace an if-else control flow.
+
+    ## Usage
+    ```
+    def true_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
+        return [x + 1, y ** 1.05]
+
+    def false_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
+        return [x - 1, y ** 0.95]
+
+    if_else = TracingCond(true_fn, false_fn)
+    # normal usage
+    cond = torch.tensor(True, dtype=torch.bool)
+    x = torch.tensor([0, 1], dtype=torch.int)
+    y = torch.tensor([2.0, 2.5])
+    x1, y1 = if_else.cond(cond, x, y)
+    print(x1, y1)
+    # trace a condition
+    trace_cond = jit(use_state(lambda: if_else.cond), trace=True, lazy=False, example_inputs=(cond, x, y))
+    x1, y1 = trace_cond(cond, x, y)
+    print(x1, y1)
+    # vmap a condition
+    cond = torch.tensor([True, False, True], dtype=torch.bool)
+    x = torch.tensor([0, 1, 2], dtype=torch.int)
+    y = torch.tensor([[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]])
+    vmap_cond = jit(vmap(use_state(lambda: if_else.cond)), trace=True, lazy=False, example_inputs=(cond, x, y))
+    x1, y1 = vmap_cond(cond, x, y)
+    print(x1, y1)
+    ```
+    """
+
+    def __init__(
+        self,
+        true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
+        false_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
+    ):
+        """
+        Initialize the `TracingCond`.
+
+        Args:
+            true_fn (`*torch.Tensor -> List[torch.Tensor]`): The true branch function. Must be JIT-script compatible.
+            false_fn (`*torch.Tensor -> List[torch.Tensor]`): The false branch function. Must be JIT-script compatible.
+        """
+        super().__init__()
+        self.true_fn = torch.jit.script(true_fn)
+        self.false_fn = torch.jit.script(false_fn)
+        self._true_fn = true_fn
+        self._false_fn = false_fn
+
+    @torch.jit.ignore
+    def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+        """Runs either the true or false branch based on the given condition.
+
+        When tracing JIT (`core.jit` with `trace=True`), the `trace_cond` function is used instead; when using `core.vmap`, the `vmap_cond` function is used instead.
+
+        ## Notice:
+        During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python if-else directly.
+
+        Args:
+            cond (`torch.Tensor`): A boolean tensor. If `True`, the true branch is run; if `False`, the false branch is run.
+            *x (`*torch.Tensor`): The input tensors to the branch functions.
+
+        Returns:
+            `List[torch.Tensor]`: The output tensors from the chosen branch function.
+        """
+        pass
+        if cond:
+            x = self.true_fn(*x)
+        else:
+            x = self.false_fn(*x)
+        return x
+
+    @trace_impl(cond)
+    def trace_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+        true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]] = self.true_fn
+        false_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]] = self.false_fn
+
+        def _cond1(condition: torch.Tensor, x1: torch.Tensor):
+            if condition:
+                x = true_fn(x1)
+            else:
+                x = false_fn(x1)
+            return x
+
+        def _cond2(condition: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor):
+            if condition:
+                x = true_fn(x1, x2)
+            else:
+                x = false_fn(x1, x2)
+            return x
+
+        def _cond3(condition: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
+            if condition:
+                x = true_fn(x1, x2, x3)
+            else:
+                x = false_fn(x1, x2, x3)
+            return x
+
+        def _cond4(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4)
+            else:
+                x = false_fn(x1, x2, x3, x4)
+            return x
+
+        def _cond5(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4, x5)
+            else:
+                x = false_fn(x1, x2, x3, x4, x5)
+            return x
+
+        def _cond6(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4, x5, x6)
+            else:
+                x = false_fn(x1, x2, x3, x4, x5, x6)
+            return x
+
+        def _cond7(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4, x5, x6, x7)
+            else:
+                x = false_fn(x1, x2, x3, x4, x5, x6, x7)
+            return x
+
+        def _cond8(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+            x8: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4, x5, x6, x7, x8)
+            else:
+                x = false_fn(x1, x2, x3, x4, x5, x6, x7, x8)
+            return x
+
+        def _cond9(
+            condition: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+            x8: torch.Tensor,
+            x9: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            else:
+                x = false_fn(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            return x
+
+        cond_dict = {
+            1: _cond1,
+            2: _cond2,
+            3: _cond3,
+            4: _cond4,
+            5: _cond5,
+            6: _cond6,
+            7: _cond7,
+            8: _cond8,
+            9: _cond9,
+        }
+        assert len(x) <= len(
+            cond_dict
+        ), f"At most {len(cond_dict)} arguments are supported, got {len(x)}"
+        compiled_cond = torch.jit.script(cond_dict[len(x)])
+        return compiled_cond(cond, *x)
+
+    @vmap_impl(cond)
+    def vmap_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+        # cannot dynamic dispatch for vmap, change to torch.where
+        true_res = self._true_fn(*x)
+        false_res = self._false_fn(*x)
+        res = []
+        for t, f in zip(true_res, false_res):
+            res.append(torch.where(cond, t, f))
+        return res

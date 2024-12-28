@@ -1,12 +1,17 @@
 import inspect
 import warnings
 from functools import wraps
-import typing
 from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
 
 import torch
 
-from ..core.module import tracing_or_using_state, UseStateFunc, _USE_STATE_NAME, _STATE_ARG_NAME
+from ..core.module import (
+    tracing_or_using_state,
+    trace_caching_state_context,
+    UseStateFunc,
+    _USE_STATE_NAME,
+    _STATE_ARG_NAME,
+)
 from ..core import _vmap_fix
 
 
@@ -229,7 +234,8 @@ def jit[
             example_inputs = tuple(example_inputs)
         if isinstance(example_inputs, tuple):
             if not no_cache:
-                dummy_ret = func(*example_inputs)
+                with trace_caching_state_context():
+                    dummy_ret = func(*example_inputs)
             jit_func = torch.jit.trace(
                 func,
                 example_inputs,
@@ -239,7 +245,8 @@ def jit[
             )
         else:
             if not no_cache:
-                dummy_ret = func(**example_inputs)
+                with trace_caching_state_context():
+                    dummy_ret = func(**example_inputs)
             jit_func = torch.jit.trace(
                 func,
                 example_kwarg_inputs=example_inputs,
