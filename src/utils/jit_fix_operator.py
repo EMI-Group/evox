@@ -2,24 +2,6 @@ from typing import List
 import torch
 
 
-def cond(condition: torch.Tensor, true_val: torch.Tensor, false_val: torch.Tensor) -> torch.Tensor:
-    """
-    Element-wise conditional operator.
-
-    This function is an alias for `torch.where`.
-
-    Args:
-        condition (`torch.Tensor`): The condition tensor. Must be broadcastable to the shape of rest arguments.
-        true_val (`torch.Tensor`): The tensor to be returned where condition is True.
-        false_val (`torch.Tensor`): The tensor to be returned where condition is False.
-
-    Returns:
-        `torch.Tensor`: The result tensor where each element is taken from either true_val or false_val
-            based on the corresponding element of condition.
-    """
-    return torch.where(condition, true_val, false_val)
-
-
 def switch(label: torch.Tensor, values: List[torch.Tensor]) -> torch.Tensor:
     """
     Element-wise switch select operator that generates a tensor from a list of tensors based on the label tensor.
