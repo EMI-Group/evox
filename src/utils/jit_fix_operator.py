@@ -56,7 +56,11 @@ def clip(a: torch.Tensor) -> torch.Tensor:
     Returns:
         `torch.Tensor`: A tensor where each element is clipped to be within [0, 1].
     """
-    return clamp(a, 0, 1)
+    return clamp(
+        a,
+        torch.zeros((), dtype=a.dtype, device=a.device),
+        torch.ones((), dtype=a.dtype, device=a.device),
+    )
 
 
 def maximum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
