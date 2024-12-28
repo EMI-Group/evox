@@ -1,6 +1,6 @@
-__all__ = ["cond", "switch", "clamp", "clip", "maximum", "minimum", "TracingWhile", "TracingCond"]
+__all__ = ["switch", "clamp", "clip", "maximum", "minimum", "TracingWhile", "TracingCond"]
 
-from .jit_fix_operator import cond, switch, clamp, clip, maximum, minimum
+from .jit_fix_operator import switch, clamp, clip, maximum, minimum
 from .control_flow import TracingWhile, TracingCond
 
 
