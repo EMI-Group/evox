@@ -60,7 +60,7 @@ class StdWorkflow(Workflow):
         fitness_transform: torch.nn.Module | None = None,
         device: str | torch.device | int | None = None,
     ):
-        """Setup the module with submodule initialization.
+        """Setup the module with submodule initialization. Since all of these arguments are mutable modules to be added as submodules, they are placed here instead of `__init__` and thus `setup` MUST be invoked after `__init__`.
 
         Args:
             algorithm (`Algorithm`): The algorithm to be used in the workflow.

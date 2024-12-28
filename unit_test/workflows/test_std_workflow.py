@@ -44,17 +44,15 @@ if __name__ == "__main__":
     @jit_class
     class BasicAlgorithm(Algorithm):
 
-        def __init__(self, pop_size: int):
+        def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
             super().__init__()
-            self.pop_size = pop_size
-
-        def setup(self, lb: torch.Tensor, ub: torch.Tensor):
             assert (
                 lb.ndim == 1 and ub.ndim == 1
             ), f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
             assert (
                 lb.shape == ub.shape
             ), f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
+            self.pop_size = pop_size
             self.lb = lb
             self.ub = ub
             self.dim = lb.shape[0]
@@ -62,7 +60,6 @@ if __name__ == "__main__":
                 torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device)
             )
             self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
-            return self
 
         def step(self):
             pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
@@ -81,8 +78,7 @@ if __name__ == "__main__":
 
     # basic
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    algo = BasicAlgorithm(10)
-    algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
+    algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
@@ -101,7 +97,7 @@ if __name__ == "__main__":
     print(state)
     jit_state_step = jit(vmap_state_step, trace=True, lazy=True)
     print(jit_state_step(state))
-    
+
     # classic workflow
     class solution_transform(nn.Module):
         def forward(self, x: torch.Tensor):

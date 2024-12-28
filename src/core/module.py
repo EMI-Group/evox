@@ -215,7 +215,16 @@ class ModuleBase(nn.Module):
                 self.add_module(name, sub_module)
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
-
+        
+    def to(self, **kwargs) -> "ModuleBase":
+        super().to(**kwargs)
+        for k in self.__static_names__:
+            val = object.__getattribute__(self, k)
+            if isinstance(val, torch.Tensor):
+                val = val.to(**kwargs)
+                self.__setattr_inner__(k, val)
+        return self
+    
     def __getattr__(self, name):
         if name == _WRAPPING_MODULE_NAME:
             return self.__getattr_inner__(name)

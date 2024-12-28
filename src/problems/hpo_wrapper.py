@@ -89,26 +89,20 @@ class HPOProblemWrapper(Problem):
     ```
     """
     
-    def __init__(self, iterations: int, num_instances: int):
+    def __init__(self, iterations: int, num_instances: int, workflow: Workflow):
         """Initialize the HPO problem wrapper.
 
         Args:
             iterations (`int`): The number of iterations to be executed in the optimization process.
             num_instances (`int`): The number of instances to be executed in parallel in the optimization process.
+            workflow (`Workflow`): The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
         """
         super().__init__()
         assert iterations > 0, f"`iterations` should be greater than 0, got {iterations}"
         assert num_instances > 0, f"`num_instances` should be greater than 0, got {num_instances}"
         self.iterations = iterations
         self.num_instances = num_instances
-
-    def setup(self, workflow: Workflow):
-        """
-        Setup the HPO problem wrapper with a workflow.
-
-        Args:
-            workflow (`Workflow`): The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
-        """
+        # compile workflow steps
         assert isinstance(workflow, _WrapClassBase), f"Expect `workflow` to be wrapped by `jit_class`, got {type(workflow)}"
         workflow.__sync__()
         # check monitor
