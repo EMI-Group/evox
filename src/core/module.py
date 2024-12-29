@@ -17,6 +17,9 @@ _WRAPPING_MODULE_NAME = "__wrapping_module__"
 def _if_none(a, b):
     return b if a is None else a
 
+def _is_magic(name: str):
+    return name.startswith("__") and name.endswith("__")
+
 
 def Parameter[T](value: T) -> T:
     """
@@ -225,16 +228,20 @@ class ModuleBase(nn.Module):
                 self.__setattr_inner__(k, val)
         return self
     
-    def __getattr__(self, name):
-        if name == _WRAPPING_MODULE_NAME:
-            return self.__getattr_inner__(name)
-        if not tracing_or_using_state() or not hasattr(self, _WRAPPING_MODULE_NAME):
-            return super().__getattr__(name)
-        return object.__getattribute__(self, _WRAPPING_MODULE_NAME).__getattr__(name)
-
+    def __getattribute__(self, name):
+        if not tracing_or_using_state() or name == _WRAPPING_MODULE_NAME or _is_magic(name):
+            return super(nn.Module, self).__getattribute__(name)
+        self_dict = super(nn.Module, self).__getattribute__("__dict__")
+        if _WRAPPING_MODULE_NAME not in self_dict:
+            return super(nn.Module, self).__getattribute__(name)
+        try:
+            return self_dict.get(_WRAPPING_MODULE_NAME).__getattr__(name)
+        except:
+            return super(nn.Module, self).__getattribute__(name)
+    
     def __getattr_inner__(self, name):
         try:
-            value = object.__getattribute__(self, name)
+            value = super(nn.Module, self).__getattribute__(name)
         except:
             value = super(ModuleBase, self).__getattr__(name)
         return value
@@ -265,9 +272,7 @@ class ModuleBase(nn.Module):
             new_names = set(self.__dict__.keys())
             new_names.difference_update(old_names)
             new_names = list(new_names)
-            if len(new_names) > 0 and not (
-                new_names[0].startswith("__") and new_names[0].endswith("__")
-            ):
+            if len(new_names) > 0 and not _is_magic(new_names[0]):
                 self.__static_names__.append(new_names[0])
 
     def __setattr_inner__(self, name, value):
@@ -829,7 +834,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
         if hasattr(method, _TORCHSCRIPT_MODIFIER):
             if "export" not in getattr(method, _TORCHSCRIPT_MODIFIER):
                 continue
-        elif name.startswith("__") and name.endswith("__"):
+        elif _is_magic(name):
             continue
         if not trace:
             torch.jit.export(method)

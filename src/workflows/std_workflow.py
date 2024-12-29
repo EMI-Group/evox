@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import torch
 from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
 from ..core.module import _WrapClassBase
@@ -59,6 +61,9 @@ class StdWorkflow(Workflow):
         solution_transform: torch.nn.Module | None = None,
         fitness_transform: torch.nn.Module | None = None,
         device: str | torch.device | int | None = None,
+        algorithm_setup_params: Dict[str, Any] | None = None,
+        problem_setup_params: Dict[str, Any] | None = None,
+        monitor_setup_params: Dict[str, Any] | None = None,
     ):
         """Setup the module with submodule initialization. Since all of these arguments are mutable modules to be added as submodules, they are placed here instead of `__init__` and thus `setup` MUST be invoked after `__init__`.
 
@@ -69,6 +74,9 @@ class StdWorkflow(Workflow):
             solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
             fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
             device (`str | torch.device | int | None`, optional): The device of the workflow. Defaults to None.
+            algorithm_setup_params (**kwargs): The arguments to be passed to `algorithm.setup(**kwargs)`. If not provided, the `algorithm.setup()` will not be invoked.
+            problem_setup_params (**kwargs): The arguments to be passed to `problem.setup(**kwargs)`. If not provided, the `problem.setup()` will not be invoked.
+            monitor_setup_params (**kwargs): The arguments to be passed to `monitor.setup(**kwargs)`. If not provided, the `monitor.setup()` will not be invoked.
 
         ## Notice:
         The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
@@ -98,15 +106,21 @@ class StdWorkflow(Workflow):
             fitness_transform.to(device=device)
 
         # algorithm and problem
+        if algorithm_setup_params is not None:
+            algorithm.setup(**algorithm_setup_params)
         algorithm.to(device=device)
+        if problem_setup_params is not None:
+            problem.setup(**problem_setup_params)
         problem.to(device=device)
         self.algorithm = algorithm
         self._has_init_ = type(algorithm).init_step != Algorithm.init_step
-        monitor = (
-            Monitor()
-            if monitor is None
-            else monitor.set_config(opt_direction=self.opt_direction).setup().to(device=device)
-        )
+        if monitor is None:
+            monitor = Monitor()
+        else:
+            monitor.set_config(opt_direction=self.opt_direction)
+            if monitor_setup_params is not None:
+                monitor.setup(**monitor_setup_params)
+            monitor.to(device=device)
 
         # set algorithm evaluate
         self.algorithm.evaluate = self._evaluate
