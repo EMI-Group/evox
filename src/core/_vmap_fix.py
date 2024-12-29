@@ -235,21 +235,28 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
     the size extended with the current vmap batch size.
 
     Args:
-        rand_func (Callable): A function that generates a tensor of random values.
-        *size (Tuple[int | torch.SymInt]): The size arguments to the given function.
+        rand_func (`Callable`): A function that generates a tensor of random values.
+        *size (`Tuple[int | torch.SymInt]`): The size arguments to the given function.
         **kwargs: The keyword arguments to the given function.
 
     Returns:
         torch.Tensor: The batched tensor of random values.
+        
+    ## Usage:
+    ```
+    rand1 = batched_random(torch.rand, 2, 3, device=device)
+    rand2 = batched_random(torch.randn, 4, device=device, dtype=torch.float32)
+    rand3 = batched_random(torch.randint, 5, 6, low=0, high=10, device=device, dtype=torch.float32)
+    ```
     """
     level = current_level()
     if level is None or level <= 0:
-        return rand_func(*size, **kwargs)
+        return rand_func(size=size, **kwargs)
     # else
     global __vmap_batch_sizes__
     size = tuple(__vmap_batch_sizes__) + size
     num_levels = len(__vmap_batch_sizes__)
-    rand_values = rand_func(*size, **kwargs)
+    rand_values = rand_func(size=size, **kwargs)
     batched_rand_values = rand_values
     for level in range(1, num_levels + 1):
         batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
