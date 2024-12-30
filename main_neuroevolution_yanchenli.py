@@ -95,15 +95,15 @@ if __name__ == "__main__":
     
     prob = SupervisedLearningProblem(data_loader=train_loader)
     prob.setup(model=model, criterion=nn.MSELoss(), device=device)
-    prob.to(device)
+    prob.to(device=device)
 
     center = adapter.to_vector(model_params)
 
-    algo = PSO(pop_size=23).to(device)
-    algo.setup(lb=center - 10, ub=center + 10)
+    algo = PSO(pop_size=23, lb=center - 10, ub=center + 10).to(device=device)
+    algo.setup()
     monitor = EvalMonitor(topk=1) # best one
     monitor.setup()
-    monitor.to(device)
+    monitor.to(device=device)
     workflow = StdWorkflow()
     workflow.setup(
         algorithm          = algo, 
@@ -134,37 +134,37 @@ if __name__ == "__main__":
         print(f"Acc: {100 * correct / total} %.")
 
 
-    # -----------------------------------------
-    import sys; sys.exit(1)
-    # -----------------------------------------
+    # # -----------------------------------------
+    # import sys; sys.exit(1)
+    # # -----------------------------------------
 
-    log_root = "./tests"
-    os.makedirs(log_root, exist_ok=True)
+    # log_root = "./tests"
+    # os.makedirs(log_root, exist_ok=True)
 
-    log_file_a = os.path.join(log_root, "a.md")
-    with open(log_file_a, "w") as ff:
-        ff.write(workflow.step.inlined_graph.__str__())
-    print(f"Please see the result log at `{log_file_a}`.")
+    # log_file_a = os.path.join(log_root, "a.md")
+    # with open(log_file_a, "w") as ff:
+    #     ff.write(workflow.step.inlined_graph.__str__())
+    # print(f"Please see the result log at `{log_file_a}`.")
 
-    state_step = use_state(lambda: workflow.step)
-    state = state_step.init_state()
-    ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
-    jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
-    state = state_step.init_state()
+    # state_step = use_state(lambda: workflow.step)
+    # state = state_step.init_state()
+    # ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
+    # jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+    # state = state_step.init_state()
 
-    log_file_b = os.path.join(log_root, "b.md")
-    with open(log_file_b, "w") as ff:
-        ff.write(jit_state_step.inlined_graph.__str__())
-    print(f"Please see the result log at `{log_file_b}`.")
+    # log_file_b = os.path.join(log_root, "b.md")
+    # with open(log_file_b, "w") as ff:
+    #     ff.write(jit_state_step.inlined_graph.__str__())
+    # print(f"Please see the result log at `{log_file_b}`.")
 
-    t = time.time()
-    with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-    ) as prof:
-        # for _ in range(1000):
-        #     workflow.step()
-        for _ in range(1000):
-            state = jit_state_step(state)
-    print(prof.key_averages().table())
-    torch.cuda.synchronize()
-    print(time.time() - t)
+    # t = time.time()
+    # with profile(
+    #     activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
+    # ) as prof:
+    #     # for _ in range(1000):
+    #     #     workflow.step()
+    #     for _ in range(1000):
+    #         state = jit_state_step(state)
+    # print(prof.key_averages().table())
+    # torch.cuda.synchronize()
+    # print(time.time() - t)
