@@ -13,11 +13,7 @@ from src.workflows import StdWorkflow
 from src.algorithms import PSO, RVEA
 from src.problems import DTLZ2
 from src.utils import minimum, maximum, pairwise_euclidean_dist
-
-
-def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
-    min_dis = pairwise_euclidean_dist(pf, objs).min(dim=1).values
-    return (min_dis.pow(p).sum() / pf.shape[0]).pow(1 / p)
+from src.metrics import igd
 
 
 if __name__ == "__main__":
@@ -26,8 +22,8 @@ if __name__ == "__main__":
 
     prob = DTLZ2(m=3)
     pf = prob.pf()
-    algo = RVEA(pop_size=100, n_objs=3, seed=42, pf=pf)
-    algo.setup(lb=-torch.zeros(12), ub=torch.ones(12))
+    algo = RVEA(pop_size=100, n_objs=3, lb=-torch.zeros(12), ub=torch.ones(12), pf=pf)
+    # algo.setup()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
     # workflow.step()
@@ -54,7 +50,7 @@ if __name__ == "__main__":
         for i in range(100):
             workflow.step()
         # state = jit_state_init_step(state)
-        # for i in range(1):
+        # for i in range(100):
         #     state = jit_state_step(state)
             # fit = state["self.algorithm.fit"]
             # fit = fit[~torch.isnan(fit).any(dim=1)]
