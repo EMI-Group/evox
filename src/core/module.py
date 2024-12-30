@@ -219,8 +219,8 @@ class ModuleBase(nn.Module):
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
         
-    def to(self, **kwargs) -> "ModuleBase":
-        super().to(**kwargs)
+    def to(self, *args, **kwargs) -> "ModuleBase":
+        super().to(*args, **kwargs)
         for k in self.__static_names__:
             val = object.__getattribute__(self, k)
             if isinstance(val, torch.Tensor):

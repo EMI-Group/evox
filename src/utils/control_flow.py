@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, Any
 
 import torch
 
@@ -41,23 +41,30 @@ class TracingWhile(ModuleBase):
         self,
         cond: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor],
         body: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]],
+        script_functions: bool = False,
     ):
         """
         Initialize the `TracingWhile`.
 
         Args:
-            cond (*torch.Tensor -> torch.Tensor): The condition function. Must be JIT-script compatible.
-            body (*torch.Tensor -> *torch.Tensor): The body function. Must be JIT-script compatible.
+            cond (`*torch.Tensor -> torch.Tensor`): The condition function. Must be JIT-script compatible if `script_functions=True`.
+            body (`*torch.Tensor -> *torch.Tensor`): The body function. Must be JIT-script compatible if `script_functions=True`.
+            script_functions (`bool`, optional): Whether the `cond` and `body` functions are JIT-script instantly. Defaults to False. When set to True, the basic `loop` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `loop` function shall NOT be used in performance-critical paths.
 
         ## Notice:
         When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         """
         super().__init__()
-        self.cond = torch.jit.script(cond)
-        self.body = torch.jit.script(body)
+        self.cond = torch.jit.script(cond) if script_functions else None
+        self.body = torch.jit.script(body) if script_functions else None
         self._cond = cond
         self._body = body
-        self._cache_compiled_vmap_loop: Dict[Tuple[Tuple[int, ...], int], torch.jit.ScriptFunction] = {}
+        self._cache_compiled_vmap_loop: Dict[
+            Tuple[Tuple[int, ...], int, torch.dtype, torch.device], torch.jit.ScriptFunction
+        ] = {}
+        self._cache_compiled_loop: Dict[
+            Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction
+        ] = {}
 
     @torch.jit.ignore
     def loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
@@ -75,14 +82,21 @@ class TracingWhile(ModuleBase):
         Returns:
             `Tuple[torch.Tensor, ...]`: The resulting tensors / carry after the loop completes.
         """
-        while self.cond(*x):
-            x = self.body(*x)
+        if self.cond is None or self.body is None:
+            while self._cond(*x):
+                x = self._body(*x)
+        else:
+            while self.cond(*x):
+                x = self.body(*x)
         return x
 
-    @trace_impl(loop)
-    def trace_loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
+    @torch.jit.ignore
+    def _compile_loop_fn(self, original_args: Tuple[torch.Tensor, ...]) -> torch.jit.ScriptFunction:
         cond: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor] = self.cond
         body: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]] = self.body
+        if cond is None or body is None:
+            cond = jit(self._cond, trace=True, lazy=False, example_inputs=original_args)
+            body = jit(self._body, trace=True, lazy=False, example_inputs=original_args)
 
         def _loop1(x1: torch.Tensor):
             while cond(x1):
@@ -177,10 +191,20 @@ class TracingWhile(ModuleBase):
             9: _loop9,
         }
 
-        assert len(x) <= len(
+        assert len(original_args) <= len(
             loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(x)}"
-        compiled_loop = torch.jit.script(loops_dict[len(x)])
+        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        compiled_loop = torch.jit.script(loops_dict[len(original_args)])
+        return compiled_loop
+
+    @trace_impl(loop)
+    def trace_loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
+        key = tuple((a.ndim, a.dtype, a.device) for a in x)
+        if key in self._cache_compiled_loop:
+            compiled_loop = self._cache_compiled_loop[key]
+        else:
+            compiled_loop = self._compile_loop_fn(x)
+            self._cache_compiled_loop[key] = compiled_loop
         return compiled_loop(*x)
 
     @torch.jit.ignore
@@ -430,7 +454,7 @@ class TracingWhile(ModuleBase):
             original_args.append(arg)
         original_args = tuple(original_args)
         # compile
-        key = tuple((d, a.ndim) for d, a in zip(vmap_dims, original_args))
+        key = tuple((d, a.ndim, a.dtype, a.device) for d, a in zip(vmap_dims, original_args))
         if key in self._cache_compiled_vmap_loop:
             vmap_loop_compiled = self._cache_compiled_vmap_loop[key]
         else:
@@ -482,19 +506,24 @@ class TracingCond(ModuleBase):
         self,
         true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
         false_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
+        script_functions: bool = False,
     ):
         """
         Initialize the `TracingCond`.
 
         Args:
-            true_fn (`*torch.Tensor -> List[torch.Tensor]`): The true branch function. Must be JIT-script compatible.
-            false_fn (`*torch.Tensor -> List[torch.Tensor]`): The false branch function. Must be JIT-script compatible.
+            true_fn (`*torch.Tensor -> *torch.Tensor`): The true branch function. Must be JIT-script compatible if `script_functions=True`.
+            false_fn (`*torch.Tensor -> *torch.Tensor`): The false branch function. Must be JIT-script compatible if `script_functions=True`.
+            script_functions (`bool`, optional): Whether the `true_fn` and `false_fn` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
         """
         super().__init__()
-        self.true_fn = torch.jit.script(true_fn)
-        self.false_fn = torch.jit.script(false_fn)
+        self.true_fn = torch.jit.script(true_fn) if script_functions else None
+        self.false_fn = torch.jit.script(false_fn) if script_functions else None
         self._true_fn = true_fn
         self._false_fn = false_fn
+        self._cache_compiled_cond: Dict[
+            Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction
+        ] = {}
 
     @torch.jit.ignore
     def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
@@ -512,17 +541,25 @@ class TracingCond(ModuleBase):
         Returns:
             `List[torch.Tensor]`: The output tensors from the chosen branch function.
         """
-        pass
-        if cond:
-            x = self.true_fn(*x)
+        if self.true_fn is None or self.false_fn is None:
+            if cond:
+                x = self._true_fn(*x)
+            else:
+                x = self._false_fn(*x)
         else:
-            x = self.false_fn(*x)
+            if cond:
+                x = self.true_fn(*x)
+            else:
+                x = self.false_fn(*x)
         return x
 
-    @trace_impl(cond)
-    def trace_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+    @torch.jit.ignore
+    def _compile_cond_fn(self, original_args: torch.Tensor):
         true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]] = self.true_fn
         false_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]] = self.false_fn
+        if true_fn is None or false_fn is None:
+            true_fn = jit(self._true_fn, trace=True, lazy=False, example_inputs=original_args)
+            false_fn = jit(self._false_fn, trace=True, lazy=False, example_inputs=original_args)
 
         def _cond1(condition: torch.Tensor, x1: torch.Tensor):
             if condition:
@@ -649,10 +686,20 @@ class TracingCond(ModuleBase):
             8: _cond8,
             9: _cond9,
         }
-        assert len(x) <= len(
+        assert len(original_args) <= len(
             cond_dict
-        ), f"At most {len(cond_dict)} arguments are supported, got {len(x)}"
-        compiled_cond = torch.jit.script(cond_dict[len(x)])
+        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        compiled_cond = torch.jit.script(cond_dict[len(original_args)])
+        return compiled_cond
+
+    @trace_impl(cond)
+    def trace_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+        key = tuple((a.ndim, a.dtype, a.device) for a in (cond,) + x)
+        if key in self._cache_compiled_cond:
+            compiled_cond = self._cache_compiled_cond[key]
+        else:
+            compiled_cond = self._compile_cond_fn(x)
+            self._cache_compiled_cond[key] = compiled_cond
         return compiled_cond(cond, *x)
 
     @vmap_impl(cond)
