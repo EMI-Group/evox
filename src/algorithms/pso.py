@@ -11,8 +11,7 @@ class PSO(Algorithm):
 
     ## Class Methods
 
-    * `__init__`: Initializes the PSO algorithm with given parameters (population size, inertia weight, cognitive weight, and social weight).
-    * `setup`: Initializes the PSO algorithm with given lower and upper bounds for particle positions, and sets up initial population, velocity, and buffers for tracking best local and global positions and fitness values.
+    * `__init__`: Initializes the PSO algorithm with given parameters (population size, lower and upper bounds, inertia weight, cognitive weight, and social weight).
     * `step`: Performs a single optimization step using Particle Swarm Optimization (PSO), updating local best positions and fitness values, and adjusting velocity and positions based on inertia, cognitive, and social components.
 
     Note that the `evaluate` method is not defined in this class, it is a proxy function of `Problem.evaluate` set by workflow; therefore, it cannot be used in class methods other than `step`.
@@ -26,6 +25,7 @@ class PSO(Algorithm):
         w: float = 0.6,
         phi_p: float = 2.5,
         phi_g: float = 0.8,
+        device: torch.device | None = None,
     ):
         """
         Initialize the PSO algorithm with the given parameters.
@@ -37,29 +37,32 @@ class PSO(Algorithm):
             phi_g (`float`, optional): The social weight. Defaults to 0.8.
             lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
             ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
+            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
 
         Raises:
             `AssertionError`: If the shapes of lb and ub do not match or if they are not 1D tensors or of different data types or devices.
         """
 
         super().__init__()
+        if device is None:
+            device = torch.get_default_device()
         self.pop_size = pop_size
         # Here, Parameter is used to indicate that these values are hyper-parameters
         # so that they can be correctly traced and vector-mapped
-        self.w = Parameter(w)
-        self.phi_p = Parameter(phi_p)
-        self.phi_g = Parameter(phi_g)
+        self.w = Parameter(w, device=device)
+        self.phi_p = Parameter(phi_p, device=device)
+        self.phi_g = Parameter(phi_g, device=device)
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
         self.dim = lb.shape[0]
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb[None, :].to(device)
+        ub = ub[None, :].to(device)
         length = ub - lb
-        population = torch.rand(self.pop_size, self.dim)
+        population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
-        velocity = torch.rand(self.pop_size, self.dim)
+        velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # write to self
         self.lb = lb
@@ -68,9 +71,9 @@ class PSO(Algorithm):
         self.population = nn.Buffer(population)
         self.velocity = nn.Buffer(velocity)
         self.local_best_location = nn.Buffer(population)
-        self.local_best_fitness = nn.Buffer(torch.empty(self.pop_size).fill_(torch.inf))
+        self.local_best_fitness = nn.Buffer(torch.empty(self.pop_size, device=device).fill_(torch.inf))
         self.global_best_location = nn.Buffer(population[0])
-        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
+        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
 
     def _set_global(self, fitness: torch.Tensor):
         best_new_index = torch.argmin(fitness)
@@ -112,6 +115,10 @@ class PSO(Algorithm):
         )
         self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
 
+        # During normal workflow, we use `torch.jit.script` by default,
+        # and the function `_set_global(fitness)` is invoked;
+        # however, in the case of `torch.jit.trace` (i.e. `jit(..., trace=True)`),
+        # the function `_trace_set_global(fitness)` is invoked instead.
         self._set_global(fitness)
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
@@ -126,9 +133,9 @@ class PSO(Algorithm):
 
     def init_step(self):
         """Perform the first step of the PSO optimization.
+        
         See `step` for more details.
         """
-
         fitness = self.evaluate(self.population)
         self.local_best_fitness = fitness
         self.local_best_location = self.population

@@ -23,8 +23,7 @@ if __name__ == "__main__":
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.get_default_device())
-    algo = PSO(pop_size=10)
-    algo.setup(lb=-10 * torch.ones(3), ub=10 * torch.ones(3))
+    algo = PSO(pop_size=10, lb=-10 * torch.ones(3), ub=10 * torch.ones(3))
     prob = Sphere()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
@@ -44,8 +43,14 @@ if __name__ == "__main__":
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
     ) as prof:
-        # for _ in range(1000):
-        #     workflow.step()
+        for _ in range(1000):
+            workflow.step()
+    print(prof.key_averages().table())
+    torch.cuda.synchronize()
+    t = time.time()
+    with profile(
+        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
+    ) as prof:
         for _ in range(1000):
             state = jit_state_step(state)
     print(prof.key_averages().table())
