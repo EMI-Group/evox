@@ -33,6 +33,13 @@ class EvalMonitor(Monitor):
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
         self.topk = topk
+        # mutable
+        self.latest_solution = nn.Buffer(torch.empty(0))
+        self.latest_fitness = nn.Buffer(torch.empty(0))
+        self.topk_solutions = nn.Buffer(torch.empty(0))
+        self.topk_fitness = nn.Buffer(torch.empty(0))
+        self.fitness_history: List[torch.Tensor] = [torch.empty(0)]
+        self.solution_history: List[torch.Tensor] = [torch.empty(0)]
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -43,15 +50,6 @@ class EvalMonitor(Monitor):
             self.full_sol_history = config["full_sol_history"]
         if "topk" in config:
             self.topk = config["topk"]
-        return self
-
-    def setup(self):
-        self.latest_solution = nn.Buffer(torch.empty(0))
-        self.latest_fitness = nn.Buffer(torch.empty(0))
-        self.topk_solutions = nn.Buffer(torch.empty(0))
-        self.topk_fitness = nn.Buffer(torch.empty(0))
-        self.fitness_history: List[torch.Tensor] = [torch.empty(0)]
-        self.solution_history: List[torch.Tensor] = [torch.empty(0)]
         return self
 
     def post_ask(self, candidate_solution: torch.Tensor):

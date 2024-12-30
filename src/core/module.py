@@ -21,17 +21,19 @@ def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
 
-def Parameter[T](value: T) -> T:
+def Parameter[T](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
     """
     Wraps a value as parameter with `requires_grad=False`.
 
     Args:
-        value (T): The parameter value.
+        value (`T`): The parameter value.
+        dtype (`torch.dtype`, optional): The dtype of the parameter. Defaults to None.
+        device (`torch.device`, optional): The device of the parameter. Defaults to None.
 
     Returns:
         T: The parameter.
     """
-    return nn.Parameter(torch.as_tensor(value), requires_grad=False)
+    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=False)
 
 
 def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
@@ -71,7 +73,8 @@ class ModuleBase(nn.Module):
     ## Notice
     1. This module is an object-oriented one that can contain mutable values.
     2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
-    3. The module initialization for non-static members should be written in the overwritten method of `setup` rather than `__init__`.
+    3. The module initialization for non-static members are recommended to be written in the overwritten method of `setup` (or any other member method) rather than `__init__`.
+    4. Basically, predefined submodule(s) which will be ADDED to this module and accessed later in member method(s) should be treated as "non-static members", while any other member(s) should be treated as "static members".
 
     ## Usage
     1. Static methods to be JIT shall be defined as is, e.g.,
