@@ -8,7 +8,7 @@ if current_directory not in sys.path:
 import torch
 from torch import nn
 
-from src.core import jit_class, Problem, Algorithm, trace_impl, batched_random, Parameter
+from src.core import jit_class, Problem, Algorithm, trace_impl, Parameter
 from src.workflows import StdWorkflow
 from src.problems.hpo_wrapper import HPOProblemWrapper, HPOFitnessMonitor
 
@@ -54,9 +54,7 @@ if __name__ == "__main__":
 
         @trace_impl(step)
         def trace_step(self):
-            pop = batched_random(
-                torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-            )
+            pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             pop = pop * self.hp[0]
             self.pop = pop
@@ -66,6 +64,7 @@ if __name__ == "__main__":
     algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
     prob = BasicProblem()
     monitor = HPOFitnessMonitor()
+    monitor.setup()
     workflow = StdWorkflow()
     workflow.setup(algo, prob, monitor=monitor)
 

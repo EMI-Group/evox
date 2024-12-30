@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Sequence, Tuple, overload
 
 import torch
 import torch._C._functorch as _functorch
@@ -119,6 +119,91 @@ vmap._create_batched_inputs = _create_batched_inputs
 vmap._unwrap_batched = _unwrap_batched
 
 
+_original_rand = torch.rand
+_original_randn = torch.randn
+_original_randint = torch.randint
+_original_get_item = torch.Tensor.__getitem__
+_original_set_item = torch.Tensor.__setitem__
+
+
+def _batch_rand(*size, **kwargs):
+    return batched_random(_original_rand, *size, **kwargs)
+
+
+def _batch_randn(*size, **kwargs):
+    return batched_random(_original_randn, *size, **kwargs)
+
+
+@overload
+def _batch_randint(low: int, high: int, size, **kwargs) -> torch.Tensor: ...
+
+
+@overload
+def _batch_randint(high: int, size, **kwargs) -> torch.Tensor: ...
+
+
+def _batch_randint(*args, **kwargs):
+    if len(args) == 2:
+        return batched_random(_original_randint, *args[1], low=0, high=args[0], **kwargs)
+    elif len(args) == 3:
+        return batched_random(_original_randint, *args[2], low=args[0], high=args[1], **kwargs)
+    else:
+        raise TypeError(
+            "Expected 2 (high and size) or 3 (low, high, and size) "
+            + f"positional arguments for `torch.randint`, got {len(args)}"
+        )
+
+
+def _batch_getitem(tensor: torch.Tensor, indices):
+    if isinstance(indices, torch.Tensor):
+        if indices.ndim <= 1:
+            tensor = torch.index_select(tensor, 0, indices)
+            if indices.ndim == 0:
+                tensor = tensor.squeeze(0)
+            return tensor
+        else:
+            return _original_get_item(tensor, indices)
+    if isinstance(indices, Sequence):
+        if all(isinstance(i, torch.Tensor) for i in indices):
+            tensor = torch.stack(_batch_getitem(tensor, i) for i in indices)
+            return tensor
+        else:
+            return _original_get_item(tensor, indices)
+    # default
+    return _original_get_item(tensor, indices)
+
+
+def _batch_setitem(tensor: torch.Tensor, indices, value):
+    tensor.index_put_(indices, value)
+
+
+from contextvars import ContextVar, Token
+from contextlib import contextmanager
+
+_batch_fixing: ContextVar[bool] = ContextVar("batch_fixing", default=False)
+
+
+@contextmanager
+def use_batch_fixing(new_batch_fixing: bool = True):
+    # Set the new state and obtain a token
+    token: Token = _batch_fixing.set(new_batch_fixing)
+    torch.rand = _batch_rand if new_batch_fixing else _original_rand
+    torch.randn = _batch_randn if new_batch_fixing else _original_randn
+    torch.randint = _batch_randint if new_batch_fixing else _original_randint
+    torch.Tensor.__getitem__ = _batch_getitem if new_batch_fixing else _original_get_item
+    torch.Tensor.__setitem__ = _batch_setitem if new_batch_fixing else _original_set_item
+    try:
+        yield token
+    finally:
+        # Reset the state to its previous value
+        _batch_fixing.reset(token)
+        torch.rand = _original_rand
+        torch.randn = _original_randn
+        torch.randint = _original_randint
+        torch.Tensor.__getitem__ = _original_get_item
+        torch.Tensor.__setitem__ = _original_set_item
+
+
 def unwrap_batch_tensor(tensor: torch.Tensor):
     level = get_level(tensor)
     batch_dims = []
@@ -132,6 +217,7 @@ def unwrap_batch_tensor(tensor: torch.Tensor):
     batch_dims = tuple(batch_dims[::-1])
     batch_sizes = tuple(batch_sizes[::-1])
     return tensor, batch_dims, batch_sizes
+
 
 def align_vmap_tensor(value: Any, current_value: Any | None):
     """
@@ -241,7 +327,7 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
 
     Returns:
         torch.Tensor: The batched tensor of random values.
-        
+
     ## Usage:
     ```
     rand1 = batched_random(torch.rand, 2, 3, device=device)

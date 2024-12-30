@@ -11,12 +11,11 @@ __all__ = [
     "Problem",
     "Workflow",
     "Monitor",
-    "batched_random",
     "assign_load_state_dict",
 ]
 
 # deal with vmap nesting and JIT
-from ._vmap_fix import batched_random
+from . import _vmap_fix
 
 # export symbols
 from .module import Parameter, ModuleBase, use_state, trace_impl, vmap_impl, jit_class, assign_load_state_dict

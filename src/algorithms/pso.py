@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from ..utils import clamp
-from ..core import Parameter, Algorithm, jit_class, trace_impl, batched_random
+from ..core import Parameter, Algorithm, jit_class, trace_impl
 
 
 @jit_class
@@ -18,7 +18,15 @@ class PSO(Algorithm):
     Note that the `evaluate` method is not defined in this class, it is a proxy function of `Problem.evaluate` set by workflow; therefore, it cannot be used in class methods other than `step`.
     """
 
-    def __init__(self, pop_size: int, w: float = 0.6, phi_p: float = 2.5, phi_g: float = 0.8):
+    def __init__(
+        self,
+        pop_size: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        w: float = 0.6,
+        phi_p: float = 2.5,
+        phi_g: float = 0.8,
+    ):
         """
         Initialize the PSO algorithm with the given parameters.
 
@@ -27,6 +35,11 @@ class PSO(Algorithm):
             w (`float`, optional): The inertia weight. Defaults to 0.6.
             phi_p (`float`, optional): The cognitive weight. Defaults to 2.5.
             phi_g (`float`, optional): The social weight. Defaults to 0.8.
+            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
+            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
+
+        Raises:
+            `AssertionError`: If the shapes of lb and ub do not match or if they are not 1D tensors or of different data types or devices.
         """
 
         super().__init__()
@@ -36,27 +49,9 @@ class PSO(Algorithm):
         self.w = Parameter(w)
         self.phi_p = Parameter(phi_p)
         self.phi_g = Parameter(phi_g)
-
-    def setup(self, lb: torch.Tensor, ub: torch.Tensor):
-        """
-        Initialize the PSO algorithm with the given lower and upper bounds.
-
-        This function sets up the initial population and velocity for the
-        particles within the specified bounds. It also initializes buffers
-        for tracking the best local and global positions and fitness values.
-
-        Args:
-            lb (`torch.Tensor`): The lower bounds of the particle positions.
-                            Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions.
-                            Must be a 1D tensor.
-
-        Raises:
-            `AssertionError`: If the shapes of lb and ub do not match or if
-                            they are not 1D tensors.
-        """
-        assert lb.shape == ub.shape
-        assert lb.ndim == 1 and ub.ndim == 1
+        # check
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
+        assert lb.dtype == ub.dtype and lb.device == ub.device
         self.dim = lb.shape[0]
         # setup
         lb = lb[None, :]
@@ -77,30 +72,20 @@ class PSO(Algorithm):
         self.global_best_location = nn.Buffer(population[0])
         self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf))
 
-    def _set_global_and_random(self, fitness: torch.Tensor):
+    def _set_global(self, fitness: torch.Tensor):
         best_new_index = torch.argmin(fitness)
         best_new_fitness = fitness[best_new_index]
         if best_new_fitness < self.global_best_fitness:
             self.global_best_fitness = best_new_fitness
             self.global_best_location = self.population[best_new_index]
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        return rg, rp
 
-    @trace_impl(_set_global_and_random)
-    def _trace_set_global_and_random(self, fitness: torch.Tensor):
+    @trace_impl(_set_global)
+    def _trace_set_global(self, fitness: torch.Tensor):
         all_fitness = torch.cat([self.global_best_fitness.unsqueeze(0), fitness])
         all_population = torch.cat([self.global_best_location[None, :], self.population])
         global_best_index = torch.argmin(all_fitness)
         self.global_best_location = all_population[global_best_index]
         self.global_best_fitness = all_fitness[global_best_index]
-        rg = batched_random(
-            torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
-        )
-        rp = batched_random(
-            torch.rand, fitness.shape[0], self.dim, dtype=fitness.dtype, device=fitness.device
-        )
-        return rg, rp
 
     def step(self):
         """
@@ -120,7 +105,6 @@ class PSO(Algorithm):
         the cognitive component (personal best), and the social component (global
         best). The population positions are then updated using the new velocities.
         """
-
         fitness = self.evaluate(self.population)
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
@@ -128,7 +112,9 @@ class PSO(Algorithm):
         )
         self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
 
-        rg, rp = self._set_global_and_random(fitness)
+        self._set_global(fitness)
+        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         velocity = (
             self.w * self.velocity
             + self.phi_p * rp * (self.local_best_location - self.population)
@@ -147,7 +133,8 @@ class PSO(Algorithm):
         self.local_best_fitness = fitness
         self.local_best_location = self.population
 
-        rg, _ = self._set_global_and_random(fitness)
+        self._set_global(fitness)
+        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         velocity = self.w * self.velocity + self.phi_g * rg * (
             self.global_best_location - self.population
         )

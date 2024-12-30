@@ -11,7 +11,6 @@ if current_directory not in sys.path:
 from src.core import (
     vmap,
     trace_impl,
-    batched_random,
     use_state,
     jit,
     jit_class,
@@ -69,9 +68,7 @@ if __name__ == "__main__":
 
         @trace_impl(step)
         def trace_step(self):
-            pop = batched_random(
-                torch.rand, self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-            )
+            pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
             pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
             self.pop = pop
             self.fit = self.evaluate(pop)
@@ -108,6 +105,7 @@ if __name__ == "__main__":
             return -f
 
     monitor = EvalMonitor(full_sol_history=True)
+    monitor = monitor.setup()
     workflow = StdWorkflow()
     workflow.setup(
         algo,

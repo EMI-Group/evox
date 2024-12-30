@@ -232,28 +232,29 @@ def jit[
         assert example_inputs is not None
         if isinstance(example_inputs, list):
             example_inputs = tuple(example_inputs)
-        if isinstance(example_inputs, tuple):
-            if not no_cache:
-                with trace_caching_state_context():
-                    dummy_ret = func(*example_inputs)
-            jit_func = torch.jit.trace(
-                func,
-                example_inputs,
-                strict=strict,
-                check_trace=check_trace,
-                _store_inputs=check_trace,
-            )
-        else:
-            if not no_cache:
-                with trace_caching_state_context():
-                    dummy_ret = func(**example_inputs)
-            jit_func = torch.jit.trace(
-                func,
-                example_kwarg_inputs=example_inputs,
-                strict=strict,
-                check_trace=check_trace,
-                _store_inputs=check_trace,
-            )
+        with _vmap_fix.use_batch_fixing():
+            if isinstance(example_inputs, tuple):
+                if not no_cache:
+                    with trace_caching_state_context():
+                        dummy_ret = func(*example_inputs)
+                jit_func = torch.jit.trace(
+                    func,
+                    example_inputs,
+                    strict=strict,
+                    check_trace=check_trace,
+                    _store_inputs=check_trace,
+                )
+            else:
+                if not no_cache:
+                    with trace_caching_state_context():
+                        dummy_ret = func(**example_inputs)
+                jit_func = torch.jit.trace(
+                    func,
+                    example_kwarg_inputs=example_inputs,
+                    strict=strict,
+                    check_trace=check_trace,
+                    _store_inputs=check_trace,
+                )
         if hasattr(func, _USE_STATE_NAME):
             func.set_state()  # reset global vars if using state
         return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
