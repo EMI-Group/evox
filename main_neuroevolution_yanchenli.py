@@ -4,26 +4,17 @@ import torch
 import torch.nn as nn
 import torchvision
 from torch.utils.data import DataLoader
-from torch.profiler import profile, ProfilerActivity
 
 from src.utils import ParamsAndVector
-from src.core import Problem, use_state, jit
 from src.algorithms import PSO
 from src.workflows import StdWorkflow, EvalMonitor
 from src.problems.neuroevolution import SupervisedLearningProblem
 
-class Print(nn.Module):
-    def __init__(self):
-        super().__init__()
-    def forward(self, x):
-        print(x.shape)
-        return x
 
 class SimpleCNN(nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
         self.features = nn.Sequential(
-            # Print(),
             nn.Conv2d(1, 3, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -39,19 +30,56 @@ class SimpleCNN(nn.Module):
         )
     def forward(self, x):
         x = self.features(x)
-        # print(x.size())
         x = self.classifier(x)
         return x
     
 
-if __name__ == "__main__":
+def model_test(model, data_loader, device):
+    model.eval()
+    with torch.no_grad():
+        total = 0
+        correct = 0
+        with torch.no_grad():
+            for inputs, labels in data_loader:
+                inputs = inputs.to(device=device, non_blocking=True)
+                labels = labels.to(device=device, non_blocking=True)
+    
+                logits = model(inputs)
+                _, predicted = torch.max(logits.data, dim=1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+            acc = 100 * correct / total
+    return acc
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+
+def model_train(model, data_loader, criterion, optimizer, max_epoch, device, print_frequent=-1):
+    model.train()
+    for epoch in range(max_epoch):
+        running_loss = 0.0
+        for step, (inputs, labels) in enumerate(data_loader, start=1):
+            inputs = inputs.to(device=device, non_blocking=True)
+            labels = labels.to(device=device, non_blocking=True)
+
+            optimizer.zero_grad()
+            logits = model(inputs)
+            loss = criterion(logits, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+            if print_frequent > 0 and step % print_frequent == 0:
+                print(f"[{epoch:d}, {step:4d}] runing loss: {running_loss:.4f}")
+                running_loss = 0.0
+    return model
+
+
+def main():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    # torch.set_default_device(device)
     data_root = "./data"
     os.makedirs(data_root, exist_ok=True)
 
+    BATCH_SIZE = 100
     train_dataset = torchvision.datasets.MNIST(
         root      = data_root,
         train     = True,
@@ -59,7 +87,7 @@ if __name__ == "__main__":
         transform = torchvision.transforms.ToTensor(),
     )
     train_loader = DataLoader(train_dataset,
-        batch_size = 10,
+        batch_size = BATCH_SIZE,
         shuffle    = True,
         collate_fn = None,
     )
@@ -70,73 +98,110 @@ if __name__ == "__main__":
         transform = torchvision.transforms.ToTensor(),
     )
     test_loader = DataLoader(test_dataset,
-        batch_size = 10,
+        batch_size = BATCH_SIZE,
         shuffle    = False,
         collate_fn = None,
     )
 
+    # Data preloading
+    print("Data preloading start.")
     import tqdm
-    trainloader = [
-        (inputs.to(device), labels.to(device))
+    pre_trainloader = tuple([
+        (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
         for inputs, labels in tqdm.tqdm(train_loader)
-    ]
-    testloader = [
+    ])
+    pre_testloader = tuple([
         (inputs.to(device), labels.to(device))
         for inputs, labels in tqdm.tqdm(test_loader)
-    ]
+    ])
+    print()
 
-
-    model = SimpleCNN().to(device=device)
+    # Define model
+    model = SimpleCNN().to(device)
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Total number of parameters: {total_params}")
+    print(f"Total number of model parameters: {total_params}")
+    print()
 
-    adapter = ParamsAndVector(dummy_model=model).to(device=device)
+    # Gradient descent process
+    print("Gradient descent training start.")
+    model_train(model, 
+        data_loader    = train_loader, 
+        criterion      = nn.CrossEntropyLoss(), 
+        optimizer      = torch.optim.Adam(model.parameters(), lr=1e-3), 
+        max_epoch      = 10, 
+        device         = device,
+        print_frequent = 500,
+    )
+    gd_acc = model_test(model, pre_testloader, device)
+    print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
+    print()
+
+    # Neuroevolution process
+    print("Neuroevolution process start.")
+    adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
-    
-    prob = SupervisedLearningProblem(data_loader=train_loader)
-    prob.setup(model=model, criterion=nn.MSELoss(), device=device)
-    prob.to(device=device)
+   
+    class AccuracyCriterion(nn.Module):
+        def __init__(self, data_loader: DataLoader):
+            super().__init__()
+            self.data_loader = data_loader
+
+        def forward(self, logits, labels):
+            _, predicted = torch.max(logits, dim=1)
+            correct = (predicted == labels).sum()
+            fitness = -correct
+            return fitness
+    acc_criterion = AccuracyCriterion(pre_trainloader)
+    # loss_criterion = nn.MSELoss()
+
+    POP_SIZE = 2000
+    prob = SupervisedLearningProblem(
+        model       = model,
+        data_loader = train_loader,
+        criterion   = acc_criterion,
+        pop_size    = POP_SIZE,
+        device      = device,
+    )
+    prob.setup()
 
     center = adapter.to_vector(model_params)
-
-    algo = PSO(pop_size=23, lb=center - 10, ub=center + 10).to(device=device)
+    algo = PSO(
+        pop_size = POP_SIZE, 
+        lb       = center - 0.01, 
+        ub       = center + 0.01, 
+        device   = device,
+    )
     algo.setup()
-    monitor = EvalMonitor(topk=1) # best one
+
+    monitor = EvalMonitor(topk=2, device=device) # choose the best two individuals
     monitor.setup()
-    monitor.to(device=device)
+
     workflow = StdWorkflow()
     workflow.setup(
         algorithm          = algo, 
         problem            = prob,
         solution_transform = adapter,
         monitor            = monitor,
-        device             = device
+        device             = device,
     )
-    for _ in range(50):
+
+    best_acc = -1
+    for index in range(50):
+        print(f"In generation {index}:")
+        t = time.time()
         workflow.step()
+        torch.cuda.synchronize()
+        print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
 
         monitor = workflow.get_submodule("monitor")
-        print(monitor.topk_fitness[0])
+        print(f"\tTop 1 fitness: {monitor.topk_fitness[0]:.4f}.")
+        print(f"\tTop 2 fitness: {monitor.topk_fitness[1]:.4f}.")
         best_params = adapter.to_params(monitor.topk_solutions[0])
         model.load_state_dict(best_params)
-        model.eval()
-        total = 0
-        correct = 0
-        with torch.no_grad():
-            for inputs, labels in test_loader:
-                inputs = inputs.to(device=device, non_blocking=True)
-                labels = labels.to(device=device, non_blocking=True)
-    
-                logits = model(inputs)
-                _, predicted = torch.max(logits.data, dim=1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-        print(f"Acc: {100 * correct / total} %.")
-
-
-    # # -----------------------------------------
-    # import sys; sys.exit(1)
-    # # -----------------------------------------
+        acc = model_test(model, pre_testloader, device)
+        if acc > best_acc:
+            best_acc = acc
+        print(f"\tBest accuracy: {best_acc:.4f} %.")
 
     # log_root = "./tests"
     # os.makedirs(log_root, exist_ok=True)
@@ -168,3 +233,6 @@ if __name__ == "__main__":
     # print(prof.key_averages().table())
     # torch.cuda.synchronize()
     # print(time.time() - t)
+
+if __name__ == "__main__":
+    main()

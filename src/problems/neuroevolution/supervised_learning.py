@@ -9,20 +9,30 @@ from ...core import Problem, jit_class, use_state, vmap, jit
 from ...core.module import assign_load_state_dict
 
 
-__data_loader__: Dict[int, DataLoader] = None # TODO: Add to __init__
+__data_loader__: Dict[int, DataLoader] = None
 
 
 @jit_class
 class SupervisedLearningProblem(Problem):
 
-    def __init__(self, data_loader: DataLoader):
+    def __init__(self, 
+        model      : nn.Module,
+        data_loader: DataLoader, 
+        criterion  : nn.Module,
+        pop_size   : int,
+        device     : torch.device | None = None,
+    ):
         super().__init__()
+        # Register global data loader
         global __data_loader__
-        __data_loader__ = data_loader
+        if __data_loader__ is None:
+            __data_loader__ = {}
+        instance_id = hash(self)
+        if instance_id not in __data_loader__.keys():
+            __data_loader__[instance_id] = data_loader
     
-    def setup(self, model: nn.Module, criterion: nn.Module, device: torch.device | None = None):
         device = torch.get_default_device() if device is None else device
-        inference_model = copy.deepcopy(model) # TODO
+        inference_model = copy.deepcopy(model) 
         inference_model = inference_model.to(device=device)
         for _, value in inference_model.named_parameters():
             value.requires_grad = False
@@ -37,25 +47,22 @@ class SupervisedLearningProblem(Problem):
         # FIXME
         self._example_param_ndim = (param_keys[0], inference_model.get_parameter(param_keys[0]).ndim)
 
-        global __data_loader__
-        dummy_inputs, dummy_labels = next(iter(__data_loader__))
+        dummy_inputs, dummy_labels = next(iter(__data_loader__[instance_id]))
         dummy_inputs = dummy_inputs.to(device=device)
         dummy_labels = dummy_labels.to(device=device)
 
         vmap_state_forward = vmap(state_forward, in_dims=(0, None))
-        model_init_state   = vmap_state_forward.init_state(23) # TODO: move to user side
+        model_init_state   = vmap_state_forward.init_state(pop_size)
         self._jit_vmap_state_forward, (_, dummy_logits) = jit(vmap_state_forward, 
             trace=True, lazy=False, return_dummy_output=True, 
             example_inputs=(model_init_state, dummy_inputs)
         )
         self._jit_forward  = torch.jit.script(inference_model)
 
-        dummy_labels = dummy_labels.unsqueeze(1).repeat(1, 10) # TODO: move to user side
-
         state_criterion      = use_state(lambda: criterion.forward)
         if len(state_criterion.init_state()) > 0:
             vmap_state_criterion = vmap(state_criterion, in_dims=(0, 0, None))
-            criterion_init_state = vmap_state_criterion.init_state(23)
+            criterion_init_state = vmap_state_criterion.init_state(pop_size)
             self._jit_vmap_state_criterion = jit(vmap_state_criterion, 
                 trace=True, lazy=False, 
                 example_inputs=(criterion_init_state, dummy_logits, dummy_labels),
@@ -105,12 +112,11 @@ class SupervisedLearningProblem(Problem):
         n_inputs = 0
         result = torch.zeros(num_map, device=device)
         global __data_loader__
-        for v in __data_loader__:
+        for v in __data_loader__[self._hash_id_]: # get data loader by inner hash ID
             inputs: torch.Tensor = v[0]
             labels: torch.Tensor = v[1]
             inputs = inputs.to(device=device, non_blocking=True)
             labels = labels.to(device=device, non_blocking=True)
-            labels = labels.unsqueeze(1).repeat(1, 10) # TODO: move to user side
 
             model_state, logits = self._vmap_state_forward(model_state, inputs)
             n_inputs     += inputs.size(0)
@@ -126,7 +132,7 @@ class SupervisedLearningProblem(Problem):
         result = torch.tensor(0, device=device)
         n_inputs = 0
         global __data_loader__
-        for (inputs, labels) in __data_loader__:
+        for (inputs, labels) in __data_loader__[self._hash_id_]:
             inputs.to(device, non_blocking=True)
             labels.to(device, non_blocking=True)
 
@@ -137,6 +143,20 @@ class SupervisedLearningProblem(Problem):
         pop_fitness = result / n_inputs
         return pop_fitness
 
+    # @torch.jit.ignore
+    # def _data_loader_next(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    #     global __data_loader__
+    #     return __data_loader__._next_data()
+
+    # @torch.jit.ignore
+    # def _data_loader_reset(self) -> None:
+    #     global __data_loader__
+    #     self.__data_loader__._reset()
+
+    # def _data_loader_has_next(self) -> bool:
+    #     # TODO: return self.data_loader.
+    #     pass
+
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         pop_params_value = pop_params[self._example_param_ndim[0]]
         if pop_params_value.ndim > self._example_param_ndim[1] and pop_params_value.size(0) != 1: 
@@ -145,17 +165,8 @@ class SupervisedLearningProblem(Problem):
         else: 
             # single evaluation
             pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
-        return pop_fitness 
 
-        # # if vmapped 
-        # buffers = align_vmap_tensor(buf, 0) for buf in buffers
-        # model.load_state_dict(params + buffers)
-        # # else
-        # model.load_state_dict(params + buffers)
-    
-        # params = model.named_parameters()
-        # buffers = model.named_buffers()
-        # print(params)
-    
-        # adapter = TreeAndVector(params)
-        # center = adapter.to_vector(tstate.params)
+            # self._data_loader_reset()
+            # while self._data_loader_has_next():
+            #     (inputs, labels) = self._data_loader_next()
+        return pop_fitness 

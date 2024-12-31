@@ -19,6 +19,7 @@ class EvalMonitor(Monitor):
         full_fit_history: bool = True,
         full_sol_history: bool = False,
         topk: int = 1,
+        device = None,
     ):
         """Initialize the monitor.
 
