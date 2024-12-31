@@ -9,7 +9,7 @@ if __name__ == "__main__":
     ref_num = 1000
 
     # Create an instance of the DTLZ1 problem
-    problem = DTLZ7(d=d, m=m, ref_num=ref_num)
+    problem = DTLZ1(d=d, m=m, ref_num=ref_num)
 
     # Generate a random population (100 individuals, each with d features)
     # population = torch.rand(100, d)

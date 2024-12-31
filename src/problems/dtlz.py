@@ -12,16 +12,16 @@ class DTLZTestSuit(Problem):
         self.d = d
         self.m = m
         self.ref_num = ref_num
-        self.sample = UniformSampling(
+        self.sample, _ = uniform_sampling(
             self.ref_num * self.m, self.m
         )  # Assuming UniformSampling is defined
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = self.sample.device
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
 
     def pf(self):
-        f = self.sample()[0] / 2
+        f = self.sample / 2
         return f
 
 
@@ -402,7 +402,7 @@ class DTLZ7(DTLZTestSuit):
             interval[3] - interval[2] + interval[1] - interval[0]
         ).to(self.device)
 
-        x = self.sample()[0].to(self.device)
+        x = self.sample.to(self.device)
 
         mask_less_equal_median = x <= median
         mask_greater_median = x > median
