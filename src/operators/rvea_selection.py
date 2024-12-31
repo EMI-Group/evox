@@ -3,6 +3,8 @@ import torch.nn.functional as F
 from ..utils import clamp, maximum, nanmin
 from ..core import vmap, jit
 
+# The following code defines a custom function `apd_func` and applies vectorization (vmap)
+# and JIT compilation for optimization.
 
 # def apd_func(
 #     x: torch.Tensor,
@@ -55,7 +57,6 @@ def ref_vec_guided(
 
     obj = maximum(obj, torch.tensor(1e-32, device=f.device))
 
-    # cosine = cos_dist(v, v)
     cosine = F.cosine_similarity(v.unsqueeze(1), v.unsqueeze(0), dim=-1)
 
     cosine = torch.where(
@@ -70,7 +71,6 @@ def ref_vec_guided(
 
     angle = torch.acos(
         clamp(
-            # cos_dist(obj, v),
             F.cosine_similarity(obj.unsqueeze(1), v.unsqueeze(0), dim=-1),
             torch.tensor(0.0, device=f.device),
             torch.tensor(1.0, device=f.device),
