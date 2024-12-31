@@ -73,7 +73,6 @@ class DTLZ2(DTLZTestSuit):
             d = m + 9
         super().__init__(d, m, ref_num)
 
-
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
         g = torch.sum((X[:, m - 1 :] - 0.5) ** 2, dim=1, keepdim=True)
@@ -377,10 +376,6 @@ class DTLZ7(DTLZTestSuit):
             d = m + 19
         super().__init__(d, m, ref_num)
         self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
-
-    # def setup(self, d=None, m=None, ref_num=1000):
-    #     super().setup(d, m, ref_num)
-    #     self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         n, d = X.shape

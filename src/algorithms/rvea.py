@@ -3,7 +3,12 @@ from torch import nn
 from typing import Optional, Callable
 
 from ..core import Parameter, Algorithm, jit_class, trace_impl
-from ..operators import simulated_binary, uniform_sampling, polynomial_mutation, ref_vec_guided
+from ..operators import (
+    simulated_binary,
+    uniform_sampling,
+    polynomial_mutation,
+    ref_vec_guided,
+)
 from ..utils import clamp, nanmin, nanmax, TracingCond
 from ..metrics import igd
 
@@ -35,17 +40,28 @@ class RVEA(Algorithm):
         crossover_op (Callable | None): The crossover operation (optional).
         device (torch.device | None): The device on which computations should run (optional).
     """
-    def __init__(self, pop_size: int, n_objs: int, lb: torch.Tensor, ub: torch.Tensor, pf: torch.Tensor = None, alpha: float = 2, fr: float = 0.1, max_gen: int = 100,
-                 selection_op: Optional[Callable] = None,
-                 mutation_op: Optional[Callable] = None,
-                 crossover_op: Optional[Callable] = None,
-                 device: torch.device | None = None):
+
+    def __init__(
+        self,
+        pop_size: int,
+        n_objs: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        pf: torch.Tensor = None,
+        alpha: float = 2,
+        fr: float = 0.1,
+        max_gen: int = 100,
+        selection_op: Optional[Callable] = None,
+        mutation_op: Optional[Callable] = None,
+        crossover_op: Optional[Callable] = None,
+        device: torch.device | None = None,
+    ):
 
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
         if device is None:
-             device = torch.get_default_device()
+            device = torch.get_default_device()
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
@@ -62,6 +78,7 @@ class RVEA(Algorithm):
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
+        self.device = device
 
         if self.selection is None:
             self.selection = ref_vec_guided
@@ -72,6 +89,7 @@ class RVEA(Algorithm):
         sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
 
         v = sampling.to(device=device)
+
         v0 = v
         self.pop_size = v.shape[0]
         length = ub - lb
@@ -79,11 +97,12 @@ class RVEA(Algorithm):
         population = length * population + lb
 
         self.pop = nn.Buffer(population)
-        self.fit = nn.Buffer(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
-        self.reference_vector = Parameter(v) # nn.Buffer(v)
+        self.fit = nn.Buffer(
+            torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf)
+        )
+        self.reference_vector = Parameter(v)  # nn.Buffer(v)
         self.init_v = nn.Buffer(v0)
         self.gen = nn.Buffer(torch.tensor(0, device=device))
-
 
     def init_step(self):
         """
@@ -106,7 +125,7 @@ class RVEA(Algorithm):
     def _trace_mating_pool(self):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
-        mating_pool = torch.randint(0, max_idx, (self.pop_size,))
+        mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
         pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
         return pop
 
@@ -116,16 +135,23 @@ class RVEA(Algorithm):
         self.fit = survivor_fit[~nan_mask_survivor]
 
         if self.gen % (1 / self.fr) == 0:
-            self.reference_vector = self.rv_adaptation(survivor_fit, self.init_v, self.reference_vector)
+            self.reference_vector = self.rv_adaptation(
+                survivor_fit, self.init_v, self.reference_vector
+            )
 
     @trace_impl(_update_pop_and_rv)
-    def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+    def _trace_update_pop_and_rv(
+        self, survivor: torch.Tensor, survivor_fit: torch.Tensor
+    ):
         self.pop = survivor
         self.fit = survivor_fit
 
-        if_eles = TracingCond(lambda x, y, z: [self.rv_adaptation(x, y, z)], lambda x, y, z: [z])
-        self.reference_vector = if_eles.cond(self.gen % (1 / self.fr) == 0, self.fit, self.init_v, self.reference_vector)[0]
-
+        if_eles = TracingCond(
+            lambda x, y, z: [self.rv_adaptation(x, y, z)], lambda x, y, z: [z]
+        )
+        self.reference_vector = if_eles.cond(
+            self.gen % (1 / self.fr) == 0, self.fit, self.init_v, self.reference_vector
+        )[0]
 
     def step(self):
         self.gen += 1
@@ -137,6 +163,13 @@ class RVEA(Algorithm):
         merge_pop = torch.cat([self.pop, offspring], dim=0)
         merge_fit = torch.cat([self.fit, off_fit], dim=0)
 
-        survivor, survivor_fit = self.selection(merge_pop, merge_fit, self.reference_vector, torch.tensor((self.gen / self.max_gen) ** self.alpha, device=merge_fit.device))
+        survivor, survivor_fit = self.selection(
+            merge_pop,
+            merge_fit,
+            self.reference_vector,
+            torch.tensor(
+                (self.gen / self.max_gen) ** self.alpha, device=merge_fit.device
+            ),
+        )
 
         self._update_pop_and_rv(survivor, survivor_fit)

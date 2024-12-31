@@ -46,12 +46,12 @@ if __name__ == "__main__":
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
     ) as prof:
-        workflow.init_step()
-        for i in range(100):
-            workflow.step()
-        # state = jit_state_init_step(state)
+        # workflow.init_step()
         # for i in range(100):
-        #     state = jit_state_step(state)
+        #     workflow.step()
+        state = jit_state_init_step(state)
+        for i in range(100):
+            state = jit_state_step(state)
             # fit = state["self.algorithm.fit"]
             # fit = fit[~torch.isnan(fit).any(dim=1)]
             # print(igd(fit, pf))
