@@ -271,39 +271,40 @@ def jit[
     @wraps(func)
     def wrapper(*args, **kwargs):
         nonlocal jit_func, example_inputs
-        if tracing_or_using_state():
-            jit_func = func
-            return func(*args, **kwargs)
-        if not jit_func:
-            # form positional inputs
-            example_inputs = []
-            arg_idx = 0
-            for k in func_args:
-                if k in kwargs:
-                    example_inputs.append(kwargs[k])
-                else:
-                    assert arg_idx < len(args), (
-                        f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
-                        + f" positional ones, got {len(args)}"
-                    )
-                    example_inputs.append(args[arg_idx])
-                    arg_idx += 1
-            # clone tensor inputs to remove influences of in-place operations
-            example_inputs = tuple(example_inputs)
-            leaves, tree_spec = _vmap_fix.tree_flatten(example_inputs)
-            leaves = [l.clone() if isinstance(l, torch.Tensor) else l for l in leaves]
-            example_inputs = _vmap_fix.tree_unflatten(leaves, tree_spec)
-            # JIT trace
-            jit_func = torch.jit.trace(
-                func,
-                example_inputs,
-                strict=strict,
-                check_trace=check_trace,
-                _store_inputs=check_trace,
-            )
-            # reset global vars if using state
-            if hasattr(func, _USE_STATE_NAME):
-                func.set_state()
-        return jit_func(*args, **kwargs)
+        with _vmap_fix.use_batch_fixing():
+            if tracing_or_using_state():
+                jit_func = func
+                return func(*args, **kwargs)
+            if not jit_func:
+                # form positional inputs
+                example_inputs = []
+                arg_idx = 0
+                for k in func_args:
+                    if k in kwargs:
+                        example_inputs.append(kwargs[k])
+                    else:
+                        assert arg_idx < len(args), (
+                            f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
+                            + f" positional ones, got {len(args)}"
+                        )
+                        example_inputs.append(args[arg_idx])
+                        arg_idx += 1
+                # clone tensor inputs to remove influences of in-place operations
+                example_inputs = tuple(example_inputs)
+                leaves, tree_spec = _vmap_fix.tree_flatten(example_inputs)
+                leaves = [l.clone() if isinstance(l, torch.Tensor) else l for l in leaves]
+                example_inputs = _vmap_fix.tree_unflatten(leaves, tree_spec)
+                # JIT trace
+                jit_func = torch.jit.trace(
+                    func,
+                    example_inputs,
+                    strict=strict,
+                    check_trace=check_trace,
+                    _store_inputs=check_trace,
+                )
+                # reset global vars if using state
+                if hasattr(func, _USE_STATE_NAME):
+                    func.set_state()
+            return jit_func(*args, **kwargs)
 
     return wrapper

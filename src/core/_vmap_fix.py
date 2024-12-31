@@ -119,9 +119,80 @@ vmap._create_batched_inputs = _create_batched_inputs
 vmap._unwrap_batched = _unwrap_batched
 
 
+def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwargs) -> torch.Tensor:
+    """
+    Generate a batched tensor of random values.
+
+    Given a random function (e.g. [`torch.randn`](https://pytorch.org/docs/stable/generated/torch.randn.html),
+    [`torch.rand`](https://pytorch.org/docs/stable/generated/torch.rand.html), etc.) and its size arguments, this function
+    generates a batched tensor of random values by applying the given function to
+    the size extended with the current vmap batch size.
+
+    Args:
+        rand_func (`Callable`): A function that generates a tensor of random values.
+        *size (`Tuple[int | torch.SymInt]`): The size arguments to the given function.
+        **kwargs: The keyword arguments to the given function.
+
+    Returns:
+        `torch.Tensor`: The batched tensor of random values.
+
+    ## Usage:
+    ```
+    rand1 = batched_random(torch.rand, 2, 3, device=device)
+    rand2 = batched_random(torch.randn, 4, device=device, dtype=torch.float32)
+    rand3 = batched_random(torch.randint, 5, 6, low=0, high=10, device=device, dtype=torch.float32)
+    ```
+    """
+    level = current_level()
+    if level is None or level <= 0:
+        return rand_func(size=size, **kwargs)
+    # else
+    global __vmap_batch_sizes__
+    size = tuple(__vmap_batch_sizes__) + size
+    num_levels = len(__vmap_batch_sizes__)
+    rand_values = rand_func(size=size, **kwargs)
+    batched_rand_values = rand_values
+    for level in range(1, num_levels + 1):
+        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
+    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    return batched_rand_values
+
+
+def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs) -> torch.Tensor:
+    """Generate a batched tensor of random values with the same shape as the given tensor.
+
+    Given a random function (e.g. [`torch.randn_like`](https://pytorch.org/docs/stable/generated/torch.randn_like.html),
+    [`torch.rand_like`](https://pytorch.org/docs/stable/generated/torch.rand_like.html), etc.) and a tensor, this function
+    generates a batched tensor of random values by applying the given function to
+    the tensor extended with the current vmap batch size.
+
+    Args:
+        rand_func (`Callable`): A function that generates a tensor of random values.
+        like_tensor (`torch.Tensor`): The tensor to generate random values like.
+        **kwargs: The keyword arguments to the given function.
+
+    Returns:
+        `torch.Tensor`: The batched tensor of random values.
+    """
+    level = current_level()
+    if level is None or level <= 0:
+        return rand_func(like_tensor, **kwargs)
+    # else
+    original_tensor, batch_dims, batch_sizes = unwrap_batch_tensor(like_tensor)
+    batch_rand_values = rand_func(original_tensor, **kwargs)
+    for level, dim in enumerate(batch_dims):
+        batch_rand_values = add_batch_dim(batch_rand_values, dim, level)
+    _transform_in_dim(batch_dims, batch_rand_values, original_tensor)
+    return batch_rand_values
+    
+
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
+_original_randperm = torch.randperm
+_original_rand_like = torch.rand_like
+_original_randn_like = torch.randn_like
+_original_randint_like = torch.randint_like
 _original_get_item = torch.Tensor.__getitem__
 
 
@@ -148,6 +219,37 @@ def _batch_randint(low=None, high=None, size=None, **kwargs):
     if low is None:
         low = 0
     return batched_random(_original_randint, *size, low=low, high=high, **kwargs)
+
+
+def _batch_randperm(n, **kwargs):
+    level = current_level()
+    if level is None or level <= 0:
+        return _original_randperm(n, **kwargs)
+    # else
+    global __vmap_batch_sizes__
+    size = tuple(__vmap_batch_sizes__) + (n,)
+    num_levels = len(__vmap_batch_sizes__)
+    # rand_values = torch.stack([_original_randperm(n, **kwargs) for _ in torch.arange(prod(size))]).view(size + (n,))
+    rand_values = _original_rand(size, **kwargs)
+    rand_values = torch.argsort(rand_values, dim=-1)
+    rand_values = rand_values.to(**kwargs)
+    batched_rand_values = rand_values
+    for level in range(1, num_levels + 1):
+        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
+    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    return batched_rand_values
+
+
+def _batch_rand_like(like_tensor, **kwargs):
+    return batched_random_like(_original_rand_like, like_tensor, **kwargs)
+
+
+def _batch_randn_like(like_tensor, **kwargs):
+    return batched_random_like(_original_randn_like, like_tensor, **kwargs)
+
+
+def _batch_randint_like(like_tensor, **kwargs):
+    return batched_random_like(_original_randint_like, like_tensor, **kwargs)
 
 
 def _batch_getitem(tensor: torch.Tensor, indices):
@@ -182,6 +284,10 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     torch.rand = _batch_rand if new_batch_fixing else _original_rand
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
+    torch.randperm = _batch_randperm  if new_batch_fixing else _original_randperm
+    torch.rand_like = _batch_rand_like if new_batch_fixing else _original_rand_like
+    torch.randn_like = _batch_randn_like if new_batch_fixing else _original_randn_like
+    torch.randint_like = _batch_randint_like if new_batch_fixing else _original_randint_like
     torch.Tensor.__getitem__ = _batch_getitem if new_batch_fixing else _original_get_item
     try:
         yield token
@@ -191,10 +297,23 @@ def use_batch_fixing(new_batch_fixing: bool = True):
         torch.rand = _original_rand
         torch.randn = _original_randn
         torch.randint = _original_randint
+        torch.randperm = _original_randperm
+        torch.rand_like = _original_rand_like
+        torch.randn_like = _original_randn_like
+        torch.randint_like = _original_randint_like
         torch.Tensor.__getitem__ = _original_get_item
 
 
 def unwrap_batch_tensor(tensor: torch.Tensor):
+    """Unwraps a batched tensor into its original tensor and the batch dimensions/sizes.
+
+    Args:
+        tensor (`torch.Tensor`): The batched tensor to be unwrapped.
+
+    Returns:
+        (`torch.Tensor`, `tuple[int, ...]`, `tuple[int, ...]`): A tuple of the original tensor, the batch dimensions, and the batch sizes.
+    """
+
     level = get_level(tensor)
     batch_dims = []
     batch_sizes = []
@@ -299,42 +418,3 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
         return func(*args, **kwargs)
 
     return wrapper
-
-
-def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwargs) -> torch.Tensor:
-    """
-    Generate a batched tensor of random values.
-
-    Given a random function (e.g. [`torch.randn`](https://pytorch.org/docs/stable/generated/torch.randn.html),
-    [`torch.rand`](https://pytorch.org/docs/stable/generated/torch.rand.html), etc.) and its size arguments, this function
-    generates a batched tensor of random values by applying the given function to
-    the size extended with the current vmap batch size.
-
-    Args:
-        rand_func (`Callable`): A function that generates a tensor of random values.
-        *size (`Tuple[int | torch.SymInt]`): The size arguments to the given function.
-        **kwargs: The keyword arguments to the given function.
-
-    Returns:
-        torch.Tensor: The batched tensor of random values.
-
-    ## Usage:
-    ```
-    rand1 = batched_random(torch.rand, 2, 3, device=device)
-    rand2 = batched_random(torch.randn, 4, device=device, dtype=torch.float32)
-    rand3 = batched_random(torch.randint, 5, 6, low=0, high=10, device=device, dtype=torch.float32)
-    ```
-    """
-    level = current_level()
-    if level is None or level <= 0:
-        return rand_func(size=size, **kwargs)
-    # else
-    global __vmap_batch_sizes__
-    size = tuple(__vmap_batch_sizes__) + size
-    num_levels = len(__vmap_batch_sizes__)
-    rand_values = rand_func(size=size, **kwargs)
-    batched_rand_values = rand_values
-    for level in range(1, num_levels + 1):
-        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
-    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
-    return batched_rand_values
