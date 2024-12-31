@@ -8,11 +8,10 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
 
-from src.core import vmap, Problem, use_state, jit
+from src.core import use_state, jit
 from src.workflows import StdWorkflow
 from src.algorithms import PSO, RVEA
 from src.problems import DTLZ2
-from src.utils import minimum, maximum, pairwise_euclidean_dist
 from src.metrics import igd
 
 

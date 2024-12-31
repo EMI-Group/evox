@@ -1,5 +1,4 @@
 import torch
-from ..utils import pairwise_euclidean_dist
 
 
 def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):

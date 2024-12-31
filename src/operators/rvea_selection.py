@@ -1,33 +1,34 @@
 import torch
-from ..utils import clamp, maximum, nanmin, cos_dist
+import torch.nn.functional as F
+from ..utils import clamp, maximum, nanmin
 from ..core import vmap, jit
 
 
-def apd_func(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    z: torch.Tensor,
-    obj: torch.Tensor,
-    theta: torch.Tensor,
-):
-    return (
-        1 + obj.shape[1] * theta * torch.index_select(z, 0, torch.relu(x)) / y[None]
-    ) * torch.linalg.vector_norm(obj[x, :], dim=1)
-
-
-apd_fn = vmap(apd_func, in_dims=(1, 0, 1, None, None), out_dims=1, trace=False)
-apd_fn = jit(
-    apd_fn,
-    trace=True,
-    lazy=False,
-    example_inputs=(
-        torch.zeros(10000, 6000, dtype=torch.int64, device="cuda"),
-        torch.empty(6000, device="cuda"),
-        torch.empty(10000, 6000, device="cuda"),
-        torch.empty(10000, 3, device="cuda"),
-        torch.tensor(0.5, device="cuda"),
-    ),
-)
+# def apd_func(
+#     x: torch.Tensor,
+#     y: torch.Tensor,
+#     z: torch.Tensor,
+#     obj: torch.Tensor,
+#     theta: torch.Tensor,
+# ):
+#     return (
+#         1 + obj.shape[1] * theta * torch.index_select(z, 0, torch.relu(x)) / y[None]
+#     ) * torch.linalg.vector_norm(obj[x, :], dim=1)
+#
+#
+# apd_fn = vmap(apd_func, in_dims=(1, 0, 1, None, None), out_dims=1, trace=False)
+# apd_fn = jit(
+#     apd_fn,
+#     trace=True,
+#     lazy=False,
+#     example_inputs=(
+#         torch.zeros(10000, 6000, dtype=torch.int64, device="cuda"),
+#         torch.empty(6000, device="cuda"),
+#         torch.empty(10000, 6000, device="cuda"),
+#         torch.empty(10000, 3, device="cuda"),
+#         torch.tensor(0.5, device="cuda"),
+#     ),
+# )
 
 
 def apd_fn(
@@ -54,7 +55,8 @@ def ref_vec_guided(
 
     obj = maximum(obj, torch.tensor(1e-32, device=f.device))
 
-    cosine = cos_dist(v, v)
+    # cosine = cos_dist(v, v)
+    cosine = F.cosine_similarity(v.unsqueeze(1), v.unsqueeze(0), dim=-1)
 
     cosine = torch.where(
         torch.eye(cosine.shape[0], dtype=torch.bool, device=f.device),
@@ -68,7 +70,8 @@ def ref_vec_guided(
 
     angle = torch.acos(
         clamp(
-            cos_dist(obj, v),
+            # cos_dist(obj, v),
+            F.cosine_similarity(obj.unsqueeze(1), v.unsqueeze(0), dim=-1),
             torch.tensor(0.0, device=f.device),
             torch.tensor(1.0, device=f.device),
         )
