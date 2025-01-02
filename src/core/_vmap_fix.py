@@ -196,6 +196,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     return batch_rand_values
 
 
+
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
@@ -324,6 +325,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     torch.rand = _batch_rand if new_batch_fixing else _original_rand
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
+    torch.randperm = _batch_randperm if new_batch_fixing else _original_randperm
     torch.randperm = _batch_randperm if new_batch_fixing else _original_randperm
     torch.rand_like = _batch_rand_like if new_batch_fixing else _original_rand_like
     torch.randn_like = _batch_randn_like if new_batch_fixing else _original_randn_like

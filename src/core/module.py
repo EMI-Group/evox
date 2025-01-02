@@ -17,6 +17,7 @@ def _if_none(a, b):
     return b if a is None else a
 
 
+
 def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
@@ -41,19 +42,17 @@ def Parameter[
     Returns:
         T: The parameter.
     """
-    return nn.Parameter(
-        (
-            value.to(dtype=dtype, device=device)
-            if isinstance(value, torch.Tensor)
-            else torch.as_tensor(value, dtype=dtype, device=device)
-        ),
-        requires_grad=requires_grad,
-    )
+    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=requires_grad)
 
 
 def Mutable[
     T: torch.Tensor
-](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
+](
+    value: T,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    requires_grad: bool = False,
+) -> T:
     """
     Wraps a value as a mutable tensor.
 
@@ -61,11 +60,12 @@ def Mutable[
         value (`T`): The value to be wrapped.
         dtype (`torch.dtype`, optional): The dtype of the tensor. Defaults to None.
         device (`torch.device`, optional): The device of the tensor. Defaults to None.
+        requires_grad (`bool`, optional): Whether the mutable requires gradient. Defaults to False.
 
     Returns:
         T: The wrapped tensor.
     """
-    return nn.Buffer(value.to(dtype=dtype, device=device))
+    return nn.Buffer(value.to(dtype=dtype, device=device), requires_grad=False)
 
 
 def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
@@ -680,19 +680,16 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
         # special case for empty state
         is_empty_state = len(modules_vars) == 0
+        EMPTY_NAME = "___empty___"
         if is_empty_state:
-            modules_vars = {_EMPTY_NAME: torch.empty(0)}
+            modules_vars = {EMPTY_NAME: torch.empty(0)}
 
         @wraps(func)
         def state_wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
                 # special case for empty state
                 if is_empty_state and (
-                    not isinstance(state, dict)
-                    or (
-                        (tk := tuple(state.keys())) != (_EMPTY_NAME,)
-                        and len(set(tk).difference((_EMPTY_NAME,))) > 0
-                    )
+                    not isinstance(state, dict) or len(state) > (1 if EMPTY_NAME in state else 0)
                 ):
                     ret = func(state, *args, **kwargs)
                     return ret
@@ -705,7 +702,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 for k, v in vars.items():
                     v.state_dict(destination=mutable_modules, prefix=k + ".", keep_vars=True)
                 if len(mutable_modules) == 0:
-                    mutable_modules = {_EMPTY_NAME: torch.empty(0)}
+                    mutable_modules = {EMPTY_NAME: torch.empty(0)}
                 # return
                 if ret is None:
                     return mutable_modules

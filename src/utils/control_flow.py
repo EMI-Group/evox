@@ -5,10 +5,6 @@ import torch
 from ..core import trace_impl, vmap_impl, jit_class, vmap, jit, use_state, ModuleBase
 from ..core import _vmap_fix
 from ..core.module import UseStateFunc
-from ..utils import switch as _switch
-
-
-_while_object_cache = {}
 
 
 @jit_class
@@ -720,13 +716,13 @@ class TracingCond(ModuleBase):
             state_true_fn,
             trace=True,
             lazy=False,
-            example_inputs=(state_true_fn.init_state(False),) + original_args,
+            example_inputs=(state_true_fn.init_state(),) + original_args,
         )
         false_fn = jit(
             state_false_fn,
             trace=True,
             lazy=False,
-            example_inputs=(state_false_fn.init_state(False),) + original_args,
+            example_inputs=(state_false_fn.init_state(),) + original_args,
         )
 
         def _cond1(
@@ -898,7 +894,7 @@ class TracingCond(ModuleBase):
         else:
             compiled_cond, state_true_fn, state_false_fn = self._compile_cond_fn(x)
             self._cache_compiled_cond[key] = (compiled_cond, state_true_fn, state_false_fn)
-        res = compiled_cond(state_true_fn.init_state(), state_false_fn.init_state(), cond, *x)
+        res = compiled_cond(state_true_fn.init_state(False), state_false_fn.init_state(False), cond, *x)
         if isinstance(res, tuple):
             state, res = res
         else:
@@ -936,7 +932,7 @@ class TracingCond(ModuleBase):
                 res.append(torch.where(cond, t, f))
         elif true_res is None and false_res is None:
             res = None
-        elif isinstance(true_res, torch.Tensor) and isinstance(false_res, torch.Tensor):
+        elif not isinstance(true_res, Iterable) and not isinstance(false_res, Iterable):
             res = torch.where(cond, true_res, false_res)
         else:
             raise ValueError("The type of returns of true_fn and false_fn should be the same.")
