@@ -74,10 +74,22 @@ def model_train(model, data_loader, criterion, optimizer, max_epoch, device, pri
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     data_root = "./data"
     os.makedirs(data_root, exist_ok=True)
+
+    # Set random seed
+    seed = 0
+    import random
+    import numpy as np
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.deterministic = False
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = False
 
     BATCH_SIZE = 100
     train_dataset = torchvision.datasets.MNIST(
@@ -103,18 +115,19 @@ def main():
         collate_fn = None,
     )
 
-    # Data preloading
-    print("Data preloading start.")
+    # # Data preloading
+    # print("Data preloading start.")
     import tqdm
-    pre_trainloader = tuple([
-        (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
-        for inputs, labels in tqdm.tqdm(train_loader)
-    ])
-    pre_testloader = tuple([
-        (inputs.to(device), labels.to(device))
-        for inputs, labels in tqdm.tqdm(test_loader)
-    ])
-    print()
+    # pre_trainloader = tuple([
+    #     (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
+    #     for inputs, labels in tqdm.tqdm(train_loader)
+    # ])
+    # pre_testloader = tuple([
+    #     (inputs.to(device), labels.to(device))
+    #     for inputs, labels in tqdm.tqdm(test_loader)
+    # ])
+    # print()
+    pre_train_loader = test_loader
 
     # Define model
     model = SimpleCNN().to(device)
@@ -122,19 +135,19 @@ def main():
     print(f"Total number of model parameters: {total_params}")
     print()
 
-    # Gradient descent process
-    print("Gradient descent training start.")
-    model_train(model, 
-        data_loader    = train_loader, 
-        criterion      = nn.CrossEntropyLoss(), 
-        optimizer      = torch.optim.Adam(model.parameters(), lr=1e-3), 
-        max_epoch      = 10, 
-        device         = device,
-        print_frequent = 500,
-    )
-    gd_acc = model_test(model, pre_testloader, device)
-    print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
-    print()
+    # # Gradient descent process
+    # print("Gradient descent training start.")
+    # model_train(model, 
+    #     data_loader    = train_loader, 
+    #     criterion      = nn.CrossEntropyLoss(), 
+    #     optimizer      = torch.optim.Adam(model.parameters(), lr=1e-3), 
+    #     max_epoch      = 10, 
+    #     device         = device,
+    #     print_frequent = 500,
+    # )
+    # gd_acc = model_test(model, pre_testloader, device)
+    # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
+    # print()
 
     # Neuroevolution process
     print("Neuroevolution process start.")
@@ -151,18 +164,22 @@ def main():
             correct = (predicted == labels).sum()
             fitness = -correct
             return fitness
-    acc_criterion = AccuracyCriterion(pre_trainloader)
+    acc_criterion = AccuracyCriterion(pre_train_loader)
     # loss_criterion = nn.MSELoss()
 
     POP_SIZE = 2000
     prob = SupervisedLearningProblem(
         model       = model,
-        data_loader = train_loader,
+        data_loader = pre_train_loader,
         criterion   = acc_criterion,
         pop_size    = POP_SIZE,
         device      = device,
     )
     prob.setup()
+
+    prob.evaluate({})
+    import sys; sys.exit(1)
+
 
     center = adapter.to_vector(model_params)
     algo = PSO(

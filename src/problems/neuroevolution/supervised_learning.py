@@ -3,13 +3,13 @@ import types
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Iterable, Iterator
 
 from ...core import Problem, jit_class, use_state, vmap, jit
 from ...core.module import assign_load_state_dict
 
 
-__data_loader__: Dict[int, DataLoader] = None
+__supervised_data__: Dict[int, Dict[str, DataLoader | Iterable | Iterator | Tuple]] = None
 
 
 @jit_class
@@ -24,12 +24,16 @@ class SupervisedLearningProblem(Problem):
     ):
         super().__init__()
         # Register global data loader
-        global __data_loader__
-        if __data_loader__ is None:
-            __data_loader__ = {}
+        global __supervised_data__
+        if __supervised_data__ is None:
+            __supervised_data__ = {}
         instance_id = hash(self)
-        if instance_id not in __data_loader__.keys():
-            __data_loader__[instance_id] = data_loader
+        if instance_id not in __supervised_data__.keys():
+            __supervised_data__[instance_id] = {
+                "data_loader_ref" : data_loader,
+                "data_loader_iter": None,
+                "data_next_cache" : None,
+            }
     
         device = torch.get_default_device() if device is None else device
         inference_model = copy.deepcopy(model) 
@@ -47,7 +51,12 @@ class SupervisedLearningProblem(Problem):
         # FIXME
         self._example_param_ndim = (param_keys[0], inference_model.get_parameter(param_keys[0]).ndim)
 
-        dummy_inputs, dummy_labels = next(iter(__data_loader__[instance_id]))
+        try:
+            dummy_inputs, dummy_labels = next(iter(data_loader))
+        except StopIteration:
+            raise RuntimeError(
+                f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item."
+            )
         dummy_inputs = dummy_inputs.to(device=device)
         dummy_labels = dummy_labels.to(device=device)
 
@@ -111,8 +120,8 @@ class SupervisedLearningProblem(Problem):
         
         n_inputs = 0
         result = torch.zeros(num_map, device=device)
-        global __data_loader__
-        for v in __data_loader__[self._hash_id_]: # get data loader by inner hash ID
+        global __supervised_data__
+        for v in __supervised_data__[self._hash_id_]: # get data loader by inner hash ID
             inputs: torch.Tensor = v[0]
             labels: torch.Tensor = v[1]
             inputs = inputs.to(device=device, non_blocking=True)
@@ -131,8 +140,8 @@ class SupervisedLearningProblem(Problem):
 
         result = torch.tensor(0, device=device)
         n_inputs = 0
-        global __data_loader__
-        for (inputs, labels) in __data_loader__[self._hash_id_]:
+        global __supervised_data__
+        for (inputs, labels) in __supervised_data__[self._hash_id_]:
             inputs.to(device, non_blocking=True)
             labels.to(device, non_blocking=True)
 
@@ -143,30 +152,52 @@ class SupervisedLearningProblem(Problem):
         pop_fitness = result / n_inputs
         return pop_fitness
 
-    # @torch.jit.ignore
-    # def _data_loader_next(self) -> Tuple[torch.Tensor, torch.Tensor]:
-    #     global __data_loader__
-    #     return __data_loader__._next_data()
+    # def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+    #     pop_params_value = pop_params[self._example_param_ndim[0]]
+    #     if pop_params_value.ndim > self._example_param_ndim[1] and pop_params_value.size(0) != 1: 
+    #         # vmapped evaluation
+    #         pop_fitness = self._evaluate_vmap(pop_params, pop_params_value.size(0), pop_params_value.device)
+    #     else: 
+    #         # single evaluation
+    #         pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
 
-    # @torch.jit.ignore
-    # def _data_loader_reset(self) -> None:
-    #     global __data_loader__
-    #     self.__data_loader__._reset()
+    #         # self._data_loader_reset()
+    #         # while self._data_loader_has_next():
+    #         #     (inputs, labels) = self._data_loader_next()
+    #     return pop_fitness 
 
-    # def _data_loader_has_next(self) -> bool:
-    #     # TODO: return self.data_loader.
-    #     pass
+    ###############
+
+    @torch.jit.ignore
+    def _data_loader_reset(self) -> None:
+        global __supervised_data__
+        data_info = __supervised_data__[self._hash_id_]
+        data_info["data_loader_iter"] = iter(data_info["data_loader_ref"])
+        try:
+            data_info["data_next_cache"] = next(data_info["data_loader_iter"])
+        except StopIteration:
+            data_info["data_next_cache"] = None
+
+    @torch.jit.ignore
+    def _data_loader_next(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        global __supervised_data__
+        data_info = __supervised_data__[self._hash_id_]
+        next_data = data_info["data_next_cache"]
+        try:
+            data_info["data_next_cache"] = next(data_info["data_loader_iter"])
+        except StopIteration:
+            data_info["data_next_cache"] = None
+        return next_data
+
+    @torch.jit.ignore
+    def _data_loader_has_next(self) -> bool:
+        global __supervised_data__
+        return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-        pop_params_value = pop_params[self._example_param_ndim[0]]
-        if pop_params_value.ndim > self._example_param_ndim[1] and pop_params_value.size(0) != 1: 
-            # vmapped evaluation
-            pop_fitness = self._evaluate_vmap(pop_params, pop_params_value.size(0), pop_params_value.device)
-        else: 
-            # single evaluation
-            pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
-
-            # self._data_loader_reset()
-            # while self._data_loader_has_next():
-            #     (inputs, labels) = self._data_loader_next()
-        return pop_fitness 
+        self._data_loader_reset()
+        while self._data_loader_has_next():
+            inputs, labels = self._data_loader_next()
+            print(inputs.shape, inputs.dtype, inputs.sum())
+            print(labels.shape, labels.dtype, labels.sum())
+        return torch.tensor([1,])
