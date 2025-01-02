@@ -91,6 +91,11 @@ def ref_vec_guided(
     apd = apd_fn(partition, gamma, angle, obj, theta)
     apd = torch.where(mask, float("inf"), apd)
 
+    # TODO: The current RVEA selection implementation is suboptimal.
+    #       We will implement a `segment_sort` or `segment_argmin` in CUDA in the future
+    #       to optimize the process by skipping the partition, mask, mask_null,
+    #       and directly calculating the survivors within each partition.
+
     next_ind = torch.argmin(apd, dim=0)
     next_x = torch.where(mask_null.unsqueeze(1), torch.nan, x[next_ind])
     next_f = torch.where(mask_null.unsqueeze(1), torch.nan, f[next_ind])

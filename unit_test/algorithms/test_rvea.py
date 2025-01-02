@@ -22,11 +22,10 @@ if __name__ == "__main__":
     prob = DTLZ2(m=3)
     pf = prob.pf()
     algo = RVEA(pop_size=100, n_objs=3, lb=-torch.zeros(12), ub=torch.ones(12), pf=pf)
-    # algo.setup()
     workflow = StdWorkflow()
     workflow.setup(algo, prob)
-    # workflow.step()
-    # workflow.__sync__()
+    workflow.step()
+    workflow.__sync__()
     state_init_step = use_state(lambda: workflow.init_step)
     state_step = use_state(lambda: workflow.step)
     state = state_step.init_state()
@@ -38,19 +37,19 @@ if __name__ == "__main__":
         ff.write(jit_state_step.inlined_graph.__str__())
     with open("../../src/algorithms/tests/a.md", "w") as ff:
         ff.write(workflow.step.inlined_graph.__str__())
-    # state_step = use_state(lambda: workflow.step)
-    # state = state_step.init_state()
-    # jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+
     t = time.time()
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
     ) as prof:
+        # Example with TorchScript:
         # workflow.init_step()
         # for i in range(100):
         #     workflow.step()
         state = jit_state_init_step(state)
         for i in range(100):
             state = jit_state_step(state)
+            # Calculate IGD:
             # fit = state["self.algorithm.fit"]
             # fit = fit[~torch.isnan(fit).any(dim=1)]
             # print(igd(fit, pf))
