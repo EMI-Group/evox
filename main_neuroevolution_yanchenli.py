@@ -115,19 +115,19 @@ def main():
         collate_fn = None,
     )
 
-    # # Data preloading
-    # print("Data preloading start.")
+    # Data preloading
+    # TODO: Add collate functions
+    print("Data preloading start.")
     import tqdm
-    # pre_trainloader = tuple([
-    #     (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
-    #     for inputs, labels in tqdm.tqdm(train_loader)
-    # ])
-    # pre_testloader = tuple([
-    #     (inputs.to(device), labels.to(device))
-    #     for inputs, labels in tqdm.tqdm(test_loader)
-    # ])
-    # print()
-    pre_train_loader = test_loader
+    pre_train_loader = tuple([
+        (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
+        for inputs, labels in tqdm.tqdm(train_loader)
+    ])
+    pre_test_loader = tuple([
+        (inputs.to(device), labels.to(device))
+        for inputs, labels in tqdm.tqdm(test_loader)
+    ])
+    print()
 
     # Define model
     model = SimpleCNN().to(device)
@@ -145,7 +145,7 @@ def main():
     #     device         = device,
     #     print_frequent = 500,
     # )
-    # gd_acc = model_test(model, pre_testloader, device)
+    # gd_acc = model_test(model, pre_test_loader, device)
     # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
     # print()
 
@@ -161,25 +161,22 @@ def main():
 
         def forward(self, logits, labels):
             _, predicted = torch.max(logits, dim=1)
-            correct = (predicted == labels).sum()
+            correct = (predicted == labels[:, 0]).sum()
             fitness = -correct
             return fitness
     acc_criterion = AccuracyCriterion(pre_train_loader)
     # loss_criterion = nn.MSELoss()
 
-    POP_SIZE = 2000
+    POP_SIZE = 1000
     prob = SupervisedLearningProblem(
         model       = model,
         data_loader = pre_train_loader,
         criterion   = acc_criterion,
+        # criterion   = loss_criterion,
         pop_size    = POP_SIZE,
         device      = device,
     )
     prob.setup()
-
-    prob.evaluate({})
-    import sys; sys.exit(1)
-
 
     center = adapter.to_vector(model_params)
     algo = PSO(
@@ -215,7 +212,7 @@ def main():
         print(f"\tTop 2 fitness: {monitor.topk_fitness[1]:.4f}.")
         best_params = adapter.to_params(monitor.topk_solutions[0])
         model.load_state_dict(best_params)
-        acc = model_test(model, pre_testloader, device)
+        acc = model_test(model, pre_test_loader, device)
         if acc > best_acc:
             best_acc = acc
         print(f"\tBest accuracy: {best_acc:.4f} %.")

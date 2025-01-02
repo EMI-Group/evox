@@ -48,8 +48,10 @@ class SupervisedLearningProblem(Problem):
             key: value 
             for key, value in state_forward.init_state().items() if key not in param_keys
         }
-        # FIXME
-        self._example_param_ndim = (param_keys[0], inference_model.get_parameter(param_keys[0]).ndim)
+        self._sample_param_ndim_tuple = (
+            param_keys[0], 
+            inference_model.get_parameter(param_keys[0]).ndim
+        )
 
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
@@ -68,7 +70,7 @@ class SupervisedLearningProblem(Problem):
         )
         self._jit_forward  = torch.jit.script(inference_model)
 
-        state_criterion      = use_state(lambda: criterion.forward)
+        state_criterion    = use_state(lambda: criterion.forward)
         if len(state_criterion.init_state()) > 0:
             vmap_state_criterion = vmap(state_criterion, in_dims=(0, 0, None))
             criterion_init_state = vmap_state_criterion.init_state(pop_size)
@@ -121,7 +123,8 @@ class SupervisedLearningProblem(Problem):
         n_inputs = 0
         result = torch.zeros(num_map, device=device)
         global __supervised_data__
-        for v in __supervised_data__[self._hash_id_]: # get data loader by inner hash ID
+        # TODO: change to while-loop
+        for v in __supervised_data__[self._hash_id_]["data_loader_ref"]: # get data loader by inner hash ID
             inputs: torch.Tensor = v[0]
             labels: torch.Tensor = v[1]
             inputs = inputs.to(device=device, non_blocking=True)
@@ -152,22 +155,17 @@ class SupervisedLearningProblem(Problem):
         pop_fitness = result / n_inputs
         return pop_fitness
 
-    # def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-    #     pop_params_value = pop_params[self._example_param_ndim[0]]
-    #     if pop_params_value.ndim > self._example_param_ndim[1] and pop_params_value.size(0) != 1: 
-    #         # vmapped evaluation
-    #         pop_fitness = self._evaluate_vmap(pop_params, pop_params_value.size(0), pop_params_value.device)
-    #     else: 
-    #         # single evaluation
-    #         pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
-
-    #         # self._data_loader_reset()
-    #         # while self._data_loader_has_next():
-    #         #     (inputs, labels) = self._data_loader_next()
-    #     return pop_fitness 
+    def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+        pop_params_value = pop_params[self._sample_param_ndim_tuple[0]]
+        if pop_params_value.ndim > self._sample_param_ndim_tuple[1] and pop_params_value.size(0) != 1:
+            # vmapped evaluation
+            pop_fitness = self._evaluate_vmap(pop_params, pop_params_value.size(0), pop_params_value.device)
+        else: 
+            # single evaluation
+            pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
+        return pop_fitness 
 
     ###############
-
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
         global __supervised_data__
@@ -194,10 +192,10 @@ class SupervisedLearningProblem(Problem):
         global __supervised_data__
         return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
 
-    def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-        self._data_loader_reset()
-        while self._data_loader_has_next():
-            inputs, labels = self._data_loader_next()
-            print(inputs.shape, inputs.dtype, inputs.sum())
-            print(labels.shape, labels.dtype, labels.sum())
-        return torch.tensor([1,])
+    # def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+    #     self._data_loader_reset()
+    #     while self._data_loader_has_next():
+    #         inputs, labels = self._data_loader_next()
+    #         print(inputs.shape, inputs.dtype, inputs.sum())
+    #         print(labels.shape, labels.dtype, labels.sum())
+    #     return torch.tensor([1,])
