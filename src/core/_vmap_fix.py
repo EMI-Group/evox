@@ -184,7 +184,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
         batch_rand_values = add_batch_dim(batch_rand_values, dim, level)
     _transform_in_dim(batch_dims, batch_rand_values, original_tensor)
     return batch_rand_values
-    
+
 
 _original_rand = torch.rand
 _original_randn = torch.randn
@@ -252,21 +252,12 @@ def _batch_randint_like(like_tensor, **kwargs):
     return batched_random_like(_original_randint_like, like_tensor, **kwargs)
 
 
-def _batch_getitem(tensor: torch.Tensor, indices):
-    if isinstance(indices, torch.Tensor):
-        if indices.ndim <= 1:
-            tensor = torch.index_select(tensor, 0, indices)
-            if indices.ndim == 0:
-                tensor = tensor.squeeze(0)
-            return tensor
-        else:
-            return _original_get_item(tensor, indices)
-    if isinstance(indices, Sequence):
-        if all(isinstance(i, torch.Tensor) for i in indices):
-            tensor = torch.stack(_batch_getitem(tensor, i) for i in indices)
-            return tensor
-        else:
-            return _original_get_item(tensor, indices)
+def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
+    if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
+        tensor = torch.index_select(tensor, dim, indices)
+        if indices.ndim == 0:
+            tensor = tensor.squeeze(dim)
+        return tensor
     # default
     return _original_get_item(tensor, indices)
 
@@ -284,7 +275,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     torch.rand = _batch_rand if new_batch_fixing else _original_rand
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
-    torch.randperm = _batch_randperm  if new_batch_fixing else _original_randperm
+    torch.randperm = _batch_randperm if new_batch_fixing else _original_randperm
     torch.rand_like = _batch_rand_like if new_batch_fixing else _original_rand_like
     torch.randn_like = _batch_randn_like if new_batch_fixing else _original_randn_like
     torch.randint_like = _batch_randint_like if new_batch_fixing else _original_randint_like

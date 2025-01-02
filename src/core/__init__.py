@@ -1,5 +1,6 @@
 __all__ = [
     "Parameter",
+    "Mutable",
     "ModuleBase",
     "use_state",
     "trace_impl",
@@ -18,6 +19,6 @@ __all__ = [
 from . import _vmap_fix
 
 # export symbols
-from .module import Parameter, ModuleBase, use_state, trace_impl, vmap_impl, jit_class, assign_load_state_dict
+from .module import Parameter, Mutable, ModuleBase, use_state, trace_impl, vmap_impl, jit_class, assign_load_state_dict
 from .jit_util import vmap, jit
 from .components import Algorithm, Problem, Workflow, Monitor

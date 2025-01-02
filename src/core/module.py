@@ -17,11 +17,19 @@ _WRAPPING_MODULE_NAME = "__wrapping_module__"
 def _if_none(a, b):
     return b if a is None else a
 
+
 def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
 
-def Parameter[T](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
+def Parameter[
+    T: torch.Tensor | int | float | complex
+](
+    value: T,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    requires_grad: bool = False,
+) -> T:
     """
     Wraps a value as parameter with `requires_grad=False`.
 
@@ -29,11 +37,35 @@ def Parameter[T](value: T, dtype: Optional[torch.dtype] = None, device: Optional
         value (`T`): The parameter value.
         dtype (`torch.dtype`, optional): The dtype of the parameter. Defaults to None.
         device (`torch.device`, optional): The device of the parameter. Defaults to None.
+        requires_grad (`bool`, optional): Whether the parameter requires gradient. Defaults to False.
 
     Returns:
         T: The parameter.
     """
-    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=False)
+    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=requires_grad)
+
+
+def Mutable[
+    T: torch.Tensor
+](
+    value: T,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    requires_grad: bool = False,
+) -> T:
+    """
+    Wraps a value as a mutable tensor.
+
+    Args:
+        value (`T`): The value to be wrapped.
+        dtype (`torch.dtype`, optional): The dtype of the tensor. Defaults to None.
+        device (`torch.device`, optional): The device of the tensor. Defaults to None.
+        requires_grad (`bool`, optional): Whether the mutable requires gradient. Defaults to False.
+
+    Returns:
+        T: The wrapped tensor.
+    """
+    return nn.Buffer(value.to(dtype=dtype, device=device), requires_grad=False)
 
 
 def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
@@ -89,7 +121,7 @@ class ModuleBase(nn.Module):
         def setup(self, mut: torch.Tensor):
             self.add_mutable("mut", mut)
             # or
-            self.mut = torch.nn.Buffer(mut)
+            self.mut = Mutable(mut)
             return self
 
         @partial(jit, trace=False)
@@ -221,7 +253,7 @@ class ModuleBase(nn.Module):
                 self.add_module(name, sub_module)
         else:
             raise NotImplementedError(f"Mutable of type {type(value)} is not supported yet.")
-        
+
     def to(self, *args, **kwargs) -> "ModuleBase":
         super().to(*args, **kwargs)
         for k in self.__static_names__:
@@ -230,7 +262,7 @@ class ModuleBase(nn.Module):
                 val = val.to(**kwargs)
                 self.__setattr_inner__(k, val)
         return self
-    
+
     def __getattribute__(self, name):
         if not tracing_or_using_state() or name == _WRAPPING_MODULE_NAME or _is_magic(name):
             return super(nn.Module, self).__getattribute__(name)
@@ -241,7 +273,7 @@ class ModuleBase(nn.Module):
             return self_dict.get(_WRAPPING_MODULE_NAME).__getattr__(name)
         except:
             return super(nn.Module, self).__getattribute__(name)
-    
+
     def __getattr_inner__(self, name):
         try:
             value = super(nn.Module, self).__getattribute__(name)
@@ -383,7 +415,8 @@ def use_state_context(new_use_state: bool = True):
     finally:
         # Reset the state to its previous value
         _using_state.reset(token)
-        
+
+
 @contextmanager
 def trace_caching_state_context(new_trace_caching_state: bool = True):
     """
@@ -417,6 +450,7 @@ def is_using_state() -> bool:
         bool: The current state of the `using_state`.
     """
     return _using_state.get()
+
 
 def is_trace_caching_state() -> bool:
     """
@@ -637,12 +671,17 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
         # special case for empty state
         is_empty_state = len(modules_vars) == 0
+        EMPTY_NAME = "___empty___"
+        if is_empty_state:
+            modules_vars = {EMPTY_NAME: torch.empty(0)}
 
         @wraps(func)
         def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
                 # special case for empty state
-                if is_empty_state and (not isinstance(state, dict) or len(state) > 0):
+                if is_empty_state and (
+                    not isinstance(state, dict) or len(state) > (1 if EMPTY_NAME in state else 0)
+                ):
                     ret = func(state, *args, **kwargs)
                     return ret
                 # apply new state dict
@@ -653,6 +692,8 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 mutable_modules = {}
                 for k, v in vars.items():
                     v.state_dict(destination=mutable_modules, prefix=k + ".", keep_vars=True)
+                if len(mutable_modules) == 0:
+                    mutable_modules = {EMPTY_NAME: torch.empty(0)}
                 # return
                 if ret is None:
                     return mutable_modules
@@ -682,7 +723,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             state = {}
             for k, v in modules_vars.items():
                 if isinstance(v, nn.Parameter):
-                    state[k] = nn.Parameter(v.data.clone(), requires_grad=v.requires_grad)
+                    state[k] = nn.Parameter(v.clone(), requires_grad=v.requires_grad)
                 else:
                     state[k] = v.clone()
             return state
@@ -770,6 +811,9 @@ def vmap_impl(target: Callable):
     return wrapping_fn
 
 
+_BASE_NAME = "base"
+
+
 def jit_class[T](cls: type, trace: bool = False) -> T:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
@@ -826,12 +870,12 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             continue
         if hasattr(method, _TRACE_WRAP_NAME):
             original_method = getattr(method, _TRACE_WRAP_NAME)
-            _trace_correspond_methods[original_method.__name__] = method
+            _trace_correspond_methods[original_method.__name__] = {_BASE_NAME: method}
             _original_methods[original_method.__name__] = original_method
             continue
         if hasattr(method, _VMAP_WRAP_NAME):
             original_method = getattr(method, _VMAP_WRAP_NAME)
-            _vmap_correspond_methods[original_method.__name__] = method
+            _vmap_correspond_methods[original_method.__name__] = {_BASE_NAME: method}
             _original_methods[original_method.__name__] = original_method
             continue
         if hasattr(method, _TORCHSCRIPT_MODIFIER):
@@ -902,21 +946,25 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                 # special treatment for compatibility with `vmap_impl`
                 if _vmap_fix.current_level() is not None:
                     if not trace and name in _vmap_correspond_methods:
-                        if hasattr(_vmap_correspond_methods[name], "__self__"):
-                            bounded_target_func = _vmap_correspond_methods[name]
+                        if self in _vmap_correspond_methods[name]:
+                            bounded_target_func = _vmap_correspond_methods[name][self]
                         else:
-                            bounded_target_func = types.MethodType(_vmap_correspond_methods[name], self)
-                            _vmap_correspond_methods[name] = bounded_target_func
+                            bounded_target_func = types.MethodType(
+                                _vmap_correspond_methods[name][_BASE_NAME], self
+                            )
+                            _vmap_correspond_methods[name][self] = bounded_target_func
                         func = bounded_target_func
                         return func(*args, **kwargs)
                 # special treatment for compatibility with `trace_impl`
                 if tracing_or_using_state():
                     if not trace and name in _trace_correspond_methods:
-                        if hasattr(_trace_correspond_methods[name], "__self__"):
-                            bounded_target_func = _trace_correspond_methods[name]
+                        if self in _trace_correspond_methods[name]:
+                            bounded_target_func = _trace_correspond_methods[name][self]
                         else:
-                            bounded_target_func = types.MethodType(_trace_correspond_methods[name], self)
-                            _trace_correspond_methods[name] = bounded_target_func
+                            bounded_target_func = types.MethodType(
+                                _trace_correspond_methods[name][_BASE_NAME], self
+                            )
+                            _trace_correspond_methods[name][self] = bounded_target_func
                         func = bounded_target_func
                     return func(*args, **kwargs)
                 # else, the outer-most method is tracing
