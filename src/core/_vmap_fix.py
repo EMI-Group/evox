@@ -387,7 +387,7 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
     """
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def vmap_input_wrapper(*args, **kwargs):
         flat_args, flat_spec = tree_flatten((args, kwargs))
         for arg in flat_args:
             if not isinstance(arg, torch.Tensor):
@@ -408,4 +408,4 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
         args, kwargs = tree_unflatten(flat_args, flat_spec)
         return func(*args, **kwargs)
 
-    return wrapper
+    return vmap_input_wrapper

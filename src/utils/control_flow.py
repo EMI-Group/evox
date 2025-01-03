@@ -470,6 +470,9 @@ class TracingWhile(ModuleBase):
         return returns
 
 
+_cond_object_cache = {}
+
+
 @jit_class
 class TracingCond(ModuleBase):
     """A helper class used to trace an if-else control flow.
@@ -503,6 +506,13 @@ class TracingCond(ModuleBase):
     ```
     """
 
+    def __new__(cls, true_fn, false_fn, script_functions=False):
+        key = (true_fn, false_fn, script_functions)
+        if key in _cond_object_cache:
+            return _cond_object_cache[key]
+        else:
+            return super().__new__()
+
     def __init__(
         self,
         true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
@@ -526,6 +536,10 @@ class TracingCond(ModuleBase):
             Tuple[int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
+        _cond_object_cache[(true_fn, false_fn, script_functions)] = self
+
+    def __del__(self):
+        _cond_object_cache.pop((self._true_fn, self._false_fn, self.true_fn is not None), None)
 
     @torch.jit.ignore
     def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:

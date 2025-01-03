@@ -269,7 +269,7 @@ def jit[
     jit_func = None
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def jit_wrapper(*args, **kwargs):
         nonlocal jit_func, example_inputs
         with _vmap_fix.use_batch_fixing():
             if tracing_or_using_state():
@@ -307,4 +307,4 @@ def jit[
                     func.set_state()
             return jit_func(*args, **kwargs)
 
-    return wrapper
+    return jit_wrapper

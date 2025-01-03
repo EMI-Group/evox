@@ -676,7 +676,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             modules_vars = {EMPTY_NAME: torch.empty(0)}
 
         @wraps(func)
-        def wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
+        def state_wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
                 # special case for empty state
                 if is_empty_state and (
@@ -728,10 +728,10 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                     state[k] = v.clone()
             return state
 
-        wrapper.init_state = _init_state
-        wrapper.set_state = _set_state
-        setattr(wrapper, _USE_STATE_NAME, True)
-        return wrapper
+        state_wrapper.init_state = _init_state
+        state_wrapper.set_state = _set_state
+        setattr(state_wrapper, _USE_STATE_NAME, True)
+        return state_wrapper
 
 
 global _TORCHSCRIPT_MODIFIER
@@ -941,7 +941,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
             func = base_mod.__getattr_inner__(name)
 
             @wraps(func)
-            def method_wrapper(*args, **kwargs):
+            def jit_member_wrapper(*args, **kwargs):
                 nonlocal func
                 # special treatment for compatibility with `vmap_impl`
                 if _vmap_fix.current_level() is not None:
@@ -975,6 +975,6 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                     )
                 return getattr(self.__jit_module__, name)(*args, **kwargs)
 
-            return method_wrapper
+            return jit_member_wrapper
 
     return WrappedModule
