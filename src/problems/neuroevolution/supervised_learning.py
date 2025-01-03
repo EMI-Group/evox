@@ -19,7 +19,7 @@ class SupervisedLearningProblem(Problem):
         model      : nn.Module,
         data_loader: DataLoader, 
         criterion  : nn.Module,
-        pop_size   : int,
+        pop_size   : int | None, # TODO
         device     : torch.device | None = None,
     ):
         super().__init__()
@@ -54,7 +54,7 @@ class SupervisedLearningProblem(Problem):
 
         # JITed and vmapped model state forward initialization
         state_forward    = use_state(lambda: inference_model.forward)
-        model_init_state = state_forward.init_state()
+        model_init_state = state_forward.init_state(clone=False)
         self._jit_state_forward, (_, dummy_single_logits) = jit(state_forward,
             trace = True, lazy = False, 
             example_inputs = (model_init_state, dummy_inputs),
@@ -84,6 +84,9 @@ class SupervisedLearningProblem(Problem):
 
         # Model parameters and buffers registration
         param_keys          = tuple(dict(inference_model.named_parameters()).keys())
+        # # FIXME: state dict cross-verification
+        # params         = dict(inference_model.named_parameters())
+        # params_key_map = {key: model_init_state.get_key_of_value(val) for key, val in params.items()}
         self._model_buffers = {
             key: value 
             for key, value in state_forward.init_state().items() if key not in param_keys
@@ -122,7 +125,8 @@ class SupervisedLearningProblem(Problem):
         return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
 
     def _vmap_evaluate(self, pop_params: Dict[str, nn.Parameter], num_map: int, device: torch.device):
-        model_buffers = {
+        # Initialize model and criterion states
+        model_buffers = { # Expand dimensions for model buffers
             key: value.unsqueeze(0).expand([num_map] + list(value.shape))
             for key, value in self._model_buffers.items()
         }
@@ -143,17 +147,18 @@ class SupervisedLearningProblem(Problem):
             criterion_state, result = self._jit_vmap_state_criterion(criterion_state, logits, labels)
             total_result += result * inputs.size(0)
             total_inputs += inputs.size(0)
-
         pop_fitness = total_result / total_inputs
         return pop_fitness
 
     def _single_evaluate(self, params: Dict[str, nn.Parameter], device: torch.device):
+        # Initialize model and criterion states
         model_buffers = {key: value.clone() for key, value in self._model_buffers.items()}
         params = {"self." + key: value for key, value in params.items()}
         model_state = model_buffers
         model_state.update(params)
         criterion_state = {key: value.clone() for key, value in self.criterion_init_state.items()}
 
+        # Calculate population fitness
         total_result = torch.tensor(0, device=device)
         total_inputs = 0
         self._data_loader_reset()
@@ -166,9 +171,8 @@ class SupervisedLearningProblem(Problem):
             criterion_state, result = self._jit_state_criterion(criterion_state, logits, labels)
             total_result += result * inputs.size(0)
             total_inputs += inputs.size(0)
-
-        pop_fitness = total_result / total_inputs
-        return pop_fitness
+        fitness = total_result / total_inputs
+        return fitness
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         pop_params_value = pop_params[self._sample_param_key]

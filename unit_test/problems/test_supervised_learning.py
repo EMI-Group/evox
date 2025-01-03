@@ -17,69 +17,98 @@ from src.workflows import StdWorkflow, EvalMonitor
 from src.problems.neuroevolution import SupervisedLearningProblem
 
 
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 3, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(3, 3, kernel_size=3),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
-        )
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(108, 32),
-            nn.ReLU(),
-            nn.Linear(32, 10)
-        )
-    def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
-    
+if __name__ == "__main__":
 
-def model_test(model, data_loader, device):
-    model.eval()
-    with torch.no_grad():
-        total = 0
-        correct = 0
+    class SimpleCNN(nn.Module):
+        def __init__(self):
+            super(SimpleCNN, self).__init__()
+            self.features = nn.Sequential(
+                nn.Conv2d(1, 3, kernel_size=3, padding=1),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=2, stride=2),
+                nn.Conv2d(3, 3, kernel_size=3),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=2, stride=2)
+            )
+            self.classifier = nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(108, 32),
+                nn.ReLU(),
+                nn.Linear(32, 10)
+            )
+        def forward(self, x):
+            x = self.features(x)
+            x = self.classifier(x)
+            return x
+        
+    
+    def model_test(model, data_loader, device):
+        model.eval()
         with torch.no_grad():
-            for inputs, labels in data_loader:
+            total = 0
+            correct = 0
+            with torch.no_grad():
+                for inputs, labels in data_loader:
+                    inputs = inputs.to(device=device, non_blocking=True)
+                    labels = labels.to(device=device, non_blocking=True)
+        
+                    logits = model(inputs)
+                    _, predicted = torch.max(logits.data, dim=1)
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
+                acc = 100 * correct / total
+        return acc
+    
+    
+    def model_train(model, data_loader, criterion, optimizer, max_epoch, device, print_frequent=-1):
+        model.train()
+        for epoch in range(max_epoch):
+            running_loss = 0.0
+            for step, (inputs, labels) in enumerate(data_loader, start=1):
                 inputs = inputs.to(device=device, non_blocking=True)
                 labels = labels.to(device=device, non_blocking=True)
     
+                optimizer.zero_grad()
                 logits = model(inputs)
-                _, predicted = torch.max(logits.data, dim=1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-            acc = 100 * correct / total
-    return acc
+                loss = criterion(logits, labels)
+                loss.backward()
+                optimizer.step()
+    
+                running_loss += loss.item()
+                if print_frequent > 0 and step % print_frequent == 0:
+                    print(f"[{epoch:d}, {step:4d}] runing loss: {running_loss:.4f}")
+                    running_loss = 0.0
+        return model
+    
+    
+    def neuroevolution_process(
+        workflow      : StdWorkflow, 
+        adapter       : ParamsAndVector, 
+        model         : nn.Module, 
+        test_loader   : DataLoader, 
+        device        : torch.device, 
+        max_generation: int = 50,
+    ) -> None:
+        best_acc = -1
+        for index in range(max_generation):
+            print(f"In generation {index}:")
+            t = time.time()
+            workflow.step()
+            torch.cuda.synchronize()
+            print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
+    
+            monitor: EvalMonitor = workflow.get_submodule("monitor")
+            print(f"\tTop 1 fitness: {monitor.topk_fitness[0]:.4f}.")
+            print(f"\tTop 2 fitness: {monitor.topk_fitness[1]:.4f}.")
+            best_params = adapter.to_params(monitor.topk_solutions[0])
+            model.load_state_dict(best_params)
+            acc = model_test(model, test_loader, device)
+            if acc > best_acc:
+                best_acc = acc
+            print(f"\tBest accuracy: {best_acc:.4f} %.")
 
 
-def model_train(model, data_loader, criterion, optimizer, max_epoch, device, print_frequent=-1):
-    model.train()
-    for epoch in range(max_epoch):
-        running_loss = 0.0
-        for step, (inputs, labels) in enumerate(data_loader, start=1):
-            inputs = inputs.to(device=device, non_blocking=True)
-            labels = labels.to(device=device, non_blocking=True)
-
-            optimizer.zero_grad()
-            logits = model(inputs)
-            loss = criterion(logits, labels)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item()
-            if print_frequent > 0 and step % print_frequent == 0:
-                print(f"[{epoch:d}, {step:4d}] runing loss: {running_loss:.4f}")
-                running_loss = 0.0
-    return model
-
-
-def main():
+    # General setting
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     data_root = "./data"
@@ -97,6 +126,7 @@ def main():
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
 
+    # Define dataset and data loader
     BATCH_SIZE = 100
     train_dataset = torchvision.datasets.MNIST(
         root      = data_root,
@@ -135,7 +165,7 @@ def main():
     ])
     print()
 
-    # Define model
+    # Initialize model
     model = SimpleCNN().to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total number of model parameters: {total_params}")
@@ -155,104 +185,115 @@ def main():
     # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
     # print()
 
-    # Neuroevolution process
     print("Neuroevolution process start.")
     adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
    
+    # Define criterion
     class AccuracyCriterion(nn.Module):
         def __init__(self, data_loader: DataLoader):
             super().__init__()
             self.data_loader = data_loader
-
         def forward(self, logits, labels):
             _, predicted = torch.max(logits, dim=1)
             correct = (predicted == labels[:, 0]).sum()
             fitness = -correct
             return fitness
     acc_criterion = AccuracyCriterion(pre_train_loader)
-    # loss_criterion = nn.MSELoss()
-
-    POP_SIZE = 1000
-    prob = SupervisedLearningProblem(
-        model       = model,
-        data_loader = pre_train_loader,
-        criterion   = acc_criterion,
-        # criterion   = loss_criterion,
-        pop_size    = POP_SIZE,
-        device      = device,
+    loss_criterion = nn.MSELoss()
+    class WeightedCriterion(nn.Module):
+        def __init__(self, loss_weight, loss_criterion, acc_weight, acc_criterion):
+            super().__init__()
+            self.loss_weight    = loss_weight
+            self.loss_criterion = loss_criterion
+            self.acc_weight     = acc_weight
+            self.acc_criterion  = acc_criterion
+        def forward(self, logits, labels):
+            weighted_loss = self.loss_weight * self.loss_criterion(logits, labels)
+            weighted_acc  = self.acc_weight  * self.acc_criterion(logits, labels)
+            return weighted_loss + weighted_acc
+    weighted_criterion = WeightedCriterion(
+        loss_weight    = 0.5,
+        loss_criterion = loss_criterion,
+        acc_weight     = 0.5,
+        acc_criterion  = acc_criterion,
     )
-    prob.setup()
 
-    center = adapter.to_vector(model_params)
-    algo = PSO(
-        pop_size = POP_SIZE, 
-        lb       = center - 0.01, 
-        ub       = center + 0.01, 
-        device   = device,
-    )
-    algo.setup()
-
+    # Initialize monitor
     monitor = EvalMonitor(topk=2, device=device) # choose the best two individuals
     monitor.setup()
 
+
+    # Population-based neuroevolution testing
+    print("Population-based neuroevolution process start.")
+    POP_SIZE = 1000
+    vmapped_problem = SupervisedLearningProblem(
+        model       = model,
+        data_loader = pre_train_loader,
+        criterion   = weighted_criterion,
+        pop_size    = POP_SIZE,
+        device      = device,
+    )
+    vmapped_problem.setup()
+
+    pop_center = adapter.to_vector(model_params)
+    pop_algorithm = PSO(
+        pop_size = POP_SIZE, 
+        lb       = pop_center - 0.01, 
+        ub       = pop_center + 0.01, 
+        device   = device,
+    )
+    pop_algorithm.setup()
+
     workflow = StdWorkflow()
     workflow.setup(
-        algorithm          = algo, 
-        problem            = prob,
+        algorithm          = pop_algorithm, 
+        problem            = vmapped_problem,
         solution_transform = adapter,
         monitor            = monitor,
         device             = device,
     )
+    neuroevolution_process(
+        workflow       = workflow, 
+        adapter        = adapter, 
+        model          = model, 
+        test_loader    = pre_test_loader, 
+        device         = device,
+        max_generation = 5,
+    )
+    print()
 
-    best_acc = -1
-    for index in range(50):
-        print(f"In generation {index}:")
-        t = time.time()
-        workflow.step()
-        torch.cuda.synchronize()
-        print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
 
-        monitor = workflow.get_submodule("monitor")
-        print(f"\tTop 1 fitness: {monitor.topk_fitness[0]:.4f}.")
-        print(f"\tTop 2 fitness: {monitor.topk_fitness[1]:.4f}.")
-        best_params = adapter.to_params(monitor.topk_solutions[0])
-        model.load_state_dict(best_params)
-        acc = model_test(model, pre_test_loader, device)
-        if acc > best_acc:
-            best_acc = acc
-        print(f"\tBest accuracy: {best_acc:.4f} %.")
+    # # Single-run neuroevolution testing
+    # print("Single-run neuroevolution process start.")
+    # single_problem = SupervisedLearningProblem(
+    #     model       = model,
+    #     data_loader = pre_train_loader,
+    #     criterion   = weighted_criterion,
+    #     pop_size    = None, # set the problem as single-run mode
+    #     device      = device,
+    # )
+    # single_problem.setup()
 
-    # log_root = "./tests"
-    # os.makedirs(log_root, exist_ok=True)
+    # # TODO: Add a single-run random search algorithm
+    # single_algorithm = None
 
-    # log_file_a = os.path.join(log_root, "a.md")
-    # with open(log_file_a, "w") as ff:
-    #     ff.write(workflow.step.inlined_graph.__str__())
-    # print(f"Please see the result log at `{log_file_a}`.")
+    # # Reset the `workflow` with single-run based problem and algorithm
+    # workflow.setup(
+    #     algorithm          = single_algorithm, 
+    #     problem            = single_problem,
+    #     solution_transform = adapter,
+    #     monitor            = monitor,
+    #     device             = device,
+    # )
+    # neuroevolution_process(
+    #     workflow       = workflow, 
+    #     adapter        = adapter, 
+    #     model          = model, 
+    #     test_loader    = pre_test_loader, 
+    #     device         = device,
+    #     max_generation = 5,
+    # )
+    # print()
 
-    # state_step = use_state(lambda: workflow.step)
-    # state = state_step.init_state()
-    # ## state = {k: (v if v.ndim < 1 or v.shape[0] != algo.pop_size else v[:3]) for k, v in state.items()}
-    # jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
-    # state = state_step.init_state()
-
-    # log_file_b = os.path.join(log_root, "b.md")
-    # with open(log_file_b, "w") as ff:
-    #     ff.write(jit_state_step.inlined_graph.__str__())
-    # print(f"Please see the result log at `{log_file_b}`.")
-
-    # t = time.time()
-    # with profile(
-    #     activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-    # ) as prof:
-    #     # for _ in range(1000):
-    #     #     workflow.step()
-    #     for _ in range(1000):
-    #         state = jit_state_step(state)
-    # print(prof.key_averages().table())
-    # torch.cuda.synchronize()
-    # print(time.time() - t)
-
-if __name__ == "__main__":
-    main()
+    print("Tests completed.")
