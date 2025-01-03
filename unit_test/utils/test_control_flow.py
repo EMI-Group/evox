@@ -7,7 +7,7 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
     
-from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class
+from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class, Mutable
 from src.utils import TracingWhile, TracingCond
 
 

@@ -51,7 +51,6 @@ def Mutable[
     value: T,
     dtype: Optional[torch.dtype] = None,
     device: Optional[torch.device] = None,
-    requires_grad: bool = False,
 ) -> T:
     """
     Wraps a value as a mutable tensor.
@@ -60,12 +59,11 @@ def Mutable[
         value (`T`): The value to be wrapped.
         dtype (`torch.dtype`, optional): The dtype of the tensor. Defaults to None.
         device (`torch.device`, optional): The device of the tensor. Defaults to None.
-        requires_grad (`bool`, optional): Whether the mutable requires gradient. Defaults to False.
 
     Returns:
         T: The wrapped tensor.
     """
-    return nn.Buffer(value.to(dtype=dtype, device=device), requires_grad=False)
+    return nn.Buffer(value.to(dtype=dtype, device=device))
 
 
 def assign_load_state_dict(self: nn.Module, state_dict: Mapping[str, torch.Tensor]):
