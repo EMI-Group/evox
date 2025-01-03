@@ -1,5 +1,4 @@
 import unittest
-from typing import List, Tuple
 import torch
 
 from evox.core import ModuleBase, jit, jit_class, trace_impl, use_state, vmap
@@ -27,7 +26,6 @@ class MyModule(ModuleBase):
 
 
 class TestControlFlow(unittest.TestCase):
-
     def setUp(self):
         self.loop_body = lambda x, y: (x + 1, y**1.05)
         self.loop_cond = lambda x, y: x < 10
