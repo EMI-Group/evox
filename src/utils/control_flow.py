@@ -634,15 +634,11 @@ class TracingCond(ModuleBase):
     """
 
     def __new__(cls, true_fn, false_fn, script_functions=False):
-        true_fn_id = getattr(true_fn, "__id__", id(true_fn))
-        false_fn_id = getattr(false_fn, "__id__", id(false_fn))
-        key = (true_fn_id, false_fn_id, script_functions)
+        key = (true_fn, false_fn, script_functions)
         if key in _cond_object_cache:
             return _cond_object_cache[key]
         else:
-            obj = super().__new__(cls)
-            obj.__cache_key__ = key
-            return obj
+            return super().__new__()
 
     def __init__(
         self,
@@ -674,10 +670,10 @@ class TracingCond(ModuleBase):
             Tuple[int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
-        _cond_object_cache[self.__cache_key__] = self
+        _cond_object_cache[(true_fn, false_fn, script_functions)] = self
 
     def __del__(self):
-        _cond_object_cache.pop(self.__cache_key__, None)
+        _cond_object_cache.pop((self._true_fn, self._false_fn, self.true_fn is not None), None)
 
     @torch.jit.ignore
     def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor] | torch.Tensor | None:

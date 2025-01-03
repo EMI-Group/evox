@@ -739,9 +739,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
 
         state_wrapper.init_state = _init_state
         state_wrapper.set_state = _set_state
-        state_wrapper.is_empty_state = is_empty_state
         setattr(state_wrapper, _USE_STATE_NAME, True)
-        _vmap_fix._set_func_id(state_wrapper, func)
         return state_wrapper
 
 
@@ -986,7 +984,6 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                     )
                 return getattr(self.__jit_module__, name)(*args, **kwargs)
 
-            _vmap_fix._set_func_id(jit_member_wrapper, func)
             return jit_member_wrapper
 
     return WrappedModule
