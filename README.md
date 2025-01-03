@@ -24,7 +24,7 @@
 
 ---
 
-Building upon [JAX](https://github.com/google/jax) and [Ray](https://github.com/ray-project/ray), EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+Building upon PyTorch, EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
 
 ## Key Features
 
@@ -63,9 +63,9 @@ For a comprehensive list and further details of all algorithms, please check the
 
 ### Benchmark Problems/Environments
 
-| Category       | Problems/Environments               |
-| -------------- | ----------------------------------- |
-| Numerical      | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
+| Category          | Problems/Environments               |
+| ----------------- | ----------------------------------- |
+| Numerical         | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution/RL | Brax, Gym, TorchVision Dataset, ... |
 
 For a comprehensive list and further details of all benchmark problems/environments, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
@@ -73,97 +73,15 @@ For a comprehensive list and further details of all benchmark problems/environme
 
 ## Setting Up EvoX
 
-
-## Prerequisites
-
-- **Python**: Version 3.12 (or higher)
-- **CUDA**: Version 12.1 (or higher)
-- **PyTorch**: Version 2.5.0 (or higher recommended)
-
 Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
 ```
 
-**Note**: To setup EvoX with **GPU acceleration** capabilities, you will need to setup **JAX** first. For detials, please refer to our comprehensive [Installation Guide](https://evox.readthedocs.io/en/latest/guide/install/index.html). Additionally, you can watch our **instructional videos**:
-
-🎥 [EvoX Installation Guide (Linux)](https://youtu.be/fa2s1Jl-Fy0)
-
-🎥 [EvoX Installation Guide (Windows)](https://youtu.be/7f8Uz1rqvn8)
-
-🎥 [EvoX 安装指南 (Linux)](https://www.bilibili.com/video/BV1Zt421c7GN)
-
-🎥 [EvoX 安装指南 (Windows)](https://www.bilibili.com/video/BV1Bb421h7bG)
-
-
-
-## Quick Start
-
-Kickstart your journey with EvoX in just a few simple steps:
-1. **Import necessary modules**:
-```python
-import evox
-from evox import algorithms, problems, workflows
-```
-2. **Configure an algorithm and define a problem**:
-```python
-pso = algorithms.PSO(
-    lb=jnp.full(shape=(2,), fill_value=-32),
-    ub=jnp.full(shape=(2,), fill_value=32),
-    pop_size=100,
-)
-ackley = problems.numerical.Ackley()
-```
-3. **Compose and initialize the workflow**:
-```python
-workflow = workflows.StdWorkflow(pso, ackley)
-key = jax.random.PRNGKey(42)
-state = workflow.init(key)
-```
-4. **Run the workflow**:
-```python
-# Execute the workflow for 100 iterations
-for i in range(100):
-    state = workflow.step(state)
-```
-
-## Use-cases and Applications
-
-Try out ready-to-play examples in your browser with Colab:
-
-| Example                  | Link                                                                                                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Basic Usage              | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/1-start.ipynb)                 |
-| Numerical Optimization   | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/pso_ackley.ipynb)                   |
-| Neuroevolution with Gym  | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/gym_classic_control.ipynb)          |
-| Neuroevolution with Brax | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/guide/basics/2-problems.ipynb)              |
-| Custom Algorithm/Problem | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EMI-Group/evox/blob/main/docs/source/example/custom_algorithm_and_problem.ipynb) |
-
-For more use-cases and applications, pleae check out [Example Directory](https://evox.readthedocs.io/en/latest/example/index.html).
-
-
-## Unit Test Commands
+## Run Unit Test
 
 ```shell
-python ./unit_test/algorithms/pso_variants/test_clpso.py
-python ./unit_test/algorithms/pso_variants/test_cso.py
-python ./unit_test/algorithms/pso_variants/test_dms_pso_el.py
-python ./unit_test/algorithms/pso_variants/test_fs_pso.py
-python ./unit_test/algorithms/pso_variants/test_pso.py
-python ./unit_test/algorithms/pso_variants/test_sl_pso_gs.py
-python ./unit_test/algorithms/pso_variants/test_sl_pso_us.py
-
-python ./unit_test/core/test_jit_util.py 
-python ./unit_test/core/test_module.py 
-
-python ./unit_test/problems/test_hpo_wrapper.py 
-python ./unit_test/problems/test_supervised_learning.py 
-
-python ./unit_test/utils/test_jit_fix.py 
-python ./unit_test/utils/test_parameters_and_vector.py
-python ./unit_test/utils/test_while.py 
-
-python ./unit_test/workflows/test_std_workflow.py
+python -m unittest
 ```
 
 ## Community & Support
