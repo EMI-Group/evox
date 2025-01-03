@@ -204,6 +204,7 @@ _original_rand_like = torch.rand_like
 _original_randn_like = torch.randn_like
 _original_randint_like = torch.randint_like
 _original_get_item = torch.Tensor.__getitem__
+_original_set_item = torch.Tensor.__setitem__
 
 
 def _batch_rand(*size, **kwargs):
@@ -272,6 +273,14 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
     return _original_get_item(tensor, indices)
 
 
+def _batch_setitem(tensor: torch.Tensor, indices, values, dim=0):
+    if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
+        tensor = torch.scatter(tensor, dim, indices, values)
+        return tensor
+    # default
+    return _original_set_item(tensor, indices, values)
+
+
 from contextvars import ContextVar, Token
 from contextlib import contextmanager
 
@@ -290,6 +299,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     torch.randn_like = _batch_randn_like if new_batch_fixing else _original_randn_like
     torch.randint_like = _batch_randint_like if new_batch_fixing else _original_randint_like
     torch.Tensor.__getitem__ = _batch_getitem if new_batch_fixing else _original_get_item
+    torch.Tensor.__setitem__ = _batch_setitem if new_batch_fixing else _original_set_item
     try:
         yield token
     finally:
@@ -303,6 +313,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
         torch.randn_like = _original_randn_like
         torch.randint_like = _original_randint_like
         torch.Tensor.__getitem__ = _original_get_item
+        torch.Tensor.__setitem__ = _original_set_item
 
 
 def unwrap_batch_tensor(tensor: torch.Tensor):

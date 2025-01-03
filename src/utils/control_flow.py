@@ -132,8 +132,8 @@ class TracingWhile(ModuleBase):
     def _compile_loop_fn(self, original_args: Tuple[torch.Tensor, ...]) -> torch.jit.ScriptFunction:
         state_cond_fn = use_state(lambda: self._cond_fn)
         state_body_fn = use_state(lambda: self._body_fn)
-        combined_init_state = state_cond_fn.init_state()
-        combined_init_state.update(state_body_fn.init_state())
+        combined_init_state = state_cond_fn.init_state(False)
+        combined_init_state.update(state_body_fn.init_state(False))
         cond_fn = jit(
             state_cond_fn,
             trace=True,
@@ -323,7 +323,7 @@ class TracingWhile(ModuleBase):
             compiled_loop, state_cond_fn, state_body_fn = self._compile_loop_fn(x)
             self._cache_compiled_loop[key] = (compiled_loop, state_cond_fn, state_body_fn)
         state, res = compiled_loop(
-            {**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x
+            {**state_cond_fn.init_state(), **state_body_fn.init_state()}, *x
         )
         state_cond_fn.set_state(state)
         state_body_fn.set_state(state)
@@ -722,13 +722,13 @@ class TracingCond(ModuleBase):
             state_true_fn,
             trace=True,
             lazy=False,
-            example_inputs=(state_true_fn.init_state(),) + original_args,
+            example_inputs=(state_true_fn.init_state(False),) + original_args,
         )
         false_fn = jit(
             state_false_fn,
             trace=True,
             lazy=False,
-            example_inputs=(state_false_fn.init_state(),) + original_args,
+            example_inputs=(state_false_fn.init_state(False),) + original_args,
         )
 
         def _cond1(
@@ -900,7 +900,7 @@ class TracingCond(ModuleBase):
         else:
             compiled_cond, state_true_fn, state_false_fn = self._compile_cond_fn(x)
             self._cache_compiled_cond[key] = (compiled_cond, state_true_fn, state_false_fn)
-        res = compiled_cond(state_true_fn.init_state(False), state_false_fn.init_state(False), cond, *x)
+        res = compiled_cond(state_true_fn.init_state(), state_false_fn.init_state(), cond, *x)
         if isinstance(res, tuple):
             state, res = res
         else:

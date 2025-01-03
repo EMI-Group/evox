@@ -186,6 +186,18 @@ def vmap[
     return jit_func
 
 
+def _clone_inputs(inputs):
+    leaves, tree_spec = _vmap_fix.tree_flatten(inputs)
+    for i, leaf in enumerate(leaves):
+        if isinstance(leaf, torch.nn.Parameter):
+            leaf = torch.nn.Parameter(leaf.clone(), requires_grad=leaf.requires_grad)
+        elif isinstance(leaf, torch.Tensor):
+            leaf = leaf.clone()
+        leaves[i] = leaf
+    inputs = _vmap_fix.tree_unflatten(leaves, tree_spec)
+    return inputs
+
+
 def jit[
     T: Callable
 ](
@@ -233,8 +245,12 @@ def jit[
         assert example_inputs is not None
         if isinstance(example_inputs, list):
             example_inputs = tuple(example_inputs)
+        # clone tensor inputs to remove influences of in-place operations
+        example_inputs = _clone_inputs(example_inputs)
+        # JIT trace immediately
         with _vmap_fix.use_batch_fixing():
             if isinstance(example_inputs, tuple):
+                # run the function to make it cache internals
                 if not no_cache:
                     with trace_caching_state_context():
                         dummy_ret = func(*example_inputs)
@@ -246,6 +262,7 @@ def jit[
                     _store_inputs=check_trace,
                 )
             else:
+                # run the function to make it cache internals
                 if not no_cache:
                     with trace_caching_state_context():
                         dummy_ret = func(**example_inputs)
@@ -260,6 +277,7 @@ def jit[
             func.set_state()  # reset global vars if using state
         return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
 
+    # otherwise, JIT trace lazily
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
         is_empty_state = func.is_empty_state
@@ -299,10 +317,7 @@ def jit[
                         example_inputs.append(args[arg_idx])
                         arg_idx += 1
                 # clone tensor inputs to remove influences of in-place operations
-                example_inputs = tuple(example_inputs)
-                leaves, tree_spec = _vmap_fix.tree_flatten(example_inputs)
-                leaves = [l.clone() if isinstance(l, torch.Tensor) else l for l in leaves]
-                example_inputs = _vmap_fix.tree_unflatten(leaves, tree_spec)
+                example_inputs = _clone_inputs(tuple(example_inputs))
                 # JIT trace
                 if not no_cache:
                     with trace_caching_state_context():
