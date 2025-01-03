@@ -78,7 +78,7 @@ class SupervisedLearningProblem(Problem):
                 trace=True, lazy=False, 
                 example_inputs=(criterion_init_state, dummy_logits, dummy_labels),
             )
-        else:
+        else: # To be removed in new version
             vmap_state_criterion = vmap(state_criterion, in_dims=(0, None))
             self._jit_vmap_state_criterion = jit(vmap_state_criterion, 
                 trace=True, lazy=False, 
@@ -108,25 +108,25 @@ class SupervisedLearningProblem(Problem):
         # TODO: check empty state and branch
         return self._jit_vmap_state_criterion(logits, labels)
 
-    @torch.jit.ignore
     def _evaluate_vmap(self, pop_params: Dict[str, nn.Parameter], num_map: int, device: torch.device):
         model_buffers = {
-            key: value.unsqueeze(0).expand(num_map, *([-1] * value.ndim)) 
+            key: value.unsqueeze(0).expand([num_map] + list(value.shape))
             for key, value in self._model_buffers.items()
         }
         # state = {**model_buffers, **pop_params}
         model_state = model_buffers
-        pop_params = {"self." + key: val for key, val in pop_params.items()}
+        pop_params = {"self." + key: value for key, value in pop_params.items()}
         model_state.update(pop_params)
-        criterion_state = copy.deepcopy(self.criterion_init_state)
+        if self.criterion_init_state is None:
+            criterion_state = None
+        else:
+            criterion_state = {key: value.clone() for key, value in self.criterion_init_state}
         
         n_inputs = 0
         result = torch.zeros(num_map, device=device)
-        global __supervised_data__
-        # TODO: change to while-loop
-        for v in __supervised_data__[self._hash_id_]["data_loader_ref"]: # get data loader by inner hash ID
-            inputs: torch.Tensor = v[0]
-            labels: torch.Tensor = v[1]
+        self._data_loader_reset()
+        while self._data_loader_has_next():
+            inputs, labels = self._data_loader_next()
             inputs = inputs.to(device=device, non_blocking=True)
             labels = labels.to(device=device, non_blocking=True)
 
@@ -193,6 +193,14 @@ class SupervisedLearningProblem(Problem):
         return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
 
     # def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+    #     pop_params_value = pop_params[self._sample_param_ndim_tuple[0]]
+    #     if pop_params_value.ndim > self._sample_param_ndim_tuple[1] and pop_params_value.size(0) != 1:
+    #         # vmapped evaluation
+    #         pass
+    #     else: 
+    #         # single evaluation
+    #         pass
+
     #     self._data_loader_reset()
     #     while self._data_loader_has_next():
     #         inputs, labels = self._data_loader_next()
