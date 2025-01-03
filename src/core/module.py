@@ -683,16 +683,15 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
         # special case for empty state
         is_empty_state = len(modules_vars) == 0
-        EMPTY_NAME = "___empty___"
         if is_empty_state:
-            modules_vars = {EMPTY_NAME: torch.empty(0)}
+            modules_vars = {_EMPTY_NAME: torch.empty(0)}
 
         @wraps(func)
         def state_wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
             with use_state_context():
                 # special case for empty state
                 if is_empty_state and (
-                    not isinstance(state, dict) or len(state) > (1 if EMPTY_NAME in state else 0)
+                    not isinstance(state, dict) or len(state) > (1 if _EMPTY_NAME in state else 0)
                 ):
                     ret = func(state, *args, **kwargs)
                     return ret
@@ -705,7 +704,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
                 for k, v in vars.items():
                     v.state_dict(destination=mutable_modules, prefix=k + ".", keep_vars=True)
                 if len(mutable_modules) == 0:
-                    mutable_modules = {EMPTY_NAME: torch.empty(0)}
+                    mutable_modules = {_EMPTY_NAME: torch.empty(0)}
                 # return
                 if ret is None:
                     return mutable_modules
@@ -742,6 +741,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
 
         state_wrapper.init_state = _init_state
         state_wrapper.set_state = _set_state
+        state_wrapper.is_empty_state = is_empty_state
         setattr(state_wrapper, _USE_STATE_NAME, True)
         return state_wrapper
 

@@ -331,7 +331,15 @@ def jit[
             func.set_state()  # reset global vars if using state
         return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
 
-    # otherwise, JIT trace lazily
+    is_empty_state = False
+    if hasattr(func, _USE_STATE_NAME):
+        is_empty_state = func_args.is_empty_state
+        func_args = inspect.signature(func.__wrapped__).parameters.keys()
+        func_args = list(func_args)
+        func_args = [_STATE_ARG_NAME] + func_args
+    else:
+        func_args = inspect.signature(func).parameters.keys()
+    func_args = tuple(func_args)
     jit_func = None
 
     @wraps(func)
@@ -343,7 +351,24 @@ def jit[
                 return func(*args, **kwargs)
             if not jit_func:
                 # form positional inputs
-                example_inputs = _form_positional_inputs(func_args, args, kwargs, is_empty_state)
+                example_inputs = []
+                arg_idx = 0
+                for k in func_args:
+                    if k in kwargs:
+                        example_inputs.append(kwargs[k])
+                    elif k == "state" and is_empty_state:
+                        if isinstance(args[arg_idx], dict) and (
+                            len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
+                        ):
+                            example_inputs.append(args[arg_idx])
+                            arg_idx += 1
+                    else:
+                        assert arg_idx < len(args), (
+                            f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
+                            + f" positional ones, got {len(args)}"
+                        )
+                        example_inputs.append(args[arg_idx])
+                        arg_idx += 1
                 # clone tensor inputs to remove influences of in-place operations
                 example_inputs = _clone_inputs(tuple(example_inputs))
                 # JIT trace
