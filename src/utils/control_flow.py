@@ -7,6 +7,9 @@ from ..core import _vmap_fix
 from ..core.module import UseStateFunc
 
 
+_while_object_cache = {}
+
+
 @jit_class
 class TracingWhile(ModuleBase):
     """A helper class used to trace a while-loop.
@@ -77,8 +80,8 @@ class TracingWhile(ModuleBase):
 
         ## Notice:
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
-        2. `cond` and `body` must have the same number of arguments.
-        3. `cond` and `body` CAN be non-pure functions, i.e., they CAN have side-effects.
+        2. `cond_fn` and `body_fn` must have the same number of arguments.
+        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects.
         """
         super().__init__()
         if self.__cache_key__ in _while_object_cache:
@@ -95,7 +98,6 @@ class TracingWhile(ModuleBase):
             Tuple[Tuple[int, ...], int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
-        _while_object_cache[self.__cache_key__] = self
 
     def __del__(self):
         _while_object_cache.pop(self.__cache_key__, None)
@@ -128,8 +130,8 @@ class TracingWhile(ModuleBase):
     def _compile_loop_fn(self, original_args: Tuple[torch.Tensor, ...]) -> torch.jit.ScriptFunction:
         state_cond_fn = use_state(lambda: self._cond_fn)
         state_body_fn = use_state(lambda: self._body_fn)
-        combined_init_state = state_cond_fn.init_state(False)
-        combined_init_state.update(state_body_fn.init_state(False))
+        combined_init_state = state_cond_fn.init_state()
+        combined_init_state.update(state_body_fn.init_state())
         cond_fn = jit(
             state_cond_fn,
             trace=True,
@@ -318,7 +320,9 @@ class TracingWhile(ModuleBase):
         else:
             compiled_loop, state_cond_fn, state_body_fn = self._compile_loop_fn(x)
             self._cache_compiled_loop[key] = (compiled_loop, state_cond_fn, state_body_fn)
-        state, res = compiled_loop({**state_cond_fn.init_state(), **state_body_fn.init_state()}, *x)
+        state, res = compiled_loop(
+            {**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x
+        )
         state_cond_fn.set_state(state)
         state_body_fn.set_state(state)
         return res
@@ -585,6 +589,9 @@ class TracingWhile(ModuleBase):
         return returns
 
 
+_cond_object_cache = {}
+
+
 @jit_class
 class TracingCond(ModuleBase):
     """A helper class used to trace an if-else control flow.
@@ -624,8 +631,22 @@ class TracingCond(ModuleBase):
             if not hasattr(self, '_if_else_some_method_'):
                 self._if_else_some_method_ = TracingCond(true_fn, false_fn)
             result = self._if_else_some_method_.cond(cond, x, y)
+            # OR: if true_fn and false_fn are defined in `self`, we can use cache directly
+            if_else = TracingCond(self.true_fn, self.false_fn)
+            return if_else.cond(cond, x, y)
     ```
     """
+
+    def __new__(cls, true_fn, false_fn, script_functions=False):
+        true_fn_id = getattr(true_fn, "__id__", id(true_fn))
+        false_fn_id = getattr(false_fn, "__id__", id(false_fn))
+        key = (true_fn_id, false_fn_id, script_functions)
+        if key in _cond_object_cache:
+            return _cond_object_cache[key]
+        else:
+            obj = super().__new__(cls)
+            obj.__cache_key__ = key
+            return obj
 
     def __init__(
         self,
@@ -657,6 +678,10 @@ class TracingCond(ModuleBase):
             Tuple[int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
+        _cond_object_cache[self.__cache_key__] = self
+
+    def __del__(self):
+        _cond_object_cache.pop(self.__cache_key__, None)
 
     @torch.jit.ignore
     def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor] | torch.Tensor | None:

@@ -39,7 +39,7 @@ def _set_func_id(new_func, old_func):
     else:
         func_id = id(old_func)
     new_func.__id__ = func_id
-
+    
 
 def _transform_in_dim(
     in_dim: int | Tuple[int, ...], batched: torch.Tensor, original: torch.Tensor
@@ -428,7 +428,7 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
     """
 
     @wraps(func)
-    def vmap_input_wrapper(*args, **kwargs):
+    def input_args_wrapper(*args, **kwargs):
         flat_args, flat_spec = tree_flatten((args, kwargs))
         for arg in flat_args:
             if not isinstance(arg, torch.Tensor):
@@ -440,4 +440,5 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
         args, kwargs = tree_unflatten(flat_args, flat_spec)
         return func(*args, **kwargs)
 
-    return vmap_input_wrapper
+    _set_func_id(input_args_wrapper, func)
+    return input_args_wrapper

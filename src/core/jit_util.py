@@ -333,7 +333,7 @@ def jit[
 
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
-        is_empty_state = func_args.is_empty_state
+        is_empty_state = func.is_empty_state
         func_args = inspect.signature(func.__wrapped__).parameters.keys()
         func_args = list(func_args)
         func_args = [_STATE_ARG_NAME] + func_args
@@ -387,4 +387,5 @@ def jit[
                     func.set_state()
             return jit_func(*args, **kwargs)
 
+    _vmap_fix._set_func_id(jit_wrapper, func)
     return jit_wrapper

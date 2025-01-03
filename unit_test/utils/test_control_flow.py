@@ -7,8 +7,8 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
     
-from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class, Mutable
-from src.utils import TracingWhile, TracingCond, TracingSwitch
+from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class
+from src.utils import TracingWhile, TracingCond
 
 
 if __name__ == "__main__":
@@ -130,62 +130,3 @@ if __name__ == "__main__":
     print(m.test(x, y))
     trace_cond = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(x, y))
     print(trace_cond(x, y))
-    
-    print('-' * 100)
-    
-    def branch1_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
-        return [x + 1, y ** 1.05]
-
-    def branch2_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
-        return [x - 1, y ** 0.95]
-    
-    switch = TracingSwitch(branch1_fn, branch2_fn)
-    cond = torch.tensor(1, dtype=torch.int)
-    x = torch.tensor([0, 1], dtype=torch.int)
-    y = torch.tensor([2.0, 2.5])
-    x1, y1 = switch.switch(cond, x, y)
-    print(x1, y1)
-    trace_switch = jit(use_state(lambda: switch.switch), trace=True, lazy=False, example_inputs=(cond, x, y))
-    x1, y1 = trace_switch(cond, x, y)
-    print(x1, y1)
-    
-    cond = torch.tensor([1, 0, 1], dtype=torch.int)
-    x = torch.tensor([0, 1, 2], dtype=torch.int)
-    y = torch.tensor([[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]])
-    vmap_switch = jit(vmap(use_state(lambda: switch.switch)), trace=True, lazy=False, example_inputs=(cond, x, y))
-    x1, y1 = vmap_switch(cond, x, y)
-    print(x1, y1)
-    
-    cond = torch.tensor([[1, 0, 1], [0, 1, 1]], dtype=torch.bool)
-    x = torch.tensor([[0, 1, 2], [3, 4, 5]], dtype=torch.int)
-    y = torch.tensor([[[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]], [[2.1, 2.2], [3.1, 3.2], [4.1, 4.2]]])
-    vmap_switch = jit(vmap(vmap(use_state(lambda: switch.switch))), trace=True, lazy=False, example_inputs=(cond, x, y))
-    x1, y1 = vmap_switch(cond, x, y)
-    print(x1, y1)
-    
-    @jit_class
-    class MyModule(ModuleBase):
-        def test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-            if x.flatten()[0] > 0:
-                return x + y
-            else:
-                return x * y
-        
-        @trace_impl(test)
-        def trace_test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-            switch = TracingSwitch(self.true_branch, self.false_branch)
-            return switch.switch((x.flatten()[0] > 0).to(dtype=torch.int), x, y)
-        
-        def true_branch(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-            return x + y
-        
-        def false_branch(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-            return x * y
-        
-    m = MyModule()
-    x = torch.tensor([1, -1])
-    y = torch.tensor([3, 4])
-    print(m.test(x, y))
-    trace_switch = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(x, y))
-    print(trace_switch(x, y))
-    
