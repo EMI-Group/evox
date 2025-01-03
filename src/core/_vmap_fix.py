@@ -306,8 +306,8 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
 
 def _batch_setitem(tensor: torch.Tensor, indices, values, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
-        new_tensor = tensor.scatter(dim, indices, values)
-        return tensor.copy_(new_tensor)
+        tensor = torch.scatter(tensor, dim, indices, values)
+        return tensor
     # default
     return _original_set_item(tensor, indices, values)
 

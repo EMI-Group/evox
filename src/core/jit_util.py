@@ -204,28 +204,6 @@ def _clone_inputs(inputs):
     return inputs
 
 
-def _form_positional_inputs(func_args, args, kwargs, is_empty_state=False):
-    example_inputs = []
-    arg_idx = 0
-    for k in func_args:
-        if k in kwargs:
-            example_inputs.append(kwargs[k])
-        elif k == "state" and is_empty_state:
-            if isinstance(args[arg_idx], dict) and (
-                len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
-            ):
-                example_inputs.append(args[arg_idx])
-                arg_idx += 1
-        else:
-            assert arg_idx < len(args), (
-                f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
-                + f" positional ones, got {len(args)}"
-            )
-            example_inputs.append(args[arg_idx])
-            arg_idx += 1
-    return example_inputs
-
-
 def jit[
     T: Callable
 ](
@@ -284,15 +262,6 @@ def jit[
         assert example_inputs is not None
         if isinstance(example_inputs, list):
             example_inputs = tuple(example_inputs)
-        if (
-            isinstance(example_inputs, tuple)
-            and len(example_inputs) == 2
-            and isinstance(example_inputs[0], tuple)
-            and isinstance(example_inputs[1], dict)
-        ):
-            example_inputs = tuple(
-                _form_positional_inputs(func_args, example_inputs[0], example_inputs[1], is_empty_state)
-            )
         # clone tensor inputs to remove influences of in-place operations
         example_inputs = _clone_inputs(example_inputs)
         # JIT trace immediately
@@ -302,16 +271,13 @@ def jit[
                 if not no_cache:
                     with trace_caching_state_context():
                         dummy_ret = func(*example_inputs)
-                if trace:
-                    jit_func = torch.jit.trace(
-                        func,
-                        example_inputs,
-                        strict=strict,
-                        check_trace=check_trace,
-                        _store_inputs=check_trace,
-                    )
-                else:
-                    jit_func = torch.jit.script(func)
+                jit_func = torch.jit.trace(
+                    func,
+                    example_inputs,
+                    strict=strict,
+                    check_trace=check_trace,
+                    _store_inputs=check_trace,
+                )
             else:
                 # run the function to make it cache internals
                 if not no_cache:
@@ -331,6 +297,7 @@ def jit[
             func.set_state()  # reset global vars if using state
         return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
 
+    # otherwise, JIT trace lazily
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
         is_empty_state = func.is_empty_state
