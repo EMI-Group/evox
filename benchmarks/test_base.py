@@ -1,16 +1,10 @@
-import time
-import torch
-from torch.profiler import profile, ProfilerActivity
-
 import os
-import sys
 
-current_directory = os.getcwd()
-if current_directory not in sys.path:
-    sys.path.append(current_directory)
+import torch
+from torch.profiler import ProfilerActivity, profile
 
-from src.core import Algorithm, Problem, use_state, jit, vmap
-from src.workflows import StdWorkflow, EvalMonitor
+from src.core import Algorithm, Problem, jit, use_state, vmap
+from src.workflows import EvalMonitor, StdWorkflow
 
 
 class Sphere(Problem):
@@ -22,7 +16,10 @@ class Sphere(Problem):
 
 
 def test(
-    algo: Algorithm, print_path: str | None = None, profiling: bool = True, test_trace: bool = True
+    algo: Algorithm,
+    print_path: str | None = None,
+    profiling: bool = True,
+    test_trace: bool = True,
 ):
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print("Current device: ", torch.get_default_device())
@@ -38,7 +35,10 @@ def test(
         jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
         vmap_state_step = vmap(state_step)
         vmap_state_step = jit(
-            vmap_state_step, trace=True, lazy=False, example_inputs=(vmap_state_step.init_state(3),)
+            vmap_state_step,
+            trace=True,
+            lazy=False,
+            example_inputs=(vmap_state_step.init_state(3),),
         )
     # print
     if print_path is not None:

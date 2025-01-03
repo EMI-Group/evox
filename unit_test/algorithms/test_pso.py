@@ -1,7 +1,5 @@
 from unittest import TestCase
-import time
 import torch
-from torch.profiler import profile, ProfilerActivity
 from evox.core import vmap, Problem, use_state, jit
 from evox.workflows import StdWorkflow
 from evox.algorithms import PSO
@@ -20,8 +18,6 @@ class TestPSO(TestCase):
         self.prob = Sphere()
 
     def test_pso(self):
-        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-        print(torch.get_default_device())
         workflow = StdWorkflow()
         workflow.setup(self.algo, self.prob)
         workflow.init_step()
@@ -32,24 +28,7 @@ class TestPSO(TestCase):
         state = state_step.init_state()
         jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
         state = state_step.init_state()
-        t = time.time()
-        with profile(
-            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-            record_shapes=True,
-            profile_memory=True,
-        ) as prof:
-            for _ in range(1000):
-                workflow.step()
-        print(prof.key_averages().table())
-        torch.cuda.synchronize()
-        t = time.time()
-        with profile(
-            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-            record_shapes=True,
-            profile_memory=True,
-        ) as prof:
-            for _ in range(1000):
-                state = jit_state_step(state)
-        print(prof.key_averages().table())
-        torch.cuda.synchronize()
-        print(time.time() - t)
+        for _ in range(2):
+            workflow.step()
+        for _ in range(2):
+            state = jit_state_step(state)
