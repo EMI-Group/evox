@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, List, Sequence, Tuple
+from typing import Any, Callable, List, Tuple
 
 import torch
 import torch._C._functorch as _functorch
@@ -30,6 +30,16 @@ from torch import nn
 if "Buffer" not in nn.__dict__:
     nn.Buffer = nn.parameter.Buffer
 
+
+def _set_func_id(new_func, old_func):
+    if hasattr(old_func, "__id__"):
+        func_id = old_func.__id__
+    elif hasattr(old_func, "__self__"):
+        func_id = (id(old_func.__self__), id(old_func.__func__))
+    else:
+        func_id = id(old_func)
+    new_func.__id__ = func_id
+    
 
 def _transform_in_dim(
     in_dim: int | Tuple[int, ...], batched: torch.Tensor, original: torch.Tensor
@@ -346,18 +356,6 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
         return value
     if current_value is None or not is_batched_tensor(current_value):
         return value
-    # level = get_level(current_value)
-    # base_value = current_value
-    # batch_dims = []
-    # batch_sizes = []
-    # while level >= 1:
-    #     batch_dim = get_batch_dim(base_value)
-    #     base_value, _ = unwrap_batched(base_value, level)
-    #     batch_dims.append(batch_dim)
-    #     batch_sizes.append(base_value.size(batch_dim))
-    #     level -= 1
-    # batch_dims = tuple(batch_dims[::-1])
-    # batch_sizes = tuple(batch_sizes[::-1])
     value, batch_dims, batch_sizes = unwrap_batch_tensor(current_value)
     for dim, size in zip(batch_dims, batch_sizes):
         value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
@@ -387,25 +385,17 @@ def wrap_vmap_inputs[T: Callable](func: T) -> T:
     """
 
     @wraps(func)
-    def vmap_input_wrapper(*args, **kwargs):
+    def input_args_wrapper(*args, **kwargs):
         flat_args, flat_spec = tree_flatten((args, kwargs))
         for arg in flat_args:
             if not isinstance(arg, torch.Tensor):
                 continue
             if not is_batched_tensor(arg):
                 continue
-            # level = get_level(arg)
-            # base_arg = arg
-            # batch_dims = []
-            # while level >= 1:
-            #     batch_dim = get_batch_dim(base_arg)
-            #     base_arg, _ = unwrap_batched(base_arg, level)
-            #     batch_dims.append(batch_dim)
-            #     level -= 1
-            # batch_dims = tuple(batch_dims[::-1])
             unwrap_arg, batch_dims, _ = unwrap_batch_tensor(arg)
             _transform_in_dim(batch_dims, arg, unwrap_arg)
         args, kwargs = tree_unflatten(flat_args, flat_spec)
         return func(*args, **kwargs)
 
-    return vmap_input_wrapper
+    _set_func_id(input_args_wrapper, func)
+    return input_args_wrapper

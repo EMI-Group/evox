@@ -217,8 +217,8 @@ def jit[
         strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         is_generator (`bool`, optional): Whether `func` is a generator or not. Defaults to False.
-        no_cache (`bool`, optional): Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False` or `lazy=True`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
-        return_dummy_output (`bool`, optional): Whether to return the dummy output or not. Defaults to False. Has no effect when `no_cache=True`.
+        no_cache (`bool`, optional): Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
+        return_dummy_output (`bool`, optional): Whether to return the dummy output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
 
     Returns:
         `Callable`: The JIT version of `func`
@@ -262,7 +262,7 @@ def jit[
 
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
-        is_empty_state = func_args.is_empty_state
+        is_empty_state = func.is_empty_state
         func_args = inspect.signature(func.__wrapped__).parameters.keys()
         func_args = list(func_args)
         func_args = [_STATE_ARG_NAME] + func_args
@@ -304,6 +304,9 @@ def jit[
                 leaves = [l.clone() if isinstance(l, torch.Tensor) else l for l in leaves]
                 example_inputs = _vmap_fix.tree_unflatten(leaves, tree_spec)
                 # JIT trace
+                if not no_cache:
+                    with trace_caching_state_context():
+                        _ = func(*example_inputs)
                 jit_func = torch.jit.trace(
                     func,
                     example_inputs,
@@ -316,4 +319,5 @@ def jit[
                     func.set_state()
             return jit_func(*args, **kwargs)
 
+    _vmap_fix._set_func_id(jit_wrapper, func)
     return jit_wrapper

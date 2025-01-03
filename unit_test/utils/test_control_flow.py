@@ -7,7 +7,7 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
     
-from src.core import use_state, jit, vmap
+from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class
 from src.utils import TracingWhile, TracingCond
 
 
@@ -70,3 +70,29 @@ if __name__ == "__main__":
     vmap_cond = jit(vmap(vmap(use_state(lambda: if_else.cond))), trace=True, lazy=False, example_inputs=(cond, x, y))
     x1, y1 = vmap_cond(cond, x, y)
     print(x1, y1)
+    
+    @jit_class
+    class MyModule(ModuleBase):
+        def test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+            if x.flatten()[0] > 0:
+                return x + y
+            else:
+                return x * y
+        
+        @trace_impl(test)
+        def trace_test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+            if_else = TracingCond(self.true_branch, self.false_branch)
+            return if_else.cond(x.flatten()[0] > 0, x, y)
+        
+        def true_branch(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+            return x + y
+        
+        def false_branch(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+            return x * y
+        
+    m = MyModule()
+    x = torch.tensor([1, -1])
+    y = torch.tensor([3, 4])
+    print(m.test(x, y))
+    trace_cond = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(x, y))
+    print(trace_cond(x, y))

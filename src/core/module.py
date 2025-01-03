@@ -684,7 +684,11 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
             with use_state_context():
                 # special case for empty state
                 if is_empty_state and (
-                    not isinstance(state, dict) or len(state) > (1 if _EMPTY_NAME in state else 0)
+                    not isinstance(state, dict)
+                    or (
+                        (tk := tuple(state.keys())) != (_EMPTY_NAME,)
+                        and len(set(tk).difference((_EMPTY_NAME,))) > 0
+                    )
                 ):
                     ret = func(state, *args, **kwargs)
                     return ret
@@ -736,6 +740,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         state_wrapper.set_state = _set_state
         state_wrapper.is_empty_state = is_empty_state
         setattr(state_wrapper, _USE_STATE_NAME, True)
+        _vmap_fix._set_func_id(state_wrapper, func)
         return state_wrapper
 
 
@@ -980,6 +985,7 @@ def jit_class[T](cls: type, trace: bool = False) -> T:
                     )
                 return getattr(self.__jit_module__, name)(*args, **kwargs)
 
+            _vmap_fix._set_func_id(jit_member_wrapper, func)
             return jit_member_wrapper
 
     return WrappedModule

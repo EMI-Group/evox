@@ -7,6 +7,9 @@ from ..core import _vmap_fix
 from ..core.module import UseStateFunc
 
 
+_while_object_cache = {}
+
+
 @jit_class
 class TracingWhile(ModuleBase):
     """A helper class used to trace a while-loop.
@@ -35,39 +38,69 @@ class TracingWhile(ModuleBase):
     vmap_loop = jit(vmap(use_state(lambda: while_loop.loop)), trace=True, example_inputs=(x, y))
     x1, y1 = vmap_loop(x, y)
     print(x1, y1)
+
+    # inside a ModuleBase
+    class MyModule(ModuleBase):
+        @trace_impl(some_method)
+        def trace_some_method(self, ...):
+            # ...
+            if not hasattr(self, '_while_some_method_'):
+                self._while_some_method_ = TracingWhile(cond_fn, body_fn)
+            result = self._while_some_method_.loop(x, y)
+            # OR: if cond_fn and body_fn are defined in `self`, we can use cache directly
+            while_loop = TracingWhile(self.cond_fn, self.body_fn)
+            return while_loop.loop(x, y)
     ```
     """
 
+    def __new__(cls, cond_fn, body_fn, script_functions=False):
+        cond_id = getattr(cond_fn, "__id__", id(cond_fn))
+        body_id = getattr(body_fn, "__id__", id(body_fn))
+        key = (cond_id, body_id, script_functions)
+        if key in _while_object_cache:
+            return _while_object_cache[key]
+        else:
+            obj = super().__new__(cls)
+            obj.__cache_key__ = key
+            return obj
+
     def __init__(
         self,
-        cond: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor],
-        body: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]],
+        cond_fn: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor],
+        body_fn: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]],
         script_functions: bool = False,
     ):
         """
         Initialize the `TracingWhile`.
 
         Args:
-            cond (`*torch.Tensor -> torch.Tensor`): The condition function. Must be JIT-script compatible if `script_functions=True`.
-            body (`*torch.Tensor -> *torch.Tensor`): The body function. Must be JIT-script compatible if `script_functions=True`.
+            cond_fn (`*torch.Tensor -> torch.Tensor`): The condition function. Must be JIT-script compatible if `script_functions=True`.
+            body_fn (`*torch.Tensor -> *torch.Tensor`): The body function. Must be JIT-script compatible if `script_functions=True`.
             script_functions (`bool`, optional): Whether the `cond` and `body` functions are JIT-script instantly. Defaults to False. When set to True, the basic `loop` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `loop` function shall NOT be used in performance-critical paths.
 
         ## Notice:
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
-        2. `cond` and `body` must have the same number of arguments.
-        3. `cond` and `body` CAN be non-pure functions, i.e., they CAN have side-effects.
+        2. `cond_fn` and `body_fn` must have the same number of arguments.
+        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects.
         """
         super().__init__()
-        self.cond = torch.jit.script(cond) if script_functions else None
-        self.body = torch.jit.script(body) if script_functions else None
-        self._cond = cond
-        self._body = body
-        self._cache_compiled_vmap_loop: Dict[
-            Tuple[Tuple[int, ...], int, torch.dtype, torch.device], torch.jit.ScriptFunction
-        ] = {}
+        if self.__cache_key__ in _while_object_cache:
+            return
+        self.cond_fn = torch.jit.script(cond_fn) if script_functions else None
+        self.body_fn = torch.jit.script(body_fn) if script_functions else None
+        self._cond_fn = cond_fn
+        self._body_fn = body_fn
         self._cache_compiled_loop: Dict[
-            Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction
+            Tuple[int, torch.dtype, torch.device],
+            Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
+        self._cache_compiled_vmap_loop: Dict[
+            Tuple[Tuple[int, ...], int, torch.dtype, torch.device],
+            Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
+        ] = {}
+
+    def __del__(self):
+        _while_object_cache.pop(self.__cache_key__, None)
 
     @torch.jit.ignore
     def loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
@@ -85,50 +118,102 @@ class TracingWhile(ModuleBase):
         Returns:
             `Tuple[torch.Tensor, ...]`: The resulting tensors / carry after the loop completes.
         """
-        if self.cond is None or self.body is None:
-            while self._cond(*x):
-                x = self._body(*x)
+        if self.cond_fn is None or self.body_fn is None:
+            while self._cond_fn(*x):
+                x = self._body_fn(*x)
         else:
-            while self.cond(*x):
-                x = self.body(*x)
+            while self.cond_fn(*x):
+                x = self.body_fn(*x)
         return x
 
     @torch.jit.ignore
     def _compile_loop_fn(self, original_args: Tuple[torch.Tensor, ...]) -> torch.jit.ScriptFunction:
-        cond: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor] = self.cond
-        body: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]] = self.body
-        if cond is None or body is None:
-            cond = jit(self._cond, trace=True, lazy=False, example_inputs=original_args)
-            body = jit(self._body, trace=True, lazy=False, example_inputs=original_args)
+        state_cond_fn = use_state(lambda: self._cond_fn)
+        state_body_fn = use_state(lambda: self._body_fn)
+        combined_init_state = state_cond_fn.init_state()
+        combined_init_state.update(state_body_fn.init_state())
+        cond_fn = jit(
+            state_cond_fn,
+            trace=True,
+            lazy=False,
+            example_inputs=(combined_init_state,) + original_args,
+        )
+        body_fn = jit(
+            state_body_fn,
+            trace=True,
+            lazy=False,
+            example_inputs=(combined_init_state,) + original_args,
+        )
 
-        def _loop1(x1: torch.Tensor):
-            while cond(x1):
-                x1 = body(x1)
-            return x1
+        def _loop1(state: Dict[str, torch.Tensor], x1: torch.Tensor):
+            cond_state, cond = cond_fn(state, x1)
+            state.update(cond_state)
+            while cond:
+                body_state, x1 = body_fn(state, x1)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, x1)
+                state.update(cond_state)
+            return state, x1
 
-        def _loop2(x1: torch.Tensor, x2: torch.Tensor):
-            while cond(x1, x2):
-                x1, x2 = body(x1, x2)
-            return x1, x2
+        def _loop2(state: Dict[str, torch.Tensor], x1: torch.Tensor, x2: torch.Tensor):
+            xs = (x1, x2)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
-        def _loop3(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
-            while cond(x1, x2, x3):
-                x1, x2, x3 = body(x1, x2, x3)
-            return x1, x2, x3
+        def _loop3(state: Dict[str, torch.Tensor], x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
+            xs = (x1, x2, x3)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, xs)
+                state.update(cond_state)
+            return state, xs
 
-        def _loop4(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
-            while cond(x1, x2, x3, x4):
-                x1, x2, x3, x4 = body(x1, x2, x3, x4)
-            return x1, x2, x3, x4
+        def _loop4(
+            state: Dict[str, torch.Tensor],
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+        ):
+            xs = (x1, x2, x3, x4)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         def _loop5(
-            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
+            state: Dict[str, torch.Tensor],
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
         ):
-            while cond(x1, x2, x3, x4, x5):
-                x1, x2, x3, x4, x5 = body(x1, x2, x3, x4, x5)
-            return x1, x2, x3, x4, x5
+            xs = (x1, x2, x3, x4, x5)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         def _loop6(
+            state: Dict[str, torch.Tensor],
             x1: torch.Tensor,
             x2: torch.Tensor,
             x3: torch.Tensor,
@@ -136,11 +221,18 @@ class TracingWhile(ModuleBase):
             x5: torch.Tensor,
             x6: torch.Tensor,
         ):
-            while cond(x1, x2, x3, x4, x5, x6):
-                x1, x2, x3, x4, x5, x6 = body(x1, x2, x3, x4, x5, x6)
-            return x1, x2, x3, x4, x5, x6
+            xs = (x1, x2, x3, x4, x5, x6)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         def _loop7(
+            state: Dict[str, torch.Tensor],
             x1: torch.Tensor,
             x2: torch.Tensor,
             x3: torch.Tensor,
@@ -149,11 +241,18 @@ class TracingWhile(ModuleBase):
             x6: torch.Tensor,
             x7: torch.Tensor,
         ):
-            while cond(x1, x2, x3, x4, x5, x6, x7):
-                x1, x2, x3, x4, x5, x6, x7 = body(x1, x2, x3, x4, x5, x6, x7)
-            return x1, x2, x3, x4, x5, x6, x7
+            xs = (x1, x2, x3, x4, x5, x6, x7)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         def _loop8(
+            state: Dict[str, torch.Tensor],
             x1: torch.Tensor,
             x2: torch.Tensor,
             x3: torch.Tensor,
@@ -163,11 +262,18 @@ class TracingWhile(ModuleBase):
             x7: torch.Tensor,
             x8: torch.Tensor,
         ):
-            while cond(x1, x2, x3, x4, x5, x6, x7, x8):
-                x1, x2, x3, x4, x5, x6, x7, x8 = body(x1, x2, x3, x4, x5, x6, x7, x8)
-            return x1, x2, x3, x4, x5, x6, x7, x8
+            xs = (x1, x2, x3, x4, x5, x6, x7, x8)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         def _loop9(
+            state: Dict[str, torch.Tensor],
             x1: torch.Tensor,
             x2: torch.Tensor,
             x3: torch.Tensor,
@@ -178,9 +284,15 @@ class TracingWhile(ModuleBase):
             x8: torch.Tensor,
             x9: torch.Tensor,
         ):
-            while cond(x1, x2, x3, x4, x5, x6, x7, x8, x9):
-                x1, x2, x3, x4, x5, x6, x7, x8, x9 = body(x1, x2, x3, x4, x5, x6, x7, x8, x9)
-            return x1, x2, x3, x4, x5, x6, x7, x8, x9
+            xs = (x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            cond_state, cond = cond_fn(state, *xs)
+            state.update(cond_state)
+            while cond:
+                body_state, xs = body_fn(state, *xs)
+                state.update(body_state)
+                cond_state, cond = cond_fn(state, *xs)
+                state.update(cond_state)
+            return state, xs
 
         loops_dict = {
             1: _loop1,
@@ -198,25 +310,30 @@ class TracingWhile(ModuleBase):
             loops_dict
         ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
-        return compiled_loop
+        return compiled_loop, state_cond_fn, state_body_fn
 
     @trace_impl(loop)
     def trace_loop(self, *x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
         key = tuple((a.ndim, a.dtype, a.device) for a in x)
         if key in self._cache_compiled_loop:
-            compiled_loop = self._cache_compiled_loop[key]
+            compiled_loop, state_cond_fn, state_body_fn = self._cache_compiled_loop[key]
         else:
-            compiled_loop = self._compile_loop_fn(x)
-            self._cache_compiled_loop[key] = compiled_loop
-        return compiled_loop(*x)
+            compiled_loop, state_cond_fn, state_body_fn = self._compile_loop_fn(x)
+            self._cache_compiled_loop[key] = (compiled_loop, state_cond_fn, state_body_fn)
+        state, res = compiled_loop(
+            {**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x
+        )
+        state_cond_fn.set_state(state)
+        state_body_fn.set_state(state)
+        return res
 
     @torch.jit.ignore
     def _compile_vmap_loop_fn(
         self, original_args: Tuple[torch.Tensor, ...], vmap_dims: Tuple[Tuple[int, ...], ...]
     ):
         # vmap
-        vmap_cond = self._cond
-        vmap_body = self._body
+        vmap_cond = self._cond_fn
+        vmap_body = self._body_fn
         for d in zip(*vmap_dims):
             vmap_cond = vmap(vmap_cond, in_dims=d, trace=False)
             vmap_body = vmap(vmap_body, in_dims=d, out_dims=d, trace=False)
@@ -472,6 +589,9 @@ class TracingWhile(ModuleBase):
         return returns
 
 
+_cond_object_cache = {}
+
+
 @jit_class
 class TracingCond(ModuleBase):
     """A helper class used to trace an if-else control flow.
@@ -511,8 +631,22 @@ class TracingCond(ModuleBase):
             if not hasattr(self, '_if_else_some_method_'):
                 self._if_else_some_method_ = TracingCond(true_fn, false_fn)
             result = self._if_else_some_method_.cond(cond, x, y)
+            # OR: if true_fn and false_fn are defined in `self`, we can use cache directly
+            if_else = TracingCond(self.true_fn, self.false_fn)
+            return if_else.cond(cond, x, y)
     ```
     """
+
+    def __new__(cls, true_fn, false_fn, script_functions=False):
+        true_fn_id = getattr(true_fn, "__id__", id(true_fn))
+        false_fn_id = getattr(false_fn, "__id__", id(false_fn))
+        key = (true_fn_id, false_fn_id, script_functions)
+        if key in _cond_object_cache:
+            return _cond_object_cache[key]
+        else:
+            obj = super().__new__(cls)
+            obj.__cache_key__ = key
+            return obj
 
     def __init__(
         self,
@@ -534,6 +668,8 @@ class TracingCond(ModuleBase):
         3. `true_fn` and `false_fn` CAN be non-pure functions, i.e., they CAN have side-effects.
         """
         super().__init__()
+        if self.__cache_key__ in _cond_object_cache:
+            return
         self.true_fn = torch.jit.script(true_fn) if script_functions else None
         self.false_fn = torch.jit.script(false_fn) if script_functions else None
         self._true_fn = true_fn
@@ -542,9 +678,13 @@ class TracingCond(ModuleBase):
             Tuple[int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
+        _cond_object_cache[self.__cache_key__] = self
+
+    def __del__(self):
+        _cond_object_cache.pop(self.__cache_key__, None)
 
     @torch.jit.ignore
-    def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+    def cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor] | torch.Tensor | None:
         """Runs either the true or false branch based on the given condition.
 
         When tracing JIT (`core.jit` with `trace=True`), the `trace_cond` function is used instead; when using `core.vmap`, the `vmap_cond` function is used instead.
@@ -751,7 +891,7 @@ class TracingCond(ModuleBase):
         return compiled_cond, state_true_fn, state_false_fn
 
     @trace_impl(cond)
-    def trace_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+    def trace_cond(self, cond: torch.Tensor, *x: torch.Tensor):
         key = tuple((a.ndim, a.dtype, a.device) for a in (cond,) + x)
         if key in self._cache_compiled_cond:
             compiled_cond, state_true_fn, state_false_fn = self._cache_compiled_cond[key]
@@ -769,7 +909,7 @@ class TracingCond(ModuleBase):
         return res
 
     @vmap_impl(cond)
-    def vmap_cond(self, cond: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor]:
+    def vmap_cond(self, cond: torch.Tensor, *x: torch.Tensor):
         # cannot dynamic dispatch for vmap, change to torch.where
         # use_state to support in-place modifications in true_fn and false_fn
         state_true_fn = use_state(lambda: self._true_fn)
