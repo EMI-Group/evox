@@ -1,13 +1,8 @@
+import unittest
+
 import torch
 
-import os
-import sys
-
-current_directory = os.getcwd()
-if current_directory not in sys.path:
-    sys.path.append(current_directory)
-
-from src.core import vmap, jit
+from evox.core import jit, vmap
 
 
 def distance_fn(costs: torch.Tensor, mask: torch.Tensor = None):
@@ -32,20 +27,31 @@ def distance_fn(costs: torch.Tensor, mask: torch.Tensor = None):
     return vmap(distance_in_one_dim, in_dims=1, out_dims=1, trace=False)(costs)
 
 
-if __name__ == "__main__":
-    costs = torch.tensor(
-        [
-            [1.0, 0.8, 0.5],
-            [2.0, 1.0, 3.0],
-            [3.0, 3.0, 3.0],
-            [4.0, 1.0, 2.0],
-            [1.5, 1.5, 1.5],
-            [1.5, 1.5, 1.5],
-            [1.5, 4.5, 3.5],
-        ],
-        dtype=torch.float32,
-    )
-    mask = torch.tensor([1, 0, 1, 0, 1, 1, 0], dtype=torch.bool)
-    distances = jit(distance_fn, trace=True, lazy=False, example_inputs=(costs, mask))
-    print(distances(costs, mask))
-    print(distances(costs[:-1], mask[:-1]))
+class TestVmapFix(unittest.TestCase):
+    def setUp(self):
+        self.costs = torch.tensor(
+            [
+                [1.0, 0.8, 0.5],
+                [2.0, 1.0, 3.0],
+                [3.0, 3.0, 3.0],
+                [4.0, 1.0, 2.0],
+                [1.5, 1.5, 1.5],
+                [1.5, 1.5, 1.5],
+                [1.5, 4.5, 3.5],
+            ],
+            dtype=torch.float32,
+        )
+        self.mask = torch.tensor([1, 0, 1, 0, 1, 1, 0], dtype=torch.bool)
+
+    def test_distance_fn_with_mask(self):
+        distances = jit(
+            distance_fn, trace=True, lazy=False, example_inputs=(self.costs, self.mask)
+        )
+        self.assertIsNotNone(distances(self.costs, self.mask))
+        self.assertIsNotNone(distances(self.costs[:-1], self.mask[:-1]))
+
+    def test_distance_fn_without_mask(self):
+        distances = jit(
+            distance_fn, trace=True, lazy=False, example_inputs=(self.costs, None)
+        )
+        self.assertIsNotNone(distances(self.costs, None))
