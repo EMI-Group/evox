@@ -166,6 +166,4 @@ cython_debug/
 
 # Test
 tests
-evox
 **/_future/*
-data
