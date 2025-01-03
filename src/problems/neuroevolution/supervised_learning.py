@@ -3,7 +3,7 @@ import types
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from typing import Dict, Tuple, Iterable, Iterator
+from typing import Dict, Set, Tuple, Iterable, Iterator
 
 from ...core import Problem, jit_class, use_state, vmap, jit
 from ...core.module import assign_load_state_dict
@@ -68,6 +68,15 @@ class SupervisedLearningProblem(Problem):
             return_dummy_output = True, 
         )
 
+        # Building map from model parameters key to model state key 
+        model_params = dict(inference_model.named_parameters())
+        self.param_to_state_key_map: Dict[str, str] = {
+            params_key: state_key
+            for state_key, state_value in model_init_state.items() 
+            for params_key, params_value in model_params.items() 
+            if torch.equal(state_value, params_value)
+        }
+
         # JITed and vmapped state critierion initialization
         state_criterion      = use_state(lambda: criterion.forward)
         criterion_init_state = state_criterion.init_state()
@@ -83,16 +92,14 @@ class SupervisedLearningProblem(Problem):
         )
 
         # Model parameters and buffers registration
-        param_keys          = tuple(dict(inference_model.named_parameters()).keys())
-        # # FIXME: state dict cross-verification
-        # params         = dict(inference_model.named_parameters())
-        # params_key_map = {key: model_init_state.get_key_of_value(val) for key, val in params.items()}
         self._model_buffers = {
             key: value 
-            for key, value in state_forward.init_state().items() if key not in param_keys
+            for key, value in model_init_state.items() if key not in self.param_to_state_key_map
         }
-        self._sample_param_key  = param_keys[0]
-        self._sample_param_ndim = inference_model.get_parameter(param_keys[0]).ndim
+        # TODO: refactor
+        sample_param_key  = tuple(list(self.param_to_state_key_map.items())[0])
+        self._sample_param_ndim = model_init_state[sample_param_key[1]].ndim
+        self._sample_param_key = sample_param_key[0]
 
         # Other member variables registration
         self.criterion_init_state      = criterion_init_state
@@ -130,9 +137,9 @@ class SupervisedLearningProblem(Problem):
             key: value.unsqueeze(0).expand([num_map] + list(value.shape))
             for key, value in self._model_buffers.items()
         }
-        pop_params = {"self." + key: value for key, value in pop_params.items()}
-        model_state = model_buffers
-        model_state.update(pop_params)
+        state_params = {self.param_to_state_key_map[key]: value for key, value in pop_params.items()}
+        model_state  = model_buffers
+        model_state.update(state_params)
         criterion_state = {key: value.clone() for key, value in self.vmap_criterion_init_state.items()}
         
         total_result = torch.zeros(num_map, device=device)
