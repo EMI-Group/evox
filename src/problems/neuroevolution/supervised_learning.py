@@ -78,14 +78,6 @@ class SupervisedLearningProblem(Problem):
                 trace=True, lazy=False, 
                 example_inputs=(criterion_init_state, dummy_logits, dummy_labels),
             )
-        else: # To be removed in new version
-            vmap_state_criterion = vmap(state_criterion, in_dims=(0, None))
-            self._jit_vmap_state_criterion = jit(vmap_state_criterion, 
-                trace=True, lazy=False, 
-                example_inputs=(dummy_logits, dummy_labels),
-            )
-            criterion_init_state = None
-
         self._jit_criterion  = torch.jit.script(criterion)
 
         self.model                = inference_model
@@ -101,12 +93,11 @@ class SupervisedLearningProblem(Problem):
 
     @torch.jit.export
     def _vmap_state_criterion(self, 
-            state : Dict[str, torch.Tensor] | None, 
+            state : Dict[str, torch.Tensor], 
             logits: torch.Tensor, 
             labels: torch.Tensor,
-        ) -> torch.Tensor:
-        # TODO: check empty state and branch
-        return self._jit_vmap_state_criterion(logits, labels)
+        ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+        return self._jit_vmap_state_criterion(state, logits, labels)
 
     def _evaluate_vmap(self, pop_params: Dict[str, nn.Parameter], num_map: int, device: torch.device):
         model_buffers = {
@@ -117,10 +108,7 @@ class SupervisedLearningProblem(Problem):
         model_state = model_buffers
         pop_params = {"self." + key: value for key, value in pop_params.items()}
         model_state.update(pop_params)
-        if self.criterion_init_state is None:
-            criterion_state = None
-        else:
-            criterion_state = {key: value.clone() for key, value in self.criterion_init_state}
+        criterion_state = {key: value.clone() for key, value in self.criterion_init_state.items()}
         
         n_inputs = 0
         result = torch.zeros(num_map, device=device)
@@ -131,8 +119,9 @@ class SupervisedLearningProblem(Problem):
             labels = labels.to(device=device, non_blocking=True)
 
             model_state, logits = self._vmap_state_forward(model_state, inputs)
-            n_inputs     += inputs.size(0)
-            result       += self._vmap_state_criterion(criterion_state, logits, labels) * inputs.size(0)
+            criterion_state, current_result = self._vmap_state_criterion(criterion_state, logits, labels)
+            result   += current_result * inputs.size(0)
+            n_inputs += inputs.size(0)
 
         pop_fitness = result / n_inputs
         return pop_fitness
