@@ -5,6 +5,7 @@ import torch
 from ..core import trace_impl, vmap_impl, jit_class, vmap, jit, use_state, ModuleBase
 from ..core import _vmap_fix
 from ..core.module import UseStateFunc
+from ..utils import switch as _switch
 
 
 _while_object_cache = {}
@@ -81,7 +82,7 @@ class TracingWhile(ModuleBase):
         ## Notice:
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `cond_fn` and `body_fn` must have the same number of arguments.
-        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects.
+        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects, if this module is not vectorized-mapped.
         """
         super().__init__()
         if self.__cache_key__ in _while_object_cache:
@@ -98,6 +99,7 @@ class TracingWhile(ModuleBase):
             Tuple[Tuple[int, ...], int, torch.dtype, torch.device],
             Tuple[torch.jit.ScriptFunction, UseStateFunc, UseStateFunc],
         ] = {}
+        _while_object_cache[self.__cache_key__] = self
 
     def __del__(self):
         _while_object_cache.pop(self.__cache_key__, None)
@@ -936,7 +938,7 @@ class TracingCond(ModuleBase):
                 res.append(torch.where(cond, t, f))
         elif true_res is None and false_res is None:
             res = None
-        elif not isinstance(true_res, Iterable) and not isinstance(false_res, Iterable):
+        elif isinstance(true_res, torch.Tensor) and isinstance(false_res, torch.Tensor):
             res = torch.where(cond, true_res, false_res)
         else:
             raise ValueError("The type of returns of true_fn and false_fn should be the same.")
@@ -955,3 +957,187 @@ class TracingCond(ModuleBase):
         state_false_fn.set_state(state_out)
         # return
         return res
+
+
+_switch_object_cache = {}
+
+
+@jit_class
+class TracingSwitch(ModuleBase):
+    """A helper class used to trace an match-case (switch-case) control flow."""
+
+    def __new__(cls, *branch_fns, script_functions=False):
+        branch_fns_id = tuple(map(lambda f: getattr(f, "__id__", id(f)), branch_fns))
+        key = (branch_fns_id, script_functions)
+        if key in _switch_object_cache:
+            return _switch_object_cache[key]
+        else:
+            obj = super().__new__(cls)
+            obj.__cache_key__ = key
+            return obj
+
+    def __init__(
+        self,
+        *branch_fns: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
+        script_functions: bool = False,
+    ):
+        """
+        Initialize the `TracingCond`.
+
+        Args:
+            branch_fns (`*torch.Tensor -> *torch.Tensor`, variable length argument): The branch functions. Must be JIT-script compatible if `script_functions=True`.
+            script_functions (`bool`, optional): Whether the `branch_fns` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
+
+        ## Notice:
+        1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
+        2. `branch_fns` must have the same number of arguments.
+        3. `branch_fns` CAN be non-pure functions, i.e., they CAN have side-effects.
+        """
+        super().__init__()
+        if self.__cache_key__ in _switch_object_cache:
+            return
+        if script_functions:
+            self.branch_fns = tuple(map(torch.jit.script, branch_fns))
+        else:
+            self.branch_fns = None
+        self._branch_fns = branch_fns
+        self._cache_compiled_switch: Dict[
+            Tuple[int, torch.dtype, torch.device],
+            Tuple[torch.jit.ScriptFunction, Tuple[UseStateFunc, ...]],
+        ] = {}
+        _switch_object_cache[self.__cache_key__] = self
+
+    def __del__(self):
+        _switch_object_cache.pop(self.__cache_key__, None)
+
+    @torch.jit.ignore
+    def switch(
+        self, branch_id: torch.Tensor, *x: torch.Tensor
+    ) -> List[torch.Tensor] | torch.Tensor | None:
+        """Runs either the true or false branch based on the given condition.
+
+        When tracing JIT (`core.jit` with `trace=True`), the `trace_cond` function is used instead; when using `core.vmap`, the `vmap_cond` function is used instead.
+
+        ## Notice:
+        During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python if-else directly.
+
+        Args:
+            branch_id (`torch.Tensor`): An int tensor that indicates which branch to run.
+            *x (`*torch.Tensor`): The input tensors to the branch functions.
+
+        Returns:
+            `List[torch.Tensor]`: The output tensors from the chosen branch function.
+        """
+        if self.branch_fns is None:
+            x = self._branch_fns[branch_id.item()](*x)
+        else:
+            x = self.branch_fns[branch_id.item()](*x)
+        return x
+
+    @torch.jit.ignore
+    def _compile_switch_fn(self, original_args: Tuple[torch.Tensor, ...]):
+        # use state for in-place modifications
+        state_branch_fns = []
+        branch_fns = []
+        for branch_fn in self._branch_fns:
+            state_branch_fns.append(use_state(lambda: branch_fn))
+            branch_fns.append(
+                jit(
+                    state_branch_fns[-1],
+                    trace=True,
+                    lazy=False,
+                    example_inputs=(state_branch_fns[-1].init_state(),) + original_args,
+                )
+            )
+        branch_fns = tuple(branch_fns)
+        state_branch_fns = tuple(state_branch_fns)
+
+        def _switch1(states: List[Dict[str, torch.Tensor]], condition: torch.Tensor, x1: torch.Tensor):
+            match condition:
+                case 0:
+                    return branch_fns[0](states[0], x1)
+                case 1:
+                    return branch_fns[1](states[1], x1)
+                case 2:
+                    return branch_fns[2](states[2], x1)
+                case 3:
+                    return branch_fns[3](states[3], x1)
+                case 4:
+                    return branch_fns[4](states[4], x1)
+                case 5:
+                    return branch_fns[5](states[5], x1)
+
+        switch_dict = {
+            1: _switch1,
+        }
+        assert len(original_args) <= len(
+            switch_dict
+        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        compiled_cond = torch.jit.script(switch_dict[len(original_args)])
+        return compiled_cond, state_branch_fns
+
+    @trace_impl(switch)
+    def trace_switch(self, branch_id: torch.Tensor, *x: torch.Tensor):
+        key = tuple((a.ndim, a.dtype, a.device) for a in (branch_id,) + x)
+        if key in self._cache_compiled_switch:
+            compiled_switch, state_branch_fns = self._cache_compiled_switch[key]
+        else:
+            compiled_switch, state_branch_fns = self._compile_switch_fn(x)
+            self._cache_compiled_switch[key] = (compiled_switch, state_branch_fns)
+        res = compiled_switch([f.init_state(False) for f in state_branch_fns], branch_id, *x)
+        if isinstance(res, tuple):
+            state, res = res
+        else:
+            state = res
+            res = None
+        for f in state_branch_fns:
+            f.set_state(state)
+        return res
+
+    @vmap_impl(switch)
+    def vmap_switch(self, branch_id: torch.Tensor, *x: torch.Tensor):
+        # cannot dynamic dispatch for vmap, change to torch.where
+        # use_state to support in-place modifications
+        state_branch_fns: List[UseStateFunc] = []
+        branch_results: List[torch.Tensor | Tuple[torch.Tensor, ...] | None] = []
+        final_states: List[Dict[str, torch.Tensor]] = []
+        init_state: Dict[str, torch.Tensor] = {}
+        for branch_fn in self._branch_fns:
+            fn = use_state(lambda: branch_fn)
+            state = fn.init_state()
+            result = fn(fn.init_state(), *x)  # duplicate clone to prevent in-place modifications
+            if isinstance(result, tuple):
+                new_state, result = result
+            else:
+                new_state = result
+                result = None
+            if len(branch_results) > 0:
+                assert branch_results[-1] == result or (
+                    type(branch_results[-1]) == type(result)
+                    and not isinstance(result, tuple)
+                    or len(result) == len(branch_results[-1])
+                ), f"Branch functions should return the same type of outputs."
+            state_branch_fns.append(fn)
+            init_state.update(state)
+            branch_results.append(result)
+            final_states.append(new_state)
+        # get conditional outputs
+        if isinstance(branch_results[0], Iterable):
+            final_output = []
+            for results in zip(*branch_results):
+                final_output.append(_switch(branch_id, results))
+        elif branch_results[0] is None:
+            final_output = None
+        elif isinstance(branch_results[0], torch.Tensor):
+            final_output = _switch(branch_id, branch_results)
+        else:
+            raise ValueError("The type of returns of branches should be the same.")
+        # set conditional state
+        state_out: Dict[str, torch.Tensor] = {}
+        for k, v in init_state.items():
+            final_state_tensors = [s.get(k, v) for s in final_states]
+            state_out[k] = _switch(branch_id, final_state_tensors)
+        for fn in state_branch_fns:
+            fn.set_state(state_out)
+        # return
+        return final_output

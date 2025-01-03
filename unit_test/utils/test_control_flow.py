@@ -7,7 +7,7 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
     
-from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class
+from src.core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class, Mutable
 from src.utils import TracingWhile, TracingCond
 
 
@@ -38,6 +38,40 @@ if __name__ == "__main__":
     vmap_loop = jit(vmap(vmap(use_state(lambda: while_loop.loop))), trace=True, lazy=False, example_inputs=(x, y))
     x1, y1 = vmap_loop(x, y)
     print(x1, y1)
+    
+    @jit_class
+    class MyModule(ModuleBase):
+        
+        def __init__(self):
+            super().__init__()
+            self.iters = Mutable(torch.tensor(0, dtype=torch.int))
+        
+        def test(self, x: torch.Tensor, y: torch.Tensor):
+            while x.flatten()[0] < 10:
+                x = x + y
+                y = y / 1.1
+                self.iters += 1
+            return x, y
+        
+        @trace_impl(test)
+        def trace_test(self, x: torch.Tensor, y: torch.Tensor):
+            while_loop = TracingWhile(self.cond_fn, self.body_fn)
+            return while_loop.loop(x, y)
+        
+        def cond_fn(self, x: torch.Tensor, y: torch.Tensor):
+            return x.flatten()[0] < 10
+        
+        def body_fn(self, x: torch.Tensor, y: torch.Tensor):
+            self.iters += 1
+            return x + y, y / 1.1
+        
+    m = MyModule()
+    x = torch.tensor([1.0, -1.0])
+    y = torch.tensor([3.0, 4.0])
+    print(m.test(x, y))
+    state_loop = use_state(lambda: m.test)
+    trace_loop = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(state_loop.init_state(False), x, y))
+    print(trace_loop(state_loop.init_state(False), x, y))
     
     print("-" * 100)
     
