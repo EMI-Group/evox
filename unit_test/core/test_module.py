@@ -8,7 +8,7 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
 
-from src.core import jit_class, ModuleBase, trace_impl, use_state
+from src.core import jit_class, ModuleBase, trace_impl, use_state, jit
 
 
 if __name__ == "__main__":
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     t = Test()
     fn = use_state(lambda: t.h, is_generator=True)
-    trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
+    trace_fn = jit(fn, trace=True, lazy=False, example_inputs=(fn.init_state(), torch.ones(10, 1)))
 
     def loop(init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int = 10):
         state = init_state
@@ -64,6 +64,6 @@ if __name__ == "__main__":
         return rets
 
     print(trace_fn.code)
-    loop = torch.jit.trace(loop, (fn.init_state(), torch.rand(10, 2)), strict=False)
+    loop = jit(loop, trace=True, lazy=False, example_inputs=(fn.init_state(), torch.rand(10, 2)))
     print(loop.code)
     print(loop(fn.init_state(), torch.rand(10, 2)))

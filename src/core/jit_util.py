@@ -11,6 +11,7 @@ from ..core.module import (
     UseStateFunc,
     _USE_STATE_NAME,
     _STATE_ARG_NAME,
+    _EMPTY_NAME,
 )
 from ..core import _vmap_fix
 
@@ -259,7 +260,9 @@ def jit[
             func.set_state()  # reset global vars if using state
         return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
 
+    is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
+        is_empty_state = func_args.is_empty_state
         func_args = inspect.signature(func.__wrapped__).parameters.keys()
         func_args = list(func_args)
         func_args = [_STATE_ARG_NAME] + func_args
@@ -282,6 +285,12 @@ def jit[
                 for k in func_args:
                     if k in kwargs:
                         example_inputs.append(kwargs[k])
+                    elif k == "state" and is_empty_state:
+                        if isinstance(args[arg_idx], dict) and (
+                            len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
+                        ):
+                            example_inputs.append(args[arg_idx])
+                            arg_idx += 1
                     else:
                         assert arg_idx < len(args), (
                             f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
