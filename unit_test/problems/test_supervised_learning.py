@@ -76,7 +76,10 @@ if __name__ == "__main__":
     
                 running_loss += loss.item()
                 if print_frequent > 0 and step % print_frequent == 0:
-                    print(f"[{epoch:d}, {step:4d}] runing loss: {running_loss:.4f}")
+                    print(
+                        f"[{epoch:d}, {step:4d}] "
+                        f"runing loss: {running_loss:.4f}"
+                    )
                     running_loss = 0.0
         return model
     
@@ -202,15 +205,24 @@ if __name__ == "__main__":
     acc_criterion = AccuracyCriterion(pre_train_loader)
     loss_criterion = nn.MSELoss()
     class WeightedCriterion(nn.Module):
-        def __init__(self, loss_weight, loss_criterion, acc_weight, acc_criterion):
+        def __init__(self, 
+            loss_weight, 
+            loss_criterion, 
+            acc_weight, 
+            acc_criterion
+        ):
             super().__init__()
             self.loss_weight    = loss_weight
             self.loss_criterion = loss_criterion
             self.acc_weight     = acc_weight
             self.acc_criterion  = acc_criterion
         def forward(self, logits, labels):
-            weighted_loss = self.loss_weight * self.loss_criterion(logits, labels)
-            weighted_acc  = self.acc_weight  * self.acc_criterion(logits, labels)
+            weighted_loss = self.loss_weight * self.loss_criterion(
+                logits, labels
+            )
+            weighted_acc  = self.acc_weight  * self.acc_criterion(
+                logits, labels
+            )
             return weighted_loss + weighted_acc
     weighted_criterion = WeightedCriterion(
         loss_weight    = 0.5,
@@ -220,7 +232,9 @@ if __name__ == "__main__":
     )
 
     # Initialize monitor
-    monitor = EvalMonitor(topk=2, device=device) # choose the best two individuals
+    monitor = EvalMonitor( # choose the best two individuals
+        topk=2, device=device,
+    ) 
     monitor.setup()
 
 
