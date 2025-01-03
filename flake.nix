@@ -11,9 +11,9 @@
     eachSystem (with system; [ x86_64-linux ]) (system:
       let
         builder = import ./dev_env_builder.nix;
-        cuda-env = builder { inherit system nixpkgs; cudaSupport = true; };
-        rocm-env = builder { inherit system nixpkgs; rocmSupport = true; };
-        cpu-env = builder { inherit system nixpkgs; cudaSupport = false; };
+        cuda-env = builder { inherit system nixpkgs; cudaSupport = true; rocmSupport = false; };
+        rocm-env = builder { inherit system nixpkgs; cudaSupport = false; rocmSupport = true; };
+        cpu-env = builder { inherit system nixpkgs; cudaSupport = false; rocmSupport = false; };
       in
       {
         devShells.default = cpu-env;

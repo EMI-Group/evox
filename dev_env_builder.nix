@@ -1,12 +1,14 @@
 { nixpkgs
 , system
 , cudaSupport
+, rocmSupport
 }:
 let
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfree = true;
     config.cudaSupport = cudaSupport;
+    config.rocmSupport = rocmSupport;
   };
   pythonPackages = pkgs.python3Packages;
 in
