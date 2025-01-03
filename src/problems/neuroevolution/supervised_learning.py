@@ -23,7 +23,9 @@ class SupervisedLearningProblem(Problem):
         device     : torch.device | None = None,
     ):
         super().__init__()
-        # Register global data loader
+        device = torch.get_default_device() if device is None else device
+
+        # Global data loader info registration
         global __supervised_data__
         if __supervised_data__ is None:
             __supervised_data__ = {}
@@ -34,127 +36,65 @@ class SupervisedLearningProblem(Problem):
                 "data_loader_iter": None,
                 "data_next_cache" : None,
             }
-    
-        device = torch.get_default_device() if device is None else device
-        inference_model = copy.deepcopy(model) 
-        inference_model = inference_model.to(device=device)
-        for _, value in inference_model.named_parameters():
-            value.requires_grad = False
-        inference_model.load_state_dict = types.MethodType(assign_load_state_dict, inference_model)
-
-        state_forward       = use_state(lambda: inference_model.forward)
-        param_keys          = tuple(dict(inference_model.named_parameters()).keys())
-        self._model_buffers = {
-            key: value 
-            for key, value in state_forward.init_state().items() if key not in param_keys
-        }
-        self._sample_param_ndim_tuple = (
-            param_keys[0], 
-            inference_model.get_parameter(param_keys[0]).ndim
-        )
-
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
         except StopIteration:
             raise RuntimeError(
                 f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item."
             )
-        dummy_inputs = dummy_inputs.to(device=device)
-        dummy_labels = dummy_labels.to(device=device)
+        dummy_inputs: torch.Tensor = dummy_inputs.to(device=device)
+        dummy_labels: torch.Tensor = dummy_labels.to(device=device)
+    
+        # Model initialization
+        inference_model = copy.deepcopy(model) 
+        inference_model = inference_model.to(device=device)
+        for _, value in inference_model.named_parameters():
+            value.requires_grad = False
+        inference_model.load_state_dict = types.MethodType(assign_load_state_dict, inference_model)
 
-        vmap_state_forward = vmap(state_forward, in_dims=(0, None))
-        model_init_state   = vmap_state_forward.init_state(pop_size)
-        self._jit_vmap_state_forward, (_, dummy_logits) = jit(vmap_state_forward, 
-            trace=True, lazy=False, return_dummy_output=True, 
-            example_inputs=(model_init_state, dummy_inputs)
+        # JITed and vmapped model state forward initialization
+        state_forward    = use_state(lambda: inference_model.forward)
+        model_init_state = state_forward.init_state()
+        self._jit_state_forward, (_, dummy_single_logits) = jit(state_forward,
+            trace = True, lazy = False, 
+            example_inputs = (model_init_state, dummy_inputs),
+            return_dummy_output = True, 
         )
-        self._jit_forward  = torch.jit.script(inference_model)
+        vmap_state_forward    = vmap(state_forward, in_dims=(0, None))
+        vmap_model_init_state = vmap_state_forward.init_state(pop_size)
+        self._jit_vmap_state_forward, (_, dummy_vmap_logits) = jit(vmap_state_forward, 
+            trace = True, lazy = False, 
+            example_inputs = (vmap_model_init_state, dummy_inputs),
+            return_dummy_output = True, 
+        )
 
-        state_criterion    = use_state(lambda: criterion.forward)
-        if len(state_criterion.init_state()) > 0:
-            vmap_state_criterion = vmap(state_criterion, in_dims=(0, 0, None))
-            criterion_init_state = vmap_state_criterion.init_state(pop_size)
-            self._jit_vmap_state_criterion = jit(vmap_state_criterion, 
-                trace=True, lazy=False, 
-                example_inputs=(criterion_init_state, dummy_logits, dummy_labels),
-            )
-        self._jit_criterion  = torch.jit.script(criterion)
+        # JITed and vmapped state critierion initialization
+        state_criterion      = use_state(lambda: criterion.forward)
+        criterion_init_state = state_criterion.init_state()
+        self._jit_state_criterion = jit(state_criterion,
+            trace = True, lazy = False, 
+            example_inputs = (criterion_init_state, dummy_single_logits, dummy_labels),
+        )
+        vmap_state_criterion      = vmap(state_criterion, in_dims=(0, 0, None))
+        vmap_criterion_init_state = vmap_state_criterion.init_state(pop_size)
+        self._jit_vmap_state_criterion = jit(vmap_state_criterion, 
+            trace = True, lazy = False, 
+            example_inputs = (vmap_criterion_init_state, dummy_vmap_logits, dummy_labels),
+        )
 
-        self.model                = inference_model
-        self.criterion            = criterion
-        self.criterion_init_state = criterion_init_state
-
-    @torch.jit.export
-    def _vmap_state_forward(self, 
-            state : Dict[str, torch.Tensor], 
-            inputs: torch.Tensor,
-        ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        return self._jit_vmap_state_forward(state, inputs)
-
-    @torch.jit.export
-    def _vmap_state_criterion(self, 
-            state : Dict[str, torch.Tensor], 
-            logits: torch.Tensor, 
-            labels: torch.Tensor,
-        ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        return self._jit_vmap_state_criterion(state, logits, labels)
-
-    def _evaluate_vmap(self, pop_params: Dict[str, nn.Parameter], num_map: int, device: torch.device):
-        model_buffers = {
-            key: value.unsqueeze(0).expand([num_map] + list(value.shape))
-            for key, value in self._model_buffers.items()
+        # Model parameters and buffers registration
+        param_keys          = tuple(dict(inference_model.named_parameters()).keys())
+        self._model_buffers = {
+            key: value 
+            for key, value in state_forward.init_state().items() if key not in param_keys
         }
-        # state = {**model_buffers, **pop_params}
-        model_state = model_buffers
-        pop_params = {"self." + key: value for key, value in pop_params.items()}
-        model_state.update(pop_params)
-        criterion_state = {key: value.clone() for key, value in self.criterion_init_state.items()}
-        
-        n_inputs = 0
-        result = torch.zeros(num_map, device=device)
-        self._data_loader_reset()
-        while self._data_loader_has_next():
-            inputs, labels = self._data_loader_next()
-            inputs = inputs.to(device=device, non_blocking=True)
-            labels = labels.to(device=device, non_blocking=True)
+        self._sample_param_key  = param_keys[0]
+        self._sample_param_ndim = inference_model.get_parameter(param_keys[0]).ndim
 
-            model_state, logits = self._vmap_state_forward(model_state, inputs)
-            criterion_state, current_result = self._vmap_state_criterion(criterion_state, logits, labels)
-            result   += current_result * inputs.size(0)
-            n_inputs += inputs.size(0)
+        # Other member variables registration
+        self.criterion_init_state      = criterion_init_state
+        self.vmap_criterion_init_state = vmap_criterion_init_state
 
-        pop_fitness = result / n_inputs
-        return pop_fitness
-
-    @torch.jit.ignore
-    def _evaluate_single(self, params: Dict[str, nn.Parameter], device: torch.device): # FIXME
-        self.model.load_state_dict(params)
-
-        result = torch.tensor(0, device=device)
-        n_inputs = 0
-        global __supervised_data__
-        for (inputs, labels) in __supervised_data__[self._hash_id_]:
-            inputs.to(device, non_blocking=True)
-            labels.to(device, non_blocking=True)
-
-            logits    = self._jit_forward(inputs)
-            n_inputs += inputs.size(0)
-            result   += self._jit_criterion(logits, labels) * inputs.size(0)
-
-        pop_fitness = result / n_inputs
-        return pop_fitness
-
-    def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-        pop_params_value = pop_params[self._sample_param_ndim_tuple[0]]
-        if pop_params_value.ndim > self._sample_param_ndim_tuple[1] and pop_params_value.size(0) != 1:
-            # vmapped evaluation
-            pop_fitness = self._evaluate_vmap(pop_params, pop_params_value.size(0), pop_params_value.device)
-        else: 
-            # single evaluation
-            pop_fitness = self._evaluate_single(pop_params, pop_params_value.device)
-        return pop_fitness 
-
-    ###############
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
         global __supervised_data__
@@ -181,18 +121,59 @@ class SupervisedLearningProblem(Problem):
         global __supervised_data__
         return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
 
-    # def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-    #     pop_params_value = pop_params[self._sample_param_ndim_tuple[0]]
-    #     if pop_params_value.ndim > self._sample_param_ndim_tuple[1] and pop_params_value.size(0) != 1:
-    #         # vmapped evaluation
-    #         pass
-    #     else: 
-    #         # single evaluation
-    #         pass
+    def _vmap_evaluate(self, pop_params: Dict[str, nn.Parameter], num_map: int, device: torch.device):
+        model_buffers = {
+            key: value.unsqueeze(0).expand([num_map] + list(value.shape))
+            for key, value in self._model_buffers.items()
+        }
+        pop_params = {"self." + key: value for key, value in pop_params.items()}
+        model_state = model_buffers
+        model_state.update(pop_params)
+        criterion_state = {key: value.clone() for key, value in self.vmap_criterion_init_state.items()}
+        
+        total_result = torch.zeros(num_map, device=device)
+        total_inputs = 0
+        self._data_loader_reset()
+        while self._data_loader_has_next():
+            inputs, labels = self._data_loader_next()
+            inputs = inputs.to(device=device, non_blocking=True)
+            labels = labels.to(device=device, non_blocking=True)
 
-    #     self._data_loader_reset()
-    #     while self._data_loader_has_next():
-    #         inputs, labels = self._data_loader_next()
-    #         print(inputs.shape, inputs.dtype, inputs.sum())
-    #         print(labels.shape, labels.dtype, labels.sum())
-    #     return torch.tensor([1,])
+            model_state    , logits = self._jit_vmap_state_forward(model_state, inputs)
+            criterion_state, result = self._jit_vmap_state_criterion(criterion_state, logits, labels)
+            total_result += result * inputs.size(0)
+            total_inputs += inputs.size(0)
+
+        pop_fitness = total_result / total_inputs
+        return pop_fitness
+
+    def _single_evaluate(self, params: Dict[str, nn.Parameter], device: torch.device):
+        model_buffers = {key: value.clone() for key, value in self._model_buffers.items()}
+        params = {"self." + key: value for key, value in params.items()}
+        model_state = model_buffers
+        model_state.update(params)
+        criterion_state = {key: value.clone() for key, value in self.criterion_init_state.items()}
+
+        total_result = torch.tensor(0, device=device)
+        total_inputs = 0
+        self._data_loader_reset()
+        while self._data_loader_has_next():
+            inputs, labels = self._data_loader_next()
+            inputs = inputs.to(device=device, non_blocking=True)
+            labels = labels.to(device=device, non_blocking=True)
+
+            model_state    , logits = self._jit_state_forward(model_state, inputs)
+            criterion_state, result = self._jit_state_criterion(criterion_state, logits, labels)
+            total_result += result * inputs.size(0)
+            total_inputs += inputs.size(0)
+
+        pop_fitness = total_result / total_inputs
+        return pop_fitness
+
+    def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+        pop_params_value = pop_params[self._sample_param_key]
+        if pop_params_value.ndim > self._sample_param_ndim and pop_params_value.size(0) != 1:
+            pop_fitness = self._vmap_evaluate(pop_params, pop_params_value.size(0), pop_params_value.device)
+        else: 
+            pop_fitness = self._single_evaluate(pop_params, pop_params_value.device)
+        return pop_fitness 
