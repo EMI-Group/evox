@@ -23,11 +23,12 @@ class SupervisedLearningProblem(Problem):
         model      : nn.Module,
         data_loader: DataLoader, 
         criterion  : nn.Module,
-        pop_size   : int | None, # TODO
+        pop_size   : int | None = None, 
         device     : torch.device | None = None,
     ):
         super().__init__()
-        device = torch.get_default_device() if device is None else device
+        device   = torch.get_default_device() if device is None else device
+        pop_size = 1 if pop_size is None else pop_size
 
         # Global data loader info registration
         global __supervised_data__
@@ -45,7 +46,7 @@ class SupervisedLearningProblem(Problem):
         except StopIteration:
             raise RuntimeError(
                 f"The `data_loader` of `{self.__class__.__name__}` "
-                f"must contain at least one item."
+                f"must contain at least one item. "
             )
         dummy_inputs: torch.Tensor = dummy_inputs.to(device=device)
         dummy_labels: torch.Tensor = dummy_labels.to(device=device)
@@ -197,7 +198,10 @@ class SupervisedLearningProblem(Problem):
             key: value.clone() 
             for key, value in self._model_buffers.items()
         }
-        params = {"self." + key: value for key, value in params.items()}
+        params = {
+            self.param_to_state_key_map[key]: value 
+            for key, value in params.items()
+        }
         model_state = model_buffers
         model_state.update(params)
         criterion_state = {

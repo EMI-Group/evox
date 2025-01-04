@@ -12,6 +12,7 @@ import torchvision
 from torch.utils.data import DataLoader
 
 from src.utils import ParamsAndVector
+from src.core import jit_class, Algorithm, Parameter
 from src.algorithms import PSO
 from src.workflows import StdWorkflow, EvalMonitor
 from src.problems.neuroevolution import SupervisedLearningProblem
@@ -77,8 +78,8 @@ if __name__ == "__main__":
                 running_loss += loss.item()
                 if print_frequent > 0 and step % print_frequent == 0:
                     print(
-                        f"[{epoch:d}, {step:4d}] "
-                        f"runing loss: {running_loss:.4f}"
+                        f"[Epoch {epoch:2d}, step {step:4d}] "
+                        f"runing loss: {running_loss:.4f} "
                     )
                     running_loss = 0.0
         return model
@@ -101,8 +102,10 @@ if __name__ == "__main__":
             print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
     
             monitor: EvalMonitor = workflow.get_submodule("monitor")
-            print(f"\tTop 1 fitness: {monitor.topk_fitness[0]:.4f}.")
-            print(f"\tTop 2 fitness: {monitor.topk_fitness[1]:.4f}.")
+            print("\t"
+                f"Top 1 fitness: {monitor.topk_fitness[0]:.4f}; "
+                f"Top 2 fitness: {monitor.topk_fitness[1]:.4f}. "
+            )
             best_params = adapter.to_params(monitor.topk_solutions[0])
             model.load_state_dict(best_params)
             acc = model_test(model, test_loader, device)
@@ -119,15 +122,10 @@ if __name__ == "__main__":
 
     # Set random seed
     seed = 0
-    import random
-    import numpy as np
-    random.seed(seed)
-    np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.enabled = True
-    torch.backends.cudnn.deterministic = False
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
     # Define dataset and data loader
     BATCH_SIZE = 100
@@ -174,23 +172,26 @@ if __name__ == "__main__":
     print(f"Total number of model parameters: {total_params}")
     print()
 
-    # # Gradient descent process
-    # print("Gradient descent training start.")
-    # model_train(model, 
-    #     data_loader    = train_loader, 
-    #     criterion      = nn.CrossEntropyLoss(), 
-    #     optimizer      = torch.optim.Adam(model.parameters(), lr=1e-3), 
-    #     max_epoch      = 10, 
-    #     device         = device,
-    #     print_frequent = 500,
-    # )
-    # gd_acc = model_test(model, pre_test_loader, device)
-    # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
-    # print()
+    # Gradient descent process
+    print("Gradient descent training start.")
+    model_train(model, 
+        data_loader    = train_loader, 
+        criterion      = nn.CrossEntropyLoss(), 
+        optimizer      = torch.optim.Adam(model.parameters(), lr=1e-2), 
+        max_epoch      = 3, 
+        device         = device,
+        print_frequent = 500,
+    )
+    gd_acc = model_test(model, pre_test_loader, device)
+    print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
+    print()
 
-    print("Neuroevolution process start.")
+    # Initialize neuroevolution process
     adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
+    pop_center  = adapter.to_vector(model_params)
+    lower_bound = pop_center - 0.01 
+    upper_bound = pop_center + 0.01 
    
     # Define criterion
     class AccuracyCriterion(nn.Module):
@@ -239,7 +240,10 @@ if __name__ == "__main__":
 
 
     # Population-based neuroevolution testing
-    print("Population-based neuroevolution process start.")
+    print(
+        "Upon gradient descent, "
+        "the population-based neuroevolution process start. "
+    )
     POP_SIZE = 1000
     vmapped_problem = SupervisedLearningProblem(
         model       = model,
@@ -250,11 +254,10 @@ if __name__ == "__main__":
     )
     vmapped_problem.setup()
 
-    pop_center = adapter.to_vector(model_params)
     pop_algorithm = PSO(
         pop_size = POP_SIZE, 
-        lb       = pop_center - 0.01, 
-        ub       = pop_center + 0.01, 
+        lb       = lower_bound,
+        ub       = upper_bound,
         device   = device,
     )
     pop_algorithm.setup()
@@ -273,41 +276,75 @@ if __name__ == "__main__":
         model          = model, 
         test_loader    = pre_test_loader, 
         device         = device,
-        max_generation = 5,
+        max_generation = 2,
     )
     print()
 
 
-    # # Single-run neuroevolution testing
-    # print("Single-run neuroevolution process start.")
-    # single_problem = SupervisedLearningProblem(
-    #     model       = model,
-    #     data_loader = pre_train_loader,
-    #     criterion   = weighted_criterion,
-    #     pop_size    = None, # set the problem as single-run mode
-    #     device      = device,
-    # )
-    # single_problem.setup()
+    # Single-run neuroevolution testing
+    print(
+        "Upon gradient descent, "
+        "the single-run neuroevolution process start. "
+    )
+    single_problem = SupervisedLearningProblem(
+        model       = model,
+        data_loader = pre_train_loader,
+        criterion   = weighted_criterion,
+        pop_size    = None, # set the problem to single-run mode
+        device      = device,
+    )
+    single_problem.setup()
 
-    # # TODO: Add a single-run random search algorithm
-    # single_algorithm = None
+    # Define a single-run random search algorithm
+    @jit_class
+    class RandAlgorithm(Algorithm):
+        def __init__(self, lb: torch.Tensor, ub: torch.Tensor):
+            super().__init__()
+            assert lb.ndim == 1 and ub.ndim == 1, (
+                f"Lower and upper bounds shall have ndim of 1, "
+                f"got {lb.ndim} and {ub.ndim}. "
+            )
+            assert lb.shape == ub.shape, (
+                f"Lower and upper bounds shall have same shape, "
+                f"got {lb.ndim} and {ub.ndim}. "
+            )
+            self.hp  = Parameter([1.0, 2.0])
+            self.lb  = lb
+            self.ub  = ub
+            self.dim = lb.shape[0]
+            self.pop = nn.Buffer(
+                torch.empty(lb.shape[0], dtype=lb.dtype, device=lb.device)
+            )
+            self.fit = nn.Buffer(
+                torch.empty(1, dtype=lb.dtype, device=lb.device)
+            )
+        def step(self):
+            pop = torch.rand(
+                self.dim, dtype=self.lb.dtype, device=self.lb.device,
+            )
+            pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
+            pop = pop * self.hp[0]
+            self.pop.copy_(pop)
+            self.fit.copy_(self.evaluate(pop))
+    single_algorithm = RandAlgorithm(lb=lower_bound, ub=upper_bound)
 
-    # # Reset the `workflow` with single-run based problem and algorithm
-    # workflow.setup(
-    #     algorithm          = single_algorithm, 
-    #     problem            = single_problem,
-    #     solution_transform = adapter,
-    #     monitor            = monitor,
-    #     device             = device,
-    # )
-    # neuroevolution_process(
-    #     workflow       = workflow, 
-    #     adapter        = adapter, 
-    #     model          = model, 
-    #     test_loader    = pre_test_loader, 
-    #     device         = device,
-    #     max_generation = 5,
-    # )
-    # print()
+    # Reset the `workflow` with single-run based problem and algorithm
+    # FIXME
+    workflow.setup(
+        algorithm          = single_algorithm, 
+        problem            = single_problem,
+        solution_transform = adapter,
+        monitor            = monitor,
+        device             = device,
+    )
+    neuroevolution_process(
+        workflow       = workflow, 
+        adapter        = adapter, 
+        model          = model, 
+        test_loader    = pre_test_loader, 
+        device         = device,
+        max_generation = 2,
+    )
+    print()
 
     print("Tests completed.")
