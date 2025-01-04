@@ -47,11 +47,7 @@ def Parameter[
 
 def Mutable[
     T: torch.Tensor
-](
-    value: T,
-    dtype: Optional[torch.dtype] = None,
-    device: Optional[torch.device] = None,
-) -> T:
+](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None,) -> T:
     """
     Wraps a value as a mutable tensor.
 

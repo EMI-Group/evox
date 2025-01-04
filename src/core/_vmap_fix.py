@@ -8,7 +8,7 @@ from torch._C._functorch import (
     maybe_get_bdim as get_batch_dim,
     maybe_get_level as get_level,
     is_batchedtensor as is_batched_tensor,
-    _unwrap_batched as unwrap_batched,
+    _unwrap_batched as unwrap_batched_base,
     _vmap_decrement_nesting as vmap_decrement_nesting,
     _vmap_increment_nesting as vmap_increment_nesting,
 )
@@ -39,7 +39,7 @@ def _set_func_id(new_func, old_func):
     else:
         func_id = id(old_func)
     new_func.__id__ = func_id
-    
+
 
 def _transform_in_dim(
     in_dim: int | Tuple[int, ...], batched: torch.Tensor, original: torch.Tensor
@@ -267,7 +267,7 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)
         if indices.ndim == 0:
-            tensor = tensor.squeeze(dim)
+            tensor = tensor[*(([slice(None)] * dim) + [0])]
         return tensor
     # default
     return _original_get_item(tensor, indices)
@@ -275,8 +275,8 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
 
 def _batch_setitem(tensor: torch.Tensor, indices, values, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
-        tensor = torch.scatter(tensor, dim, indices, values)
-        return tensor
+        new_tensor = tensor.scatter(dim, indices, values)
+        return tensor.copy_(new_tensor)
     # default
     return _original_set_item(tensor, indices, values)
 
@@ -331,7 +331,7 @@ def unwrap_batch_tensor(tensor: torch.Tensor):
     batch_sizes = []
     while level >= 1:
         batch_dim = get_batch_dim(tensor)
-        tensor, _ = unwrap_batched(tensor, level)
+        tensor, _ = unwrap_batched_base(tensor, level)
         batch_dims.append(batch_dim)
         batch_sizes.append(tensor.size(batch_dim))
         level -= 1

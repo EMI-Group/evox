@@ -67,7 +67,13 @@ def vmap[
 
     randomness = "same"  # prevent wrong batch tracing
 
-    mapped = torch.vmap(func, in_dims, out_dims, randomness)
+    @wraps(func)
+    def vmap_wrapper(*args, **kwargs):
+        with _vmap_fix.use_batch_fixing():
+            return func(*args, **kwargs)
+
+    _vmap_fix._set_func_id(vmap_wrapper, func)
+    mapped = torch.vmap(vmap_wrapper, in_dims, out_dims, randomness)
     # when tracing, do nothing
     if not trace or tracing_or_using_state():
         return mapped
@@ -198,13 +204,35 @@ def _clone_inputs(inputs):
     return inputs
 
 
+def _form_positional_inputs(func_args, args, kwargs, is_empty_state=False):
+    example_inputs = []
+    arg_idx = 0
+    for k in func_args:
+        if k in kwargs:
+            example_inputs.append(kwargs[k])
+        elif k == "state" and is_empty_state:
+            if isinstance(args[arg_idx], dict) and (
+                len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
+            ):
+                example_inputs.append(args[arg_idx])
+                arg_idx += 1
+        else:
+            assert arg_idx < len(args), (
+                f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
+                + f" positional ones, got {len(args)}"
+            )
+            example_inputs.append(args[arg_idx])
+            arg_idx += 1
+    return example_inputs
+
+
 def jit[
     T: Callable
 ](
     func: T | UseStateFunc | MappedUseStateFunc,
     trace: bool = False,
     lazy: bool = False,
-    example_inputs: Optional[Union[Tuple, Dict]] = None,
+    example_inputs: Optional[Tuple | Dict | Tuple[Tuple, Dict]] = None,
     strict: bool = False,
     check_trace: bool = False,
     is_generator: bool = False,
@@ -224,8 +252,8 @@ def jit[
     Args:
         func (`Callable`): The target function to be JIT
         trace (`bool`, optional): Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
-        lazy (`bool`, optional): Whether JIT lazily or immediately. Defaults to False.
-        example_inputs (`tuple` or `dict`, optional): When `trace=True` and `lazy=False`, the example inputs must be provided immediately, otherwise ignored.
+        lazy (`bool`, optional): Whether JIT lazily or immediately. Defaults to False. Has no effect when `trace=False`, where its value will be constantly `False`.
+        example_inputs (`tuple` or `dict` or `tuple[tuple, dict]`, optional): When `lazy=False`, the example inputs must be provided immediately, otherwise ignored. Can be only positional arguments (a tuple), only keyword arguments (a dict), or a tuple of positional arguments and keyword arguments (a tuple of tuple and dict). Defaults to None.
         strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
         is_generator (`bool`, optional): Whether `func` is a generator or not. Defaults to False.
@@ -239,45 +267,9 @@ def jit[
         func = func()
     if isinstance(func, torch.jit.ScriptFunction):
         return func
-    if not trace:
-        return torch.jit.script_if_tracing(func) if lazy else torch.jit.script(func)
-    elif not lazy:
-        assert example_inputs is not None
-        if isinstance(example_inputs, list):
-            example_inputs = tuple(example_inputs)
-        # clone tensor inputs to remove influences of in-place operations
-        example_inputs = _clone_inputs(example_inputs)
-        # JIT trace immediately
-        with _vmap_fix.use_batch_fixing():
-            if isinstance(example_inputs, tuple):
-                # run the function to make it cache internals
-                if not no_cache:
-                    with trace_caching_state_context():
-                        dummy_ret = func(*example_inputs)
-                jit_func = torch.jit.trace(
-                    func,
-                    example_inputs,
-                    strict=strict,
-                    check_trace=check_trace,
-                    _store_inputs=check_trace,
-                )
-            else:
-                # run the function to make it cache internals
-                if not no_cache:
-                    with trace_caching_state_context():
-                        dummy_ret = func(**example_inputs)
-                jit_func = torch.jit.trace(
-                    func,
-                    example_kwarg_inputs=example_inputs,
-                    strict=strict,
-                    check_trace=check_trace,
-                    _store_inputs=check_trace,
-                )
-        if hasattr(func, _USE_STATE_NAME):
-            func.set_state()  # reset global vars if using state
-        return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
-
-    # otherwise, JIT trace lazily
+    if lazy and not trace:
+        trace = True # force trace=True when lazy=True
+    # special handling for using state
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
         is_empty_state = func.is_empty_state
@@ -287,35 +279,71 @@ def jit[
     else:
         func_args = inspect.signature(func).parameters.keys()
     func_args = tuple(func_args)
+    # if not lazy, example_inputs must be provided
+    if not lazy:
+        assert example_inputs is not None
+        if isinstance(example_inputs, list):
+            example_inputs = tuple(example_inputs)
+        if (
+            isinstance(example_inputs, tuple)
+            and len(example_inputs) == 2
+            and isinstance(example_inputs[0], tuple)
+            and isinstance(example_inputs[1], dict)
+        ):
+            example_inputs = tuple(
+                _form_positional_inputs(func_args, example_inputs[0], example_inputs[1], is_empty_state)
+            )
+        # clone tensor inputs to remove influences of in-place operations
+        example_inputs = _clone_inputs(example_inputs)
+        # JIT trace immediately
+        with _vmap_fix.use_batch_fixing():
+            if isinstance(example_inputs, tuple):
+                # run the function to make it cache internals
+                if not no_cache:
+                    with trace_caching_state_context():
+                        dummy_ret = func(*example_inputs)
+                if trace:
+                    jit_func = torch.jit.trace(
+                        func,
+                        example_inputs,
+                        strict=strict,
+                        check_trace=check_trace,
+                        _store_inputs=check_trace,
+                    )
+                else:
+                    jit_func = torch.jit.script(func)
+            else:
+                # run the function to make it cache internals
+                if not no_cache:
+                    with trace_caching_state_context():
+                        dummy_ret = func(**example_inputs)
+                if trace:
+                    jit_func = torch.jit.trace(
+                        func,
+                        example_kwarg_inputs=example_inputs,
+                        strict=strict,
+                        check_trace=check_trace,
+                        _store_inputs=check_trace,
+                    )
+                else:
+                    jit_func = torch.jit.script(func)
+        if hasattr(func, _USE_STATE_NAME):
+            func.set_state()  # reset global vars if using state
+        return (jit_func, dummy_ret) if not no_cache and return_dummy_output else jit_func
+
+    # otherwise, JIT trace lazily
     jit_func = None
 
     @wraps(func)
     def jit_wrapper(*args, **kwargs):
-        nonlocal jit_func, example_inputs
+        nonlocal jit_func, func_args, is_empty_state
         with _vmap_fix.use_batch_fixing():
             if tracing_or_using_state():
                 jit_func = func
                 return func(*args, **kwargs)
             if not jit_func:
                 # form positional inputs
-                example_inputs = []
-                arg_idx = 0
-                for k in func_args:
-                    if k in kwargs:
-                        example_inputs.append(kwargs[k])
-                    elif k == "state" and is_empty_state:
-                        if isinstance(args[arg_idx], dict) and (
-                            len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
-                        ):
-                            example_inputs.append(args[arg_idx])
-                            arg_idx += 1
-                    else:
-                        assert arg_idx < len(args), (
-                            f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
-                            + f" positional ones, got {len(args)}"
-                        )
-                        example_inputs.append(args[arg_idx])
-                        arg_idx += 1
+                example_inputs = _form_positional_inputs(func_args, args, kwargs, is_empty_state)
                 # clone tensor inputs to remove influences of in-place operations
                 example_inputs = _clone_inputs(tuple(example_inputs))
                 # JIT trace
