@@ -39,7 +39,7 @@ def _set_func_id(new_func, old_func):
     else:
         func_id = id(old_func)
     new_func.__id__ = func_id
-    
+
 
 def _transform_in_dim(
     in_dim: int | Tuple[int, ...], batched: torch.Tensor, original: torch.Tensor
@@ -306,8 +306,8 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
 
 def _batch_setitem(tensor: torch.Tensor, indices, values, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
-        tensor = torch.scatter(tensor, dim, indices, values)
-        return tensor
+        new_tensor = tensor.scatter(dim, indices, values)
+        return tensor.copy_(new_tensor)
     # default
     return _original_set_item(tensor, indices, values)
 
