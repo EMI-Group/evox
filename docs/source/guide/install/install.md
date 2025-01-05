@@ -8,49 +8,25 @@ EvoX is available at Pypi and can be installed via:
 pip install evox
 ```
 
-To install EvoX with optional dependencies:
-
-```bash
-pip install evox[<feature1>,<feature2>]
-```
-
-available features are `gymnasium`, `neuroevolution`, `envpool`, `distributed`, and `full` which concludes all features.
-For example, to install EvoX with all features, do:
-
-```bash
-pip install evox[full]
-```
-
 ## Install JAX with accelerator support
 
-`EvoX` relies on `JAX` to provide hardware acceleration.
+`EvoX` relies on `torch` to provide hardware acceleration.
 The overall architecture of these Python packages looks like this:
 
 ```{mermaid}
 stateDiagram-v2
-    jaxlibCuda : jaxlib-cuda
+    torch : torch
     gpu : NVIDIA GPU
 
     direction LR
 
-    evox --> jax
-    jax --> jaxlib
-    jax --> jaxlibCuda
-    jaxlib --> CPU
-    jaxlibCuda --> gpu
+    evox --> torch
+    torch --> gpu
 ```
-
-`JAX` itself is pure Python, and `jaxlib` provides the C/C++ code.
-To utilize JAX's hardware acceleration ability, make sure to install the correct `jaxlib` version.
 
 To summarize, you will need the follow 3 things to enable accelerator support:
 1. GPU driver
 2. CUDA libraries
-3. The correct jaxlib version (the one with accelerator support).
-
-```{seealso}
-For more information, e.g. other platforms, please check out JAX's [official installation guide](https://github.com/google/jax/?tab=readme-ov-file#installation).
-```
 
 ### CPU only
 
@@ -186,7 +162,7 @@ If you see something like this, then you are good to go.
 | 35%   35C    P8              25W / 350W |     27MiB / 24576MiB |      0%      Default |
 |                                         |                      |                  N/A |
 +-----------------------------------------+----------------------+----------------------+
-                                                                                         
+
 +---------------------------------------------------------------------------------------+
 | Processes:                                                                            |
 |  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
