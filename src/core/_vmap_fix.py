@@ -188,7 +188,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     if level is None or level <= 0:
         return rand_func(like_tensor, **kwargs)
     # else
-    original_tensor, batch_dims, batch_sizes = unwrap_batch_tensor(like_tensor)
+    original_tensor, batch_dims, _ = unwrap_batch_tensor(like_tensor)
     batch_rand_values = rand_func(original_tensor, **kwargs)
     for level, dim in enumerate(batch_dims):
         batch_rand_values = add_batch_dim(batch_rand_values, dim, level)

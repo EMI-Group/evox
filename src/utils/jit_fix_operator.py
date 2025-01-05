@@ -29,7 +29,9 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     This function ensures that each element of the tensor `a` is not less than the corresponding element
     of `lb` and not greater than the corresponding element of `ub`.
 
-    Notice: This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
+    ## Notice:
+    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
+    2. This is NOT a precise replication of `torch.clamp` if `a`, `lb` or `ub` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
 
     Args:
         a (`torch.Tensor`): The input tensor to be clamped.
