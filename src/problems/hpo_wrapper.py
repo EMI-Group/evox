@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from ..core import Problem, Workflow, Monitor, jit_class, use_state, vmap, jit
-from ..core.module import _WrapClassBase, _WRAPPING_MODULE_NAME
+from ..core.module import _WrapClassBase
 from .. import utils
 
 
@@ -89,19 +89,21 @@ class HPOProblemWrapper(Problem):
     ```
     """
     
-    def __init__(self, iterations: int, num_instances: int, workflow: Workflow):
+    def __init__(self, iterations: int, num_instances: int, workflow: Workflow, copy_init_state: bool = True):
         """Initialize the HPO problem wrapper.
 
         Args:
             iterations (`int`): The number of iterations to be executed in the optimization process.
             num_instances (`int`): The number of instances to be executed in parallel in the optimization process.
             workflow (`Workflow`): The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
+            copy_init_state (`bool`, optional): Whether to copy the initial state of the workflow for each evaluation. Defaults to `True`. If your workflow contains operations that IN-PLACE modify the tensor(s) in initial state, this should be set to `True`. Otherwise, you can set it to `False` to save memory.
         """
         super().__init__()
         assert iterations > 0, f"`iterations` should be greater than 0, got {iterations}"
         assert num_instances > 0, f"`num_instances` should be greater than 0, got {num_instances}"
         self.iterations = iterations
         self.num_instances = num_instances
+        self.copy_init_state = copy_init_state
         # compile workflow steps
         assert isinstance(workflow, _WrapClassBase), f"Expect `workflow` to be wrapped by `jit_class`, got {type(workflow)}"
         workflow.__sync__()
@@ -169,7 +171,12 @@ class HPOProblemWrapper(Problem):
                 v, nn.Parameter
             ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self.init_state[k])} and {type(v)}"
         # run the workflow
-        state = self.init_state.copy()
+        state = {}
+        if self.copy_init_state:
+            for k, v in self.init_state.items():
+                state[k] = v.clone()
+        else:
+            state = self.init_state
         state.update(hyper_parameters)
         state = self._workflow_init_step_(state)
         for _ in range(self.iterations - 1):
