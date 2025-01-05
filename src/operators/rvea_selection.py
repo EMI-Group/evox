@@ -3,35 +3,6 @@ import torch.nn.functional as F
 from ..utils import clamp, maximum, nanmin
 from ..core import vmap, jit
 
-# The following code defines a custom function `apd_func` and applies vectorization (vmap)
-# and JIT compilation for optimization.
-
-# def apd_func(
-#     x: torch.Tensor,
-#     y: torch.Tensor,
-#     z: torch.Tensor,
-#     obj: torch.Tensor,
-#     theta: torch.Tensor,
-# ):
-#     return (
-#         1 + obj.shape[1] * theta * torch.index_select(z, 0, torch.relu(x)) / y[None]
-#     ) * torch.linalg.vector_norm(obj[x, :], dim=1)
-#
-#
-# apd_fn = vmap(apd_func, in_dims=(1, 0, 1, None, None), out_dims=1, trace=False)
-# apd_fn = jit(
-#     apd_fn,
-#     trace=True,
-#     lazy=False,
-#     example_inputs=(
-#         torch.zeros(10000, 6000, dtype=torch.int64, device="cuda"),
-#         torch.empty(6000, device="cuda"),
-#         torch.empty(10000, 6000, device="cuda"),
-#         torch.empty(10000, 3, device="cuda"),
-#         torch.tensor(0.5, device="cuda"),
-#     ),
-# )
-
 
 def apd_fn(
     x: torch.Tensor,
