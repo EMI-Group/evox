@@ -1,12 +1,11 @@
 from abc import ABC
 import inspect
-import sys
-import os
 import types
 from functools import wraps
 from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
+
 import torch
-from torch import nn
+import torch.nn as nn
 
 from ..core import _vmap_fix
 

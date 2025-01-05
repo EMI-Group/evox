@@ -145,7 +145,13 @@ For more use-cases and applications, pleae check out [Example Directory](https:/
 ## Unit Test Commands
 
 ```shell
-python ./unit_test/algorithms/test_pso.py
+python ./unit_test/algorithms/pso_variants/test_clpso.py
+python ./unit_test/algorithms/pso_variants/test_cso.py
+python ./unit_test/algorithms/pso_variants/test_dms_pso_el.py
+python ./unit_test/algorithms/pso_variants/test_fs_pso.py
+python ./unit_test/algorithms/pso_variants/test_pso.py
+python ./unit_test/algorithms/pso_variants/test_sl_pso_gs.py
+python ./unit_test/algorithms/pso_variants/test_sl_pso_us.py
 
 python ./unit_test/core/test_jit_util.py
 python ./unit_test/core/test_module.py

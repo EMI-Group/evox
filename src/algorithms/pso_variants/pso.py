@@ -1,8 +1,9 @@
 import torch
-from torch import nn
+import torch.nn as nn
 
 from ..utils import clamp
-from ..core import Parameter, Algorithm, jit_class, trace_impl
+from ..core import Parameter, Algorithm, jit_class
+from .utils import min_by
 
 
 @jit_class
@@ -44,8 +45,6 @@ class PSO(Algorithm):
         """
 
         super().__init__()
-        if device is None:
-            device = torch.get_default_device()
         self.pop_size = pop_size
         # Here, Parameter is used to indicate that these values are hyper-parameters
         # so that they can be correctly traced and vector-mapped
@@ -57,8 +56,8 @@ class PSO(Algorithm):
         assert lb.dtype == ub.dtype and lb.device == ub.device
         self.dim = lb.shape[0]
         # setup
-        lb = lb[None, :].to(device)
-        ub = ub[None, :].to(device)
+        lb = lb[None, :]
+        ub = ub[None, :]
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
@@ -74,21 +73,6 @@ class PSO(Algorithm):
         self.local_best_fitness = nn.Buffer(torch.empty(self.pop_size, device=device).fill_(torch.inf))
         self.global_best_location = nn.Buffer(population[0])
         self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
-
-    def _set_global(self, fitness: torch.Tensor):
-        best_new_index = torch.argmin(fitness)
-        best_new_fitness = fitness[best_new_index]
-        if best_new_fitness < self.global_best_fitness:
-            self.global_best_fitness = best_new_fitness
-            self.global_best_location = self.population[best_new_index]
-
-    @trace_impl(_set_global)
-    def _trace_set_global(self, fitness: torch.Tensor):
-        all_fitness = torch.cat([self.global_best_fitness.unsqueeze(0), fitness])
-        all_population = torch.cat([self.global_best_location[None, :], self.population])
-        global_best_index = torch.argmin(all_fitness)
-        self.global_best_location = all_population[global_best_index]
-        self.global_best_fitness = all_fitness[global_best_index]
 
     def step(self):
         """
@@ -119,7 +103,10 @@ class PSO(Algorithm):
         # and the function `_set_global(fitness)` is invoked;
         # however, in the case of `torch.jit.trace` (i.e. `jit(..., trace=True)`),
         # the function `_trace_set_global(fitness)` is invoked instead.
-        self._set_global(fitness)
+        self.global_best_location, self.global_best_fitness = min_by(
+            [self.global_best_location.unsqueeze(0), self.population],
+            [self.global_best_fitness.unsqueeze(0), fitness],
+        )
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         velocity = (
@@ -133,14 +120,15 @@ class PSO(Algorithm):
 
     def init_step(self):
         """Perform the first step of the PSO optimization.
-        
+
         See `step` for more details.
         """
         fitness = self.evaluate(self.population)
         self.local_best_fitness = fitness
         self.local_best_location = self.population
-
-        self._set_global(fitness)
+        best_index = torch.argmin(fitness)
+        self.global_best_location = self.population[best_index]
+        self.global_best_fitness = fitness[best_index]
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         velocity = self.w * self.velocity + self.phi_g * rg * (
             self.global_best_location - self.population
