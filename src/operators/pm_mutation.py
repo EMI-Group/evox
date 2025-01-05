@@ -21,17 +21,17 @@ def polynomial_mutation(
     """
     n, d = x.shape
     # Random numbers for mutation
-    site = (torch.rand(n, d) < pro_m / d).to(x.device)
+    site = (torch.rand(n, d, device=x.device) < pro_m / d)
     mu = torch.rand(n, d, device=x.device)
     # Apply mutation for the first part where mu <= 0.5
-    temp = site & (mu <= torch.tensor(0.5, device=x.device))
+    temp = site & (mu <= 0.5)
     lower = lb
     upper = ub
 
     pop_dec = maximum(minimum(x, upper), lower)
 
     norm = torch.where(
-        temp, (pop_dec - lower) / (upper - lower), torch.tensor(0.0, device=x.device)
+        temp, (pop_dec - lower) / (upper - lower), 0.0
     )
 
     pop_dec = torch.where(
