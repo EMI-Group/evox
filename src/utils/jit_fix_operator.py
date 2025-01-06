@@ -133,7 +133,7 @@ def lexsort(*keys: torch.Tensor) -> torch.Tensor:
         raise ValueError("All input keys must have the same length.")
 
     sorted_indices = torch.argsort(keys[0])
-    for key in (keys[1:]):
+    for key in keys[1:]:
         sorted_key = key[sorted_indices]
         final_sorted_indices = torch.argsort(sorted_key)
         sorted_indices = sorted_indices[final_sorted_indices]
@@ -178,7 +178,9 @@ def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
         - If all values along a dimension are `NaN`, the result will be `infinity` for that dimension, and the index will be returned as the first valid index.
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(mask, torch.tensor(float('inf'), device=input_tensor.device), input_tensor)
+    input_tensor = torch.where(
+        mask, torch.tensor(float("inf"), device=input_tensor.device), input_tensor
+    )
     return input_tensor.min(dim=dim, keepdim=keepdim)
 
 
@@ -219,5 +221,7 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
         - If all values along a dimension are `NaN`, the result will be `-infinity` for that dimension, and the index will be returned as the first valid index.
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(mask, torch.tensor(float('-inf'), device=input_tensor.device), input_tensor)
+    input_tensor = torch.where(
+        mask, torch.tensor(float("-inf"), device=input_tensor.device), input_tensor
+    )
     return input_tensor.max(dim=dim, keepdim=keepdim)

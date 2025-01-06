@@ -21,7 +21,7 @@ def polynomial_mutation(
     """
     n, d = x.shape
     # Random numbers for mutation
-    site = (torch.rand(n, d, device=x.device) < pro_m / d)
+    site = torch.rand(n, d, device=x.device) < pro_m / d
     mu = torch.rand(n, d, device=x.device)
     # Apply mutation for the first part where mu <= 0.5
     temp = site & (mu <= 0.5)
@@ -30,9 +30,7 @@ def polynomial_mutation(
 
     pop_dec = maximum(minimum(x, upper), lower)
 
-    norm = torch.where(
-        temp, (pop_dec - lower) / (upper - lower), 0.0
-    )
+    norm = torch.where(temp, (pop_dec - lower) / (upper - lower), 0.0)
 
     pop_dec = torch.where(
         temp,
