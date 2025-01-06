@@ -1,8 +1,10 @@
 from unittest import TestCase
+
 import torch
-from evox.core import vmap, Problem, use_state, jit
-from evox.workflows import StdWorkflow
+
 from evox.algorithms import PSO
+from evox.core import Problem, jit, use_state, vmap
+from evox.workflows import StdWorkflow
 
 
 class TestPSO(TestCase):

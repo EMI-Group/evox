@@ -1,7 +1,9 @@
 import unittest
 from functools import partial
+
 import torch
-from evox.core import vmap, jit
+
+from evox.core import jit, vmap
 
 
 @partial(vmap, example_ndim=2)

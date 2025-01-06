@@ -1,4 +1,5 @@
 import unittest
+
 import torch
 
 from evox.core import ModuleBase, jit, jit_class, trace_impl, use_state, vmap

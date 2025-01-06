@@ -1,7 +1,8 @@
 """Benchmark the performance of utils functions in EvoX"""
 
 import torch
-from torch.profiler import profile, ProfilerActivity
+from torch.profiler import ProfilerActivity, profile
+
 from evox.core import jit
 from evox.utils import switch
 

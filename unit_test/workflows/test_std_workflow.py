@@ -1,21 +1,22 @@
 import unittest
+
 import torch
 import torch.nn as nn
+
 from evox.core import (
-    vmap,
-    trace_impl,
-    use_state,
-    jit,
-    jit_class,
     Algorithm,
     Problem,
+    jit,
+    jit_class,
+    trace_impl,
+    use_state,
+    vmap,
 )
-from evox.workflows import StdWorkflow, EvalMonitor
+from evox.workflows import EvalMonitor, StdWorkflow
 
 
 @jit_class
 class BasicProblem(Problem):
-
     def __init__(self):
         super().__init__()
         self._eval_fn = vmap(BasicProblem._single_eval, trace=False)
@@ -34,7 +35,6 @@ class BasicProblem(Problem):
 
 @jit_class
 class BasicAlgorithm(Algorithm):
-
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()
         assert (
@@ -73,7 +73,6 @@ class BasicAlgorithm(Algorithm):
 
 
 class TestStdWorkflow(unittest.TestCase):
-
     def setUp(self):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))

@@ -1,9 +1,11 @@
 import unittest
+
 import torch
 from torch import nn
-from evox.core import jit_class, Problem, Algorithm, trace_impl, Parameter
+
+from evox.core import Algorithm, Parameter, Problem, jit_class, trace_impl
+from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
 from evox.workflows import StdWorkflow
-from evox.problems.hpo_wrapper import HPOProblemWrapper, HPOFitnessMonitor
 
 
 @jit_class

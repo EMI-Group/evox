@@ -1,11 +1,13 @@
 """Benchmark the performance of PSO algorithm in EvoX."""
 
 import time
+
 import torch
-from torch.profiler import profile, ProfilerActivity
-from evox.core import vmap, Problem, use_state, jit
-from evox.workflows import StdWorkflow
+from torch.profiler import ProfilerActivity, profile
+
 from evox.algorithms import PSO
+from evox.core import Problem, jit, use_state, vmap
+from evox.workflows import StdWorkflow
 
 
 def run_pso():

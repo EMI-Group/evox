@@ -1,14 +1,14 @@
 import unittest
-import torch
-import torch.nn as nn
 from typing import Dict, List
 
-from evox.core import jit_class, ModuleBase, trace_impl, use_state
+import torch
+import torch.nn as nn
+
+from evox.core import ModuleBase, jit_class, trace_impl, use_state
 
 
 @jit_class
 class DummyModule(ModuleBase):
-
     def __init__(self, threshold=0.5):
         super().__init__()
         self.threshold = threshold
@@ -36,7 +36,6 @@ class DummyModule(ModuleBase):
 
 
 class TestModule(unittest.TestCase):
-
     def setUp(self):
         self.test_instance = DummyModule()
 
