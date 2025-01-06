@@ -45,3 +45,11 @@ neuroevolution = [
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
+
+[tool.ruff.format]
+# Use `\n` line endings for all files
+line-ending = "lf"
+
+[tool.ruff.lint]
+# F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
+select = ["F", "E", "W", "I", "NPY"]
