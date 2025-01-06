@@ -1,8 +1,7 @@
 import torch
-import torch.nn as nn
 
 from ...utils import clamp
-from ...core import Parameter, Algorithm, jit_class
+from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -42,8 +41,7 @@ class SLPSOUS(Algorithm):
         """
 
         super().__init__()
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
-        assert lb.dtype == ub.dtype and lb.device == ub.device
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.dim = lb.shape[0]
         self.pop_size = pop_size
         # Here, Parameter is used to indicate that these values are hyper-parameters
@@ -51,8 +49,8 @@ class SLPSOUS(Algorithm):
         self.social_influence_factor = Parameter(social_influence_factor, device=device)
         self.demonstrator_choice_factor = Parameter(demonstrator_choice_factor, device=device)
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb[None, :].to(device=device)
+        ub = ub[None, :].to(device=device)
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
@@ -62,10 +60,10 @@ class SLPSOUS(Algorithm):
         self.lb = lb
         self.ub = ub
         # mutable
-        self.population = nn.Buffer(population)
-        self.velocity = nn.Buffer(velocity)
-        self.global_best_location = nn.Buffer(population[0])
-        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
+        self.global_best_location = Mutable(population[0])
+        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
     def step(self):
         """Perform a normal optimization step using SLPSOUS."""

@@ -1,8 +1,7 @@
 import torch
-from torch import nn
 
 from ...utils import clamp, TracingCond
-from ...core import Parameter, Algorithm, jit_class, trace_impl
+from ...core import Parameter, Mutable, Algorithm, jit_class, trace_impl
 
 
 @jit_class
@@ -57,8 +56,7 @@ class DMSPSOEL(Algorithm):
         """
 
         super().__init__()
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
-        assert lb.dtype == ub.dtype and lb.device == ub.device
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.dim = lb.shape[0]
         self.pop_size = dynamic_sub_swarm_size * dynamic_sub_swarms_num + following_sub_swarm_size
         self.dynamic_sub_swarm_size = dynamic_sub_swarm_size
@@ -72,8 +70,8 @@ class DMSPSOEL(Algorithm):
         self.c_rbest = Parameter(rbest_coefficient, device=device)
         self.c_gbest = Parameter(gbest_coefficient, device=device)
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb[None, :].to(device=device)
+        ub = ub[None, :].to(device=device)
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
@@ -82,7 +80,7 @@ class DMSPSOEL(Algorithm):
         # write to self
         self.lb = lb
         self.ub = ub
-        self.iteration = nn.Buffer(torch.tensor(0, dtype=torch.int32, device=device))
+        self.iteration = Mutable(torch.tensor(0, dtype=torch.int32, device=device))
         dynamic_swarms = population[: self.dynamic_sub_swarm_size * self.dynamic_sub_swarms_num, :]
         dynamic_swarms = dynamic_swarms.reshape(
             self.dynamic_sub_swarms_num, self.dynamic_sub_swarm_size, self.dim
@@ -90,19 +88,19 @@ class DMSPSOEL(Algorithm):
         local_best_location = dynamic_swarms[:, 0, :]
         local_best_fitness = torch.empty(self.dynamic_sub_swarms_num, device=device).fill_(torch.inf)
         # mutable
-        self.population = nn.Buffer(population)
-        self.velocity = nn.Buffer(velocity)
-        self.personal_best_location = nn.Buffer(population)
-        self.personal_best_fitness = nn.Buffer(
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
+        self.personal_best_location = Mutable(population)
+        self.personal_best_fitness = Mutable(
             torch.empty(self.pop_size, device=device).fill_(torch.inf)
         )
-        self.local_best_location = nn.Buffer(local_best_location)
-        self.local_best_fitness = nn.Buffer(local_best_fitness)
-        self.regional_best_index = nn.Buffer(
+        self.local_best_location = Mutable(local_best_location)
+        self.local_best_fitness = Mutable(local_best_fitness)
+        self.regional_best_index = Mutable(
             torch.zeros(self.following_sub_swarm_size, dtype=torch.int, device=device)
         )
-        self.global_best_location = nn.Buffer(torch.zeros(self.dim, device=device))
-        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
+        self.global_best_location = Mutable(torch.zeros(self.dim, device=device))
+        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
     def step(self):
         """
@@ -125,9 +123,8 @@ class DMSPSOEL(Algorithm):
     def trace_step(self):
         fitness = self.evaluate(self.population)
         cond = self.iteration < 0.9 * self.max_iteration
-        if not hasattr(self, "_if_else_"):
-            self._if_else_ = TracingCond(self._update_strategy_1, self._update_strategy_2)
-        self._if_else_.cond(cond, fitness)
+        _if_else_ = TracingCond(self._update_strategy_1, self._update_strategy_2)
+        _if_else_.cond(cond, fitness)
         self.iteration += 1
 
     def _update_strategy_1(self, fitness: torch.Tensor):
@@ -199,11 +196,12 @@ class DMSPSOEL(Algorithm):
         if (self.iteration % self.regrouped_iteration_num) == 0:
             self._regroup(fitness)
 
+    __none_lambda__ = lambda _: None
+
     @trace_impl(_cond_regroup)
     def _trace_cond_regroup(self, fitness: torch.Tensor):
-        if not hasattr(self, "_if_else_regroup_"):
-            self._if_else_regroup_ = TracingCond(self._regroup, lambda x: None)
-        self._if_else_regroup_.cond((self.iteration % self.regrouped_iteration_num) == 0, fitness)
+        _if_else_regroup_ = TracingCond(self._regroup, self.__none_lambda__)
+        _if_else_regroup_.cond((self.iteration % self.regrouped_iteration_num) == 0, fitness)
 
     def _regroup(self, fitness: torch.Tensor):
         sort_index = torch.argsort(fitness, dim=0)
@@ -228,7 +226,7 @@ class DMSPSOEL(Algorithm):
         self.personal_best_fitness = personal_best_fitness
         self.regional_best_index = regional_best_index
 
-    def _update_strategy_2(self, fitness):
+    def _update_strategy_2(self, fitness: torch.Tensor):
         # Update personal_best
         compare = self.personal_best_fitness > fitness
         personal_best_location = torch.where(

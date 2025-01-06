@@ -1,8 +1,7 @@
 import torch
-from torch import nn
 
 from ...utils import clamp
-from ...core import Parameter, Algorithm, jit_class, trace_impl
+from ...core import Parameter, Mutable, Algorithm, jit_class, trace_impl
 from .utils import min_by
 
 
@@ -43,8 +42,7 @@ class CLPSO(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
-        assert lb.dtype == ub.dtype and lb.device == ub.device
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]
         self.lb = lb[None, :].to(device=device)
@@ -59,27 +57,12 @@ class CLPSO(Algorithm):
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # set mutable
-        self.population = nn.Buffer(population)
-        self.velocity = nn.Buffer(velocity)
-        self.personal_best_location = nn.Buffer(population)
-        self.personal_best_fitness = nn.Buffer(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = nn.Buffer(population[0])
-        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
-
-    def _set_global(self, fitness: torch.Tensor):
-        best_new_index = torch.argmin(fitness)
-        best_new_fitness = fitness[best_new_index]
-        if best_new_fitness < self.global_best_fitness:
-            self.global_best_fitness = best_new_fitness
-            self.global_best_location = self.population[best_new_index]
-
-    @trace_impl(_set_global)
-    def _trace_set_global(self, fitness: torch.Tensor):
-        all_fitness = torch.cat([self.global_best_fitness.unsqueeze(0), fitness])
-        all_population = torch.cat([self.global_best_location[None, :], self.population])
-        global_best_index = torch.argmin(all_fitness)
-        self.global_best_location = all_population[global_best_index]
-        self.global_best_fitness = all_fitness[global_best_index]
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
+        self.personal_best_location = Mutable(population)
+        self.personal_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.global_best_location = Mutable(population[0])
+        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
     def step(self):
         """

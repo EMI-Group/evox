@@ -7,7 +7,7 @@ if current_directory not in sys.path:
 import torch
 
 from src.algorithms import PSO
-from test_base import test
+from unit_test.algorithms.test_base import test
 
 
 if __name__ == "__main__":

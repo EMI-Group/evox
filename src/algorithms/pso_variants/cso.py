@@ -1,8 +1,7 @@
 import torch
-from torch import nn
 
 from ...utils import clamp
-from ...core import Parameter, Algorithm, jit_class
+from ...core import Parameter, Mutable, Algorithm, jit_class
 
 
 @jit_class
@@ -20,9 +19,9 @@ class CSO(Algorithm):
 
     def __init__(
         self,
+        pop_size: int,
         lb: torch.Tensor,
         ub: torch.Tensor,
-        pop_size: int,
         phi: float = 0.0,
         mean: torch.Tensor | None = None,
         stdev: torch.Tensor | None = None,
@@ -41,14 +40,13 @@ class CSO(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
-        assert lb.dtype == ub.dtype and lb.device == ub.device
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]
         self.phi = Parameter(phi, device=device)
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb[None, :].to(device=device)
+        ub = ub[None, :].to(device=device)
         length = ub - lb
         # write to self
         self.lb = lb
@@ -62,8 +60,8 @@ class CSO(Algorithm):
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # mutable
-        self.population = nn.Buffer(population)
-        self.velocity = nn.Buffer(velocity)
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
 
     def step(self):
         """

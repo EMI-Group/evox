@@ -1,8 +1,7 @@
 import torch
-import torch.nn as nn
 
-from ..utils import clamp
-from ..core import Parameter, Algorithm, jit_class
+from ...utils import clamp
+from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -45,19 +44,17 @@ class PSO(Algorithm):
         """
 
         super().__init__()
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
+        self.dim = lb.shape[0]
         # Here, Parameter is used to indicate that these values are hyper-parameters
         # so that they can be correctly traced and vector-mapped
         self.w = Parameter(w, device=device)
         self.phi_p = Parameter(phi_p, device=device)
         self.phi_g = Parameter(phi_g, device=device)
-        # check
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
-        assert lb.dtype == ub.dtype and lb.device == ub.device
-        self.dim = lb.shape[0]
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb[None, :].to(device=device)
+        ub = ub[None, :].to(device=device)
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
@@ -67,12 +64,12 @@ class PSO(Algorithm):
         self.lb = lb
         self.ub = ub
         # mutable
-        self.population = nn.Buffer(population)
-        self.velocity = nn.Buffer(velocity)
-        self.local_best_location = nn.Buffer(population)
-        self.local_best_fitness = nn.Buffer(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = nn.Buffer(population[0])
-        self.global_best_fitness = nn.Buffer(torch.tensor(torch.inf, device=device))
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
+        self.local_best_location = Mutable(population)
+        self.local_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.global_best_location = Mutable(population[0])
+        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
     def step(self):
         """

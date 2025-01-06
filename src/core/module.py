@@ -41,12 +41,19 @@ def Parameter[
     Returns:
         T: The parameter.
     """
-    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=requires_grad)
+    return nn.Parameter(
+        (
+            value.to(dtype=dtype, device=device)
+            if isinstance(value, torch.Tensor)
+            else torch.as_tensor(value, dtype=dtype, device=device)
+        ),
+        requires_grad=requires_grad,
+    )
 
 
 def Mutable[
     T: torch.Tensor
-](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None,) -> T:
+](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
     """
     Wraps a value as a mutable tensor.
 
