@@ -201,7 +201,6 @@ class DTLZ4(DTLZ2):
 
 class DTLZ5(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:
@@ -286,7 +285,6 @@ class DTLZ5(DTLZTestSuit):
 
 class DTLZ6(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:
@@ -369,7 +367,6 @@ class DTLZ6(DTLZTestSuit):
 
 class DTLZ7(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:

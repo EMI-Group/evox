@@ -10,8 +10,8 @@ if __name__ == "__main__":
 
     n, m, nv = 12, 4, 5
     x = torch.randn(n, 10)  # Random solutions
-    f = torch.randn(n, m)   # Random objective values
-    f[1] = torch.tensor([float('nan')] * m)
+    f = torch.randn(n, m)  # Random objective values
+    f[1] = torch.tensor([float("nan")] * m)
 
     v = torch.randn(nv, m)
     theta = torch.tensor(0.5)  # Arbitrary theta value

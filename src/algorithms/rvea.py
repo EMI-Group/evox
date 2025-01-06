@@ -56,7 +56,6 @@ class RVEA(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs

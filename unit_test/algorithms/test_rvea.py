@@ -4,6 +4,7 @@ from torch.profiler import profile, ProfilerActivity
 
 import os
 import sys
+
 current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
@@ -40,19 +41,14 @@ if __name__ == "__main__":
 
     t = time.time()
     with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
+        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+        record_shapes=True,
+        profile_memory=True,
     ) as prof:
         # Example with TorchScript:
-        # workflow.init_step()
-        # for i in range(100):
-        #     workflow.step()
         state = jit_state_init_step(state)
         for i in range(100):
             state = jit_state_step(state)
-            # Calculate IGD:
-            # fit = state["self.algorithm.fit"]
-            # fit = fit[~torch.isnan(fit).any(dim=1)]
-            # print(igd(fit, pf))
     print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)

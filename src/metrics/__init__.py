@@ -1,3 +1,3 @@
-__all__ = ['igd']
+__all__ = ["igd"]
 
 from .igd import igd

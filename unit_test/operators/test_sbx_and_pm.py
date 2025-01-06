@@ -12,6 +12,12 @@ if __name__ == "__main__":
     print(offspring)
 
     # Call polynomial mutation function
-    offspring = polynomial_mutation(x, lb=torch.tensor([[-1] * n_genes]),ub=torch.tensor([[1] * n_genes]), pro_m=1, dis_m=20)
+    offspring = polynomial_mutation(
+        x,
+        lb=torch.tensor([[-1] * n_genes]),
+        ub=torch.tensor([[1] * n_genes]),
+        pro_m=1,
+        dis_m=20,
+    )
 
     print(offspring)
