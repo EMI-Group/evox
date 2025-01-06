@@ -167,6 +167,9 @@ class ModuleBase(nn.Module):
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
         Therefore, multiple calls of `setup` for multiple initializations are possible.
         """
+        if hasattr(self, _WRAPPING_MODULE_NAME):
+            wrapper: _WrapClassBase = object.__getattribute__(self, _WRAPPING_MODULE_NAME)
+            wrapper.__jit_module__ = None
         return self
 
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):

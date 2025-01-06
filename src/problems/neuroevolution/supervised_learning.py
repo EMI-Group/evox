@@ -87,7 +87,7 @@ class SupervisedLearningProblem(Problem):
             if torch.equal(state_value, params_value)
         }
 
-        # JITed and vmapped state critierion initialization
+        # JITed and vmapped state criterion initialization
         state_criterion      = use_state(lambda: criterion.forward)
         criterion_init_state = state_criterion.init_state()
         self._jit_state_criterion = jit(state_criterion,
@@ -104,6 +104,7 @@ class SupervisedLearningProblem(Problem):
                 vmap_criterion_init_state, dummy_vmap_logits, dummy_labels,
             ),
         )
+        self.vmap_criterion_init_state = vmap_criterion_init_state
 
         # Model parameters and buffers registration
         self._model_buffers = {
@@ -119,7 +120,6 @@ class SupervisedLearningProblem(Problem):
 
         # Other member variables registration
         self.criterion_init_state      = criterion_init_state
-        self.vmap_criterion_init_state = vmap_criterion_init_state
 
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
@@ -199,7 +199,7 @@ class SupervisedLearningProblem(Problem):
             for key, value in self._model_buffers.items()
         }
         params = {
-            self.param_to_state_key_map[key]: value 
+            self.param_to_state_key_map[key]: value.squeeze(0) 
             for key, value in params.items()
         }
         model_state = model_buffers
@@ -210,7 +210,7 @@ class SupervisedLearningProblem(Problem):
         }
 
         # Calculate population fitness
-        total_result = torch.tensor(0, device=device)
+        total_result = torch.tensor(0.0, device=device)
         total_inputs = 0
         self._data_loader_reset()
         while self._data_loader_has_next():
@@ -227,7 +227,7 @@ class SupervisedLearningProblem(Problem):
             total_result += result * inputs.size(0)
             total_inputs += inputs.size(0)
         fitness = total_result / total_inputs
-        return fitness
+        return fitness.unsqueeze(0)
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         pop_params_value = pop_params[self._sample_param_key]

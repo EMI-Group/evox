@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 if print_frequent > 0 and step % print_frequent == 0:
                     print(
                         f"[Epoch {epoch:2d}, step {step:4d}] "
-                        f"runing loss: {running_loss:.4f} "
+                        f"running loss: {running_loss:.4f} "
                     )
                     running_loss = 0.0
         return model
@@ -103,8 +103,8 @@ if __name__ == "__main__":
     
             monitor: EvalMonitor = workflow.get_submodule("monitor")
             print("\t"
-                f"Top 1 fitness: {monitor.topk_fitness[0]:.4f}; "
-                f"Top 2 fitness: {monitor.topk_fitness[1]:.4f}. "
+                f"Top fitness: {monitor.topk_fitness}; "
+                # f"Top 2 fitness: {monitor.topk_fitness[1]:.4f}. "
             )
             best_params = adapter.to_params(monitor.topk_solutions[0])
             model.load_state_dict(best_params)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 
     # General setting
-    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     data_root = "./data"
     os.makedirs(data_root, exist_ok=True)
@@ -173,17 +173,17 @@ if __name__ == "__main__":
     print()
 
     # Gradient descent process
-    print("Gradient descent training start.")
-    model_train(model, 
-        data_loader    = train_loader, 
-        criterion      = nn.CrossEntropyLoss(), 
-        optimizer      = torch.optim.Adam(model.parameters(), lr=1e-2), 
-        max_epoch      = 3, 
-        device         = device,
-        print_frequent = 500,
-    )
-    gd_acc = model_test(model, pre_test_loader, device)
-    print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
+    # print("Gradient descent training start.")
+    # model_train(model, 
+    #     data_loader    = train_loader, 
+    #     criterion      = nn.CrossEntropyLoss(), 
+    #     optimizer      = torch.optim.Adam(model.parameters(), lr=1e-2), 
+    #     max_epoch      = 3, 
+    #     device         = device,
+    #     print_frequent = 500,
+    # )
+    # gd_acc = model_test(model, pre_test_loader, device)
+    # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
     print()
 
     # Initialize neuroevolution process
@@ -313,7 +313,7 @@ if __name__ == "__main__":
             self.ub  = ub
             self.dim = lb.shape[0]
             self.pop = nn.Buffer(
-                torch.empty(lb.shape[0], dtype=lb.dtype, device=lb.device)
+                torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device)
             )
             self.fit = nn.Buffer(
                 torch.empty(1, dtype=lb.dtype, device=lb.device)
@@ -330,6 +330,10 @@ if __name__ == "__main__":
 
     # Reset the `workflow` with single-run based problem and algorithm
     # FIXME
+    monitor = EvalMonitor( # choose the best two individuals
+        topk=1, device=device,
+    ) 
+    monitor.setup()
     workflow.setup(
         algorithm          = single_algorithm, 
         problem            = single_problem,
