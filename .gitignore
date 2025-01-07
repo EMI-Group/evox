@@ -168,3 +168,4 @@ cython_debug/
 tests
 evox
 **/_future/*
+data

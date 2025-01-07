@@ -151,6 +151,7 @@ class ModuleBase(nn.Module):
         super().__init__(*args, **kwargs)
         self.train(False)
         self.__static_names__ = []
+        self._hash_id_ = None
 
     def eval(self):
         assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
@@ -166,6 +167,9 @@ class ModuleBase(nn.Module):
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
         Therefore, multiple calls of `setup` for multiple initializations are possible.
         """
+        if hasattr(self, _WRAPPING_MODULE_NAME):
+            wrapper: _WrapClassBase = object.__getattribute__(self, _WRAPPING_MODULE_NAME)
+            wrapper.__jit_module__ = None
         return self
 
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
@@ -262,6 +266,11 @@ class ModuleBase(nn.Module):
                 val = val.to(**kwargs)
                 self.__setattr_inner__(k, val)
         return self
+
+    def __hash__(self):
+        if self._hash_id_ is None:
+            self._hash_id_ = super().__hash__()
+        return self._hash_id_
 
     def __getattribute__(self, name):
         if not tracing_or_using_state() or name == _WRAPPING_MODULE_NAME or _is_magic(name):
@@ -494,9 +503,7 @@ class _WrapClassBase(ABC):
         )
 
     def __hash__(self) -> int:
-        return object.__hash__(
-            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
-        )
+        return object.__hash__(self.__inner_module__)
 
     def __format__(self, format_spec: str) -> str:
         return object.__format__(

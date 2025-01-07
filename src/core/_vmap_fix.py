@@ -196,6 +196,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     return batch_rand_values
 
 
+
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
