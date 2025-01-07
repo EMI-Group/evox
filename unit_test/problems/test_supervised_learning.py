@@ -29,19 +29,21 @@ if __name__ == "__main__":
                 nn.MaxPool2d(kernel_size=2, stride=2),
                 nn.Conv2d(3, 3, kernel_size=3),
                 nn.ReLU(),
-                nn.MaxPool2d(kernel_size=2, stride=2)
+                nn.MaxPool2d(kernel_size=2, stride=2),
+                nn.Conv2d(3, 3, kernel_size=3),
+                nn.ReLU(),
+                nn.Conv2d(3, 3, kernel_size=3),
+                nn.ReLU(),
             )
             self.classifier = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(108, 32),
-                nn.ReLU(),
-                nn.Linear(32, 10)
+                nn.Linear(12, 10)
             )
         def forward(self, x):
             x = self.features(x)
             x = self.classifier(x)
             return x
-        
+
     
     def model_test(model, data_loader, device):
         model.eval()
@@ -91,9 +93,9 @@ if __name__ == "__main__":
         model         : nn.Module, 
         test_loader   : DataLoader, 
         device        : torch.device, 
+        best_acc      : float,
         max_generation: int = 50,
     ) -> None:
-        best_acc = -1
         for index in range(max_generation):
             print(f"In generation {index}:")
             t = time.time()
@@ -102,10 +104,7 @@ if __name__ == "__main__":
             print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
     
             monitor: EvalMonitor = workflow.get_submodule("monitor")
-            print("\t"
-                f"Top fitness: {monitor.topk_fitness}; "
-                # f"Top 2 fitness: {monitor.topk_fitness[1]:.4f}. "
-            )
+            print(f"\tTop fitness: {monitor.topk_fitness}")
             best_params = adapter.to_params(monitor.topk_solutions[0])
             model.load_state_dict(best_params)
             acc = model_test(model, test_loader, device)
@@ -153,11 +152,17 @@ if __name__ == "__main__":
     )
 
     # Data preloading
-    # TODO: Add collate functions
     print("Data preloading start.")
     import tqdm
-    pre_train_loader = tuple([
-        (inputs.to(device), labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device))
+    pre_gd_train_loader = tuple([
+        (inputs.to(device), labels.to(device))
+        for inputs, labels in tqdm.tqdm(train_loader)
+    ])
+    pre_ne_train_loader = tuple([
+        (
+            inputs.to(device), 
+            labels.type(torch.float).unsqueeze(1).repeat(1, 10).to(device)
+        )
         for inputs, labels in tqdm.tqdm(train_loader)
     ])
     pre_test_loader = tuple([
@@ -173,17 +178,17 @@ if __name__ == "__main__":
     print()
 
     # Gradient descent process
-    # print("Gradient descent training start.")
-    # model_train(model, 
-    #     data_loader    = train_loader, 
-    #     criterion      = nn.CrossEntropyLoss(), 
-    #     optimizer      = torch.optim.Adam(model.parameters(), lr=1e-2), 
-    #     max_epoch      = 3, 
-    #     device         = device,
-    #     print_frequent = 500,
-    # )
-    # gd_acc = model_test(model, pre_test_loader, device)
-    # print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
+    print("Gradient descent training start.")
+    model_train(model, 
+        data_loader    = pre_gd_train_loader, 
+        criterion      = nn.CrossEntropyLoss(), 
+        optimizer      = torch.optim.Adam(model.parameters(), lr=1e-2), 
+        max_epoch      = 3, 
+        device         = device,
+        print_frequent = 500,
+    )
+    gd_acc = model_test(model, pre_test_loader, device)
+    print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
     print()
 
     # Initialize neuroevolution process
@@ -203,7 +208,7 @@ if __name__ == "__main__":
             correct = (predicted == labels[:, 0]).sum()
             fitness = -correct
             return fitness
-    acc_criterion = AccuracyCriterion(pre_train_loader)
+    acc_criterion = AccuracyCriterion(pre_ne_train_loader)
     loss_criterion = nn.MSELoss()
     class WeightedCriterion(nn.Module):
         def __init__(self, 
@@ -232,22 +237,15 @@ if __name__ == "__main__":
         acc_criterion  = acc_criterion,
     )
 
-    # Initialize monitor
-    monitor = EvalMonitor( # choose the best two individuals
-        topk=2, device=device,
-    ) 
-    monitor.setup()
-
-
     # Population-based neuroevolution testing
     print(
         "Upon gradient descent, "
         "the population-based neuroevolution process start. "
     )
-    POP_SIZE = 1000
+    POP_SIZE = 500
     vmapped_problem = SupervisedLearningProblem(
         model       = model,
-        data_loader = pre_train_loader,
+        data_loader = pre_ne_train_loader,
         criterion   = weighted_criterion,
         pop_size    = POP_SIZE,
         device      = device,
@@ -262,21 +260,27 @@ if __name__ == "__main__":
     )
     pop_algorithm.setup()
 
-    workflow = StdWorkflow()
-    workflow.setup(
+    pop_monitor = EvalMonitor( 
+        topk=3, device=device, # choose the best three individuals
+    ) 
+    pop_monitor.setup()
+
+    pop_workflow = StdWorkflow()
+    pop_workflow.setup(
         algorithm          = pop_algorithm, 
         problem            = vmapped_problem,
         solution_transform = adapter,
-        monitor            = monitor,
+        monitor            = pop_monitor,
         device             = device,
     )
     neuroevolution_process(
-        workflow       = workflow, 
+        workflow       = pop_workflow, 
         adapter        = adapter, 
         model          = model, 
         test_loader    = pre_test_loader, 
         device         = device,
-        max_generation = 2,
+        best_acc       = gd_acc,
+        max_generation = 3,
     )
     print()
 
@@ -288,7 +292,7 @@ if __name__ == "__main__":
     )
     single_problem = SupervisedLearningProblem(
         model       = model,
-        data_loader = pre_train_loader,
+        data_loader = pre_ne_train_loader,
         criterion   = weighted_criterion,
         pop_size    = None, # set the problem to single-run mode
         device      = device,
@@ -328,26 +332,27 @@ if __name__ == "__main__":
             self.fit.copy_(self.evaluate(pop))
     single_algorithm = RandAlgorithm(lb=lower_bound, ub=upper_bound)
 
-    # Reset the `workflow` with single-run based problem and algorithm
-    # FIXME
-    monitor = EvalMonitor( # choose the best two individuals
-        topk=1, device=device,
-    ) 
-    monitor.setup()
-    workflow.setup(
+    single_monitor = EvalMonitor( 
+        topk=1, device=device, # there is only one individual to be monitored
+    )
+    single_monitor.setup()
+
+    single_workflow = StdWorkflow()
+    single_workflow.setup(
         algorithm          = single_algorithm, 
         problem            = single_problem,
         solution_transform = adapter,
-        monitor            = monitor,
+        monitor            = single_monitor,
         device             = device,
     )
     neuroevolution_process(
-        workflow       = workflow, 
+        workflow       = single_workflow, 
         adapter        = adapter, 
         model          = model, 
         test_loader    = pre_test_loader, 
         device         = device,
-        max_generation = 2,
+        best_acc       = gd_acc,
+        max_generation = 3,
     )
     print()
 

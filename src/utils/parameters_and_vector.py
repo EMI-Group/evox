@@ -41,25 +41,33 @@ class ParamsAndVector(ModuleBase):
         flat_params = [x.reshape(-1) for x in flat_params]
         return torch.concat(flat_params, dim=0)
 
-    def batched_to_vector(self, batched_params: Dict[str, nn.Parameter]) -> torch.Tensor:
+    def batched_to_vector(self, 
+        batched_params: Dict[str, nn.Parameter],
+    ) -> torch.Tensor:
         flat_params: List[nn.Parameter] = self._jit_tree_flatten(batched_params)
         flat_params = [x.reshape(x.shape[0], -1) for x in flat_params]
         return torch.concat(flat_params, dim=1)
 
     def to_params(self, vector: torch.Tensor) -> Dict[str, nn.Parameter]:
         flat_params = []
-        for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
+        for start_index, slice_size, shape in zip(
+            self.start_indices, self.slice_sizes, self.shapes
+        ):
             flat_params.append(
-                vector.narrow(dim=0, start=start_index, length=slice_size).reshape(shape)
+                vector.narrow(dim=0, start=start_index, length=slice_size)
+                .reshape(shape)
             )
         return self._jit_tree_unflatten(flat_params)
 
     def batched_to_params(self, vectors: torch.Tensor) -> Dict[str, nn.Parameter]:
         flat_params = []
         batch_size = vectors.shape[0]
-        for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
+        for start_index, slice_size, shape in zip(
+            self.start_indices, self.slice_sizes, self.shapes
+        ):
             flat_params.append(
-                vectors.narrow(dim=1, start=start_index, length=slice_size).reshape(batch_size, *shape)
+                vectors.narrow(dim=1, start=start_index, length=slice_size)
+                .reshape(batch_size, *shape)
             )
         return self._jit_tree_unflatten(flat_params)
 
