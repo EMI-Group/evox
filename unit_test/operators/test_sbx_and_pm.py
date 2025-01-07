@@ -1,6 +1,7 @@
 import torch
-from src.operators import polynomial_mutation, simulated_binary
-
+from src.operators.crossover import simulated_binary
+from src.operators.mutation import polynomial_mutation
+from src.core import jit
 
 if __name__ == "__main__":
     n_individuals = 3

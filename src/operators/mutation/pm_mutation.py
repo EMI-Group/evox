@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from ..utils import maximum, minimum
+from src.utils import maximum, minimum
 
 
 def polynomial_mutation(

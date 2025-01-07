@@ -2,15 +2,13 @@ import torch
 from torch import nn
 from typing import Optional, Callable
 
-from ..core import Parameter, Algorithm, jit_class, trace_impl
-from ..operators import (
-    simulated_binary,
-    uniform_sampling,
-    polynomial_mutation,
-    ref_vec_guided,
-)
-from ..utils import clamp, nanmin, nanmax, TracingCond
-from ..metrics import igd
+from src.core import Parameter, Algorithm, jit_class, trace_impl
+from src.operators.crossover import simulated_binary
+from src.operators.mutation import polynomial_mutation
+from src.operators.selection import ref_vec_guided
+from src.operators.sampling import uniform_sampling
+from src.utils import clamp, nanmin, nanmax, TracingCond
+from src.metrics import igd
 
 
 @jit_class
@@ -47,7 +45,6 @@ class RVEA(Algorithm):
         n_objs: int,
         lb: torch.Tensor,
         ub: torch.Tensor,
-        pf: torch.Tensor = None,
         alpha: float = 2,
         fr: float = 0.1,
         max_gen: int = 100,
@@ -73,7 +70,6 @@ class RVEA(Algorithm):
         self.alpha = Parameter(alpha)
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
-        self.pf = pf
 
         self.selection = selection_op
         self.mutation = mutation_op

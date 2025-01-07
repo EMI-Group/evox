@@ -1,5 +1,5 @@
 import torch
-from src.operators import ref_vec_guided
+from src.operators.selection import ref_vec_guided
 from src.core import jit, vmap
 
 

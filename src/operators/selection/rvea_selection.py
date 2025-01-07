@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
-from ..utils import clamp, maximum, nanmin
-from ..core import vmap, jit
+from src.utils import clamp, maximum, nanmin
+from src.core import vmap, jit
 
 
 def apd_fn(
