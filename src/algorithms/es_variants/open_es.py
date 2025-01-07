@@ -51,9 +51,12 @@ class OpenES(Algorithm):
         self.optimizer = optimizer
         # setup
         self.center = Mutable(center_init)
+        # TODO: use submodule instead of string for optimizer in the future
         if optimizer == "adam":
             self.exp_avg = Mutable(torch.zeros_like(self.center))
             self.exp_avg_sq = Mutable(torch.zeros_like(self.center))
+            self.beta1 = Parameter(0.9, device=device)
+            self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
         device = self.center.device
@@ -69,6 +72,12 @@ class OpenES(Algorithm):
             center = self.center - self.learning_rate * grad
         else:
             center, self.exp_avg, self.exp_avg_sq = adam_single_tensor(
-                self.center, grad, self.exp_avg, self.exp_avg_sq, lr=self.learning_rate
+                self.center,
+                grad,
+                self.exp_avg,
+                self.exp_avg_sq,
+                self.beta1,
+                self.beta2,
+                self.learning_rate,
             )
         self.center = center

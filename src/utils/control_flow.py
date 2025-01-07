@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable, Dict, List, Tuple, Iterable
 
 import torch
@@ -6,6 +7,20 @@ from ..core import trace_impl, vmap_impl, jit_class, vmap, jit, use_state, Modul
 from ..core import _vmap_fix
 from ..core.module import UseStateFunc
 from ..utils import switch as _switch
+
+
+def _get_cache_key_object(cache_dict: dict, *fns: Callable):
+    fn_ids = []
+    for fn in fns:
+        fn_id = getattr(fn, "__id__", id(fn))
+        if inspect.isfunction(fn) and fn.__name__ == "<lambda>":
+            fn_id = fn.__code__.co_code
+        fn_ids.append(fn_id)
+    key = tuple(fn_ids)
+    if key in cache_dict:
+        return cache_dict[key]
+    else:
+        return key
 
 
 _while_object_cache = {}
@@ -55,15 +70,13 @@ class TracingWhile(ModuleBase):
     """
 
     def __new__(cls, cond_fn, body_fn, script_functions=False):
-        cond_id = getattr(cond_fn, "__id__", id(cond_fn))
-        body_id = getattr(body_fn, "__id__", id(body_fn))
-        key = (cond_id, body_id, script_functions)
-        if key in _while_object_cache:
-            return _while_object_cache[key]
-        else:
+        key_or_obj = _get_cache_key_object(_while_object_cache, cond_fn, body_fn)
+        if isinstance(key_or_obj, tuple):
             obj = super().__new__(cls)
-            obj.__cache_key__ = key
+            obj.__cache_key__ = key_or_obj
             return obj
+        else:
+            return key_or_obj
 
     def __init__(
         self,
@@ -82,7 +95,7 @@ class TracingWhile(ModuleBase):
         ## Notice:
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `cond_fn` and `body_fn` must have the same number of arguments.
-        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects, if this module is not vectorized-mapped.
+        3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects, if this module is not vectorized-mapped. However, to use non-pure functions, the function inputs shall NOT be class members (`self.XXX`).
         """
         super().__init__()
         if self.__cache_key__ in _while_object_cache:
@@ -640,15 +653,13 @@ class TracingCond(ModuleBase):
     """
 
     def __new__(cls, true_fn, false_fn, script_functions=False):
-        true_fn_id = getattr(true_fn, "__id__", id(true_fn))
-        false_fn_id = getattr(false_fn, "__id__", id(false_fn))
-        key = (true_fn_id, false_fn_id, script_functions)
-        if key in _cond_object_cache:
-            return _cond_object_cache[key]
-        else:
+        key_or_obj = _get_cache_key_object(_cond_object_cache, true_fn, false_fn)
+        if isinstance(key_or_obj, tuple):
             obj = super().__new__(cls)
-            obj.__cache_key__ = key
+            obj.__cache_key__ = key_or_obj
             return obj
+        else:
+            return key_or_obj
 
     def __init__(
         self,
@@ -667,7 +678,7 @@ class TracingCond(ModuleBase):
         ## Notice:
         1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `true_fn` and `false_fn` must have the same number of arguments.
-        3. `true_fn` and `false_fn` CAN be non-pure functions, i.e., they CAN have side-effects.
+        3. `true_fn` and `false_fn` CAN be non-pure functions, i.e., they CAN have side-effects. However, to use non-pure functions, the function inputs shall NOT be class members (`self.XXX`).
         """
         super().__init__()
         if self.__cache_key__ in _cond_object_cache:
@@ -900,7 +911,7 @@ class TracingCond(ModuleBase):
         else:
             compiled_cond, state_true_fn, state_false_fn = self._compile_cond_fn(x)
             self._cache_compiled_cond[key] = (compiled_cond, state_true_fn, state_false_fn)
-        res = compiled_cond(state_true_fn.init_state(), state_false_fn.init_state(), cond, *x)
+        res = compiled_cond(state_true_fn.init_state(False), state_false_fn.init_state(False), cond, *x)
         if isinstance(res, tuple):
             state, res = res
         else:
@@ -967,14 +978,13 @@ class TracingSwitch(ModuleBase):
     """A helper class used to trace an match-case (switch-case) control flow."""
 
     def __new__(cls, *branch_fns, script_functions=False):
-        branch_fns_id = tuple(map(lambda f: getattr(f, "__id__", id(f)), branch_fns))
-        key = (branch_fns_id, script_functions)
-        if key in _switch_object_cache:
-            return _switch_object_cache[key]
-        else:
+        key_or_obj = _get_cache_key_object(_switch_object_cache, *branch_fns)
+        if isinstance(key_or_obj, tuple):
             obj = super().__new__(cls)
-            obj.__cache_key__ = key
+            obj.__cache_key__ = key_or_obj
             return obj
+        else:
+            return key_or_obj
 
     def __init__(
         self,
@@ -991,7 +1001,7 @@ class TracingSwitch(ModuleBase):
         ## Notice:
         1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `branch_fns` must have the same number of arguments.
-        3. `branch_fns` CAN be non-pure functions, i.e., they CAN have side-effects.
+        3. `branch_fns` CAN be non-pure functions, i.e., they CAN have side-effects. However, to use non-pure functions, the function inputs shall NOT be class members (`self.XXX`).
         """
         super().__init__()
         if self.__cache_key__ in _switch_object_cache:
@@ -1046,7 +1056,7 @@ class TracingSwitch(ModuleBase):
                     state_branch_fns[-1],
                     trace=True,
                     lazy=False,
-                    example_inputs=(state_branch_fns[-1].init_state(),) + original_args,
+                    example_inputs=(state_branch_fns[-1].init_state(False),) + original_args,
                 )
             )
         branch_fns = tuple(branch_fns)
