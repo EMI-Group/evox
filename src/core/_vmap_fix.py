@@ -326,7 +326,6 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
     torch.randperm = _batch_randperm if new_batch_fixing else _original_randperm
-    torch.randperm = _batch_randperm if new_batch_fixing else _original_randperm
     torch.rand_like = _batch_rand_like if new_batch_fixing else _original_rand_like
     torch.randn_like = _batch_randn_like if new_batch_fixing else _original_randn_like
     torch.randint_like = _batch_randint_like if new_batch_fixing else _original_randint_like

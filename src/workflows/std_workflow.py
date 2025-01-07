@@ -3,7 +3,6 @@ from typing import Any, Dict
 import torch
 from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
 from ..core.module import _WrapClassBase
-from ..core.module import _WrapClassBase
 
 
 class _NegModule(torch.nn.Module):

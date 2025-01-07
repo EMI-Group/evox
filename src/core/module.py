@@ -17,7 +17,6 @@ def _if_none(a, b):
     return b if a is None else a
 
 
-
 def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
@@ -42,12 +41,19 @@ def Parameter[
     Returns:
         T: The parameter.
     """
-    return nn.Parameter(torch.as_tensor(value, dtype=dtype, device=device), requires_grad=requires_grad)
+    return nn.Parameter(
+        (
+            value.to(dtype=dtype, device=device)
+            if isinstance(value, torch.Tensor)
+            else torch.as_tensor(value, dtype=dtype, device=device)
+        ),
+        requires_grad=requires_grad,
+    )
 
 
 def Mutable[
     T: torch.Tensor
-](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None,) -> T:
+](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
     """
     Wraps a value as a mutable tensor.
 
@@ -260,7 +266,7 @@ class ModuleBase(nn.Module):
                 val = val.to(**kwargs)
                 self.__setattr_inner__(k, val)
         return self
-    
+
     def __hash__(self):
         if self._hash_id_ is None:
             self._hash_id_ = super().__hash__()

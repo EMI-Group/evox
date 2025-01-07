@@ -3,10 +3,11 @@ import torch.nn as nn
 
 import os
 import sys
+
 current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
-    
+
 from src.utils import ParamsAndVector
 
 
@@ -22,22 +23,21 @@ if __name__ == "__main__":
                 nn.MaxPool2d(kernel_size=2, stride=2),
                 nn.Conv2d(3, 3, kernel_size=3),
                 nn.ReLU(),
-                nn.MaxPool2d(kernel_size=2, stride=2)
+                nn.MaxPool2d(kernel_size=2, stride=2),
             )
             self.classifier = nn.Sequential(
-                nn.Flatten(),
-                nn.Linear(108, 32),
-                nn.ReLU(),
-                nn.Linear(32, 10)
+                nn.Flatten(), nn.Linear(108, 32), nn.ReLU(), nn.Linear(32, 10)
             )
+
         def forward(self, x):
             x = self.features(x)
             x = self.classifier(x)
             return x
+
     model = SimpleCNN()
     adapter = ParamsAndVector(dummy_model=model)
     model_params = dict(model.named_parameters())
-    
+
     flat_params = adapter.to_vector(model_params)
     restored_params = adapter.to_params(flat_params)
 
@@ -49,28 +49,27 @@ if __name__ == "__main__":
     print("After restoring (the result should be the same as above): \n\t", model(x).sum())
     print()
 
-
     # Test `batched_to_vector` and `batched_to_params` functions
     class Dim0_Model(nn.Module):
         def __init__(self):
             super().__init__()
-            self.cat   = nn.Parameter(torch.rand(1))
+            self.cat = nn.Parameter(torch.rand(1))
             self.mouse = nn.Parameter(torch.rand(1))
-            self.dog   = nn.Parameter(torch.rand(1))
+            self.dog = nn.Parameter(torch.rand(1))
 
     class Dim1_Model(nn.Module):
         def __init__(self):
             super().__init__()
-            self.cat   = nn.Parameter(torch.rand(1, 2))
+            self.cat = nn.Parameter(torch.rand(1, 2))
             self.mouse = nn.Parameter(torch.rand(1, 1))
-            self.dog   = nn.Parameter(torch.rand(1, 3))
+            self.dog = nn.Parameter(torch.rand(1, 3))
 
     class Dim2_Model(nn.Module):
         def __init__(self):
             super().__init__()
-            self.cat   = nn.Parameter(torch.rand(1, 2, 3))
+            self.cat = nn.Parameter(torch.rand(1, 2, 3))
             self.mouse = nn.Parameter(torch.rand(1, 1, 4))
-            self.dog   = nn.Parameter(torch.rand(1, 3, 2))
+            self.dog = nn.Parameter(torch.rand(1, 3, 2))
 
     model_groups = tuple([eval(f"Dim{i}_Model()") for i in range(0, 3)])
     BATCH_SIZE = 5
@@ -80,8 +79,8 @@ if __name__ == "__main__":
             key: torch.stack([value] + [torch.randn_like(value) for _ in range(BATCH_SIZE - 1)])
             for key, value in dict(test_model.named_parameters()).items()
         }
-        temp_adapter            = ParamsAndVector(dummy_model=test_model)
-        batched_flat_params     = temp_adapter.batched_to_vector(batched_params)
+        temp_adapter = ParamsAndVector(dummy_model=test_model)
+        batched_flat_params = temp_adapter.batched_to_vector(batched_params)
         batched_restored_params = temp_adapter.batched_to_params(batched_flat_params)
 
         print(f"In the test of dimension {index}.")
