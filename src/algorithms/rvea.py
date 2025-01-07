@@ -56,6 +56,7 @@ class RVEA(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
+
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
@@ -99,8 +100,8 @@ class RVEA(Algorithm):
         self.fit = nn.Buffer(
             torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf)
         )
-        self.reference_vector = Parameter(v)  # nn.Buffer(v)
-        self.init_v = nn.Buffer(v0)
+        self.reference_vector = nn.Buffer(v)
+        self.init_v = v0
         self.gen = nn.Buffer(torch.tensor(0, device=device))
 
     def init_step(self):
@@ -111,10 +112,13 @@ class RVEA(Algorithm):
         """
         self.fit = self.evaluate(self.pop)
 
-    def rv_adaptation(self, pop_obj: torch.Tensor, v0: torch.Tensor, v: torch.Tensor):
+    def _rv_adaptation(self, pop_obj: torch.Tensor):
         max_vals = nanmax(pop_obj, dim=0)[0]
         min_vals = nanmin(pop_obj, dim=0)[0]
-        return v0 * (max_vals - min_vals)
+        return self.init_v * (max_vals - min_vals)
+
+    def _no_rv_adaptation(self, pop_obj: torch.Tensor):
+        return self.reference_vector
 
     def _mating_pool(self):
         mating_pool = torch.randint(0, self.pop.shape[0], (self.pop_size,))
@@ -134,23 +138,24 @@ class RVEA(Algorithm):
         self.fit = survivor_fit[~nan_mask_survivor]
 
         if self.gen % (1 / self.fr) == 0:
-            self.reference_vector = self.rv_adaptation(
-                survivor_fit, self.init_v, self.reference_vector
+            self.reference_vector = self._rv_adaptation(
+                survivor_fit
             )
 
     @trace_impl(_update_pop_and_rv)
     def _trace_update_pop_and_rv(
         self, survivor: torch.Tensor, survivor_fit: torch.Tensor
     ):
+        if_else = TracingCond(
+            self._rv_adaptation,
+            self._no_rv_adaptation
+        )
+        self.reference_vector = if_else.cond(
+            self.gen % (1 / self.fr) == 0, survivor_fit
+        )
+
         self.pop = survivor
         self.fit = survivor_fit
-
-        if_eles = TracingCond(
-            lambda x, y, z: [self.rv_adaptation(x, y, z)], lambda x, y, z: [z]
-        )
-        self.reference_vector = if_eles.cond(
-            self.gen % (1 / self.fr) == 0, self.fit, self.init_v, self.reference_vector
-        )[0]
 
     def step(self):
         self.gen += 1
