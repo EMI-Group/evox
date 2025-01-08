@@ -5,6 +5,7 @@ from typing import Any, Callable, List, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
+import torch._functorch.vmap as vmap
 from torch._C._functorch import (
     _add_batch_dim as add_batch_dim,
 )
@@ -26,7 +27,7 @@ if "maybe_current_level" not in _functorch.__dict__:
     def current_level() -> int | None:
         try:
             return _functorch.current_level()
-        except:
+        except Exception:
             return None
 
 else:
@@ -63,8 +64,6 @@ def _transform_in_dim(
     batched.__dict__["shape"] = shape
     return batch_dims_shape if len(batch_dims_shape) > 1 else batch_dims_shape[0]
 
-
-import torch._functorch.vmap as vmap
 
 global __vmap_batch_sizes__
 __vmap_batch_sizes__ = []

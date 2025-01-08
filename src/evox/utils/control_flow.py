@@ -1433,7 +1433,7 @@ class TracingSwitch(ModuleBase):
                 result = None
             if len(branch_results) > 0:
                 assert branch_results[-1] is result or (
-                    type(branch_results[-1]) == type(result)
+                    type(branch_results[-1]) is type(result)
                     and not isinstance(result, tuple)
                     or len(result) == len(branch_results[-1])
                 ), "Branch functions should return the same type of outputs."

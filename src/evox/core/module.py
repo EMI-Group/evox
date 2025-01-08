@@ -197,8 +197,8 @@ class ModuleBase(nn.Module):
             `NamedTuple | None`: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
         """
         if copy:
-            assert (
-                any(map(torch._C._functorch.is_batchedtensor, state_dict.values())) == False
+            assert not any(
+                map(torch._C._functorch.is_batchedtensor, state_dict.values())
             ), "`copy=True` is not compatible with `vmap`"
             return super().load_state_dict(state_dict, **kwargs)
         # else
@@ -292,13 +292,13 @@ class ModuleBase(nn.Module):
             return super(nn.Module, self).__getattribute__(name)
         try:
             return self_dict.get(_WRAPPING_MODULE_NAME).__getattr__(name)
-        except:
+        except Exception:
             return super(nn.Module, self).__getattribute__(name)
 
     def __getattr_inner__(self, name):
         try:
             value = super(nn.Module, self).__getattribute__(name)
-        except:
+        except Exception:
             value = super(ModuleBase, self).__getattr__(name)
         return value
 
@@ -313,11 +313,11 @@ class ModuleBase(nn.Module):
     def __delattr_inner__(self, name):
         try:
             object.__delattr__(self, name)
-        except:
+        except Exception:
             super(ModuleBase, self).__delattr__(name)
 
     def __setattr__(self, name, value):
-        if type(value) == nn.Module:  # an empty nn.Module, change to ModuleBase
+        if type(value) is nn.Module:  # an empty nn.Module, change to ModuleBase
             super().__setattr__(name, ModuleBase())
         elif hasattr(self, _WRAPPING_MODULE_NAME):
             wrapper = object.__getattribute__(self, _WRAPPING_MODULE_NAME)
@@ -393,7 +393,7 @@ class ModuleBase(nn.Module):
         for k in self.__static_names__:
             try:
                 self.__setattr_inner__(k, jit_module.__getattr__(k))
-            except:
+            except Exception:
                 self.__static_names__.remove(k)
         for sub_name, sub_mod in self._modules.items():
             if len(sub_name) > 0 and isinstance(sub_mod, ModuleBase):
@@ -704,11 +704,13 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
         def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
             if state is None:
                 state = modules_vars
-            wrap_param_fn = lambda key, val: (
-                nn.Parameter(val, requires_grad=modules_vars[key].requires_grad)
-                if isinstance(modules_vars[key], nn.Parameter)
-                else val
-            )
+
+            def wrap_param_fn(key, val):
+                if isinstance(modules_vars[key], nn.Parameter):
+                    return nn.Parameter(val, requires_grad=modules_vars[key].requires_grad)
+                else:
+                    return val
+
             for k, v in vars.items():
                 this_state = {t[1]: wrap_param_fn(key, val) for key, val in state.items() if (t := key.split(".", 1))[0] == k}
                 if len(this_state) > 0:
