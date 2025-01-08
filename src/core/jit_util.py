@@ -18,7 +18,16 @@ from ..core import _vmap_fix
 
 class MappedUseStateFunc(Protocol):
 
-    def init_state(self, batch_size: int | None = None) -> Dict[str, torch.Tensor]:
+    def init_state(self, batch_size: int | None = None, expand: bool = True) -> Dict[str, torch.Tensor]:
+        """Initialize the state of the mapped function.
+
+        Args:
+            batch_size (`int | None`, optional): The batch size of the state. If `None`, the batch size of the state is indicated by VMAP_DIM_CONST. Defaults to `None`.
+            expand (`bool`, optional): Whether to `torch.expand` or `torch.repeat` the state tensors to the given batch size.
+
+        Returns:
+            `Dict[str, torch.Tensor]`: The initialized state, with the same keys as the state of the original function.
+        """
         pass
 
     def __call__(
@@ -82,7 +91,7 @@ def vmap(
         if batched_state is None:
             init_state = func.init_state()
 
-            def _batched_init_state(batch_size: int | None = None):
+            def _batched_init_state(batch_size: int | None = None, expand: bool = True):
                 if batch_size is None:
                     batch_size = VMAP_DIM_CONST
                 if isinstance(in_dims, tuple):
@@ -95,7 +104,10 @@ def vmap(
                         vv = v.data
                     else:
                         vv = v
-                    vv = vv.unsqueeze(dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
+                    if expand:
+                        vv = vv.unsqueeze(dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
+                    else:
+                        vv = vv.unsqueeze(dim).repeat(*([1] * dim), batch_size, *([1] * (v.ndim - dim)))
                     if isinstance(v, torch.nn.Parameter):
                         state[k] = torch.nn.Parameter(vv, requires_grad=v.requires_grad)
                     else:

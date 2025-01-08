@@ -54,8 +54,8 @@ class DMSPSOEL(Algorithm):
             gbest_coefficient (`float`, optional): The social weight. Defaults to 1.0.
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
-
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.dim = lb.shape[0]
         self.pop_size = dynamic_sub_swarm_size * dynamic_sub_swarms_num + following_sub_swarm_size

@@ -42,8 +42,8 @@ class PSO(Algorithm):
         Raises:
             `AssertionError`: If the shapes of lb and ub do not match or if they are not 1D tensors or of different data types or devices.
         """
-
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]

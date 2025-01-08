@@ -39,6 +39,7 @@ class DE(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert pop_size >= 4
         assert cross_probability > 0 and cross_probability <= 1
         assert num_difference_vectors >= 1 and num_difference_vectors < pop_size // 2

@@ -34,6 +34,7 @@ class OpenES(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert noise_stdev > 0, "noise_stdev must be greater than 0."
         assert learning_rate > 0, "learning_rate must be greater than 0."
         assert pop_size > 0, "pop_size must be greater than 0."
