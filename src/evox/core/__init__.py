@@ -1,4 +1,5 @@
 __all__ = [
+    "_vmap_fix",
     "Parameter",
     "Mutable",
     "ModuleBase",
