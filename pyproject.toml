@@ -46,10 +46,11 @@ neuroevolution = [
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
 
-[tool.ruff.format]
+[tool.ruff]
+# Allow lines to be as long as 128. (default: 88)
+line-length = 128
 # Use `\n` line endings for all files
-line-ending = "lf"
-
-[tool.ruff.lint]
+format.line-ending = "lf"
 # F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
-select = ["F", "E", "W", "I", "NPY"]
+lint.select = ["F", "E", "W", "I", "NPY"]
+lint.ignore = ["E501"] # Ignore line length error
