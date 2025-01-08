@@ -1,11 +1,11 @@
+from typing import Dict, Iterable, Iterator, Tuple
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from typing import Dict, Tuple, Iterable, Iterator
 
-from ...core import Problem, jit_class, use_state, vmap, jit
+from ...core import Problem, jit, jit_class, use_state, vmap
 from .utils import get_vmap_model_state_forward
-
 
 __supervised_data__: Dict[int, Dict[str, DataLoader | Iterable | Iterator | Tuple]] = None
 
@@ -35,7 +35,7 @@ class SupervisedLearningProblem(Problem):
 
         Raises:
             `RuntimeError`: If the data loader contains no items.
-            
+
         ## Warning:
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
         """
@@ -57,9 +57,7 @@ class SupervisedLearningProblem(Problem):
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
         except StopIteration:
-            raise RuntimeError(
-                f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item."
-            )
+            raise RuntimeError(f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item.")
         dummy_inputs: torch.Tensor = dummy_inputs.to(device=device)
         dummy_labels: torch.Tensor = dummy_labels.to(device=device)
 
@@ -113,11 +111,7 @@ class SupervisedLearningProblem(Problem):
         self.vmap_criterion_init_state = vmap_criterion_init_state
 
         # Model parameters and buffers registration
-        self._model_buffers = {
-            key: value
-            for key, value in model_init_state.items()
-            if key not in self._param_to_state_key_map
-        }
+        self._model_buffers = {key: value for key, value in model_init_state.items() if key not in self._param_to_state_key_map}
         sample_param_key, sample_state_key = next(iter(self._param_to_state_key_map.items()))
         self._sample_param_key = sample_param_key
         self._sample_param_ndim = model_init_state[sample_state_key].ndim
@@ -164,8 +158,7 @@ class SupervisedLearningProblem(Problem):
     ):
         # Initialize model and criterion states
         model_buffers = {  # expand dimensions for model buffers
-            key: value.unsqueeze(0).expand([num_map] + list(value.shape))
-            for key, value in self._model_buffers.items()
+            key: value.unsqueeze(0).expand([num_map] + list(value.shape)) for key, value in self._model_buffers.items()
         }
         state_params = {self._param_to_state_key_map[key]: value for key, value in pop_params.items()}
         model_state = model_buffers

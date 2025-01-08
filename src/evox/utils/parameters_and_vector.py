@@ -1,9 +1,10 @@
+from math import prod
+from typing import Dict, List
+
 import torch
 import torch.nn as nn
-from typing import Dict, List
-from math import prod
 
-from ..core import jit, jit_class, ModuleBase
+from ..core import ModuleBase, jit, jit_class
 from ..core._vmap_fix import tree_flatten, tree_unflatten
 
 
@@ -104,9 +105,7 @@ class ParamsAndVector(ModuleBase):
         flat_params = []
         batch_size = vectors.shape[0]
         for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
-            flat_params.append(
-                vectors.narrow(dim=1, start=start_index, length=slice_size).reshape(batch_size, *shape)
-            )
+            flat_params.append(vectors.narrow(dim=1, start=start_index, length=slice_size).reshape(batch_size, *shape))
         return self._jit_tree_unflatten(flat_params)
 
     def forward(self, x: torch.Tensor) -> Dict[str, nn.Parameter]:

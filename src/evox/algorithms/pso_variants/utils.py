@@ -23,7 +23,7 @@ def min_by(
     return values[min_index], keys[min_index]
 
 
-def random_select_from_mask(mask: torch.Tensor, count: int, dim: int=-1) -> torch.Tensor:
+def random_select_from_mask(mask: torch.Tensor, count: int, dim: int = -1) -> torch.Tensor:
     """
     Randomly select `s` elements from a 1D mask using uniform noise.
 

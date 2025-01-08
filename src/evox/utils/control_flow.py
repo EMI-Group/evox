@@ -1,12 +1,11 @@
 import inspect
-from typing import Callable, Dict, List, Tuple, Iterable, TypeVar, Protocol
+from typing import Callable, Dict, Iterable, List, Protocol, Tuple, TypeVar
 
 import torch
 
-from ..core import trace_impl, vmap_impl, jit_class, vmap, jit, use_state, ModuleBase
-from ..core import _vmap_fix
+from ..core import ModuleBase, _vmap_fix, jit, jit_class, trace_impl, use_state, vmap, vmap_impl
 from ..core.module import UseStateFunc
-from ..utils import switch as _switch
+from .jit_fix_operator import switch as _switch
 
 
 def _get_cache_key_object(cache_dict: dict, *fns: Callable):
@@ -349,17 +348,13 @@ class TracingWhile(ModuleBase):
         else:
             compiled_loop, state_cond_fn, state_body_fn = self._compile_loop_fn(x)
             self._cache_compiled_loop[key] = (compiled_loop, state_cond_fn, state_body_fn)
-        state, res = compiled_loop(
-            {**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x
-        )
+        state, res = compiled_loop({**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x)
         state_cond_fn.set_state(state)
         state_body_fn.set_state(state)
         return res
 
     @torch.jit.ignore
-    def _compile_vmap_loop_fn(
-        self, original_args: Tuple[torch.Tensor, ...], vmap_dims: Tuple[Tuple[int, ...], ...]
-    ):
+    def _compile_vmap_loop_fn(self, original_args: Tuple[torch.Tensor, ...], vmap_dims: Tuple[Tuple[int, ...], ...]):
         # vmap
         vmap_cond = self._cond_fn
         vmap_body = self._body_fn
@@ -367,9 +362,7 @@ class TracingWhile(ModuleBase):
             vmap_cond = vmap(vmap_cond, in_dims=d, trace=False)
             vmap_body = vmap(vmap_body, in_dims=d, out_dims=d, trace=False)
 
-        def _expand_vmap_dim(
-            vmap_dim: Tuple[int, ...], size: Tuple[int, ...], a: torch.Tensor
-        ) -> torch.Tensor:
+        def _expand_vmap_dim(vmap_dim: Tuple[int, ...], size: Tuple[int, ...], a: torch.Tensor) -> torch.Tensor:
             vmap_dim = tuple(d + i for i, d in enumerate(vmap_dim))
             size = list(size)
             for i, _ in enumerate(size):
@@ -424,9 +417,7 @@ class TracingWhile(ModuleBase):
                 cond_res1, cond_res2, cond_res3, cond_res4 = cond(x1, x2, x3, x4)
             return x1, x2, x3, x4
 
-        def _loop5(
-            x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
-        ):
+        def _loop5(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor):
             cond_res1, cond_res2, cond_res3, cond_res4, cond_res5 = cond(x1, x2, x3, x4, x5)
             while cond_res1.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new = body(x1, x2, x3, x4, x5)
@@ -446,9 +437,7 @@ class TracingWhile(ModuleBase):
             x5: torch.Tensor,
             x6: torch.Tensor,
         ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(
-                x1, x2, x3, x4, x5, x6
-            )
+            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(x1, x2, x3, x4, x5, x6)
             while cond_res1.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new = body(x1, x2, x3, x4, x5, x6)
                 x1 = torch.where(cond_res1, x1_new, x1)
@@ -457,9 +446,7 @@ class TracingWhile(ModuleBase):
                 x4 = torch.where(cond_res4, x4_new, x4)
                 x5 = torch.where(cond_res5, x5_new, x5)
                 x6 = torch.where(cond_res6, x6_new, x6)
-                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(
-                    x1, x2, x3, x4, x5, x6
-                )
+                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(x1, x2, x3, x4, x5, x6)
             return x1, x2, x3, x4, x5, x6
 
         def _loop7(
@@ -471,9 +458,7 @@ class TracingWhile(ModuleBase):
             x6: torch.Tensor,
             x7: torch.Tensor,
         ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(
-                x1, x2, x3, x4, x5, x6, x7
-            )
+            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(x1, x2, x3, x4, x5, x6, x7)
             while cond_res1.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new = body(x1, x2, x3, x4, x5, x6, x7)
                 x1 = torch.where(cond_res1, x1_new, x1)
@@ -483,9 +468,7 @@ class TracingWhile(ModuleBase):
                 x5 = torch.where(cond_res5, x5_new, x5)
                 x6 = torch.where(cond_res6, x6_new, x6)
                 x7 = torch.where(cond_res7, x7_new, x7)
-                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(
-                    x1, x2, x3, x4, x5, x6, x7
-                )
+                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(x1, x2, x3, x4, x5, x6, x7)
             return x1, x2, x3, x4, x5, x6, x7
 
         def _loop8(
@@ -498,13 +481,11 @@ class TracingWhile(ModuleBase):
             x7: torch.Tensor,
             x8: torch.Tensor,
         ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7, cond_res8 = (
-                cond(x1, x2, x3, x4, x5, x6, x7, x8)
+            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7, cond_res8 = cond(
+                x1, x2, x3, x4, x5, x6, x7, x8
             )
             while cond_res1.any():
-                x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new = body(
-                    x1, x2, x3, x4, x5, x6, x7, x8
-                )
+                x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new = body(x1, x2, x3, x4, x5, x6, x7, x8)
                 x1 = torch.where(cond_res1, x1_new, x1)
                 x2 = torch.where(cond_res2, x2_new, x2)
                 x3 = torch.where(cond_res3, x3_new, x3)
@@ -595,9 +576,7 @@ class TracingWhile(ModuleBase):
         vmap_dims = []
         original_args: List[torch.Tensor] = []
         for arg in x:
-            assert isinstance(
-                arg, torch.Tensor
-            ), f"Expect all arguments in `vmap` to be `torch.Tensor`, got {type(arg)}"
+            assert isinstance(arg, torch.Tensor), f"Expect all arguments in `vmap` to be `torch.Tensor`, got {type(arg)}"
             arg, in_dim, _ = _vmap_fix.unwrap_batch_tensor(arg)
             vmap_dims.append(in_dim)
             original_args.append(arg)
@@ -1073,9 +1052,7 @@ class TracingSwitch(ModuleBase):
         _switch_object_cache.pop(self.__cache_key__, None)
 
     @torch.jit.ignore
-    def switch(
-        self, branch_idx: torch.Tensor, *x: torch.Tensor
-    ) -> List[torch.Tensor] | torch.Tensor | None:
+    def switch(self, branch_idx: torch.Tensor, *x: torch.Tensor) -> List[torch.Tensor] | torch.Tensor | None:
         """Runs the selected branch based on the given branch index.
 
         When tracing JIT (`core.jit` with `trace=True`), the `trace_switch` function is used instead; when using `core.vmap`, the `vmap_switch` function is used instead.
@@ -1099,9 +1076,7 @@ class TracingSwitch(ModuleBase):
     @torch.jit.ignore
     def _compile_switch_fn(self, original_args: Tuple[torch.Tensor, ...]):
         # use state for in-place modifications
-        assert (
-            len(self._branch_fns) <= 9
-        ), f"At most 9 branches are supported, got {len(self._branch_fns)}"
+        assert len(self._branch_fns) <= 9, f"At most 9 branches are supported, got {len(self._branch_fns)}"
         state_branch_fns: List[UseStateFunc] = []
         branch_fns: List[torch.jit.ScriptFunction] = []
         for branch_fn in self._branch_fns:
@@ -1461,7 +1436,7 @@ class TracingSwitch(ModuleBase):
                     type(branch_results[-1]) == type(result)
                     and not isinstance(result, tuple)
                     or len(result) == len(branch_results[-1])
-                ), f"Branch functions should return the same type of outputs."
+                ), "Branch functions should return the same type of outputs."
             state_branch_fns.append(fn)
             init_state.update(state)
             branch_results.append(result)

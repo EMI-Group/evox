@@ -60,28 +60,20 @@ class TestModule(unittest.TestCase):
         self.assertTrue(torch.equal(self.test_instance.mut_list[1], torch.ones(10)))
 
     def test_add_mutable_dict(self):
-        self.test_instance.add_mutable(
-            "mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)}
-        )
+        self.test_instance.add_mutable("mut_dict", {"a": torch.zeros(20), "b": torch.ones(20)})
         self.assertTrue(torch.equal(self.test_instance.mut_dict["a"], torch.zeros(20)))
         self.assertTrue(torch.equal(self.test_instance.mut_dict["b"], torch.ones(20)))
 
     def test_trace_fn(self):
         fn = use_state(lambda: self.test_instance.h, is_generator=True)
-        trace_fn = torch.jit.trace(
-            fn, (fn.init_state(), torch.ones(10, 1)), strict=False
-        )
+        trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
         self.assertIsNotNone(trace_fn)
 
     def test_loop_function(self):
         fn = use_state(lambda: self.test_instance.h, is_generator=True)
-        trace_fn = torch.jit.trace(
-            fn, (fn.init_state(), torch.ones(10, 1)), strict=False
-        )
+        trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
 
-        def loop(
-            init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int = 10
-        ):
+        def loop(init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int = 10):
             state = init_state
             ret = init_x
             rets: List[torch.Tensor] = []
@@ -90,7 +82,5 @@ class TestModule(unittest.TestCase):
                 rets.append(state["self.sub_mod.buf"])
             return rets
 
-        loop_traced = torch.jit.trace(
-            loop, (fn.init_state(), torch.rand(10, 2)), strict=False
-        )
+        loop_traced = torch.jit.trace(loop, (fn.init_state(), torch.rand(10, 2)), strict=False)
         self.assertIsNotNone(loop_traced)

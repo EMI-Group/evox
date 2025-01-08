@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -81,8 +81,7 @@ class SLPSOUS(Algorithm):
         q = clamp(
             self.pop_size
             - torch.ceil(
-                self.demonstrator_choice_factor
-                * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1) - 1)
+                self.demonstrator_choice_factor * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1) - 1)
             ),
             torch.tensor(1, device=device),
             torch.tensor(self.pop_size, device=device),
@@ -102,9 +101,7 @@ class SLPSOUS(Algorithm):
         r3 = torch.rand(self.pop_size, self.dim, device=device)
         X_avg = self.population.mean(dim=0)
         velocity = (
-            r1 * self.velocity
-            + r2 * (X_k - self.population)
-            + r3 * self.social_influence_factor * (X_avg - self.population)
+            r1 * self.velocity + r2 * (X_k - self.population) + r3 * self.social_influence_factor * (X_avg - self.population)
         )
         population = self.population + velocity
         population = clamp(population, self.lb, self.ub)

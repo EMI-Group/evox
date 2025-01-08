@@ -41,9 +41,7 @@ class TestControlFlow(unittest.TestCase):
         y = torch.tensor([2.0, 2.5])
         x1, y1 = self.while_loop.loop(x, y)
         self.assertTrue(torch.equal(x1, torch.tensor(10)))
-        self.assertTrue(
-            torch.allclose(y1, torch.tensor([2.0**1.05**10, 2.5**1.05**10]))
-        )
+        self.assertTrue(torch.allclose(y1, torch.tensor([2.0**1.05**10, 2.5**1.05**10])))
 
     def test_jit_while_loop(self):
         x = torch.tensor(0, dtype=torch.int)
@@ -56,9 +54,7 @@ class TestControlFlow(unittest.TestCase):
         )
         x1, y1 = trace_loop(x, y)
         self.assertTrue(torch.equal(x1, torch.tensor(10)))
-        self.assertTrue(
-            torch.allclose(y1, torch.tensor([2.0**1.05**10, 2.5**1.05**10]))
-        )
+        self.assertTrue(torch.allclose(y1, torch.tensor([2.0**1.05**10, 2.5**1.05**10])))
 
     def test_vmap_while_loop(self):
         x = torch.tensor([0, 1, 2], dtype=torch.int)
@@ -86,9 +82,7 @@ class TestControlFlow(unittest.TestCase):
 
     def test_nested_vmap_while_loop(self):
         x = torch.tensor([[0, 1, 2], [0, 1, 2]], dtype=torch.int)
-        y = torch.tensor(
-            [[[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]], [[2.1, 2.2], [3.1, 3.2], [4.1, 4.2]]]
-        )
+        y = torch.tensor([[[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]], [[2.1, 2.2], [3.1, 3.2], [4.1, 4.2]]])
         vmap_loop = jit(
             vmap(vmap(use_state(lambda: self.while_loop.loop))),
             trace=True,
@@ -165,13 +159,9 @@ class TestControlFlow(unittest.TestCase):
         )
 
     def test_nested_vmap_if_else(self):
-        cond = torch.tensor(
-            [[True, False, True], [False, True, True]], dtype=torch.bool
-        )
+        cond = torch.tensor([[True, False, True], [False, True, True]], dtype=torch.bool)
         x = torch.tensor([[0, 1, 2], [3, 4, 5]], dtype=torch.int)
-        y = torch.tensor(
-            [[[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]], [[2.1, 2.2], [3.1, 3.2], [4.1, 4.2]]]
-        )
+        y = torch.tensor([[[2.0, 2.5], [3.0, 3.5], [4.0, 4.5]], [[2.1, 2.2], [3.1, 3.2], [4.1, 4.2]]])
         vmap_cond = jit(
             vmap(vmap(use_state(lambda: self.if_else.cond))),
             trace=True,
@@ -205,7 +195,5 @@ class TestControlFlow(unittest.TestCase):
         x = torch.tensor([1, -1])
         y = torch.tensor([3, 4])
         self.assertTrue(torch.equal(m.test(x, y), torch.tensor([4, 3])))
-        trace_cond = jit(
-            use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(x, y)
-        )
+        trace_cond = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(x, y))
         self.assertTrue(torch.equal(trace_cond(x, y), torch.tensor([3, -4])))

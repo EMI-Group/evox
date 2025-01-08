@@ -17,8 +17,8 @@ __all__ = [
 
 # deal with vmap nesting and JIT
 from . import _vmap_fix
+from .components import Algorithm, Monitor, Problem, Workflow
+from .jit_util import jit, vmap
 
 # export symbols
-from .module import Parameter, Mutable, ModuleBase, use_state, trace_impl, vmap_impl, jit_class, assign_load_state_dict
-from .jit_util import vmap, jit
-from .components import Algorithm, Problem, Workflow, Monitor
+from .module import ModuleBase, Mutable, Parameter, assign_load_state_dict, jit_class, trace_impl, use_state, vmap_impl

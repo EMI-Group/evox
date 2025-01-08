@@ -10,8 +10,8 @@ __all__ = [
     "ParamsAndVector",
 ]
 
-from .jit_fix_operator import switch, clamp, clip, maximum, minimum
-from .control_flow import TracingWhile, TracingCond, TracingSwitch
+from .control_flow import TracingCond, TracingSwitch, TracingWhile
+from .jit_fix_operator import clamp, clip, maximum, minimum, switch
 from .parameters_and_vector import ParamsAndVector
 
 

@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 

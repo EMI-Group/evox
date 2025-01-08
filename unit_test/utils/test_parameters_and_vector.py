@@ -17,9 +17,7 @@ class SimpleCNN(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        self.classifier = nn.Sequential(
-            nn.Flatten(), nn.Linear(108, 32), nn.ReLU(), nn.Linear(32, 10)
-        )
+        self.classifier = nn.Sequential(nn.Flatten(), nn.Linear(108, 32), nn.ReLU(), nn.Linear(32, 10))
 
     def forward(self, x):
         x = self.features(x)
@@ -75,15 +73,11 @@ class TestParamsAndVector(unittest.TestCase):
 
         for test_model in model_groups:
             batched_params = {
-                key: torch.stack(
-                    [value] + [torch.randn_like(value) for _ in range(BATCH_SIZE - 1)]
-                )
+                key: torch.stack([value] + [torch.randn_like(value) for _ in range(BATCH_SIZE - 1)])
                 for key, value in dict(test_model.named_parameters()).items()
             }
             temp_adapter = ParamsAndVector(dummy_model=test_model)
             batched_flat_params = temp_adapter.batched_to_vector(batched_params)
-            batched_restored_params = temp_adapter.batched_to_params(
-                batched_flat_params
-            )
+            batched_restored_params = temp_adapter.batched_to_params(batched_flat_params)
 
             self.params_all_close(batched_params, batched_restored_params)

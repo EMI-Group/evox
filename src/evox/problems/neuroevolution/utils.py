@@ -1,15 +1,14 @@
 import copy
 import types
-from typing import Dict, Callable, Any
-
-import torch
-import torch.nn as nn
-from torch.utils.dlpack import to_dlpack, from_dlpack
+from typing import Any, Callable, Dict
 
 import jax
+import torch
+import torch.nn as nn
 import torch.utils.dlpack
+from torch.utils.dlpack import from_dlpack, to_dlpack
 
-from ...core import use_state, vmap, jit
+from ...core import jit, use_state, vmap
 from ...core.module import assign_load_state_dict
 
 
@@ -53,9 +52,7 @@ def get_vmap_model_state_forward(
         example_inputs=(vmap_model_init_state, dummy_inputs),
         return_dummy_output=True,
     )
-    assert check_output(
-        dummy_vmap_outputs
-    ), f"Mapped forward evaluation assertion failed for {dummy_vmap_outputs}"
+    assert check_output(dummy_vmap_outputs), f"Mapped forward evaluation assertion failed for {dummy_vmap_outputs}"
 
     # Building map from model parameters key to model state key
     model_params = dict(inference_model.named_parameters())
@@ -67,15 +64,9 @@ def get_vmap_model_state_forward(
     }
     # Model parameters and buffers registration
     if get_non_vmap:
-        model_buffers = {
-            key: value for key, value in model_init_state.items() if key not in param_to_state_key_map
-        }
+        model_buffers = {key: value for key, value in model_init_state.items() if key not in param_to_state_key_map}
     else:
-        model_buffers = {
-            key: value
-            for key, value in vmap_model_init_state.items()
-            if key not in param_to_state_key_map
-        }
+        model_buffers = {key: value for key, value in vmap_model_init_state.items() if key not in param_to_state_key_map}
 
     # Return
     if get_non_vmap:

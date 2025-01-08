@@ -2,7 +2,7 @@ from typing import Literal
 
 import torch
 
-from ...core import Parameter, Mutable, Algorithm, jit_class
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from .adam_step import adam_single_tensor
 
 

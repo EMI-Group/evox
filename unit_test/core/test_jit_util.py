@@ -7,9 +7,7 @@ from evox.core import jit, vmap
 
 
 @partial(vmap, example_ndim=2)
-def _single_eval(
-    x: torch.Tensor, p: float = 2.0, q: torch.Tensor = torch.tensor([0, 1])
-):
+def _single_eval(x: torch.Tensor, p: float = 2.0, q: torch.Tensor = torch.tensor([0, 1])):
     return (x**p).sum() * q.sum()
 
 

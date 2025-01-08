@@ -15,9 +15,7 @@ def run_switch():
     z = basic_switch(x, y)
     print(z)
 
-    x = torch.randint(
-        low=0, high=10, size=(1000, 10000), dtype=torch.int, device="cuda"
-    )
+    x = torch.randint(low=0, high=10, size=(1000, 10000), dtype=torch.int, device="cuda")
     y = [torch.rand(1000, 10000, device="cuda") for _ in range(10)]
     vmap_switch = jit(switch, trace=False)
     with profile(

@@ -1,12 +1,12 @@
 from typing import Any, Dict
 
 import torch
-from ..core import Algorithm, Problem, Workflow, Monitor, jit_class
+
+from ..core import Algorithm, Monitor, Problem, Workflow, jit_class
 from ..core.module import _WrapClassBase
 
 
 class _NegModule(torch.nn.Module):
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return -x
 
@@ -95,12 +95,8 @@ class StdWorkflow(Workflow):
             fitness_transform = fitness_transform.__inner_module__
         if self.opt_direction == -1:
             fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
-        assert callable(
-            solution_transform
-        ), f"Expect solution transform to be callable, got {solution_transform}"
-        assert callable(
-            fitness_transform
-        ), f"Expect fitness transform to be callable, got {fitness_transform}"
+        assert callable(solution_transform), f"Expect solution transform to be callable, got {solution_transform}"
+        assert callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
         if isinstance(solution_transform, torch.nn.Module):
             solution_transform.to(device=device)
         if isinstance(fitness_transform, torch.nn.Module):

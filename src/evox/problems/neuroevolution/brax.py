@@ -1,22 +1,17 @@
 from typing import Callable, Dict, Tuple
 
-import torch
-import torch.nn as nn
-
-from brax import envs
-
 import jax
 import jax.numpy as jnp
+import torch
+import torch.nn as nn
+from brax import envs
 
 from ...core import Problem, jit_class
-from .utils import get_vmap_model_state_forward, to_jax_array, from_jax_array
-
+from .utils import from_jax_array, get_vmap_model_state_forward, to_jax_array
 
 __brax_data__: Dict[
     int,
-    Tuple[
-        Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]
-    ],
+    Tuple[Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]],
 ] = {}
 
 
@@ -89,34 +84,24 @@ class BraxProblem(Problem):
         global __brax_data__
         __brax_data__[hash(self)] = (brax_reset, brax_step)
         # JIT stateful model forward
-        dummy_obs = torch.empty(
-            pop_size, num_episodes, env.observation_size, device=device
-        )
-        _, jit_vmap_state_forward, _, _, param_to_state_key_map, model_buffers = (
-            get_vmap_model_state_forward(
-                model=policy,
-                pop_size=pop_size,
-                dummy_inputs=dummy_obs,
-                check_output=lambda x: (
-                    isinstance(x, torch.Tensor)
-                    and x.ndim == 3
-                    and x.shape[0] == pop_size
-                    and x.shape[1] == num_episodes
-                    and x.shape[2] == env.action_size
-                ),
-                device=device,
-                vmap_in_dims=(0, 0),
-            )
+        dummy_obs = torch.empty(pop_size, num_episodes, env.observation_size, device=device)
+        _, jit_vmap_state_forward, _, _, param_to_state_key_map, model_buffers = get_vmap_model_state_forward(
+            model=policy,
+            pop_size=pop_size,
+            dummy_inputs=dummy_obs,
+            check_output=lambda x: (
+                isinstance(x, torch.Tensor)
+                and x.ndim == 3
+                and x.shape[0] == pop_size
+                and x.shape[1] == num_episodes
+                and x.shape[2] == env.action_size
+            ),
+            device=device,
+            vmap_in_dims=(0, 0),
         )
         self._jit_state_forward = jit_vmap_state_forward
         self._param_to_state_key_map = param_to_state_key_map
-        model_buffers["key"] = (
-            torch.random.get_rng_state()
-            .view(dtype=torch.uint32)[:2]
-            .detach()
-            .clone()
-            .to(device=device)
-        )
+        model_buffers["key"] = torch.random.get_rng_state().view(dtype=torch.uint32)[:2].detach().clone().to(device=device)
         self._model_buffers = model_buffers
         # Set constants
         self.max_episode_length = max_episode_length
@@ -140,10 +125,7 @@ class BraxProblem(Problem):
             A tensor of shape (batch_size,) containing the reward of each sample in the population.
         """
         # Unpack parameters and buffers
-        state_params = {
-            self._param_to_state_key_map[key]: value
-            for key, value in pop_params.items()
-        }
+        state_params = {self._param_to_state_key_map[key]: value for key, value in pop_params.items()}
         model_state = dict(self._model_buffers)
         model_state.update(state_params)
         rand_key = model_state.pop("key")
@@ -177,9 +159,7 @@ class BraxProblem(Problem):
         else:
             key, eval_key = key, key
         keys = jax.random.split(eval_key, self.num_episodes)
-        keys = jnp.broadcast_to(keys, (pop_size, *keys.shape)).reshape(
-            pop_size * self.num_episodes, -1
-        )
+        keys = jnp.broadcast_to(keys, (pop_size, *keys.shape)).reshape(pop_size * self.num_episodes, -1)
         # Loop until environment stops
         done = jnp.zeros((pop_size * self.num_episodes,), dtype=bool)
         total_reward = jnp.zeros((pop_size * self.num_episodes,))

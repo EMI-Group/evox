@@ -37,36 +37,24 @@ class BasicProblem(Problem):
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()
-        assert (
-            lb.ndim == 1 and ub.ndim == 1
-        ), f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
-        assert (
-            lb.shape == ub.shape
-        ), f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
+        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
         self.pop_size = pop_size
         self.lb = lb
         self.ub = ub
         self.dim = lb.shape[0]
-        self.pop = nn.Buffer(
-            torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device)
-        )
-        self.fit = nn.Buffer(
-            torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device)
-        )
+        self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+        self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
 
     def step(self):
-        pop = torch.rand(
-            self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-        )
+        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
         self.pop.copy_(pop)
         self.fit.copy_(self.evaluate(pop))
 
     @trace_impl(step)
     def trace_step(self):
-        pop = torch.rand(
-            self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-        )
+        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
         self.pop = pop
         self.fit = self.evaluate(pop)
@@ -83,9 +71,7 @@ class TestStdWorkflow(unittest.TestCase):
     def test_basic_workflow(self):
         state_step = use_state(lambda: self.workflow.step)
         self.assertIsNotNone(state_step.init_state())
-        jit_step = jit(
-            state_step, trace=True, example_inputs=(state_step.init_state(),)
-        )
+        jit_step = jit(state_step, trace=True, example_inputs=(state_step.init_state(),))
         self.assertIsNotNone(jit_step(state_step.init_state()))
 
     def test_vmap_workflow(self):

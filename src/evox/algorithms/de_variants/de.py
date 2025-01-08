@@ -2,7 +2,7 @@ from typing import Literal
 
 import torch
 
-from ...core import Parameter, Mutable, Algorithm, jit_class
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
 
 
@@ -53,9 +53,9 @@ class DE(Algorithm):
         if num_difference_vectors == 1:
             assert isinstance(differential_weight, float)
         else:
-            assert isinstance(
-                differential_weight, torch.Tensor
-            ) and differential_weight.shape == torch.Size([num_difference_vectors])
+            assert isinstance(differential_weight, torch.Tensor) and differential_weight.shape == torch.Size(
+                [num_difference_vectors]
+            )
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
         # setup

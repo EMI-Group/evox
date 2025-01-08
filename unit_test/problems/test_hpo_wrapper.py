@@ -21,28 +21,18 @@ class BasicProblem(Problem):
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()
-        assert (
-            lb.ndim == 1 and ub.ndim == 1
-        ), f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
-        assert (
-            lb.shape == ub.shape
-        ), f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
+        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
         self.pop_size = pop_size
         self.hp = Parameter([1.0, 2.0])
         self.lb = lb
         self.ub = ub
         self.dim = lb.shape[0]
-        self.pop = nn.Buffer(
-            torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device)
-        )
-        self.fit = nn.Buffer(
-            torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device)
-        )
+        self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+        self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
 
     def step(self):
-        pop = torch.rand(
-            self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-        )
+        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
         pop = pop * self.hp[0]
         self.pop.copy_(pop)
@@ -50,9 +40,7 @@ class BasicAlgorithm(Algorithm):
 
     @trace_impl(step)
     def trace_step(self):
-        pop = torch.rand(
-            self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device
-        )
+        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
         pop = pop * self.hp[0]
         self.pop = pop
@@ -68,9 +56,7 @@ class TestHPOWrapper(unittest.TestCase):
         self.monitor.setup()
         self.workflow = StdWorkflow()
         self.workflow.setup(self.algo, self.prob, monitor=self.monitor)
-        self.hpo_prob = HPOProblemWrapper(
-            iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True
-        )
+        self.hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True)
 
     def test_extract_parameters(self):
         params = HPOProblemWrapper.extract_parameters(self.hpo_prob.init_state)
@@ -78,9 +64,7 @@ class TestHPOWrapper(unittest.TestCase):
 
     def test_evaluate(self):
         params = HPOProblemWrapper.extract_parameters(self.hpo_prob.init_state)
-        params["self.algorithm.hp"] = torch.nn.Parameter(
-            torch.rand(7, 2), requires_grad=False
-        )
+        params["self.algorithm.hp"] = torch.nn.Parameter(torch.rand(7, 2), requires_grad=False)
         result = self.hpo_prob.evaluate(params)
         self.assertIsInstance(result, torch.Tensor)
 
@@ -91,8 +75,6 @@ class TestHPOWrapper(unittest.TestCase):
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
         outer_workflow = StdWorkflow()
-        outer_workflow.setup(
-            outer_algo, self.hpo_prob, solution_transform=solution_transform()
-        )
+        outer_workflow.setup(outer_algo, self.hpo_prob, solution_transform=solution_transform())
         outer_workflow.init_step()
         self.assertIsInstance(outer_workflow.algorithm.fit, torch.Tensor)

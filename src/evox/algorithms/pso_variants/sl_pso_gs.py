@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -76,9 +76,7 @@ class SLPSOGS(Algorithm):
         # Demonstrator Choice
         # sort from largest fitness to smallest fitness (worst to best)
         ranked_population = self.population[torch.argsort(fitness, descending=True)]
-        sigma = self.demonstrator_choice_factor * (
-            self.pop_size - (torch.arange(self.pop_size, device=device) + 1)
-        )
+        sigma = self.demonstrator_choice_factor * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1))
         # normal distribution (shape=(self.pop_size,)) means
         # each individual choose a demonstrator by normal distribution
         # with mean = pop_size and std = sigma
@@ -92,9 +90,7 @@ class SLPSOGS(Algorithm):
         r2 = torch.rand(self.pop_size, self.dim, device=device)
         r3 = torch.rand(self.pop_size, self.dim, device=device)
         velocity = (
-            r1 * self.velocity
-            + r2 * (X_k - self.population)
-            + r3 * self.social_influence_factor * (X_avg - self.population)
+            r1 * self.velocity + r2 * (X_k - self.population) + r3 * self.social_influence_factor * (X_avg - self.population)
         )
         population = self.population + velocity
         population = clamp(population, self.lb, self.ub)

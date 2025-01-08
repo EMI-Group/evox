@@ -4,9 +4,8 @@ from typing import Dict, Optional
 import torch
 from torch import nn
 
-from ..core import Problem, Workflow, Monitor, jit_class, use_state, vmap, jit
+from ..core import Monitor, Problem, Workflow, jit, jit_class, use_state, vmap
 from ..core.module import _WrapClassBase
-from .. import utils
 
 
 class HPOMonitor(Monitor, ABC):
@@ -71,7 +70,7 @@ class HPOFitnessMonitor(HPOMonitor):
 @jit_class
 class HPOProblemWrapper(Problem):
     """The problem for hyper parameter optimization (HPO).
-    
+
     ## Usage
     ```
     algo = SomeAlgorithm(...)
@@ -88,7 +87,7 @@ class HPOProblemWrapper(Problem):
     # ...
     ```
     """
-    
+
     def __init__(self, iterations: int, num_instances: int, workflow: Workflow, copy_init_state: bool = True):
         """Initialize the HPO problem wrapper.
 
@@ -109,9 +108,7 @@ class HPOProblemWrapper(Problem):
         workflow.__sync__()
         # check monitor
         monitor = workflow.get_submodule("monitor")
-        assert isinstance(
-            monitor, HPOMonitor
-        ), f"Expect workflow monitor to be `HPOMonitor`, got {type(monitor)}"
+        assert isinstance(monitor, HPOMonitor), f"Expect workflow monitor to be `HPOMonitor`, got {type(monitor)}"
         monitor_state = monitor.state_dict(keep_vars=True)
         state_step = use_state(lambda: workflow.step)
         # get monitor's corresponding keys in init_state
@@ -134,9 +131,7 @@ class HPOProblemWrapper(Problem):
         # JIT workflow step
         vmap_state_step = vmap(state_step)
         init_state = vmap_state_step.init_state(self.num_instances)
-        self._workflow_step_: torch.jit.ScriptFunction = jit(
-            vmap_state_step, trace=True, example_inputs=(init_state,)
-        )
+        self._workflow_step_: torch.jit.ScriptFunction = jit(vmap_state_step, trace=True, example_inputs=(init_state,))
         self._get_monitor_fitness_ = jit(get_monitor_fitness, trace=True, example_inputs=(init_state,))
         monitor.load_state_dict(monitor_state)
         # if no init step
@@ -164,9 +159,7 @@ class HPOProblemWrapper(Problem):
         """
         # hyper parameters check
         for k, v in hyper_parameters.items():
-            assert (
-                k in self.init_state
-            ), f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
+            assert k in self.init_state, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
             assert isinstance(self.init_state[k], nn.Parameter) and isinstance(
                 v, nn.Parameter
             ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self.init_state[k])} and {type(v)}"

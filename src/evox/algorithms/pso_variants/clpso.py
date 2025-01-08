@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class, trace_impl
 from .utils import min_by
 
 
@@ -98,9 +98,7 @@ class CLPSO(Algorithm):
         )
         # Update personal_best
         compare = self.personal_best_fitness > fitness
-        self.personal_best_location = torch.where(
-            compare[:, None], self.population, self.personal_best_location
-        )
+        self.personal_best_location = torch.where(compare[:, None], self.population, self.personal_best_location)
         self.personal_best_fitness = torch.where(compare, fitness, self.personal_best_fitness)
         # Update global_best
         self.global_best_location, self.global_best_fitness = min_by(
@@ -115,9 +113,7 @@ class CLPSO(Algorithm):
             self.personal_best_location,
         )
         # Update velocity and position
-        velocity = self.w * self.velocity + self.c * random_coefficient * (
-            personal_best - self.population
-        )
+        velocity = self.w * self.velocity + self.c * random_coefficient * (personal_best - self.population)
         self.velocity = clamp(velocity, self.lb, self.ub)
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)

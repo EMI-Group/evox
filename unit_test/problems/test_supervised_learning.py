@@ -79,10 +79,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
 
         # Data preloading
         self.pre_gd_train_loader = tuple(
-            [
-                (inputs.to(self.device), labels.to(self.device))
-                for inputs, labels in self.train_loader
-            ]
+            [(inputs.to(self.device), labels.to(self.device)) for inputs, labels in self.train_loader]
         )
         self.pre_ne_train_loader = tuple(
             [
@@ -93,12 +90,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
                 for inputs, labels in self.train_loader
             ]
         )
-        self.pre_test_loader = tuple(
-            [
-                (inputs.to(self.device), labels.to(self.device))
-                for inputs, labels in self.test_loader
-            ]
-        )
+        self.pre_test_loader = tuple([(inputs.to(self.device), labels.to(self.device)) for inputs, labels in self.test_loader])
 
         self.model = SimpleCNN().to(self.device)
         self.adapter = ParamsAndVector(dummy_model=self.model)
@@ -182,16 +174,11 @@ class TestSupervisedLearningProblem(unittest.TestCase):
 
                 running_loss += loss.item()
                 if print_frequent > 0 and step % print_frequent == 0:
-                    print(
-                        f"[Epoch {epoch:2d}, step {step:4d}] "
-                        f"running loss: {running_loss:.4f} "
-                    )
+                    print(f"[Epoch {epoch:2d}, step {step:4d}] " f"running loss: {running_loss:.4f} ")
                     running_loss = 0.0
         return model
 
-    def neuroevolution_process(
-        self, workflow, adapter, model, test_loader, device, best_acc, max_generation=2
-    ):
+    def neuroevolution_process(self, workflow, adapter, model, test_loader, device, best_acc, max_generation=2):
         for index in range(max_generation):
             print(f"In generation {index}:")
             t = time.time()
@@ -282,20 +269,14 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             def __init__(self, lb, ub):
                 super().__init__()
                 assert lb.ndim == 1 and ub.ndim == 1, (
-                    f"Lower and upper bounds shall have ndim of 1, "
-                    f"got {lb.ndim} and {ub.ndim}. "
+                    f"Lower and upper bounds shall have ndim of 1, " f"got {lb.ndim} and {ub.ndim}. "
                 )
-                assert lb.shape == ub.shape, (
-                    f"Lower and upper bounds shall have same shape, "
-                    f"got {lb.ndim} and {ub.ndim}. "
-                )
+                assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, " f"got {lb.ndim} and {ub.ndim}. "
                 self.hp = Parameter([1.0, 2.0])
                 self.lb = lb
                 self.ub = ub
                 self.dim = lb.shape[0]
-                self.pop = nn.Buffer(
-                    torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device)
-                )
+                self.pop = nn.Buffer(torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device))
                 self.fit = nn.Buffer(torch.empty(1, dtype=lb.dtype, device=lb.device))
 
             def step(self):
