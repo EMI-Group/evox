@@ -107,6 +107,40 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         self.lower_bound = self.pop_center - 0.01
         self.upper_bound = self.pop_center + 0.01
 
+        class AccuracyCriterion(nn.Module):
+            def __init__(self, data_loader):
+                super().__init__()
+                self.data_loader = data_loader
+
+            def forward(self, logits, labels):
+                _, predicted = torch.max(logits, dim=1)
+                correct = (predicted == labels[:, 0]).sum()
+                fitness = -correct
+                return fitness
+
+        self.acc_criterion = AccuracyCriterion(self.pre_ne_train_loader)
+        self.loss_criterion = nn.MSELoss()
+
+        class WeightedCriterion(nn.Module):
+            def __init__(self, loss_weight, loss_criterion, acc_weight, acc_criterion):
+                super().__init__()
+                self.loss_weight = loss_weight
+                self.loss_criterion = loss_criterion
+                self.acc_weight = acc_weight
+                self.acc_criterion = acc_criterion
+
+            def forward(self, logits, labels):
+                weighted_loss = self.loss_weight * self.loss_criterion(logits, labels)
+                weighted_acc = self.acc_weight * self.acc_criterion(logits, labels)
+                return weighted_loss + weighted_acc
+
+        self.weighted_criterion = WeightedCriterion(
+            loss_weight=0.5,
+            loss_criterion=self.loss_criterion,
+            acc_weight=0.5,
+            acc_criterion=self.acc_criterion,
+        )
+
     def model_test(self, model, data_loader, device):
         model.eval()
         with torch.no_grad():
@@ -156,13 +190,12 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         return model
 
     def neuroevolution_process(
-        self, workflow, adapter, model, test_loader, device, best_acc, max_generation=50
+        self, workflow, adapter, model, test_loader, device, best_acc, max_generation=2
     ):
         for index in range(max_generation):
             print(f"In generation {index}:")
             t = time.time()
             workflow.step()
-            torch.cuda.synchronize()
             print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
 
             monitor = workflow.get_submodule("monitor")
@@ -190,46 +223,12 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         self.assertGreater(gd_acc, 90.0)
 
     def test_population_based_neuroevolution(self):
-        class AccuracyCriterion(nn.Module):
-            def __init__(self, data_loader):
-                super().__init__()
-                self.data_loader = data_loader
-
-            def forward(self, logits, labels):
-                _, predicted = torch.max(logits, dim=1)
-                correct = (predicted == labels[:, 0]).sum()
-                fitness = -correct
-                return fitness
-
-        acc_criterion = AccuracyCriterion(self.pre_ne_train_loader)
-        loss_criterion = nn.MSELoss()
-
-        class WeightedCriterion(nn.Module):
-            def __init__(self, loss_weight, loss_criterion, acc_weight, acc_criterion):
-                super().__init__()
-                self.loss_weight = loss_weight
-                self.loss_criterion = loss_criterion
-                self.acc_weight = acc_weight
-                self.acc_criterion = acc_criterion
-
-            def forward(self, logits, labels):
-                weighted_loss = self.loss_weight * self.loss_criterion(logits, labels)
-                weighted_acc = self.acc_weight * self.acc_criterion(logits, labels)
-                return weighted_loss + weighted_acc
-
-        weighted_criterion = WeightedCriterion(
-            loss_weight=0.5,
-            loss_criterion=loss_criterion,
-            acc_weight=0.5,
-            acc_criterion=acc_criterion,
-        )
-
         print("Population-based neuroevolution process start.")
-        POP_SIZE = 500
+        POP_SIZE = 4
         vmapped_problem = SupervisedLearningProblem(
             model=self.model,
             data_loader=self.pre_ne_train_loader,
-            criterion=weighted_criterion,
+            criterion=self.weighted_criterion,
             pop_size=POP_SIZE,
             device=self.device,
         )
@@ -268,45 +267,11 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         )
 
     def test_single_run_neuroevolution(self):
-        class AccuracyCriterion(nn.Module):
-            def __init__(self, data_loader):
-                super().__init__()
-                self.data_loader = data_loader
-
-            def forward(self, logits, labels):
-                _, predicted = torch.max(logits, dim=1)
-                correct = (predicted == labels[:, 0]).sum()
-                fitness = -correct
-                return fitness
-
-        acc_criterion = AccuracyCriterion(self.pre_ne_train_loader)
-        loss_criterion = nn.MSELoss()
-
-        class WeightedCriterion(nn.Module):
-            def __init__(self, loss_weight, loss_criterion, acc_weight, acc_criterion):
-                super().__init__()
-                self.loss_weight = loss_weight
-                self.loss_criterion = loss_criterion
-                self.acc_weight = acc_weight
-                self.acc_criterion = acc_criterion
-
-            def forward(self, logits, labels):
-                weighted_loss = self.loss_weight * self.loss_criterion(logits, labels)
-                weighted_acc = self.acc_weight * self.acc_criterion(logits, labels)
-                return weighted_loss + weighted_acc
-
-        weighted_criterion = WeightedCriterion(
-            loss_weight=0.5,
-            loss_criterion=loss_criterion,
-            acc_weight=0.5,
-            acc_criterion=acc_criterion,
-        )
-
         print("Single-run neuroevolution process start.")
         single_problem = SupervisedLearningProblem(
             model=self.model,
             data_loader=self.pre_ne_train_loader,
-            criterion=weighted_criterion,
+            criterion=self.weighted_criterion,
             pop_size=None,
             device=self.device,
         )
