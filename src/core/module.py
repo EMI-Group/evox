@@ -2,7 +2,19 @@ from abc import ABC
 import inspect
 import types
 from functools import wraps
-from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
+from typing import (
+    Mapping,
+    Optional,
+    Protocol,
+    Callable,
+    Sequence,
+    Tuple,
+    Union,
+    List,
+    Dict,
+    Any,
+    TypeVar,
+)
 
 import torch
 import torch.nn as nn
@@ -21,14 +33,15 @@ def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
 
-def Parameter[
-    T: torch.Tensor | int | float | complex
-](
-    value: T,
+ParameterT = TypeVar("ParameterT", torch.Tensor, int, float, complex)
+
+
+def Parameter(
+    value: ParameterT,
     dtype: Optional[torch.dtype] = None,
     device: Optional[torch.device] = None,
     requires_grad: bool = False,
-) -> T:
+) -> ParameterT:
     """
     Wraps a value as parameter with `requires_grad=False`.
 
@@ -51,9 +64,9 @@ def Parameter[
     )
 
 
-def Mutable[
-    T: torch.Tensor
-](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
+def Mutable(
+    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
+) -> torch.Tensor:
     """
     Wraps a value as a mutable tensor.
 
@@ -764,6 +777,8 @@ def _torch_script_modifier(target: Callable):
             break
 
 
+T = TypeVar("T", bound=Callable)
+
 _TRACE_WRAP_NAME = "__trace_wrapped__"
 
 
@@ -787,7 +802,7 @@ def trace_impl(target: Callable):
     """
     # _torch_script_modifier(target)
 
-    def wrapping_fn[T: Callable](func: T) -> T:
+    def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _TRACE_WRAP_NAME, target)
         # special treatment for compatibility with `vmap`
@@ -819,7 +834,7 @@ def vmap_impl(target: Callable):
     """
     # _torch_script_modifier(target)
 
-    def wrapping_fn[T: Callable](func: T) -> T:
+    def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _VMAP_WRAP_NAME, target)
         # special treatment for compatibility with `vmap`
@@ -828,10 +843,12 @@ def vmap_impl(target: Callable):
     return wrapping_fn
 
 
+ClassT = TypeVar("ClassT", bound=type)
+
 _BASE_NAME = "base"
 
 
-def jit_class[T](cls: type, trace: bool = False) -> T:
+def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
     Args:

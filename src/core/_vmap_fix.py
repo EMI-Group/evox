@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
@@ -298,7 +298,7 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)
         if indices.ndim == 0:
-            tensor = tensor[*(([slice(None)] * dim) + [0])]
+            tensor = tensor.__getitem__(*(([slice(None)] * dim) + [0]))
         return tensor
     # default
     return _original_get_item(tensor, indices)
@@ -408,7 +408,9 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
     return value
 
 
-def wrap_vmap_inputs[T: Callable](func: T) -> T:
+T = TypeVar('T', bound=Callable)
+
+def wrap_vmap_inputs(func: T) -> T:
     """
     Wraps a function to adjust its input tensors for vmap compatibility.
 
