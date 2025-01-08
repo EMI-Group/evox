@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, Dict, List, Tuple, Iterable
+from typing import Callable, Dict, List, Tuple, Iterable, TypeVar, Protocol
 
 import torch
 
@@ -21,6 +21,20 @@ def _get_cache_key_object(cache_dict: dict, *fns: Callable):
         return cache_dict[key]
     else:
         return key
+
+
+T = TypeVar("T", bound=torch.Tensor)
+R = TypeVar("R", bound=torch.Tensor)
+
+
+class VarArgsCallable(Protocol[T, R]):
+    def __call__(self, *args: T) -> R:
+        pass
+
+
+class VarArgsCallableMultiRet(Protocol[T, R]):
+    def __call__(self, *args: T) -> Tuple[R, ...]:
+        pass
 
 
 _while_object_cache = {}
@@ -80,8 +94,8 @@ class TracingWhile(ModuleBase):
 
     def __init__(
         self,
-        cond_fn: Callable[[*Tuple[torch.Tensor, ...]], torch.Tensor],
-        body_fn: Callable[[*Tuple[torch.Tensor, ...]], Tuple[torch.Tensor, ...]],
+        cond_fn: VarArgsCallable,
+        body_fn: VarArgsCallableMultiRet,
         script_functions: bool = False,
     ):
         """
@@ -335,7 +349,9 @@ class TracingWhile(ModuleBase):
         else:
             compiled_loop, state_cond_fn, state_body_fn = self._compile_loop_fn(x)
             self._cache_compiled_loop[key] = (compiled_loop, state_cond_fn, state_body_fn)
-        state, res = compiled_loop({**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x)
+        state, res = compiled_loop(
+            {**state_cond_fn.init_state(False), **state_body_fn.init_state(False)}, *x
+        )
         state_cond_fn.set_state(state)
         state_body_fn.set_state(state)
         return res
@@ -661,8 +677,8 @@ class TracingCond(ModuleBase):
 
     def __init__(
         self,
-        true_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
-        false_fn: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
+        true_fn: VarArgsCallableMultiRet,
+        false_fn: VarArgsCallableMultiRet,
         script_functions: bool = False,
     ):
         """
@@ -974,7 +990,7 @@ _switch_object_cache = {}
 @jit_class
 class TracingSwitch(ModuleBase):
     """A helper class used to trace an match-case (switch-case) control flow.
-    
+
     ## Usage:
     ```
     def branch1_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
@@ -982,7 +998,7 @@ class TracingSwitch(ModuleBase):
 
     def branch2_fn(x: torch.Tensor, y: torch.Tensor) -> List[torch.Tensor]:
         return [x - 1, y ** 0.95]
-    
+
     switch = TracingSwitch(branch1_fn, branch2_fn)
     # normal usage
     branch_idx = torch.tensor(1, dtype=torch.int)
@@ -1001,7 +1017,7 @@ class TracingSwitch(ModuleBase):
     vmap_switch = jit(vmap(use_state(lambda: switch.switch)), trace=True, lazy=False, example_inputs=(branch_idx, x, y))
     x1, y1 = vmap_switch(branch_idx, x, y)
     print(x1, y1)
-    
+
     # inside a ModuleBase
     class MyModule(ModuleBase):
         @trace_impl(some_method)
@@ -1025,11 +1041,7 @@ class TracingSwitch(ModuleBase):
         else:
             return key_or_obj
 
-    def __init__(
-        self,
-        *branch_fns: Callable[[*Tuple[torch.Tensor, ...]], List[torch.Tensor]],
-        script_functions: bool = False,
-    ):
+    def __init__(self, *branch_fns: VarArgsCallableMultiRet, script_functions: bool = False):
         """
         Initialize the `TracingCond`.
 
