@@ -25,6 +25,7 @@ pkgs.mkShell rec {
     # add them to PYTHONPATH and thus make them accessible from within the venv.
     numpy
     torch
+    torchvision
   ] ++ (with pkgs; [
     pre-commit
     ruff
@@ -44,4 +45,3 @@ pkgs.mkShell rec {
   '';
 
 }
-
