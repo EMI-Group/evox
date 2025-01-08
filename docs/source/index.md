@@ -16,12 +16,7 @@ guide/experimental/index
 :caption: 'API Reference'
 :maxdepth: 1
 :hidden:
-api/core/index
-api/algorithms/index
-api/problems/index
-api/workflows/index
-api/monitors/index
-api/metrics/index
+api/index
 ```
 
 ```{toctree}
