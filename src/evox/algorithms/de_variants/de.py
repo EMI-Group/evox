@@ -61,7 +61,6 @@ class DE(Algorithm):
         # setup
         lb = lb[None, :].to(device=device)
         ub = ub[None, :].to(device=device)
-        length = ub - lb
         # write to self
         self.lb = lb
         self.ub = ub
