@@ -2,7 +2,19 @@ from abc import ABC
 import inspect
 import types
 from functools import wraps
-from typing import Mapping, Optional, Protocol, Callable, Sequence, Tuple, Union, List, Dict, Any
+from typing import (
+    Mapping,
+    Optional,
+    Protocol,
+    Callable,
+    Sequence,
+    Tuple,
+    Union,
+    List,
+    Dict,
+    Any,
+    TypeVar,
+)
 
 import torch
 import torch.nn as nn
@@ -21,14 +33,15 @@ def _is_magic(name: str):
     return name.startswith("__") and name.endswith("__")
 
 
-def Parameter[
-    T: torch.Tensor | int | float | complex
-](
-    value: T,
+ParameterT = TypeVar("ParameterT", torch.Tensor, int, float, complex)
+
+
+def Parameter(
+    value: ParameterT,
     dtype: Optional[torch.dtype] = None,
     device: Optional[torch.device] = None,
     requires_grad: bool = False,
-) -> T:
+) -> ParameterT:
     """
     Wraps a value as parameter with `requires_grad=False`.
 
@@ -51,9 +64,9 @@ def Parameter[
     )
 
 
-def Mutable[
-    T: torch.Tensor
-](value: T, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> T:
+def Mutable(
+    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
+) -> torch.Tensor:
     """
     Wraps a value as a mutable tensor.
 
@@ -151,6 +164,7 @@ class ModuleBase(nn.Module):
         super().__init__(*args, **kwargs)
         self.train(False)
         self.__static_names__ = []
+        self._hash_id_ = None
 
     def eval(self):
         assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
@@ -166,6 +180,9 @@ class ModuleBase(nn.Module):
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
         Therefore, multiple calls of `setup` for multiple initializations are possible.
         """
+        if hasattr(self, _WRAPPING_MODULE_NAME):
+            wrapper: _WrapClassBase = object.__getattribute__(self, _WRAPPING_MODULE_NAME)
+            wrapper.__jit_module__ = None
         return self
 
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
@@ -262,6 +279,11 @@ class ModuleBase(nn.Module):
                 val = val.to(**kwargs)
                 self.__setattr_inner__(k, val)
         return self
+
+    def __hash__(self):
+        if self._hash_id_ is None:
+            self._hash_id_ = super().__hash__()
+        return self._hash_id_
 
     def __getattribute__(self, name):
         if not tracing_or_using_state() or name == _WRAPPING_MODULE_NAME or _is_magic(name):
@@ -494,9 +516,7 @@ class _WrapClassBase(ABC):
         )
 
     def __hash__(self) -> int:
-        return object.__hash__(
-            self.__inner_module__ if self.__jit_module__ is None else self.__jit_module__
-        )
+        return object.__hash__(self.__inner_module__)
 
     def __format__(self, format_spec: str) -> str:
         return object.__format__(
@@ -757,6 +777,8 @@ def _torch_script_modifier(target: Callable):
             break
 
 
+T = TypeVar("T", bound=Callable)
+
 _TRACE_WRAP_NAME = "__trace_wrapped__"
 
 
@@ -780,7 +802,7 @@ def trace_impl(target: Callable):
     """
     # _torch_script_modifier(target)
 
-    def wrapping_fn[T: Callable](func: T) -> T:
+    def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _TRACE_WRAP_NAME, target)
         # special treatment for compatibility with `vmap`
@@ -812,7 +834,7 @@ def vmap_impl(target: Callable):
     """
     # _torch_script_modifier(target)
 
-    def wrapping_fn[T: Callable](func: T) -> T:
+    def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _VMAP_WRAP_NAME, target)
         # special treatment for compatibility with `vmap`
@@ -821,10 +843,12 @@ def vmap_impl(target: Callable):
     return wrapping_fn
 
 
+ClassT = TypeVar("ClassT", bound=type)
+
 _BASE_NAME = "base"
 
 
-def jit_class[T](cls: type, trace: bool = False) -> T:
+def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
     Args:

@@ -1,7 +1,7 @@
 import inspect
 import warnings
 from functools import wraps
-from typing import Protocol, Callable, Optional, Union, Tuple, List, Dict, Any
+from typing import Protocol, Callable, Optional, Tuple, List, Dict, Any, TypeVar
 
 import torch
 
@@ -27,9 +27,10 @@ class MappedUseStateFunc(Protocol):
         pass
 
 
-def vmap[
-    T: Callable
-](
+T = TypeVar('T', bound=Callable)
+
+
+def vmap(
     func: T | UseStateFunc,
     in_dims: Optional[int | Tuple[int, ...]] = 0,
     out_dims: Optional[int | Tuple[int, ...]] = 0,
@@ -133,22 +134,19 @@ def vmap[
     if example_shapes is not None:
         assert len(example_shapes) == len(
             args
-        ), f"Expect example shapes to have size {
-                len(args)}, got {len(example_shapes)}"
+        ), f"Expect example shapes to have size {len(args)}, got {len(example_shapes)}"
         example_ndim = tuple([None] * len(args))
     else:
         example_shapes = tuple([None] * len(args))
         if isinstance(example_ndim, int):
             assert (
                 example_ndim >= 1
-            ), f"Expect example ndim >= 1, got {
-                example_ndim}"
+            ), f"Expect example ndim >= 1, got {example_ndim}"
             example_ndim = tuple([example_ndim] * len(args))
         else:
             assert len(example_ndim) == len(
                 args
-            ), f"Expect example ndim to have size {
-                    len(args)}, got {len(example_ndim)}"
+            ), f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
     # create example inputs
     example_inputs: List = [None] * len(args) if example_inputs is None else list(example_inputs)
     static_inputs = {}
@@ -226,9 +224,7 @@ def _form_positional_inputs(func_args, args, kwargs, is_empty_state=False):
     return example_inputs
 
 
-def jit[
-    T: Callable
-](
+def jit(
     func: T | UseStateFunc | MappedUseStateFunc,
     trace: bool = False,
     lazy: bool = False,
@@ -238,7 +234,7 @@ def jit[
     is_generator: bool = False,
     no_cache: bool = False,
     return_dummy_output: bool = False,
-) -> T:
+) -> T | UseStateFunc | MappedUseStateFunc:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
     This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`,

@@ -11,6 +11,6 @@ from unit_test.algorithms.test_base import test
 
 
 if __name__ == "__main__":
-    algo = CLPSO(pop_size=100000, lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
+    algo = CLPSO(pop_size=10000, lb=-10 * torch.ones(1000), ub=10 * torch.ones(1000))
     algo.setup()
     test(algo)

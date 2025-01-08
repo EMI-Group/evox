@@ -19,6 +19,7 @@ class EvalMonitor(Monitor):
         full_fit_history: bool = True,
         full_sol_history: bool = False,
         topk: int = 1,
+        device: torch.device | None = None,
     ):
         """Initialize the monitor.
 
@@ -27,6 +28,7 @@ class EvalMonitor(Monitor):
             full_fit_history (`bool`, optional): Whether to record the full history of fitness value. Default to True. Setting it to False may reduce memory usage.
             full_sol_history (`bool`, optional): Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
             topk (`int`, optional): Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
+            device (`torch.device`, optional): The device of the monitor. Defaults to None.
         """
         super().__init__()
         self.multi_obj = multi_obj
@@ -34,12 +36,12 @@ class EvalMonitor(Monitor):
         self.full_sol_history = full_sol_history
         self.topk = topk
         # mutable
-        self.latest_solution = nn.Buffer(torch.empty(0))
-        self.latest_fitness = nn.Buffer(torch.empty(0))
-        self.topk_solutions = nn.Buffer(torch.empty(0))
-        self.topk_fitness = nn.Buffer(torch.empty(0))
-        self.fitness_history: List[torch.Tensor] = [torch.empty(0)]
-        self.solution_history: List[torch.Tensor] = [torch.empty(0)]
+        self.latest_solution = nn.Buffer(torch.empty(0, device=device))
+        self.latest_fitness = nn.Buffer(torch.empty(0, device=device))
+        self.topk_solutions = nn.Buffer(torch.empty(0, device=device))
+        self.topk_fitness = nn.Buffer(torch.empty(0, device=device))
+        self.fitness_history: List[torch.Tensor] = [torch.empty(0, device=device)]
+        self.solution_history: List[torch.Tensor] = [torch.empty(0, device=device)]
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -60,6 +62,7 @@ class EvalMonitor(Monitor):
         if fitness.ndim == 1:
             # single-objective
             self.multi_obj = False
+            assert fitness.size(0) >= self.topk
             if self.topk_solutions.ndim <= 1:
                 topk_solutions = self.latest_solution
                 topk_fitness = fitness
@@ -72,9 +75,11 @@ class EvalMonitor(Monitor):
                 rank = torch.argsort(topk_fitness)[: self.topk]
                 self.topk_fitness.copy_(topk_fitness[rank])
                 self.topk_solutions.copy_(topk_solutions[rank])
-        else:
+        elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
+        else:
+            raise ValueError(f"Invalid fitness shape: {fitness.shape}")
 
         if self.full_fit_history or self.full_sol_history:
             if self.full_sol_history:

@@ -196,11 +196,9 @@ class DMSPSOEL(Algorithm):
         if (self.iteration % self.regrouped_iteration_num) == 0:
             self._regroup(fitness)
 
-    __none_lambda__ = lambda _: None
-
     @trace_impl(_cond_regroup)
     def _trace_cond_regroup(self, fitness: torch.Tensor):
-        _if_else_regroup_ = TracingCond(self._regroup, self.__none_lambda__)
+        _if_else_regroup_ = TracingCond(self._regroup, lambda _: None)
         _if_else_regroup_.cond((self.iteration % self.regrouped_iteration_num) == 0, fitness)
 
     def _regroup(self, fitness: torch.Tensor):
