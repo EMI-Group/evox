@@ -36,7 +36,7 @@ class CEC2022(Problem):
         self.rot_flag = True
 
         assert self.nx in [2, 10, 20], f"Test functions are only defined for D=2,10,20, got {self.nx}."
-        assert self.func_num not in [6, 7, 8] or self.nx == 2, f"Function {self.func_num} is not defined for D=2."
+        assert not (self.func_num  in [6, 7, 8] and self.nx == 2), f"Function {self.func_num} is not defined for D=2."
 
         # Loading data preparation
         current_dir = os.path.dirname(__file__)
@@ -81,7 +81,7 @@ class CEC2022(Problem):
 
     def rotate(self, x: torch.Tensor, mat: torch.Tensor) -> torch.Tensor:
         """Rotate the input vector."""
-        return torch.matmul(x, mat[: x.size(1)])
+        return torch.matmul(x, mat[:x.size(1), :])
 
     def cut(self, x: torch.Tensor, Gp: List[float]) -> List[torch.Tensor]:
         nx = x.size(1)
@@ -306,18 +306,34 @@ class CEC2022(Problem):
 
     def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
         # TODO
-        nx = x.size(1)
         x = self.sr_func_rate(x, sh_rate=5.0/100.0)
-        f = torch.ones(x.size(0), device=x.device)
-        tmp3 = (10.0 * nx) ** 1.2
-        for i in range(nx):
-            temp = torch.zeros(x.size(0), device=x.device)
-            for j in range(1, 33):
-                tmp1 = 2.0**j
-                tmp2 = tmp1 * x[:, i]
-                temp += torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1
-            f *= (1.0 + (i + 1) * temp) ** (10.0 / tmp3)
+        nx = x.size(1)
+        tmp1 = 2.0**torch.arange(1, 33, device=x.device)
+        print(tmp1.shape)
+        tmp2 = x.unsqueeze(-1) * tmp1.unsqueeze(0).unsqueeze(0)
+        print(tmp2.shape)
+        temp = torch.sum(torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1, dim = 2)
+        print(temp.shape)
+        tmp3 = torch.arange(1, nx + 1, device=x.device)
+        print(tmp3.shape)
+        f = (1.0 + torch.prod(temp * tmp3.unsqueeze(0),dim = 1)) ** (10.0 / (10.0 * nx) ** 1.2)
+        print(f)
         return (f - 1) * (10.0 / (nx**2))
+    
+    # def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
+    #     # TODO
+    #     nx = x.size(1)
+    #     x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+    #     f = torch.ones(x.size(0), device=x.device)
+    #     tmp3 = (10.0 * nx) ** 1.2
+    #     for i in range(nx):
+    #         temp = torch.zeros(x.size(0), device=x.device)
+    #         for j in range(1, 33):
+    #             tmp1 = 2.0**j
+    #             tmp2 = tmp1 * x[:, i]
+    #             temp += torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1
+    #         f *= (1.0 + (i + 1) * temp) ** (10.0 / tmp3)
+    #     return (f - 1) * (10.0 / (nx**2))
 
     def ackley_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
@@ -328,23 +344,17 @@ class CEC2022(Problem):
         return torch.e - 20.0 * torch.exp(tmp1) - torch.exp(tmp2) + 20.0
 
     def schwefel_func(self, x: torch.Tensor) -> torch.Tensor:
-        nx = x.size(1)
         x = self.sr_func_rate(x, sh_rate=1000.0/10.0)
+        nx = x.size(1)
         tmp1 = x + 420.9687462275036
         tmp2 = -tmp1 * tmp1.abs().sqrt().sin()
         return torch.sum(tmp2, dim=1) + 418.98288727243378 * nx
 
     def schaffer_F7_func(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO
-        nx = x.size(1)
         x = self.sr_func(x)
-        f = torch.zeros(x.size(0), device=x.device)
-        for i in range(0, nx - 1):
-            tmp1 = torch.pow(x[:, i] * x[:, i] + x[:, i + 1] * x[:, i + 1], 0.5)
-            tmp2 = torch.sin(50.0 * torch.pow(x[:, i], 0.2))
-            f += torch.pow(tmp1, 0.5) * (1 + tmp2**2)
-        f = (f / (nx - 1)) ** 2
-        return f
+        tmp1 = torch.pow(x[:, :-1] ** 2 + x[:,1:] ** 2, 0.5)
+        tmp2 = torch.sin(50.0 * torch.pow(x[:, :-1], 0.2))
+        return torch.sum(torch.pow(tmp1, 0.5) * (1 + tmp2**2), dim=1)
 
     def escaffer6_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
@@ -352,10 +362,10 @@ class CEC2022(Problem):
         tmp2 = 1.0 + 0.001 * (x[:, :-1] ** 2 + x[:, 1:] ** 2)
         return torch.sum(0.5 + (tmp1 - 0.5) / (tmp2**2), dim=1)
 
-    def happycat_func(self, x: torch.Tensor) -> torch.Tensor:
-        nx = x.size(1)
+    def happycat_func(self, x: torch.Tensor) -> torch.Tensor:      
         alpha = 1.0 / 8.0
         x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        nx = x.size(1)
         tmp = x - 1
         r2 = torch.sum(tmp**2, dim=1)
         sum_x = torch.sum(tmp, dim=1)
@@ -384,8 +394,8 @@ class CEC2022(Problem):
         return (10.0**6) * x[:, 0] ** 2 + torch.sum(x[:, 1:] ** 2, dim=1)
 
     def ellips_func(self, x: torch.Tensor) -> torch.Tensor:
-        nx = x.size(1)
         x = self.sr_func(x)
+        nx = x.size(1)
         idx = torch.arange(nx, device=x.device)
         powers = 6.0 * idx / (nx - 1)
         return torch.sum((10.0**powers) * x**2, dim=1)
