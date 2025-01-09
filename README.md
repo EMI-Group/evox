@@ -84,7 +84,12 @@ pip install evox
 2. run the following command in the **root directory of the project**: `pip install -e .`, which will install the `evox` package in editable mode
 3. run unittest:
 ```shell
+# run all tests
 python -m unittest
+# run tests in [path], e.g. python -m unittest unit_test/core/test_jit_util.py
+python -m unittest [path-to-test-file]
+# run a specific test method or module, e.g. python -m unittest unit_test.core.test_jit_util.TestJitUtil.test_single_eval
+python -m unittest [path-to-method-or-module]
 ```
 
 ## Community & Support
