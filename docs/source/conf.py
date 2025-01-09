@@ -52,13 +52,7 @@ exclude_patterns = []
 # mock these modules, so we can build the document without these dependencies.
 autodoc_mock_imports = [
     "brax",
-    "chex",
-    "envpool",
-    "gymnasium",
-    "ray",
-    "tensorflow_datasets",
-    "gpjax",
-    "orbax-checkpoint",
+    "torchvision",
 ]
 
 # -- Options for HTML output -------------------------------------------------
