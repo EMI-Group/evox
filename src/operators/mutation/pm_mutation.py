@@ -19,7 +19,7 @@ def polynomial_mutation(
         pro_m: Probability of mutation.
         dis_m: The distribution index for polynomial mutation.
     """
-    n, d = x.shape
+    n, d = x.size()
     # Random numbers for mutation
     site = torch.rand(n, d, device=x.device) < pro_m / d
     mu = torch.rand(n, d, device=x.device)

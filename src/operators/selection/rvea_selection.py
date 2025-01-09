@@ -12,7 +12,7 @@ def apd_fn(
     theta: torch.Tensor,
 ):
     selected_z = torch.gather(z, 0, torch.relu(x))
-    left = (1 + obj.shape[1] * theta * selected_z) / y[None, :]
+    left = (1 + obj.size(1) * theta * selected_z) / y[None, :]
     norm_obj = torch.linalg.vector_norm(obj**2, dim=1)
     right = norm_obj[x]
     return left * right
@@ -21,8 +21,8 @@ def apd_fn(
 def ref_vec_guided(
     x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: torch.Tensor
 ):
-    n, m = f.shape
-    nv = v.shape[0]
+    n, m = f.size()
+    nv = v.size(0)
 
     obj = f - nanmin(f, dim=0, keepdim=True)[0]
 
@@ -31,7 +31,7 @@ def ref_vec_guided(
     cosine = F.cosine_similarity(v.unsqueeze(1), v.unsqueeze(0), dim=-1)
 
     cosine = torch.where(
-        torch.eye(cosine.shape[0], dtype=torch.bool, device=f.device),
+        torch.eye(cosine.size(0), dtype=torch.bool, device=f.device),
         torch.tensor(0.0, device=f.device),
         cosine,
     )

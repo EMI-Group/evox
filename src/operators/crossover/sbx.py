@@ -11,7 +11,7 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20):
     Returns:
         offspring_dec: Offspring solutions after crossover.
     """
-    n, _ = x.shape
+    n, _ = x.size()
     parent1_dec = x[: n // 2, :]
     parent2_dec = x[n // 2 : n // 2 * 2, :]
 
@@ -24,7 +24,7 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20):
     beta = torch.where(mu > 0.5, torch.pow(2 - 2 * mu, -1 / (dis_c + 1)), beta)
 
     # Random binary for mutation direction
-    beta = beta * (1 - torch.randint(0, 2, beta.shape, device=x.device) * 2)
+    beta = beta * (1 - torch.randint(0, 2, beta.size(), device=x.device) * 2)
 
     # Apply crossover probability to mutate
     beta = torch.where(torch.rand_like(beta) < 0.5, 1, beta)

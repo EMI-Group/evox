@@ -25,5 +25,5 @@ def grid_sampling(n: int, m: int):
     # Reverse the order of columns to match JAX's `w[:, ::-1]`
     w = w.flip(dims=[1])
 
-    num_samples = w.shape[0]
+    num_samples = w.size(0)
     return w, num_samples

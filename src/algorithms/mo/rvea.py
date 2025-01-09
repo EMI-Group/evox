@@ -62,7 +62,7 @@ class RVEA(Algorithm):
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
-        self.dim = lb.shape[0]
+        self.dim = lb.size(0)
         # write to self
         self.lb = lb.to(device=device)
         self.ub = ub.to(device=device)
@@ -87,7 +87,7 @@ class RVEA(Algorithm):
         v = sampling.to(device=device)
 
         v0 = v
-        self.pop_size = v.shape[0]
+        self.pop_size = v.size(0)
         length = ub - lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
@@ -117,7 +117,7 @@ class RVEA(Algorithm):
         return self.reference_vector
 
     def _mating_pool(self):
-        mating_pool = torch.randint(0, self.pop.shape[0], (self.pop_size,))
+        mating_pool = torch.randint(0, self.pop.size(0), (self.pop_size,))
         return self.pop[mating_pool]
 
     @trace_impl(_mating_pool)
