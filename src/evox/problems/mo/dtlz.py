@@ -1,6 +1,7 @@
 import torch
-from ...operators import uniform_sampling, grid_sampling
-from ...core import vmap, Problem, jit_class
+
+from ...core import Problem
+from ...operators import grid_sampling, uniform_sampling
 
 
 class DTLZTestSuit(Problem):
@@ -12,9 +13,7 @@ class DTLZTestSuit(Problem):
         self.d = d
         self.m = m
         self.ref_num = ref_num
-        self.sample, _ = uniform_sampling(
-            self.ref_num * self.m, self.m
-        )  # Assuming UniformSampling is defined
+        self.sample, _ = uniform_sampling(self.ref_num * self.m, self.m)  # Assuming UniformSampling is defined
         self.device = self.sample.device
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -41,8 +40,7 @@ class DTLZ1(DTLZTestSuit):
             - m
             + 1
             + torch.sum(
-                (X[:, m - 1 :] - 0.5) ** 2
-                - torch.cos(20 * torch.pi * (X[:, m - 1 :] - 0.5)),
+                (X[:, m - 1 :] - 0.5) ** 2 - torch.cos(20 * torch.pi * (X[:, m - 1 :] - 0.5)),
                 dim=1,
                 keepdim=True,
             )
@@ -123,8 +121,7 @@ class DTLZ3(DTLZ2):
             - m
             + 1
             + torch.sum(
-                (X[:, m - 1 :] - 0.5) ** 2
-                - torch.cos(20 * torch.pi * (X[:, m - 1 :] - 0.5)),
+                (X[:, m - 1 :] - 0.5) ** 2 - torch.cos(20 * torch.pi * (X[:, m - 1 :] - 0.5)),
                 dim=1,
                 keepdim=True,
             )
@@ -201,7 +198,6 @@ class DTLZ4(DTLZ2):
 
 class DTLZ5(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:
@@ -265,9 +261,7 @@ class DTLZ5(DTLZTestSuit):
             )
         ).T
 
-        f = f / torch.tile(
-            torch.sqrt(torch.sum(f**2, dim=1, keepdim=True)), (1, f.shape[1])
-        )
+        f = f / torch.tile(torch.sqrt(torch.sum(f**2, dim=1, keepdim=True)), (1, f.shape[1]))
 
         for i in range(self.m - 2):
             f = torch.cat((f[:, 0:1], f), dim=1)
@@ -286,7 +280,6 @@ class DTLZ5(DTLZTestSuit):
 
 class DTLZ6(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:
@@ -348,9 +341,7 @@ class DTLZ6(DTLZTestSuit):
             )
         ).T
 
-        f = f / torch.tile(
-            torch.sqrt(torch.sum(f**2, dim=1, keepdim=True)), (1, f.shape[1])
-        )
+        f = f / torch.tile(torch.sqrt(torch.sum(f**2, dim=1, keepdim=True)), (1, f.shape[1]))
 
         for i in range(self.m - 2):
             f = torch.cat((f[:, 0:1], f), dim=1)
@@ -369,7 +360,6 @@ class DTLZ6(DTLZTestSuit):
 
 class DTLZ7(DTLZTestSuit):
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-
         if m is None:
             m = 3
         if d is None:
@@ -386,9 +376,7 @@ class DTLZ7(DTLZTestSuit):
         f[:, : m - 1] = X[:, : m - 1]
 
         term = torch.sum(
-            f[:, : m - 1]
-            / (1 + torch.tile(g, (1, m - 1)))
-            * (1 + torch.sin(3 * torch.pi * f[:, : m - 1])),
+            f[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * f[:, : m - 1])),
             dim=1,
             keepdim=True,
         )
@@ -398,9 +386,7 @@ class DTLZ7(DTLZTestSuit):
 
     def pf(self):
         interval = torch.tensor([0, 0.251412, 0.631627, 0.859401], device=self.device)
-        median = (interval[1] - interval[0]) / (
-            interval[3] - interval[2] + interval[1] - interval[0]
-        ).to(self.device)
+        median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0]).to(self.device)
 
         x = self.sample.to(self.device)
 
@@ -418,10 +404,7 @@ class DTLZ7(DTLZTestSuit):
             x,
         )
 
-        last_col = 2 * (
-            self.m
-            - torch.sum(x / 2 * (1 + torch.sin(3 * torch.pi * x)), dim=1, keepdim=True)
-        )
+        last_col = 2 * (self.m - torch.sum(x / 2 * (1 + torch.sin(3 * torch.pi * x)), dim=1, keepdim=True))
 
         pf = torch.cat([x, last_col], dim=1)
         return pf

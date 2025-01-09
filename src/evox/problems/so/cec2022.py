@@ -1,15 +1,30 @@
-import torch
 import os
-from ...core.components import Problem
-from typing import Optional, Tuple
+from math import ceil
+from itertools import accumulate
+from typing import List, Optional, Tuple
 
+import torch
+
+from ...core import Problem, jit_class
+
+
+@jit_class
 class CEC2022(Problem):
-    def __init__(
-        self,
-        problem_number: int,
-        dimension: int,
-        device: torch.device | None = None
-    ):
+    """The CEC 2022 single-objective test suite Problem"""
+
+    def __init__(self, problem_number: int, dimension: int, device: torch.device | None = None):
+        """
+        Initialize a single test function instance from the CEC2022 test suite.
+
+        Args:
+            problem_number (`int`): The index for the specific test function to be used. Must be ranged from 1 to 12.
+            dimension (`int`): The dimensionality of the problem. Must be one of [2, 10, 20].
+            device (`torch.device`, optional): The device on which tensors will be allocated. Defaults to None.
+
+        Raises:
+            AssertionError: If the dimension is not one of the allowed values or if the function is not defined.
+            FileNotFoundError: If the necessary data files for the problem are not found.
+        """
         super().__init__()
         self.nx = dimension
         self.func_num = problem_number
@@ -20,10 +35,8 @@ class CEC2022(Problem):
         self.sh_flag = True
         self.rot_flag = True
 
-        if self.nx not in [2, 10, 20]:
-            raise ValueError("Test functions are only defined for D=2,10,20.")
-        if self.nx == 2 and self.func_num in [6, 7, 8]:
-            raise ValueError("Function not defined for D=2.")
+        assert self.nx in [2, 10, 20], f"Test functions are only defined for D=2,10,20, got {self.nx}."
+        assert self.func_num not in [6, 7, 8] or self.nx == 2, f"Function {self.func_num} is not defined for D=2."
 
         # Loading data preparation
         current_dir = os.path.dirname(__file__)
@@ -33,7 +46,7 @@ class CEC2022(Problem):
         m_filename = m_filename.replace("\\", "/")
         if not os.path.isfile(m_filename):
             raise FileNotFoundError(f"Cannot open {m_filename} for reading")
-        with open(m_filename, 'r') as f:
+        with open(m_filename, "r") as f:
             M_data = [float(num) for num in f.read().split()]
         if self.func_num < 9:
             self.M = torch.tensor(M_data, device=device).reshape(self.nx, self.nx)
@@ -44,7 +57,7 @@ class CEC2022(Problem):
         shift_filename = os.path.join(data_dir, f"shift_data_{self.func_num}.txt")
         if not os.path.isfile(shift_filename):
             raise FileNotFoundError(f"Cannot open {shift_filename} for reading")
-        with open(shift_filename, 'r') as f:
+        with open(shift_filename, "r") as f:
             shift_data = [float(num) for num in f.read().split()]
         if self.func_num < 9:
             self.OShift = torch.tensor(shift_data, device=device).unsqueeze(0)
@@ -56,37 +69,54 @@ class CEC2022(Problem):
             shuffle_filename = os.path.join(data_dir, f"shuffle_data_{self.func_num}_D{self.nx}.txt")
             if not os.path.isfile(shuffle_filename):
                 raise FileNotFoundError(f"Cannot open {shuffle_filename} for reading")
-            with open(shuffle_filename, 'r') as f:
+            with open(shuffle_filename, "r") as f:
                 shuffle_data = [int(num) for num in f.read().split()]
             # To 0-based index
             self.SS = torch.tensor(shuffle_data, dtype=torch.long, device=device) - 1
 
-
     # Transform matrix
     def shift(self, x: torch.Tensor) -> torch.Tensor:
         """Shift the input vector."""
-        return x - self.OShift[:,:x.size(1)]
+        return x - self.OShift[:, : x.size(1)]
 
     def rotate(self, x: torch.Tensor, mat: torch.Tensor) -> torch.Tensor:
         """Rotate the input vector."""
-        return torch.matmul(x, mat[:x.size(1)])
-    
-    def cut(self, x: torch.Tensor, Gp: torch.Tensor) -> Tuple[torch.Tensor]:
+        return torch.matmul(x, mat[: x.size(1)])
+
+    def cut(self, x: torch.Tensor, Gp: List[float]) -> List[torch.Tensor]:
         nx = x.size(1)
-        G_nx = torch.ceil(Gp * nx).int().tolist()
+        G_nx = [ceil(g * nx) for g in Gp]
         G_nx[-1] = nx - sum(G_nx[:-1])
-        G = [0] + list(torch.cumsum(torch.tensor(G_nx[:-1]), dim=0).tolist())
+        G = [0] * len(G_nx)
+        for i in range(1, len(Gp)):
+            G[i] = G[i - 1] + G_nx[i - 1]
 
         y = self.sr_func(x)
-        z = y[:,self.SS[:nx]] if self.SS is not None else y
+        z = y[:, self.SS[:nx]] if self.SS is not None else y
 
         z_piece = []
-        for i in range (Gp.size(0)):
-            z_piece.append(z[:,G[i] : G[i] + G_nx[i]])
+        for i in range(len(Gp)):
+            z_piece.append(z[:, G[i] : G[i] + G_nx[i]])
         return z_piece
 
-    def sr_func(self, x: torch.Tensor, sh_rate: float = 1.0) -> torch.Tensor:
+    def sr_func(self, x: torch.Tensor) -> torch.Tensor:
         """Shift and rotate function."""
+        if self.sh_flag:
+            if self.rot_flag:
+                y = self.shift(x)
+                z = self.rotate(y, self.M)
+            else:
+                z = self.shift(x)
+        else:
+            if self.rot_flag:
+                y = x
+                z = self.rotate(y, self.M)
+            else:
+                z = x
+        return z
+
+    def sr_func_rate(self, x: torch.Tensor, sh_rate: float) -> torch.Tensor:
+        """Shift and rotate function with rate."""
         if self.sh_flag:
             if self.rot_flag:
                 y = self.shift(x) * sh_rate
@@ -100,6 +130,24 @@ class CEC2022(Problem):
             else:
                 z = x * sh_rate
         return z
+
+    def cf_cal(self, x: torch.Tensor, fit: List[torch.Tensor], delta: List[int], bias: List[int]) -> torch.Tensor:
+        nx = x.size(1)
+        shift = self.OShift.view(1, -1, nx)
+        w_all = []
+        w_sum = torch.zeros(x.size(0), device=x.device)
+        for i, (d, f, b) in enumerate(zip(delta, fit, bias)):
+            diff = x - shift[:, i]
+            w = torch.sum(diff**2, dim=-1)
+            w = torch.where(w != 0, (1 / torch.sqrt(w)) * torch.exp(-w / (2 * nx * d * d)), torch.inf)
+            w_sum += w
+            w_all.append(w * (f + b))
+        w_ret = torch.zeros(x.size(0), device=x.device)
+        for w in w_all:
+            w_ret += w / w_sum
+        return w_ret
+
+    # cSpell:words Zakharov Rosenbrock Schaffer Rastrigin hgbat katsuura ackley schwefel happycat grie_rosen ellips escaffer griewank
 
     # Problem
     def cec2022_f1(self, x: torch.Tensor) -> torch.Tensor:
@@ -117,7 +165,7 @@ class CEC2022(Problem):
     def cec2022_f4(self, x: torch.Tensor) -> torch.Tensor:
         """Step Rastrigin Function (Noncontinuous Rastrigin's)"""
         return self.step_rastrigin_func(x) + 800.0
-        
+
     def cec2022_f5(self, x: torch.Tensor) -> torch.Tensor:
         """Levy Function"""
         return self.levy_func(x) + 900.0
@@ -125,7 +173,7 @@ class CEC2022(Problem):
     def cec2022_f6(self, x: torch.Tensor) -> torch.Tensor:
         """Hybrid Function 2"""
         # cf_num = 3
-        Gp = torch.tensor([0.4, 0.4, 0.2], device=x.device)
+        Gp = [0.4, 0.4, 0.2]
         y = self.cut(x, Gp)
 
         fit0 = self.bent_cigar_func(y[0])
@@ -137,7 +185,7 @@ class CEC2022(Problem):
     def cec2022_f7(self, x: torch.Tensor) -> torch.Tensor:
         """Hybrid Function 10"""
         # cf_num_ = 6
-        Gp = torch.tensor([0.1, 0.2, 0.2, 0.2, 0.1, 0.2], device=x.device)
+        Gp = [0.1, 0.2, 0.2, 0.2, 0.1, 0.2]
         y = self.cut(x, Gp)
 
         fit0 = self.hgbat_func(y[0])
@@ -152,7 +200,7 @@ class CEC2022(Problem):
     def cec2022_f8(self, x: torch.Tensor) -> torch.Tensor:
         """Hybrid Function 6"""
         # cf_num_ = 5
-        Gp = torch.tensor([0.3, 0.2, 0.2, 0.1, 0.2], device=x.device)
+        Gp = [0.3, 0.2, 0.2, 0.1, 0.2]
         y = self.cut(x, Gp)
 
         fit0 = self.katsuura_func(y[0])
@@ -165,217 +213,185 @@ class CEC2022(Problem):
 
     def cec2022_f9(self, x: torch.Tensor) -> torch.Tensor:
         """Composition Function 1"""
-        cf_num = 5
-        delta = torch.tensor([10, 20, 30, 40, 50], device=x.device)
-        bias = torch.tensor([0, 200, 300, 100, 400], device=x.device)
-
-        fit = torch.zeros(x.size(0), cf_num, device=x.device)
-        fit[:, 0] = self.rosenbrock_func(x) * 10000 / 1e4
-        fit[:, 1] = self.ellips_func(x) * 10000 / 1e10
-        fit[:, 2] = self.bent_cigar_func(x) * 10000 / 1e30
-        fit[:, 3] = self.discus_func(x) * 10000 / 1e10
-        fit[:, 4] = self.ellips_func(x) * 10000 / 1e10
-
+        delta = [10, 20, 30, 40, 50]
+        bias = [0, 200, 300, 100, 400]
+        fit = [
+            self.rosenbrock_func(x) * 10000 / 1e4,
+            self.ellips_func(x) * 10000 / 1e10,
+            self.bent_cigar_func(x) * 10000 / 1e30,
+            self.discus_func(x) * 10000 / 1e10,
+            self.ellips_func(x) * 10000 / 1e10,
+        ]
         f = self.cf_cal(x, fit, delta, bias)
         return f + 2300.0
 
     def cec2022_f10(self, x: torch.Tensor) -> torch.Tensor:
         """Composition Function 2"""
-        cf_num = 3
-        delta = torch.tensor([20, 10, 10], device=x.device)
-        bias = torch.tensor([0, 200, 100], device=x.device)
-
-        fit = torch.zeros(x.size(0), cf_num, device=x.device)
-        fit[:, 0] = self.schwefel_func(x) * 1.0
-        fit[:, 1] = self.rastrigin_func(x) * 1.0
-        fit[:, 2] = self.hgbat_func(x) * 1.0
-
+        delta = [20, 10, 10]
+        bias = [0, 200, 100]
+        fit = [self.schwefel_func(x) * 1.0, self.rastrigin_func(x) * 1.0, self.hgbat_func(x) * 1.0]
         f = self.cf_cal(x, fit, delta, bias)
         return f + 2400.0
 
     def cec2022_f11(self, x: torch.Tensor) -> torch.Tensor:
         """Composition Function 6"""
-        cf_num = 5
-        delta = torch.tensor([20, 20, 30, 30, 20], device=x.device)
-        bias = torch.tensor([0, 200, 300, 400, 200], device=x.device)
-
-        fit = torch.zeros(x.size(0), cf_num, device=x.device)
-        fit[:,0] = self.escaffer6_func(x) * 10000 / 2e7
-        fit[:,1] = self.schwefel_func(x) * 1.0
-        fit[:,2] = self.griewank_func(x) * 1000 / 100
-        fit[:,3] = self.rosenbrock_func(x) * 1.0
-        fit[:,4] = self.rastrigin_func(x) * 10000 / 1e3
-
+        delta = [20, 20, 30, 30, 20]
+        bias = [0, 200, 300, 400, 200]
+        fit = [
+            self.escaffer6_func(x) * 10000 / 2e7,
+            self.schwefel_func(x) * 1.0,
+            self.griewank_func(x) * 1000 / 100,
+            self.rosenbrock_func(x) * 1.0,
+            self.rastrigin_func(x) * 10000 / 1e3,
+        ]
         f = self.cf_cal(x, fit, delta, bias)
-        return f + 2600.0        
+        return f + 2600.0
 
     def cec2022_f12(self, x: torch.Tensor) -> torch.Tensor:
         """Composition Function 7"""
-        cf_num = 6
-        delta = torch.tensor([10, 20, 30, 40, 50, 60], device=x.device)
-        bias = torch.tensor([0, 300, 500, 100, 400, 200], device=x.device)
-
-        fit = torch.zeros(x.size(0), cf_num, device=x.device)
-        fit[:,0] = self.hgbat_func(x) * 10000 / 1000
-        fit[:,1] = self.rastrigin_func(x) * 10000 / 1e3
-        fit[:,2] = self.schwefel_func(x) * 10000 / 4e3
-        fit[:,3] = self.bent_cigar_func(x) * 10000 / 1e30
-        fit[:,4] = self.ellips_func(x) * 10000 / 1e10
-        fit[:,5] = self.escaffer6_func(x) * 10000 / 2e7
-
+        delta = [10, 20, 30, 40, 50, 60]
+        bias = [0, 300, 500, 100, 400, 200]
+        fit = [
+            self.hgbat_func(x) * 10000 / 1000,
+            self.rastrigin_func(x) * 10000 / 1e3,
+            self.schwefel_func(x) * 10000 / 4e3,
+            self.bent_cigar_func(x) * 10000 / 1e30,
+            self.ellips_func(x) * 10000 / 1e10,
+            self.escaffer6_func(x) * 10000 / 2e7,
+        ]
         f = self.cf_cal(x, fit, delta, bias)
         return f + 2700.0
 
-    
     # Basic functions
     def zakharov_func(self, x: torch.Tensor) -> torch.Tensor:
-        """Problem number = 1. """
+        """Problem number = 1."""
         x = self.sr_func(x)
-        sum1 = x ** 2
+        sum1 = x**2
         idx = torch.arange(1, x.size(1) + 1, device=x.device)
         sum2 = 0.5 * (idx * x)
-        return torch.sum(sum1 + sum2 ** 2 + sum2 ** 4, dim=1)   
-    
+        return torch.sum(sum1 + sum2**2 + sum2**4, dim=1)
+
     def step_rastrigin_func(self, x: torch.Tensor) -> torch.Tensor:
-        """Problem number = 4. """
-        if self.OShift is not None: 
+        """Problem number = 4."""
+        if self.OShift is not None:
             x = self.shift(x)
         y = torch.floor(2 * x + 0.5) / 2
-        z = self.sr_func(y, sh_rate=5.12 / 100.0)
-        return torch.sum(z ** 2 - 10.0 * torch.cos(2.0 * torch.pi * z) + 10.0, dim=1)
+        z = self.sr_func_rate(y, sh_rate=5.12 / 100.0)
+        return torch.sum(z**2 - 10.0 * torch.cos(2.0 * torch.pi * z) + 10.0, dim=1)
 
     def levy_func(self, x: torch.Tensor) -> torch.Tensor:
-        """Problem number = 5. """
+        """Problem number = 5."""
         x = self.sr_func(x)
         w = 1.0 + x / 4.0
-        tmp1 = torch.sin(torch.pi * w[:,0]) ** 2
-        tmp2 = (w[:,-1] - 1) ** 2 * (1 + torch.sin(2 * torch.pi * w[:,-1]) ** 2)
-        sum = (w[:,:-1] - 1) ** 2 * (1 + 10 * torch.sin(torch.pi * w[:,:-1] + 1) ** 2)
+        tmp1 = torch.sin(torch.pi * w[:, 0]) ** 2
+        tmp2 = (w[:, -1] - 1) ** 2 * (1 + torch.sin(2 * torch.pi * w[:, -1]) ** 2)
+        sum = (w[:, :-1] - 1) ** 2 * (1 + 10 * torch.sin(torch.pi * w[:, :-1] + 1) ** 2)
         return torch.sum(tmp1.unsqueeze(1) + sum + tmp2.unsqueeze(1), dim=1)
 
     def bent_cigar_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
-        return x[:,0] ** 2 + torch.sum((10.0 ** 6) * x[:,1:] ** 2, dim=1)
+        return x[:, 0] ** 2 + torch.sum((10.0**6) * x[:, 1:] ** 2, dim=1)
 
     def hgbat_func(self, x: torch.Tensor) -> torch.Tensor:
         alpha = 1.0 / 4.0
-        x = self.sr_func(x)
+        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
         tmp = x - 1
         r2 = torch.sum((tmp) ** 2, dim=1)
         sum_x = torch.sum(tmp, dim=1)
-        return torch.abs(r2 ** 2 - sum_x ** 2) ** (2 * alpha) + (0.5 * r2 + sum_x) / x.size(1) + 0.5
+        return torch.abs(r2**2 - sum_x**2) ** (2 * alpha) + (0.5 * r2 + sum_x) / x.size(1) + 0.5
 
     def rastrigin_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func(x)
-        return torch.sum(x ** 2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
+        x = self.sr_func_rate(x , sh_rate=5.12/100.0)
+        return torch.sum(x**2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
 
     def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
+        # TODO
         nx = x.size(1)
+        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
         f = torch.ones(x.size(0), device=x.device)
         tmp3 = (10.0 * nx) ** 1.2
-        x = self.sr_func(x)
         for i in range(nx):
             temp = torch.zeros(x.size(0), device=x.device)
             for j in range(1, 33):
-                tmp1 = 2.0 ** j
-                tmp2 = tmp1 * x[:,i]
-                temp+= torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1
+                tmp1 = 2.0**j
+                tmp2 = tmp1 * x[:, i]
+                temp += torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1
             f *= (1.0 + (i + 1) * temp) ** (10.0 / tmp3)
-        return (f - 1) * (10.0 / (nx ** 2))
+        return (f - 1) * (10.0 / (nx**2))
 
     def ackley_func(self, x: torch.Tensor) -> torch.Tensor:
-        nx = x.size(1)
         x = self.sr_func(x)
-        sum1 = torch.sum(x ** 2, dim = 1)
-        sum2 = torch.sum(torch.cos(2.0 * torch.pi * x), dim=1)
-        tmp1 = -0.2 * torch.sqrt(sum1 / nx)
-        tmp2 = -torch.exp(sum2 / nx)
+        mean1 = torch.mean(x**2, dim=1)
+        mean2 = torch.mean(torch.cos(2.0 * torch.pi * x), dim=1)
+        tmp1 = -0.2 * torch.sqrt(mean1)
+        tmp2 = -torch.exp(mean2)
         return torch.e - 20.0 * torch.exp(tmp1) - torch.exp(tmp2) + 20.0
 
     def schwefel_func(self, x: torch.Tensor) -> torch.Tensor:
         nx = x.size(1)
-        x = self.sr_func(x)
+        x = self.sr_func_rate(x, sh_rate=1000.0/10.0)
         tmp1 = x + 420.9687462275036
-        tmp2 = -tmp1 * torch.sin(torch.sqrt(torch.abs(tmp1)))
+        tmp2 = -tmp1 * tmp1.abs().sqrt().sin()
         return torch.sum(tmp2, dim=1) + 418.98288727243378 * nx
 
     def schaffer_F7_func(self, x: torch.Tensor) -> torch.Tensor:
+        # TODO
         nx = x.size(1)
         x = self.sr_func(x)
         f = torch.zeros(x.size(0), device=x.device)
-        for i in range(0, nx-1):
-            tmp1 = torch.pow(x[:,i]*x[:,i]+x[:,i+1]*x[:,i+1],0.5)
-            tmp2 = torch.sin(50.0 * torch.pow(x[:,i],0.2))
-            f += torch.pow(tmp1,0.5) * (1 + tmp2 ** 2) 
-        f = (f / (nx-1)) ** 2
+        for i in range(0, nx - 1):
+            tmp1 = torch.pow(x[:, i] * x[:, i] + x[:, i + 1] * x[:, i + 1], 0.5)
+            tmp2 = torch.sin(50.0 * torch.pow(x[:, i], 0.2))
+            f += torch.pow(tmp1, 0.5) * (1 + tmp2**2)
+        f = (f / (nx - 1)) ** 2
         return f
-    
+
     def escaffer6_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
-        tmp1 = torch.sin(torch.sqrt(x[:,:-1] ** 2 + x[:,1:] ** 2)) ** 2
-        tmp2 = 1.0 + 0.001 * (x[:,:-1] ** 2 + x[:,1:] ** 2)
-        return torch.sum(0.5 + (tmp1 - 0.5) / (tmp2 ** 2), dim=1)
+        tmp1 = torch.sin(torch.sqrt(x[:, :-1] ** 2 + x[:, 1:] ** 2)) ** 2
+        tmp2 = 1.0 + 0.001 * (x[:, :-1] ** 2 + x[:, 1:] ** 2)
+        return torch.sum(0.5 + (tmp1 - 0.5) / (tmp2**2), dim=1)
 
     def happycat_func(self, x: torch.Tensor) -> torch.Tensor:
         nx = x.size(1)
         alpha = 1.0 / 8.0
-        x = self.sr_func(x)
-        tmp = x-1
-        r2_ = torch.sum(tmp ** 2, dim=1)
+        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        tmp = x - 1
+        r2 = torch.sum(tmp**2, dim=1)
         sum_x = torch.sum(tmp, dim=1)
-        return torch.abs(r2_ - nx) ** (2 * alpha) + (0.5 * r2_ + sum_x) / nx + 0.5
+        return torch.abs(r2 - nx) ** (2 * alpha) + (0.5 * r2 + sum_x) / nx + 0.5
 
-    def grie_rosen_func(self, x: torch.Tensor) -> torch.Tensor: 
-        x = self.sr_func(x)  
+    def grie_rosen_func(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
         tmp = x + 1
-        tmp2_ = 100.0 * (tmp[:,:-1] ** 2 - tmp[:,1:]) ** 2 + (tmp[:,:-1] - 1.0) ** 2
-        return torch.sum((tmp2_ ** 2) / 4000.0 - torch.cos(tmp2_) + 1.0, dim =1)
+        tmp2_ = 100.0 * (tmp[:, :-1] ** 2 - tmp[:, 1:]) ** 2 + (tmp[:, :-1] - 1.0) ** 2
+        return torch.sum((tmp2_**2) / 4000.0 - torch.cos(tmp2_) + 1.0, dim=1)
 
     def griewank_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func(x) 
-        sum_sq = torch.sum(x ** 2, dim=1)
+        x = self.sr_func_rate(x, sh_rate=600.0/100.0)
+        sum_sq = torch.sum(x**2, dim=1)
         idx = torch.arange(1, x.size(1) + 1, device=x.device)
         prod_cos = torch.prod(torch.cos(x / torch.sqrt(idx)))
         return 1.0 + sum_sq / 4000.0 - prod_cos
 
     def rosenbrock_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func(x)
+        x = self.sr_func_rate(x, sh_rate=2.048/100.0)
         tmp = x + 1
-        return torch.sum(100.0 * (tmp[:,:-1] ** 2 - tmp[:,1:]) ** 2 + (tmp[:,:-1] - 1.0) ** 2, dim=1)
+        return torch.sum(100.0 * (tmp[:, :-1] ** 2 - tmp[:, 1:]) ** 2 + (tmp[:, :-1] - 1.0) ** 2, dim=1)
 
     def discus_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
-        return (10.0 ** 6) * x[:,0] ** 2 + torch.sum(x[:,1:] ** 2, dim=1)
+        return (10.0**6) * x[:, 0] ** 2 + torch.sum(x[:, 1:] ** 2, dim=1)
 
     def ellips_func(self, x: torch.Tensor) -> torch.Tensor:
         nx = x.size(1)
         x = self.sr_func(x)
         idx = torch.arange(nx, device=x.device)
         powers = 6.0 * idx / (nx - 1)
-        return torch.sum((10.0 ** powers) * x ** 2, dim=1)
-
-    def cf_cal(self, x: torch.Tensor, fit: torch.Tensor, delta: torch.Tensor, bias: torch.Tensor) -> torch.Tensor:
-        nx = x.size(1)
-        cf_num = fit.size(1)
-        w = torch.zeros(x.size(0), cf_num, device=x.device)
-        for i in range(cf_num):
-            block_start = i * nx
-            block_end = (i + 1) * nx
-            diff = x - self.OShift[:,block_start:block_end]
-            w[:,i] = torch.sum(diff ** 2)
-        w = torch.where(w!=0,(1.0 / torch.sqrt(w)) * torch.exp(-w / (2.0 * nx * delta[i] ** 2)),torch.inf)
-        
-        # w_max, _ = torch.max(w, dim = 1)
-        w_sum = torch.sum(w, dim = 1)
-        # if w_max == 0:
-        #     w = torch.ones(x.size(0),cf_num, device=x.device)
-        #     w_sum = torch.empty(x.size(0), device=x.device).fill(cf_num)
-
-        return torch.sum(w / w_sum.unsqueeze(1) * (fit + bias.unsqueeze(0)), dim = 1)
+        return torch.sum((10.0**powers) * x**2, dim=1)
 
     def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
-        if pop.size(1) != self.nx:
-            raise ValueError(f"Dimension mismatch! Expect {self.nx}, got {pop.size(1)}.")
+        assert pop.size(1) == self.nx, f"Dimension mismatch! Expect {self.nx}, got {pop.size(1)}."
 
         if self.func_num == 1:
             fitness = self.cec2022_f1(pop)
@@ -403,5 +419,5 @@ class CEC2022(Problem):
             fitness = self.cec2022_f12(pop)
         else:
             raise ValueError(f"Function {self.func_num} is not defined.")
-        
-        return fitness        
+
+        return fitness
