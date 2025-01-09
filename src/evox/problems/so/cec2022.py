@@ -305,7 +305,6 @@ class CEC2022(Problem):
         return torch.sum(x**2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
 
     def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO
         x = self.sr_func_rate(x, sh_rate=5.0/100.0)
         nx = x.size(1)
         tmp1 = 2.0**torch.arange(1, 33, device=x.device)
