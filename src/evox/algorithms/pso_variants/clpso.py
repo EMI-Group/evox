@@ -29,17 +29,15 @@ class CLPSO(Algorithm):
         learning_probability: float = 0.05,
         device: torch.device | None = None,
     ):
-        """
-        Initialize the CLPSO algorithm with the given static parameters.
+        """Initialize the CLPSO algorithm with the given static parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            inertia_weight (`float`, optional): The inertia weight (w). Defaults to 0.5.
-            const_coefficient (`float`, optional): The cognitive weight (c). Defaults to 1.5.
-            learning_probability (`float`, optional): The social weight (P_c). Defaults to 0.05.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param inertia_weight: The inertia weight (w). Defaults to 0.5.
+        :param const_coefficient: The cognitive weight (c). Defaults to 1.5.
+        :param learning_probability: The social weight (P_c). Defaults to 0.05.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
