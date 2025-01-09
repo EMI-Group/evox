@@ -1,10 +1,11 @@
 """
-This script is used to wrap the translated strings in jupyter notebooks in the docs.po file
+This script is used to wrap the translated strings in jupyter notebooks in the docs.po
 """
 
-import polib
-import json
 import copy
+import json
+
+import polib
 
 po = polib.pofile("docs/source/locale/zh/LC_MESSAGES/docs.po")
 

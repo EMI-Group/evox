@@ -2,21 +2,15 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-mypkg = ["*.txt", "*.json"]
-
 [project]
 name = "evox"
 version = "0.9.0"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
+  { name = "Boqing Xu", email = "xuboqing123@gmail.com" },
   { name = "Christina Lee", email = "1315552992@qq.com" },
+  { name = "Kevin Sun", email = "skk7757@163.com" },
+  { name = "Yanchen Li", email = "48726053+liyc5929@users.noreply.github.com" },
   { name = "Zhenyu Liang", email = "zhenyuliang97@gmail.com" },
 ]
 description = "evox"
@@ -31,21 +25,10 @@ classifiers = [
 ]
 
 dependencies = [
-  "jax >= 0.4.16",
-  "jaxlib >= 0.3.0",
-  "optax >= 0.1.0",
-  "pyarrow >= 10.0.0",
-  "orbax-checkpoint >= 0.5.0",
+  "torch >= 2.0",
 ]
 
 [project.optional-dependencies]
-test = [
-  "chex >= 0.1.0",
-  "flax >= 0.5.0",
-  "pytest >= 6.0.0",
-  "tensorflow >= 2.12.0",
-]
-
 vis = [
   "plotly >= 5.0.0",
   "pandas >= 2.0.0",
@@ -56,29 +39,18 @@ gymnasium = ["gymnasium >= 0.29.0"]
 envpool = ["envpool >= 0.8.0"]
 
 neuroevolution = [
-  "tensorflow-datasets >= 4.0.0",
-  "grain >= 0.1.0",
   "brax >= 0.11.0",
 ]
-
-distributed = ["ray >= 2.0.0"]
-
-full = [
-  "gymnasium >= 0.29.0",
-  "ray >= 2.0.0",
-  "envpool >= 0.8.0",
-  "gpjax >= 0.8.0",
-  "plotly >= 5.0.0",
-  "pandas >= 2.0.0",
-  "tensorflow-datasets >= 4.0.0",
-  "grain >= 0.1.0",
-  "brax >= 0.11.0",
-  "plotly >= 5.0.0",
-  "pandas >= 2.0.0",
-]
-
-gp = ["gpjax >= 0.8.0"]
 
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
+
+[tool.ruff]
+# Allow lines to be as long as 128. (default: 88)
+line-length = 128
+# Use `\n` line endings for all files
+format.line-ending = "lf"
+# F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
+lint.select = ["F", "E", "W", "I", "NPY"]
+lint.ignore = ["E501"] # Ignore line length error
