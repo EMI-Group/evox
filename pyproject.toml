@@ -46,6 +46,7 @@ test = [
 
 docs = [
   "sphinx-book-theme > 1.0",
+  "sphinx-autodoc2",
   "sphinx",
   "myst-nb",
   "nbsphinx",

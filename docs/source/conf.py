@@ -29,8 +29,7 @@ author = "Bill Huang"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
+    "autodoc2",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -40,6 +39,12 @@ extensions = [
     "sphinxcontrib.mermaid",
     "myst_nb",
 ]
+
+autodoc2_packages = [
+    "../../src/evox",
+]
+
+autodoc2_render_plugin = "myst"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

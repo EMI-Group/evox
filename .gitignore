@@ -168,3 +168,4 @@ cython_debug/
 tests
 **/_future/*
 data/MNIST
+docs/source/apidocs
