@@ -1,6 +1,6 @@
 import torch
-from src.operators.selection import ref_vec_guided
-from src.core import jit, vmap
+from evox.operators.selection import ref_vec_guided
+from evox.core import jit, vmap
 
 
 if __name__ == "__main__":
