@@ -898,7 +898,13 @@ def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
             return getattr(cls, name)
 
         def __setattr__(cls_new, name, value):
-            return setattr(cls, name, value)
+            from functools import WRAPPER_ASSIGNMENTS
+            setattr(cls, name, value)
+            if name in WRAPPER_ASSIGNMENTS:
+                type.__setattr__(cls_new, name, value)
+
+        def __dir__(cls_new):
+            return dir(cls)
 
     @wraps(cls, updated=())
     class WrappedModule(_WrapClassBase, metaclass=WrappedModuleType):
