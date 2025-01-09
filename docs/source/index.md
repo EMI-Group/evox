@@ -38,12 +38,12 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
 
 - 🚀 **Fast Performance**:
   - Experience **GPU-Accelerated** optimization, achieving speeds over 100x faster than traditional methods.
-  - Leverage the power of {class}`Distributed Workflows <evox.workflows.RayDistributedWorkflow>` for even more rapid optimization.
+  - Leverage the power of Distributed Workflows for even more rapid optimization.
 
 - 🌐 **Versatile Optimization Suite**:
-  - Cater to all your needs with both {doc}`Single-objective <api/algorithms/so/index>` and {doc}`Multi-objective <api/algorithms/mo/index>` optimization capabilities.
-  - Dive into a comprehensive library of {doc}`Benchmark Problems <api/problems/numerical/index>`, ensuring robust testing and evaluation.
-  - Explore the frontier of AI with extensive tools for {doc}`Neuroevolution <api/problems/neuroevolution/index>` tasks.
+  - Cater to all your needs with both {doc}`Single-objective and Multi-objective <apidocs/evox/evox.algorithms>` optimization capabilities.
+  - Dive into a comprehensive library of {doc}`Benchmark Problems <apidocs/evox/evox.problems>`, ensuring robust testing and evaluation.
+  - Explore the frontier of AI with extensive tools for {doc}`Neuroevolution <apidocs/evox/evox.problems.neuroevolution>` tasks.
 
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
@@ -82,19 +82,19 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
    .. grid-item-card:: :octicon:`list-unordered;1.5em` Algorithms
       :padding: 3
       :margin: 0
-      :link: api/algorithms/index
+      :link: apidocs/evox/evox.algorithms
       :link-type: doc
 
    .. grid-item-card:: :octicon:`list-unordered;1.5em` Problems
       :padding: 3
       :margin: 0
-      :link: api/problems/index
+      :link: apidocs/evox/evox.problems
       :link-type: doc
 
 
    .. grid-item-card:: :octicon:`list-unordered;1.5em` Metrics
       :padding: 3
       :margin: 0
-      :link: api/metrics/index
+      :link: apidocs/evox/evox.metrics
       :link-type: doc
 ```
