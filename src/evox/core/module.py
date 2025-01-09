@@ -43,17 +43,14 @@ def Parameter(
     device: Optional[torch.device] = None,
     requires_grad: bool = False,
 ) -> ParameterT:
-    """
-    Wraps a value as parameter with `requires_grad=False`.
+    """Wraps a value as parameter with `requires_grad=False`.
 
-    Args:
-        value (`T`): The parameter value.
-        dtype (`torch.dtype`, optional): The dtype of the parameter. Defaults to None.
-        device (`torch.device`, optional): The device of the parameter. Defaults to None.
-        requires_grad (`bool`, optional): Whether the parameter requires gradient. Defaults to False.
+    :param value: The parameter value.
+    :param dtype: The dtype of the parameter. Defaults to None.
+    :param device: The device of the parameter. Defaults to None.
+    :param requires_grad: Whether the parameter requires gradient. Defaults to False.
 
-    Returns:
-        T: The parameter.
+    :return: The parameter.
     """
     return nn.Parameter(
         (
@@ -69,13 +66,11 @@ def Mutable(value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Op
     """
     Wraps a value as a mutable tensor.
 
-    Args:
-        value (`T`): The value to be wrapped.
-        dtype (`torch.dtype`, optional): The dtype of the tensor. Defaults to None.
-        device (`torch.device`, optional): The device of the tensor. Defaults to None.
+    :param value: The value to be wrapped.
+    :param dtype: The dtype of the tensor. Defaults to None.
+    :param device: The device of the tensor. Defaults to None.
 
-    Returns:
-        T: The wrapped tensor.
+    :return: The wrapped tensor.
     """
     return nn.Buffer(value.to(dtype=dtype, device=device))
 
@@ -152,9 +147,8 @@ class ModuleBase(nn.Module):
     def __init__(self, *args, **kwargs):
         """Initialize the ModuleBase.
 
-        Args:
-            *args: Variable length argument list, passed to the parent class initializer.
-            **kwargs: Arbitrary keyword arguments, passed to the parent class initializer.
+        :param *args: Variable length argument list, passed to the parent class initializer.
+        :param **kwargs: Arbitrary keyword arguments, passed to the parent class initializer.
 
         Attributes:
             __static_names__ (list): A list to store static member names.
@@ -172,8 +166,7 @@ class ModuleBase(nn.Module):
         """Setup the module.
         Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`.
 
-        Returns:
-            This module.
+        :return: This module.
 
         ## Notice:
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
@@ -188,13 +181,11 @@ class ModuleBase(nn.Module):
         """Copy parameters and buffers from state_dict into this module and its descendants.
         Overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict).
 
-        Args:
-            state_dict (`Mapping[str, torch.Tensor]`): A dict containing parameters and buffers used to update this module. See `torch.nn.Module.load_state_dict`.
-            copy (`bool`, optional): Use the original `torch.nn.Module.load_state_dict` to copy the `state_dict` to current state (`copy=True`) or use this implementation that assigns the values of this module to the ones in the `state_dict` (`copy=False`). Defaults to False.
-            kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored if `copy=False`.
+        :param state_dict: A dict containing parameters and buffers used to update this module. See `torch.nn.Module.load_state_dict`.
+        :param copy: Use the original `torch.nn.Module.load_state_dict` to copy the `state_dict` to current state (`copy=True`) or use this implementation that assigns the values of this module to the ones in the `state_dict` (`copy=False`). Defaults to False.
+        :param **kwargs: The original arguments of `torch.nn.Module.load_state_dict`. Ignored if `copy=False`.
 
-        Returns:
-            `NamedTuple | None`: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
+        :return: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
         """
         if copy:
             assert not any(
@@ -226,13 +217,11 @@ class ModuleBase(nn.Module):
     ) -> None:
         """Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place.
 
-        Args:
-            name (`str`): The mutable value's name.
-            value (`torch.Tensor | Tuple[torch.Tensor, ...], List[torch.Tensor], Dict[str, torch.Tensor]`): The mutable value, can be a tuple, list, dictionary of a `torch.Tensor`.
+        :param name: The mutable value's name.
+        :param value: The mutable value, can be a tuple, list, dictionary of a `torch.Tensor`.
 
-        Raises:
-            NotImplementedError: If the mutable value's type is not supported yet.
-            AssertionError: If the `name` is invalid.
+        :raises NotImplementedError: If the mutable value's type is not supported yet.
+        :raises AssertionError: If the `name` is invalid.
         """
         assert name.isdigit() or str.isidentifier(name), f"Name {name} is not a valid Python name."
         if isinstance(value, torch.Tensor):
@@ -337,15 +326,12 @@ class ModuleBase(nn.Module):
     def __getitem__(self, key: Union[int, slice, str]) -> Union[torch.Tensor, List[torch.Tensor]]:
         """Get the mutable value(s) stored in this list-like module.
 
-        Args:
-            key (`int | slice | str`): The key used to index mutable value(s).
+        :param key: The key used to index mutable value(s).
 
-        Raises:
-            IndexError: If `key` is out of range.
-            TypeError: If `key` is of wrong type.
+        :raises IndexError: If `key` is out of range.
+        :raises TypeError: If `key` is of wrong type.
 
-        Returns:
-            `torch.Tensor | List[torch.Tensor]`: The indexed mutable value(s).
+        :return: The indexed mutable value(s).
         """
         if isinstance(key, slice):
             key = range(_if_none(key.start, 0), key.stop, _if_none(key.step, 1))
@@ -366,9 +352,8 @@ class ModuleBase(nn.Module):
     ) -> None:
         """Set the mutable value(s) stored in this list-like module.
 
-        Args:
-            value (`torch.Tensor | Sequence[torch.Tensor]`): The new mutable value(s).
-            key (`int | slice`): The key used to index mutable value(s).
+        :param value: The new mutable value(s).
+        :param key: The key used to index mutable value(s).
         """
         targets = self.__getitem__(key)
         if isinstance(targets, list):
@@ -412,8 +397,7 @@ def use_state_context(new_use_state: bool = True):
     When entering the context, the value of `using_state` is set to `new_use_state` and a token is obtained.
     When exiting the context, the value of `using_state` is reset to its previous value.
 
-    Args:
-        new_use_state (bool): The new value of `using_state`. Defaults to True.
+    :param new_use_state: The new value of `using_state`. Defaults to True.
 
     ## Examples:
     ```
@@ -439,8 +423,7 @@ def trace_caching_state_context(new_trace_caching_state: bool = True):
     When entering the context, the value of `trace_caching_state` is set to `new_trace_caching_state` and a token is obtained.
     When exiting the context, the value of `trace_caching_state` is reset to its previous value.
 
-    Args:
-        new_trace_caching_state (bool): The new value of `trace_caching_state`. Defaults to True.
+    :param new_trace_caching_state: The new value of `trace_caching_state`. Defaults to True.
 
     ## Examples:
     ```
@@ -460,8 +443,7 @@ def is_using_state() -> bool:
     """
     Get the current state of the `using_state`.
 
-    Returns:
-        bool: The current state of the `using_state`.
+    :return: The current state of the `using_state`.
     """
     return _using_state.get()
 
@@ -470,8 +452,7 @@ def is_trace_caching_state() -> bool:
     """
     Get the current state of the `trace_caching_state`.
 
-    Returns:
-        bool: The current state of the `trace_caching_state`.
+    :return: The current state of the `trace_caching_state`.
     """
     return _trace_caching_state.get()
 
@@ -480,8 +461,7 @@ def tracing_or_using_state():
     """
     Check if we are currently JIT tracing (inside a `torch.jit.trace`), in a `use_state_context`, or in a `trace_caching_state`.
 
-    Returns:
-        `bool`: True if either condition is true, False otherwise.
+    :return: True if either condition is true, False otherwise.
     """
     return torch.jit.is_tracing() or is_using_state() or is_trace_caching_state()
 
@@ -561,19 +541,16 @@ class UseStateFunc(Protocol):
     def init_state(self, clone: bool = True) -> Dict[str, torch.Tensor]:
         """Get the cloned state of the closures of the function when it is wrapped by `use_state`.
 
-        Args:
-            clone (`bool`, optional): Whether to clone the original state or not. Defaults to True.
+        :param clone: Whether to clone the original state or not. Defaults to True.
 
-        Returns:
-            `Dict[str, torch.Tensor]`: The cloned state of the closures.
+        :return: The cloned state of the closures.
         """
         pass
 
     def set_state(self, state: Optional[Dict[str, torch.Tensor]] = None) -> None:
         """Set the closures of the function to the given state.
 
-        Args:
-            state (`Dict[str, torch.Tensor]`, optional): The new state to set to. If `state=None`, the new state would be the original state when the function is wrapped by `use_state`. Defaults to None.
+        :param state: The new state to set to. If `state=None`, the new state would be the original state when the function is wrapped by `use_state`. Defaults to None.
         """
         pass
 
@@ -589,12 +566,10 @@ _EMPTY_NAME = "___empty___"
 def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True) -> UseStateFunc:
     """Transform the given stateful function (which in-place alters `nn.Module`s) to a pure-functional version that receives an additional `state` parameter (of type `Dict[str, torch.Tensor]`) and returns the altered state additionally.
 
-    Args:
-        func (`Callable`): The stateful function to be transformed or its generator function.
-        is_generator (`bool`, optional): Whether `func` is a function or a function generator (e.g. a lambda that returns the stateful function). Defaults to `True`.
+    :param func: The stateful function to be transformed or its generator function.
+    :param is_generator: Whether `func` is a function or a function generator (e.g. a lambda that returns the stateful function). Defaults to `True`.
 
-    Returns:
-        `Callable`: The transformed pure-functional version of `func`. It contains a `init_state() -> state` attribute that returns the copy of the current state that `func` uses and can be used as example inputs of the additional `state` parameter. It also contains a `set_state(state)` attribute to set the global state to the given one (of course not JIT-compatible).
+    :return: The transformed pure-functional version of `func`. It contains a `init_state() -> state` attribute that returns the copy of the current state that `func` uses and can be used as example inputs of the additional `state` parameter. It also contains a `set_state(state)` attribute to set the global state to the given one (of course not JIT-compatible).
 
     ## Notice:
     Since PyTorch cannot JIT or vectorized-map a function with empty dictionary, list, or tuple as its input, this function transforms the given function to a function WITHOUT the additional `state` parameter (of type `Dict[str, torch.Tensor]`) and does NOT return the altered state additionally.
@@ -758,11 +733,9 @@ def trace_impl(target: Callable):
 
     Can ONLY be used inside a `jit_class` for a member method.
 
-    Args:
-        target (`Callable`): The target method invoked when not tracing JIT.
+    :param target: The target method invoked when not tracing JIT.
 
-    Returns:
-        The wrapping function to annotate the member method.
+    :return: The wrapping function to annotate the member method.
 
     ## Notice:
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
@@ -790,11 +763,9 @@ def vmap_impl(target: Callable):
 
     Can ONLY be used inside a `jit_class` for a member method.
 
-    Args:
-        target (`Callable`): The target method invoked when not tracing JIT.
+    :param target: The target method invoked when not tracing JIT.
 
-    Returns:
-        The wrapping function to annotate the member method.
+    :return: The wrapping function to annotate the member method.
 
     ## Notice:
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
@@ -822,9 +793,8 @@ _BASE_NAME = "base"
 def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
     """A helper function used to JIT script (`torch.jit.script`) or trace (`torch.jit.trace_module`) all member methods of class `cls`.
 
-    Args:
-        cls (`type`): The original class whose member methods are to be lazy JIT.
-        trace (`bool`, optional): Whether to trace the module or to script the module. Default to False.
+    :param cls: The original class whose member methods are to be lazy JIT.
+    :param trace: Whether to trace the module or to script the module. Default to False.
 
     Returns:
         The wrapped class.
@@ -899,6 +869,7 @@ def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
 
         def __setattr__(cls_new, name, value):
             from functools import WRAPPER_ASSIGNMENTS
+
             setattr(cls, name, value)
             if name in WRAPPER_ASSIGNMENTS:
                 type.__setattr__(cls_new, name, value)

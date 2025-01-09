@@ -8,6 +8,8 @@ from ...utils import clamp
 
 @jit_class
 class DE(Algorithm):
+    """The basic differential evolution algorithm."""
+
     def __init__(
         self,
         pop_size: int,
@@ -21,22 +23,20 @@ class DE(Algorithm):
         stdev: torch.Tensor | None = None,
         device: torch.device | None = None,
     ):
-        """
-        Initialize the DE algorithm with the given parameters.
+        """Initialize the DE algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            base_vector (`Literal["best", "rand"]`, optional): The base vector type. Defaults to "rand".
-            num_difference_vectors (`int`, optional): The number of difference vectors in mutation. Defaults to 1.
-            differential_weight (`float` or `torch.Tensor`, optional): The differential weight(s), i.e., the factor(s) F of difference vector(s). Defaults to 0.5.
-            cross_probability (`float`, optional): The crossover probability CR. Defaults to 0.9.
-            batch_size (`int`, optional): The batch size for vectorized non-replace choice. Defaults to 100.
-            replace (`bool`, optional): Whether to allow replacement to speed up computation or following the original implementation. Defaults to False.
-            mean (`torch.Tensor`, optional): The mean of the normal distribution. Defaults to None.
-            stdev (`torch.Tensor`, optional): The standard deviation of the normal distribution. Defaults to None.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param base_vector: The base vector type. Defaults to "rand".
+        :param num_difference_vectors: The number of difference vectors in mutation. Defaults to 1.
+        :param differential_weight: The differential weight(s), i.e., the factor(s) F of difference vector(s). Defaults to 0.5.
+        :param cross_probability: The crossover probability CR. Defaults to 0.9.
+        :param batch_size: The batch size for vectorized non-replace choice. Defaults to 100.
+        :param replace: Whether to allow replacement to speed up computation or following the original implementation. Defaults to False.
+        :param mean: The mean of the normal distribution. Defaults to None.
+        :param stdev: The standard deviation of the normal distribution. Defaults to None.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
