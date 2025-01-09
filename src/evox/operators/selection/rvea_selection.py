@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as F
-from src.utils import clamp, maximum, nanmin
-from src.core import vmap, jit
+from ...utils import clamp, maximum, nanmin
 
 
 def apd_fn(
@@ -50,7 +49,7 @@ def ref_vec_guided(
 
     nan_mask = torch.isnan(obj).any(dim=1)
     associate = torch.argmin(angle, dim=1)
-    associate = torch.where(nan_mask, torch.tensor(-1, device=f.device), associate)
+    associate = torch.where(nan_mask, -1, associate)
     associate = associate[:, None]
     partition = torch.arange(0, n, device=f.device)[:, None]
     I = torch.arange(0, nv, device=f.device)[None, :]
@@ -60,7 +59,7 @@ def ref_vec_guided(
     mask_null = mask.sum(dim=0) == n
 
     apd = apd_fn(partition, gamma, angle, obj, theta)
-    apd = torch.where(mask, float("inf"), apd)
+    apd = torch.where(mask, torch.inf, apd)
 
     # TODO: The current RVEA selection implementation is suboptimal.
     #       We will implement a `segment_sort` or `segment_argmin` in CUDA in the future

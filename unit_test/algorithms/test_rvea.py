@@ -8,11 +8,11 @@ current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
 
-from src.core import use_state, jit
-from src.workflows import StdWorkflow
-from src.algorithms import RVEA
-from src.problems.numerical import DTLZ2
-from src.metrics import igd
+from evox.core import use_state, jit
+from evox.workflows import StdWorkflow
+from evox.algorithms import RVEA
+from evox.problems.numerical import DTLZ2
+from evox.metrics import igd
 
 
 if __name__ == "__main__":
@@ -43,6 +43,9 @@ if __name__ == "__main__":
     ) as prof:
         for i in range(100):
             state = jit_state_step(state)
+            fit = state["self.algorithm.fit"]
+            fit = fit[~torch.isnan(fit).any(dim=1)]
+            print(igd(fit, pf))
     print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)

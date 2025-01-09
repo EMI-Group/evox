@@ -11,15 +11,15 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20):
     Returns:
         offspring_dec: Offspring solutions after crossover.
     """
-    n, _ = x.size()
+    n, m = x.size()
     parent1_dec = x[: n // 2, :]
     parent2_dec = x[n // 2 : n // 2 * 2, :]
 
     # Uniform distribution for mutation
-    mu = torch.rand_like(parent1_dec)
+    mu = torch.rand(n // 2, m, device=x.device)
 
     # Beta calculation for SBX
-    beta = torch.zeros_like(parent1_dec)
+    beta = torch.zeros(mu.size(), device=x.device)
     beta = torch.where(mu <= 0.5, torch.pow(2 * mu, 1 / (dis_c + 1)), beta)
     beta = torch.where(mu > 0.5, torch.pow(2 - 2 * mu, -1 / (dis_c + 1)), beta)
 
@@ -27,8 +27,8 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20):
     beta = beta * (1 - torch.randint(0, 2, beta.size(), device=x.device) * 2)
 
     # Apply crossover probability to mutate
-    beta = torch.where(torch.rand_like(beta) < 0.5, 1, beta)
-    beta = torch.where(torch.rand_like(beta) > pro_c, 1, beta)
+    beta = torch.where(torch.rand(mu.size(), device=x.device) < 0.5, 1, beta)
+    beta = torch.where(torch.rand(mu.size(), device=x.device) > pro_c, 1, beta)
 
     offspring_dec = torch.cat(
         [

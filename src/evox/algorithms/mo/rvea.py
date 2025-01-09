@@ -2,13 +2,12 @@ import torch
 from torch import nn
 from typing import Optional, Callable
 
-from src.core import Parameter, Algorithm, jit_class, trace_impl
-from src.operators.crossover import simulated_binary
-from src.operators.mutation import polynomial_mutation
-from src.operators.selection import ref_vec_guided
-from src.operators.sampling import uniform_sampling
-from src.utils import clamp, nanmin, nanmax, TracingCond
-from src.metrics import igd
+from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
+from ...operators.crossover import simulated_binary
+from ...operators.mutation import polynomial_mutation
+from ...operators.selection import ref_vec_guided
+from ...operators.sampling import uniform_sampling
+from ...utils import clamp, nanmin, nanmax, TracingCond
 
 
 @jit_class
@@ -29,7 +28,6 @@ class RVEA(Algorithm):
         n_objs (int): The number of objective functions in the optimization problem.
         lb (torch.Tensor): The lower bounds for the decision variables.
         ub (torch.Tensor): The upper bounds for the decision variables.
-        pf (torch.Tensor | None): The Pareto front for reference (optional).
         alpha (float): A parameter for controlling the rate of change of penalty. Defaults to 2.
         fr (float): The frequency of reference vector adaptation. Defaults to 0.1.
         max_gen (int): The maximum number of generations. Defaults to 100.
@@ -45,7 +43,7 @@ class RVEA(Algorithm):
         n_objs: int,
         lb: torch.Tensor,
         ub: torch.Tensor,
-        alpha: float = 2,
+        alpha: float = 2.0,
         fr: float = 0.1,
         max_gen: int = 100,
         selection_op: Optional[Callable] = None,
@@ -92,13 +90,13 @@ class RVEA(Algorithm):
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + lb
 
-        self.pop = nn.Buffer(population)
-        self.fit = nn.Buffer(
+        self.pop = Mutable(population)
+        self.fit = Mutable(
             torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf)
         )
-        self.reference_vector = nn.Buffer(v)
+        self.reference_vector = Mutable(v)
         self.init_v = v0
-        self.gen = nn.Buffer(torch.tensor(0, device=device))
+        self.gen = Mutable(torch.tensor(0, device=device))
 
     def init_step(self):
         """
@@ -125,6 +123,7 @@ class RVEA(Algorithm):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
         mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
+        # pop = self.pop[torch.nonzero_static(no_nan_pop, size=self.pop_size)[mating_pool].squeeze()]
         pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
         return pop
 
@@ -154,7 +153,7 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
     def step(self):
-        self.gen += 1
+        self.gen = self.gen + 1
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)
@@ -167,9 +166,7 @@ class RVEA(Algorithm):
             merge_pop,
             merge_fit,
             self.reference_vector,
-            torch.tensor(
-                (self.gen / self.max_gen) ** self.alpha, device=merge_fit.device
-            ),
+            (self.gen / self.max_gen) ** self.alpha,
         )
 
         self._update_pop_and_rv(survivor, survivor_fit)

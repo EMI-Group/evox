@@ -1,6 +1,6 @@
 import torch
-from src.operators.sampling import uniform_sampling, grid_sampling
-from src.core import vmap, Problem, jit_class
+from ...operators.sampling import uniform_sampling, grid_sampling
+from ...core import Problem
 
 
 class DTLZTestSuit(Problem):
