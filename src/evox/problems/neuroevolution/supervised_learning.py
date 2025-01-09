@@ -1,3 +1,5 @@
+__all__ = ["SupervisedLearningProblem"]
+
 from typing import Dict, Iterable, Iterator, Tuple
 
 import torch
@@ -122,7 +124,6 @@ class SupervisedLearningProblem(Problem):
     def __del__(self):
         global __supervised_data__
         __supervised_data__.pop(self._hash_id_, None)
-        super().__del__()
 
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:

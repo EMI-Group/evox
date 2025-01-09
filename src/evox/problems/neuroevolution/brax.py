@@ -1,13 +1,26 @@
+__all__ = ["BraxProblem"]
+
 from typing import Callable, Dict, Tuple
 
 import jax
 import jax.numpy as jnp
 import torch
 import torch.nn as nn
+import torch.utils.dlpack
 from brax import envs
+from torch.utils.dlpack import from_dlpack, to_dlpack
 
 from ...core import Problem, jit_class
-from .utils import from_jax_array, get_vmap_model_state_forward, to_jax_array
+from .utils import get_vmap_model_state_forward
+
+
+def to_jax_array(x: torch.Tensor) -> jax.Array:
+    return jax.dlpack.from_dlpack(to_dlpack(x.detach()))
+
+
+def from_jax_array(x: jax.Array) -> torch.Tensor:
+    return from_dlpack(jax.dlpack.to_dlpack(x, take_ownership=True))
+
 
 __brax_data__: Dict[
     int,
@@ -113,7 +126,6 @@ class BraxProblem(Problem):
     def __del__(self):
         global __brax_data__
         __brax_data__.pop(self._hash_id_, None)
-        super().__del__()
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the final rewards of a population (batch) of model parameters.

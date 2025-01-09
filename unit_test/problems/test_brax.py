@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 from evox.algorithms import PSO
-from evox.problems.neuroevolution import BraxProblem
+from evox.problems.neuroevolution.brax import BraxProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 

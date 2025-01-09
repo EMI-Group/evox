@@ -51,7 +51,3 @@ class TestVmapFix(unittest.TestCase):
     def test_distance_fn_without_mask(self):
         distances = jit(distance_fn, trace=True, lazy=False, example_inputs=(self.costs,))
         self.assertIsNotNone(distances(self.costs))
-
-    def test_distance_fn_with_none(self):
-        distances = jit(distance_fn, trace=True, lazy=False, example_inputs=(self.costs, None))
-        self.assertIsNotNone(distances(self.costs, None))

@@ -2,11 +2,8 @@ import copy
 import types
 from typing import Any, Callable, Dict
 
-import jax
 import torch
 import torch.nn as nn
-import torch.utils.dlpack
-from torch.utils.dlpack import from_dlpack, to_dlpack
 
 from ...core import jit, use_state, vmap
 from ...core.module import assign_load_state_dict
@@ -87,11 +84,3 @@ def get_vmap_model_state_forward(
             param_to_state_key_map,
             model_buffers,
         )
-
-
-def to_jax_array(x: torch.Tensor) -> jax.Array:
-    return jax.dlpack.from_dlpack(to_dlpack(x.detach()))
-
-
-def from_jax_array(x: jax.Array) -> torch.Tensor:
-    return from_dlpack(jax.dlpack.to_dlpack(x, take_ownership=True))

@@ -167,3 +167,4 @@ cython_debug/
 # Test
 tests
 **/_future/*
+data/MNIST

@@ -18,6 +18,6 @@ class TestJitFix(unittest.TestCase):
     def test_vmap_switch(self):
         x = torch.randint(low=0, high=10, size=(2, 10), dtype=torch.int)
         y = [torch.rand(2, 10) for _ in range(10)]
-        vmap_switch = jit(switch, trace=False)
+        vmap_switch = jit(switch, trace=False, lazy=True)
         z = vmap_switch(x, y)
         self.assertIsNotNone(z)
