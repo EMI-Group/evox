@@ -112,13 +112,17 @@ class HPOProblemWrapper(Problem):
         monitor_state = monitor.state_dict(keep_vars=True)
         state_step = use_state(lambda: workflow.step)
         # get monitor's corresponding keys in init_state
-        non_batched_init_state = list(state_step.init_state(clone=False).items())
+        non_batched_init_state = state_step.init_state(clone=False).items()
+        hyper_param_keys = []
         monitor_keys = {}
         for k, v in non_batched_init_state:
             for sk, sv in monitor_state.items():
                 if sv is v:
                     monitor_keys[k] = sk
                     break
+            if isinstance(v, nn.Parameter):
+                hyper_param_keys.append(k)
+        self._hyper_param_keys_ = hyper_param_keys
         assert len(monitor_keys) == len(
             monitor_state
         ), f"Expect monitor to have {len(monitor_state)} parameters, got {len(monitor_keys)}"
@@ -136,15 +140,15 @@ class HPOProblemWrapper(Problem):
         monitor.load_state_dict(monitor_state)
         # if no init step
         if type(workflow).init_step == Workflow.init_step:
-            self.init_state = init_state
+            self._init_state_ = init_state
             self._workflow_init_step_ = self._workflow_step_
             return
         # otherwise, JIT workflow init step
         state_init_step = use_state(lambda: workflow.init_step)
         vmap_state_init_step = vmap(state_init_step)
-        self.init_state = vmap_state_init_step.init_state(self.num_instances)
+        self._init_state_ = vmap_state_init_step.init_state(self.num_instances)
         self._workflow_init_step_: torch.jit.ScriptFunction = jit(
-            vmap_state_init_step, trace=True, example_inputs=(self.init_state,)
+            vmap_state_init_step, trace=True, example_inputs=(self._init_state_,)
         )
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
@@ -159,17 +163,17 @@ class HPOProblemWrapper(Problem):
         """
         # hyper parameters check
         for k, v in hyper_parameters.items():
-            assert k in self.init_state, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
-            assert isinstance(self.init_state[k], nn.Parameter) and isinstance(
+            assert k in self._init_state_, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
+            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(
                 v, nn.Parameter
-            ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self.init_state[k])} and {type(v)}"
+            ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
         # run the workflow
         state = {}
         if self.copy_init_state:
-            for k, v in self.init_state.items():
+            for k, v in self._init_state_.items():
                 state[k] = v.clone()
         else:
-            state = self.init_state
+            state = self._init_state_
         state.update(hyper_parameters)
         state = self._workflow_init_step_(state)
         for _ in range(self.iterations - 1):
@@ -178,14 +182,6 @@ class HPOProblemWrapper(Problem):
         return self._get_monitor_fitness_(state)
 
     @torch.jit.ignore
-    def extract_parameters(state: Dict[str, torch.Tensor]):
-        """
-        Extract all hyper parameters from `state`.
-
-        Args:
-            state (`Dict[str, torch.Tensor]`): The state dictionary.
-
-        Returns:
-            A dictionary containing all hyper parameters.
-        """
-        return {k: v for k, v in state.items() if isinstance(v, nn.Parameter)}
+    def get_init_params(self):
+        """Return the initial hyper-parameters dictionary of the underlying workflow."""
+        return {k: v for k, v in self._init_state_.items() if k in self._hyper_param_keys_}
