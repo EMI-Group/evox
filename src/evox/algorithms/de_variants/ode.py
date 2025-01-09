@@ -44,7 +44,12 @@ class ODE(Algorithm):
         assert cross_probability > 0 and cross_probability <= 1
         assert num_difference_vectors >= 1 and num_difference_vectors < pop_size // 2
         assert base_vector in ["rand", "best"]
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
+        assert (
+            lb.shape == ub.shape
+            and lb.ndim == 1
+            and ub.ndim == 1
+            and lb.dtype == ub.dtype
+        )
         # parameters
         self.pop_size = pop_size
         self.dim = lb.shape[0]
@@ -53,9 +58,9 @@ class ODE(Algorithm):
         if num_difference_vectors == 1:
             assert isinstance(differential_weight, float)
         else:
-            assert isinstance(differential_weight, torch.Tensor) and differential_weight.shape == torch.Size(
-                [num_difference_vectors]
-            )
+            assert isinstance(
+                differential_weight, torch.Tensor
+            ) and differential_weight.shape == torch.Size([num_difference_vectors])
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
         # setup
@@ -65,14 +70,18 @@ class ODE(Algorithm):
         self.lb = lb
         self.ub = ub
         if mean is not None and stdev is not None:
-            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
+            population = mean + stdev * torch.randn(
+                self.pop_size, self.dim, device=device
+            )
             population = clamp(population, min=self.lb, max=self.ub)
         else:
             population = torch.rand(self.pop_size, self.dim, device=device)
             population = population * (self.ub - self.lb) + self.lb
         # mutable
         self.population = Mutable(population)
-        self.fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
+        self.fitness = Mutable(
+            torch.empty(self.pop_size, device=device).fill_(float("inf"))
+        )
 
     def init_step(self):
         self.fitness = self.evaluate(self.population)
@@ -96,7 +105,8 @@ class ODE(Algorithm):
             start_index = 1
         difference_vector = torch.stack(
             [
-                self.population[random_choices[i]] - self.population[random_choices[i + 1]]
+                self.population[random_choices[i]]
+                - self.population[random_choices[i + 1]]
                 for i in range(start_index, num_vec - 1, 2)
             ]
         ).sum(dim=0)
@@ -120,9 +130,9 @@ class ODE(Algorithm):
         # Opposition-based selection
         opposition_fitness = self.evaluate(opposition_population)
         compare = opposition_fitness < self.fitness
-        new_population = torch.where(compare[:, None], opposition_population, self.population)
+        new_population = torch.where(
+            compare[:, None], opposition_population, self.population
+        )
         new_fitness = torch.where(compare, opposition_fitness, self.fitness)
         self.population = new_population
         self.fitness = new_fitness
-
-
