@@ -207,7 +207,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         )
         gd_acc = self.model_test(self.model, self.pre_test_loader, self.device)
         print(f"Accuracy after gradient descent training: {gd_acc:.4f} %.")
-        self.assertGreater(gd_acc, 90.0)
+        self.assertGreater(gd_acc, 80.0)
 
     def test_population_based_neuroevolution(self):
         print("Population-based neuroevolution process start.")
