@@ -1,18 +1,13 @@
 import time
-import os
-import sys
-
-current_directory = os.getcwd()
-if current_directory not in sys.path:
-    sys.path.append(current_directory)
+import unittest
 
 import torch
 import torch.nn as nn
 
-from src.utils import ParamsAndVector
-from src.algorithms import PSO
-from src.workflows import StdWorkflow, EvalMonitor
-from src.problems.neuroevolution import BraxProblem
+from evox.algorithms import PSO
+from evox.problems.neuroevolution.brax import BraxProblem
+from evox.utils import ParamsAndVector
+from evox.workflows import EvalMonitor, StdWorkflow
 
 
 class SimpleCNN(nn.Module):
@@ -34,7 +29,7 @@ def test_model(model, device):
 def neuroevolution_process(
     workflow: StdWorkflow,
     adapter: ParamsAndVector,
-    max_generation: int = 50,
+    max_generation,
 ) -> None:
     for index in range(max_generation):
         print(f"In generation {index}:")
@@ -48,70 +43,62 @@ def neuroevolution_process(
         print(f"\tBest params: {best_params}")
 
 
-if __name__ == "__main__":
-    # General setting
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+class TestBraxProblem(unittest.TestCase):
+    def setUp(self):
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        seed = 1234
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
 
-    # Set random seed
-    seed = 1234
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    def test_brax_problem(self):
+        model = SimpleCNN().to(self.device)
+        for p in model.parameters():
+            p.requires_grad = False
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"Total number of model parameters: {total_params}")
+        test_model(model, self.device)
+        print()
 
-    # Initialize model
-    model = SimpleCNN().to(device)
-    for p in model.parameters():
-        p.requires_grad = False
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"Total number of model parameters: {total_params}")
-    test_model(model, device)
-    print()
+        adapter = ParamsAndVector(dummy_model=model)
+        model_params = dict(model.named_parameters())
+        pop_center = adapter.to_vector(model_params)
+        lower_bound = pop_center - 1
+        upper_bound = pop_center + 1
 
-    # Initialize neuroevolution process
-    adapter = ParamsAndVector(dummy_model=model)
-    model_params = dict(model.named_parameters())
-    pop_center = adapter.to_vector(model_params)
-    lower_bound = pop_center - 1
-    upper_bound = pop_center + 1
+        POP_SIZE = 10
+        problem = BraxProblem(
+            policy=model,
+            env_name="hopper",
+            max_episode_length=100,
+            num_episodes=3,
+            pop_size=POP_SIZE,
+            device=self.device,
+        )
 
-    # Population-based neuroevolution testing
-    print("The population-based neuroevolution process start.")
-    POP_SIZE = 1000
-    problem = BraxProblem(
-        policy=model,
-        env_name="hopper",
-        max_episode_length=1000,
-        num_episodes=3,
-        pop_size=POP_SIZE,
-        device=device,
-    )
+        algorithm = PSO(
+            pop_size=POP_SIZE,
+            lb=lower_bound,
+            ub=upper_bound,
+            device=self.device,
+        )
+        algorithm.setup()
 
-    algorithm = PSO(
-        pop_size=POP_SIZE,
-        lb=lower_bound,
-        ub=upper_bound,
-        device=device,
-    )
-    algorithm.setup()
+        pop_monitor = EvalMonitor(
+            topk=3,
+            device=self.device,
+        )
+        pop_monitor.setup()
 
-    pop_monitor = EvalMonitor(
-        topk=3,
-        device=device,  # choose the best three individuals
-    )
-    pop_monitor.setup()
-
-    workflow = StdWorkflow(opt_direction="max")
-    workflow.setup(
-        algorithm=algorithm,
-        problem=problem,
-        solution_transform=adapter,
-        monitor=pop_monitor,
-        device=device,
-    )
-    neuroevolution_process(
-        workflow=workflow,
-        adapter=adapter,
-        max_generation=3,
-    )
-
-    print("Tests completed.")
+        workflow = StdWorkflow(opt_direction="max")
+        workflow.setup(
+            algorithm=algorithm,
+            problem=problem,
+            solution_transform=adapter,
+            monitor=pop_monitor,
+            device=self.device,
+        )
+        neuroevolution_process(
+            workflow=workflow,
+            adapter=adapter,
+            max_generation=3,
+        )

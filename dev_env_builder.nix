@@ -1,44 +1,47 @@
 { nixpkgs
 , system
 , cudaSupport
+, rocmSupport
 }:
 let
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfree = true;
     config.cudaSupport = cudaSupport;
+    config.rocmSupport = rocmSupport;
   };
-  python = pkgs.python311;
-
-  common-dependencies = with python.pkgs; [
-    jax
-    (if cudaSupport then jaxlibWithCuda else jaxlib)
-    optax
-    pyarrow
-  ];
-
-  doc-dependencies = with python.pkgs; [
-    myst-parser
-    numpydoc
-    sphinx
-    sphinx-book-theme
-    sphinx-copybutton
-    sphinx-design
-  ];
-
-  test-dependencies = with python.pkgs; [
-    pytest
-    chex
-    gym
-    ray
-    torchvision
-  ];
+  pythonPackages = pkgs.python3Packages;
 in
-pkgs.mkShell {
-  buildInputs = [
-    (python.withPackages
-      (ps: common-dependencies
-        ++ test-dependencies
-        ++ doc-dependencies))
-  ];
+pkgs.mkShell rec {
+  name = "impureEvoXPythonEnv";
+  venvDir = "./.venv";
+  buildInputs = with pythonPackages; [
+    python
+    # This executes some shell code to initialize a venv in $venvDir before
+    # dropping into the shell
+    venvShellHook
+
+    # Those are dependencies that we would like to use from nixpkgs, which will
+    # add them to PYTHONPATH and thus make them accessible from within the venv.
+    numpy
+    torch
+    torchvision
+  ] ++ (with pkgs; [
+    pre-commit
+    ruff
+  ]);
+
+  # Run this command, only after creating the virtual environment
+  postVenvCreation = ''
+    unset SOURCE_DATE_EPOCH
+    pip install -e .
+  '';
+
+  # Now we can execute any commands within the virtual environment.
+  # This is optional and can be left out to run pip manually.
+  postShellHook = ''
+    # allow pip to install wheels
+    unset SOURCE_DATE_EPOCH
+  '';
+
 }
