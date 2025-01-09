@@ -47,6 +47,52 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     return a + lb - ub
 
 
+def clamp_float(a: torch.Tensor, lb: float, ub: float) -> torch.Tensor:
+    """
+    Clamp the float values of the input tensor `a` to be within the given lower (`lb`) and upper (`ub`) bounds.
+
+    This function ensures that each element of the tensor `a` is not less than `lb` and not greater than `ub`.
+
+    ## Notice:
+    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
+    2. This is NOT a precise replication of `torch.clamp` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
+
+    Args:
+        a (`torch.Tensor`): The input tensor to be clamped.
+        lb (`float`): The lower bound value. Each element of `a` will be clamped to be not less than `lb`.
+        ub (`float`): The upper bound value. Each element of `a` will be clamped to be not greater than `ub`.
+
+    Returns:
+        `torch.Tensor`: A tensor where each element is clamped to be within the specified bounds.
+    """
+    lb = torch.relu(lb - a)
+    ub = torch.relu(a - ub)
+    return a + lb - ub
+
+
+def clamp_int(a: torch.Tensor, lb: int, ub: int) -> torch.Tensor:
+    """
+    Clamp the int values of the input tensor `a` to be within the given lower (`lb`) and upper (`ub`) bounds.
+
+    This function ensures that each element of the tensor `a` is not less than `lb` and not greater than `ub`.
+
+    ## Notice:
+    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
+    2. This is NOT a precise replication of `torch.clamp` if `a` is a int tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
+
+    Args:
+        a (`torch.Tensor`): The input tensor to be clamped.
+        lb (`int`): The lower bound value. Each element of `a` will be clamped to be not less than `lb`.
+        ub (`int`): The upper bound value. Each element of `a` will be clamped to be not greater than `ub`.
+
+    Returns:
+        `torch.Tensor`: A tensor where each element is clamped to be within the specified bounds.
+    """
+    lb = torch.relu(lb - a)
+    ub = torch.relu(a - ub)
+    return a + lb - ub
+
+
 def clip(a: torch.Tensor) -> torch.Tensor:
     """
     Clip the values of the input tensor `a` to be within the range [0, 1].
@@ -100,44 +146,40 @@ def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return a - diff
 
 
-def lexsort(*keys: torch.Tensor) -> torch.Tensor:
+def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     """
-    Perform multi-level lexicographical sorting based on multiple keys.
+    Perform lexicographical sorting of multiple tensors, considering each tensor as a key.
 
-    This function sorts the given tensors lexicographically, first by the
-    first key, then by the second key in case of ties in the first key,
-    and so on. It is similar to NumPy's `lexsort` but works with PyTorch
-    tensors.
+    This function sorts the given tensors lexicographically, where sorting is performed
+    by the first key, then by the second key in case of ties in the first key, and so on.
+    It works similarly to NumPy's `lexsort`, but is designed for PyTorch tensors.
 
     Args:
-        *keys (torch.Tensor): Tensors to be sorted. Each tensor represents
-                               a sorting key. All tensors must have the
-                               same length.
+        keys (List[torch.Tensor]): A list of tensors to be sorted, where each tensor represents
+                                    a sorting key. All tensors must have the same length along
+                                    the specified dimension (`dim`).
+        dim (int, optional): The dimension along which to perform the sorting. Defaults to -1 (the last dimension).
 
     Returns:
-        torch.Tensor: A tensor of indices that sorts the keys lexicographically.
-                      The indices correspond to the order of the sorted
-                      elements in the input tensors.
+        torch.Tensor: A tensor containing indices that will sort the input tensors lexicographically.
+                      These indices indicate the order of elements in the sorted tensors.
 
     Raises:
-        ValueError: If the input keys have different lengths.
+        ValueError: If the input tensors in `keys` have different lengths along the specified dimension.
 
     Example:
         key1 = torch.tensor([1, 3, 2])
         key2 = torch.tensor([9, 7, 8])
-        sorted_indices = lexsort(key1, key2)
-        # sorted_indices will be the indices that sort the keys first by key2,
-        # then by key1 in case of ties.
+        sorted_indices = lexsort([key1, key2])
+        # sorted_indices will contain the indices that sort first by key2,
+        # and then by key1 in case of ties.
     """
-    key_lengths = [len(key) for key in keys]
-    if len(set(key_lengths)) > 1:
-        raise ValueError("All input keys must have the same length.")
 
-    sorted_indices = torch.argsort(keys[0])
+    sorted_indices = torch.argsort(keys[0], dim=dim, stable=True)
     for key in keys[1:]:
-        sorted_key = key[sorted_indices]
-        final_sorted_indices = torch.argsort(sorted_key)
-        sorted_indices = sorted_indices[final_sorted_indices]
+        sorted_key = key.gather(dim, sorted_indices)
+        final_sorted_indices = torch.argsort(sorted_key, dim=dim, stable=True)
+        sorted_indices = sorted_indices.gather(dim, final_sorted_indices)
 
     return sorted_indices
 

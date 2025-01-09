@@ -1,6 +1,8 @@
 __all__ = [
     "switch",
     "clamp",
+    "clamp_int",
+    "clamp_float",
     "clip",
     "maximum",
     "minimum",
@@ -16,6 +18,8 @@ __all__ = [
 from .jit_fix_operator import (
     switch,
     clamp,
+    clamp_int,
+    clamp_float,
     clip,
     maximum,
     minimum,
