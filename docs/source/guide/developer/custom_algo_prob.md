@@ -58,7 +58,7 @@ However, the Problem class is quite simpler. **Beside the`__init__` method, the 
 
 ## Example
 
-Here we give an example of **implementing a PSO algorithm that solves the Sphere problem**.
+Here we will give an example of **implementing a PSO algorithm that solves the Sphere problem**.
 
 ### Pseudo-code of the example
 
