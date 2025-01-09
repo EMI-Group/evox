@@ -8,18 +8,19 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
-from torch.utils.dlpack import from_dlpack, to_dlpack
 
 from ...core import Problem, jit_class
 from .utils import get_vmap_model_state_forward
 
 
+# to_dlpack is not necessary for torch.Tensor and jax.Array
+# because they have a __dlpack__ method, which is called by their respective from_dlpack methods.
 def to_jax_array(x: torch.Tensor) -> jax.Array:
-    return jax.dlpack.from_dlpack(to_dlpack(x.detach()))
+    return jax.dlpack.from_dlpack(x.detach())
 
 
 def from_jax_array(x: jax.Array) -> torch.Tensor:
-    return from_dlpack(jax.dlpack.to_dlpack(x, take_ownership=True))
+    return torch.utils.dlpack.from_dlpack(x)
 
 
 __brax_data__: Dict[
