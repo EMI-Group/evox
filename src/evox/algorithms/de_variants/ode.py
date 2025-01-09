@@ -7,7 +7,7 @@ from ...utils import clamp
 
 
 @jit_class
-class DE(Algorithm):
+class ODE(Algorithm):
     def __init__(
         self,
         pop_size: int,
@@ -115,3 +115,14 @@ class DE(Algorithm):
         new_fitness = torch.where(compare, new_fitness, self.fitness)
         self.population = new_population
         self.fitness = new_fitness
+        # Opposition-based population
+        opposition_population = self.lb + self.ub - self.population
+        # Opposition-based selection
+        opposition_fitness = self.evaluate(opposition_population)
+        compare = opposition_fitness < self.fitness
+        new_population = torch.where(compare[:, None], opposition_population, self.population)
+        new_fitness = torch.where(compare, opposition_fitness, self.fitness)
+        self.population = new_population
+        self.fitness = new_fitness
+
+

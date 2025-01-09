@@ -1,4 +1,5 @@
-__all__ = ["DE"]
+__all__ = ["DE", "ODE"]
 
 
 from .de import DE
+from .ode import ODE
