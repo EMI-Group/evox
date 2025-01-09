@@ -26,6 +26,7 @@ from .jit_fix_operator import (
 from .control_flow import TracingWhile, TracingCond, TracingSwitch
 from .parameters_and_vector import ParamsAndVector
 
+
 ################### NOTICE ###################
 #
 # 1. The functions in this module are all for JIT operator fusion since their original implementations are not supported in fusion.

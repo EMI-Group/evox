@@ -52,13 +52,7 @@ exclude_patterns = []
 # mock these modules, so we can build the document without these dependencies.
 autodoc_mock_imports = [
     "brax",
-    "chex",
-    "envpool",
-    "gymnasium",
-    "ray",
-    "tensorflow_datasets",
-    "gpjax",
-    "orbax-checkpoint",
+    "torchvision",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -66,9 +60,7 @@ autodoc_mock_imports = [
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_js_files = [
-    "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
-]
+html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"]
 html_theme = "sphinx_book_theme"
 html_logo = "_static/evox_logo_light.png"
 html_theme_options = {

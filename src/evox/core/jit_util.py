@@ -1,24 +1,32 @@
 import inspect
 import warnings
 from functools import wraps
-from typing import Protocol, Callable, Optional, Tuple, List, Dict, Any, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple, TypeVar
 
 import torch
 
-from ..core.module import (
-    tracing_or_using_state,
-    trace_caching_state_context,
-    UseStateFunc,
-    _USE_STATE_NAME,
-    _STATE_ARG_NAME,
-    _EMPTY_NAME,
-)
 from ..core import _vmap_fix
+from ..core.module import (
+    _EMPTY_NAME,
+    _STATE_ARG_NAME,
+    _USE_STATE_NAME,
+    UseStateFunc,
+    trace_caching_state_context,
+    tracing_or_using_state,
+)
 
 
 class MappedUseStateFunc(Protocol):
+    def init_state(self, batch_size: int | None = None, expand: bool = True) -> Dict[str, torch.Tensor]:
+        """Initialize the state of the mapped function.
 
-    def init_state(self, batch_size: int | None = None) -> Dict[str, torch.Tensor]:
+        Args:
+            batch_size (`int | None`, optional): The batch size of the state. If `None`, the batch size of the state is indicated by VMAP_DIM_CONST. Defaults to `None`.
+            expand (`bool`, optional): Whether to `torch.expand` or `torch.repeat` the state tensors to the given batch size.
+
+        Returns:
+            `Dict[str, torch.Tensor]`: The initialized state, with the same keys as the state of the original function.
+        """
         pass
 
     def __call__(
@@ -27,7 +35,7 @@ class MappedUseStateFunc(Protocol):
         pass
 
 
-T = TypeVar('T', bound=Callable)
+T = TypeVar("T", bound=Callable)
 
 
 def vmap(
@@ -42,7 +50,7 @@ def vmap(
     check_trace: bool = False,
     batched_state: Dict[str, torch.Tensor] | None = None,
     VMAP_DIM_CONST: int = 13,
-) -> (T | MappedUseStateFunc):
+) -> T | MappedUseStateFunc:
     """Vectorize map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
 
     Args:
@@ -82,7 +90,7 @@ def vmap(
         if batched_state is None:
             init_state = func.init_state()
 
-            def _batched_init_state(batch_size: int | None = None):
+            def _batched_init_state(batch_size: int | None = None, expand: bool = True):
                 if batch_size is None:
                     batch_size = VMAP_DIM_CONST
                 if isinstance(in_dims, tuple):
@@ -95,7 +103,10 @@ def vmap(
                         vv = v.data
                     else:
                         vv = v
-                    vv = vv.unsqueeze(dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
+                    if expand:
+                        vv = vv.unsqueeze(dim).expand(*v.shape[:dim], batch_size, *v.shape[dim:])
+                    else:
+                        vv = vv.unsqueeze(dim).repeat(*([1] * dim), batch_size, *([1] * (v.ndim - dim)))
                     if isinstance(v, torch.nn.Parameter):
                         state[k] = torch.nn.Parameter(vv, requires_grad=v.requires_grad)
                     else:
@@ -132,21 +143,15 @@ def vmap(
         annotations = annotations[1:]
     # check example shapes
     if example_shapes is not None:
-        assert len(example_shapes) == len(
-            args
-        ), f"Expect example shapes to have size {len(args)}, got {len(example_shapes)}"
+        assert len(example_shapes) == len(args), f"Expect example shapes to have size {len(args)}, got {len(example_shapes)}"
         example_ndim = tuple([None] * len(args))
     else:
         example_shapes = tuple([None] * len(args))
         if isinstance(example_ndim, int):
-            assert (
-                example_ndim >= 1
-            ), f"Expect example ndim >= 1, got {example_ndim}"
+            assert example_ndim >= 1, f"Expect example ndim >= 1, got {example_ndim}"
             example_ndim = tuple([example_ndim] * len(args))
         else:
-            assert len(example_ndim) == len(
-                args
-            ), f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
+            assert len(example_ndim) == len(args), f"Expect example ndim to have size {len(args)}, got {len(example_ndim)}"
     # create example inputs
     example_inputs: List = [None] * len(args) if example_inputs is None else list(example_inputs)
     static_inputs = {}
@@ -166,16 +171,12 @@ def vmap(
             static_inputs[arg] = default
         else:
             if annotation == torch.Tensor:
-                final_inputs.append(
-                    torch.empty(()) if ndim is None else torch.empty(tuple([VMAP_DIM_CONST] * ndim))
-                )
+                final_inputs.append(torch.empty(()) if ndim is None else torch.empty(tuple([VMAP_DIM_CONST] * ndim)))
             else:
                 try:
                     static_inputs[arg] = annotation()
                 except Exception as e:
-                    raise NotImplementedError(
-                        f"Cannot create default value from annotation {annotation}", e
-                    )
+                    raise NotImplementedError(f"Cannot create default value from annotation {annotation}", e)
     # JIT
     final_inputs = tuple(final_inputs)
     if len(static_inputs) > 0:
@@ -209,15 +210,12 @@ def _form_positional_inputs(func_args, args, kwargs, is_empty_state=False):
         if k in kwargs:
             example_inputs.append(kwargs[k])
         elif k == "state" and is_empty_state:
-            if isinstance(args[arg_idx], dict) and (
-                len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)
-            ):
+            if isinstance(args[arg_idx], dict) and (len(args[arg_idx]) == 0 or tuple(args[arg_idx].keys()) == (_EMPTY_NAME,)):
                 example_inputs.append(args[arg_idx])
                 arg_idx += 1
         else:
             assert arg_idx < len(args), (
-                f"Too few arguments, expected {len(func_args) - len(example_inputs)}"
-                + f" positional ones, got {len(args)}"
+                f"Too few arguments, expected {len(func_args) - len(example_inputs)}" + f" positional ones, got {len(args)}"
             )
             example_inputs.append(args[arg_idx])
             arg_idx += 1
@@ -264,7 +262,7 @@ def jit(
     if isinstance(func, torch.jit.ScriptFunction):
         return func
     if lazy and not trace:
-        trace = True # force trace=True when lazy=True
+        trace = True  # force trace=True when lazy=True
     # special handling for using state
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
@@ -286,9 +284,7 @@ def jit(
             and isinstance(example_inputs[0], tuple)
             and isinstance(example_inputs[1], dict)
         ):
-            example_inputs = tuple(
-                _form_positional_inputs(func_args, example_inputs[0], example_inputs[1], is_empty_state)
-            )
+            example_inputs = tuple(_form_positional_inputs(func_args, example_inputs[0], example_inputs[1], is_empty_state))
         # clone tensor inputs to remove influences of in-place operations
         example_inputs = _clone_inputs(example_inputs)
         # JIT trace immediately

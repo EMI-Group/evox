@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -42,8 +42,8 @@ class PSO(Algorithm):
         Raises:
             `AssertionError`: If the shapes of lb and ub do not match or if they are not 1D tensors or of different data types or devices.
         """
-
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]
@@ -91,9 +91,7 @@ class PSO(Algorithm):
         """
         fitness = self.evaluate(self.population)
         compare = self.local_best_fitness - fitness
-        self.local_best_location = torch.where(
-            compare[:, None] > 0, self.population, self.local_best_location
-        )
+        self.local_best_location = torch.where(compare[:, None] > 0, self.population, self.local_best_location)
         self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
 
         # During normal workflow, we use `torch.jit.script` by default,
@@ -127,9 +125,7 @@ class PSO(Algorithm):
         self.global_best_location = self.population[best_index]
         self.global_best_fitness = fitness[best_index]
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        velocity = self.w * self.velocity + self.phi_g * rg * (
-            self.global_best_location - self.population
-        )
+        velocity = self.w * self.velocity + self.phi_g * rg * (self.global_best_location - self.population)
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)

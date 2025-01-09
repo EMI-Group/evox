@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 
 
 @jit_class
@@ -40,6 +40,7 @@ class CSO(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]
@@ -97,17 +98,13 @@ class CSO(Algorithm):
         left_velocity = torch.where(
             mask,
             left_vec,
-            lambda1 * right_vec
-            + lambda2 * (right_pop - left_pop)
-            + self.phi * lambda3 * (center - left_pop),
+            lambda1 * right_vec + lambda2 * (right_pop - left_pop) + self.phi * lambda3 * (center - left_pop),
         )
         # Update the velocity of the right part of the population
         right_velocity = torch.where(
             mask,
             right_vec,
-            lambda1 * left_vec
-            + lambda2 * (left_pop - right_pop)
-            + self.phi * lambda3 * (center - right_pop),
+            lambda1 * left_vec + lambda2 * (left_pop - right_pop) + self.phi * lambda3 * (center - right_pop),
         )
         # Update the position of the left and right part of the population
         left_pop = left_pop + left_velocity

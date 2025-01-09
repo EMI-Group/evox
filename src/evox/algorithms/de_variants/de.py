@@ -2,7 +2,7 @@ from typing import Literal
 
 import torch
 
-from ...core import Parameter, Mutable, Algorithm, jit_class
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
 
 
@@ -39,6 +39,7 @@ class DE(Algorithm):
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert pop_size >= 4
         assert cross_probability > 0 and cross_probability <= 1
         assert num_difference_vectors >= 1 and num_difference_vectors < pop_size // 2
@@ -52,15 +53,14 @@ class DE(Algorithm):
         if num_difference_vectors == 1:
             assert isinstance(differential_weight, float)
         else:
-            assert isinstance(
-                differential_weight, torch.Tensor
-            ) and differential_weight.shape == torch.Size([num_difference_vectors])
+            assert isinstance(differential_weight, torch.Tensor) and differential_weight.shape == torch.Size(
+                [num_difference_vectors]
+            )
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
         # setup
         lb = lb[None, :].to(device=device)
         ub = ub[None, :].to(device=device)
-        length = ub - lb
         # write to self
         self.lb = lb
         self.ub = ub

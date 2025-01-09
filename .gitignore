@@ -166,6 +166,5 @@ cython_debug/
 
 # Test
 tests
-evox
 **/_future/*
-data
+data/MNIST

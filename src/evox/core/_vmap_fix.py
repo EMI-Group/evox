@@ -1,16 +1,25 @@
+from contextlib import contextmanager
+from contextvars import ContextVar, Token
 from functools import wraps
 from typing import Any, Callable, List, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
+import torch._functorch.vmap as vmap
 from torch._C._functorch import (
     _add_batch_dim as add_batch_dim,
-    maybe_get_bdim as get_batch_dim,
-    maybe_get_level as get_level,
-    is_batchedtensor as is_batched_tensor,
+)
+from torch._C._functorch import (
     _unwrap_batched as unwrap_batched_base,
-    _vmap_decrement_nesting as vmap_decrement_nesting,
-    _vmap_increment_nesting as vmap_increment_nesting,
+)
+from torch._C._functorch import (
+    is_batchedtensor as is_batched_tensor,
+)
+from torch._C._functorch import (
+    maybe_get_bdim as get_batch_dim,
+)
+from torch._C._functorch import (
+    maybe_get_level as get_level,
 )
 
 if "maybe_current_level" not in _functorch.__dict__:
@@ -18,14 +27,14 @@ if "maybe_current_level" not in _functorch.__dict__:
     def current_level() -> int | None:
         try:
             return _functorch.current_level()
-        except:
+        except Exception:
             return None
 
 else:
     current_level = _functorch.maybe_current_level
 
-from torch.utils._pytree import tree_flatten, tree_unflatten
 from torch import nn
+from torch.utils._pytree import tree_flatten, tree_unflatten
 
 if "Buffer" not in nn.__dict__:
     nn.Buffer = nn.parameter.Buffer
@@ -56,19 +65,14 @@ def _transform_in_dim(
     return batch_dims_shape if len(batch_dims_shape) > 1 else batch_dims_shape[0]
 
 
-import torch._functorch.vmap as vmap
-
 global __vmap_batch_sizes__
 __vmap_batch_sizes__ = []
 
 
-def _create_batched_inputs(
-    flat_in_dims: List[Any], flat_args: List[Any], vmap_level: int, args_spec
-) -> Tuple:
+def _create_batched_inputs(flat_in_dims: List[Any], flat_args: List[Any], vmap_level: int, args_spec) -> Tuple:
     # See NOTE [Ignored _remove_batch_dim, _add_batch_dim]
     batched_inputs = [
-        arg if in_dim is None else add_batch_dim(arg, in_dim, vmap_level)
-        for in_dim, arg in zip(flat_in_dims, flat_args)
+        arg if in_dim is None else add_batch_dim(arg, in_dim, vmap_level) for in_dim, arg in zip(flat_in_dims, flat_args)
     ]
     batch_size = None
     for batched, arg, in_dim in zip(batched_inputs, flat_args, flat_in_dims):
@@ -115,9 +119,7 @@ def _unwrap_batched(
             incompatible_error()
 
     flat_outputs = [
-        vmap._maybe_remove_batch_dim(
-            vmap._get_name(func), batched_output, vmap_level, batch_size, out_dim
-        )
+        vmap._maybe_remove_batch_dim(vmap._get_name(func), batched_output, vmap_level, batch_size, out_dim)
         for batched_output, out_dim in zip(flat_batched_outputs, flat_out_dims)
     ]
     global __vmap_batch_sizes__
@@ -196,7 +198,6 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     return batch_rand_values
 
 
-
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
@@ -210,18 +211,14 @@ _original_set_item = torch.Tensor.__setitem__
 
 def _batch_rand(*size, **kwargs):
     if "size" in kwargs:
-        assert (
-            len(size) == 0
-        ), f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
+        assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
     return batched_random(_original_rand, *size, **kwargs)
 
 
 def _batch_randn(*size, **kwargs):
     if "size" in kwargs:
-        assert (
-            len(size) == 0
-        ), f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
+        assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
     return batched_random(_original_randn, *size, **kwargs)
 
@@ -311,9 +308,6 @@ def _batch_setitem(tensor: torch.Tensor, indices, values, dim=0):
     # default
     return _original_set_item(tensor, indices, values)
 
-
-from contextvars import ContextVar, Token
-from contextlib import contextmanager
 
 _batch_fixing: ContextVar[bool] = ContextVar("batch_fixing", default=False)
 
@@ -408,7 +402,8 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
     return value
 
 
-T = TypeVar('T', bound=Callable)
+T = TypeVar("T", bound=Callable)
+
 
 def wrap_vmap_inputs(func: T) -> T:
     """

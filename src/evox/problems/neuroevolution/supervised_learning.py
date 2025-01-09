@@ -1,13 +1,13 @@
-import copy
-import types
+__all__ = ["SupervisedLearningProblem"]
+
+from typing import Dict, Iterable, Iterator, Tuple
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from typing import Dict, Tuple, Iterable, Iterator
 
-from ...core import Problem, jit_class, use_state, vmap, jit
-from ...core.module import assign_load_state_dict
-
+from ...core import Problem, jit, jit_class, use_state, vmap
+from .utils import get_vmap_model_state_forward
 
 __supervised_data__: Dict[int, Dict[str, DataLoader | Iterable | Iterator | Tuple]] = None
 
@@ -37,6 +37,9 @@ class SupervisedLearningProblem(Problem):
 
         Raises:
             `RuntimeError`: If the data loader contains no items.
+
+        ## Warning:
+        This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
@@ -56,47 +59,31 @@ class SupervisedLearningProblem(Problem):
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
         except StopIteration:
-            raise RuntimeError(
-                f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item."
-            )
+            raise RuntimeError(f"The `data_loader` of `{self.__class__.__name__}` must contain at least one item.")
         dummy_inputs: torch.Tensor = dummy_inputs.to(device=device)
         dummy_labels: torch.Tensor = dummy_labels.to(device=device)
 
-        # Model initialization
-        inference_model = copy.deepcopy(model)
-        inference_model = inference_model.to(device=device)
-        for _, value in inference_model.named_parameters():
-            value.requires_grad = False
-        inference_model.load_state_dict = types.MethodType(assign_load_state_dict, inference_model)
-
-        # JITed and vmapped model state forward initialization
-        state_forward = use_state(lambda: inference_model.forward)
-        model_init_state = state_forward.init_state(clone=False)
-        self._jit_state_forward, (_, dummy_single_logits) = jit(
-            state_forward,
-            trace=True,
-            lazy=False,
-            example_inputs=(model_init_state, dummy_inputs),
-            return_dummy_output=True,
+        # JITed model state forward initialization
+        (
+            model_init_state,
+            jit_vmap_state_forward,
+            dummy_vmap_logits,
+            (jit_state_forward, dummy_single_logits),
+            param_to_state_key_map,
+            model_buffers,
+        ) = get_vmap_model_state_forward(
+            model,
+            pop_size,
+            dummy_inputs,
+            check_output=lambda logits: isinstance(logits, torch.Tensor) and logits.size(0) == pop_size,
+            device=device,
+            get_non_vmap=True,
+            check_single_output=lambda logits: isinstance(logits, torch.Tensor),
         )
-        vmap_state_forward = vmap(state_forward, in_dims=(0, None))
-        vmap_model_init_state = vmap_state_forward.init_state(pop_size)
-        self._jit_vmap_state_forward, (_, dummy_vmap_logits) = jit(
-            vmap_state_forward,
-            trace=True,
-            lazy=False,
-            example_inputs=(vmap_model_init_state, dummy_inputs),
-            return_dummy_output=True,
-        )
-
-        # Building map from model parameters key to model state key
-        model_params = dict(inference_model.named_parameters())
-        self.param_to_state_key_map: Dict[str, str] = {
-            params_key: state_key
-            for state_key, state_value in model_init_state.items()
-            for params_key, params_value in model_params.items()
-            if torch.equal(state_value, params_value)
-        }
+        self._jit_state_forward = jit_state_forward
+        self._jit_vmap_state_forward = jit_vmap_state_forward
+        self._param_to_state_key_map = param_to_state_key_map
+        self._model_buffers = model_buffers
 
         # JITed and vmapped state criterion initialization
         state_criterion = use_state(lambda: criterion.forward)
@@ -126,12 +113,8 @@ class SupervisedLearningProblem(Problem):
         self.vmap_criterion_init_state = vmap_criterion_init_state
 
         # Model parameters and buffers registration
-        self._model_buffers = {
-            key: value
-            for key, value in model_init_state.items()
-            if key not in self.param_to_state_key_map
-        }
-        sample_param_key, sample_state_key = next(iter(self.param_to_state_key_map.items()))
+        self._model_buffers = {key: value for key, value in model_init_state.items() if key not in self._param_to_state_key_map}
+        sample_param_key, sample_state_key = next(iter(self._param_to_state_key_map.items()))
         self._sample_param_key = sample_param_key
         self._sample_param_ndim = model_init_state[sample_state_key].ndim
 
@@ -141,7 +124,6 @@ class SupervisedLearningProblem(Problem):
     def __del__(self):
         global __supervised_data__
         __supervised_data__.pop(self._hash_id_, None)
-        super().__del__()
 
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
@@ -177,10 +159,9 @@ class SupervisedLearningProblem(Problem):
     ):
         # Initialize model and criterion states
         model_buffers = {  # expand dimensions for model buffers
-            key: value.unsqueeze(0).expand([num_map] + list(value.shape))
-            for key, value in self._model_buffers.items()
+            key: value.unsqueeze(0).expand([num_map] + list(value.shape)) for key, value in self._model_buffers.items()
         }
-        state_params = {self.param_to_state_key_map[key]: value for key, value in pop_params.items()}
+        state_params = {self._param_to_state_key_map[key]: value for key, value in pop_params.items()}
         model_state = model_buffers
         model_state.update(state_params)
         criterion_state = {key: value.clone() for key, value in self.vmap_criterion_init_state.items()}
@@ -214,7 +195,7 @@ class SupervisedLearningProblem(Problem):
     ):
         # Initialize model and criterion states
         model_buffers = {key: value.clone() for key, value in self._model_buffers.items()}
-        params = {self.param_to_state_key_map[key]: value.squeeze(0) for key, value in params.items()}
+        params = {self._param_to_state_key_map[key]: value.squeeze(0) for key, value in params.items()}
         model_state = model_buffers
         model_state.update(params)
         criterion_state = {key: value.clone() for key, value in self.criterion_init_state.items()}

@@ -1,7 +1,7 @@
 import torch
 
-from ...utils import clamp, TracingCond
-from ...core import Parameter, Mutable, Algorithm, jit_class, trace_impl
+from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
+from ...utils import TracingCond, clamp
 
 
 @jit_class
@@ -54,8 +54,8 @@ class DMSPSOEL(Algorithm):
             gbest_coefficient (`float`, optional): The social weight. Defaults to 1.0.
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
-
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.dim = lb.shape[0]
         self.pop_size = dynamic_sub_swarm_size * dynamic_sub_swarms_num + following_sub_swarm_size
@@ -82,23 +82,17 @@ class DMSPSOEL(Algorithm):
         self.ub = ub
         self.iteration = Mutable(torch.tensor(0, dtype=torch.int32, device=device))
         dynamic_swarms = population[: self.dynamic_sub_swarm_size * self.dynamic_sub_swarms_num, :]
-        dynamic_swarms = dynamic_swarms.reshape(
-            self.dynamic_sub_swarms_num, self.dynamic_sub_swarm_size, self.dim
-        )
+        dynamic_swarms = dynamic_swarms.reshape(self.dynamic_sub_swarms_num, self.dynamic_sub_swarm_size, self.dim)
         local_best_location = dynamic_swarms[:, 0, :]
         local_best_fitness = torch.empty(self.dynamic_sub_swarms_num, device=device).fill_(torch.inf)
         # mutable
         self.population = Mutable(population)
         self.velocity = Mutable(velocity)
         self.personal_best_location = Mutable(population)
-        self.personal_best_fitness = Mutable(
-            torch.empty(self.pop_size, device=device).fill_(torch.inf)
-        )
+        self.personal_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
         self.local_best_location = Mutable(local_best_location)
         self.local_best_fitness = Mutable(local_best_fitness)
-        self.regional_best_index = Mutable(
-            torch.zeros(self.following_sub_swarm_size, dtype=torch.int, device=device)
-        )
+        self.regional_best_index = Mutable(torch.zeros(self.following_sub_swarm_size, dtype=torch.int, device=device))
         self.global_best_location = Mutable(torch.zeros(self.dim, device=device))
         self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
@@ -131,9 +125,7 @@ class DMSPSOEL(Algorithm):
         self._cond_regroup(fitness)
         # Update personal_best
         compare = self.personal_best_fitness > fitness
-        personal_best_location = torch.where(
-            compare[:, None], self.population, self.personal_best_location
-        )
+        personal_best_location = torch.where(compare[:, None], self.population, self.personal_best_location)
         personal_best_fitness = torch.where(compare, fitness, self.personal_best_fitness)
         # Update dynamic swarms
         dynamic_size = self.dynamic_sub_swarm_size * self.dynamic_sub_swarms_num
@@ -141,20 +133,14 @@ class DMSPSOEL(Algorithm):
         dynamic_swarms_location = self.population[:dynamic_size, :].view(*dynamic_size_tuple, self.dim)
         dynamic_swarms_fitness = fitness[:dynamic_size].view(*dynamic_size_tuple)
         dynamic_swarms_velocity = self.velocity[:dynamic_size, :].view(*dynamic_size_tuple, self.dim)
-        dynamic_swarms_pbest = personal_best_location[:dynamic_size, :].view(
-            *dynamic_size_tuple, self.dim
-        )
+        dynamic_swarms_pbest = personal_best_location[:dynamic_size, :].view(*dynamic_size_tuple, self.dim)
         # Update following swarm
         following_swarm_location = self.population[dynamic_size:, :]
         following_swarm_velocity = self.velocity[dynamic_size:, :]
         following_swarm_pbest = personal_best_location[dynamic_size:, :]
         # Update local_best
-        local_best_fitness, local_best_index = torch.min(
-            dynamic_swarms_fitness, dim=1
-        )  # shape:(dynamic_sub_swarms_num,)
-        local_best_location = (
-            torch.index_select(dynamic_swarms_location, 1, local_best_index).diagonal().T
-        )
+        local_best_fitness, local_best_index = torch.min(dynamic_swarms_fitness, dim=1)  # shape:(dynamic_sub_swarms_num,)
+        local_best_location = torch.index_select(dynamic_swarms_location, 1, local_best_index).diagonal().T
         # Update regional_best
         regional_best_location = self.population[self.regional_best_index, :]
         # Calculate Dynamic Swarms Velocity
@@ -176,9 +162,7 @@ class DMSPSOEL(Algorithm):
         following_swarm_rand_pbest = rand_pbest[dynamic_size:, :]
         following_swarm_velocity = (
             self.w * following_swarm_velocity
-            + self.c_pbest
-            * following_swarm_rand_pbest
-            * (following_swarm_pbest - following_swarm_location)
+            + self.c_pbest * following_swarm_rand_pbest * (following_swarm_pbest - following_swarm_location)
             + self.c_rbest * rand_rbest * (regional_best_location - following_swarm_location)
         )
         # Update Population
@@ -214,9 +198,7 @@ class DMSPSOEL(Algorithm):
         personal_best_fitness = self.personal_best_fitness[regroup_index]
 
         dynamic_swarm_fitness = fitness[:dynamic_size]
-        regional_best_index = torch.argsort(dynamic_swarm_fitness, dim=0)[
-            : self.following_sub_swarm_size
-        ]
+        regional_best_index = torch.argsort(dynamic_swarm_fitness, dim=0)[: self.following_sub_swarm_size]
 
         self.population = population
         self.velocity = velocity
@@ -227,9 +209,7 @@ class DMSPSOEL(Algorithm):
     def _update_strategy_2(self, fitness: torch.Tensor):
         # Update personal_best
         compare = self.personal_best_fitness > fitness
-        personal_best_location = torch.where(
-            compare[:, None], self.population, self.personal_best_location
-        )
+        personal_best_location = torch.where(compare[:, None], self.population, self.personal_best_location)
         personal_best_fitness = torch.where(compare, fitness, self.personal_best_fitness)
         # Update global_best
         global_best_fitness, global_best_idx = torch.min(personal_best_fitness, dim=0)

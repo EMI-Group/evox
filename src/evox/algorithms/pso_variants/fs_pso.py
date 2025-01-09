@@ -1,7 +1,7 @@
 import torch
 
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
-from ...core import Parameter, Mutable, Algorithm, jit_class
 from .utils import min_by
 
 
@@ -37,8 +37,8 @@ class FSPSO(Algorithm):
             mutate_rate (`float`, optional): The mutation rate. Defaults to 0.01.
             device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
         """
-
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.dim = lb.shape[0]
         self.pop_size = pop_size
@@ -74,7 +74,7 @@ class FSPSO(Algorithm):
 
     def step(self):
         """Perform a normal optimization step using FSPSO."""
-        
+
         fitness = self.evaluate(self.population)
         device = self.population.device
         # ----------------Enhancement----------------
