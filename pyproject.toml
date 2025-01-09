@@ -34,12 +34,26 @@ vis = [
   "pandas >= 2.0.0",
 ]
 
-gymnasium = ["gymnasium >= 0.29.0"]
-
-envpool = ["envpool >= 0.8.0"]
-
 neuroevolution = [
-  "brax >= 0.11.0",
+  "torchvision >= 0.16.0",
+  "brax >= 0.12.0",
+]
+
+test = [
+  "torchvision >= 0.16.0",
+  "brax >= 0.12.0",
+]
+
+docs = [
+  "sphinx-book-theme > 1.0",
+  "sphinx",
+  "myst-nb",
+  "nbsphinx",
+  "myst-parser",
+  "sphinx_copybutton",
+  "sphinx_design",
+  "sphinx-favicon",
+  "sphinxcontrib-mermaid",
 ]
 
 [project.urls]
