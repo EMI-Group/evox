@@ -1,7 +1,6 @@
 import os
 from math import ceil
-from itertools import accumulate
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import torch
 
@@ -36,7 +35,7 @@ class CEC2022(Problem):
         self.rot_flag = True
 
         assert self.nx in [2, 10, 20], f"Test functions are only defined for D=2,10,20, got {self.nx}."
-        assert not (self.func_num  in [6, 7, 8] and self.nx == 2), f"Function {self.func_num} is not defined for D=2."
+        assert not (self.func_num in [6, 7, 8] and self.nx == 2), f"Function {self.func_num} is not defined for D=2."
 
         # Loading data preparation
         current_dir = os.path.dirname(__file__)
@@ -81,7 +80,7 @@ class CEC2022(Problem):
 
     def rotate(self, x: torch.Tensor, mat: torch.Tensor) -> torch.Tensor:
         """Rotate the input vector."""
-        return torch.matmul(x, mat[:x.size(1), :])
+        return torch.matmul(x, mat[: x.size(1), :])
 
     def cut(self, x: torch.Tensor, Gp: List[float]) -> List[torch.Tensor]:
         nx = x.size(1)
@@ -294,25 +293,25 @@ class CEC2022(Problem):
 
     def hgbat_func(self, x: torch.Tensor) -> torch.Tensor:
         alpha = 1.0 / 4.0
-        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        x = self.sr_func_rate(x, sh_rate=5.0 / 100.0)
         tmp = x - 1
-        r2 = torch.sum((tmp) ** 2, dim=1)
+        r2 = torch.sum(tmp**2, dim=1)
         sum_x = torch.sum(tmp, dim=1)
         return torch.abs(r2**2 - sum_x**2) ** (2 * alpha) + (0.5 * r2 + sum_x) / x.size(1) + 0.5
 
     def rastrigin_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x , sh_rate=5.12/100.0)
+        x = self.sr_func_rate(x, sh_rate=5.12 / 100.0)
         return torch.sum(x**2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
 
     def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        x = self.sr_func_rate(x, sh_rate=5.0 / 100.0)
         nx = x.size(1)
-        tmp1 = 2.0**torch.arange(1, 33, device=x.device)
+        tmp1 = 2.0 ** torch.arange(1, 33, device=x.device)
         tmp2 = x.unsqueeze(-1) * tmp1.unsqueeze(0).unsqueeze(0)
-        temp = torch.sum(torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1, dim = 2)
+        temp = torch.sum(torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1, dim=2)
         tmp3 = torch.arange(1, nx + 1, device=x.device)
-        f = (1.0 + torch.prod(temp * tmp3.unsqueeze(0),dim = 1)) ** (10.0 / (10.0 * nx) ** 1.2)
-        return (f - 1) * (10.0 / (nx**2))
+        f = torch.prod((1 + temp * tmp3.unsqueeze(0)) ** (10.0 / (nx**1.2)), dim=1)
+        return (f - 1) * (10.0 / nx / nx)
 
     def ackley_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
@@ -323,7 +322,7 @@ class CEC2022(Problem):
         return torch.e - 20.0 * torch.exp(tmp1) - torch.exp(tmp2) + 20.0
 
     def schwefel_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x, sh_rate=1000.0/10.0)
+        x = self.sr_func_rate(x, sh_rate=1000.0 / 10.0)
         nx = x.size(1)
         tmp1 = x + 420.9687462275036
         tmp2 = -tmp1 * tmp1.abs().sqrt().sin()
@@ -331,9 +330,11 @@ class CEC2022(Problem):
 
     def schaffer_F7_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
-        tmp1 = torch.pow(x[:, :-1] ** 2 + x[:,1:] ** 2, 0.5)
-        tmp2 = torch.sin(50.0 * torch.pow(x[:, :-1], 0.2))
-        return torch.sum(torch.pow(tmp1, 0.5) * (1 + tmp2**2), dim=1)
+        tmp1 = torch.hypot(x[:, :-1], x[:, 1:])
+        tmp2 = torch.sin(50.0 * x[:, :-1] ** 0.2)
+        f = torch.sqrt(tmp1) * (1 + tmp2 * tmp2)
+        f = torch.mean(f, dim=1)
+        return f * f
 
     def escaffer6_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
@@ -341,9 +342,9 @@ class CEC2022(Problem):
         tmp2 = 1.0 + 0.001 * (x[:, :-1] ** 2 + x[:, 1:] ** 2)
         return torch.sum(0.5 + (tmp1 - 0.5) / (tmp2**2), dim=1)
 
-    def happycat_func(self, x: torch.Tensor) -> torch.Tensor:      
+    def happycat_func(self, x: torch.Tensor) -> torch.Tensor:
         alpha = 1.0 / 8.0
-        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        x = self.sr_func_rate(x, sh_rate=5.0 / 100.0)
         nx = x.size(1)
         tmp = x - 1
         r2 = torch.sum(tmp**2, dim=1)
@@ -351,20 +352,20 @@ class CEC2022(Problem):
         return torch.abs(r2 - nx) ** (2 * alpha) + (0.5 * r2 + sum_x) / nx + 0.5
 
     def grie_rosen_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x, sh_rate=5.0/100.0)
+        x = self.sr_func_rate(x, sh_rate=5.0 / 100.0)
         tmp = x + 1
         tmp2_ = 100.0 * (tmp[:, :-1] ** 2 - tmp[:, 1:]) ** 2 + (tmp[:, :-1] - 1.0) ** 2
         return torch.sum((tmp2_**2) / 4000.0 - torch.cos(tmp2_) + 1.0, dim=1)
 
     def griewank_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x, sh_rate=600.0/100.0)
+        x = self.sr_func_rate(x, sh_rate=600.0 / 100.0)
         sum_sq = torch.sum(x**2, dim=1)
         idx = torch.arange(1, x.size(1) + 1, device=x.device)
         prod_cos = torch.prod(torch.cos(x / torch.sqrt(idx)))
         return 1.0 + sum_sq / 4000.0 - prod_cos
 
     def rosenbrock_func(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.sr_func_rate(x, sh_rate=2.048/100.0)
+        x = self.sr_func_rate(x, sh_rate=2.048 / 100.0)
         tmp = x + 1
         return torch.sum(100.0 * (tmp[:, :-1] ** 2 - tmp[:, 1:]) ** 2 + (tmp[:, :-1] - 1.0) ** 2, dim=1)
 
