@@ -54,6 +54,7 @@ docs = [
   "sphinx_design",
   "sphinx-favicon",
   "sphinxcontrib-mermaid",
+  "polib",
 ]
 
 [project.urls]
