@@ -104,6 +104,6 @@ numpydoc_show_class_members = False
 autosummary_generate = True
 autosummary_imported_members = True
 nb_execution_mode = "off"
-myst_enable_extensions = ["dollarmath"]
+myst_enable_extensions = ["dollarmath", "fieldlist", "linkify"]
 locale_dirs = ["locale/"]
 gettext_compact = "docs"

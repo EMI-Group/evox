@@ -50,7 +50,7 @@ docs = [
   "sphinx",
   "myst-nb",
   "nbsphinx",
-  "myst-parser",
+  "myst-parser[linkify]",
   "sphinx_copybutton",
   "sphinx_design",
   "sphinx-favicon",
