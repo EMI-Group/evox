@@ -7,9 +7,9 @@ version: 2
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.10"
+    python: "3.11"
   jobs:
     pre_build:
       - python docs/fix_notebook_translation.py
@@ -21,4 +21,7 @@ sphinx:
 # Optionally declare the Python requirements required to build your docs
 python:
   install:
-  - requirements: requirements/docs-requirements.txt
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
