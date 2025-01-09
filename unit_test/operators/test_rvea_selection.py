@@ -1,7 +1,7 @@
 import torch
-from evox.operators.selection import ref_vec_guided
-from evox.core import jit, vmap
 
+from evox.core import jit
+from evox.operators.selection import ref_vec_guided
 
 if __name__ == "__main__":
     # Generate random test data for x, f, v

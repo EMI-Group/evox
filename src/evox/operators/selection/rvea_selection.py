@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+
 from ...utils import clamp, maximum, nanmin
 
 
@@ -17,9 +18,7 @@ def apd_fn(
     return left * right
 
 
-def ref_vec_guided(
-    x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: torch.Tensor
-):
+def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: torch.Tensor):
     n, m = f.size()
     nv = v.size(0)
 
@@ -34,9 +33,7 @@ def ref_vec_guided(
         torch.tensor(0.0, device=f.device),
         cosine,
     )
-    cosine = clamp(
-        cosine, torch.tensor(0.0, device=f.device), torch.tensor(1.0, device=f.device)
-    )
+    cosine = clamp(cosine, torch.tensor(0.0, device=f.device), torch.tensor(1.0, device=f.device))
     gamma = torch.min(torch.acos(cosine), dim=1)[0]
 
     angle = torch.acos(
@@ -52,10 +49,10 @@ def ref_vec_guided(
     associate = torch.where(nan_mask, -1, associate)
     associate = associate[:, None]
     partition = torch.arange(0, n, device=f.device)[:, None]
-    I = torch.arange(0, nv, device=f.device)[None, :]
-    partition = (associate == I) * partition + (associate != I) * -1
+    IndexMatrix = torch.arange(0, nv, device=f.device)[None, :]
+    partition = (associate == IndexMatrix) * partition + (associate != IndexMatrix) * -1
 
-    mask = associate != I
+    mask = associate != IndexMatrix
     mask_null = mask.sum(dim=0) == n
 
     apd = apd_fn(partition, gamma, angle, obj, theta)

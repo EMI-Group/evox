@@ -1,18 +1,19 @@
-import time
-import torch
-from torch.profiler import profile, ProfilerActivity
-
 import os
 import sys
+import time
+
+import torch
+from torch.profiler import ProfilerActivity, profile
+
+from evox.algorithms import RVEA
+from evox.core import jit, use_state
+from evox.metrics import igd
+from evox.problems.numerical import DTLZ2
+from evox.workflows import StdWorkflow
+
 current_directory = os.getcwd()
 if current_directory not in sys.path:
     sys.path.append(current_directory)
-
-from evox.core import use_state, jit
-from evox.workflows import StdWorkflow
-from evox.algorithms import RVEA
-from evox.problems.numerical import DTLZ2
-from evox.metrics import igd
 
 
 if __name__ == "__main__":
@@ -38,9 +39,7 @@ if __name__ == "__main__":
         ff.write(workflow.step.inlined_graph.__str__())
 
     t = time.time()
-    with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-    ) as prof:
+    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
         for i in range(100):
             state = jit_state_step(state)
             fit = state["self.algorithm.fit"]

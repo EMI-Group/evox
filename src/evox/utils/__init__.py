@@ -15,19 +15,19 @@ __all__ = [
     "nanmax",
 ]
 
+from .control_flow import TracingCond, TracingSwitch, TracingWhile
 from .jit_fix_operator import (
-    switch,
     clamp,
-    clamp_int,
     clamp_float,
+    clamp_int,
     clip,
+    lexsort,
     maximum,
     minimum,
-    lexsort,
-    nanmin,
     nanmax,
+    nanmin,
+    switch,
 )
-from .control_flow import TracingWhile, TracingCond, TracingSwitch
 from .parameters_and_vector import ParamsAndVector
 
 

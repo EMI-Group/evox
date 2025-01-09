@@ -1,13 +1,13 @@
+from typing import Callable, Optional
+
 import torch
-from torch import nn
-from typing import Optional, Callable
 
 from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
-from ...operators.selection import ref_vec_guided
 from ...operators.sampling import uniform_sampling
-from ...utils import clamp, nanmin, nanmax, TracingCond
+from ...operators.selection import ref_vec_guided
+from ...utils import TracingCond, clamp, nanmax, nanmin
 
 
 @jit_class
@@ -51,7 +51,6 @@ class RVEA(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
@@ -91,9 +90,7 @@ class RVEA(Algorithm):
         population = length * population + lb
 
         self.pop = Mutable(population)
-        self.fit = Mutable(
-            torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf)
-        )
+        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
         self.reference_vector = Mutable(v)
         self.init_v = v0
         self.gen = Mutable(torch.tensor(0, device=device))
@@ -133,21 +130,12 @@ class RVEA(Algorithm):
         self.fit = survivor_fit[~nan_mask_survivor]
 
         if self.gen % (1 / self.fr) == 0:
-            self.reference_vector = self._rv_adaptation(
-                survivor_fit
-            )
+            self.reference_vector = self._rv_adaptation(survivor_fit)
 
     @trace_impl(_update_pop_and_rv)
-    def _trace_update_pop_and_rv(
-        self, survivor: torch.Tensor, survivor_fit: torch.Tensor
-    ):
-        if_else = TracingCond(
-            self._rv_adaptation,
-            self._no_rv_adaptation
-        )
-        self.reference_vector = if_else.cond(
-            self.gen % (1 / self.fr) == 0, survivor_fit
-        )
+    def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+        if_else = TracingCond(self._rv_adaptation, self._no_rv_adaptation)
+        self.reference_vector = if_else.cond(self.gen % (1 / self.fr) == 0, survivor_fit)
 
         self.pop = survivor
         self.fit = survivor_fit

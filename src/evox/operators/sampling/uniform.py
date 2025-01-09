@@ -1,6 +1,7 @@
-import torch
 import itertools
 from math import comb
+
+import torch
 
 
 def uniform_sampling(n: int, m: int):
@@ -37,9 +38,7 @@ def uniform_sampling(n: int, m: int):
                 - 1
             )
             w2 = (
-                torch.cat(
-                    [w2, torch.zeros((w2.size(0), 1), dtype=w2.dtype) + h2], dim=1
-                )
+                torch.cat([w2, torch.zeros((w2.size(0), 1), dtype=w2.dtype) + h2], dim=1)
                 - torch.cat([torch.zeros((w2.size(0), 1), dtype=w2.dtype), w2], dim=1)
             ) / h2
 
