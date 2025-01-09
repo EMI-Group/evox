@@ -309,31 +309,11 @@ class CEC2022(Problem):
         x = self.sr_func_rate(x, sh_rate=5.0/100.0)
         nx = x.size(1)
         tmp1 = 2.0**torch.arange(1, 33, device=x.device)
-        print(tmp1.shape)
         tmp2 = x.unsqueeze(-1) * tmp1.unsqueeze(0).unsqueeze(0)
-        print(tmp2.shape)
         temp = torch.sum(torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1, dim = 2)
-        print(temp.shape)
         tmp3 = torch.arange(1, nx + 1, device=x.device)
-        print(tmp3.shape)
         f = (1.0 + torch.prod(temp * tmp3.unsqueeze(0),dim = 1)) ** (10.0 / (10.0 * nx) ** 1.2)
-        print(f)
         return (f - 1) * (10.0 / (nx**2))
-    
-    # def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
-    #     # TODO
-    #     nx = x.size(1)
-    #     x = self.sr_func_rate(x, sh_rate=5.0/100.0)
-    #     f = torch.ones(x.size(0), device=x.device)
-    #     tmp3 = (10.0 * nx) ** 1.2
-    #     for i in range(nx):
-    #         temp = torch.zeros(x.size(0), device=x.device)
-    #         for j in range(1, 33):
-    #             tmp1 = 2.0**j
-    #             tmp2 = tmp1 * x[:, i]
-    #             temp += torch.abs(tmp2 - torch.floor(tmp2 + 0.5)) / tmp1
-    #         f *= (1.0 + (i + 1) * temp) ** (10.0 / tmp3)
-    #     return (f - 1) * (10.0 / (nx**2))
 
     def ackley_func(self, x: torch.Tensor) -> torch.Tensor:
         x = self.sr_func(x)
