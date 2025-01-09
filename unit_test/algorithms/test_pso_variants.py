@@ -31,4 +31,5 @@ class TestPSOVariants(TestBase):
     def test_pso_variants(self):
         for algo in self.algos:
             self.run_algorithm(algo)
+            self.run_trace_algorithm(algo)
             self.run_vmap_algorithm(algo)

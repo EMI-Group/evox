@@ -19,4 +19,5 @@ class TestDEVariants(TestBase):
     def test_de_variants(self):
         for algo in self.algos:
             self.run_algorithm(algo)
+            self.run_trace_algorithm(algo)
             self.run_vmap_algorithm(algo)

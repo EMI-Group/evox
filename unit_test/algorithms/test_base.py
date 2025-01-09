@@ -21,6 +21,16 @@ class TestBase(TestCase):
         workflow = StdWorkflow()
         workflow.setup(algo, prob, monitor)
         workflow.init_step()
+        self.assertIsNotNone(workflow.get_submodule("monitor").topk_fitness)
+        for _ in range(3):
+            workflow.step()
+
+    def run_trace_algorithm(self, algo: Algorithm):
+        monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
+        prob = Sphere()
+        workflow = StdWorkflow()
+        workflow.setup(algo, prob, monitor)
+        workflow.init_step()
         state_step = use_state(lambda: workflow.step)
         state = state_step.init_state()
         self.assertIsNotNone(state["self.algorithm._monitor_.topk_fitness"])
