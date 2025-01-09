@@ -80,6 +80,9 @@ pip install evox
 
 ## Run Unit Test
 
+1. prepare the test environment by installing the required packages (e.g., `torch`) in your Python environment
+2. run the following command in the **root directory of the project**: `pip install -e .`, which will install the `evox` package in editable mode
+3. run unittest:
 ```shell
 python -m unittest
 ```
