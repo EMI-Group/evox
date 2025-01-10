@@ -140,7 +140,7 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
     def step(self):
-        self.gen = self.gen + 1
+        self.gen = self.gen + torch.tensor(1)
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)
