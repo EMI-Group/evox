@@ -100,10 +100,9 @@ class TracingWhile(ModuleBase):
         """
         Initialize the `TracingWhile`.
 
-        Args:
-            cond_fn (`*torch.Tensor -> torch.Tensor`): The condition function. Must be JIT-script compatible if `script_functions=True`.
-            body_fn (`*torch.Tensor -> *torch.Tensor`): The body function. Must be JIT-script compatible if `script_functions=True`.
-            script_functions (`bool`, optional): Whether the `cond` and `body` functions are JIT-script instantly. Defaults to False. When set to True, the basic `loop` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `loop` function shall NOT be used in performance-critical paths.
+        :param cond_fn: The condition function. Must be JIT-script compatible if `script_functions=True`.
+        :param body_fn: The body function. Must be JIT-script compatible if `script_functions=True`.
+        :param script_functions: Whether the `cond` and `body` functions are JIT-script instantly. Defaults to False. When set to True, the basic `loop` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `loop` function shall NOT be used in performance-critical paths.
 
         ## Notice:
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
@@ -140,11 +139,9 @@ class TracingWhile(ModuleBase):
         ## Notice:
         During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python while loop directly.
 
-        Args:
-            *x (`torch.Tensor`): The input tensors / carry for the loop.
+        :param *x: The input tensors / carry for the loop.
 
-        Returns:
-            `Tuple[torch.Tensor, ...]`: The resulting tensors / carry after the loop completes.
+        :return: The resulting tensors / carry after the loop completes.
         """
         if self.cond_fn is None or self.body_fn is None:
             while self._cond_fn(*x):
@@ -663,10 +660,9 @@ class TracingCond(ModuleBase):
         """
         Initialize the `TracingCond`.
 
-        Args:
-            true_fn (`*torch.Tensor -> *torch.Tensor`): The true branch function. Must be JIT-script compatible if `script_functions=True`.
-            false_fn (`*torch.Tensor -> *torch.Tensor`): The false branch function. Must be JIT-script compatible if `script_functions=True`.
-            script_functions (`bool`, optional): Whether the `true_fn` and `false_fn` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
+        :param true_fn: The true branch function. Must be JIT-script compatible if `script_functions=True`.
+        :param false_fn: The false branch function. Must be JIT-script compatible if `script_functions=True`.
+        :param script_functions: Whether the `true_fn` and `false_fn` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
 
         ## Notice:
         1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
@@ -698,12 +694,10 @@ class TracingCond(ModuleBase):
         ## Notice:
         During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python if-else directly.
 
-        Args:
-            cond (`torch.Tensor`): A boolean tensor. If `True`, the true branch is run; if `False`, the false branch is run.
-            *x (`*torch.Tensor`): The input tensors to the branch functions.
+        :param cond: A boolean tensor. If `True`, the true branch is run; if `False`, the false branch is run.
+        :param *: The input tensors to the branch functions.
 
-        Returns:
-            `List[torch.Tensor]`: The output tensors from the chosen branch function.
+        :return: The output tensors from the chosen branch function.
         """
         if self.true_fn is None or self.false_fn is None:
             if cond:
@@ -1024,9 +1018,8 @@ class TracingSwitch(ModuleBase):
         """
         Initialize the `TracingCond`.
 
-        Args:
-            branch_fns (`*torch.Tensor -> *torch.Tensor`, variable length argument): The branch functions. Must be JIT-script compatible if `script_functions=True`.
-            script_functions (`bool`, optional): Whether the `branch_fns` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
+        :param branch_fns: The branch functions. Must be JIT-script compatible if `script_functions=True`.
+        :param script_functions: Whether the `branch_fns` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
 
         ## Notice:
         1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
@@ -1060,12 +1053,10 @@ class TracingSwitch(ModuleBase):
         ## Notice:
         During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python if-else directly.
 
-        Args:
-            branch_idx (`torch.Tensor`): An int tensor that indicates which branch to run.
-            *x (`*torch.Tensor`): The input tensors to the branch functions.
+        :param branch_idx: An int tensor that indicates which branch to run.
+        :param *x: The input tensors to the branch functions.
 
-        Returns:
-            `List[torch.Tensor]`: The output tensors from the chosen branch function.
+        :return: The output tensors from the chosen branch function.
         """
         if self.branch_fns is None:
             x = self._branch_fns[branch_idx.item()](*x)

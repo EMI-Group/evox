@@ -27,17 +27,15 @@ class CSO(Algorithm):
         stdev: torch.Tensor | None = None,
         device: torch.device | None = None,
     ):
-        """
-        Initialize the CSO algorithm with the given parameters.
+        """Initialize the CSO algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            phi (`float`, optional): The inertia weight. Defaults to 0.0.
-            mean (`float`, optional): The mean of the normal distribution. Defaults to None.
-            stdev (`float`, optional): The standard deviation of the normal distribution. Defaults to None.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param phi: The inertia weight. Defaults to 0.0.
+        :param mean: The mean of the normal distribution. Defaults to None.
+        :param stdev: The standard deviation of the normal distribution. Defaults to None.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

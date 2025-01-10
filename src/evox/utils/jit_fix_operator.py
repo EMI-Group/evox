@@ -7,13 +7,11 @@ def switch(label: torch.Tensor, values: List[torch.Tensor]) -> torch.Tensor:
     """
     Element-wise switch select operator that generates a tensor from a list of tensors based on the label tensor.
 
-    Args:
-        label (`torch.Tensor`): A tensor containing labels used to select from the list of tensors. Must be broadcastable to the shape of rest arguments.
-        values (`List[torch.Tensor]`): A list of tensors from which one is selected based on the label.
-            All tensors in the list must be broadcastable to the same shape.
+    :param label: A tensor containing labels used to select from the list of tensors. Must be broadcastable to the shape of rest arguments.
+    :param values: A list of tensors from which one is selected based on the label.
+        All tensors in the list must be broadcastable to the same shape.
 
-    Returns:
-        `torch.Tensor`: A tensor where each element is selected from the list of tensors based on the
+    :return: A tensor where each element is selected from the list of tensors based on the
             corresponding element in the label tensor.
     """
     num_labels = len(values)
@@ -34,13 +32,11 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
     2. This is NOT a precise replication of `torch.clamp` if `a`, `lb` or `ub` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
 
-    Args:
-        a (`torch.Tensor`): The input tensor to be clamped.
-        lb (`torch.Tensor`): The lower bound tensor. Must be broadcastable to the shape of `a`.
-        ub (`torch.Tensor`): The upper bound tensor. Must be broadcastable to the shape of `a`.
+    :param a: The input tensor to be clamped.
+    :param lb: The lower bound tensor. Must be broadcastable to the shape of `a`.
+    :param ub: The upper bound tensor. Must be broadcastable to the shape of `a`.
 
-    Returns:
-        `torch.Tensor`: A tensor where each element is clamped to be within the specified bounds.
+    :return: A tensor where each element is clamped to be within the specified bounds.
     """
     lb = torch.relu(lb - a)
     ub = torch.relu(a - ub)
@@ -99,11 +95,9 @@ def clip(a: torch.Tensor) -> torch.Tensor:
 
     Notice: This function invokes `clamp(a, 0, 1)`.
 
-    Args:
-        a (`torch.Tensor`): The input tensor to be clipped.
+    :param a: The input tensor to be clipped.
 
-    Returns:
-        `torch.Tensor`: A tensor where each element is clipped to be within [0, 1].
+    :return: A tensor where each element is clipped to be within [0, 1].
     """
     return clamp(
         a,
@@ -118,12 +112,10 @@ def maximum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
     Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
 
-    Args:
-        a (`torch.Tensor`): The first input tensor.
-        b (`torch.Tensor`): The second input tensor.
+    :param a: The first input tensor.
+    :param b: The second input tensor.
 
-    Returns:
-        `torch.Tensor`: The element-wise maximum of `a` and `b`.
+    :return: The element-wise maximum of `a` and `b`.
     """
     diff = torch.relu(b - a)
     return a + diff
@@ -135,12 +127,10 @@ def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
     Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion.
 
-    Args:
-        a (`torch.Tensor`): The first input tensor.
-        b (`torch.Tensor`): The second input tensor.
+    :param a: The first input tensor.
+    :param b: The second input tensor.
 
-    Returns:
-        `torch.Tensor`: The element-wise minimum of `a` and `b`.
+    :return: The element-wise minimum of `a` and `b`.
     """
     diff = torch.relu(a - b)
     return a - diff

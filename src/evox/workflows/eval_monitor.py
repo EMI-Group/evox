@@ -24,12 +24,11 @@ class EvalMonitor(Monitor):
     ):
         """Initialize the monitor.
 
-        Args:
-            multi_obj (`bool`, optional): Whether the optimization is multi-objective. Defaults to False.
-            full_fit_history (`bool`, optional): Whether to record the full history of fitness value. Default to True. Setting it to False may reduce memory usage.
-            full_sol_history (`bool`, optional): Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
-            topk (`int`, optional): Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
-            device (`torch.device`, optional): The device of the monitor. Defaults to None.
+        :param multi_obj: Whether the optimization is multi-objective. Defaults to False.
+        :param full_fit_history: Whether to record the full history of fitness value. Default to True. Setting it to False may reduce memory usage.
+        :param full_sol_history: Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
+        :param topk: Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
+        :param device: The device of the monitor. Defaults to None.
         """
         super().__init__()
         self.multi_obj = multi_obj
