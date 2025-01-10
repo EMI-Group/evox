@@ -176,19 +176,83 @@ class ModuleBase(nn.Module):
             wrapper.__jit_module__ = None
         return self
 
-    def state_dict_and_nonlocal_vars(
-        self, *target_functions, keep_vars: bool = True
-    ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
+    def prepare_control_flow(
+        self, *target_functions: Callable, keep_vars: bool = True
+    ) -> Tuple[Dict[str, torch.Tensor], Tuple[List[str], List[str]]]:
+        """Prepares the control flow state of the module by collecting and merging the state and non-local variables from the specified target functions.
+
+        This function is used alongside with `after_control_flow()` to enable your control flow operations (`utils.control_flow.*`) deal with side-effects correctly. If the control flow operations have NO side-effects, you can safely ignore this function and `after_control_flow()`.
+
+        :param target_functions: Functions whose non-local variables are to be collected.
+        :param keep_vars: See `torch.nn.Module.state_dict(..., keep_vars)`. Defaults to True.
+
+        :return: A tuple containing the merged state dictionary, a list of state keys, and a list of non-local variable names.
+
+        :raises AssertionError: If not all target functions are local, global, or this class member functions
+
+        ## Warning
+        The non-local variables collected here can ONLY be used as read-only ones. In-place modifications to these variables may not raise any error and silently produce incorrect results.
+
+        ## Usage
+        ```
+        @jit_class
+        def ExampleModule(ModuleBase):
+            # define the normal `__init__` and `test` functions, etc.
+
+            @trace_impl(test)
+            def trace_test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                self.q = self.q + 1
+                local_q = self.q * 2
+
+                def false_branch(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                    # nonlocal local_q ## These two lines may silently produce incorrect results
+                    # local_q *= 1.5
+                    return x * y * local_q # However, using read-only nonlocals is allowed
+
+                state, keys = self.prepare_control_flow(self.true_branch, false_branch)
+                if not hasattr(self, "_switch_"):
+                    self._switch_ = TracingSwitch(self.true_branch, false_branch)
+                state, ret = self._switch_.switch(state, (x.flatten()[0] > 0).to(dtype=torch.int), x, y)
+                self.after_control_flow(state, *keys)
+                return ret
+        ```
+        """
         state = {}
         self.state_dict(destination=state, prefix="self.", keep_vars=keep_vars)
-        closure_vars = {}
+        nonlocal_vars = {}
         for f in target_functions:
             _, _, new_vars, is_empty_vars = _get_vars(f, self, is_generator=False)
             if not is_empty_vars:
-                closure_vars.update(new_vars)
-        if len(closure_vars) == 0:
-            closure_vars[_EMPTY_NAME] = torch.empty(0)
-        return state, closure_vars
+                nonlocal_vars.update(new_vars)
+        if len(nonlocal_vars) == 0:
+            nonlocal_vars[_EMPTY_NAME] = torch.empty(0)
+        for key in nonlocal_vars:
+            assert "self." not in key, "Expect all target functions are local, global, or this class member functions"
+        state_keys = list(state.keys())
+        nonlocal_keys = list(nonlocal_vars.keys())
+        state.update(nonlocal_vars)
+        return state, (state_keys, nonlocal_keys)
+
+    def after_control_flow(
+        self, state: Dict[str, torch.Tensor], state_keys: List[str], nonlocal_keys: List[str]
+    ) -> Dict[str, torch.Tensor]:
+        """Restores the module state to the one before `prepare_control_flow` from the given `state` and returns the non-local variables collected in `prepare_control_flow`.
+
+        This function is used alongside with `prepare_control_flow()` to enable your control flow operations (`utils.control_flow.*`) deal with side-effects correctly. If the control flow operations have NO side-effects, you can safely ignore this function and `prepare_control_flow()`.
+
+        :param state: The state dictionary to restore the module state from.
+        :param state_keys: The keys of the state dictionary that represent the module state.
+        :param nonlocal_keys: The keys of the state dictionary that represent the non-local variables.
+
+        :return: The non-local variables dictionary collected in `prepare_control_flow`.
+
+        ## Usage
+        See `prepare_control_flow()`.
+        """
+        locals_vars = {k: state[k] for k in nonlocal_keys if k in state}
+        ori_state = {k.replace("self.", "", 1): state[k] for k in state_keys if k in state}
+        self.load_state_dict(ori_state)
+        return locals_vars
 
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
         """Copy parameters and buffers from state_dict into this module and its descendants.
@@ -212,6 +276,8 @@ class ModuleBase(nn.Module):
                     sub_modules[sub_mod] = {}
                 sub_modules[sub_mod][sub_key] = v
             else:
+                if isinstance(self.__getattr_inner__(k), nn.Parameter) and not isinstance(v, nn.Parameter):
+                    v = nn.Parameter(v, requires_grad=v.requires_grad)
                 self.__setattr_inner__(k, v)
         if len(sub_modules) > 0:
             for k, v in sub_modules.items():
@@ -589,7 +655,7 @@ def _get_vars(func: Callable, *exclude, is_generator: bool = True):
             if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase) or isinstance(v, torch.Tensor)
         }
         # remove duplicate self
-        if hasattr(inspect.unwrap(func), "__self__") and "self" in vars:
+        if "self" in vars: # and hasattr(inspect.unwrap(func), "__self__"):
             self_v: Tuple[nn.Module, ...] = vars["self"]
             if isinstance(self_v, _WrapClassBase):
                 if self_v.__jit_module__ is None:
@@ -598,7 +664,7 @@ def _get_vars(func: Callable, *exclude, is_generator: bool = True):
                     self_v = (self_v.__inner_module__, self_v.__jit_module__)
             else:
                 self_v = (self_v,)
-            if len(self_v) > 1:
+            if len(self_v) > 1: # sync with JIT module first
                 self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
             vars = {k: v for k, v in vars.items() if v not in self_v}
             vars["self"] = self_v[0]
@@ -716,8 +782,8 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
 
         for k, v in vars.items():
             if isinstance(v, torch.Tensor):
-                # torch.utils.swap_tensors(v, state[k])  # cannot swap nonlocal variables
-                v.copy_(state[k])
+                # torch.utils.swap_tensors(v, state[k])  # cannot swap or set nonlocal variables
+                # v.copy_(state[k])
                 continue
             this_state = {t[1]: wrap_param_fn(key, val) for key, val in state.items() if (t := key.split(".", 1))[0] == k}
             if len(this_state) > 0:

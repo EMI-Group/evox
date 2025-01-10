@@ -186,8 +186,11 @@ class TestControlFlow(unittest.TestCase):
 
             @trace_impl(test)
             def trace_test(self, x: torch.Tensor, y: torch.Tensor):
+                state, keys = self.prepare_control_flow(self.cond_fn, self.body_fn)
                 while_loop = TracingWhile(self.cond_fn, self.body_fn)
-                return while_loop.loop(x, y)
+                state, ret = while_loop.loop(state, x, y)
+                self.after_control_flow(state, *keys)
+                return ret
 
             def cond_fn(self, x: torch.Tensor, y: torch.Tensor):
                 return x.flatten()[0] < 10
@@ -199,13 +202,75 @@ class TestControlFlow(unittest.TestCase):
         m = WhileModule()
         x = torch.tensor([1.0, -1.0])
         y = torch.tensor([3.0, 4.0])
-        print(m.test(x, y))
+        ret = m.test(x, y)
+        self.assertTrue(torch.allclose(ret[0], torch.tensor([11.4606, 12.9474]), atol=1e-3, rtol=1e-2))
+        self.assertTrue(torch.allclose(ret[1], torch.tensor([2.0490, 2.7321]), atol=1e-3, rtol=1e-2))
         state_loop = use_state(lambda: m.test)
         trace_loop = jit(use_state(lambda: m.test), trace=True, lazy=False, example_inputs=(state_loop.init_state(False), x, y))
-        print(trace_loop(state_loop.init_state(False), x, y))
+        state, ret = trace_loop(state_loop.init_state(False), x, y)
+        self.assertTrue(torch.equal(state["self.iters"], torch.tensor(8)))
+        self.assertTrue(torch.allclose(ret[0], torch.tensor([11.4606, 12.9474]), atol=1e-3, rtol=1e-2))
+        self.assertTrue(torch.allclose(ret[1], torch.tensor([2.0490, 2.7321]), atol=1e-3, rtol=1e-2))
+
+    def test_jit_module_cond(self):
+        @jit_class
+        class CondModule(ModuleBase):
+            def __init__(self):
+                super().__init__()
+                self.q = Mutable(torch.zeros(1))
+
+            def test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                if x.flatten()[0] > 0:
+                    return x + y
+                else:
+                    return x * y
+
+            @trace_impl(test)
+            def trace_test(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                self.q = self.q + 1
+                local_q = self.q * 2
+
+                def branch0(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                    # nonlocal local_q ## These lines are not allowed
+                    # local_q *= 2
+                    self.q = self.q + 1
+                    return x + y
+
+                def branch1(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                    # nonlocal local_q ## These lines are not allowed
+                    # local_q *= 1.5
+                    return x * y * local_q # However, using read-only nonlocals is allowed
+
+                state, keys = self.prepare_control_flow(branch0, branch1)
+                if not hasattr(self, "_cond_"):
+                    self._cond_ = TracingCond(branch0, branch1, stateful_functions=True)
+                state, ret = self._cond_.cond(state, (x.flatten()[0] > 0), x, y)
+                self.after_control_flow(state, *keys)
+                return ret
+
+        # regular
+        m = CondModule()
+        x = torch.tensor([1, -1])
+        y = torch.tensor([3, 4])
+        self.assertTrue(torch.equal(m.test(x, y), torch.tensor([4, 3])))
+        state_cond = use_state(lambda: m.test)
+        trace_cond = jit(state_cond, trace=True, lazy=False, example_inputs=(state_cond.init_state(), x, y))
+        switch_out = trace_cond(state_cond.init_state(), x, y)
+        self.assertTrue(torch.equal(switch_out[0]["self.q"], torch.tensor([2.0])))
+        self.assertTrue(torch.equal(switch_out[1], x + y))
+        # vmap
+        x = torch.tensor([[1, -1], [-1, 1], [1, 0], [-1, -1]])
+        state_cond = vmap(state_cond)
+        trace_cond = jit(
+            state_cond,
+            trace=True,
+            lazy=False,
+            example_inputs=(state_cond.init_state(4), x, y.unsqueeze(0).repeat(4, 1)),
+        )
+        switch_out = trace_cond(state_cond.init_state(4), x, y)
+        self.assertTrue(torch.equal(switch_out[1], torch.tensor([[4, 3], [-6, 8], [4, 4], [-6, -8]])))
 
     def test_jit_module_switch(self):
-
         @jit_class
         class SwitchModule(ModuleBase):
             def __init__(self):
@@ -223,39 +288,46 @@ class TestControlFlow(unittest.TestCase):
                 self.q = self.q + 1
                 local_q = self.q * 2
 
-                def false_branch(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-                    nonlocal local_q
-                    local_q *= 1.5
-                    return x * y * local_q
+                def branch0(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                    # nonlocal local_q ## These lines are not allowed
+                    # local_q *= 2
+                    self.q = self.q + 1
+                    return x + y
 
-                ori_state, locals_vars = self.state_dict_and_nonlocal_vars(self.true_branch, false_branch)
-                state = dict(ori_state)
-                state.update(locals_vars)
+                def branch1(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+                    # nonlocal local_q ## These lines are not allowed
+                    # local_q *= 1.5
+                    return x * y * local_q # However, using read-only nonlocals is allowed
+
+                state, keys = self.prepare_control_flow(branch0, branch1)
                 if not hasattr(self, "_switch_"):
-                    self._switch_ = TracingSwitch(self.true_branch, false_branch)
-                state, ret = self._switch_.switch(state, (x.flatten()[0] > 0).to(dtype=torch.int), x, y)
-                locals_vars = {k: state[k] for k in locals_vars if k in state}
-                ori_state = {k: state[k] for k in ori_state if k in state}
-                self.load_state_dict(ori_state)
-                for k in locals_vars:
-                    exec(f"{k} = locals_vars['{k}']")
+                    self._switch_ = TracingSwitch(branch0, branch1, stateful_functions=True)
+                state, ret = self._switch_.switch(state, (x.flatten()[0] < 0).to(dtype=torch.int), x, y)
+                self.after_control_flow(state, *keys)
                 return ret
 
-            def true_branch(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-                self.q = self.q + 1
-                return x + y
-
+        # regular
         m = SwitchModule()
         x = torch.tensor([1, -1])
         y = torch.tensor([3, 4])
         self.assertTrue(torch.equal(m.test(x, y), torch.tensor([4, 3])))
         state_switch = use_state(lambda: m.test)
         trace_switch = jit(state_switch, trace=True, lazy=False, example_inputs=(state_switch.init_state(), x, y))
-        self.assertTrue(torch.equal(trace_switch(state_switch.init_state(), x, y)[1], torch.tensor([3, -4]) * 2 * 1.5))
+        switch_out = trace_switch(state_switch.init_state(), x, y)
+        self.assertTrue(torch.equal(switch_out[0]["self.q"], torch.tensor([2.0])))
+        self.assertTrue(torch.equal(switch_out[1], x + y))
+        # vmap
+        x = torch.tensor([[1, -1], [-1, 1], [1, 0], [-1, -1]])
+        state_switch = vmap(state_switch)
+        trace_switch = jit(
+            state_switch,
+            trace=True,
+            lazy=False,
+            example_inputs=(state_switch.init_state(4), x, y.unsqueeze(0).repeat(4, 1)),
+        )
+        switch_out = trace_switch(state_switch.init_state(4), x, y)
+        self.assertTrue(torch.equal(switch_out[1], torch.tensor([[4, 3], [-6, 8], [4, 4], [-6, -8]])))
 
 
 if __name__ == "__main__":
-    test = TestControlFlow()
-    test.setUp()
-    test.test_jit_module_switch()
-    test.test_jit_module_while_loop()
+    unittest.main()

@@ -237,7 +237,9 @@ def _batch_randint(low=None, high=None, size=None, **kwargs):
     assert high is not None and size is not None, "`high` and `size` must be given"
     if low is None:
         low = 0
-    if (isinstance(high, torch.Tensor) and is_batched_tensor(high)) or (isinstance(low, torch.Tensor) and is_batched_tensor(low)):
+    if (isinstance(high, torch.Tensor) and is_batched_tensor(high)) or (
+        isinstance(low, torch.Tensor) and is_batched_tensor(low)
+    ):
         range: torch.Tensor = high - low
         random_values = batched_random(
             _original_randint, *size, low=torch.iinfo(range.dtype).min, high=torch.iinfo(range.dtype).max, **kwargs
