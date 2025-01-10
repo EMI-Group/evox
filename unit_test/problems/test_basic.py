@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.problems.so import Ackley, Griewank
+from evox.problems.so import Ackley, Griewank, Rastrigin, Rosenbrock, Schwefel
 
 
 class TestBasic(unittest.TestCase):
@@ -13,7 +13,9 @@ class TestBasic(unittest.TestCase):
         self.problems = [
             Ackley(),
             Griewank(),
-
+            Rastrigin(),
+            Rosenbrock(),
+            Schwefel(),
         ]
 
     def test_evaluate(self):
