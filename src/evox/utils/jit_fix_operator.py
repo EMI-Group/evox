@@ -222,7 +222,7 @@ def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     """
     mask = torch.isnan(input_tensor)
     input_tensor = torch.where(
-        mask, torch.tensor(float("inf"), device=input_tensor.device), input_tensor
+        mask, torch.inf, input_tensor
     )
     return input_tensor.min(dim=dim, keepdim=keepdim)
 
@@ -265,6 +265,6 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     """
     mask = torch.isnan(input_tensor)
     input_tensor = torch.where(
-        mask, torch.tensor(float("-inf"), device=input_tensor.device), input_tensor
+        mask, torch.inf, input_tensor
     )
     return input_tensor.max(dim=dim, keepdim=keepdim)

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from ...utils import clamp, maximum, nanmin
+from ...utils import clamp_float, maximum, nanmin
 
 
 def apd_fn(
@@ -30,17 +30,17 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
 
     cosine = torch.where(
         torch.eye(cosine.size(0), dtype=torch.bool, device=f.device),
-        torch.tensor(0.0, device=f.device),
+        0,
         cosine,
     )
-    cosine = clamp(cosine, torch.tensor(0.0, device=f.device), torch.tensor(1.0, device=f.device))
+    cosine = clamp_float(cosine, 0.0, 1.0)
     gamma = torch.min(torch.acos(cosine), dim=1)[0]
 
     angle = torch.acos(
-        clamp(
+        clamp_float(
             F.cosine_similarity(obj.unsqueeze(1), v.unsqueeze(0), dim=-1),
-            torch.tensor(0.0, device=f.device),
-            torch.tensor(1.0, device=f.device),
+            0.0,
+            1.0,
         )
     )
 
