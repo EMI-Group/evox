@@ -1,16 +1,18 @@
 import itertools
 from math import comb
+from typing import Tuple
 
 import torch
 
 
-def uniform_sampling(n: int, m: int):
-    """
-    Uniform sampling using Das and Dennis's method, Deb and Jain's method.
+def uniform_sampling(n: int, m: int) -> Tuple[torch.Tensor, int]:
+    """Uniform sampling using Das and Dennis's method, Deb and Jain's method.
     Inspired by PlatEMO's NBI algorithm.
-    Args:
-        n: Number of points to generate.
-        m: Dimensionality of the grid.
+
+    :param n: Number of points to generate.
+    :param m: Dimensionality of the grid.
+
+    :return: The generated points, and the number of samples.
     """
     h1 = 1
     while comb(h1 + m, m - 1) <= n:

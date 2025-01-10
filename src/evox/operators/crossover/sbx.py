@@ -1,15 +1,14 @@
 import torch
 
 
-def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20):
-    """
-    Simulated binary crossover (SBX)
-    Args:
-        x: Parent solutions in a 2D tensor (size: n x d).
-        pro_c: Probability of doing crossover.
-        dis_c: Distribution index of SBX.
-    Returns:
-        offspring_dec: Offspring solutions after crossover.
+def simulated_binary(x: torch.Tensor, pro_c: float = 1, dis_c: float = 20) -> torch.Tensor:
+    """Simulated binary crossover (SBX)
+
+    :param x: Parent solutions in a 2D tensor (size: n x d).
+    :param pro_c: Probability of doing crossover.
+    :param dis_c: Distribution index of SBX.
+
+    :return: Offspring solutions after crossover.
     """
     n, m = x.size()
     parent1_dec = x[: n // 2, :]
