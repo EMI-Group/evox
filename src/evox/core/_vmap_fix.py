@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import wraps
-from typing import Any, Callable, List, Tuple, TypeVar
+from typing import Any, Callable, List, Sequence, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
@@ -194,6 +194,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     return batch_rand_values
 
 
+_original_size = torch.Tensor.size
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
@@ -205,7 +206,18 @@ _original_get_item = torch.Tensor.__getitem__
 _original_set_item = torch.Tensor.__setitem__
 
 
+def _batch_size(tensor: torch.Tensor, dim: int | None = None):
+    try:
+        return _original_size(tensor, dim)
+    except Exception:
+        original_tensor, batch_dims, _ = unwrap_batch_tensor(tensor)
+        _transform_in_dim(batch_dims, tensor, original_tensor)
+        return tensor.size(dim)
+
+
 def _batch_rand(*size, **kwargs):
+    if len(size) == 1 and isinstance(size[0], Sequence):
+        size = size[0]
     if "size" in kwargs:
         assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
@@ -213,6 +225,8 @@ def _batch_rand(*size, **kwargs):
 
 
 def _batch_randn(*size, **kwargs):
+    if len(size) == 1 and isinstance(size[0], Sequence):
+        size = size[0]
     if "size" in kwargs:
         assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
@@ -223,7 +237,15 @@ def _batch_randint(low=None, high=None, size=None, **kwargs):
     assert high is not None and size is not None, "`high` and `size` must be given"
     if low is None:
         low = 0
-    return batched_random(_original_randint, *size, low=low, high=high, **kwargs)
+    if (isinstance(high, torch.Tensor) and is_batched_tensor(high)) or (isinstance(low, torch.Tensor) and is_batched_tensor(low)):
+        range: torch.Tensor = high - low
+        random_values = batched_random(
+            _original_randint, *size, low=torch.iinfo(range.dtype).min, high=torch.iinfo(range.dtype).max, **kwargs
+        )
+        random_values = random_values % range + low
+        return random_values
+    else:
+        return batched_random(_original_randint, *size, low=low, high=high, **kwargs)
 
 
 def _batch_randperm(n, **kwargs):
@@ -312,6 +334,7 @@ _batch_fixing: ContextVar[bool] = ContextVar("batch_fixing", default=False)
 def use_batch_fixing(new_batch_fixing: bool = True):
     # Set the new state and obtain a token
     token: Token = _batch_fixing.set(new_batch_fixing)
+    torch.Tensor.size = _batch_size if new_batch_fixing else _original_size
     torch.rand = _batch_rand if new_batch_fixing else _original_rand
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
@@ -326,6 +349,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     finally:
         # Reset the state to its previous value
         _batch_fixing.reset(token)
+        torch.Tensor.size = _original_size
         torch.rand = _original_rand
         torch.randn = _original_randn
         torch.randint = _original_randint
