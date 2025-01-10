@@ -51,7 +51,6 @@ class TestMOVariants(MOTestBase):
         dim = 12
         lb = -torch.ones(dim)
         ub = torch.ones(dim)
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.algo = [RVEA(pop_size=pop_size, n_objs=3, lb=lb, ub=ub)]
 
     def test_rvea_variants(self):
@@ -59,9 +58,3 @@ class TestMOVariants(MOTestBase):
             self.run_algorithm(algo)
             self.run_trace_algorithm(algo)
             self.run_vmap_algorithm(algo)
-
-
-if __name__ == "__main__":
-    test = TestMOVariants()
-    test.setUp()
-    test.test_rvea_variants()
