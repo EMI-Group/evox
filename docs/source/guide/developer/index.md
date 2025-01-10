@@ -4,6 +4,6 @@
 :maxdepth: 1
 
 environment
-custom_algo_prob
+3-custom_algo_prob
 hpo
 ```

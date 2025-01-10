@@ -3,5 +3,5 @@
 ```{toctree}
 :maxdepth: 1
 
-3-custom-alg-pro
+custom-algo-prob
 ```
