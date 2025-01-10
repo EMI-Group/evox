@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.problems.so import Ackley, Griewank, Rastrigin, Rosenbrock, Schwefel
+from evox.problems.so import Ackley, BentCigar, Discus, Ellips, Griewank, Happycat, Hgbat, Katsuura, Levy, Rastrigin, Rosenbrock, SchafferF7, Schwefel, Sphere, Zakharov
 
 
 class TestBasic(unittest.TestCase):
@@ -12,10 +12,20 @@ class TestBasic(unittest.TestCase):
         self.pop_size = pop_size
         self.problems = [
             Ackley(),
+            BentCigar(),
+            Discus(),
+            Ellips(),
             Griewank(),
+            Happycat(),
+            Hgbat(),
+            Katsuura(),
+            Levy(),
             Rastrigin(),
             Rosenbrock(),
+            SchafferF7(),
             Schwefel(),
+            Sphere(),
+            Zakharov(),
         ]
 
     def test_evaluate(self):
@@ -27,5 +37,5 @@ class TestBasic(unittest.TestCase):
 
 if __name__ == "__main__":
     test = TestBasic()
-    test.setUp([1000],7)
+    test.setUp()
     test.test_evaluate()
