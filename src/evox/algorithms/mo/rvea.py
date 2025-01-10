@@ -120,7 +120,6 @@ class RVEA(Algorithm):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
         mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
-        # pop = self.pop[torch.nonzero_static(no_nan_pop, size=self.pop_size)[mating_pool].squeeze()]
         pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
         return pop
 
