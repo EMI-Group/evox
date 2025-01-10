@@ -5,7 +5,15 @@ from ...operators.sampling import grid_sampling, uniform_sampling
 
 
 class DTLZTestSuit(Problem):
-    """DTLZ Test Suite"""
+    """
+    Base class for DTLZ test suite problems in multi-objective optimization.
+
+    Inherit this class to implement specific DTLZ problem variants.
+
+    :param d: Number of decision variables.
+    :param m: Number of objectives.
+    :param ref_num: Number of reference points used in the problem.
+    """
 
     def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
         """Override the setup method to initialize the parameters"""
@@ -17,9 +25,20 @@ class DTLZTestSuit(Problem):
         self.device = self.sample.device
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
+        """
+        Abstract method to evaluate the objective values for given decision variables.
+
+        :param X: A tensor of shape (n, d), where n is the number of solutions and d is the number of decision variables.
+        :return: A tensor of shape (n, m) representing the objective values for each solution.
+        """
         raise NotImplementedError()
 
     def pf(self):
+        """
+        Return the Pareto front for the problem.
+
+        :return: A tensor representing the Pareto front.
+        """
         f = self.sample / 2
         return f
 

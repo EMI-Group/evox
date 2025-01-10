@@ -11,6 +11,17 @@ def apd_fn(
     obj: torch.Tensor,
     theta: torch.Tensor,
 ):
+    """
+    Compute the APD (Angle-Penalized Distance) based on the given inputs.
+
+    :param x: A tensor representing the indices of the partition.
+    :param y: A tensor representing the gamma.
+    :param z: A tensor representing the angle.
+    :param obj: A tensor of shape (n, m) representing the objectives of the solutions.
+    :param theta: A tensor representing the parameter theta used for scaling the reference vector.
+
+    :return: A tensor containing the APD values for each solution.
+    """
     selected_z = torch.gather(z, 0, torch.relu(x))
     left = (1 + obj.size(1) * theta * selected_z) / y[None, :]
     norm_obj = torch.linalg.vector_norm(obj**2, dim=1)
@@ -19,6 +30,28 @@ def apd_fn(
 
 
 def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: torch.Tensor):
+    """
+    Perform the Reference Vector Guided Evolutionary Algorithm (RVEA) selection process.
+
+    This function selects solutions based on the Reference Vector Guided Evolutionary Algorithm.
+    It calculates the distances and angles between solutions and reference vectors, and returns
+    the next set of solutions to be evolved.
+
+    :param x: A tensor of shape (n, d) representing the current population solutions.
+    :param f: A tensor of shape (n, m) representing the objective values for each solution.
+    :param v: A tensor of shape (r, m) representing the reference vectors.
+    :param theta: A tensor representing the parameter theta used in the APD calculation.
+
+    :return: A tuple containing:
+        - next_x: The next selected solutions.
+        - next_f: The objective values of the next selected solutions.
+
+    :note:
+        The function computes the distances between the solutions and reference vectors,
+        and selects the solutions with the minimum APD.
+        It currently uses a suboptimal selection implementation, and future improvements
+        will optimize the process using a `segment_sort` or `segment_argmin` in CUDA.
+    """
     n, m = f.size()
     nv = v.size(0)
 
@@ -57,11 +90,6 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
 
     apd = apd_fn(partition, gamma, angle, obj, theta)
     apd = torch.where(mask, torch.inf, apd)
-
-    # TODO: The current RVEA selection implementation is suboptimal.
-    #       We will implement a `segment_sort` or `segment_argmin` in CUDA in the future
-    #       to optimize the process by skipping the partition, mask, mask_null,
-    #       and directly calculating the survivors within each partition.
 
     next_ind = torch.argmin(apd, dim=0)
     next_x = torch.where(mask_null.unsqueeze(1), torch.nan, x[next_ind])

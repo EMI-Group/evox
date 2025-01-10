@@ -15,13 +15,13 @@ class RVEA(Algorithm):
     """
     An implementation of the Reference Vector Guided Evolutionary Algorithm (RVEA) for multi-objective optimization problems.
 
-    This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm .
+    This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm.
 
-    References:
+    :references:
         - "A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization," IEEE.
-          [Link](https://ieeexplore.ieee.org/document/7386636)
+          `Link <https://ieeexplore.ieee.org/document/7386636>`
         - "GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized RVEA" ACM.
-          [Link](https://dl.acm.org/doi/abs/10.1145/3638529.3654223)
+          `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`
     """
 
     def __init__(

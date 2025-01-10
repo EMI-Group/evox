@@ -148,8 +148,6 @@ def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     :return: A tensor containing indices that will sort the input tensors lexicographically.
                       These indices indicate the order of elements in the sorted tensors.
 
-    :raises ValueError: If the input tensors in `keys` have different lengths along the specified dimension.
-
     Example:
         key1 = torch.tensor([1, 3, 2])
         key2 = torch.tensor([9, 7, 8])
@@ -171,7 +169,7 @@ def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     """
     Compute the minimum of a tensor along a specified dimension, ignoring NaN values.
 
-    This function replaces `NaN` values in the input tensor with `infinity` (`float('inf')`),
+    This function replaces `NaN` values in the input tensor with `infinity` ,
     and then computes the minimum over the specified dimension, effectively ignoring `NaN` values.
 
     :param input_tensor: The input tensor, which may contain `NaN` values.
@@ -213,7 +211,7 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     """
     Compute the maximum of a tensor along a specified dimension, ignoring NaN values.
 
-    This function replaces `NaN` values in the input tensor with `-infinity` (`float('-inf')`),
+    This function replaces `NaN` values in the input tensor with `-infinity`,
     and then computes the maximum over the specified dimension, effectively ignoring `NaN` values.
 
     :param input_tensor: The input tensor, which may contain `NaN` values.
