@@ -22,19 +22,6 @@ class RVEA(Algorithm):
           [Link](https://ieeexplore.ieee.org/document/7386636)
         - "GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized RVEA" ACM.
           [Link](https://dl.acm.org/doi/abs/10.1145/3638529.3654223)
-
-    Attributes:
-        pop_size (int): The size of the population.
-        n_objs (int): The number of objective functions in the optimization problem.
-        lb (torch.Tensor): The lower bounds for the decision variables.
-        ub (torch.Tensor): The upper bounds for the decision variables.
-        alpha (float): A parameter for controlling the rate of change of penalty. Defaults to 2.
-        fr (float): The frequency of reference vector adaptation. Defaults to 0.1.
-        max_gen (int): The maximum number of generations. Defaults to 100.
-        selection_op (Callable | None): The selection operation for evolutionary strategy (optional).
-        mutation_op (Callable | None): The mutation operation (optional).
-        crossover_op (Callable | None): The crossover operation (optional).
-        device (torch.device | None): The device on which computations should run (optional).
     """
 
     def __init__(
@@ -51,6 +38,19 @@ class RVEA(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
+        """
+        :param pop_size: The size of the population.
+        :param n_objs: The number of objective functions in the optimization problem.
+        :param lb: The lower bounds for the decision variables.
+        :param ub: The upper bounds for the decision variables.
+        :param alpha: A parameter for controlling the rate of change of penalty. Defaults to 2.
+        :param fr: The frequency of reference vector adaptation. Defaults to 0.1.
+        :param max_gen: The maximum number of generations. Defaults to 100.
+        :param selection_op: The selection operation for evolutionary strategy (optional).
+        :param mutation_op: The mutation operation (optional).
+        :param crossover_op: The crossover operation (optional).
+        :param device: The device on which computations should run (optional).
+        """
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
