@@ -93,7 +93,7 @@ class RVEA(Algorithm):
         self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
         self.reference_vector = Mutable(v)
         self.init_v = v0
-        self.gen = Mutable(torch.tensor(0, device=device))
+        self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
 
     def init_step(self):
         """
@@ -128,13 +128,13 @@ class RVEA(Algorithm):
         self.pop = survivor[~nan_mask_survivor]
         self.fit = survivor_fit[~nan_mask_survivor]
 
-        if self.gen % int(1 / self.fr) == 0:
+        if self.gen % (1 / self.fr).type(torch.int) == 0:
             self.reference_vector = self._rv_adaptation(survivor_fit)
 
     @trace_impl(_update_pop_and_rv)
     def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
         if_else = TracingCond(self._rv_adaptation, self._no_rv_adaptation)
-        self.reference_vector = if_else.cond(self.gen % int(1 / self.fr) == 0, survivor_fit)
+        self.reference_vector = if_else.cond(self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
 
         self.pop = survivor
         self.fit = survivor_fit
