@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, Dict, Iterable, List, Protocol, Tuple, TypeVar
+from typing import Callable, Dict, List, Protocol, Sequence, Tuple, TypeVar
 
 import torch
 
@@ -591,7 +591,7 @@ class TracingWhile(ModuleBase):
             for level, dim in enumerate(d, 1):
                 r = _vmap_fix.add_batch_dim(r, dim, level)
             returns.append(r)
-        return returns
+        return tuple(returns) if len(returns) > 1 else returns[0]
 
 
 _cond_object_cache = {}
@@ -930,14 +930,14 @@ class TracingCond(ModuleBase):
             state_false = false_res
             false_res = None
         # get conditional outputs
-        if isinstance(true_res, Iterable) and isinstance(false_res, Iterable):
-            res = []
-            for t, f in zip(true_res, false_res):
-                res.append(torch.where(cond, t, f))
-        elif true_res is None and false_res is None:
+        if true_res is None and false_res is None:
             res = None
         elif isinstance(true_res, torch.Tensor) and isinstance(false_res, torch.Tensor):
             res = torch.where(cond, true_res, false_res)
+        elif isinstance(true_res, Sequence) and isinstance(false_res, Sequence):
+            res = []
+            for t, f in zip(true_res, false_res):
+                res.append(torch.where(cond, t, f))
         else:
             raise ValueError("The type of returns of true_fn and false_fn should be the same.")
         # set conditional state
@@ -1433,14 +1433,14 @@ class TracingSwitch(ModuleBase):
             branch_results.append(result)
             final_states.append(new_state)
         # get conditional outputs
-        if isinstance(branch_results[0], Iterable):
-            final_output = []
-            for results in zip(*branch_results):
-                final_output.append(_switch(branch_idx, results))
-        elif branch_results[0] is None:
+        if branch_results[0] is None:
             final_output = None
         elif isinstance(branch_results[0], torch.Tensor):
             final_output = _switch(branch_idx, branch_results)
+        elif isinstance(branch_results[0], Sequence):
+            final_output = []
+            for results in zip(*branch_results):
+                final_output.append(_switch(branch_idx, results))
         else:
             raise ValueError("The type of returns of branches should be the same.")
         # set conditional state
