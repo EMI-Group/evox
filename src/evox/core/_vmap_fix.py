@@ -140,13 +140,11 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
     generates a batched tensor of random values by applying the given function to
     the size extended with the current vmap batch size.
 
-    Args:
-        rand_func (`Callable`): A function that generates a tensor of random values.
-        *size (`Tuple[int | torch.SymInt]`): The size arguments to the given function.
-        **kwargs: The keyword arguments to the given function.
+    :param rand_func: A function that generates a tensor of random values.
+    :param *size: The size arguments to the given function.
+    :param **kwargs: The keyword arguments to the given function.
 
-    Returns:
-        `torch.Tensor`: The batched tensor of random values.
+    :return: The batched tensor of random values.
 
     ## Usage:
     ```
@@ -178,13 +176,11 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     generates a batched tensor of random values by applying the given function to
     the tensor extended with the current vmap batch size.
 
-    Args:
-        rand_func (`Callable`): A function that generates a tensor of random values.
-        like_tensor (`torch.Tensor`): The tensor to generate random values like.
-        **kwargs: The keyword arguments to the given function.
+    :param rand_func: A function that generates a tensor of random values.
+    :param like_tensor: The tensor to generate random values like.
+    :param **kwargs: The keyword arguments to the given function.
 
-    Returns:
-        `torch.Tensor`: The batched tensor of random values.
+    :return: The batched tensor of random values.
     """
     level = current_level()
     if level is None or level <= 0:
@@ -341,14 +337,12 @@ def use_batch_fixing(new_batch_fixing: bool = True):
         torch.Tensor.__setitem__ = _original_set_item
 
 
-def unwrap_batch_tensor(tensor: torch.Tensor):
+def unwrap_batch_tensor(tensor: torch.Tensor) -> torch.Tensor | Tuple[int, ...] | Tuple[int, ...]:
     """Unwraps a batched tensor into its original tensor and the batch dimensions/sizes.
 
-    Args:
-        tensor (`torch.Tensor`): The batched tensor to be unwrapped.
+    :param tensor: The batched tensor to be unwrapped.
 
-    Returns:
-        (`torch.Tensor`, `tuple[int, ...]`, `tuple[int, ...]`): A tuple of the original tensor, the batch dimensions, and the batch sizes.
+    :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
     """
 
     level = get_level(tensor)
@@ -365,7 +359,7 @@ def unwrap_batch_tensor(tensor: torch.Tensor):
     return tensor, batch_dims, batch_sizes
 
 
-def align_vmap_tensor(value: Any, current_value: Any | None):
+def align_vmap_tensor(value: Any, current_value: Any | None) -> torch.Tensor:
     """
     Aligns a tensor with the batching dimensions of a current batched tensor.
 
@@ -374,15 +368,13 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
     already a batched tensor or `current_value` is not a batched tensor, it
     returns `value` unchanged.
 
-    Args:
-        value (Any): The tensor to be aligned. If not a `torch.Tensor`, it is
-                     returned unchanged.
-        current_value (Any | None): The reference batched tensor. If `None` or
-                                    not a batched tensor, `value` is returned
-                                    unchanged.
+    :param value: The tensor to be aligned. If not a `torch.Tensor`, it is
+                    returned unchanged.
+    :param current_value: The reference batched tensor. If `None` or
+                                not a batched tensor, `value` is returned
+                                unchanged.
 
-    Returns:
-        `torch.Tensor`: The input `value` aligned with the batch dimensions of
+    :return: The input `value` aligned with the batch dimensions of
                       `current_value`, if applicable.
     """
 
@@ -414,12 +406,10 @@ def wrap_vmap_inputs(func: T) -> T:
     which are already batched or not tensors remain unchanged, while tensors
     that need to be batched are transformed accordingly.
 
-    Args:
-        func (`Callable`): The function to be wrapped, which will have its input
-                         tensors adjusted for vmap.
+    :param func: The function to be wrapped, which will have its input
+                        tensors adjusted for vmap.
 
-    Returns:
-        `Callable`: A wrapped version of `func` that ensures its input tensors
+    :return: A wrapped version of `func` that ensures its input tensors
                   are compatible with vmap's batching requirements.
     """
 

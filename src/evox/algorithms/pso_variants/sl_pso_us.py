@@ -30,14 +30,13 @@ class SLPSOUS(Algorithm):
         """
         Initialize the SLPSOUS algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            w (`float`, optional): The inertia weight. Defaults to 0.6.
-            phi_p (`float`, optional): The cognitive weight. Defaults to 2.5.
-            phi_g (`float`, optional): The social weight. Defaults to 0.8.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param w: The inertia weight. Defaults to 0.6.
+        :param phi_p: The cognitive weight. Defaults to 2.5.
+        :param phi_g: The social weight. Defaults to 0.8.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

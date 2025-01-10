@@ -17,8 +17,7 @@ class HPOMonitor(Monitor, ABC):
     def tell_fitness(self) -> torch.Tensor:
         """Get the best fitness found so far in the optimization process that this monitor is monitoring.
 
-        Returns:
-            `torch.Tensor`: The best fitness so far.
+        :return: The best fitness so far.
         """
         raise NotImplementedError("`tell_fitness` function is not implemented. It must be overwritten.")
 
@@ -30,9 +29,8 @@ class HPOFitnessMonitor(HPOMonitor):
         """
         Initialize the HPO fitness monitor.
 
-        Args:
-            multi_obj_indicator (`str`, optional): The indicator to use for multi-objective optimization, unused in single-objective optimization.
-                Currently we only support "IGD" or "HV" for multi-objective optimization. Defaults to `None`.
+        :param multi_obj_indicator: The indicator to use for multi-objective optimization, unused in single-objective optimization.
+            Currently we only support "IGD" or "HV" for multi-objective optimization. Defaults to `None`.
         """
         super().__init__()
         assert multi_obj_indicator is None or isinstance(
@@ -91,11 +89,10 @@ class HPOProblemWrapper(Problem):
     def __init__(self, iterations: int, num_instances: int, workflow: Workflow, copy_init_state: bool = True):
         """Initialize the HPO problem wrapper.
 
-        Args:
-            iterations (`int`): The number of iterations to be executed in the optimization process.
-            num_instances (`int`): The number of instances to be executed in parallel in the optimization process.
-            workflow (`Workflow`): The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
-            copy_init_state (`bool`, optional): Whether to copy the initial state of the workflow for each evaluation. Defaults to `True`. If your workflow contains operations that IN-PLACE modify the tensor(s) in initial state, this should be set to `True`. Otherwise, you can set it to `False` to save memory.
+        :param iterations: The number of iterations to be executed in the optimization process.
+        :param num_instances: The number of instances to be executed in parallel in the optimization process.
+        :param workflow: The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
+        :param copy_init_state: Whether to copy the initial state of the workflow for each evaluation. Defaults to `True`. If your workflow contains operations that IN-PLACE modify the tensor(s) in initial state, this should be set to `True`. Otherwise, you can set it to `False` to save memory.
         """
         super().__init__()
         assert iterations > 0, f"`iterations` should be greater than 0, got {iterations}"
@@ -155,11 +152,9 @@ class HPOProblemWrapper(Problem):
         """
         Evaluate the fitness (given by the internal workflow's monitor) of the batch of hyper parameters by running the internal workflow.
 
-        Args:
-            hyper_parameters (`Dict[str, nn.Parameter]`): The hyper parameters to evaluate.
+        :param hyper_parameters: The hyper parameters to evaluate.
 
-        Returns:
-            `torch.Tensor`: The final fitness of the hyper parameters.
+        :return: The final fitness of the hyper parameters.
         """
         # hyper parameters check
         for k, v in hyper_parameters.items():
