@@ -331,9 +331,9 @@ class TracingWhile(ModuleBase):
             9: _loop9,
         }
 
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
         return compiled_loop, state_cond_fn, state_body_fn
 
@@ -562,9 +562,9 @@ class TracingWhile(ModuleBase):
             8: _loop8,
             9: _loop9,
         }
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         return torch.jit.script(loops_dict[len(original_args)])
 
     @vmap_impl(loop)
@@ -884,9 +884,9 @@ class TracingCond(ModuleBase):
             8: _cond8,
             9: _cond9,
         }
-        assert len(original_args) <= len(
-            cond_dict
-        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(cond_dict), (
+            f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_cond = torch.jit.script(cond_dict[len(original_args)])
         return compiled_cond, state_true_fn, state_false_fn
 
@@ -1000,12 +1000,13 @@ class TracingSwitch(ModuleBase):
                 self._switch_some_method_ = TracingSwitch(branch1_fn, branch2_fn, ...)
             result = self._switch_some_method_.switch(branch_idx, x, y)
             # OR: if branch1_fn, ... are defined in `self`, we can use cache directly
+            state = self.state_dict(keep_vars=True)
             switch = TracingSwitch(self.branch1_fn, self.branch2_fn, ...)
-            return switch.switch(branch_idx, x, y)
+            return switch.switch(state, branch_idx, x, y)
     ```
     """
 
-    def __new__(cls, *branch_fns, script_functions=False):
+    def __new__(cls, *branch_fns, stateful_functions: bool | None = None):
         key_or_obj = _get_cache_key_object(_switch_object_cache, *branch_fns)
         if isinstance(key_or_obj, tuple):
             obj = super().__new__(cls)
@@ -1014,31 +1015,27 @@ class TracingSwitch(ModuleBase):
         else:
             return key_or_obj
 
-    def __init__(self, *branch_fns: VarArgsCallableMultiRet, script_functions: bool = False):
+    def __init__(self, *branch_fns: VarArgsCallableMultiRet, stateful_functions: bool | None = None):
         """
         Initialize the `TracingCond`.
 
         :param branch_fns: The branch functions. Must be JIT-script compatible if `script_functions=True`.
-        :param script_functions: Whether the `branch_fns` functions are JIT-script instantly. Defaults to False. When set to True, the basic `cond` function (outside JIT tracing or vector-map) may gain some performance improvement. However, it is not recommended to use `script_functions=True` since the basic `cond` function shall NOT be used in performance-critical paths.
+        :param stateful_functions: Whether the `branch_fns` functions are stateful functions, i.e., they access class members. None means that if any of the `branch_fns` is a class method, it will be set to True.
 
         ## Notice:
         1. When using `TracingCond` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `branch_fns` must have the same number of arguments.
-        3. `branch_fns` CAN be non-pure functions, i.e., they CAN have side-effects. However, to use non-pure functions, the function inputs shall NOT be class members (`self.XXX`).
+        3. `branch_fns` CAN be non-pure functions, i.e., they CAN have side-effects, if `stateful_functions=True`. However, to use non-pure functions, the function inputs shall NOT be class members.
         """
         super().__init__()
         if self.__cache_key__ in _switch_object_cache:
             return
         assert len(branch_fns) >= 2, f"At least 2 branches are required, got {len(branch_fns)}"
-        if script_functions:
-            self.branch_fns = tuple(map(torch.jit.script, branch_fns))
-        else:
-            self.branch_fns = None
-        self._branch_fns = branch_fns
-        self._cache_compiled_switch: Dict[
-            Tuple[int, torch.dtype, torch.device],
-            Tuple[torch.jit.ScriptFunction, Tuple[UseStateFunc, ...]],
-        ] = {}
+        if stateful_functions is None:
+            stateful_functions = any(map(lambda fn: hasattr(inspect.unwrap(fn), "__self__"), branch_fns))
+        self.stateful_functions = stateful_functions
+        self.branch_fns = branch_fns
+        self._cache_compiled_switch: Dict[Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction] = {}
         _switch_object_cache[self.__cache_key__] = self
 
     def __del__(self):
@@ -1058,20 +1055,299 @@ class TracingSwitch(ModuleBase):
 
         :return: The output tensors from the chosen branch function.
         """
-        if self.branch_fns is None:
-            x = self._branch_fns[branch_idx.item()](*x)
-        else:
-            x = self.branch_fns[branch_idx.item()](*x)
-        return x
+        return self.branch_fns[branch_idx.item()](*x)
 
     @torch.jit.ignore
     def _compile_switch_fn(self, original_args: Tuple[torch.Tensor, ...]):
+        assert len(self.branch_fns) <= 9, f"At most 9 branches are supported, got {len(self.branch_fns)}"
+        branch_fns: List[torch.jit.ScriptFunction] = []
+        for branch_fn in self.branch_fns:
+            branch_fns.append(jit(branch_fn, trace=True, lazy=False, example_inputs=original_args))
+        # set local functions
+        branch_fn0, branch_fn1, *_rest = branch_fns
+        if len(_rest) > 0:
+            branch_fn2, *_rest = _rest
+        else:
+            branch_fn2 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn3, *_rest = _rest
+        else:
+            branch_fn3 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn4, *_rest = _rest
+        else:
+            branch_fn4 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn5, *_rest = _rest
+        else:
+            branch_fn5 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn6, *_rest = _rest
+        else:
+            branch_fn6 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn7, *_rest = _rest
+        else:
+            branch_fn7 = branch_fn0
+        if len(_rest) > 0:
+            branch_fn8, *_rest = _rest
+        else:
+            branch_fn8 = branch_fn0
+
+        def _switch1(branch_idx: torch.Tensor, x1: torch.Tensor):
+            if branch_idx == 0:
+                return branch_fn0(x1)
+            if branch_idx == 1:
+                return branch_fn1(x1)
+            if branch_idx == 2:
+                return branch_fn2(x1)
+            if branch_idx == 3:
+                return branch_fn3(x1)
+            if branch_idx == 4:
+                return branch_fn4(x1)
+            if branch_idx == 5:
+                return branch_fn5(x1)
+            if branch_idx == 6:
+                return branch_fn6(x1)
+            if branch_idx == 7:
+                return branch_fn7(x1)
+            if branch_idx == 8:
+                return branch_fn8(x1)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch2(branch_idx: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch3(branch_idx: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch4(branch_idx: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch5(
+            branch_idx: torch.Tensor, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
+        ):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4, x5)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4, x5)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4, x5)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4, x5)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4, x5)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4, x5)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4, x5)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4, x5)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4, x5)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch6(
+            branch_idx: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+        ):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4, x5, x6)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4, x5, x6)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch7(
+            branch_idx: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+        ):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4, x5, x6, x7)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4, x5, x6, x7)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch8(
+            branch_idx: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+            x8: torch.Tensor,
+        ):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4, x5, x6, x7, x8)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4, x5, x6, x7, x8)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        def _switch9(
+            branch_idx: torch.Tensor,
+            x1: torch.Tensor,
+            x2: torch.Tensor,
+            x3: torch.Tensor,
+            x4: torch.Tensor,
+            x5: torch.Tensor,
+            x6: torch.Tensor,
+            x7: torch.Tensor,
+            x8: torch.Tensor,
+            x9: torch.Tensor,
+        ):
+            if branch_idx == 0:
+                return branch_fn0(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 1:
+                return branch_fn1(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 2:
+                return branch_fn2(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 3:
+                return branch_fn3(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 4:
+                return branch_fn4(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 5:
+                return branch_fn5(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 6:
+                return branch_fn6(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 7:
+                return branch_fn7(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if branch_idx == 8:
+                return branch_fn8(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            raise AssertionError(f"Invalid branch index {branch_idx.item()}")
+
+        switch_dict = {
+            1: _switch1,
+            2: _switch2,
+            3: _switch3,
+            4: _switch4,
+            5: _switch5,
+            6: _switch6,
+            7: _switch7,
+            8: _switch8,
+            9: _switch9,
+        }
+        assert len(original_args) <= len(switch_dict), (
+            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        )
+        compiled_switch = torch.jit.script(switch_dict[len(original_args)])
+        return compiled_switch
+
+    @torch.jit.ignore
+    def _compile_state_switch_fn(self, original_args: Tuple[torch.Tensor, ...]):
         # use state for in-place modifications
-        assert len(self._branch_fns) <= 9, f"At most 9 branches are supported, got {len(self._branch_fns)}"
+        assert len(self.branch_fns) <= 9, f"At most 9 branches are supported, got {len(self.branch_fns)}"
         state_branch_fns: List[UseStateFunc] = []
         branch_fns: List[torch.jit.ScriptFunction] = []
-        for branch_fn in self._branch_fns:
-            state_branch_fns.append(use_state(lambda: branch_fn))
+        for branch_fn in self.branch_fns:
+            state_branch_fns.append(use_state(branch_fn, is_generator=False))
             branch_fns.append(
                 jit(
                     state_branch_fns[-1],
@@ -1112,82 +1388,82 @@ class TracingSwitch(ModuleBase):
         else:
             branch_fn8 = branch_fn0
 
-        def _switch1(states: List[Dict[str, torch.Tensor]], branch_idx: torch.Tensor, x1: torch.Tensor):
+        def _switch1(state: Dict[str, torch.Tensor], branch_idx: torch.Tensor, x1: torch.Tensor):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1)
+                return branch_fn0(state, x1)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1)
+                return branch_fn1(state, x1)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1)
+                return branch_fn2(state, x1)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1)
+                return branch_fn3(state, x1)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1)
+                return branch_fn4(state, x1)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1)
+                return branch_fn5(state, x1)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1)
+                return branch_fn6(state, x1)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1)
+                return branch_fn7(state, x1)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1)
+                return branch_fn8(state, x1)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch2(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2)
+                return branch_fn0(state, x1, x2)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2)
+                return branch_fn1(state, x1, x2)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2)
+                return branch_fn2(state, x1, x2)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2)
+                return branch_fn3(state, x1, x2)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2)
+                return branch_fn4(state, x1, x2)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2)
+                return branch_fn5(state, x1, x2)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2)
+                return branch_fn6(state, x1, x2)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2)
+                return branch_fn7(state, x1, x2)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2)
+                return branch_fn8(state, x1, x2)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch3(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
             x3: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3)
+                return branch_fn0(state, x1, x2, x3)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3)
+                return branch_fn1(state, x1, x2, x3)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3)
+                return branch_fn2(state, x1, x2, x3)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3)
+                return branch_fn3(state, x1, x2, x3)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3)
+                return branch_fn4(state, x1, x2, x3)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3)
+                return branch_fn5(state, x1, x2, x3)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3)
+                return branch_fn6(state, x1, x2, x3)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3)
+                return branch_fn7(state, x1, x2, x3)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3)
+                return branch_fn8(state, x1, x2, x3)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch4(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1195,27 +1471,27 @@ class TracingSwitch(ModuleBase):
             x4: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4)
+                return branch_fn0(state, x1, x2, x3, x4)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4)
+                return branch_fn1(state, x1, x2, x3, x4)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4)
+                return branch_fn2(state, x1, x2, x3, x4)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4)
+                return branch_fn3(state, x1, x2, x3, x4)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4)
+                return branch_fn4(state, x1, x2, x3, x4)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4)
+                return branch_fn5(state, x1, x2, x3, x4)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4)
+                return branch_fn6(state, x1, x2, x3, x4)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4)
+                return branch_fn7(state, x1, x2, x3, x4)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4)
+                return branch_fn8(state, x1, x2, x3, x4)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch5(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1224,27 +1500,27 @@ class TracingSwitch(ModuleBase):
             x5: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4, x5)
+                return branch_fn0(state, x1, x2, x3, x4, x5)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4, x5)
+                return branch_fn1(state, x1, x2, x3, x4, x5)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4, x5)
+                return branch_fn2(state, x1, x2, x3, x4, x5)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4, x5)
+                return branch_fn3(state, x1, x2, x3, x4, x5)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4, x5)
+                return branch_fn4(state, x1, x2, x3, x4, x5)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4, x5)
+                return branch_fn5(state, x1, x2, x3, x4, x5)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4, x5)
+                return branch_fn6(state, x1, x2, x3, x4, x5)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4, x5)
+                return branch_fn7(state, x1, x2, x3, x4, x5)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4, x5)
+                return branch_fn8(state, x1, x2, x3, x4, x5)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch6(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1254,27 +1530,27 @@ class TracingSwitch(ModuleBase):
             x6: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4, x5, x6)
+                return branch_fn0(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4, x5, x6)
+                return branch_fn1(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4, x5, x6)
+                return branch_fn2(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4, x5, x6)
+                return branch_fn3(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4, x5, x6)
+                return branch_fn4(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4, x5, x6)
+                return branch_fn5(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4, x5, x6)
+                return branch_fn6(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4, x5, x6)
+                return branch_fn7(state, x1, x2, x3, x4, x5, x6)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4, x5, x6)
+                return branch_fn8(state, x1, x2, x3, x4, x5, x6)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch7(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1285,27 +1561,27 @@ class TracingSwitch(ModuleBase):
             x7: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn0(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn1(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn2(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn3(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn4(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn5(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn6(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn7(state, x1, x2, x3, x4, x5, x6, x7)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4, x5, x6, x7)
+                return branch_fn8(state, x1, x2, x3, x4, x5, x6, x7)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch8(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1317,27 +1593,27 @@ class TracingSwitch(ModuleBase):
             x8: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn0(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn1(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn2(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn3(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn4(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn5(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn6(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn7(state, x1, x2, x3, x4, x5, x6, x7, x8)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4, x5, x6, x7, x8)
+                return branch_fn8(state, x1, x2, x3, x4, x5, x6, x7, x8)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         def _switch9(
-            states: List[Dict[str, torch.Tensor]],
+            state: Dict[str, torch.Tensor],
             branch_idx: torch.Tensor,
             x1: torch.Tensor,
             x2: torch.Tensor,
@@ -1350,23 +1626,23 @@ class TracingSwitch(ModuleBase):
             x9: torch.Tensor,
         ):
             if branch_idx == 0:
-                return branch_fn0(states[0], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn0(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 1:
-                return branch_fn1(states[1], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn1(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 2:
-                return branch_fn2(states[2], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn2(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 3:
-                return branch_fn3(states[3], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn3(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 4:
-                return branch_fn4(states[4], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn4(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 5:
-                return branch_fn5(states[5], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn5(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 6:
-                return branch_fn6(states[6], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn6(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 7:
-                return branch_fn7(states[7], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn7(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             if branch_idx == 8:
-                return branch_fn8(states[8], x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                return branch_fn8(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             raise AssertionError(f"Invalid branch index {branch_idx.item()}")
 
         switch_dict = {
@@ -1380,29 +1656,35 @@ class TracingSwitch(ModuleBase):
             8: _switch8,
             9: _switch9,
         }
-        assert len(original_args) <= len(
-            switch_dict
-        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(switch_dict), (
+            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_switch = torch.jit.script(switch_dict[len(original_args)])
         return compiled_switch, state_branch_fns
 
     @trace_impl(switch)
     def trace_switch(self, branch_idx: torch.Tensor, *x: torch.Tensor):
+        if self.stateful_functions:
+            state: Dict[str, torch.Tensor] = branch_idx
+            branch_idx = x[0]
+            x = x[1:]
+        else:
+            state = None
         key = tuple((a.ndim, a.dtype, a.device) for a in (branch_idx,) + x)
-        if key in self._cache_compiled_switch:
-            compiled_switch, state_branch_fns = self._cache_compiled_switch[key]
+        if state is not None:
+            if key in self._cache_compiled_switch:
+                compiled_switch = self._cache_compiled_switch[key]
+            else:
+                compiled_switch, _ = self._compile_state_switch_fn(x)
+                self._cache_compiled_switch[key] = compiled_switch
+            res = compiled_switch(state, branch_idx, *x)
         else:
-            compiled_switch, state_branch_fns = self._compile_switch_fn(x)
-            self._cache_compiled_switch[key] = (compiled_switch, state_branch_fns)
-        init_states = [f.init_state(False) for f in state_branch_fns]
-        res = compiled_switch(init_states, branch_idx, *x)
-        if isinstance(res, tuple):
-            state, res = res
-        else:
-            state = res
-            res = None
-        for f in state_branch_fns:
-            f.set_state(state)
+            if key in self._cache_compiled_switch:
+                compiled_switch = self._cache_compiled_switch[key]
+            else:
+                compiled_switch = self._compile_switch_fn(x)
+                self._cache_compiled_switch[key] = compiled_switch
+            res = compiled_switch(branch_idx, *x)
         return res
 
     @vmap_impl(switch)
@@ -1411,9 +1693,9 @@ class TracingSwitch(ModuleBase):
         # use_state to support in-place modifications
         state_branch_fns: List[UseStateFunc] = []
         branch_results: List[torch.Tensor | Tuple[torch.Tensor, ...] | None] = []
-        final_states: List[Dict[str, torch.Tensor]] = []
+        final_state: Dict[str, torch.Tensor] = []
         init_state: Dict[str, torch.Tensor] = {}
-        for branch_fn in self._branch_fns:
+        for branch_fn in self.branch_fns:
             fn = use_state(lambda: branch_fn)
             state = fn.init_state()
             result = fn(fn.init_state(), *x)  # duplicate clone to prevent in-place modifications
@@ -1431,7 +1713,7 @@ class TracingSwitch(ModuleBase):
             state_branch_fns.append(fn)
             init_state.update(state)
             branch_results.append(result)
-            final_states.append(new_state)
+            final_state.append(new_state)
         # get conditional outputs
         if branch_results[0] is None:
             final_output = None
@@ -1446,7 +1728,7 @@ class TracingSwitch(ModuleBase):
         # set conditional state
         state_out: Dict[str, torch.Tensor] = {}
         for k, v in init_state.items():
-            final_state_tensors = [s.get(k, v) for s in final_states]
+            final_state_tensors = [s.get(k, v) for s in final_state]
             state_out[k] = _switch(branch_idx, final_state_tensors)
         for fn in state_branch_fns:
             fn.set_state(state_out)

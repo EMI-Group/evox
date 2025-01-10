@@ -1,6 +1,5 @@
 import inspect
 import types
-from abc import ABC
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import wraps
@@ -111,7 +110,7 @@ class ModuleBase(nn.Module):
 
     ## Notice
     1. This module is an object-oriented one that can contain mutable values.
-    2. Functional programming model is supported via `self.state_dict()` and `self.load_state_dict(...)`.
+    2. Functional programming model is supported via `self.state_dict(...)` and `self.load_state_dict(...)`.
     3. The module initialization for non-static members are recommended to be written in the overwritten method of `setup` (or any other member method) rather than `__init__`.
     4. Basically, predefined submodule(s) which will be ADDED to this module and accessed later in member method(s) should be treated as "non-static members", while any other member(s) should be treated as "static members".
 
@@ -177,6 +176,20 @@ class ModuleBase(nn.Module):
             wrapper.__jit_module__ = None
         return self
 
+    def state_dict_and_nonlocal_vars(
+        self, *target_functions, keep_vars: bool = True
+    ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
+        state = {}
+        self.state_dict(destination=state, prefix="self.", keep_vars=keep_vars)
+        closure_vars = {}
+        for f in target_functions:
+            _, _, new_vars, is_empty_vars = _get_vars(f, self, is_generator=False)
+            if not is_empty_vars:
+                closure_vars.update(new_vars)
+        if len(closure_vars) == 0:
+            closure_vars[_EMPTY_NAME] = torch.empty(0)
+        return state, closure_vars
+
     def load_state_dict(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, **kwargs):
         """Copy parameters and buffers from state_dict into this module and its descendants.
         Overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict).
@@ -188,9 +201,7 @@ class ModuleBase(nn.Module):
         :return: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
         """
         if copy:
-            assert not any(
-                map(torch._C._functorch.is_batchedtensor, state_dict.values())
-            ), "`copy=True` is not compatible with `vmap`"
+            assert not any(map(_vmap_fix.is_batched_tensor, state_dict.values())), "`copy=True` is not compatible with `vmap`"
             return super().load_state_dict(state_dict, **kwargs)
         # else
         sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
@@ -231,9 +242,9 @@ class ModuleBase(nn.Module):
         elif isinstance(value, tuple) or isinstance(value, list):
             all_tensors = all(map(lambda x: isinstance(x, torch.Tensor), value))
             all_modules = all(map(lambda x: isinstance(x, nn.Module), value))
-            assert (
-                all_tensors or all_modules
-            ), "Expect a tuple or list of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            assert all_tensors or all_modules, (
+                "Expect a tuple or list of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            )
             if all_modules:
                 sub_module = nn.ModuleList(value)
                 self.add_module(name, sub_module)
@@ -245,9 +256,9 @@ class ModuleBase(nn.Module):
         elif isinstance(value, dict):
             all_tensors = all(map(lambda x: isinstance(x, torch.Tensor), value.values()))
             all_modules = all(map(lambda x: isinstance(x, nn.Module), value.values()))
-            assert (
-                all_tensors or all_modules
-            ), "Expect a dict of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            assert all_tensors or all_modules, (
+                "Expect a dict of `torch.Tensor` or `nn.Module`, got a mixture of both or none of them."
+            )
             if all_modules:
                 sub_module = nn.ModuleDict(value)
                 self.add_module(name, sub_module)
@@ -469,7 +480,7 @@ def tracing_or_using_state():
 _SUBMODULE_PREFIX = "__submodule_"
 
 
-class _WrapClassBase(ABC):
+class _WrapClassBase:
     def __init__(self, inner: ModuleBase):
         assert isinstance(inner, ModuleBase), f"Inner module must be a `ModuleBase`, got {type(inner)}"
         object.__setattr__(inner, _WRAPPING_MODULE_NAME, self)
@@ -563,6 +574,52 @@ class UseStateFunc(Protocol):
 _EMPTY_NAME = "___empty___"
 
 
+def _get_vars(func: Callable, *exclude, is_generator: bool = True):
+    with use_state_context():
+        if is_generator:
+            func = func()
+        # get function closure
+        func_args = inspect.signature(func).parameters.keys()
+        assert _STATE_ARG_NAME not in func_args, f"Use-state functions cannot have argument of name `{_STATE_ARG_NAME}`"
+        vars = inspect.getclosurevars(func)
+        vars = {**vars.globals, **vars.nonlocals}
+        vars = {
+            k: v
+            for k, v in vars.items()
+            if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase) or isinstance(v, torch.Tensor)
+        }
+        # remove duplicate self
+        if hasattr(inspect.unwrap(func), "__self__") and "self" in vars:
+            self_v: Tuple[nn.Module, ...] = vars["self"]
+            if isinstance(self_v, _WrapClassBase):
+                if self_v.__jit_module__ is None:
+                    self_v = (self_v.__inner_module__,)
+                else:
+                    self_v = (self_v.__inner_module__, self_v.__jit_module__)
+            else:
+                self_v = (self_v,)
+            if len(self_v) > 1:
+                self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
+            vars = {k: v for k, v in vars.items() if v not in self_v}
+            vars["self"] = self_v[0]
+        elif hasattr(func, "__self__") and isinstance(func.__self__, nn.Module):
+            vars["self"] = func.__self__
+        # exclude
+        vars = {k: v for k, v in vars.items() if v not in exclude}
+        # get module states
+        modules_vars: Dict[str, torch.Tensor] = {}
+        for k, v in vars.items():
+            if isinstance(v, torch.Tensor):
+                modules_vars[k] = v
+            else:
+                v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
+        # special case for empty state
+        is_empty_state = len(modules_vars) == 0
+        if is_empty_state:
+            modules_vars = {_EMPTY_NAME: torch.empty(0)}
+        return func, vars, modules_vars, is_empty_state
+
+
 def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True) -> UseStateFunc:
     """Transform the given stateful function (which in-place alters `nn.Module`s) to a pure-functional version that receives an additional `state` parameter (of type `Dict[str, torch.Tensor]`) and returns the altered state additionally.
 
@@ -616,98 +673,73 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
     fn.set_state(results[0])
     ```
     """
-    with use_state_context():
-        # get function closure
-        if is_generator:
-            func = func()
-        func_args = inspect.signature(func).parameters.keys()
-        assert _STATE_ARG_NAME not in func_args, f"Use-state functions cannot have argument of name `{_STATE_ARG_NAME}`"
-        vars = inspect.getclosurevars(func)
-        vars = {**vars.globals, **vars.nonlocals}
-        vars = {k: v for k, v in vars.items() if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase)}
-        # remove duplicate self
-        if hasattr(inspect.unwrap(func), "__self__") and "self" in vars:
-            self_v: Tuple[nn.Module, ...] = vars["self"]
-            if isinstance(self_v, _WrapClassBase):
-                if self_v.__jit_module__ is None:
-                    self_v = (self_v.__inner_module__,)
-                else:
-                    self_v = (self_v.__inner_module__, self_v.__jit_module__)
-            else:
-                self_v = (self_v,)
-            if len(self_v) > 1:
-                self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
-            vars = {k: v for k, v in vars.items() if v not in self_v}
-            vars["self"] = self_v[0]
-        elif hasattr(func, "__self__") and isinstance(func.__self__, nn.Module):
-            vars["self"] = func.__self__
-        # get module states
-        modules_vars: Dict[str, torch.Tensor] = {}
-        for k, v in vars.items():
-            v.state_dict(destination=modules_vars, prefix=k + ".", keep_vars=True)
-        # special case for empty state
-        is_empty_state = len(modules_vars) == 0
-        if is_empty_state:
-            modules_vars = {_EMPTY_NAME: torch.empty(0)}
+    func, vars, modules_vars, is_empty_state = _get_vars(func, is_generator=is_generator)
 
-        @wraps(func)
-        def state_wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
-            with use_state_context():
-                # special case for empty state
-                if is_empty_state and (
-                    not isinstance(state, dict)
-                    or ((tk := tuple(state.keys())) != (_EMPTY_NAME,) and len(set(tk).difference((_EMPTY_NAME,))) > 0)
-                ):
-                    ret = func(state, *args, **kwargs)
-                    return ret
-                # apply new state dict
-                _set_state(state)
-                # get actual output
-                ret = func(*args, **kwargs)
-                # get changed state dict
-                mutable_modules = {}
-                for k, v in vars.items():
-                    v.state_dict(destination=mutable_modules, prefix=k + ".", keep_vars=True)
-                if len(mutable_modules) == 0:
-                    mutable_modules = {_EMPTY_NAME: torch.empty(0)}
-                # return
-                if ret is None:
-                    return mutable_modules
-                else:
-                    return mutable_modules, ret
-
-        def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
-            if state is None:
-                state = modules_vars
-
-            def wrap_param_fn(key, val):
-                if isinstance(modules_vars[key], nn.Parameter):
-                    return nn.Parameter(val, requires_grad=modules_vars[key].requires_grad)
-                else:
-                    return val
-
+    @wraps(func)
+    def state_wrapper(state: Dict[str, torch.Tensor], *args, **kwargs):
+        with use_state_context():
+            # special case for empty state
+            if is_empty_state and (
+                not isinstance(state, dict)
+                or ((tk := tuple(state.keys())) != (_EMPTY_NAME,) and len(set(tk).difference((_EMPTY_NAME,))) > 0)
+            ):
+                ret = func(state, *args, **kwargs)
+                return ret
+            # apply new state dict
+            _set_state(state)
+            # get actual output
+            ret = func(*args, **kwargs)
+            # get changed state dict
+            mutable_modules = {}
             for k, v in vars.items():
-                this_state = {t[1]: wrap_param_fn(key, val) for key, val in state.items() if (t := key.split(".", 1))[0] == k}
-                if len(this_state) > 0:
-                    v.load_state_dict(this_state)
-
-        def _init_state(clone: bool = True):
-            if not clone:
-                return modules_vars
-            state = {}
-            for k, v in modules_vars.items():
-                if isinstance(v, nn.Parameter):
-                    state[k] = nn.Parameter(v.clone(), requires_grad=v.requires_grad)
+                if isinstance(v, torch.Tensor):
+                    mutable_modules[k] = v
                 else:
-                    state[k] = v.clone()
-            return state
+                    v.state_dict(destination=mutable_modules, prefix=k + ".", keep_vars=True)
+            if len(mutable_modules) == 0:
+                mutable_modules = {_EMPTY_NAME: torch.empty(0)}
+            # return
+            if ret is None:
+                return mutable_modules
+            else:
+                return mutable_modules, ret
 
-        state_wrapper.init_state = _init_state
-        state_wrapper.set_state = _set_state
-        state_wrapper.is_empty_state = is_empty_state
-        setattr(state_wrapper, _USE_STATE_NAME, True)
-        _vmap_fix._set_func_id(state_wrapper, func)
-        return state_wrapper
+    def _set_state(state: Optional[Dict[str, torch.Tensor]] = None):
+        if state is None:
+            state = modules_vars
+
+        def wrap_param_fn(key, val):
+            if isinstance(modules_vars[key], nn.Parameter):
+                return nn.Parameter(val, requires_grad=modules_vars[key].requires_grad)
+            else:
+                return val
+
+        for k, v in vars.items():
+            if isinstance(v, torch.Tensor):
+                # torch.utils.swap_tensors(v, state[k])  # cannot swap nonlocal variables
+                v.copy_(state[k])
+                continue
+            this_state = {t[1]: wrap_param_fn(key, val) for key, val in state.items() if (t := key.split(".", 1))[0] == k}
+            if len(this_state) > 0:
+                v.load_state_dict(this_state)
+
+    def _init_state(clone: bool = True):
+        if not clone:
+            return modules_vars
+        state = {}
+        for k, v in modules_vars.items():
+            if isinstance(v, nn.Parameter):
+                state[k] = nn.Parameter(v.clone(), requires_grad=v.requires_grad)
+            else:
+                state[k] = v.clone()
+        return state
+
+    state_wrapper.init_state = _init_state
+    state_wrapper.set_state = _set_state
+    state_wrapper.is_empty_state = is_empty_state
+    setattr(state_wrapper, _USE_STATE_NAME, True)
+    _vmap_fix._set_func_id(state_wrapper, func)
+    return state_wrapper
 
 
 global _TORCHSCRIPT_MODIFIER

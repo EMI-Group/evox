@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import wraps
-from typing import Any, Callable, List, Sequence, Tuple, TypeVar
+from typing import Any, Callable, List, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
@@ -310,6 +310,10 @@ def _batch_randint_like(like_tensor, **kwargs):
 
 
 def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
+    level = current_level()
+    if level is None or level <= 0:
+        return _original_get_item(tensor, indices)
+    # else
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)
         if indices.ndim == 0:
