@@ -3,15 +3,7 @@ import unittest
 import torch
 import torch.nn as nn
 
-from evox.core import (
-    Algorithm,
-    Problem,
-    jit,
-    jit_class,
-    trace_impl,
-    use_state,
-    vmap,
-)
+from evox.core import Algorithm, Mutable, Problem, jit, jit_class, trace_impl, use_state, vmap
 from evox.workflows import EvalMonitor, StdWorkflow
 
 
@@ -43,8 +35,8 @@ class BasicAlgorithm(Algorithm):
         self.lb = lb
         self.ub = ub
         self.dim = lb.shape[0]
-        self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
-        self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
+        self.pop = Mutable(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+        self.fit = Mutable(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
 
     def step(self):
         pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)

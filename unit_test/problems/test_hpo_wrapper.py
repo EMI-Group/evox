@@ -1,9 +1,8 @@
 import unittest
 
 import torch
-from torch import nn
 
-from evox.core import Algorithm, Parameter, Problem, jit_class, trace_impl
+from evox.core import Algorithm, Mutable, Parameter, Problem, jit_class, trace_impl
 from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
 from evox.workflows import StdWorkflow
 
@@ -19,17 +18,18 @@ class BasicProblem(Problem):
 
 @jit_class
 class BasicAlgorithm(Algorithm):
-    def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
+    def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor, device: torch.device | None = None):
         super().__init__()
         assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
         assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
+        device = torch.get_default_device() if device is None else device
         self.pop_size = pop_size
-        self.hp = Parameter([1.0, 2.0])
-        self.lb = lb
-        self.ub = ub
         self.dim = lb.shape[0]
-        self.pop = nn.Buffer(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
-        self.fit = nn.Buffer(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
+        self.hp = Parameter([1.0, 2.0], device=device)
+        self.lb = lb.to(device=device)
+        self.ub = ub.to(device=device)
+        self.pop = Mutable(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+        self.fit = Mutable(torch.empty(self.pop_size, dtype=lb.dtype, device=lb.device))
 
     def step(self):
         pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
@@ -63,8 +63,8 @@ class TestHPOWrapper(unittest.TestCase):
         self.assertIn("self.algorithm.hp", params)
 
     def test_evaluate(self):
-        params = self.hpo_prob.get_init_params()
-        params["self.algorithm.hp"] = Parameter(torch.rand(7, 2), requires_grad=False)
+        params = HPOProblemWrapper.extract_parameters(self.hpo_prob.init_state)
+        params["self.algorithm.hp"] = torch.rand(7, 2)
         result = self.hpo_prob.evaluate(params)
         self.assertIsInstance(result, torch.Tensor)
 
