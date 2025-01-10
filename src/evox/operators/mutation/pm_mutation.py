@@ -9,15 +9,16 @@ def polynomial_mutation(
     ub: torch.Tensor,
     pro_m: float = 1,
     dis_m: float = 20,
-):
-    """Polynomial mutation
+) -> torch.Tensor:
+    """Polynomial mutation.
     Inspired by PlatEMO.
 
-    Args:
-        x: The input population (size: n x d).
-        boundary: The lower and upper boundary for the mutation.
-        pro_m: Probability of mutation.
-        dis_m: The distribution index for polynomial mutation.
+    :param x: The input population (size: n x d).
+    :param boundary: The lower and upper boundary for the mutation.
+    :param pro_m: Probability of mutation.
+    :param dis_m: The distribution index for polynomial mutation.
+
+    :return: The mutated population. (size: n x d)
     """
     n, d = x.size()
     # Random numbers for mutation
@@ -48,9 +49,7 @@ def polynomial_mutation(
 
     # Apply mutation for the second part where mu > 0.5
     temp = site & (mu > 0.5)
-    norm = torch.where(
-        temp, (upper - pop_dec) / (upper - lower), torch.zeros_like(pop_dec)
-    )
+    norm = torch.where(temp, (upper - pop_dec) / (upper - lower), torch.zeros_like(pop_dec))
     pop_dec = torch.where(
         temp,
         pop_dec
