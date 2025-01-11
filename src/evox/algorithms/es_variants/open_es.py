@@ -21,17 +21,15 @@ class OpenES(Algorithm):
         mirrored_sampling: bool = True,
         device: torch.device | None = None,
     ):
-        """
-        Initialize the PSO algorithm with the given parameters.
+        """Initialize the PSO algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            center_init (`torch.Tensor` or `Dict[str, torch.Tensor]`): The initial center of the population. Must be a 1D tensor.
-            learning_rate (`float`): The learning rate for the optimizer.
-            noise_stdev (`float`): The standard deviation of the noise.
-            optimizer (`str`, optional): The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
-            mirrored_sampling (`bool`, optional): Whether to use mirrored sampling. Defaults to True.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param learning_rate: The learning rate for the optimizer.
+        :param noise_stdev: The standard deviation of the noise.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param mirrored_sampling: Whether to use mirrored sampling. Defaults to True.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

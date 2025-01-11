@@ -12,9 +12,12 @@ __all__ = [
     "PSO",
     "SLPSOGS",
     "SLPSOUS",
+    # MOEAs
+    "RVEA"
 ]
 
 
 from .de_variants import DE, ODE
 from .es_variants import OpenES
+from .mo import RVEA
 from .pso_variants import CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS

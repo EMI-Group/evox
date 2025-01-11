@@ -25,17 +25,16 @@ class FSPSO(Algorithm):
         """
         Initialize the FSPSO algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            inertia_weight (`float`, optional): The inertia weight. Defaults to 0.6.
-            cognitive_coefficient (`float`, optional): The cognitive weight. Defaults to 2.5.
-            social_coefficient (`float`, optional): The social weight. Defaults to 0.8.
-            mean (`float`, optional): The mean of the normal distribution. Defaults to None.
-            stdev (`float`, optional): The standard deviation of the normal distribution. Defaults to None.
-            mutate_rate (`float`, optional): The mutation rate. Defaults to 0.01.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param inertia_weight: The inertia weight. Defaults to 0.6.
+        :param cognitive_coefficient: The cognitive weight. Defaults to 2.5.
+        :param social_coefficient: The social weight. Defaults to 0.8.
+        :param mean: The mean of the normal distribution. Defaults to None.
+        :param stdev: The standard deviation of the normal distribution. Defaults to None.
+        :param mutate_rate: The mutation rate. Defaults to 0.01.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

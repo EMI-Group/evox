@@ -46,10 +46,11 @@ test = [
 
 docs = [
   "sphinx-book-theme > 1.0",
+  "sphinx-autodoc2",
   "sphinx",
   "myst-nb",
   "nbsphinx",
-  "myst-parser",
+  "myst-parser[linkify]",
   "sphinx_copybutton",
   "sphinx_design",
   "sphinx-favicon",

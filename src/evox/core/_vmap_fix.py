@@ -140,13 +140,11 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
     generates a batched tensor of random values by applying the given function to
     the size extended with the current vmap batch size.
 
-    Args:
-        rand_func (`Callable`): A function that generates a tensor of random values.
-        *size (`Tuple[int | torch.SymInt]`): The size arguments to the given function.
-        **kwargs: The keyword arguments to the given function.
+    :param rand_func: A function that generates a tensor of random values.
+    :param *size: The size arguments to the given function.
+    :param **kwargs: The keyword arguments to the given function.
 
-    Returns:
-        `torch.Tensor`: The batched tensor of random values.
+    :return: The batched tensor of random values.
 
     ## Usage:
     ```
@@ -178,13 +176,11 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     generates a batched tensor of random values by applying the given function to
     the tensor extended with the current vmap batch size.
 
-    Args:
-        rand_func (`Callable`): A function that generates a tensor of random values.
-        like_tensor (`torch.Tensor`): The tensor to generate random values like.
-        **kwargs: The keyword arguments to the given function.
+    :param rand_func: A function that generates a tensor of random values.
+    :param like_tensor: The tensor to generate random values like.
+    :param **kwargs: The keyword arguments to the given function.
 
-    Returns:
-        `torch.Tensor`: The batched tensor of random values.
+    :return: The batched tensor of random values.
     """
     level = current_level()
     if level is None or level <= 0:
@@ -198,6 +194,7 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
     return batch_rand_values
 
 
+_original_size = torch.Tensor.size
 _original_rand = torch.rand
 _original_randn = torch.randn
 _original_randint = torch.randint
@@ -209,7 +206,18 @@ _original_get_item = torch.Tensor.__getitem__
 _original_set_item = torch.Tensor.__setitem__
 
 
+def _batch_size(tensor: torch.Tensor, dim: int | None = None):
+    try:
+        return _original_size(tensor, dim)
+    except Exception:
+        original_tensor, batch_dims, _ = unwrap_batch_tensor(tensor)
+        _transform_in_dim(batch_dims, tensor, original_tensor)
+        return tensor.size(dim)
+
+
 def _batch_rand(*size, **kwargs):
+    if len(size) == 1 and isinstance(size[0], Sequence):
+        size = size[0]
     if "size" in kwargs:
         assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
@@ -217,6 +225,8 @@ def _batch_rand(*size, **kwargs):
 
 
 def _batch_randn(*size, **kwargs):
+    if len(size) == 1 and isinstance(size[0], Sequence):
+        size = size[0]
     if "size" in kwargs:
         assert len(size) == 0, f"Expect 0 positional arguments since size is given in kwargs, got {len(size)}"
         size = kwargs.pop("size")
@@ -227,7 +237,17 @@ def _batch_randint(low=None, high=None, size=None, **kwargs):
     assert high is not None and size is not None, "`high` and `size` must be given"
     if low is None:
         low = 0
-    return batched_random(_original_randint, *size, low=low, high=high, **kwargs)
+    if (isinstance(high, torch.Tensor) and is_batched_tensor(high)) or (
+        isinstance(low, torch.Tensor) and is_batched_tensor(low)
+    ):
+        range: torch.Tensor = high - low
+        random_values = batched_random(
+            _original_randint, *size, low=torch.iinfo(range.dtype).min, high=torch.iinfo(range.dtype).max, **kwargs
+        )
+        random_values = random_values % range + low
+        return random_values
+    else:
+        return batched_random(_original_randint, *size, low=low, high=high, **kwargs)
 
 
 def _batch_randperm(n, **kwargs):
@@ -292,6 +312,10 @@ def _batch_randint_like(like_tensor, **kwargs):
 
 
 def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
+    level = current_level()
+    if level is None or level <= 0:
+        return _original_get_item(tensor, indices)
+    # else
     if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)
         if indices.ndim == 0:
@@ -316,6 +340,7 @@ _batch_fixing: ContextVar[bool] = ContextVar("batch_fixing", default=False)
 def use_batch_fixing(new_batch_fixing: bool = True):
     # Set the new state and obtain a token
     token: Token = _batch_fixing.set(new_batch_fixing)
+    torch.Tensor.size = _batch_size if new_batch_fixing else _original_size
     torch.rand = _batch_rand if new_batch_fixing else _original_rand
     torch.randn = _batch_randn if new_batch_fixing else _original_randn
     torch.randint = _batch_randint if new_batch_fixing else _original_randint
@@ -330,6 +355,7 @@ def use_batch_fixing(new_batch_fixing: bool = True):
     finally:
         # Reset the state to its previous value
         _batch_fixing.reset(token)
+        torch.Tensor.size = _original_size
         torch.rand = _original_rand
         torch.randn = _original_randn
         torch.randint = _original_randint
@@ -341,14 +367,12 @@ def use_batch_fixing(new_batch_fixing: bool = True):
         torch.Tensor.__setitem__ = _original_set_item
 
 
-def unwrap_batch_tensor(tensor: torch.Tensor):
+def unwrap_batch_tensor(tensor: torch.Tensor) -> torch.Tensor | Tuple[int, ...] | Tuple[int, ...]:
     """Unwraps a batched tensor into its original tensor and the batch dimensions/sizes.
 
-    Args:
-        tensor (`torch.Tensor`): The batched tensor to be unwrapped.
+    :param tensor: The batched tensor to be unwrapped.
 
-    Returns:
-        (`torch.Tensor`, `tuple[int, ...]`, `tuple[int, ...]`): A tuple of the original tensor, the batch dimensions, and the batch sizes.
+    :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
     """
 
     level = get_level(tensor)
@@ -365,7 +389,7 @@ def unwrap_batch_tensor(tensor: torch.Tensor):
     return tensor, batch_dims, batch_sizes
 
 
-def align_vmap_tensor(value: Any, current_value: Any | None):
+def align_vmap_tensor(value: Any, current_value: Any | None) -> torch.Tensor:
     """
     Aligns a tensor with the batching dimensions of a current batched tensor.
 
@@ -374,15 +398,13 @@ def align_vmap_tensor(value: Any, current_value: Any | None):
     already a batched tensor or `current_value` is not a batched tensor, it
     returns `value` unchanged.
 
-    Args:
-        value (Any): The tensor to be aligned. If not a `torch.Tensor`, it is
-                     returned unchanged.
-        current_value (Any | None): The reference batched tensor. If `None` or
-                                    not a batched tensor, `value` is returned
-                                    unchanged.
+    :param value: The tensor to be aligned. If not a `torch.Tensor`, it is
+                    returned unchanged.
+    :param current_value: The reference batched tensor. If `None` or
+                                not a batched tensor, `value` is returned
+                                unchanged.
 
-    Returns:
-        `torch.Tensor`: The input `value` aligned with the batch dimensions of
+    :return: The input `value` aligned with the batch dimensions of
                       `current_value`, if applicable.
     """
 
@@ -414,12 +436,10 @@ def wrap_vmap_inputs(func: T) -> T:
     which are already batched or not tensors remain unchanged, while tensors
     that need to be batched are transformed accordingly.
 
-    Args:
-        func (`Callable`): The function to be wrapped, which will have its input
-                         tensors adjusted for vmap.
+    :param func: The function to be wrapped, which will have its input
+                        tensors adjusted for vmap.
 
-    Returns:
-        `Callable`: A wrapped version of `func` that ensures its input tensors
+    :return: A wrapped version of `func` that ensures its input tensors
                   are compatible with vmap's batching requirements.
     """
 

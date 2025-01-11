@@ -8,7 +8,8 @@ from ...utils import clamp
 
 @jit_class
 class ODE(Algorithm):
-    """The Opposition-based Differential Evolution (ODE) algorithm.
+    """
+    Opposition-based Differential Evolution (ODE) algorithm for optimization.
 
     ## Class Methods
 
@@ -33,34 +34,35 @@ class ODE(Algorithm):
         device: torch.device | None = None,
     ):
         """
-        Initialize the ODE algorithm with the given parameters.
+        Initialize the Opposition-based Differential Evolution (ODE) algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            base_vector (`Literal["best", "rand"]`, optional): The base vector type used in mutation. Defaults to "rand".
-            num_difference_vectors (`int`, optional): The number of difference vectors used in mutation. Defaults to 1.
-            differential_weight (`float` or `torch.Tensor`, optional): The differential weight(s) (F) applied to difference vectors. Defaults to 0.5.
-            cross_probability (`float`, optional): The crossover probability (CR). Defaults to 0.9.
-            mean (`torch.Tensor`, optional): The mean for initializing the population with a normal distribution. Defaults to None.
-            stdev (`torch.Tensor`, optional): The standard deviation for initializing the population with a normal distribution. Defaults to None.
-            device (`torch.device`, optional): The device to use for tensor computations. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param base_vector: The base vector type used in mutation. Either "best" or "rand". Defaults to "rand".
+        :param num_difference_vectors: The number of difference vectors used in mutation. Must be at least 1 and less than half of the population size. Defaults to 1.
+        :param differential_weight: The differential weight(s) (F) applied to difference vectors. Can be a float or a tensor of shape [num_difference_vectors]. Defaults to 0.5.
+        :param cross_probability: The crossover probability (CR). Must be in (0, 1]. Defaults to 0.9.
+        :param mean: The mean for initializing the population with a normal distribution. Must be provided with `stdev` if used. Defaults to None.
+        :param stdev: The standard deviation for initializing the population with a normal distribution. Must be provided with `mean` if used. Defaults to None.
+        :param device: The device to use for tensor computations. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
 
         # Validate input parameters
-        assert pop_size >= 4
-        assert 0 < cross_probability <= 1
-        assert 1 <= num_difference_vectors < pop_size // 2
-        assert base_vector in ["rand", "best"]
+        assert pop_size >= 4, "Population size must be at least 4."
+        assert 0 < cross_probability <= 1, "Crossover probability must be in (0, 1]."
+        assert 1 <= num_difference_vectors < pop_size // 2, (
+            "Number of difference vectors must be at least 1 and less than half of the population size."
+        )
+        assert base_vector in ["rand", "best"], "base_vector must be either 'rand' or 'best'."
         assert (
             lb.shape == ub.shape
             and lb.ndim == 1
             and ub.ndim == 1
             and lb.dtype == ub.dtype
-        )
+        ), "Lower and upper bounds must be 1D tensors of the same shape and dtype."
 
         # Initialize parameters
         self.pop_size = pop_size
@@ -68,17 +70,21 @@ class ODE(Algorithm):
         self.best_vector = base_vector == "best"
         self.num_difference_vectors = num_difference_vectors
 
-        # Validate differential_weight based on the number of difference vectors
+        # Validate and set differential weight
         if num_difference_vectors == 1:
-            assert isinstance(differential_weight, float)
+            assert isinstance(differential_weight, float), (
+                "Differential weight must be a float when using one difference vector."
+            )
         else:
             assert isinstance(
                 differential_weight, torch.Tensor
-            ) and differential_weight.shape == torch.Size([num_difference_vectors])
+            ) and differential_weight.shape == torch.Size([num_difference_vectors]), (
+                "Differential weight must be a tensor with shape [num_difference_vectors] when using multiple difference vectors."
+            )
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
 
-        # Prepare bounds
+        # Move bounds to the specified device and add batch dimension
         lb = lb[None, :].to(device=device)
         ub = ub[None, :].to(device=device)
         self.lb = lb
@@ -127,12 +133,13 @@ class ODE(Algorithm):
         num_vec = self.num_difference_vectors * 2 + (0 if self.best_vector else 1)
         random_choices = []
 
-        # Mutation: Generate random indices for creating difference vectors
-        # TODO: currently we allow replacement for different vectors, which is not equivalent to the original implementation
-        # TODO: we will change to an implementation based on reservoir sampling (e.g., https://github.com/LeviViana/torch_sampling) in the future
+        # Mutation: Generate random permutations for selecting vectors
+        # TODO: Currently allows replacement for different vectors, which is not equivalent to the original implementation
+        # TODO: Consider changing to an implementation based on reservoir sampling (e.g., https://github.com/LeviViana/torch_sampling) in the future
         for i in range(num_vec):
             random_choices.append(torch.randperm(self.pop_size, device=device))
 
+        # Determine the base vector
         if self.best_vector:
             # Use the best individual as the base vector
             best_index = torch.argmin(self.fitness)
@@ -176,14 +183,14 @@ class ODE(Algorithm):
 
         # Opposition-Based Selection: Evaluate fitness of the opposition population
         opposition_fitness = self.evaluate(opposition_population)
-        compare = opposition_fitness < self.fitness
+        compare_opposition = opposition_fitness < self.fitness
 
         # Replace individuals with their opposites if the opposites are better
-        new_population = torch.where(
-            compare[:, None], opposition_population, self.population
+        updated_population = torch.where(
+            compare_opposition[:, None], opposition_population, self.population
         )
-        new_fitness = torch.where(compare, opposition_fitness, self.fitness)
+        updated_fitness = torch.where(compare_opposition, opposition_fitness, self.fitness)
 
         # Update population and fitness with opposition-based selections
-        self.population = new_population
-        self.fitness = new_fitness
+        self.population = updated_population
+        self.fitness = updated_fitness
