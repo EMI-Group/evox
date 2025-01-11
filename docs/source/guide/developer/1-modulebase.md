@@ -6,7 +6,7 @@ This notebook will introduce the basic module in EvoX: {doc}`ModuleBase <apidocs
 
 ## Introduction of Module
 
-in the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`, we have mentioned the basic running process in EvoX:
+In the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`, we have mentioned the basic running process in EvoX:
 
 <center><b>Initiate an algorithm and a problem -- Set an monitor -- Initiate a workflow -- Run the workflow</b></center>
 
