@@ -16,8 +16,7 @@ class ParamsAndVector(ModuleBase):
         """
         Initialize the ParamsAndVector instance.
 
-        Args:
-            dummy_model (`nn.Module`): A PyTorch model whose parameters will be used to initialize the parameter and vector conversion attributes. Must be an initialized PyTorch model.
+        :param dummy_model: A PyTorch model whose parameters will be used to initialize the parameter and vector conversion attributes. Must be an initialized PyTorch model.
         """
         super().__init__()
         params = dict(dummy_model.named_parameters())
@@ -53,11 +52,9 @@ class ParamsAndVector(ModuleBase):
     def to_vector(self, params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Convert the input parameters dictionary to a single vector.
 
-        Args:
-            params (`Dict[str, nn.Parameter]`): The input parameters dictionary.
+        :param params: The input parameters dictionary.
 
-        Returns:
-            `torch.Tensor`: The output vector obtained by concatenating the flattened parameters.
+        :return: The output vector obtained by concatenating the flattened parameters.
         """
 
         flat_params: List[nn.Parameter] = self._jit_tree_flatten(params)
@@ -69,11 +66,9 @@ class ParamsAndVector(ModuleBase):
 
         The input dictionary values must be batched parameters, i.e., they must have the same shape at the first dimension.
 
-        Args:
-            batched_params (`Dict[str, nn.Parameter]`): The input batched parameters dictionary.
+        :param batched_params: The input batched parameters dictionary.
 
-        Returns:
-            `torch.Tensor`: The output vectors obtained by concatenating the flattened batched parameters. The first dimension of the output vector corresponds to the batch size.
+        :return: The output vectors obtained by concatenating the flattened batched parameters. The first dimension of the output vector corresponds to the batch size.
         """
         flat_params: List[nn.Parameter] = self._jit_tree_flatten(batched_params)
         flat_params = [x.reshape(x.shape[0], -1) for x in flat_params]
@@ -82,11 +77,9 @@ class ParamsAndVector(ModuleBase):
     def to_params(self, vector: torch.Tensor) -> Dict[str, nn.Parameter]:
         """Convert a vector back to a parameters dictionary.
 
-        Args:
-            vector (`torch.Tensor`): The input vector representing flattened model parameters.
+        :param vector: The input vector representing flattened model parameters.
 
-        Returns:
-            `Dict[str, nn.Parameter]`: The reconstructed parameters dictionary.
+        :return: The reconstructed parameters dictionary.
         """
         flat_params = []
         for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
@@ -96,11 +89,9 @@ class ParamsAndVector(ModuleBase):
     def batched_to_params(self, vectors: torch.Tensor) -> Dict[str, nn.Parameter]:
         """Convert a batch of vectors back to a batched parameters dictionary.
 
-        Args:
-            vectors (`torch.Tensor`): The input batch of vectors representing flattened model parameters. The first dimension of the tensor corresponds to the batch size.
+        :param vectors: The input batch of vectors representing flattened model parameters. The first dimension of the tensor corresponds to the batch size.
 
-        Returns:
-            `Dict[str, nn.Parameter]`: The reconstructed batched parameters dictionary whose tensors' first dimensions correspond to the batch size.
+        :return: The reconstructed batched parameters dictionary whose tensors' first dimensions correspond to the batch size.
         """
         flat_params = []
         batch_size = vectors.shape[0]

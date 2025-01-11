@@ -35,7 +35,6 @@ def neuroevolution_process(
         print(f"In generation {index}:")
         t = time.time()
         workflow.step()
-        torch.cuda.synchronize()
         print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
         monitor: EvalMonitor = workflow.get_submodule("monitor")
         print(f"\tTop fitness: {monitor.topk_fitness}")

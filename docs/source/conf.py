@@ -29,8 +29,7 @@ author = "Bill Huang"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
+    "autodoc2",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -40,6 +39,12 @@ extensions = [
     "sphinxcontrib.mermaid",
     "myst_nb",
 ]
+
+autodoc2_packages = [
+    "../../src/evox",
+]
+
+autodoc2_render_plugin = "myst"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -52,13 +57,7 @@ exclude_patterns = []
 # mock these modules, so we can build the document without these dependencies.
 autodoc_mock_imports = [
     "brax",
-    "chex",
-    "envpool",
-    "gymnasium",
-    "ray",
-    "tensorflow_datasets",
-    "gpjax",
-    "orbax-checkpoint",
+    "torchvision",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -105,6 +104,6 @@ numpydoc_show_class_members = False
 autosummary_generate = True
 autosummary_imported_members = True
 nb_execution_mode = "off"
-myst_enable_extensions = ["dollarmath"]
+myst_enable_extensions = ["dollarmath", "fieldlist", "linkify"]
 locale_dirs = ["locale/"]
 gettext_compact = "docs"

@@ -58,13 +58,18 @@ class TestHPOWrapper(unittest.TestCase):
         self.workflow.setup(self.algo, self.prob, monitor=self.monitor)
         self.hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True)
 
-    def test_extract_parameters(self):
-        params = HPOProblemWrapper.extract_parameters(self.hpo_prob.init_state)
+    def test_get_init_params(self):
+        params = self.hpo_prob.get_init_params()
         self.assertIn("self.algorithm.hp", params)
 
     def test_evaluate(self):
+<<<<<<< HEAD
         params = HPOProblemWrapper.extract_parameters(self.hpo_prob.init_state)
         params["self.algorithm.hp"] = torch.rand(7, 2)
+=======
+        params = self.hpo_prob.get_init_params()
+        params["self.algorithm.hp"] = Parameter(torch.rand(7, 2), requires_grad=False)
+>>>>>>> d24aa7880432e5f07e6f712b1a852dd3bf7b0c2d
         result = self.hpo_prob.evaluate(params)
         self.assertIsInstance(result, torch.Tensor)
 

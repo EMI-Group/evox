@@ -8,18 +8,19 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
-from torch.utils.dlpack import from_dlpack, to_dlpack
 
 from ...core import Problem, jit_class
 from .utils import get_vmap_model_state_forward
 
 
+# to_dlpack is not necessary for torch.Tensor and jax.Array
+# because they have a __dlpack__ method, which is called by their respective from_dlpack methods.
 def to_jax_array(x: torch.Tensor) -> jax.Array:
-    return jax.dlpack.from_dlpack(to_dlpack(x.detach()))
+    return jax.dlpack.from_dlpack(x.detach())
 
 
 def from_jax_array(x: jax.Array) -> torch.Tensor:
-    return from_dlpack(jax.dlpack.to_dlpack(x, take_ownership=True))
+    return torch.utils.dlpack.from_dlpack(x)
 
 
 __brax_data__: Dict[
@@ -53,16 +54,15 @@ class BraxProblem(Problem):
         and use the reduce_fn to reduce the rewards (default to average).
         Different individuals will share the same set of random keys in each iteration.
 
-        Args:
-            policy (`nn.Module`): The policy model whose forward function is :code:`forward(batched_obs) -> action`.
-            env_name (`str`): The environment name.
-            max_episode_length (`int`): The maximum number of timesteps of each episode.
-            num_episodes (`int`): The number of episodes to evaluate for each individual.
-            pop_size (`int` or None): The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
-            rotate_key (`bool`): Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
-            reduce_fn (`(torch.Tensor, dim=int) -> torch.Tensor`): The function to reduce the rewards of multiple episodes. Default to `torch.mean`.
-            backend (`str`): Brax's backend. If None, the default backend of the environment will be used. Default to None.
-            device (`torch.device`, optional): The device to run the computations on. Defaults to the current default device.
+        :param policy: The policy model whose forward function is :code:`forward(batched_obs) -> action`.
+        :param env_name: The environment name.
+        :param max_episode_length: The maximum number of timesteps of each episode.
+        :param num_episodes: The number of episodes to evaluate for each individual.
+        :param pop_size: The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
+        :param rotate_key: Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
+        :param reduce_fn: The function to reduce the rewards of multiple episodes. Default to `torch.mean`.
+        :param backend: Brax's backend. If None, the default backend of the environment will be used. Default to None.
+        :param device: The device to run the computations on. Defaults to the current default device.
 
         ## Notice
         The initial key is obtained from `torch.random.get_rng_state()`.
@@ -130,11 +130,9 @@ class BraxProblem(Problem):
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the final rewards of a population (batch) of model parameters.
 
-        Args:
-            pop_params (`Dict[str, nn.Parameter]`): A dictionary of parameters where each key is a parameter name and each value is a tensor of shape (batch_size, *param_shape) representing the batched parameters of batched models.
+        :param pop_params: A dictionary of parameters where each key is a parameter name and each value is a tensor of shape (batch_size, *param_shape) representing the batched parameters of batched models.
 
-        Returns:
-            A tensor of shape (batch_size,) containing the reward of each sample in the population.
+        :return: A tensor of shape (batch_size,) containing the reward of each sample in the population.
         """
         # Unpack parameters and buffers
         state_params = {self._param_to_state_key_map[key]: value for key, value in pop_params.items()}
