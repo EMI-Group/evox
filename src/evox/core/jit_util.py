@@ -20,12 +20,10 @@ class MappedUseStateFunc(Protocol):
     def init_state(self, batch_size: int | None = None, expand: bool = True) -> Dict[str, torch.Tensor]:
         """Initialize the state of the mapped function.
 
-        Args:
-            batch_size (`int | None`, optional): The batch size of the state. If `None`, the batch size of the state is indicated by VMAP_DIM_CONST. Defaults to `None`.
-            expand (`bool`, optional): Whether to `torch.expand` or `torch.repeat` the state tensors to the given batch size.
+        :param batch_size: The batch size of the state. If `None`, the batch size of the state is indicated by VMAP_DIM_CONST. Defaults to `None`.
+        :param expand: Whether to `torch.expand` or `torch.repeat` the state tensors to the given batch size.
 
-        Returns:
-            `Dict[str, torch.Tensor]`: The initialized state, with the same keys as the state of the original function.
+        :return: The initialized state, with the same keys as the state of the original function.
         """
         pass
 
@@ -53,24 +51,21 @@ def vmap(
 ) -> T | MappedUseStateFunc:
     """Vectorize map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
 
-    Args:
-        func (Callable): The function to be mapped. See `torch.vmap`.
-        in_dims (`int | Tuple[int, ...]`, optional): The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
-        out_dims (`int | Tuple[int, ...]`, optional): The outputs' batch dimensions. See `torch.vmap`. Defaults to 0.
-        trace (`bool`, optional): Whether to trace the mapped function with [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html) or simply use `torch.vmap. NOTICE: if `trace=False`, all of the following inputs related to tracing will be ignored.
-        example_ndim (`Tuple[int | None] | int`): The `ndim` of the expected inputs of the batched function; thus, it must be at least 1. Giving a single integer means same `ndim` for all inputs. Defaults to 1.
-        example_shapes (`Tuple[Tuple[int]  |  Any]  |  Tuple[int  |  Any]`, optional): The . Defaults to None.
-        example_inputs (`Tuple[torch.Tensor  |  Any]`, optional): _description_. Defaults to None.
-        strict (`bool`, optional): Strictly check the inputs or not. See `torch.jit.trace`. Defaults to False.
-        check_trace (`bool`, optional): Check the traced function or not. See `torch.jit.trace`. Defaults to False.
-        batched_state (`Dict[str, torch.Tensor]` or None, optional): The optional batched current state for a `use_state` wrapped function. If None, a new batched state will be returned for each call of `init_state(None)`. Ignored when `func` is not wrapped by `use_state`. Defaults to None.
-        VMAP_DIM_CONST (`int`, optional): When tracing, the example inputs may be broadcasted with additional dimension(s) of size `VMAP_DIM_CONST`. Defaults to 13.
+    :param func: The function to be mapped. See `torch.vmap`.
+    :param in_dims: The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
+    :param out_dims: The outputs' batch dimensions. See `torch.vmap`. Defaults to 0.
+    :param trace: Whether to trace the mapped function with [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html) or simply use `torch.vmap. NOTICE: if `trace=False`, all of the following inputs related to tracing will be ignored.
+    :param example_ndim: The `ndim` of the expected inputs of the batched function; thus, it must be at least 1. Giving a single integer means same `ndim` for all inputs. Defaults to 1.
+    :param example_shapes: The . Defaults to None.
+    :param example_inputs: _description_. Defaults to None.
+    :param strict: Strictly check the inputs or not. See `torch.jit.trace`. Defaults to False.
+    :param check_trace: Check the traced function or not. See `torch.jit.trace`. Defaults to False.
+    :param batched_state: The optional batched current state for a `use_state` wrapped function. If None, a new batched state will be returned for each call of `init_state(None)`. Ignored when `func` is not wrapped by `use_state`. Defaults to None.
+    :param VMAP_DIM_CONST: When tracing, the example inputs may be broadcasted with additional dimension(s) of size `VMAP_DIM_CONST`. Defaults to 13.
 
-    Raises:
-        NotImplementedError: If the function argument types are not supported
+    :raises NotImplementedError: If the function argument types are not supported
 
-    Returns:
-        `Callable`: The “batched” (vectorized mapped) version of `func`.
+    :return: The “batched” (vectorized mapped) version of `func`.
         If the given `func` is wrapped by `use_state`, the returned function will have a `init_state(batch_size: int) -> batched_state` or `init_state(None) -> batched_state`.
     """
 
@@ -238,24 +233,22 @@ def jit(
     This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`,
     preventing possible errors.
 
-    ## Notice:
+    ## Notice
         1. With `trace=True`, `torch.jit.trace` cannot use SAME example input arguments for function of DIFFERENT parameters,
         e.g., you cannot pass `tensor_a, tensor_a` to `torch.jit.trace`d version of `f(x: torch.Tensor, y: torch.Tensor)`.
         2. With `trace=False`, `torch.jit.script` cannot contain `vmap` expressions directly, please wrap them with `jit(..., trace=True)` or `torch.jit.trace`.
 
-    Args:
-        func (`Callable`): The target function to be JIT
-        trace (`bool`, optional): Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
-        lazy (`bool`, optional): Whether JIT lazily or immediately. Defaults to False. Has no effect when `trace=False`, where its value will be constantly `False`.
-        example_inputs (`tuple` or `dict` or `tuple[tuple, dict]`, optional): When `lazy=False`, the example inputs must be provided immediately, otherwise ignored. Can be only positional arguments (a tuple), only keyword arguments (a dict), or a tuple of positional arguments and keyword arguments (a tuple of tuple and dict). Defaults to None.
-        strict (`bool`, optional): Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
-        check_trace (`bool`, optional): Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
-        is_generator (`bool`, optional): Whether `func` is a generator or not. Defaults to False.
-        no_cache (`bool`, optional): Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
-        return_dummy_output (`bool`, optional): Whether to return the dummy output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
+    :param func: The target function to be JIT
+    :param trace: Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
+    :param lazy: Whether JIT lazily or immediately. Defaults to False. Has no effect when `trace=False`, where its value will be constantly `False`.
+    :param example_inputs: When `lazy=False`, the example inputs must be provided immediately, otherwise ignored. Can be only positional arguments (a tuple), only keyword arguments (a dict), or a tuple of positional arguments and keyword arguments (a tuple of tuple and dict). Defaults to None.
+    :param strict: Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
+    :param check_trace: Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
+    :param is_generator: Whether `func` is a generator or not. Defaults to False.
+    :param no_cache: Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
+    :param return_dummy_output: Whether to return the dummy output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
 
-    Returns:
-        `Callable`: The JIT version of `func`
+    :return: The JIT version of `func`
     """
     if is_generator:
         func = func()

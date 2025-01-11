@@ -1,6 +1,6 @@
 import torch
-import numpy as np
-from ..utils import maximum, minimum
+
+from ...utils import clamp
 
 
 def polynomial_mutation(
@@ -9,35 +9,30 @@ def polynomial_mutation(
     ub: torch.Tensor,
     pro_m: float = 1,
     dis_m: float = 20,
-):
-    """Polynomial mutation
+) -> torch.Tensor:
+    """Polynomial mutation.
     Inspired by PlatEMO.
 
-    Args:
-        x: The input population (size: n x d).
-        boundary: The lower and upper boundary for the mutation.
-        pro_m: Probability of mutation.
-        dis_m: The distribution index for polynomial mutation.
+    :param x: The input population (size: n x d).
+    :param lb: The lb boundary for the mutation.
+    :param ub: The ub boundary for the mutation.
+    :param pro_m: Probability of mutation.
+    :param dis_m: The distribution index for polynomial mutation.
+
+    :return: The mutated population. (size: n x d)
     """
-    n, d = x.shape
+    n, d = x.size()
     # Random numbers for mutation
-    site = (torch.rand(n, d) < pro_m / d).to(x.device)
+    site = torch.rand(n, d, device=x.device) < pro_m / d
     mu = torch.rand(n, d, device=x.device)
     # Apply mutation for the first part where mu <= 0.5
-    temp = site & (mu <= torch.tensor(0.5, device=x.device))
-    lower = lb
-    upper = ub
-
-    pop_dec = maximum(minimum(x, upper), lower)
-
-    norm = torch.where(
-        temp, (pop_dec - lower) / (upper - lower), torch.tensor(0.0, device=x.device)
-    )
-
+    temp = site & (mu <= 0.5)
+    pop_dec = clamp(x, lb, ub)
+    norm = torch.where(temp, (pop_dec - lb) / (ub - lb), 0.0)
     pop_dec = torch.where(
         temp,
         pop_dec
-        + (upper - lower)
+        + (ub - lb)
         * (
             torch.pow(
                 2 * mu + (1 - 2 * mu) * torch.pow(1 - norm, dis_m + 1),
@@ -47,16 +42,13 @@ def polynomial_mutation(
         ),
         pop_dec,
     )
-
     # Apply mutation for the second part where mu > 0.5
     temp = site & (mu > 0.5)
-    norm = torch.where(
-        temp, (upper - pop_dec) / (upper - lower), torch.zeros_like(pop_dec)
-    )
+    norm = torch.where(temp, (ub - pop_dec) / (ub - lb), torch.zeros_like(pop_dec))
     pop_dec = torch.where(
         temp,
         pop_dec
-        + (upper - lower)
+        + (ub - lb)
         * (
             1
             - torch.pow(

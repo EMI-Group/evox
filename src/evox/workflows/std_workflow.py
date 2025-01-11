@@ -43,8 +43,7 @@ class StdWorkflow(Workflow):
     def __init__(self, opt_direction: str = "min"):
         """Initialize the standard workflow with static arguments.
 
-        Args:
-            opt_direction (`str`, optional): The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
+        :param opt_direction: The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
         """
         super().__init__()
         assert opt_direction in [
@@ -67,18 +66,17 @@ class StdWorkflow(Workflow):
     ):
         """Setup the module with submodule initialization. Since all of these arguments are mutable modules to be added as submodules, they are placed here instead of `__init__` and thus `setup` MUST be invoked after `__init__`.
 
-        Args:
-            algorithm (`Algorithm`): The algorithm to be used in the workflow.
-            problem (`Problem`): The problem to be used in the workflow.
-            monitors (`Sequence[Monitor] | None`, optional): The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
-            solution_transform (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor | Any]`, optional): The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
-            fitness_transforms (a `torch.nn.Module` whose forward function signature is `Callable[[torch.Tensor], torch.Tensor]`, optional): The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
-            device (`str | torch.device | int | None`, optional): The device of the workflow. Defaults to None.
-            algorithm_setup_params (**kwargs): The arguments to be passed to `algorithm.setup(**kwargs)`. If not provided, the `algorithm.setup()` will not be invoked.
-            problem_setup_params (**kwargs): The arguments to be passed to `problem.setup(**kwargs)`. If not provided, the `problem.setup()` will not be invoked.
-            monitor_setup_params (**kwargs): The arguments to be passed to `monitor.setup(**kwargs)`. If not provided, the `monitor.setup()` will not be invoked.
+        :param algorithm: The algorithm to be used in the workflow.
+        :param problem: The problem to be used in the workflow.
+        :param monitors: The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
+        :param solution_transform: The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+        :param fitness_transforms: The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+        :param device: The device of the workflow. Defaults to None.
+        :param algorithm_setup_params: The arguments to be passed to `algorithm.setup(**kwargs)`. If not provided, the `algorithm.setup()` will not be invoked.
+        :param problem_setup_params: The arguments to be passed to `problem.setup(**kwargs)`. If not provided, the `problem.setup()` will not be invoked.
+        :param monitor_setup_params: The arguments to be passed to `monitor.setup(**kwargs)`. If not provided, the `monitor.setup()` will not be invoked.
 
-        ## Notice:
+        ## Notice
         The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
         super().setup()

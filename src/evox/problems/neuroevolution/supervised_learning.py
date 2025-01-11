@@ -28,17 +28,15 @@ class SupervisedLearningProblem(Problem):
     ):
         """Initialize the `SupervisedLearningProblem`.
 
-        Args:
-            model (`nn.Module`): The neural network model whose parameters need to be evaluated.
-            data_loader (`DataLoader`): The data loader providing the dataset for evaluation.
-            criterion (`nn.Module`): The loss function used to evaluate the parameters' performance.
-            pop_size (`int`, optional): The size of the population (batch size of the parameters) to be evaluated. Defaults to None for single-run mode.
-            device (`torch.device`, optional): The device to run the computations on. Defaults to the current default device.
+        :param model: The neural network model whose parameters need to be evaluated.
+        :param data_loader: The data loader providing the dataset for evaluation.
+        :param criterion: The loss function used to evaluate the parameters' performance.
+        :param pop_size: The size of the population (batch size of the parameters) to be evaluated. Defaults to None for single-run mode.
+        :param device: The device to run the computations on. Defaults to the current default device.
 
-        Raises:
-            `RuntimeError`: If the data loader contains no items.
+        :raises RuntimeError: If the data loader contains no items.
 
-        ## Warning:
+        ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
         """
         super().__init__()
@@ -226,11 +224,9 @@ class SupervisedLearningProblem(Problem):
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the fitness of a population (batch) of model parameters.
 
-        Args:
-            pop_params (`Dict[str, nn.Parameter]`): A dictionary of parameters where each key is a parameter name and each value is a tensor of shape (batch_size, *param_shape) representing the batched parameters of batched models.
+        :param pop_params: A dictionary of parameters where each key is a parameter name and each value is a tensor of shape (batch_size, *param_shape) representing the batched parameters of batched models.
 
-        Returns:
-            A tensor of shape (batch_size,) containing the fitness of each sample in the population.
+        :return: A tensor of shape (batch_size,) containing the fitness of each sample in the population.
         """
         pop_params_value = pop_params[self._sample_param_key]
         assert (

@@ -9,7 +9,7 @@ from ..core.module import ModuleBase
 class Algorithm(ModuleBase, ABC):
     """Base class for all algorithms
 
-    ## Notice:
+    ## Notice
     If a subclass have defined `trace_impl` of `step`, its corresponding `init_step` must be overwritten even though nothing special is to be included due to Python's object-oriented limitations.
     """
 
@@ -29,11 +29,9 @@ class Algorithm(ModuleBase, ABC):
         This function is a proxy function of `Problem.evaluate` set by workflow.
         By default, this functions raises `NotImplementedError`.
 
-        Args:
-            pop (`torch.Tensor` or any): The population.
+        :param pop: The population.
 
-        Returns:
-            `torch.Tensor`: The fitness.
+        :return: The fitness.
         """
         raise NotImplementedError(
             "Evaluate function is not implemented. It is a proxy function of `Problem.evaluate` set by workflow."
@@ -49,13 +47,11 @@ class Problem(ModuleBase, ABC):
     def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
         """Evaluate the fitness at given points
 
-        Args:
-            pop (`torch.Tensor` or any): The population.
+        :param pop: The population.
 
-        Returns:
-            `torch.Tensor`: The fitness.
+        :return: The fitness.
 
-        ## Notice:
+        ## Notice
         If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
         """
         return torch.empty(0)
@@ -92,42 +88,36 @@ class Monitor(ModuleBase, ABC):
     def set_config(self, **config) -> "Monitor":
         """Set the static variables according to `config`.
 
-        Args:
-            config: The configuration.
+        :param config: The configuration.
 
-        Returns:
-            This module.
+        :return: This module.
         """
         return self
 
     def post_ask(self, candidate_solution: torch.Tensor) -> None:
         """The hook function to be executed before the solution transformation.
 
-        Args:
-            candidate_solution (`torch.Tensor`): The population (candidate solutions) before the solution transformation.
+        :param candidate_solution: The population (candidate solutions) before the solution transformation.
         """
         pass
 
     def pre_eval(self, transformed_candidate_solution: Any) -> None:
         """The hook function to be executed after the solution transformation.
 
-        Args:
-            transformed_candidate_solution (`torch.Tensor` or any): The population (candidate solutions) after the solution transformation.
+        :param transformed_candidate_solution: The population (candidate solutions) after the solution transformation.
         """
         pass
 
     def post_eval(self, fitness: torch.Tensor) -> None:
         """The hook function to be executed before the fitness transformation.
 
-        Args:
-            fitness (`torch.Tensor`): The fitnesses before the fitness transformation.
+        :param fitness: The fitnesses before the fitness transformation.
         """
         pass
 
     def pre_tell(self, transformed_fitness: torch.Tensor) -> None:
         """The hook function to be executed after the fitness transformation.
 
-        Args:
-            transformed_fitness (`torch.Tensor`): The fitnesses after the fitness transformation.
+        :param transformed_fitness: The fitnesses after the fitness transformation.
         """
         pass

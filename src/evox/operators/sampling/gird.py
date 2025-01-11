@@ -1,15 +1,17 @@
 from math import ceil
+from typing import Tuple
+
 import torch
 
 
-def grid_sampling(n: int, m: int):
-    """
-    Grid sampling.
+def grid_sampling(n: int, m: int) -> Tuple[torch.Tensor, int]:
+    """Grid sampling.
     Inspired by PlatEMO.
 
-    Args:
-        n: Number of grid points along each axis.
-        m: Dimensionality of the grid (number of axes).
+    :param n: Number of grid points along each axis.
+    :param m: Dimensionality of the grid (number of axes).
+
+    :return: Grid points, and the number of samples.
     """
     num_points = int(ceil(n ** (1 / m)))
 
@@ -26,5 +28,5 @@ def grid_sampling(n: int, m: int):
     # Reverse the order of columns to match JAX's `w[:, ::-1]`
     w = w.flip(dims=[1])
 
-    num_samples = w.shape[0]
+    num_samples = w.size(0)
     return w, num_samples
