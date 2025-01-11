@@ -335,8 +335,9 @@ def unwrap_batch_tensor(tensor: torch.Tensor) -> torch.Tensor | Tuple[int, ...] 
 
     :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
     """
-
     level = get_level(tensor)
+    if level is None or level <= 0:
+        return tensor, (), ()
     batch_dims = []
     batch_sizes = []
     while level >= 1:

@@ -10,7 +10,7 @@ class Algorithm(ModuleBase, ABC):
     """Base class for all algorithms
 
     ## Notice
-    If a subclass have defined `trace_impl` of `ask` or `tell`, its corresponding `init_ask` or `init_tell` must be overwritten even though nothing special is to be included, because Python cannot correctly find the `trace_impl` version of these function due to otherwise.
+    If a subclass have defined `trace_impl` of `step`, its corresponding `init_step` must be overwritten even though nothing special is to be included due to Python's object-oriented limitations.
     """
 
     def __init__(self):
