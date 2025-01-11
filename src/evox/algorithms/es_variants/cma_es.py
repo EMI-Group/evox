@@ -20,14 +20,12 @@ class CMAES(Algorithm):
         weights: torch.Tensor | None = None,
         device: torch.device | None = None,
     ):
-        """
-        Initialize the CMA-ES algorithm with the given parameters.
+        """Initialize the CMA-ES algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population with the notation $lambda$.
-            mean_init (`torch.Tensor`): The initial mean of the population. Must be a 1D tensor.
-            sigma (`float`): The standard deviation of the noise.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population with the notation $\\lambda$.
+        :param mean_init: The initial mean of the population. Must be a 1D tensor.
+        :param sigma: The standard deviation of the noise.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
@@ -89,6 +87,10 @@ class CMAES(Algorithm):
         self.p_c = Mutable(torch.zeros(self.dim, device=device))
 
     def step(self):
+        """The main step of the CMA-ES algorithm.
+
+        In this step, the algorithm generates a new population, evaluates it, and updates the mean, covariance matrix, and step size correspondingly.
+        """
         self.iteration = self.iteration + 1
 
         y = torch.randn(self.pop_size, self.dim, device=self.mean.device) @ self.D @ self.B
