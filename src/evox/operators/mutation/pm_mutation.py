@@ -14,7 +14,8 @@ def polynomial_mutation(
     Inspired by PlatEMO.
 
     :param x: The input population (size: n x d).
-    :param boundary: The lower and upper boundary for the mutation.
+    :param lb: The lower bounds for the decision variables.
+    :param ub: The upper bounds for the decision variables.
     :param pro_m: Probability of mutation.
     :param dis_m: The distribution index for polynomial mutation.
 
