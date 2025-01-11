@@ -1,9 +1,11 @@
-from ...utils import lexsort
 from typing import List
+
 import torch
 
+from ...utils import lexsort
 
-def tournament_selection(n_round: int, tournament_size: int, fitnesses: List[torch.Tensor]) -> torch.Tensor:
+
+def tournament_selection_multifit(n_round: int, tournament_size: int, fitnesses: List[torch.Tensor]) -> torch.Tensor:
     """
     Perform tournament selection based on multiple fitness values.
 
@@ -43,3 +45,35 @@ def tournament_selection(n_round: int, tournament_size: int, fitnesses: List[tor
     return selected_parents
 
 
+def tournament_selection(n_round: torch.Tensor, tournament_size: torch.Tensor, fitnesses: torch.Tensor) -> torch.Tensor:
+    """
+    Perform tournament selection based on a single fitness value.
+
+    :param n_round: Number of rounds of selection (how many solutions to select).
+    :type n_round: int
+    :param tournament_size: Number of candidates in each tournament.
+    :type tournament_size: int
+    :param fitnesses: A 1D tensor representing the fitness values of candidates.
+    :type fitnesses: torch.Tensor
+    :return: Indices of the selected solutions after tournament selection.
+    :rtype: torch.Tensor
+
+    This function performs tournament selection by randomly selecting a group of candidates for each round,
+    and selecting the best one from each group based on their fitness values.
+    """
+    # Get the number of candidates
+    num_candidates = fitnesses.size(0)
+    # Perform tournament selection
+    parents = torch.randint(0, num_candidates, (n_round, tournament_size))
+    print(parents)
+    # Gather fitness values for the selected candidates
+    candidates_fitness = fitnesses[parents]
+
+    # Perform single fitness value selection
+    winner_indices = torch.argmin(candidates_fitness, dim=1)
+
+    # Select the best candidate from each tournament round
+    # selected_parents = parents[torch.arange(n_round), winner_indices]
+    selected_parents = torch.gather(parents, 1, winner_indices.unsqueeze(1)).squeeze()
+
+    return selected_parents

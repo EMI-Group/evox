@@ -1,5 +1,6 @@
-from ...core import use_state, jit, vmap, ModuleBase, trace_impl, jit_class
 import torch
+
+from ...core import ModuleBase, jit_class, trace_impl
 from ...utils import TracingWhile, lexsort
 
 
@@ -20,28 +21,27 @@ def dominate_relation(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return domination_matrix
 
 
-def update_dc_and_rank(dominate_relation_matrix: torch.Tensor, dominate_count: torch.Tensor, pareto_front: torch.BoolTensor, rank: torch.Tensor, current_rank: int):
+def update_dc_and_rank(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    pareto_front: torch.BoolTensor,
+    rank: torch.Tensor,
+    current_rank: int,
+):
     """
-    Update dominate count and ranks for the current Pareto front.
+    Update the dominate count and ranks for the current Pareto front.
 
-    Parameters
-    ----------
-    dominate_relation_matrix: torch.Tensor
-        The domination relation matrix between individuals.
-    dominate_count: torch.Tensor
-        The count of how many individuals dominate each individual.
-    pareto_front: torch.BoolTensor
-        A tensor indicating which individuals are in the current Pareto front.
-    rank: torch.Tensor
-        A tensor storing the rank of each individual.
-    current_rank: int
-        The current Pareto front rank.
+    :param dominate_relation_matrix: The domination relation matrix between individuals.
+    :param dominate_count: The count of how many individuals dominate each individual.
+    :param pareto_front: A tensor indicating which individuals are in the current Pareto front.
+    :param rank: A tensor storing the rank of each individual.
+    :param current_rank: The current Pareto front rank.
 
-    Returns
-    -------
-    torch.Tensor
-        Updated rank tensor.
+    :returns:
+        - **rank**: Updated rank tensor.
+        - **dominate_count**: Updated dominate count tensor.
     """
+
     # Update the rank for individuals in the Pareto front
     rank = torch.where(pareto_front, current_rank, rank)
     # Calculate how many individuals in the Pareto front dominate others
@@ -56,19 +56,14 @@ def update_dc_and_rank(dominate_relation_matrix: torch.Tensor, dominate_count: t
 
 def _non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
     """
-    Perform non-dominated sort using PyTorch.
+    Perform non-dominated sort using PyTorch in torch.script mode.
 
-    Parameters
-    ----------
-    x: torch.Tensor
-        An array with shape (n, m) where n is the population size, m is the number of objectives.
+    :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
 
-    Returns
-    -------
-    torch.Tensor
+    :returns:
         A one-dimensional tensor representing the ranking, starting from 0.
     """
-    # Number of individuals (n) and objectives (m)
+
     n, m = x.size()
 
     # Domination relation matrix (n x n)
@@ -88,15 +83,22 @@ def _non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
     while pareto_front.any():
         rank, dominate_count = update_dc_and_rank(dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank)
         current_rank += 1
-        pareto_front = (dominate_count == 0)
+        pareto_front = dominate_count == 0
 
     return rank
 
 
 _NDS_cache = None
 
+
 @jit_class
 class NonDominatedSort(ModuleBase):
+    """
+    A module for performing non-dominated sorting, implementing caching and support for PyTorch's full map-reduce method.
+
+    This class provides an efficient implementation of non-dominated sorting using both direct computation and a
+    traceable map-reduce method for large-scale multi-objective optimization problems.
+    """
     def __new__(cls):
         global _NDS_cache
         if _NDS_cache is not None:
@@ -105,6 +107,9 @@ class NonDominatedSort(ModuleBase):
             return super().__new__(cls)
 
     def __init__(self):
+        """
+        Initialize the NonDominatedSort module, setting up caching for efficient reuse.
+        """
         global _NDS_cache
         if _NDS_cache is not None:
             return
@@ -112,26 +117,20 @@ class NonDominatedSort(ModuleBase):
         _NDS_cache = self
 
     def non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Perform non-dominated sorting on the input tensor.
+        """
         return _non_dominated_sort_script(x)
 
     @trace_impl(non_dominated_sort)
     def trace_non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Perform non-dominated sort using PyTorch for the 'full map-reduce' method.
+        Perform non-dominated sorting using PyTorch's full map-reduce method for efficient computation.
 
-        Parameters
-        ----------
-        x: torch.Tensor
-            An array with shape (n, m) where n is the population size, m is the number of objectives
-        method: str
-            Method for computation, can be "auto" or "full map-reduce".
+        :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
 
-        Returns
-        -------
-        torch.Tensor
-            A one-dimensional tensor representing the ranking, starting from 0.
+        :returns: A one-dimensional tensor representing the ranking, starting from 0.
         """
-        # Number of individuals (n) and objectives (m)
         n, m = x.size()
 
         # Domination relation matrix (n x n)
@@ -147,13 +146,21 @@ class NonDominatedSort(ModuleBase):
         # Identify individuals in the first Pareto front (those that are not dominated)
         pareto_front = dominate_count == 0
 
-        def body_func(rank: torch.Tensor, dominate_count: torch.Tensor, current_rank: torch.IntTensor, pareto_front: torch.BoolTensor, dominate_relation_matrix: torch.Tensor):
+        def body_func(
+            rank: torch.Tensor,
+            dominate_count: torch.Tensor,
+            current_rank: torch.IntTensor,
+            pareto_front: torch.BoolTensor,
+            dominate_relation_matrix: torch.Tensor,
+        ):
             # Update rank and dominate count
-            rank, dominate_count = update_dc_and_rank(dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank)
+            rank, dominate_count = update_dc_and_rank(
+                dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+            )
 
             # Move to next rank
             current_rank = current_rank + 1
-            pareto_front = (dominate_count == 0)
+            pareto_front = dominate_count == 0
 
             return rank, dominate_count, current_rank, pareto_front, dominate_relation_matrix
 
@@ -165,24 +172,16 @@ class NonDominatedSort(ModuleBase):
 
 
 def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
-    """Sort according to crowding distance.
+    """
+    Compute the crowding distance for a set of solutions in multi-objective optimization.
 
-    The input costs should have shape (n, d), and mask is None or
-    a boolean tensor with shape (n,) where True means the corresponding
-    element should participate in the whole process, and False means that
-    element is ignored.
+    The crowding distance is a measure of the diversity of solutions within a Pareto front.
 
-    Parameters
-    ----------
-    costs : torch.Tensor
-        A 2D tensor where each row is a solution and each column is an objective.
-    mask : torch.Tensor, optional
-        A 1D boolean tensor. If None, all elements are considered. Ignored elements have distance -inf.
+    :param costs: A 2D tensor where each row represents a solution, and each column represents an objective.
+    :param mask: A 1D boolean tensor indicating which solutions should be considered.
 
-    Returns
-    -------
-    torch.Tensor
-        A 1D tensor containing the crowding distance for each solution. Ignored elements have distance -inf.
+    :returns:
+        A 1D tensor containing the crowding distance for each solution.
     """
     total_len = costs.size(0)
     if mask is None:
@@ -191,22 +190,6 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     else:
         num_valid_elem = mask.sum()
 
-    # def distance_in_one_dim(cost):
-    #     # Sorting along each dimension
-    #     rank = lexsort([cost, ~mask])
-    #
-    #     cost = cost[rank]
-    #     # Calculate crowding distance
-    #     distance_range = cost[num_valid_elem - 1] - cost[0]
-    #     distance = torch.empty(total_len)
-    #     distance = torch.scatter(distance, 0, rank[1:-1], (cost[2:] - cost[:-2]) / distance_range)
-    #     distance = torch.scatter(distance, 0, rank[0], torch.inf)
-    #     distance = torch.scatter(distance, 0, rank[num_valid_elem - 1], torch.inf)
-    #     distance = torch.where(mask, distance, -torch.inf)
-    #     return distance
-    #
-    # crowding_distances = vmap(distance_in_one_dim, in_dims=1, out_dims=1, trace=False)(costs)
-    # crowding_distances = crowding_fn(costs, mask, torch.tensor(total_len, dtype=torch.int32, device=costs.device), num_valid_elem)
     inverted_mask = ~mask
 
     inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(costs.dtype)
@@ -229,13 +212,26 @@ def _non_dominate_rank(f: torch.Tensor):
     rank = NonDominatedSort().non_dominated_sort(f)
     return rank
 
+
 _non_dominate_rank.__prepare_scriptable__ = lambda: _non_dominated_sort_script
 
 
 def non_dominate(x: torch.Tensor, f: torch.Tensor, topk: int):
+    """
+    Select the top-k non-dominated solutions based on rank and crowding distance.
+
+    :param x: A 2D tensor where each row represents a solution in the decision space.
+    :param f: A 2D tensor where each row represents a solution in the objective space.
+    :param topk: The number of solutions to select.
+
+    :returns:
+        A tuple of two tensors:
+        - **x_selected**: The selected solutions in the decision space.
+        - **f_selected**: The corresponding objective values of the selected solutions.
+    """
     rank = _non_dominate_rank(f)
     order = torch.argsort(rank, stable=True)
-    worst_rank = rank[order[topk-1]]
+    worst_rank = rank[order[topk - 1]]
     mask = rank == worst_rank
     crowding_dis = crowding_distance(f, mask)
     dis_order = torch.argsort(crowding_dis, stable=True)
