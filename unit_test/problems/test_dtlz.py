@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.problems.mo import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
+from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 
 
 class TestDTLZ(unittest.TestCase):
