@@ -51,18 +51,16 @@ class ODE(Algorithm):
         device = torch.get_default_device() if device is None else device
 
         # Validate input parameters
-        assert pop_size >= 4, "Population size must be at least 4."
-        assert 0 < cross_probability <= 1, "Crossover probability must be in (0, 1]."
-        assert 1 <= num_difference_vectors < pop_size // 2, (
-            "Number of difference vectors must be at least 1 and less than half of the population size."
-        )
-        assert base_vector in ["rand", "best"], "base_vector must be either 'rand' or 'best'."
+        assert pop_size >= 4
+        assert 0 < cross_probability <= 1
+        assert 1 <= num_difference_vectors < pop_size // 2
+        assert base_vector in ["rand", "best"]
         assert (
             lb.shape == ub.shape
             and lb.ndim == 1
             and ub.ndim == 1
             and lb.dtype == ub.dtype
-        ), "Lower and upper bounds must be 1D tensors of the same shape and dtype."
+        )
 
         # Initialize parameters
         self.pop_size = pop_size
@@ -72,14 +70,11 @@ class ODE(Algorithm):
 
         # Validate and set differential weight
         if num_difference_vectors == 1:
-            assert isinstance(differential_weight, float), (
-                "Differential weight must be a float when using one difference vector."
-            )
+            assert isinstance(differential_weight, float)
         else:
-            assert isinstance(
-                differential_weight, torch.Tensor
-            ) and differential_weight.shape == torch.Size([num_difference_vectors]), (
-                "Differential weight must be a tensor with shape [num_difference_vectors] when using multiple difference vectors."
+            assert (
+                isinstance(differential_weight, torch.Tensor)
+                and differential_weight.shape == torch.Size([num_difference_vectors])
             )
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
@@ -136,7 +131,7 @@ class ODE(Algorithm):
         # Mutation: Generate random permutations for selecting vectors
         # TODO: Currently allows replacement for different vectors, which is not equivalent to the original implementation
         # TODO: Consider changing to an implementation based on reservoir sampling (e.g., https://github.com/LeviViana/torch_sampling) in the future
-        for i in range(num_vec):
+        for _ in range(num_vec):
             random_choices.append(torch.randperm(self.pop_size, device=device))
 
         # Determine the base vector
