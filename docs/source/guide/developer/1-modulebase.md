@@ -2,11 +2,11 @@
 
 A **module** is a fundamental concept in programming that refers to a self-contained unit of code designed to perform a specific task or a set of related tasks.
 
-This notebook will introduce the basic module in Evox: {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
+This notebook will introduce the basic module in EvoX: {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
 ## Introduction of Module
 
-Review the basic running process in EvoX we have mentioned in the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`:
+in the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`, we have mentioned the basic running process in EvoX:
 
 <center><b>Initiate an algorithm and a problem -- Set an monitor -- Initiate a workflow -- Run the workflow</b></center>
 

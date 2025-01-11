@@ -65,7 +65,7 @@ Here we give an example of **implementing a PSO algorithm that solves the Sphere
 Here is a pseudo-code:
 
 ```text
-Set hyperparameters
+Set hyper-parameters
 
 Generate the initial population
 Do
@@ -73,7 +73,7 @@ Do
     
     Update the lbest and the gbest
     Update the velocity
-    Udpdate the population
+    Update the population
     
 Until stopping criterion
 ```
@@ -81,24 +81,24 @@ Until stopping criterion
 And here is what each part of the algorithm and the problem corresponds to in EvoX.
 
 ```python
-Set hyperparameters # Algortihm.__init__
+Set hyper-parameters # Algorithm.__init__
 
-Generate the initial population # Algortihm.setup
+Generate the initial population # Algorithm.setup
 Do
     # Problem.evaluate (not part of the algorithm)
     Compute fitness
     
-    # Algortihm.step
+    # Algorithm.step
     Update the lbest and the gbest
     Update the velocity
-    Udpdate the population
+    Update the population
 
 Until stopping criterion
 ```
 
 ### Algorithm example: PSO algorithm
 
-Particle Swarm Optimization (PSO) is a population-based metaheuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
+Particle Swarm Optimization (PSO) is a population-based meta-heuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
 
 **Here is an implementation example of PSO algorithm in EvoX:**
 
@@ -172,7 +172,7 @@ class PSO(Algorithm):
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
         
-        # Udpdate the population
+        # Update the population
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)
