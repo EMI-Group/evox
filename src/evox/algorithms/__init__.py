@@ -1,6 +1,7 @@
 __all__ = [
     # DE Variants
     "DE",
+    "ODE",
     # ES Variants
     "OpenES",
     "CMAES",
