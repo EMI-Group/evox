@@ -7,15 +7,15 @@ from ...utils import clamp
 
 
 @jit_class
-class DE(Algorithm):
+class ODE(Algorithm):
     """
-    Differential Evolution (DE) algorithm for optimization.
+    Opposition-based Differential Evolution (ODE) algorithm for optimization.
 
     ## Class Methods
 
-    * `__init__`: Initializes the DE algorithm with the given parameters, including population size, bounds, mutation strategy, and other hyperparameters.
+    * `__init__`: Initializes the ODE algorithm with the given parameters, including population size, bounds, mutation strategy, and other hyperparameters.
     * `init_step`: Performs the initial evaluation of the population's fitness and proceeds to the first optimization step.
-    * `step`: Executes a single optimization step of the DE algorithm, involving mutation, crossover, and selection processes.
+    * `step`: Executes a single optimization step of the ODE algorithm, involving mutation, crossover, selection, and opposition-based mechanisms.
 
     Note that the `evaluate` method is not defined in this class. It is expected to be provided by the `Problem` class or another external component.
     """
@@ -34,17 +34,17 @@ class DE(Algorithm):
         device: torch.device | None = None,
     ):
         """
-        Initialize the DE algorithm with the given parameters.
+        Initialize the Opposition-based Differential Evolution (ODE) algorithm with the given parameters.
 
         :param pop_size: The size of the population.
-        :param lb: The lower bounds of the search space. Must be a 1D tensor.
-        :param ub: The upper bounds of the search space. Must be a 1D tensor.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
         :param base_vector: The base vector type used in mutation. Either "best" or "rand". Defaults to "rand".
         :param num_difference_vectors: The number of difference vectors used in mutation. Must be at least 1 and less than half of the population size. Defaults to 1.
-        :param differential_weight: The differential weight(s) (F) applied to difference vectors. Can be a float or a tensor. Defaults to 0.5.
-        :param cross_probability: The crossover probability (CR). Defaults to 0.9.
-        :param mean: The mean for initializing the population with a normal distribution. Defaults to None.
-        :param stdev: The standard deviation for initializing the population with a normal distribution. Defaults to None.
+        :param differential_weight: The differential weight(s) (F) applied to difference vectors. Can be a float or a tensor of shape [num_difference_vectors]. Defaults to 0.5.
+        :param cross_probability: The crossover probability (CR). Must be in (0, 1]. Defaults to 0.9.
+        :param mean: The mean for initializing the population with a normal distribution. Must be provided with `stdev` if used. Defaults to None.
+        :param stdev: The standard deviation for initializing the population with a normal distribution. Must be provided with `mean` if used. Defaults to None.
         :param device: The device to use for tensor computations. Defaults to None.
         """
         super().__init__()
@@ -104,12 +104,13 @@ class DE(Algorithm):
 
     def step(self):
         """
-        Execute a single optimization step of the DE algorithm.
+        Execute a single optimization step of the ODE algorithm.
 
         This involves the following sub-steps:
         1. Mutation: Generate mutant vectors based on the specified base vector strategy (`best` or `rand`) and the number of difference vectors.
         2. Crossover: Perform crossover between the current population and the mutant vectors based on the crossover probability.
         3. Selection: Evaluate the fitness of the new population and select the better individuals between the current and new populations.
+        4. Opposition-Based Mechanism: Generate opposition-based population, evaluate their fitness, and perform selection to potentially replace current individuals with their opposites if they are better.
 
         The method ensures that all new population vectors are clamped within the specified bounds.
         """
@@ -160,3 +161,18 @@ class DE(Algorithm):
         compare = new_fitness < self.fitness
         self.population = torch.where(compare[:, None], new_population, self.population)
         self.fitness = torch.where(compare, new_fitness, self.fitness)
+
+        # Opposition-Based Population: Generate opposite solutions
+        opposition_population = self.lb + self.ub - self.population
+
+        # Opposition-Based Selection: Evaluate fitness of the opposition population
+        opposition_fitness = self.evaluate(opposition_population)
+        compare_opposition = opposition_fitness < self.fitness
+
+        # Replace individuals with their opposites if the opposites are better
+        updated_population = torch.where(compare_opposition[:, None], opposition_population, self.population)
+        updated_fitness = torch.where(compare_opposition, opposition_fitness, self.fitness)
+
+        # Update population and fitness with opposition-based selections
+        self.population = updated_population
+        self.fitness = updated_fitness
