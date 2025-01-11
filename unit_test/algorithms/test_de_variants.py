@@ -1,6 +1,6 @@
 import torch
 
-from evox.algorithms import DE
+from evox.algorithms import DE, SHADE
 
 from .test_base import TestBase
 
@@ -14,6 +14,7 @@ class TestDEVariants(TestBase):
         self.algos = [
             DE(pop_size, lb, ub, base_vector="rand"),
             DE(pop_size, lb, ub, base_vector="best"),
+            SHADE(pop_size, lb, ub),
         ]
 
     def test_de_variants(self):
