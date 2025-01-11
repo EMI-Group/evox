@@ -8,7 +8,7 @@ import torchvision
 from torch.utils.data import DataLoader
 
 from evox.algorithms import PSO
-from evox.core import Algorithm, Parameter, jit_class
+from evox.core import Algorithm, Mutable, Parameter, jit_class
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -276,8 +276,8 @@ class TestSupervisedLearningProblem(unittest.TestCase):
                 self.lb = lb
                 self.ub = ub
                 self.dim = lb.shape[0]
-                self.pop = nn.Buffer(torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device))
-                self.fit = nn.Buffer(torch.empty(1, dtype=lb.dtype, device=lb.device))
+                self.pop = Mutable(torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device))
+                self.fit = Mutable(torch.empty(1, dtype=lb.dtype, device=lb.device))
 
             def step(self):
                 pop = torch.rand(

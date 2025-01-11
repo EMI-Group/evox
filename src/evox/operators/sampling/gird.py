@@ -7,6 +7,7 @@ import torch
 def grid_sampling(n: int, m: int) -> Tuple[torch.Tensor, int]:
     """Grid sampling.
     Inspired by PlatEMO.
+
     :param n: Number of grid points along each axis.
     :param m: Dimensionality of the grid (number of axes).
 
