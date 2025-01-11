@@ -2,27 +2,27 @@
 
 A **module** is a fundamental concept in programming that refers to a self-contained unit of code designed to perform a specific task or a set of related tasks.
 
-This notebook will introduce the basic module in Evox: {class}`ModuleBase <evox.core.module.ModuleBase>`.
+This notebook will introduce the basic module in Evox: {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
 ## Introduction of Module
 
-Review the basic running process in EvoX we have mentioned in the [Quick Start](https://evox.readthedocs.io/en/evoxtorch-main/guide/user/1-start.html) of the [User Guide](https://evox.readthedocs.io/en/evoxtorch-main/guide/user/index.html):
+Review the basic running process in EvoX we have mentioned in the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`:
 
 <center><b>Initiate an algorithm and a problem -- Set an monitor -- Initiate a workflow -- Run the workflow</b></center>
 
 This process requires four basic class in EvoX:
 
-- {class}`Algorithm <evox.Algorithm>`
-- {class}`Problem <evox.Problem>`
-- {class}`Monitor <evox.Monitor>`
-- {class}`Workflow <evox.Workflow>`
+- {doc}`Algorithm <apidocs/evox/evox.algorithms>`
+- {doc}`Problem <apidocs/evox/evox.problems>`
+- {doc}`Monitor <apidocs/evox/evox.workflows.eval_monitor>`
+- {doc}`Workflow <apidocs/evox/evox.workflows>`
 
 
-It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from {class}`ModuleBase <evox.core.ModuleBase>`.
+It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
-{class}`ModuleBase <evox.core.ModuleBase>` is the base module for all algorithms and problems, and also for {class}`Monitor <evox.Monitor>`
+{doc}`ModuleBase <apidocs/evox/evox.core.module>` is the base module for all algorithms and problems, and also for {doc}`Monitor <apidocs/evox/evox.workflows.eval_monitor>`
 
-and {class}`Workflow <evox.Workflow>`.
+and {doc}`Workflow <apidocs/evox/evox.workflows>`.
 
 <center>
   <img src="../../_static/modulebase.svg">
@@ -30,7 +30,7 @@ and {class}`Workflow <evox.Workflow>`.
 
 ## ModuleBase class
 
-The {class}`ModuleBase <evox.core.module.ModuleBase>` class is inherited from {class}`torch.nn.Module`.
+The {doc}`ModuleBase <apidocs/evox/evox.core.module>` class is inherited from {class}`torch.nn.Module`.
 
 There are many methods in this class, and some important methods are here:
 
@@ -43,7 +43,7 @@ There are many methods in this class, and some important methods are here:
 
 ## Role of Module
 
-In EvoX, the {class}`ModuleBase <evox.core.module.ModuleBase>` could help to:
+In EvoX, the {doc}`ModuleBase <apidocs/evox/evox.core.module>` could help to:
 
 - **Contain mutable values** 
 
@@ -61,7 +61,7 @@ In EvoX, the {class}`ModuleBase <evox.core.module.ModuleBase>` could help to:
 
 ## Usage of Module
 
-Specifically, there are some rules for using {class}`ModuleBase <evox.core.module.ModuleBase>` in EvoX:
+Specifically, there are some rules for using {doc}`ModuleBase <apidocs/evox/evox.core.module>` in EvoX:
 
 ### Static methods
 
@@ -103,7 +103,7 @@ class ExampleModule(ModuleBase):
 
 ### Examples
 
-An example of one module inherited from the {class}`ModuleBase <evox.core.module.ModuleBase>` is like:
+An example of one module inherited from the {doc}`ModuleBase <apidocs/evox/evox.core.module>` is like:
 
 ```python
 class ExampleModule(ModuleBase):
@@ -125,4 +125,4 @@ class ExampleModule(ModuleBase):
             ...
 ```
 
-For more details, please look through [the code of Module in EvoX](https://evox.readthedocs.io/en/evoxtorch-main/apidocs/evox/evox.core.module.html).
+For more details, please look through {doc}`the Module in EvoX <apidocs/evox/evox.core.module>`.

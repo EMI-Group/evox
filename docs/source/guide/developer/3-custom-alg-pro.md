@@ -24,7 +24,7 @@ This layout makes both algorithms and problems more universal: an algorithm can 
 
 ## Algorithm class
 
-The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`ModuleBase <evox.core.ModuleBase>`.
+The {doc}`Algorithm <apidocs/evox/evox.algorithms>` class is inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
 **In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
 
@@ -39,13 +39,13 @@ The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`ModuleBa
 
 The static initialization can still be written in the `__init__` while the mutable initialization cannot. Therefore, multiple calls of `setup` for multiple initializations are possible.
 
-If such `setup` method in {class}`ModuleBase <evox.core.ModuleBase>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
+If such `setup` method in {doc}`ModuleBase <apidocs/evox/evox.core.module>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
 
 
 
 ## Problem class
 
-The {class}`Problem <evox.Problem>` class is also inherited from {class}`ModuleBase <evox.core.ModuleBase>`. 
+The {doc}`Problem <apidocs/evox/evox.problems>` class is also inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`. 
 
 However, the Problem class is quite simpler. **Beside the`__init__` method, the only necessary method is the `evaluate` method.**
 
