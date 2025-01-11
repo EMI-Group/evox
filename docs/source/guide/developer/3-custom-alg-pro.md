@@ -31,7 +31,7 @@ The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`ModuleBa
 | Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `__init__` | `(self, ...)`                   | Initialize hyperparameters that are fixed though out the optimization process, for example, the `population size`, the `low bound` and the `up bound`. |
-| `setup` (optional) | `(self, *args, **kwargs) -> self` | Make the mutable initialization of the algorithm.  Most of the time there's no need to override it. |
+| `setup` (optional) | `(self, ...) -> self` | Make the mutable initialization of the algorithm.  Most of the time there's no need to override it. |
 | `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
 | `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm.  If not override this method, the first step will automatically use the `step` method. |
 
