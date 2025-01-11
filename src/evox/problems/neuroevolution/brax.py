@@ -45,7 +45,7 @@ class BraxProblem(Problem):
         backend: str | None = None,
         device: torch.device | None = None,
     ):
-        """Contruct a brax-based problem.
+        """Construct a Brax-based problem.
         Firstly, you need to define a policy model.
         Then you need to set the `environment name <https://github.com/google/brax/tree/main/brax/envs>`,
         the maximum episode length, the number of episodes to evaluate for each individual.
@@ -56,7 +56,7 @@ class BraxProblem(Problem):
 
         :param policy: The policy model whose forward function is :code:`forward(batched_obs) -> action`.
         :param env_name: The environment name.
-        :param max_episode_length: The maximum number of timesteps of each episode.
+        :param max_episode_length: The maximum number of time steps of each episode.
         :param num_episodes: The number of episodes to evaluate for each individual.
         :param pop_size: The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
         :param rotate_key: Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
@@ -67,7 +67,7 @@ class BraxProblem(Problem):
         ## Notice
         The initial key is obtained from `torch.random.get_rng_state()`.
 
-        ## Warning:
+        ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
 
         ## Examples
