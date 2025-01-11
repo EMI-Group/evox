@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import wraps
-from typing import Any, Callable, List, Tuple, TypeVar
+from typing import Any, Callable, List, Sequence, Tuple, TypeVar
 
 import torch
 import torch._C._functorch as _functorch
