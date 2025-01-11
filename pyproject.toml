@@ -70,3 +70,4 @@ format.line-ending = "lf"
 # F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
 lint.select = ["F", "E", "W", "I", "NPY"]
 lint.ignore = ["E501"] # Ignore line length error
+lint.per-file-ignores = {"*.ipynb" = ["I001"]}
