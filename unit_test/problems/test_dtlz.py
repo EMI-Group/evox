@@ -1,32 +1,29 @@
 import torch
 
-from evox.problems.numerical import DTLZ1
+from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
+from unittest import TestCase
 
-if __name__ == "__main__":
-    # Problem dimensions and objectives
-    d = 12
-    m = 3
-    ref_num = 1000
 
-    # Create an instance of the DTLZ1 problem
-    problem = DTLZ1(d=d, m=m, ref_num=ref_num)
+class TestBraxProblem(TestCase):
 
-    # Generate a random population (100 individuals, each with d features)
-    # population = torch.rand(100, d)
-    population = torch.tensor(
-        [
-            [0.1, 0.5, 0.2, 0.1, 0.5, 0.2, 0.1, 0.5, 0.2, 0.1, 0.5, 0.2],
-            [0.8, 0.8, 0.9, 0.8, 0.8, 0.9, 0.8, 0.8, 0.9, 0.8, 0.8, 0.9],
+    def setUp(self):
+        d = 12
+        m = 3
+        self.pro = [
+            DTLZ1(d=d, m=m),
+            DTLZ2(d=d, m=m),
+            DTLZ3(d=d, m=m),
+            DTLZ4(d=d, m=m),
+            DTLZ5(d=d, m=m),
+            DTLZ6(d=d, m=m),
+            DTLZ7(d=d, m=m),
         ]
-    )
 
-    # Evaluate the population
-    fitness = problem.evaluate(population)
+    def test_dtlz(self):
 
-    print("Fitness of the population:")
-    print(fitness)
-
-    # Get the Pareto front for DTLZ1
-    pf = problem.pf()
-    print("Pareto front:")
-    print(pf)
+        pop = torch.rand(2, 12)
+        for pro in self.pro:
+            fit = pro.evaluate(pop)
+            assert fit.size() == (2, 3)
+            pf = pro.pf()
+            assert pf.size(1) == 3
