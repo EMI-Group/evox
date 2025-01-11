@@ -44,6 +44,16 @@ autodoc2_packages = [
     "../../src/evox",
 ]
 
+autodoc2_module_all_regexes = [
+    r"evox",
+    r"evox\..algorithms",
+    r"evox\..metrics",
+    r"evox\..operators",
+    r"evox\..problems",
+    r"evox\..utils",
+    r"evox\..workflows",
+]
+
 autodoc2_render_plugin = "myst"
 
 # Add any paths that contain templates here, relative to this directory.

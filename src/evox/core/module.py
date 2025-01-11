@@ -121,9 +121,9 @@ class ModuleBase(nn.Module):
     def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         pass
     ```
-    2. If a member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
+    2. If a class member function with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
     ```
-    def ExampleModule(ModuleBase):
+    class ExampleModule(ModuleBase):
         def setup(self, mut: torch.Tensor):
             self.add_mutable("mut", mut)
             # or
@@ -140,6 +140,26 @@ class ModuleBase(nn.Module):
         def jit_func(self, p: torch.Tensor) -> torch.Tensor:
             x = ExampleModule.static_func(p, self.threshold)
             ...
+    ```
+    3. `ModuleBase` is usually used with `jit_class` to automatically JIT all non-magic member methods:
+    ```
+    @jit_class
+    class ExampleModule(ModuleBase):
+        # This function will be automatically JIT
+        def func1(self, x: torch.Tensor) -> torch.Tensor:
+            pass
+
+        # Use `torch.jit.ignore` to disable JIT and leave this function as Python callback
+        @torch.jit.ignore
+        def func2(self, x: torch.Tensor) -> torch.Tensor:
+            # you can implement pure Python logic here
+            pass
+
+        # JIT functions can invoke other JIT functions as well as non-JIT functions
+        def func3(self, x: torch.Tensor) -> torch.Tensor:
+            y = self.func1(x)
+            z = self.func2(x)
+            pass
     ```
     """
 
@@ -167,7 +187,7 @@ class ModuleBase(nn.Module):
 
         :return: This module.
 
-        ## Notice:
+        ## Notice
         The static initialization can still be written in the `__init__` while the mutable initialization cannot.
         Therefore, multiple calls of `setup` for multiple initializations are possible.
         """
@@ -655,7 +675,7 @@ def _get_vars(func: Callable, *exclude, is_generator: bool = True):
             if isinstance(v, nn.Module) or isinstance(v, _WrapClassBase) or isinstance(v, torch.Tensor)
         }
         # remove duplicate self
-        if "self" in vars: # and hasattr(inspect.unwrap(func), "__self__"):
+        if "self" in vars:  # and hasattr(inspect.unwrap(func), "__self__"):
             self_v: Tuple[nn.Module, ...] = vars["self"]
             if isinstance(self_v, _WrapClassBase):
                 if self_v.__jit_module__ is None:
@@ -664,7 +684,7 @@ def _get_vars(func: Callable, *exclude, is_generator: bool = True):
                     self_v = (self_v.__inner_module__, self_v.__jit_module__)
             else:
                 self_v = (self_v,)
-            if len(self_v) > 1: # sync with JIT module first
+            if len(self_v) > 1:  # sync with JIT module first
                 self_v[0].load_state_dict(self_v[1].state_dict(keep_vars=True))
             vars = {k: v for k, v in vars.items() if v not in self_v}
             vars["self"] = self_v[0]
@@ -694,7 +714,7 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
 
     :return: The transformed pure-functional version of `func`. It contains a `init_state() -> state` attribute that returns the copy of the current state that `func` uses and can be used as example inputs of the additional `state` parameter. It also contains a `set_state(state)` attribute to set the global state to the given one (of course not JIT-compatible).
 
-    ## Notice:
+    ## Notice
     Since PyTorch cannot JIT or vectorized-map a function with empty dictionary, list, or tuple as its input, this function transforms the given function to a function WITHOUT the additional `state` parameter (of type `Dict[str, torch.Tensor]`) and does NOT return the altered state additionally.
 
     ## Usage:
@@ -808,22 +828,12 @@ def use_state(func: Callable[[], Callable] | Callable, is_generator: bool = True
     return state_wrapper
 
 
-global _TORCHSCRIPT_MODIFIER
 _TORCHSCRIPT_MODIFIER = "_torchscript_modifier"
 
-
-def _torch_script_modifier(target: Callable):
-    global _TORCHSCRIPT_MODIFIER
-    torch.jit.export(target)
-    for k in target.__dict__.keys():
-        if "torch" in k and "modifier" in k:
-            _TORCHSCRIPT_MODIFIER = k
-            break
+_TRACE_WRAP_NAME = "__trace_wrapped__"
 
 
 T = TypeVar("T", bound=Callable)
-
-_TRACE_WRAP_NAME = "__trace_wrapped__"
 
 
 def trace_impl(target: Callable):
@@ -835,7 +845,7 @@ def trace_impl(target: Callable):
 
     :return: The wrapping function to annotate the member method.
 
-    ## Notice:
+    ## Notice
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
     2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
 
@@ -865,7 +875,7 @@ def vmap_impl(target: Callable):
 
     :return: The wrapping function to annotate the member method.
 
-    ## Notice:
+    ## Notice
     1. The target function and the annotated function MUST have same input/output signatures (e.g. number of arguments and types); otherwise, the resulting behavior is UNDEFINED.
     2. If the annotated function are to be `vmap`, it cannot contain any in-place operations to `self` since such operations are not well-defined and cannot be compiled.
 
@@ -897,7 +907,7 @@ def jit_class(cls: ClassT, trace: bool = False) -> ClassT:
     Returns:
         The wrapped class.
 
-    ## Notice:
+    ## Notice
     1. In many cases, it is not necessary to wrap your custom algorithms or problems with `jit_class`, the workflow(s) will do the trick for you.
     2. With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional
     3. Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.

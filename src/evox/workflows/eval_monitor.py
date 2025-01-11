@@ -1,9 +1,8 @@
 from typing import List
 
 import torch
-from torch import nn
 
-from ..core import Monitor
+from ..core import Monitor, Mutable
 
 
 class EvalMonitor(Monitor):
@@ -36,10 +35,10 @@ class EvalMonitor(Monitor):
         self.full_sol_history = full_sol_history
         self.topk = topk
         # mutable
-        self.latest_solution = nn.Buffer(torch.empty(0, device=device))
-        self.latest_fitness = nn.Buffer(torch.empty(0, device=device))
-        self.topk_solutions = nn.Buffer(torch.empty(0, device=device))
-        self.topk_fitness = nn.Buffer(torch.empty(0, device=device))
+        self.latest_solution = Mutable(torch.empty(0, device=device))
+        self.latest_fitness = Mutable(torch.empty(0, device=device))
+        self.topk_solutions = Mutable(torch.empty(0, device=device))
+        self.topk_fitness = Mutable(torch.empty(0, device=device))
         self.fitness_history: List[torch.Tensor] = [torch.empty(0, device=device)]
         self.solution_history: List[torch.Tensor] = [torch.empty(0, device=device)]
 

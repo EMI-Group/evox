@@ -4,7 +4,7 @@ from typing import Dict, Optional
 import torch
 from torch import nn
 
-from ..core import Monitor, Problem, Workflow, jit, jit_class, use_state, vmap
+from ..core import Monitor, Mutable, Problem, Workflow, jit, jit_class, use_state, vmap
 from ..core.module import _WrapClassBase
 
 
@@ -46,7 +46,7 @@ class HPOFitnessMonitor(HPOMonitor):
 
     def setup(self):
         super().setup()
-        self.best_fitness = nn.Buffer(torch.tensor(torch.inf))
+        self.best_fitness = Mutable(torch.tensor(torch.inf))
         return self
 
     def pre_tell(self, fitness: torch.Tensor):
