@@ -1,11 +1,10 @@
+from typing import Tuple
+
 import torch
 
 
-def sort_by_key(keys, *vals):
-    assert (
-        len(keys.size()) == 1
-    ), f"Expect keys to be 1D tensor, got {keys.size()}."
+def sort_by_key(keys: torch.Tensor, population: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     order = torch.argsort(keys)
-    vals = map(lambda x: x[order], vals)
-    
-    return keys[order], *vals
+    sorted_keys = keys[order]
+    sorted_population = population[order]
+    return sorted_keys, sorted_population

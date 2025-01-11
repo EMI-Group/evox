@@ -1,12 +1,13 @@
 import torch
 
-from evox.algorithms import OpenES
+from evox.algorithms import CMAES, OpenES
 
 from .test_base import TestBase
 
 
 class TestESVariants(TestBase):
     def setUp(self):
+        torch.manual_seed(42)
         pop_size = 10
         dim = 4
         lb = -10 * torch.ones(dim)
@@ -25,6 +26,10 @@ class TestESVariants(TestBase):
                 learning_rate=1e-2,
                 noise_stdev=5,
                 optimizer="adam",
+            ),
+            CMAES(
+                mean_init=torch.rand(dim) * (ub - lb) + lb,
+                sigma=5,
             ),
         ]
 
