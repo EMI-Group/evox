@@ -1,11 +1,11 @@
+from unittest import TestCase
+
 import torch
 
 from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
-from unittest import TestCase
 
 
 class TestBraxProblem(TestCase):
-
     def setUp(self):
         d = 12
         m = 3
@@ -20,7 +20,6 @@ class TestBraxProblem(TestCase):
         ]
 
     def test_dtlz(self):
-
         pop = torch.rand(2, 12)
         for pro in self.pro:
             fit = pro.evaluate(pop)
