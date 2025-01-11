@@ -55,12 +55,7 @@ class DE(Algorithm):
         assert 0 < cross_probability <= 1
         assert 1 <= num_difference_vectors < pop_size // 2
         assert base_vector in ["rand", "best"]
-        assert (
-            lb.shape == ub.shape
-            and lb.ndim == 1
-            and ub.ndim == 1
-            and lb.dtype == ub.dtype
-        )
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
 
         # Initialize parameters
         self.pop_size = pop_size
@@ -72,9 +67,9 @@ class DE(Algorithm):
         if num_difference_vectors == 1:
             assert isinstance(differential_weight, float)
         else:
-            assert isinstance(
-                differential_weight, torch.Tensor
-            ) and differential_weight.shape == torch.Size([num_difference_vectors])
+            assert isinstance(differential_weight, torch.Tensor) and differential_weight.shape == torch.Size(
+                [num_difference_vectors]
+            )
         self.differential_weight = Parameter(differential_weight, device=device)
         self.cross_probability = Parameter(cross_probability, device=device)
 
@@ -87,9 +82,7 @@ class DE(Algorithm):
         # Initialize population
         if mean is not None and stdev is not None:
             # Initialize population using a normal distribution
-            population = mean + stdev * torch.randn(
-                self.pop_size, self.dim, device=device
-            )
+            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
             population = clamp(population, lb=self.lb, ub=self.ub)
         else:
             # Initialize population uniformly within bounds
@@ -98,9 +91,7 @@ class DE(Algorithm):
 
         # Mutable attributes to store population and fitness
         self.population = Mutable(population)
-        self.fitness = Mutable(
-            torch.empty(self.pop_size, device=device).fill_(float("inf"))
-        )
+        self.fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
 
     def init_step(self):
         """
@@ -146,8 +137,7 @@ class DE(Algorithm):
         # Generate difference vectors by subtracting randomly chosen population vectors
         difference_vector = torch.stack(
             [
-                self.population[random_choices[i]]
-                - self.population[random_choices[i + 1]]
+                self.population[random_choices[i]] - self.population[random_choices[i + 1]]
                 for i in range(start_index, num_vec - 1, 2)
             ]
         ).sum(dim=0)
