@@ -1,4 +1,5 @@
 import inspect
+import weakref
 from typing import Dict, List, Sequence, Tuple
 
 import torch
@@ -8,7 +9,7 @@ from ...core.module import UseStateFunc
 from ..jit_fix_operator import switch as _switch
 from .utils import VarArgsCallableMultiRet, _get_cache_key_object, _param_clone
 
-_switch_object_cache = {}
+_switch_object_cache = weakref.WeakValueDictionary()
 
 
 @jit_class
@@ -49,9 +50,7 @@ class TracingSwitch(ModuleBase):
         self.branch_fns = branch_fns
         self._cache_compiled_switch: Dict[Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction] = {}
         _switch_object_cache[self.__cache_key__] = self
-
-    def __del__(self):
-        _switch_object_cache.pop(self.__cache_key__, None)
+        weakref.finalize(self, _switch_object_cache.pop, self.__cache_key__, None)
 
     @torch.jit.ignore
     def switch(
@@ -354,9 +353,9 @@ class TracingSwitch(ModuleBase):
             8: _switch8,
             9: _switch9,
         }
-        assert len(original_args) <= len(switch_dict), (
-            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
-        )
+        assert len(original_args) <= len(
+            switch_dict
+        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
         compiled_switch = torch.jit.script(switch_dict[len(original_args)])
         return compiled_switch
 
@@ -676,9 +675,9 @@ class TracingSwitch(ModuleBase):
             8: _switch8,
             9: _switch9,
         }
-        assert len(original_args) <= len(switch_dict), (
-            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
-        )
+        assert len(original_args) <= len(
+            switch_dict
+        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
         compiled_switch = torch.jit.script(switch_dict[len(original_args)])
         return compiled_switch, state_branch_fns
 

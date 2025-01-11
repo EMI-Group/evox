@@ -1,5 +1,6 @@
 __all__ = ["SupervisedLearningProblem"]
 
+import weakref
 from typing import Dict, Iterable, Iterator, Tuple
 
 import torch
@@ -47,13 +48,15 @@ class SupervisedLearningProblem(Problem):
         global __supervised_data__
         if __supervised_data__ is None:
             __supervised_data__ = {}
-        instance_id = hash(self)
+        instance_id = id(self)
         if instance_id not in __supervised_data__.keys():
             __supervised_data__[instance_id] = {
                 "data_loader_ref": data_loader,
                 "data_loader_iter": None,
                 "data_next_cache": None,
             }
+            weakref.finalize(self, __supervised_data__.pop, instance_id, None)
+
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
         except StopIteration:
@@ -118,10 +121,6 @@ class SupervisedLearningProblem(Problem):
 
         # Other member variables registration
         self.criterion_init_state = criterion_init_state
-
-    def __del__(self):
-        global __supervised_data__
-        __supervised_data__.pop(self._hash_id_, None)
 
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
