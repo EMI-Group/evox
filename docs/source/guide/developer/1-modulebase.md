@@ -24,7 +24,9 @@ It is necessary to provide a unified module for them. In EvoX, the four classes 
 
 and {class}`Workflow <evox.Workflow>`.
 
-![ModuBase](modulebase.drawio.svg)
+<center>
+  <img src="../../_static/modulebase.svg">
+</center>
 
 ## ModuleBase class
 
