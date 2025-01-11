@@ -76,7 +76,7 @@ class StdWorkflow(Workflow):
         :param problem_setup_params: The arguments to be passed to `problem.setup(**kwargs)`. If not provided, the `problem.setup()` will not be invoked.
         :param monitor_setup_params: The arguments to be passed to `monitor.setup(**kwargs)`. If not provided, the `monitor.setup()` will not be invoked.
 
-        ## Notice:
+        ## Notice
         The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
         super().setup()

@@ -31,12 +31,12 @@ class TracingWhile(ModuleBase):
         :param body_fn: The body function.
         :param stateful_functions: Whether the `cond_fn` and `body_fn` functions are stateful functions, i.e., they access class members. None means that if any of the `cond_fn` and `body_fn` is a class method, it will be set to True.
 
-        ## Notice:
+        ## Notice
         1. When using `TracingWhile` and tracing JIT (`core.jit` with `trace=True`), the outer-most `core.jit` must have optional arguments `lazy=False` and `no_cache=False`.
         2. `cond_fn` and `body_fn` must have the same number of arguments.
         3. `cond_fn` and `body_fn` CAN be non-pure functions, i.e., they CAN have side-effects, if `stateful_functions=True`. However, to use non-pure functions, the function inputs shall NOT be class members. See `core.ModuleBase.prepare_control_flow()` for detailed usage of stateful functions.
 
-        ## Warning:
+        ## Warning
         Currently, the in-place modifications to non-local variables of the given non-pure functions CANNOT be JIT traced correctly.
         """
         super().__init__()
@@ -69,7 +69,7 @@ class TracingWhile(ModuleBase):
 
         When tracing JIT (`core.jit` with `trace=True`), the `trace_loop` function is used instead; when using `core.vmap`, the `vmap_loop` function is used instead.
 
-        ## Notice:
+        ## Notice
         During normal `torch.jit.script`, this function shall NEVER be invoked for performance-critical paths, please use Python while loop directly.
 
         :param *x: The input tensors / carry for the loop if `self.stateful_functions=False`; otherwise, firstly a dictionary of tensors containing the state of the `cond_fn` and `body_fn` and then the input tensors / carry for the loop.
