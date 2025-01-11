@@ -71,7 +71,7 @@ Generate the initial population
 Do
     Compute fitness
     
-    Update the local best and the global best
+    Update the local best fitness and the global best fitness
     Update the velocity
     Update the population
     
@@ -80,7 +80,7 @@ Until stopping criterion
 
 And here is what each part of the algorithm and the problem corresponds to in EvoX.
 
-```python
+```text
 Set hyper-parameters # Algorithm.__init__
 
 Generate the initial population # Algorithm.setup
@@ -89,7 +89,7 @@ Do
     Compute fitness
     
     # Algorithm.step
-    Update the local best and the global best
+    Update the local best fitness and the global best fitness
     Update the velocity
     Update the population
 
@@ -152,7 +152,7 @@ class PSO(Algorithm):
         # Compute fitness
         fitness = self.evaluate(self.population)
         
-        # Update the local best and the global best
+        # Update the local best fitness and the global best fitness
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
             compare[:, None] > 0, self.population, self.local_best_location
