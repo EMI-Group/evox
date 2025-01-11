@@ -39,20 +39,19 @@ class DMSPSOEL(Algorithm):
         """
         Initialize the DMSPSOEL algorithm with the given parameters.
 
-        Args:
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            dynamic_sub_swarm_size (`int`, optional): The size of the dynamic sub-swarm. Defaults to 10.
-            dynamic_sub_swarms_num (`int`, optional): The number of dynamic sub-swarms. Defaults to 5.
-            following_sub_swarm_size (`int`, optional): The size of the following sub-swarm. Defaults to 10.
-            regrouped_iteration_num (`int`, optional): The number of iterations for regrouping. Defaults to 50.
-            max_iteration (`int`, optional): The maximum number of iterations. Defaults to 100.
-            inertia_weight (`float`, optional): The inertia weight. Defaults to 0.7.
-            pbest_coefficient (`float`, optional): The cognitive weight. Defaults to 1.5.
-            lbest_coefficient (`float`, optional): The social weight. Defaults to 1.5.
-            rbest_coefficient (`float`, optional): The social weight. Defaults to 1.0.
-            gbest_coefficient (`float`, optional): The social weight. Defaults to 1.0.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param dynamic_sub_swarm_size: The size of the dynamic sub-swarm. Defaults to 10.
+        :param dynamic_sub_swarms_num: The number of dynamic sub-swarms. Defaults to 5.
+        :param following_sub_swarm_size: The size of the following sub-swarm. Defaults to 10.
+        :param regrouped_iteration_num: The number of iterations for regrouping. Defaults to 50.
+        :param max_iteration: The maximum number of iterations. Defaults to 100.
+        :param inertia_weight: The inertia weight. Defaults to 0.7.
+        :param pbest_coefficient: The cognitive weight. Defaults to 1.5.
+        :param lbest_coefficient: The social weight. Defaults to 1.5.
+        :param rbest_coefficient: The social weight. Defaults to 1.0.
+        :param gbest_coefficient: The social weight. Defaults to 1.0.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
@@ -117,8 +116,11 @@ class DMSPSOEL(Algorithm):
     def trace_step(self):
         fitness = self.evaluate(self.population)
         cond = self.iteration < 0.9 * self.max_iteration
-        _if_else_ = TracingCond(self._update_strategy_1, self._update_strategy_2)
-        _if_else_.cond(cond, fitness)
+        branches = (self._update_strategy_1, self._update_strategy_2)
+        state, names = self.prepare_control_flow(*branches)
+        _if_else_ = TracingCond(*branches)
+        state = _if_else_.cond(state, cond, fitness)
+        self.after_control_flow(state, *names)
         self.iteration += 1
 
     def _update_strategy_1(self, fitness: torch.Tensor):
@@ -182,8 +184,10 @@ class DMSPSOEL(Algorithm):
 
     @trace_impl(_cond_regroup)
     def _trace_cond_regroup(self, fitness: torch.Tensor):
+        state, names = self.prepare_control_flow(self._regroup)
         _if_else_regroup_ = TracingCond(self._regroup, lambda _: None)
-        _if_else_regroup_.cond((self.iteration % self.regrouped_iteration_num) == 0, fitness)
+        state = _if_else_regroup_.cond(state, (self.iteration % self.regrouped_iteration_num) == 0, fitness)
+        self.after_control_flow(state, *names)
 
     def _regroup(self, fitness: torch.Tensor):
         sort_index = torch.argsort(fitness, dim=0)

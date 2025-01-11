@@ -1,7 +1,7 @@
 import torch
 
 from ...core import Algorithm, Mutable, Parameter, jit_class
-from ...utils import clamp
+from ...utils import clamp, clamp_int, clamp_float
 from .utils import min_by
 
 
@@ -30,14 +30,13 @@ class SLPSOUS(Algorithm):
         """
         Initialize the SLPSOUS algorithm with the given parameters.
 
-        Args:
-            pop_size (`int`): The size of the population.
-            lb (`torch.Tensor`): The lower bounds of the particle positions. Must be a 1D tensor.
-            ub (`torch.Tensor`): The upper bounds of the particle positions. Must be a 1D tensor.
-            w (`float`, optional): The inertia weight. Defaults to 0.6.
-            phi_p (`float`, optional): The cognitive weight. Defaults to 2.5.
-            phi_g (`float`, optional): The social weight. Defaults to 0.8.
-            device (`torch.device`, optional): The device to use for the tensors. Defaults to None.
+        :param pop_size: The size of the population.
+        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
+        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param w: The inertia weight. Defaults to 0.6.
+        :param phi_p: The cognitive weight. Defaults to 2.5.
+        :param phi_g: The social weight. Defaults to 0.8.
+        :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
@@ -78,22 +77,18 @@ class SLPSOUS(Algorithm):
         # sort from largest fitness to smallest fitness (worst to best)
         ranked_population = self.population[torch.argsort(-fitness)]
         # demonstrator choice: q to pop_size
-        q = clamp(
+        q = clamp_int(
             self.pop_size
             - torch.ceil(
                 self.demonstrator_choice_factor * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1) - 1)
             ),
-            torch.tensor(1, device=device),
-            torch.tensor(self.pop_size, device=device),
+            1,
+            self.pop_size,
         )
         # uniform distribution (shape: (pop_size,)) means
         # each individual choose a demonstrator by uniform distribution in the range of q to pop_size
         uniform_distribution = torch.rand(self.pop_size, device=device) * (self.pop_size + 1 - q) + q
-        index_k = clamp(
-            torch.floor(uniform_distribution).to(dtype=torch.int64) - 1,
-            torch.tensor(0, dtype=torch.int64, device=device),
-            torch.tensor(self.pop_size - 1, dtype=torch.int64, device=device),
-        )
+        index_k = clamp_int(torch.floor(uniform_distribution).to(dtype=torch.int64) - 1, 0, self.pop_size - 1)
         X_k = ranked_population[index_k]
         # Update population and velocity
         r1 = torch.rand(self.pop_size, self.dim, device=device)
