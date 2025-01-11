@@ -36,7 +36,7 @@ class SupervisedLearningProblem(Problem):
 
         :raises RuntimeError: If the data loader contains no items.
 
-        ## Warning:
+        ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
         """
         super().__init__()
