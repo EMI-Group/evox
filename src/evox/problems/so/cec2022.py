@@ -31,8 +31,6 @@ class CEC2022(Problem):
         self.OShift: Optional[torch.Tensor] = None
         self.M: Optional[torch.Tensor] = None
         self.SS: Optional[torch.Tensor] = None
-        self.sh_flag = True
-        self.rot_flag = True
 
         assert self.nx in [2, 10, 20], f"Test functions are only defined for D=2,10,20, got {self.nx}."
         assert not (self.func_num in [6, 7, 8] and self.nx == 2), f"Function {self.func_num} is not defined for D=2."
