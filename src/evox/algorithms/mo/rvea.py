@@ -133,9 +133,11 @@ class RVEA(Algorithm):
 
     @trace_impl(_update_pop_and_rv)
     def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+        state, names = self.prepare_control_flow(self._rv_adaptation, self._no_rv_adaptation)
         if_else = TracingCond(self._rv_adaptation, self._no_rv_adaptation)
-        self.reference_vector = if_else.cond(self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
-
+        state, reference_vector = if_else.cond(state, self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
+        self.after_control_flow(state, *names)
+        self.reference_vector = reference_vector
         self.pop = survivor
         self.fit = survivor_fit
 
