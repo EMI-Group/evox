@@ -9,8 +9,8 @@ from ..core.module import ModuleBase
 class Algorithm(ModuleBase, ABC):
     """Base class for all algorithms
 
-    ## Notice:
-    If a subclass have defined `trace_impl` of `ask` or `tell`, its corresponding `init_ask` or `init_tell` must be overwritten even though nothing special is to be included, because Python cannot correctly find the `trace_impl` version of these function due to otherwise.
+    ## Notice
+    If a subclass have defined `trace_impl` of `step`, its corresponding `init_step` must be overwritten even though nothing special is to be included due to Python's object-oriented limitations.
     """
 
     def __init__(self):
@@ -51,7 +51,7 @@ class Problem(ModuleBase, ABC):
 
         :return: The fitness.
 
-        ## Notice:
+        ## Notice
         If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
         """
         return torch.empty(0)

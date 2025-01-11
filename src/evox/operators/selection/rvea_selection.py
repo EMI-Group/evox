@@ -52,7 +52,7 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
         It currently uses a suboptimal selection implementation, and future improvements
         will optimize the process using a `segment_sort` or `segment_argmin` in CUDA.
     """
-    n, m = f.size()
+    n = f.size(0)
     nv = v.size(0)
 
     obj = f - nanmin(f, dim=0, keepdim=True)[0]

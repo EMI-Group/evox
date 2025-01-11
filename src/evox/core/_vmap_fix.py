@@ -1,8 +1,9 @@
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import wraps
-from typing import Any, Callable, List, Tuple, TypeVar
+from typing import Any, Callable, List, Sequence, Tuple, TypeVar
 
+# cSpell:words bdim batchedtensor
 import torch
 import torch._C._functorch as _functorch
 import torch._functorch.vmap as vmap
@@ -12,6 +13,7 @@ from torch._C._functorch import (
 from torch._C._functorch import (
     _unwrap_batched as unwrap_batched_base,
 )
+from torch._C._functorch import _vmap_decrement_nesting, _vmap_increment_nesting
 from torch._C._functorch import (
     is_batchedtensor as is_batched_tensor,
 )
@@ -65,70 +67,32 @@ def _transform_in_dim(
     return batch_dims_shape if len(batch_dims_shape) > 1 else batch_dims_shape[0]
 
 
-global __vmap_batch_sizes__
-__vmap_batch_sizes__ = []
+_vmap_batch_sizes: ContextVar[List[int]] = ContextVar("vmap_batch_sizes", default=[])
 
 
-def _create_batched_inputs(flat_in_dims: List[Any], flat_args: List[Any], vmap_level: int, args_spec) -> Tuple:
-    # See NOTE [Ignored _remove_batch_dim, _add_batch_dim]
-    batched_inputs = [
-        arg if in_dim is None else add_batch_dim(arg, in_dim, vmap_level) for in_dim, arg in zip(flat_in_dims, flat_args)
-    ]
-    batch_size = None
-    for batched, arg, in_dim in zip(batched_inputs, flat_args, flat_in_dims):
-        if isinstance(batched, torch.Tensor):
-            bs = _transform_in_dim(in_dim, batched, arg)
-            if bs is not None:
-                batch_size = bs
-    global __vmap_batch_sizes__
-    __vmap_batch_sizes__.append(batch_size)
-    return tree_unflatten(batched_inputs, args_spec)
+def get_vmap_batch_sizes():
+    return _vmap_batch_sizes.get()
 
 
-def _unwrap_batched(
-    batched_outputs: torch.Tensor | Tuple[torch.Tensor, ...],
-    out_dims: int | Tuple[int, ...],
-    vmap_level: int,
-    batch_size: int,
-    func: Callable,
-) -> Tuple:
-    flat_batched_outputs, output_spec = tree_flatten(batched_outputs)
-
-    def incompatible_error():
-        raise ValueError(
-            f"vmap({vmap._get_name(func)}, ..., out_dims={out_dims})(<inputs>): "
-            f"out_dims is not compatible with the structure of `outputs`. "
-            f"out_dims has structure {tree_flatten(out_dims)[1]} but outputs "
-            f"has structure {output_spec}."
-        )
-
-    if isinstance(batched_outputs, torch.Tensor):
-        # Some weird edge case requires us to spell out the following
-        # see test_out_dims_edge_case
-        if isinstance(out_dims, int):
-            flat_out_dims = [out_dims]
-        elif isinstance(out_dims, tuple) and len(out_dims) == 1:
-            flat_out_dims = out_dims
-        elif out_dims is None:
-            flat_out_dims = [out_dims]
-        else:
-            incompatible_error()
-    else:
-        flat_out_dims = vmap._broadcast_to_and_flatten(out_dims, output_spec)
-        if flat_out_dims is None:
-            incompatible_error()
-
-    flat_outputs = [
-        vmap._maybe_remove_batch_dim(vmap._get_name(func), batched_output, vmap_level, batch_size, out_dim)
-        for batched_output, out_dim in zip(flat_batched_outputs, flat_out_dims)
-    ]
-    global __vmap_batch_sizes__
-    __vmap_batch_sizes__.pop()
-    return tree_unflatten(flat_outputs, output_spec)
+@contextmanager
+def vmap_increment_nesting(batch_size, randomness):
+    try:
+        _vmap_batch_sizes.set(_vmap_batch_sizes.get() + [batch_size])
+        vmap_level = _vmap_increment_nesting(batch_size, randomness)
+        yield vmap_level
+    finally:
+        _vmap_decrement_nesting()
+        _vmap_batch_sizes.set(_vmap_batch_sizes.get()[:-1])
 
 
-vmap._create_batched_inputs = _create_batched_inputs
-vmap._unwrap_batched = _unwrap_batched
+def _flat_vmap(func, batch_size, flat_in_dims, flat_args, args_spec, out_dims, randomness, **kwargs):
+    with vmap_increment_nesting(batch_size, randomness) as vmap_level:
+        batched_inputs = vmap._create_batched_inputs(flat_in_dims, flat_args, vmap_level, args_spec)
+        batched_outputs = func(*batched_inputs, **kwargs)
+        return vmap._unwrap_batched(batched_outputs, out_dims, vmap_level, batch_size, func)
+
+
+vmap._flat_vmap = _flat_vmap
 
 
 def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwargs) -> torch.Tensor:
@@ -157,9 +121,8 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
     if level is None or level <= 0:
         return rand_func(size=size, **kwargs)
     # else
-    global __vmap_batch_sizes__
-    size = tuple(__vmap_batch_sizes__) + size
-    num_levels = len(__vmap_batch_sizes__)
+    size = tuple(get_vmap_batch_sizes()) + size
+    num_levels = len(get_vmap_batch_sizes())
     rand_values = rand_func(size=size, **kwargs)
     batched_rand_values = rand_values
     for level in range(1, num_levels + 1):
@@ -255,9 +218,8 @@ def _batch_randperm(n, **kwargs):
     if level is None or level <= 0:
         return _original_randperm(n, **kwargs)
     # else
-    global __vmap_batch_sizes__
-    size = tuple(__vmap_batch_sizes__) + (n,)
-    num_levels = len(__vmap_batch_sizes__)
+    size = tuple(get_vmap_batch_sizes()) + (n,)
+    num_levels = len(get_vmap_batch_sizes())
     # rand_values = torch.stack([_original_randperm(n, **kwargs) for _ in torch.arange(prod(size))]).view(size + (n,))
     rand_values = _original_rand(size, **kwargs)
     rand_values = torch.argsort(rand_values, dim=-1)
@@ -286,9 +248,8 @@ def _batch_randperm(n, **kwargs):
     if level is None or level <= 0:
         return _original_randperm(n, **kwargs)
     # else
-    global __vmap_batch_sizes__
-    size = tuple(__vmap_batch_sizes__) + (n,)
-    num_levels = len(__vmap_batch_sizes__)
+    size = tuple(get_vmap_batch_sizes()) + (n,)
+    num_levels = len(get_vmap_batch_sizes())
     rand_values = _original_rand(size, **kwargs)
     rand_values = torch.argsort(rand_values, dim=-1)
     rand_values = rand_values.to(**kwargs)
@@ -374,8 +335,9 @@ def unwrap_batch_tensor(tensor: torch.Tensor) -> torch.Tensor | Tuple[int, ...] 
 
     :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
     """
-
     level = get_level(tensor)
+    if level is None or level <= 0:
+        return tensor, (), ()
     batch_dims = []
     batch_sizes = []
     while level >= 1:
