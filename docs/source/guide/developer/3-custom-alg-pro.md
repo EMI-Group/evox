@@ -24,36 +24,36 @@ This layout makes both algorithms and problems more universal: an algorithm can 
 
 ## Algorithm class
 
-The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`ModuleBase <evox.core.ModuleBase>`.
+The {doc}`Algorithm <apidocs/evox/evox.algorithms>` class is inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
 **In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
 
-| Method       | Signature                               | Usage                                                                                                              |
+| Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `__init__` | {python}`(self, ...)`                   | Initialize hyperparameters that are fixed though out the optimization process, for example, the `population size`, the `low bound` and the `up bound`. |
-| `setup` (optional) | {python}`(self, *args, **kwargs) -> self` | Make the mutable initialization of the algorithm.  Most of the time there's no need to override it. |
-| `step`               | {python}`(self)`                        | Perform a normal optimization iteration step of the algorithm. |
-| `init_step` (optional) | {python}`(self)` | Perform the first step of the optimization of the algorithm.  If not override this method, the first step will automatically use the `step` method. |
+| `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
+| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [ModuleBase](). Usually, it is not necessary to overwrite this method. |
+| `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
+| `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
-#### Notice
+```{note}
+The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of {doc}`ModuleBase <apidocs/evox/evox.core.module>` first.
 
-The static initialization can still be written in the `__init__` while the mutable initialization cannot. Therefore, multiple calls of `setup` for multiple initializations are possible.
-
-If such `setup` method in {class}`ModuleBase <evox.core.ModuleBase>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
-
+If such `setup` method in {doc}`ModuleBase <apidocs/evox/evox.core.module>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
+```
 
 
 ## Problem class
 
-The {class}`Problem <evox.Problem>` class is also inherited from {class}`ModuleBase <evox.core.ModuleBase>`. 
+The {doc}`Problem <apidocs/evox/evox.problems>` class is also inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`. 
 
-However, the Problem class is quite simpler. **Beside the`__init__` method, the only necessary method is the `evaluate` method.**
+However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
 
 | Method     | Signature                                   | Usage                                         |
 | ---------- | ------------------------------------------- | --------------------------------------------- |
-| `__init__` | {python}`(self, ...)`                       | Initialize the settings of the problem.       |
-| `evaluate` | {python}`(self, pop:torch.Tensor) -> Array` | Evaluate the fitness of the given population. |
+| `__init__` | `(self, ...)`                       | Initialize the settings of the problem.       |
+| `evaluate` | `(self, pop: torch.Tensor) -> torch.Tensor` | Evaluate the fitness of the given population. |
 
+However, the type of `pop` argument in `evaluate` can be changed to other JIT-compatible types in the overwritten method.
 
 
 ## Example
@@ -65,40 +65,40 @@ Here we give an example of **implementing a PSO algorithm that solves the Sphere
 Here is a pseudo-code:
 
 ```text
-Set hyperparameters
+Set hyper-parameters
 
 Generate the initial population
 Do
     Compute fitness
     
-    Update the lbest and the gbest
+    Update the local best fitness and the global best fitness
     Update the velocity
-    Udpdate the population
+    Update the population
     
 Until stopping criterion
 ```
 
 And here is what each part of the algorithm and the problem corresponds to in EvoX.
 
-```python
-Set hyperparameters # Algortihm.__init__
+```text
+Set hyper-parameters # Algorithm.__init__
 
-Generate the initial population # Algortihm.setup
+Generate the initial population # Algorithm.setup
 Do
     # Problem.evaluate (not part of the algorithm)
     Compute fitness
     
-    # Algortihm.step
-    Update the lbest and the gbest
+    # Algorithm.step
+    Update the local best fitness and the global best fitness
     Update the velocity
-    Udpdate the population
+    Update the population
 
 Until stopping criterion
 ```
 
 ### Algorithm example: PSO algorithm
 
-Particle Swarm Optimization (PSO) is a population-based metaheuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
+Particle Swarm Optimization (PSO) is a population-based meta-heuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
 
 **Here is an implementation example of PSO algorithm in EvoX:**
 
@@ -152,7 +152,7 @@ class PSO(Algorithm):
         # Compute fitness
         fitness = self.evaluate(self.population)
         
-        # Update the lbest and the gbest
+        # Update the local best fitness and the global best fitness
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
             compare[:, None] > 0, self.population, self.local_best_location
@@ -172,7 +172,7 @@ class PSO(Algorithm):
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
         
-        # Udpdate the population
+        # Update the population
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)
@@ -192,7 +192,7 @@ The Sphere problem is a simple, yet fundamental benchmark optimization problem u
 The Sphere function is defined as:
 
 $$
-\textbf{min} f(x)= \sum_{i=1}^{n} x_{i}^{2}
+\min f(x)= \sum_{i=1}^{n} x_{i}^{2}
 $$
 **Here is an implementation example of Sphere problem in EvoX:**
 
