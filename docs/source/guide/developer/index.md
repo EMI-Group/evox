@@ -5,6 +5,6 @@
 
 environment
 1-modulebase
-3-custom_algo_prob
+3-custom_alg_pro
 hpo
 ```
