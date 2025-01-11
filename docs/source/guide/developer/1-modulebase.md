@@ -4,7 +4,7 @@ A **module** is a fundamental concept in programming that refers to a self-conta
 
 This notebook will introduce the basic module in EvoX: {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
-## Introduction of Module
+## Introduction to Module
 
 In the {doc}`Quick Start <guide/user/1-start>` of the {doc}`User Guide <guide/user>`, we have mentioned the basic running process in EvoX:
 
@@ -18,11 +18,7 @@ This process requires four basic class in EvoX:
 - {doc}`Workflow <apidocs/evox/evox.workflows>`
 
 
-It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
-
-{doc}`ModuleBase <apidocs/evox/evox.core.module>` is the base module for all algorithms and problems, and also for {doc}`Monitor <apidocs/evox/evox.workflows.eval_monitor>`
-
-and {doc}`Workflow <apidocs/evox/evox.workflows>`.
+It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from the base module — {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
 
 <center>
   <img src="../../_static/modulebase.svg">
@@ -37,9 +33,9 @@ There are many methods in this class, and some important methods are here:
 | Method            | Signature                                                    | Usage                                                        |
 | ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `__init__`        | `(self, ...)`                                                | Initialize the module.                                       |
-| `steup`           | `(self, ...) -> self`                                        | Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`. |
+| `setup`           | `(self, ...) -> self`                                        | Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`. |
 | `load_state_dict` | `(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)` | Copy parameters and buffers from `state_dict` into this module and its descendants. It overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict). |
-| `add_mutable`     | `(self,name: str, value: Union[torch.Tensor | nn.Module, Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module],],) -> None` | Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place. |
+| `add_mutable`     | `(self, name: str, value: Union[torch.Tensor \| nn.Module, Sequence[torch.Tensor \| nn.Module], Dict[str, torch.Tensor \| nn.Module]]) -> None` | Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place. |
 
 ## Role of Module
 
@@ -99,6 +95,30 @@ class ExampleModule(ModuleBase):
     
     ...
     
+```
+
+### Supporting for JIT and non-JIT functions
+
+`ModuleBase <apidocs/evox/evox.core.module>` is usually used with `jit_class` to automatically JIT all non-magic member methods:
+
+```python
+@jit_class
+class ExampleModule(ModuleBase):
+    # This function will be automatically JIT
+    def func1(self, x: torch.Tensor) -> torch.Tensor:
+        pass
+
+    # Use `torch.jit.ignore` to disable JIT and leave this function as Python callback
+    @torch.jit.ignore
+    def func2(self, x: torch.Tensor) -> torch.Tensor:
+        # you can implement pure Python logic here
+        pass
+
+    # JIT functions can invoke other JIT functions as well as non-JIT functions
+    def func3(self, x: torch.Tensor) -> torch.Tensor:
+        y = self.func1(x)
+        z = self.func2(x)
+        pass
 ```
 
 ### Examples

@@ -28,32 +28,32 @@ The {doc}`Algorithm <apidocs/evox/evox.algorithms>` class is inherited from {doc
 
 **In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
 
-| Method       | Signature                               | Usage                                                                                                              |
+| Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `__init__` | `(self, ...)`                   | Initialize hyperparameters that are fixed though out the optimization process, for example, the `population size`, the `low bound` and the `up bound`. |
-| `setup` (optional) | `(self, ...) -> self` | Make the mutable initialization of the algorithm.  Most of the time there's no need to override it. |
-| `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
-| `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm.  If not override this method, the first step will automatically use the `step` method. |
+| `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
+| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [ModuleBase](). Usually, it is not necessary to overwrite this method. |
+| `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
+| `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
-#### Notice
-
-The static initialization can still be written in the `__init__` while the mutable initialization cannot. Therefore, multiple calls of `setup` for multiple initializations are possible.
+```{note}
+The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of {doc}`ModuleBase <apidocs/evox/evox.core.module>` first.
 
 If such `setup` method in {doc}`ModuleBase <apidocs/evox/evox.core.module>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
-
+```
 
 
 ## Problem class
 
 The {doc}`Problem <apidocs/evox/evox.problems>` class is also inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`. 
 
-However, the Problem class is quite simpler. **Beside the`__init__` method, the only necessary method is the `evaluate` method.**
+However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
 
 | Method     | Signature                                   | Usage                                         |
 | ---------- | ------------------------------------------- | --------------------------------------------- |
 | `__init__` | `(self, ...)`                       | Initialize the settings of the problem.       |
-| `evaluate` | `(self, pop:torch.Tensor) -> Array` | Evaluate the fitness of the given population. |
+| `evaluate` | `(self, pop: torch.Tensor) -> torch.Tensor` | Evaluate the fitness of the given population. |
 
+However, the type of `pop` argument in `evaluate` can be changed to other JIT-compatible types in the overwritten method.
 
 
 ## Example
@@ -71,7 +71,7 @@ Generate the initial population
 Do
     Compute fitness
     
-    Update the lbest and the gbest
+    Update the local best and the global best
     Update the velocity
     Update the population
     
@@ -89,7 +89,7 @@ Do
     Compute fitness
     
     # Algorithm.step
-    Update the lbest and the gbest
+    Update the local best and the global best
     Update the velocity
     Update the population
 
@@ -152,7 +152,7 @@ class PSO(Algorithm):
         # Compute fitness
         fitness = self.evaluate(self.population)
         
-        # Update the lbest and the gbest
+        # Update the local best and the global best
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
             compare[:, None] > 0, self.population, self.local_best_location
@@ -192,7 +192,7 @@ The Sphere problem is a simple, yet fundamental benchmark optimization problem u
 The Sphere function is defined as:
 
 $$
-\textbf{min} f(x)= \sum_{i=1}^{n} x_{i}^{2}
+\min f(x)= \sum_{i=1}^{n} x_{i}^{2}
 $$
 **Here is an implementation example of Sphere problem in EvoX:**
 
