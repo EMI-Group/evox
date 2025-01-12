@@ -2,9 +2,9 @@
 
 For better understanding of this part, we need to explain 3 important functions in EvoX: [`jit_class`](#evox.core.module.jit_class), [`vmap`](#evox.core.jit_util.vmap) and [`jit`](l#evox.core.jit_util.jit).
 
-### jit_class function
+### [`jit_class`](#evox.core.module.jit_class) function
 
-[`jit_class`](#evox.core.module.jit_class) is a helper function used to Just-In-Time (JIT) script of Pytorch ([`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)) or trace ([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-jit-trace-module)) all member methods of the input class. 
+[`jit_class`](#evox.core.module.jit_class) is a helper function used to Just-In-Time (JIT) script of [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) or trace ([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-jit-trace-module)) all member methods of the input class. 
 
 [`jit_class`](#evox.core.module.jit_class) has two parameters:
 
@@ -17,13 +17,13 @@ For better understanding of this part, we need to explain 3 important functions 
 3. Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.
 ```
 
-### vmap function
+### [`vmap`](#evox.core.jit_util.vmap) function
 
 [`vmap`](#evox.core.jit_util.vmap) function vectorized map the given function to its mapped version. Based on [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html), we made many improvements, and you can see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
 
-### jit function
+### [`jit`](#evox.core.jit_util.jit) function
 
-[`jit`](#evox.core.jit_util.jit) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
+[`jit`](#evox.core.jit_util.jit) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) or [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
   This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`, preventing possible errors.
 
