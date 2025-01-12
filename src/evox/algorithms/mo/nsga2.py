@@ -1,13 +1,12 @@
-import torch
-from torch import nn
-from typing import Optional, Callable
+from typing import Callable, Optional
 
-from ...core import Algorithm, Mutable, jit_class, trace_impl
+import torch
+
+from ...core import Algorithm, Mutable, jit_class
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
 from ...operators.selection import non_dominate
 from ...utils import clamp
-from ...metrics import igd
 
 
 @jit_class

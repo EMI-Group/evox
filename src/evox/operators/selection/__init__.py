@@ -1,5 +1,5 @@
-__all__ = ["ref_vec_guided", "NonDominatedSort", "crowding_distance", "non_dominate"]
+__all__ = ["ref_vec_guided", "NonDominatedSort", "crowding_distance", "non_dominate", "tournament_selection", "tournament_selection_multifit"]
 
-from .rvea_selection import ref_vec_guided
 from .non_dominate import NonDominatedSort, crowding_distance, non_dominate
-from .tournament_selection import tournament_selection_multifit, tournament_selection
+from .rvea_selection import ref_vec_guided
+from .tournament_selection import tournament_selection, tournament_selection_multifit
