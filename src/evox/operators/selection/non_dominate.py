@@ -99,6 +99,7 @@ class NonDominatedSort(ModuleBase):
     This class provides an efficient implementation of non-dominated sorting using both direct computation and a
     traceable map-reduce method for large-scale multi-objective optimization problems.
     """
+
     def __new__(cls):
         global _NDS_cache
         if _NDS_cache is not None:
@@ -216,19 +217,18 @@ def _non_dominate_rank(f: torch.Tensor):
 _non_dominate_rank.__prepare_scriptable__ = lambda: _non_dominated_sort_script
 
 
-def non_dominate(x: torch.Tensor, f: torch.Tensor, topk: int):
+def nd_environmental_selection(x: torch.Tensor, f: torch.Tensor, topk: int):
     """
-    Select the top-k non-dominated solutions based on rank and crowding distance.
+    Perform environmental selection using the non-dominated sorting and crowding distance.
 
-    :param x: A 2D tensor where each row represents a solution in the decision space.
-    :param f: A 2D tensor where each row represents a solution in the objective space.
+    :param x: A 2D tensor where each row represents a solution, and each column represents a variable.
+    :param f: A 2D tensor where each row represents a solution, and each column represents an objective.
     :param topk: The number of solutions to select.
 
     :returns:
-        A tuple of two tensors:
-        - **x_selected**: The selected solutions in the decision space.
-        - **f_selected**: The corresponding objective values of the selected solutions.
+        A tuple of four tensors. The first tensor contains the selected solutions, the second tensor contains the corresponding objective values, the third tensor contains the non-dominated sorting rank of the selected solutions, and the fourth tensor contains the crowding distance of the selected solutions.
     """
+
     rank = _non_dominate_rank(f)
     order = torch.argsort(rank, stable=True)
     worst_rank = rank[order[topk - 1]]
@@ -236,4 +236,4 @@ def non_dominate(x: torch.Tensor, f: torch.Tensor, topk: int):
     crowding_dis = crowding_distance(f, mask)
     dis_order = torch.argsort(crowding_dis, stable=True)
     combined_order = lexsort([-dis_order, rank])[:topk]
-    return x[combined_order], f[combined_order]
+    return x[combined_order], f[combined_order], rank[combined_order], crowding_dis[combined_order]

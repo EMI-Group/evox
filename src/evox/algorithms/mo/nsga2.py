@@ -5,7 +5,7 @@ import torch
 from ...core import Algorithm, Mutable, jit_class
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
-from ...operators.selection import non_dominate
+from ...operators.selection import nd_environmental_selection, tournament_selection_multifit
 from ...utils import clamp
 
 
@@ -21,6 +21,7 @@ class NSGA2(Algorithm):
         - "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II," IEEE Transactions on Evolutionary Computation.
           `Link <https://ieeexplore.ieee.org/document/996017>`_
     """
+
     def __init__(
         self,
         pop_size: int,
@@ -32,17 +33,17 @@ class NSGA2(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-        """ Initializes the NSGA-II algorithm.
+        """Initializes the NSGA-II algorithm.
 
-         :param pop_size: The size of the population.
-         :param n_objs: The number of objective functions in the optimization problem.
-         :param lb: The lower bounds for the decision variables (1D tensor).
-         :param ub: The upper bounds for the decision variables (1D tensor).
-         :param selection_op: The selection operation for evolutionary strategy (optional).
-         :param mutation_op: The mutation operation, defaults to `polynomial_mutation` if not provided (optional).
-         :param crossover_op: The crossover operation, defaults to `simulated_binary` if not provided (optional).
-         :param device: The device on which computations should run (optional). Defaults to PyTorch's default device.
-         """
+        :param pop_size: The size of the population.
+        :param n_objs: The number of objective functions in the optimization problem.
+        :param lb: The lower bounds for the decision variables (1D tensor).
+        :param ub: The upper bounds for the decision variables (1D tensor).
+        :param selection_op: The selection operation for evolutionary strategy (optional).
+        :param mutation_op: The mutation operation, defaults to `polynomial_mutation` if not provided (optional).
+        :param crossover_op: The crossover operation, defaults to `simulated_binary` if not provided (optional).
+        :param device: The device on which computations should run (optional). Defaults to PyTorch's default device.
+        """
 
         super().__init__()
         self.pop_size = pop_size
@@ -62,8 +63,8 @@ class NSGA2(Algorithm):
         self.crossover = crossover_op
         self.device = device
 
-        # if self.selection is None:
-        #     self.selection = ref_vec_guided
+        if self.selection is None:
+            self.selection = tournament_selection_multifit
         if self.mutation is None:
             self.mutation = polynomial_mutation
         if self.crossover is None:
@@ -74,9 +75,9 @@ class NSGA2(Algorithm):
         population = length * population + lb
 
         self.pop = Mutable(population)
-        self.fit = Mutable(
-            torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf)
-        )
+        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.rank = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.dis = Mutable(torch.empty(self.pop_size, device=device).fill_(-torch.inf))
 
     def init_step(self):
         """
@@ -85,19 +86,16 @@ class NSGA2(Algorithm):
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
         self.fit = self.evaluate(self.pop)
+        _, _, self.rank, self.dis = nd_environmental_selection(self.pop, self.fit, self.pop_size)
 
     def step(self):
-        """Perform the optimization step of the workflow.
-        """
-        crossovered = self.crossover(self.pop)
+        """Perform the optimization step of the workflow."""
+        mating_pool = self.selection(self.pop_size, [-self.dis, self.rank])
+        crossovered = self.crossover(self.pop[mating_pool])
         offspring = self.mutation(crossovered, self.lb, self.ub)
         offspring = clamp(offspring, self.lb, self.ub)
         off_fit = self.evaluate(offspring)
         merge_pop = torch.cat([self.pop, offspring], dim=0)
         merge_fit = torch.cat([self.fit, off_fit], dim=0)
 
-        self.pop, self.fit = non_dominate(
-            merge_pop,
-            merge_fit,
-            self.pop_size
-        )
+        self.pop, self.fit, self.rank, self.dis = nd_environmental_selection(merge_pop, merge_fit, self.pop_size)
