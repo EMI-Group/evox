@@ -4,7 +4,6 @@ from typing import Callable, Optional
 import torch
 
 from ...core import Algorithm, Mutable, jit_class
-from ...metrics import igd
 from ...operators.crossover import simulated_binary_half
 from ...operators.mutation import polynomial_mutation
 from ...operators.sampling import uniform_sampling
@@ -30,20 +29,23 @@ class MOEAD(Algorithm):
         - "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition," IEEE Transactions on Evolutionary Computation.
           `Link <https://ieeexplore.ieee.org/document/4358754>`_
 
+
+    :note: This implementation is based on the original paper and may not be the most efficient implementation. It can not be traced by JIT.
+
     """
+
     def __init__(
         self,
         pop_size: int,
         n_objs: int,
         lb: torch.Tensor,
         ub: torch.Tensor,
-        pf: torch.Tensor = None,
         selection_op: Optional[Callable] = None,
         mutation_op: Optional[Callable] = None,
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-        """ Initializes the MOEA/D algorithm.
+        """Initializes the MOEA/D algorithm.
 
         :param pop_size: The size of the population.
         :param n_objs: The number of objective functions in the optimization problem.
@@ -66,8 +68,6 @@ class MOEAD(Algorithm):
         # write to self
         self.lb = lb.to(device=device)
         self.ub = ub.to(device=device)
-
-        self.pf = pf
 
         self.selection = selection_op
         self.mutation = mutation_op
@@ -106,8 +106,7 @@ class MOEAD(Algorithm):
         self.z = torch.min(self.fit, dim=0)[0]
 
     def step(self):
-        """Perform a single optimization step of the workflow.
-        """
+        """Perform a single optimization step of the workflow."""
         for i in range(self.pop_size):
             parents = self.neighbors[i][torch.randperm(self.n_neighbor)]
             crossovered = self.crossover(self.pop[parents[:2]])
@@ -122,6 +121,4 @@ class MOEAD(Algorithm):
 
             self.fit[parents[g_old >= g_new]] = off_fit
             self.pop[parents[g_old >= g_new]] = offspring
-
-        print(igd(self.fit, self.pf))
 
