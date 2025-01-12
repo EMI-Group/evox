@@ -1,15 +1,15 @@
 import torch
 
 
-def simulated_binary_half(x: torch.Tensor, pro_c: float = 1., dis_c: float = 20.):
+def simulated_binary_half(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0):
     """
-    generating half of the offspring using SBX.
-    Args:
-        x: Parent solutions in a 2D tensor (size: n x d).
-        pro_c: Probability of doing crossover.
-        dis_c: Distribution index of SBX.
-    Returns:
-        offspring_dec: half of the offspring after crossover.
+    Generate half of the offspring solutions after simulated binary crossover (SBX).
+
+    :param x: Parent solutions in a 2D tensor (size: n x d).
+    :param pro_c: Probability of doing crossover.
+    :param dis_c: Distribution index of SBX.
+
+    :return: Offspring solutions after crossover.
     """
     n, d = x.size()
     parent1_dec = x[: n // 2, :]

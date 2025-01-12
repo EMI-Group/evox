@@ -54,7 +54,7 @@ def update_dc_and_rank(
     return rank, dominate_count
 
 
-def _non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
+def non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
     """
     Perform non-dominated sort using PyTorch in torch.script mode.
 
@@ -98,6 +98,10 @@ class NonDominatedSort(ModuleBase):
 
     This class provides an efficient implementation of non-dominated sorting using both direct computation and a
     traceable map-reduce method for large-scale multi-objective optimization problems.
+
+    :note:
+        This class is designed to automatically identify script and trace modes, with a particular focus on supporting `vmap`.
+        In script mode, use `non_dominated_sort_script`, and in trace mode, use `trace_non_dominated_sort`.
     """
 
     def __new__(cls):
@@ -119,19 +123,25 @@ class NonDominatedSort(ModuleBase):
 
     def non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Perform non-dominated sorting on the input tensor.
-        """
-        return _non_dominated_sort_script(x)
-
-    @trace_impl(non_dominated_sort)
-    def trace_non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Perform non-dominated sorting using PyTorch's full map-reduce method for efficient computation.
+        Perform non-dominated sorting using PyTorch's scripting mechanism for efficient computation.
 
         :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
 
         :returns: A one-dimensional tensor representing the ranking, starting from 0.
         """
+
+        return non_dominated_sort_script(x)
+
+    @trace_impl(non_dominated_sort)
+    def trace_non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Perform non-dominated sorting using PyTorch's tracing mechanism for efficient computation.
+
+        :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
+
+        :returns: A one-dimensional tensor representing the ranking, starting from 0.
+        """
+
         n, m = x.size()
 
         # Domination relation matrix (n x n)
@@ -209,27 +219,40 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     return crowding_distances
 
 
-def _non_dominate_rank(f: torch.Tensor):
+def non_dominate_rank(f: torch.Tensor):
+    """
+    Compute the non-domination rank for a set of solutions in multi-objective optimization.
+
+    The non-domination rank is a measure of the Pareto optimality of each solution.
+
+    :param f: A 2D tensor where each row represents a solution, and each column represents an objective.
+
+    :returns:
+        A 1D tensor containing the non-domination rank for each solution.
+    """
     rank = NonDominatedSort().non_dominated_sort(f)
     return rank
 
 
-_non_dominate_rank.__prepare_scriptable__ = lambda: _non_dominated_sort_script
+non_dominate_rank.__prepare_scriptable__ = lambda: non_dominated_sort_script
 
 
 def nd_environmental_selection(x: torch.Tensor, f: torch.Tensor, topk: int):
     """
-    Perform environmental selection using the non-dominated sorting and crowding distance.
+    Perform environmental selection based on non-domination rank and crowding distance.
 
-    :param x: A 2D tensor where each row represents a solution, and each column represents a variable.
+    :param x: A 2D tensor where each row represents a solution, and each column represents a decision variable.
     :param f: A 2D tensor where each row represents a solution, and each column represents an objective.
     :param topk: The number of solutions to select.
 
     :returns:
-        A tuple of four tensors. The first tensor contains the selected solutions, the second tensor contains the corresponding objective values, the third tensor contains the non-dominated sorting rank of the selected solutions, and the fourth tensor contains the crowding distance of the selected solutions.
+        A tuple of four tensors:
+        - **x**: The selected solutions.
+        - **f**: The corresponding objective values.
+        - **rank**: The non-domination rank of the selected solutions.
+        - **crowding_dis**: The crowding distance of the selected solutions.
     """
-
-    rank = _non_dominate_rank(f)
+    rank = non_dominate_rank(f)
     order = torch.argsort(rank, stable=True)
     worst_rank = rank[order[topk - 1]]
     mask = rank == worst_rank

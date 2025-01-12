@@ -108,7 +108,7 @@ class MOEAD(Algorithm):
     def step(self):
         """Perform a single optimization step of the workflow."""
         for i in range(self.pop_size):
-            parents = self.neighbors[i][torch.randperm(self.n_neighbor)]
+            parents = self.neighbors[i][torch.randperm(self.n_neighbor, device=self.device)]
             crossovered = self.crossover(self.pop[parents[:2]])
             offspring = self.mutation(crossovered, self.lb, self.ub)
             offspring = clamp(offspring, self.lb, self.ub)

@@ -1,9 +1,7 @@
 import torch
 
 
-def simulated_binary(
-    x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.
-) -> torch.Tensor:
+def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -> torch.Tensor:
     """Simulated binary crossover (SBX)
 
     :param x: Parent solutions in a 2D tensor (size: n x d).
