@@ -5,5 +5,5 @@
 
 environment
 custom_algo_prob
-hpo
+custom_hpo_prob
 ```
