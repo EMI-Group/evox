@@ -5,9 +5,6 @@ def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
     """
     Calculate the Inverted Generational Distance (IGD) metric between a set of solutions and the Pareto front.
 
-    The IGD metric is used to evaluate the quality of an approximation to the Pareto front by computing the average
-    distance between each point in the approximation and the nearest point on the true Pareto front.
-
     :param objs: A tensor of shape (n, m), where n is the number of solutions and m is the number of objectives.
                  Represents the set of solutions to be evaluated.
     :param pf: A tensor of shape (k, m), where k is the number of points on the Pareto front and m is the number
