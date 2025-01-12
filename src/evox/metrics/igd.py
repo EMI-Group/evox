@@ -4,7 +4,7 @@ import torch
 def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
     """
     Calculate the Inverted Generational Distance (IGD) metric between a set of solutions and the Pareto front.
-    
+
     :param objs: A tensor of shape (n, m), where n is the number of solutions and m is the number of objectives.
                  Represents the set of solutions to be evaluated.
     :param pf: A tensor of shape (k, m), where k is the number of points on the Pareto front and m is the number
