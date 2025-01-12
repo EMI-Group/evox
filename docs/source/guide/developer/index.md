@@ -6,5 +6,5 @@
 environment
 1-modulebase
 3-custom-alg-pro
-hpo
+custom_hpo_prob
 ```
