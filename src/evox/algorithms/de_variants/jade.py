@@ -14,7 +14,6 @@ class JaDE(Algorithm):
     * `__init__`: Initializes the JaDE algorithm with the given parameters, including population size, bounds, mutation strategy, and other hyperparameters.
     * `init_step`: Performs the initial evaluation of the population's fitness and proceeds to the first optimization step.
     * `step`: Executes a single optimization step of the JaDE algorithm, involving mutation, crossover, selection, and adaptation of strategy parameters.
-    * `_select_rand_pbest_vects`: Selects p-best vectors from the population for mutation based on their fitness.
 
     Note that the `evaluate` method is not defined in this class. It is expected to be provided by the `Problem` class or another external component.
     """
