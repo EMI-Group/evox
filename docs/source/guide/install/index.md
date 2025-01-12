@@ -5,5 +5,4 @@
 
 python
 install
-windows_gpu
 ```
