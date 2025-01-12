@@ -49,7 +49,7 @@ def vmap(
     batched_state: Dict[str, torch.Tensor] | None = None,
     VMAP_DIM_CONST: int = 13,
 ) -> T | MappedUseStateFunc:
-    """Vectorize map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
+    """Vectorized map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
 
     :param func: The function to be mapped. See `torch.vmap`.
     :param in_dims: The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
