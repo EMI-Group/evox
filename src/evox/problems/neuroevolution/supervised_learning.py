@@ -49,7 +49,7 @@ class SupervisedLearningProblem(Problem):
         # Global data loader info registration
         global __supervised_data__
         instance_id = id(self)
-        self.__index_id__ = instance_id
+        self._index_id_ = instance_id
         if instance_id not in __supervised_data__.keys():
             __supervised_data__[instance_id] = {
                 "data_loader_ref": data_loader,
@@ -126,7 +126,7 @@ class SupervisedLearningProblem(Problem):
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
         global __supervised_data__
-        data_info = __supervised_data__[self.__index_id__]
+        data_info = __supervised_data__[self._index_id_]
         data_info["data_loader_iter"] = iter(data_info["data_loader_ref"])
         try:
             data_info["data_next_cache"] = next(data_info["data_loader_iter"])
@@ -136,7 +136,7 @@ class SupervisedLearningProblem(Problem):
     @torch.jit.ignore
     def _data_loader_next(self) -> Tuple[torch.Tensor, torch.Tensor]:
         global __supervised_data__
-        data_info = __supervised_data__[self.__index_id__]
+        data_info = __supervised_data__[self._index_id_]
         next_data = data_info["data_next_cache"]
         try:
             data_info["data_next_cache"] = next(data_info["data_loader_iter"])
@@ -147,7 +147,7 @@ class SupervisedLearningProblem(Problem):
     @torch.jit.ignore
     def _data_loader_has_next(self) -> bool:
         global __supervised_data__
-        return __supervised_data__[self.__index_id__]["data_next_cache"] is not None
+        return __supervised_data__[self._index_id_]["data_next_cache"] is not None
 
     def _vmap_evaluate(
         self,
