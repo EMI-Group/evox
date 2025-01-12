@@ -58,7 +58,7 @@ class SHADE(Algorithm):
         CR_vect = torch.randn( self.pop_size, device=device ) * 0.1 + M_CR_vect
         CR_vect = clamp( CR_vect, torch.zeros(self.pop_size, device=device), torch.ones(self.pop_size, device=device) )
 
-        difference_sum = de_diff_sum( self.diff_padding_num, self.num_diff_vects, indices, self.population )
+        difference_sum, rand_vect_idx = de_diff_sum( self.diff_padding_num, torch.tile( self.num_diff_vects, (self.pop_size,) ), indices, self.population )
         pbest_vect   = select_rand_pbest( 0.05, self.population, self.fitness )
         current_vect = self.population[indices]
         
