@@ -1,5 +1,6 @@
 __all__ = ["BraxProblem"]
 
+import weakref
 from typing import Callable, Dict, Tuple
 
 import jax
@@ -26,7 +27,7 @@ def from_jax_array(x: jax.Array) -> torch.Tensor:
 __brax_data__: Dict[
     int,
     Tuple[Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]],
-] = {}
+] = {}  # Cannot be a weakref.WeakValueDictionary because the values are only stored here
 
 
 @jit_class
@@ -45,7 +46,7 @@ class BraxProblem(Problem):
         backend: str | None = None,
         device: torch.device | None = None,
     ):
-        """Contruct a brax-based problem.
+        """Construct a Brax-based problem.
         Firstly, you need to define a policy model.
         Then you need to set the `environment name <https://github.com/google/brax/tree/main/brax/envs>`,
         the maximum episode length, the number of episodes to evaluate for each individual.
@@ -56,7 +57,7 @@ class BraxProblem(Problem):
 
         :param policy: The policy model whose forward function is :code:`forward(batched_obs) -> action`.
         :param env_name: The environment name.
-        :param max_episode_length: The maximum number of timesteps of each episode.
+        :param max_episode_length: The maximum number of time steps of each episode.
         :param num_episodes: The number of episodes to evaluate for each individual.
         :param pop_size: The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
         :param rotate_key: Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
@@ -67,7 +68,7 @@ class BraxProblem(Problem):
         ## Notice
         The initial key is obtained from `torch.random.get_rng_state()`.
 
-        ## Warning:
+        ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
 
         ## Examples
@@ -95,7 +96,9 @@ class BraxProblem(Problem):
         brax_reset = jax.jit(env.reset)
         brax_step = jax.jit(env.step)
         global __brax_data__
-        __brax_data__[hash(self)] = (brax_reset, brax_step)
+        __brax_data__[id(self)] = (brax_reset, brax_step)
+        weakref.finalize(self, __brax_data__.pop, id(self), None)
+        self.__index_id__ = id(self)
         # JIT stateful model forward
         dummy_obs = torch.empty(pop_size, num_episodes, env.observation_size, device=device)
         _, jit_vmap_state_forward, _, _, param_to_state_key_map, model_buffers = get_vmap_model_state_forward(
@@ -122,10 +125,6 @@ class BraxProblem(Problem):
         self.pop_size = pop_size
         self.rotate_key = rotate_key
         self.reduce_fn = reduce_fn
-
-    def __del__(self):
-        global __brax_data__
-        __brax_data__.pop(self._hash_id_, None)
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the final rewards of a population (batch) of model parameters.
@@ -160,7 +159,7 @@ class BraxProblem(Problem):
         pop_size = list(model_state.values())[0].shape[0]
         assert pop_size == self.pop_size
         global __brax_data__
-        brax_reset, brax_step = __brax_data__[self._hash_id_]
+        brax_reset, brax_step = __brax_data__[self.__index_id__]
         # For each episode, we need a different random key.
         # For each individual in the population, we need the same set of keys.
         key = to_jax_array(rand_key)

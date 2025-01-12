@@ -116,8 +116,11 @@ class DMSPSOEL(Algorithm):
     def trace_step(self):
         fitness = self.evaluate(self.population)
         cond = self.iteration < 0.9 * self.max_iteration
-        _if_else_ = TracingCond(self._update_strategy_1, self._update_strategy_2)
-        _if_else_.cond(cond, fitness)
+        branches = (self._update_strategy_1, self._update_strategy_2)
+        state, names = self.prepare_control_flow(*branches)
+        _if_else_ = TracingCond(*branches)
+        state = _if_else_.cond(state, cond, fitness)
+        self.after_control_flow(state, *names)
         self.iteration += 1
 
     def _update_strategy_1(self, fitness: torch.Tensor):
@@ -181,8 +184,10 @@ class DMSPSOEL(Algorithm):
 
     @trace_impl(_cond_regroup)
     def _trace_cond_regroup(self, fitness: torch.Tensor):
+        state, names = self.prepare_control_flow(self._regroup)
         _if_else_regroup_ = TracingCond(self._regroup, lambda _: None)
-        _if_else_regroup_.cond((self.iteration % self.regrouped_iteration_num) == 0, fitness)
+        state = _if_else_regroup_.cond(state, (self.iteration % self.regrouped_iteration_num) == 0, fitness)
+        self.after_control_flow(state, *names)
 
     def _regroup(self, fitness: torch.Tensor):
         sort_index = torch.argsort(fitness, dim=0)
