@@ -27,7 +27,7 @@ def from_jax_array(x: jax.Array) -> torch.Tensor:
 __brax_data__: Dict[
     int,
     Tuple[Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]],
-] = {}
+] = {}  # Cannot be a weakref.WeakValueDictionary because the values are only stored here
 
 
 @jit_class
@@ -98,6 +98,7 @@ class BraxProblem(Problem):
         global __brax_data__
         __brax_data__[id(self)] = (brax_reset, brax_step)
         weakref.finalize(self, __brax_data__.pop, id(self), None)
+        self.__index_id__ = id(self)
         # JIT stateful model forward
         dummy_obs = torch.empty(pop_size, num_episodes, env.observation_size, device=device)
         _, jit_vmap_state_forward, _, _, param_to_state_key_map, model_buffers = get_vmap_model_state_forward(
@@ -158,7 +159,7 @@ class BraxProblem(Problem):
         pop_size = list(model_state.values())[0].shape[0]
         assert pop_size == self.pop_size
         global __brax_data__
-        brax_reset, brax_step = __brax_data__[self._hash_id_]
+        brax_reset, brax_step = __brax_data__[self.__index_id__]
         # For each episode, we need a different random key.
         # For each individual in the population, we need the same set of keys.
         key = to_jax_array(rand_key)
