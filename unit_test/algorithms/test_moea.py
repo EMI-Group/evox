@@ -64,3 +64,4 @@ class TestMOVariants(MOTestBase):
             else:
                 self.run_algorithm(algo)
                 self.run_trace_algorithm(algo)
+                # self.run_vmap_algorithm(algo)

@@ -5,7 +5,13 @@ from ...utils import TracingWhile, lexsort
 
 
 def dominate_relation(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    """Return a matrix A, where A_{ij} is True if x_i dominates y_j."""
+    """Return the domination relation matrix A, where A_{ij} is True if x_i dominates y_j.
+
+    :param x: An array with shape (n1, m) where n1 is the population size and m is the number of objectives.
+    :param y: An array with shape (n2, m) where n2 is the population size and m is the number of objectives.
+
+    :returns: The domination relation matrix of x and y.
+    """
     # Expand the dimensions of x and y so that we can perform element-wise comparisons
     # Add new dimensions to x and y to prepare them for broadcasting
     x_expanded = x.unsqueeze(1)  # Shape (n1, 1, m)
@@ -64,21 +70,16 @@ def non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
         A one-dimensional tensor representing the ranking, starting from 0.
     """
 
-    n, m = x.size()
-
+    n = x.size(0)
     # Domination relation matrix (n x n)
     dominate_relation_matrix = dominate_relation(x, x)
-
     # Count how many times each individual is dominated
     dominate_count = dominate_relation_matrix.sum(dim=0)
-
     # Initialize rank array
     rank = torch.zeros(n, dtype=torch.int32, device=x.device)
     current_rank = 0
-
     # Identify individuals in the first Pareto front (those that are not dominated)
     pareto_front = dominate_count == 0
-
     # Iteratively identify Pareto fronts
     while pareto_front.any():
         rank, dominate_count = update_dc_and_rank(dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank)
@@ -142,18 +143,14 @@ class NonDominatedSort(ModuleBase):
         :returns: A one-dimensional tensor representing the ranking, starting from 0.
         """
 
-        n, m = x.size()
-
+        n = x.size(0)
         # Domination relation matrix (n x n)
         dominate_relation_matrix = dominate_relation(x, x)
-
         # Count how many times each individual is dominated
         dominate_count = dominate_relation_matrix.sum(dim=0)
-
         # Initialize rank array
         rank = torch.zeros(n, dtype=torch.int32, device=x.device)
         current_rank = torch.tensor(0, dtype=torch.int32, device=x.device)
-
         # Identify individuals in the first Pareto front (those that are not dominated)
         pareto_front = dominate_count == 0
 
@@ -168,17 +165,15 @@ class NonDominatedSort(ModuleBase):
             rank, dominate_count = update_dc_and_rank(
                 dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
             )
-
             # Move to next rank
             current_rank = current_rank + 1
             pareto_front = dominate_count == 0
-
             return rank, dominate_count, current_rank, pareto_front, dominate_relation_matrix
 
+        # Considering that this function may be vectorized mapped, the stateful while loop cannot be used
         if not hasattr(self, "_while_loop_"):
-            self._while_loop_ = TracingWhile(lambda x, y, p, q, a: q.any(), body_func)
+            self._while_loop_ = TracingWhile(lambda x, y, p, q, _: q.any(), body_func)
         rank, _, _, _, _ = self._while_loop_.loop(rank, dominate_count, current_rank, pareto_front, dominate_relation_matrix)
-
         return rank
 
 
@@ -206,7 +201,7 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(costs.dtype)
 
     rank = lexsort([costs, inverted_mask], dim=0)
-
+    # TODO: num_valid_elem preventing vmap
     costs = torch.gather(costs, dim=0, index=rank)
     distance_range = costs[num_valid_elem - 1, :] - costs[0, :]
     distance = torch.empty(costs.size(), device=costs.device)
@@ -253,8 +248,7 @@ def nd_environmental_selection(x: torch.Tensor, f: torch.Tensor, topk: int):
         - **crowding_dis**: The crowding distance of the selected solutions.
     """
     rank = non_dominate_rank(f)
-    order = torch.argsort(rank, stable=True)
-    worst_rank = rank[order[topk - 1]]
+    worst_rank = torch.topk(rank, topk, largest=False)[0][-1]
     mask = rank == worst_rank
     crowding_dis = crowding_distance(f, mask)
     dis_order = torch.argsort(crowding_dis, stable=True)
