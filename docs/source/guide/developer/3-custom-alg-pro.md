@@ -31,7 +31,7 @@ The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from [`Mod
 | Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
-| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [ModuleBase](). Usually, it is not necessary to overwrite this method. |
+| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [`ModuleBase`](#evox.core.module.ModuleBase). Usually, it is not necessary to overwrite this method. |
 | `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
 | `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
