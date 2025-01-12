@@ -12,9 +12,9 @@ For better understanding of this part, we need to explain 3 important functions 
 - `trace`: whether to trace the module or to script the module. Default to `False`.
 
 ```{note}
-1.In many cases, it is not necessary to wrap your custom algorithms or problems with [`jit_class`](#evox.core.module.jit_class), the workflow(s) will do the trick for you.
-2.With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional (the `use_state` function will be explained in the next part).
-3.Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.
+1. In many cases, it is not necessary to wrap your custom algorithms or problems with [`jit_class`](#evox.core.module.jit_class), the workflow(s) will do the trick for you.
+2. With `trace=True`, all the member functions are effectively modified to return `self` additionally since side-effects cannot be traced. If you want to preserve the side effects, please set `trace=False` and use the `use_state` function to wrap the member method to generate pure-functional (the `use_state` function will be explained in the next part).
+3. Similarly, all module-wide operations like `self.to(...)` can only returns the unwrapped module, which may not be desired. Since most of them are in-place operations, a simple `module.to(...)` can be used instead of `module = module.to(...)`.
 ```
 
 ### vmap function
@@ -23,7 +23,7 @@ For better understanding of this part, we need to explain 3 important functions 
 
 ### jit function
 
-[`jit`](l#evox.core.jit_util.jit) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
+[`jit`](#evox.core.jit_util.jit) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
   This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`, preventing possible errors.
 
@@ -32,7 +32,7 @@ For better understanding of this part, we need to explain 3 important functions 
 2. With `trace=False`, `torch.jit.script` cannot contain `vmap` expressions directly, please wrap them with `jit(..., trace=True)` or `torch.jit.trace`.
 ```
 
-In the [Working with Module in EvoX](#/guide/developer/1-modulebase), we have briefly introduced some rules about the methods inside a subclass of the [`ModuleBase`](#evox.core.module.ModuleBase) . Now that [`jit_class`](#evox.core.module.jit_class), [`vmap`](#evox.core.jit_util.vmap) and [`jit`](l#evox.core.jit_util.jit) have been explianed,  we will explain more rules and provide some specific hints.
+In the [Working with Module in EvoX](#/guide/developer/1-modulebase), we have briefly introduced some rules about the methods inside a subclass of the [`ModuleBase`](#evox.core.module.ModuleBase) . Now that [`jit_class`](#evox.core.module.jit_class), [`vmap`](#evox.core.jit_util.vmap) and [`jit`](#evox.core.jit_util.jit) have been explained,  we will explain more rules and provide some specific hints.
 
 ### Definition of static methods inside the subclass
 
@@ -244,5 +244,5 @@ class ExampleModule(ModuleBase):
 ```
 
 ```{note}
-If a class method use [`trace_impl`](#evox.core.module.trace_impl),it will be only available in the trace mode. More details about `[`trace_impl`](#evox.core.module.trace_impl) will be shown in the next part.
+If a class method use [`trace_impl`](#evox.core.module.trace_impl),it will be only available in the trace mode. More details about `trace_impl` will be shown in the next part.
 ```
