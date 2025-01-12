@@ -78,7 +78,7 @@ For a comprehensive list and further details of all algorithms, please check the
 | Category          | Problems/Environments               |
 | ----------------- | ----------------------------------- |
 | Numerical         | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
-| Neuroevolution/RL | Brax, Gym, TorchVision Dataset, ... |
+| Neuroevolution/RL | Brax, TorchVision Dataset, ... |
 
 For a comprehensive list and further details of all benchmark problems/environments, please check the [API Documentation](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
@@ -88,20 +88,6 @@ For a comprehensive list and further details of all benchmark problems/environme
 Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
-```
-
-## Run Unit Test
-
-1. prepare the test environment by installing the required packages (e.g., `torch`) in your Python environment
-2. run the following command in the **root directory of the project**: `pip install -e .`, which will install the `evox` package in editable mode
-3. run unittest:
-```shell
-# run all tests
-python -m unittest
-# run tests in [path], e.g. python -m unittest unit_test/core/test_jit_util.py
-python -m unittest [path-to-test-file]
-# run a specific test method or module, e.g. python -m unittest unit_test.core.test_jit_util.TestJitUtil.test_single_eval
-python -m unittest [path-to-method-or-module]
 ```
 
 ## Community & Support
