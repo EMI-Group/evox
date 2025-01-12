@@ -86,14 +86,9 @@ class PSO(Algorithm):
         best). The population positions are then updated using the new velocities.
         """
         fitness = self.evaluate(self.population)
-        compare = self.local_best_fitness - fitness
-        self.local_best_location = torch.where(compare[:, None] > 0, self.population, self.local_best_location)
-        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
-
-        # During normal workflow, we use `torch.jit.script` by default,
-        # and the function `_set_global(fitness)` is invoked;
-        # however, in the case of `torch.jit.trace` (i.e. `jit(..., trace=True)`),
-        # the function `_trace_set_global(fitness)` is invoked instead.
+        compare = self.local_best_fitness > fitness
+        self.local_best_location = torch.where(compare[:, None], self.population, self.local_best_location)
+        self.local_best_fitness = torch.where(compare, fitness, self.local_best_fitness)
         self.global_best_location, self.global_best_fitness = min_by(
             [self.global_best_location.unsqueeze(0), self.population],
             [self.global_best_fitness.unsqueeze(0), fitness],
