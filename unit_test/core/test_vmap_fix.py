@@ -57,9 +57,12 @@ class TestVmapFix(unittest.TestCase):
             debug_print("x: {}", x)
             return x
 
-        script_fn = jit(fn, lazy=True)
+        print("Script:")
+        script_fn = jit(fn, trace=False, lazy=True)
         self.assertIsNotNone(script_fn(torch.rand(10)))
+        print("Trace:")
         trace_fn = jit(fn, trace=True, lazy=True)
         self.assertIsNotNone(trace_fn(torch.rand(10)))
+        print("Vmap:")
         vmap_fn = jit(vmap(fn, trace=False), trace=True, lazy=True)
         self.assertIsNotNone(vmap_fn(torch.rand(2, 10)))
