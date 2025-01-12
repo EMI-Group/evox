@@ -24,7 +24,18 @@
 
 ---
 
-Building upon PyTorch, EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution with [Brax](https://github.com/google/brax). With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+<div style="border: 1px solid #ccc; padding: 15px; background-color: rgba(240, 240, 240, 0.8); color: inherit;">
+  <h2>🎉 Exciting New Features in EvoX 1.0.0 🎉</h2>
+  <ul>
+    <li>🚀 <strong>Backend Migration</strong>: EvoX has transitioned from JAX to <strong>PyTorch</strong> as its backend, offering better integration to a larger ecosystem and a smoother user experience.</li>
+    <li>🧠 <strong>Hyperparameter Optimization (HPO)</strong>: Introducing a new HPO problem wrapper to streamline hyperparameter tuning.</li>
+    <li>🌟 <strong>Quality of Life Improvements</strong>: Enjoy enhanced usability and functionality across the library.</li>
+  </ul>
+  <p>For users seeking the previous JAX-based version, please refer to the <strong>v0.9.0 branch</strong>.</p>
+</div>
+
+EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+
 
 ## Key Features
 
@@ -36,9 +47,10 @@ Building upon PyTorch, EvoX offers a comprehensive suite of **50+ Evolutionary A
   - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
   - Dive into a comprehensive library of **Benchmark Problems/Environments**, ensuring robust testing and evaluation.
   - Explore the frontier of AI with extensive tools for **Neuroevolution/RL** tasks.
+  - Simplify parameter tuning with the new **HPO problem wrapper**.
 
 - 🛠️ **Designed for Simplicity**:
-  - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
+  - Built upon **PyTorch**, ensuring seamless integration and flexibility.
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
 
 ## Main Contents
@@ -95,7 +107,7 @@ python -m unittest [path-to-method-or-module]
 ## Community & Support
 
 - Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
-- Join our QQ group (ID: 297969717).
+- Join our [discord server](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
 - Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
 We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
 - Official Website: https://evox.group/
