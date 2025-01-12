@@ -241,7 +241,7 @@ def jit(
 
     :param func: The target function to be JIT
     :param trace: Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
-    :param lazy: Whether JIT lazily or immediately. Defaults to False. Has no effect when `trace=False`, where its value will be constantly `False`.
+    :param lazy: Whether JIT lazily or immediately. Defaults to False.
     :param example_inputs: When `lazy=False`, the example inputs must be provided immediately, otherwise ignored. Can be only positional arguments (a tuple), only keyword arguments (a dict), or a tuple of positional arguments and keyword arguments (a tuple of tuple and dict). Defaults to None.
     :param strict: Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
     :param check_trace: Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
@@ -257,7 +257,7 @@ def jit(
     if isinstance(func, torch.jit.ScriptFunction):
         return func
     if lazy and not trace:
-        trace = True  # force trace=True when lazy=True
+        return torch.jit.script(func)
     # special handling for using state
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):

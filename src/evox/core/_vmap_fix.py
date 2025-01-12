@@ -422,8 +422,7 @@ def wrap_vmap_inputs(func: T) -> T:
     return input_args_wrapper
 
 
-@torch.jit.script_if_tracing
-def _debug_print_script(format: str, arg: torch.Tensor) -> torch.Tensor:
+def _debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
     print(format.format(arg))
     return arg
 
@@ -439,9 +438,10 @@ def debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
     """
     level = current_level()
     if level is None or level <= 0:
-        return _debug_print_script(format, arg)
+        inner_arg = arg
     else:
-        return _debug_print_script(format, unwrap_batch_tensor(arg)[0])
+        inner_arg = unwrap_batch_tensor(arg)[0]
+    return torch.jit.script_if_tracing(_debug_print)(format, inner_arg)
 
 
-debug_print.__prepare_scriptable__ = _debug_print_script
+debug_print.__prepare_scriptable__ = lambda: _debug_print

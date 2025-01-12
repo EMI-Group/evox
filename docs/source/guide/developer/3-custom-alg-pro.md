@@ -24,27 +24,27 @@ This layout makes both algorithms and problems more universal: an algorithm can 
 
 ## Algorithm class
 
-The {doc}`Algorithm <apidocs/evox/evox.algorithms>` class is inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`.
+The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from [`ModuleBase`](#evox.core.module.ModuleBase).
 
 **In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
 
 | Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
-| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [ModuleBase](). Usually, it is not necessary to overwrite this method. |
+| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [`ModuleBase`](#evox.core.module.ModuleBase). Usually, it is not necessary to overwrite this method. |
 | `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
 | `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
 ```{note}
-The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of {doc}`ModuleBase <apidocs/evox/evox.core.module>` first.
+The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of [`ModuleBase`](#evox.core.module.ModuleBase) first.
 
-If such `setup` method in {doc}`ModuleBase <apidocs/evox/evox.core.module>` is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
+If such `setup` method in [`ModuleBase`](#evox.core.module.ModuleBase) is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
 ```
 
 
 ## Problem class
 
-The {doc}`Problem <apidocs/evox/evox.problems>` class is also inherited from {doc}`ModuleBase <apidocs/evox/evox.core.module>`. 
+The [`Problem`](#evox.core.components.Problem) class is also inherited from [`ModuleBase`](#evox.core.module.ModuleBase). 
 
 However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
 
