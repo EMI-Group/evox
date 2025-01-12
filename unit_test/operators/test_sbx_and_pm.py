@@ -7,7 +7,7 @@ from evox.operators.crossover import simulated_binary
 from evox.operators.mutation import polynomial_mutation
 
 
-class TestEvoxOperators(TestCase):
+class TestOperators(TestCase):
     def setUp(self):
         self.n_individuals = 9
         self.n_genes = 10
