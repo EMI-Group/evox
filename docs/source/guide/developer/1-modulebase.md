@@ -21,7 +21,7 @@ This process requires four basic class in EvoX:
 It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from the base module — [`ModuleBase`](#evox.core.module.ModuleBase).
 
 <center>
-  <img src="../../_static/modulebase.svg">
+  <img src="../../_static/modulebase.png">
 </center>
 
 ## ModuleBase class
