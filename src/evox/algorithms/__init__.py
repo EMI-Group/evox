@@ -1,6 +1,8 @@
 __all__ = [
     # DE Variants
     "DE",
+    "ODE",
+    "JaDE",
     # ES Variants
     "OpenES",
     "CMAES",
@@ -17,7 +19,7 @@ __all__ = [
 ]
 
 
-from .de_variants import DE
+from .de_variants import DE, ODE, JaDE
 from .es_variants import CMAES, OpenES
 from .mo import RVEA
 from .pso_variants import CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS

@@ -1,5 +1,6 @@
 __all__ = [
     "_vmap_fix",
+    "debug_print",
     "Parameter",
     "Mutable",
     "ModuleBase",
@@ -18,6 +19,7 @@ __all__ = [
 
 # deal with vmap nesting and JIT
 from . import _vmap_fix
+from ._vmap_fix import debug_print
 from .components import Algorithm, Monitor, Problem, Workflow
 from .jit_util import jit, vmap
 

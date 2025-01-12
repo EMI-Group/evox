@@ -420,3 +420,28 @@ def wrap_vmap_inputs(func: T) -> T:
 
     _set_func_id(input_args_wrapper, func)
     return input_args_wrapper
+
+
+def _debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
+    print(format.format(arg))
+    return arg
+
+
+def debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
+    """Prints a formatted string with one positional tensor used for debugging inside JIT traced functions on-the-fly.
+
+    When vectorized-mapping, it unwraps the batched tensor to print the underlying values. Otherwise, the function behaves like `format.format(*args, **kwargs)`.
+
+    :param format: A string format.
+    :param arg: The positional tensor.
+    :return: The unchanged tensor.
+    """
+    level = current_level()
+    if level is None or level <= 0:
+        inner_arg = arg
+    else:
+        inner_arg = unwrap_batch_tensor(arg)[0]
+    return torch.jit.script_if_tracing(_debug_print)(format, inner_arg)
+
+
+debug_print.__prepare_scriptable__ = lambda: _debug_print
