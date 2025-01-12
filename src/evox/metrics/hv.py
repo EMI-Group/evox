@@ -12,14 +12,9 @@ def hv(objs: torch.Tensor, ref: torch.Tensor, num_sample: int = 100000):
     """
 
     points = torch.abs(objs - ref)
-
     bound = torch.max(points, dim=0).values
-
     max_vol = torch.prod(bound)
-
     samples = torch.rand(num_sample, points.size(1)) * bound
-
     in_hypercube = torch.any(torch.all(samples.unsqueeze(1) < points.unsqueeze(0), dim=2), dim=1)
-
     hv = in_hypercube.sum() / num_sample * max_vol
     return hv
