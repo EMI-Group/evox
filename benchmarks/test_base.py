@@ -3,8 +3,8 @@ import os
 import torch
 from torch.profiler import ProfilerActivity, profile
 
-from src.core import Algorithm, Problem, jit, use_state, vmap
-from src.workflows import EvalMonitor, StdWorkflow
+from evox.core import Algorithm, Problem, jit, use_state, vmap
+from evox.workflows import EvalMonitor, StdWorkflow
 
 
 class Sphere(Problem):
@@ -55,11 +55,7 @@ def test(
     workflow.init_step()
     print("Initial best fitness:", workflow.get_submodule("monitor").topk_fitness)
     if profiling:
-        with profile(
-            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-            record_shapes=True,
-            profile_memory=True,
-        ) as prof:
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
             for _ in range(1000):
                 workflow.step()
         print(prof.key_averages().table())
@@ -78,9 +74,7 @@ def test(
         jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
         if profiling:
             with profile(
-                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-                record_shapes=True,
-                profile_memory=True,
+                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
             ) as prof:
                 for _ in range(1000):
                     state = jit_state_step(state)

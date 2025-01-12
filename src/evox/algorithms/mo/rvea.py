@@ -38,7 +38,8 @@ class RVEA(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-        """
+        """Initialize the RVEA algorithm with the given parameters.
+
         :param pop_size: The size of the population.
         :param n_objs: The number of objective functions in the optimization problem.
         :param lb: The lower bounds for the decision variables.
@@ -97,7 +98,7 @@ class RVEA(Algorithm):
 
     def init_step(self):
         """
-        Perform the first optimization step of the workflow.
+        Perform the initialization step of the workflow.
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
@@ -142,7 +143,10 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
     def step(self):
-        self.gen = self.gen + 1
+        """Perform a single optimization step.
+        """
+
+        self.gen = self.gen + torch.tensor(1)
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)
