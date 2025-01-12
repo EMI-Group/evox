@@ -27,8 +27,8 @@ class JaDE(Algorithm):
         num_difference_vectors: int = 1,
         mean: torch.Tensor | None = None,
         stdev: torch.Tensor | None = None,
-        device: torch.device | None = None,
         c: float = 0.1,
+        device: torch.device | None = None,
     ):
         """
         Initialize the JaDE algorithm with the given parameters.
