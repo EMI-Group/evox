@@ -3,7 +3,8 @@
 ```{toctree}
 :maxdepth: 1
 
-custom_algo_prob
 Brax
+supervised-learning
 moalg
+custom_algo_prob
 ```
