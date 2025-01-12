@@ -5,6 +5,6 @@
 
 environment
 1-modulebase
-3-custom_alg_pro
+3-custom-alg-pro
 hpo
 ```
