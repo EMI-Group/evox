@@ -1,24 +1,27 @@
+import unittest
+
 import torch
 
 from evox.core import jit
 from evox.operators.selection import ref_vec_guided
 
-if __name__ == "__main__":
-    # Generate random test data for x, f, v
-    seed = 42
-    torch.manual_seed(seed)
 
-    n, m, nv = 12, 4, 5
-    x = torch.randn(n, 10)  # Random solutions
-    f = torch.randn(n, m)  # Random objective values
-    f[1] = torch.tensor([float("nan")] * m)
+class TestRefVecGuided(unittest.TestCase):
+    def setUp(self):
+        self.n, self.m, self.nv = 12, 4, 5
+        self.x = torch.randn(self.n, 10)
+        self.f = torch.randn(self.n, self.m)
+        self.f[1] = torch.tensor([float("nan")] * self.m)
 
-    v = torch.randn(nv, m)
-    theta = torch.tensor(0.5)  # Arbitrary theta value
+        self.v = torch.randn(self.nv, self.m)
+        self.theta = torch.tensor(0.5)
 
-    jit_ref_vec_guided = jit(ref_vec_guided, trace=True, lazy=True)
-    next_x, next_f = ref_vec_guided(x, f, v, theta)
-    next_x1, next_f1 = jit_ref_vec_guided(x, f, v, theta)
+        self.jit_ref_vec_guided = jit(ref_vec_guided, trace=True, lazy=True)
 
-    print("Next x:", next_x)
-    print("Next f:", next_f)
+    def test_ref_vec_guided(self):
+        next_x, next_f = ref_vec_guided(self.x, self.f, self.v, self.theta)
+        self.assertEqual(next_x.size(0), self.nv)
+        self.assertEqual(next_f.size(0), self.nv)
+        next_x1, next_f1 = self.jit_ref_vec_guided(self.x, self.f, self.v, self.theta)
+        self.assertEqual(next_x1.size(0), self.nv)
+        self.assertEqual(next_f1.size(0), self.nv)

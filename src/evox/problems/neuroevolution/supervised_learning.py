@@ -1,5 +1,6 @@
 __all__ = ["SupervisedLearningProblem"]
 
+import weakref
 from typing import Dict, Iterable, Iterator, Tuple
 
 import torch
@@ -9,7 +10,9 @@ from torch.utils.data import DataLoader
 from ...core import Problem, jit, jit_class, use_state, vmap
 from .utils import get_vmap_model_state_forward
 
-__supervised_data__: Dict[int, Dict[str, DataLoader | Iterable | Iterator | Tuple]] = None
+__supervised_data__: Dict[
+    int, Dict[str, DataLoader | Iterable | Iterator | Tuple]
+] = {}  # Cannot be a weakref.WeakValueDictionary because the values are only stored here
 
 # cSpell:words vmapped
 
@@ -45,15 +48,16 @@ class SupervisedLearningProblem(Problem):
 
         # Global data loader info registration
         global __supervised_data__
-        if __supervised_data__ is None:
-            __supervised_data__ = {}
-        instance_id = hash(self)
+        instance_id = id(self)
+        self._index_id_ = instance_id
         if instance_id not in __supervised_data__.keys():
             __supervised_data__[instance_id] = {
                 "data_loader_ref": data_loader,
                 "data_loader_iter": None,
                 "data_next_cache": None,
             }
+            weakref.finalize(self, __supervised_data__.pop, instance_id, None)
+
         try:
             dummy_inputs, dummy_labels = next(iter(data_loader))
         except StopIteration:
@@ -119,14 +123,10 @@ class SupervisedLearningProblem(Problem):
         # Other member variables registration
         self.criterion_init_state = criterion_init_state
 
-    def __del__(self):
-        global __supervised_data__
-        __supervised_data__.pop(self._hash_id_, None)
-
     @torch.jit.ignore
     def _data_loader_reset(self) -> None:
         global __supervised_data__
-        data_info = __supervised_data__[self._hash_id_]
+        data_info = __supervised_data__[self._index_id_]
         data_info["data_loader_iter"] = iter(data_info["data_loader_ref"])
         try:
             data_info["data_next_cache"] = next(data_info["data_loader_iter"])
@@ -136,7 +136,7 @@ class SupervisedLearningProblem(Problem):
     @torch.jit.ignore
     def _data_loader_next(self) -> Tuple[torch.Tensor, torch.Tensor]:
         global __supervised_data__
-        data_info = __supervised_data__[self._hash_id_]
+        data_info = __supervised_data__[self._index_id_]
         next_data = data_info["data_next_cache"]
         try:
             data_info["data_next_cache"] = next(data_info["data_loader_iter"])
@@ -147,7 +147,7 @@ class SupervisedLearningProblem(Problem):
     @torch.jit.ignore
     def _data_loader_has_next(self) -> bool:
         global __supervised_data__
-        return __supervised_data__[self._hash_id_]["data_next_cache"] is not None
+        return __supervised_data__[self._index_id_]["data_next_cache"] is not None
 
     def _vmap_evaluate(
         self,
@@ -229,9 +229,9 @@ class SupervisedLearningProblem(Problem):
         :return: A tensor of shape (batch_size,) containing the fitness of each sample in the population.
         """
         pop_params_value = pop_params[self._sample_param_key]
-        assert (
-            pop_params_value.ndim == self._sample_param_ndim + 1
-        ), f"Expected exactly one batch dimension, got {pop_params_value.ndim - self._sample_param_ndim}"
+        assert pop_params_value.ndim == self._sample_param_ndim + 1, (
+            f"Expected exactly one batch dimension, got {pop_params_value.ndim - self._sample_param_ndim}"
+        )
         if pop_params_value.size(0) != 1:
             pop_fitness = self._vmap_evaluate(
                 pop_params,

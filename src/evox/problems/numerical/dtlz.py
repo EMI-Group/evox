@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Problem
+from ...core import Problem, jit_class
 from ...operators.sampling import grid_sampling, uniform_sampling
 
 
@@ -43,12 +43,9 @@ class DTLZTestSuit(Problem):
         return f
 
 
+@jit_class
 class DTLZ1(DTLZTestSuit):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-        if m is None:
-            m = 3
-        if d is None:
-            d = m + 4
+    def __init__(self, d: int = 7, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -82,12 +79,9 @@ class DTLZ1(DTLZTestSuit):
         return f
 
 
+@jit_class
 class DTLZ2(DTLZTestSuit):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-        if m is None:
-            m = 3
-        if d is None:
-            d = m + 9
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -128,8 +122,9 @@ class DTLZ2(DTLZTestSuit):
         return f
 
 
-class DTLZ3(DTLZ2):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+@jit_class
+class DTLZ3(DTLZ2.__wrapped__):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -174,8 +169,9 @@ class DTLZ3(DTLZ2):
         return f
 
 
-class DTLZ4(DTLZ2):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+@jit_class
+class DTLZ4(DTLZ2.__wrapped__):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -215,12 +211,9 @@ class DTLZ4(DTLZ2):
         return f
 
 
+@jit_class
 class DTLZ5(DTLZTestSuit):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-        if m is None:
-            m = 3
-        if d is None:
-            d = m + 9
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -297,12 +290,9 @@ class DTLZ5(DTLZTestSuit):
         return f
 
 
+@jit_class
 class DTLZ6(DTLZTestSuit):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-        if m is None:
-            m = 3
-        if d is None:
-            d = m + 9
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
@@ -377,17 +367,14 @@ class DTLZ6(DTLZTestSuit):
         return f
 
 
+@jit_class
 class DTLZ7(DTLZTestSuit):
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
-        if m is None:
-            m = 3
-        if d is None:
-            d = m + 19
+    def __init__(self, d: int = 21, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
         self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
-        n, d = X.size(0)
+        n, d = X.size()
         m = self.m
         f = torch.zeros((n, m), device=X.device)
         g = 1 + 9 * torch.mean(X[:, m - 1 :], dim=1, keepdim=True)
@@ -404,7 +391,7 @@ class DTLZ7(DTLZTestSuit):
         return f
 
     def pf(self):
-        interval = torch.tensor([0, 0.251412, 0.631627, 0.859401], device=self.device)
+        interval = torch.tensor([0., 0.251412, 0.631627, 0.859401], dtype=torch.float, device=self.device)
         median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0]).to(self.device)
 
         x = self.sample.to(self.device)

@@ -227,6 +227,7 @@ def jit(
     is_generator: bool = False,
     no_cache: bool = False,
     return_dummy_output: bool = False,
+    debug_manual_seed: int | None = None,
 ) -> T | UseStateFunc | MappedUseStateFunc:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
@@ -240,13 +241,14 @@ def jit(
 
     :param func: The target function to be JIT
     :param trace: Whether using `torch.jit.trace` or `torch.jit.script` to JIT. Defaults to False.
-    :param lazy: Whether JIT lazily or immediately. Defaults to False. Has no effect when `trace=False`, where its value will be constantly `False`.
+    :param lazy: Whether JIT lazily or immediately. Defaults to False.
     :param example_inputs: When `lazy=False`, the example inputs must be provided immediately, otherwise ignored. Can be only positional arguments (a tuple), only keyword arguments (a dict), or a tuple of positional arguments and keyword arguments (a tuple of tuple and dict). Defaults to None.
     :param strict: Strictly check the inputs or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
     :param check_trace: Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
     :param is_generator: Whether `func` is a generator or not. Defaults to False.
     :param no_cache: Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
     :param return_dummy_output: Whether to return the dummy output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
+    :param debug_manual_seed: The manual seed to be set before each running of the function. Defaults to None. Has no effect when `trace=False`. None means no manual seed will be set. Notice that any value other than None changes the GLOBAL random seed.
 
     :return: The JIT version of `func`
     """
@@ -255,7 +257,7 @@ def jit(
     if isinstance(func, torch.jit.ScriptFunction):
         return func
     if lazy and not trace:
-        trace = True  # force trace=True when lazy=True
+        return torch.jit.script(func)
     # special handling for using state
     is_empty_state = False
     if hasattr(func, _USE_STATE_NAME):
@@ -285,9 +287,13 @@ def jit(
             if isinstance(example_inputs, tuple):
                 # run the function to make it cache internals
                 if not no_cache:
+                    if debug_manual_seed is not None:
+                        torch.manual_seed(debug_manual_seed)
                     with trace_caching_state_context():
                         dummy_ret = func(*example_inputs)
                 if trace:
+                    if debug_manual_seed is not None:
+                        torch.manual_seed(debug_manual_seed)
                     jit_func = torch.jit.trace(
                         func,
                         example_inputs,
@@ -300,9 +306,13 @@ def jit(
             else:
                 # run the function to make it cache internals
                 if not no_cache:
+                    if debug_manual_seed is not None:
+                        torch.manual_seed(debug_manual_seed)
                     with trace_caching_state_context():
                         dummy_ret = func(**example_inputs)
                 if trace:
+                    if debug_manual_seed is not None:
+                        torch.manual_seed(debug_manual_seed)
                     jit_func = torch.jit.trace(
                         func,
                         example_kwarg_inputs=example_inputs,
@@ -333,8 +343,12 @@ def jit(
                 example_inputs = _clone_inputs(tuple(example_inputs))
                 # JIT trace
                 if not no_cache:
+                    if debug_manual_seed is not None:
+                        torch.manual_seed(debug_manual_seed)
                     with trace_caching_state_context():
                         _ = func(*example_inputs)
+                if debug_manual_seed is not None:
+                    torch.manual_seed(debug_manual_seed)
                 jit_func = torch.jit.trace(
                     func,
                     example_inputs,
@@ -345,6 +359,8 @@ def jit(
                 # reset global vars if using state
                 if hasattr(func, _USE_STATE_NAME):
                     func.set_state()
+            if debug_manual_seed is not None:
+                torch.manual_seed(debug_manual_seed)
             return jit_func(*args, **kwargs)
 
     _vmap_fix._set_func_id(jit_wrapper, func)

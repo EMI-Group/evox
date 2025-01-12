@@ -4,6 +4,7 @@
 :maxdepth: 1
 
 environment
-custom_algo_prob
+1-modulebase
+3-custom-alg-pro
 custom_hpo_prob
 ```

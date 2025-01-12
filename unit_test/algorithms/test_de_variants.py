@@ -1,12 +1,13 @@
 import torch
 
-from evox.algorithms import DE
+from evox.algorithms import DE, ODE
 
 from .test_base import TestBase
 
 
 class TestDEVariants(TestBase):
     def setUp(self):
+        torch.manual_seed(42)
         pop_size = 10
         dim = 4
         lb = -10 * torch.ones(dim)
@@ -14,6 +15,8 @@ class TestDEVariants(TestBase):
         self.algos = [
             DE(pop_size, lb, ub, base_vector="rand"),
             DE(pop_size, lb, ub, base_vector="best"),
+            ODE(pop_size, lb, ub, base_vector="rand"),
+            ODE(pop_size, lb, ub, base_vector="best"),
         ]
 
     def test_de_variants(self):

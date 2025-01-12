@@ -176,7 +176,6 @@ class ModuleBase(nn.Module):
         super().__init__(*args, **kwargs)
         self.train(False)
         self.__static_names__ = []
-        self._hash_id_ = None
 
     def eval(self):
         assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
@@ -364,11 +363,6 @@ class ModuleBase(nn.Module):
                 val = val.to(**kwargs)
                 self.__setattr_inner__(k, val)
         return self
-
-    def __hash__(self):
-        if self._hash_id_ is None:
-            self._hash_id_ = super().__hash__()
-        return self._hash_id_
 
     def __getattribute__(self, name):
         if not tracing_or_using_state() or name == _WRAPPING_MODULE_NAME or _is_magic(name):

@@ -148,12 +148,16 @@ def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     :return: A tensor containing indices that will sort the input tensors lexicographically.
                       These indices indicate the order of elements in the sorted tensors.
 
-    Example:
-        key1 = torch.tensor([1, 3, 2])
-        key2 = torch.tensor([9, 7, 8])
-        sorted_indices = lexsort([key1, key2])
-        # sorted_indices will contain the indices that sort first by key2,
-        # and then by key1 in case of ties.
+    ## Example
+    ```
+    key1 = torch.tensor([1, 3, 2])
+    key2 = torch.tensor([9, 7, 8])
+    sorted_indices = lexsort([key1, key2])
+    # sorted_indices will contain the indices that sort first by key2,
+    # and then by key1 in case of ties.
+    ```
+
+    :note: You can use `torch.unbind` to split the tensor into list.
     """
 
     sorted_indices = torch.argsort(keys[0], dim=dim, stable=True)
@@ -201,9 +205,7 @@ def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     ```
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(
-        mask, torch.inf, input_tensor
-    )
+    input_tensor = torch.where(mask, torch.inf, input_tensor)
     return input_tensor.min(dim=dim, keepdim=keepdim)
 
 
@@ -243,7 +245,5 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     ```
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(
-        mask, -torch.inf, input_tensor
-    )
+    input_tensor = torch.where(mask, -torch.inf, input_tensor)
     return input_tensor.max(dim=dim, keepdim=keepdim)
