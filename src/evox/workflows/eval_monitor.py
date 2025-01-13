@@ -40,6 +40,7 @@ class EvalMonitor(Monitor):
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
+        self.opt_direction = 1
         self.topk = topk
         self.device = device
         # mutable
@@ -59,6 +60,8 @@ class EvalMonitor(Monitor):
             self.full_sol_history = config["full_sol_history"]
         if "topk" in config:
             self.topk = config["topk"]
+        if "opt_direction" in config:
+            self.opt_direction = config["opt_direction"]
         return self
 
     def post_ask(self, candidate_solution: torch.Tensor):
@@ -73,13 +76,13 @@ class EvalMonitor(Monitor):
             if self.topk_solutions.ndim <= 1:
                 topk_solutions = self.latest_solution
                 topk_fitness = fitness
-                rank = torch.topk(topk_fitness, self.topk)[1]
+                rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
                 self.topk_fitness = topk_fitness[rank]
                 self.topk_solutions = topk_solutions[rank]
             else:
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
-                rank = torch.topk(topk_fitness, self.topk)[1]
+                rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
                 self.topk_fitness.copy_(topk_fitness[rank])
                 self.topk_solutions.copy_(topk_solutions[rank])
         elif fitness.ndim == 2:
@@ -95,7 +98,49 @@ class EvalMonitor(Monitor):
                 self.fitness_history.append(self.latest_fitness.to(self.device))
 
     @torch.jit.ignore
-    def plot(self, state=None, problem_pf=None, **kwargs):
+    def get_latest_fitness(self) -> torch.Tensor:
+        """Get the fitness values from the latest iteration."""
+        return self.opt_direction * self.latest_fitness
+
+    @torch.jit.ignore
+    def get_latest_solution(self) -> torch.Tensor:
+        """Get the solution from the latest iteration."""
+        return self.latest_solution
+
+    @torch.jit.ignore
+    def get_topk_fitness(self) -> torch.Tensor:
+        """Get the topk fitness values so far."""
+        return self.opt_direction * self.topk_fitness
+
+    @torch.jit.ignore
+    def get_topk_solutions(self) -> torch.Tensor:
+        """Get the topk solutions so far."""
+        return self.topk_solutions
+
+    @torch.jit.ignore
+    def get_best_solution(self) -> torch.Tensor:
+        """Get the best solution so far."""
+        return self.topk_solutions[0]
+
+    @torch.jit.ignore
+    def get_best_fitness(self) -> torch.Tensor:
+        """Get the best fitness value so far."""
+        if self.multi_obj:
+            raise ValueError("Multi-objective optimization does not have a single best fitness.")
+        return self.opt_direction * self.topk_fitness[0]
+
+    @torch.jit.ignore
+    def get_fitness_history(self) -> List[torch.Tensor]:
+        """Get the full history of fitness values."""
+        return [self.opt_direction * fit for fit in self.fitness_history[1:]]
+
+    @torch.jit.ignore
+    def get_solution_history(self) -> List[torch.Tensor]:
+        """Get the full history of solutions."""
+        return self.solution_history[1:]
+
+    @torch.jit.ignore
+    def plot(self, problem_pf=None, **kwargs):
         if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
@@ -109,7 +154,8 @@ class EvalMonitor(Monitor):
         else:
             n_objs = self.fitness_history[0].shape[1]
 
-        fitness_history = [f.cpu().numpy() for f in self.fitness_history[1:]]
+        fitness_history = self.get_fitness_history()
+        fitness_history = [f.cpu().numpy() for f in fitness_history]
 
         if n_objs == 1:
             return plot.plot_obj_space_1d(fitness_history, **kwargs)
