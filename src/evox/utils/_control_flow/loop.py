@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 
 import torch
 
-from ...core import ModuleBase, _vmap_fix, jit, jit_class, trace_impl, use_state, vmap, vmap_impl
+from ...core import ModuleBase, _vmap_fix, jit, jit_class, trace_impl, use_state, vmap_impl
 from ...core.module import UseStateFunc
 from .utils import VarArgsCallable, VarArgsCallableMultiRet, _get_cache_key_object
 
