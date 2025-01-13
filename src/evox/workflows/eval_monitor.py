@@ -36,6 +36,7 @@ class EvalMonitor(Monitor):
         :param device: The device of the monitor. Defaults to None.
         """
         super().__init__()
+        device = torch.get_default_device() if device is None else device
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
@@ -108,7 +109,7 @@ class EvalMonitor(Monitor):
         else:
             n_objs = self.fitness_history[0].shape[1]
 
-        fitness_history = [f.numpy() for f in self.fitness_history[1:]]
+        fitness_history = [f.cpu().numpy() for f in self.fitness_history[1:]]
 
         if n_objs == 1:
             return plot.plot_obj_space_1d(fitness_history, **kwargs)
