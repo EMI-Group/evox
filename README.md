@@ -20,14 +20,12 @@
 ---
 
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
-<h3 align="center"> Compatible with PyTorch </h3>
+<h3 align="center"> Compatible with PyTorch / JAX</h3>
 
 
 ## 🔥 News
 
-- [2025-01-13] Released **EvoX 1.0.0** 🎉 — **EvoX 🤝 PyTorch** for full compatibility! 
-
-  For users seeking the previous JAX-based version, please refer to the **v0.9.0 branch**.
+- [2025-01-13] Released **EvoX 1.0.0** 🎉 — **EvoX 🤝 PyTorch** for full compatibility! For users seeking the previous JAX-based version, please refer to the **v0.9.0 branch**.
 
 
 
