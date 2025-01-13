@@ -13,9 +13,15 @@ pip install torch
 pip install evox
 ```
 
+You can also assign extra options during the installation, currently available extras are `gymnasium`, `neuroevolution`, `envpool`, `distributed`, and `full`. For example, to install EvoX with all features, run the following command:
+
+```bash
+pip install evox[full]
+```
+
 ## Install PyTorch with accelerator support
 
-`EvoX` relies on `torch` to provide hardware acceleration.
+`evox` relies on `torch` to provide hardware acceleration.
 The overall architecture of these Python packages looks like this:
 
 ```{mermaid}
@@ -33,33 +39,40 @@ stateDiagram-v2
     torch --> cpu
 ```
 
-To summarize, whether `EvoX` has CPU support or GPU support depends on the PyTorch version you installed. Please refere to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
+To summarize, whether `evox` has CPU support or Nvidia GPU support (CUDA) or AMD GPU support (ROCm) depends on the installed PyTorch version. Please refere to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
 
 
-## Windows with GPU acceleration
+## Nvidia GPU support on Windows
 
-EvoX support GPU acceleration through `PyTorch`.
+EvoX support GPU acceleration through PyTorch.
 There are two ways to use PyTorch with GPU acceleration on Windows:
 
 1. Using WSL 2 (Windows Subsystem for Linux) and install PyTorch on the Linux side.
-2. Directly install PyTorch on Windows, but you won't have `jit` support.
+2. Directly install PyTorch on Windows.
 
-We also provide a [one-click script]() for windows 10/11 64bit with nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows.
+We also provide a [one-click script]() for fast depolyment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
 
 ### Windows WSL 2 (Advanced)
 
 Download the [latest NVIDIA Windows GPU Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and install it. Then your WSL 2 will support Nvidia GPUs in its Linux environments.
 
 ```{warning}
-You must **NOT** install any NVIDIA GPU Linux driver within WSL 2.
-GPU driver this a kernel space program, so it should be installed on the Windows side.
+Do **NOT** install any NVIDIA GPU Linux driver within WSL 2. Install the driver on the Windows side.
 ```
 
 ```{seealso}
 NVIDIA has a detailed [CUDA on WSL User Guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)
 ```
 
-## Verify your installation
+## AMD GPU (ROCm) support
+
+We recommend using a Docker container from [`rocm/pytorch`](https://hub.docker.com/r/rocm/pytorch).
+
+```shell
+docker run -it --network=host --device=/dev/kfd --device=/dev/dri --group-add=video --ipc=host --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --shm-size 8G -v $HOME/dockerx:/dockerx -w /dockerx rocm/pytorch​:latest
+```
+
+## Verify the installation
 
 Open a Python terminal, and run the following:
 
