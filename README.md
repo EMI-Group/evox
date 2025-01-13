@@ -27,11 +27,20 @@
 
 - [2025-01-13] Released **EvoX 1.0.0** 🎉 — **EvoX 🤝 PyTorch** for full compatibility! For users seeking the previous JAX-based version, please refer to the **v0.9.0 branch**.
 
+## Table of Contents
 
+1. [Overview](#Overview)
+2. [Key Features](#key-features)
+3. [Main Contents](#main-contents)
+4. [Setting Up EvoX](#setting-up-evox)
+5. [Sister Projects](#sister-projects)
+6. [Community & Support](#community--support)
+7. [Citing EvoX](#citing-evox)
+8. [Star History](#star-history)
 
 ## Overview
 
-EvoX is a distributed, GPU-accelerated evolutionary computation framework designed to tackle the challenges of large-scale complex systems. It will soon  support for **N specialized modules**, including evolutionary reinforcement learning, genetic programming, multi-objective optimization, combinatorial optimization, and neuroevolution, etc. EvoX offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+EvoX is a distributed, GPU-accelerated evolutionary computation framework designed to tackle the challenges of large-scale complex systems. It offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
 
 
 ## Key Features
@@ -83,6 +92,8 @@ Install `evox` effortlessly via `pip`:
 ```bash
 pip install evox
 ```
+
+**Note**: Windows users can use the `install.bat` script for installation.
 
 ## Sister Projects
 
