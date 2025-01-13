@@ -8,6 +8,16 @@ from .adam_step import adam_single_tensor
 
 @jit_class
 class ASEBO(Algorithm):
+    """The implementation of the ASEBO algorithm.
+
+    Reference:
+    From Complexity to Simplicity: Adaptive ES-Active Subspaces for Blackbox Optimization
+    (https://arxiv.org/abs/1903.04268)
+
+    This code has been inspired by or utilizes the algorithmic implementation from evosax.
+    More information about evosax can be found at the following URL:
+    GitHub Link: https://github.com/RobertTLange/evosax
+    """
     def __init__(
         self,
         pop_size: int,
@@ -19,19 +29,28 @@ class ASEBO(Algorithm):
         sigma: float = 0.03,
         sigma_decay: float = 1.0,
         sigma_limit: float = 0.01,
-        mean_decay: float = 0.0,
         subspace_dims: int | None = None,
         device: torch.device | None = None,
     ):
+        """Initialize the ARS algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param lr: The learning rate for the optimizer. Defaults to 0.05.
+        :param lr_decay: The decay factor for the learning rate. Defaults to 1.0.
+        :param lr_limit: The minimum value for the learning rate. Defaults to 0.001.
+        :param sigma: The standard deviation of the noise. Defaults to 0.03.
+        :param sigma_decay: The decay factor for the standard deviation. Defaults to 1.0.
+        :param sigma_limit: The minimum value for the standard deviation. Defaults to 0.01.
+        :param subspace_dims: The dimension of the subspace. Defaults to None.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
-        assert not pop_size & 1
-
+        assert pop_size > 1
         dim = center_init.shape[0]
-
         if subspace_dims is None:
             subspace_dims = dim
-
         # set hyperparameters
         self.lr = Parameter(lr, device=device)
         self.lr_decay = Parameter(lr_decay, device=device)
@@ -49,9 +68,9 @@ class ASEBO(Algorithm):
         self.grad_subspace = Mutable(torch.zeros(self.subspace_dims, self.dim, device=device))
         self.UUT = Mutable(torch.zeros(self.dim, self.dim, device=device))
         self.UUT_ort = Mutable(torch.zeros(self.dim, self.dim, device=device))
-        self.sigma = Mutable(torch.tensor(sigma))
-        self.alpha = Mutable(torch.tensor(0.1))
-        self.gen_counter = Mutable(torch.tensor(0.0))
+        self.sigma = Mutable(torch.tensor(sigma, device=device))
+        self.alpha = Mutable(torch.tensor(0.1, device=device))
+        self.gen_counter = Mutable(torch.tensor(0.0, device=device))
 
         if optimizer == "adam":
             self.exp_avg = Mutable(torch.zeros_like(self.center))
@@ -60,6 +79,14 @@ class ASEBO(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
+        """
+        The main step of the ASEBO algorithm.
+
+        This function first computes the subspace spanned by the gradient of the fitness function
+        and then projects the gradient onto the subspace. It then computes the step direction
+        using the projected gradient and updates the center and standard deviation of the
+        search distribution.
+        """
         device = self.center.device
 
         X = self.grad_subspace
@@ -86,7 +113,7 @@ class ASEBO(Algorithm):
         noise = torch.randn(self.dim, int(self.pop_size / 2), device=device)
 
         z_plus = torch.swapaxes(chol @ noise, 0, 1)
-        z_plus = z_plus / torch.linalg.norm(z_plus, dim=-1)[:, torch.newaxis]
+        z_plus = z_plus / torch.linalg.norm(z_plus, dim=-1)[:, None]
         z = torch.cat([z_plus, -1.0 * z_plus])
 
         population = self.center + z
@@ -106,7 +133,7 @@ class ASEBO(Algorithm):
 
         alpha = torch.where(self.gen_counter > self.subspace_dims, alpha, 1.0)
 
-        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[torch.newaxis, :]])[1:, :]
+        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[None, :]])[1:, :]
         theta_grad /= torch.linalg.norm(theta_grad) / self.dim + 1e-8
 
         if self.optimizer is None:

@@ -8,6 +8,16 @@ from .adam_step import adam_single_tensor
 
 @jit_class
 class PersistentES(Algorithm):
+    """The implementation of the Persistent ES algorithm.
+
+    Reference:
+    Unbiased Gradient Estimation in Unrolled Computation Graphs with Persistent Evolution Strategies
+    (http://proceedings.mlr.press/v139/vicol21a.html)
+
+    This code has been inspired by or utilizes the algorithmic implementation from evosax.
+    More information about evosax can be found at the following URL:
+    GitHub Link: https://github.com/RobertTLange/evosax
+    """
     def __init__(
         self,
         pop_size: int,
@@ -21,12 +31,22 @@ class PersistentES(Algorithm):
         sigma_limit: float = 0.01,
         device: torch.device | None = None,
     ):
+        """Initialize the Persistent-ES algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param lr: The learning rate for the optimizer. Defaults to 0.05.
+        :param sigma: The standard deviation of the noise. Defaults to 0.03.
+        :param sigma_decay: The decay factor for the standard deviation. Defaults to 1.0.
+        :param sigma_limit: The minimum value for the standard deviation. Defaults to 0.01.
+        :param T: The inner problem length. Defaults to 100.
+        :param K: The number of inner problems. Defaults to 10.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
-        assert pop_size % 2 == 0  # Population size must be even
-
+        assert pop_size > 1 and pop_size % 2 == 0  # Population size must be even
         dim = center_init.shape[0]
-
         # set hyperparameters
         self.lr = Parameter(lr, device=device)
         self.T = Parameter(T, device=device)

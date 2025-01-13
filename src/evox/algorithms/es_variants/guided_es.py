@@ -8,6 +8,16 @@ from .adam_step import adam_single_tensor
 
 @jit_class
 class GuidedES(Algorithm):
+    """The implementation of the Guided-ES algorithm.
+
+    Reference:
+    Guided evolutionary strategies: Augmenting random search with surrogate gradients
+    (https://arxiv.org/abs/1806.10230)
+
+    This code has been inspired by or utilizes the algorithmic implementation from evosax.
+    More information about evosax can be found at the following URL:
+    GitHub Link: https://github.com/RobertTLange/evosax
+    """
     def __init__(
         self,
         pop_size: int,
@@ -20,14 +30,23 @@ class GuidedES(Algorithm):
         sigma_limit: float = 0.01,
         device: torch.device | None = None,
     ):
+        """Initialize the Guided-ES algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param lr: The learning rate for the optimizer. Defaults to 0.05.
+        :param sigma: The standard deviation of the noise. Defaults to 0.03.
+        :param sigma_decay: The decay factor for the standard deviation. Defaults to 1.0.
+        :param sigma_limit: The minimum value for the standard deviation. Defaults to 0.01.
+        :param subspace_dims: The dimension of the subspace. Defaults to None.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
-        assert pop_size % 2 == 0
-
+        assert pop_size > 1 and pop_size % 2 == 0
         dim = center_init.shape[0]
         if subspace_dims is None:
             subspace_dims = dim
-
         # set hyperparameters
         self.beta = Parameter(1.0, device=device)
         self.lr = Parameter(lr, device=device)
@@ -41,8 +60,8 @@ class GuidedES(Algorithm):
         # setup
         center_init = center_init.to(device=device)
         self.center = Mutable(center_init)
-        self.alpha = Mutable(torch.tensor(0.5))
-        self.sigma = Mutable(torch.tensor(sigma))
+        self.alpha = Mutable(torch.tensor(0.5, device=device))
+        self.sigma = Mutable(torch.tensor(sigma, device=device))
         self.grad_subspace = Mutable(torch.randn(subspace_dims, dim, device=device))
 
         if optimizer == "adam":
@@ -52,6 +71,12 @@ class GuidedES(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
+        """Run one step of the Guided-ES algorithm.
+
+        The function will sample a population, evaluate their fitness, and then
+        update the center and standard deviation of the algorithm using the
+        sampled population.
+        """
         device = self.center.device
 
         a = self.sigma * torch.sqrt(self.alpha / self.dim)
@@ -76,7 +101,7 @@ class GuidedES(Algorithm):
         fit_diff_noise = noise_1.T @ fit_diff
         theta_grad = (self.beta / self.pop_size) * fit_diff_noise
 
-        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[torch.newaxis, :]])[1:, :]
+        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[None, :]])[1:, :]
 
         if self.optimizer is None:
             center = self.center - self.lr * theta_grad

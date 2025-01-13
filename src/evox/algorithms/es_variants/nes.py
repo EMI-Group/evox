@@ -7,11 +7,17 @@ from ...core import Algorithm, Mutable, Parameter, jit_class
 
 @jit_class
 class XNES(Algorithm):
+    """The implementation of the xNES algorithm.
+
+    Reference:
+    Exponential Natural Evolution Strategies
+    (https://dl.acm.org/doi/abs/10.1145/1830483.1830557)
+    """
     def __init__(
         self,
-        pop_size: int,
         init_mean: torch.Tensor,
         init_covar: torch.Tensor,
+        pop_size: int | None = None,
         recombination_weights: torch.Tensor | None = None,
         learning_rate_mean: float | None = None,
         learning_rate_var: float | None = None,
@@ -19,10 +25,20 @@ class XNES(Algorithm):
         covar_as_cholesky: bool = False,
         device: torch.device | None = None,
     ):
+        """Initialize the xNES algorithm with the given parameters.
+
+        :param init_mean: The initial mean vector of the population. Must be a 1D tensor.
+        :param init_covar: The initial covariance matrix of the population. Must be a 2D tensor.
+        :param pop_size: The size of the population. Defaults to None.
+        :param recombination_weights: The recombination weights of the population. Defaults to None.
+        :param learning_rate_mean: The learning rate for the mean vector. Defaults to None.
+        :param learning_rate_var: The learning rate for the variance vector. Defaults to None.
+        :param learning_rate_B: The learning rate for the B matrix. Defaults to None.
+        :param covar_as_cholesky: Whether to use the covariance matrix as a Cholesky factorization result. Defaults to False.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
         dim = init_mean.shape[0]
-
         if pop_size is None:
             pop_size = 4 + math.floor(3 * math.log(self.dim))
         assert pop_size > 0
@@ -64,6 +80,13 @@ class XNES(Algorithm):
         self.B = Mutable(init_covar / sigma)
 
     def step(self):
+        """Run one step of the xNES algorithm.
+
+        The function will sample a population, evaluate their fitness, and then
+        update the center and covariance of the algorithm using the sampled
+        population.
+        """
+        pass
         device = self.mean.device
 
         noise = torch.randn(self.pop_size, self.dim, device=device)
@@ -78,7 +101,7 @@ class XNES(Algorithm):
 
         Ind = torch.eye(self.dim, device=device)
 
-        grad_delta = torch.sum(weights[:, torch.newaxis] * noise, dim=0)
+        grad_delta = torch.sum(weights[:, None] * noise, dim=0)
         grad_M = (weights * noise.T) @ noise - torch.sum(weights) * Ind
         grad_sigma = torch.trace(grad_M) / self.dim
         grad_B = grad_M - grad_sigma * Ind
@@ -94,18 +117,33 @@ class XNES(Algorithm):
 
 @jit_class
 class SeparableNES(Algorithm):
+    """The implementation of the Separable NES algorithm.
+
+    Reference:
+    Natural Evolution Strategies
+    (https://www.jmlr.org/papers/volume15/wierstra14a/wierstra14a.pdf)
+    """
     def __init__(
         self,
-        pop_size: int,
         init_mean: torch.Tensor,
         init_std: torch.Tensor,
+        pop_size: int | None = None,
         recombination_weights: torch.Tensor | None = None,
         learning_rate_mean: float | None = None,
         learning_rate_var: float | None = None,
         device: torch.device | None = None,
     ):
-        super().__init__()
+        """Initialize the Separable NES algorithm with the given parameters.
 
+        :param init_mean: The initial mean vector of the population. Must be a 1D tensor.
+        :param init_std: The initial standard deviation for each dimension. Must be a 1D tensor.
+        :param pop_size: The size of the population. Defaults to None.
+        :param recombination_weights: The recombination weights of the population. Defaults to None.
+        :param learning_rate_mean: The learning rate for the mean vector. Defaults to None.
+        :param learning_rate_var: The learning rate for the variance vector. Defaults to None.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
+        super().__init__()
         dim = init_mean.shape[0]
         assert init_std.shape == (dim,)
 
@@ -140,6 +178,12 @@ class SeparableNES(Algorithm):
         self.sigma = Mutable(init_std)
 
     def step(self):
+        """Run one step of the Separable NES algorithm.
+
+        The function will sample a population, evaluate their fitness, and then
+        update the center and covariance of the algorithm using the sampled
+        population.
+        """
         device = self.mean.device
 
         zero_mean_pop = torch.randn(self.pop_size, self.dim, device=device)
@@ -150,7 +194,7 @@ class SeparableNES(Algorithm):
         order = torch.argsort(fitness)
         fitness, population, zero_mean_pop = fitness[order], population[order], zero_mean_pop[order]
 
-        weight = torch.tile(self.weight[:, torch.newaxis], (1, self.dim))
+        weight = torch.tile(self.weight[:, None], (1, self.dim))
 
         grad_μ = torch.sum(weight * zero_mean_pop, dim=0)
         grad_sigma = torch.sum(weight * (zero_mean_pop * zero_mean_pop - 1), dim=0)

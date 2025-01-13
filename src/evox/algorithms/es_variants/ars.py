@@ -8,6 +8,15 @@ from .adam_step import adam_single_tensor
 
 @jit_class
 class ARS(Algorithm):
+    """The implementation of the ARS algorithm.
+
+    Reference:
+    Simple random search provides a competitive approach to reinforcement learning (https://arxiv.org/pdf/1803.07055.pdf)
+
+    This code has been inspired by or utilizes the algorithmic implementation from evosax.
+    More information about evosax can be found at the following URL:
+    GitHub Link: https://github.com/RobertTLange/evosax
+    """
     def __init__(
         self,
         pop_size: int,
@@ -18,13 +27,20 @@ class ARS(Algorithm):
         optimizer: Literal["adam"] | None = None,
         device: torch.device | None = None,
     ):
+        """Initialize the ARS algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param elite_ratio: The ratio of elite population. Defaults to 0.1.
+        :param lr: The learning rate for the optimizer. Defaults to 0.05.
+        :param sigma: The standard deviation of the noise. Defaults to 0.03.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
-        assert not pop_size & 1
+        assert pop_size > 1
         assert 0 <= elite_ratio <= 1
-
         dim = center_init.shape[0]
-
         # set hyperparameters
         self.lr = Parameter(lr, device=device)
         self.sigma = Parameter(sigma, device=device)
@@ -44,6 +60,7 @@ class ARS(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
+        """Perform a single step of the ARS algorithm."""
         device = self.center.device
 
         z_plus = torch.randn(int(self.pop_size / 2), self.dim, device=device)

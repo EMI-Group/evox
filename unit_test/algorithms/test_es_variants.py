@@ -1,6 +1,19 @@
 import torch
 
-from evox.algorithms import ARS, ASEBO, DES, ESMC, SNES, XNES, GuidedES, Noise_reuse_es, OpenES, PersistentES, SeparableNES, CMAES
+from evox.algorithms import (
+    ARS,
+    ASEBO,
+    CMAES,
+    DES,
+    ESMC,
+    SNES,
+    XNES,
+    GuidedES,
+    NoiseReuseES,
+    OpenES,
+    PersistentES,
+    SeparableNES,
+)
 
 from .test_base import TestBase
 
@@ -77,11 +90,11 @@ class TestESVariants(TestBase):
                 center_init=torch.rand(dim) * (ub - lb) + lb,
                 optimizer="adam",
             ),
-            Noise_reuse_es(
+            NoiseReuseES(
                 pop_size=pop_size,
                 center_init=torch.rand(dim) * (ub - lb) + lb,
             ),
-            Noise_reuse_es(
+            NoiseReuseES(
                 pop_size=pop_size,
                 center_init=torch.rand(dim) * (ub - lb) + lb,
                 optimizer="adam",

@@ -1,55 +1,96 @@
-import torch
-
-from ...utils import minimum
-from ...core import vmap
-
 from typing import Tuple
 
-def de_diff_sum( diff_padding_num: int, num_diff_vects: torch.Tensor, index: torch.Tensor, population: torch.Tensor, replace: bool = False ) -> Tuple[ torch.Tensor, torch.Tensor ]:
+import torch
+
+from ...utils import minimum_int
+
+
+def DE_differential_sum(
+    diff_padding_num: int, num_diff_vectors: torch.Tensor, index: torch.Tensor, population: torch.Tensor
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Computes the difference vectors' sum in differential evolution.
+
+    :param diff_padding_num: The number of padding difference vectors.
+    :param num_diff_vectors: The number of difference vectors used in mutation.
+    :param index: The index of current individual.
+    :param population: The population tensor.
+
+    :return: The difference sum and the index of first difference vector.
+    """
     device = population.device
-    pop_size, dim = population.size()
-    if  len(num_diff_vects.size()) == 0 :
-        num_diff_vects = torch.tile( num_diff_vects, (pop_size,) )
+    pop_size = population.size(0)
+    if num_diff_vectors.ndim == 0:
+        num_diff_vectors = num_diff_vectors[None].expand(pop_size)
 
-    select_len = num_diff_vects.unsqueeze(1) * 2 + 1
-    rand_indices = torch.randint(0, pop_size, (pop_size,diff_padding_num), device=device)
-    rand_indices = torch.where( rand_indices == index.unsqueeze(1), torch.tensor(pop_size-1, device=device), rand_indices)
-    
-    pop_permut = population[rand_indices]
-    mask = torch.tile( torch.arange( diff_padding_num, device=device ), (pop_size,1) ) < select_len
-    pop_permut_padding = torch.where( mask.unsqueeze(2), pop_permut, torch.zeros_like(pop_permut) )
+    select_len = num_diff_vectors.unsqueeze(1) * 2 + 1
+    rand_indices = torch.randint(0, pop_size, (pop_size, diff_padding_num), device=device)
+    rand_indices = torch.where(rand_indices == index.unsqueeze(1), torch.tensor(pop_size - 1, device=device), rand_indices)
 
-    diff_vects = pop_permut_padding[:,1:]
+    pop_permute = population[rand_indices]
+    mask = torch.tile(torch.arange(diff_padding_num, device=device), (pop_size, 1)) < select_len
+    pop_permute_padding = torch.where(mask.unsqueeze(2), pop_permute, torch.zeros_like(pop_permute))
 
-    even_idx = torch.arange(0, diff_vects.size(1), 2, device=device)
-    odd_idx  = torch.arange(1, diff_vects.size(1), 2, device=device)
+    diff_vectors = pop_permute_padding[:, 1:]
+    difference_sum = diff_vectors[:, 0::2].sum(dim=1) - diff_vectors[:, 1::2].sum(dim=1)
+    return difference_sum, rand_indices[:, 0]
 
-    difference_sum = diff_vects[ :,even_idx].sum(dim=1) - diff_vects[ :,odd_idx].sum(dim=1)
-    return difference_sum, rand_indices[:,0]
 
-def de_bin_cross( mutation_vector: torch.Tensor, current_vect: torch.Tensor, CR: torch.Tensor ):
+def DE_binary_crossover(mutation_vector: torch.Tensor, current_vector: torch.Tensor, CR: torch.Tensor):
+    """
+    Performs binary crossover in differential evolution.
+
+    :param mutation_vector: The mutated vector for each individual in the population.
+    :param current_vector: The current vector for each individual in the population.
+    :param CR: The crossover probability for each individual.
+
+    :return: The trial vector after crossover for each individual.
+    """
     device = mutation_vector.device
     pop_size, dim = mutation_vector.size()
-    if  len( CR.size()) == 1 :
-        CR = CR.unsqueeze( 1 )
-    mask = torch.randn( pop_size, dim, device=device) <  CR
-    rind = torch.randint( 0, dim, (pop_size,), device=device).unsqueeze(1)
-    jind = torch.arange ( dim, device = device).unsqueeze( 0 ) == rind
-    trial_vector = torch.where( torch.logical_or( mask, jind ), mutation_vector, current_vect )
+    if CR.ndim == 1:
+        CR = CR.unsqueeze(1)
+    mask = torch.randn(pop_size, dim, device=device) < CR
+    rind = torch.randint(0, dim, (pop_size,), device=device).unsqueeze(1)
+    jind = torch.arange(dim, device=device).unsqueeze(0) == rind
+    trial_vector = torch.where(torch.logical_or(mask, jind), mutation_vector, current_vector)
     return trial_vector
 
-def de_exp_cross( mutation_vector: torch.Tensor, current_vect: torch.Tensor, CR: torch.Tensor ):
+
+def DE_exponential_crossover(mutation_vector: torch.Tensor, current_vector: torch.Tensor, CR: torch.Tensor):
+    """
+    Performs exponential crossover in differential evolution.
+
+    :param mutation_vector: The mutated vector for each individual in the population.
+    :param current_vector: The current vector for each individual in the population.
+    :param CR: The crossover probability for each individual.
+
+    :return: The trial vector after crossover for each individual.
+    """
     device = mutation_vector.device
     pop_size, dim = mutation_vector.size()
-    n = torch.randint( 0, dim, ( pop_size, ), device=device )
-    l = torch.randint( 0, dim, ( pop_size, ), device=device )
-    mask = torch.arange(dim).unsqueeze(0) < ( minimum( l,torch.tensor(dim))-1).unsqueeze(1)
-    mask = torch.gather( torch.tile( mask, (1,2) ), 1, n.unsqueeze(1) + torch.arange(dim) )
-    trial_vector = torch.where( mask, mutation_vector, current_vect )
+    nn = torch.randint(0, dim, (pop_size,), device=device)
+    # Geometric distribution random ll
+    float_tiny = 1.1754943508222875e-38
+    ll = torch.rand(pop_size, device=device).clamp(min=float_tiny)
+    ll = (ll.log() / (-CR.log1p())).floor().to(dtype=nn.dtype)
+    mask = torch.arange(dim, device=device).unsqueeze(0) < (minimum_int(ll, dim) - 1).unsqueeze(1)
+    mask = torch.gather(torch.tile(mask, (1, 2)), 1, nn.unsqueeze(1) + torch.arange(dim, device=device))
+    trial_vector = torch.where(mask, mutation_vector, current_vector)
     return trial_vector
 
-def de_arith_recom( mutation_vector: torch.Tensor, current_vect: torch.Tensor, K: torch.Tensor ):
-    if  len(K.size()) == 1 :
-        K = K.unsqueeze( 1 )
-    trial_vector = current_vect + K * (mutation_vector - current_vect)
+
+def DE_arithmetic_recombination(mutation_vector: torch.Tensor, current_vector: torch.Tensor, K: torch.Tensor):
+    """
+    Performs arithmetic recombination in differential evolution.
+
+    :param mutation_vector: The mutated vector for each individual in the population.
+    :param current_vector: The current vector for each individual in the population.
+    :param K: The coefficient for each individual.
+
+    :return: The trial vector after recombination for each individual.
+    """
+    if K.ndim == 1:
+        K = K.unsqueeze(1)
+    trial_vector = current_vector + K * (mutation_vector - current_vector)
     return trial_vector

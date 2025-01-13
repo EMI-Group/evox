@@ -7,7 +7,17 @@ from .adam_step import adam_single_tensor
 
 
 @jit_class
-class Noise_reuse_es(Algorithm):
+class NoiseReuseES(Algorithm):
+    """The implementation of the Noise-Reuse-ES algorithm.
+
+    Reference:
+    Noise-Reuse in Online Evolution Strategies
+    (https://arxiv.org/pdf/2304.12180.pdf)
+
+    This code has been inspired by or utilizes the algorithmic implementation from evosax.
+    More information about evosax can be found at the following URL:
+    GitHub Link: https://github.com/RobertTLange/evosax
+    """
     def __init__(
         self,
         pop_size: int,
@@ -21,10 +31,22 @@ class Noise_reuse_es(Algorithm):
         sigma_limit: float = 0.01,
         device: torch.device | None = None,
     ):
+        """Initialize the Guided-ES algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param center_init: The initial center of the population. Must be a 1D tensor.
+        :param optimizer: The optimizer to use. Defaults to None. Currently, only "adam" or None is supported.
+        :param lr: The learning rate for the optimizer. Defaults to 0.05.
+        :param sigma: The standard deviation of the noise. Defaults to 0.03.
+        :param sigma_decay: The decay factor for the standard deviation. Defaults to 1.0.
+        :param sigma_limit: The minimum value for the standard deviation. Defaults to 0.01.
+        :param T: The inner problem length. Defaults to 100.
+        :param K: The number of inner problems. Defaults to 10.
+        :param device: The device to use for the tensors. Defaults to None.
+        """
         super().__init__()
-
+        assert pop_size > 1
         dim = center_init.shape[0]
-
         # set hyperparameters
         self.lr = Parameter(lr, device=device)
         self.T = Parameter(T, device=device)
@@ -39,7 +61,7 @@ class Noise_reuse_es(Algorithm):
         center_init = center_init.to(device=device)
         self.center = Mutable(center_init)
         self.sigma = Mutable(torch.tensor(sigma))
-        self.inner_step_counter = Mutable(torch.tensor(0.0))
+        self.inner_step_counter = Mutable(torch.tensor(0.0, device=device))
         self.unroll_pert = Mutable(torch.zeros(pop_size, self.dim, device=device))
 
         if optimizer == "adam":
@@ -49,12 +71,23 @@ class Noise_reuse_es(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
+        """
+        Take a single step of the NoiseReuseES algorithm.
+
+        This function follows the algorithm described in the reference paper.
+        It first generates a set of perturbations for the current population.
+        Then, it evaluates the fitness of the population with the perturbations.
+        Afterwards, it calculates the gradient of the policy parameters using the
+        perturbations and the fitness.
+        Finally, it updates the policy parameters using the gradient and the
+        learning rate.
+        """
         device = self.center.device
 
-        pos_perts = torch.randn(self.pop_size // 2, self.dim, device=device) * self.sigma
-        neg_perts = -pos_perts
-        perts = torch.cat([pos_perts, neg_perts], dim=0)
-        unroll_pert = torch.where(self.inner_step_counter == 0, perts, self.unroll_pert)
+        position_perturbations = torch.randn(self.pop_size // 2, self.dim, device=device) * self.sigma
+        negative_perturbations = -position_perturbations
+        perturbations = torch.cat([position_perturbations, negative_perturbations], dim=0)
+        unroll_pert = torch.where(self.inner_step_counter == 0, perturbations, self.unroll_pert)
 
         population = self.center + unroll_pert
 
