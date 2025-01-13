@@ -25,8 +25,3 @@ class TestCEC2022(unittest.TestCase):
                 target = cec2022_func(func_num=i)
                 target_fitness = target.values(population.detach().cpu().numpy())
                 self.assertTrue(torch.allclose(fitness, torch.as_tensor(target_fitness, dtype=fitness.dtype)))
-
-if __name__ == "__main__":
-    test = TestCEC2022()
-    test.setUp()
-    test.test_evaluate()

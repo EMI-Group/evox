@@ -2,6 +2,8 @@
 # https://github.com/P-N-Suganthan/2022-SO-BO/blob/main/Python-CEC2022.zip
 # These codes are only designed for an individual ranther than the whole population.
 # Here we add the filereading part and use these codes to verify our own CEC2022 problems.
+# for testing purposes only.
+
 
 # -*- coding: utf-8 -*-
 """
