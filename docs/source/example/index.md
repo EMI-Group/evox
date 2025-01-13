@@ -3,6 +3,8 @@
 ```{toctree}
 :maxdepth: 1
 
-3-custom-alg-pro
+so-algorithm
 moalg
+Brax
+custom_algo_prob
 ```

@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.core import jit, vmap
+from evox.core import debug_print, jit, vmap
 
 
 def distance_fn(costs: torch.Tensor, mask: torch.Tensor = None):
@@ -51,3 +51,18 @@ class TestVmapFix(unittest.TestCase):
     def test_distance_fn_without_mask(self):
         distances = jit(distance_fn, trace=True, lazy=False, example_inputs=(self.costs,))
         self.assertIsNotNone(distances(self.costs))
+
+    def test_debug_print(self):
+        def fn(x: torch.Tensor):
+            debug_print("x: {}", x)
+            return x
+
+        print("Script:")
+        script_fn = jit(fn, trace=False, lazy=True)
+        self.assertIsNotNone(script_fn(torch.rand(10)))
+        print("Trace:")
+        trace_fn = jit(fn, trace=True, lazy=True)
+        self.assertIsNotNone(trace_fn(torch.rand(10)))
+        print("Vmap:")
+        vmap_fn = jit(vmap(fn, trace=False), trace=True, lazy=True)
+        self.assertIsNotNone(vmap_fn(torch.rand(2, 10)))

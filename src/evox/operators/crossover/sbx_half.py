@@ -1,8 +1,9 @@
 import torch
 
 
-def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -> torch.Tensor:
-    """Simulated binary crossover (SBX)
+def simulated_binary_half(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0):
+    """
+    Generate half of the offspring solutions after simulated binary crossover (SBX).
 
     :param x: Parent solutions in a 2D tensor (size: n x d).
     :param pro_c: Probability of doing crossover.
@@ -10,12 +11,12 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -
 
     :return: Offspring solutions after crossover.
     """
-    n, m = x.size()
+    n, d = x.size()
     parent1_dec = x[: n // 2, :]
     parent2_dec = x[n // 2 : n // 2 * 2, :]
 
     # Uniform distribution for mutation
-    mu = torch.rand(n // 2, m, device=x.device)
+    mu = torch.rand(n // 2, d, device=x.device)
 
     # Beta calculation for SBX
     beta = torch.zeros(mu.size(), device=x.device)
@@ -29,11 +30,6 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -
     beta = torch.where(torch.rand(mu.size(), device=x.device) < 0.5, 1, beta)
     beta = torch.where(torch.rand(mu.size(), device=x.device) > pro_c, 1, beta)
 
-    offspring_dec = torch.cat(
-        [
-            (parent1_dec + parent2_dec) / 2 + beta * (parent1_dec - parent2_dec) / 2,
-            (parent1_dec + parent2_dec) / 2 - beta * (parent1_dec - parent2_dec) / 2,
-        ]
-    )
+    offspring_dec = (parent1_dec + parent2_dec) / 2 + beta * (parent1_dec - parent2_dec) / 2
 
     return offspring_dec

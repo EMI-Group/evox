@@ -1,4 +1,5 @@
 import inspect
+import weakref
 from typing import Dict, List, Sequence, Tuple
 
 import torch
@@ -6,7 +7,7 @@ import torch
 from ...core import ModuleBase, jit, jit_class, trace_impl, use_state, vmap_impl
 from .utils import VarArgsCallableMultiRet, _get_cache_key_object, _param_clone
 
-_cond_object_cache = {}
+_cond_object_cache = weakref.WeakValueDictionary()
 
 
 @jit_class
@@ -50,9 +51,7 @@ class TracingCond(ModuleBase):
         self.false_fn = false_fn
         self._cache_compiled_cond: Dict[Tuple[int, torch.dtype, torch.device], torch.jit.ScriptFunction] = {}
         _cond_object_cache[self.__cache_key__] = self
-
-    def __del__(self):
-        _cond_object_cache.pop(self.__cache_key__, None)
+        weakref.finalize(self, _cond_object_cache.pop, self.__cache_key__, None)
 
     @torch.jit.ignore
     def cond(
@@ -210,9 +209,9 @@ class TracingCond(ModuleBase):
             return x
 
         cond_dict = {1: _cond1, 2: _cond2, 3: _cond3, 4: _cond4, 5: _cond5, 6: _cond6, 7: _cond7, 8: _cond8, 9: _cond9}
-        assert len(original_args) <= len(cond_dict), (
-            f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
-        )
+        assert len(original_args) <= len(
+            cond_dict
+        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
         compiled_cond = torch.jit.script(cond_dict[len(original_args)])
         return compiled_cond
 
@@ -370,9 +369,9 @@ class TracingCond(ModuleBase):
             return x
 
         cond_dict = {1: _cond1, 2: _cond2, 3: _cond3, 4: _cond4, 5: _cond5, 6: _cond6, 7: _cond7, 8: _cond8, 9: _cond9}
-        assert len(original_args) <= len(cond_dict), (
-            f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
-        )
+        assert len(original_args) <= len(
+            cond_dict
+        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
         compiled_cond = torch.jit.script(cond_dict[len(original_args)])
         return compiled_cond, state_true_fn, state_false_fn
 

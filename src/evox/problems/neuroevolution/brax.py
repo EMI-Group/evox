@@ -1,5 +1,6 @@
 __all__ = ["BraxProblem"]
 
+import weakref
 from typing import Callable, Dict, Tuple
 
 import jax
@@ -26,7 +27,7 @@ def from_jax_array(x: jax.Array) -> torch.Tensor:
 __brax_data__: Dict[
     int,
     Tuple[Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]],
-] = {}
+] = {}  # Cannot be a weakref.WeakValueDictionary because the values are only stored here
 
 
 @jit_class
@@ -95,7 +96,9 @@ class BraxProblem(Problem):
         brax_reset = jax.jit(env.reset)
         brax_step = jax.jit(env.step)
         global __brax_data__
-        __brax_data__[hash(self)] = (brax_reset, brax_step)
+        __brax_data__[id(self)] = (brax_reset, brax_step)
+        weakref.finalize(self, __brax_data__.pop, id(self), None)
+        self._index_id_ = id(self)
         # JIT stateful model forward
         dummy_obs = torch.empty(pop_size, num_episodes, env.observation_size, device=device)
         _, jit_vmap_state_forward, _, _, param_to_state_key_map, model_buffers = get_vmap_model_state_forward(
@@ -122,10 +125,6 @@ class BraxProblem(Problem):
         self.pop_size = pop_size
         self.rotate_key = rotate_key
         self.reduce_fn = reduce_fn
-
-    def __del__(self):
-        global __brax_data__
-        __brax_data__.pop(self._hash_id_, None)
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the final rewards of a population (batch) of model parameters.
@@ -160,7 +159,7 @@ class BraxProblem(Problem):
         pop_size = list(model_state.values())[0].shape[0]
         assert pop_size == self.pop_size
         global __brax_data__
-        brax_reset, brax_step = __brax_data__[self._hash_id_]
+        brax_reset, brax_step = __brax_data__[self._index_id_]
         # For each episode, we need a different random key.
         # For each individual in the population, we need the same set of keys.
         key = to_jax_array(rand_key)
