@@ -2,6 +2,8 @@
 # https://github.com/P-N-Suganthan/2022-SO-BO/blob/main/Python-CEC2022.zip
 # These codes are only designed for an individual ranther than the whole population.
 # Here we add the filereading part and use these codes to verify our own CEC2022 problems.
+# for testing purposes only.
+
 
 # -*- coding: utf-8 -*-
 """
@@ -11,12 +13,22 @@ Created on Sat Jan  1 16:49:21 2022
 @email: abhishek.kumar.eee13@iitbhu.ac.in
 """
 
+import os
+import sys
+
 import numpy as np
 
 INF = 1.0e99
 EPS = 1.0e-14
 E = 2.7182818284590452353602874713526625
 PI = 3.1415926535897932384626433832795029
+
+
+def load_cec2022_data(filename):
+    base_path = os.path.dirname(sys.modules["evox"].__file__)
+    filename = os.path.join(base_path, "problems/numerical/cec2022_input_data", filename)
+    M = np.loadtxt(filename)
+    return M
 
 
 def ellips_func(x, nx, Os, Mr, s_flag, r_flag):
@@ -591,24 +603,11 @@ def cec22_test_func(x, nx, mx, func_num):
 
         # Load M matrix
 
-        FileName = "src/evox/problems/so/cec2022_input_data/M_%d_D%d.txt" % (func_num, nx)
-        try:
-            M = np.loadtxt(FileName)
-        except Exception:
-            print("\n Error: Cannot open M_%d_D%d.txt for reading \n" % (func_num, nx))
-        #    if M==None:
-        #      print("\nError: there is insufficient memory available!\n")
-        del FileName
-
+        M = load_cec2022_data(f"M_{func_num}_D{nx}.txt")
         # Shift data
-        FileName = "src/evox/problems/so/cec2022_input_data/shift_data_%d.txt" % func_num
-        try:
-            OShift_temp = np.loadtxt(FileName)
-        except Exception:
-            print("\n Error: Cannot open shift_data_%d.txt for reading \n" % func_num)
+        OShift_temp = load_cec2022_data(f"shift_data_{func_num}.txt")
         #    if OShift == None:
         #      print("\nError: there is insufficient memory available!\n")
-        del FileName
         if func_num < 9:
             OShift = np.zeros((nx,))
             for i in range(nx):
@@ -621,13 +620,7 @@ def cec22_test_func(x, nx, mx, func_num):
             OShift = np.reshape(OShift, (cf_num - 1) * nx)
 
         if (func_num >= 6) & (func_num <= 8):
-            FileName = "src/evox/problems/so/cec2022_input_data/shuffle_data_%d_D%d.txt" % (func_num, nx)
-            try:
-                SS = np.loadtxt(FileName)
-            except Exception:
-                print("\n Error: Cannot open shuffle_data_%d_D%d.txt for reading \n" % (func_num, nx))
-
-            del FileName
+            SS = load_cec2022_data(f"shuffle_data_{func_num}_D{nx}.txt")
 
         n_flag = nx
         func_flag = func_num

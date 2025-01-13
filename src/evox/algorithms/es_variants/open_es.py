@@ -21,7 +21,7 @@ class OpenES(Algorithm):
         mirrored_sampling: bool = True,
         device: torch.device | None = None,
     ):
-        """Initialize the PSO algorithm with the given parameters.
+        """Initialize the OpenES algorithm with the given parameters.
 
         :param pop_size: The size of the population.
         :param center_init: The initial center of the population. Must be a 1D tensor.
@@ -58,6 +58,7 @@ class OpenES(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
+        """Step the OpenES algorithm by evaluating the fitness of the current population and updating the center."""
         device = self.center.device
         if self.mirrored_sampling:
             noise = torch.randn(self.pop_size // 2, self.dim, device=device)

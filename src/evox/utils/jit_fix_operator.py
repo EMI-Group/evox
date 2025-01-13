@@ -132,6 +132,68 @@ def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return a - diff
 
 
+def maximum_float(a: torch.Tensor, b: float) -> torch.Tensor:
+    """
+    Element-wise maximum of input tensor `a` and float `b`.
+
+    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input float, which is a scalar value.
+
+    :return: The element-wise maximum of `a` and `b`.
+    """
+    diff = torch.relu(b - a)
+    return a + diff
+
+
+def minimum_float(a: torch.Tensor, b: float) -> torch.Tensor:
+    """
+    Element-wise minimum of input tensor `a` and float `b`.
+
+    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
+    since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input float, which is a scalar value.
+
+    :return: The element-wise minimum of `a` and `b`.
+    """
+    diff = torch.relu(a - b)
+    return a - diff
+
+
+def maximum_int(a: torch.Tensor, b: int) -> torch.Tensor:
+    """
+    Element-wise maximum of input tensor `a` and int `b`.
+
+    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input int, which is a scalar value.
+
+    :return: The element-wise maximum of `a` and `b`.
+    """
+    diff = torch.relu(b - a)
+    return a + diff
+
+
+def minimum_int(a: torch.Tensor, b: int) -> torch.Tensor:
+    """
+    Element-wise minimum of input tensor `a` and int `b`.
+
+    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
+    since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input int, which is a scalar value.
+
+    :return: The element-wise minimum of `a` and `b`.
+    """
+    diff = torch.relu(a - b)
+    return a - diff
+
+
 def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     """
     Perform lexicographical sorting of multiple tensors, considering each tensor as a key.

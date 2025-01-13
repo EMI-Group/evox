@@ -1,54 +1,59 @@
 """This module helps serialize data to EvoXVision storage format (exv).
+
 | Magic Number         | Header Length | Metadata               | Initial Iteration Data | Binary Data   |
 | -------------------- | ------------- | ---------------------- | ---------------------- | ------------- |
-| 0x65787631 (4 bytes) | u32 (4 bytes) | JSON encoded (n bytes) | <binary data>          | <binary data> |
+| 0x65787631 (4 bytes) | u32 (4 bytes) | JSON encoded (n bytes) | binary data            | binary data   |
+
 The numbers are stored in little-endian format.
 The metadata is a JSON utf-8 encoded string, which contains the schema of the binary data.
 The format of the metadata is as follows:
 ```json
 {
     "version": "v1",
-    "n_objs": <number>,
+    "n_objs": "<number>",
     "initial_iteration": {
-        "population_size": <number>,
-        "chunk_size": <number>,
+        "population_size": "<number>",
+        "chunk_size": "<number>",
         "fields": [
             {
                 "name": "<field name>",
                 "type": "<type>",
-                "size": <number>,
-                "offset": <number>
-                "shape": [<number>]
+                "size": "<number>",
+                "offset": "<number>",
+                "shape": ["<number>"]
             }
         ]
     },
     "rest_iterations": {
-        "population_size": <number>,
-        "chunk_size": <number>,
+        "population_size": "<number>",
+        "chunk_size": "<number>",
         "fields": [
             {
                 "name": "<field name>",
                 "type": "<type>",
-                "size": <number>,
-                "offset": <number>
-                "shape": [<number>]
+                "size": "<number>",
+                "offset": "<number>",
+                "shape": ["<number>"]
             }
         ]
     }
 }
 ```
+
 where <type> represents the data type of the field, available types are:
-"u8", "u16", "u32", "u64",
-"i16", "i32", "i64",
-"f16", "f32", "f64"
+- "u8", "u16", "u32", "u64",
+- "i16", "i32", "i64",
+- "f16", "f32", "f64"
 The size and offset are in bytes.
-Note:
+
+```{note}
 The magic number is used to identify the file format.
 0x65787631 is the byte code for "exv1".
 The binary data blob is a sequence of binary data chunks.
 In EvoX, the algorithm is allowed to have a different behavior in the first iteration (initialization phase),
 which can have a different chunk size than the rest of the iterations.
 Therefore it contains two different schemas for the initial iteration and the rest of the iterations.
+```
 """
 
 import json
