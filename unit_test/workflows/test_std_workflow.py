@@ -100,3 +100,5 @@ class TestStdWorkflow(unittest.TestCase):
         self.assertIsNotNone(monitor.topk_fitness)
         workflow.step()
         self.assertIsNotNone(monitor.topk_fitness)
+        # test the plot function
+        self.assertIsNotNone(monitor.plot())
