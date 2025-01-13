@@ -114,9 +114,9 @@ class JaDE(Algorithm):
             [self.population[random_choices[i]] - self.population[random_choices[i + 1]] for i in range(1, num_vec - 1, 2)]
         ).sum(dim=0)
 
-        pbest_vects = self._select_rand_pbest_vects(p=0.05)
+        pbest_vectors = self._select_rand_pbest_vectors(p=0.05)
         base_vectors_prim = self.population
-        base_vectors_sec = pbest_vects
+        base_vectors_sec = pbest_vectors
         F_vec_2D = F_vec[:, None]
 
         base_vectors = base_vectors_prim + F_vec_2D * (base_vectors_sec - base_vectors_prim)
@@ -162,7 +162,7 @@ class JaDE(Algorithm):
         self.F_u = torch.where(count_mask, updated_F_u, self.F_u)
         self.CR_u = torch.where(count_mask, updated_CR_u, self.CR_u)
 
-    def _select_rand_pbest_vects(self, p: float) -> torch.Tensor:
+    def _select_rand_pbest_vectors(self, p: float) -> torch.Tensor:
         """
         Select p-best vectors from the population for mutation.
 
@@ -181,6 +181,6 @@ class JaDE(Algorithm):
         pbest_indices = pbest_indices_pool[random_indices]
 
         # Retrieve p-best vectors using the sampled indices
-        pbest_vects = self.population[pbest_indices]
+        pbest_vectors = self.population[pbest_indices]
 
-        return pbest_vects
+        return pbest_vectors
