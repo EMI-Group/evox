@@ -66,14 +66,7 @@ class SupervisedLearningProblem(Problem):
         dummy_labels: torch.Tensor = dummy_labels.to(device=device)
 
         # JITed model state forward initialization
-        (
-            model_init_state,
-            jit_vmap_state_forward,
-            dummy_vmap_logits,
-            (jit_state_forward, dummy_single_logits),
-            param_to_state_key_map,
-            model_buffers,
-        ) = get_vmap_model_state_forward(
+        non_vmap_result, vmap_result = get_vmap_model_state_forward(
             model,
             pop_size,
             dummy_inputs,
@@ -82,6 +75,8 @@ class SupervisedLearningProblem(Problem):
             get_non_vmap=True,
             check_single_output=lambda logits: isinstance(logits, torch.Tensor),
         )
+        model_init_state, jit_state_forward, dummy_single_logits, param_to_state_key_map, model_buffers = non_vmap_result
+        vmap_model_init_state, jit_vmap_state_forward, dummy_vmap_logits, _, _ = vmap_result
         self._jit_state_forward = jit_state_forward
         self._jit_vmap_state_forward = jit_vmap_state_forward
         self._param_to_state_key_map = param_to_state_key_map
@@ -229,9 +224,9 @@ class SupervisedLearningProblem(Problem):
         :return: A tensor of shape (batch_size,) containing the fitness of each sample in the population.
         """
         pop_params_value = pop_params[self._sample_param_key]
-        assert pop_params_value.ndim == self._sample_param_ndim + 1, (
-            f"Expected exactly one batch dimension, got {pop_params_value.ndim - self._sample_param_ndim}"
-        )
+        assert (
+            pop_params_value.ndim == self._sample_param_ndim + 1
+        ), f"Expected exactly one batch dimension, got {pop_params_value.ndim - self._sample_param_ndim}"
         if pop_params_value.size(0) != 1:
             pop_fitness = self._vmap_evaluate(
                 pop_params,
