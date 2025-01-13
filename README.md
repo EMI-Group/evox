@@ -32,7 +32,7 @@
 1. [Overview](#Overview)
 2. [Key Features](#key-features)
 3. [Main Contents](#main-contents)
-4. [Setting Up EvoX](#setting-up-evox)
+4. [Quick Installation](#quick-installation)
 5. [Sister Projects](#sister-projects)
 6. [Community & Support](#community--support)
 7. [Citing EvoX](#citing-evox)
@@ -85,7 +85,7 @@ EvoX is a distributed, GPU-accelerated evolutionary computation framework design
 For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/api/algorithms/index.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/api/problems/index.html).
 
 
-## Setting Up EvoX
+## Quick Installation
 
 Install `evox` effortlessly via `pip`:
 
