@@ -1,3 +1,3 @@
-__all__ = ["core", "utils", "algorithms", "problems", "workflows"]
+__all__ = ["core", "utils", "algorithms", "problems", "workflows", "operators", "vis_tools", "metrics"]
 
-from . import algorithms, core, problems, utils, workflows
+from . import algorithms, core, metrics, operators, problems, utils, vis_tools, workflows
