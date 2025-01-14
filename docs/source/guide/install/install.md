@@ -39,7 +39,7 @@ stateDiagram-v2
     torch --> cpu
 ```
 
-To summarize, whether `evox` has CPU support or Nvidia GPU support (CUDA) or AMD GPU support (ROCm) depends on the installed PyTorch version. Please refers to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
+To summarize, whether `evox` has CPU support or Nvidia GPU support (CUDA) or AMD GPU support (ROCm) depends on the installed PyTorch version. Please refer to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
 
 
 ## Nvidia GPU support on Windows
