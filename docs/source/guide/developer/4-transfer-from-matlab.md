@@ -26,6 +26,8 @@ This document aims to guide MATLAB users in transitioning to PyTorch and EvoX fo
 - Uses `.*` to multiply corresponding elements of matrices of the same size.
 - `/` represents the matrix right division.
 - `.^` represents the element-wise power.
+- Trailing and leading dimension(s) of tensors with length 1 is/are **ignored**.
+- Automatically find broadcastable dimensions for element-wise operations and perform **implicit** dimension extension.
 
 #### PyTorch
 
@@ -33,6 +35,8 @@ This document aims to guide MATLAB users in transitioning to PyTorch and EvoX fo
 - Directly uses `*` to multiply corresponding elements of tensors of the same shape or broadcastable shapes.
 - `/` represents the element-wise division.
 - `**` represents the element-wise power.
+- Dimension(s) of tensors with length 1 is/are **preserved** and treated as **broadcast dimension**.
+- **Prevent** most implicit dimension extension, broadcast dimension(s) are usually required.
 
 ### Functions and Definitions
 
@@ -71,6 +75,16 @@ This document aims to guide MATLAB users in transitioning to PyTorch and EvoX fo
 
 - Uses `print` with f-strings for formatted output.
 - Uses `#` for single-line comments.
+
+### Multi-line Coding
+
+#### MATLAB
+
+- Uses `...` at the trailing of a line to indicate that the next line shall be treated as the same line as.
+#### Python
+
+- Uses `\` at the trailing of a line to indicate that the next line shall be treated as the same line as.
+- If multiple lines are inside parentheses, no specific trailing symbol is required.
 
 ## How to Write Evolutionary Computation Algorithm via EvoX?
 
@@ -137,10 +151,12 @@ function [self] = step_pso(self, evaluate)
     self.velocity = min(max(velocity, self.lb), self.ub);
 end
 ```
-In MATLAB, a primary function `init_pso()` initializes the algorithm, a separate function `step_pso()` performs each iteration step and a main function `example_pso()` orchestrates the loop.
+In MATLAB, function `init_pso()` initializes the algorithm, and a separate function `step_pso()` performs an iteration step and the main function `example_pso()` orchestrates the loop.
 
 ### EvoX
-In EvoX, we you construct the PSO algorithm in following way:
+In EvoX, you can construct the PSO algorithm in following way:
+
+First, it is recommended to import necessary modules and functions from EvoX and PyTorch.
 ```python
 import torch
 
@@ -148,8 +164,10 @@ from evox.core import *
 from evox.utils import *
 from evox.workflows import *
 from evox.problems.numerical import Sphere
+```
 
-
+Then, you can transform the MATLAB code to the python code correspondingly according to the "Syntax Differences" section.
+```python
 def main():
     pso = PSO(pop_size=10, lb=torch.tensor([-10.0, -10.0]), ub=torch.tensor([10.0, 10.0]))
     wf = StdWorkflow()
@@ -168,8 +186,8 @@ class PSO(Algorithm):
         self.phi_p = phi_p
         self.phi_g = phi_g
         # setup
-        lb = lb[None, :]
-        ub = ub[None, :]
+        lb = lb.unsqueeze(0)
+        ub = ub.unsqueeze(0)
         range = ub - lb
         population = torch.rand(self.pop_size, self.dim)
         population = range * population + lb
@@ -182,7 +200,7 @@ class PSO(Algorithm):
         self.velocity = velocity
         self.local_best_location = population
         self.local_best_fitness = torch.full((self.pop_size,), fill_value=torch.inf)
-        self.global_best_location = population[1, :]
+        self.global_best_location = population[0, :]
         self.global_best_fitness = torch.tensor(torch.inf)
 
     def step(self):
@@ -190,7 +208,7 @@ class PSO(Algorithm):
         fitness = self.evaluate(self.population)
         # Update the local best
         compare = self.local_best_fitness > fitness
-        self.local_best_location = torch.where(compare[:, None], self.population, self.local_best_location)
+        self.local_best_location = torch.where(compare.unsqueeze(1), self.population, self.local_best_location)
         self.local_best_fitness = torch.where(compare, fitness, self.local_best_fitness)
         # Update the global best
         values = torch.cat([self.global_best_location.unsqueeze(0), self.population], dim=0)
@@ -199,8 +217,8 @@ class PSO(Algorithm):
         self.global_best_location = values[min_index]
         self.global_best_fitness = keys[min_index]
         # Update velocity and position
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        rg = torch.rand(self.pop_size, self.dim)
+        rp = torch.rand(self.pop_size, self.dim)
         velocity = (
             self.w * self.velocity
             + self.phi_p * rp * (self.local_best_location - self.population)
@@ -211,9 +229,16 @@ class PSO(Algorithm):
         self.velocity = clamp(velocity, self.lb, self.ub)
 
 
+# Run the main function
 if __name__ == "__main__":
     main()
 ```
+
+```{note}
+It is worth noting that we use `[]` with `;` and `,` in MATLAB to concatenate matrices and vectors along specific dimension; however, in EvoX, the `torch.cat` must be invoked with argument `dim` to indicate the concatenation dimension.
+Moreover, in PyTorch, tensors to be concatenated must have the same number of dimensions; therefore, additional `XXX.unsqueeze(0)` is applied to add a new dimension of length 1 before the first dimension.
+```
+
 In EvoX, the PSO logic is encapsulated within a class that inherits from `Algorithm`. This object-oriented design simplifies state management and iteration, and introduces following advantages:
 - Inherited `evaluate()` method
     You can simply call `self.evaluate(self.population)` to compute fitness values, rather than manually passing your objective function each iteration.
