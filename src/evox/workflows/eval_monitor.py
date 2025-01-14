@@ -141,7 +141,7 @@ class EvalMonitor(Monitor):
 
     @torch.jit.ignore
     def plot(self, problem_pf=None, **kwargs):
-        if not self.fitness_history:
+        if len(self.fitness_history) <= 1:
             warnings.warn("No fitness history recorded, return None")
             return
 
@@ -149,10 +149,10 @@ class EvalMonitor(Monitor):
             warnings.warn("No visualization tool available, return None")
             return
 
-        if self.fitness_history[0].ndim == 1:
+        if self.fitness_history[1].ndim == 1:
             n_objs = 1
         else:
-            n_objs = self.fitness_history[0].shape[1]
+            n_objs = self.fitness_history[1].shape[1]
 
         fitness_history = self.get_fitness_history()
         fitness_history = [f.cpu().numpy() for f in fitness_history]
