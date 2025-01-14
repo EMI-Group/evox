@@ -49,7 +49,7 @@ def vmap(
     batched_state: Dict[str, torch.Tensor] | None = None,
     VMAP_DIM_CONST: int = 13,
 ) -> T | MappedUseStateFunc:
-    """Vectorize map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
+    """Vectorized map the given function to its mapped version, see [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for more information.
 
     :param func: The function to be mapped. See `torch.vmap`.
     :param in_dims: The inputs' batch dimensions. See `torch.vmap`. Defaults to 0.
@@ -228,8 +228,8 @@ def jit(
     no_cache: bool = False,
     return_dummy_output: bool = False,
     debug_manual_seed: int | None = None,
-) -> T | UseStateFunc | MappedUseStateFunc | Tuple[T, Any]:
-    """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
+) -> T | UseStateFunc | MappedUseStateFunc:
+    """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) or [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
     This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`,
     preventing possible errors.
