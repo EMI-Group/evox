@@ -146,7 +146,7 @@ class Schwefel(ShiftAffineNumericalProblem):
 
 
 def sphere_func(x):
-    return torch.sum(x**2, axis=1)
+    return torch.sum(x**2, dim=1)
 
 
 @jit_class
