@@ -14,9 +14,9 @@ from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 
 
-class SimpleCNN(nn.Module):
+class SampleCNN(nn.Module):
     def __init__(self):
-        super(SimpleCNN, self).__init__()
+        super(SampleCNN, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(1, 3, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -92,7 +92,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         )
         self.pre_test_loader = tuple([(inputs.to(self.device), labels.to(self.device)) for inputs, labels in self.test_loader])
 
-        self.model = SimpleCNN().to(self.device)
+        self.model = SampleCNN().to(self.device)
         self.adapter = ParamsAndVector(dummy_model=self.model)
         self.model_params = dict(self.model.named_parameters())
         self.pop_center = self.adapter.to_vector(self.model_params)
@@ -253,8 +253,8 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             max_generation=3,
         )
 
-    def test_single_run_neuroevolution(self):
-        print("Single-run neuroevolution process start.")
+    def test_single_individual_neuroevolution(self):
+        print("Single-individual neuroevolution process start.")
         single_problem = SupervisedLearningProblem(
             model=self.model,
             data_loader=self.pre_ne_train_loader,
