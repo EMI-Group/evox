@@ -83,7 +83,7 @@ if /i "!use_cpu!"=="Y" (
 ) else (
     pip install torch --index-url https://download.pytorch.org/whl/cu124
 )
-pip install -e git+https://github.com/EMI-Group/evox@evoxtorch-main#egg=evox
+pip install "evox>=1.0a1"
 REM Download some demo
 mkdir %UserProfile%\evox-demo
 curl -L -o %UserProfile%\evox-demo\custom_algo_prob.ipynb https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/evoxtorch-main/docs/source/example/custom_algo_prob.ipynb
