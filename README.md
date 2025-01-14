@@ -6,7 +6,11 @@
   </picture>
 </h1>
 
-
+<p align="center">
+  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
+  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
+  <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+</p>
 
   [![arXiv](https://img.shields.io/badge/arxiv-2212.05652-red)](https://arxiv.org/abs/2301.12457)
   [![Documentation](https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs)](https://evox.readthedocs.io/)
