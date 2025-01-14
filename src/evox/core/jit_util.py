@@ -247,7 +247,7 @@ def jit(
     :param check_trace: Check the traced function or not. See [`torch.jit.trace`](https://pytorch.org/docs/main/generated/torch.jit.trace.html). Defaults to False.
     :param is_generator: Whether `func` is a generator or not. Defaults to False.
     :param no_cache: Whether to use `torch.jit.trace` directly (`no_cache=True`) or run the function to make it cache internals when `lazy=False`. Defaults to False. Has no effect when `trace=False`. This value must be set to `False` if the function contains a instant call to `torch.jit.trace` which will be used inside a `torch.jit.script` so that the JIT traced result shall be cached.
-    :param return_dummy_output: Whether to return the dummy output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
+    :param return_dummy_output: Whether to return the dummy output of `func` as the second output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
     :param debug_manual_seed: The manual seed to be set before each running of the function. Defaults to None. Has no effect when `trace=False`. None means no manual seed will be set. Notice that any value other than None changes the GLOBAL random seed.
 
     :return: The JIT version of `func`

@@ -851,8 +851,7 @@ def trace_impl(target: Callable):
     def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _TRACE_WRAP_NAME, target)
-        # special treatment for compatibility with `vmap`
-        return _vmap_fix.wrap_vmap_inputs(func)
+        return func
 
     return wrapping_fn
 
@@ -881,8 +880,7 @@ def vmap_impl(target: Callable):
     def wrapping_fn(func: T) -> T:
         torch.jit.ignore(func)
         setattr(func, _VMAP_WRAP_NAME, target)
-        # special treatment for compatibility with `vmap`
-        return _vmap_fix.wrap_vmap_inputs(func)
+        return func
 
     return wrapping_fn
 

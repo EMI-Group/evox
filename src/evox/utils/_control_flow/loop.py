@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 
 import torch
 
-from ...core import ModuleBase, _vmap_fix, jit, jit_class, trace_impl, use_state, vmap, vmap_impl
+from ...core import ModuleBase, _vmap_fix, jit, jit_class, trace_impl, use_state, vmap_impl
 from ...core.module import UseStateFunc
 from .utils import VarArgsCallable, VarArgsCallableMultiRet, _get_cache_key_object
 
@@ -253,9 +253,9 @@ class TracingWhile(ModuleBase):
 
         loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5, 6: _loop6, 7: _loop7, 8: _loop8, 9: _loop9}
 
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
         return compiled_loop, state_cond_fn, state_body_fn
 
@@ -364,9 +364,9 @@ class TracingWhile(ModuleBase):
 
         loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5, 6: _loop6, 7: _loop7, 8: _loop8, 9: _loop9}
 
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
         return compiled_loop
 
@@ -395,99 +395,137 @@ class TracingWhile(ModuleBase):
         return res
 
     @torch.jit.ignore
-    def _compile_vmap_loop_fn(self, original_args: Tuple[torch.Tensor, ...], vmap_dims: Tuple[Tuple[int, ...], ...]):
+    def _compile_vmap_loop_fn(self, originals: Tuple[torch.Tensor, ...], vmap_dims: Tuple[Tuple[int, ...], ...]):
+        cond_dims = ()
+        new_vmap_dims = ()
+
         # vmap
-        vmap_cond = self.cond_fn
-        vmap_body = self.body_fn
-        for d in zip(*vmap_dims):
-            vmap_cond = vmap(vmap_cond, in_dims=d, trace=False)
-            vmap_body = vmap(vmap_body, in_dims=d, out_dims=d, trace=False)
+        def _wrap_inputs(args):
+            return tuple(_vmap_fix.wrap_batch_tensor(a, d) for a, d in zip(args, vmap_dims))
 
-        def _expand_vmap_dim(vmap_dim: Tuple[int, ...], size: Tuple[int, ...], a: torch.Tensor) -> torch.Tensor:
-            vmap_dim = tuple(d + i for i, d in enumerate(vmap_dim))
-            size = list(size)
-            for i, _ in enumerate(size):
-                if i not in vmap_dim:
-                    size[i] = 1
-            return a.view(*size)
-
-        def _vmap_cond_fn(*xs: torch.Tensor) -> Tuple[torch.Tensor, ...]:
-            cond_res = vmap_cond(*xs)
-            cond_res = tuple(_expand_vmap_dim(d, a.size(), cond_res) for d, a in zip(vmap_dims, xs))
+        def _vmap_cond(*args: torch.Tensor) -> Tuple[torch.Tensor, ...]:
+            cond_res: torch.Tensor = self.cond_fn(*_wrap_inputs(args))
+            assert cond_res.ndim == 0, f"Expected scalar condition, got ndim={cond_res.ndim}"
+            nonlocal cond_dims
+            cond_res, cond_dims, _ = _vmap_fix.unwrap_batch_tensor(cond_res)
             return cond_res
 
+        def _vmap_body(*args):
+            body_res = self.body_fn(*_wrap_inputs(args))
+            body_out = []
+            body_dims = []
+            for b in body_res:
+                b, d, _ = _vmap_fix.unwrap_batch_tensor(b)
+                body_out.append(b)
+                body_dims.append(d)
+            nonlocal new_vmap_dims
+            new_vmap_dims = tuple(body_dims)
+            return tuple(body_out)
+
+        def _vmap_select(cond: torch.Tensor, new: Tuple[torch.Tensor, ...], old: Tuple[torch.Tensor, ...]) -> torch.Tensor:
+            batched_cond = _vmap_fix.wrap_batch_tensor(cond, cond_dims)
+            returns = []
+            for a, b, a_dim, b_dim in zip(new, old, new_vmap_dims, vmap_dims):
+                a = _vmap_fix.wrap_batch_tensor(a, a_dim)
+                b = _vmap_fix.wrap_batch_tensor(b, b_dim)
+                if _vmap_fix.is_batched_tensor(a) or _vmap_fix.is_batched_tensor(b):
+                    returns.append(torch.where(batched_cond, a, b))
+                else:
+                    returns.append(torch.where(cond.any(), a, b))
+                returns[-1] = _vmap_fix.unwrap_batch_tensor(returns[-1])[0]
+            return tuple(returns)
+
         # JIT
-        body = jit(vmap_body, trace=True, example_inputs=original_args)
-        cond = jit(_vmap_cond_fn, trace=True, example_inputs=original_args)
+        init_cond, dummy_cond_out = jit(_vmap_cond, trace=True, example_inputs=originals, return_dummy_output=True)
+        init_body, dummy_body_out = jit(_vmap_body, trace=True, example_inputs=originals, return_dummy_output=True)
+        init_select, originals = jit(
+            _vmap_select, trace=True, example_inputs=(dummy_cond_out, dummy_body_out, originals), return_dummy_output=True
+        )
+        vmap_dims = new_vmap_dims
+        cond = jit(_vmap_cond, trace=True, example_inputs=originals)
+        body = jit(_vmap_body, trace=True, example_inputs=originals)
+        select = jit(_vmap_select, trace=True, example_inputs=(dummy_cond_out, dummy_body_out, originals))
 
         def _loop1(x1: torch.Tensor):
-            cond_res = cond(x1)[0]
+            cond_res = init_cond(x1)
+            if not cond_res.any():
+                return x1
+            x1_new = init_body(x1)
+            x1 = init_select(cond_res, (x1_new,), (x1,))[0]
+            cond_res = cond(x1)
             while cond_res.any():
                 x1_new = body(x1)
-                x1 = torch.where(cond_res, x1_new, x1)
+                x1 = select(cond_res, (x1_new,), (x1,))[0]
                 cond_res = cond(x1)
             return x1
 
         def _loop2(x1: torch.Tensor, x2: torch.Tensor):
-            cond_res1, cond_res2 = cond(x1, x2)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2)
+            if not cond_res.any():
+                return x1, x2
+            x1_new, x2_new = init_body(x1, x2)
+            x1, x2 = init_select(cond_res, (x1_new, x2_new), (x1, x2))
+            cond_res = cond(x1, x2)
+            while cond_res.any():
                 x1_new, x2_new = body(x1, x2)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                cond_res1, cond_res2 = cond(x1, x2)
+                x1, x2 = select(cond_res, (x1_new, x2_new), (x1, x2))
+                cond_res = cond(x1, x2)
             return x1, x2
 
         def _loop3(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
-            cond_res1, cond_res2, cond_res3 = cond(x1, x2, x3)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2, x3)
+            if not cond_res.any():
+                return x1, x2, x3
+            x1_new, x2_new, x3_new = init_body(x1, x2, x3)
+            x1, x2, x3 = init_select(cond_res, (x1_new, x2_new, x3_new), (x1, x2, x3))
+            cond_res = cond(x1, x2, x3)
+            while cond_res.any():
                 x1_new, x2_new, x3_new = body(x1, x2, x3)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                cond_res1, cond_res2, cond_res3 = cond(x1, x2, x3)
+                x1, x2, x3 = select(cond_res, (x1_new, x2_new, x3_new), (x1, x2, x3))
+                cond_res = cond(x1, x2, x3)
             return x1, x2, x3
 
         def _loop4(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
-            cond_res1, cond_res2, cond_res3, cond_res4 = cond(x1, x2, x3, x4)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2, x3, x4)
+            if not cond_res.any():
+                return x1, x2, x3, x4
+            x1_new, x2_new, x3_new, x4_new = init_body(x1, x2, x3, x4)
+            x1, x2, x3, x4 = init_select(cond_res, (x1_new, x2_new, x3_new, x4_new), (x1, x2, x3, x4))
+            cond_res = cond(x1, x2, x3, x4)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new = body(x1, x2, x3, x4)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                cond_res1, cond_res2, cond_res3, cond_res4 = cond(x1, x2, x3, x4)
+                x1, x2, x3, x4 = select(cond_res, (x1_new, x2_new, x3_new, x4_new), (x1, x2, x3, x4))
+                cond_res = cond(x1, x2, x3, x4)
             return x1, x2, x3, x4
 
         def _loop5(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5 = cond(x1, x2, x3, x4, x5)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2, x3, x4, x5)
+            if not cond_res.any():
+                return x1, x2, x3, x4, x5
+            x1_new, x2_new, x3_new, x4_new, x5_new = init_body(x1, x2, x3, x4, x5)
+            x1, x2, x3, x4, x5 = init_select(cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new), (x1, x2, x3, x4, x5))
+            cond_res = cond(x1, x2, x3, x4, x5)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new = body(x1, x2, x3, x4, x5)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                x5 = torch.where(cond_res5, x5_new, x5)
-                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5 = cond(x1, x2, x3, x4, x5)
+                x1, x2, x3, x4, x5 = select(cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new), (x1, x2, x3, x4, x5))
+                cond_res = cond(x1, x2, x3, x4, x5)
             return x1, x2, x3, x4, x5
 
-        def _loop6(
-            x1: torch.Tensor,
-            x2: torch.Tensor,
-            x3: torch.Tensor,
-            x4: torch.Tensor,
-            x5: torch.Tensor,
-            x6: torch.Tensor,
-        ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(x1, x2, x3, x4, x5, x6)
-            while cond_res1.any():
+        def _loop6(x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor, x6: torch.Tensor):
+            cond_res = init_cond(x1, x2, x3, x4, x5, x6)
+            if not cond_res.any():
+                return x1, x2, x3, x4, x5, x6
+            x1_new, x2_new, x3_new, x4_new, x5_new, x6_new = init_body(x1, x2, x3, x4, x5, x6)
+            x1, x2, x3, x4, x5, x6 = init_select(
+                cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new), (x1, x2, x3, x4, x5, x6)
+            )
+            cond_res = cond(x1, x2, x3, x4, x5, x6)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new = body(x1, x2, x3, x4, x5, x6)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                x5 = torch.where(cond_res5, x5_new, x5)
-                x6 = torch.where(cond_res6, x6_new, x6)
-                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6 = cond(x1, x2, x3, x4, x5, x6)
+                x1, x2, x3, x4, x5, x6 = select(
+                    cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new), (x1, x2, x3, x4, x5, x6)
+                )
+                cond_res = cond(x1, x2, x3, x4, x5, x6)
             return x1, x2, x3, x4, x5, x6
 
         def _loop7(
@@ -499,17 +537,20 @@ class TracingWhile(ModuleBase):
             x6: torch.Tensor,
             x7: torch.Tensor,
         ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(x1, x2, x3, x4, x5, x6, x7)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2, x3, x4, x5, x6, x7)
+            if not cond_res.any():
+                return x1, x2, x3, x4, x5, x6, x7
+            x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new = init_body(x1, x2, x3, x4, x5, x6, x7)
+            x1, x2, x3, x4, x5, x6, x7 = init_select(
+                cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new), (x1, x2, x3, x4, x5, x6, x7)
+            )
+            cond_res = cond(x1, x2, x3, x4, x5, x6, x7)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new = body(x1, x2, x3, x4, x5, x6, x7)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                x5 = torch.where(cond_res5, x5_new, x5)
-                x6 = torch.where(cond_res6, x6_new, x6)
-                x7 = torch.where(cond_res7, x7_new, x7)
-                cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7 = cond(x1, x2, x3, x4, x5, x6, x7)
+                x1, x2, x3, x4, x5, x6, x7 = select(
+                    cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new), (x1, x2, x3, x4, x5, x6, x7)
+                )
+                cond_res = cond(x1, x2, x3, x4, x5, x6, x7)
             return x1, x2, x3, x4, x5, x6, x7
 
         def _loop8(
@@ -522,29 +563,20 @@ class TracingWhile(ModuleBase):
             x7: torch.Tensor,
             x8: torch.Tensor,
         ):
-            cond_res1, cond_res2, cond_res3, cond_res4, cond_res5, cond_res6, cond_res7, cond_res8 = cond(
-                x1, x2, x3, x4, x5, x6, x7, x8
+            cond_res = init_cond(x1, x2, x3, x4, x5, x6, x7, x8)
+            if not cond_res.any():
+                return x1, x2, x3, x4, x5, x6, x7, x8
+            x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new = init_body(x1, x2, x3, x4, x5, x6, x7, x8)
+            x1, x2, x3, x4, x5, x6, x7, x8 = init_select(
+                cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new), (x1, x2, x3, x4, x5, x6, x7, x8)
             )
-            while cond_res1.any():
+            cond_res = cond(x1, x2, x3, x4, x5, x6, x7, x8)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new = body(x1, x2, x3, x4, x5, x6, x7, x8)
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                x5 = torch.where(cond_res5, x5_new, x5)
-                x6 = torch.where(cond_res6, x6_new, x6)
-                x7 = torch.where(cond_res7, x7_new, x7)
-                x8 = torch.where(cond_res8, x8_new, x8)
-                (
-                    cond_res1,
-                    cond_res2,
-                    cond_res3,
-                    cond_res4,
-                    cond_res5,
-                    cond_res6,
-                    cond_res7,
-                    cond_res8,
-                ) = cond(x1, x2, x3, x4, x5, x6, x7, x8)
+                x1, x2, x3, x4, x5, x6, x7, x8 = select(
+                    cond_res, (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new), (x1, x2, x3, x4, x5, x6, x7, x8)
+                )
+                cond_res = cond(x1, x2, x3, x4, x5, x6, x7, x8)
             return x1, x2, x3, x4, x5, x6, x7, x8
 
         def _loop9(
@@ -558,41 +590,28 @@ class TracingWhile(ModuleBase):
             x8: torch.Tensor,
             x9: torch.Tensor,
         ):
-            (
-                cond_res1,
-                cond_res2,
-                cond_res3,
-                cond_res4,
-                cond_res5,
-                cond_res6,
-                cond_res7,
-                cond_res8,
-                cond_res9,
-            ) = cond(x1, x2, x3, x4, x5, x6, x7, x8, x9)
-            while cond_res1.any():
+            cond_res = init_cond(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            if not cond_res.any():
+                return x1, x2, x3, x4, x5, x6, x7, x8, x9
+            x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new, x9_new = init_body(
+                x1, x2, x3, x4, x5, x6, x7, x8, x9
+            )
+            x1, x2, x3, x4, x5, x6, x7, x8, x9 = init_select(
+                cond_res,
+                (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new, x9_new),
+                (x1, x2, x3, x4, x5, x6, x7, x8, x9),
+            )
+            cond_res = cond(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            while cond_res.any():
                 x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new, x9_new = body(
                     x1, x2, x3, x4, x5, x6, x7, x8, x9
                 )
-                x1 = torch.where(cond_res1, x1_new, x1)
-                x2 = torch.where(cond_res2, x2_new, x2)
-                x3 = torch.where(cond_res3, x3_new, x3)
-                x4 = torch.where(cond_res4, x4_new, x4)
-                x5 = torch.where(cond_res5, x5_new, x5)
-                x6 = torch.where(cond_res6, x6_new, x6)
-                x7 = torch.where(cond_res7, x7_new, x7)
-                x8 = torch.where(cond_res8, x8_new, x8)
-                x9 = torch.where(cond_res9, x9_new, x9)
-                (
-                    cond_res1,
-                    cond_res2,
-                    cond_res3,
-                    cond_res4,
-                    cond_res5,
-                    cond_res6,
-                    cond_res7,
-                    cond_res8,
-                    cond_res9,
-                ) = cond(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+                x1, x2, x3, x4, x5, x6, x7, x8, x9 = select(
+                    cond_res,
+                    (x1_new, x2_new, x3_new, x4_new, x5_new, x6_new, x7_new, x8_new, x9_new),
+                    (x1, x2, x3, x4, x5, x6, x7, x8, x9),
+                )
+                cond_res = cond(x1, x2, x3, x4, x5, x6, x7, x8, x9)
             return x1, x2, x3, x4, x5, x6, x7, x8, x9
 
         loops_dict = {
@@ -606,10 +625,8 @@ class TracingWhile(ModuleBase):
             8: _loop8,
             9: _loop9,
         }
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
-        return torch.jit.script(loops_dict[len(original_args)])
+        assert len(originals) <= len(loops_dict), f"At most {len(loops_dict)} arguments are supported, got {len(originals)}"
+        return torch.jit.script(loops_dict[len(originals)]), vmap_dims
 
     @vmap_impl(loop)
     def vmap_loop(self, *x: torch.Tensor) -> torch.Tensor:
@@ -625,14 +642,12 @@ class TracingWhile(ModuleBase):
         # compile
         key = tuple((d, a.ndim, a.dtype, a.device) for d, a in zip(vmap_dims, original_args))
         if key in self._cache_compiled_vmap_loop:
-            vmap_loop_compiled = self._cache_compiled_vmap_loop[key]
+            vmap_loop_compiled, final_vmap_dims = self._cache_compiled_vmap_loop[key]
         else:
-            vmap_loop_compiled = self._compile_vmap_loop_fn(original_args, vmap_dims)
-            self._cache_compiled_vmap_loop[key] = vmap_loop_compiled
+            vmap_loop_compiled, final_vmap_dims = self._compile_vmap_loop_fn(original_args, vmap_dims)
+            self._cache_compiled_vmap_loop[key] = (vmap_loop_compiled, final_vmap_dims)
         ret = vmap_loop_compiled(*original_args)
         returns = []
-        for r, d in zip(ret, vmap_dims):
-            for level, dim in enumerate(d, 1):
-                r = _vmap_fix.add_batch_dim(r, dim, level)
-            returns.append(r)
+        for r, d in zip(ret, final_vmap_dims):
+            returns.append(_vmap_fix.wrap_batch_tensor(r, d))
         return tuple(returns) if len(returns) > 1 else returns[0]

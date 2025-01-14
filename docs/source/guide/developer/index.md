@@ -7,5 +7,6 @@ environment
 1-modulebase
 2-jit-vmap-tutorial
 3-custom-alg-pro
-hpo
+4-transfer-from-matlab
+custom_hpo_prob
 ```

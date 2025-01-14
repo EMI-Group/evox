@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 import torch
 from torch import nn
@@ -25,43 +25,40 @@ class HPOMonitor(Monitor, ABC):
 class HPOFitnessMonitor(HPOMonitor):
     """The monitor for hyper parameter optimization (HPO) that records the best fitness found so far in the optimization process."""
 
-    def __init__(self, multi_obj_indicator: Optional[str] = None):
+    def __init__(self, multi_obj_metric: Optional[Callable] = None):
         """
         Initialize the HPO fitness monitor.
 
-        :param multi_obj_indicator: The indicator to use for multi-objective optimization, unused in single-objective optimization.
+        :param multi_obj_metric: The metric function to use for multi-objective optimization, unused in single-objective optimization.
             Currently we only support "IGD" or "HV" for multi-objective optimization. Defaults to `None`.
         """
         super().__init__()
-        assert multi_obj_indicator is None or isinstance(
-            multi_obj_indicator, str
-        ), f"Expect `multi_obj_indicator` to be `None` or `str`, got {multi_obj_indicator}"
-        if multi_obj_indicator is not None:
-            multi_obj_indicator = multi_obj_indicator.capitalize()
-            assert multi_obj_indicator in [
-                "IGD",
-                "HV",
-            ], f"Currently we only support `IGD` or `HV`, got {multi_obj_indicator}"
-        self.multi_obj_indicator = multi_obj_indicator
-
-    def setup(self):
-        super().setup()
+        assert multi_obj_metric is None or callable(multi_obj_metric), (
+            f"Expect `multi_obj_metric` to be `None` or callable, got {multi_obj_metric}"
+        )
+        self.multi_obj_metric = multi_obj_metric
         self.best_fitness = Mutable(torch.tensor(torch.inf))
-        return self
 
     def pre_tell(self, fitness: torch.Tensor):
+        """Update the best fitness value found so far based on the provided fitness tensor and multi-objective metric.
+
+        :param fitness: A tensor representing fitness values. It can be either a 1D tensor for single-objective optimization or a 2D tensor for multi-objective optimization.
+
+        :raises AssertionError: If the dimensionality of the fitness tensor is not 1 or 2.
+        """
+        assert 1 <= fitness.ndim <= 2
         if fitness.ndim == 1:
             # single-objective
             self.best_fitness = torch.min(torch.min(fitness), self.best_fitness)
         else:
-            pass
-            # # multi-objective, TODO: add indicators
-            # if self.multi_obj_indicator == "IGD":
-            #     self.best_fitness = torch.min(utils.IGD(fitness), self.best_fitness)
-            # elif self.multi_obj_indicator == "HV":
-            #     self.best_fitness = torch.max(utils.HV(fitness), self.best_fitness)
+            # multi-objective
+            self.best_fitness = torch.min(self.multi_obj_metric(fitness), self.best_fitness)
 
     def tell_fitness(self) -> torch.Tensor:
+        """Get the best fitness found so far in the optimization process that this monitor is monitoring.
+
+        :return: The best fitness so far.
+        """
         return self.best_fitness
 
 
@@ -120,9 +117,9 @@ class HPOProblemWrapper(Problem):
             if isinstance(v, nn.Parameter):
                 hyper_param_keys.append(k)
         self._hyper_param_keys_ = hyper_param_keys
-        assert len(monitor_keys) == len(
-            monitor_state
-        ), f"Expect monitor to have {len(monitor_state)} parameters, got {len(monitor_keys)}"
+        assert len(monitor_keys) == len(monitor_state), (
+            f"Expect monitor to have {len(monitor_state)} parameters, got {len(monitor_keys)}"
+        )
 
         def get_monitor_fitness(x: Dict[str, torch.Tensor]):
             final_monitor_state = {sk: x[k] for k, sk in monitor_keys.items()}
@@ -159,9 +156,9 @@ class HPOProblemWrapper(Problem):
         # hyper parameters check
         for k, v in hyper_parameters.items():
             assert k in self._init_state_, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
-            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(
-                v, nn.Parameter
-            ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
+            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(v, nn.Parameter), (
+                f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
+            )
         # run the workflow
         state = {}
         if self.copy_init_state:

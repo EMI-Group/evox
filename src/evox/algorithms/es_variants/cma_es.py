@@ -24,7 +24,8 @@ class CMAES(Algorithm):
 
         :param pop_size: The size of the population with the notation $\\lambda$.
         :param mean_init: The initial mean of the population. Must be a 1D tensor.
-        :param sigma: The standard deviation of the noise.
+        :param sigma: The overall standard deviation, i.e., the step size of the algorithm.
+        :param weights: The recombination weights of the population. Defaults to None and is calculated automatically with recommended values.
         :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()

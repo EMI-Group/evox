@@ -132,6 +132,68 @@ def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return a - diff
 
 
+def maximum_float(a: torch.Tensor, b: float) -> torch.Tensor:
+    """
+    Element-wise maximum of input tensor `a` and float `b`.
+
+    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input float, which is a scalar value.
+
+    :return: The element-wise maximum of `a` and `b`.
+    """
+    diff = torch.relu(b - a)
+    return a + diff
+
+
+def minimum_float(a: torch.Tensor, b: float) -> torch.Tensor:
+    """
+    Element-wise minimum of input tensor `a` and float `b`.
+
+    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
+    since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input float, which is a scalar value.
+
+    :return: The element-wise minimum of `a` and `b`.
+    """
+    diff = torch.relu(a - b)
+    return a - diff
+
+
+def maximum_int(a: torch.Tensor, b: int) -> torch.Tensor:
+    """
+    Element-wise maximum of input tensor `a` and int `b`.
+
+    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input int, which is a scalar value.
+
+    :return: The element-wise maximum of `a` and `b`.
+    """
+    diff = torch.relu(b - a)
+    return a + diff
+
+
+def minimum_int(a: torch.Tensor, b: int) -> torch.Tensor:
+    """
+    Element-wise minimum of input tensor `a` and int `b`.
+
+    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
+    since it is not supported in JIT operator fusion.
+
+    :param a: The first input tensor.
+    :param b: The second input int, which is a scalar value.
+
+    :return: The element-wise minimum of `a` and `b`.
+    """
+    diff = torch.relu(a - b)
+    return a - diff
+
+
 def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     """
     Perform lexicographical sorting of multiple tensors, considering each tensor as a key.
@@ -148,12 +210,16 @@ def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     :return: A tensor containing indices that will sort the input tensors lexicographically.
                       These indices indicate the order of elements in the sorted tensors.
 
-    Example:
-        key1 = torch.tensor([1, 3, 2])
-        key2 = torch.tensor([9, 7, 8])
-        sorted_indices = lexsort([key1, key2])
-        # sorted_indices will contain the indices that sort first by key2,
-        # and then by key1 in case of ties.
+    ## Example
+    ```
+    key1 = torch.tensor([1, 3, 2])
+    key2 = torch.tensor([9, 7, 8])
+    sorted_indices = lexsort([key1, key2])
+    # sorted_indices will contain the indices that sort first by key2,
+    # and then by key1 in case of ties.
+    ```
+
+    :note: You can use `torch.unbind` to split the tensor into list.
     """
 
     sorted_indices = torch.argsort(keys[0], dim=dim, stable=True)
@@ -201,9 +267,7 @@ def nanmin(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     ```
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(
-        mask, torch.inf, input_tensor
-    )
+    input_tensor = torch.where(mask, torch.inf, input_tensor)
     return input_tensor.min(dim=dim, keepdim=keepdim)
 
 
@@ -243,7 +307,5 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     ```
     """
     mask = torch.isnan(input_tensor)
-    input_tensor = torch.where(
-        mask, -torch.inf, input_tensor
-    )
+    input_tensor = torch.where(mask, -torch.inf, input_tensor)
     return input_tensor.max(dim=dim, keepdim=keepdim)

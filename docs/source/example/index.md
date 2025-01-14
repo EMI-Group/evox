@@ -3,8 +3,9 @@
 ```{toctree}
 :maxdepth: 1
 
+so-algorithm
+moalg
 Brax
 supervised-learning
-moalg
 custom_algo_prob
 ```

@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
-from functools import wraps
-from typing import Any, Callable, List, Sequence, Tuple, TypeVar
+from typing import Any, Callable, List, Sequence, Tuple
 
 # cSpell:words bdim batchedtensor
 import torch
@@ -36,7 +35,7 @@ else:
     current_level = _functorch.maybe_current_level
 
 from torch import nn
-from torch.utils._pytree import tree_flatten, tree_unflatten
+from torch.utils._pytree import tree_flatten, tree_unflatten  # noqa: F401
 
 if "Buffer" not in nn.__dict__:
     nn.Buffer = nn.parameter.Buffer
@@ -52,19 +51,54 @@ def _set_func_id(new_func, old_func):
     new_func.__id__ = func_id
 
 
-def _transform_in_dim(
-    in_dim: int | Tuple[int, ...], batched: torch.Tensor, original: torch.Tensor
-) -> int | Tuple[int, ...] | None:
+def unwrap_batch_tensor(tensor: torch.Tensor) -> Tuple[torch.Tensor, Tuple[int, ...], Tuple[int, ...]]:
+    """Unwraps a batched tensor into its original tensor and the batch dimensions/sizes.
+
+    :param tensor: The batched tensor to be unwrapped.
+
+    :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
+    """
+    level = get_level(tensor)
+    if level is None or level <= 0:
+        return tensor, (), ()
+    batch_dims = []
+    batch_sizes = []
+    while level >= 1:
+        batch_dim = get_batch_dim(tensor)
+        tensor, _ = unwrap_batched_base(tensor, level)
+        batch_dims.append(batch_dim)
+        batch_sizes.append(tensor.size(batch_dim))
+        level -= 1
+    batch_dims = tuple(batch_dims[::-1])
+    batch_sizes = tuple(batch_sizes[::-1])
+    return tensor, batch_dims, batch_sizes
+
+
+def wrap_batch_tensor(tensor: torch.Tensor, in_dims: int | Tuple[int, ...]) -> torch.Tensor:
+    """Wraps a original tensor into its batched form with given batch dimensions.
+
+    :param tensor: The original tensor to be wrapped.
+    :param in_dims: The batch dimension(s).
+
+    :return: The batched tensor.
+    """
+    assert get_level(tensor) <= 0, f"Expect vmap level of tensor to be none, got {get_level(tensor)}"
+    if not isinstance(in_dims, Sequence):
+        in_dims = tuple(in_dims)
+    for level, dim in enumerate(in_dims, 1):
+        tensor = add_batch_dim(tensor, dim, level)
+    return tensor
+
+
+def _get_batched_size(in_dim: int | Tuple[int, ...], original: torch.Tensor) -> int | Tuple[int, ...] | None:
     if in_dim is None:
-        return None
+        return original.size()
     if not isinstance(in_dim, tuple):
         in_dim = (in_dim,)
     shape = original.size()
-    batch_dims_shape = tuple(s for i, s in enumerate(shape) if i in in_dim)
-    shape = tuple(s for i, s in enumerate(shape) if i not in in_dim)
-    batched.size = lambda i=None: shape if i is None else shape[i]
-    batched.__dict__["shape"] = shape
-    return batch_dims_shape if len(batch_dims_shape) > 1 else batch_dims_shape[0]
+    for d in in_dim:
+        shape = tuple(s for i, s in enumerate(shape) if i != d)
+    return shape
 
 
 _vmap_batch_sizes: ContextVar[List[int]] = ContextVar("vmap_batch_sizes", default=[])
@@ -124,10 +158,7 @@ def batched_random(rand_func: Callable, *size: Tuple[int | torch.SymInt], **kwar
     size = tuple(get_vmap_batch_sizes()) + size
     num_levels = len(get_vmap_batch_sizes())
     rand_values = rand_func(size=size, **kwargs)
-    batched_rand_values = rand_values
-    for level in range(1, num_levels + 1):
-        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
-    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    batched_rand_values = wrap_batch_tensor(rand_values, [0] * num_levels)
     return batched_rand_values
 
 
@@ -150,11 +181,9 @@ def batched_random_like(rand_func: Callable, like_tensor: torch.Tensor, **kwargs
         return rand_func(like_tensor, **kwargs)
     # else
     original_tensor, batch_dims, _ = unwrap_batch_tensor(like_tensor)
-    batch_rand_values = rand_func(original_tensor, **kwargs)
-    for level, dim in enumerate(batch_dims):
-        batch_rand_values = add_batch_dim(batch_rand_values, dim, level)
-    _transform_in_dim(batch_dims, batch_rand_values, original_tensor)
-    return batch_rand_values
+    batched_rand_values = rand_func(original_tensor, **kwargs)
+    batched_rand_values = wrap_batch_tensor(batched_rand_values, batch_dims)
+    return batched_rand_values
 
 
 _original_size = torch.Tensor.size
@@ -174,8 +203,8 @@ def _batch_size(tensor: torch.Tensor, dim: int | None = None):
         return _original_size(tensor, dim)
     except Exception:
         original_tensor, batch_dims, _ = unwrap_batch_tensor(tensor)
-        _transform_in_dim(batch_dims, tensor, original_tensor)
-        return tensor.size(dim)
+        size = _get_batched_size(batch_dims, original_tensor)
+        return size if dim is None else size[dim]
 
 
 def _batch_rand(*size, **kwargs):
@@ -225,9 +254,7 @@ def _batch_randperm(n, **kwargs):
     rand_values = torch.argsort(rand_values, dim=-1)
     rand_values = rand_values.to(**kwargs)
     batched_rand_values = rand_values
-    for level in range(1, num_levels + 1):
-        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
-    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    batched_rand_values = wrap_batch_tensor(rand_values, [0] * num_levels)
     return batched_rand_values
 
 
@@ -254,9 +281,7 @@ def _batch_randperm(n, **kwargs):
     rand_values = torch.argsort(rand_values, dim=-1)
     rand_values = rand_values.to(**kwargs)
     batched_rand_values = rand_values
-    for level in range(1, num_levels + 1):
-        batched_rand_values = add_batch_dim(batched_rand_values, 0, level)
-    _transform_in_dim(tuple(range(num_levels)), batched_rand_values, rand_values)
+    batched_rand_values = wrap_batch_tensor(rand_values, [0] * num_levels)
     return batched_rand_values
 
 
@@ -328,29 +353,6 @@ def use_batch_fixing(new_batch_fixing: bool = True):
         torch.Tensor.__setitem__ = _original_set_item
 
 
-def unwrap_batch_tensor(tensor: torch.Tensor) -> torch.Tensor | Tuple[int, ...] | Tuple[int, ...]:
-    """Unwraps a batched tensor into its original tensor and the batch dimensions/sizes.
-
-    :param tensor: The batched tensor to be unwrapped.
-
-    :return: A tuple of the original tensor, the batch dimensions, and the batch sizes.
-    """
-    level = get_level(tensor)
-    if level is None or level <= 0:
-        return tensor, (), ()
-    batch_dims = []
-    batch_sizes = []
-    while level >= 1:
-        batch_dim = get_batch_dim(tensor)
-        tensor, _ = unwrap_batched_base(tensor, level)
-        batch_dims.append(batch_dim)
-        batch_sizes.append(tensor.size(batch_dim))
-        level -= 1
-    batch_dims = tuple(batch_dims[::-1])
-    batch_sizes = tuple(batch_sizes[::-1])
-    return tensor, batch_dims, batch_sizes
-
-
 def align_vmap_tensor(value: Any, current_value: Any | None) -> torch.Tensor:
     """
     Aligns a tensor with the batching dimensions of a current batched tensor.
@@ -379,47 +381,8 @@ def align_vmap_tensor(value: Any, current_value: Any | None) -> torch.Tensor:
     value, batch_dims, batch_sizes = unwrap_batch_tensor(current_value)
     for dim, size in zip(batch_dims, batch_sizes):
         value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
-    expand_value = value
-    for level, dim in enumerate(batch_dims, 1):
-        value = add_batch_dim(value, dim, level)
-    _transform_in_dim(batch_dims, value, expand_value)
+    value = wrap_batch_tensor(value, batch_dims)
     return value
-
-
-T = TypeVar("T", bound=Callable)
-
-
-def wrap_vmap_inputs(func: T) -> T:
-    """
-    Wraps a function to adjust its input tensors for vmap compatibility.
-
-    This decorator modifies the input tensors of the wrapped function to align
-    with the batching dimensions expected by `vmap`. It ensures that tensors
-    which are already batched or not tensors remain unchanged, while tensors
-    that need to be batched are transformed accordingly.
-
-    :param func: The function to be wrapped, which will have its input
-                        tensors adjusted for vmap.
-
-    :return: A wrapped version of `func` that ensures its input tensors
-                  are compatible with vmap's batching requirements.
-    """
-
-    @wraps(func)
-    def input_args_wrapper(*args, **kwargs):
-        flat_args, flat_spec = tree_flatten((args, kwargs))
-        for arg in flat_args:
-            if not isinstance(arg, torch.Tensor):
-                continue
-            if not is_batched_tensor(arg):
-                continue
-            unwrap_arg, batch_dims, _ = unwrap_batch_tensor(arg)
-            _transform_in_dim(batch_dims, arg, unwrap_arg)
-        args, kwargs = tree_unflatten(flat_args, flat_spec)
-        return func(*args, **kwargs)
-
-    _set_func_id(input_args_wrapper, func)
-    return input_args_wrapper
 
 
 def _debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
