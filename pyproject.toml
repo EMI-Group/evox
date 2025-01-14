@@ -42,6 +42,7 @@ neuroevolution = [
 test = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
+  "plotly >= 5.0.0",
 ]
 
 docs = [

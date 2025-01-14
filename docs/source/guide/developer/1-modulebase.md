@@ -13,7 +13,7 @@ In the [Quick Start Documentation](#/guide/user/1-start) of the [User Guide](#/g
 This process requires four basic class in EvoX:
 
 - [`Algorithm`](#evox.core.components.Algorithm)
-- [`Problem`](#evox.core.components.Problems)
+- [`Problem`](#evox.core.components.Problem)
 - [`Monitor`](evox.core.components.Monitor)
 - [`Workflow`](#evox.core.components.Workflow)
 
@@ -41,7 +41,7 @@ There are many methods in this class, and some important methods are here:
 
 In EvoX, the [`ModuleBase`](#evox.core.module.ModuleBase) could help to:
 
-- **Contain mutable values** 
+- **Contain mutable values**
 
 ​	This module is an object-oriented one that can contain mutable values.
 
@@ -51,7 +51,7 @@ In EvoX, the [`ModuleBase`](#evox.core.module.ModuleBase) could help to:
 
 - **Standardize the initialization**:
 
-​	Basically, predefined submodule(s) which will be ADDED to this module and accessed later in member method(s) should be treated as "non-static members", while any other member(s) should be treated as "static members".	
+​	Basically, predefined submodule(s) which will be ADDED to this module and accessed later in member method(s) should be treated as "non-static members", while any other member(s) should be treated as "static members".
 
 ​	The module initialization for non-static members are recommended to be written in the overwritten method of `setup` (or any other member method) rather than `__init__`.
 
@@ -76,9 +76,9 @@ If a method with python dynamic control flows like `if` were to be JIT, a separa
 ```python
 # Set an module inherited from the ModuleBase class
 class ExampleModule(ModuleBase):
-    
+
     ...
-    
+
     # An example of one method with python dynamic control flows like "if"
     # The method using jit(..., trace=False)
     @partial(jit, trace=False)
@@ -87,14 +87,14 @@ class ExampleModule(ModuleBase):
             return torch.sin(x)
         else:
             return torch.tan(x)
-        
-    # The method to be JIT   
+
+    # The method to be JIT
     @jit
     def jit_func(self, p: torch.Tensor) -> torch.Tensor:
         return ExampleModule.static_func(p, self.threshold)
-    
+
     ...
-    
+
 ```
 
 ### Supporting for JIT and non-JIT functions

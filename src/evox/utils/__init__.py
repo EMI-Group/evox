@@ -6,6 +6,10 @@ __all__ = [
     "clip",
     "maximum",
     "minimum",
+    "maximum_float",
+    "minimum_float",
+    "maximum_int",
+    "minimum_int",
     "TracingWhile",
     "TracingCond",
     "TracingSwitch",
@@ -16,7 +20,22 @@ __all__ = [
 ]
 
 from .control_flow import TracingCond, TracingSwitch, TracingWhile
-from .jit_fix_operator import clamp, clamp_float, clamp_int, clip, lexsort, maximum, minimum, nanmax, nanmin, switch
+from .jit_fix_operator import (
+    clamp,
+    clamp_float,
+    clamp_int,
+    clip,
+    lexsort,
+    maximum,
+    maximum_float,
+    maximum_int,
+    minimum,
+    minimum_float,
+    minimum_int,
+    nanmax,
+    nanmin,
+    switch,
+)
 from .parameters_and_vector import ParamsAndVector
 
 
