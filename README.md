@@ -31,7 +31,7 @@
 
 ## 🔥 News
 
-- [2025-01-14] Released **EvoX 1.0.0** 🎉 - now fully compatible with **PyTorch** ! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
+- [2025-01-14] Released **EvoX 1.0.0** 🎉 - now fully compatible with **PyTorch**! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 ## Table of Contents
 
