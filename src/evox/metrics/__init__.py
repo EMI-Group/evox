@@ -1,3 +1,5 @@
-from .gd import GD, GDPlus, gd, gd_plus
-from .igd import IGD, IGDPlus, igd, igd_plus
-from .hypervolume import HV
+__all__ = ["gd", "hv", "igd"]
+
+from .gd import gd
+from .hv import hv
+from .igd import igd

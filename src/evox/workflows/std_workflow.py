@@ -1,383 +1,185 @@
-from collections.abc import Callable, Sequence
-import dataclasses
-from typing import NamedTuple, Optional, Union
-import warnings
+from typing import Any, Dict
 
-import jax
-import jax.numpy as jnp
-import jax.tree_util as jtu
-from jax import lax
+import torch
 
-from evox import (
-    Algorithm,
-    Monitor,
-    Problem,
-    State,
-    Workflow,
-    dataclass,
-    has_init_ask,
-    has_init_tell,
-    pytree_field,
-    use_state,
-)
-from evox.core.distributed import all_gather, POP_AXIS_NAME, ShardingType
-from evox.utils import parse_opt_direction
+from ..core import Algorithm, Monitor, Problem, Workflow, jit_class
+from ..core.module import _WrapClassBase
 
 
-def _leftover_callbacks_warning(method_name):
-    warnings.warn(
-        f"`{method_name}` is called with a state that has leftover callbacks. "
-        "Did you forget to call `execute_callbacks`?"
-    )
+class _NegModule(torch.nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return -x
 
 
-@dataclass
-class StdWorkflowState:
-    generation: int
-    first_step: bool = pytree_field(static=True)
-
-
-class MultiDeviceConfig(NamedTuple):
-    devices: list[jax.Device]
-    axis_name: str
-
-
-@dataclass
+@jit_class
 class StdWorkflow(Workflow):
-    """Experimental unified workflow,
-    designed to provide unparallel performance for EC workflow.
+    """The standard workflow.
 
-    Provide automatic multi-device (e.g. multiple gpus) computation
-    as well as distributed computation using JAX's native components.
+    ## Usage:
+    ```
+    algo = BasicAlgorithm(10)
+    algo.setup(-10 * torch.ones(2), 10 * torch.ones(2))
+    prob = BasicProblem()
 
-    Monitor is called using JAX's asynchronous host callback,
-    thus closing
+    class solution_transform(nn.Module):
+        def forward(self, x: torch.Tensor):
+            return x / 5
+    class fitness_transform(nn.Module):
+        def forward(self, f: torch.Tensor):
+            return -f
 
-    Parameters
-    ----------
-    algorithm
-        The algorithm.
-    problem
-        The problem.
-    monitor
-        Optional monitor(s).
-        Configure a single monitor or a list of monitors.
-        The monitors will be called in the order of the list.
-    opt_direction
-        The optimization direction, can be either "min" or "max"
-        or a list of "min"/"max" to specific the direction for each objective.
-    solution_transforms
-        Optional candidate solution transform function,
-        usually used to decode the candidate solutions
-        into the format that can be understood by the problem.
-        Should be a list of functions,
-        and the functions will be applied in the order of the list.
-        Each function should have the signature :code:`fn(solutions) -> solutions`,
-        where solutions outputed by the EC algorithm.
-    fitness_transforms
-        Optional fitness transform function.
-        usually used to apply fitness shaping.
-        Should be a list of functions,
-        and the functions will be applied in the order of the list.
-        Each function should have the signature :code:`fn(fitness) -> fitness`,
-        where fitness outputed by the problem.
-    jit_step:
-        Whether jit the entire step function.
-        Default to True
-    external_problem
-        Tell workflow whether the problem is external that cannot be jitted.
-        Default to False.
-    auto_exec_callbacks
-        Whether to automatically call `execute_callbacks` on the state at the end of each step.
-        Default to True.
-    clear_monitor_history
-        Whether to clear the monitor history at the beginning of the workflow.
-        Default to True.
-    num_objectives
-        Number of objectives. Used when external_problem=True.
-        When the problem cannot be jitted, JAX cannot infer the shape, and
-        this field should be manually set. the monitor is needed to wait for the callback to complete.
+    monitor = EvalMonitor(full_sol_history=True)
+    workflow = StdWorkflow()
+    workflow.setup(algo, prob, solution_transform=solution_transform(), fitness_transform=fitness_transform(), monitor=monitor)
+    monitor = workflow.get_submodule("monitor")
+    workflow.init_step()
+    print(monitor.topk_fitness)
+    workflow.step()
+    print(monitor.topk_fitness)
+    # run rest of the steps ...
+    ```
     """
 
-    algorithm: Algorithm
-    problem: Problem
-    monitors: Sequence[Monitor] = pytree_field(default=(), metadata={"nested": True})
-    opt_direction: Union[str, Sequence[str]] = pytree_field(default="min", static=True)
-    solution_transforms: Sequence[Callable[[jax.Array], jax.Array]] = pytree_field(
-        default=(), static=True
-    )
-    fitness_transforms: Sequence[Callable[[jax.Array], jax.Array]] = pytree_field(
-        default=(), static=True
-    )
-    jit_step: bool = pytree_field(default=True, static=True)
-    external_problem: bool = pytree_field(default=False, static=True)
-    auto_exec_callbacks: bool = pytree_field(default=True, static=True)
-    clear_monitor_history: bool = pytree_field(default=True, static=True)
-    num_objectives: Optional[int] = pytree_field(default=None, static=True)
-    multi_device_config: Optional[MultiDeviceConfig] = pytree_field(
-        default=None, static=True
-    )
-    migrate_helper: Optional[Callable] = pytree_field(default=None, static=True)
+    def __init__(self, opt_direction: str = "min"):
+        """Initialize the standard workflow with static arguments.
 
-    # inner
-    _step: Callable[[State], State] = pytree_field(static=True, init=False)
-    _registered_hooks: dict = pytree_field(static=True, init=False)
-    _pmap_axis_name: str = pytree_field(static=True, init=False)
-    _opt_direction_mask: jnp.array = pytree_field(init=False)
+        :param opt_direction: The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
+        """
+        super().__init__()
+        assert opt_direction in [
+            "min",
+            "max",
+        ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
+        self.opt_direction = 1 if opt_direction == "min" else -1
 
-    def __post_init__(self):
-        if self.external_problem is True and self.num_objectives is None:
-            raise ValueError(("Using external problem, but num_objectives isn't set "))
-
-        registered_hooks = {
-            "pre_step": [],
-            "pre_ask": [],
-            "post_ask": [],
-            "pre_eval": [],
-            "post_eval": [],
-            "pre_tell": [],
-            "post_tell": [],
-            "post_step": [],
-        }
-        for i, monitor in enumerate(self.monitors):
-            hooks = monitor.hooks()
-            for hook in hooks:
-                registered_hooks[hook].append(monitor)
-        self.set_frozen_attr("_registered_hooks", registered_hooks)
-
-        opt_direction = parse_opt_direction(self.opt_direction)
-        for monitor in self.monitors:
-            monitor.set_opt_direction(opt_direction)
-        self.set_frozen_attr("_opt_direction_mask", opt_direction)
-
-        def _step(self, state):
-            state = self._pre_step_hook(state)
-            state = self._pre_ask_hook(state)
-            cands, state = self._ask(state)
-
-            if self.multi_device_config:
-                # when using multi devices
-                # force the candidates to be sharded along the first axis
-                cands = jax.lax.with_sharding_constraint(
-                    cands,
-                    ShardingType.SHARED_FIRST_DIM.get_sharding(
-                        self.multi_device_config.devices
-                    ),
-                )
-
-            state = self._post_ask_hook(state, cands)
-
-            transformed_cands = cands
-            for transform in self.solution_transforms:
-                transformed_cands = transform(transformed_cands)
-
-            state = self._pre_eval_hook(state, transformed_cands)
-            fitness, state = self._evaluate(state, transformed_cands)
-
-            if self.multi_device_config:
-                # when using multi devices
-                # force the fitness to be replicated
-                fitness = jax.lax.with_sharding_constraint(
-                    fitness,
-                    ShardingType.REPLICATED.get_sharding(
-                        self.multi_device_config.devices
-                    ),
-                )
-
-            state = self._post_eval_hook(state, fitness)
-
-            transformed_fitness = fitness
-            for transform in self.fitness_transforms:
-                transformed_fitness = transform(transformed_fitness)
-
-            state = self._pre_tell_hook(state, transformed_fitness)
-            state = self._tell(state, transformed_fitness)
-            state = self._post_tell_hook(state)
-
-            if self.migrate_helper is not None:
-                do_migrate, foreign_populations, foreign_fitness = (
-                    self.migrate_helper.migrate_from_human()
-                )
-
-                state = lax.cond(
-                    do_migrate,
-                    lambda state, pop, fit: use_state(self.algorithm.migrate)(
-                        state, pop, fit
-                    ),
-                    lambda state, _pop, _fit: state,
-                    state,
-                    foreign_populations,
-                    foreign_fitness,
-                )
-
-            if has_init_ask(self.algorithm) and state.first_step:
-                # this ensures that _step() will be re-jitted
-                state = state.replace(generation=state.generation + 1, first_step=False)
-            else:
-                state = state.replace(generation=state.generation + 1)
-
-            state = self._post_step_hook(state)
-
-            return state
-
-        if self.jit_step:
-            # the first argument is self, which should be static
-            if dataclasses.is_dataclass(self.algorithm) and dataclasses.is_dataclass(
-                self.problem
-            ):
-                _step = jax.jit(_step)
-            else:
-                _step = jax.jit(_step, static_argnums=(0,))
-
-        self.set_frozen_attr("_step", _step)
-        self.set_frozen_attr("_pmap_axis_name", None)
-
-        if self.clear_monitor_history:
-            for monitor in self.monitors:
-                monitor.clear_history()
-
-    def _ask(self, state):
-        if has_init_ask(self.algorithm) and state.first_step:
-            ask = self.algorithm.init_ask
-        else:
-            ask = self.algorithm.ask
-
-        # candidate: individuals that need to be evaluated (may differ from population)
-        # Note: num_cands can be different from init_ask() and ask()
-        cands, state = use_state(ask)(state)
-
-        return cands, state
-
-    def _evaluate(self, state, transformed_cands):
-        num_cands = jtu.tree_leaves(transformed_cands)[0].shape[0]
-
-        # if the function is jitted
-        if not self.external_problem:
-            fitness, state = use_state(self.problem.evaluate)(state, transformed_cands)
-        else:
-            if self.num_objectives == 1:
-                fit_shape = (num_cands,)
-            else:
-                fit_shape = (num_cands, self.num_objectives)
-            fitness, state = jax.pure_callback(
-                use_state(self.problem.evaluate),
-                (
-                    jax.ShapeDtypeStruct(fit_shape, dtype=jnp.float32),
-                    state,
-                ),
-                state,
-                transformed_cands,
-            )
-
-        fitness = all_gather(fitness, self._pmap_axis_name, axis=0, tiled=True)
-        fitness = fitness * self._opt_direction_mask
-
-        return fitness, state
-
-    def _tell(self, state, transformed_fitness):
-        if has_init_tell(self.algorithm) and state.first_step:
-            tell = self.algorithm.init_tell
-        else:
-            tell = self.algorithm.tell
-
-        state = use_state(tell)(state, transformed_fitness)
-
-        return state
-
-    def _pre_step_hook(self, state):
-        for monitor in self._registered_hooks["pre_step"]:
-            state = use_state(monitor.pre_step)(state, state)
-        return state
-
-    def _pre_ask_hook(self, state):
-        for monitor in self._registered_hooks["pre_ask"]:
-            state = use_state(monitor.pre_ask)(state, state)
-        return state
-
-    def _post_ask_hook(self, state, cands):
-        for monitor in self._registered_hooks["post_ask"]:
-            state = use_state(monitor.post_ask)(state, state, cands)
-        return state
-
-    def _pre_eval_hook(self, state, transformed_cands):
-        for monitor in self._registered_hooks["pre_eval"]:
-            state = use_state(monitor.pre_eval)(state, state, transformed_cands)
-        return state
-
-    def _post_eval_hook(self, state, fitness):
-        for monitor in self._registered_hooks["post_eval"]:
-            state = use_state(monitor.post_eval)(state, state, fitness)
-        return state
-
-    def _pre_tell_hook(self, state, transformed_fitness):
-        for monitor in self._registered_hooks["pre_tell"]:
-            state = use_state(monitor.pre_tell)(state, state, transformed_fitness)
-        return state
-
-    def _post_tell_hook(self, state):
-        for monitor in self._registered_hooks["post_tell"]:
-            state = use_state(monitor.post_tell)(state, state)
-        return state
-
-    def _post_step_hook(self, state):
-        for monitor in self._registered_hooks["post_step"]:
-            state = use_state(monitor.post_step)(state, state)
-        return state
-
-    def setup(self, key):
-        return StdWorkflowState(generation=0, first_step=True)
-
-    def step(self, state):
-        if self.auto_exec_callbacks and state._callbacks:
-            _leftover_callbacks_warning("step")
-
-        state = self._step(self, state)
-
-        if self.auto_exec_callbacks:
-            state = state.execute_callbacks(state)
-        return state
-
-    def enable_multi_devices(
+    def setup(
         self,
-        state: State,
-        devices: Optional[list[jax.Device]] = None,
-    ) -> State:
+        algorithm: Algorithm,
+        problem: Problem,
+        monitor: Monitor | None = None,
+        solution_transform: torch.nn.Module | None = None,
+        fitness_transform: torch.nn.Module | None = None,
+        device: str | torch.device | int | None = None,
+        algorithm_setup_params: Dict[str, Any] | None = None,
+        problem_setup_params: Dict[str, Any] | None = None,
+        monitor_setup_params: Dict[str, Any] | None = None,
+    ):
+        """Setup the module with submodule initialization. Since all of these arguments are mutable modules to be added as submodules, they are placed here instead of `__init__` and thus `setup` MUST be invoked after `__init__`.
+
+        :param algorithm: The algorithm to be used in the workflow.
+        :param problem: The problem to be used in the workflow.
+        :param monitors: The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
+        :param solution_transform: The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+        :param fitness_transforms: The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+        :param device: The device of the workflow. Defaults to None.
+        :param algorithm_setup_params: The arguments to be passed to `algorithm.setup(**kwargs)`. If not provided, the `algorithm.setup()` will not be invoked.
+        :param problem_setup_params: The arguments to be passed to `problem.setup(**kwargs)`. If not provided, the `problem.setup()` will not be invoked.
+        :param monitor_setup_params: The arguments to be passed to `monitor.setup(**kwargs)`. If not provided, the `monitor.setup()` will not be invoked.
+
+        ## Notice
+        The algorithm, problem and monitor will be IN-PLACE transformed to the target device.
         """
-        Enable the workflow to run on multiple devices.
-        Multiple nodes(processes) are also supported.
-        To specify which devices are used, use env vars like `CUDA_VISIBLE_DEVICES`
+        super().setup()
+        if device is None:
+            device = torch.get_default_device()
+        # transform
+        if solution_transform is None:
+            solution_transform = torch.nn.Identity()
+        elif isinstance(solution_transform, _WrapClassBase):  # ensure correct results for jit_class
+            solution_transform = solution_transform.__inner_module__
+        if fitness_transform is None:
+            fitness_transform = torch.nn.Identity()
+        elif isinstance(fitness_transform, _WrapClassBase):  # ensure correct results for jit_class
+            fitness_transform = fitness_transform.__inner_module__
+        if self.opt_direction == -1:
+            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
+        assert callable(solution_transform), f"Expect solution transform to be callable, got {solution_transform}"
+        assert callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
+        if isinstance(solution_transform, torch.nn.Module):
+            solution_transform.to(device=device)
+        if isinstance(fitness_transform, torch.nn.Module):
+            fitness_transform.to(device=device)
 
-        Parameters
-        ----------
-        state
-            The state.
-        devices
-            The devices to use.
-            If None, then by default the function will use all local devices (`jax.local_devices()`).
-            Otherwise, specify a list of jax.Device.
+        # algorithm and problem
+        if algorithm_setup_params is not None:
+            algorithm.setup(**algorithm_setup_params)
+        algorithm.to(device=device)
+        if problem_setup_params is not None:
+            problem.setup(**problem_setup_params)
+        problem.to(device=device)
+        self.algorithm = algorithm
+        self._has_init_ = type(algorithm).init_step != Algorithm.init_step
+        if monitor is None:
+            monitor = Monitor()
+        else:
+            monitor.set_config(opt_direction=self.opt_direction)
+            if monitor_setup_params is not None:
+                monitor.setup(**monitor_setup_params)
+            monitor.to(device=device)
 
-        Returns
-        -------
-        State
-            The sharded state, distributed amoung all devices
-            with additional distributed information.
+        # set algorithm evaluate
+        self.algorithm.evaluate = self._evaluate
+        self.algorithm._problem_ = problem
+        self.algorithm._monitor_ = monitor
+        self.algorithm._solution_transform_ = solution_transform
+        self.algorithm._fitness_transform_ = fitness_transform
+        # for compilation, will be removed later
+        self._monitor_ = monitor
+        self._problem_ = problem
+        self._solution_transform_ = solution_transform
+        self._fitness_transform_ = fitness_transform
 
-        Examples
-        --------
-        >>> state = workflow.enable_multi_devices(state)
-        >>> for i in range(100):
-        ...     state = workflow.step(state) # now it runs on multiple devices
+    def __getattribute__(self, name: str):
+        if name == "_monitor_":
+            return self.algorithm._monitor_
+        elif name == "_problem_":
+            return self.algorithm._problem_
+        elif name == "_solution_transform_":
+            return self.algorithm._solution_transform_
+        elif name == "_fitness_transform_":
+            return self.algorithm._fitness_transform_
+        return super().__getattribute__(name)
+
+    def __sync_with__(self, jit_module):
+        if "_monitor_" in self._modules:
+            del self._monitor_
+            del self._problem_
+            del self._fitness_transform_
+            del self._solution_transform_
+        return super().__sync_with__(jit_module)
+
+    @torch.jit.ignore
+    def get_submodule(self, target: str):
+        if target == "monitor":
+            return self.algorithm._monitor_
+        elif target == "problem":
+            return self.algorithm._problem_
+        return super().get_submodule(target)
+
+    def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
+        self._monitor_.post_ask(population)
+        population = self._solution_transform_(population)
+        self._monitor_.pre_eval(population)
+        fitness = self._problem_.evaluate(population)
+        self._monitor_.post_eval(fitness)
+        fitness = self._fitness_transform_(fitness)
+        self._monitor_.pre_tell(fitness)
+        return fitness
+
+    def _step(self, init: bool):
+        if init and self._has_init_:
+            self.algorithm.init_step()
+        else:
+            self.algorithm.step()
+
+    def init_step(self):
         """
-        if not devices:
-            # auto select all local devices
-            devices = jax.devices()
+        Perform the first optimization step of the workflow.
 
-        self.multi_device_config = MultiDeviceConfig(
-            devices=devices,
-            axis_name=POP_AXIS_NAME,
-        )
+        Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self._step(init=True)
 
-        sharding = state.get_sharding(devices)
-        state = jax.device_put(state, sharding)
-
-        return state
+    def step(self):
+        """Perform a single optimization step using the algorithm and the problem."""
+        self._step(init=False)

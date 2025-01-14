@@ -29,21 +29,11 @@ jobs:
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install build wheel setuptools pytest
-    - name: Build and install package Python 3.10 and above
+        python -m pip install build wheel setuptools
+    - name: Build and install package
       run: |
         output=$(python -m build --wheel)
-        if [[ "${{ matrix.python-version }}" == "3.12" ]]; then
-          # Exclude envpool when testing with Python 3.12
-          pip install dist/${output##* }[test]
-          pip install gymnasium ray gpjax plotly pandas tensorflow-datasets grain brax plotly pandas
-        else
-          pip install dist/${output##* }[full,test]
-        fi
-    - name: Test with pytest Python 3.10 and above
+        pip install dist/${output##* }[test]
+    - name: Test with unittest
       run: |
-        if [[ "${{ matrix.python-version }}" == "3.12" ]]; then
-          pytest -k 'not test_envpool_cartpole'
-        else
-          pytest
-        fi
+        python -m unittest

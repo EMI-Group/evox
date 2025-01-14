@@ -1,5 +1,3 @@
-from .selection.non_dominate import (
-    non_dominated_sort,
-    crowding_distance,
-    crowding_distance_sort,
-)
+__all__ = ["NonDominatedSort", "crowding_distance", "non_dominate_rank", "non_dominated_sort_script"]
+
+from .selection import NonDominatedSort, crowding_distance, non_dominate_rank, non_dominated_sort_script

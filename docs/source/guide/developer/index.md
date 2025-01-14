@@ -3,8 +3,10 @@
 ```{toctree}
 :maxdepth: 1
 
-1-state
-2-jit-able
+environment
+1-modulebase
+2-jit-vmap-tutorial
 3-custom-alg-pro
-4-doc
+4-transfer-from-matlab
+custom_hpo_prob
 ```

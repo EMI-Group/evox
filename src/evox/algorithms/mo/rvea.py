@@ -1,140 +1,165 @@
-# --------------------------------------------------------------------------------------
-# 1. RVEA algorithm is described in the following papers:
-#
-# Title: A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization
-# Link: https://ieeexplore.ieee.org/document/7386636
-# --------------------------------------------------------------------------------------
+from typing import Callable, Optional
 
-import jax
-import jax.numpy as jnp
+import torch
 
-from evox.operators import mutation, crossover, selection
-from evox.operators.sampling import UniformSampling
-from evox import Algorithm, State, jit_class
+from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
+from ...operators.crossover import simulated_binary
+from ...operators.mutation import polynomial_mutation
+from ...operators.sampling import uniform_sampling
+from ...operators.selection import ref_vec_guided
+from ...utils import TracingCond, clamp, nanmax, nanmin
 
 
 @jit_class
 class RVEA(Algorithm):
-    """RVEA algorithms
+    """
+    An implementation of the Reference Vector Guided Evolutionary Algorithm (RVEA) for multi-objective optimization problems.
 
-    link: https://ieeexplore.ieee.org/document/7386636
+    This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm.
 
-    Args:
-        alpha : The parameter controlling the rate of change of penalty. Defaults to 2.
-        fr : The frequency of reference vector adaptation. Defaults to 0.1.
-        max_gen : The maximum number of generations. Defaults to 100.
-        If the number of iterations is not 100, change the value based on the actual value.
+    :references:
+        - "A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization," IEEE.
+          `Link <https://ieeexplore.ieee.org/document/7386636>`
+        - "GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized RVEA" ACM.
+          `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`
     """
 
     def __init__(
         self,
-        lb,
-        ub,
-        n_objs,
-        pop_size,
-        alpha=2,
-        fr=0.1,
-        max_gen=100,
-        selection_op=None,
-        mutation_op=None,
-        crossover_op=None,
+        pop_size: int,
+        n_objs: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        alpha: float = 2.0,
+        fr: float = 0.1,
+        max_gen: int = 100,
+        selection_op: Optional[Callable] = None,
+        mutation_op: Optional[Callable] = None,
+        crossover_op: Optional[Callable] = None,
+        device: torch.device | None = None,
     ):
-        self.lb = lb
-        self.ub = ub
-        self.n_objs = n_objs
-        self.dim = lb.shape[0]
+        """Initialize the RVEA algorithm with the given parameters.
+
+        :param pop_size: The size of the population.
+        :param n_objs: The number of objective functions in the optimization problem.
+        :param lb: The lower bounds for the decision variables.
+        :param ub: The upper bounds for the decision variables.
+        :param alpha: A parameter for controlling the rate of change of penalty. Defaults to 2.
+        :param fr: The frequency of reference vector adaptation. Defaults to 0.1.
+        :param max_gen: The maximum number of generations. Defaults to 100.
+        :param selection_op: The selection operation for evolutionary strategy (optional).
+        :param mutation_op: The mutation operation (optional).
+        :param crossover_op: The crossover operation (optional).
+        :param device: The device on which computations should run (optional).
+        """
+        super().__init__()
         self.pop_size = pop_size
-        self.alpha = alpha
-        self.fr = fr
-        self.max_gen = max_gen
+        self.n_objs = n_objs
+        if device is None:
+            device = torch.get_default_device()
+        # check
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
+        assert lb.dtype == ub.dtype and lb.device == ub.device
+        self.dim = lb.size(0)
+        # write to self
+        self.lb = lb.to(device=device)
+        self.ub = ub.to(device=device)
+
+        self.alpha = Parameter(alpha)
+        self.fr = Parameter(fr)
+        self.max_gen = Parameter(max_gen)
 
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
+        self.device = device
 
         if self.selection is None:
-            self.selection = selection.ReferenceVectorGuided()
+            self.selection = ref_vec_guided
         if self.mutation is None:
-            self.mutation = mutation.Polynomial((lb, ub))
+            self.mutation = polynomial_mutation
         if self.crossover is None:
-            self.crossover = crossover.SimulatedBinary()
+            self.crossover = simulated_binary
+        sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
 
-        self.sampling = UniformSampling(self.pop_size, self.n_objs)
+        v = sampling.to(device=device)
 
-    def setup(self, key):
-        key, subkey1, subkey2 = jax.random.split(key, 3)
-
-        v = self.sampling(subkey2)[0]
         v0 = v
-        self.pop_size = v.shape[0]
+        self.pop_size = v.size(0)
+        length = ub - lb
+        population = torch.rand(self.pop_size, self.dim, device=device)
+        population = length * population + lb
 
-        population = (
-            jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
+        self.pop = Mutable(population)
+        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.reference_vector = Mutable(v)
+        self.init_v = v0
+        self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
+
+    def init_step(self):
+        """
+        Perform the initialization step of the workflow.
+
+        Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self.fit = self.evaluate(self.pop)
+
+    def _rv_adaptation(self, pop_obj: torch.Tensor):
+        max_vals = nanmax(pop_obj, dim=0)[0]
+        min_vals = nanmin(pop_obj, dim=0)[0]
+        return self.init_v * (max_vals - min_vals)
+
+    def _no_rv_adaptation(self, pop_obj: torch.Tensor):
+        return self.reference_vector
+
+    def _mating_pool(self):
+        mating_pool = torch.randint(0, self.pop.size(0), (self.pop_size,))
+        return self.pop[mating_pool]
+
+    @trace_impl(_mating_pool)
+    def _trace_mating_pool(self):
+        no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
+        max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
+        mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
+        pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
+        return pop
+
+    def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+        nan_mask_survivor = torch.isnan(survivor).any(dim=1)
+        self.pop = survivor[~nan_mask_survivor]
+        self.fit = survivor_fit[~nan_mask_survivor]
+
+        if self.gen % (1 / self.fr).type(torch.int) == 0:
+            self.reference_vector = self._rv_adaptation(survivor_fit)
+
+    @trace_impl(_update_pop_and_rv)
+    def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+        state, names = self.prepare_control_flow(self._rv_adaptation, self._no_rv_adaptation)
+        if_else = TracingCond(self._rv_adaptation, self._no_rv_adaptation)
+        state, reference_vector = if_else.cond(state, self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
+        self.after_control_flow(state, *names)
+        self.reference_vector = reference_vector
+        self.pop = survivor
+        self.fit = survivor_fit
+
+    def step(self):
+        """Perform a single optimization step.
+        """
+
+        self.gen = self.gen + torch.tensor(1)
+        pop = self._mating_pool()
+        crossovered = self.crossover(pop)
+        offspring = self.mutation(crossovered, self.lb, self.ub)
+        offspring = clamp(offspring, self.lb, self.ub)
+        off_fit = self.evaluate(offspring)
+        merge_pop = torch.cat([self.pop, offspring], dim=0)
+        merge_fit = torch.cat([self.fit, off_fit], dim=0)
+
+        survivor, survivor_fit = self.selection(
+            merge_pop,
+            merge_fit,
+            self.reference_vector,
+            (self.gen / self.max_gen) ** self.alpha,
         )
 
-        return State(
-            population=population,
-            fitness=jnp.zeros((self.pop_size, self.n_objs)),
-            next_generation=population,
-            reference_vector=v,
-            init_v=v0,
-            key=key,
-            gen=0,
-        )
-
-    def init_ask(self, state):
-        return state.population, state
-
-    def init_tell(self, state, fitness):
-        state = state.replace(fitness=fitness)
-        return state
-
-    def ask(self, state):
-        key, subkey, x_key, mut_key = jax.random.split(state.key, 4)
-
-        population = state.population
-        no_nan_pop = ~jnp.isnan(population).all(axis=1)
-        max_idx = jnp.sum(no_nan_pop).astype(int)
-        pop = population[jnp.where(no_nan_pop, size=self.pop_size, fill_value=-1)]
-
-        mating_pool = jax.random.randint(subkey, (self.pop_size,), 0, max_idx)
-        crossovered = self.crossover(x_key, pop[mating_pool])
-        next_generation = self.mutation(mut_key, crossovered)
-        next_generation = jnp.clip(next_generation, self.lb, self.ub)
-
-        return next_generation, state.replace(next_generation=next_generation, key=key)
-
-    def tell(self, state, fitness):
-        current_gen = state.gen + 1
-        v = state.reference_vector
-        merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
-        merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
-
-        survivor, survivor_fitness = self.selection(
-            merged_pop, merged_fitness, v, (current_gen / self.max_gen) ** self.alpha
-        )
-
-        def rv_adaptation(pop_obj, v, v0):
-            return v0 * (jnp.nanmax(pop_obj, axis=0) - jnp.nanmin(pop_obj, axis=0))
-
-        def no_update(_pop_obj, v, v0):
-            return v
-
-        v = jax.lax.cond(
-            current_gen % (1 / self.fr) == 0,
-            rv_adaptation,
-            no_update,
-            survivor_fitness,
-            v,
-            state.init_v,
-        )
-
-        state = state.replace(
-            population=survivor,
-            fitness=survivor_fitness,
-            reference_vector=v,
-            gen=current_gen,
-        )
-        return state
+        self._update_pop_and_rv(survivor, survivor_fit)

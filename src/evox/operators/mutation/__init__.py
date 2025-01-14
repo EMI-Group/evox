@@ -1,3 +1,3 @@
-from .gaussian import gaussian, Gaussian
-from .pm_mutation import polynomial, Polynomial
-from .bitflip import bitflip, Bitflip
+__all__ = ["polynomial_mutation"]
+
+from .pm_mutation import polynomial_mutation

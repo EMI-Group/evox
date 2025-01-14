@@ -1,30 +1,31 @@
-import jax.numpy as jnp
+from typing import List
+
+import numpy as np
+import plotly.graph_objects as go
 
 
 def plot_dec_space(
-    population_history,
+    population_history: List[np.ndarray],
     **kwargs,
-):
+) -> go.Figure:
     """A Built-in plot function for visualizing the population of single-objective algorithm.
     Use plotly internally, so you need to install plotly to use this function.
 
     If the problem is provided, we will plot the fitness landscape of the problem.
-    """
-    try:
-        import plotly
-        import plotly.express as px
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("The plot function requires plotly to be installed.")
 
-    all_pop = jnp.concatenate(population_history, axis=0)
-    x_lb = jnp.min(all_pop[:, 0])
-    x_ub = jnp.max(all_pop[:, 0])
+    :param population_history: A list of arrays, each array represents the population of one generation.
+    :param kwargs: Additional arguments to be passed to the plotly layout.
+
+    :return: A plotly figure.
+    """
+    all_pop = np.concatenate(population_history, axis=0)
+    x_lb = np.min(all_pop[:, 0])
+    x_ub = np.max(all_pop[:, 0])
     x_range = x_ub - x_lb
     x_lb = x_lb - 0.1 * x_range
     x_ub = x_ub + 0.1 * x_range
-    y_lb = jnp.min(all_pop[:, 1])
-    y_ub = jnp.max(all_pop[:, 1])
+    y_lb = np.min(all_pop[:, 1])
+    y_ub = np.max(all_pop[:, 1])
     y_range = y_ub - y_lb
     y_lb = y_lb - 0.1 * y_range
     y_ub = y_ub + 0.1 * y_range
@@ -133,26 +134,28 @@ def plot_dec_space(
     return fig
 
 
-def plot_obj_space_1d(fitness_history, animation=True, **kwargs):
+def plot_obj_space_1d(fitness_history: List[np.ndarray], animation: bool = True, **kwargs):
+    """Visualize the fitness values of the population in a single-objective optimization problem.
+
+    :param fitness_history: A list of arrays, each array represents the fitness values of the population of one generation.
+    :param animation: Whether to show the animation of the fitness values over generations.
+    :param kwargs: Additional arguments to be passed to the plotly layout.
+
+    :return: A plotly figure.
+    """
     if animation:
         return plot_obj_space_1d_animation(fitness_history, **kwargs)
     else:
         return plot_obj_space_1d_no_animation(fitness_history, **kwargs)
 
 
-def plot_obj_space_1d_no_animation(fitness_history, **kwargs):
-    try:
-        import plotly
-        import plotly.express as px
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("The plot function requires plotly to be installed.")
-
-    min_fitness = [jnp.min(x) for x in fitness_history]
-    max_fitness = [jnp.max(x) for x in fitness_history]
-    median_fitness = [jnp.median(x) for x in fitness_history]
-    avg_fitness = [jnp.mean(x) for x in fitness_history]
-    generation = jnp.arange(len(fitness_history))
+def plot_obj_space_1d_no_animation(fitness_history: List[np.ndarray], **kwargs):
+    """Visualize the fitness values of the population in a single-objective optimization problem. No animation."""
+    min_fitness = [np.min(x) for x in fitness_history]
+    max_fitness = [np.max(x) for x in fitness_history]
+    median_fitness = [np.median(x) for x in fitness_history]
+    avg_fitness = [np.mean(x) for x in fitness_history]
+    generation = np.arange(len(fitness_history))
 
     fig = go.Figure(
         [
@@ -174,19 +177,14 @@ def plot_obj_space_1d_no_animation(fitness_history, **kwargs):
     return fig
 
 
-def plot_obj_space_1d_animation(fitness_history, **kwargs):
-    try:
-        import plotly
-        import plotly.express as px
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("The plot function requires plotly to be installed.")
+def plot_obj_space_1d_animation(fitness_history: List[np.ndarray], **kwargs):
+    """Visualize the fitness values of the population in a single-objective optimization problem. With animation."""
 
-    min_fitness = [jnp.min(x) for x in fitness_history]
-    max_fitness = [jnp.max(x) for x in fitness_history]
-    median_fitness = [jnp.median(x) for x in fitness_history]
-    avg_fitness = [jnp.mean(x) for x in fitness_history]
-    generation = jnp.arange(len(fitness_history))
+    min_fitness = [np.min(x) for x in fitness_history]
+    max_fitness = [np.max(x) for x in fitness_history]
+    median_fitness = [np.median(x) for x in fitness_history]
+    avg_fitness = [np.mean(x) for x in fitness_history]
+    generation = np.arange(len(fitness_history))
 
     frames = []
     steps = []
@@ -310,21 +308,26 @@ def plot_obj_space_1d_animation(fitness_history, **kwargs):
     return fig
 
 
-def plot_obj_space_2d(fitness_history, problem_pf=None, sort_points=False, **kwargs):
-    try:
-        import plotly
-        import plotly.express as px
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("The plot function requires plotly to be installed.")
-    all_fitness = jnp.concatenate(fitness_history, axis=0)
-    x_lb = jnp.min(all_fitness[:, 0])
-    x_ub = jnp.max(all_fitness[:, 0])
+def plot_obj_space_2d(
+    fitness_history: List[np.ndarray], problem_pf: np.ndarray = None, sort_points: bool = False, **kwargs
+) -> go.Figure:
+    """Visualize the fitness values of the population in a multi-objective (2 objectives) optimization problem.
+
+    :param fitness_history: A list of arrays, each array represents the fitness values of the population of one generation.
+    :param problem_pf: The Pareto front of the problem. Optional.
+    :param sort_points: Whether to sort the points in the plot. This will only affect the animation behavior.
+    :param kwargs: Additional arguments to be passed to the plotly layout.
+
+    :return: A plotly figure.
+    """
+    all_fitness = np.concatenate(fitness_history, axis=0)
+    x_lb = np.min(all_fitness[:, 0])
+    x_ub = np.max(all_fitness[:, 0])
     x_range = x_ub - x_lb
     x_lb = x_lb - 0.05 * x_range
     x_ub = x_ub + 0.05 * x_range
-    y_lb = jnp.min(all_fitness[:, 1])
-    y_ub = jnp.max(all_fitness[:, 1])
+    y_lb = np.min(all_fitness[:, 1])
+    y_ub = np.max(all_fitness[:, 1])
     y_range = y_ub - y_lb
     y_lb = y_lb - 0.05 * y_range
     y_ub = y_ub + 0.05 * y_range
@@ -343,7 +346,7 @@ def plot_obj_space_2d(fitness_history, problem_pf=None, sort_points=False, **kwa
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:
-            indices = jnp.lexsort(fit.T)
+            indices = np.lexsort(fit.T)
             fit = fit[indices]
         scatter = go.Scatter(
             x=fit[:, 0],
@@ -442,29 +445,31 @@ def plot_obj_space_2d(fitness_history, problem_pf=None, sort_points=False, **kwa
     return fig
 
 
-def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwargs):
-    try:
-        import plotly
-        import plotly.express as px
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("The plot function requires plotly to be installed.")
+def plot_obj_space_3d(fitness_history, sort_points: bool = False, problem_pf: np.ndarray = None, **kwargs):
+    """Visualize the fitness values of the population in a multi-objective (3 objectives) optimization problem.
 
-    all_fitness = jnp.concatenate(fitness_history, axis=0)
-    x_lb = jnp.min(all_fitness[:, 0])
-    x_ub = jnp.max(all_fitness[:, 0])
+    :param fitness_history: A list of arrays, each array represents the fitness values of the population of one generation.
+    :param sort_points: Whether to sort the points in the plot. This will only affect the animation behavior.
+    :param problem_pf: The Pareto front of the problem. Optional.
+    :param kwargs: Additional arguments to be passed to the plotly layout.
+
+    :return: A plotly figure.
+    """
+    all_fitness = np.concatenate(fitness_history, axis=0)
+    x_lb = np.min(all_fitness[:, 0])
+    x_ub = np.max(all_fitness[:, 0])
     x_range = x_ub - x_lb
     x_lb = x_lb - 0.05 * x_range
     x_ub = x_ub + 0.05 * x_range
 
-    y_lb = jnp.min(all_fitness[:, 1])
-    y_ub = jnp.max(all_fitness[:, 1])
+    y_lb = np.min(all_fitness[:, 1])
+    y_ub = np.max(all_fitness[:, 1])
     y_range = y_ub - y_lb
     y_lb = y_lb - 0.05 * y_range
     y_ub = y_ub + 0.05 * y_range
 
-    z_lb = jnp.min(all_fitness[:, 2])
-    z_ub = jnp.max(all_fitness[:, 2])
+    z_lb = np.min(all_fitness[:, 2])
+    z_ub = np.max(all_fitness[:, 2])
     z_range = z_ub - z_lb
     z_lb = z_lb - 0.05 * z_range
     z_ub = z_ub + 0.05 * z_range
@@ -485,7 +490,7 @@ def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwa
     for i, fit in enumerate(fitness_history):
         # it will make the animation look nicer
         if sort_points:
-            indices = jnp.lexsort(fit.T)
+            indices = np.lexsort(fit.T)
             fit = fit[indices]
 
         scatter = go.Scatter3d(

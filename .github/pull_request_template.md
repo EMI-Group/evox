@@ -8,7 +8,7 @@ Please describe your pull request here
 A quick checklist, please check what applies to your pull request (put "x" in the brackets)
 -->
 
-- [ ] I have formatted my Python code with `black`.
+- [ ] I have formatted my Python code with `ruff`.
 - [ ] I have good commit messages.
 - If adding new algorithms, problems, operators:
   - [ ] Added related test cases.

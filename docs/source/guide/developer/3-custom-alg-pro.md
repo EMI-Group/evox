@@ -1,31 +1,10 @@
-```{eval-rst}
-.. role:: python(code)
-  :language: python
-  :class: highlight
-```
-
 # Custom algorithms and problems in EvoX
 
-In this chapter, we will introduce how to implement your own algorithm in EvoX.
+In this chapter, we will introduce how to implement your own algorithms and problems in EvoX.
 
-## The Algorithm Class
+## Layout of the algorithms and problems
 
-The {class}`Algorithm <evox.Algorithm>` class is inherited from {class}`Stateful <evox.Stateful>`.
-Besides the things in `Stateful`, you should also implement an `ask` and a `tell` method.
-In total, there are four methods one needs to implement.
-
-| Method       | Signature                               | Usage                                                                                                              |
-| ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| \_\_init\_\_ | {python}`(self, ...)`                   | Initialize hyperparameters that are fixed though out the optimization process, for example, the `population size`. |
-| setup        | {python}`(self, RRNGKey) -> State`      | Initialize mutable state, for example the `momentum`.                                                              |
-| ask          | {python}`(self, State) -> Array, State` | Gives a candidate population for evaluation.                                                                       |
-| tell         | {python}`(self, State, Array) -> State` | Receive the fitness for the candidate population and update the algorithm's state.                                 |
-| init_ask (Optional)  | {python}`(self, State) -> Array, State` | Gives initial population for evaluation. The population can have different shape than `ask`.               |
-| init_tell (Optional) | {python}`(self, State, Array) -> State` | Receive the fitness for the initial population and update the algorithm's state.                           |
-
-### Migrate from traditional EC libraries
-
-In a traditional EC library, algorithms usually call the objective function internally, which gives the following layout
+In most traditional EC libraries, algorithms usually call the objective function internally, which gives the following layout:
 
 ```
 Algorithm
@@ -33,172 +12,201 @@ Algorithm
 +--Problem
 ```
 
-But in EvoX, we have a flat layout
+**But in EvoX, we have a flat layout:**
 
 ```
-Algorithm.ask -- Problem.evaluate -- Algorithm.tell
+Algorithm.step -- Problem.evaluate
 ```
 
-Here is a pseudocode of a genetic algorithm.
+This layout makes both algorithms and problems more universal: an algorithm can optimize different problems, while a problem can also be suitable for many algorithms.
 
-```python
-Set hyperparameters
-Generate the initial population
-Do
-    Generate Offspring
-        Selection
-        Crossover
-        Mutation
-    Compute fitness
-    Replace the population
-Until stopping criterion
+
+
+## Algorithm class
+
+The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from [`ModuleBase`](#evox.core.module.ModuleBase).
+
+**In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
+
+| Method       | Signature                               | Usage                                                                                                              |
+| ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
+| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [`ModuleBase`](#evox.core.module.ModuleBase). Usually, it is not necessary to overwrite this method. |
+| `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
+| `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
+
+```{note}
+The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of [`ModuleBase`](#evox.core.module.ModuleBase) first.
+
+If such `setup` method in [`ModuleBase`](#evox.core.module.ModuleBase) is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
 ```
 
-And here is what each part of the algorithm corresponds to in EvoX.
 
-```python
-Set hyperparameters # __init__
-Generate the initial population # setup
-Do
-    # ask
-    Generate Offspring
-        Mating Selection
-        Crossover
-        Mutation
+## Problem class
 
-    # problem.evaluate (not part of the algorithm)
-    Compute fitness
+The [`Problem`](#evox.core.components.Problem) class is also inherited from [`ModuleBase`](#evox.core.module.ModuleBase). 
 
-    # tell
-    Survivor Selection
-Until stopping criterion
-```
+However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
 
-## The Problem Class
+| Method     | Signature                                   | Usage                                         |
+| ---------- | ------------------------------------------- | --------------------------------------------- |
+| `__init__` | `(self, ...)`                       | Initialize the settings of the problem.       |
+| `evaluate` | `(self, pop: torch.Tensor) -> torch.Tensor` | Evaluate the fitness of the given population. |
 
-The Problem class is quite simple, beside `__init__` and `setup`, the only required method is `evaluate``.
+However, the type of `pop` argument in `evaluate` can be changed to other JIT-compatible types in the overwritten method.
 
-### Migrate from traditional EC libraries
-
-There is one thing to notice here, `evaluate` is a stateful function, meaning it should accept a state and return a new state.
-So, if you are working with numerical benchmark functions, which don't need to be stateful, you can simply ignore the state, but remember that you still have to use this stateful interface.
-
-```{eval-rst}
-+----------+------------------------------------------------+-------------------------------------------------------+
-| Method   | Signature                                      | Usage                                                 |
-+----------+------------------------------------------------+-------------------------------------------------------+
-| __init__ | :python:`(self, ...)`                          | Initialize the settings of the problem.               |
-+----------+------------------------------------------------+-------------------------------------------------------+
-| setup    | :python:`(self, RRNGKey) -> State`             | Initialize mutable state of this problem.             |
-+----------+------------------------------------------------+-------------------------------------------------------+
-| evaluate | :python:`(self, State, Array) -> Array, State` | Evaluate the fitness of the given candidate solution. |
-+----------+------------------------------------------------+-------------------------------------------------------+
-```
-
-### More on the problem's state
-
-If you still wonder what the problem's state actually does, here are the explanations.
-
-Unlike numerical benchmark functions, real-life problems are more complex and may require stateful computations.
-Here are some examples:
-
-- When dealing with ANN training, we often have the training, validation and testing phases.
-  This implies that the same solution could have different fitness values during different phases.
-  So clearly, we can't model the `evaluate` as a stateless pure function anymore.
-  To implement this mechanism, simply put a value in the state to indicate the phase.
-- Virtual batch norm is an effective trick especially when dealing with RL tasks.
-  To implement this mechanism, the problem must be stateful,
-  as the problem has to remember the initial batch norm parameters during the first run.
 
 ## Example
 
-Here we give an example of implementing the OneMax problem, along with a genetic algorithm that solves this problem.
-The problem itself is straightforward, the fitness is defined as the sum of every digit in a fixed-length bitstring.
-For example, "100111" gives 4 and "000101" gives 2.
+Here we give an example of **implementing a PSO algorithm that solves the Sphere problem**.
 
-Let's start with implementing the OneMax problem.
-In JAX a bitstring can be easily represented with a tensor of type bool.
+### Pseudo-code of the example
 
-```python
-import jax.numpy as jnp
-from evox import Problem, jit_class
+Here is a pseudo-code:
 
+```text
+Set hyper-parameters
 
-@jit_class
-class OneMax(Problem):
-    def __init__(self, neg_fitness=True) -> None:
-        super().__init__()
-        self.neg_fitess = neg_fitness
-
-    def evaluate(self, state, bitstrings):
-        # bitstrings has shape (pop_size, num_bits)
-        # so sum along the axis 1.
-        fitness = jnp.sum(bitstrings, axis=1)
-        # Since in EvoX, algorithms try to minimize the fitness
-        # so return the negitive value.
-        if self.neg_fitess:
-            fitness = -fitness
-        return fitness, state
+Generate the initial population
+Do
+    Compute fitness
+    
+    Update the local best fitness and the global best fitness
+    Update the velocity
+    Update the population
+    
+Until stopping criterion
 ```
 
-Then we implement a genetic algorithm that uses bitflip mutation and one-point crossover.
+And here is what each part of the algorithm and the problem corresponds to in EvoX.
+
+```text
+Set hyper-parameters # Algorithm.__init__
+
+Generate the initial population # Algorithm.setup
+Do
+    # Problem.evaluate (not part of the algorithm)
+    Compute fitness
+    
+    # Algorithm.step
+    Update the local best fitness and the global best fitness
+    Update the velocity
+    Update the population
+
+Until stopping criterion
+```
+
+### Algorithm example: PSO algorithm
+
+Particle Swarm Optimization (PSO) is a population-based meta-heuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
+
+**Here is an implementation example of PSO algorithm in EvoX:**
 
 ```python
+import torch
+from typing import List
+
+from evox.utils import clamp
+from evox.core import Parameter, Mutable, Algorithm, jit_class
+
 @jit_class
-class ExampleGA(Algorithm):
-    def __init__(self, pop_size, ndim, flip_prob):
+class PSO(Algorithm):
+    #Initialize the PSO algorithm with the given parameters.
+    def __init__(
+        self,
+        pop_size: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        w: float = 0.6,
+        phi_p: float = 2.5,
+        phi_g: float = 0.8,
+        device: torch.device | None = None,
+    ):
         super().__init__()
-        # those are hyperparameters that stay fixed.
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
-        self.ndim = ndim
-        # the probability of fliping each bit
-        self.flip_prob = flip_prob
+        self.dim = lb.shape[0]
+        # Here, Parameter is used to indicate that these values are hyper-parameters
+        # so that they can be correctly traced and vector-mapped
+        self.w = Parameter(w, device=device)
+        self.phi_p = Parameter(phi_p, device=device)
+        self.phi_g = Parameter(phi_g, device=device)
+        lb = lb[None, :].to(device=device)
+        ub = ub[None, :].to(device=device)
+        length = ub - lb
+        population = torch.rand(self.pop_size, self.dim, device=device)
+        population = length * population + lb
+        velocity = torch.rand(self.pop_size, self.dim, device=device)
+        velocity = 2 * length * velocity - length
+        self.lb = lb
+        self.ub = ub
+        # Mutable parameters
+        self.population = Mutable(population)
+        self.velocity = Mutable(velocity)
+        self.local_best_location = Mutable(population)
+        self.local_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.global_best_location = Mutable(population[0])
+        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
 
-    def setup(self, key):
-        # initialize the state
-        # state are mutable data like the population, offsprings
-        # the population is randomly initialized.
-        # we don't have any offspring now, but initialize it as a placeholder
-        # because jax want static shaped arrays.
-        key, subkey = random.split(key)
-        pop = random.uniform(subkey, (self.pop_size, self.ndim)) < 0.5
-        return State(
-            pop=pop,
-            offsprings=jnp.empty((self.pop_size * 2, self.ndim)),
-            fit=jnp.full((self.pop_size,), jnp.inf),
-            key=key,
+    def step(self):
+        # Compute fitness
+        fitness = self.evaluate(self.population)
+        
+        # Update the local best fitness and the global best fitness
+        compare = self.local_best_fitness - fitness
+        self.local_best_location = torch.where(
+            compare[:, None] > 0, self.population, self.local_best_location
         )
-
-    def init_ask(self, state):
-        # initial the fitness for our initial population
-        return pop, state
-
-    def init_tell(self, state, fitness):
-        # update the fitness for the initial population
-        return state.update(fit=fitness)
-
-    def ask(self, state):
-        key, mut_key, x_key = random.split(state.key, 3)
-        # here we do mutation and crossover (reproduction)
-        # for simplicity, we didn't use any mating selections
-        # so the offspring is twice as large as the population
-        offsprings = jnp.concatenate(
-            (
-                mutation.bitflip(mut_key, state.pop, self.flip_prob),
-                crossover.one_point(x_key, state.pop),
-            ),
-            axis=0,
+        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
+        self.global_best_location, self.global_best_fitness = self._min_by(
+            [self.global_best_location.unsqueeze(0), self.population],
+            [self.global_best_fitness.unsqueeze(0), fitness],
         )
-        # return the candidate solution and update the state
-        return offsprings, state.update(offsprings=offsprings, key=key)
-
-    def tell(self, state, fitness):
-        # here we do selection
-        merged_pop = jnp.concatenate([state.pop, state.offsprings])
-        merged_fit = jnp.concatenate([state.fit, fitness])
-        new_pop, new_fit = selection.topk_fit(merged_pop, merged_fit, self.pop_size)
-        # replace the old population
-        return state.update(pop=new_pop, fit=new_fit)
+        
+        # Update the velocity
+        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        velocity = (
+            self.w * self.velocity
+            + self.phi_p * rp * (self.local_best_location - self.population)
+            + self.phi_g * rg * (self.global_best_location - self.population)
+        )
+        
+        # Update the population
+        population = self.population + velocity
+        self.population = clamp(population, self.lb, self.ub)
+        self.velocity = clamp(velocity, self.lb, self.ub)
+        
+    def _min_by(self, values: List[torch.Tensor],keys: List[torch.Tensor],):
+        # Find the value with the minimum key
+        values = torch.cat(values, dim=0)
+        keys = torch.cat(keys, dim=0)
+        min_index = torch.argmin(keys)
+        return values[min_index], keys[min_index]
 ```
 
-Now, you can assemble a workflow and run it.
+### Problem example: Sphere problem
+
+The Sphere problem is a simple, yet fundamental benchmark optimization problem used to test optimization algorithms.
+
+The Sphere function is defined as:
+
+$$
+\min f(x)= \sum_{i=1}^{n} x_{i}^{2}
+$$
+**Here is an implementation example of Sphere problem in EvoX:**
+
+```python
+import torch
+
+from evox.core import Problem
+
+class Sphere(Problem):
+    def __init__(self):
+        super().__init__()
+
+    def evaluate(self, pop: torch.Tensor):
+        return (pop**2).sum(-1)
+```
+
+Now, you can initiate a workflow and run it.

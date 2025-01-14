@@ -1,96 +1,101 @@
-# --------------------------------------------------------------------------------------
-# 1. NSGA-II algorithm is described in the following papers:
-#
-# Title: A fast and elitist multiobjective genetic algorithm: NSGA-II
-# Link: https://ieeexplore.ieee.org/document/996017
-# --------------------------------------------------------------------------------------
+from typing import Callable, Optional
 
-import jax
-import jax.numpy as jnp
+import torch
 
-from evox.operators import (
-    non_dominated_sort,
-    crowding_distance,
-    selection,
-    mutation,
-    crossover,
-)
-from evox import Algorithm, jit_class, State
-from evox.operators.selection import NonDominate
+from ...core import Algorithm, Mutable, jit_class
+from ...operators.crossover import simulated_binary
+from ...operators.mutation import polynomial_mutation
+from ...operators.selection import nd_environmental_selection, tournament_selection_multifit
+from ...utils import clamp
 
 
 @jit_class
 class NSGA2(Algorithm):
-    """NSGA-II algorithm
+    """
+    An implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-II) for multi-objective optimization problems.
 
-    link: https://ieeexplore.ieee.org/document/996017
+    This class provides a framework for solving multi-objective optimization problems using a non-dominated sorting genetic algorithm,
+    which is widely used for Pareto-based optimization.
+
+    :references:
+        - "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II," IEEE Transactions on Evolutionary Computation.
+          `Link <https://ieeexplore.ieee.org/document/996017>`_
     """
 
     def __init__(
         self,
-        lb,
-        ub,
-        n_objs,
-        pop_size,
-        selection_op=None,
-        mutation_op=None,
-        crossover_op=None,
+        pop_size: int,
+        n_objs: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        selection_op: Optional[Callable] = None,
+        mutation_op: Optional[Callable] = None,
+        crossover_op: Optional[Callable] = None,
+        device: torch.device | None = None,
     ):
-        self.lb = lb
-        self.ub = ub
-        self.n_objs = n_objs
-        self.dim = lb.shape[0]
+        """Initializes the NSGA-II algorithm.
+
+        :param pop_size: The size of the population.
+        :param n_objs: The number of objective functions in the optimization problem.
+        :param lb: The lower bounds for the decision variables (1D tensor).
+        :param ub: The upper bounds for the decision variables (1D tensor).
+        :param selection_op: The selection operation for evolutionary strategy (optional).
+        :param mutation_op: The mutation operation, defaults to `polynomial_mutation` if not provided (optional).
+        :param crossover_op: The crossover operation, defaults to `simulated_binary` if not provided (optional).
+        :param device: The device on which computations should run (optional). Defaults to PyTorch's default device.
+        """
+
+        super().__init__()
         self.pop_size = pop_size
+        self.n_objs = n_objs
+        if device is None:
+            device = torch.get_default_device()
+        # check
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
+        assert lb.dtype == ub.dtype and lb.device == ub.device
+        self.dim = lb.shape[0]
+        # write to self
+        self.lb = lb.to(device=device)
+        self.ub = ub.to(device=device)
 
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
+        self.device = device
 
         if self.selection is None:
-            self.selection = selection.UniformRand(1)
+            self.selection = tournament_selection_multifit
         if self.mutation is None:
-            self.mutation = mutation.Polynomial((self.lb, self.ub))
+            self.mutation = polynomial_mutation
         if self.crossover is None:
-            self.crossover = crossover.SimulatedBinary()
-        
-        self.survivor_selection = NonDominate(self.pop_size)
+            self.crossover = simulated_binary
 
-    def setup(self, key):
-        key, subkey = jax.random.split(key)
-        population = (
-            jax.random.uniform(subkey, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
-        )
-        return State(
-            population=population,
-            fitness=jnp.zeros((self.pop_size, self.n_objs)),
-            next_generation=population,
-            key=key,
-        )
+        length = ub - lb
+        population = torch.rand(self.pop_size, self.dim, device=device)
+        population = length * population + lb
 
-    def init_ask(self, state):
-        return state.population, state
+        self.pop = Mutable(population)
+        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.rank = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.dis = Mutable(torch.empty(self.pop_size, device=device).fill_(-torch.inf))
 
-    def init_tell(self, state, fitness):
-        state = state.replace(fitness=fitness)
-        return state
+    def init_step(self):
+        """
+        Perform the initialization step of the workflow.
 
-    def ask(self, state):
-        key, sel_key1, x_key, mut_key = jax.random.split(state.key, 4)
-        # crossovered = self.selection(sel_key1, state.population, state.fitness)
-        crossovered = self.crossover(x_key, state.population)
-        next_generation = self.mutation(mut_key, crossovered)
+        Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self.fit = self.evaluate(self.pop)
+        _, _, self.rank, self.dis = nd_environmental_selection(self.pop, self.fit, self.pop_size)
 
-        next_generation = jnp.clip(next_generation, self.lb, self.ub)
+    def step(self):
+        """Perform the optimization step of the workflow."""
+        mating_pool = self.selection(self.pop_size, [-self.dis, self.rank])
+        crossovered = self.crossover(self.pop[mating_pool])
+        offspring = self.mutation(crossovered, self.lb, self.ub)
+        offspring = clamp(offspring, self.lb, self.ub)
+        off_fit = self.evaluate(offspring)
+        merge_pop = torch.cat([self.pop, offspring], dim=0)
+        merge_fit = torch.cat([self.fit, off_fit], dim=0)
 
-        return next_generation, state.replace(next_generation=next_generation, key=key)
-
-    def tell(self, state, fitness):
-        merged_pop = jnp.concatenate([state.population, state.next_generation], axis=0)
-        merged_fitness = jnp.concatenate([state.fitness, fitness], axis=0)
-
-        survivor, survivor_fitness = self.survivor_selection(merged_pop, merged_fitness)
-
-        state = state.replace(population=survivor, fitness=survivor_fitness)
-        return state
+        self.pop, self.fit, self.rank, self.dis = nd_environmental_selection(merge_pop, merge_fit, self.pop_size)

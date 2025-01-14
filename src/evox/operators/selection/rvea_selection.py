@@ -1,54 +1,98 @@
-import jax
-import jax.numpy as jnp
-from jax import jit
-from evox.utils import cos_dist
-from evox import jit_class
+import torch
+import torch.nn.functional as F
+
+from ...utils import clamp_float, maximum, nanmin
 
 
-@jit
-def ref_vec_guided(x, f, v, theta):
-    n, m = jnp.shape(f)
-    nv = jnp.shape(v)[0]
+def apd_fn(
+    x: torch.Tensor,
+    y: torch.Tensor,
+    z: torch.Tensor,
+    obj: torch.Tensor,
+    theta: torch.Tensor,
+):
+    """
+    Compute the APD (Angle-Penalized Distance) based on the given inputs.
 
-    obj = f - jnp.nanmin(f, axis=0)
-    obj = jnp.maximum(obj, 1e-32)
+    :param x: A tensor representing the indices of the partition.
+    :param y: A tensor representing the gamma.
+    :param z: A tensor representing the angle.
+    :param obj: A tensor of shape (n, m) representing the objectives of the solutions.
+    :param theta: A tensor representing the parameter theta used for scaling the reference vector.
 
-    cosine = cos_dist(v, v)
-    cosine = jnp.where(jnp.eye(jnp.shape(cosine)[0], dtype=bool), 0, cosine)
-    cosine = jnp.clip(cosine, 0, 1)
-    gamma = jnp.min(jnp.arccos(cosine), axis=1)
+    :return: A tensor containing the APD values for each solution.
+    """
+    selected_z = torch.gather(z, 0, torch.relu(x))
+    left = (1 + obj.size(1) * theta * selected_z) / y[None, :]
+    norm_obj = torch.linalg.vector_norm(obj**2, dim=1)
+    right = norm_obj[x]
+    return left * right
 
-    angle = jnp.arccos(jnp.clip(cos_dist(obj, v), 0, 1))
 
-    nan_mask = jnp.isnan(obj).any(axis=1)
-    associate = jnp.argmin(angle, axis=1)
-    associate = jnp.where(nan_mask, -1, associate)
-    associate = jnp.tile(associate[:, jnp.newaxis], (1, nv))
-    partition = jnp.tile(jnp.arange(0, n)[:, jnp.newaxis], (1, nv))
-    I = jnp.tile(jnp.arange(0, nv), (n, 1))
-    partition = (associate == I) * partition + (associate != I) * -1
+def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: torch.Tensor):
+    """
+    Perform the Reference Vector Guided Evolutionary Algorithm (RVEA) selection process.
 
-    mask = partition == -1
-    mask_null = jnp.sum(mask, axis=0) == n
+    This function selects solutions based on the Reference Vector Guided Evolutionary Algorithm.
+    It calculates the distances and angles between solutions and reference vectors, and returns
+    the next set of solutions to be evolved.
 
-    apd = jax.vmap(
-        lambda x, y, z: (1 + m * theta * z[x] / y)
-        * jnp.sqrt(jnp.sum(obj[x, :] ** 2, axis=1)),
-        in_axes=(1, 0, 1),
-        out_axes=1,
-    )(partition, gamma, angle)
-    apd = jnp.where(mask, jnp.inf, apd)
+    :param x: A tensor of shape (n, d) representing the current population solutions.
+    :param f: A tensor of shape (n, m) representing the objective values for each solution.
+    :param v: A tensor of shape (r, m) representing the reference vectors.
+    :param theta: A tensor representing the parameter theta used in the APD calculation.
 
-    next_ind = jnp.argmin(apd, axis=0)
-    next_x = jnp.where(mask_null[:, jnp.newaxis], jnp.nan, x[next_ind])
-    next_f = jnp.where(mask_null[:, jnp.newaxis], jnp.nan, f[next_ind])
+    :return: A tuple containing:
+        - next_x: The next selected solutions.
+        - next_f: The objective values of the next selected solutions.
+
+    :note:
+        The function computes the distances between the solutions and reference vectors,
+        and selects the solutions with the minimum APD.
+        It currently uses a suboptimal selection implementation, and future improvements
+        will optimize the process using a `segment_sort` or `segment_argmin` in CUDA.
+    """
+    n = f.size(0)
+    nv = v.size(0)
+
+    obj = f - nanmin(f, dim=0, keepdim=True)[0]
+
+    obj = maximum(obj, torch.tensor(1e-32, device=f.device))
+
+    cosine = F.cosine_similarity(v.unsqueeze(1), v.unsqueeze(0), dim=-1)
+
+    cosine = torch.where(
+        torch.eye(cosine.size(0), dtype=torch.bool, device=f.device),
+        0,
+        cosine,
+    )
+    cosine = clamp_float(cosine, 0.0, 1.0)
+    gamma = torch.min(torch.acos(cosine), dim=1)[0]
+
+    angle = torch.acos(
+        clamp_float(
+            F.cosine_similarity(obj.unsqueeze(1), v.unsqueeze(0), dim=-1),
+            0.0,
+            1.0,
+        )
+    )
+
+    nan_mask = torch.isnan(obj).any(dim=1)
+    associate = torch.argmin(angle, dim=1)
+    associate = torch.where(nan_mask, -1, associate)
+    associate = associate[:, None]
+    partition = torch.arange(0, n, device=f.device)[:, None]
+    IndexMatrix = torch.arange(0, nv, device=f.device)[None, :]
+    partition = (associate == IndexMatrix) * partition + (associate != IndexMatrix) * -1
+
+    mask = associate != IndexMatrix
+    mask_null = mask.sum(dim=0) == n
+
+    apd = apd_fn(partition, gamma, angle, obj, theta)
+    apd = torch.where(mask, torch.inf, apd)
+
+    next_ind = torch.argmin(apd, dim=0)
+    next_x = torch.where(mask_null.unsqueeze(1), torch.nan, x[next_ind])
+    next_f = torch.where(mask_null.unsqueeze(1), torch.nan, f[next_ind])
 
     return next_x, next_f
-
-
-@jit_class
-class ReferenceVectorGuided:
-    """Reference vector guided environmental selection."""
-
-    def __call__(self, x, f, v, theta):
-        return ref_vec_guided(x, f, v, theta)

@@ -1,41 +1,21 @@
-from jax import jit
-import jax.numpy as jnp
-from evox.utils import pairwise_euclidean_dist, pairwise_func
-from evox import jit_class
+import torch
 
 
-@jit
-def gd(objs, pf, p=1):
-    min_dis = jnp.min(pairwise_euclidean_dist(objs, pf), axis=1)
-    return (jnp.sum(min_dis**p) / objs.shape[0]) ** (1 / p)
+def gd(objs: torch.Tensor, pf: torch.Tensor):
+    """
+    Calculate the Generational Distance (GD) metric between a set of solutions and the Pareto front.
 
+    :param objs: A tensor of shape (n, m), where n is the number of solutions and m is the number of objectives.
+                 Represents the set of solutions to be evaluated.
+    :param pf: A tensor of shape (k, m), where k is the number of points on the Pareto front and m is the number
+               of objectives. Represents the true Pareto front.
 
-@jit
-def gd_plus_dist(pf, obj):
-    return jnp.sqrt(jnp.sum(jnp.maximum(pf - obj, 0) ** 2))
+    :return: The GD score, a scalar representing the average distance of the solutions to the Pareto front.
 
-
-@jit
-def gd_plus(objs, pf, p=1):
-    min_dis = jnp.min(pairwise_func(objs, pf, gd_plus_dist), axis=1)
-    return (jnp.sum(min_dis**p) / objs.shape[0]) ** (1 / p)
-
-
-@jit_class
-class GD:
-    def __init__(self, pf, p=1):
-        self.pf = pf
-        self.p = p
-
-    def __call__(self, objs):
-        return gd(objs, self.pf, self.p)
-
-
-@jit_class
-class GDPlus:
-    def __init__(self, pf, p=1):
-        self.pf = pf
-        self.p = p
-
-    def __call__(self, objs):
-        return gd_plus(objs, self.pf, self.p)
+    :note:
+        The GD score is lower when the approximation is closer to the Pareto front.
+    """
+    distances = torch.cdist(objs, pf, p=2)
+    min_distances = torch.min(distances, dim=1).values
+    score = torch.norm(min_distances) / min_distances.size(0)
+    return score

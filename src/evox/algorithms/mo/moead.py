@@ -1,133 +1,124 @@
-# --------------------------------------------------------------------------------------
-# 1. MOEA/D algorithm is described in the following papers:
-#
-# Title: MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition
-# Link: https://ieeexplore.ieee.org/document/4358754
-# --------------------------------------------------------------------------------------
-
 import math
+from typing import Callable, Optional
 
-import jax
-import jax.numpy as jnp
+import torch
 
-from evox import Algorithm, State, jit_class
-from evox.operators import crossover, mutation
-from evox.operators.sampling import UniformSampling
-from evox.utils import pairwise_euclidean_dist, AggregationFunction
+from ...core import Algorithm, Mutable, jit_class
+from ...operators.crossover import simulated_binary_half
+from ...operators.mutation import polynomial_mutation
+from ...operators.sampling import uniform_sampling
+from ...utils import clamp, minimum
+
+
+def pbi(f: torch.Tensor, w: torch.Tensor, z: torch.Tensor):
+    norm_w = torch.linalg.norm(w, dim=1)
+    f = f - z
+
+    d1 = torch.sum(f * w, dim=1) / norm_w
+
+    d2 = torch.linalg.norm(f - (d1[:, None] * w / norm_w[:, None]), dim=1)
+    return d1 + 5 * d2
+
 
 @jit_class
 class MOEAD(Algorithm):
-    """Parallel MOEA/D algorithm
+    """
+    Implementation of the Original MOEA/D algorithm.
 
-    link: https://ieeexplore.ieee.org/document/4358754
+    :references:
+        - "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition," IEEE Transactions on Evolutionary Computation.
+          `Link <https://ieeexplore.ieee.org/document/4358754>`_
+
+
+    :note: This implementation is based on the original paper and may not be the most efficient implementation. It can not be traced by JIT.
+
     """
 
     def __init__(
         self,
-        lb,
-        ub,
-        n_objs,
-        pop_size,
-        func_name='pbi',
-        mutation_op=None,
-        crossover_op=None,
+        pop_size: int,
+        n_objs: int,
+        lb: torch.Tensor,
+        ub: torch.Tensor,
+        selection_op: Optional[Callable] = None,
+        mutation_op: Optional[Callable] = None,
+        crossover_op: Optional[Callable] = None,
+        device: torch.device | None = None,
     ):
-        self.lb = lb
-        self.ub = ub
-        self.n_objs = n_objs
-        self.dim = lb.shape[0]
-        self.pop_size = pop_size
-        self.func_name = func_name
-        self.n_neighbor = 0
+        """Initializes the MOEA/D algorithm.
 
+        :param pop_size: The size of the population.
+        :param n_objs: The number of objective functions in the optimization problem.
+        :param lb: The lower bounds for the decision variables (1D tensor).
+        :param ub: The upper bounds for the decision variables (1D tensor).
+        :param selection_op: The selection operation for evolutionary strategy (optional).
+        :param mutation_op: The mutation operation, defaults to `polynomial_mutation` if not provided (optional).
+        :param crossover_op: The crossover operation, defaults to `simulated_binary_half` if not provided (optional).
+        :param device: The device on which computations should run (optional). Defaults to PyTorch's default device.
+        """
+        super().__init__()
+        self.pop_size = pop_size
+        self.n_objs = n_objs
+        if device is None:
+            device = torch.get_default_device()
+        # check
+        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
+        assert lb.dtype == ub.dtype and lb.device == ub.device
+        self.dim = lb.shape[0]
+        # write to self
+        self.lb = lb.to(device=device)
+        self.ub = ub.to(device=device)
+
+        self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
+        self.device = device
 
         if self.mutation is None:
-            self.mutation = mutation.Polynomial((lb, ub))
+            self.mutation = polynomial_mutation
         if self.crossover is None:
-            self.crossover = crossover.SimulatedBinary(type=2)
-        self.sample = UniformSampling(self.pop_size, self.n_objs)
-        self.aggregate_func = AggregationFunction(self.func_name)
+            self.crossover = simulated_binary_half
 
-    def setup(self, key):
-        key, subkey1, subkey2 = jax.random.split(key, 3)
-        w, _ = self.sample(subkey2)
-        self.pop_size = w.shape[0]
+        w, _ = uniform_sampling(self.pop_size, self.n_objs)
+
+        self.pop_size = w.size(0)
         self.n_neighbor = int(math.ceil(self.pop_size / 10))
 
-        population = (
-            jax.random.uniform(subkey1, shape=(self.pop_size, self.dim))
-            * (self.ub - self.lb)
-            + self.lb
-        )
+        length = ub - lb
+        population = torch.rand(self.pop_size, self.dim, device=device)
+        population = length * population + lb
 
-        neighbors = pairwise_euclidean_dist(w, w)
-        neighbors = jnp.argsort(neighbors, axis=1)
-        neighbors = neighbors[:, : self.n_neighbor]
+        neighbors = torch.cdist(w, w)
+        self.neighbors = torch.argsort(neighbors, dim=1, stable=True)[:, : self.n_neighbor]
+        self.w = w
 
-        return State(
-            population=population,
-            fitness=jnp.zeros((self.pop_size, self.n_objs)),
-            next_generation=population,
-            weight_vector=w,
-            neighbors=neighbors,
-            z=jnp.zeros(shape=self.n_objs),
-            key=key,
-        )
+        self.pop = Mutable(population)
+        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.z = Mutable(torch.zeros((self.n_objs,), device=device))
 
-    def init_ask(self, state):
-        return state.population, state
+    def init_step(self):
+        """
+        Perform the initialization step of the workflow.
 
-    def init_tell(self, state, fitness):
-        z = jnp.min(fitness, axis=0)
-        state = state.replace(fitness=fitness, z=z)
-        return state
+        Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self.fit = self.evaluate(self.pop)
+        self.z = torch.min(self.fit, dim=0)[0]
 
-    def ask(self, state):
-        key, subkey, sel_key, mut_key = jax.random.split(state.key, 4)
-        parent = jax.random.permutation(
-            subkey, state.neighbors, axis=1, independent=True
-        ).astype(int)
+    def step(self):
+        """Perform a single optimization step of the workflow."""
+        for i in range(self.pop_size):
+            parents = self.neighbors[i][torch.randperm(self.n_neighbor, device=self.device)]
+            crossovered = self.crossover(self.pop[parents[:2]])
+            offspring = self.mutation(crossovered, self.lb, self.ub)
+            offspring = clamp(offspring, self.lb, self.ub)
+            off_fit = self.evaluate(offspring)
 
-        population = state.population
-        selected_p = jnp.r_[population[parent[:, 0]], population[parent[:, 1]]]
+            self.z = minimum(self.z, off_fit)
 
-        crossovered = self.crossover(sel_key, selected_p)
-        next_generation = self.mutation(mut_key, crossovered)
-        next_generation = jnp.clip(next_generation, self.lb, self.ub)
+            g_old = pbi(self.fit[parents], self.w[parents], self.z)
+            g_new = pbi(off_fit, self.w[parents], self.z)
 
-        return next_generation, state.replace(
-            next_generation=next_generation, key=key
-        )
+            self.fit[parents[g_old >= g_new]] = off_fit
+            self.pop[parents[g_old >= g_new]] = offspring
 
-    def tell(self, state, fitness):
-        population = state.population
-        pop_obj = state.fitness
-        offspring = state.next_generation
-        obj = fitness
-        w = state.weight_vector
-        z = jnp.minimum(state.z, jnp.min(obj, axis=0))
-        z_max = jnp.max(pop_obj, axis=0)
-        neighbors = state.neighbors
-
-        def scan_body(carry, x):
-            population, pop_obj = carry
-            off_pop, off_obj, indices = x
-
-            f_old = self.aggregate_func(pop_obj[indices], w[indices], z, z_max)
-            f_new = self.aggregate_func(off_obj[jnp.newaxis, :], w[indices], z, z_max)
-
-            update_condition = (f_old > f_new)[:, jnp.newaxis]
-            updated_population = population.at[indices].set(
-                jnp.where(update_condition, jnp.tile(off_pop, (jnp.shape(indices)[0], 1)), population[indices]))
-            updated_pop_obj = pop_obj.at[indices].set(
-                jnp.where(update_condition, jnp.tile(off_obj, (jnp.shape(indices)[0], 1)), pop_obj[indices]))
-
-            return (updated_population, updated_pop_obj), None
-
-        (population, pop_obj), _ = jax.lax.scan(scan_body, (population, pop_obj), (offspring, obj, neighbors))
-
-
-        state = state.replace(population=population, fitness=pop_obj, z=z)
-        return state

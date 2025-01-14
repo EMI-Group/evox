@@ -1,41 +1,20 @@
-from jax import jit
-import jax.numpy as jnp
-from evox.utils import pairwise_euclidean_dist, pairwise_func
-from evox import jit_class
+import torch
 
 
-@jit
-def igd(objs, pf, p=1):
-    min_dis = jnp.min(pairwise_euclidean_dist(pf, objs), axis=1)
-    return (jnp.sum(min_dis**p) / pf.shape[0]) ** (1 / p)
+def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
+    """
+    Calculate the Inverted Generational Distance (IGD) metric between a set of solutions and the Pareto front.
 
+    :param objs: A tensor of shape (n, m), where n is the number of solutions and m is the number of objectives.
+                 Represents the set of solutions to be evaluated.
+    :param pf: A tensor of shape (k, m), where k is the number of points on the Pareto front and m is the number
+               of objectives. Represents the true Pareto front.
+    :param p: The power parameter used in the calculation (default is 1). This defines the distance metric (L^p norm).
 
-@jit
-def igd_plus_dist(pf, obj):
-    return jnp.sqrt(jnp.sum(jnp.maximum(obj - pf, 0) ** 2))
+    :return: The IGD score, a scalar representing the average distance of the solutions to the Pareto front.
 
-
-@jit
-def igd_plus(objs, pf, p=1):
-    min_dis = jnp.min(pairwise_func(pf, objs, igd_plus_dist), axis=1)
-    return (jnp.sum(min_dis**p) / pf.shape[0]) ** (1 / p)
-
-
-@jit_class
-class IGD:
-    def __init__(self, pf, p=1):
-        self.pf = pf
-        self.p = p
-
-    def __call__(self, objs):
-        return igd(objs, self.pf, self.p)
-
-
-@jit_class
-class IGDPlus:
-    def __init__(self, pf, p=1):
-        self.pf = pf
-        self.p = p
-
-    def __call__(self, objs):
-        return igd_plus(objs, self.pf, self.p)
+    :note:
+        The IGD score is lower when the approximation is closer to the Pareto front.
+    """
+    min_dis = torch.cdist(pf, objs).min(dim=1).values
+    return (min_dis.pow(p).mean()).pow(1 / p)
