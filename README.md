@@ -33,7 +33,7 @@
 
 ## 🔥 News
 
-- [2025-01-13] Released **EvoX 1.0.0** 🎉 — for full compatibility with **PyTorch** ! For users seeking the previous **JAX-based version**, please refer to the **v0.9.0 branch**.
+- [2025-01-13] Released **EvoX 1.0.0** 🎉, now fully compatible with **PyTorch** ! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 ## Table of Contents
 
@@ -48,21 +48,21 @@
 
 ## Overview
 
-EvoX is a distributed, GPU-accelerated evolutionary computation framework designed to tackle the challenges of large-scale complex systems. It offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch***.  With a user-friendly programming model, it offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+*Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 
 ## Key Features
 
-- 🚀 **Fast Performance**:
-  - Experience **GPU-Accelerated** optimization, achieving speeds over 100x faster than traditional methods.
-  - Leverage the power of **Distributed Workflows** for even more rapid optimization.
-- 🌐 **Versatile Optimization Suite**:
-  - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
-  - Leverage a rich library of **Benchmark Problems/Environments** and tools for advanced AI tasks like **Neuroevolution** and **RL**.
-  - Simplify parameter tuning with the new **Hyperparameter Optimization** **(HPO)** problem wrapper.
-- 🛠️ **Designed for Simplicity**:
-  - Fully compatible with **PyTorch**, featuring a brand-new **Programming Model** and **one-click installation** on Windows.
-  - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
+- 🚀 **High-Performance**:
+  - Harness the power of GPU-accelerated optimization to achieve **over 100x speedups** compared to traditional methods.
+  - Scale your computations seamlessly with **distributed workflows** across multiple GPUs.
+- 🌐 **Comprehensive and Versatile**:
+  - Fully supports **Single-objective** and **Multi-objective** optimization needs.
+  - Integrates advanced modules including **Neuroevolution**, **Reinforcement Learning (RL)**, and **Hyperparameter Optimization (HPO)**.
+- 🛠️ **User-Friendly and Accessible**:
+  - Designed for simplicity, with full **PyTorch compatibility** and an intuitive programming model that enhances developer productivity.
+  - Effortless setup, including a **one-click installation script** for Windows users.
 
 
 ## Main Contents
@@ -114,16 +114,16 @@ Stay tuned—more exciting developments are on the way!  ✨
 
 ## Community & Support
 
-- Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
-- Join our [discord server](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
-- Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
+- Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).  
+- Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).  
+- Help translate EvoX docs on [Weblate](https://hosted.weblate.org/projects/evox/evox/).  
   We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
 - Official Website: https://evox.group/
 
 
 ## Citing EvoX
 
-If you use EvoX in your research and want to cite it in your work, please use:
+If EvoX contributes to your research, please cite it:
 
 ```
 @article{evox,
