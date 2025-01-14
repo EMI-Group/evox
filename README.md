@@ -53,7 +53,7 @@ EvoX is a distributed, GPU-accelerated evolutionary computation framework design
   - Leverage a rich library of **Benchmark Problems/Environments** and tools for advanced AI tasks like **Neuroevolution** and **RL**.
   - Simplify parameter tuning with the new **Hyperparameter Optimization** **(HPO)** problem wrapper.
 - 🛠️ **Designed for Simplicity**:
-  - Built upon **PyTorch**, ensuring seamless integration and flexibility.
+  - Fully compatible with **PyTorch**, featuring a brand-new **Programming Model** and **one-click installation** on Windows.
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
 
 
