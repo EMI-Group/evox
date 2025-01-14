@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evox"
-version = "0.9.0"
+version = "1.0.0a1"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Boqing Xu", email = "xuboqing123@gmail.com" },
