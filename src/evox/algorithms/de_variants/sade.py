@@ -73,15 +73,10 @@ class SaDE(Algorithm):
         self.failure_memory = Mutable(torch.full((LP, 4), fill_value=0, device=device))
         self.CR_memory = Mutable(torch.full((LP, 4), fill_value=torch.nan, device=device))
         # Others
-        self.g_cuda = torch.Generator(device="cuda")
-        self.g_cpu = torch.Generator()
+        self.generator = torch.Generator(device=device)
 
     def _get_strategy_ids(self, strategy_p: torch.Tensor, device: torch.device):
-        if device.type == "cuda":
-            generator = self.g_cuda
-        else:
-            generator = self.g_cpu
-        strategy_ids = torch.multinomial(strategy_p, self.pop_size, replacement=True, generator=generator)
+        strategy_ids = torch.multinomial(strategy_p, self.pop_size, replacement=True, generator=self.generator)
         return strategy_ids
 
     @vmap_impl(_get_strategy_ids)

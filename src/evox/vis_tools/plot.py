@@ -1,10 +1,7 @@
-from importlib.util import find_spec
 from typing import List
 
 import numpy as np
-
-if find_spec("plotly") is not None:
-    import plotly.graph_objects as go
+import plotly.graph_objects as go
 
 
 def plot_dec_space(
@@ -180,7 +177,7 @@ def plot_obj_space_1d_no_animation(fitness_history: List[np.ndarray], **kwargs):
     return fig
 
 
-def plot_obj_space_1d_animation(fitness_history, **kwargs):
+def plot_obj_space_1d_animation(fitness_history: List[np.ndarray], **kwargs):
     """Visualize the fitness values of the population in a single-objective optimization problem. With animation."""
 
     min_fitness = [np.min(x) for x in fitness_history]
@@ -312,7 +309,7 @@ def plot_obj_space_1d_animation(fitness_history, **kwargs):
 
 
 def plot_obj_space_2d(
-    fitness_history: List[np.ndarrary], problem_pf: List[np.ndarray] = None, sort_points: bool = False, **kwargs
+    fitness_history: List[np.ndarray], problem_pf: np.ndarray = None, sort_points: bool = False, **kwargs
 ) -> go.Figure:
     """Visualize the fitness values of the population in a multi-objective (2 objectives) optimization problem.
 
@@ -448,7 +445,7 @@ def plot_obj_space_2d(
     return fig
 
 
-def plot_obj_space_3d(fitness_history, sort_points=False, problem_pf=None, **kwargs):
+def plot_obj_space_3d(fitness_history, sort_points: bool = False, problem_pf: np.ndarray = None, **kwargs):
     """Visualize the fitness values of the population in a multi-objective (3 objectives) optimization problem.
 
     :param fitness_history: A list of arrays, each array represents the fitness values of the population of one generation.

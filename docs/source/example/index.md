@@ -5,6 +5,6 @@
 
 so-algorithm
 moalg
-Brax
+brax
 custom_algo_prob
 ```
