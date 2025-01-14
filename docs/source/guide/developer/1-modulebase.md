@@ -20,9 +20,10 @@ This process requires four basic class in EvoX:
 
 It is necessary to provide a unified module for them. In EvoX, the four classes are all inherited from the base module — [`ModuleBase`](#evox.core.module.ModuleBase).
 
-<center>
-  <img src="../../_static/modulebase.svg">
-</center>
+```{image} /_static/modulebase.png
+:alt: Module base
+:align: center
+```
 
 ## ModuleBase class
 
@@ -64,7 +65,7 @@ Specifically, there are some rules for using [`ModuleBase`](#evox.core.module.Mo
 Static methods to be JIT shall be defined like:
 
 ```Python
-# one example of the static method defined in a Module
+# One example of the static method defined in a Module
 @jit
 def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return x + y
