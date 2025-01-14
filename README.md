@@ -50,8 +50,6 @@
 4. [Quick Installation](#quick-installation)
 5. [Sister Projects](#sister-projects)
 6. [Community & Support](#community--support)
-7. [Citing EvoX](#citing-evox)
-8. [Star History](#star-history)
 
 ## Overview
 
