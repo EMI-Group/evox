@@ -127,7 +127,6 @@ Stay tuned—more exciting developments are on the way!  ✨
 - Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).  
 - Help translate EvoX docs on [Weblate](https://hosted.weblate.org/projects/evox/evox/).  
   We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
-- Official Website: https://evox.group/
 
 
 ## Citing EvoX
