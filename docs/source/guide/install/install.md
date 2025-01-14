@@ -53,7 +53,7 @@ There are two ways to use PyTorch with GPU acceleration on Windows:
 We also provide a [one-click script](https://github.com/EMI-Group/evox/blob/main/win-install.bat) for fast deployment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
 
 ### Windows WSL 2 (optional)
-* Ensure the [Nvidia driver]((https://www.nvidia.com/Download/index.aspx?lang=en-us)) is properly installed first. Otherwise the script will fall back to cpu mode.
+* Ensure the [Nvidia driver](https://www.nvidia.com/Download/index.aspx?lang=en-us) is properly installed first. Otherwise the script will fall back to cpu mode.
 * When running the script, ensure a stable network (accessible to `github.com` etc.).
 * If the script is failed due to network failure, close and reopen it to continue the installation.
 
