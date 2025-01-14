@@ -3,10 +3,10 @@ import unittest
 import torch
 
 from evox.core import Algorithm, Mutable, Parameter, Problem, jit_class, trace_impl
-from evox.problems.numerical import DTLZ1
-from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
-from evox.workflows import StdWorkflow
 from evox.metrics import igd
+from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
+from evox.problems.numerical import DTLZ1
+from evox.workflows import StdWorkflow
 
 
 @jit_class
