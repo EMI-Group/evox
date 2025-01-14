@@ -223,7 +223,7 @@ class ExampleModule(ModuleBase):
     
     # The internal vmapped class method to be JIT   
     @jit
-    def jit_vamp_func(self, p: torch.Tensor) -> torch.Tensor:
+    def jit_vmap_func(self, p: torch.Tensor) -> torch.Tensor:
         
         # The original method
         # We can not vmap it
@@ -244,5 +244,5 @@ class ExampleModule(ModuleBase):
 ```
 
 ```{note}
-If a class method use [`trace_impl`](#evox.core.module.trace_impl),it will be only available in the trace mode. More details about `trace_impl` will be shown in the next part.
+If a class method use [`trace_impl`](#evox.core.module.trace_impl), it will be only available in the trace mode. More details about `trace_impl` will be shown in the next part.
 ```

@@ -5,6 +5,7 @@
 
 environment
 1-modulebase
+2-jit-vmap-tutorial
 3-custom-alg-pro
 hpo
 ```
