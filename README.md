@@ -36,7 +36,7 @@
 ---
 
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
-<h4 align="center"> Compatible with PyTorch / JAX</h4>
+<h4 align="center">🤝Compatible with PyTorch🤝</h4>
 
 
 ## 🔥 News
