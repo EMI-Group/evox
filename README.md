@@ -87,7 +87,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 | Numerical         | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution/RL | Brax, TorchVision Dataset, ...      |
 
-For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/api/algorithms/index.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
 
 
 ## Quick Installation
