@@ -7,9 +7,9 @@
 </h1>
 
 <p align="center">
-  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">  
+  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">  
+  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
 </p>
@@ -24,15 +24,6 @@
   <a href="https://qm.qq.com/q/vTPvoMUGAw"><img src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq" alt="QQ Group"></a>
 </div>
 
-  <!--[![arXiv](https://img.shields.io/badge/arxiv-2212.05652-red)](https://arxiv.org/abs/2301.12457)-->
-  <!--[![Documentation](https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs)](https://evox.readthedocs.io/)-->
-  <!--[![PyPI-Version](https://img.shields.io/pypi/v/evox?logo=python)](https://pypi.org/project/evox/)-->
-  <!--[![Python-Version](https://img.shields.io/badge/python-3.10+-orange?logo=python)](https://pypi.org/project/evox/)-->
-  <!--[![Discord Server](https://img.shields.io/badge/discord-evox-%235865f2?logo=discord)](https://discord.gg/Vbtgcpy7G4)-->
-  <!--[![QQ Group](https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq)](https://qm.qq.com/q/vTPvoMUGAw)-->
-  <!--[![GitHub User's Stars](https://img.shields.io/github/stars/EMI-Group%2Fevox)](https://github.com/EMI-Group/evox)-->
-  <!--[![PyPI-Downloads](https://img.shields.io/pypi/dm/evox?color=orange&logo=python)](https://pypi.org/project/evox/)-->
-
 ---
 
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
@@ -40,7 +31,7 @@
 
 ## 🔥 News
 
-- [2025-01-13] Released **EvoX 1.0.0** 🎉, now fully compatible with **PyTorch** ! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
+- [2025-01-14] Released **EvoX 1.0.0** 🎉, now fully compatible with **PyTorch** ! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 ## Table of Contents
 
@@ -114,15 +105,15 @@ pip install evox
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
 - **TensorRVEA**: Tensorized Reference Vector Guided Evolutionary Algorithm (RVEA) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorrvea).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
-- **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).  
+- **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).
 
 Stay tuned—more exciting developments are on the way!  ✨
 
 ## Community & Support
 
-- Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).  
-- Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).  
-- Help translate EvoX docs on [Weblate](https://hosted.weblate.org/projects/evox/evox/).  
+- Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
+- Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
+- Help translate EvoX docs on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
   We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
 
 
