@@ -7,8 +7,8 @@
 </h1>
 
 <p align="center">
-  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
-  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
+  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150" style="margin-right: 30px;">
+  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150" style="margin-right: 30px;">
   <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
 </p>
 
