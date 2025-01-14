@@ -228,13 +228,8 @@ def jit(
     no_cache: bool = False,
     return_dummy_output: bool = False,
     debug_manual_seed: int | None = None,
-<<<<<<< HEAD
 ) -> T | UseStateFunc | MappedUseStateFunc:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) or [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
-=======
-) -> T | UseStateFunc | MappedUseStateFunc | Tuple[T, Any]:
-    """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) and [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
->>>>>>> f1cdcd1f51822dfcc7b3971dbfb23e0ce0c86b8b
 
     This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`,
     preventing possible errors.

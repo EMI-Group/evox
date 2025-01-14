@@ -2,14 +2,14 @@
 
 ## Install EvoX
 
-EvoX is available at pypi and can be installed via:
+EvoX is available at PyPI and can be installed via:
 
 ```bash
 # install pytorch first
 # for example:
 pip install torch
 
-# then install evox
+# then install EvoX
 pip install evox
 ```
 
@@ -39,7 +39,7 @@ stateDiagram-v2
     torch --> cpu
 ```
 
-To summarize, whether `evox` has CPU support or Nvidia GPU support (CUDA) or AMD GPU support (ROCm) depends on the installed PyTorch version. Please refere to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
+To summarize, whether `evox` has CPU support or Nvidia GPU support (CUDA) or AMD GPU support (ROCm) depends on the installed PyTorch version. Please refers to the PyTorch official website for more installation help: [`torch`](https://pytorch.org/)
 
 
 ## Nvidia GPU support on Windows
@@ -50,9 +50,9 @@ There are two ways to use PyTorch with GPU acceleration on Windows:
 1. Using WSL 2 (Windows Subsystem for Linux) and install PyTorch on the Linux side.
 2. Directly install PyTorch on Windows.
 
-We also provide a [one-click script]() for fast depolyment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
+We also provide a [one-click script](https://github.com/EMI-Group/evox/blob/main/win-install.bat) for fast deployment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
 
-### Windows WSL 2 (Advanced)
+### Windows WSL 2 (optional)
 
 Download the [latest NVIDIA Windows GPU Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and install it. Then your WSL 2 will support Nvidia GPUs in its Linux environments.
 
