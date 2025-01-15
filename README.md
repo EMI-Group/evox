@@ -60,10 +60,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 
 ## Key Features
 
-<h4 align="center">
-  Computing
-</h4>
-
+### Computing
 ### 🚀 Ultra Performance
 - Achieves over **100x speedups** with GPU acceleration.
 - Integrated **distributed workflows** to scale seamlessly across multiple nodes or devices.
@@ -81,10 +78,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 
 ---
 
-<h4 align="center">
-  Benchmarking
-</h4>
-
+### Benchmarking
 ### 📚 Extensive Benchmark Suites
 - Features **100+ benchmark problems**, including single-objective optimization, multi-objective optimization, and real-world engineering challenges.
 - Incorporates popular test suites for robust algorithm evaluation.
@@ -99,10 +93,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 
 ---
 
-<h4 align="center">
-  Visualization
-</h4>
-
+### Visualization
 ### 🔍 Ready-to-Use Tools
 - Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
 
