@@ -7,11 +7,20 @@
 </h1>
 
 <p align="center">
-  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/pso_result.avif">
+    <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
+  </picture>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/rvea_result.avif">
+    <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
+  </picture>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/halfcheetah_200.avif">
+    <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+  </picture>
 </p>
 
 
