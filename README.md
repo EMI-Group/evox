@@ -34,7 +34,9 @@
 </div>
 
 ---
+
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
+
 ---
 
 
