@@ -60,30 +60,31 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 
 ## Key Features
 
-### 💻 High-performance Computing
+### 💻 High-Performance Computing
 
 #### 🚀 Ultra Performance
-- Achieves over **100x speedups** with GPU acceleration and supports **heterogeneous hardware**, including both **CPUs** and **GPUs**.
-- Integrated **distributed workflows** scale seamlessly across multiple nodes or devices.
+- Supports acceleration on heterogeneous hardware, including both **CPUs** and **GPUs**, achieving over **100x speedups**.
+- Integrates **distributed workflows** that scale seamlessly across multiple nodes or devices.
 
 #### 🌐 All-in-One Solution
-- Includes **50+ algorithms** for a wide range of use cases, with full support for **single-objective** and **multi-objective optimization**.
-- Offers advanced tools for **reinforcement learning** and **neuroevolution**.
+- Includes **50+ algorithms** for a wide range of use cases, fully supporting **single- and multi-objective optimization**.
+- Provides a **hierarchical architecture** for complex tasks such as **meta learning**, **hyperparameter optimization**, and **neuroevolution**.
 
 #### 🛠️ Easy-to-Use Design
-- Fully compatible with **PyTorch** and its ecosystem, simplifying algorithmic development through a **tailored programming model**.
+- Fully compatible with **PyTorch** and its ecosystem, simplifying algorithmic development with a **tailored programming model**.
 - Ensures effortless setup with **one-click installation** for Windows users.
+
 
 ### 📊 Versatile Benchmarking
 
 #### 📚 Extensive Benchmark Suites
-- Features **100+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges, while incorporating popular test suites for robust algorithm evaluation.
+- Features **100+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges.
 
 #### 🎮 Support for Physics Engines
-- Integrates seamlessly with physics engines like **Brax** and other popular frameworks, enabling neuroevolution to optimize policies in dynamic reinforcement learning environments.
+- Integrates seamlessly with physics engines like **Brax** and other popular frameworks for reinforcement learning.
 
 #### ⚙️ Customizable Problems
-- Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs, with seamless integration into real-world applications and datasets for practical algorithm assessments.
+- Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs, with seamless integration into real-world applications and datasets.
 
 
 ### 📈 Flexible Visualization
@@ -92,10 +93,11 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 - Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
 
 #### 🛠️ Customizable Modules
-- Enables users to integrate their own **visualization code** for tailored and flexible visualizations for specific needs.
+- Enables users to integrate their own **visualization code**, allowing for tailored and flexible visualizations.
 
-#### 📂 Real-time Data Streaming
+#### 📂 Real-Time Data Streaming
 - Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
+
 
 
 ## Main Contents
