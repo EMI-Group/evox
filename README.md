@@ -75,7 +75,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 - Fully compatible with **PyTorch** and its ecosystem for seamless integration.
 - Simplifies algorithmic development using a **tailored programming model**.
 - Ensures effortless setup with **one-click installation** for Windows users.
-- 
+  
 ### Benchmarking
 ### 📚 Extensive Benchmark Suites
 - Features **100+ benchmark problems**, including single-objective optimization, multi-objective optimization, and real-world engineering challenges.
