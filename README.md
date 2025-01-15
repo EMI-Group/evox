@@ -63,18 +63,15 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 ### 💻 High-performance Computing
 
 #### 🚀 Ultra Performance
-- Achieves over **100x speedups** with GPU acceleration.
-- Integrated **distributed workflows** to scale seamlessly across multiple nodes or devices.
-- Supports heterogeneous hardware, including both **CPUs** and **GPUs**.
+- Achieves over **100x speedups** with GPU acceleration and supports **heterogeneous hardware**, including both **CPUs** and **GPUs**.
+- Integrated **distributed workflows** scale seamlessly across multiple nodes or devices.
 
 #### 🌐 All-in-One Solution
-- Includes **50+ algorithms** for a wide range of use cases.
-- Fully supports **single-objective** and **multi-objective optimization**.
-- Offers advanced tools for **reinforcement learning** and **neuroevolution** tasks.
+- Includes **50+ algorithms** for a wide range of use cases, with full support for **single-objective** and **multi-objective optimization**.
+- Offers advanced tools for **reinforcement learning** and **neuroevolution**.
 
 #### 🛠️ Easy-to-Use Design
-- Fully compatible with **PyTorch** and its ecosystem for seamless integration.
-- Simplifies algorithmic development using a **tailored programming model**.
+- Fully compatible with **PyTorch** and its ecosystem, simplifying algorithmic development through a **tailored programming model**.
 - Ensures effortless setup with **one-click installation** for Windows users.
 
 ### 📊 Versatile Benchmarking
@@ -95,7 +92,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 - Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
 
 #### 🛠️ Customizable Modules
-- Enables users to integrate their own **visualization code**, supporting tailored and flexible visualizations for specific needs.
+- Enables users to integrate their own **visualization code** for tailored and flexible visualizations for specific needs.
 
 #### 📂 Real-time Data Streaming
 - Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
