@@ -83,7 +83,7 @@ if /i "!use_cpu!"=="Y" (
 ) else (
     pip install torch --index-url https://download.pytorch.org/whl/cu124
 )
-pip install "evox[vis]>=1.0.0"
+pip install "evox[vis]>=1.0.0" torchvision
 REM Download some demo
 mkdir %UserProfile%\evox-demo
 git clone --depth 1 https://github.com/EMI-Group/evox.git %UserProfile%\evox-demo\evox
