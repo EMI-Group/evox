@@ -136,7 +136,7 @@ Install `evox` effortlessly via `pip`:
 pip install evox
 ```
 
-**Note**: Windows users can use the [`win-install.bat`](https://github.com/EMI-Group/evox/blob/evoxtorch-main/win-install.bat) script for installation.
+**Note**: Windows users can use the <a href="https://raw.githubusercontent.com/EMI-Group/evox/refs/tags/latest-release/win-install.bat" download="win-install.bat">win-install</a> script for installation.
 
 ## Sister Projects
 
