@@ -108,7 +108,9 @@ class JaDE(Algorithm):
 
         # 2) Mutation: Generate difference vectors and create mutant vectors
         num_vec = self.num_difference_vectors * 2 + 1
-        random_choices = [torch.randperm(self.pop_size, device=device) for _ in range(num_vec)]
+        random_choices = []
+        for _ in range(num_vec):
+            random_choices.append(torch.randint(0, self.pop_size, (self.pop_size,), device=device))
 
         difference_vectors = torch.stack(
             [self.population[random_choices[i]] - self.population[random_choices[i + 1]] for i in range(1, num_vec - 1, 2)]

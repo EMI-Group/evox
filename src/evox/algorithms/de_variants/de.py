@@ -121,7 +121,7 @@ class DE(Algorithm):
         # TODO: Currently allows replacement for different vectors, which is not equivalent to the original implementation
         # TODO: Consider changing to an implementation based on reservoir sampling (e.g., https://github.com/LeviViana/torch_sampling) in the future
         for _ in range(num_vec):
-            random_choices.append(torch.randperm(self.pop_size, device=device))
+            random_choices.append(torch.randint(0, self.pop_size, (self.pop_size,), device=device))
 
         # Determine the base vector
         if self.best_vector:
