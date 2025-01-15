@@ -77,13 +77,13 @@ if %ERRORLEVEL%==0 (
 )
 call mamba create -n evox-zoo python=3.10 -y
 call mamba activate evox-zoo
-pip install numpy jupyterlab
+pip install numpy jupyterlab nbformat
 if /i "!use_cpu!"=="Y" (
     pip install torch
 ) else (
     pip install torch --index-url https://download.pytorch.org/whl/cu124
 )
-pip install "evox>=1.0.0"
+pip install "evox[vis]>=1.0.0"
 REM Download some demo
 mkdir %UserProfile%\evox-demo
 git clone --depth 1 https://github.com/EMI-Group/evox.git %UserProfile%\evox-demo\evox
