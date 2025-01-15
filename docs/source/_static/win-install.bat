@@ -83,12 +83,11 @@ if /i "!use_cpu!"=="Y" (
 ) else (
     pip install torch --index-url https://download.pytorch.org/whl/cu124
 )
-pip install "evox>=1.0.0a1"
+pip install "evox>=1.0.0"
 REM Download some demo
 mkdir %UserProfile%\evox-demo
-@REM curl -L -o %UserProfile%\evox-demo\custom_algo_prob.ipynb https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/evoxtorch-main/docs/source/example/custom_algo_prob.ipynb
 git clone --depth 1 https://github.com/EMI-Group/evox.git %UserProfile%\evox-demo\evox
-xcopy %UserProfile%\evox-demo\evox\docs\source\example\custom_algo_prob.ipynb %UserProfile%\evox-demo /E /I /Y
+xcopy %UserProfile%\evox-demo\evox\docs\source\example\ %UserProfile%\evox-demo /E /I /Y
 start code %UserProfile%\evox-demo
 
 echo Reboot is highly recommended to apply the changes.
