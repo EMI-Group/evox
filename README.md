@@ -77,8 +77,6 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 - Simplifies algorithmic development using a **tailored programming model**.
 - Ensures effortless setup with **one-click installation** for Windows users.
 
----
-
 ### Benchmarking
 
 #### 📚 Extensive Benchmark Suites
@@ -92,8 +90,6 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 #### ⚙️ Customizable Problems
 - Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs.
 - Supports seamless integration into real-world applications and datasets for practical algorithm assessments.
-
----
 
 ### Visualization
 
