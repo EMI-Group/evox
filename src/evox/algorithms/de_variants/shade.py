@@ -53,9 +53,9 @@ class SHADE(Algorithm):
         self.diff_padding_num = diff_padding_num
         # setup
         self.best_index = Mutable(torch.tensor(0, device=device))
-        self.Memory_FCR = Mutable(torch.full((2, 100), fill_value=0.5, device=device))
+        self.Memory_FCR = Mutable(torch.full((2, pop_size), fill_value=0.5, device=device))
         self.population = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
-        self.fitness = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
+        self.fitness = Mutable(torch.full((pop_size,), fill_value=torch.inf, device=device))
 
     def step(self):
         """
