@@ -61,46 +61,50 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 ## Key Features
 
 ### Computing
-### 🚀 Ultra Performance
+
+#### 🚀 Ultra Performance
 - Achieves over **100x speedups** with GPU acceleration.
 - Integrated **distributed workflows** to scale seamlessly across multiple nodes or devices.
 - Supports heterogeneous hardware, including both **CPUs** and **GPUs**.
 
-### 🌐 All-in-One Solution
+#### 🌐 All-in-One Solution
 - Includes **50+ algorithms** for a wide range of use cases.
 - Fully supports **single-objective** and **multi-objective optimization**.
 - Offers advanced tools for **reinforcement learning** and **neuroevolution** tasks.
 
-### 🛠️ Easy-to-Use Design
+#### 🛠️ Easy-to-Use Design
 - Fully compatible with **PyTorch** and its ecosystem for seamless integration.
 - Simplifies algorithmic development using a **tailored programming model**.
 - Ensures effortless setup with **one-click installation** for Windows users.
-  
+
+---
+
 ### Benchmarking
-### 📚 Extensive Benchmark Suites
+
+#### 📚 Extensive Benchmark Suites
 - Features **100+ benchmark problems**, including single-objective optimization, multi-objective optimization, and real-world engineering challenges.
 - Incorporates popular test suites for robust algorithm evaluation.
 
-### 🎮 Support for Physics Engines
+#### 🎮 Support for Physics Engines
 - Integrates seamlessly with physics engines like **Brax** and other popular frameworks.
 - Enables neuroevolution to optimize policies in dynamic reinforcement learning environments.
 
-### ⚙️ Customizable Problems
+#### ⚙️ Customizable Problems
 - Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs.
 - Supports seamless integration into real-world applications and datasets for practical algorithm assessments.
 
-### Visualization
-### 🔍 Ready-to-Use Tools
-- Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
-
-### 🛠️ Customizable Modules
-- Enables users to integrate their own **visualization code**, supporting tailored and flexible visualizations for specific needs.
-
-### 📂 Real-time Data Streaming
-- Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
- 
 ---
 
+### Visualization
+
+#### 🔍 Ready-to-Use Tools
+- Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
+
+#### 🛠️ Customizable Modules
+- Enables users to integrate their own **visualization code**, supporting tailored and flexible visualizations for specific needs.
+
+#### 📂 Real-time Data Streaming
+- Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
 
 
 ## Main Contents
