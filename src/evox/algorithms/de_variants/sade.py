@@ -137,8 +137,8 @@ class SaDE(Algorithm):
         current_vec = self.population[indices]
         vector_merge = torch.stack([rand_vec, best_vec, pbest_vec, current_vec])
 
-        base_vector_prim = torch.zeros(self.pop_size, 4, device=device)
-        base_vector_sec = torch.zeros(self.pop_size, 4, device=device)
+        base_vector_prim = torch.zeros(self.pop_size, self.dim, device=device)
+        base_vector_sec = torch.zeros(self.pop_size, self.dim, device=device)
 
         for i in range(4):
             base_vector_prim = torch.where(base_vec_prim_type.unsqueeze(1) == i, vector_merge[i], base_vector_prim)
