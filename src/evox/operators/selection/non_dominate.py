@@ -213,9 +213,9 @@ def non_dominate(population, fitness, topk, deduplicate):
     order = jnp.argsort(rank)
     worst_rank = rank[order[topk - 1]]
     mask = rank == worst_rank
-    crowding_distance = crowding_distance_sort(fitness, mask)
+    crowding_dis = crowding_distance(fitness, mask)
 
-    combined_order = jnp.lexsort((-crowding_distance, rank))[:topk]
+    combined_order = jnp.lexsort((-crowding_dis, rank))[:topk]
     if deduplicate:
         return population[combined_order], fitness_bak[combined_order]
     else:
