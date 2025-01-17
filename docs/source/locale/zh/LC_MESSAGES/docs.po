@@ -27,11 +27,11 @@ msgstr "{py:mod}`evox`"
 #: ../../source/apidocs/evox/evox.operators.md:10
 #: ../../source/apidocs/evox/evox.problems.md:10
 msgid "Subpackages"
-msgstr ""
+msgstr "子包"
 
 #: ../../source/apidocs/evox/evox.algorithms.md:1
 msgid "{py:mod}`evox.algorithms`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:24
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.md:31
@@ -49,7 +49,7 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.utils.md:21
 #: ../../source/apidocs/evox/evox.workflows.md:20
 msgid "Package Contents"
-msgstr ""
+msgstr "软件包内容"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:24
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:26
@@ -76,11 +76,11 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.utils.md:23
 #: ../../source/apidocs/evox/evox.workflows.md:22
 msgid "Data"
-msgstr ""
+msgstr "数据"
 
 #: ../../source/apidocs/evox/evox.algorithms.md:30
 msgid "{py:obj}`__all__ <evox.algorithms.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:52
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:24
@@ -160,17 +160,19 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.workflows.md:34
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:26
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #: ../../source/apidocs/evox/evox.algorithms.md:42
 msgid ""
 "['DE', 'SHADE', 'CoDE', 'SaDE', 'ODE', 'JaDE', 'OpenES', 'XNES', "
 "'SeparableNES', 'DES', 'SNES', 'ARS..."
 msgstr ""
+"['DE', 'SHADE', 'CoDE', 'SaDE', 'ODE', 'JaDE', 'OpenES', 'XNES', "
+"'SeparableNES', 'DES', 'SNES', 'ARS..."
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:1
 msgid "{py:mod}`evox.algorithms.de_variants`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:10
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.md:10
@@ -194,15 +196,15 @@ msgstr "模块类"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:32
 msgid "{py:obj}`__all__ <evox.algorithms.de_variants.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.algorithms.de_variants.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:44
 msgid "['DE', 'CoDE', 'JaDE', 'ODE', 'SaDE', 'SHADE']"
-msgstr ""
+msgstr "['DE', 'CoDE', 'JaDE', 'ODE', 'SaDE', 'SHADE']"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.code`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.code`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:10
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:10
@@ -318,21 +320,21 @@ msgstr "核心类"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:18
 msgid "{py:obj}`CoDE <evox.algorithms.de_variants.code.CoDE>`"
-msgstr ""
+msgstr "{py:obj}`CoDE <evox.algorithms.de_variants.code.CoDE>`"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:20
 #: ../../../src/evox/algorithms/de_variants/code.py:111
 #, fuzzy
 msgid "The implementation of CoDE algorithm."
-msgstr "算法。"
+msgstr "CoDE算法实现"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:30
 msgid "{py:obj}`rand_1_bin <evox.algorithms.de_variants.code.rand_1_bin>`"
-msgstr ""
+msgstr "{py:obj}`rand_1_bin <evox.algorithms.de_variants.code.rand_1_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:34
 msgid "{py:obj}`rand_2_bin <evox.algorithms.de_variants.code.rand_2_bin>`"
-msgstr ""
+msgstr "{py:obj}`rand_2_bin <evox.algorithms.de_variants.code.rand_2_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:38
 msgid ""
@@ -561,7 +563,7 @@ msgstr "参数"
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:41
 #, fuzzy
 msgid "The size of the population."
-msgstr "种群。"
+msgstr "种群大小。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:120
 #: ../../../src/evox/algorithms/de_variants/de.py:42
@@ -605,7 +607,7 @@ msgstr ""
 #: ../../../src/evox/algorithms/de_variants/code.py:124
 #, fuzzy
 msgid "Perform one iteration of the CoDE algorithm."
-msgstr "算法的新状态"
+msgstr "执行CoDE算法的一次迭代。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:126
 msgid "This step is composed of the following steps:"
