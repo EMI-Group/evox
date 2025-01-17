@@ -2022,11 +2022,10 @@ msgid ""
 "\"A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II,\" IEEE "
 "Transactions on Evolutionary Computation. `Link "
 "<https://ieeexplore.ieee.org/document/996017>`_"
-msgid ""
+msgstr ""
 "\"A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II,\" IEEE "
 "Transactions on Evolutionary Computation. `Link "
 "<https://ieeexplore.ieee.org/document/996017>`_"
-msgstr ""
 
 #: ../../../src/evox/algorithms/mo/nsga2.py:39
 #, fuzzy
