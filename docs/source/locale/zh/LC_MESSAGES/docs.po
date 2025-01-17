@@ -340,41 +340,45 @@ msgstr "{py:obj}`rand_2_bin <evox.algorithms.de_variants.code.rand_2_bin>`"
 msgid ""
 "{py:obj}`current2rand_1 <evox.algorithms.de_variants.code.current2rand_1>`"
 msgstr ""
+"{py:obj}`current2rand_1 <evox.algorithms.de_variants.code.current2rand_1>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:42
 msgid ""
 "{py:obj}`rand2best_2_bin <evox.algorithms.de_variants.code.rand2best_2_bin>`"
 msgstr ""
+"{py:obj}`rand2best_2_bin <evox.algorithms.de_variants.code.rand2best_2_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:46
 msgid ""
 "{py:obj}`current2pbest_1_bin "
 "<evox.algorithms.de_variants.code.current2pbest_1_bin>`"
 msgstr ""
+"{py:obj}`current2pbest_1_bin "
+"<evox.algorithms.de_variants.code.current2pbest_1_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:58
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:54
 msgid "[0, 0, 1, 0]"
-msgstr ""
+msgstr "[0, 0, 1, 0]"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:68
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:64
 msgid "[0, 0, 2, 0]"
-msgstr ""
+msgstr "[0, 0, 2, 0]"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:78
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:84
 msgid "[0, 0, 1, 2]"
-msgstr ""
+msgstr "[0, 0, 1, 2]"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:88
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:74
 msgid "[0, 1, 2, 0]"
-msgstr ""
+msgstr "[0, 1, 2, 0]"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:98
 msgid "[3, 2, 1, 0]"
-msgstr ""
+msgstr "[3, 2, 1, 0]"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:108
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:30
@@ -405,7 +409,7 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_gs.md:30
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_us.md:30
 msgid "Bases: {py:obj}`evox.core.Algorithm`"
-msgstr ""
+msgstr "基础: {py:obj}`evox.core.Algorithm`"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:113
 msgid ""
@@ -413,6 +417,8 @@ msgid ""
 "trial vector generation strategies and control parameters[J]. IEEE "
 "transactions on evolutionary computation, 2011, 15(1): 55-66."
 msgstr ""
+"参考文献: Wang Y, Cai Z, Zhang Q. 使用复合试验向量生成策略和控制参数的差分进化[J]. IEEE 进化计算交易, 2011, "
+"15(1): 55-66."
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:113
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:35
@@ -571,7 +577,7 @@ msgstr "种群大小。"
 #: ../../../src/evox/algorithms/de_variants/sade.py:106
 #: ../../../src/evox/algorithms/de_variants/shade.py:42
 msgid "The lower bounds of the search space. Must be a 1D tensor."
-msgstr ""
+msgstr "搜索空间的下界。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:121
 #: ../../../src/evox/algorithms/de_variants/de.py:43
@@ -579,7 +585,7 @@ msgstr ""
 #: ../../../src/evox/algorithms/de_variants/sade.py:107
 #: ../../../src/evox/algorithms/de_variants/shade.py:43
 msgid "The upper bounds of the search space. Must be a 1D tensor."
-msgstr ""
+msgstr "搜索空间的上界。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:122
 #, fuzzy
@@ -590,19 +596,19 @@ msgstr "运行的最大的时间步的数量。"
 msgid ""
 "A tensor of control parameter pairs for the algorithm. Defaults to a "
 "predefined tensor."
-msgstr ""
+msgstr "算法的控制参数对的张量。默认为预定义的张量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:124
 msgid ""
 "A boolean indicating whether to replace individuals in the population. "
 "Defaults to False."
-msgstr ""
+msgstr "一个布尔值，指示是否替换种群中的个体。默认为 False。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:125
 #: ../../../src/evox/algorithms/de_variants/de.py:50
 #: ../../../src/evox/algorithms/de_variants/ode.py:50
 msgid "The device to use for tensor computations. Defaults to None."
-msgstr ""
+msgstr "用于张量计算的设备。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:124
 #, fuzzy
@@ -611,19 +617,19 @@ msgstr "执行CoDE算法的一次迭代。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:126
 msgid "This step is composed of the following steps:"
-msgstr ""
+msgstr "此步骤由以下步骤组成："
 
 #: ../../../src/evox/algorithms/de_variants/code.py:127
 msgid "Generate trial vectors using the differential sum."
-msgstr ""
+msgstr "使用微分和生成试验向量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:128
 msgid "Apply crossover to generate a new vector."
-msgstr ""
+msgstr "应用交叉生成一个新向量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:129
 msgid "Apply mutation to generate a new vector."
-msgstr ""
+msgstr "应用变异以生成新向量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:130
 #, fuzzy
@@ -632,16 +638,16 @@ msgstr "给出用于评估的候选种群。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.de`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.de`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:18
 msgid "{py:obj}`DE <evox.algorithms.de_variants.de.DE>`"
-msgstr ""
+msgstr "{py:obj}`DE <evox.algorithms.de_variants.de.DE>`"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:20
 #: ../../../src/evox/algorithms/de_variants/de.py:33
 msgid "Differential Evolution (DE) algorithm for optimization."
-msgstr ""
+msgstr "差分进化（DE）算法用于优化。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:35
 msgid ""
@@ -649,13 +655,15 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/de.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/de_variants/de.py:35: (INFO/1)"
+" 重复的隐式目标名称：“类方法”。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:37
 msgid ""
 "`__init__`: Initializes the DE algorithm with the given parameters, "
 "including population size, bounds, mutation strategy, and other "
 "hyperparameters."
-msgstr ""
+msgstr "`__init__`: 使用给定的参数初始化 DE 算法，包括种群大小、边界、变异策略和其他超参数。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:38
 #: ../../../src/evox/algorithms/de_variants/jade.py:38
@@ -663,13 +671,13 @@ msgstr ""
 msgid ""
 "`init_step`: Performs the initial evaluation of the population's fitness and"
 " proceeds to the first optimization step."
-msgstr ""
+msgstr "`init_step`: 执行种群适应度的初始评估，并进入第一次优化步骤。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:39
 msgid ""
 "`step`: Executes a single optimization step of the DE algorithm, involving "
 "mutation, crossover, and selection processes."
-msgstr ""
+msgstr "`step`：执行DE算法的单个优化步骤，包括变异、交叉和选择过程。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:41
 #: ../../../src/evox/algorithms/de_variants/jade.py:41
@@ -677,7 +685,7 @@ msgstr ""
 msgid ""
 "Note that the `evaluate` method is not defined in this class. It is expected"
 " to be provided by the `Problem` class or another external component."
-msgstr ""
+msgstr "请注意，`evaluate` 方法在这个类中未定义。它预计由 `Problem` 类或其他外部组件提供。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:39
 #, fuzzy
@@ -698,17 +706,17 @@ msgstr "状态之中对应种群变量的变量名。默认是“population”�
 msgid ""
 "The number of difference vectors used in mutation. Must be at least 1 and "
 "less than half of the population size. Defaults to 1."
-msgstr ""
+msgstr "在变异中使用的差异向量的数量。必须至少为 1 且小于种群大小的一半。默认为 1。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:46
 msgid ""
 "The differential weight(s) (F) applied to difference vectors. Can be a float"
 " or a tensor. Defaults to 0.5."
-msgstr ""
+msgstr "施加于差异向量的差异权重 (F)。可以是浮点数或张量。默认为 0.5。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:47
 msgid "The crossover probability (CR). Defaults to 0.9."
-msgstr ""
+msgstr "交叉概率（CR）。默认为 0.9。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:48
 #: ../../../src/evox/algorithms/de_variants/jade.py:45
@@ -723,7 +731,7 @@ msgstr "状态之中对应种群变量的变量名。默认是“population”�
 msgid ""
 "The standard deviation for initializing the population with a normal "
 "distribution. Defaults to None."
-msgstr ""
+msgstr "用于用正态分布初始化种群的标准差。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:46
 #: ../../../src/evox/algorithms/de_variants/jade.py:46
@@ -731,7 +739,7 @@ msgstr ""
 msgid ""
 "Perform the initial evaluation of the population's fitness and proceed to "
 "the first optimization step."
-msgstr ""
+msgstr "执行种群适应度的初步评估，并进入第一个优化步骤。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:48
 #: ../../../src/evox/algorithms/de_variants/jade.py:48
@@ -739,7 +747,7 @@ msgstr ""
 msgid ""
 "This method evaluates the fitness of the initial population and then calls "
 "the `step` method to perform the first optimization iteration."
-msgstr ""
+msgstr "此方法评估初始种群的适应度，然后调用 `step` 方法进行第一次优化迭代。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:54
 #, fuzzy
@@ -752,7 +760,7 @@ msgstr "算法的新状态"
 #: ../../../src/evox/algorithms/de_variants/sade.py:128
 #: ../../../src/evox/algorithms/de_variants/shade.py:48
 msgid "This involves the following sub-steps:"
-msgstr ""
+msgstr "这涉及以下子步骤："
 
 #: ../../../src/evox/algorithms/de_variants/de.py:57
 #: ../../../src/evox/algorithms/de_variants/ode.py:57
@@ -760,13 +768,14 @@ msgid ""
 "Mutation: Generate mutant vectors based on the specified base vector "
 "strategy (`best` or `rand`) and the number of difference vectors."
 msgstr ""
+"Mutation: 生成基准向量策略 (`best` 或 `rand`) 和差异向量数量的基础上，根据这些信息生成变异向量"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:58
 #: ../../../src/evox/algorithms/de_variants/ode.py:58
 msgid ""
 "Crossover: Perform crossover between the current population and the mutant "
 "vectors based on the crossover probability."
-msgstr ""
+msgstr "交叉：根据交叉概率，在当前种群和变异向量之间执行交叉。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:59
 #: ../../../src/evox/algorithms/de_variants/jade.py:59
@@ -774,7 +783,7 @@ msgstr ""
 msgid ""
 "Selection: Evaluate the fitness of the new population and select the better "
 "individuals between the current and new populations."
-msgstr ""
+msgstr "选择：评估新种群的适应度，并在当前种群和新种群之间选择更优的个体。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:61
 #: ../../../src/evox/algorithms/de_variants/ode.py:62
@@ -782,19 +791,20 @@ msgid ""
 "The method ensures that all new population vectors are clamped within the "
 "specified bounds."
 msgstr ""
+"这个方法确保新种群向量都会被截断在指定范围内。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.jade.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.jade`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.jade`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.jade.md:18
 msgid "{py:obj}`JaDE <evox.algorithms.de_variants.jade.JaDE>`"
-msgstr ""
+msgstr "{py:obj}`JaDE <evox.algorithms.de_variants.jade.JaDE>`"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:20
 #: ../../../src/evox/algorithms/de_variants/jade.py:33
 msgid "Adaptive Differential Evolution (JaDE) algorithm for optimization."
-msgstr ""
+msgstr "自适应差分进化算法 JaDE，用于优化任务。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:35
 msgid ""
@@ -802,23 +812,25 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/jade.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/de_variants/jade.py:35: "
+"(INFO/1) 重复的隐式目标名称：“class methods”。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:37
 msgid ""
 "`__init__`: Initializes the JaDE algorithm with the given parameters, "
 "including population size, bounds, mutation strategy, and other "
 "hyperparameters."
-msgstr ""
+msgstr "`__init__`：用给定的参数初始化 JaDE 算法，包括种群大小、边界、变异策略和其他超参数。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:39
 msgid ""
 "`step`: Executes a single optimization step of the JaDE algorithm, involving"
 " mutation, crossover, selection, and adaptation of strategy parameters."
-msgstr ""
+msgstr "`step`: 执行 JaDE 算法的单个优化步骤，涉及突变、交叉、选择和策略参数的适应性。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:39
 msgid "Initialize the JaDE algorithm with the given parameters."
-msgstr ""
+msgstr "根据给定的参数初始化 JaDE 算法。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:47
 #: ../../../src/evox/algorithms/de_variants/sade.py:110
@@ -826,13 +838,13 @@ msgstr ""
 msgid ""
 "The device to use for tensor computations (e.g., \"cpu\" or \"cuda\"). "
 "Defaults to None."
-msgstr ""
+msgstr "用于张量计算的设备（例如，“cpu”或“cuda”）。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:48
 msgid ""
 "The learning rate for updating the adaptive parameters F_u and CR_u. "
 "Defaults to 0.1."
-msgstr ""
+msgstr "自适应参数 F_u 和 CR_u 更新的学习率。默认值为 0.1。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:54
 #, fuzzy
@@ -843,19 +855,20 @@ msgstr "创建一个基础算法的列表。"
 msgid ""
 "Mutation: Generate mutant vectors by combining difference vectors and "
 "adapting the mutation factor F."
-msgstr ""
+msgstr "变异：通过结合差异向量并调整变异因子 F 来生成突变向量。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:58
 msgid ""
 "Crossover: Perform crossover between the current population and the mutant "
 "vectors based on the crossover probability CR."
-msgstr ""
+msgstr "交叉：根据交叉概率 CR 在当前种群和变异向量之间执行交叉。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:60
 msgid ""
 "Adaptation: Update the adaptive parameters F_u and CR_u based on the "
 "successful mutations."
 msgstr ""
+"自适应参数的更新：根据成功的突变来更新参数F_u和CR_u。"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:62
 #, fuzzy
@@ -866,7 +879,7 @@ msgstr "给出用于评估的候选种群。"
 msgid ""
 "Fraction of the population to consider as top-p best. Must be between 0 and "
 "1."
-msgstr ""
+msgstr "考虑为 top-p 最佳的群体比例。必须在 0 和 1 之间。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.jade.md
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.utils.md
@@ -901,21 +914,21 @@ msgstr "返回值"
 
 #: ../../../src/evox/algorithms/de_variants/jade.py:65
 msgid "A tensor containing selected p-best vectors."
-msgstr ""
+msgstr "包含选定的 p-best 向量的张量。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.ode.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.ode`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.ode`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.ode.md:18
 msgid "{py:obj}`ODE <evox.algorithms.de_variants.ode.ODE>`"
-msgstr ""
+msgstr "{py:obj}`ODE <evox.algorithms.de_variants.ode.ODE>`"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:20
 #: ../../../src/evox/algorithms/de_variants/ode.py:33
 msgid ""
 "Opposition-based Differential Evolution (ODE) algorithm for optimization."
-msgstr ""
+msgstr "反对基差差分进化 (ODE) 算法用于优化。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:35
 msgid ""
@@ -923,25 +936,27 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/ode.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/de_variants/ode.py:35: "
+"(INFO/1) 重复的隐式目标名称：“class methods”。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:37
 msgid ""
 "`__init__`: Initializes the ODE algorithm with the given parameters, "
 "including population size, bounds, mutation strategy, and other "
 "hyperparameters."
-msgstr ""
+msgstr "`__init__`：使用给定的参数初始化 ODE 算法，包括种群大小、边界、变异策略和其他超参数。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:39
 msgid ""
 "`step`: Executes a single optimization step of the ODE algorithm, involving "
 "mutation, crossover, selection, and opposition-based mechanisms."
-msgstr ""
+msgstr "`step`: 执行ODE算法的单个优化步骤，包括变异、交叉、选择和基于对抗的机制。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:39
 msgid ""
 "Initialize the Opposition-based Differential Evolution (ODE) algorithm with "
 "the given parameters."
-msgstr ""
+msgstr "使用给定的参数初始化基于对抗的差分进化（ODE）算法。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:42
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:42
@@ -952,7 +967,7 @@ msgstr ""
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:42
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:42
 msgid "The lower bounds of the particle positions. Must be a 1D tensor."
-msgstr ""
+msgstr "粒子位置的下界。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:43
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:43
@@ -963,29 +978,29 @@ msgstr ""
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:43
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:43
 msgid "The upper bounds of the particle positions. Must be a 1D tensor."
-msgstr ""
+msgstr "粒子位置的上界。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:46
 msgid ""
 "The differential weight(s) (F) applied to difference vectors. Can be a float"
 " or a tensor of shape [num_difference_vectors]. Defaults to 0.5."
-msgstr ""
+msgstr "应用于差异向量的差异权重 (F)。可以是一个浮点数或形状为 [num_difference_vectors] 的张量。默认值为 0.5。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:47
 msgid "The crossover probability (CR). Must be in (0, 1]. Defaults to 0.9."
-msgstr ""
+msgstr "交叉概率（CR）。必须在（0，1]之间。默认值为0.9。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:48
 msgid ""
 "The mean for initializing the population with a normal distribution. Must be"
 " provided with stdev if used. Defaults to None."
-msgstr ""
+msgstr "用于通过正态分布初始化种群的均值。如果使用，则必须提供标准差（stdev）。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:49
 msgid ""
 "The standard deviation for initializing the population with a normal "
 "distribution. Must be provided with mean if used. Defaults to None."
-msgstr ""
+msgstr "用于通过正态分布初始化种群的标准差。若使用，则必须提供均值。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:54
 #, fuzzy
@@ -997,15 +1012,15 @@ msgid ""
 "Opposition-Based Mechanism: Generate opposition-based population, evaluate "
 "their fitness, and perform selection to potentially replace current "
 "individuals with their opposites if they are better."
-msgstr ""
+msgstr "对立机制：生成对立种群，评估它们的适应度，并进行选择，以便在它们更好的情况下，潜在地用它们的对立个体替换当前个体。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.sade`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.sade`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:18
 msgid "{py:obj}`SaDE <evox.algorithms.de_variants.sade.SaDE>`"
-msgstr ""
+msgstr "{py:obj}`SaDE <evox.algorithms.de_variants.sade.SaDE>`"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:20
 #: ../../../src/evox/algorithms/de_variants/sade.py:97
@@ -1015,21 +1030,22 @@ msgstr "算法的新状态"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:30
 msgid "{py:obj}`rand_1_bin <evox.algorithms.de_variants.sade.rand_1_bin>`"
-msgstr ""
+msgstr "{py:obj}`rand_1_bin <evox.algorithms.de_variants.sade.rand_1_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:34
 msgid "{py:obj}`rand_2_bin <evox.algorithms.de_variants.sade.rand_2_bin>`"
-msgstr ""
+msgstr "{py:obj}`rand_2_bin <evox.algorithms.de_variants.sade.rand_2_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:38
 msgid ""
 "{py:obj}`rand2best_2_bin <evox.algorithms.de_variants.sade.rand2best_2_bin>`"
 msgstr ""
+"{py:obj}`rand2best_2_bin <evox.algorithms.de_variants.sade.rand2best_2_bin>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.sade.md:42
 msgid ""
 "{py:obj}`current2rand_1 <evox.algorithms.de_variants.sade.current2rand_1>`"
-msgstr ""
+msgstr "**当前随机1 <evox.algorithms.de_variants.sade.current2rand_1>**"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:99
 msgid ""
@@ -1037,6 +1053,9 @@ msgid ""
 "algorithm with strategy adaptation for global numerical optimization[J]. "
 "IEEE transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 msgstr ""
+"参考：Qin A K, Huang V L, Suganthan P N. Differential evolution "
+"algorithm with strategy adaptation for global numerical optimization[J]. "
+"IEEE transactions on Evolutionary Computation, 2008, 13(2): 398-417."
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:103
 #, fuzzy
@@ -1061,7 +1080,7 @@ msgstr "创建一个基础算法的列表。"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:129
 msgid "Generate new population using differential evolution."
-msgstr ""
+msgstr "使用差分进化生成新种群。"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:130
 #, fuzzy
@@ -1070,23 +1089,23 @@ msgstr "评估给定候选解的适应度。"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:131
 msgid "Update the best individual and best fitness."
-msgstr ""
+msgstr "更新最佳个体和最佳适应度。"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:132
 msgid "Update the success and failure memory."
-msgstr ""
+msgstr "更新成功和失败的记忆。"
 
 #: ../../../src/evox/algorithms/de_variants/sade.py:133
 msgid "Update the CR memory."
-msgstr ""
+msgstr "更新 CR 内存。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.shade.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.shade`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.de_variants.shade`"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.shade.md:18
 msgid "{py:obj}`SHADE <evox.algorithms.de_variants.shade.SHADE>`"
-msgstr ""
+msgstr "{py:obj}`SHADE <evox.algorithms.de_variants.shade.SHADE>`"
 
 #: ../../../src/evox/algorithms/de_variants/shade.py:20
 #: ../../../src/evox/algorithms/de_variants/shade.py:33
@@ -1100,6 +1119,8 @@ msgid ""
 "for differential evolution[C]//2013 IEEE congress on evolutionary "
 "computation. IEEE, 2013: 71-78."
 msgstr ""
+"参考文献: "
+"Tanabe R, Fukunaga A. Success-history based parameter adaptation for differential evolution[C]//2013 IEEE congress on evolutionary computation. IEEE, 2013: 71-78."
 
 #: ../../../src/evox/algorithms/de_variants/shade.py:39
 #, fuzzy
@@ -1113,7 +1134,7 @@ msgstr "算法的新状态"
 
 #: ../../../src/evox/algorithms/de_variants/shade.py:49
 msgid "Generate trial vectors using the SHADE algorithm."
-msgstr ""
+msgstr "使用SHADE算法生成试验向量。"
 
 #: ../../../src/evox/algorithms/de_variants/shade.py:50
 #, fuzzy
@@ -1127,25 +1148,27 @@ msgstr "种群。"
 
 #: ../../../src/evox/algorithms/de_variants/shade.py:52
 msgid "Update the memory."
-msgstr ""
+msgstr "更新记忆。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.md:1
 msgid "{py:mod}`evox.algorithms.es_variants`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.md:39
 msgid "{py:obj}`__all__ <evox.algorithms.es_variants.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.algorithms.es_variants.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.md:51
 msgid ""
 "['OpenES', 'XNES', 'SeparableNES', 'DES', 'SNES', 'ARS', 'ASEBO', "
 "'PersistentES', 'NoiseReuseES', 'G..."
 msgstr ""
+"['OpenES', 'XNES', 'SeparableNES', 'DES', 'SNES', 'ARS', 'ASEBO', "
+"'PersistentES', 'NoiseReuseES', 'G..."
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.adam_step.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.adam_step`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.adam_step`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.adam_step.md:12
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.sort_utils.md:12
@@ -1183,14 +1206,16 @@ msgid ""
 "{py:obj}`adam_single_tensor "
 "<evox.algorithms.es_variants.adam_step.adam_single_tensor>`"
 msgstr ""
+"{py:obj}`adam_single_tensor "
+"<evox.algorithms.es_variants.adam_step.adam_single_tensor>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.ars.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.ars`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.ars`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.ars.md:18
 msgid "{py:obj}`ARS <evox.algorithms.es_variants.ars.ARS>`"
-msgstr ""
+msgstr "{py:obj}`ARS <evox.algorithms.es_variants.ars.ARS>`"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:20
 #: ../../../src/evox/algorithms/es_variants/ars.py:33
@@ -1203,6 +1228,8 @@ msgid ""
 "Reference: Simple random search provides a competitive approach to "
 "reinforcement learning (https://arxiv.org/pdf/1803.07055.pdf)"
 msgstr ""
+"参考文献：Simple random search provides a competitive approach to "
+"reinforcement learning (https://arxiv.org/pdf/1803.07055.pdf)"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:38
 #: ../../../src/evox/algorithms/es_variants/asebo.py:39
@@ -1217,6 +1244,8 @@ msgid ""
 "from evosax. More information about evosax can be found at the following "
 "URL: GitHub Link: https://github.com/RobertTLange/evosax"
 msgstr ""
+"这段代码受到了 evosax 中算法实现的启发或使用了其实现。有关 evosax 的更多信息，请访问以下网址：GitHub "
+"链接：https://github.com/RobertTLange/evosax"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:39
 #: ../../../src/evox/algorithms/es_variants/asebo.py:39
@@ -1234,7 +1263,7 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 #: ../../../src/evox/algorithms/es_variants/persistent_es.py:42
 #: ../../../src/evox/algorithms/es_variants/snes.py:42
 msgid "The initial center of the population. Must be a 1D tensor."
-msgstr ""
+msgstr "种群的初始中心。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:43
 #: ../../../src/evox/algorithms/es_variants/esmc.py:43
@@ -1273,6 +1302,7 @@ msgid ""
 "The optimizer to use. Defaults to None. Currently, only \"adam\" or None is "
 "supported."
 msgstr ""
+"使用的优化器（optimizer）。 默认情况下为 None。 仅 support \"adam\" 或 None。\n"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:47
 #: ../../../src/evox/algorithms/es_variants/asebo.py:51
@@ -1294,7 +1324,7 @@ msgstr ""
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:47
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:47
 msgid "The device to use for the tensors. Defaults to None."
-msgstr ""
+msgstr "设备的使用者（设备用于存放张量的硬件）。默认为 None。"
 
 #: ../../../src/evox/algorithms/es_variants/ars.py:46
 #, fuzzy
@@ -1303,11 +1333,11 @@ msgstr "算法的新状态"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.asebo.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.asebo`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.asebo`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.asebo.md:18
 msgid "{py:obj}`ASEBO <evox.algorithms.es_variants.asebo.ASEBO>`"
-msgstr ""
+msgstr "{py:obj}`ASEBO <evox.algorithms.es_variants.asebo.ASEBO>`"
 
 #: ../../../src/evox/algorithms/es_variants/asebo.py:20
 #: ../../../src/evox/algorithms/es_variants/asebo.py:33
@@ -1320,6 +1350,8 @@ msgid ""
 "Reference: From Complexity to Simplicity: Adaptive ES-Active Subspaces for "
 "Blackbox Optimization (https://arxiv.org/abs/1903.04268)"
 msgstr ""
+"参考文献: From Complexity to Simplicity: Adaptive ES-Active Subspaces for "
+"Blackbox Optimization (https://arxiv.org/abs/1903.04268)"
 
 #: ../../../src/evox/algorithms/es_variants/asebo.py:45
 #, fuzzy
@@ -1367,14 +1399,15 @@ msgid ""
 "computes the step direction using the projected gradient and updates the "
 "center and standard deviation of the search distribution."
 msgstr ""
+"此函数首先计算由适应度函数的梯度所张成的子空间，然后将梯度投影到该子空间。接着，它使用投影后的梯度计算步长方向，并更新搜索分布的中心和标准差。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.cma_es.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.cma_es`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.cma_es`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.cma_es.md:18
 msgid "{py:obj}`CMAES <evox.algorithms.es_variants.cma_es.CMAES>`"
-msgstr ""
+msgstr "{py:obj}`CMAES <evox.algorithms.es_variants.cma_es.CMAES>`"
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:20
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:33
@@ -1388,7 +1421,7 @@ msgstr ""
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:39
 msgid "Initialize the CMA-ES algorithm with the given parameters."
-msgstr ""
+msgstr "使用给定的参数初始化 CMA-ES 算法。"
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:41
 #, fuzzy
@@ -1397,17 +1430,17 @@ msgstr "状态之中对应种群变量的变量名。默认是“population”�
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:42
 msgid "The initial mean of the population. Must be a 1D tensor."
-msgstr ""
+msgstr "种群的初始均值。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:43
 msgid "The overall standard deviation, i.e., the step size of the algorithm."
-msgstr ""
+msgstr "整体标准差，即算法的步长。"
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:44
 msgid ""
 "The recombination weights of the population. Defaults to None and is "
 "calculated automatically with recommended values."
-msgstr ""
+msgstr "种群的重组权重。默认为 None，并根据推荐值自动计算。"
 
 #: ../../../src/evox/algorithms/es_variants/cma_es.py:46
 #, fuzzy
@@ -1418,15 +1451,15 @@ msgstr "算法的新状态"
 msgid ""
 "In this step, the algorithm generates a new population, evaluates it, and "
 "updates the mean, covariance matrix, and step size correspondingly."
-msgstr ""
+msgstr "在这一步，算法生成一个新种群，评估它，并相应地更新均值、协方差矩阵和步长。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.des.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.des`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.des`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.des.md:18
 msgid "{py:obj}`DES <evox.algorithms.es_variants.des.DES>`"
-msgstr ""
+msgstr "{py:obj}`DES <evox.algorithms.es_variants.des.DES>`"
 
 #: ../../../src/evox/algorithms/es_variants/des.py:20
 #: ../../../src/evox/algorithms/es_variants/des.py:33
@@ -1441,6 +1474,8 @@ msgid ""
 "Reference: Discovering Evolution Strategies via Meta-Black-Box Optimization "
 "(https://arxiv.org/abs/2211.11260)"
 msgstr ""
+"参考文献: Discovering Evolution Strategies via Meta-Black-Box Optimization "
+"(https://arxiv.org/abs/2211.11260)"
 
 #: ../../../src/evox/algorithms/es_variants/des.py:39
 #, fuzzy
@@ -1461,21 +1496,23 @@ msgstr "状态之中对应种群变量的变量名。默认是“population”�
 msgid ""
 "Step the DES algorithm by sampling the population, evaluating the fitness, "
 "and updating the center."
-msgstr ""
+msgstr "通过对种群进行采样、评估适应度和更新中心，逐步执行DES算法。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.esmc.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.esmc`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.esmc`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.esmc.md:18
 msgid "{py:obj}`ESMC <evox.algorithms.es_variants.esmc.ESMC>`"
-msgstr ""
+msgstr "{py:obj}`ESMC <evox.algorithms.es_variants.esmc.ESMC>`"
 
 #: ../../../src/evox/algorithms/es_variants/esmc.py:35
 msgid ""
 "Reference: Learn2Hop: Learned Optimization on Rough Landscapes "
 "(https://proceedings.mlr.press/v139/merchant21a.html)"
 msgstr ""
+"参考文献：Learn2Hop: Learned Optimization on Rough Landscapes "
+"(https://proceedings.mlr.press/v139/merchant21a.html)"
 
 #: ../../../src/evox/algorithms/es_variants/esmc.py:39
 #, fuzzy
@@ -1492,15 +1529,15 @@ msgid ""
 "This function will sample a population, evaluate their fitness, and then "
 "update the center and standard deviation of the algorithm using the sampled "
 "population."
-msgstr ""
+msgstr "此函数将对一个种群进行抽样，评估它们的适应度，然后使用抽样的种群更新算法的中心和标准差。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.guided_es.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.guided_es`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.guided_es`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.guided_es.md:18
 msgid "{py:obj}`GuidedES <evox.algorithms.es_variants.guided_es.GuidedES>`"
-msgstr ""
+msgstr "{py:obj}`GuidedES <evox.algorithms.es_variants.guided_es.GuidedES>`"
 
 #: ../../../src/evox/algorithms/es_variants/guided_es.py:20
 #: ../../../src/evox/algorithms/es_variants/guided_es.py:33
@@ -1513,6 +1550,8 @@ msgid ""
 "Reference: Guided evolutionary strategies: Augmenting random search with "
 "surrogate gradients (https://arxiv.org/abs/1806.10230)"
 msgstr ""
+"参考文献: Guided evolutionary strategies: Augmenting random search with "
+"surrogate gradients (https://arxiv.org/abs/1806.10230)"
 
 #: ../../../src/evox/algorithms/es_variants/guided_es.py:39
 #: ../../../src/evox/algorithms/es_variants/noise_reuse_es.py:39
@@ -1531,15 +1570,15 @@ msgid ""
 "The function will sample a population, evaluate their fitness, and then "
 "update the center and standard deviation of the algorithm using the sampled "
 "population."
-msgstr ""
+msgstr "该函数将对一个种群进行抽样，评估他们的适应度，然后使用抽样的种群更新算法的中心和标准差。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.nes.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.nes`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.nes`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.nes.md:18
 msgid "{py:obj}`XNES <evox.algorithms.es_variants.nes.XNES>`"
-msgstr ""
+msgstr "{py:obj}`XNES <evox.algorithms.es_variants.nes.XNES>`"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:20
 #: ../../../src/evox/algorithms/es_variants/nes.py:37
@@ -1549,7 +1588,7 @@ msgstr "算法的新状态"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.nes.md:22
 msgid "{py:obj}`SeparableNES <evox.algorithms.es_variants.nes.SeparableNES>`"
-msgstr ""
+msgstr "{py:obj}`SeparableNES <evox.algorithms.es_variants.nes.SeparableNES>`"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:24
 #: ../../../src/evox/algorithms/es_variants/nes.py:61
@@ -1571,11 +1610,11 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 #: ../../../src/evox/algorithms/es_variants/nes.py:45
 #: ../../../src/evox/algorithms/es_variants/nes.py:69
 msgid "The initial mean vector of the population. Must be a 1D tensor."
-msgstr ""
+msgstr "种群的初始均值向量。必须是一个一维张量。"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:46
 msgid "The initial covariance matrix of the population. Must be a 2D tensor."
-msgstr ""
+msgstr "种群的初始协方差矩阵。必须是一个二维张量。"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:47
 #: ../../../src/evox/algorithms/es_variants/nes.py:71
@@ -1624,7 +1663,7 @@ msgid ""
 "The function will sample a population, evaluate their fitness, and then "
 "update the center and covariance of the algorithm using the sampled "
 "population."
-msgstr ""
+msgstr "该函数将对一个种群进行抽样，评估它们的适应度，然后使用抽样的种群更新算法的中心和协方差。"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:63
 #: ../../../src/evox/algorithms/es_variants/snes.py:35
@@ -1641,7 +1680,7 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 #: ../../../src/evox/algorithms/es_variants/nes.py:70
 msgid ""
 "The initial standard deviation for each dimension. Must be a 1D tensor."
-msgstr ""
+msgstr "每个维度的初始标准差。必须是一个 1D 张量。"
 
 #: ../../../src/evox/algorithms/es_variants/nes.py:74
 #, fuzzy
@@ -1650,13 +1689,15 @@ msgstr "算法的新状态"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.noise_reuse_es.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.noise_reuse_es`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.noise_reuse_es`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.noise_reuse_es.md:18
 msgid ""
 "{py:obj}`NoiseReuseES "
 "<evox.algorithms.es_variants.noise_reuse_es.NoiseReuseES>`"
 msgstr ""
+"{py:obj}`NoiseReuseES "
+"<evox.algorithms.es_variants.noise_reuse_es.NoiseReuseES>`"
 
 #: ../../../src/evox/algorithms/es_variants/noise_reuse_es.py:20
 #: ../../../src/evox/algorithms/es_variants/noise_reuse_es.py:33
@@ -1696,14 +1737,15 @@ msgid ""
 "and the fitness. Finally, it updates the policy parameters using the "
 "gradient and the learning rate."
 msgstr ""
+"此函数遵循参考论文中描述的算法。它首先为当前族群生成一组扰动。然后，它评估带有扰动的族群的适应度。之后，它使用扰动和适应度计算策略参数的梯度。最后，它使用梯度和学习率更新策略参数。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.open_es.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.open_es`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.open_es`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.open_es.md:18
 msgid "{py:obj}`OpenES <evox.algorithms.es_variants.open_es.OpenES>`"
-msgstr ""
+msgstr "{py:obj}`OpenES <evox.algorithms.es_variants.open_es.OpenES>`"
 
 #: ../../../src/evox/algorithms/es_variants/open_es.py:20
 #: ../../../src/evox/algorithms/es_variants/open_es.py:33
@@ -1723,11 +1765,11 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../../src/evox/algorithms/es_variants/open_es.py:43
 msgid "The learning rate for the optimizer."
-msgstr ""
+msgstr "优化器的学习率。"
 
 #: ../../../src/evox/algorithms/es_variants/open_es.py:44
 msgid "The standard deviation of the noise."
-msgstr ""
+msgstr "噪声的标准差。"
 
 #: ../../../src/evox/algorithms/es_variants/open_es.py:46
 #, fuzzy
@@ -1738,17 +1780,19 @@ msgstr "是否对整个步骤函数进行 `jit` 编译。默认值为 `True`"
 msgid ""
 "Step the OpenES algorithm by evaluating the fitness of the current "
 "population and updating the center."
-msgstr ""
+msgstr "通过评估当前种群的适应度并更新中心，执行 OpenES 算法的一步。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.persistent_es.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.persistent_es`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.persistent_es`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.persistent_es.md:18
 msgid ""
 "{py:obj}`PersistentES "
 "<evox.algorithms.es_variants.persistent_es.PersistentES>`"
 msgstr ""
+"{py:obj}`PersistentES "
+"<evox.algorithms.es_variants.persistent_es.PersistentES>`"
 
 #: ../../../src/evox/algorithms/es_variants/persistent_es.py:20
 #: ../../../src/evox/algorithms/es_variants/persistent_es.py:33
@@ -1770,11 +1814,11 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.snes.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.snes`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.snes`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.snes.md:18
 msgid "{py:obj}`SNES <evox.algorithms.es_variants.snes.SNES>`"
-msgstr ""
+msgstr "{py:obj}`SNES <evox.algorithms.es_variants.snes.SNES>`"
 
 #: ../../../src/evox/algorithms/es_variants/snes.py:20
 #: ../../../src/evox/algorithms/es_variants/snes.py:33
@@ -1814,41 +1858,42 @@ msgstr "算法的新状态"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.sort_utils.md:1
 msgid "{py:mod}`evox.algorithms.es_variants.sort_utils`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.es_variants.sort_utils`"
 
 #: ../../source/apidocs/evox/evox.algorithms.es_variants.sort_utils.md:18
 msgid ""
 "{py:obj}`sort_by_key <evox.algorithms.es_variants.sort_utils.sort_by_key>`"
 msgstr ""
+"{py:obj}`sort_by_key <evox.algorithms.es_variants.sort_utils.sort_by_key>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.md:1
 msgid "{py:mod}`evox.algorithms.mo`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.mo`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.md:29
 msgid "{py:obj}`__all__ <evox.algorithms.mo.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.algorithms.mo.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.md:41
 msgid "['RVEA', 'NSGA2', 'MOEAD']"
-msgstr ""
+msgstr "['RVEA', 'NSGA2', 'MOEAD']"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.moead.md:1
 msgid "{py:mod}`evox.algorithms.mo.moead`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.mo.moead`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.moead.md:18
 msgid "{py:obj}`MOEAD <evox.algorithms.mo.moead.MOEAD>`"
-msgstr ""
+msgstr "{py:obj}`MOEAD <evox.algorithms.mo.moead.MOEAD>`"
 
 #: ../../../src/evox/algorithms/mo/moead.py:20
 #: ../../../src/evox/algorithms/mo/moead.py:52
 msgid "Implementation of the Original MOEA/D algorithm."
-msgstr ""
+msgstr "原始 MOEA/D 算法的实现。"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.moead.md:30
 msgid "{py:obj}`pbi <evox.algorithms.mo.moead.pbi>`"
-msgstr ""
+msgstr "{py:obj}`pbi <evox.algorithms.mo.moead.pbi>`"
 
 #: ../../../src/evox/algorithms/mo/moead.py:54
 #: ../../../src/evox/algorithms/mo/nsga2.py:38
@@ -1863,6 +1908,9 @@ msgid ""
 "IEEE Transactions on Evolutionary Computation. `Link "
 "<https://ieeexplore.ieee.org/document/4358754>`_"
 msgstr ""
+"\"MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition,\" "
+"IEEE Transactions on Evolutionary Computation. `Link "
+"<https://ieeexplore.ieee.org/document/4358754>`_"
 
 #: ../../../src/evox/algorithms/mo/moead.py:59
 #: ../../../src/evox/metrics/gd.py:39 ../../../src/evox/metrics/igd.py:40
@@ -1871,13 +1919,13 @@ msgstr ""
 #: ../../../src/evox/utils/jit_fix_operator.py:182
 #, fuzzy
 msgid "Note"
-msgstr "Notes"
+msgstr "Note"
 
 #: ../../../src/evox/algorithms/mo/moead.py:59
 msgid ""
 "This implementation is based on the original paper and may not be the most "
 "efficient implementation. It can not be traced by JIT."
-msgstr ""
+msgstr "本实现基于原始论文，可能不是最有效的实现。它无法通过 JIT 进行跟踪。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:58
 #, fuzzy
@@ -1888,23 +1936,23 @@ msgstr "并行MOEA/D算法"
 #: ../../../src/evox/algorithms/mo/nsga2.py:42
 #: ../../../src/evox/algorithms/mo/rvea.py:42
 msgid "The number of objective functions in the optimization problem."
-msgstr ""
+msgstr "优化问题中的目标函数数量。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:62
 #: ../../../src/evox/algorithms/mo/nsga2.py:43
 msgid "The lower bounds for the decision variables (1D tensor)."
-msgstr ""
+msgstr "决策变量的下界（1D 张量）。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:63
 #: ../../../src/evox/algorithms/mo/nsga2.py:44
 msgid "The upper bounds for the decision variables (1D tensor)."
-msgstr ""
+msgstr "决策变量的上界（1D 张量）。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:64
 #: ../../../src/evox/algorithms/mo/nsga2.py:45
 #: ../../../src/evox/algorithms/mo/rvea.py:48
 msgid "The selection operation for evolutionary strategy (optional)."
-msgstr ""
+msgstr "进化策略的选择操作（可选）。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:65
 #: ../../../src/evox/algorithms/mo/nsga2.py:46
@@ -1912,25 +1960,27 @@ msgid ""
 "The mutation operation, defaults to polynomial_mutation if not provided "
 "(optional)."
 msgstr ""
+"基因突变操作，"
+"该选项的缺省值是 `polynomial_mutation`，如果未提供，则使用默认值 (可选)。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:66
 msgid ""
 "The crossover operation, defaults to simulated_binary_half if not provided "
 "(optional)."
-msgstr ""
+msgstr "交叉操作，如果未提供，则默认为 simulated_binary_half（可选）。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:67
 #: ../../../src/evox/algorithms/mo/nsga2.py:48
 msgid ""
 "The device on which computations should run (optional). Defaults to "
 "PyTorch's default device."
-msgstr ""
+msgstr "计算应该运行的设备（可选）。默认为 PyTorch 的默认设备。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:65
 #: ../../../src/evox/algorithms/mo/nsga2.py:46
 #: ../../../src/evox/algorithms/mo/rvea.py:46
 msgid "Perform the initialization step of the workflow."
-msgstr ""
+msgstr "执行工作流的初始化步骤。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:67
 #: ../../../src/evox/algorithms/mo/nsga2.py:48
@@ -1939,35 +1989,39 @@ msgstr ""
 msgid ""
 "Calls the `init_step` of the algorithm if overwritten; otherwise, its `step`"
 " method will be invoked."
-msgstr ""
+msgstr "调用算法的 `init_step` 如果被重写；否则，将调用其 `step` 方法。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:73
 msgid "Perform a single optimization step of the workflow."
-msgstr ""
+msgstr "执行工作流程的单个优化步骤。"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.nsga2.md:1
 msgid "{py:mod}`evox.algorithms.mo.nsga2`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.mo.nsga2`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.nsga2.md:18
 msgid "{py:obj}`NSGA2 <evox.algorithms.mo.nsga2.NSGA2>`"
-msgstr ""
+msgstr "{py:obj}`NSGA2 <evox.algorithms.mo.nsga2.NSGA2>`"
 
 #: ../../../src/evox/algorithms/mo/nsga2.py:20
 #: ../../../src/evox/algorithms/mo/nsga2.py:33
 msgid ""
 "An implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-"
 "II) for multi-objective optimization problems."
-msgstr ""
+msgstr "非支配排序遗传算法 II (NSGA-II) 的实现，用于多目标优化问题。"
 
 #: ../../../src/evox/algorithms/mo/nsga2.py:35
 msgid ""
 "This class provides a framework for solving multi-objective optimization "
 "problems using a non-dominated sorting genetic algorithm, which is widely "
 "used for Pareto-based optimization."
-msgstr ""
+msgstr "此类提供了一个框架，用于通过非支配排序遗传算法解决多目标优化问题，该算法广泛用于基于帕累托的优化。"
 
 #: ../../../src/evox/algorithms/mo/nsga2.py:39
+msgid ""
+"\"A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II,\" IEEE "
+"Transactions on Evolutionary Computation. `Link "
+"<https://ieeexplore.ieee.org/document/996017>`_"
 msgid ""
 "\"A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II,\" IEEE "
 "Transactions on Evolutionary Computation. `Link "
@@ -1983,19 +2037,19 @@ msgstr "NSGA-II算法"
 msgid ""
 "The crossover operation, defaults to simulated_binary if not provided "
 "(optional)."
-msgstr ""
+msgstr "交叉操作，如果未提供（可选），默认为 simulated_binary。"
 
 #: ../../../src/evox/algorithms/mo/nsga2.py:54
 msgid "Perform the optimization step of the workflow."
-msgstr ""
+msgstr "执行工作流的优化步骤。"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.rvea.md:1
 msgid "{py:mod}`evox.algorithms.mo.rvea`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.mo.rvea`"
 
 #: ../../source/apidocs/evox/evox.algorithms.mo.rvea.md:18
 msgid "{py:obj}`RVEA <evox.algorithms.mo.rvea.RVEA>`"
-msgstr ""
+msgstr "{py:obj}`RVEA <evox.algorithms.mo.rvea.RVEA>`"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:20
 #: ../../../src/evox/algorithms/mo/rvea.py:33
@@ -2003,24 +2057,30 @@ msgid ""
 "An implementation of the Reference Vector Guided Evolutionary Algorithm "
 "(RVEA) for multi-objective optimization problems."
 msgstr ""
+"Reference Vector Guided Evolutionary Algorithm (RVEA) 多目标优化问题的参考向量引导进化算法(RVEA) 的实现"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:35
 msgid ""
 "This class is designed to solve multi-objective optimization problems using "
 "a reference vector guided evolutionary algorithm."
 msgstr ""
+"这类是设计用来使用参考向量引导的进化算法来解决多目标优化问题的。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:38
 msgid ""
-"\"A Reference Vector Guided Evolutionary Algorithm for Many-Objective "
-"Optimization,\" IEEE. `Link <https://ieeexplore.ieee.org/document/7386636>`"
+"\"a reference vector guided evolutionary algorithm for many-objective "
+"optimization,\" ieee. `link <https://ieeexplore.ieee.org/document/7386636>`"
 msgstr ""
+"\"a reference vector guided evolutionary algorithm for many-objective "
+"optimization,\" ieee. `link <https://ieeexplore.ieee.org/document/7386636>`"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:40
 msgid ""
 "\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
 "RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
 msgstr ""
+"\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
+"RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:39
 #, fuzzy
@@ -2030,21 +2090,21 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 #: ../../../src/evox/algorithms/mo/rvea.py:43
 #: ../../../src/evox/operators/mutation/pm_mutation.py:34
 msgid "The lower bounds for the decision variables."
-msgstr ""
+msgstr "**决策变量的下限值**"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:44
 #: ../../../src/evox/operators/mutation/pm_mutation.py:35
 msgid "The upper bounds for the decision variables."
-msgstr ""
+msgstr "决策变量的上限界值。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:45
 msgid ""
 "A parameter for controlling the rate of change of penalty. Defaults to 2."
-msgstr ""
+msgstr "一个参数，用于控制惩罚的变化速率。默认值为 2。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:46
 msgid "The frequency of reference vector adaptation. Defaults to 0.1."
-msgstr ""
+msgstr "引用向量适应的频率。默认为 0.1。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:47
 #, fuzzy
@@ -2053,15 +2113,15 @@ msgstr "运行的最大的时间步的数量。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:49
 msgid "The mutation operation (optional)."
-msgstr ""
+msgstr "变异操作（可选）。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:50
 msgid "The crossover operation (optional)."
-msgstr ""
+msgstr "交叉操作（可选）。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:51
 msgid "The device on which computations should run (optional)."
-msgstr ""
+msgstr "运行计算的设备（可选）。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:102
 #, fuzzy
@@ -2070,23 +2130,23 @@ msgstr "🌐 **多功能优化套件**:"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.md:34
 msgid "{py:obj}`__all__ <evox.algorithms.pso_variants.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.algorithms.pso_variants.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.md:46
 msgid "['CLPSO', 'CSO', 'DMSPSOEL', 'FSPSO', 'PSO', 'SLPSOGS', 'SLPSOUS']"
-msgstr ""
+msgstr "['CLPSO', 'CSO', 'DMSPSOEL', 'FSPSO', 'PSO', 'SLPSOGS', 'SLPSOUS']"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.clpso.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.clpso`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.clpso`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.clpso.md:18
 msgid "{py:obj}`CLPSO <evox.algorithms.pso_variants.clpso.CLPSO>`"
-msgstr ""
+msgstr "{py:obj}`CLPSO <evox.algorithms.pso_variants.clpso.CLPSO>`"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:20
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:33
@@ -2102,19 +2162,21 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/clpso.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/pso_variants/clpso.py:35: "
+"(INFO/1) 重复的隐式目标名称：“class methods”。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:37
 msgid ""
 "`__init__`: Initializes the CLPSO algorithm with given static parameters "
 "including lower and upper bounds for particle positions."
-msgstr ""
+msgstr "`__init__`: 初始化 CLPSO 算法，使用给定的静态参数，包括粒子位置的下限和上限。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:38
 msgid ""
 "`setup`: Initializes the CLPSO algorithm and sets up initial population, "
 "velocity, and buffers for tracking best local and global positions and "
 "fitness values."
-msgstr ""
+msgstr "`setup`: 初始化 CLPSO 算法，并设置初始种群、速度以及用于跟踪最佳局部和全局位置及适应度值的缓冲区。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:39
 msgid ""
@@ -2122,6 +2184,8 @@ msgid ""
 " positions and fitness values, and adjusting velocity and positions based on"
 " inertia, cognitive, and social components."
 msgstr ""
+"**单步优化** (`step`): \n"
+"使用CLPSO执行单步优化，更新个人最佳位置和适应值，根据惯性、认知和社会组件调整速度和位置。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:41
 #: ../../../src/evox/algorithms/pso_variants/cso.py:41
@@ -2134,26 +2198,27 @@ msgid ""
 "function of `Problem.evaluate` set by workflow; therefore, it cannot be used"
 " in class methods other than `step`."
 msgstr ""
+"请注意，`evaluate`方法在此类中未定义，它是由工作流设置的`Problem.evaluate`的代理函数；因此，它无法在除`step`之外的类方法中使用。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:39
 msgid "Initialize the CLPSO algorithm with the given static parameters."
-msgstr ""
+msgstr "用给定的静态参数初始化 CLPSO 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:44
 msgid "The inertia weight (w). Defaults to 0.5."
-msgstr ""
+msgstr "惯性权重 (w)。默认值为 0.5。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:45
 msgid "The cognitive weight (c). Defaults to 1.5."
-msgstr ""
+msgstr "认知权重（c）。默认为1.5。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:46
 msgid "The social weight (P_c). Defaults to 0.05."
-msgstr ""
+msgstr "社会权重 (P_c)。默认为 0.05。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:46
 msgid "Perform a single optimization step using CLPSO."
-msgstr ""
+msgstr "使用 CLPSO 执行单次优化步骤。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:48
 #: ../../../src/evox/algorithms/pso_variants/pso.py:48
@@ -2164,6 +2229,9 @@ msgid ""
 "It ensures that the updated positions and velocities are clamped within the "
 "specified bounds."
 msgstr ""
+"该函数用于评估当前种群的适应度，更新局部最优位置和适应度值，
+"并根据惯性、认知和社会组件调整粒子的速度和位置。
+"该函数确保在更新位置和速度后，粒子的位置和速度都在指定的范围内。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:54
 #: ../../../src/evox/algorithms/pso_variants/pso.py:54
@@ -2171,7 +2239,7 @@ msgid ""
 "The local best positions and fitness values are updated if the current "
 "fitness is better than the recorded local best. The global best position and"
 " fitness are determined using helper functions."
-msgstr ""
+msgstr "如果当前的适应度比记录的局部最佳更好，则更新局部最佳位置和适应度值。全局最佳位置和适应度通过辅助函数确定。"
 
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:58
 #: ../../../src/evox/algorithms/pso_variants/pso.py:58
@@ -2179,15 +2247,15 @@ msgid ""
 "The velocity is updated based on the weighted sum of the previous velocity, "
 "the cognitive component (personal best), and the social component (global "
 "best). The population positions are then updated using the new velocities."
-msgstr ""
+msgstr "速度是基于以前速度的加权总和、认知成分（个人最好）和社会成分（全局最好）进行更新的。然后，使用新的速度更新种群位置。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.cso.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.cso`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.cso`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.cso.md:18
 msgid "{py:obj}`CSO <evox.algorithms.pso_variants.cso.CSO>`"
-msgstr ""
+msgstr "{py:obj}`CSO <evox.algorithms.pso_variants.cso.CSO>`"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:35
 msgid ""
@@ -2195,24 +2263,26 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/cso.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/pso_variants/cso.py:35: "
+"(INFO/1) 重复的隐式目标名称: \"class methods\"。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:37
 msgid "`__init__`: Initializes the CSO algorithm with given parameters."
-msgstr ""
+msgstr "`__init__`: 使用给定参数初始化 CSO 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:38
 msgid ""
 "`setup`: Initializes the CSO algorithm with given lower and upper bounds for"
 " particle positions, and sets up initial population, velocity, and buffers "
 "for tracking best local and global positions and fitness values."
-msgstr ""
+msgstr "`setup`: 使用给定的粒子位置下限和上限初始化 CSO 算法，并设置初始种群、速度以及用于跟踪最佳局部和全局位置及适应度值的缓冲区。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:39
 msgid ""
 "`step`: Performs a single optimization step using CSO, updating local best "
 "positions and fitness values, and adjusting velocity and positions based on "
 "inertia, cognitive, and social components."
-msgstr ""
+msgstr "`step`：使用 CSO 执行单个优化步骤，更新局部最佳位置和适应度值，并根据惯性、认知和社交组件调整速度和位置。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:39
 #, fuzzy
@@ -2221,7 +2291,7 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:44
 msgid "The inertia weight. Defaults to 0.0."
-msgstr ""
+msgstr "惯性权重。默认值为 0.0。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:45
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:47
@@ -2232,11 +2302,11 @@ msgstr "状态之中对应种群变量的变量名。默认是“population”�
 #: ../../../src/evox/algorithms/pso_variants/cso.py:46
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:48
 msgid "The standard deviation of the normal distribution. Defaults to None."
-msgstr ""
+msgstr "正态分布的标准差。默认为 None。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:46
 msgid "Perform a single optimization step using CSO."
-msgstr ""
+msgstr "使用 CSO 进行单次优化步骤。"
 
 #: ../../../src/evox/algorithms/pso_variants/cso.py:48
 msgid ""
@@ -2244,15 +2314,15 @@ msgid ""
 "population using the CSO algorithm. The CSO algorithm is an optimization "
 "algorithm that uses a combination of both the PSO and the DE algorithms to "
 "search for the optimal solution."
-msgstr ""
+msgstr "该函数使用CSO算法更新种群中每个粒子的位置和速度。CSO算法是一种优化算法，它结合了PSO和DE算法来搜索最佳解决方案。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.dms_pso_el.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.dms_pso_el`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.dms_pso_el`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.dms_pso_el.md:18
 msgid "{py:obj}`DMSPSOEL <evox.algorithms.pso_variants.dms_pso_el.DMSPSOEL>`"
-msgstr ""
+msgstr "{py:obj}`DMSPSOEL <evox.algorithms.pso_variants.dms_pso_el.DMSPSOEL>`"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:20
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:33
@@ -2269,7 +2339,7 @@ msgstr ""
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:37
 msgid "`__init__`: Initializes the DMSPSOEL algorithm with given parameters."
-msgstr ""
+msgstr "`__init__`: 通过给定的参数来初始化 DMSPSOEL 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:38
 msgid ""
@@ -2277,25 +2347,26 @@ msgid ""
 "bounds for particle positions, and sets up initial population, velocity, and"
 " buffers for tracking best local and global positions and fitness values."
 msgstr ""
+"`setup`: 初始化 DMSPSOEL 算法，设置粒子位置的下限和上限，并配置初始种群、速度，以及用于跟踪最佳局部和全局位置与适应度值的缓冲区。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:39
 msgid ""
 "`step`: Performs a single optimization step using DMSPSOEL, updating local "
 "best positions and fitness values, and adjusting velocity and positions "
 "based on inertia, cognitive, and social components."
-msgstr ""
+msgstr "`step`: 使用 DMSPSOEL 执行单次优化步骤，更新本地最佳位置和适应度值，并根据惯性、认知和社会组件调整速度和位置。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:39
 msgid "Initialize the DMSPSOEL algorithm with the given parameters."
-msgstr ""
+msgstr "使用给定参数初始化 DMSPSOEL 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:43
 msgid "The size of the dynamic sub-swarm. Defaults to 10."
-msgstr ""
+msgstr "动态子种群的大小。默认值：10。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:44
 msgid "The number of dynamic sub-swarms. Defaults to 5."
-msgstr ""
+msgstr "动态子种群的数量。默认为5。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:45
 msgid "The size of the following sub-swarm. Defaults to 10."
@@ -2303,7 +2374,7 @@ msgstr ""
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:46
 msgid "The number of iterations for regrouping. Defaults to 50."
-msgstr ""
+msgstr "重组的迭代次数。默认为50。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:47
 #, fuzzy
@@ -2312,20 +2383,20 @@ msgstr "运行的最大的时间步的数量。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:48
 msgid "The inertia weight. Defaults to 0.7."
-msgstr ""
+msgstr "惯性权重。默认值为0.7。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:49
 msgid "The cognitive weight. Defaults to 1.5."
-msgstr ""
+msgstr "认知权重。默认为 1.5。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:50
 msgid "The social weight. Defaults to 1.5."
-msgstr ""
+msgstr "社会权重。默认为 1.5。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:51
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:52
 msgid "The social weight. Defaults to 1.0."
-msgstr ""
+msgstr "社交权重。默认为 1.0。"
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:46
 #, fuzzy
@@ -2339,14 +2410,15 @@ msgid ""
 "the local and global best positions and fitness values based on the dynamic "
 "sub-swarm and following sub-swarm. Finally, it updates the iteration count."
 msgstr ""
+"此函数根据当前的适应度值更新种群、速度、个人最佳位置和个人最佳适应度。它还根据动态子群和跟随子群更新局部和全局最佳位置及适应度值。最后，它更新迭代计数。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.fs_pso.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.fs_pso`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.fs_pso`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.fs_pso.md:18
 msgid "{py:obj}`FSPSO <evox.algorithms.pso_variants.fs_pso.FSPSO>`"
-msgstr ""
+msgstr "{py:obj}`FSPSO <evox.algorithms.pso_variants.fs_pso.FSPSO>`"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:20
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:33
@@ -2356,49 +2428,49 @@ msgstr "这个算法的状态。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:39
 msgid "Initialize the FSPSO algorithm with the given parameters."
-msgstr ""
+msgstr "使用给定参数初始化FSPSO算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:44
 #: ../../../src/evox/algorithms/pso_variants/pso.py:42
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:44
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:44
 msgid "The inertia weight. Defaults to 0.6."
-msgstr ""
+msgstr "惯性权重。默认值为0.6。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:45
 #: ../../../src/evox/algorithms/pso_variants/pso.py:43
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:45
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:45
 msgid "The cognitive weight. Defaults to 2.5."
-msgstr ""
+msgstr "认知权重。默认为 2.5。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:46
 #: ../../../src/evox/algorithms/pso_variants/pso.py:44
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:46
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:46
 msgid "The social weight. Defaults to 0.8."
-msgstr ""
+msgstr "社会权重。默认值为 0.8。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:49
 msgid "The mutation rate. Defaults to 0.01."
-msgstr ""
+msgstr "变异率。默认为 0.01。"
 
 #: ../../../src/evox/algorithms/pso_variants/fs_pso.py:46
 msgid "Perform a normal optimization step using FSPSO."
-msgstr ""
+msgstr "使用 FSPSO 执行常规优化步骤。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.pso.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.pso`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.pso`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.pso.md:18
 msgid "{py:obj}`PSO <evox.algorithms.pso_variants.pso.PSO>`"
-msgstr ""
+msgstr "{py:obj}`PSO <evox.algorithms.pso_variants.pso.PSO>`"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:20
 #: ../../../src/evox/algorithms/pso_variants/pso.py:33
 msgid "The basic Particle Swarm Optimization (PSO) algorithm."
-msgstr ""
+msgstr "基本粒子群优化算法 (PSO)"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:35
 msgid ""
@@ -2406,6 +2478,8 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/pso.py:35: "
 "(INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/pso_variants/pso.py:35: "
+"(INFO/1) 重复的隐式目标名称: \"class methods\"。"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:37
 msgid ""
@@ -2413,6 +2487,8 @@ msgid ""
 "size, lower and upper bounds, inertia weight, cognitive weight, and social "
 "weight)."
 msgstr ""
+"**__init__**\n"
+"初始化 PSO 算法（Particle Swarm Optimization）与给定的参数（人口大小、下限和上限、惯性权重、认知权重和社会权重）。"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:38
 msgid ""
@@ -2420,7 +2496,7 @@ msgid ""
 "Optimization (PSO), updating local best positions and fitness values, and "
 "adjusting velocity and positions based on inertia, cognitive, and social "
 "components."
-msgstr ""
+msgstr "`step`: 执行单次粒子群优化（PSO）步骤，更新局部最佳位置和适应度值，并基于惯性、认知和社会组件调整速度和位置。\n"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:39
 #, fuzzy
@@ -2429,30 +2505,30 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:46
 msgid "Perform a normal optimization step using PSO."
-msgstr ""
+msgstr "使用PSO执行常规优化步骤。"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:54
 msgid "Perform the first step of the PSO optimization."
-msgstr ""
+msgstr "执行 PSO 优化的第一步。"
 
 #: ../../../src/evox/algorithms/pso_variants/pso.py:56
 msgid "See `step` for more details."
-msgstr ""
+msgstr "请查看 `step` 以获取更多详细信息。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_gs.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.sl_pso_gs`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.sl_pso_gs`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_gs.md:18
 msgid "{py:obj}`SLPSOGS <evox.algorithms.pso_variants.sl_pso_gs.SLPSOGS>`"
-msgstr ""
+msgstr "{py:obj}`SLPSOGS <evox.algorithms.pso_variants.sl_pso_gs.SLPSOGS>`"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:20
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:33
 msgid ""
 "The basic Particle Swarm Optimization Social Learning PSO Using Gaussian "
 "Sampling for Demonstrator Choice (SLPSOGS) algorithm."
-msgstr ""
+msgstr "基本的粒子群优化社交学习 PSO 使用高斯采样进行示范选择 (SLPSOGS) 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:35
 msgid ""
@@ -2460,13 +2536,15 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_gs.py:35:"
 " (INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_gs.py:35: "
+"(INFO/1) 重复的隐式目标名称：“class methods”。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:37
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:37
 msgid ""
 "`__init__`: Initializes the SLPSOGS algorithm with given parameters "
 "(population size, inertia weight, cognitive weight, and social weight)."
-msgstr ""
+msgstr "`__init__`: 使用给定的参数（种群大小、惯性权重、认知权重和社会权重）初始化SLPSOGS算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:38
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:38
@@ -2475,6 +2553,7 @@ msgid ""
 " for particle positions, and sets up initial population, velocity, and "
 "buffers for tracking best local and global positions and fitness values."
 msgstr ""
+"`setup`：初始化 SLPSOGS 算法，设置粒子位置的下界和上界，并建立初始种群、速度以及用于跟踪最佳局部和全局位置及适应度值的缓冲区。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:39
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:39
@@ -2484,29 +2563,30 @@ msgid ""
 "and adjusting velocity and positions based on inertia, cognitive, and social"
 " components."
 msgstr ""
+"`step`: 使用粒子群优化 (SLPSOGS) 执行单个优化步骤，更新局部最佳位置和适应度值，并根据惯性、认知和社交成分调整速度和位置。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:39
 msgid "Initialize the SLPSOGS algorithm with the given parameters."
-msgstr ""
+msgstr "使用给定参数初始化 SLPSOGS 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:46
 msgid "Perform a normal optimization step using SLPSOGS."
-msgstr ""
+msgstr "使用 SLPSOGS 执行一个正常的优化步骤。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_us.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.sl_pso_us`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.sl_pso_us`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.sl_pso_us.md:18
 msgid "{py:obj}`SLPSOUS <evox.algorithms.pso_variants.sl_pso_us.SLPSOUS>`"
-msgstr ""
+msgstr "{py:obj}`SLPSOUS <evox.algorithms.pso_variants.sl_pso_us.SLPSOUS>`"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:20
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:33
 msgid ""
 "The basic Particle Swarm Optimization Social Learning PSO Using Uniform "
 "Sampling for Demonstrator Choice (SLPSOUS) algorithm."
-msgstr ""
+msgstr "基本的粒子群优化社会学习 PSO 使用均匀采样进行演示选择 (SLPSOUS) 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:35
 msgid ""
@@ -2514,22 +2594,24 @@ msgid ""
 "Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_us.py:35:"
 " (INFO/1) Duplicate implicit target name: \"class methods\"."
 msgstr ""
+"类方法/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_us.py:35: "
+"(INFO/1) 重复的隐式目标名称：“class methods”。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:39
 msgid "Initialize the SLPSOUS algorithm with the given parameters."
-msgstr ""
+msgstr "用给定的参数初始化 SLPSOUS 算法。"
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:46
 msgid "Perform a normal optimization step using SLPSOUS."
-msgstr ""
+msgstr "执行一个使用 SLPSOUS 的正常优化步骤。"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.utils.md:1
 msgid "{py:mod}`evox.algorithms.pso_variants.utils`"
-msgstr ""
+msgstr "{py:mod}`evox.algorithms.pso_variants.utils`"
 
 #: ../../source/apidocs/evox/evox.algorithms.pso_variants.utils.md:18
 msgid "{py:obj}`min_by <evox.algorithms.pso_variants.utils.min_by>`"
-msgstr ""
+msgstr "{py:obj}`min_by <evox.algorithms.pso_variants.utils.min_by>`"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:20
 #: ../../../src/evox/algorithms/pso_variants/utils.py:34
@@ -2545,15 +2627,15 @@ msgstr ""
 #: ../../../src/evox/algorithms/pso_variants/utils.py:24
 #: ../../../src/evox/algorithms/pso_variants/utils.py:41
 msgid "Randomly select `s` elements from a 1D mask using uniform noise."
-msgstr ""
+msgstr "随机从 1D 掩码中使用均匀噪声随机选择 `s` 个元素。"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:36
 msgid "A tensor or list of tensors."
-msgstr ""
+msgstr "一个张量或一个列表的张量"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:37
 msgid "A tensor or list of tensors corresponding to the values."
-msgstr ""
+msgstr "一个张量或与值对应的张量列表。"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:39
 msgid "The value with the minimum key and the corresponding key."
@@ -2561,11 +2643,11 @@ msgstr ""
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:43
 msgid "A tensor used as the random seed."
-msgstr ""
+msgstr "用于随机种子的张量。"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:44
 msgid "A tensor of shape (N,) containing {0, 1}."
-msgstr ""
+msgstr "一个形状为 (N,) 的张量，包含 {0, 1}。"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:45
 #, fuzzy
@@ -2574,226 +2656,238 @@ msgstr "目标数量"
 
 #: ../../../src/evox/algorithms/pso_variants/utils.py:47
 msgid "A new mask tensor with exactly s elements set to 1."
-msgstr ""
+msgstr "一个新的掩码张量，其中恰好有 s 个元素设置为 1。"
 
 #: ../../source/apidocs/evox/evox.core.md:1
 msgid "{py:mod}`evox.core`"
-msgstr ""
+msgstr "{py:mod}`evox.core`"
 
 #: ../../source/apidocs/evox/evox.core.md:30
 msgid "{py:obj}`__all__ <evox.core.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.core.__all__>`"
 
 #: ../../source/apidocs/evox/evox.core.md:42
 msgid ""
 "['_vmap_fix', 'debug_print', 'Parameter', 'Mutable', 'ModuleBase', "
 "'use_state', 'trace_impl', 'vmap_..."
 msgstr ""
+"['_vmap_fix', 'debug_print', 'Parameter', 'Mutable', 'ModuleBase', "
+"'use_state', 'trace_impl', 'vmap_..."
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:1
 msgid "{py:mod}`evox.core._vmap_fix`"
-msgstr ""
+msgstr "{py:mod}`evox.core._vmap_fix`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:18
 msgid "{py:obj}`_set_func_id <evox.core._vmap_fix._set_func_id>`"
-msgstr ""
+msgstr "{py:obj}`_set_func_id <evox.core._vmap_fix._set_func_id>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:22
 msgid ""
 "{py:obj}`unwrap_batch_tensor <evox.core._vmap_fix.unwrap_batch_tensor>`"
 msgstr ""
+"{py:obj}`unwrap_batch_tensor <evox.core._vmap_fix.unwrap_batch_tensor>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:24
 #: ../../../src/evox/core/_vmap_fix.py:181
 msgid ""
 "Unwraps a batched tensor into its original tensor and the batch "
 "dimensions/sizes."
-msgstr ""
+msgstr "将批量张量展开为其原始张量及批量维度/大小。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:26
 msgid "{py:obj}`wrap_batch_tensor <evox.core._vmap_fix.wrap_batch_tensor>`"
-msgstr ""
+msgstr "{py:obj}`wrap_batch_tensor <evox.core._vmap_fix.wrap_batch_tensor>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:28
 #: ../../../src/evox/core/_vmap_fix.py:188
 msgid ""
 "Wraps a original tensor into its batched form with given batch dimensions."
-msgstr ""
+msgstr "将原始张量封装到其批量形式中，给定批量维度。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:30
 msgid "{py:obj}`_get_batched_size <evox.core._vmap_fix._get_batched_size>`"
-msgstr ""
+msgstr "{py:obj}`_get_batched_size <evox.core._vmap_fix._get_batched_size>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:34
 msgid ""
 "{py:obj}`get_vmap_batch_sizes <evox.core._vmap_fix.get_vmap_batch_sizes>`"
 msgstr ""
+"{py:obj}`get_vmap_batch_sizes <evox.core._vmap_fix.get_vmap_batch_sizes>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:38
 msgid ""
 "{py:obj}`vmap_increment_nesting "
 "<evox.core._vmap_fix.vmap_increment_nesting>`"
 msgstr ""
+"{py:obj}`vmap_increment_nesting "
+"<evox.core._vmap_fix.vmap_increment_nesting>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:42
 msgid "{py:obj}`_flat_vmap <evox.core._vmap_fix._flat_vmap>`"
-msgstr ""
+msgstr "{py:obj}`_flat_vmap <evox.core._vmap_fix._flat_vmap>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:46
 msgid "{py:obj}`batched_random <evox.core._vmap_fix.batched_random>`"
-msgstr ""
+msgstr "{py:obj}`batched_random <evox.core._vmap_fix.batched_random>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:48
 #: ../../../src/evox/core/_vmap_fix.py:234
 msgid "Generate a batched tensor of random values."
-msgstr ""
+msgstr "生成一个包含随机值的批量张量。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:50
 msgid ""
 "{py:obj}`batched_random_like <evox.core._vmap_fix.batched_random_like>`"
 msgstr ""
+"{py:obj}`batched_random_like <evox.core._vmap_fix.batched_random_like>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:52
 #: ../../../src/evox/core/_vmap_fix.py:241
 msgid ""
 "Generate a batched tensor of random values with the same shape as the given "
 "tensor."
-msgstr ""
+msgstr "生成一个与给定张量形状相同的随机值批处理张量。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:54
 msgid "{py:obj}`_batch_size <evox.core._vmap_fix._batch_size>`"
-msgstr ""
+msgstr "{py:obj}`_batch_size <evox.core._vmap_fix._batch_size>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:58
 msgid "{py:obj}`_batch_rand <evox.core._vmap_fix._batch_rand>`"
-msgstr ""
+msgstr "{py:obj}`_batch_rand <evox.core._vmap_fix._batch_rand>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:62
 msgid "{py:obj}`_batch_randn <evox.core._vmap_fix._batch_randn>`"
-msgstr ""
+msgstr "{py:obj}`_batch_randn <evox.core._vmap_fix._batch_randn>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:66
 msgid "{py:obj}`_batch_randint <evox.core._vmap_fix._batch_randint>`"
-msgstr ""
+msgstr "{py:obj}`_batch_randint <evox.core._vmap_fix._batch_randint>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:70
 msgid "{py:obj}`_batch_randperm <evox.core._vmap_fix._batch_randperm>`"
-msgstr ""
+msgstr "{py:obj}`_batch_randperm <evox.core._vmap_fix._batch_randperm>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:74
 msgid "{py:obj}`_batch_rand_like <evox.core._vmap_fix._batch_rand_like>`"
-msgstr ""
+msgstr "{py:obj}`_batch_rand_like <evox.core._vmap_fix._batch_rand_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:78
 msgid "{py:obj}`_batch_randn_like <evox.core._vmap_fix._batch_randn_like>`"
-msgstr ""
+msgstr "{py:obj}`_batch_randn_like <evox.core._vmap_fix._batch_randn_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:82
 msgid ""
 "{py:obj}`_batch_randint_like <evox.core._vmap_fix._batch_randint_like>`"
 msgstr ""
+"{py:obj}`_batch_randint_like <evox.core._vmap_fix._batch_randint_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:86
 msgid "{py:obj}`_batch_getitem <evox.core._vmap_fix._batch_getitem>`"
-msgstr ""
+msgstr "{py:obj}`_batch_getitem <evox.core._vmap_fix._batch_getitem>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:90
 msgid "{py:obj}`_batch_setitem <evox.core._vmap_fix._batch_setitem>`"
-msgstr ""
+msgstr "{py:obj}`_batch_setitem <evox.core._vmap_fix._batch_setitem>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:94
 msgid "{py:obj}`use_batch_fixing <evox.core._vmap_fix.use_batch_fixing>`"
-msgstr ""
+msgstr "{py:obj}`use_batch_fixing <evox.core._vmap_fix.use_batch_fixing>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:98
 msgid "{py:obj}`align_vmap_tensor <evox.core._vmap_fix.align_vmap_tensor>`"
-msgstr ""
+msgstr "{py:obj}`align_vmap_tensor <evox.core._vmap_fix.align_vmap_tensor>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:100
 #: ../../../src/evox/core/_vmap_fix.py:436
 msgid ""
 "Aligns a tensor with the batching dimensions of a current batched tensor."
-msgstr ""
+msgstr "将张量与当前批处理张量的批处理维度对齐。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:102
 msgid "{py:obj}`_debug_print <evox.core._vmap_fix._debug_print>`"
-msgstr ""
+msgstr "{py:obj}`_debug_print <evox.core._vmap_fix._debug_print>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:106
 msgid "{py:obj}`debug_print <evox.core._vmap_fix.debug_print>`"
-msgstr ""
+msgstr "{py:obj}`debug_print <evox.core._vmap_fix.debug_print>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:108
 #: ../../../src/evox/core/_vmap_fix.py:450
 msgid ""
 "Prints a formatted string with one positional tensor used for debugging "
 "inside JIT traced functions on-the-fly."
-msgstr ""
+msgstr "打印一个格式化字符串，包含一个用于调试的定位张量，在 JIT 跟踪的函数中实时使用。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:118
 msgid "{py:obj}`_vmap_batch_sizes <evox.core._vmap_fix._vmap_batch_sizes>`"
-msgstr ""
+msgstr "{py:obj}`_vmap_batch_sizes <evox.core._vmap_fix._vmap_batch_sizes>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:122
 msgid "{py:obj}`_original_size <evox.core._vmap_fix._original_size>`"
-msgstr ""
+msgstr "{py:obj}`_original_size <evox.core._vmap_fix._original_size>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:126
 msgid "{py:obj}`_original_rand <evox.core._vmap_fix._original_rand>`"
-msgstr ""
+msgstr "{py:obj}`_original_rand <evox.core._vmap_fix._original_rand>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:130
 msgid "{py:obj}`_original_randn <evox.core._vmap_fix._original_randn>`"
-msgstr ""
+msgstr "{py:obj}`_original_randn <evox.core._vmap_fix._original_randn>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:134
 msgid "{py:obj}`_original_randint <evox.core._vmap_fix._original_randint>`"
-msgstr ""
+msgstr "{py:obj}`_original_randint <evox.core._vmap_fix._original_randint>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:138
 msgid "{py:obj}`_original_randperm <evox.core._vmap_fix._original_randperm>`"
-msgstr ""
+msgstr "{py:obj}`_original_randperm <evox.core._vmap_fix._original_randperm>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:142
 msgid ""
 "{py:obj}`_original_rand_like <evox.core._vmap_fix._original_rand_like>`"
 msgstr ""
+"{py:obj}`_original_rand_like <evox.core._vmap_fix._original_rand_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:146
 msgid ""
 "{py:obj}`_original_randn_like <evox.core._vmap_fix._original_randn_like>`"
 msgstr ""
+"{py:obj}`_original_randn_like <evox.core._vmap_fix._original_randn_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:150
 msgid ""
 "{py:obj}`_original_randint_like "
 "<evox.core._vmap_fix._original_randint_like>`"
 msgstr ""
+"{py:obj}`_original_randint_like "
+"<evox.core._vmap_fix._original_randint_like>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:154
 msgid "{py:obj}`_original_get_item <evox.core._vmap_fix._original_get_item>`"
-msgstr ""
+msgstr "{py:obj}`_original_get_item <evox.core._vmap_fix._original_get_item>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:158
 msgid "{py:obj}`_original_set_item <evox.core._vmap_fix._original_set_item>`"
-msgstr ""
+msgstr "{py:obj}`_original_set_item <evox.core._vmap_fix._original_set_item>`"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:162
 msgid "{py:obj}`_batch_fixing <evox.core._vmap_fix._batch_fixing>`"
-msgstr ""
+msgstr "{py:obj}`_batch_fixing <evox.core._vmap_fix._batch_fixing>`"
 
 #: ../../../src/evox/core/_vmap_fix.py:183
 msgid "The batched tensor to be unwrapped."
-msgstr ""
+msgstr "要解包的批处理张量。"
 
 #: ../../../src/evox/core/_vmap_fix.py:185
 msgid ""
 "A tuple of the original tensor, the batch dimensions, and the batch sizes."
-msgstr ""
+msgstr "原始张量、批次维度和批次大小的元组。"
 
 #: ../../../src/evox/core/_vmap_fix.py:190
 msgid "The original tensor to be wrapped."
-msgstr ""
+msgstr "要包装的原始张量。"
 
 #: ../../../src/evox/core/_vmap_fix.py:191
 #, fuzzy
@@ -2810,7 +2904,7 @@ msgstr "批处理大小。"
 #: ../../source/apidocs/evox/evox.core.module.md:361
 #: ../../source/apidocs/evox/evox.core.module.md:372
 msgid "'ContextVar(...)'"
-msgstr ""
+msgstr "'ContextVar(...)'"
 
 #: ../../../src/evox/core/_vmap_fix.py:236
 msgid ""
@@ -2821,31 +2915,36 @@ msgid ""
 "random values by applying the given function to the size extended with the "
 "current vmap batch size."
 msgstr ""
+"给定一个随机函数（例如 "
+"[`torch.randn`](https://pytorch.org/docs/stable/generated/torch.randn.html)、[`torch.rand`](https://pytorch.org/docs/stable/generated/torch.rand.html)"
+" 等）及其大小参数，该函数通过将给定函数应用于扩展当前 vmap 批大小的大小，生成一个随机值的批量张量。"
 
 #: ../../../src/evox/core/_vmap_fix.py:241
 #: ../../../src/evox/core/_vmap_fix.py:248
 msgid "A function that generates a tensor of random values."
-msgstr ""
+msgstr "生成随机值的张量的函数。"
 
 #: ../../../src/evox/core/_vmap_fix.py:242
 msgid "The size arguments to the given function."
-msgstr ""
+msgstr "给定函数的大小参数。"
 
 #: ../../../src/evox/core/_vmap_fix.py:243
 #: ../../../src/evox/core/_vmap_fix.py:250
 msgid "The keyword arguments to the given function."
-msgstr ""
+msgstr "给定函数的关键字参数。"
 
 #: ../../../src/evox/core/_vmap_fix.py:245
 #: ../../../src/evox/core/_vmap_fix.py:252
 msgid "The batched tensor of random values."
-msgstr ""
+msgstr "随机值的批量张量。"
 
 #: ../../../src/evox/core/_vmap_fix.py:247
 msgid ""
 "Usage:/home/bill/Source/evox/src/evox/core/_vmap_fix.py:247: (INFO/1) "
 "Duplicate implicit target name: \"usage:\"."
 msgstr ""
+"用法： \n"
+"/home/bill/Source/evox/src/evox/core/_vmap_fix.py:247: (INFO/1) 重复的隐式目标名称: \"usage:\"."
 
 #: ../../../src/evox/core/_vmap_fix.py:243
 msgid ""
@@ -2857,10 +2956,13 @@ msgid ""
 "values by applying the given function to the tensor extended with the "
 "current vmap batch size."
 msgstr ""
+"给定一个随机函数（例如 "
+"[`torch.randn_like`](https://pytorch.org/docs/stable/generated/torch.randn_like.html)、[`torch.rand_like`](https://pytorch.org/docs/stable/generated/torch.rand_like.html)"
+" 等）和一个张量， 此函数通过将给定函数应用于当前 vmap 批次大小扩展的张量，生成一个批量的随机值张量。"
 
 #: ../../../src/evox/core/_vmap_fix.py:249
 msgid "The tensor to generate random values like."
-msgstr ""
+msgstr "生成随机值的张量。"
 
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:248
 #: ../../source/apidocs/evox/evox.core._vmap_fix.md:258
@@ -2892,34 +2994,35 @@ msgid ""
 "already a batched tensor or `current_value` is not a batched tensor, it "
 "returns `value` unchanged."
 msgstr ""
+"该函数将输入张量 `value` 调整为匹配 `current_value` 的批次维度，后者被假设为批次张量。如果 `value` 已经是批次张量或者 `current_value` 不是批次张量，它会返回 `value` 不变。"
 
 #: ../../../src/evox/core/_vmap_fix.py:443
 msgid ""
 "The tensor to be aligned. If not a torch.Tensor, it is returned unchanged."
-msgstr ""
+msgstr "要对齐的张量。如果不是一个 torch.Tensor，则保持不变返回。"
 
 #: ../../../src/evox/core/_vmap_fix.py:445
 msgid ""
 "The reference batched tensor. If None or not a batched tensor, value is "
 "returned unchanged."
-msgstr ""
+msgstr "引用批量张量。如果是 None 或者不是批量张量，则返回的值保持不变。"
 
 #: ../../../src/evox/core/_vmap_fix.py:449
 msgid ""
 "The input value aligned with the batch dimensions of current_value, if "
 "applicable."
-msgstr ""
+msgstr "输入值与当前值的批次维度对齐（如果适用）。"
 
 #: ../../../src/evox/core/_vmap_fix.py:452
 msgid ""
 "When vectorized-mapping, it unwraps the batched tensor to print the "
 "underlying values. Otherwise, the function behaves like "
 "`format.format(*args, **kwargs)`."
-msgstr ""
+msgstr "在向量化映射时，它会展开批量张量以打印底层值。否则，该函数的行为类似于 `format.format(*args, **kwargs)`。"
 
 #: ../../../src/evox/core/_vmap_fix.py:454
 msgid "A string format."
-msgstr ""
+msgstr "字符串格式。"
 
 #: ../../../src/evox/core/_vmap_fix.py:455
 #, fuzzy
@@ -2933,11 +3036,11 @@ msgstr "缩放因子"
 
 #: ../../source/apidocs/evox/evox.core.components.md:1
 msgid "{py:mod}`evox.core.components`"
-msgstr ""
+msgstr "{py:mod}`evox.core.components`"
 
 #: ../../source/apidocs/evox/evox.core.components.md:18
 msgid "{py:obj}`Algorithm <evox.core.components.Algorithm>`"
-msgstr ""
+msgstr "{py:obj}`Algorithm <evox.core.components.Algorithm>`"
 
 #: ../../../src/evox/core/components.py:20
 #: ../../../src/evox/core/components.py:45
@@ -2946,7 +3049,7 @@ msgstr "所有算法的基类"
 
 #: ../../source/apidocs/evox/evox.core.components.md:22
 msgid "{py:obj}`Problem <evox.core.components.Problem>`"
-msgstr ""
+msgstr "{py:obj}`Problem <evox.core.components.Problem>`"
 
 #: ../../../src/evox/core/components.py:24
 #: ../../../src/evox/core/components.py:86
@@ -2956,7 +3059,7 @@ msgstr "所有算法的基类"
 
 #: ../../source/apidocs/evox/evox.core.components.md:26
 msgid "{py:obj}`Workflow <evox.core.components.Workflow>`"
-msgstr ""
+msgstr "{py:obj}`Workflow <evox.core.components.Workflow>`"
 
 #: ../../../src/evox/core/components.py:28
 #: ../../../src/evox/core/components.py:110
@@ -2966,7 +3069,7 @@ msgstr "所有EvoX模块的基础类。"
 
 #: ../../source/apidocs/evox/evox.core.components.md:30
 msgid "{py:obj}`Monitor <evox.core.components.Monitor>`"
-msgstr ""
+msgstr "{py:obj}`Monitor <evox.core.components.Monitor>`"
 
 #: ../../../src/evox/core/components.py:32
 #: ../../../src/evox/core/components.py:142
@@ -2979,13 +3082,15 @@ msgstr "问题类"
 #: ../../source/apidocs/evox/evox.core.components.md:107
 #: ../../source/apidocs/evox/evox.core.components.md:139
 msgid "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
-msgstr ""
+msgstr "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
 
 #: ../../../src/evox/core/components.py:47
 msgid ""
 "Notice/home/bill/Source/evox/src/evox/core/components.py:47: (INFO/1) "
 "Duplicate implicit target name: \"notice\"."
 msgstr ""
+"注意/home/bill/Source/evox/src/evox/core/components.py:47: (INFO/1) 重复的隐式目标名称:"
+" \"notice\"。"
 
 #: ../../../src/evox/core/components.py:48
 msgid ""
@@ -2993,6 +3098,9 @@ msgid ""
 "`init_step` must be overwritten even though nothing special is to be "
 "included due to Python's object-oriented limitations."
 msgstr ""
+"如果子类定义了 `step` 的 `trace_impl` 方法，"
+"即使不需要添加任何特殊内容，由于 Python 对象模型的限制，"
+"其对应的 `init_step` 方法必须被覆盖重写。"
 
 #: ../../../src/evox/core/components.py:116
 #: ../../../src/evox/core/components.py:148
@@ -3008,13 +3116,14 @@ msgstr "初始化这个模块和所有的子模块"
 #: ../../../src/evox/core/module.py:94 ../../../src/evox/core/module.py:234
 msgid "Variable length argument list, passed to the parent class initializer."
 msgstr ""
+"可变长度参数列表，传递给父类的初始化函数。"
 
 #: ../../../src/evox/core/components.py:119
 #: ../../../src/evox/core/components.py:151
 #: ../../../src/evox/core/module.py:50 ../../../src/evox/core/module.py:54
 #: ../../../src/evox/core/module.py:95 ../../../src/evox/core/module.py:235
 msgid "Arbitrary keyword arguments, passed to the parent class initializer."
-msgstr ""
+msgstr "任意关键字参数，传递给父类初始化器。"
 
 #: ../../../src/evox/core/components.py:121
 #: ../../../src/evox/core/components.py:153
@@ -3024,6 +3133,8 @@ msgid ""
 "Attributes:     __static_names__ (list): A list to store static member "
 "names."
 msgstr ""
+"Attributes:     __static_names__ (list): A list to store static member "
+"names."
 
 #: ../../../src/evox/core/components.py:58
 #, fuzzy
@@ -3034,7 +3145,7 @@ msgstr "告诉算法更多的信息"
 msgid ""
 "Initialize the algorithm and execute the algorithm procedure for the first "
 "step."
-msgstr ""
+msgstr "初始化算法并执行算法过程的第一步。"
 
 #: ../../../src/evox/core/components.py:75
 msgid ""
@@ -3063,17 +3174,19 @@ msgid ""
 "Notice/home/bill/Source/evox/src/evox/core/components.py:105: (INFO/1) "
 "Duplicate implicit target name: \"notice\"."
 msgstr ""
+"注意/home/bill/Source/evox/src/evox/core/components.py:105: (INFO/1) "
+"重复的隐式目标名称：\"notice\"。"
 
 #: ../../../src/evox/core/components.py:106
 msgid ""
 "If this function contains external evaluations that cannot be JIT by "
 "`torch.jit`, please wrap it with `torch.jit.ignore`."
-msgstr ""
+msgstr "如果此函数包含无法通过 `torch.jit` JIT 的外部评估，请使用 `torch.jit.ignore` 对其进行包装。"
 
 #: ../../../src/evox/core/components.py:123
 #: ../../../src/evox/workflows/std_workflow.py:105
 msgid "Perform the first optimization step of the workflow."
-msgstr ""
+msgstr "用于让工作流执行一步的函数。"
 
 #: ../../../src/evox/core/components.py:131
 msgid "The basic function to step a workflow."
@@ -3086,6 +3199,7 @@ msgid ""
 "of the workflow. Monitor itself lives outside the main workflow, so jit is "
 "not required."
 msgstr ""
+"监视器用于监控进化过程。它们包含一组回调，这些回调将在工作流执行的特定时刻被调用。Monitor 本身位于主工作流之外，因此不需要 jit。"
 
 #: ../../../src/evox/core/components.py:149
 msgid ""
@@ -3093,14 +3207,15 @@ msgid ""
 " method. The hooks method should return a list of strings, which are the "
 "names of the callbacks. Currently the supported callbacks are:"
 msgstr ""
+"要实现一个监视器，您需要实现自己的回调并重写 hooks 方法。hooks 方法应返回一个字符串列表，这些字符串是回调的名称。目前支持的回调有："
 
 #: ../../../src/evox/core/components.py:153
 msgid "`post_ask`, `pre_eval`, `post_eval`, and `pre_tell`."
-msgstr ""
+msgstr "`post_ask`、`pre_eval`、`post_eval` 和 `pre_tell`。"
 
 #: ../../../src/evox/core/components.py:155
 msgid "Set the static variables according to `config`."
-msgstr ""
+msgstr "根据 `config` 设置静态变量。"
 
 #: ../../../src/evox/core/components.py:157
 #, fuzzy
@@ -3115,7 +3230,7 @@ msgstr "这个模块的状态。"
 
 #: ../../../src/evox/core/components.py:163
 msgid "The hook function to be executed before the solution transformation."
-msgstr ""
+msgstr "解决方案转换前执行的钩子函数。"
 
 #: ../../../src/evox/core/components.py:165
 msgid ""
@@ -3124,40 +3239,39 @@ msgstr ""
 
 #: ../../../src/evox/core/components.py:171
 msgid "The hook function to be executed after the solution transformation."
-msgstr ""
+msgstr "解决方案转换后执行的钩子函数。"
 
 #: ../../../src/evox/core/components.py:173
 msgid ""
 "The population (candidate solutions) after the solution transformation."
-msgstr ""
 
 #: ../../../src/evox/core/components.py:179
 msgid "The hook function to be executed before the fitness transformation."
-msgstr ""
+msgstr "在适应度转换之前执行的钩子函数。"
 
 #: ../../../src/evox/core/components.py:181
 msgid "The fitnesses before the fitness transformation."
-msgstr ""
+msgstr "在适应度转换之前的适应度。"
 
 #: ../../../src/evox/core/components.py:187
 msgid "The hook function to be executed after the fitness transformation."
-msgstr ""
+msgstr "在适应度转换后要执行的钩子函数。"
 
 #: ../../../src/evox/core/components.py:189
 msgid "The fitnesses after the fitness transformation."
-msgstr ""
+msgstr "适应度变换后的适应度值。"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:1
 msgid "{py:mod}`evox.core.jit_util`"
-msgstr ""
+msgstr "{py:mod}`evox.core.jit_util`"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:18
 msgid "{py:obj}`MappedUseStateFunc <evox.core.jit_util.MappedUseStateFunc>`"
-msgstr ""
+msgstr "{py:obj}`MappedUseStateFunc <evox.core.jit_util.MappedUseStateFunc>`"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:28
 msgid "{py:obj}`vmap <evox.core.jit_util.vmap>`"
-msgstr ""
+msgstr "{py:obj}`vmap <evox.core.jit_util.vmap>`"
 
 #: ../../../src/evox/core/jit_util.py:30 ../../../src/evox/core/jit_util.py:97
 msgid ""
@@ -3165,20 +3279,24 @@ msgid ""
 "[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for "
 "more information."
 msgstr ""
+"向量化映射将给定的函数映射到其映射版本，更多信息请参见 "
+"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html)。"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:32
 msgid "{py:obj}`_clone_inputs <evox.core.jit_util._clone_inputs>`"
-msgstr ""
+msgstr "{py:obj}`_clone_inputs <evox.core.jit_util._clone_inputs>`"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:36
 msgid ""
 "{py:obj}`_form_positional_inputs "
 "<evox.core.jit_util._form_positional_inputs>`"
 msgstr ""
+"{py:obj}`_form_positional_inputs "
+"<evox.core.jit_util._form_positional_inputs>`"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:40
 msgid "{py:obj}`jit <evox.core.jit_util.jit>`"
-msgstr ""
+msgstr "{py:obj}`jit <evox.core.jit_util.jit>`"
 
 #: ../../../src/evox/core/jit_util.py:42
 #: ../../../src/evox/core/jit_util.py:118
@@ -3189,15 +3307,20 @@ msgid ""
 "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
 " (`trace=False`)."
 msgstr ""
+"通过 "
+"[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+" (`trace=True`) 或 "
+"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+" (`trace=False`) 对给定的 `func` 进行即时编译 (JIT)。"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:52
 msgid "{py:obj}`T <evox.core.jit_util.T>`"
-msgstr ""
+msgstr "{py:obj}`T <evox.core.jit_util.T>`"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:64
 #: ../../source/apidocs/evox/evox.core.module.md:515
 msgid "Bases: {py:obj}`typing.Protocol`"
-msgstr ""
+msgstr "Bases: {py:obj}`typing.Protocol`"
 
 #: ../../../src/evox/core/jit_util.py:71
 #, fuzzy
@@ -3208,26 +3331,26 @@ msgstr "为问题初始化设置。"
 msgid ""
 "The batch size of the state. If None, the batch size of the state is "
 "indicated by VMAP_DIM_CONST. Defaults to None."
-msgstr ""
+msgstr "状态的批处理大小。如果为 None，则状态的批处理大小由 VMAP_DIM_CONST 指示。默认为 None。"
 
 #: ../../../src/evox/core/jit_util.py:74
 msgid ""
 "Whether to torch.expand or torch.repeat the state tensors to the given batch"
 " size."
-msgstr ""
+msgstr "是否将状态张量使用 torch.expand 或 torch.repeat 扩展到给定的批量大小。"
 
 #: ../../../src/evox/core/jit_util.py:76
 msgid ""
 "The initialized state, with the same keys as the state of the original "
 "function."
-msgstr ""
+msgstr "初始化状态，具有与原始函数状态相同的键。"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md:87
 #: ../../source/apidocs/evox/evox.core.module.md:192
 #: ../../source/apidocs/evox/evox.core.module.md:601
 #: ../../source/apidocs/evox/evox.core.module.md:635
 msgid "'TypeVar(...)'"
-msgstr ""
+msgstr "TypeVar(...)"
 
 #: ../../../src/evox/core/jit_util.py:99
 msgid "The function to be mapped. See torch.vmap."
@@ -3235,11 +3358,11 @@ msgstr ""
 
 #: ../../../src/evox/core/jit_util.py:100
 msgid "The inputs' batch dimensions. See torch.vmap. Defaults to 0."
-msgstr ""
+msgstr "输入的批次维度。请参阅 torch.vmap。默认为 0。"
 
 #: ../../../src/evox/core/jit_util.py:101
 msgid "The outputs' batch dimensions. See torch.vmap. Defaults to 0."
-msgstr ""
+msgstr "输出的批次维度。请参见 torch.vmap。默认为 0。"
 
 #: ../../../src/evox/core/jit_util.py:102
 msgid ""
@@ -3247,13 +3370,15 @@ msgid ""
 "torch.vmap. NOTICE: if trace=False`, all of the following inputs related to "
 "tracing will be ignored."
 msgstr ""
+"是否使用 `torch.jit.trace` 追踪已映射的函数，还是简单地使用 `torch.vmap`。注意：如果 "
+"`trace=False`，所有与追踪相关的输入将被忽略。"
 
 #: ../../../src/evox/core/jit_util.py:103
 msgid ""
 "The ndim of the expected inputs of the batched function; thus, it must be at"
 " least 1. Giving a single integer means same ndim for all inputs. Defaults "
 "to 1."
-msgstr ""
+msgstr "批处理函数期望输入的维度（ndim）；因此，它必须至少为 1。给定一个整数意味着所有输入具有相同的维度。默认值为 1。"
 
 #: ../../../src/evox/core/jit_util.py:104
 #, fuzzy
@@ -3268,13 +3393,13 @@ msgstr ""
 #: ../../../src/evox/core/jit_util.py:132
 msgid ""
 "Strictly check the inputs or not. See torch.jit.trace. Defaults to False."
-msgstr ""
+msgstr "严格检查输入与否。参见 torch.jit.trace。默认为 False。"
 
 #: ../../../src/evox/core/jit_util.py:107
 #: ../../../src/evox/core/jit_util.py:133
 msgid ""
 "Check the traced function or not. See torch.jit.trace. Defaults to False."
-msgstr ""
+msgstr "检查是否跟踪了该函数。参见 torch.jit.trace。默认为 False。"
 
 #: ../../../src/evox/core/jit_util.py:108
 msgid ""
@@ -3283,12 +3408,15 @@ msgid ""
 "init_state(None). Ignored when func is not wrapped by use_state. Defaults to"
 " None."
 msgstr ""
+"可选的批处理当前状态，用于被 use_state 包裹的函数。如果为 None，则每次调用 init_state(None) "
+"时将返回一个新的批处理状态。当 func 没有被 use_state 包裹时，该选项被忽略。默认值为 None。"
 
 #: ../../../src/evox/core/jit_util.py:109
 msgid ""
 "When tracing, the example inputs may be broadcasted with additional "
 "dimension(s) of size VMAP_DIM_CONST. Defaults to 13."
 msgstr ""
+"依赖于 trace 时，示例输入可能会添加一个或多个大小为 VMAP_DIM_CONST 的维度。默认值：13。"
 
 #: ../../source/apidocs/evox/evox.core.jit_util.md
 #: ../../source/apidocs/evox/evox.core.module.md
@@ -3296,11 +3424,11 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md
 #, fuzzy
 msgid "Raises"
-msgstr "SNES"
+msgstr "Raises"
 
 #: ../../../src/evox/core/jit_util.py:111
 msgid "If the function argument types are not supported"
-msgstr ""
+msgstr "如果函数参数类型不支持"
 
 #: ../../../src/evox/core/jit_util.py:113
 msgid ""
@@ -3309,6 +3437,9 @@ msgid ""
 "init_state(batch_size: int) -> batched_state or init_state(None) -> "
 "batched_state."
 msgstr ""
+"“批处理”（向量化映射）版本的 func。如果给定的 func 被 use_state 包裹，返回的函数将具有 "
+"init_state(batch_size: int) -> batched_state 或 init_state(None) -> "
+"batched_state。"
 
 #: ../../../src/evox/core/jit_util.py:120
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260004
@@ -3317,21 +3448,25 @@ msgid ""
 "(`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`, preventing"
 " possible errors."
 msgstr ""
+"该函数包装器有效处理嵌套的 JIT 和向量映射 (`vmap`) 表达式，如 `jit(func1)` -> `vmap` -> "
+"`jit(func2)`，从而防止可能出现的错误。"
 
 #: ../../../src/evox/core/jit_util.py:123
 msgid ""
 "Notice/home/bill/Source/evox/src/evox/core/jit_util.py:123: (INFO/1) "
 "Duplicate implicit target name: \"notice\"."
 msgstr ""
+"注意/home/bill/Source/evox/src/evox/core/jit_util.py:123: (INFO/1) "
+"重复的隐式目标名称：“notice”。"
 
 #: ../../../src/evox/core/jit_util.py:128
 msgid "The target function to be JIT"
-msgstr ""
+msgstr "要进行 JIT 的目标函数"
 
 #: ../../../src/evox/core/jit_util.py:129
 msgid ""
 "Whether using torch.jit.trace or torch.jit.script to JIT. Defaults to False."
-msgstr ""
+msgstr "是否使用 torch.jit.trace 或 torch.jit.script 进行 JIT。默认为 False。"
 
 #: ../../../src/evox/core/jit_util.py:130
 #, fuzzy
@@ -3345,6 +3480,8 @@ msgid ""
 "(a dict), or a tuple of positional arguments and keyword arguments (a tuple "
 "of tuple and dict). Defaults to None."
 msgstr ""
+"当 lazy=False 时，示例输入必须立即提供，否则将被忽略。可以是仅位置参数（一个 tuple），仅关键字参数（一个 "
+"dict），或位置参数和关键字参数的组合（一个 tuple 和 dict 的 tuple）。Defaults to None。"
 
 #: ../../../src/evox/core/jit_util.py:134
 #, fuzzy
@@ -3359,13 +3496,17 @@ msgid ""
 "a instant call to torch.jit.trace which will be used inside a "
 "torch.jit.script so that the JIT traced result shall be cached."
 msgstr ""
+"是否直接使用 torch.jit.trace （no_cache=True）或在 lazy=False 时运行函数以使其缓存内部内容。默认为 "
+"False。当 trace=False 时没有效果。如果函数包含对 torch.jit.trace 的即时调用，并将在 torch.jit.script"
+" 内部使用，则该值必须设置为 False，以便 JIT 跟踪的结果将被缓存。"
 
 #: ../../../src/evox/core/jit_util.py:136
 msgid ""
 "Whether to return the dummy output of func as the second output or not. "
 "Defaults to False. Has no effect when trace=False or lazy=True or "
 "no_cache=True."
-msgstr ""
+msgstr "是否将 `func` 的 dummy 输出作为第二个输出返回。
+"默认值为False。如果 `trace=False` 或 `lazy=True` 或 `no_cache=True` 则无效。"
 
 #: ../../../src/evox/core/jit_util.py:137
 msgid ""
@@ -3376,15 +3517,15 @@ msgstr ""
 
 #: ../../../src/evox/core/jit_util.py:139
 msgid "The JIT version of func"
-msgstr ""
+msgstr "func 的 JIT 版本"
 
 #: ../../source/apidocs/evox/evox.core.module.md:1
 msgid "{py:mod}`evox.core.module`"
-msgstr ""
+msgstr "{py:mod}`evox.core.module`"
 
 #: ../../source/apidocs/evox/evox.core.module.md:18
 msgid "{py:obj}`ModuleBase <evox.core.module.ModuleBase>`"
-msgstr ""
+msgstr "{py:obj}`ModuleBase <evox.core.module.ModuleBase>`"
 
 #: ../../../src/evox/core/module.py:20 ../../../src/evox/core/module.py:226
 #, fuzzy
@@ -3393,73 +3534,76 @@ msgstr "EvoX中的自定义算法和问题"
 
 #: ../../source/apidocs/evox/evox.core.module.md:22
 msgid "{py:obj}`_WrapClassBase <evox.core.module._WrapClassBase>`"
-msgstr ""
+msgstr "{py:obj}`_WrapClassBase <evox.core.module._WrapClassBase>`"
 
 #: ../../source/apidocs/evox/evox.core.module.md:26
 msgid "{py:obj}`UseStateFunc <evox.core.module.UseStateFunc>`"
-msgstr ""
+msgstr "{py:obj}`UseStateFunc <evox.core.module.UseStateFunc>`"
 
 #: ../../source/apidocs/evox/evox.core.module.md:36
 msgid "{py:obj}`_if_none <evox.core.module._if_none>`"
-msgstr ""
+msgstr "{py:obj}`_if_none <evox.core.module._if_none>`"
 
 #: ../../source/apidocs/evox/evox.core.module.md:40
 msgid "{py:obj}`_is_magic <evox.core.module._is_magic>`"
-msgstr ""
+msgstr "{py:obj}`_is_magic <evox.core.module._is_magic>`"
 
 #: ../../source/apidocs/evox/evox.core.module.md:44
 msgid "{py:obj}`Parameter <evox.core.module.Parameter>`"
-msgstr ""
+msgstr "{py:obj}`Parameter <evox.core.module.Parameter>`"
 
 #: ../../../src/evox/core/module.py:46 ../../../src/evox/core/module.py:202
 msgid "Wraps a value as parameter with `requires_grad=False`."
-msgstr ""
+msgstr "将一个值包装为参数，`requires_grad=False`。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:48
 msgid "{py:obj}`Mutable <evox.core.module.Mutable>`"
-msgstr ""
+msgstr "{py:obj}`Mutable <evox.core.module.Mutable>`"
 
 #: ../../../src/evox/core/module.py:50 ../../../src/evox/core/module.py:209
 msgid "Wraps a value as a mutable tensor."
-msgstr ""
+msgstr "将值包装为可变张量。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:52
 msgid ""
 "{py:obj}`assign_load_state_dict <evox.core.module.assign_load_state_dict>`"
 msgstr ""
+"{py:obj}`assign_load_state_dict <evox.core.module.assign_load_state_dict>`"
 
 #: ../../../src/evox/core/module.py:54 ../../../src/evox/core/module.py:216
 msgid ""
 "Copy parameters and buffers from state_dict into this module and its "
 "descendants."
-msgstr ""
+msgstr "将参数和缓冲区从 state_dict 复制到此模块及其后代。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:56
 msgid "{py:obj}`use_state_context <evox.core.module.use_state_context>`"
-msgstr ""
+msgstr "{py:obj}`use_state_context <evox.core.module.use_state_context>`"
 
 #: ../../../src/evox/core/module.py:58 ../../../src/evox/core/module.py:382
 msgid "A context manager to set the value of `using_state` temporarily."
-msgstr ""
+msgstr "一个上下文管理器，用于临时设置 `using_state` 的值。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:60
 msgid ""
 "{py:obj}`trace_caching_state_context "
 "<evox.core.module.trace_caching_state_context>`"
 msgstr ""
+"{py:obj}`trace_caching_state_context "
+"<evox.core.module.trace_caching_state_context>`"
 
 #: ../../../src/evox/core/module.py:62 ../../../src/evox/core/module.py:389
 msgid ""
 "A context manager to set the value of `trace_caching_state` temporarily."
-msgstr ""
+msgstr "一个上下文管理器，用于暂时设置 `trace_caching_state` 的值。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:64
 msgid "{py:obj}`is_using_state <evox.core.module.is_using_state>`"
-msgstr ""
+msgstr "{py:obj}`is_using_state <evox.core.module.is_using_state>`"
 
 #: ../../../src/evox/core/module.py:66 ../../../src/evox/core/module.py:396
 msgid "Get the current state of the `using_state`."
-msgstr ""
+msgstr "获取当前的 `using_state` 状态。"
 
 #: ../../source/apidocs/evox/evox.core.module.md:68
 msgid ""
