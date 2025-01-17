@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  EvoX\n"
+"Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-17 18:46+0800\n"
-"PO-Revision-Date: 2024-11-05 08:25+0000\n"
+"PO-Revision-Date: 2025-01-17 13:38+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
+"projects/evox/evox/zh_Hans/>\n"
 "Language: zh\n"
-"Language-Team: Chinese (Simplified Han script) "
-"<https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.10-dev\n"
 "Generated-By: Babel 2.16.0\n"
 
 #: ../../source/apidocs/evox/evox.md:1
@@ -191,9 +192,8 @@ msgstr "{py:mod}`evox.algorithms.de_variants`"
 #: ../../source/apidocs/evox/evox.utils.md:10
 #: ../../source/apidocs/evox/evox.vis_tools.md:10
 #: ../../source/apidocs/evox/evox.workflows.md:10
-#, fuzzy
 msgid "Submodules"
-msgstr "模块类"
+msgstr "子模块"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.md:32
 msgid "{py:obj}`__all__ <evox.algorithms.de_variants.__all__>`"
@@ -269,9 +269,8 @@ msgstr "{py:mod}`evox.algorithms.de_variants.code`"
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:10
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:10
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:10
-#, fuzzy
 msgid "Module Contents"
-msgstr "模块类"
+msgstr "模块内容"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:12
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:12
@@ -315,9 +314,8 @@ msgstr "模块类"
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:12
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:12
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:12
-#, fuzzy
 msgid "Classes"
-msgstr "核心类"
+msgstr "类"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md:18
 msgid "{py:obj}`CoDE <evox.algorithms.de_variants.code.CoDE>`"
@@ -325,7 +323,6 @@ msgstr "{py:obj}`CoDE <evox.algorithms.de_variants.code.CoDE>`"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:20
 #: ../../../src/evox/algorithms/de_variants/code.py:111
-#, fuzzy
 msgid "The implementation of CoDE algorithm."
 msgstr "CoDE算法实现"
 
@@ -480,9 +477,8 @@ msgid "Initialization"
 msgstr "初始化"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:117
-#, fuzzy
 msgid "Initialize the CoDE algorithm with the given parameters."
-msgstr "使用给定的策略和权重可视化 Brax 环境。"
+msgstr "使用给定的参数初始化 CoDE 算法。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.code.md
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md
@@ -568,7 +564,6 @@ msgstr "参数"
 #: ../../../src/evox/algorithms/pso_variants/pso.py:41
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:41
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:41
-#, fuzzy
 msgid "The size of the population."
 msgstr "种群大小。"
 
@@ -612,7 +607,6 @@ msgid "The device to use for tensor computations. Defaults to None."
 msgstr "用于张量计算的设备。默认为 None。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:124
-#, fuzzy
 msgid "Perform one iteration of the CoDE algorithm."
 msgstr "执行CoDE算法的一次迭代。"
 
@@ -633,9 +627,8 @@ msgid "Apply mutation to generate a new vector."
 msgstr "应用变异以生成新向量。"
 
 #: ../../../src/evox/algorithms/de_variants/code.py:130
-#, fuzzy
 msgid "Update the population and fitness values."
-msgstr "给出用于评估的候选种群。"
+msgstr "更新种群和适应度。"
 
 #: ../../source/apidocs/evox/evox.algorithms.de_variants.de.md:1
 msgid "{py:mod}`evox.algorithms.de_variants.de`"
@@ -688,9 +681,8 @@ msgid ""
 msgstr "请注意，`evaluate` 方法在这个类中未定义。它预计由 `Problem` 类或其他外部组件提供。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:39
-#, fuzzy
 msgid "Initialize the DE algorithm with the given parameters."
-msgstr "使用给定的策略和权重可视化 Brax 环境。"
+msgstr "使用给定的参数初始化 DE 算法。"
 
 #: ../../../src/evox/algorithms/de_variants/de.py:44
 #: ../../../src/evox/algorithms/de_variants/ode.py:44
@@ -10077,7 +10069,6 @@ msgid ""
 msgstr "体验**GPU 加速**的优化，速度比传统方法快百倍以上。"
 
 #: ../../source/index.md:41
-#, fuzzy
 msgid ""
 "Leverage the power of Distributed Workflows for even more rapid "
 "optimization."
@@ -10088,21 +10079,18 @@ msgid "🌐 **Versatile Optimization Suite**:"
 msgstr "🌐 **多功能优化套件**:"
 
 #: ../../source/index.md:44
-#, fuzzy
 msgid ""
 "Cater to all your needs with both [Single-objective and Multi-"
 "objectiv](#algorithms) optimization capabilities."
 msgstr "满足您所有需求，包括[单目标和多目标](#algorithm)优化。"
 
 #: ../../source/index.md:45
-#, fuzzy
 msgid ""
 "Dive into a comprehensive library of [Benchmark Problems](#problems), "
 "ensuring robust testing and evaluation."
 msgstr "深入了解全面的[基准测试问题库](#problems)，确保进行稳健的测试和评估。"
 
 #: ../../source/index.md:46
-#, fuzzy
 msgid ""
 "Explore the frontier of AI with extensive tools for "
 "[Neuroevolution](#neuroevolution) tasks."
