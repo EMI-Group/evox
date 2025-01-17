@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-17 18:46+0800\n"
-"PO-Revision-Date: 2025-01-17 13:38+0000\n"
+"PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
 "projects/evox/evox/zh_Hans/>\n"
@@ -7068,9 +7068,8 @@ msgstr "使用 `sphinx-autodoc2 <https://github.com/chrisjsewell/sphinx-autodoc2
 
 #: ../../source/example/brax.ipynb:10002
 #: ../../source/guide/user/2-problems.ipynb:10002
-#, fuzzy
 msgid "Solving Brax Problems in EvoX"
-msgstr "用EvoX解决Pong问题"
+msgstr "用EvoX解决Brax问题"
 
 #: ../../source/example/brax.ipynb:10004
 #: ../../source/guide/user/2-problems.ipynb:10004
@@ -7093,9 +7092,8 @@ msgid ""
 msgstr "Brax 是一个快速且完全可微分的物理引擎，用于机器人学、人类感知、材料科学、强化学习和其他需要大量模拟的应用的研究和开发。"
 
 #: ../../source/example/brax.ipynb:40006
-#, fuzzy
 msgid "Here we will demonstrate a \"swimmer\" environment of Brax."
-msgstr "我们将演示在Brax中使用“swimmer”环境。"
+msgstr "在这我们将演示在Brax中使用“swimmer”环境。"
 
 #: ../../source/example/brax.ipynb:40008
 msgid ""
@@ -7137,9 +7135,8 @@ msgstr "启动适配器"
 
 #: ../../source/example/brax.ipynb:90004
 #: ../../source/guide/user/2-problems.ipynb:100004
-#, fuzzy
 msgid "An adapter can help us convert the data back-and-forth."
-msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
+msgstr "一个转换器可以帮助我们将数据在不同形式间来回转换。"
 
 #: ../../source/example/brax.ipynb:110002
 #: ../../source/guide/user/2-problems.ipynb:120002
@@ -7154,22 +7151,20 @@ msgstr "设置运行过程"
 #: ../../source/example/brax.ipynb:110006
 #: ../../source/guide/user/1-start.ipynb:40011
 #: ../../source/guide/user/2-problems.ipynb:120006
-#, fuzzy
 msgid "Initiate an algorithm and a problem"
-msgstr "创建一个算法和一个问题"
+msgstr "初始化一个算法和一个问题"
 
 #: ../../source/example/brax.ipynb:110008
 #: ../../source/guide/user/2-problems.ipynb:120008
-#, fuzzy
 msgid ""
 "We initiate a [PSO algorithm](#evox.algorithms.pso_variants.pso.PSO), and"
 " the problem is a [Brax "
 "problem](#evox.problems.neuroevolution.brax.BraxProblem) in \"swimmer\" "
 "environment."
 msgstr ""
-"我们启动一个[PSO "
-"算法](#evox.algorithms.pso_variants.pso.PSO)，问题是在“hopper”环境中的[Brax "
-"问题](#evox.problems.neuroevolution.brax.BraxProblem)。"
+"我们初始化一个[PSO 算法](#evox.algorithms.pso_variants.pso.PSO)，问题是"
+"[Brax 问题]"
+"(#evox.problems.neuroevolution.brax.BraxProblem)中的“swimmer”环境。"
 
 #: ../../source/example/brax.ipynb:130002
 #: ../../source/guide/user/2-problems.ipynb:140002
@@ -7307,9 +7302,8 @@ msgid "Use the algorithm to solve the problem"
 msgstr "自定义算法和问题"
 
 #: ../../source/example/custom_algo_prob.ipynb:70004
-#, fuzzy
 msgid "Initiate the algorithm, problem and monitor"
-msgstr "接下来创建algorithm，problem，monitor对象。"
+msgstr "初始化algorithm，problem，monitor对象。"
 
 #: ../../source/example/custom_algo_prob.ipynb:90002
 #, fuzzy
@@ -9554,12 +9548,13 @@ msgid ""
 msgstr "在我们的神经演化任务示例中，需要使用 Brax。因此，如果您想复制此示例，建议安装 Brax。"
 
 #: ../../source/guide/user/2-problems.ipynb:50007
-#, fuzzy
 msgid ""
 "Here we will demonstrate a \"swimmer\" environment of Brax. For more "
 "information, you can browse the [Github of "
 "Brax](https://github.com/google/brax)."
-msgstr "在这里，我们将演示Brax的“hopper”环境。有关更多信息，您可以浏览[Brax的Github](https://github.com/google/brax)。"
+msgstr ""
+"在这里，我们将演示Brax的“swimmer”环境。有关更多信息，您可以浏览"
+"[Github of Brax](https://github.com/google/brax)。"
 
 #: ../../source/guide/user/2-problems.ipynb:100006
 msgid ""
