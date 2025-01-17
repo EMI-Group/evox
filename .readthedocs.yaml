@@ -10,9 +10,6 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.11"
-  jobs:
-    pre_build:
-      - python docs/fix_notebook_translation.py
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
