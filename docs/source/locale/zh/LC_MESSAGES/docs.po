@@ -5443,7 +5443,7 @@ msgstr "Brax 的后端。如果为 None，将使用环境的默认后端。默�
 msgid ""
 "The device to run the computations on. Defaults to the current default "
 "device."
-msgstr ""
+msgstr "用于运行计算的设备。默认为当前默认设备。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:125
 #: ../../../src/evox/workflows/std_workflow.py:75
@@ -5453,7 +5453,7 @@ msgstr "Notes"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:126
 msgid "The initial key is obtained from `torch.random.get_rng_state()`."
-msgstr ""
+msgstr "初始密钥是从 `torch.random.get_rng_state()` 获得的。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:129
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:87
@@ -5462,6 +5462,8 @@ msgid ""
 "(`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing "
 "this problem CANNOT be vmapped."
 msgstr ""
+"此问题不支持 HPO 包装器 (`problems.hpo_wrapper.HPOProblemWrapper`)，即包含此问题的工作流不能被 "
+"vmapped。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:131
 #: ../../source/guide/developer/1-modulebase.md:126 ../../source/index.md:22
@@ -5474,11 +5476,20 @@ msgid ""
 "env_name=\"swimmer\", ...    policy=model, ...    max_episode_length=1000, "
 "...    num_episodes=3, ...    pop_size=100, ...    rotate_key=False, ...)"
 msgstr ""
+"from evox import problems\n"
+"problem = problems.neuroevolution.Brax(\n"
+"    ...    env_name=\"swimmer\",\n"
+"    ...    policy=model,\n"
+"    ...    max_episode_length=1000,\n"
+"    ...    num_episodes=3,\n"
+"    ...    pop_size=100,\n"
+"    ...    rotate_key=False,\n"
+"...)"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:113
 msgid ""
 "Evaluate the final rewards of a population (batch) of model parameters."
-msgstr ""
+msgstr "评估一组模型参数种群（批量）的最终奖励。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:115
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:125
@@ -5486,13 +5497,13 @@ msgid ""
 "A dictionary of parameters where each key is a parameter name and each value"
 " is a tensor of shape (batch_size, *param_shape) representing the batched "
 "parameters of batched models."
-msgstr ""
+msgstr "参数字典，其中每个键是参数名称，每个值是形状为 (batch_size, *param_shape) 的张量，表示批量模型的批量参数。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:117
 msgid ""
 "A tensor of shape (batch_size,) containing the reward of each sample in the "
 "population."
-msgstr ""
+msgstr "形状为 (batch_size,) 的张量，包含种群中每个样本的奖励。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:137
 #, fuzzy
@@ -5501,13 +5512,13 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:139
 msgid "The weights of the policy model. Which is a dictionary of parameters."
-msgstr ""
+msgstr "策略模型的权重。这是一个参数字典。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:140
 msgid ""
 "The output type of the visualization, \"HTML\" or \"rgb_array\". Default to "
 "\"HTML\"."
-msgstr ""
+msgstr "可视化的输出类型，“HTML”或“rgb_array”。默认为“HTML”。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:142
 #, fuzzy
@@ -5516,31 +5527,36 @@ msgstr "种群。"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:1
 msgid "{py:mod}`evox.problems.neuroevolution.supervised_learning`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.neuroevolution.supervised_learning`"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:18
 msgid ""
 "{py:obj}`SupervisedLearningProblem "
 "<evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem>`"
 msgstr ""
+"{py:obj}`SupervisedLearningProblem "
+"<evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem>`"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:20
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:70
 msgid ""
 "The supervised learning problem to test a model's parameters or a batch of "
 "parameters with given data and criterion."
-msgstr ""
+msgstr "监督学习问题是使用给定的数据和标准来测试模型参数或一批参数。"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:30
 msgid ""
 "{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
 msgstr ""
+"{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:34
 msgid ""
 "{py:obj}`__supervised_data__ "
 "<evox.problems.neuroevolution.supervised_learning.__supervised_data__>`"
 msgstr ""
+"{py:obj}`__supervised_data__ "
+"<evox.problems.neuroevolution.supervised_learning.__supervised_data__>`"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:46
 #, fuzzy
@@ -5554,51 +5570,55 @@ msgstr "为问题初始化设置。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:78
 msgid "The neural network model whose parameters need to be evaluated."
-msgstr ""
+msgstr "需要评估参数的神经网络模型。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:79
 msgid "The data loader providing the dataset for evaluation."
-msgstr ""
+msgstr "用于评估的数据加载器提供数据集。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:80
 msgid "The loss function used to evaluate the parameters' performance."
-msgstr ""
+msgstr "用于评估参数性能的损失函数。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:81
 msgid ""
 "The size of the population (batch size of the parameters) to be evaluated. "
 "Defaults to None for single-run mode."
-msgstr ""
+msgstr "种群的大小（参数的批量大小）需要进行评估。默认为 None，表示单次运行模式。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:84
 msgid "If the data loader contains no items."
-msgstr ""
+msgstr "如果数据加载器不包含任何项目。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:123
 msgid "Evaluate the fitness of a population (batch) of model parameters."
-msgstr ""
+msgstr "评估一组模型参数种群（批次）的适应度。"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:127
 msgid ""
 "A tensor of shape (batch_size,) containing the fitness of each sample in the"
 " population."
-msgstr ""
+msgstr "形状为 (batch_size,) 的张量，包含种群中每个样本的适应度。"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:1
 msgid "{py:mod}`evox.problems.neuroevolution.utils`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.neuroevolution.utils`"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:18
 msgid ""
 "{py:obj}`ModelStateForwardResult "
 "<evox.problems.neuroevolution.utils.ModelStateForwardResult>`"
 msgstr ""
+"{py:obj}`ModelStateForwardResult "
+"<evox.problems.neuroevolution.utils.ModelStateForwardResult>`"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:30
 msgid ""
 "{py:obj}`get_vmap_model_state_forward "
 "<evox.problems.neuroevolution.utils.get_vmap_model_state_forward>`"
 msgstr ""
+"{py:obj}`get_vmap_model_state_forward "
+"<evox.problems.neuroevolution.utils.get_vmap_model_state_forward>`"
 
 #: ../../../src/evox/problems/neuroevolution/utils.py:32
 #: ../../../src/evox/problems/neuroevolution/utils.py:107
@@ -5608,18 +5628,20 @@ msgid ""
 "function. When `get_non_vmap` is True, the function returns both vmap and "
 "non-vmap model state forward functions."
 msgstr ""
+"获取用于 vmap 和非 vmap 模型的模型状态前向函数。当 `get_non_vmap` 为 False 时，该函数仅返回 vmap "
+"模型状态前向函数。当 `get_non_vmap` 为 True 时，该函数返回 vmap 和非 vmap 模型状态前向函数。"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:42
 msgid "Bases: {py:obj}`typing.NamedTuple`"
-msgstr ""
+msgstr "Bases: {py:obj}`typing.NamedTuple`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.md:1
 msgid "{py:mod}`evox.problems.numerical`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.numerical`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.md:29
 msgid "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.md:41
 msgid ""
@@ -5631,24 +5653,26 @@ msgstr ""
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:1
 msgid "{py:mod}`evox.problems.numerical.basic`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.numerical.basic`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:18
 msgid ""
 "{py:obj}`ShiftAffineNumericalProblem "
 "<evox.problems.numerical.basic.ShiftAffineNumericalProblem>`"
 msgstr ""
+"{py:obj}`ShiftAffineNumericalProblem "
+"<evox.problems.numerical.basic.ShiftAffineNumericalProblem>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:20
 #: ../../../src/evox/problems/numerical/basic.py:89
 msgid ""
 "A numerical problem with a shift and affine transformations to the input "
 "points."
-msgstr ""
+msgstr "一个数值问题，包含对输入点的平移和仿射变换。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:22
 msgid "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
-msgstr ""
+msgstr "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:24
 #: ../../../src/evox/problems/numerical/basic.py:120
@@ -5658,7 +5682,7 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:26
 msgid "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
-msgstr ""
+msgstr "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:28
 #: ../../../src/evox/problems/numerical/basic.py:151
@@ -5668,7 +5692,7 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:30
 msgid "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
-msgstr ""
+msgstr "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:32
 #: ../../../src/evox/problems/numerical/basic.py:182
@@ -5678,7 +5702,7 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:34
 msgid "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
-msgstr ""
+msgstr "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:36
 #: ../../../src/evox/problems/numerical/basic.py:213
@@ -5688,7 +5712,7 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:38
 msgid "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
-msgstr ""
+msgstr "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:40
 #: ../../../src/evox/problems/numerical/basic.py:244
@@ -5698,7 +5722,7 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:42
 msgid "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
-msgstr ""
+msgstr "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:44
 #: ../../../src/evox/problems/numerical/basic.py:275
@@ -5708,29 +5732,31 @@ msgstr "Schwefel函数，最小值位于 x = [420.9687462275036, ...]"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:54
 msgid "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
-msgstr ""
+msgstr "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:58
 msgid "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
-msgstr ""
+msgstr "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:62
 msgid ""
 "{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
 msgstr ""
+"{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:66
 msgid ""
 "{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
 msgstr ""
+"{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:70
 msgid "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
-msgstr ""
+msgstr "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:74
 msgid "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
-msgstr ""
+msgstr "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:95
 #, fuzzy
@@ -5739,20 +5765,20 @@ msgstr "为问题初始化设置。"
 
 #: ../../../src/evox/problems/numerical/basic.py:97
 msgid "The shift vector. Defaults to None. None represents no shift."
-msgstr ""
+msgstr "偏移向量。默认为 None。None 表示没有偏移。"
 
 #: ../../../src/evox/problems/numerical/basic.py:98
 msgid ""
 "The affine transformation matrix. Defaults to None. None represents no "
 "affine transformation."
-msgstr ""
+msgstr "仿射变换矩阵。默认为 None。None 表示没有仿射变换。"
 
 #: ../../../src/evox/problems/numerical/basic.py:102
 msgid ""
 "Evaluate the given population by shifting and applying an affine "
 "transformation to the input points first, and then evaluating the points "
 "with the actual function."
-msgstr ""
+msgstr "首先对给定的种群进行平移和仿射变换，然后用实际函数评估这些点。"
 
 #: ../../../src/evox/problems/numerical/basic.py:104
 #, fuzzy
@@ -5773,6 +5799,7 @@ msgstr "评估给定候选解的适应度。"
 msgid ""
 "Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
 msgstr ""
+"Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
 
 #: ../../../src/evox/problems/numerical/basic.py:126
 #, fuzzy
@@ -5781,7 +5808,7 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../../src/evox/problems/numerical/basic.py:128
 msgid "The parameter a in the equation. Defaults to 20.0."
-msgstr ""
+msgstr "方程中的参数a。默认值为20.0。"
 
 #: ../../../src/evox/problems/numerical/basic.py:129
 msgid "The parameter b in the equation. Defaults to 0.2."
