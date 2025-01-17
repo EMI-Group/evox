@@ -643,13 +643,6 @@ msgstr "{py:obj}`DE <evox.algorithms.de_variants.de.DE>`"
 msgid "Differential Evolution (DE) algorithm for optimization."
 msgstr "差分进化（DE）算法用于优化。"
 
-#: ../../../src/evox/algorithms/de_variants/de.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/de.py:35: "
-"(INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/de_variants/de.py:37
 msgid ""
 "`__init__`: Initializes the DE algorithm with the given parameters, "
@@ -796,13 +789,6 @@ msgstr "{py:obj}`JaDE <evox.algorithms.de_variants.jade.JaDE>`"
 msgid "Adaptive Differential Evolution (JaDE) algorithm for optimization."
 msgstr "自适应差分进化算法 JaDE，用于优化任务。"
 
-#: ../../../src/evox/algorithms/de_variants/jade.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/jade.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/de_variants/jade.py:37
 msgid ""
 "`__init__`: Initializes the JaDE algorithm with the given parameters, "
@@ -916,13 +902,6 @@ msgstr "{py:obj}`ODE <evox.algorithms.de_variants.ode.ODE>`"
 #: ../../../src/evox/algorithms/de_variants/ode.py:33
 msgid "Opposition-based Differential Evolution (ODE) algorithm for optimization."
 msgstr "反对基差差分进化 (ODE) 算法用于优化。"
-
-#: ../../../src/evox/algorithms/de_variants/ode.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/de_variants/ode.py:35: "
-"(INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
 
 #: ../../../src/evox/algorithms/de_variants/ode.py:37
 msgid ""
@@ -2148,13 +2127,6 @@ msgstr "{py:obj}`CLPSO <evox.algorithms.pso_variants.clpso.CLPSO>`"
 msgid "The basic CSO algorithm."
 msgstr "算法。"
 
-#: ../../../src/evox/algorithms/pso_variants/clpso.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/clpso.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/pso_variants/clpso.py:37
 msgid ""
 "`__init__`: Initializes the CLPSO algorithm with given static parameters "
@@ -2244,13 +2216,6 @@ msgstr "{py:mod}`evox.algorithms.pso_variants.cso`"
 msgid "{py:obj}`CSO <evox.algorithms.pso_variants.cso.CSO>`"
 msgstr "{py:obj}`CSO <evox.algorithms.pso_variants.cso.CSO>`"
 
-#: ../../../src/evox/algorithms/pso_variants/cso.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/cso.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/pso_variants/cso.py:37
 msgid "`__init__`: Initializes the CSO algorithm with given parameters."
 msgstr "`__init__`: 使用给定参数初始化 CSO 算法。"
@@ -2314,13 +2279,6 @@ msgstr "{py:obj}`DMSPSOEL <evox.algorithms.pso_variants.dms_pso_el.DMSPSOEL>`"
 #, fuzzy
 msgid "The DMSPSOEL algorithm."
 msgstr "算法。"
-
-#: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/dms_pso_el.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
 
 #: ../../../src/evox/algorithms/pso_variants/dms_pso_el.py:37
 msgid "`__init__`: Initializes the DMSPSOEL algorithm with given parameters."
@@ -2457,13 +2415,6 @@ msgstr "{py:obj}`PSO <evox.algorithms.pso_variants.pso.PSO>`"
 msgid "The basic Particle Swarm Optimization (PSO) algorithm."
 msgstr "基本粒子群优化算法 (PSO)"
 
-#: ../../../src/evox/algorithms/pso_variants/pso.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/pso.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/pso_variants/pso.py:37
 msgid ""
 "`__init__`: Initializes the PSO algorithm with given parameters "
@@ -2513,13 +2464,6 @@ msgid ""
 "Sampling for Demonstrator Choice (SLPSOGS) algorithm."
 msgstr "基本的粒子群优化社交学习 PSO 使用高斯采样进行示范选择 (SLPSOGS) 算法。"
 
-#: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_gs.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
-
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_gs.py:37
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:37
 msgid ""
@@ -2567,13 +2511,6 @@ msgid ""
 "The basic Particle Swarm Optimization Social Learning PSO Using Uniform "
 "Sampling for Demonstrator Choice (SLPSOUS) algorithm."
 msgstr "基本的粒子群优化社会学习 PSO 使用均匀采样进行演示选择 (SLPSOUS) 算法。"
-
-#: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:35
-msgid ""
-"Class "
-"Methods/home/bill/Source/evox/src/evox/algorithms/pso_variants/sl_pso_us.py:35:"
-" (INFO/1) Duplicate implicit target name: \"class methods\"."
-msgstr ""
 
 #: ../../../src/evox/algorithms/pso_variants/sl_pso_us.py:39
 msgid "Initialize the SLPSOUS algorithm with the given parameters."
@@ -2904,12 +2841,6 @@ msgstr "给定函数的关键字参数。"
 msgid "The batched tensor of random values."
 msgstr "随机值的批量张量。"
 
-#: ../../../src/evox/core/_vmap_fix.py:247
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/_vmap_fix.py:247: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
-
 #: ../../../src/evox/core/_vmap_fix.py:243
 msgid ""
 "Given a random function (e.g. "
@@ -3048,12 +2979,6 @@ msgstr "问题类"
 msgid "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
 msgstr "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
 
-#: ../../../src/evox/core/components.py:47
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/components.py:47: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
-
 #: ../../../src/evox/core/components.py:48
 msgid ""
 "If a subclass have defined `trace_impl` of `step`, its corresponding "
@@ -3130,12 +3055,6 @@ msgstr "适应度值"
 #: ../../../src/evox/core/components.py:99
 msgid "Evaluate the fitness at given points"
 msgstr "在给定点评估适应度"
-
-#: ../../../src/evox/core/components.py:105
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/components.py:105: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/core/components.py:106
 msgid ""
@@ -3404,12 +3323,6 @@ msgid ""
 msgstr ""
 "该函数包装器有效处理嵌套的 JIT 和向量映射 (`vmap`) 表达式，如 `jit(func1)` -> `vmap` -> "
 "`jit(func2)`，从而防止可能出现的错误。"
-
-#: ../../../src/evox/core/jit_util.py:123
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/jit_util.py:123: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/core/jit_util.py:128
 msgid "The target function to be JIT"
@@ -3740,22 +3653,10 @@ msgstr ""
 "该方法用来模仿 `ModuleBase.load_state_dict` 的行为，使得一个普通的 `nn.Module` 能被用于 `vmap` "
 "中。"
 
-#: ../../../src/evox/core/module.py:220
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/module.py:220: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
-
 #: ../../source/apidocs/evox/evox.core.module.md:223
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:32
 msgid "Bases: {py:obj}`torch.nn.Module`"
 msgstr "Bases: {py:obj}`torch.nn.Module`"
-
-#: ../../../src/evox/core/module.py:228
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:228: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/core/module.py:229
 msgid "This module is an object-oriented one that can contain mutable values."
@@ -3782,12 +3683,6 @@ msgid ""
 "members\"."
 msgstr "基本上，预定义的子模块应被视为“非静态成员”，这些模块将被添加到此模块并在成员方法中稍后访问，而其他任何成员应视为“静态成员”。"
 
-#: ../../../src/evox/core/module.py:234
-msgid ""
-"Usage/home/bill/Source/evox/src/evox/core/module.py:234: (INFO/1) "
-"Duplicate implicit target name: \"usage\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:235
 msgid "Static methods to be JIT shall be defined as is, e.g.,"
 msgstr "静态方法将按原样定义为 JIT，例如，"
@@ -3812,12 +3707,6 @@ msgid ""
 "Setup the module. Module initialization lines should be written in the "
 "overwritten method of `setup` rather than `__init__`."
 msgstr "设置模块。模块初始化行应写在重写的 `setup` 方法中，而不是 `__init__` 中。"
-
-#: ../../../src/evox/core/module.py:249
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:249: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/core/module.py:250
 msgid ""
@@ -3877,12 +3766,6 @@ msgid ""
 "and silently produce incorrect results."
 msgstr "此处收集的非本地变量只能用作只读变量。对这些变量的就地修改可能不会引发任何错误，并在不经意间产生不正确的结果。"
 
-#: ../../../src/evox/core/module.py:266
-msgid ""
-"Usage/home/bill/Source/evox/src/evox/core/module.py:266: (INFO/1) "
-"Duplicate implicit target name: \"usage\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:260
 msgid ""
 "Restores the module state to the one before `prepare_control_flow` from "
@@ -3915,12 +3798,6 @@ msgstr "表示非局部变量的状态字典的键。"
 #: ../../../src/evox/core/module.py:268
 msgid "The non-local variables dictionary collected in prepare_control_flow."
 msgstr "在prepare_control_flow中收集的非局部变量字典。"
-
-#: ../../../src/evox/core/module.py:270
-msgid ""
-"Usage/home/bill/Source/evox/src/evox/core/module.py:270: (INFO/1) "
-"Duplicate implicit target name: \"usage\"."
-msgstr ""
 
 #: ../../../src/evox/core/module.py:271
 msgid "See `prepare_control_flow()`."
@@ -4029,12 +3906,6 @@ msgstr ""
 msgid "The new value of using_state. Defaults to True."
 msgstr "状态之中对应适应度的变量的变量名。默认是“fitness”。"
 
-#: ../../../src/evox/core/module.py:389
-msgid ""
-"Examples:/home/bill/Source/evox/src/evox/core/module.py:389: (INFO/1) "
-"Duplicate implicit target name: \"examples:\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:391
 msgid ""
 "When entering the context, the value of `trace_caching_state` is set to "
@@ -4049,12 +3920,6 @@ msgstr ""
 #, fuzzy
 msgid "The new value of trace_caching_state. Defaults to True."
 msgstr "状态之中对应适应度的变量的变量名。默认是“fitness”。"
-
-#: ../../../src/evox/core/module.py:396
-msgid ""
-"Examples:/home/bill/Source/evox/src/evox/core/module.py:396: (INFO/1) "
-"Duplicate implicit target name: \"examples:\"."
-msgstr ""
 
 #: ../../../src/evox/core/module.py:398
 #, fuzzy
@@ -4134,12 +3999,6 @@ msgstr ""
 "使用的当前状态的副本，并可用作附加状态参数的示例输入。它还包含一个 `set_state(state)` "
 "属性，用于将全局状态设置为给定状态（当然不兼容 JIT）。"
 
-#: ../../../src/evox/core/module.py:581
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:581: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:582
 msgid ""
 "Since PyTorch cannot JIT or vectorized-map a function with empty "
@@ -4150,12 +4009,6 @@ msgid ""
 msgstr ""
 "由于 PyTorch 不能对输入为空字典、列表或元组的函数进行 JIT 编译或矢量映射，该函数将给定函数转换为一个没有额外 `state` "
 "参数（类型为 `Dict[str, torch.Tensor]`）的函数，并且不额外返回修改后的状态。"
-
-#: ../../../src/evox/core/module.py:584
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/module.py:584: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
 
 #: ../../source/apidocs/evox/evox.core.module.md:581
 msgid "'_torchscript_modifier'"
@@ -4177,12 +4030,6 @@ msgstr "未追踪 JIT 时调用的目标方法。"
 msgid "The wrapping function to annotate the member method."
 msgstr "用于注解成员方法的包装函数。"
 
-#: ../../../src/evox/core/module.py:619
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:619: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:620 ../../../src/evox/core/module.py:637
 msgid ""
 "The target function and the annotated function MUST have same "
@@ -4197,12 +4044,6 @@ msgid ""
 " cannot be compiled."
 msgstr "如果注解的函数是 `vmap`，则它不能包含对 `self` 的任何原地操作，因为这样的操作是不明确的，并且不能被编译。"
 
-#: ../../../src/evox/core/module.py:623
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/module.py:623: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
-
 #: ../../../src/evox/core/module.py:624 ../../../src/evox/core/module.py:641
 #, fuzzy
 msgid "See `use_state`."
@@ -4211,18 +4052,6 @@ msgstr "状态。"
 #: ../../source/apidocs/evox/evox.core.module.md:618
 msgid "'__vmap_wrapped__'"
 msgstr "__vmap_wrapped__"
-
-#: ../../../src/evox/core/module.py:636
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:636: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
-
-#: ../../../src/evox/core/module.py:640
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/module.py:640: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
 
 #: ../../source/apidocs/evox/evox.core.module.md:645
 msgid "'base'"
@@ -4240,12 +4069,6 @@ msgstr "是否在工作流开始时清除监视器历史记录。默认值为 `T
 #: ../../../src/evox/core/module.py:660
 msgid "Returns:     The wrapped class."
 msgstr "返回：     被封装的类。"
-
-#: ../../../src/evox/core/module.py:663
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/core/module.py:663: (INFO/1) "
-"Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/core/module.py:664
 msgid ""
@@ -4274,12 +4097,6 @@ msgid ""
 msgstr ""
 "类似地，所有模块级的操作如 `self.to(...)` 只能返回未包装的模块，这可能不是我们想要的。由于它们大多是就地操作，可以使用简单的 "
 "`module.to(...)` 来替代 `module = module.to(...)`。"
-
-#: ../../../src/evox/core/module.py:668
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/core/module.py:668: (INFO/1) "
-"Duplicate implicit target name: \"usage:\"."
-msgstr ""
 
 #: ../../source/apidocs/evox/evox.metrics.md:1
 msgid "{py:mod}`evox.metrics`"
@@ -5417,12 +5234,6 @@ msgstr "这个问题的完整的维度。"
 msgid "Bases: {py:obj}`evox.core.Problem`"
 msgstr "Bases: {py:obj}`evox.core.Problem`"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:100
-msgid ""
-"Usage/home/bill/Source/evox/src/evox/problems/hpo_wrapper.py:100: "
-"(INFO/1) Duplicate implicit target name: \"usage\"."
-msgstr ""
-
 #: ../../../src/evox/problems/hpo_wrapper.py:104
 #, fuzzy
 msgid "Initialize the HPO problem wrapper."
@@ -6388,12 +6199,6 @@ msgid ""
 "corresponding element of `ub`."
 msgstr "此函数确保张量 `a` 的每个元素不小于 `lb` 的相应元素且不大于 `ub` 的相应元素。"
 
-#: ../../../src/evox/utils/jit_fix_operator.py:94
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:94: "
-"(INFO/1) Duplicate implicit target name: \"notice\"."
-msgstr ""
-
 #: ../../../src/evox/utils/jit_fix_operator.py:95
 #: ../../../src/evox/utils/jit_fix_operator.py:101
 #: ../../../src/evox/utils/jit_fix_operator.py:108
@@ -6437,12 +6242,6 @@ msgid ""
 "than `lb` and not greater than `ub`."
 msgstr "此函数确保张量 `a` 的每个元素不小于 `lb` 且不大于 `ub"
 
-#: ../../../src/evox/utils/jit_fix_operator.py:100
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:100: "
-"(INFO/1) Duplicate implicit target name: \"notice\"."
-msgstr ""
-
 #: ../../../src/evox/utils/jit_fix_operator.py:102
 msgid ""
 "This is NOT a precise replication of `torch.clamp` if `a` is a float "
@@ -6463,12 +6262,6 @@ msgid ""
 "The upper bound value. Each element of a will be clamped to be not "
 "greater than ub."
 msgstr "上限值。a 的每个元素将被限制为不大于 ub。"
-
-#: ../../../src/evox/utils/jit_fix_operator.py:107
-msgid ""
-"Notice/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:107: "
-"(INFO/1) Duplicate implicit target name: \"notice\"."
-msgstr ""
 
 #: ../../../src/evox/utils/jit_fix_operator.py:109
 msgid ""
@@ -6577,12 +6370,6 @@ msgid ""
 "sorted tensors."
 msgstr "一个张量，包含按字典顺序对输入张量进行排序的索引。这些索引指示排序后张量中元素的顺序。"
 
-#: ../../../src/evox/utils/jit_fix_operator.py:173
-msgid ""
-"Example/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:173: "
-"(INFO/1) Duplicate implicit target name: \"example\"."
-msgstr ""
-
 #: ../../../src/evox/utils/jit_fix_operator.py:182
 msgid "You can use `torch.unbind` to split the tensor into list."
 msgstr "您可以使用 `torch.unbind` 将张量拆分为列表。"
@@ -6650,12 +6437,6 @@ msgid ""
 "was performed."
 msgstr "返回的张量 `values` 和 `indices` 将具有与输入张量相同的形状，除了执行操作的维度。"
 
-#: ../../../src/evox/utils/jit_fix_operator.py:186
-msgid ""
-"Example/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:186: "
-"(INFO/1) Duplicate implicit target name: \"example\"."
-msgstr ""
-
 #: ../../../src/evox/utils/jit_fix_operator.py:195
 msgid ""
 "`NaN` values are ignored by replacing them with `infinity` before "
@@ -6706,12 +6487,6 @@ msgid ""
 "`indices` (`torch.Tensor`): A tensor containing the indices of the "
 "maximum values along the specified dimension."
 msgstr "`indices` (`torch.Tensor`): 一个张量，包含沿指定维度的最大值的索引。"
-
-#: ../../../src/evox/utils/jit_fix_operator.py:193
-msgid ""
-"Example/home/bill/Source/evox/src/evox/utils/jit_fix_operator.py:193: "
-"(INFO/1) Duplicate implicit target name: \"example\"."
-msgstr ""
 
 #: ../../../src/evox/utils/jit_fix_operator.py:202
 msgid ""
@@ -7191,12 +6966,6 @@ msgstr "标准工作流"
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:47
 msgid "Bases: {py:obj}`evox.core.Workflow`"
 msgstr "Bases: {py:obj}`evox.core.Workflow`"
-
-#: ../../../src/evox/workflows/std_workflow.py:52
-msgid ""
-"Usage:/home/bill/Source/evox/src/evox/workflows/std_workflow.py:52: "
-"(INFO/1) Duplicate implicit target name: \"usage:\"."
-msgstr ""
 
 #: ../../../src/evox/workflows/std_workflow.py:56
 msgid "Initialize the standard workflow with static arguments."
