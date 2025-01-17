@@ -5812,11 +5812,11 @@ msgstr "方程中的参数a。默认值为20.0。"
 
 #: ../../../src/evox/problems/numerical/basic.py:129
 msgid "The parameter b in the equation. Defaults to 0.2."
-msgstr ""
+msgstr "方程中的参数 b。默认值为 0.2。"
 
 #: ../../../src/evox/problems/numerical/basic.py:130
 msgid "The parameter c in the equation. Defaults to 2 * pi."
-msgstr ""
+msgstr "方程中的参数c。默认值为2 * pi。"
 
 #: ../../../src/evox/problems/numerical/basic.py:131
 #: ../../../src/evox/problems/numerical/basic.py:159
@@ -5827,7 +5827,7 @@ msgstr ""
 msgid ""
 "The keyword arguments (shift and affine) to pass to the superclass "
 "ShiftAffineNumericalProblem."
-msgstr ""
+msgstr "传递给超类 ShiftAffineNumericalProblem 的关键字参数（shift 和 affine）。"
 
 #: ../../../src/evox/problems/numerical/basic.py:157
 #: ../../../src/evox/problems/numerical/basic.py:188
@@ -5840,21 +5840,21 @@ msgstr "使用给定的策略和权重可视化 Brax 环境。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:1
 msgid "{py:mod}`evox.problems.numerical.cec2022`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.numerical.cec2022`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:18
 msgid "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
-msgstr ""
+msgstr "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:20
 #: ../../../src/evox/problems/numerical/cec2022.py:33
 msgid "The CEC 2022 single-objective test suite Problem"
-msgstr ""
+msgstr "CEC 2022 单目标测试套件问题"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:39
 msgid ""
 "Initialize a single test function instance from the CEC2022 test suite."
-msgstr ""
+msgstr "从CEC2022测试套件初始化一个单一测试函数实例。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:41
 msgid ""
@@ -5864,6 +5864,10 @@ msgid ""
 "(`torch.device`, optional): The device on which tensors will be allocated. "
 "Defaults to None."
 msgstr ""
+"Args:     \n"
+"- problem_number (`int`): 要使用的特定测试函数的索引。必须在1到12之间。\n"
+"- dimension (`int`): 问题的维度。必须是[2, 10, 20]之一。\n"
+"- device (`torch.device`, optional): 分配张量的设备。默认为None。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:46
 msgid ""
@@ -5871,22 +5875,25 @@ msgid ""
 "values or if the function is not defined.     FileNotFoundError: If the "
 "necessary data files for the problem are not found."
 msgstr ""
+"引发：  \n"
+"    AssertionError: 如果维度不是允许的值之一或函数未定义。  \n"
+"    FileNotFoundError: 如果问题所需的数据文件未找到。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:46
 msgid "Shift the input vector."
-msgstr ""
+msgstr "将输入向量移位。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:54
 msgid "Rotate the input vector."
-msgstr ""
+msgstr "旋转输入向量。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:70
 msgid "Shift and rotate function with rate."
-msgstr ""
+msgstr "平移和旋转函数与速率。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:86
 msgid "Zakharov Function"
-msgstr ""
+msgstr "Zakharov 函数"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:94
 #, fuzzy
@@ -5895,11 +5902,11 @@ msgstr "Rosenbrock"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:102
 msgid "Schaffer F7 Function"
-msgstr ""
+msgstr "Schaffer F7 函数"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:110
 msgid "Step Rastrigin Function (Noncontinuous Rastrigin's)"
-msgstr ""
+msgstr "Rastrigin 函数步骤（不连续的 Rastrigin's）"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:118
 #, fuzzy
@@ -5908,93 +5915,93 @@ msgstr "测试函数"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:126
 msgid "Hybrid Function 2"
-msgstr ""
+msgstr "混合函数2"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:134
 msgid "Hybrid Function 10"
-msgstr ""
+msgstr "混合函数 10"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:142
 msgid "Hybrid Function 6"
-msgstr ""
+msgstr "混合函数6"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:150
 msgid "Composition Function 1"
-msgstr ""
+msgstr "Composition Function 1"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:158
 msgid "Composition Function 2"
-msgstr ""
+msgstr "Composition Function 2"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:166
 msgid "Composition Function 6"
-msgstr ""
+msgstr "Composition Function 6"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:174
 msgid "Composition Function 7"
-msgstr ""
+msgstr "Composition Function 7"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:182
 msgid "Problem number = 1."
-msgstr ""
+msgstr "问题编号 = 1。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:190
 msgid "Problem number = 4."
-msgstr ""
+msgstr "问题编号 = 4。"
 
 #: ../../../src/evox/problems/numerical/cec2022.py:198
 msgid "Problem number = 5."
-msgstr ""
+msgstr "问题编号 = 5。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:1
 msgid "{py:mod}`evox.problems.numerical.dtlz`"
-msgstr ""
+msgstr "{py:mod}`evox.problems.numerical.dtlz`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:18
 msgid "{py:obj}`DTLZTestSuit <evox.problems.numerical.dtlz.DTLZTestSuit>`"
-msgstr ""
+msgstr "{py:obj}`DTLZTestSuit <evox.problems.numerical.dtlz.DTLZTestSuit>`"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:20
 #: ../../../src/evox/problems/numerical/dtlz.py:51
 msgid ""
 "Base class for DTLZ test suite problems in multi-objective optimization."
-msgstr ""
+msgstr "用于多目标优化中DTLZ测试套件问题的基类。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:22
 msgid "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:24
 msgid "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:26
 msgid "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:30
 msgid "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:34
 msgid "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:36
 msgid "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:38
 msgid "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
-msgstr ""
+msgstr "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:53
 msgid "Inherit this class to implement specific DTLZ problem variants."
-msgstr ""
+msgstr "继承此类以实现特定的DTLZ问题变体。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:55
 msgid "Number of decision variables."
-msgstr ""
+msgstr "决策变量的数量。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:56
 #, fuzzy
@@ -6003,23 +6010,23 @@ msgstr "目标数量"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:57
 msgid "Number of reference points used in the problem."
-msgstr ""
+msgstr "问题中使用的参考点数量。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:57
 msgid "Override the setup method to initialize the parameters"
-msgstr ""
+msgstr "重写 `setup` 方法以初始化参数。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:65
 msgid ""
 "Abstract method to evaluate the objective values for given decision "
 "variables."
-msgstr ""
+msgstr "抽象方法用于评估给定决策变量的目标值。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:67
 msgid ""
 "A tensor of shape (n, d), where n is the number of solutions and d is the "
 "number of decision variables."
-msgstr ""
+msgstr "形状为 (n, d) 的张量，其中 n 是解的数量，d 是决策变量的数量。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:73
 #, fuzzy
@@ -6028,7 +6035,7 @@ msgstr "为问题初始化设置。"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:75
 msgid "A tensor representing the Pareto front."
-msgstr ""
+msgstr "表示帕累托前沿的张量。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:81
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:93
@@ -6036,20 +6043,20 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:175
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:192
 msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZTestSuit`"
-msgstr ""
+msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZTestSuit`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:110
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:134
 msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
-msgstr ""
+msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
 
 #: ../../source/apidocs/evox/evox.utils.md:1
 msgid "{py:mod}`evox.utils`"
-msgstr ""
+msgstr "{py:mod}`evox.utils`"
 
 #: ../../source/apidocs/evox/evox.utils.md:29
 msgid "{py:obj}`__all__ <evox.utils.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.utils.__all__>`"
 
 #: ../../source/apidocs/evox/evox.utils.md:41
 msgid ""
@@ -6061,11 +6068,11 @@ msgstr ""
 
 #: ../../source/apidocs/evox/evox.utils.control_flow.md:1
 msgid "{py:mod}`evox.utils.control_flow`"
-msgstr ""
+msgstr "{py:mod}`evox.utils.control_flow`"
 
 #: ../../source/apidocs/evox/evox.utils.control_flow.md:18
 msgid "{py:obj}`__all__ <evox.utils.control_flow.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.utils.control_flow.__all__>`"
 
 #: ../../source/apidocs/evox/evox.utils.control_flow.md:30
 msgid "['TracingCond', 'TracingWhile', 'TracingSwitch']"
@@ -6073,172 +6080,172 @@ msgstr "['TracingCond', 'TracingWhile', 'TracingSwitch']"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:1
 msgid "{py:mod}`evox.utils.jit_fix_operator`"
-msgstr ""
+msgstr "{py:mod}`evox.utils.jit_fix_operator`"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:18
 msgid "{py:obj}`switch <evox.utils.jit_fix_operator.switch>`"
-msgstr ""
+msgstr "{py:obj}`switch <evox.utils.jit_fix_operator.switch>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:20
 #: ../../../src/evox/utils/jit_fix_operator.py:82
 msgid ""
 "Element-wise switch select operator that generates a tensor from a list of "
 "tensors based on the label tensor."
-msgstr ""
+msgstr "基于标签张量从张量列表中生成张量的逐元素切换选择运算符。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:22
 msgid "{py:obj}`clamp <evox.utils.jit_fix_operator.clamp>`"
-msgstr ""
+msgstr "{py:obj}`clamp <evox.utils.jit_fix_operator.clamp>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:24
 #: ../../../src/evox/utils/jit_fix_operator.py:89
 msgid ""
 "Clamp the values of the input tensor `a` to be within the given lower (`lb`)"
 " and upper (`ub`) bounds."
-msgstr ""
+msgstr "将输入张量 `a` 的值限制在给定的下界 (`lb`) 和上界 (`ub`) 之间。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:26
 msgid "{py:obj}`clamp_float <evox.utils.jit_fix_operator.clamp_float>`"
-msgstr ""
+msgstr "{py:obj}`clamp_float <evox.utils.jit_fix_operator.clamp_float>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:28
 #: ../../../src/evox/utils/jit_fix_operator.py:96
 msgid ""
 "Clamp the float values of the input tensor `a` to be within the given lower "
 "(`lb`) and upper (`ub`) bounds."
-msgstr ""
+msgstr "将输入张量 `a` 的浮点值限制在给定的下界 (`lb`) 和上界 (`ub`) 之间。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:30
 msgid "{py:obj}`clamp_int <evox.utils.jit_fix_operator.clamp_int>`"
-msgstr ""
+msgstr "{py:obj}`clamp_int <evox.utils.jit_fix_operator.clamp_int>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:32
 #: ../../../src/evox/utils/jit_fix_operator.py:103
 msgid ""
 "Clamp the int values of the input tensor `a` to be within the given lower "
 "(`lb`) and upper (`ub`) bounds."
-msgstr ""
+msgstr "将输入张量 `a` 的整数值限制在给定的下限 (`lb`) 和上限 (`ub`) 之间。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:34
 msgid "{py:obj}`clip <evox.utils.jit_fix_operator.clip>`"
-msgstr ""
+msgstr "{py:obj}`clip <evox.utils.jit_fix_operator.clip>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:36
 #: ../../../src/evox/utils/jit_fix_operator.py:110
 msgid "Clip the values of the input tensor `a` to be within the range [0, 1]."
-msgstr ""
+msgstr "将输入张量 `a` 的值裁剪到 [0, 1] 范围内。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:38
 msgid "{py:obj}`maximum <evox.utils.jit_fix_operator.maximum>`"
-msgstr ""
+msgstr "{py:obj}`maximum <evox.utils.jit_fix_operator.maximum>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:40
 #: ../../../src/evox/utils/jit_fix_operator.py:117
 msgid "Element-wise maximum of two input tensors `a` and `b`."
-msgstr ""
+msgstr "两个输入张量 `a` 和 `b` 的逐元素最大值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:42
 msgid "{py:obj}`minimum <evox.utils.jit_fix_operator.minimum>`"
-msgstr ""
+msgstr "{py:obj}`minimum <evox.utils.jit_fix_operator.minimum>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:44
 #: ../../../src/evox/utils/jit_fix_operator.py:124
 msgid "Element-wise minimum of two input tensors `a` and `b`."
-msgstr ""
+msgstr "两个输入张量 `a` 和 `b` 的逐元素最小值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:46
 msgid "{py:obj}`maximum_float <evox.utils.jit_fix_operator.maximum_float>`"
-msgstr ""
+msgstr "{py:obj}`maximum_float <evox.utils.jit_fix_operator.maximum_float>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:48
 #: ../../../src/evox/utils/jit_fix_operator.py:131
 msgid "Element-wise maximum of input tensor `a` and float `b`."
-msgstr ""
+msgstr "输入张量 `a` 和浮点数 `b` 的逐元素最大值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:50
 msgid "{py:obj}`minimum_float <evox.utils.jit_fix_operator.minimum_float>`"
-msgstr ""
+msgstr "{py:obj}`minimum_float <evox.utils.jit_fix_operator.minimum_float>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:52
 #: ../../../src/evox/utils/jit_fix_operator.py:138
 msgid "Element-wise minimum of input tensor `a` and float `b`."
-msgstr ""
+msgstr "输入张量 `a` 和浮点数 `b` 的逐元素最小值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:54
 msgid "{py:obj}`maximum_int <evox.utils.jit_fix_operator.maximum_int>`"
-msgstr ""
+msgstr "{py:obj}`maximum_int <evox.utils.jit_fix_operator.maximum_int>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:56
 #: ../../../src/evox/utils/jit_fix_operator.py:145
 msgid "Element-wise maximum of input tensor `a` and int `b`."
-msgstr ""
+msgstr "输入张量 `a` 和整数 `b` 的逐元素最大值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:58
 msgid "{py:obj}`minimum_int <evox.utils.jit_fix_operator.minimum_int>`"
-msgstr ""
+msgstr "{py:obj}`minimum_int <evox.utils.jit_fix_operator.minimum_int>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:60
 #: ../../../src/evox/utils/jit_fix_operator.py:152
 msgid "Element-wise minimum of input tensor `a` and int `b`."
-msgstr ""
+msgstr "输入张量 `a` 和整数 `b` 的逐元素最小值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:62
 msgid "{py:obj}`lexsort <evox.utils.jit_fix_operator.lexsort>`"
-msgstr ""
+msgstr "{py:obj}`lexsort <evox.utils.jit_fix_operator.lexsort>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:64
 #: ../../../src/evox/utils/jit_fix_operator.py:159
 msgid ""
 "Perform lexicographical sorting of multiple tensors, considering each tensor"
 " as a key."
-msgstr ""
+msgstr "对多个张量进行字典序排序，将每个张量视为一个键。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:66
 msgid "{py:obj}`nanmin <evox.utils.jit_fix_operator.nanmin>`"
-msgstr ""
+msgstr "{py:obj}`nanmin <evox.utils.jit_fix_operator.nanmin>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:68
 #: ../../../src/evox/utils/jit_fix_operator.py:166
 msgid ""
 "Compute the minimum of a tensor along a specified dimension, ignoring NaN "
 "values."
-msgstr ""
+msgstr "计算张量在指定维度上的最小值，忽略NaN值。"
 
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:70
 msgid "{py:obj}`nanmax <evox.utils.jit_fix_operator.nanmax>`"
-msgstr ""
+msgstr "{py:obj}`nanmax <evox.utils.jit_fix_operator.nanmax>`"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:72
 #: ../../../src/evox/utils/jit_fix_operator.py:173
 msgid ""
 "Compute the maximum of a tensor along a specified dimension, ignoring NaN "
 "values."
-msgstr ""
+msgstr "计算张量在指定维度上的最大值，忽略NaN值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:84
 msgid ""
 "A tensor containing labels used to select from the list of tensors. Must be "
 "broadcastable to the shape of rest arguments."
-msgstr ""
+msgstr "一个张量，包含用于从张量列表中选择的标签。必须可以广播到其余参数的形状。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:85
 msgid ""
 "A list of tensors from which one is selected based on the label. All tensors"
 " in the list must be broadcastable to the same shape."
-msgstr ""
+msgstr "根据标签从中选择的张量列表。列表中的所有张量必须可以广播到相同的形状。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:88
 msgid ""
 "A tensor where each element is selected from the list of tensors based on "
 "the corresponding element in the label tensor."
-msgstr ""
+msgstr "一个张量，其中每个元素都是根据标签张量中的相应元素从张量列表中选择的。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:91
 msgid ""
 "This function ensures that each element of the tensor `a` is not less than "
 "the corresponding element of `lb` and not greater than the corresponding "
 "element of `ub`."
-msgstr ""
+msgstr "此函数确保张量 `a` 的每个元素不小于 `lb` 的相应元素且不大于 `ub` 的相应元素。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:95
 #: ../../../src/evox/utils/jit_fix_operator.py:101
@@ -6248,6 +6255,7 @@ msgid ""
 "[`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) "
 "since it is not supported in JIT operator fusion."
 msgstr ""
+"这是一个用于[`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html)的修复函数，因为它在JIT操作符融合中不被支持。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:96
 msgid ""
@@ -6255,34 +6263,35 @@ msgid ""
 " float tensor and may suffer from numerical precision losses. Please use "
 "`torch.clamp` instead if a precise clamp is required."
 msgstr ""
+"这不是`torch.clamp`的精确复制，如果`a`、`lb`或`ub`是浮点张量，可能会遭受数值精度损失。如果需要精确的限制，请使用`torch.clamp"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:98
 #: ../../../src/evox/utils/jit_fix_operator.py:104
 #: ../../../src/evox/utils/jit_fix_operator.py:111
 msgid "The input tensor to be clamped."
-msgstr ""
+msgstr "要被限制的输入张量。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:99
 msgid "The lower bound tensor. Must be broadcastable to the shape of a."
-msgstr ""
+msgstr "下界张量。必须可以广播到 a 的形状。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:100
 msgid "The upper bound tensor. Must be broadcastable to the shape of a."
-msgstr ""
+msgstr "上界张量。必须可以广播到a的形状。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:102
 #: ../../../src/evox/utils/jit_fix_operator.py:108
 #: ../../../src/evox/utils/jit_fix_operator.py:115
 msgid ""
 "A tensor where each element is clamped to be within the specified bounds."
-msgstr ""
+msgstr "张量，其中每个元素都被限制在指定的界限内。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:98
 #: ../../../src/evox/utils/jit_fix_operator.py:105
 msgid ""
 "This function ensures that each element of the tensor `a` is not less than "
 "`lb` and not greater than `ub`."
-msgstr ""
+msgstr "此函数确保张量 `a` 的每个元素不小于 `lb` 且不大于 `ub"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:102
 msgid ""
@@ -6290,20 +6299,21 @@ msgid ""
 "and may suffer from numerical precision losses. Please use `torch.clamp` "
 "instead if a precise clamp is required."
 msgstr ""
+"这不是`torch.clamp`的精确复制，如果`a`是浮点张量，可能会遭受数值精度损失。如果需要精确的限制，请使用`torch.clamp"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:105
 #: ../../../src/evox/utils/jit_fix_operator.py:112
 msgid ""
 "The lower bound value. Each element of a will be clamped to be not less than"
 " lb."
-msgstr ""
+msgstr "下界值。a 的每个元素将被限制为不小于 lb。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:106
 #: ../../../src/evox/utils/jit_fix_operator.py:113
 msgid ""
 "The upper bound value. Each element of a will be clamped to be not greater "
 "than ub."
-msgstr ""
+msgstr "上限值。a 的每个元素将被限制为不大于 ub。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:109
 msgid ""
@@ -6311,18 +6321,19 @@ msgid ""
 "and may suffer from numerical precision losses. Please use `torch.clamp` "
 "instead if a precise clamp is required."
 msgstr ""
+"这不是`torch.clamp`的精确复制，如果`a`是一个整数张量，可能会遭受数值精度损失。如果需要精确的限制，请使用`torch.clamp"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:112
 msgid "Notice: This function invokes `clamp(a, 0, 1)`."
-msgstr ""
+msgstr "注意：此函数调用 `clamp(a, 0, 1)"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:114
 msgid "The input tensor to be clipped."
-msgstr ""
+msgstr "要裁剪的输入张量。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:116
 msgid "A tensor where each element is clipped to be within [0, 1]."
-msgstr ""
+msgstr "一个张量，其中每个元素都被限制在 [0, 1] 范围内。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:119
 #: ../../../src/evox/utils/jit_fix_operator.py:133
@@ -6332,6 +6343,7 @@ msgid ""
 "[`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html]"
 " since it is not supported in JIT operator fusion."
 msgstr ""
+"注意：这是一个用于[`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html)的修复函数，因为它在JIT操作符融合中不支持。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:121
 #: ../../../src/evox/utils/jit_fix_operator.py:128
@@ -6340,18 +6352,18 @@ msgstr ""
 #: ../../../src/evox/utils/jit_fix_operator.py:149
 #: ../../../src/evox/utils/jit_fix_operator.py:157
 msgid "The first input tensor."
-msgstr ""
+msgstr "第一个输入张量。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:122
 #: ../../../src/evox/utils/jit_fix_operator.py:129
 msgid "The second input tensor."
-msgstr ""
+msgstr "第二个输入张量。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:124
 #: ../../../src/evox/utils/jit_fix_operator.py:138
 #: ../../../src/evox/utils/jit_fix_operator.py:152
 msgid "The element-wise maximum of a and b."
-msgstr ""
+msgstr "a 和 b 的逐元素最大值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:126
 msgid ""
@@ -6359,17 +6371,18 @@ msgid ""
 "[`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html]"
 " since it is not supported in JIT operator fusion."
 msgstr ""
+"注意：这是一个用于[`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)的修复函数，因为它在JIT操作符融合中不支持。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:131
 #: ../../../src/evox/utils/jit_fix_operator.py:146
 #: ../../../src/evox/utils/jit_fix_operator.py:160
 msgid "The element-wise minimum of a and b."
-msgstr ""
+msgstr "a 和 b 的元素级最小值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:136
 #: ../../../src/evox/utils/jit_fix_operator.py:144
 msgid "The second input float, which is a scalar value."
-msgstr ""
+msgstr "第二个输入是一个浮点数，它是一个标量值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:140
 #: ../../../src/evox/utils/jit_fix_operator.py:154
@@ -6378,11 +6391,12 @@ msgid ""
 "[`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)"
 " since it is not supported in JIT operator fusion."
 msgstr ""
+"注意：这是一个用于[`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)的修复函数，因为它在JIT操作符融合中不支持。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:150
 #: ../../../src/evox/utils/jit_fix_operator.py:158
 msgid "The second input int, which is a scalar value."
-msgstr ""
+msgstr "第二个输入是一个整数，它是一个标量值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:161
 msgid ""
@@ -6391,48 +6405,49 @@ msgid ""
 "first key, and so on. It works similarly to NumPy's `lexsort`, but is "
 "designed for PyTorch tensors."
 msgstr ""
+"此函数按字典顺序对给定的张量进行排序，首先按第一个键排序，如果第一个键相同，则按第二个键排序，依此类推。它的工作方式类似于NumPy的`lexsort`，但专为PyTorch张量设计。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:165
 msgid ""
 "A list of tensors to be sorted, where each tensor represents a sorting key. "
 "All tensors must have the same length along the specified dimension (dim)."
-msgstr ""
+msgstr "要排序的张量列表，其中每个张量代表一个排序键。所有张量在指定维度（dim）上必须具有相同的长度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:168
 msgid ""
 "The dimension along which to perform the sorting. Defaults to -1 (the last "
 "dimension)."
-msgstr ""
+msgstr "执行排序的维度。默认为 -1（最后一个维度）。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:170
 msgid ""
 "A tensor containing indices that will sort the input tensors "
 "lexicographically. These indices indicate the order of elements in the "
 "sorted tensors."
-msgstr ""
+msgstr "一个张量，包含按字典顺序对输入张量进行排序的索引。这些索引指示排序后张量中元素的顺序。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:182
 msgid "You can use `torch.unbind` to split the tensor into list."
-msgstr ""
+msgstr "您可以使用 `torch.unbind` 将张量拆分为列表。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:168
 msgid ""
 "This function replaces `NaN` values in the input tensor with `infinity` , "
 "and then computes the minimum over the specified dimension, effectively "
 "ignoring `NaN` values."
-msgstr ""
+msgstr "此函数将输入张量中的 `NaN` 值替换为 `infinity`，然后在指定维度上计算最小值，有效地忽略 `NaN` 值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:171
 #: ../../../src/evox/utils/jit_fix_operator.py:178
 msgid ""
 "The input tensor, which may contain NaN values. It can be of any shape."
-msgstr ""
+msgstr "输入张量，可能包含NaN值。它可以是任何形状。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:173
 msgid ""
 "The dimension along which to compute the minimum. Default is -1, which "
 "corresponds to the last dimension."
-msgstr ""
+msgstr "计算最小值的维度。默认值为-1，对应于最后一个维度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:175
 #: ../../../src/evox/utils/jit_fix_operator.py:182
@@ -6440,7 +6455,7 @@ msgid ""
 "Whether to retain the reduced dimension in the result. Default is False. If "
 "True, the output tensor will have the same number of dimensions as the "
 "input, with the size of the reduced dimension set to 1."
-msgstr ""
+msgstr "是否在结果中保留减少的维度。默认值为 False。如果为 True，输出张量将与输入具有相同数量的维度，减少的维度大小将设置为 1。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:179
 msgid ""
@@ -6451,23 +6466,25 @@ msgid ""
 " will have the same shape as the input tensor, except for the dimension(s) "
 "over which the operation was performed."
 msgstr ""
+"一个命名元组，包含两个字段：values (torch.Tensor)：一个张量，包含沿指定维度计算的最小值，忽略NaN值。indices "
+"(torch.Tensor)：一个张量，包含沿指定维度的最小值的索引。返回的张量values和indices将与输入张量具有相同的形状，除了执行操作的维度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:179
 #: ../../../src/evox/utils/jit_fix_operator.py:186
 msgid "A named tuple with two fields:"
-msgstr ""
+msgstr "一个具有两个字段的命名元组："
 
 #: ../../../src/evox/utils/jit_fix_operator.py:180
 msgid ""
 "`values` (`torch.Tensor`): A tensor containing the minimum values computed "
 "along the specified dimension,   ignoring `NaN` values."
-msgstr ""
+msgstr "`values` (`torch.Tensor`): 一个张量，包含沿指定维度计算的最小值，忽略 `NaN` 值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:182
 msgid ""
 "`indices` (`torch.Tensor`): A tensor containing the indices of the minimum "
 "values along the specified dimension."
-msgstr ""
+msgstr "`indices` (`torch.Tensor`): 一个张量，包含沿指定维度的最小值的索引。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:184
 #: ../../../src/evox/utils/jit_fix_operator.py:191
@@ -6475,32 +6492,32 @@ msgid ""
 "The returned tensors `values` and `indices` will have the same shape as the "
 "input tensor, except for the dimension(s) over which the operation was "
 "performed."
-msgstr ""
+msgstr "返回的张量 `values` 和 `indices` 将具有与输入张量相同的形状，除了执行操作的维度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:195
 msgid ""
 "`NaN` values are ignored by replacing them with `infinity` before computing "
 "the minimum."
-msgstr ""
+msgstr "在计算最小值之前，通过将 `NaN` 值替换为 `infinity` 来忽略它们。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:196
 msgid ""
 "If all values along a dimension are `NaN`, the result will be `infinity` for"
 " that dimension, and the index will be returned as the first valid index."
-msgstr ""
+msgstr "如果一个维度上的所有值都是`NaN`，那么该维度的结果将是`infinity`，并且索引将返回为第一个有效索引。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:175
 msgid ""
 "This function replaces `NaN` values in the input tensor with `-infinity`, "
 "and then computes the maximum over the specified dimension, effectively "
 "ignoring `NaN` values."
-msgstr ""
+msgstr "此函数将输入张量中的 `NaN` 值替换为 `-infinity`，然后在指定维度上计算最大值，从而有效地忽略 `NaN` 值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:180
 msgid ""
 "The dimension along which to compute the maximum. Default is -1, which "
 "corresponds to the last dimension."
-msgstr ""
+msgstr "计算最大值的维度。默认值是 -1，对应于最后一个维度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:186
 msgid ""
@@ -6511,46 +6528,50 @@ msgid ""
 " will have the same shape as the input tensor, except for the dimension(s) "
 "over which the operation was performed."
 msgstr ""
+"一个命名元组，包含两个字段：values (torch.Tensor)：一个张量，包含沿指定维度计算的最大值，忽略 NaN 值。indices "
+"(torch.Tensor)：一个张量，包含沿指定维度的最大值的索引。返回的张量 values 和 indices "
+"将与输入张量具有相同的形状，除了执行操作的维度。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:187
 msgid ""
 "`values` (`torch.Tensor`): A tensor containing the maximum values computed "
 "along the specified dimension,     ignoring `NaN` values."
-msgstr ""
+msgstr "`values` (`torch.Tensor`): 一个张量，包含沿指定维度计算的最大值，忽略 `NaN` 值。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:189
 msgid ""
 "`indices` (`torch.Tensor`): A tensor containing the indices of the maximum "
 "values along the specified dimension."
-msgstr ""
+msgstr "`indices` (`torch.Tensor`): 一个张量，包含沿指定维度的最大值的索引。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:202
 msgid ""
 "`NaN` values are ignored by replacing them with `-infinity` before computing"
 " the maximum."
-msgstr ""
+msgstr "在计算最大值之前，通过将 `NaN` 值替换为 `-infinity` 来忽略它们。"
 
 #: ../../../src/evox/utils/jit_fix_operator.py:203
 msgid ""
 "If all values along a dimension are `NaN`, the result will be `-infinity` "
 "for that dimension, and the index will be returned as the first valid index."
-msgstr ""
+msgstr "如果一个维度上的所有值都是`NaN`，那么该维度的结果将是`-infinity`，并且索引将返回为第一个有效索引。"
 
 #: ../../source/apidocs/evox/evox.utils.parameters_and_vector.md:1
 msgid "{py:mod}`evox.utils.parameters_and_vector`"
-msgstr ""
+msgstr "{py:mod}`evox.utils.parameters_and_vector`"
 
 #: ../../source/apidocs/evox/evox.utils.parameters_and_vector.md:18
 msgid ""
 "{py:obj}`ParamsAndVector <evox.utils.parameters_and_vector.ParamsAndVector>`"
 msgstr ""
+"{py:obj}`ParamsAndVector <evox.utils.parameters_and_vector.ParamsAndVector>`"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:20
 #: ../../../src/evox/utils/parameters_and_vector.py:33
 msgid ""
 "The class to convert (batched) parameters dictionary to vector(s) and vice "
 "versa."
-msgstr ""
+msgstr "将（批处理）参数字典转换为向量的类，反之亦然。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:39
 #, fuzzy
@@ -6561,19 +6582,19 @@ msgstr "为问题初始化设置。"
 msgid ""
 "A PyTorch model whose parameters will be used to initialize the parameter "
 "and vector conversion attributes. Must be an initialized PyTorch model."
-msgstr ""
+msgstr "一个 PyTorch 模型，其参数将用于初始化参数和向量转换属性。必须是已初始化的 PyTorch 模型。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:46
 msgid "Convert the input parameters dictionary to a single vector."
-msgstr ""
+msgstr "将输入参数字典转换为单个向量。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:48
 msgid "The input parameters dictionary."
-msgstr ""
+msgstr "输入参数字典。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:50
 msgid "The output vector obtained by concatenating the flattened parameters."
-msgstr ""
+msgstr "通过连接展平的参数获得的输出向量。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:54
 #, fuzzy
@@ -6584,18 +6605,18 @@ msgstr "`batched_to_vector`可以将一批树状结构转换为一批向量。"
 msgid ""
 "The input dictionary values must be batched parameters, i.e., they must have"
 " the same shape at the first dimension."
-msgstr ""
+msgstr "输入字典的值必须是批处理参数，即它们在第一维度上必须具有相同的形状。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:58
 msgid "The input batched parameters dictionary."
-msgstr ""
+msgstr "输入批处理参数字典。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:60
 msgid ""
 "The output vectors obtained by concatenating the flattened batched "
 "parameters. The first dimension of the output vector corresponds to the "
 "batch size."
-msgstr ""
+msgstr "通过连接展平的批处理参数获得的输出向量。输出向量的第一个维度对应于批处理大小。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:62
 #, fuzzy
@@ -6604,69 +6625,70 @@ msgstr "`to_tree` 可以把向量转化回树的形式。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:64
 msgid "The input vector representing flattened model parameters."
-msgstr ""
+msgstr "表示展平模型参数的输入向量。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:66
 msgid "The reconstructed parameters dictionary."
-msgstr ""
+msgstr "重建的参数字典。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:70
 msgid "Convert a batch of vectors back to a batched parameters dictionary."
-msgstr ""
+msgstr "将一批向量转换回批量参数字典。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:72
 msgid ""
 "The input batch of vectors representing flattened model parameters. The "
 "first dimension of the tensor corresponds to the batch size."
-msgstr ""
+msgstr "输入批量向量表示展平的模型参数。张量的第一个维度对应于批量大小。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:74
 msgid ""
 "The reconstructed batched parameters dictionary whose tensors' first "
 "dimensions correspond to the batch size."
-msgstr ""
+msgstr "重构后的批处理参数字典，其张量的第一个维度对应于批处理大小。"
 
 #: ../../../src/evox/utils/parameters_and_vector.py:78
 msgid ""
 "The forward function for the `ParamsAndVector` module is an alias of "
 "`batched_to_params` to cope with `StdWorkflow`."
 msgstr ""
+"`ParamsAndVector` 模块的 forward 函数是 `batched_to_params` 的别名，用于应对 `StdWorkflow"
 
 #: ../../source/apidocs/evox/evox.vis_tools.md:1
 msgid "{py:mod}`evox.vis_tools`"
-msgstr ""
+msgstr "{py:mod}`evox.vis_tools`"
 
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:1
 msgid "{py:mod}`evox.vis_tools.exv`"
-msgstr ""
+msgstr "{py:mod}`evox.vis_tools.exv`"
 
 #: ../../../src/evox/vis_tools/exv.py:7
 msgid "This module helps serialize data to EvoXVision storage format (exv)."
-msgstr ""
+msgstr "此模块帮助将数据序列化为EvoXVision存储格式（exv）。"
 
 #: ../../../src/evox/vis_tools/exv.py:13
 msgid ""
 "The numbers are stored in little-endian format. The metadata is a JSON utf-8"
 " encoded string, which contains the schema of the binary data. The format of"
 " the metadata is as follows:"
-msgstr ""
+msgstr "数字以小端格式存储。元数据是一个 JSON utf-8 编码的字符串，其中包含二进制数据的模式。元数据的格式如下："
 
 #: ../../../src/evox/vis_tools/exv.py:49
 msgid ""
 "where <type> represents the data type of the field, available types are:"
-msgstr ""
+msgstr "在这里，<type> 代表字段的数据类型，可用的类型有："
 
 #: ../../../src/evox/vis_tools/exv.py:50
 msgid "\"u8\", \"u16\", \"u32\", \"u64\","
-msgstr ""
+msgstr "\"u8\", \"u16\", \"u32\", \"u64\","
 
 #: ../../../src/evox/vis_tools/exv.py:51
 msgid "\"i16\", \"i32\", \"i64\","
-msgstr ""
+msgstr "\"i16\", \"i32\", \"i64\","
 
 #: ../../../src/evox/vis_tools/exv.py:52
 msgid "\"f16\", \"f32\", \"f64\" The size and offset are in bytes."
-msgstr ""
+msgstr "\"f16\", \"f32\", \"f64\" 大小和偏移量以字节为单位。"
 
 #: ../../../src/evox/vis_tools/exv.py:56
 msgid ""
@@ -6677,10 +6699,12 @@ msgid ""
 " size than the rest of the iterations. Therefore it contains two different "
 "schemas for the initial iteration and the rest of the iterations."
 msgstr ""
+"魔术数字用于识别文件格式。0x65787631 是 \"exv1\" 的字节码。二进制数据块是二进制数据块的序列。在 EvoX "
+"中，算法允许在第一次迭代（初始化阶段）中具有不同的行为，这可能与其余迭代的块大小不同。因此，它包含了初始迭代和其余迭代的两种不同模式。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:18
 msgid "{py:obj}`EvoXVisionAdapter <evox.vis_tools.exv.EvoXVisionAdapter>`"
-msgstr ""
+msgstr "{py:obj}`EvoXVisionAdapter <evox.vis_tools.exv.EvoXVisionAdapter>`"
 
 #: ../../../src/evox/vis_tools/exv.py:20 ../../../src/evox/vis_tools/exv.py:61
 msgid ""
@@ -6690,20 +6714,22 @@ msgid ""
 "to be efficient for both stream reading and writing data, while being able "
 "to randomly access data at any iteration."
 msgstr ""
+"EvoXVisionAdapter 是一个类，用于将演化优化数据流式传输到 exv 文件。exv "
+"文件格式是一种专门为演化优化数据创建的二进制格式。该格式设计为在流式读取和写入数据时都能高效运行，同时能够在任何迭代中随机访问数据。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:30
 msgid "{py:obj}`_get_data_type <evox.vis_tools.exv._get_data_type>`"
-msgstr ""
+msgstr "{py:obj}`_get_data_type <evox.vis_tools.exv._get_data_type>`"
 
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:34
 msgid "{py:obj}`new_exv_metadata <evox.vis_tools.exv.new_exv_metadata>`"
-msgstr ""
+msgstr "{py:obj}`new_exv_metadata <evox.vis_tools.exv.new_exv_metadata>`"
 
 #: ../../../src/evox/vis_tools/exv.py:36 ../../../src/evox/vis_tools/exv.py:53
 msgid ""
 "Takes the input of the populaton and fitness from the first two iterations, "
 "and returns the schema for exv file format."
-msgstr ""
+msgstr "接收前两次迭代的种群和适应度输入，并返回 exv 文件格式的模式。"
 
 #: ../../../src/evox/vis_tools/exv.py:67
 msgid ""
@@ -6712,6 +6738,7 @@ msgid ""
 " iterations of data, therefore it will only start to write data after the 2 "
 "iterations of the optimization loop are completed."
 msgstr ""
+"创建一个新的EvoXVisionAdapter实例，该实例将数据写入exv文件。为了自动推断数据模式，EvoXVisionAdapter需要2次数据迭代，因此它将在优化循环的2次迭代完成后才开始写入数据。"
 
 #: ../../../src/evox/vis_tools/exv.py:71
 #, fuzzy
@@ -6722,29 +6749,29 @@ msgstr "到状态保存位置的路径"
 msgid ""
 "The buffer size to use for file operations, passed directly to the open() "
 "function. The default is 0, which disables buffering (unbuffered mode)."
-msgstr ""
+msgstr "用于文件操作的缓冲区大小，直接传递给 `open()` 函数。默认值为 0，表示禁用缓冲（无缓冲模式）。"
 
 #: ../../../src/evox/vis_tools/exv.py:98
 msgid "Write the header of the exv file."
-msgstr ""
+msgstr "请写出 exv 文件的标题。"
 
 #: ../../../src/evox/vis_tools/exv.py:106
 msgid ""
 "Stream data to the exv file. Depending on the `buffering` parameter, the "
 "data may not be written immediately."
-msgstr ""
+msgstr "将数据流传输到 exv 文件。根据 `buffering` 参数，数据可能不会立即写入。"
 
 #: ../../../src/evox/vis_tools/exv.py:114
 msgid "Flush the internal buffer to the file."
-msgstr ""
+msgstr "将内部缓冲区刷新到文件。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:1
 msgid "{py:mod}`evox.vis_tools.plot`"
-msgstr ""
+msgstr "{py:mod}`evox.vis_tools.plot`"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:18
 msgid "{py:obj}`plot_dec_space <evox.vis_tools.plot.plot_dec_space>`"
-msgstr ""
+msgstr "{py:obj}`plot_dec_space <evox.vis_tools.plot.plot_dec_space>`"
 
 #: ../../../src/evox/vis_tools/plot.py:20
 #: ../../../src/evox/vis_tools/plot.py:50
@@ -6752,91 +6779,95 @@ msgid ""
 "A Built-in plot function for visualizing the population of single-objective "
 "algorithm. Use plotly internally, so you need to install plotly to use this "
 "function."
-msgstr ""
+msgstr "内置绘图函数用于可视化单目标算法的种群。内部使用plotly，因此需要安装plotly才能使用此函数。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:22
 msgid "{py:obj}`plot_obj_space_1d <evox.vis_tools.plot.plot_obj_space_1d>`"
-msgstr ""
+msgstr "{py:obj}`plot_obj_space_1d <evox.vis_tools.plot.plot_obj_space_1d>`"
 
 #: ../../../src/evox/vis_tools/plot.py:24
 #: ../../../src/evox/vis_tools/plot.py:57
 msgid ""
 "Visualize the fitness values of the population in a single-objective "
 "optimization problem."
-msgstr ""
+msgstr "可视化单目标优化问题中种群的适应度值。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:26
 msgid ""
 "{py:obj}`plot_obj_space_1d_no_animation "
 "<evox.vis_tools.plot.plot_obj_space_1d_no_animation>`"
 msgstr ""
+"{py:obj}`plot_obj_space_1d_no_animation "
+"<evox.vis_tools.plot.plot_obj_space_1d_no_animation>`"
 
 #: ../../../src/evox/vis_tools/plot.py:28
 #: ../../../src/evox/vis_tools/plot.py:64
 msgid ""
 "Visualize the fitness values of the population in a single-objective "
 "optimization problem. No animation."
-msgstr ""
+msgstr "在单目标优化问题中可视化种群的适应度值。无动画。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:30
 msgid ""
 "{py:obj}`plot_obj_space_1d_animation "
 "<evox.vis_tools.plot.plot_obj_space_1d_animation>`"
 msgstr ""
+"{py:obj}`plot_obj_space_1d_animation "
+"<evox.vis_tools.plot.plot_obj_space_1d_animation>`"
 
 #: ../../../src/evox/vis_tools/plot.py:32
 #: ../../../src/evox/vis_tools/plot.py:71
 msgid ""
 "Visualize the fitness values of the population in a single-objective "
 "optimization problem. With animation."
-msgstr ""
+msgstr "在单目标优化问题中可视化种群的适应度值。带有动画。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:34
 msgid "{py:obj}`plot_obj_space_2d <evox.vis_tools.plot.plot_obj_space_2d>`"
-msgstr ""
+msgstr "{py:obj}`plot_obj_space_2d <evox.vis_tools.plot.plot_obj_space_2d>`"
 
 #: ../../../src/evox/vis_tools/plot.py:36
 #: ../../../src/evox/vis_tools/plot.py:78
 msgid ""
 "Visualize the fitness values of the population in a multi-objective (2 "
 "objectives) optimization problem."
-msgstr ""
+msgstr "可视化种群在多目标（2个目标）优化问题中的适应度值。"
 
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:38
 msgid "{py:obj}`plot_obj_space_3d <evox.vis_tools.plot.plot_obj_space_3d>`"
-msgstr ""
+msgstr "{py:obj}`plot_obj_space_3d <evox.vis_tools.plot.plot_obj_space_3d>`"
 
 #: ../../../src/evox/vis_tools/plot.py:40
 #: ../../../src/evox/vis_tools/plot.py:85
 msgid ""
 "Visualize the fitness values of the population in a multi-objective (3 "
 "objectives) optimization problem."
-msgstr ""
+msgstr "可视化种群在多目标（3个目标）优化问题中的适应度值。"
 
 #: ../../../src/evox/vis_tools/plot.py:53
 msgid ""
 "If the problem is provided, we will plot the fitness landscape of the "
 "problem."
-msgstr ""
+msgstr "如果提供了问题，我们将绘制该问题的适应度景观。"
 
 #: ../../../src/evox/vis_tools/plot.py:55
 msgid ""
 "A list of arrays, each array represents the population of one generation."
-msgstr ""
+msgstr "一个数组列表，每个数组代表一代的种群。"
 
 #: ../../../src/evox/vis_tools/plot.py:56
 #: ../../../src/evox/vis_tools/plot.py:61
 #: ../../../src/evox/vis_tools/plot.py:83
 #: ../../../src/evox/vis_tools/plot.py:90
 msgid "Additional arguments to be passed to the plotly layout."
-msgstr ""
+msgstr "传递给 plotly 布局的附加参数。"
 
 #: ../../../src/evox/vis_tools/plot.py:58
 #: ../../../src/evox/vis_tools/plot.py:63
 #: ../../../src/evox/vis_tools/plot.py:85
 #: ../../../src/evox/vis_tools/plot.py:92
 msgid "A plotly figure."
-msgstr ""
+msgstr "A plotly figure."
 
 #: ../../../src/evox/vis_tools/plot.py:59
 #: ../../../src/evox/vis_tools/plot.py:80
@@ -6844,11 +6875,11 @@ msgstr ""
 msgid ""
 "A list of arrays, each array represents the fitness values of the population"
 " of one generation."
-msgstr ""
+msgstr "一组数组，每个数组代表一代种群的适应度值。"
 
 #: ../../../src/evox/vis_tools/plot.py:60
 msgid "Whether to show the animation of the fitness values over generations."
-msgstr ""
+msgstr "是否显示适应度值随世代变化的动画。"
 
 #: ../../../src/evox/vis_tools/plot.py:81
 #: ../../../src/evox/vis_tools/plot.py:89
@@ -6861,15 +6892,15 @@ msgstr "这个问题的完整的维度。"
 msgid ""
 "Whether to sort the points in the plot. This will only affect the animation "
 "behavior."
-msgstr ""
+msgstr "是否对图中的点进行排序。这只会影响动画行为。"
 
 #: ../../source/apidocs/evox/evox.workflows.md:1
 msgid "{py:mod}`evox.workflows`"
-msgstr ""
+msgstr "{py:mod}`evox.workflows`"
 
 #: ../../source/apidocs/evox/evox.workflows.md:28
 msgid "{py:obj}`__all__ <evox.workflows.__all__>`"
-msgstr ""
+msgstr "{py:obj}`__all__ <evox.workflows.__all__>`"
 
 #: ../../source/apidocs/evox/evox.workflows.md:40
 msgid "['EvalMonitor', 'StdWorkflow']"
@@ -6877,11 +6908,11 @@ msgstr "['EvalMonitor', 'StdWorkflow']"
 
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:1
 msgid "{py:mod}`evox.workflows.eval_monitor`"
-msgstr ""
+msgstr "{py:mod}`evox.workflows.eval_monitor`"
 
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:18
 msgid "{py:obj}`EvalMonitor <evox.workflows.eval_monitor.EvalMonitor>`"
-msgstr ""
+msgstr "{py:obj}`EvalMonitor <evox.workflows.eval_monitor.EvalMonitor>`"
 
 #: ../../../src/evox/workflows/eval_monitor.py:20
 #: ../../../src/evox/workflows/eval_monitor.py:33
@@ -6896,7 +6927,7 @@ msgstr ""
 
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:30
 msgid "Bases: {py:obj}`evox.core.Monitor`"
-msgstr ""
+msgstr "Bases: {py:obj}`evox.core.Monitor`"
 
 #: ../../../src/evox/workflows/eval_monitor.py:39
 #, fuzzy
@@ -6939,7 +6970,7 @@ msgstr "评估给定候选解的适应度。"
 
 #: ../../../src/evox/workflows/eval_monitor.py:69
 msgid "Get the solution from the latest iteration."
-msgstr ""
+msgstr "从最新的迭代中获取解决方案。"
 
 #: ../../../src/evox/workflows/eval_monitor.py:77
 #, fuzzy
@@ -6963,23 +6994,23 @@ msgstr "获取当前的最优适应度值。"
 
 #: ../../../src/evox/workflows/eval_monitor.py:109
 msgid "Get the full history of fitness values."
-msgstr ""
+msgstr "获取适应度值的完整历史记录。"
 
 #: ../../../src/evox/workflows/eval_monitor.py:117
 msgid "Get the full history of solutions."
-msgstr ""
+msgstr "获取完整的解决方案历史。"
 
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:1
 msgid "{py:mod}`evox.workflows.std_workflow`"
-msgstr ""
+msgstr "{py:mod}`evox.workflows.std_workflow`"
 
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:18
 msgid "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
-msgstr ""
+msgstr "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
 
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:20
 msgid "{py:obj}`StdWorkflow <evox.workflows.std_workflow.StdWorkflow>`"
-msgstr ""
+msgstr "{py:obj}`StdWorkflow <evox.workflows.std_workflow.StdWorkflow>`"
 
 #: ../../../src/evox/workflows/std_workflow.py:22
 #: ../../../src/evox/workflows/std_workflow.py:50
@@ -6989,11 +7020,11 @@ msgstr "标准工作流"
 
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:47
 msgid "Bases: {py:obj}`evox.core.Workflow`"
-msgstr ""
+msgstr "Bases: {py:obj}`evox.core.Workflow`"
 
 #: ../../../src/evox/workflows/std_workflow.py:56
 msgid "Initialize the standard workflow with static arguments."
-msgstr ""
+msgstr "使用静态参数初始化标准工作流。"
 
 #: ../../../src/evox/workflows/std_workflow.py:58
 msgid ""
@@ -7001,6 +7032,8 @@ msgid ""
 "\"min\". If \"max\", the fitness will be negated prior to fitness_transform "
 "and monitor."
 msgstr ""
+"优化方向只能是“min”或“max”。默认为“min”。如果是“max”，适应度将在 `fitness_transform` 和 `monitor` "
+"之前取反。"
 
 #: ../../../src/evox/workflows/std_workflow.py:63
 msgid ""
@@ -7008,6 +7041,8 @@ msgid ""
 " are mutable modules to be added as submodules, they are placed here instead"
 " of `__init__` and thus `setup` MUST be invoked after `__init__`."
 msgstr ""
+"将模块设置为子模块初始化。由于所有这些参数都是可变模块，将作为子模块添加，因此它们被放置在这里而不是 `__init__` 中，因此 `setup` "
+"必须在 `__init__` 之后调用。"
 
 #: ../../../src/evox/workflows/std_workflow.py:65
 #, fuzzy
@@ -7023,54 +7058,54 @@ msgstr "监视器可以插入到工作流中。"
 msgid ""
 "The monitors to be used in the workflow. Defaults to None. Notice: usually, "
 "monitors can only be used when using JIT script mode."
-msgstr ""
+msgstr "在工作流中使用的监视器。默认为 None。注意：通常情况下，监视器只能在使用 JIT script 模式时使用。"
 
 #: ../../../src/evox/workflows/std_workflow.py:68
 msgid ""
 "The solution transformation function. MUST be JIT-compatible module/function"
 " for JIT trace mode or a plain module for JIT script mode (default mode). "
 "Defaults to None."
-msgstr ""
+msgstr "解决方案转换函数。必须是兼容JIT的模块/函数，用于JIT跟踪模式，或者是JIT脚本模式（默认模式）的普通模块。默认为None。"
 
 #: ../../../src/evox/workflows/std_workflow.py:69
 msgid ""
 "The fitness transformation function. MUST be JIT-compatible module/function "
 "for JIT trace mode or a plain module for JIT script mode (default mode). "
 "Defaults to None."
-msgstr ""
+msgstr "适应度转换函数。必须是与JIT兼容的模块/函数，用于JIT追踪模式，或者是用于JIT脚本模式（默认模式）的普通模块。默认值为None。"
 
 #: ../../../src/evox/workflows/std_workflow.py:70
 msgid "The device of the workflow. Defaults to None."
-msgstr ""
+msgstr "工作流的设备。默认为 None。"
 
 #: ../../../src/evox/workflows/std_workflow.py:71
 msgid ""
 "The arguments to be passed to algorithm.setup(**kwargs). If not provided, "
 "the algorithm.setup() will not be invoked."
-msgstr ""
+msgstr "要传递给 `algorithm.setup(**kwargs)` 的参数。如果未提供，则不会调用 `algorithm.setup()"
 
 #: ../../../src/evox/workflows/std_workflow.py:72
 msgid ""
 "The arguments to be passed to problem.setup(**kwargs). If not provided, the "
 "problem.setup() will not be invoked."
-msgstr ""
+msgstr "要传递给 `problem.setup(**kwargs)` 的参数。如果未提供，则不会调用 `problem.setup()"
 
 #: ../../../src/evox/workflows/std_workflow.py:73
 msgid ""
 "The arguments to be passed to monitor.setup(**kwargs). If not provided, the "
 "monitor.setup() will not be invoked."
-msgstr ""
+msgstr "要传递给 `monitor.setup(**kwargs)` 的参数。如果未提供，则不会调用 `monitor.setup()"
 
 #: ../../../src/evox/workflows/std_workflow.py:76
 msgid ""
 "The algorithm, problem and monitor will be IN-PLACE transformed to the "
 "target device."
-msgstr ""
+msgstr "算法、问题和监视器将被原地转换到目标设备。"
 
 #: ../../../src/evox/workflows/std_workflow.py:113
 msgid ""
 "Perform a single optimization step using the algorithm and the problem."
-msgstr ""
+msgstr "使用算法和问题执行单个优化步骤。"
 
 #: ../../source/apidocs/index.rst:2 ../../source/index.md:15
 msgid "API Reference"
@@ -7078,13 +7113,14 @@ msgstr "API文档"
 
 #: ../../source/apidocs/index.rst:4
 msgid "This page contains auto-generated API reference documentation [#f1]_."
-msgstr ""
+msgstr "此页面包含自动生成的API参考文档[#f1]_。"
 
 #: ../../source/apidocs/index.rst:11
 msgid ""
 "Created with `sphinx-autodoc2 <https://github.com/chrisjsewell/sphinx-"
 "autodoc2>`_"
 msgstr ""
+"使用 `sphinx-autodoc2 <https://github.com/chrisjsewell/sphinx-autodoc2>`_ 创建"
 
 #: ../../source/example/brax.ipynb:10002
 #, fuzzy
@@ -7095,12 +7131,12 @@ msgstr "用EvoX解决Pong问题"
 msgid ""
 "EvoX deeply dives into neuroevolution with Brax. Here we will show an "
 "example of solving Brax problem in EvoX."
-msgstr ""
+msgstr "EvoX 深入研究使用 Brax 的神经演化。这里我们将展示一个在 EvoX 中解决 Brax 问题的例子。"
 
 #: ../../source/example/brax.ipynb:40002
 #: ../../source/guide/user/2-problems.ipynb:50002
 msgid "What is Brax"
-msgstr ""
+msgstr "什么是Brax"
 
 #: ../../source/example/brax.ipynb:40004
 #: ../../source/guide/user/2-problems.ipynb:50004
@@ -7108,7 +7144,7 @@ msgid ""
 "Brax is a fast and fully differentiable physics engine used for research and"
 " development of robotics, human perception, materials science, reinforcement"
 " learning, and other simulation-heavy applications."
-msgstr ""
+msgstr "Brax 是一个快速且完全可微分的物理引擎，用于机器人学、人类感知、材料科学、强化学习和其他需要大量模拟的应用的研究和开发。"
 
 #: ../../source/example/brax.ipynb:40006
 #, fuzzy
@@ -7119,38 +7155,38 @@ msgstr "我们将演示在Brax中使用“swimmer”环境。"
 msgid ""
 "For more information, you can browse the [Github of "
 "Brax](https://github.com/google/brax)."
-msgstr ""
+msgstr "有关更多信息，您可以浏览 [Brax 的 Github](https://github.com/google/brax)。"
 
 #: ../../source/example/brax.ipynb:50002
 #: ../../source/guide/user/2-problems.ipynb:60002
 msgid "Design a neural network class"
-msgstr ""
+msgstr "设计一个神经网络类"
 
 #: ../../source/example/brax.ipynb:50004
 #: ../../source/guide/user/2-problems.ipynb:60004
 msgid ""
 "To start with, we need to decide which neural network we are about to "
 "construct."
-msgstr ""
+msgstr "要开始，我们需要决定要构建哪个神经网络。"
 
 #: ../../source/example/brax.ipynb:50006
 #: ../../source/guide/user/2-problems.ipynb:60006
 msgid "Here we will give a simple Multilayer Perceptron (MLP) class."
-msgstr ""
+msgstr "这里我们将给出一个简单的多层感知器（MLP）类。"
 
 #: ../../source/example/brax.ipynb:70002
 #: ../../source/guide/user/2-problems.ipynb:80002
 msgid "Initiate a model"
-msgstr ""
+msgstr "初始化模型"
 
 #: ../../source/example/brax.ipynb:70004
 msgid "Through the ``SimpleMLP`` class, we can initiate a MLP model."
-msgstr ""
+msgstr "通过``SimpleMLP``类，我们可以初始化一个MLP模型。"
 
 #: ../../source/example/brax.ipynb:90002
 #: ../../source/guide/user/2-problems.ipynb:160004
 msgid "Initiate an adapter"
-msgstr ""
+msgstr "启动适配器"
 
 #: ../../source/example/brax.ipynb:90004
 #: ../../source/guide/user/2-problems.ipynb:160006
@@ -7161,12 +7197,12 @@ msgstr "现在`adapter`可以帮助我们来回转换数据格式。"
 #: ../../source/example/brax.ipynb:110002
 #: ../../source/guide/user/2-problems.ipynb:180002
 msgid "With an adapter, we can set out to do this Neuroevolution Task."
-msgstr ""
+msgstr "使用适配器，我们可以开始进行这个神经演化任务。"
 
 #: ../../source/example/brax.ipynb:110004
 #: ../../source/guide/user/2-problems.ipynb:180008
 msgid "Set up the running process"
-msgstr ""
+msgstr "设置运行过程"
 
 #: ../../source/example/brax.ipynb:110006
 #: ../../source/guide/user/1-start.ipynb:40011
@@ -7182,6 +7218,8 @@ msgid ""
 "problem](#evox.problems.neuroevolution.brax.BraxProblem) in \"hopper\" "
 "environment."
 msgstr ""
+"我们启动一个[PSO 算法](#evox.algorithms.pso_variants.pso.PSO)，问题是在“hopper”环境中的[Brax "
+"问题](#evox.problems.neuroevolution.brax.BraxProblem)。"
 
 #: ../../source/example/brax.ipynb:130002
 #: ../../source/guide/user/2-problems.ipynb:200008
@@ -7232,17 +7270,19 @@ msgid ""
 "The code above is a workaround to ensure the result is displayed correctly "
 "on our website."
 msgstr ""
+"通常，您只需要使用 `HTML(problem.visualize(best_params))` "
+"来渲染。上面的代码是一种解决方法，以确保结果在我们的网站上正确显示。"
 
 #: ../../source/example/brax.ipynb:220004
 msgid ""
 "The PSO algorithm is not specifically optimized for this type of task, so "
 "performance limitations are expected. This example is for demonstration "
 "purposes."
-msgstr ""
+msgstr "PSO算法并未针对这种类型的任务进行特别优化，因此预期会有性能限制。此示例仅用于演示目的。"
 
 #: ../../source/example/brax.ipynb:220007
 msgid "We hope you enjoy solving Brax problems with EvoX and have fun!"
-msgstr ""
+msgstr "我们希望您在使用EvoX解决Brax问题时能够享受乐趣！"
 
 #: ../../source/example/custom_algo_prob.ipynb:10002
 #, fuzzy
@@ -7257,52 +7297,56 @@ msgid ""
 "problem. Here we will give an example of **implementing a PSO algorithm that"
 " solves the Sphere problem**."
 msgstr ""
+"在这个笔记本中，我们将展示如何使用[`Algorithm`](#evox.core.components.Algorithm)和[`Problem`](#evox.core.components.Problem)来创建一个自定义算法和问题。这里我们将给出一个**实现解决Sphere问题的PSO算法**的例子。"
 
 #: ../../source/example/custom_algo_prob.ipynb:30002
 #: ../../source/guide/developer/3-custom-alg-pro.md:99
 msgid "Algorithm example: PSO algorithm"
-msgstr ""
+msgstr "算法示例：PSO 算法"
 
 #: ../../source/example/custom_algo_prob.ipynb:30004
 msgid ""
 "Particle Swarm Optimization (PSO) is a population-based metaheuristic "
 "algorithm inspired by the social behavior of birds and fish. It is widely "
 "used for solving continuous and discrete optimization problems."
-msgstr ""
+msgstr "粒子群优化（PSO）是一种基于种群的元启发式算法，灵感来自鸟类和鱼类的社会行为。它广泛用于解决连续和离散优化问题。"
 
 #: ../../source/example/custom_algo_prob.ipynb:30006
 #: ../../source/guide/developer/3-custom-alg-pro.md:103
 msgid "**Here is an implementation example of PSO algorithm in EvoX:**"
-msgstr ""
+msgstr "**以下是EvoX中PSO算法的实现示例：**"
 
 #: ../../source/example/custom_algo_prob.ipynb:50002
 #: ../../source/guide/developer/3-custom-alg-pro.md:188
 msgid "Problem example: Sphere problem"
-msgstr ""
+msgstr "问题示例：Sphere 问题"
 
 #: ../../source/example/custom_algo_prob.ipynb:50004
 #: ../../source/guide/developer/3-custom-alg-pro.md:190
 msgid ""
 "The Sphere problem is a simple, yet fundamental benchmark optimization "
 "problem used to test optimization algorithms."
-msgstr ""
+msgstr "Sphere问题是一个简单但基本的基准优化问题，用于测试优化算法。"
 
 #: ../../source/example/custom_algo_prob.ipynb:50006
 #: ../../source/guide/developer/3-custom-alg-pro.md:192
 msgid "The Sphere function is defined as:"
 msgstr ""
+"The Sphere function is defined as:\n"
+"\n"
+"球体函数定义为："
 
 #: ../../source/example/custom_algo_prob.ipynb:50008
 #: ../../source/guide/developer/3-custom-alg-pro.md:194
 msgid ""
 "\n"
 "\\min f(x)= \\sum_{i=1}^{n} x_{i}^{2}\n"
-msgstr ""
+msgstr "\\min f(x)= \\sum_{i=1}^{n} x_{i}^{2}"
 
 #: ../../source/example/custom_algo_prob.ipynb:50011
 #: ../../source/guide/developer/3-custom-alg-pro.md:197
 msgid "**Here is an implementation example of Sphere problem in EvoX:**"
-msgstr ""
+msgstr "**以下是EvoX中Sphere问题的实现示例：**"
 
 #: ../../source/example/custom_algo_prob.ipynb:70002
 #, fuzzy
@@ -7337,17 +7381,17 @@ msgstr "在这个文档里，我们会使用粒子群算法来寻找Ackley测试
 
 #: ../../source/example/moalg.ipynb:40002
 msgid "(Optional) Use GPU to run the code"
-msgstr ""
+msgstr "（可选）使用GPU运行代码"
 
 #: ../../source/example/moalg.ipynb:40003
 msgid ""
 "We often prefer to run our code on a GPU for faster execution. However, if a"
 " GPU is unavailable, running on a CPU is also acceptable."
-msgstr ""
+msgstr "我们通常更喜欢在GPU上运行代码以加快执行速度。然而，如果没有GPU，使用CPU运行也是可以接受的。"
 
 #: ../../source/example/moalg.ipynb:60002
 msgid "Running example: RVEA on DTLZ2 problem"
-msgstr ""
+msgstr "运行示例：RVEA 在 DTLZ2 问题上"
 
 #: ../../source/example/moalg.ipynb:60003
 msgid ""
@@ -7357,18 +7401,20 @@ msgid ""
 "problem and algorithm can be found in the corresponding section of the "
 "documentation."
 msgstr ""
+"以下代码用于设置 [`DTLZ2`](#evox.problems.numerical.dtlz) 问题和 "
+"[`RVEA`](#evox.algorithms.mo.rvea) 算法。关于该问题和算法的更多信息可以在文档的相应部分找到。"
 
 #: ../../source/example/moalg.ipynb:80002
 msgid ""
 "With this setup in place, we can now start to optimize. We set to let the "
 "multi-objective algorithm optimize for 100 steps on this problem"
-msgstr ""
+msgstr "在这个设置完成后，我们现在可以开始优化。我们设置让多目标算法在这个问题上优化100步。"
 
 #: ../../source/example/moalg.ipynb:100002
 msgid ""
 "(Optional) You can uncomment and execute the following code to print a table"
 " to view the hotspot functions."
-msgstr ""
+msgstr "（可选）您可以取消注释并执行以下代码以打印表格查看热点函数。"
 
 #: ../../source/example/so-algorithm.ipynb:10002
 msgid "Numerical Optimization"
@@ -7381,56 +7427,63 @@ msgid ""
 " Both the PSO algorithm and the Ackley optimization problem are integrated "
 "as built-in components within the EvoX framework."
 msgstr ""
+"本笔记本提供了一个逐步教程，指导如何使用EvoX通过粒子群优化（PSO）算法来优化Ackley函数。PSO算法和Ackley优化问题都作为内置组件集成在EvoX框架中。"
 
 #: ../../source/example/so-algorithm.ipynb:20004
 msgid ""
 "First, we should import all necessary modules including `PSO` (algorithm), "
 "`Ackley` (problem) and `StdWorkflow` & `EvalMonitor` (workflow)."
 msgstr ""
+"首先，我们应该导入所有必要的模块，包括 `PSO`（算法）、`Ackley`（问题）以及 `StdWorkflow` 和 "
+"`EvalMonitor`（工作流）。"
 
 #: ../../source/example/so-algorithm.ipynb:40002
 msgid ""
 "Here, we instantiate the [`PSO`](#evox.algorithms.pso_variants.pso) "
 "algorithm. We specify the following settings:"
-msgstr ""
+msgstr "在这里，我们实例化了[`PSO`](#evox.algorithms.pso_variants.pso)算法。我们指定了以下设置："
 
 #: ../../source/example/so-algorithm.ipynb:40004
 msgid "`pop_size`: The size of the particle swarm (population)."
-msgstr ""
+msgstr "`pop_size`: 粒子群（种群）的大小。"
 
 #: ../../source/example/so-algorithm.ipynb:40005
 msgid ""
 "`lb` and `ub`: The lower and upper bounds for each dimension in the search "
 "space."
-msgstr ""
+msgstr "`lb` 和 `ub`: 搜索空间中每个维度的下限和上限。"
 
 #: ../../source/example/so-algorithm.ipynb:40006
 msgid "Other parameters are all default. Please refer to the detailed API."
-msgstr ""
+msgstr "其他参数都是默认的。请参考详细的API。"
 
 #: ../../source/example/so-algorithm.ipynb:60002
 msgid ""
 "Next, we choose the [`Ackley`](#evox.problems.numerical.basic.Ackley) "
 "function in EvoX' s numerical problem."
 msgstr ""
+"接下来，我们选择 EvoX 的数值问题中的 [`Ackley`](#evox.problems.numerical.basic.Ackley) 函数。"
 
 #: ../../source/example/so-algorithm.ipynb:80002
 msgid ""
 "We creat an [`EvalMonitor`](#evox.workflows.eval_monitor.EvalMonitor) "
 "instance to track necessary information during the optimization procedure."
 msgstr ""
+"我们创建一个[`EvalMonitor`](#evox.workflows.eval_monitor.EvalMonitor)实例，以跟踪优化过程中的必要信息。"
 
 #: ../../source/example/so-algorithm.ipynb:100002
 msgid ""
 "The [`StdWorkflow`](#evox.workflows.std_workflow.StdWorkflow) class provides"
 " a standardized process to integrate the algorithm, problem, and monitor."
 msgstr ""
+"[`StdWorkflow`](#evox.workflows.std_workflow.StdWorkflow) "
+"类提供了一个标准化的过程来整合算法、问题和监控器。"
 
 #: ../../source/example/so-algorithm.ipynb:120002
 msgid ""
 "Calling `setup()` initializes the components so that the workflow is ready "
 "to perform optimization steps."
-msgstr ""
+msgstr "调用 `setup()` 初始化组件，使工作流准备好执行优化步骤。"
 
 #: ../../source/example/so-algorithm.ipynb:140002
 msgid ""
@@ -7439,6 +7492,8 @@ msgid ""
 "evaluates new candidate solutions on the Ackley function, and tracks their "
 "fitness via the monitor."
 msgstr ""
+"我们运行优化过程一定次数的迭代（在这个例子中是100次）。在每次迭代中，`step()` "
+"方法更新PSO算法，在Ackley函数上评估新的候选解，并通过监视器跟踪它们的适应度。"
 
 #: ../../source/example/so-algorithm.ipynb:160002
 msgid ""
@@ -7447,10 +7502,12 @@ msgid ""
 "(`topk_solutions`) and their corresponding objective values "
 "(`topk_fitness`). We then print the best result and the associated solution."
 msgstr ""
+"最后，我们从工作流中检索 [`monitor`](#StdWorkflow.get_submodule) 子模块，以访问迄今为止找到的最佳解决方案 "
+"(`topk_solutions`) 及其对应的目标值 (`topk_fitness`)。然后，我们打印出最佳结果及其相关的解决方案。"
 
 #: ../../source/example/supervised-learning.ipynb:10002
 msgid "Solving Supervised Learning Tasks with Neuroevolution in EvoX"
-msgstr ""
+msgstr "在EvoX中使用神经演化解决监督学习任务"
 
 #: ../../source/example/supervised-learning.ipynb:20002
 msgid ""
@@ -7462,28 +7519,32 @@ msgid ""
 "illustrates the neuroevolution process for supervised learning by adopting "
 "the modules of EvoX."
 msgstr ""
+"EvoX 提供基于神经演化的监督学习任务解决方案，主要模块包括 "
+"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
+" 和 [`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector)。以 "
+"MNIST 分类任务为例，本节通过采用 EvoX 的模块来说明监督学习的神经演化过程。"
 
 #: ../../source/example/supervised-learning.ipynb:30002
 msgid "Basic Setup"
-msgstr ""
+msgstr "基本设置"
 
 #: ../../source/example/supervised-learning.ipynb:40002
 msgid ""
 "Basic component imports and device configuration serve as the essential "
 "starting steps for the neuroevolution process."
-msgstr ""
+msgstr "神经演化过程的基本组件导入和设备配置是至关重要的起始步骤。"
 
 #: ../../source/example/supervised-learning.ipynb:40004
 msgid ""
 "Here, to ensure the reproducibility of results, a random seed can be "
 "optionally set."
-msgstr ""
+msgstr "在这里，为了确保结果的可重复性，可以选择性地设置一个随机种子。"
 
 #: ../../source/example/supervised-learning.ipynb:60002
 msgid ""
 "In this step, a sample convolutional neural network (CNN) model is directly "
 "defined upon the PyTorch framework and then loaded onto the device."
-msgstr ""
+msgstr "在此步骤中，样本卷积神经网络（CNN）模型直接基于PyTorch框架定义，然后加载到设备上。"
 
 #: ../../source/example/supervised-learning.ipynb:80002
 msgid ""
@@ -7492,6 +7553,7 @@ msgid ""
 "`torchvision` must be installed in advance depending on your PyTorch "
 "version, if it is not already available."
 msgstr ""
+"设置数据集意味着选择任务。现在需要基于PyTorch的内置支持初始化数据加载器。在这里，根据您的PyTorch版本，必须预先安装`torchvision`包，如果尚未安装的话。"
 
 #: ../../source/example/supervised-learning.ipynb:80005
 msgid ""
@@ -7500,6 +7562,8 @@ msgid ""
 "be automatically downloaded. Therefore, the setup may take some time during "
 "the first run."
 msgstr ""
+"如果 `data_root` 目录中尚未存在 MNIST 数据集，则设置 `download=True` "
+"标志以确保数据集将被自动下载。因此，第一次运行时设置可能需要一些时间。"
 
 #: ../../source/example/supervised-learning.ipynb:100002
 msgid ""
@@ -7508,48 +7572,49 @@ msgid ""
 "&ndash; gradient descent training, neuroevolution fine-tuning, and model "
 "testing."
 msgstr ""
+"为了加速后续过程，所有MNIST数据都被预加载以实现更快的执行。下面，三个数据集被预加载用于不同阶段——梯度下降训练、神经演化微调和模型测试。"
 
 #: ../../source/example/supervised-learning.ipynb:100004
 msgid ""
 "It should be noted that this is an optional operation that trades space for "
 "time. Its adoption depends on your GPU capacity, and it will always take "
 "some time to prepare."
-msgstr ""
+msgstr "需要注意的是，这是一个可选操作，用空间换取时间。其采用取决于您的GPU容量，并且总是需要一些时间来准备。"
 
 #: ../../source/example/supervised-learning.ipynb:120002
 msgid ""
 "Here, a `model_test` function is pre-defined to simplify the evaluation of "
 "the model's prediction accuracy on the test dataset during subsequent "
 "stages."
-msgstr ""
+msgstr "在这里，预先定义了一个 `model_test` 函数，以简化在后续阶段对模型在测试数据集上预测准确性的评估。"
 
 #: ../../source/example/supervised-learning.ipynb:140002
 msgid "Gradient Descent Training (Optional)"
-msgstr ""
+msgstr "梯度下降训练（可选）"
 
 #: ../../source/example/supervised-learning.ipynb:150002
 msgid ""
 "The gradient descent based model training is performed first. In this "
 "example, this training is adopted to initialize the model, preparing it for "
 "subsequent neuroevolution processes."
-msgstr ""
+msgstr "基于梯度下降的模型训练首先进行。在这个例子中，这种训练用于初始化模型，为后续的神经演化过程做准备。"
 
 #: ../../source/example/supervised-learning.ipynb:150004
 msgid ""
 "The model training process in PyTorch is compatible with neuroevolution in "
 "EvoX, making it convenient to reuse the same model implementation for "
 "further steps."
-msgstr ""
+msgstr "在EvoX中，PyTorch的模型训练过程与神经演化兼容，使得在后续步骤中重用相同的模型实现变得方便。"
 
 #: ../../source/example/supervised-learning.ipynb:180002
 msgid "Neuroevolution Fine-Tuning"
-msgstr ""
+msgstr "神经演化微调"
 
 #: ../../source/example/supervised-learning.ipynb:190002
 msgid ""
 "Based on the pre-trained model from the previous gradient descent process, "
 "neuroevolution is progressively applied to fine-tune the model."
-msgstr ""
+msgstr "基于之前梯度下降过程中的预训练模型，神经演化逐步应用于微调模型。"
 
 #: ../../source/example/supervised-learning.ipynb:190004
 msgid ""
@@ -7559,6 +7624,8 @@ msgid ""
 "vector, which serves as the initial center individual for the subsequent "
 "neuroevolution process."
 msgstr ""
+"首先，[`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector) "
+"组件用于将预训练模型的权重展平为一个向量，该向量作为后续神经演化过程的初始中心个体。"
 
 #: ../../source/example/supervised-learning.ipynb:210002
 msgid ""
@@ -7567,6 +7634,7 @@ msgid ""
 "[`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector) can "
 "be unnecessary."
 msgstr ""
+"对于专门为神经演化设计的算法，它们可以直接接受批处理参数的字典作为输入，使用[`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector)可能是不必要的。"
 
 #: ../../source/example/supervised-learning.ipynb:220002
 msgid ""
@@ -7574,18 +7642,18 @@ msgid ""
 "accuracy of the individual model are selected and weighted to serve as the "
 "fitness function in the neuroevolution process. This step is customizable to"
 " suit the optimization direction."
-msgstr ""
+msgstr "此外，定义了一个示例标准。在这里，个体模型的损失和准确性都被选择并加权，以作为神经演化过程中的适应度函数。此步骤可以自定义以适应优化方向。"
 
 #: ../../source/example/supervised-learning.ipynb:240002
 msgid ""
 "At the same time, similar to the gradient descent training and model testing"
 " processes, the neuroevolution fine-tuning process is also encapsulated into"
 " a function for convenient use in subsequent stages."
-msgstr ""
+msgstr "同时，类似于梯度下降训练和模型测试过程，神经演化微调过程也被封装成一个函数，以便在后续阶段方便使用。"
 
 #: ../../source/example/supervised-learning.ipynb:260002
 msgid "Population-Based Neuroevolution Test"
-msgstr ""
+msgstr "种群基础的神经演化测试"
 
 #: ../../source/example/supervised-learning.ipynb:270002
 msgid ""
@@ -7597,17 +7665,18 @@ msgid ""
 "workflow, along with their respective `setup()` functions to complete the "
 "initialization."
 msgstr ""
+"在这个例子中，基于种群的神经演化算法首先被测试，使用粒子群优化（[PSO](#evox.algorithms.pso_variants.PSO)）作为表示。神经演化的配置与其他优化任务类似——我们需要定义问题、算法、监控器和工作流，以及它们各自的`setup()`函数来完成初始化。"
 
 #: ../../source/example/supervised-learning.ipynb:270004
 msgid ""
 "A key point to note here is that the population size (`POP_SIZE` in this "
 "case) needs to be initialized in **both the problem and the algorithm** to "
 "avoid potential errors."
-msgstr ""
+msgstr "需要注意的一个关键点是，种群大小（在这种情况下为`POP_SIZE`）需要在**问题和算法**中都进行初始化，以避免潜在的错误。"
 
 #: ../../source/example/supervised-learning.ipynb:300002
 msgid "Single-Individual Neuroveolution Test"
-msgstr ""
+msgstr "单个个体神经演化测试"
 
 #: ../../source/example/supervised-learning.ipynb:310002
 msgid ""
@@ -7617,6 +7686,8 @@ msgid ""
 "functions during initialization. In this case, a random search strategy is "
 "selected as the algorithm."
 msgstr ""
+"接下来，测试基于单个个体算法的神经演化。与基于种群的情况类似，我们需要定义问题、算法、监控器和工作流，并在初始化时调用它们各自的 `setup()` "
+"函数。在这种情况下，选择随机搜索策略作为算法。"
 
 #: ../../source/example/supervised-learning.ipynb:310004
 msgid ""
@@ -7627,6 +7698,9 @@ msgid ""
 " single individual is being searched. A careful hyper-parameter setup helps "
 "avoid unnecessary issues."
 msgstr ""
+"需要注意的一个关键点是，[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
+" 应该设置为 `pop_size=None`，并且 [`EvalMonitor`](#evox.workflows.EvalMonitor) 应该设置为"
+" `topk=1`，因为只搜索单个个体。仔细的超参数设置有助于避免不必要的问题。"
 
 #: ../../source/guide/developer/1-modulebase.md:1
 #, fuzzy
@@ -7638,17 +7712,17 @@ msgid ""
 "A **module** is a fundamental concept in programming that refers to a self-"
 "contained unit of code designed to perform a specific task or a set of "
 "related tasks."
-msgstr ""
+msgstr "一个**模块**是编程中的一个基本概念，指的是一个自包含的代码单元，旨在执行特定任务或一组相关任务。"
 
 #: ../../source/guide/developer/1-modulebase.md:5
 msgid ""
 "This notebook will introduce the basic module in EvoX: "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
-msgstr ""
+msgstr "此笔记本将介绍 EvoX 中的基本模块：[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
 #: ../../source/guide/developer/1-modulebase.md:7
 msgid "Introduction to Module"
-msgstr ""
+msgstr "模块介绍"
 
 #: ../../source/guide/developer/1-modulebase.md:9
 msgid ""
@@ -7656,18 +7730,19 @@ msgid ""
 "Guide](#/guide/user/index), we have mentioned the basic running process in "
 "EvoX:"
 msgstr ""
+"在[用户指南](#/guide/user/index)的[快速入门文档](#/guide/user/1-start)中，我们提到了EvoX的基本运行过程："
 
 #: ../../source/guide/developer/1-modulebase.md:13
 msgid "This process requires four basic class in EvoX:"
-msgstr ""
+msgstr "在EvoX中，此过程需要四个基本类："
 
 #: ../../source/guide/developer/1-modulebase.md:15
 msgid "[`Algorithm`](#evox.core.components.Algorithm)"
-msgstr ""
+msgstr "[`Algorithm`](#evox.core.components.Algorithm)"
 
 #: ../../source/guide/developer/1-modulebase.md:16
 msgid "[`Problem`](#evox.core.components.Problem)"
-msgstr ""
+msgstr "[`Problem`](#evox.core.components.Problem)"
 
 #: ../../source/guide/developer/1-modulebase.md:17
 msgid "[`Monitor`](evox.core.components.Monitor)"
@@ -7675,7 +7750,7 @@ msgstr ""
 
 #: ../../source/guide/developer/1-modulebase.md:18
 msgid "[`Workflow`](#evox.core.components.Workflow)"
-msgstr ""
+msgstr "抱歉，我需要更多的上下文或具体的文本内容来进行翻译。请提供需要翻译的具体文本。"
 
 #: ../../source/guide/developer/1-modulebase.md:21
 msgid ""
@@ -7683,6 +7758,7 @@ msgid ""
 "classes are all inherited from the base module — "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
 msgstr ""
+"有必要为它们提供一个统一的模块。在EvoX中，这四个类都继承自基础模块——[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 #, fuzzy
@@ -7699,11 +7775,13 @@ msgid ""
 "The [`ModuleBase`](#evox.core.module.ModuleBase) class is inherited from "
 "[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)."
 msgstr ""
+"[`ModuleBase`](#evox.core.module.ModuleBase) 类继承自 "
+"[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)。"
 
 #: ../../source/guide/developer/1-modulebase.md:32
 msgid ""
 "There are many methods in this class, and some important methods are here:"
-msgstr ""
+msgstr "在这个类中有许多方法，这里是一些重要的方法："
 
 #: ../../source/guide/developer/1-modulebase.md:23
 #: ../../source/guide/developer/3-custom-alg-pro.md
@@ -7757,16 +7835,17 @@ msgstr "{python}`(self, ...)`"
 msgid ""
 "Module initialization lines should be written in the overwritten method of "
 "`setup` rather than `__init__`."
-msgstr ""
+msgstr "模块初始化行应写在 `setup` 的重写方法中，而不是 `__init__` 中。"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 msgid "`load_state_dict`"
-msgstr ""
+msgstr "`load_state_dict"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 msgid ""
 "`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)`"
 msgstr ""
+"`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 msgid ""
@@ -7774,10 +7853,11 @@ msgid ""
 "descendants. It overwrites "
 "[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)."
 msgstr ""
+"将`state_dict`中的参数和缓冲区复制到此模块及其子模块中。它会覆盖[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)。"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 msgid "`add_mutable`"
-msgstr ""
+msgstr "`add_mutable"
 
 #: ../../source/guide/developer/1-modulebase.md:23
 msgid ""
@@ -7785,6 +7865,9 @@ msgid ""
 "Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
 " None`"
 msgstr ""
+"`(self, name: str, value: Union[torch.Tensor | nn.Module, "
+"Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
+" None"
 
 #: ../../source/guide/developer/1-modulebase.md:41
 msgid "Role of Module"
@@ -7793,30 +7876,30 @@ msgstr ""
 #: ../../source/guide/developer/1-modulebase.md:43
 msgid ""
 "In EvoX, the [`ModuleBase`](#evox.core.module.ModuleBase) could help to:"
-msgstr ""
+msgstr "在 EvoX 中，[`ModuleBase`](#evox.core.module.ModuleBase) 可以帮助："
 
 #: ../../source/guide/developer/1-modulebase.md:45
 msgid "**Contain mutable values**"
-msgstr ""
+msgstr "**包含可变值**"
 
 #: ../../source/guide/developer/1-modulebase.md:47
 msgid ""
 "​\tThis module is an object-oriented one that can contain mutable values."
-msgstr ""
+msgstr "该模块是一个面向对象的模块，可以包含可变值。"
 
 #: ../../source/guide/developer/1-modulebase.md:49
 msgid "**Support functional programming**"
-msgstr ""
+msgstr "**支持函数式编程**"
 
 #: ../../source/guide/developer/1-modulebase.md:51
 msgid ""
 "​\tFunctional programming model is supported via `self.state_dict()` and "
 "`self.load_state_dict(...)`."
-msgstr ""
+msgstr "支持函数式编程模型通过 `self.state_dict()` 和 `self.load_state_dict(...)"
 
 #: ../../source/guide/developer/1-modulebase.md:53
 msgid "**Standardize the initialization**:"
-msgstr ""
+msgstr "**标准化初始化**:"
 
 #: ../../source/guide/developer/1-modulebase.md:55
 msgid ""
@@ -7824,14 +7907,14 @@ msgid ""
 " accessed later in member method(s) should be treated as \"non-static "
 "members\", while any other member(s) should be treated as \"static "
 "members\"."
-msgstr ""
+msgstr "基本上，预定义的子模块将被添加到此模块中，并在成员方法中访问，应该被视为“非静态成员”，而其他任何成员都应该被视为“静态成员”。"
 
 #: ../../source/guide/developer/1-modulebase.md:57
 msgid ""
 "​\tThe module initialization for non-static members are recommended to be "
 "written in the overwritten method of `setup` (or any other member method) "
 "rather than `__init__`."
-msgstr ""
+msgstr "建议将非静态成员的模块初始化写在重写的 `setup` 方法（或任何其他成员方法）中，而不是 `__init__` 中。"
 
 #: ../../source/guide/developer/1-modulebase.md:59
 #, fuzzy
@@ -7842,7 +7925,7 @@ msgstr "这个模块的状态。"
 msgid ""
 "Specifically, there are some rules for using "
 "[`ModuleBase`](#evox.core.module.ModuleBase) in EvoX:"
-msgstr ""
+msgstr "具体来说，在EvoX中使用[`ModuleBase`](#evox.core.module.ModuleBase)有一些规则："
 
 #: ../../source/guide/developer/1-modulebase.md:63
 #, fuzzy
@@ -7851,11 +7934,11 @@ msgstr "方法"
 
 #: ../../source/guide/developer/1-modulebase.md:65
 msgid "Static methods to be JIT shall be defined like:"
-msgstr ""
+msgstr "要将静态方法定义为JIT，请这样定义："
 
 #: ../../source/guide/developer/1-modulebase.md:74
 msgid "Non-static Methods"
-msgstr ""
+msgstr "非静态方法"
 
 #: ../../source/guide/developer/1-modulebase.md:76
 msgid ""
@@ -7863,36 +7946,40 @@ msgid ""
 "separated static method with `jit(..., trace=False)` or "
 "`torch.jit.script_if_tracing` shall be used:"
 msgstr ""
+"如果一个方法使用了像 `if` 这样的 Python 动态控制流并希望进行 JIT，则应使用一个单独的静态方法，并使用 `jit(..., "
+"trace=False)` 或 `torch.jit.script_if_tracing"
 
 #: ../../source/guide/developer/1-modulebase.md:102
 msgid "Supporting for JIT and non-JIT functions"
-msgstr ""
+msgstr "支持 JIT 和非 JIT 函数"
 
 #: ../../source/guide/developer/1-modulebase.md:104
 msgid ""
 "[`ModuleBase`](#evox.core.module.ModuleBase) is usually used with "
 "`jit_class` to automatically JIT all non-magic member methods:"
 msgstr ""
+"[`ModuleBase`](#evox.core.module.ModuleBase) 通常与 `jit_class` 一起使用，以自动 JIT "
+"所有非魔法成员方法："
 
 #: ../../source/guide/developer/1-modulebase.md:128
 msgid ""
 "An example of one module inherited from the "
 "[`ModuleBase`](#evox.core.module.ModuleBase) is like:"
-msgstr ""
+msgstr "从[`ModuleBase`](#evox.core.module.ModuleBase)继承的一个模块示例如下："
 
 #: ../../source/guide/developer/1-modulebase.md:150
 msgid ""
 "For more details, please look through [the Module in "
 "EvoX](#evox.core.module)."
-msgstr ""
+msgstr "有关更多详细信息，请查看[the Module in EvoX](#evox.core.module)。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:10002
 msgid "Optimizing Development for EvoX via PyTorch Advanced Techniques"
-msgstr ""
+msgstr "通过 PyTorch 高级技术优化 EvoX 的开发"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:20002
 msgid "Basic Optimization Support for Functions in PyTorch"
-msgstr ""
+msgstr "PyTorch中函数的基本优化支持"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:20004
 msgid ""
@@ -7902,10 +7989,12 @@ msgid ""
 "execution performance, respectively. Introductions of these optimizations "
 "are provided in the following sections."
 msgstr ""
+"PyTorch "
+"提供了对函数的基本优化支持，主要通过矢量化映射（vmap）操作和即时编译（JIT）实现。这些技术分别使得批处理更加高效并提升执行性能。关于这些优化的介绍将在以下部分提供。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:30002
 msgid "Batch Processing Support through Vectorizing Map in PyTorch"
-msgstr ""
+msgstr "在 PyTorch 中通过矢量化映射支持批处理"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:30004
 msgid ""
@@ -7917,10 +8006,11 @@ msgid ""
 "processing. In EvoX, for example, this feature plays a crucial role in "
 "hyperparameter optimization (HPO)."
 msgstr ""
+"在PyTorch中实现的向量化映射[`torch.vmap`](https://pytorch.org/docs/stable/generated/torch.vmap.html)是一个强大的工具，它接受一个可调用函数并返回其批处理版本。根据指定的策略，这个新函数对原始函数的操作进行向量化，从而促进高效的批处理。在EvoX中，例如，这一特性在超参数优化（HPO）中起着至关重要的作用。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50002
 msgid "Just-In-Time (JIT) Support in PyTorch"
-msgstr ""
+msgstr "在PyTorch中支持即时编译（Just-In-Time, JIT）"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50004
 msgid ""
@@ -7931,6 +8021,11 @@ msgid ""
 " provide two distinct types of JIT tools, supporting function performance "
 "optimization through tracing and scripting, respectively."
 msgstr ""
+"在 PyTorch "
+"中，[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+" 和 "
+"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+" 提供了两种不同类型的 JIT 工具，分别通过追踪和脚本化支持函数性能优化。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50006
 msgid ""
@@ -7940,35 +8035,37 @@ msgid ""
 "is not suitable for complex tasks involving dynamic if-else branches and "
 "loop control flows."
 msgstr ""
+"根据追踪策略，`torch.jit.trace` 方法提供了更高的解析速度和更广泛的兼容性，例如与 `torch.vmap` "
+"操作的兼容性。尽管它对简单函数提供了出色的支持，但不适用于涉及动态 if-else 分支和循环控制流的复杂任务。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:70002
 msgid ""
 "In the example below, the traced `vmap` function successfully returns the "
 "correct code representation:"
-msgstr ""
+msgstr "在下面的例子中，跟踪的 `vmap` 函数成功返回了正确的代码表示："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:90002
 msgid ""
 "However, dynamic python control-flow cannot be traced correctly and a "
 "warning will be raised:"
-msgstr ""
+msgstr "然而，动态的 Python 控制流无法被正确追踪，并且会发出警告："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:110002
 msgid ""
 "Alternatively, the `torch.jit.script` method, which adopts a scripting "
 "strategy, is better suited for complex tasks that involve dynamic control "
 "flows but has limited compatibility."
-msgstr ""
+msgstr "或者，采用脚本策略的 `torch.jit.script` 方法更适合涉及动态控制流的复杂任务，但兼容性有限。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:120002
 msgid ""
 "In this example, the same `vmap_sample_func` function, after being scripted,"
 " returns an **incorrect** code representation:"
-msgstr ""
+msgstr "在这个例子中，相同的 `vmap_sample_func` 函数，在被脚本化后，返回了一个**不正确**的代码表示："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:140002
 msgid "Yet, it can correctly deal with complex dynamic python control flow:"
-msgstr ""
+msgstr "然而，它可以正确处理复杂的动态 Python 控制流："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:160003
 msgid ""
@@ -7977,10 +8074,12 @@ msgid ""
 "annotate some input arguments to be python types to make `torch.jit.script` "
 "work as intended."
 msgstr ""
+"`torch.jit.script` 依赖类型提示才能正常工作。例如，任何未注释的输入参数都会被视为 "
+"`torch.Tensor`，而你可以将一些输入参数注释为 python 类型，以使 `torch.jit.script` 按预期工作。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170002
 msgid "Combined Usage of JIT and Vectorizing Map in PyTorch"
-msgstr ""
+msgstr "在PyTorch中结合使用JIT和Vectorizing Map"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170004
 msgid ""
@@ -7988,6 +8087,8 @@ msgid ""
 "`torch.jit.script` are used in combination with `torch.vmap`, coordination "
 "is required due to compatibility considerations."
 msgstr ""
+"根据上述介绍，当 `torch.jit.trace` 和 `torch.jit.script` 与 `torch.vmap` "
+"结合使用时，由于兼容性考虑，需要进行协调。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170006
 msgid ""
@@ -7995,6 +8096,8 @@ msgid ""
 "`torch.jit.trace`, and `torch.vmap`, highlighting their mutual invocation "
 "paths. If module A invokes module B, it implies that B can be called by A."
 msgstr ""
+"下图说明了 `torch.jit.script`、`torch.jit.trace` 和 `torch.vmap` "
+"之间的关系，突出显示了它们的相互调用路径。如果模块 A 调用模块 B，这意味着 B 可以被 A 调用。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170008
 msgid "JIT introduction"
@@ -8007,10 +8110,13 @@ msgid ""
 "[TorchScript](#https://pytorch.org/docs/stable/jit.html) and "
 "[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)."
 msgstr ""
+"有关在 PyTorch 上使用 JIT 和矢量化映射的详细信息，请参阅 PyTorch 官方文档中的 "
+"[TorchScript](#https://pytorch.org/docs/stable/jit.html) 和 "
+"[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:180002
 msgid "Specific Optimization Support in EvoX"
-msgstr ""
+msgstr "EvoX中的特定优化支持"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:180004
 msgid ""
@@ -8018,11 +8124,13 @@ msgid ""
 "subclasses of [`ModuleBase`](#evox.core.module.ModuleBase). To provide more "
 "comprehensive optimization supports, EvoX offers specific enhancements."
 msgstr ""
+"在 EvoX 中，大多数函数是在类中定义的，特别是 [`ModuleBase`](#evox.core.module.ModuleBase) "
+"的子类中。为了提供更全面的优化支持，EvoX 提供了特定的增强功能。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:190002
 msgid ""
 "Using JIT to Subclasses of [`ModuleBase`](#evox.core.module.ModuleBase)"
-msgstr ""
+msgstr "使用 JIT 到 [`ModuleBase`](#evox.core.module.ModuleBase) 的子类"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:200002
 msgid ""
@@ -8030,10 +8138,11 @@ msgid ""
 "functions in EvoX: [`jit_class`](#evox.core.module.jit_class), "
 "[`vmap`](#evox.core.jit_util.vmap) and [`jit`](l#evox.core.jit_util.jit)."
 msgstr ""
+"为了更好地理解这一部分，我们需要解释EvoX中的三个重要函数：[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)和[`jit`](#evox.core.jit_util.jit)。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:210002
 msgid "[`jit_class`](#evox.core.module.jit_class) Function"
-msgstr ""
+msgstr "[`jit_class`](#evox.core.module.jit_class) 函数"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220002
 msgid ""
@@ -8044,14 +8153,20 @@ msgid ""
 "([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
 "jit-trace-module)) all member methods of the input class."
 msgstr ""
+"[`jit_class`](#evox.core.module.jit_class) 是一个辅助函数，用于对输入类的所有成员方法进行 Just-In-"
+"Time (JIT) 脚本化的 "
+"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+" 或跟踪 "
+"([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
+"jit-trace-module))。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220004
 msgid "[`jit_class`](#evox.core.module.jit_class) has two parameters:"
-msgstr ""
+msgstr "[`jit_class`](#evox.core.module.jit_class) 有两个参数："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220006
 msgid "`cls`: the original class whose member methods are to be lazy JIT."
-msgstr ""
+msgstr "`cls`: 原始类，其成员方法将被懒惰 JIT。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220007
 #, fuzzy
@@ -8066,6 +8181,7 @@ msgid ""
 "problems with [`jit_class`](#evox.core.module.jit_class), the workflow(s) "
 "will do the trick for you."
 msgstr ""
+"在许多情况下，不需要用[`jit_class`](#evox.core.module.jit_class)包装您的自定义算法或问题，工作流将为您解决问题。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220011
 msgid ""
@@ -8075,10 +8191,12 @@ msgid ""
 "`use_state` function to wrap the member method to generate pure-functional "
 "(the `use_state` function will be explained in the next part)."
 msgstr ""
+"在 `trace=True` 的情况下，所有成员函数都会被有效地修改为额外返回 `self`，因为副作用无法被追踪。如果你想保留副作用，请设置 "
+"`trace=False` 并使用 `use_state` 函数来包装成员方法以生成纯函数（`use_state` 函数将在下一部分中解释）。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:230003
 msgid "[`vmap`](#evox.core.jit_util.vmap) Function"
-msgstr ""
+msgstr "[`vmap`](#evox.core.jit_util.vmap) 函数"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:240002
 msgid ""
@@ -8089,10 +8207,14 @@ msgid ""
 "[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for "
 "more information."
 msgstr ""
+"[`vmap`](#evox.core.jit_util.vmap) 函数将给定函数矢量化映射到其映射版本。基于 "
+"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html)，我们进行了许多改进，您可以查看"
+" [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) "
+"以获取更多信息。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:250002
 msgid "[`jit`](#evox.core.jit_util.jit) Function"
-msgstr ""
+msgstr "[`jit`](#evox.core.jit_util.jit) 函数"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260002
 msgid ""
@@ -8102,6 +8224,11 @@ msgid ""
 "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
 " (`trace=False`)."
 msgstr ""
+"[`jit`](#evox.core.jit_util.jit) 使用 "
+"[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+" (`trace=True`) 或 "
+"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+" (`trace=False`) 编译给定的 `func"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260007
 msgid ""
@@ -8110,12 +8237,17 @@ msgid ""
 "tensor_a` to `torch.jit.trace`d version of `f(x: torch.Tensor, y: "
 "torch.Tensor)`."
 msgstr ""
+"在 `trace=True` 的情况下，`torch.jit.trace` 不能对具有不同参数的函数使用相同的示例输入参数，例如，你不能将 "
+"`tensor_a, tensor_a` 传递给 `torch.jit.trace` 版本的 `f(x: torch.Tensor, y: "
+"torch.Tensor)"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260008
 msgid ""
 "With `trace=False`, `torch.jit.script` cannot contain `vmap` expressions "
 "directly, please wrap them with `jit(..., trace=True)` or `torch.jit.trace`."
 msgstr ""
+"在 `trace=False` 的情况下，`torch.jit.script` 不能直接包含 `vmap` 表达式，请使用 `jit(..., "
+"trace=True)` 或 `torch.jit.trace` 包装它们。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260011
 msgid ""
@@ -8126,18 +8258,22 @@ msgid ""
 "[`vmap`](#evox.core.jit_util.vmap) and [`jit`](#evox.core.jit_util.jit) have"
 " been explained, we will explain more rules and provide some specific hints."
 msgstr ""
+"在 [EvoX 中的模块工作](#/guide/developer/1-modulebase) 中，我们简要介绍了关于 "
+"[`ModuleBase`](#evox.core.module.ModuleBase) 子类中方法的一些规则。现在 "
+"[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)"
+" 和 [`jit`](#evox.core.jit_util.jit) 已经被解释，我们将解释更多规则并提供一些具体提示。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:270002
 msgid "Definition of Static Methods Inside the Subclass"
-msgstr ""
+msgstr "子类中静态方法的定义"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:280002
 msgid "Inside the subclass, static methods to be JIT shall be defined like:"
-msgstr ""
+msgstr "在子类中，静态方法要被 JIT 定义为："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:290002
 msgid "Definition of Non-static Methods Inside the Subclass"
-msgstr ""
+msgstr "在子类中定义非静态方法"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:300002
 msgid ""
@@ -8145,6 +8281,8 @@ msgid ""
 "a separated static method with `jit(..., trace=False)` or "
 "`torch.jit.script_if_tracing` shall be used:"
 msgstr ""
+"如果一个方法使用了**Python动态控制流**，例如`if`，并且需要进行JIT，那么应使用一个独立的静态方法，并使用`jit(..., "
+"trace=False)`或`torch.jit.script_if_tracing"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:300035
 msgid ""
@@ -8154,20 +8292,23 @@ msgid ""
 " have to use them when defining non-static Methods inside the subclass of "
 "[`ModuleBase`](#evox.core.module.ModuleBase), please follow the above rule."
 msgstr ""
+"在Python中，动态控制流是指根据运行时的条件动态变化的控制结构。`if...elif...else` 条件语句、`for` 循环和 `while` "
+"循环都是动态控制流。如果在定义 [`ModuleBase`](#evox.core.module.ModuleBase) "
+"子类中的非静态方法时必须使用它们，请遵循上述规则。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:310002
 msgid "Invocation of External Methods Inside the Subclass"
-msgstr ""
+msgstr "调用子类中的外部方法"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:320002
 msgid ""
 "Inside the subclass, external JIT methods can be invocated by the class "
 "methods to be JIT:"
-msgstr ""
+msgstr "在子类中，外部 JIT 方法可以通过类方法调用以实现 JIT："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:330002
 msgid "Automatically JIT for the Subclass Used with `jit_class`"
-msgstr ""
+msgstr "自动为使用 `jit_class` 的子类进行 JIT 处理"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:340002
 msgid ""
@@ -8175,32 +8316,36 @@ msgid ""
 " used with [`jit_class`](#evox.core.module.jit_class) to automatically JIT "
 "all non-magic member methods:"
 msgstr ""
+"[`ModuleBase`](#evox.core.module.ModuleBase) 及其子类通常与 "
+"[`jit_class`](#evox.core.module.jit_class) 一起使用，以自动JIT所有非魔术成员方法："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:350002
 msgid "Invocation of External Vmap-wrapped Methods Inside the Subclass"
-msgstr ""
+msgstr "在子类中调用外部 Vmap 包装的方法"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:360002
 msgid ""
 "Inside the subclass, external vmap-wrapped methods can be invocated by the "
 "class methods to be JIT:"
-msgstr ""
+msgstr "在子类内部，外部 vmap 包装的方法可以通过类方法调用以实现 JIT："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:360034
 msgid ""
 "If method A invokes vmap-wrapped method B, then A and all methods invoke "
 "method A can not be vmap-wrapped again."
-msgstr ""
+msgstr "如果方法 A 调用 vmap 包装的方法 B，那么 A 和所有调用方法 A 的方法不能再次被 vmap 包装。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:370002
 msgid "Internal Vmap-wrapped Methods Inside the Subclass"
-msgstr ""
+msgstr "子类内部的 Vmap 包装方法"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:380002
 msgid ""
 "Inside the subclass, internal vmap-wrapped methods can be  JIT by using the "
 "[`trace_impl`](#evox.core.module.trace_impl):"
 msgstr ""
+"在子类内部，可以使用 [`trace_impl`](#evox.core.module.trace_impl) 对内部 vmap 包装的方法进行 "
+"JIT。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:380040
 msgid ""
@@ -8208,10 +8353,11 @@ msgid ""
 "be only available in the trace mode. More details about `trace_impl` will be"
 " shown in the next part."
 msgstr ""
+"如果一个类方法使用了[`trace_impl`](#evox.core.module.trace_impl)，它将仅在追踪模式下可用。关于`trace_impl`的更多细节将在下一部分展示。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390002
 msgid "Using `@trace_impl` and `@vmap_impl`"
-msgstr ""
+msgstr "使用 `@trace_impl` 和 `@vmap_impl"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390004
 msgid ""
@@ -8221,6 +8367,8 @@ msgid ""
 "more details on deploying HPO with EvoX, refer to [Efficient HPO with "
 "EvoX](#/guide/user/3-hpo)."
 msgstr ""
+"在设计函数或方法时，您可能并不总是考虑它是否与`JIT`兼容。然而，这一特性在特定场景中变得至关重要，例如解决超参数优化（HPO）问题。有关使用EvoX部署HPO的更多详细信息，请参阅[Efficient"
+" HPO with EvoX](#/guide/user/3-hpo)。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390006
 msgid ""
@@ -8231,6 +8379,9 @@ msgid ""
 " as a trace-JIT-time or vmap-JIT-time proxy for the specified `target` "
 "method."
 msgstr ""
+"这类问题的一个典型特征是，只需要修改算法的某些部分——例如，算法的 `step` 方法。这使您可以避免重写整个算法。在这种情况下，您可以使用 "
+"`@trace_impl` 或 `@vmap_impl` 装饰器，将函数重写为指定 `target` 方法的 trace-JIT-time 或 "
+"vmap-JIT-time 代理。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390008
 msgid ""
@@ -8239,25 +8390,27 @@ msgid ""
 "tracing/vmapping JIT. These decorators are applicable **only** to member "
 "methods within a `jit_class`."
 msgstr ""
+"装饰器 [`@trace_impl`](#trace_impl) 和 [`@vmap_impl`](#vmap_impl) "
+"接受一个输入参数：在不进行追踪/vmap JIT 时调用的目标方法。这些装饰器**仅**适用于 `jit_class` 中的成员方法。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390010
 msgid ""
 "Since the annotated function serves as a rewritten version of the target "
 "function, it must maintain identical input/output signatures (e.g., number "
 "and types of arguments). Otherwise, the resulting behavior is undefined."
-msgstr ""
+msgstr "由于注释函数作为目标函数的重写版本，它必须保持相同的输入/输出签名（例如，参数的数量和类型）。否则，结果行为是未定义的。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390012
 msgid ""
 "If the annotated function is intended for use with `vmap`, it must satisfy "
 "three additional constraints:"
-msgstr ""
+msgstr "如果注释的函数打算与`vmap`一起使用，它必须满足三个额外的约束："
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390014
 msgid ""
 "**No In-Place Operations on Attributes:** The algorithm must not include "
 "methods that perform in-place operations on its attributes."
-msgstr ""
+msgstr "**禁止对属性进行原地操作：** 算法不得包含对其属性执行原地操作的方法。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390029
 msgid ""
@@ -8266,6 +8419,9 @@ msgid ""
 "[`TracingCond`](#TracingCond), [`TracingWhile`](#TracingWhile), and "
 "[`TracingSwitch`](#TracingSwitch)."
 msgstr ""
+"**避免使用 Python 控制流：** 代码逻辑不能依赖于 Python 控制流结构。要处理 Python 控制流，请使用 "
+"[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+"[`TracingSwitch`](#TracingSwitch)。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390079
 msgid ""
@@ -8273,6 +8429,8 @@ msgid ""
 "on `self` are not well-defined and cannot be compiled. Even if it is "
 "compiled successfully, you can still silently get incorrect results."
 msgstr ""
+"**避免对 `self` 进行就地操作：** 向量化映射对 `self` "
+"的就地操作定义不明确，无法编译。即使成功编译，您仍可能会悄无声息地得到错误的结果。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390082
 #, fuzzy
@@ -8286,6 +8444,8 @@ msgid ""
 "version that receives an additional `state` parameter (of type `Dict[str, "
 "torch.Tensor]`) and returns the altered state."
 msgstr ""
+"[`use_state`](#use_state) 将给定的有状态函数（对 `nn.Module` 进行就地更改）转换为纯函数版本，该版本接收一个额外的"
+" `state` 参数（类型为 `Dict[str, torch.Tensor]`），并返回更改后的状态。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390086
 msgid ""
@@ -8294,6 +8454,8 @@ msgid ""
 "function generator (e.g., a lambda that returns the stateful function). It "
 "defaults to `True`."
 msgstr ""
+"输入 `func` 是要转换的有状态函数或其生成器函数，而 `is_generator` 指定 `func` "
+"是一个函数还是一个函数生成器（例如，返回有状态函数的 lambda）。默认值为 `True"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390088
 #, fuzzy
@@ -8302,7 +8464,7 @@ msgstr "代码样例"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390129
 msgid "Using `core._vmap_fix`"
-msgstr ""
+msgstr "使用 `core._vmap_fix"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390131
 msgid ""
@@ -8313,12 +8475,15 @@ msgid ""
 " the `debug_print` function, which allows dynamic printing of Tensor values "
 "during both `vmap` and tracing."
 msgstr ""
+"模块 [`_vmap_fix`](#_vmap_fix) 提供了有用的函数。在自动导入后，`_vmap_fix` 使 `torch.vmap` 能够被 "
+"`torch.jit.trace` 正确追踪，同时解决了在 `vmap` 过程中无法正确追踪的随机数处理等问题。它还提供了 `debug_print` "
+"函数，允许在 `vmap` 和追踪过程中动态打印 Tensor 值。"
 
 #: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390133
 msgid ""
 "Detailed information can be found in the [`_vmap_fix`](#_vmap_fix) "
 "documentation."
-msgstr ""
+msgstr "详细信息可以在[`_vmap_fix`](#_vmap_fix)文档中找到。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:1
 msgid "Custom algorithms and problems in EvoX"
@@ -8353,7 +8518,7 @@ msgid ""
 "This layout makes both algorithms and problems more universal: an algorithm "
 "can optimize different problems, while a problem can also be suitable for "
 "many algorithms."
-msgstr ""
+msgstr "这种布局使得算法和问题更加通用：一个算法可以优化不同的问题，而一个问题也可以适用于许多算法。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:25
 #, fuzzy
@@ -8365,12 +8530,14 @@ msgid ""
 "The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
 msgstr ""
+"[`Algorithm`](#evox.core.components.Algorithm) 类继承自 "
+"[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:29
 msgid ""
 "**In total,** **there are 5 methods (2 methods are optional) that we need to"
 " implement:**"
-msgstr ""
+msgstr "总共有5个方法（其中2个方法是可选的）需要我们实现："
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 msgid ""
@@ -8379,6 +8546,7 @@ msgid ""
 " wrapper or initialized here), and / or mutable tensors (can be modified on "
 "the fly)."
 msgstr ""
+"初始化算法实例，例如，种群大小（在迭代过程中保持不变）、超参数（只能通过HPO问题包装器设置或在此初始化）、和/或可变张量（可以动态修改）。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 #, fuzzy
@@ -8391,18 +8559,19 @@ msgid ""
 "[`ModuleBase`](#evox.core.module.ModuleBase). Usually, it is not necessary "
 "to overwrite this method."
 msgstr ""
+"初始化算法的可变子模块。请参阅[`ModuleBase`](#evox.core.module.ModuleBase)。通常，不需要重写此方法。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "`step`"
-msgstr ""
+msgstr "步骤"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "`(self)`"
-msgstr ""
+msgstr "`(self)"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 msgid "Perform a normal optimization iteration step of the algorithm."
-msgstr ""
+msgstr "执行算法的正常优化迭代步骤。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md
 #, fuzzy
@@ -8413,7 +8582,7 @@ msgstr "init_tell (可选的 )"
 msgid ""
 "Perform the first step of the optimization of the algorithm. If this method "
 "were not overwritten, the `step` method would be invoked instead."
-msgstr ""
+msgstr "执行算法优化的第一步。如果此方法未被覆盖，将调用 `step` 方法。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:39
 msgid ""
@@ -8423,6 +8592,7 @@ msgid ""
 " method invokes the `setup()` of "
 "[`ModuleBase`](#evox.core.module.ModuleBase) first."
 msgstr ""
+"静态初始化仍然可以在`__init__`中编写，而可变子模块的初始化则不能。因此，如果重写的`setup`方法首先调用[`ModuleBase`](#evox.core.module.ModuleBase)的`setup()`，则可以多次调用`setup`进行重复初始化。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:41
 msgid ""
@@ -8430,6 +8600,7 @@ msgid ""
 "not suitable for your algorithm, you can override the `setup` method when "
 "you create your own algorithm class."
 msgstr ""
+"如果在[`ModuleBase`](#evox.core.module.ModuleBase)中的这种`setup`方法不适合你的算法，你可以在创建自己的算法类时重写`setup`方法。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:45
 #, fuzzy
@@ -8441,6 +8612,8 @@ msgid ""
 "The [`Problem`](#evox.core.components.Problem) class is also inherited from "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
 msgstr ""
+"[`Problem`](#evox.core.components.Problem) 类也继承自 "
+"[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:49
 #, fuzzy
@@ -8460,7 +8633,7 @@ msgstr "评估"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:38
 msgid "`(self, pop: torch.Tensor) -> torch.Tensor`"
-msgstr ""
+msgstr "`(self, pop: torch.Tensor) -> torch.Tensor"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:38
 #, fuzzy
@@ -8471,7 +8644,7 @@ msgstr "评估给定候选解的适应度。"
 msgid ""
 "However, the type of `pop` argument in `evaluate` can be changed to other "
 "JIT-compatible types in the overwritten method."
-msgstr ""
+msgstr "然而，在重写的方法中，`evaluate` 中 `pop` 参数的类型可以更改为其他与 JIT 兼容的类型。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:59
 msgid "Example"
@@ -8481,7 +8654,7 @@ msgstr "样例"
 msgid ""
 "Here we give an example of **implementing a PSO algorithm that solves the "
 "Sphere problem**."
-msgstr ""
+msgstr "这里我们给出一个**实现一个解决Sphere问题的PSO算法的例子**。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:63
 #, fuzzy
@@ -8505,7 +8678,7 @@ msgid ""
 "Particle Swarm Optimization (PSO) is a population-based meta-heuristic "
 "algorithm inspired by the social behavior of birds and fish. It is widely "
 "used for solving continuous and discrete optimization problems."
-msgstr ""
+msgstr "粒子群优化（PSO）是一种基于种群的元启发式算法，灵感来自鸟类和鱼类的社会行为。它被广泛用于解决连续和离散优化问题。"
 
 #: ../../source/guide/developer/3-custom-alg-pro.md:212
 #, fuzzy
@@ -8514,7 +8687,7 @@ msgstr "现在你可以组合出一个workflow并运行。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:1
 msgid "Transformation from MATLAB to PyTorch and EvoX"
-msgstr ""
+msgstr "从MATLAB到PyTorch和EvoX的转换"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:3
 msgid ""
@@ -8524,14 +8697,15 @@ msgid ""
 "workflow. We will then illustrate these differences using a Particle Swarm "
 "Optimization (PSO) example in both MATLAB and PyTorch."
 msgstr ""
+"本文档旨在指导MATLAB用户过渡到PyTorch和EvoX进行演化计算。我们将重点介绍MATLAB和PyTorch在语法、数据结构和工作流方面的核心差异。然后，我们将通过在MATLAB和PyTorch中使用粒子群优化（PSO）示例来说明这些差异。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:5
 msgid "Syntax Differences"
-msgstr ""
+msgstr "语法差异"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:7
 msgid "Array Creation and Indexing"
-msgstr ""
+msgstr "数组创建和索引"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:9
 #: ../../source/guide/developer/4-transfer-from-matlab.md:23
@@ -8541,11 +8715,11 @@ msgstr ""
 #: ../../source/guide/developer/4-transfer-from-matlab.md:81
 #: ../../source/guide/developer/4-transfer-from-matlab.md:91
 msgid "MATLAB"
-msgstr ""
+msgstr "MATLAB"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:11
 msgid "Uses 1-based indexing."
-msgstr ""
+msgstr "使用从1开始的索引。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:12
 msgid ""
@@ -8553,12 +8727,14 @@ msgid ""
 "(e.g., `[1 2 3; 4 5 6]`). Random initialization with `rand()` returns values"
 " in the interval $[0, 1)$."
 msgstr ""
+"向量和矩阵使用方括号和分号声明（例如，`[1 2 3; 4 5 6]`）。使用 `rand()` 进行随机初始化时，返回的值在区间 $[0, 1)$ "
+"内。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:13
 msgid ""
 "Slicing is performed using the `(start:end)` syntax and utilizes 1-based "
 "indexing."
-msgstr ""
+msgstr "切片使用 `(start:end)` 语法进行，并使用从1开始的索引。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:15
 #: ../../source/guide/developer/4-transfer-from-matlab.md:32
@@ -8571,7 +8747,7 @@ msgstr "安装ROCm"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:17
 msgid "Uses 0-based indexing."
-msgstr ""
+msgstr "使用从0开始的索引。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:18
 msgid ""
@@ -8579,10 +8755,12 @@ msgid ""
 "`torch.rand()`, `torch.zeros()`, or Python lists converted to tensors with "
 "`torch.tensor()`."
 msgstr ""
+"数组（张量）通常使用构造函数创建，例如 `torch.rand()`、`torch.zeros()`，或将 Python 列表转换为张量的 "
+"`torch.tensor()"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:19
 msgid "Slicing is done using `[start:end]` with 0-based indices."
-msgstr ""
+msgstr "切片使用 `[start:end]`，索引从0开始。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:21
 #, fuzzy
@@ -8591,143 +8769,143 @@ msgstr "种群。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:25
 msgid "Performs linear algebraic matrix multiplication by `*`."
-msgstr ""
+msgstr "通过 `*` 执行线性代数矩阵乘法。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:26
 msgid ""
 "Uses `.*` to multiply corresponding elements of matrices of the same size."
-msgstr ""
+msgstr "使用 `.*` 来逐元素相乘相同大小的矩阵。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:27
 msgid "`/` represents the matrix right division."
-msgstr ""
+msgstr "`/` 表示矩阵右除法。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:28
 msgid "`.^` represents the element-wise power."
-msgstr ""
+msgstr "`.^` 表示元素级幂。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:29
 msgid ""
 "Trailing and leading dimension(s) of tensors with length 1 is/are "
 "**ignored**."
-msgstr ""
+msgstr "张量中长度为1的尾部和头部维度将被**忽略**。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:30
 msgid ""
 "Automatically find broadcastable dimensions for element-wise operations and "
 "perform **implicit** dimension extension."
-msgstr ""
+msgstr "自动查找元素级操作的可广播维度，并执行**隐式**维度扩展。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:34
 msgid ""
 "Performs linear algebraic matrix multiplication by `@` or `torch.matmul()`."
-msgstr ""
+msgstr "执行线性代数矩阵乘法通过 `@` 或 `torch.matmul()"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:35
 msgid ""
 "Directly uses `*` to multiply corresponding elements of tensors of the same "
 "shape or broadcastable shapes."
-msgstr ""
+msgstr "直接使用 `*` 来乘以相同形状或可广播形状的张量的对应元素。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:36
 msgid "`/` represents the element-wise division."
-msgstr ""
+msgstr "`/` 表示逐元素除法。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:37
 msgid "`**` represents the element-wise power."
-msgstr ""
+msgstr "`**` 表示元素级幂。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:38
 msgid ""
 "Dimension(s) of tensors with length 1 is/are **preserved** and treated as "
 "**broadcast dimension**."
-msgstr ""
+msgstr "张量长度为1的维度被**保留**并视为**广播维度**。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:39
 msgid ""
 "**Prevent** most implicit dimension extension, broadcast dimension(s) are "
 "usually required."
-msgstr ""
+msgstr "**防止**大多数隐式维度扩展，通常需要广播维度。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:41
 msgid "Functions and Definitions"
-msgstr ""
+msgstr "函数和定义"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:45
 msgid "A function is defined by the `function` keyword."
-msgstr ""
+msgstr "一个函数由 `function` 关键字定义。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:46
 msgid ""
 "A file can contain multiple functions, but typically the primary function "
 "shares the file name."
-msgstr ""
+msgstr "一个文件可以包含多个函数，但通常主要函数与文件名相同。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:47
 msgid ""
 "Anonymous functions (e.g., `@(x) sum(x.^2)`) are used for short inline "
 "calculations."
-msgstr ""
+msgstr "匿名函数（例如，`@(x) sum(x.^2)`）用于简短的内联计算。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:51
 msgid ""
 "Functions are defined using the def keyword, typically within a single `.py`"
 " file or module."
-msgstr ""
+msgstr "函数使用 `def` 关键字定义，通常在一个 `.py` 文件或模块中。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:52
 msgid ""
 "Classes are used to encapsulate data and methods in an object-oriented "
 "manner."
-msgstr ""
+msgstr "类用于以面向对象的方式封装数据和方法。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:53
 msgid ""
 "Lambdas serve as short anonymous functions (`lambda x: x.sum()`), but multi-"
 "line lambdas are not allowed."
-msgstr ""
+msgstr "Lambdas 作为简短的匿名函数使用（`lambda x: x.sum()`），但不允许使用多行 lambdas。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:55
 msgid "Control Flow"
-msgstr ""
+msgstr "控制流"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:59
 msgid "Uses for `i = 1:N` ... `end` loops with 1-based indexing."
-msgstr ""
+msgstr "`i = 1:N` 循环使用1为基准的索引。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:60
 msgid "Conditional statements like `if`, `elseif`, and `else`."
-msgstr ""
+msgstr "条件语句如 `if`、`elseif` 和 `else"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:64
 msgid "Uses `for i in range(N):` with 0-based indexing."
-msgstr ""
+msgstr "使用 `for i in range(N):`，采用从0开始的索引。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:65
 msgid ""
 "Indentation is significant for scoping in loops and conditionals (no `end` "
 "keyword)."
-msgstr ""
+msgstr "缩进在循环和条件语句中对于确定作用域是重要的（没有 `end` 关键字）。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:67
 msgid "Printing and Comments"
-msgstr ""
+msgstr "抱歉，我需要更多的上下文或具体的文本内容来进行翻译。请提供需要翻译的具体文本。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:71
 msgid "Uses `fprintf()` functions for formatted output."
-msgstr ""
+msgstr "使用 `fprintf()` 函数进行格式化输出。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:72
 msgid "Uses `%` for single-line comments."
-msgstr ""
+msgstr "使用 `%` 进行单行注释。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:76
 msgid "Uses `print` with f-strings for formatted output."
-msgstr ""
+msgstr "使用 `print` 和 f-strings 进行格式化输出。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:77
 msgid "Uses `#` for single-line comments."
-msgstr ""
+msgstr "使用 `#` 进行单行注释。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:79
 msgid "Multi-line Coding"
@@ -8737,7 +8915,7 @@ msgstr ""
 msgid ""
 "Uses `...` at the trailing of a line to indicate that the next line shall be"
 " treated as the same line as."
-msgstr ""
+msgstr "使用 `...` 在行尾表示下一行应视为与当前行相同的一行。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:84
 msgid "Python"
@@ -8747,21 +8925,21 @@ msgstr ""
 msgid ""
 "Uses `\\` at the trailing of a line to indicate that the next line shall be "
 "treated as the same line as."
-msgstr ""
+msgstr "使用 `\\` 在行尾表示下一行应被视为与当前行相同的一行。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:87
 msgid ""
 "If multiple lines are inside parentheses, no specific trailing symbol is "
 "required."
-msgstr ""
+msgstr "如果多行内容在括号内，则不需要特定的结尾符号。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:89
 msgid "How to Write Evolutionary Computation Algorithm via EvoX?"
-msgstr ""
+msgstr "如何通过EvoX编写演化计算算法？"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:93
 msgid "A MATLAB code example for PSO algorithm is as follows:"
-msgstr ""
+msgstr "以下是PSO算法的MATLAB代码示例："
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:154
 msgid ""
@@ -8769,26 +8947,28 @@ msgid ""
 "function `step_pso()` performs an iteration step and the main function "
 "`example_pso()` orchestrates the loop."
 msgstr ""
+"在 MATLAB 中，函数 `init_pso()` 初始化算法，单独的函数 `step_pso()` 执行一个迭代步骤，主要函数 "
+"`example_pso()` 组织循环。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:156
 msgid "EvoX"
-msgstr ""
+msgstr "EvoX"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:157
 msgid "In EvoX, you can construct the PSO algorithm in following way:"
-msgstr ""
+msgstr "在EvoX中，你可以通过以下方式构建PSO算法："
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:159
 msgid ""
 "First, it is recommended to import necessary modules and functions from EvoX"
 " and PyTorch."
-msgstr ""
+msgstr "首先，建议从 EvoX 和 PyTorch 导入必要的模块和函数。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:169
 msgid ""
 "Then, you can transform the MATLAB code to the python code correspondingly "
 "according to the \"Syntax Differences\" section."
-msgstr ""
+msgstr "然后，您可以根据“语法差异”部分将MATLAB代码相应地转换为Python代码。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:238
 msgid ""
@@ -8800,6 +8980,7 @@ msgid ""
 "`XXX.unsqueeze(0)` is applied to add a new dimension of length 1 before the "
 "first dimension."
 msgstr ""
+"值得注意的是，我们在MATLAB中使用`[]`与`;`和`,`来沿特定维度连接矩阵和向量；然而，在EvoX中，必须调用`torch.cat`并使用参数`dim`来指示连接的维度。此外，在PyTorch中，要连接的张量必须具有相同的维数；因此，额外的`XXX.unsqueeze(0)`被应用于在第一个维度之前添加一个长度为1的新维度。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:242
 msgid ""
@@ -8807,6 +8988,7 @@ msgid ""
 "`Algorithm`. This object-oriented design simplifies state management and "
 "iteration, and introduces following advantages:"
 msgstr ""
+"在 EvoX 中，PSO 逻辑被封装在一个继承自 `Algorithm` 的类中。这种面向对象的设计简化了状态管理和迭代，并引入了以下优点："
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:243
 msgid ""
@@ -8814,6 +8996,8 @@ msgid ""
 "`self.evaluate(self.population)` to compute fitness values, rather than "
 "manually passing your objective function each iteration."
 msgstr ""
+"继承的 `evaluate()` 方法 你可以简单地调用 `self.evaluate(self.population)` "
+"来计算适应度值，而不是在每次迭代中手动传递你的目标函数。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:245
 msgid ""
@@ -8821,6 +9005,9 @@ msgid ""
 "workflow `StdWorkflow`, it handles iterative calls to "
 "[`step()`](#StdWorkflow.step) on your behalf."
 msgstr ""
+"内置工作流集成\n"
+"\n"
+"当您将您的 PSO 类注册到工作流 `StdWorkflow` 时，它会代表您处理对 [`step()`](#StdWorkflow.step) 的迭代调用。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:248
 msgid ""
@@ -8828,6 +9015,8 @@ msgid ""
 "(population, velocity, local/global best, etc.) in a standard Python class "
 "constructor."
 msgstr ""
+"通过扩展 `Algorithm`，`__init__()` 在标准的 Python 类构造函数中设置所有主要的 PSO "
+"组件（种群、速度、局部/全局最优等）。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:10002
 #, fuzzy
@@ -8842,17 +9031,19 @@ msgid ""
 "[Efficient HPO with EvoX](#/guide/user/3-hpo), and prior reading is highly "
 "recommended."
 msgstr ""
+"在本章中，我们将专注于使用自定义算法部署HPO，强调细节而不是整体工作流。上一章[Efficient HPO with "
+"EvoX](#/guide/user/3-hpo)中提供了HPO部署的简要介绍，强烈建议事先阅读。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20002
 msgid "Making Algorithms Parallelizable"
-msgstr ""
+msgstr "使算法可并行化"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20004
 msgid ""
 "Since we need to transform the inner algorithm into the problem, it's "
 "crucial that the inner algorithm is parallelizable. Therefore, some "
 "modifications to the algorithm may be necessary."
-msgstr ""
+msgstr "由于我们需要将内部算法转化为问题，确保内部算法是可并行化的至关重要。因此，可能需要对算法进行一些修改。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20006
 msgid ""
@@ -8861,22 +9052,24 @@ msgid ""
 "these requirements, the algorithm must also satisfy the following two "
 "constraints:"
 msgstr ""
+"为了确保函数是 JIT 可编译的，它必须满足 [JIT components](#/guide/developer/2-jit-able) "
+"中列出的条件。除了这些要求外，算法还必须满足以下两个约束："
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20008
 msgid ""
 "The algorithm should have no methods with in-place operations on the "
 "attributes of the algorithm itself."
-msgstr ""
+msgstr "算法不应有对其自身属性进行就地操作的方法。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20025
 msgid "The code logic does not rely on python control flow."
-msgstr ""
+msgstr "代码逻辑不依赖于 python 控制流。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20058
 msgid ""
 "In EvoX, we can easily make the algorithm parallelizable by the "
 "[`@trace_impl`](#trace_impl) decorator."
-msgstr ""
+msgstr "在 EvoX 中，我们可以通过 [`@trace_impl`](#trace_impl) 装饰器轻松地使算法并行化。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20060
 msgid ""
@@ -8885,17 +9078,19 @@ msgid ""
 "introduction of [`@trace_impl`](#trace_impl) can be found in [JIT "
 "Components](#/guide/developer/2-jit-able)."
 msgstr ""
+"此装饰器的参数是一个不可并行化的函数，装饰后的函数是对原始函数的重写。关于[`@trace_impl`](#trace_impl)的详细介绍可以在[JIT"
+" Components](#/guide/developer/2-jit-able)中找到。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20062
 msgid ""
 "Under this mechanism, we can retain the original function for use outside "
 "HPO tasks while enabling efficient computation within HPO tasks. Moreover, "
 "this modification is highly convenient."
-msgstr ""
+msgstr "在这种机制下，我们可以保留原始函数以便在 HPO 任务之外使用，同时在 HPO 任务中实现高效计算。此外，这种修改非常方便。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:30002
 msgid "Utilizing the HPOMonitor"
-msgstr ""
+msgstr "利用 HPOMonitor"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:30004
 msgid ""
@@ -8905,12 +9100,13 @@ msgid ""
 "This addition is designed to offer greater flexibility in evaluating "
 "metrics, as HPO tasks often involve multi-dimensional and complex metrics."
 msgstr ""
+"在HPO任务中，我们应该使用[`HPOMonitor`](#HPOMonitor)来跟踪每个内部算法的指标。与标准的[`monitor`](#Monitor)相比，[`HPOMonitor`](#HPOMonitor)仅增加了一个方法，`tell_fitness`。此添加旨在提供更大的灵活性来评估指标，因为HPO任务通常涉及多维和复杂的指标。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:30006
 msgid ""
 "Users only need to create a subclass of [`HPOMonitor`](#HPOMonitor) and "
 "override the `tell_fitness` method to define custom evaluation metrics."
-msgstr ""
+msgstr "用户只需创建一个[`HPOMonitor`](#HPOMonitor)的子类，并重写`tell_fitness`方法以定义自定义评估指标。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:30008
 msgid ""
@@ -8918,6 +9114,7 @@ msgid ""
 "supports calculating the 'IGD' and 'HV' metrics for multi-objective "
 "problems, and the minimum value for single-objective problems."
 msgstr ""
+"我们还提供了一个简单的[`HPOFitnessMonitor`](#HPOFitnessMonitor)，支持计算多目标问题的“IGD”和“HV”指标，以及单目标问题的最小值。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:40002
 #: ../../source/guide/user/3-hpo.ipynb:50002
@@ -8931,16 +9128,17 @@ msgid ""
 "will use the [`PSO`](#PSO) algorithm to search for the optimal hyper-"
 "parameters of a basic algorithm to solve the sphere problem."
 msgstr ""
+"在这里，我们将演示如何使用 EvoX 进行 HPO 的简单示例。我们将使用 [`PSO`](#PSO) 算法来搜索基本算法的最佳超参数，以解决球体问题。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:40006
 msgid "First, let's import the necessary modules."
-msgstr ""
+msgstr "首先，让我们导入必要的模块。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:60002
 msgid ""
 "Next, we define an simple sphere problem. Note that this has no difference "
 "from the common [`problems`](#evox.problems)."
-msgstr ""
+msgstr "接下来，我们定义一个简单的球体问题。请注意，这与常见的[`problems`](#evox.problems)没有区别。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:80002
 msgid ""
@@ -8949,6 +9147,7 @@ msgid ""
 "decorator to make it parallelizable. Specifically, we modify in-place "
 "operations and adjust the Python control flow."
 msgstr ""
+"接下来，我们定义算法。原始的`step`函数是不可并行化的，因此我们使用[`@trace_impl`](#trace_impl)装饰器重写它以实现并行化。具体来说，我们修改了就地操作并调整了Python控制流。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:100002
 msgid ""
@@ -8961,6 +9160,13 @@ msgid ""
 " found in [JIT Components](#/guide/developer/2-jit-able). Below, we provide "
 "two equivalent implementations for the `trace_step` method."
 msgstr ""
+"要处理 Python 控制流，我们使用 "
+"[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+"[`TracingSwitch`](#TracingSwitch)。由于在追踪模式中，方法外的变量可能会被错误地解释为静态变量，我们需要使用状态来跟踪它们。关于"
+" [`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+"[`TracingSwitch`](#TracingSwitch) 的详细介绍可以在 [JIT "
+"Components](#/guide/developer/2-jit-able) 中找到。下面，我们提供了 `trace_step` "
+"方法的两个等效实现。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:100043
 msgid ""
@@ -8970,6 +9176,10 @@ msgid ""
 "[`HPOProblemWrapper`](#HPOProblemWrapper) to transform the "
 "[`StdWorkflow`](#StdWorkflow) to HPO problem."
 msgstr ""
+"接下来，我们可以使用 [`StdWorkflow`](#StdWorkflow) 来包装 "
+"[`problem`](#evox.problems)、[`algorithm`](#evox.algorithms) 和 "
+"[`monitor`](#Monitor)。然后我们使用 [`HPOProblemWrapper`](#HPOProblemWrapper) 将 "
+"[`StdWorkflow`](#StdWorkflow) 转换为 HPO 问题。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:120002
 msgid ""
@@ -8978,6 +9188,8 @@ msgid ""
 "modifications to the hyper-parameters for the 7 instances, they should be "
 "identical across all instances."
 msgstr ""
+"我们可以测试 [`HPOProblemWrapper`](#HPOProblemWrapper) "
+"是否正确识别了我们定义的超参数。由于我们没有对7个实例的超参数进行修改，它们在所有实例中应该是相同的。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:140002
 msgid ""
@@ -8987,6 +9199,7 @@ msgid ""
 "should be provided as a dictionary whose values are wrapped in the "
 "[`Parameter`](#Parameter)."
 msgstr ""
+"我们也可以指定自己的一组超参数值。请注意，超参数集的数量必须与[`HPOProblemWrapper`](#HPOProblemWrapper)中的实例数量相匹配。自定义超参数应作为字典提供，其值被包装在[`Parameter`](#Parameter)中。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:160002
 msgid ""
@@ -8996,6 +9209,7 @@ msgid ""
 "this case, we need to transform the solution in the outer workflow, as the "
 "[`HPOProblemWrapper`](#HPOProblemWrapper) requires a dictionary as input."
 msgstr ""
+"现在，我们使用[`PSO`](#PSO)算法来优化`ExampleAlgorithm`的超参数。请注意，[`PSO`](#PSO)的种群大小必须与实例数量匹配，否则可能会发生意外错误。在这种情况下，我们需要在外部工作流中转换解决方案，因为[`HPOProblemWrapper`](#HPOProblemWrapper)需要一个字典作为输入。"
 
 #: ../../source/guide/developer/environment.md:1
 #, fuzzy
@@ -9004,7 +9218,7 @@ msgstr "环境名。"
 
 #: ../../source/guide/developer/environment.md:3
 msgid "Clone the repository and install it in editable mode (recommended)"
-msgstr ""
+msgstr "克隆仓库并以可编辑模式安装（推荐）"
 
 #: ../../source/guide/developer/environment.md:11
 msgid "Nix"
@@ -9012,13 +9226,13 @@ msgstr ""
 
 #: ../../source/guide/developer/environment.md:13
 msgid "Enable the Nix environment by running the following command:"
-msgstr ""
+msgstr "启用 Nix 环境，请运行以下命令："
 
 #: ../../source/guide/developer/environment.md:17
 msgid ""
 "This will create a shell with all the necessary dependencies and a `.venv` "
 "directory with the Python environment."
-msgstr ""
+msgstr "这将创建一个包含所有必要依赖项的 shell 和一个带有 Python 环境的 `.venv` 目录。"
 
 #: ../../source/guide/developer/environment.md:19
 #, fuzzy
@@ -9032,15 +9246,15 @@ msgstr ""
 #: ../../source/guide/developer/environment.md:22
 msgid ""
 "Make sure to use [ruff](https://docs.astral.sh/ruff/) to lint your code."
-msgstr ""
+msgstr "确保使用 [ruff](https://docs.astral.sh/ruff/) 来检查你的代码。"
 
 #: ../../source/guide/developer/environment.md:23
 msgid "Make sure there are no trailing whitespaces."
-msgstr ""
+msgstr "请确保没有尾随空格。"
 
 #: ../../source/guide/developer/environment.md:25
 msgid "Pre-commit"
-msgstr ""
+msgstr "预提交"
 
 #: ../../source/guide/developer/environment.md:27
 msgid ""
@@ -9048,20 +9262,22 @@ msgid ""
 "style guide. After installing pre-commit, run the following command to "
 "install the hooks in your local repository:"
 msgstr ""
+"我们建议使用 [pre-commit](https://pre-commit.com/) 来强制执行样式指南。安装 pre-commit "
+"后，运行以下命令在本地仓库中安装钩子："
 
 #: ../../source/guide/developer/environment.md:33
 msgid "Run Unit Test"
-msgstr ""
+msgstr "运行单元测试"
 
 #: ../../source/guide/developer/environment.md:35
 msgid ""
 "prepare the test environment by installing the required packages (e.g., "
 "`torch`) in your Python environment"
-msgstr ""
+msgstr "在您的 Python 环境中安装所需的包（例如，`torch`）以准备测试环境。"
 
 #: ../../source/guide/developer/environment.md:36
 msgid "run unittest:"
-msgstr ""
+msgstr "请运行单元测试："
 
 #: ../../source/guide/developer/index.md:1
 msgid "Developer Guide"
@@ -9120,26 +9336,28 @@ msgid ""
 "refer to the PyTorch official website for more installation help: "
 "[`torch`](https://pytorch.org/)"
 msgstr ""
+"总之，`evox` 是否支持 CPU、Nvidia GPU (CUDA) 或 AMD GPU (ROCm) 取决于安装的 PyTorch 版本。请参考 "
+"PyTorch 官方网站以获取更多安装帮助：[`torch`](https://pytorch.org/)"
 
 #: ../../source/guide/install/install.md:45
 msgid "Nvidia GPU support on Windows"
-msgstr ""
+msgstr "Nvidia GPU 支持在 Windows 上"
 
 #: ../../source/guide/install/install.md:47
 msgid ""
 "EvoX support GPU acceleration through PyTorch. There are two ways to use "
 "PyTorch with GPU acceleration on Windows:"
-msgstr ""
+msgstr "EvoX通过PyTorch支持GPU加速。在Windows上使用PyTorch进行GPU加速有两种方法："
 
 #: ../../source/guide/install/install.md:50
 msgid ""
 "Using WSL 2 (Windows Subsystem for Linux) and install PyTorch on the Linux "
 "side."
-msgstr ""
+msgstr "使用 WSL 2（Windows Subsystem for Linux）并在 Linux 端安装 PyTorch。"
 
 #: ../../source/guide/install/install.md:51
 msgid "Directly install PyTorch on Windows."
-msgstr ""
+msgstr "直接在 Windows 上安装 PyTorch。"
 
 #: ../../source/guide/install/install.md:53
 msgid ""
@@ -9149,6 +9367,9 @@ msgid ""
 "will install the native Pytorch version on Windows. It will automatically "
 "install related applications like VSCode, Git and MiniForge3."
 msgstr ""
+"我们还提供了一个[一键脚本](https://github.com/EMI-Group/evox/blob/main/win-"
+"install.bat)，用于在全新安装的 Windows 10/11 64 位系统上快速部署，支持 Nvidia GPUs。该脚本不会使用 WSL "
+"2，而是在 Windows 上安装本地的 Pytorch 版本。它将自动安装相关应用程序，如 VSCode、Git 和 MiniForge3。"
 
 #: ../../source/guide/install/install.md:55
 #, fuzzy
@@ -9169,13 +9390,13 @@ msgstr ""
 msgid ""
 "When running the script, ensure a stable network (accessible to `github.com`"
 " etc.)."
-msgstr ""
+msgstr "运行脚本时，确保网络稳定（可访问 `github.com` 等）。"
 
 #: ../../source/guide/install/install.md:58
 msgid ""
 "If the script is failed due to network failure, close and reopen it to "
 "continue the installation."
-msgstr ""
+msgstr "如果脚本因网络故障而失败，请关闭并重新打开以继续安装。"
 
 #: ../../source/guide/install/install.md:61
 #, fuzzy
@@ -9206,13 +9427,14 @@ msgstr ""
 
 #: ../../source/guide/install/install.md:71
 msgid "AMD GPU (ROCm) support"
-msgstr ""
+msgstr "AMD GPU (ROCm) 支持"
 
 #: ../../source/guide/install/install.md:73
 msgid ""
 "We recommend using a Docker container from "
 "[`rocm/pytorch`](https://hub.docker.com/r/rocm/pytorch)."
 msgstr ""
+"我们建议使用来自[`rocm/pytorch`](https://hub.docker.com/r/rocm/pytorch)的Docker容器。"
 
 #: ../../source/guide/install/install.md:79
 #, fuzzy
@@ -9263,15 +9485,15 @@ msgstr "不同的Linux发行版有不同的安装Python的方式。这取决于�
 
 #: ../../source/guide/install/python.md:19
 msgid "Debian/Ubuntu: `apt`"
-msgstr ""
+msgstr "Debian/Ubuntu: `apt"
 
 #: ../../source/guide/install/python.md:20
 msgid "Archlinux: `pacman`"
-msgstr ""
+msgstr "Archlinux: `pacman"
 
 #: ../../source/guide/install/python.md:21
 msgid "Fedora: `dnf`"
-msgstr ""
+msgstr "Fedora: `dnf"
 
 #: ../../source/guide/user/1-start.ipynb:10002
 msgid "Quick Start"
@@ -9281,15 +9503,15 @@ msgstr "快速开始"
 msgid ""
 "In this notebook, we will help you be familiar with EvoX through an simple "
 "example."
-msgstr ""
+msgstr "在这个笔记本中，我们将通过一个简单的例子帮助您熟悉EvoX。"
 
 #: ../../source/guide/user/1-start.ipynb:10006
 msgid "To start with, make sure you have already installed the EvoX."
-msgstr ""
+msgstr "要开始，请确保您已经安装了EvoX。"
 
 #: ../../source/guide/user/1-start.ipynb:40002
 msgid "The basic running process in EvoX"
-msgstr ""
+msgstr "EvoX中的基本运行过程"
 
 #: ../../source/guide/user/1-start.ipynb:40004
 msgid ""
@@ -9298,13 +9520,14 @@ msgid ""
 "\"EvoX is all you need\". Though many kinds of computations are different "
 "more or less, in EvoX we standardize the basic running process:"
 msgstr ""
+"作为一个分布式GPU加速框架，用于可扩展的演化计算，EvoX可以用于进行多种计算，因此我们说“EvoX是你所需要的一切”。尽管许多类型的计算或多或少有所不同，但在EvoX中，我们标准化了基本的运行过程："
 
 #: ../../source/guide/user/1-start.ipynb:40013
 msgid ""
 "EvoX offers a comprehensive suite of 50+ Evolutionary Algorithms (EAs) and a"
 " wide range of 100+ Benchmark Problems/Environments, all benefiting from "
 "distributed GPU-acceleration."
-msgstr ""
+msgstr "EvoX 提供了一个全面的套件，包括50多个演化算法（EAs）和100多个基准问题/环境，所有这些都受益于分布式GPU加速。"
 
 #: ../../source/guide/user/1-start.ipynb:40015
 #, fuzzy
@@ -9321,13 +9544,15 @@ msgid ""
 "Here we will create a [PSO](#evox.algorithms.pso_variants.pso) algorithm and"
 " an [Ackley](#evox.problems.numerical.basic.Ackley) function problem."
 msgstr ""
+"在这里，我们将创建一个 [PSO](#evox.algorithms.pso_variants.pso) 算法和一个 "
+"[Ackley](#evox.problems.numerical.basic.Ackley) 函数问题。"
 
 #: ../../source/guide/user/1-start.ipynb:60002
 msgid ""
 "Notice the algorithm and problem themselves do not contain the monitoring of"
 " the steps, so we will not get any feed back only depending on them. It "
 "turns out that we need a **monitor**."
-msgstr ""
+msgstr "请注意，算法和问题本身并不包含步骤的监控，因此仅依靠它们我们不会得到任何反馈。事实证明，我们需要一个**monitor**。"
 
 #: ../../source/guide/user/1-start.ipynb:60006
 #, fuzzy
@@ -9340,14 +9565,14 @@ msgstr "监视器是监控优化过程中中间值的标准方法。像适应度
 
 #: ../../source/guide/user/1-start.ipynb:60008
 msgid "Doing is better than saying, so let us create a “Evaluation monitor”:"
-msgstr ""
+msgstr "做比说更好，所以让我们创建一个“Evaluation monitor”："
 
 #: ../../source/guide/user/1-start.ipynb:80004
 msgid ""
 "A **workflow** outlines the series of steps required to accomplish a task or"
 " project. In EvoX, a workflow represents the overall process of evolutionary"
 " computation, putting the algorithm, problem and monitor together."
-msgstr ""
+msgstr "一个**工作流**概述了完成任务或项目所需的一系列步骤。在 EvoX 中，工作流代表了演化计算的整体过程，将算法、问题和监控器结合在一起。"
 
 #: ../../source/guide/user/1-start.ipynb:80006
 msgid ""
@@ -9355,16 +9580,17 @@ msgid ""
 " to create a workflow of the [`Workflow`](#evox.core.components.Workflow) "
 "class."
 msgstr ""
+"如果我们想运行算法来解决带有监视器的问题，我们需要创建一个[`Workflow`](#evox.core.components.Workflow)类的工作流。"
 
 #: ../../source/guide/user/1-start.ipynb:100004
 msgid "Now, we can run the workflow:"
-msgstr ""
+msgstr "现在，我们可以运行工作流："
 
 #: ../../source/guide/user/1-start.ipynb:120002
 msgid ""
 "Congretulations if you can reproduce the Quick Start demo! Hope you enjoy "
 "the EvoX!"
-msgstr ""
+msgstr "恭喜你能够重现快速入门演示！希望你喜欢EvoX！"
 
 #: ../../source/guide/user/2-problems.ipynb:10002
 #, fuzzy
@@ -9378,6 +9604,8 @@ msgid ""
 " neuroevolution with Brax. Thus, it is talented in extended applications.  "
 "Here we will show an example of Neuroevolution Tasks using EvoX and Brax."
 msgstr ""
+"EvoX 促进了复杂优化景观的高效探索，有效解决黑箱优化挑战，并深入研究使用 Brax 的神经演化。因此，它在扩展应用中表现出色。这里我们将展示一个使用"
+" EvoX 和 Brax 的神经演化任务示例。"
 
 #: ../../source/guide/user/2-problems.ipynb:40002
 #, fuzzy
@@ -9392,12 +9620,13 @@ msgid ""
 "Neuroevolution aims to optimize neural network architectures and weights, "
 "addressing complex problems such as game AI, robotic control, and more."
 msgstr ""
+"神经演化是一种优化方法，它将神经网络与演化算法结合起来，以演化神经网络的结构和参数。通过模拟自然选择和遗传机制，神经演化旨在优化神经网络的架构和权重，解决复杂问题，如游戏AI、机器人控制等。"
 
 #: ../../source/guide/user/2-problems.ipynb:40005
 msgid ""
 "In our example of neuroevolution tasks, Brax is needed. So it is recommended"
 " to install Brax if you want to replicate this example."
-msgstr ""
+msgstr "在我们的神经演化任务示例中，需要使用 Brax。因此，如果您想复制此示例，建议安装 Brax。"
 
 #: ../../source/guide/user/2-problems.ipynb:50006
 msgid ""
@@ -9405,23 +9634,24 @@ msgid ""
 "information, you can browse the [Github of "
 "Brax](https://github.com/google/brax)."
 msgstr ""
+"在这里，我们将演示Brax的“hopper”环境。有关更多信息，您可以浏览[Brax的Github](https://github.com/google/brax)。"
 
 #: ../../source/guide/user/2-problems.ipynb:80004
 msgid "Through the `SimpleMLP` class, we can initiate a MLP model."
-msgstr ""
+msgstr "通过 `SimpleMLP` 类，我们可以初始化一个 MLP 模型。"
 
 #: ../../source/guide/user/2-problems.ipynb:100002
 msgid ""
 "We can compute the total number of the model parameters, and check if the "
 "model id initialized correctly. If everything goes well, we will see the "
 "total number is 63."
-msgstr ""
+msgstr "我们可以计算模型参数的总数，并检查模型是否正确初始化。如果一切顺利，我们将看到总数是63。"
 
 #: ../../source/guide/user/2-problems.ipynb:120002
 msgid ""
 "We can also test the dimoension of the inputs and outputs. If everything "
 "goes well, 11 inputs will obtain 3 outputs."
-msgstr ""
+msgstr "我们也可以测试输入和输出的维度。如果一切顺利，11个输入将获得3个输出。"
 
 #: ../../source/guide/user/2-problems.ipynb:140002
 #, fuzzy
@@ -9446,12 +9676,16 @@ msgid ""
 "[`to_vector`](#evox.utils.parameters_and_vector.ParamsAndVector.to_vector) "
 "can convert a parameters dictionary to a vector."
 msgstr ""
+"[`to_vector`](#evox.utils.parameters_and_vector.ParamsAndVector.to_vector) "
+"可以将参数字典转换为向量。"
 
 #: ../../source/guide/user/2-problems.ipynb:160009
 msgid ""
 "[`to_params`](#evox.utils.parameters_and_vector.ParamsAndVector.to_params) "
 "can convert a vector back to a parameters dictionary."
 msgstr ""
+"[`to_params`](#evox.utils.parameters_and_vector.ParamsAndVector.to_params) "
+"可以将一个向量转换回参数字典。"
 
 #: ../../source/guide/user/2-problems.ipynb:160011
 msgid "There are also batched version conversion."
@@ -9462,19 +9696,23 @@ msgid ""
 "[`batched_to_vector`](#evox.utils.parameters_and_vector.ParamsAndVector.batched_to_vector)"
 " can convert a batched parameters dictionary to a batch of vectors."
 msgstr ""
+"[`batched_to_vector`](#evox.utils.parameters_and_vector.ParamsAndVector.batched_to_vector)"
+" 可以将一个批量参数字典转换为一批向量。"
 
 #: ../../source/guide/user/2-problems.ipynb:160014
 msgid ""
 "[`batched_to_params`](#evox.utils.parameters_and_vector.ParamsAndVector.batched_to_params)"
 " can convert a batch of vectors back to a batched parameters dictionary."
 msgstr ""
+"[`batched_to_params`](#evox.utils.parameters_and_vector.ParamsAndVector.batched_to_params)"
+" 可以将一批向量转换回批量参数字典。"
 
 #: ../../source/guide/user/2-problems.ipynb:180005
 msgid ""
 "For some algorithms designed for neuroevolution, that is, algorithms that "
 "directly accept the batched parameters dictionary, adapter is not necessary "
 "and should be removed to improve performance."
-msgstr ""
+msgstr "对于一些为神经演化设计的算法，即直接接受批处理参数字典的算法，适配器不是必需的，应将其移除以提高性能。"
 
 #: ../../source/guide/user/2-problems.ipynb:180012
 msgid ""
@@ -9483,6 +9721,8 @@ msgid ""
 "problem](#evox.problems.neuroevolution.brax.BraxProblem) in \"hopper\" "
 "environment."
 msgstr ""
+"我们仍然启动一个 [PSO](#evox.algorithms.pso_variants.pso.PSO) 算法，问题是在“hopper”环境中的 "
+"[Brax problem](#evox.problems.neuroevolution.brax.BraxProblem)。"
 
 #: ../../source/guide/user/2-problems.ipynb:200003
 #, fuzzy
@@ -9505,13 +9745,13 @@ msgstr "以下这段代码将需要大概10分钟来运行。具体的运行时�
 msgid ""
 "The PSO wasn’t specialized for this type of tasks, so its performance "
 "limitations here are expected. Here we just show an example."
-msgstr ""
+msgstr "PSO 并不是专门为这类任务设计的，因此在这里的性能限制是可以预期的。这里我们只是展示一个例子。"
 
 #: ../../source/guide/user/2-problems.ipynb:260006
 msgid ""
 "Hope you can use a quantity of more effective algorithms in EvoX and enjoy "
 "your time!"
-msgstr ""
+msgstr "希望您能在 EvoX 中使用更多有效的算法，并享受您的时光！"
 
 #: ../../source/guide/user/3-hpo.ipynb:10002
 #, fuzzy
@@ -9522,14 +9762,14 @@ msgstr "用EvoX解决Pong问题"
 msgid ""
 "In this chapter, we will explore how to use EvoX for hyperparameter "
 "optimization (HPO)."
-msgstr ""
+msgstr "在本章中，我们将探讨如何使用 EvoX 进行超参数优化 (HPO)。"
 
 #: ../../source/guide/user/3-hpo.ipynb:10006
 msgid ""
 "HPO plays a crucial role in many machine learning tasks but is often "
 "overlooked due to its high computational cost, which can sometimes take days"
 " to process, as well as the challenges involved in deployment."
-msgstr ""
+msgstr "HPO 在许多机器学习任务中起着至关重要的作用，但由于其高计算成本（有时需要几天的处理时间）以及部署过程中涉及的挑战，常常被忽视。"
 
 #: ../../source/guide/user/3-hpo.ipynb:10008
 msgid ""
@@ -9537,10 +9777,12 @@ msgid ""
 "[`HPOProblemWrapper`](#HPOProblemWrapper) and achieve efficient computation "
 "by leveraging the `vmap` method and GPU acceleration."
 msgstr ""
+"使用 EvoX，我们可以通过 [`HPOProblemWrapper`](#HPOProblemWrapper) 简化 HPO 部署，并通过利用 "
+"`vmap` 方法和 GPU 加速实现高效计算。"
 
 #: ../../source/guide/user/3-hpo.ipynb:20002
 msgid "Transforming Workflow into Problem"
-msgstr ""
+msgstr "将工作流转化为问题"
 
 #: ../../source/guide/user/3-hpo.ipynb:20004
 #, fuzzy
@@ -9556,10 +9798,11 @@ msgid ""
 " The input to the 'HPO problem' consists of the hyper-parameters, and the "
 "output is the evaluation metrics."
 msgstr ""
+"将HPO与EvoX一起部署的关键是使用[`HPOProblemWrapper`](#HPOProblemWrapper)将[`workflows`](#evox.workflows)转换为[`problems`](#evox.problems)。一旦转换完成，我们可以将[`workflows`](#evox.workflows)视为标准的[`problems`](#evox.problems)。'HPO问题'的输入由超参数组成，输出是评估指标。"
 
 #: ../../source/guide/user/3-hpo.ipynb:30002
 msgid "The Key Component -- `HPOProblemWrapper`"
-msgstr ""
+msgstr "关键组件 -- `HPOProblemWrapper"
 
 #: ../../source/guide/user/3-hpo.ipynb:30004
 msgid ""
@@ -9568,10 +9811,12 @@ msgid ""
 " this straightforward step, the hyper-parameters will be automatically "
 "identified."
 msgstr ""
+"为了确保 [`HPOProblemWrapper`](#HPOProblemWrapper) 识别超参数，我们需要使用 "
+"[`Parameter`](#Parameter) 来包装它们。通过这个简单的步骤，超参数将被自动识别。"
 
 #: ../../source/guide/user/3-hpo.ipynb:40002
 msgid "Utilizing the `HPOFitnessMonitor`"
-msgstr ""
+msgstr "利用 `HPOFitnessMonitor"
 
 #: ../../source/guide/user/3-hpo.ipynb:40004
 msgid ""
@@ -9579,6 +9824,7 @@ msgid ""
 "calculating 'IGD' and 'HV' metrics for multi-objective problems, as well as "
 "the minimum value for single-objective problems."
 msgstr ""
+"我们提供了一个[`HPOFitnessMonitor`](#HPOFitnessMonitor)，支持计算多目标问题的“IGD”和“HV”指标，以及单目标问题的最小值。"
 
 #: ../../source/guide/user/3-hpo.ipynb:40006
 msgid ""
@@ -9587,6 +9833,9 @@ msgid ""
 "customized monitor flexibly using the approach outlined in [Deploy HPO with "
 "Custom Algorithms](#/guide/developer/custom_hpo_prob)."
 msgstr ""
+"请注意，[`HPOFitnessMonitor`](#HPOFitnessMonitor) 是一个为 HPO "
+"问题设计的基本监视器。您还可以使用[使用自定义算法部署 "
+"HPO](#/guide/developer/custom_hpo_prob)中概述的方法灵活地创建自己的自定义监视器。"
 
 #: ../../source/guide/user/3-hpo.ipynb:50004
 msgid ""
@@ -9594,6 +9843,8 @@ msgid ""
 "Specifically, we will use the [PSO](#PSO) algorithm to optimize the hyper-"
 "parameters of the [PSO](#PSO) algorithm for solving the sphere problem."
 msgstr ""
+"在这里，我们将演示一个使用 EvoX 进行 HPO 的简单示例。具体来说，我们将使用 [PSO](#PSO) 算法来优化 [PSO](#PSO) "
+"算法的超参数，以解决球体问题。"
 
 #: ../../source/guide/user/3-hpo.ipynb:50006
 msgid ""
@@ -9601,14 +9852,16 @@ msgid ""
 "deployment. For a more detailed guide, refer to [Deploy HPO with Custom "
 "Algorithms](#/guide/developer/custom_hpo_prob)."
 msgstr ""
+"请注意，本章仅提供 HPO 部署的简要概述。有关更详细的指南，请参阅[使用自定义 Algorithms 部署 "
+"HPO](#/guide/developer/custom_hpo_prob)。"
 
 #: ../../source/guide/user/3-hpo.ipynb:50008
 msgid "To start, let's import the necessary modules."
-msgstr ""
+msgstr "要开始，让我们导入必要的模块。"
 
 #: ../../source/guide/user/3-hpo.ipynb:70002
 msgid "Next, we define a simple Sphere problem."
-msgstr ""
+msgstr "接下来，我们定义一个简单的 Sphere 问题。"
 
 #: ../../source/guide/user/3-hpo.ipynb:90002
 msgid ""
@@ -9618,10 +9871,14 @@ msgid ""
 "[`HPOProblemWrapper`](#HPOProblemWrapper) to transform the "
 "[`StdWorkflow`](#StdWorkflow) to an HPO problem."
 msgstr ""
+"接下来，我们可以使用 [`StdWorkflow`](#StdWorkflow) 来包装 "
+"[`problem`](#evox.problems)、[`algorithm`](#evox.algorithms) 和 "
+"[`monitor`](#Monitor)。然后我们使用 [`HPOProblemWrapper`](#HPOProblemWrapper) 将 "
+"[`StdWorkflow`](#StdWorkflow) 转换为一个 HPO 问题。"
 
 #: ../../source/guide/user/3-hpo.ipynb:110002
 msgid "The [`HPOProblemWrapper`](#HPOProblemWrapper) takes 4 arguments:"
-msgstr ""
+msgstr "`HPOProblemWrapper` 接受 4 个参数："
 
 #: ../../source/guide/user/3-hpo.ipynb:110003
 #, fuzzy
@@ -9641,7 +9898,7 @@ msgstr "注意：外部迭代次数需要设置为最大代数（Maximum Generat
 msgid ""
 "`workflow`: The workflow to be used in the optimization process. Must be "
 "wrapped by [`jit_class`](#jit_class)."
-msgstr ""
+msgstr "`workflow`: 在优化过程中使用的工作流。必须由[`jit_class`](#jit_class)包装。"
 
 #: ../../source/guide/user/3-hpo.ipynb:110006
 msgid ""
@@ -9650,6 +9907,8 @@ msgid ""
 "that IN-PLACE modify the tensor(s) in initial state, this should be set to "
 "`True`. Otherwise, you can set it to `False` to save memory."
 msgstr ""
+"`copy_init_state`: 是否为每次评估复制工作流的初始状态。默认为 "
+"`True`。如果你的工作流包含对初始状态中的张量进行原地修改的操作，则应将其设置为 `True`。否则，可以将其设置为 `False` 以节省内存。"
 
 #: ../../source/guide/user/3-hpo.ipynb:110008
 msgid ""
@@ -9658,6 +9917,8 @@ msgid ""
 "are made to the hyper-parameters across the 5 instances, they should remain "
 "identical for all instances."
 msgstr ""
+"我们可以验证 [`HPOProblemWrapper`](#HPOProblemWrapper) "
+"是否正确识别我们定义的超参数。由于在这5个实例中没有对超参数进行修改，它们在所有实例中应该保持一致。"
 
 #: ../../source/guide/user/3-hpo.ipynb:130002
 msgid ""
@@ -9667,18 +9928,19 @@ msgid ""
 "custom hyper-parameters must be provided as a dictionary whose values are "
 "wrapped using the [`Parameter`](#Parameter)."
 msgstr ""
+"我们也可以定义一组自定义的超参数值。确保超参数集的数量与[`HPOProblemWrapper`](#HPOProblemWrapper)中的实例数量匹配是很重要的。此外，自定义超参数必须以字典形式提供，其值需要使用[`Parameter`](#Parameter)进行包装。"
 
 #: ../../source/guide/user/3-hpo.ipynb:150002
 msgid ""
 "Now, we use the [PSO](#PSO) algorithm to optimize the hyperparameters of the"
 " [PSO](#PSO) algorithm."
-msgstr ""
+msgstr "现在，我们使用[PSO](#PSO)算法来优化[PSO](#PSO)算法的超参数。"
 
 #: ../../source/guide/user/3-hpo.ipynb:150004
 msgid ""
 "It is important to ensure that the population size of the [PSO](#PSO) "
 "matches the number of instances; otherwise, unexpected errors may occur."
-msgstr ""
+msgstr "确保[PSO](#PSO)的种群大小与实例数量匹配非常重要，否则可能会发生意外错误。"
 
 #: ../../source/guide/user/3-hpo.ipynb:150006
 msgid ""
@@ -9686,6 +9948,7 @@ msgid ""
 " the [`HPOProblemWrapper`](#HPOProblemWrapper) requires the input to be in "
 "the form of a dictionary."
 msgstr ""
+"此外，解决方案需要在外部工作流中进行转换，因为[`HPOProblemWrapper`](#HPOProblemWrapper)要求输入为字典形式。"
 
 #: ../../source/guide/user/index.md:1 ../../source/index.md:4
 msgid "User Guide"
