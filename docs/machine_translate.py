@@ -63,7 +63,7 @@ class TGIBackend:
         }
         for retry in range(self.num_retry):
             try:
-                response = httpx.post(self.url, headers=headers, json=data)
+                response = httpx.post(self.url, headers=headers, json=data, timeout=30.0)
                 json_response = response.json()
             except Exception:
                 import traceback
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     po = polib.pofile("docs/source/locale/zh/LC_MESSAGES/docs.po")
     try:
         for entry in po:
-            if entry.msgstr:
+            if entry.msgstr and not entry.fuzzy:
                 continue
 
             if pattern.match(entry.msgid) or entry.msgid.startswith("<svg"):
@@ -115,6 +115,8 @@ if __name__ == "__main__":
             tranlated = tgi.query(query)
             logging.info("\n")
             entry.msgstr = tranlated
+            if entry.fuzzy:
+                entry.flags.remove("fuzzy")
     except KeyboardInterrupt:
         logging.warning("Interrupted by user.")
     except Exception as e:
