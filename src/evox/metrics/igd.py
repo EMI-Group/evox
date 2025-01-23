@@ -16,5 +16,9 @@ def igd(objs: torch.Tensor, pf: torch.Tensor, p: int = 1):
     :note:
         The IGD score is lower when the approximation is closer to the Pareto front.
     """
-    min_dis = torch.cdist(pf, objs).min(dim=1).values
+    nan_idx = torch.any(torch.isnan(objs), dim=1)
+    objs = torch.nan_to_num(objs)
+    dis = torch.cdist(pf, objs)
+    dis = torch.where(nan_idx[None, :], torch.inf, dis)
+    min_dis = dis.min(dim=1).values
     return (min_dis.pow(p).mean()).pow(1 / p)

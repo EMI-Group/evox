@@ -84,7 +84,7 @@ def wrap_batch_tensor(tensor: torch.Tensor, in_dims: int | Tuple[int, ...]) -> t
     """
     assert get_level(tensor) <= 0, f"Expect vmap level of tensor to be none, got {get_level(tensor)}"
     if not isinstance(in_dims, Sequence):
-        in_dims = tuple(in_dims)
+        in_dims = (in_dims,)
     for level, dim in enumerate(in_dims, 1):
         tensor = add_batch_dim(tensor, dim, level)
     return tensor
@@ -302,7 +302,7 @@ def _batch_getitem(tensor: torch.Tensor, indices, dim=0):
     if level is None or level <= 0:
         return _original_get_item(tensor, indices)
     # else
-    if isinstance(indices, torch.Tensor) and indices.ndim <= 1:
+    if isinstance(indices, torch.Tensor) and indices.dtype == torch.int64 and indices.ndim <= 1:
         tensor = torch.index_select(tensor, dim, indices)
         if indices.ndim == 0:
             tensor = tensor.__getitem__(*(([slice(None)] * dim) + [0]))

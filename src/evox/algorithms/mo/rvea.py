@@ -121,7 +121,9 @@ class RVEA(Algorithm):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
         mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
-        pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
+        pop_index = torch.where(no_nan_pop, torch.arange(self.pop_size), torch.inf)
+        pop_index = torch.argsort(pop_index, stable=True)
+        pop = self.pop[pop_index[mating_pool].squeeze()]
         return pop
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
