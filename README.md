@@ -41,7 +41,7 @@
 
 
 ## 🔥 News
-- [2025-01-30] Released **EvoGP** 🚀 – A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
+- [2025-01-30] Released **EvoGP** 🚀 – GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] Released **EvoX 1.0.0** 🎉 - now fully compatible with **PyTorch**! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 ## Table of Contents
@@ -141,7 +141,8 @@ pip install evox
 **Note**: Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
 
 ## Sister Projects
-
+- **EvoRL**:GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
+- **EvoGP**:GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
 - **TensorRVEA**: Tensorized Reference Vector Guided Evolutionary Algorithm (RVEA) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorrvea).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
