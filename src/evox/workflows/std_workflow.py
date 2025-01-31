@@ -168,9 +168,12 @@ class StdWorkflow(Workflow):
 
     def _step(self, init: bool):
         if init and self._has_init_:
+            self.algorithm.record_step()
             self.algorithm.init_step()
+            self.algorithm.record_step()
         else:
             self.algorithm.step()
+            self.algorithm.record_step()
 
     def init_step(self):
         """

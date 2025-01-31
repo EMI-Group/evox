@@ -1,5 +1,5 @@
 import warnings
-from typing import List
+from typing import Dict, List
 
 import torch
 
@@ -21,12 +21,14 @@ class EvalMonitor(Monitor):
 
     fitness_history: List[torch.Tensor]
     solution_history: List[torch.Tensor]
+    auxiliary: List[Dict[str, torch.Tensor]]
 
     def __init__(
         self,
         multi_obj: bool = False,
         full_fit_history: bool = True,
         full_sol_history: bool = False,
+        full_pop_history: bool = False,
         topk: int = 1,
         device: torch.device | None = None,
     ):
@@ -43,6 +45,7 @@ class EvalMonitor(Monitor):
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
+        self.full_pop_history = full_pop_history
         self.opt_direction = 1
         self.topk = topk
         self.device = device
@@ -53,6 +56,7 @@ class EvalMonitor(Monitor):
         self.topk_fitness = Mutable(torch.empty(0, device=device))
         self.fitness_history = []
         self.solution_history = []
+        self.auxiliary = []
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -66,6 +70,10 @@ class EvalMonitor(Monitor):
         if "opt_direction" in config:
             self.opt_direction = config["opt_direction"]
         return self
+
+    def record_auxiliary(self, aux: Dict[str, torch.Tensor]):
+        if self.full_pop_history:
+            self.auxiliary.append(aux)
 
     def post_ask(self, candidate_solution: torch.Tensor):
         self.latest_solution = candidate_solution
