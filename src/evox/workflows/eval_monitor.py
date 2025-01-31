@@ -19,6 +19,9 @@ class EvalMonitor(Monitor):
     Moreover, it can also record the best solution or the pareto front on-the-fly.
     """
 
+    fitness_history: List[torch.Tensor]
+    solution_history: List[torch.Tensor]
+
     def __init__(
         self,
         multi_obj: bool = False,
@@ -48,8 +51,8 @@ class EvalMonitor(Monitor):
         self.latest_fitness = Mutable(torch.empty(0, device=device))
         self.topk_solutions = Mutable(torch.empty(0, device=device))
         self.topk_fitness = Mutable(torch.empty(0, device=device))
-        self.fitness_history: List[torch.Tensor] = [torch.empty(0, device=device)]
-        self.solution_history: List[torch.Tensor] = [torch.empty(0, device=device)]
+        self.fitness_history = []
+        self.solution_history = []
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -132,16 +135,16 @@ class EvalMonitor(Monitor):
     @torch.jit.ignore
     def get_fitness_history(self) -> List[torch.Tensor]:
         """Get the full history of fitness values."""
-        return [self.opt_direction * fit for fit in self.fitness_history[1:]]
+        return [self.opt_direction * fit for fit in self.fitness_history]
 
     @torch.jit.ignore
     def get_solution_history(self) -> List[torch.Tensor]:
         """Get the full history of solutions."""
-        return self.solution_history[1:]
+        return self.solution_history
 
     @torch.jit.ignore
     def plot(self, problem_pf=None, **kwargs):
-        if len(self.fitness_history) <= 1:
+        if not self.fitness_history:
             warnings.warn("No fitness history recorded, return None")
             return
 
@@ -149,10 +152,10 @@ class EvalMonitor(Monitor):
             warnings.warn("No visualization tool available, return None")
             return
 
-        if self.fitness_history[1].ndim == 1:
+        if self.fitness_history[0].ndim == 1:
             n_objs = 1
         else:
-            n_objs = self.fitness_history[1].shape[1]
+            n_objs = self.fitness_history[0].shape[1]
 
         fitness_history = self.get_fitness_history()
         fitness_history = [f.cpu().numpy() for f in fitness_history]
