@@ -51,16 +51,20 @@ class CSO(Algorithm):
         self.lb = lb
         self.ub = ub
         if mean is not None and stdev is not None:
-            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
-            population = clamp(population, min=self.lb, max=self.ub)
+            pop = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
+            pop = clamp(pop, min=self.lb, max=self.ub)
         else:
-            population = torch.rand(self.pop_size, self.dim, device=device)
-            population = population * (self.ub - self.lb) + self.lb
+            pop = torch.rand(self.pop_size, self.dim, device=device)
+            pop = pop * (self.ub - self.lb) + self.lb
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # mutable
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
+        self.fit = Mutable(torch.empty(self.pop_size, device=device))
         self.velocity = Mutable(velocity)
+
+    def init_step(self):
+        self.fit = self.evaluate(self.pop)
 
     def step(self):
         """
@@ -71,25 +75,25 @@ class CSO(Algorithm):
         algorithm that uses a combination of both the PSO and the DE algorithms to
         search for the optimal solution.
         """
+        device = self.pop.device
         # Get the shuffled indices, lambda1, lambda2 and lambda3
-        shuffle_idx = torch.randperm(self.pop_size, device=self.population.device)
-        lambda1 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
-        lambda2 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
-        lambda3 = torch.rand(self.pop_size // 2, self.dim, device=self.population.device)
+        shuffle_idx = torch.randperm(self.pop_size, device=device)
+        lambda1 = torch.rand(self.pop_size // 2, self.dim, device=device)
+        lambda2 = torch.rand(self.pop_size // 2, self.dim, device=device)
+        lambda3 = torch.rand(self.pop_size // 2, self.dim, device=device)
         # Get the population and velocity of the shuffled indices
-        pop = self.population[shuffle_idx]
+        pop = self.pop[shuffle_idx]
         vec = self.velocity[shuffle_idx]
         # Get the center of the population
-        center = self.population.mean(dim=0, keepdim=True)
+        center = self.pop.mean(dim=0, keepdim=True)
         # Evaluate the fitness of the population
-        fit = self.evaluate(pop)
         # Split the population into two parts
         left_pop = pop[: self.pop_size // 2]
         right_pop = pop[self.pop_size // 2 :]
         left_vec = vec[: self.pop_size // 2]
         right_vec = vec[self.pop_size // 2 :]
-        left_fit = fit[: self.pop_size // 2]
-        right_fit = fit[self.pop_size // 2 :]
+        left_fit = self.fit[: self.pop_size // 2]
+        right_fit = self.fit[self.pop_size // 2 :]
         # Calculate the mask
         mask = (left_fit < right_fit)[:, None]
         # Update the velocity of the left part of the population
@@ -111,5 +115,6 @@ class CSO(Algorithm):
         pop = clamp(torch.cat([left_pop, right_pop]), self.lb, self.ub)
         vec = clamp(torch.cat([left_velocity, right_velocity]), self.lb, self.ub)
         # Update the population and velocity
-        self.population = pop
+        self.pop = pop
         self.velocity = vec
+        self.fit = self.evaluate(self.pop)
