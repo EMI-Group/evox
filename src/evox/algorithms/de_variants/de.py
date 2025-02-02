@@ -82,15 +82,15 @@ class DE(Algorithm):
         # Initialize population
         if mean is not None and stdev is not None:
             # Initialize population using a normal distribution
-            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
-            population = clamp(population, lb=self.lb, ub=self.ub)
+            pop = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
+            pop = clamp(pop, lb=self.lb, ub=self.ub)
         else:
             # Initialize population uniformly within bounds
-            population = torch.rand(self.pop_size, self.dim, device=device)
-            population = population * (self.ub - self.lb) + self.lb
+            pop = torch.rand(self.pop_size, self.dim, device=device)
+            pop = pop * (self.ub - self.lb) + self.lb
 
         # Mutable attributes to store population and fitness
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
         self.fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
 
     def init_step(self):
@@ -99,7 +99,7 @@ class DE(Algorithm):
 
         This method evaluates the fitness of the initial population and then calls the `step` method to perform the first optimization iteration.
         """
-        self.fitness = self.evaluate(self.population)
+        self.fitness = self.evaluate(self.pop)
         self.step()
 
     def step(self):
@@ -113,7 +113,7 @@ class DE(Algorithm):
 
         The method ensures that all new population vectors are clamped within the specified bounds.
         """
-        device = self.population.device
+        device = self.pop.device
         num_vec = self.num_difference_vectors * 2 + (0 if self.best_vector else 1)
         random_choices = []
 
@@ -127,36 +127,33 @@ class DE(Algorithm):
         if self.best_vector:
             # Use the best individual as the base vector
             best_index = torch.argmin(self.fitness)
-            base_vector = self.population[best_index][None, :]
+            base_vector = self.pop[best_index][None, :]
             start_index = 0
         else:
             # Use randomly selected individuals as base vectors
-            base_vector = self.population[random_choices[0]]
+            base_vector = self.pop[random_choices[0]]
             start_index = 1
 
         # Generate difference vectors by subtracting randomly chosen population vectors
         difference_vector = torch.stack(
-            [
-                self.population[random_choices[i]] - self.population[random_choices[i + 1]]
-                for i in range(start_index, num_vec - 1, 2)
-            ]
+            [self.pop[random_choices[i]] - self.pop[random_choices[i + 1]] for i in range(start_index, num_vec - 1, 2)]
         ).sum(dim=0)
 
         # Create mutant vectors by adding weighted difference vectors to the base vector
-        new_population = base_vector + self.differential_weight * difference_vector
+        new_pop = base_vector + self.differential_weight * difference_vector
 
         # Crossover: Determine which dimensions to crossover based on the crossover probability
         cross_prob = torch.rand(self.pop_size, self.dim, device=device)
         random_dim = torch.randint(0, self.dim, (self.pop_size, 1), device=device)
         mask = cross_prob < self.cross_probability
         mask = mask.scatter(dim=1, index=random_dim, value=1)
-        new_population = torch.where(mask, new_population, self.population)
+        new_pop = torch.where(mask, new_pop, self.pop)
 
         # Ensure new population is within bounds
-        new_population = clamp(new_population, self.lb, self.ub)
+        new_pop = clamp(new_pop, self.lb, self.ub)
 
         # Selection: Evaluate fitness of the new population and select the better individuals
-        new_fitness = self.evaluate(new_population)
+        new_fitness = self.evaluate(new_pop)
         compare = new_fitness < self.fitness
-        self.population = torch.where(compare[:, None], new_population, self.population)
+        self.pop = torch.where(compare[:, None], new_pop, self.pop)
         self.fitness = torch.where(compare, new_fitness, self.fitness)

@@ -87,29 +87,29 @@ class PSO(Algorithm):
         best). The population positions are then updated using the new velocities.
         """
         compare = self.local_best_fit > self.fit
-        self.local_best_location = torch.where(compare[:, None], self.population, self.local_best_location)
+        self.local_best_location = torch.where(compare[:, None], self.pop, self.local_best_location)
         self.local_best_fit = torch.where(compare, self.fit, self.local_best_fit)
         self.global_best_location, self.global_best_fit = min_by(
-            [self.global_best_location.unsqueeze(0), self.population],
+            [self.global_best_location.unsqueeze(0), self.pop],
             [self.global_best_fit.unsqueeze(0), self.fit],
         )
         rg = torch.rand(self.pop_size, self.dim, device=self.fit.device)
         rp = torch.rand(self.pop_size, self.dim, device=self.fit.device)
         velocity = (
             self.w * self.velocity
-            + self.phi_p * rp * (self.local_best_location - self.population)
-            + self.phi_g * rg * (self.global_best_location - self.population)
+            + self.phi_p * rp * (self.local_best_location - self.pop)
+            + self.phi_g * rg * (self.global_best_location - self.pop)
         )
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
+        pop = self.pop + velocity
+        self.pop = clamp(pop, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)
-        self.fit = self.evaluate(self.population)
+        self.fit = self.evaluate(self.pop)
 
     def init_step(self):
         """Perform the first step of the PSO optimization.
 
         See `step` for more details.
         """
-        self.fit = self.evaluate(self.population)
+        self.fit = self.evaluate(self.pop)
         self.local_best_fit = self.fit
         self.global_best_fit = torch.min(self.fit)
