@@ -92,3 +92,9 @@ class SNES(Algorithm):
 
         self.center = center
         self.sigma = sigma
+
+    def record_step(self):
+        return {
+            "center": self.center,
+            "sigma": self.sigma,
+        }

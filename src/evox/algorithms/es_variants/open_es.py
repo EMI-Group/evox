@@ -81,3 +81,6 @@ class OpenES(Algorithm):
                 self.learning_rate,
             )
         self.center = center
+
+    def record_step(self):
+        return {"center": self.center}

@@ -18,6 +18,7 @@ class PersistentES(Algorithm):
     More information about evosax can be found at the following URL:
     GitHub Link: https://github.com/RobertTLange/evosax
     """
+
     def __init__(
         self,
         pop_size: int,
@@ -109,3 +110,6 @@ class PersistentES(Algorithm):
 
         self.sigma = sigma
         self.pert_accum = pert_accum
+
+    def record_step(self):
+        return {"center": self.center, "sigma": self.sigma}
