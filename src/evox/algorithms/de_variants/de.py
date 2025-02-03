@@ -91,7 +91,7 @@ class DE(Algorithm):
 
         # Mutable attributes to store population and fitness
         self.pop = Mutable(pop)
-        self.fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
+        self.fit = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
 
     def init_step(self):
         """
@@ -99,7 +99,7 @@ class DE(Algorithm):
 
         This method evaluates the fitness of the initial population and then calls the `step` method to perform the first optimization iteration.
         """
-        self.fitness = self.evaluate(self.pop)
+        self.fit = self.evaluate(self.pop)
         self.step()
 
     def step(self):
@@ -126,7 +126,7 @@ class DE(Algorithm):
         # Determine the base vector
         if self.best_vector:
             # Use the best individual as the base vector
-            best_index = torch.argmin(self.fitness)
+            best_index = torch.argmin(self.fit)
             base_vector = self.pop[best_index][None, :]
             start_index = 0
         else:
@@ -154,6 +154,6 @@ class DE(Algorithm):
 
         # Selection: Evaluate fitness of the new population and select the better individuals
         new_fitness = self.evaluate(new_pop)
-        compare = new_fitness < self.fitness
+        compare = new_fitness < self.fit
         self.pop = torch.where(compare[:, None], new_pop, self.pop)
-        self.fitness = torch.where(compare, new_fitness, self.fitness)
+        self.fit = torch.where(compare, new_fitness, self.fit)

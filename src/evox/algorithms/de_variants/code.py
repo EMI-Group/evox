@@ -69,8 +69,8 @@ class CoDE(Algorithm):
         self.strategies = torch.tensor([rand_1_bin, rand_2_bin, current2rand_1], device=device)
         # setup
         self.best_index = Mutable(torch.tensor(0, device=device))
-        self.population = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
-        self.fitness = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
+        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.fit = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
 
     def step(self):
         """Perform one iteration of the CoDE algorithm.
@@ -81,7 +81,7 @@ class CoDE(Algorithm):
         3. Apply mutation to generate a new vector.
         4. Update the population and fitness values.
         """
-        device = self.population.device
+        device = self.pop.device
         indices = torch.arange(self.pop_size, device=device)
 
         param_ids = torch.randint(0, 3, (3, self.pop_size), device=device)
@@ -102,14 +102,14 @@ class CoDE(Algorithm):
                 self.diff_padding_num,
                 num_diff_vectors[i],
                 indices,
-                self.population,
-                #self.replace
+                self.pop,
+                # self.replace
             )
 
-            rand_vec = self.population[rand_vec_idx]
-            best_vec = torch.tile(self.population[self.best_index].unsqueeze(0), (self.pop_size, 1))
-            pbest_vec = select_rand_pbest(0.05, self.population, self.fitness)
-            current_vec = self.population[indices]
+            rand_vec = self.pop[rand_vec_idx]
+            best_vec = torch.tile(self.pop[self.best_index].unsqueeze(0), (self.pop_size, 1))
+            pbest_vec = select_rand_pbest(0.05, self.pop, self.fit)
+            current_vec = self.pop[indices]
 
             vec_merge = torch.stack((rand_vec, best_vec, pbest_vec, current_vec))
             base_vec_prim = vec_merge[base_vec_prim_type[i]]
@@ -144,8 +144,8 @@ class CoDE(Algorithm):
         trial_fitness_select = trial_fitness[min_indices_global]
         trial_vectors_select = trial_vectors[min_indices_global]
 
-        compare = trial_fitness_select <= self.fitness
+        compare = trial_fitness_select <= self.fit
 
-        self.population = torch.where(compare[:, None], trial_vectors_select, self.population)
-        self.fitness = torch.where(compare, trial_fitness_select, self.fitness)
-        self.best_index = torch.argmin(self.fitness)
+        self.pop = torch.where(compare[:, None], trial_vectors_select, self.pop)
+        self.fit = torch.where(compare, trial_fitness_select, self.fit)
+        self.best_index = torch.argmin(self.fit)
