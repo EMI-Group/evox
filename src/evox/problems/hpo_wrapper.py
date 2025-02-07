@@ -33,6 +33,8 @@ class HPOMonitor(Monitor):
         new_fitness = original_fitness.view(self.num_repeats, -1, *fitness.size())
         pop_size = new_fitness.size(1)
         new_fitness = wrap_batch_tensor(new_fitness, (1,))
+        if new_fitness.size(0) == 1 and self.num_repeats == 1:
+            new_fitness = new_fitness.squeeze(0)
         return new_fitness, pop_size
 
     def tell_fitness(self) -> torch.Tensor:

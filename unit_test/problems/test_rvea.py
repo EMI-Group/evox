@@ -5,10 +5,10 @@ import time
 import torch
 from torch.profiler import ProfilerActivity, profile
 
-from evox.algorithms import RVEA
+from evox.algorithms import RVEA, RVEAa
 from evox.core import jit, use_state
 from evox.metrics import igd
-from evox.problems.numerical import DTLZ2
+from evox.problems.numerical import DTLZ7
 from evox.workflows import StdWorkflow
 
 current_directory = os.getcwd()
@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     output_file = "fit_history_with_pf.json"
 
-    prob = DTLZ2(m=3)
+    prob = DTLZ7(m=3)
     pf = torch.tensor(prob.pf())  # 将 Pareto 前沿转换为张量并移动到 GPU
     algo = RVEA(pop_size=100, n_objs=3, lb=-torch.zeros(12), ub=torch.ones(12))
     workflow = StdWorkflow()

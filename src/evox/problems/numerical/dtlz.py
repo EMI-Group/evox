@@ -379,19 +379,19 @@ class DTLZ7(DTLZTestSuit):
         f = torch.zeros((n, m), device=X.device)
         g = 1 + 9 * torch.mean(X[:, m - 1 :], dim=1, keepdim=True)
 
-        f[:, : m - 1] = X[:, : m - 1]
+        first_part = X[:, : m - 1]
 
         term = torch.sum(
-            f[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * f[:, : m - 1])),
+            first_part / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * first_part)),
             dim=1,
             keepdim=True,
         )
-        f[:, m - 1 :] = (1 + g) * (m - term)
+        f = torch.cat([first_part, (1 + g) * (m - term)], dim=1)
 
         return f
 
     def pf(self):
-        interval = torch.tensor([0., 0.251412, 0.631627, 0.859401], dtype=torch.float, device=self.device)
+        interval = torch.tensor([0.0, 0.251412, 0.631627, 0.859401], dtype=torch.float, device=self.device)
         median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0]).to(self.device)
 
         x = self.sample.to(self.device)
