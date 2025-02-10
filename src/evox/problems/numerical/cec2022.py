@@ -127,12 +127,12 @@ class CEC2022(Problem):
             diff = x - shift[:, i * nx : (i + 1) * nx]
             w = torch.sum(diff**2, dim=1)
             w = torch.where(w != 0, (1 / torch.sqrt(w)) * torch.exp(-w / (2 * nx * d * d)), torch.inf)
-            w_sum += w
+            w_sum = w_sum + w
             w_all.append(w * (f + b))
         w_ret = torch.zeros(x.size(0), device=x.device)
         w_sum = torch.where(w_sum == 0, 1e-9, w_sum)
         for w in w_all:
-            w_ret += w / w_sum
+            w_ret = w_ret + w / w_sum
         return w_ret
 
     # cSpell:words Zakharov Rosenbrock Schaffer Rastrigin hgbat katsuura ackley schwefel happycat grie_rosen ellips escaffer griewank
@@ -217,7 +217,7 @@ class CEC2022(Problem):
                 self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 2 * nx : 3 * nx], self.M[:, 2 * nx : 3 * nx])
             )
             * 10000
-            / 1e30,
+            / 1e10 / 1e10 / 1e10,
             self.discus_func(self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx]))
             * 10000
             / 1e10,
@@ -310,7 +310,7 @@ class CEC2022(Problem):
                 self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx])
             )
             * 10000
-            / 1e30,
+            / 1e10 / 1e10 / 1e10,
             self.ellips_func(self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 4 * nx : 5 * nx], self.M[:, 4 * nx : 5 * nx]))
             * 10000
             / 1e10,
