@@ -11,7 +11,7 @@ import torch.utils.dlpack
 from brax import envs
 from brax.io import html, image
 
-from ...core import Problem, jit_class, vmap_impl, _vmap_fix
+from ...core import Problem, _vmap_fix, jit_class, vmap_impl
 from .utils import get_vmap_model_state_forward
 
 
