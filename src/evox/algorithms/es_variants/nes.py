@@ -13,6 +13,7 @@ class XNES(Algorithm):
     Exponential Natural Evolution Strategies
     (https://dl.acm.org/doi/abs/10.1145/1830483.1830557)
     """
+
     def __init__(
         self,
         init_mean: torch.Tensor,
@@ -114,6 +115,9 @@ class XNES(Algorithm):
         self.mean = mean
         self.B = B
 
+    def record_step(self):
+        return {"mean": self.mean, "sigma": self.sigma, "B": self.B}
+
 
 @jit_class
 class SeparableNES(Algorithm):
@@ -123,6 +127,7 @@ class SeparableNES(Algorithm):
     Natural Evolution Strategies
     (https://www.jmlr.org/papers/volume15/wierstra14a/wierstra14a.pdf)
     """
+
     def __init__(
         self,
         init_mean: torch.Tensor,
@@ -204,3 +209,6 @@ class SeparableNES(Algorithm):
 
         self.mean = mean
         self.sigma = sigma
+
+    def record_step(self):
+        return {"mean": self.mean, "sigma": self.sigma}

@@ -65,8 +65,8 @@ class OpenES(Algorithm):
             noise = torch.cat([noise, -noise], dim=0)
         else:
             noise = torch.randn(self.pop_size, self.dim, device=device)
-        population = self.center[None, :] + self.noise_stdev * noise
-        fitness = self.evaluate(population)
+        pop = self.center[None, :] + self.noise_stdev * noise
+        fitness = self.evaluate(pop)
         grad = noise.T @ fitness / self.pop_size / self.noise_stdev
         if self.optimizer is None:
             center = self.center - self.learning_rate * grad
@@ -81,3 +81,6 @@ class OpenES(Algorithm):
                 self.learning_rate,
             )
         self.center = center
+
+    def record_step(self):
+        return {"center": self.center}

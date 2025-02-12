@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any
+from typing import Any, Dict
 
 import torch
 
@@ -36,6 +36,10 @@ class Algorithm(ModuleBase, ABC):
         raise NotImplementedError(
             "Evaluate function is not implemented. It is a proxy function of `Problem.evaluate` set by workflow."
         )
+
+    def record_step(self) -> None:
+        """Record the current step."""
+        self._monitor_.record_auxiliary({"pop": self.pop, "fit": self.fit})
 
 
 class Problem(ModuleBase, ABC):
@@ -93,6 +97,13 @@ class Monitor(ModuleBase, ABC):
         :return: This module.
         """
         return self
+
+    def record_auxiliary(self, aux: Dict[str, torch.Tensor]) -> None:
+        """Record the auxiliary information.
+
+        :param aux: The auxiliary information.
+        """
+        pass
 
     def post_ask(self, candidate_solution: torch.Tensor) -> None:
         """The hook function to be executed before the solution transformation.

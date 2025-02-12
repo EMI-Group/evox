@@ -93,17 +93,17 @@ This document aims to guide MATLAB users in transitioning to PyTorch and EvoX fo
 A MATLAB code example for PSO algorithm is as follows:
 ```matlab
 function [] = example_pso()
-	pso = init_pso(100, [-10, -10], [10, 10], 0.6, 2.5, 0.8);
-	test_fn = @(x) (sum(x .* x, 2));
-	for i = 1:20
-		pso = step_pso(pso, test_fn);
-		fprintf("Iteration = %d, global best = %f\n", i, pso.global_best_fitness);
-	end
+    pso = init_pso(100, [-10, -10], [10, 10], 0.6, 2.5, 0.8);
+    test_fn = @(x) (sum(x .* x, 2));
+    for i = 1:20
+        pso = step_pso(pso, test_fn);
+        fprintf("Iteration = %d, global best = %f\n", i, pso.global_best_fitness);
+    end
 end
 
 
 function [self] = init_pso(pop_size, lb, ub, w, phi_p, phi_g)
-	self = struct();
+    self = struct();
     self.pop_size = pop_size;
     self.dim = length(lb);
     self.w = w;

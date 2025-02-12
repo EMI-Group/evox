@@ -7,33 +7,43 @@
 </h1>
 
 <p align="center">
-  <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">  
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/pso_result.avif">
+    <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
+  </picture>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">  
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/rvea_result.avif">
+    <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
+  </picture>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/halfcheetah_200.avif">
+    <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+  </picture>
 </p>
 
 
-
-  [![arXiv](https://img.shields.io/badge/arxiv-2212.05652-red)](https://arxiv.org/abs/2301.12457)
-  [![Documentation](https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs)](https://evox.readthedocs.io/)
-  [![PyPI-Version](https://img.shields.io/pypi/v/evox?logo=python)](https://pypi.org/project/evox/)
-  [![Python-Version](https://img.shields.io/badge/python-3.10+-orange?logo=python)](https://pypi.org/project/evox/)
-  [![Discord Server](https://img.shields.io/badge/discord-evox-%235865f2?logo=discord)](https://discord.gg/Vbtgcpy7G4)
-  [![QQ Group](https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq)](https://qm.qq.com/q/vTPvoMUGAw)
-  [![GitHub User's Stars](https://img.shields.io/github/stars/EMI-Group%2Fevox)](https://github.com/EMI-Group/evox)
-    <!--[![PyPI-Downloads](https://img.shields.io/pypi/dm/evox?color=orange&logo=python)](https://pypi.org/project/evox/)-->
+<div align="center">
+  <a href="https://arxiv.org/abs/2301.12457"><img src="https://img.shields.io/badge/arxiv-2212.05652-red" alt="arXiv"></a>
+  <a href="https://evox.readthedocs.io/"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="Documentation"></a>
+  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?logo=python" alt="PyPI Version"></a>
+  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/badge/python-3.10+-orange?logo=python" alt="Python Version"></a>
+  <a href="https://discord.gg/Vbtgcpy7G4"><img src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord" alt="Discord Server"></a>
+  <a href="https://qm.qq.com/q/vTPvoMUGAw"><img src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq" alt="QQ Group"></a>
+</div>
 
 ---
 
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
-<h3 align="center"> Compatible with PyTorch / JAX</h3>
+
+---
 
 
 ## 🔥 News
-
-- [2025-01-13] Released **EvoX 1.0.0** 🎉 — **EvoX 🤝 PyTorch** for full compatibility! For users seeking the previous JAX-based version, please refer to the **v0.9.0 branch**.
+- [2025-02-03] Released **EvoRL**: A GPU-accelerated framework for **Evolutionary Reinforcement Learning**, powered by **JAX** ! [[Paper](https://arxiv.org/abs/2501.15129)] [[Code](https://github.com/EMI-Group/evorl)]
+- [2025-01-30] Released **EvoGP**: A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
+- [2025-01-14] Released **EvoX 1.0.0** - now fully compatible with **PyTorch**! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 ## Table of Contents
 
@@ -43,26 +53,54 @@
 4. [Quick Installation](#quick-installation)
 5. [Sister Projects](#sister-projects)
 6. [Community & Support](#community--support)
-7. [Citing EvoX](#citing-evox)
-8. [Star History](#star-history)
 
 ## Overview
 
-EvoX is a distributed, GPU-accelerated evolutionary computation framework designed to tackle the challenges of large-scale complex systems. It offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**, all benefiting from distributed GPU-acceleration. It facilitates efficient exploration of complex optimization landscapes, effective tackling of black-box optimization challenges, and deep dives into neuroevolution. With a foundation in functional programming and hierarchical state management, EvoX offers a user-friendly and modular experience. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch***.  With a user-friendly programming model, it offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+
+*Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
 
 
 ## Key Features
 
-- 🚀 **Fast Performance**:
-  - Experience **GPU-Accelerated** optimization, achieving speeds over 100x faster than traditional methods.
-  - Leverage the power of **Distributed Workflows** for even more rapid optimization.
-- 🌐 **Versatile Optimization Suite**:
-  - Cater to all your needs with both **Single-objective** and **Multi-objective** optimization capabilities.
-  - Leverage a rich library of **Benchmark Problems/Environments** and tools for advanced AI tasks like **Neuroevolution** and **RL**.
-  - Simplify parameter tuning with the new **Hyperparameter Optimization** **(HPO)** problem wrapper.
-- 🛠️ **Designed for Simplicity**:
-  - Fully compatible with **PyTorch**, featuring a brand-new **Programming Model** and **one-click installation** on Windows.
-  - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
+### 💻 High-Performance Computing
+
+#### 🚀 Ultra Performance
+- Supports acceleration on heterogeneous hardware, including both **CPUs** and **GPUs**, achieving over **100x speedups**.
+- Integrates **distributed workflows** that scale seamlessly across multiple nodes or devices.
+
+#### 🌐 All-in-One Solution
+- Includes **50+ algorithms** for a wide range of use cases, fully supporting **single- and multi-objective optimization**.
+- Provides a **hierarchical architecture** for complex tasks such as **meta learning**, **hyperparameter optimization**, and **neuroevolution**.
+
+#### 🛠️ Easy-to-Use Design
+- Fully compatible with **PyTorch** and its ecosystem, simplifying algorithmic development with a **tailored programming model**.
+- Ensures effortless setup with **one-click installation** for Windows users.
+
+
+### 📊 Versatile Benchmarking
+
+#### 📚 Extensive Benchmark Suites
+- Features **100+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges.
+
+#### 🎮 Support for Physics Engines
+- Integrates seamlessly with physics engines like **Brax** and other popular frameworks for reinforcement learning.
+
+#### ⚙️ Customizable Problems
+- Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs, with seamless integration into real-world applications and datasets.
+
+
+### 📈 Flexible Visualization
+
+#### 🔍 Ready-to-Use Tools
+- Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
+
+#### 🛠️ Customizable Modules
+- Enables users to integrate their own **visualization code**, allowing for tailored and flexible visualizations.
+
+#### 📂 Real-Time Data Streaming
+- Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
+
 
 
 ## Main Contents
@@ -90,7 +128,7 @@ EvoX is a distributed, GPU-accelerated evolutionary computation framework design
 | Numerical         | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
 | Neuroevolution/RL | Brax, TorchVision Dataset, ...      |
 
-For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/api/algorithms/index.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/api/problems/index.html).
+For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
 
 
 ## Quick Installation
@@ -101,29 +139,29 @@ Install `evox` effortlessly via `pip`:
 pip install evox
 ```
 
-**Note**: Windows users can use the [`win-install.bat`](https://github.com/EMI-Group/evox/blob/evoxtorch-main/win-install.bat) script for installation.
+**Note**: Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
 
 ## Sister Projects
-
+- **EvoRL**:GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
+- **EvoGP**:GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
 - **TensorRVEA**: Tensorized Reference Vector Guided Evolutionary Algorithm (RVEA) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorrvea).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
-- **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).  
+- **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).
 
-Stay tuned—more exciting developments are on the way!  ✨
+Stay tuned - more exciting developments are on the way!  ✨
 
 ## Community & Support
 
-- Engage in discussions and share your experiences on [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
-- Join our [discord server](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
-- Help with the translation of the documentation on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
+- Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
+- Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
+- Help translate EvoX docs on [Weblate](https://hosted.weblate.org/projects/evox/evox/).
   We currently support translations in two languages, [English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/).
-- Official Website: https://evox.group/
 
 
 ## Citing EvoX
 
-If you use EvoX in your research and want to cite it in your work, please use:
+If EvoX contributes to your research, please cite it:
 
 ```
 @article{evox,

@@ -41,7 +41,7 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
   - Leverage the power of Distributed Workflows for even more rapid optimization.
 
 - 🌐 **Versatile Optimization Suite**:
-  - Cater to all your needs with both [Single-objective and Multi-objectiv](#algorithms) optimization capabilities.
+  - Cater to all your needs with both [Single-objective and Multi-objective](#algorithms) optimization capabilities.
   - Dive into a comprehensive library of [Benchmark Problems](#problems), ensuring robust testing and evaluation.
   - Explore the frontier of AI with extensive tools for [Neuroevolution](#neuroevolution) tasks.
 

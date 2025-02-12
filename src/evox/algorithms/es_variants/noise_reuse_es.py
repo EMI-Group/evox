@@ -18,6 +18,7 @@ class NoiseReuseES(Algorithm):
     More information about evosax can be found at the following URL:
     GitHub Link: https://github.com/RobertTLange/evosax
     """
+
     def __init__(
         self,
         pop_size: int,
@@ -114,3 +115,6 @@ class NoiseReuseES(Algorithm):
 
         sigma = torch.maximum(self.sigma_decay * self.sigma, self.sigma_limit)
         self.sigma = sigma
+
+    def record_step(self):
+        return {"center": self.center, "sigma": self.sigma}

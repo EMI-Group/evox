@@ -75,8 +75,8 @@ class JaDE(Algorithm):
             population = population * (self.ub - self.lb) + self.lb
 
         # Mutable attributes to store population and fitness
-        self.population = Mutable(population)
-        self.fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
+        self.pop = Mutable(population)
+        self.fit = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
 
     def init_step(self):
         """
@@ -84,7 +84,7 @@ class JaDE(Algorithm):
 
         This method evaluates the fitness of the initial population and then calls the `step` method to perform the first optimization iteration.
         """
-        self.fitness = self.evaluate(self.population)
+        self.fit = self.evaluate(self.pop)
         self.step()
 
     def step(self):
@@ -97,7 +97,7 @@ class JaDE(Algorithm):
         3. Selection: Evaluate the fitness of the new population and select the better individuals between the current and new populations.
         4. Adaptation: Update the adaptive parameters F_u and CR_u based on the successful mutations.
         """
-        device = self.population.device
+        device = self.pop.device
 
         # 1) Generate current F_vec and CR_vec with adaptive perturbation
         F_vec = torch.randn(self.pop_size, device=device) * 0.1 + self.F_u
@@ -108,14 +108,16 @@ class JaDE(Algorithm):
 
         # 2) Mutation: Generate difference vectors and create mutant vectors
         num_vec = self.num_difference_vectors * 2 + 1
-        random_choices = [torch.randperm(self.pop_size, device=device) for _ in range(num_vec)]
+        random_choices = []
+        for _ in range(num_vec):
+            random_choices.append(torch.randint(0, self.pop_size, (self.pop_size,), device=device))
 
         difference_vectors = torch.stack(
-            [self.population[random_choices[i]] - self.population[random_choices[i + 1]] for i in range(1, num_vec - 1, 2)]
+            [self.pop[random_choices[i]] - self.pop[random_choices[i + 1]] for i in range(1, num_vec - 1, 2)]
         ).sum(dim=0)
 
         pbest_vectors = self._select_rand_pbest_vectors(p=0.05)
-        base_vectors_prim = self.population
+        base_vectors_prim = self.pop
         base_vectors_sec = pbest_vectors
         F_vec_2D = F_vec[:, None]
 
@@ -131,14 +133,14 @@ class JaDE(Algorithm):
         # Ensure at least one dimension is mutated for each individual
         mask = mask.scatter(dim=1, index=random_dim, value=1)
 
-        new_population = torch.where(mask, mutation_vectors, self.population)
+        new_population = torch.where(mask, mutation_vectors, self.pop)
         new_population = clamp(new_population, self.lb, self.ub)
 
         # 4) Selection: Choose better individuals based on fitness
         new_fitness = self.evaluate(new_population)
-        compare = new_fitness < self.fitness  # Boolean mask of successful mutations
-        self.population = torch.where(compare[:, None], new_population, self.population)
-        self.fitness = torch.where(compare, new_fitness, self.fitness)
+        compare = new_fitness < self.fit  # Boolean mask of successful mutations
+        self.pop = torch.where(compare[:, None], new_population, self.pop)
+        self.fit = torch.where(compare, new_fitness, self.fit)
 
         # 5) Adaptation: Update adaptive parameters F_u and CR_u based on successful mutations
         compare_float = compare.float()
@@ -173,14 +175,14 @@ class JaDE(Algorithm):
         top_p_num = max(int(pop_size * p), 1)
 
         # Sort indices based on fitness in ascending order
-        sorted_indices = torch.argsort(self.fitness)
+        sorted_indices = torch.argsort(self.fit)
         pbest_indices_pool = sorted_indices[:top_p_num]
 
         # Randomly sample indices from the top-p pool for each individual
-        random_indices = torch.randint(0, top_p_num, (self.pop_size,), device=self.population.device)
+        random_indices = torch.randint(0, top_p_num, (self.pop_size,), device=self.pop.device)
         pbest_indices = pbest_indices_pool[random_indices]
 
         # Retrieve p-best vectors using the sampled indices
-        pbest_vectors = self.population[pbest_indices]
+        pbest_vectors = self.pop[pbest_indices]
 
         return pbest_vectors

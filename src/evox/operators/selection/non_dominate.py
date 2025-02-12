@@ -251,6 +251,5 @@ def nd_environmental_selection(x: torch.Tensor, f: torch.Tensor, topk: int):
     worst_rank = torch.topk(rank, topk, largest=False)[0][-1]
     mask = rank == worst_rank
     crowding_dis = crowding_distance(f, mask)
-    dis_order = torch.argsort(crowding_dis, stable=True)
-    combined_order = lexsort([-dis_order, rank])[:topk]
+    combined_order = lexsort([-crowding_dis, rank])[:topk]
     return x[combined_order], f[combined_order], rank[combined_order], crowding_dis[combined_order]

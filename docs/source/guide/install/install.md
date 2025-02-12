@@ -13,10 +13,10 @@ pip install torch
 pip install evox
 ```
 
-You can also assign extra options during the installation, currently available extras are `gymnasium`, `neuroevolution`, `envpool`, `distributed`, and `full`. For example, to install EvoX with all features, run the following command:
+You can also assign extra options during the installation, currently available extras are `vis`, `neuroevolution`, `test`, `docs`. For example, to install EvoX with all features, run the following command:
 
 ```bash
-pip install evox[full]
+pip install evox[vis,neuroevolution]
 ```
 
 ## Install PyTorch with accelerator support
@@ -50,15 +50,15 @@ There are two ways to use PyTorch with GPU acceleration on Windows:
 1. Using WSL 2 (Windows Subsystem for Linux) and install PyTorch on the Linux side.
 2. Directly install PyTorch on Windows.
 
-We also provide a [one-click script](https://github.com/EMI-Group/evox/blob/main/win-install.bat) for fast deployment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
+We also provide a [one-click script](/_static/win-install.bat) for fast deployment on fresh installed windows 10/11 64bit with Nvidia GPUs. The script will not use WSL 2 and will install the native Pytorch version on Windows. It will automatically install related applications like VSCode, Git and MiniForge3.
 
-### Windows WSL 2 (optional)
 * Ensure the [Nvidia driver](https://www.nvidia.com/Download/index.aspx?lang=en-us) is properly installed first. Otherwise the script will fall back to cpu mode.
 * When running the script, ensure a stable network (accessible to `github.com` etc.).
 * If the script is failed due to network failure, close and reopen it to continue the installation.
 
+### Windows WSL 2 (optional)
 
-Download the [latest NVIDIA Windows GPU Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us), and install it. Then your WSL 2 will support Nvidia GPUs in its Linux environments.
+Download the [latest NVIDIA Windows GPU Driver](https://www.nvidia.com/Download/index.aspx?lang=en-us) and install it. Then your WSL 2 will support Nvidia GPUs in its Linux environments.
 
 ```{warning}
 Do **NOT** install any NVIDIA GPU Linux driver within WSL 2. Install the driver on the Windows side.

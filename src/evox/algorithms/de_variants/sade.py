@@ -67,8 +67,8 @@ class SaDE(Algorithm):
         self.gen_iter = Mutable(torch.tensor(0, device=device))
         self.best_index = Mutable(torch.tensor(0, device=device))
         self.Memory_FCR = Mutable(torch.full((2, 100), fill_value=0.5, device=device))
-        self.population = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
-        self.fitness = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
+        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.fit = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
         self.success_memory = Mutable(torch.full((LP, 4), fill_value=0, device=device))
         self.failure_memory = Mutable(torch.full((LP, 4), fill_value=0, device=device))
         self.CR_memory = Mutable(torch.full((LP, 4), fill_value=torch.nan, device=device))
@@ -96,7 +96,7 @@ class SaDE(Algorithm):
         4. Update the success and failure memory.
         5. Update the CR memory.
         """
-        device = self.population.device
+        device = self.pop.device
         indices = torch.arange(self.pop_size, device=device)
 
         CRM_init = torch.tensor([0.5, 0.5, 0.5, 0.5], device=device)
@@ -129,16 +129,16 @@ class SaDE(Algorithm):
         num_diff_vectors = strategy_code[:, 2]
         cross_strategy = strategy_code[:, 3]
 
-        difference_sum, rand_vec_idx = DE_differential_sum(self.diff_padding_num, num_diff_vectors, indices, self.population)
+        difference_sum, rand_vec_idx = DE_differential_sum(self.diff_padding_num, num_diff_vectors, indices, self.pop)
 
-        rand_vec = self.population[rand_vec_idx]
-        best_vec = torch.tile(self.population[self.best_index].unsqueeze(0), (self.pop_size, 1))
-        pbest_vec = select_rand_pbest(0.05, self.population, self.fitness)
-        current_vec = self.population[indices]
+        rand_vec = self.pop[rand_vec_idx]
+        best_vec = torch.tile(self.pop[self.best_index].unsqueeze(0), (self.pop_size, 1))
+        pbest_vec = select_rand_pbest(0.05, self.pop, self.fit)
+        current_vec = self.pop[indices]
         vector_merge = torch.stack([rand_vec, best_vec, pbest_vec, current_vec])
 
-        base_vector_prim = torch.zeros(self.pop_size, 4, device=device)
-        base_vector_sec = torch.zeros(self.pop_size, 4, device=device)
+        base_vector_prim = torch.zeros(self.pop_size, self.dim, device=device)
+        base_vector_sec = torch.zeros(self.pop_size, self.dim, device=device)
 
         for i in range(4):
             base_vector_prim = torch.where(base_vec_prim_type.unsqueeze(1) == i, vector_merge[i], base_vector_prim)
@@ -171,12 +171,12 @@ class SaDE(Algorithm):
 
         self.gen_iter = self.gen_iter + 1
 
-        compare = trial_fitness <= self.fitness
+        compare = trial_fitness <= self.fit
 
-        self.population = torch.where(compare[:, None], trial_vector, self.population)
-        self.fitness = torch.where(compare, trial_fitness, self.fitness)
+        self.pop = torch.where(compare[:, None], trial_vector, self.pop)
+        self.fit = torch.where(compare, trial_fitness, self.fit)
 
-        self.best_index = torch.argmin(self.fitness)
+        self.best_index = torch.argmin(self.fit)
 
         """Update memories"""
         success_memory = torch.roll(self.success_memory, 1, 0)

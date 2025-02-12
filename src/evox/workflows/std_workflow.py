@@ -172,6 +172,8 @@ class StdWorkflow(Workflow):
         else:
             self.algorithm.step()
 
+        self.algorithm.record_step()
+
     def init_step(self):
         """
         Perform the first optimization step of the workflow.

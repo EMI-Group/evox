@@ -6,5 +6,6 @@
 so-algorithm
 moalg
 brax
+supervised-learning
 custom_algo_prob
 ```

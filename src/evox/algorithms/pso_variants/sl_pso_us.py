@@ -51,31 +51,34 @@ class SLPSOUS(Algorithm):
         lb = lb[None, :].to(device=device)
         ub = ub[None, :].to(device=device)
         length = ub - lb
-        population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + lb
+        pop = torch.rand(self.pop_size, self.dim, device=device)
+        pop = length * pop + lb
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # write to self
         self.lb = lb
         self.ub = ub
         # mutable
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
+        self.fit = Mutable(torch.empty(self.pop_size, device=device))
         self.velocity = Mutable(velocity)
-        self.global_best_location = Mutable(population[0])
-        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
+        self.global_best_location = Mutable(pop[0])
+        self.global_best_fit = Mutable(torch.tensor(torch.inf, device=device))
+
+    def init_step(self):
+        self.fit = self.evaluate(self.pop)
+        self.global_best_fit = torch.min(self.fit)
 
     def step(self):
         """Perform a normal optimization step using SLPSOUS."""
-
-        device = self.population.device
-        fitness = self.evaluate(self.population)
-        global_best_location, global_best_fitness = min_by(
-            [self.global_best_location.unsqueeze(0), self.population],
-            [self.global_best_fitness.unsqueeze(0), fitness],
+        device = self.pop.device
+        global_best_location, global_best_fit = min_by(
+            [self.global_best_location.unsqueeze(0), self.pop],
+            [self.global_best_fit.unsqueeze(0), self.fit],
         )
         # Demonstrator Choice
         # sort from largest fitness to smallest fitness (worst to best)
-        ranked_population = self.population[torch.argsort(-fitness)]
+        ranked_population = self.pop[torch.argsort(-self.fit)]
         # demonstrator choice: q to pop_size
         q = clamp_int(
             self.pop_size
@@ -94,14 +97,14 @@ class SLPSOUS(Algorithm):
         r1 = torch.rand(self.pop_size, self.dim, device=device)
         r2 = torch.rand(self.pop_size, self.dim, device=device)
         r3 = torch.rand(self.pop_size, self.dim, device=device)
-        X_avg = self.population.mean(dim=0)
-        velocity = (
-            r1 * self.velocity + r2 * (X_k - self.population) + r3 * self.social_influence_factor * (X_avg - self.population)
-        )
-        population = self.population + velocity
-        population = clamp(population, self.lb, self.ub)
+        X_avg = self.pop.mean(dim=0)
+        velocity = r1 * self.velocity + r2 * (X_k - self.pop) + r3 * self.social_influence_factor * (X_avg - self.pop)
+        pop = self.pop + velocity
+        pop = clamp(pop, self.lb, self.ub)
         velocity = clamp(velocity, self.lb, self.ub)
-        self.population = population
+        self.pop = pop
         self.velocity = velocity
         self.global_best_location = global_best_location
-        self.global_best_fitness = global_best_fitness
+        self.global_best_fit = global_best_fit
+
+        self.fit = self.evaluate(self.pop)

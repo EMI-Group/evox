@@ -53,9 +53,9 @@ class SHADE(Algorithm):
         self.diff_padding_num = diff_padding_num
         # setup
         self.best_index = Mutable(torch.tensor(0, device=device))
-        self.Memory_FCR = Mutable(torch.full((2, 100), fill_value=0.5, device=device))
-        self.population = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
-        self.fitness = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
+        self.Memory_FCR = Mutable(torch.full((2, pop_size), fill_value=0.5, device=device))
+        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.fit = Mutable(torch.full((pop_size,), fill_value=torch.inf, device=device))
 
     def step(self):
         """
@@ -67,7 +67,7 @@ class SHADE(Algorithm):
         3. Update the population.
         4. Update the memory.
         """
-        device = self.population.device
+        device = self.pop.device
         indices = torch.arange(self.pop_size, device=device)
 
         FCR_ids = torch.randperm(self.pop_size)
@@ -81,10 +81,10 @@ class SHADE(Algorithm):
         CR_vect = clamp(CR_vect, torch.zeros(self.pop_size, device=device), torch.ones(self.pop_size, device=device))
 
         difference_sum, rand_vect_idx = DE_differential_sum(
-            self.diff_padding_num, torch.tile(self.num_diff_vectors, (self.pop_size,)), indices, self.population
+            self.diff_padding_num, torch.tile(self.num_diff_vectors, (self.pop_size,)), indices, self.pop
         )
-        pbest_vect = select_rand_pbest(0.05, self.population, self.fitness)
-        current_vect = self.population[indices]
+        pbest_vect = select_rand_pbest(0.05, self.pop, self.fit)
+        current_vect = self.pop[indices]
 
         base_vector_prim = current_vect
         base_vector_sec = pbest_vect
@@ -97,21 +97,21 @@ class SHADE(Algorithm):
 
         trial_fitness = self.evaluate(trial_vector)
 
-        compare = trial_fitness < self.fitness
+        compare = trial_fitness < self.fit
 
-        population_update = torch.where(compare[:, None], trial_vector, self.population)
-        fitness_update = torch.where(compare, trial_fitness, self.fitness)
+        population_update = torch.where(compare[:, None], trial_vector, self.pop)
+        fitness_update = torch.where(compare, trial_fitness, self.fit)
 
-        self.population = population_update
-        self.fitness = fitness_update
+        self.pop = population_update
+        self.fit = fitness_update
 
-        self.best_index = torch.argmin(self.fitness)
+        self.best_index = torch.argmin(self.fit)
 
         S_F = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
         S_CR = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
         S_delta = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
 
-        deltas = self.fitness - trial_fitness
+        deltas = self.fit - trial_fitness
 
         for i in range(self.pop_size):  #  get_success_delta
             is_success = compare[i].float()

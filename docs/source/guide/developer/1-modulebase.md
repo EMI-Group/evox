@@ -66,6 +66,7 @@ Static methods to be JIT shall be defined like:
 
 ```Python
 # One example of the static method defined in a Module
+
 @jit
 def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return x + y

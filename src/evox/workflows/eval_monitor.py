@@ -1,5 +1,5 @@
 import warnings
-from typing import List
+from typing import Dict, List
 
 import torch
 
@@ -19,11 +19,16 @@ class EvalMonitor(Monitor):
     Moreover, it can also record the best solution or the pareto front on-the-fly.
     """
 
+    fitness_history: List[torch.Tensor]
+    solution_history: List[torch.Tensor]
+    auxiliary: List[Dict[str, torch.Tensor]]
+
     def __init__(
         self,
         multi_obj: bool = False,
         full_fit_history: bool = True,
         full_sol_history: bool = False,
+        full_pop_history: bool = False,
         topk: int = 1,
         device: torch.device | None = None,
     ):
@@ -40,6 +45,7 @@ class EvalMonitor(Monitor):
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
+        self.full_pop_history = full_pop_history
         self.opt_direction = 1
         self.topk = topk
         self.device = device
@@ -48,8 +54,9 @@ class EvalMonitor(Monitor):
         self.latest_fitness = Mutable(torch.empty(0, device=device))
         self.topk_solutions = Mutable(torch.empty(0, device=device))
         self.topk_fitness = Mutable(torch.empty(0, device=device))
-        self.fitness_history: List[torch.Tensor] = [torch.empty(0, device=device)]
-        self.solution_history: List[torch.Tensor] = [torch.empty(0, device=device)]
+        self.fitness_history = []
+        self.solution_history = []
+        self.auxiliary = []
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -63,6 +70,10 @@ class EvalMonitor(Monitor):
         if "opt_direction" in config:
             self.opt_direction = config["opt_direction"]
         return self
+
+    def record_auxiliary(self, aux: Dict[str, torch.Tensor]):
+        if self.full_pop_history:
+            self.auxiliary.append(aux)
 
     def post_ask(self, candidate_solution: torch.Tensor):
         self.latest_solution = candidate_solution
@@ -132,12 +143,12 @@ class EvalMonitor(Monitor):
     @torch.jit.ignore
     def get_fitness_history(self) -> List[torch.Tensor]:
         """Get the full history of fitness values."""
-        return [self.opt_direction * fit for fit in self.fitness_history[1:]]
+        return [self.opt_direction * fit for fit in self.fitness_history]
 
     @torch.jit.ignore
     def get_solution_history(self) -> List[torch.Tensor]:
         """Get the full history of solutions."""
-        return self.solution_history[1:]
+        return self.solution_history
 
     @torch.jit.ignore
     def plot(self, problem_pf=None, **kwargs):
