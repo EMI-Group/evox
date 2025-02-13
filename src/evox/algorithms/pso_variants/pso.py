@@ -52,20 +52,21 @@ class PSO(Algorithm):
         lb = lb[None, :].to(device=device)
         ub = ub[None, :].to(device=device)
         length = ub - lb
-        population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + lb
+        pop = torch.rand(self.pop_size, self.dim, device=device)
+        pop = length * pop + lb
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # write to self
         self.lb = lb
         self.ub = ub
         # mutable
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
         self.velocity = Mutable(velocity)
-        self.local_best_location = Mutable(population)
-        self.local_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = Mutable(population[0])
-        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
+        self.fit = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
+        self.local_best_location = Mutable(pop)
+        self.local_best_fit = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
+        self.global_best_location = Mutable(pop[0])
+        self.global_best_fit = Mutable(torch.tensor(torch.inf, device=device))
 
     def step(self):
         """
@@ -85,38 +86,30 @@ class PSO(Algorithm):
         the cognitive component (personal best), and the social component (global
         best). The population positions are then updated using the new velocities.
         """
-        fitness = self.evaluate(self.population)
-        compare = self.local_best_fitness > fitness
-        self.local_best_location = torch.where(compare[:, None], self.population, self.local_best_location)
-        self.local_best_fitness = torch.where(compare, fitness, self.local_best_fitness)
-        self.global_best_location, self.global_best_fitness = min_by(
-            [self.global_best_location.unsqueeze(0), self.population],
-            [self.global_best_fitness.unsqueeze(0), fitness],
+        compare = self.local_best_fit > self.fit
+        self.local_best_location = torch.where(compare[:, None], self.pop, self.local_best_location)
+        self.local_best_fit = torch.where(compare, self.fit, self.local_best_fit)
+        self.global_best_location, self.global_best_fit = min_by(
+            [self.global_best_location.unsqueeze(0), self.pop],
+            [self.global_best_fit.unsqueeze(0), self.fit],
         )
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
+        rg = torch.rand(self.pop_size, self.dim, device=self.fit.device)
+        rp = torch.rand(self.pop_size, self.dim, device=self.fit.device)
         velocity = (
             self.w * self.velocity
-            + self.phi_p * rp * (self.local_best_location - self.population)
-            + self.phi_g * rg * (self.global_best_location - self.population)
+            + self.phi_p * rp * (self.local_best_location - self.pop)
+            + self.phi_g * rg * (self.global_best_location - self.pop)
         )
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
+        pop = self.pop + velocity
+        self.pop = clamp(pop, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)
+        self.fit = self.evaluate(self.pop)
 
     def init_step(self):
         """Perform the first step of the PSO optimization.
 
         See `step` for more details.
         """
-        fitness = self.evaluate(self.population)
-        self.local_best_fitness = fitness
-        self.local_best_location = self.population
-        best_index = torch.argmin(fitness)
-        self.global_best_location = self.population[best_index]
-        self.global_best_fitness = fitness[best_index]
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        velocity = self.w * self.velocity + self.phi_g * rg * (self.global_best_location - self.population)
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
-        self.velocity = clamp(velocity, self.lb, self.ub)
+        self.fit = self.evaluate(self.pop)
+        self.local_best_fit = self.fit
+        self.global_best_fit = torch.min(self.fit)

@@ -182,3 +182,9 @@ class CMAES(Algorithm):
         D = torch.sqrt(D)
         D = B @ D
         return B.T, D, C_invsqrt
+
+    def record_step(self):
+        return {
+            "mean": self.mean,
+            "sigma": self.sigma,
+        }

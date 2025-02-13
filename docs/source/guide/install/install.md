@@ -13,10 +13,10 @@ pip install torch
 pip install evox
 ```
 
-You can also assign extra options during the installation, currently available extras are `gymnasium`, `neuroevolution`, `envpool`, `distributed`, and `full`. For example, to install EvoX with all features, run the following command:
+You can also assign extra options during the installation, currently available extras are `vis`, `neuroevolution`, `test`, `docs`. For example, to install EvoX with all features, run the following command:
 
 ```bash
-pip install evox[full]
+pip install evox[vis,neuroevolution]
 ```
 
 ## Install PyTorch with accelerator support

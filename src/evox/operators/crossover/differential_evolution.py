@@ -21,15 +21,15 @@ def DE_differential_sum(
     device = population.device
     pop_size = population.size(0)
     if num_diff_vectors.ndim == 0:
-        num_diff_vectors = num_diff_vectors[None].expand(pop_size)
+        num_diff_vectors = num_diff_vectors.unsqueeze(0)
 
     select_len = num_diff_vectors.unsqueeze(1) * 2 + 1
     rand_indices = torch.randint(0, pop_size, (pop_size, diff_padding_num), device=device)
-    rand_indices = torch.where(rand_indices == index.unsqueeze(1), torch.tensor(pop_size - 1, device=device), rand_indices)
+    rand_indices = torch.where(rand_indices == index.unsqueeze(1), pop_size - 1, rand_indices)
 
     pop_permute = population[rand_indices]
-    mask = torch.tile(torch.arange(diff_padding_num, device=device), (pop_size, 1)) < select_len
-    pop_permute_padding = torch.where(mask.unsqueeze(2), pop_permute, torch.zeros_like(pop_permute))
+    mask = torch.arange(diff_padding_num, device=device).unsqueeze(0) < select_len
+    pop_permute_padding = torch.where(mask.unsqueeze(2), pop_permute, 0)
 
     diff_vectors = pop_permute_padding[:, 1:]
     difference_sum = diff_vectors[:, 0::2].sum(dim=1) - diff_vectors[:, 1::2].sum(dim=1)

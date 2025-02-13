@@ -17,6 +17,7 @@ class ARS(Algorithm):
     More information about evosax can be found at the following URL:
     GitHub Link: https://github.com/RobertTLange/evosax
     """
+
     def __init__(
         self,
         pop_size: int,
@@ -95,3 +96,6 @@ class ARS(Algorithm):
                 self.lr,
             )
         self.center = center
+
+    def record_step(self):
+        return {"center": self.center}

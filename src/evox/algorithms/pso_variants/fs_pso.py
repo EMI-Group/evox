@@ -55,65 +55,70 @@ class FSPSO(Algorithm):
         self.lb = lb
         self.ub = ub
         if mean is not None and stdev is not None:
-            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
-            population = clamp(population, self.lb, self.ub)
+            pop = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
+            pop = clamp(pop, self.lb, self.ub)
             velocity = stdev * torch.randn(self.pop_size, self.dim, device=device)
         else:
-            population = torch.rand(self.pop_size, self.dim, device=device)
-            population = population * length + self.lb
+            pop = torch.rand(self.pop_size, self.dim, device=device)
+            pop = pop * length + self.lb
             velocity = torch.rand(self.pop_size, self.dim, device=device)
             velocity = velocity * length * 2 - length
         # mutable
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
+        self.fit = Mutable(torch.empty(self.pop_size, device=device))
         self.velocity = Mutable(velocity)
-        self.local_best_location = Mutable(population)
-        self.local_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = Mutable(population[0])
-        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
+        self.local_best_location = Mutable(pop)
+        self.local_best_fit = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.global_best_location = Mutable(pop[0])
+        self.global_best_fit = Mutable(torch.tensor(torch.inf, device=device))
+
+    def init_step(self):
+        self.fit = self.evaluate(self.pop)
+        self.local_best_fit = self.fit
+        self.global_best_fit = torch.min(self.fit)
 
     def step(self):
         """Perform a normal optimization step using FSPSO."""
 
-        fitness = self.evaluate(self.population)
-        device = self.population.device
+        device = self.pop.device
         # ----------------Enhancement----------------
-        ranked_index = torch.argsort(fitness)
+        ranked_index = torch.argsort(self.fit)
         half_pop_size = self.pop_size // 2
         elite_index = ranked_index[:half_pop_size]
-        elite_population = self.population[elite_index]
+        elite_pop = self.pop[elite_index]
         elite_velocity = self.velocity[elite_index]
-        elite_fitness = fitness[elite_index]
+        elite_fit = self.fit[elite_index]
         elite_local_best_location = self.local_best_location[elite_index]
-        elite_local_best_fitness = self.local_best_fitness[elite_index]
+        elite_local_best_fit = self.local_best_fit[elite_index]
 
-        compare = elite_local_best_fitness > elite_fitness
-        local_best_location = torch.where(compare[:, None], elite_population, elite_local_best_location)
-        local_best_fitness = torch.where(compare, elite_fitness, elite_local_best_fitness)
+        compare = elite_local_best_fit > elite_fit
+        local_best_location = torch.where(compare[:, None], elite_pop, elite_local_best_location)
+        local_best_fit = torch.where(compare, elite_fit, elite_local_best_fit)
 
-        global_best_location, global_best_fitness = min_by(
-            [self.global_best_location[None, :], elite_population],
-            [self.global_best_fitness.unsqueeze(0), elite_fitness],
+        global_best_location, global_best_fit = min_by(
+            [self.global_best_location[None, :], elite_pop],
+            [self.global_best_fit.unsqueeze(0), elite_fit],
         )
 
         rg = torch.rand(half_pop_size, self.dim, device=device)
         rp = torch.rand(half_pop_size, self.dim, device=device)
         updated_elite_velocity = (
             self.w * elite_velocity
-            + self.phi_p * rp * (elite_local_best_location - elite_population)
-            + self.phi_g * rg * (global_best_location - elite_population)
+            + self.phi_p * rp * (elite_local_best_location - elite_pop)
+            + self.phi_g * rg * (global_best_location - elite_pop)
         )
-        updated_elite_population = elite_population + updated_elite_velocity
-        updated_elite_population = clamp(updated_elite_population, self.lb, self.ub)
+        updated_elite_pop = elite_pop + updated_elite_velocity
+        updated_elite_pop = clamp(updated_elite_pop, self.lb, self.ub)
         updated_elite_velocity = clamp(updated_elite_velocity, self.lb, self.ub)
 
         # ----------------Crossover----------------
         tournament1 = torch.randint(0, half_pop_size, (half_pop_size,), device=device)
         tournament2 = torch.randint(0, half_pop_size, (half_pop_size,), device=device)
-        compare = elite_fitness[tournament1] < elite_fitness[tournament2]
+        compare = elite_fit[tournament1] < elite_fit[tournament2]
         mutating_pool = torch.where(compare, tournament1, tournament2)
 
         # Extend (mutate and create new generation)
-        original_population = elite_population[mutating_pool]
+        original_population = elite_pop[mutating_pool]
         offspring_velocity = elite_velocity[mutating_pool]
 
         offset = (2 * torch.rand(half_pop_size, self.dim, device=device) - 1) * (self.ub - self.lb)
@@ -122,16 +127,18 @@ class FSPSO(Algorithm):
         offspring_population = original_population + torch.where(mask, offset, 0)
         offspring_population = clamp(offspring_population, self.lb, self.ub)
         offspring_local_best_location = offspring_population
-        offspring_local_best_fitness = torch.full((half_pop_size,), float("inf"), device=device)
+        offspring_local_best_fit = torch.full((half_pop_size,), float("inf"), device=device)
 
         # Concatenate updated and offspring populations
-        population = torch.cat([updated_elite_population, offspring_population], dim=0)
+        pop = torch.cat([updated_elite_pop, offspring_population], dim=0)
         velocity = torch.cat([updated_elite_velocity, offspring_velocity], dim=0)
         local_best_location = torch.cat([local_best_location, offspring_local_best_location], dim=0)
-        local_best_fitness = torch.cat([local_best_fitness, offspring_local_best_fitness], dim=0)
-        self.population = population
+        local_best_fit = torch.cat([local_best_fit, offspring_local_best_fit], dim=0)
+        self.pop = pop
         self.velocity = velocity
         self.local_best_location = local_best_location
-        self.local_best_fitness = local_best_fitness
+        self.local_best_fit = local_best_fit
         self.global_best_location = global_best_location
-        self.global_best_fitness = global_best_fitness
+        self.global_best_fit = global_best_fit
+
+        self.fit = self.evaluate(self.pop)

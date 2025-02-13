@@ -51,17 +51,23 @@ class CLPSO(Algorithm):
         self.P_c = Parameter(learning_probability, device=device)
         # get initial value
         length = self.ub - self.lb
-        population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + self.lb
+        pop = torch.rand(self.pop_size, self.dim, device=device)
+        pop = length * pop + self.lb
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # set mutable
-        self.population = Mutable(population)
+        self.pop = Mutable(pop)
+        self.fit = Mutable(torch.empty(self.pop_size, device=device))
         self.velocity = Mutable(velocity)
-        self.personal_best_location = Mutable(population)
-        self.personal_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = Mutable(population[0])
-        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
+        self.personal_best_location = Mutable(pop)
+        self.personal_best_fit = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
+        self.global_best_location = Mutable(pop[0])
+        self.global_best_fit = Mutable(torch.tensor(torch.inf, device=device))
+
+    def init_step(self):
+        self.fit = self.evaluate(self.pop)
+        self.personal_best_fit = self.fit
+        self.global_best_fit = torch.min(self.fit)
 
     def step(self):
         """
@@ -82,26 +88,25 @@ class CLPSO(Algorithm):
         best). The population positions are then updated using the new velocities.
         """
         # evaluate
-        fitness = self.evaluate(self.population)
-        device = self.population.device
+        device = self.pop.device
         # Generate random values
         random_coefficient = torch.rand(self.pop_size, self.dim, device=device)
         rand1_index = torch.randint(size=(self.pop_size,), low=0, high=self.pop_size, device=device)
         rand2_index = torch.randint(size=(self.pop_size,), low=0, high=self.pop_size, device=device)
         rand_possibility = torch.rand(self.pop_size, device=device)
         learning_index = torch.where(
-            self.personal_best_fitness[rand1_index] < self.personal_best_fitness[rand2_index],
+            self.personal_best_fit[rand1_index] < self.personal_best_fit[rand2_index],
             rand1_index,
             rand2_index,
         )
         # Update personal_best
-        compare = self.personal_best_fitness > fitness
-        self.personal_best_location = torch.where(compare[:, None], self.population, self.personal_best_location)
-        self.personal_best_fitness = torch.where(compare, fitness, self.personal_best_fitness)
+        compare = self.personal_best_fit > self.fit
+        self.personal_best_location = torch.where(compare[:, None], self.pop, self.personal_best_location)
+        self.personal_best_fit = torch.where(compare, self.fit, self.personal_best_fit)
         # Update global_best
-        self.global_best_location, self.global_best_fitness = min_by(
-            [self.global_best_location[None, :], self.population],
-            [self.global_best_fitness.unsqueeze(0), fitness],
+        self.global_best_location, self.global_best_fit = min_by(
+            [self.global_best_location[None, :], self.pop],
+            [self.global_best_fit.unsqueeze(0), self.fit],
         )
         # Choose personal_best
         learning_personal_best = self.personal_best_location[learning_index, :]
@@ -111,7 +116,8 @@ class CLPSO(Algorithm):
             self.personal_best_location,
         )
         # Update velocity and position
-        velocity = self.w * self.velocity + self.c * random_coefficient * (personal_best - self.population)
+        velocity = self.w * self.velocity + self.c * random_coefficient * (personal_best - self.pop)
         self.velocity = clamp(velocity, self.lb, self.ub)
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
+        pop = self.pop + velocity
+        self.pop = clamp(pop, self.lb, self.ub)
+        self.fit = self.evaluate(self.pop)

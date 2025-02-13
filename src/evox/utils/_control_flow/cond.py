@@ -233,6 +233,16 @@ class TracingCond(ModuleBase):
             example_inputs=(state_false_fn.init_state(False),) + original_args,
         )
 
+        def _cond0(
+            state: Dict[str, torch.Tensor],
+            condition: torch.Tensor,
+        ):
+            if condition:
+                x = true_fn(state)
+            else:
+                x = false_fn(state)
+            return x
+
         def _cond1(
             state: Dict[str, torch.Tensor],
             condition: torch.Tensor,
@@ -368,7 +378,18 @@ class TracingCond(ModuleBase):
                 x = false_fn(state, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             return x
 
-        cond_dict = {1: _cond1, 2: _cond2, 3: _cond3, 4: _cond4, 5: _cond5, 6: _cond6, 7: _cond7, 8: _cond8, 9: _cond9}
+        cond_dict = {
+            0: _cond0,
+            1: _cond1,
+            2: _cond2,
+            3: _cond3,
+            4: _cond4,
+            5: _cond5,
+            6: _cond6,
+            7: _cond7,
+            8: _cond8,
+            9: _cond9,
+        }
         assert len(original_args) <= len(
             cond_dict
         ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
