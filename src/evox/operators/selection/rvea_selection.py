@@ -24,7 +24,7 @@ def apd_fn(
     """
     selected_z = torch.gather(z, 0, torch.relu(x))
     left = (1 + obj.size(1) * theta * selected_z) / y[None, :]
-    norm_obj = torch.linalg.vector_norm(obj**2, dim=1)
+    norm_obj = torch.linalg.vector_norm(obj, dim=1)
     right = norm_obj[x]
     return left * right
 
