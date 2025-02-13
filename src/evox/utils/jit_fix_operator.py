@@ -29,8 +29,9 @@ def clamp(a: torch.Tensor, lb: torch.Tensor, ub: torch.Tensor) -> torch.Tensor:
     of `lb` and not greater than the corresponding element of `ub`.
 
     ## Notice
-    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
-    2. This is NOT a precise replication of `torch.clamp` if `a`, `lb` or `ub` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
+    This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.clamp` if `a`, `lb` or `ub` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
 
     :param a: The input tensor to be clamped.
     :param lb: The lower bound tensor. Must be broadcastable to the shape of `a`.
@@ -50,8 +51,9 @@ def clamp_float(a: torch.Tensor, lb: float, ub: float) -> torch.Tensor:
     This function ensures that each element of the tensor `a` is not less than `lb` and not greater than `ub`.
 
     ## Notice
-    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
-    2. This is NOT a precise replication of `torch.clamp` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
+    This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.clamp` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
 
     :param a: The input tensor to be clamped.
     :param lb: The lower bound value. Each element of `a` will be clamped to be not less than `lb`.
@@ -71,8 +73,9 @@ def clamp_int(a: torch.Tensor, lb: int, ub: int) -> torch.Tensor:
     This function ensures that each element of the tensor `a` is not less than `lb` and not greater than `ub`.
 
     ## Notice
-    1. This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion.
-    2. This is NOT a precise replication of `torch.clamp` if `a` is a int tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
+    This is a fix function for [`torch.clamp`](https://pytorch.org/docs/stable/generated/torch.clamp.html) since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.clamp` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.clamp` instead if a precise clamp is required.
 
     :param a: The input tensor to be clamped.
     :param lb: The lower bound value. Each element of `a` will be clamped to be not less than `lb`.
@@ -106,7 +109,10 @@ def maximum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Element-wise maximum of two input tensors `a` and `b`.
 
-    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.maximum` if `a` or `b` is a float tensor and may suffer from numerical precision losses. Please use `torch.maximum` instead if a precise maximum is required.
 
     :param a: The first input tensor.
     :param b: The second input tensor.
@@ -121,7 +127,10 @@ def minimum(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     """
     Element-wise minimum of two input tensors `a` and `b`.
 
-    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.minimum` if `a` or `b` is a float tensor and may suffer from numerical precision losses. Please use `torch.minimum` instead if a precise minimum is required.
 
     :param a: The first input tensor.
     :param b: The second input tensor.
@@ -136,7 +145,10 @@ def maximum_float(a: torch.Tensor, b: float) -> torch.Tensor:
     """
     Element-wise maximum of input tensor `a` and float `b`.
 
-    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.maximum` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.maximum` instead if a precise maximum is required.
 
     :param a: The first input tensor.
     :param b: The second input float, which is a scalar value.
@@ -151,8 +163,10 @@ def minimum_float(a: torch.Tensor, b: float) -> torch.Tensor:
     """
     Element-wise minimum of input tensor `a` and float `b`.
 
-    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
-    since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.minimum` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.minimum` instead if a precise minimum is required.
 
     :param a: The first input tensor.
     :param b: The second input float, which is a scalar value.
@@ -167,7 +181,10 @@ def maximum_int(a: torch.Tensor, b: int) -> torch.Tensor:
     """
     Element-wise maximum of input tensor `a` and int `b`.
 
-    Notice: This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.maximum`](https://pytorch.org/docs/stable/generated/torch.maximum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.maximum` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.maximum` instead if a precise maximum is required.
 
     :param a: The first input tensor.
     :param b: The second input int, which is a scalar value.
@@ -182,8 +199,10 @@ def minimum_int(a: torch.Tensor, b: int) -> torch.Tensor:
     """
     Element-wise minimum of input tensor `a` and int `b`.
 
-    Notice: This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html)
-    since it is not supported in JIT operator fusion.
+    ## Notice
+    This is a fix function for [`torch.minimum`](https://pytorch.org/docs/stable/generated/torch.minimum.html] since it is not supported in JIT operator fusion yet.
+    ## Warning
+    This is NOT a precise replication of `torch.minimum` if `a` is a float tensor and may suffer from numerical precision losses. Please use `torch.minimum` instead if a precise minimum is required.
 
     :param a: The first input tensor.
     :param b: The second input int, which is a scalar value.

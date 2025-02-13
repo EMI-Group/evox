@@ -4,7 +4,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from ..core import ModuleBase, jit, jit_class
+from ..core import ModuleBase, jit, jit_class, trace_impl
 from ..core._vmap_fix import tree_flatten, tree_unflatten
 
 
@@ -20,7 +20,7 @@ class ParamsAndVector(ModuleBase):
         """
         super().__init__()
         params = dict(dummy_model.named_parameters())
-        flat_params, param_spec = tree_flatten(params)
+        flat_params, self.param_spec = tree_flatten(params)
 
         self._jit_tree_flatten = jit(
             lambda x: tree_flatten(x)[0],
@@ -29,7 +29,7 @@ class ParamsAndVector(ModuleBase):
             example_inputs=(params,),
         )
         self._jit_tree_unflatten = jit(
-            lambda x: tree_unflatten(x, param_spec),
+            lambda x: tree_unflatten(x, self.param_spec),
             trace=True,
             lazy=False,
             example_inputs=(flat_params,),
@@ -49,6 +49,20 @@ class ParamsAndVector(ModuleBase):
         self.start_indices = tuple(start_indices)
         self.slice_sizes = tuple(slice_sizes)
 
+    def _tree_flatten(self, x: Dict[str, nn.Parameter]) -> List[nn.Parameter]:
+        return self._jit_tree_flatten(x)
+
+    def _tree_unflatten(self, x: List[nn.Parameter]) -> Dict[str, nn.Parameter]:
+        return self._jit_tree_unflatten(x)
+
+    @trace_impl(_tree_flatten)
+    def _trace_tree_flatten(self, x: Dict[str, nn.Parameter]) -> List[nn.Parameter]:
+        return tree_flatten(x)[0]
+
+    @trace_impl(_tree_unflatten)
+    def _trace_tree_unflatten(self, x: List[nn.Parameter]) -> Dict[str, nn.Parameter]:
+        return tree_unflatten(x, self.param_spec)
+
     def to_vector(self, params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Convert the input parameters dictionary to a single vector.
 
@@ -57,7 +71,7 @@ class ParamsAndVector(ModuleBase):
         :return: The output vector obtained by concatenating the flattened parameters.
         """
 
-        flat_params: List[nn.Parameter] = self._jit_tree_flatten(params)
+        flat_params: List[nn.Parameter] = self._tree_flatten(params)
         flat_params = [x.reshape(-1) for x in flat_params]
         return torch.concat(flat_params, dim=0)
 
@@ -70,8 +84,8 @@ class ParamsAndVector(ModuleBase):
 
         :return: The output vectors obtained by concatenating the flattened batched parameters. The first dimension of the output vector corresponds to the batch size.
         """
-        flat_params: List[nn.Parameter] = self._jit_tree_flatten(batched_params)
-        flat_params = [x.reshape(x.shape[0], -1) for x in flat_params]
+        flat_params: List[nn.Parameter] = self._tree_flatten(batched_params)
+        flat_params = [x.reshape((x.size(0), -1)) for x in flat_params]
         return torch.concat(flat_params, dim=1)
 
     def to_params(self, vector: torch.Tensor) -> Dict[str, nn.Parameter]:
@@ -84,7 +98,7 @@ class ParamsAndVector(ModuleBase):
         flat_params = []
         for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
             flat_params.append(vector.narrow(dim=0, start=start_index, length=slice_size).reshape(shape))
-        return self._jit_tree_unflatten(flat_params)
+        return self._tree_unflatten(flat_params)
 
     def batched_to_params(self, vectors: torch.Tensor) -> Dict[str, nn.Parameter]:
         """Convert a batch of vectors back to a batched parameters dictionary.
@@ -94,10 +108,10 @@ class ParamsAndVector(ModuleBase):
         :return: The reconstructed batched parameters dictionary whose tensors' first dimensions correspond to the batch size.
         """
         flat_params = []
-        batch_size = vectors.shape[0]
+        batch_size = vectors.size(0)
         for start_index, slice_size, shape in zip(self.start_indices, self.slice_sizes, self.shapes):
             flat_params.append(vectors.narrow(dim=1, start=start_index, length=slice_size).reshape(batch_size, *shape))
-        return self._jit_tree_unflatten(flat_params)
+        return self._tree_unflatten(flat_params)
 
     def forward(self, x: torch.Tensor) -> Dict[str, nn.Parameter]:
         """The forward function for the `ParamsAndVector` module is an alias of `batched_to_params` to cope with `StdWorkflow`."""
