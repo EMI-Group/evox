@@ -228,7 +228,7 @@ def jit(
     no_cache: bool = False,
     return_dummy_output: bool = False,
     debug_manual_seed: int | None = None,
-) -> T | UseStateFunc | MappedUseStateFunc:
+) -> T | UseStateFunc | MappedUseStateFunc | Tuple[T | UseStateFunc | MappedUseStateFunc, Any]:
     """Just-In-Time (JIT) compile the given `func` via [`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html) (`trace=True`) or [`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html) (`trace=False`).
 
     This function wrapper effectively deals with nested JIT and vector map (`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`,
@@ -250,7 +250,7 @@ def jit(
     :param return_dummy_output: Whether to return the dummy output of `func` as the second output or not. Defaults to False. Has no effect when `trace=False` or `lazy=True` or `no_cache=True`.
     :param debug_manual_seed: The manual seed to be set before each running of the function. Defaults to None. Has no effect when `trace=False`. None means no manual seed will be set. Notice that any value other than None changes the GLOBAL random seed.
 
-    :return: The JIT version of `func`
+    :return: The JIT version of `func`. If `return_dummy_output=True` works, returns the JIT function and its dummy output.
     """
     if is_generator:
         func = func()
