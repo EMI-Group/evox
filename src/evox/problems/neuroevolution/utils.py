@@ -52,9 +52,9 @@ def get_vmap_model_state_forward(
             example_inputs=(model_init_state, dummy_single_inputs),
             return_dummy_output=True,
         )
-        assert check_single_output(
-            dummy_single_outputs
-        ), f"Single forward evaluation assertion failed for {dummy_single_outputs}"
+        assert check_single_output(dummy_single_outputs), (
+            f"Single forward evaluation assertion failed for {dummy_single_outputs}"
+        )
 
     vmap_state_forward = vmap(state_forward, in_dims=vmap_in_dims)
     vmap_model_init_state = vmap_state_forward.init_state(pop_size, expand=False)
@@ -75,9 +75,10 @@ def get_vmap_model_state_forward(
         for params_key, params_value in model_params.items()
         if torch.equal(state_value, params_value)
     }
+    state_param_keys = list(param_to_state_key_map.values())
     # Model parameters and buffers registration
     if get_non_vmap:
-        model_buffers = {key: value for key, value in model_init_state.items() if key not in param_to_state_key_map}
+        model_buffers = {key: value for key, value in model_init_state.items() if key not in state_param_keys}
         non_vmap_result = ModelStateForwardResult(
             model_init_state,
             jit_state_forward,
@@ -86,7 +87,7 @@ def get_vmap_model_state_forward(
             model_buffers,
         )
 
-    vmap_model_buffers = {key: value for key, value in vmap_model_init_state.items() if key not in param_to_state_key_map}
+    vmap_model_buffers = {key: value for key, value in vmap_model_init_state.items() if key not in state_param_keys}
     vmap_result = ModelStateForwardResult(
         vmap_model_init_state,
         jit_vmap_state_forward,
