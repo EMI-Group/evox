@@ -7,6 +7,8 @@ __all__ = [
     "register_fix_function",
     "unregister_fix_function",
     "use_batch_fixing",
+    "tree_flatten",
+    "tree_unflatten",
     "_set_func_id",
 ]
 
@@ -50,7 +52,7 @@ else:
     current_level = _functorch.maybe_current_level
 
 from torch import nn
-from torch.utils._pytree import tree_flatten, tree_unflatten  # noqa: F401
+from torch.utils._pytree import tree_flatten, tree_unflatten
 
 if "Buffer" not in nn.__dict__:
     nn.Buffer = nn.parameter.Buffer
@@ -570,29 +572,3 @@ def align_vmap_tensor(value: Any, current_value: Any | None) -> torch.Tensor:
         value = value.unsqueeze(dim).expand(*value.shape[:dim], size, *value.shape[dim:])
     value = wrap_batch_tensor(value, batch_dims)
     return value
-
-
-def _debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
-    print(format.format(arg))
-    return arg
-
-
-def debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
-    """Prints a formatted string with one positional tensor used for debugging inside JIT traced functions on-the-fly.
-
-    When vectorized-mapping, it unwraps the batched tensor to print the underlying values.
-    Otherwise, the function behaves like `format.format(*args, **kwargs)`.
-
-    :param format: A string format.
-    :param arg: The positional tensor.
-    :return: The unchanged tensor.
-    """
-    level = current_level()
-    if level is None or level <= 0:
-        inner_arg = arg
-    else:
-        inner_arg = unwrap_batch_tensor(arg)[0]
-    return torch.jit.script_if_tracing(_debug_print)(format, inner_arg)
-
-
-debug_print.__prepare_scriptable__ = lambda: _debug_print

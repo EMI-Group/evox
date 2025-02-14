@@ -365,3 +365,29 @@ def jit(
 
     _vmap_fix._set_func_id(jit_wrapper, func)
     return jit_wrapper
+
+
+def _debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
+    print(format.format(arg))
+    return arg
+
+
+def debug_print(format: str, arg: torch.Tensor) -> torch.Tensor:
+    """Prints a formatted string with one positional tensor used for debugging inside JIT traced functions on-the-fly.
+
+    When vectorized-mapping, it unwraps the batched tensor to print the underlying values.
+    Otherwise, the function behaves like `format.format(*args, **kwargs)`.
+
+    :param format: A string format.
+    :param arg: The positional tensor.
+    :return: The unchanged tensor.
+    """
+    level = _vmap_fix.current_level()
+    if level is None or level <= 0:
+        inner_arg = arg
+    else:
+        inner_arg = _vmap_fix.unwrap_batch_tensor(arg)[0]
+    return torch.jit.script_if_tracing(_debug_print)(format, inner_arg)
+
+
+debug_print.__prepare_scriptable__ = lambda: _debug_print
