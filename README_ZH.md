@@ -32,6 +32,11 @@
   <a href="https://qm.qq.com/q/vTPvoMUGAw"><img src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq" alt="QQ 群"></a>
 </div>
 
+<p align="center">
+  <a href="./README.md"><img src="https://img.shields.io/badge/English-f6f5f4" alt="English README"></a>
+  <a href="./README_ZH.md"><img src="https://img.shields.io/badge/中文-f6f5f4" alt="中文 README"></a>
+</p>
+
 ---
 
 <h3 align="center"> 🌟分布式 GPU 加速的可扩展演化计算框架🌟 </h3>
