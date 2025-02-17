@@ -163,7 +163,7 @@ Stay tuned - more exciting developments are on the way!  ✨
 
 If EvoX contributes to your research, please cite it:
 
-```
+```bibtex
 @article{evox,
   title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
   author = {Huang, Beichen and Cheng, Ran and Li, Zhuozhao and Jin, Yaochu and Tan, Kay Chen},
