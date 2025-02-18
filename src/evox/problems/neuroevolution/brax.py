@@ -146,6 +146,8 @@ def _visualize(
 class BraxProblem(Problem):
     """The Brax problem wrapper."""
 
+    _evaluator: _BraxEvaluatorTuple
+
     def __init__(
         self,
         policy: nn.Module,
@@ -249,7 +251,7 @@ class BraxProblem(Problem):
         weakref.finalize(self, __brax_data__.pop, id(self), None)
         # Set constants
         self.reduce_fn = reduce_fn
-        evaluator = (
+        evaluator: _BraxEvaluatorTuple = (
             rotate_key,
             id(self),
             pop_size,
@@ -264,7 +266,7 @@ class BraxProblem(Problem):
         ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
             return evaluate_brax(evaluator, model_state, rand_key, False)
 
-        self._evaluator = evaluator
+        self._evaluator: _BraxEvaluatorTuple = evaluator
         self._jit_evaluator = torch.jit.script(evaluate_brax_script)
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
@@ -289,7 +291,7 @@ class BraxProblem(Problem):
     def _evaluate_brax(
         self, model_state: Dict[str, torch.Tensor], rand_key: torch.Tensor
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        return self._jit_evaluator(self._evaluator, model_state, rand_key)
+        return evaluate_brax(self._evaluator, model_state, rand_key, False)
 
     @trace_impl(_evaluate_brax)
     def _trace_evaluate_brax(
