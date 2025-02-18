@@ -1,7 +1,7 @@
 __all__ = ["BraxProblem"]
 
 import weakref
-from typing import Any, Callable, Dict, NamedTuple, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 import jax
 import jax.numpy as jnp
