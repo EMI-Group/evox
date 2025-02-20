@@ -37,6 +37,7 @@ from .jit_fix_operator import (
     switch,
 )
 from .parameters_and_vector import ParamsAndVector
+from .re_export import tree_flatten, tree_unflatten
 
 
 ################### NOTICE ###################

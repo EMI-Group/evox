@@ -4,8 +4,8 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from ..core import ModuleBase, jit, jit_class, trace_impl
-from ..core._vmap_fix import tree_flatten, tree_unflatten
+from ..core import ModuleBase
+from .re_export import tree_flatten, tree_unflatten
 
 
 class ParamsAndVector(ModuleBase):
@@ -21,21 +21,11 @@ class ParamsAndVector(ModuleBase):
         params = dict(dummy_model.named_parameters())
         flat_params, self.param_spec = tree_flatten(params)
 
-        self._jit_tree_flatten = jit(
-            lambda x: tree_flatten(x)[0],
-            trace=True,
-            lazy=False,
-        )
-        self._jit_tree_unflatten = jit(
-            lambda x: tree_unflatten(x, self.param_spec),
-            trace=True,
-            lazy=False,
-            example_inputs=(flat_params,),
-        )
-
         shapes = [x.shape for x in flat_params]
         start_indices = []
         slice_sizes = []
+        index = 0
+        for shape in shapes:
             start_indices.append(index)
             size = prod(shape)
             slice_sizes.append(size)
@@ -46,17 +36,9 @@ class ParamsAndVector(ModuleBase):
         self.slice_sizes = tuple(slice_sizes)
 
     def _tree_flatten(self, x: Dict[str, nn.Parameter]) -> List[nn.Parameter]:
-        return self._jit_tree_flatten(x)
-
-    def _tree_unflatten(self, x: List[nn.Parameter]) -> Dict[str, nn.Parameter]:
-        return self._jit_tree_unflatten(x)
-
-    @trace_impl(_tree_flatten)
-    def _trace_tree_flatten(self, x: Dict[str, nn.Parameter]) -> List[nn.Parameter]:
         return tree_flatten(x)[0]
 
-    @trace_impl(_tree_unflatten)
-    def _trace_tree_unflatten(self, x: List[nn.Parameter]) -> Dict[str, nn.Parameter]:
+    def _tree_unflatten(self, x: List[nn.Parameter]) -> Dict[str, nn.Parameter]:
         return tree_unflatten(x, self.param_spec)
 
     def to_vector(self, params: Dict[str, nn.Parameter]) -> torch.Tensor:

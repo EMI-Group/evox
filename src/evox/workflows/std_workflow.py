@@ -115,11 +115,6 @@ class StdWorkflow(Workflow):
 
         # set algorithm evaluate
         self.algorithm.evaluate = self._evaluate
-        self.algorithm._problem_ = problem
-        self.algorithm._monitor_ = monitor
-        self.algorithm._solution_transform_ = solution_transform
-        self.algorithm._fitness_transform_ = fitness_transform
-        # for compilation, will be removed later
         self.monitor = monitor
         self.problem = problem
         self.solution_transform = solution_transform
@@ -144,7 +139,7 @@ class StdWorkflow(Workflow):
         else:
             self.algorithm.step()
 
-        self.algorithm.record_step()
+        self.monitor.record_auxiliary(self.algorithm.record_step())
 
     def init_step(self):
         """
