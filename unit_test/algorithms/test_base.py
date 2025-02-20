@@ -26,17 +26,20 @@ class Sphere(Problem):
 
 class TestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
+        state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
         workflow = StdWorkflow()
         workflow.setup(algo, prob, monitor)
         workflow.init_step()
         self.assertIsNotNone(workflow.get_submodule("monitor").topk_fitness)
-        step = torch.compile(workflow.step)
         for _ in range(3):
-            step()
+            workflow.step()
+        # reset state
+        algo.load_state_dict(state_dict)
 
     def run_trace_algorithm(self, algo: Algorithm):
+        state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
         workflow = StdWorkflow()
@@ -45,6 +48,8 @@ class TestBase(TestCase):
         jit_state_step = torch.compile(workflow.step)
         for _ in range(3):
             jit_state_step()
+        # reset state
+        algo.load_state_dict(state_dict)
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = Sphere()
