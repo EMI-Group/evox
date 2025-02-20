@@ -4,10 +4,9 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from evox.core import ModuleBase, jit_class, trace_impl, use_state
+from evox.core import ModuleBase, trace_impl, use_state
 
 
-@jit_class
 class DummyModule(ModuleBase):
     def __init__(self, threshold=0.5):
         super().__init__()

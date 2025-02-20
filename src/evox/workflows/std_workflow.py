@@ -2,8 +2,7 @@ from typing import Any, Dict
 
 import torch
 
-from ..core import Algorithm, Monitor, Problem, Workflow, jit_class
-from ..core.module import _WrapClassBase
+from ..core import Algorithm, Monitor, Problem, Workflow
 
 
 class _NegModule(torch.nn.Module):
@@ -11,7 +10,6 @@ class _NegModule(torch.nn.Module):
         return -x
 
 
-@jit_class
 class StdWorkflow(Workflow):
     """The standard workflow.
 

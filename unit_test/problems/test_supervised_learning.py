@@ -8,7 +8,7 @@ import torchvision
 from torch.utils.data import DataLoader
 
 from evox.algorithms import PSO
-from evox.core import Algorithm, Mutable, Parameter, jit_class
+from evox.core import Algorithm, Mutable, Parameter
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -264,7 +264,6 @@ class TestSupervisedLearningProblem(unittest.TestCase):
         )
         single_problem.setup()
 
-        @jit_class
         class RandAlgorithm(Algorithm):
             def __init__(self, lb, ub):
                 super().__init__()

@@ -2,14 +2,13 @@ import unittest
 
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter, Problem, jit_class, trace_impl
+from evox.core import Algorithm, Mutable, Parameter, Problem, trace_impl
 from evox.metrics import igd
 from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
 from evox.problems.numerical import DTLZ1
 from evox.workflows import StdWorkflow
 
 
-@jit_class
 class BasicProblem(Problem):
     def __init__(self):
         super().__init__()
@@ -18,7 +17,6 @@ class BasicProblem(Problem):
         return (x * x).sum(-1)
 
 
-@jit_class
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor, device: torch.device | None = None):
         super().__init__()

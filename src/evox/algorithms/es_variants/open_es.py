@@ -2,11 +2,10 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from .adam_step import adam_single_tensor
 
 
-@jit_class
 class OpenES(Algorithm):
     """The OpenES algorithm as described in "Evolution Strategies as a Scalable Alternative to Reinforcement Learning" from https://arxiv.org/abs/1703.03864."""
 

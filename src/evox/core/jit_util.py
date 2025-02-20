@@ -8,11 +8,8 @@ import torch
 from ..core import _vmap_fix
 from ..core.module import (
     _EMPTY_NAME,
-    _STATE_ARG_NAME,
     _USE_STATE_NAME,
     UseStateFunc,
-    trace_caching_state_context,
-    tracing_or_using_state,
 )
 
 
@@ -78,9 +75,6 @@ def vmap(
 
     _vmap_fix._set_func_id(vmap_wrapper, func)
     mapped = torch.vmap(vmap_wrapper, in_dims, out_dims, randomness)
-    # when tracing, do nothing
-    if not trace or tracing_or_using_state():
-        return mapped
     if hasattr(func, _USE_STATE_NAME):
         if batched_state is None:
             init_state = func.init_state()

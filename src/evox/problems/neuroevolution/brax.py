@@ -11,7 +11,7 @@ import torch.utils.dlpack
 from brax import envs
 from brax.io import html, image
 
-from ...core import Problem, _vmap_fix, jit_class, trace_impl
+from ...core import Problem
 from .utils import get_vmap_model_state_forward
 
 
@@ -142,7 +142,6 @@ def _visualize(
         return image.render_array(env_sys, trajectory, **kwargs)
 
 
-@jit_class
 class BraxProblem(Problem):
     """The Brax problem wrapper."""
 

@@ -8,7 +8,6 @@ from ..core import ModuleBase, jit, jit_class, trace_impl
 from ..core._vmap_fix import tree_flatten, tree_unflatten
 
 
-@jit_class
 class ParamsAndVector(ModuleBase):
     """The class to convert (batched) parameters dictionary to vector(s) and vice versa."""
 
@@ -26,7 +25,6 @@ class ParamsAndVector(ModuleBase):
             lambda x: tree_flatten(x)[0],
             trace=True,
             lazy=False,
-            example_inputs=(params,),
         )
         self._jit_tree_unflatten = jit(
             lambda x: tree_unflatten(x, self.param_spec),
@@ -38,8 +36,6 @@ class ParamsAndVector(ModuleBase):
         shapes = [x.shape for x in flat_params]
         start_indices = []
         slice_sizes = []
-        index = 0
-        for shape in shapes:
             start_indices.append(index)
             size = prod(shape)
             slice_sizes.append(size)

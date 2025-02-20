@@ -3,11 +3,10 @@ import unittest
 import torch
 import torch.nn as nn
 
-from evox.core import Algorithm, Mutable, Problem, jit, jit_class, trace_impl, use_state, vmap
+from evox.core import Algorithm, Mutable, Problem, jit, trace_impl, use_state, vmap
 from evox.workflows import EvalMonitor, StdWorkflow
 
 
-@jit_class
 class BasicProblem(Problem):
     def __init__(self):
         super().__init__()
@@ -25,7 +24,6 @@ class BasicProblem(Problem):
         return self._eval_fn(pop)
 
 
-@jit_class
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()

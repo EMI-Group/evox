@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from ...core import Problem, jit, jit_class, use_state, vmap
+from ...core import Problem, jit, use_state, vmap
 from .utils import get_vmap_model_state_forward
 
 __supervised_data__: Dict[
@@ -17,7 +17,6 @@ __supervised_data__: Dict[
 # cSpell:words vmapped
 
 
-@jit_class
 class SupervisedLearningProblem(Problem):
     """The supervised learning problem to test a model's parameters or a batch of parameters with given data and criterion."""
 

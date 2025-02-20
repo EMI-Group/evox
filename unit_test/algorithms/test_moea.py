@@ -3,7 +3,7 @@ from unittest import TestCase
 import torch
 
 from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA
-from evox.core import Algorithm, jit, use_state, vmap
+from evox.core import Algorithm, use_state, vmap
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow
 
@@ -22,25 +22,18 @@ class MOTestBase(TestCase):
         workflow = StdWorkflow()
         workflow.setup(algo, prob)
         workflow.init_step()
-        state_step = use_state(lambda: workflow.step)
-        state = state_step.init_state()
-        jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+        jit_state_step = torch.compile(workflow.step)
         for _ in range(3):
-            state = jit_state_step(state)
+            jit_state_step()
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
         workflow = StdWorkflow()
         workflow.setup(algo, prob)
-        state_step = use_state(lambda: workflow.step)
+        state_step = use_state(workflow.step)
         vmap_state_step = vmap(state_step)
-        state = vmap_state_step.init_state(3)
-        vmap_state_step = jit(
-            vmap_state_step,
-            trace=True,
-            lazy=False,
-            example_inputs=(state,),
-        )
+        state = torch.func.stack_module_state([workflow] * 3)
+        vmap_state_step = torch.compile(vmap_state_step)
         for _ in range(3):
             state = vmap_state_step(state)
 

@@ -4,10 +4,9 @@ from typing import List, Optional
 
 import torch
 
-from ...core import Problem, jit_class
+from ...core import Problem
 
 
-@jit_class
 class CEC2022(Problem):
     """The CEC 2022 single-objective test suite Problem"""
 
@@ -83,7 +82,6 @@ class CEC2022(Problem):
 
     def cut(
         self, x: torch.Tensor, Gp: List[float], sh_flag: bool, rot_flag: bool, offset: torch.Tensor, M: torch.Tensor
-
     ) -> List[torch.Tensor]:
         nx = x.size(1)
         G_nx = [ceil(g * nx) for g in Gp]

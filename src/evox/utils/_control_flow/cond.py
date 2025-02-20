@@ -4,13 +4,12 @@ from typing import Dict, List, Sequence, Tuple
 
 import torch
 
-from ...core import ModuleBase, jit, jit_class, trace_impl, use_state, vmap_impl
+from ...core import ModuleBase, use_state
 from .utils import VarArgsCallableMultiRet, _get_cache_key_object, _param_clone
 
 _cond_object_cache = weakref.WeakValueDictionary()
 
 
-@jit_class
 class TracingCond(ModuleBase):
     """A helper class used to trace an if-else control flow."""
 

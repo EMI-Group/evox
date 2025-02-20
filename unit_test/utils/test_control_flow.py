@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.core import ModuleBase, Mutable, jit, jit_class, trace_impl, use_state, vmap
+from evox.core import ModuleBase, Mutable, jit, trace_impl, use_state, vmap
 from evox.utils import TracingCond, TracingSwitch, TracingWhile
 
 
@@ -171,7 +171,6 @@ class TestControlFlow(unittest.TestCase):
         )
 
     def test_jit_module_while_loop(self):
-        @jit_class
         class WhileModule(ModuleBase):
             def __init__(self):
                 super().__init__()
@@ -213,7 +212,6 @@ class TestControlFlow(unittest.TestCase):
         self.assertTrue(torch.allclose(ret[1], torch.tensor([2.0490, 2.7321]), atol=1e-3, rtol=1e-2))
 
     def test_jit_module_cond(self):
-        @jit_class
         class CondModule(ModuleBase):
             def __init__(self):
                 super().__init__()
@@ -239,7 +237,7 @@ class TestControlFlow(unittest.TestCase):
                 def branch1(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
                     # nonlocal local_q ## These lines are not allowed
                     # local_q *= 1.5
-                    return x * y * local_q # However, using read-only nonlocals is allowed
+                    return x * y * local_q  # However, using read-only nonlocals is allowed
 
                 state, keys = self.prepare_control_flow(branch0, branch1)
                 if not hasattr(self, "_cond_"):
@@ -271,7 +269,6 @@ class TestControlFlow(unittest.TestCase):
         self.assertTrue(torch.equal(switch_out[1], torch.tensor([[4, 3], [-6, 8], [4, 4], [-6, -8]])))
 
     def test_jit_module_switch(self):
-        @jit_class
         class SwitchModule(ModuleBase):
             def __init__(self):
                 super().__init__()
@@ -297,7 +294,7 @@ class TestControlFlow(unittest.TestCase):
                 def branch1(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
                     # nonlocal local_q ## These lines are not allowed
                     # local_q *= 1.5
-                    return x * y * local_q # However, using read-only nonlocals is allowed
+                    return x * y * local_q  # However, using read-only nonlocals is allowed
 
                 state, keys = self.prepare_control_flow(branch0, branch1)
                 if not hasattr(self, "_switch_"):

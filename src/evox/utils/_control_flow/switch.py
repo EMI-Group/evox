@@ -4,7 +4,7 @@ from typing import Dict, List, Sequence, Tuple
 
 import torch
 
-from ...core import ModuleBase, jit, jit_class, trace_impl, use_state, vmap_impl
+from ...core import ModuleBase, jit, trace_impl, use_state, vmap_impl
 from ...core.module import UseStateFunc
 from ..jit_fix_operator import switch as _switch
 from .utils import VarArgsCallableMultiRet, _get_cache_key_object, _param_clone
@@ -12,7 +12,6 @@ from .utils import VarArgsCallableMultiRet, _get_cache_key_object, _param_clone
 _switch_object_cache = weakref.WeakValueDictionary()
 
 
-@jit_class
 class TracingSwitch(ModuleBase):
     """A helper class used to trace an match-case (switch-case) control flow."""
 

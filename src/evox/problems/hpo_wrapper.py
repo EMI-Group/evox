@@ -4,7 +4,7 @@ from typing import Callable, Dict, Optional
 import torch
 from torch import nn
 
-from ..core import Monitor, Mutable, Problem, Workflow, jit, jit_class, use_state, vmap
+from ..core import Monitor, Mutable, Problem, Workflow, jit, use_state, vmap
 from ..core.module import _WrapClassBase
 
 
@@ -33,9 +33,9 @@ class HPOFitnessMonitor(HPOMonitor):
             Currently we only support "IGD" or "HV" for multi-objective optimization. Defaults to `None`.
         """
         super().__init__()
-        assert multi_obj_metric is None or callable(multi_obj_metric), (
-            f"Expect `multi_obj_metric` to be `None` or callable, got {multi_obj_metric}"
-        )
+        assert multi_obj_metric is None or callable(
+            multi_obj_metric
+        ), f"Expect `multi_obj_metric` to be `None` or callable, got {multi_obj_metric}"
         self.multi_obj_metric = multi_obj_metric
         self.best_fitness = Mutable(torch.tensor(torch.inf))
 
@@ -62,7 +62,6 @@ class HPOFitnessMonitor(HPOMonitor):
         return self.best_fitness
 
 
-@jit_class
 class HPOProblemWrapper(Problem):
     """The problem for hyper parameter optimization (HPO).
 
@@ -117,9 +116,9 @@ class HPOProblemWrapper(Problem):
             if isinstance(v, nn.Parameter):
                 hyper_param_keys.append(k)
         self._hyper_param_keys_ = hyper_param_keys
-        assert len(monitor_keys) == len(monitor_state), (
-            f"Expect monitor to have {len(monitor_state)} parameters, got {len(monitor_keys)}"
-        )
+        assert len(monitor_keys) == len(
+            monitor_state
+        ), f"Expect monitor to have {len(monitor_state)} parameters, got {len(monitor_keys)}"
 
         def get_monitor_fitness(x: Dict[str, torch.Tensor]):
             final_monitor_state = {sk: x[k] for k, sk in monitor_keys.items()}
@@ -156,9 +155,9 @@ class HPOProblemWrapper(Problem):
         # hyper parameters check
         for k, v in hyper_parameters.items():
             assert k in self._init_state_, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
-            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(v, nn.Parameter), (
-                f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
-            )
+            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(
+                v, nn.Parameter
+            ), f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
         # run the workflow
         state = {}
         if self.copy_init_state:
