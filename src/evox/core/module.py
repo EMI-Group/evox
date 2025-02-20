@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar, Token
 import copy
 from torch.overrides import TorchFunctionMode
+from functools import wraps
 from typing import (
     Any,
     Callable,
@@ -359,8 +360,12 @@ class TransformGetSetItemToIndex(TorchFunctionMode):
         return func(*args, **(kwargs or {}))
 
 
+@wraps(torch.vmap)
 def vmap(*args, **kwargs):
+    """Fix the vmap issue with __getitem__ and __setitem__."""
+
     vmapped = torch.vmap(*args, **kwargs)
+
     def wrapper(*args, **kwargs):
         with TransformGetSetItemToIndex():
             return vmapped(*args, **kwargs)
