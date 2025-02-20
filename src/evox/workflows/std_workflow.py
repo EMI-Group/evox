@@ -83,16 +83,13 @@ class StdWorkflow(Workflow):
         # transform
         if solution_transform is None:
             solution_transform = torch.nn.Identity()
-        elif isinstance(solution_transform, _WrapClassBase):  # ensure correct results for jit_class
-            solution_transform = solution_transform.__inner_module__
         if fitness_transform is None:
             fitness_transform = torch.nn.Identity()
-        elif isinstance(fitness_transform, _WrapClassBase):  # ensure correct results for jit_class
-            fitness_transform = fitness_transform.__inner_module__
         if self.opt_direction == -1:
             fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
         assert callable(solution_transform), f"Expect solution transform to be callable, got {solution_transform}"
         assert callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
+
         if isinstance(solution_transform, torch.nn.Module):
             solution_transform.to(device=device)
         if isinstance(fitness_transform, torch.nn.Module):
@@ -107,6 +104,7 @@ class StdWorkflow(Workflow):
         problem.to(device=device)
         self.algorithm = algorithm
         self._has_init_ = type(algorithm).init_step != Algorithm.init_step
+
         if monitor is None:
             monitor = Monitor()
         else:
@@ -122,46 +120,22 @@ class StdWorkflow(Workflow):
         self.algorithm._solution_transform_ = solution_transform
         self.algorithm._fitness_transform_ = fitness_transform
         # for compilation, will be removed later
-        self._monitor_ = monitor
-        self._problem_ = problem
-        self._solution_transform_ = solution_transform
-        self._fitness_transform_ = fitness_transform
+        self.monitor = monitor
+        self.problem = problem
+        self.solution_transform = solution_transform
+        self.fitness_transform = fitness_transform
 
-    def __getattribute__(self, name: str):
-        if name == "_monitor_":
-            return self.algorithm._monitor_
-        elif name == "_problem_":
-            return self.algorithm._problem_
-        elif name == "_solution_transform_":
-            return self.algorithm._solution_transform_
-        elif name == "_fitness_transform_":
-            return self.algorithm._fitness_transform_
-        return super().__getattribute__(name)
-
-    def __sync_with__(self, jit_module):
-        if "_monitor_" in self._modules:
-            del self._monitor_
-            del self._problem_
-            del self._fitness_transform_
-            del self._solution_transform_
-        return super().__sync_with__(jit_module)
-
-    @torch.jit.ignore
     def get_submodule(self, target: str):
-        if target == "monitor":
-            return self.algorithm._monitor_
-        elif target == "problem":
-            return self.algorithm._problem_
         return super().get_submodule(target)
 
     def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
-        self._monitor_.post_ask(population)
-        population = self._solution_transform_(population)
-        self._monitor_.pre_eval(population)
-        fitness = self._problem_.evaluate(population)
-        self._monitor_.post_eval(fitness)
-        fitness = self._fitness_transform_(fitness)
-        self._monitor_.pre_tell(fitness)
+        self.monitor.post_ask(population)
+        population = self.solution_transform(population)
+        self.monitor.pre_eval(population)
+        fitness = self.problem.evaluate(population)
+        self.monitor.post_eval(fitness)
+        fitness = self.fitness_transform(fitness)
+        self.monitor.pre_tell(fitness)
         return fitness
 
     def _step(self, init: bool):
