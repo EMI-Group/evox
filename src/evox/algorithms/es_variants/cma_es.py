@@ -149,14 +149,18 @@ class CMAES(Algorithm):
         return update
 
     def _conditional_decomposition(self, iteration: torch.Tensor, C: torch.Tensor):
-        cond = iteration % self.decomp_per_iter == 0
-        if cond:
-            return self._decomposition(C)
-        else:
-            return self.B, self.D, self.C_invsqrt
+        # limitation of torch.cond: https://pytorch.org/docs/stable/generated/torch.cond.html
+        # It currently does not support pytree outputs, so we need to stack the outputs into a single tensor.
+        B, D, C_invsqrt = torch.cond(
+            iteration % self.decomp_per_iter == 0,
+            self._decomposition,
+            self._no_decomposition,
+            (C,),
+        )
+        return B, D, C_invsqrt
 
     def _no_decomposition(self, C: torch.Tensor):
-        return self.B, self.D, self.C_invsqrt
+        return torch.stack([self.B, self.D, self.C_invsqrt], dim=0)
 
     def _decomposition(
         self,
@@ -169,7 +173,7 @@ class CMAES(Algorithm):
         D = torch.diag(D)
         D = torch.sqrt(D)
         D = B @ D
-        return B.T, D, C_invsqrt
+        return torch.stack([B.T, D, C_invsqrt], dim=0)
 
     def record_step(self):
         return {
