@@ -136,8 +136,8 @@ class NSGA3(Algorithm):
             population = length * population + lb
 
         self.pop = Mutable(population)
-        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
-        self.rank = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
+        self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
+        self.rank = Mutable(torch.full((self.pop_size), torch.inf, device=device))
         self.ref = uniform_sampling(self.pop_size, self.n_objs)[0]
 
     def init_step(self):
