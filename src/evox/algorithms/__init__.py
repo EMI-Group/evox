@@ -30,11 +30,12 @@ __all__ = [
     # MOEAs
     "RVEA",
     "NSGA2",
+    "NSGA3",
     "MOEAD",
 ]
 
 
 from .de_variants import DE, ODE, SHADE, CoDE, JaDE, SaDE
 from .es_variants import ARS, ASEBO, CMAES, DES, ESMC, SNES, XNES, GuidedES, NoiseReuseES, OpenES, PersistentES, SeparableNES
-from .mo import MOEAD, NSGA2, RVEA
+from .mo import MOEAD, NSGA2, NSGA3, RVEA
 from .pso_variants import CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS
