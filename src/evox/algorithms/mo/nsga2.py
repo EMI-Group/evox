@@ -61,7 +61,6 @@ class NSGA2(Algorithm):
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
-        self.device = device
 
         if self.selection is None:
             self.selection = tournament_selection_multifit
