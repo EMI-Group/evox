@@ -5,7 +5,7 @@ import torch
 from ...core import Algorithm, Mutable, jit_class
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
-from ...operators.selection import nd_environmental_selection, tournament_selection_multifit, non_dominate_rank
+from ...operators.selection import tournament_selection_multifit, non_dominate_rank
 from ...operators.sampling import uniform_sampling
 from ...utils import clamp
 from ...core import vmap
