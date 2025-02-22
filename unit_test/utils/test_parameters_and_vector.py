@@ -3,7 +3,7 @@ import unittest
 import torch
 import torch.nn as nn
 
-from evox.core import use_state, vmap
+from evox.core import vmap
 from evox.utils.parameters_and_vector import ParamsAndVector
 
 

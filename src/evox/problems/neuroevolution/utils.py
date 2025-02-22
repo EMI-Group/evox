@@ -1,12 +1,10 @@
 import copy
-import types
-from typing import Any, Callable, Dict, NamedTuple, Tuple
+from typing import Callable, Dict, NamedTuple, Tuple
 
 import torch
 import torch.nn as nn
 
 from ...core import use_state, vmap
-from ...core.module import assign_load_state_dict
 
 
 class ModelStateForwardResult(NamedTuple):

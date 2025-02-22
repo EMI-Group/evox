@@ -1,5 +1,4 @@
 import unittest
-from typing import Dict, List
 
 import torch
 import torch.nn as nn

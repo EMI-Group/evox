@@ -8,7 +8,6 @@ import torchvision
 from torch.utils.data import DataLoader
 
 from evox.algorithms import PSO
-from evox.core import Algorithm, Mutable, Parameter
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow

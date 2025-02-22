@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 import torch
-import copy
 
 from evox.core import Algorithm, Problem, use_state, vmap
 from evox.workflows import EvalMonitor, StdWorkflow

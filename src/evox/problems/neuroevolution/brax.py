@@ -1,6 +1,7 @@
 __all__ = ["BraxProblem"]
 
-from typing import Callable, Dict, Tuple, Optional
+import copy
+from typing import Callable, Dict, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -8,12 +9,10 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
-import copy
 from brax.io import html, image
 
-from ...core import Problem
+from ...core import Problem, use_state
 from .utils import get_vmap_model_state_forward
-from ...core import use_state
 
 
 # to_dlpack is not necessary for torch.Tensor and jax.Array
