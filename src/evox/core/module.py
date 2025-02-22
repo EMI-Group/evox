@@ -1,14 +1,11 @@
 import copy
-from torch.overrides import TorchFunctionMode
 from functools import wraps
 from typing import (
-    Any,
     Callable,
     Dict,
     List,
     Mapping,
     Optional,
-    Protocol,
     Sequence,
     Tuple,
     TypeVar,
@@ -17,6 +14,7 @@ from typing import (
 
 import torch
 import torch.nn as nn
+from torch.overrides import TorchFunctionMode
 
 
 def _if_none(a, b):
