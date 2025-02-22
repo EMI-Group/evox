@@ -10,16 +10,14 @@ __all__ = [
     "minimum_float",
     "maximum_int",
     "minimum_int",
-    "TracingWhile",
-    "TracingCond",
-    "TracingSwitch",
     "ParamsAndVector",
     "lexsort",
     "nanmin",
     "nanmax",
+    "tree_flatten",
+    "tree_unflatten",
 ]
 
-# from .control_flow import TracingCond, TracingSwitch, TracingWhile
 from .jit_fix_operator import (
     clamp,
     clamp_float,
