@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from ...operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
@@ -23,7 +23,6 @@ rand2best_2_bin = [0, 1, 2, 0]
 current2pbest_1_bin = [3, 2, 1, 0]
 
 
-@jit_class
 class CoDE(Algorithm):
     """The implementation of CoDE algorithm.
 

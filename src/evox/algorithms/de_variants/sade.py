@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Algorithm, Mutable, jit_class, vmap_impl
+from ...core import Algorithm, Mutable
 from ...operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
@@ -18,7 +18,6 @@ rand2best_2_bin = [0, 1, 2, 0]
 current2rand_1 = [0, 0, 1, 2]  # current2rand_1 <==> rand_1_arith
 
 
-@jit_class
 class SaDE(Algorithm):
     """The implementation of SaDE algorithm.
 
@@ -79,7 +78,6 @@ class SaDE(Algorithm):
         strategy_ids = torch.multinomial(strategy_p, self.pop_size, replacement=True, generator=self.generator)
         return strategy_ids
 
-    @vmap_impl(_get_strategy_ids)
     def _vmap_get_strategy_ids(self, strategy_p: torch.Tensor, device: torch.device):
         # TODO: since torch.multinomial is not supported in vmap, we have to use torch.randint
         strategy_ids = torch.randint(0, 4, (self.pop_size,), device=device)

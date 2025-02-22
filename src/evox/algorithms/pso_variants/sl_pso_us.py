@@ -1,11 +1,10 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from ...utils import clamp, clamp_int
 from .utils import min_by
 
 
-@jit_class
 class SLPSOUS(Algorithm):
     """The basic Particle Swarm Optimization Social Learning PSO Using Uniform Sampling for Demonstrator Choice (SLPSOUS) algorithm.
 

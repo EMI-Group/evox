@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, jit_class, vmap
+from ...core import Algorithm, Mutable, vmap
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
 from ...operators.sampling import uniform_sampling
@@ -24,10 +24,6 @@ def _get_table_row_inner(bool_ref_candidate: torch.Tensor, upper_bound: torch.Te
 vmap_get_table_row = vmap(
     _get_table_row_inner,
     in_dims=(0, None),
-    example_inputs=(
-        torch.empty(10, 10, dtype=torch.bool, device=torch.get_default_device()),
-        torch.tensor(1, dtype=torch.int32, device=torch.get_default_device()),
-    ),
 )
 
 
@@ -43,11 +39,6 @@ def _select_from_index_by_min_inner(
 vmap_select_from_index_by_min = vmap(
     _select_from_index_by_min_inner,
     in_dims=(None, None, 0),
-    example_inputs=(
-        torch.empty(10, dtype=torch.int32, device=torch.get_default_device()),
-        torch.empty(10, dtype=torch.float32, device=torch.get_default_device()),
-        torch.empty(10, dtype=torch.float32, device=torch.get_default_device()),
-    ),
 )
 
 
@@ -58,14 +49,9 @@ def _get_extreme_inner(norm_fit: torch.Tensor, w: torch.Tensor):
 vmap_get_extreme = vmap(
     _get_extreme_inner,
     in_dims=(None, 0),
-    example_inputs=(
-        torch.empty(10, 10, dtype=torch.float32, device=torch.get_default_device()),
-        torch.empty(10, 10, dtype=torch.float32, device=torch.get_default_device()),
-    ),
 )
 
 
-@jit_class
 class NSGA3(Algorithm):
     """
     An implementation of the reference-point based many-objective NSGA-II (NSGA-III) for many-objective optimization problems.

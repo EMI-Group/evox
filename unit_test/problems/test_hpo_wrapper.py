@@ -2,14 +2,13 @@ import unittest
 
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter, Problem, jit_class, trace_impl
+from evox.core import Algorithm, Mutable, Parameter, Problem
 from evox.metrics import igd
 from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
 from evox.problems.numerical import DTLZ1
 from evox.workflows import StdWorkflow
 
 
-@jit_class
 class BasicProblem(Problem):
     def __init__(self):
         super().__init__()
@@ -18,7 +17,6 @@ class BasicProblem(Problem):
         return (x * x).sum(-1)
 
 
-@jit_class
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor, device: torch.device | None = None):
         super().__init__()
@@ -37,17 +35,8 @@ class BasicAlgorithm(Algorithm):
         pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
         pop = pop * self.hp[0]
-        self.pop.copy_(pop)
-        self.fit.copy_(self.evaluate(pop))
-
-    @trace_impl(step)
-    def trace_step(self):
-        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
-        pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-        pop = pop * self.hp[0]
         self.pop = pop
         self.fit = self.evaluate(pop)
-
 
 class TestHPOWrapper(unittest.TestCase):
     def setUp(self):
@@ -68,18 +57,18 @@ class TestHPOWrapper(unittest.TestCase):
 
     def test_get_init_params(self):
         params = self.hpo_prob.get_init_params()
-        self.assertIn("self.algorithm.hp", params)
+        self.assertIn("algorithm.hp", params)
 
     def test_evaluate(self):
         params = self.hpo_prob.get_init_params()
-        params["self.algorithm.hp"] = Parameter(torch.rand(7, 2), requires_grad=False)
+        params["algorithm.hp"] = Parameter(torch.rand(7, 2), requires_grad=False)
         result = self.hpo_prob.evaluate(params)
         self.assertIsInstance(result, torch.Tensor)
 
     def test_outer_workflow(self):
         class solution_transform(torch.nn.Module):
             def forward(self, x: torch.Tensor):
-                return {"self.algorithm.hp": x}
+                return {"algorithm.hp": x}
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
         outer_workflow = StdWorkflow()
@@ -90,7 +79,7 @@ class TestHPOWrapper(unittest.TestCase):
     def test_outer_workflow_mo(self):
         class solution_transform(torch.nn.Module):
             def forward(self, x: torch.Tensor):
-                return {"self.algorithm.hp": x}
+                return {"algorithm.hp": x}
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
         outer_workflow = StdWorkflow()

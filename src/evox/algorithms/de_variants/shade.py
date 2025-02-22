@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from ...operators.crossover import (
     DE_binary_crossover,
     DE_differential_sum,
@@ -9,7 +9,6 @@ from ...operators.selection import select_rand_pbest
 from ...utils import clamp
 
 
-@jit_class
 class SHADE(Algorithm):
     """The implementation of SHADE algorithm.
 

@@ -2,10 +2,9 @@ import math
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 
 
-@jit_class
 class XNES(Algorithm):
     """The implementation of the xNES algorithm.
 
@@ -119,7 +118,6 @@ class XNES(Algorithm):
         return {"mean": self.mean, "sigma": self.sigma, "B": self.B}
 
 
-@jit_class
 class SeparableNES(Algorithm):
     """The implementation of the Separable NES algorithm.
 

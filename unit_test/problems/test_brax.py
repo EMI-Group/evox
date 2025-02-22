@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 from evox.algorithms import PSO
-from evox.core import jit, use_state
+from evox.core import use_state
 from evox.problems.neuroevolution.brax import BraxProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -113,7 +113,7 @@ class TestBraxProblem(unittest.TestCase):
 
         problem.visualize(best_params)
 
-    def test_brax_problem_trace(self):
+    def test_compiled_brax_problem(self):
         model = SimpleCNN().to(self.device)
         for p in model.parameters():
             p.requires_grad = False
@@ -160,16 +160,13 @@ class TestBraxProblem(unittest.TestCase):
             monitor=pop_monitor,
             device=self.device,
         )
-        workflow_step = use_state(lambda: workflow.step)
-        state = workflow_step.init_state(clone=False)
-        jit_workflow_step = jit(workflow_step, trace=True, example_inputs=(state,))
+        compiled_step = torch.compile(workflow.step)
 
         for index in range(3):
             print(f"In generation {index}:")
             t = time.time()
-            state = jit_workflow_step(state)
+            compiled_step()
         print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
-        workflow_step.set_state(state)
         monitor: EvalMonitor = workflow.get_submodule("monitor")
         print(f"\tTop fitness: {monitor.topk_fitness}")
         best_params = adapter.to_params(monitor.topk_solutions[0])

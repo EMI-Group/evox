@@ -2,11 +2,10 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from .adam_step import adam_single_tensor
 
 
-@jit_class
 class GuidedES(Algorithm):
     """The implementation of the Guided-ES algorithm.
 
