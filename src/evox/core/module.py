@@ -355,8 +355,10 @@ class TransformGetSetItemToIndex(TorchFunctionMode):
 
 
 @wraps(torch.vmap)
-def vmap(*args, **kwargs):
-    """Fix the vmap issue with __getitem__ and __setitem__."""
+def vmap(*args, **kwargs) -> Callable:
+    """Fix the torch.vmap's issue with __getitem__ and __setitem__.
+    Related issue: https://github.com/pytorch/pytorch/issues/124423.
+    """
 
     vmapped = torch.vmap(*args, **kwargs)
 
@@ -366,7 +368,22 @@ def vmap(*args, **kwargs):
     return wrapper
 
 
-def use_state(stateful_func):
+def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
+    """Transform a nn.module's method or an nn.module into a stateful function.
+    When using nn.module, the stateful version of the default `forward` method will be created.
+    The stateful function will have a signature of fn(params_and_buffers, *args, **kwargs) -> params_and_buffers | Tuple[params_and_buffers, Any]].
+
+    ## Examples
+
+    ```python
+    from evox import use_state, vmap
+    workflow = ... # define your workflow
+    stateful_step = use_state(workflow.step)
+    vmap_stateful_step = vmap(stateful_step)
+    batch_state = torch.func.stack_module_states([workflow] * 3)
+    new_batch_state = vmap_stateful_step(batch_state)
+    ```
+    """
     if not isinstance(stateful_func, torch.nn.Module):
         original_module = stateful_func.__self__
         module = copy.copy(original_module)
