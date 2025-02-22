@@ -208,9 +208,9 @@ class TracingCond(ModuleBase):
             return x
 
         cond_dict = {1: _cond1, 2: _cond2, 3: _cond3, 4: _cond4, 5: _cond5, 6: _cond6, 7: _cond7, 8: _cond8, 9: _cond9}
-        assert len(original_args) <= len(
-            cond_dict
-        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(cond_dict), (
+            f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_cond = torch.jit.script(cond_dict[len(original_args)])
         return compiled_cond
 
@@ -389,9 +389,9 @@ class TracingCond(ModuleBase):
             8: _cond8,
             9: _cond9,
         }
-        assert len(original_args) <= len(
-            cond_dict
-        ), f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(cond_dict), (
+            f"At most {len(cond_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_cond = torch.jit.script(cond_dict[len(original_args)])
         return compiled_cond, state_true_fn, state_false_fn
 

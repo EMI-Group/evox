@@ -352,9 +352,9 @@ class TracingSwitch(ModuleBase):
             8: _switch8,
             9: _switch9,
         }
-        assert len(original_args) <= len(
-            switch_dict
-        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(switch_dict), (
+            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_switch = torch.jit.script(switch_dict[len(original_args)])
         return compiled_switch
 
@@ -674,9 +674,9 @@ class TracingSwitch(ModuleBase):
             8: _switch8,
             9: _switch9,
         }
-        assert len(original_args) <= len(
-            switch_dict
-        ), f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(switch_dict), (
+            f"At most {len(switch_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_switch = torch.jit.script(switch_dict[len(original_args)])
         return compiled_switch, state_branch_fns
 

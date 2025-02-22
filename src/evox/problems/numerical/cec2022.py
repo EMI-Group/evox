@@ -215,7 +215,9 @@ class CEC2022(Problem):
                 self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 2 * nx : 3 * nx], self.M[:, 2 * nx : 3 * nx])
             )
             * 10000
-            / 1e10 / 1e10 / 1e10,
+            / 1e10
+            / 1e10
+            / 1e10,
             # if divide by 1e30 , cause NVRTC compilation error(https://github.com/pytorch/pytorch/issues/62962)
             self.discus_func(self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx]))
             * 10000
@@ -309,7 +311,9 @@ class CEC2022(Problem):
                 self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx])
             )
             * 10000
-            / 1e10 / 1e10 / 1e10,
+            / 1e10
+            / 1e10
+            / 1e10,
             # if divide by 1e30 , cause NVRTC compilation error(https://github.com/pytorch/pytorch/issues/62962)
             self.ellips_func(self.sr_func_rate(x, 1.0, True, True, self.OShift[:, 4 * nx : 5 * nx], self.M[:, 4 * nx : 5 * nx]))
             * 10000

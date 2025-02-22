@@ -252,9 +252,9 @@ class TracingWhile(ModuleBase):
 
         loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5, 6: _loop6, 7: _loop7, 8: _loop8, 9: _loop9}
 
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
         return compiled_loop, state_cond_fn, state_body_fn
 
@@ -363,9 +363,9 @@ class TracingWhile(ModuleBase):
 
         loops_dict = {1: _loop1, 2: _loop2, 3: _loop3, 4: _loop4, 5: _loop5, 6: _loop6, 7: _loop7, 8: _loop8, 9: _loop9}
 
-        assert len(original_args) <= len(
-            loops_dict
-        ), f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        assert len(original_args) <= len(loops_dict), (
+            f"At most {len(loops_dict)} arguments are supported, got {len(original_args)}"
+        )
         compiled_loop = torch.jit.script(loops_dict[len(original_args)])
         return compiled_loop
 

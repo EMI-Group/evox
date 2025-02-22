@@ -330,6 +330,7 @@ class ModuleBase(nn.Module):
         else:
             return tuple(self.modules())
 
+
 # We still need a fix for the vmap
 # related issue: https://github.com/pytorch/pytorch/issues/124423
 class TransformGetSetItemToIndex(TorchFunctionMode):
@@ -365,6 +366,7 @@ def vmap(*args, **kwargs) -> Callable:
     def wrapper(*args, **kwargs):
         with TransformGetSetItemToIndex():
             return vmapped(*args, **kwargs)
+
     return wrapper
 
 

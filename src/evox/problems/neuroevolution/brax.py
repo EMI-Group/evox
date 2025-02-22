@@ -133,7 +133,6 @@ class BraxProblem(Problem):
         self.env_sys = env.sys
         self.device = device
 
-
     # disable torch.compile for JAX code
     @torch.compiler.disable
     def _evaluate_brax(

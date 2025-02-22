@@ -174,7 +174,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
 
                 running_loss += loss.item()
                 if print_frequent > 0 and step % print_frequent == 0:
-                    print(f"[Epoch {epoch:2d}, step {step:4d}] " f"running loss: {running_loss:.4f} ")
+                    print(f"[Epoch {epoch:2d}, step {step:4d}] running loss: {running_loss:.4f} ")
                     running_loss = 0.0
         return model
 

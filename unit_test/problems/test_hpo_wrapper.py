@@ -38,6 +38,7 @@ class BasicAlgorithm(Algorithm):
         self.pop = pop
         self.fit = self.evaluate(pop)
 
+
 class TestHPOWrapper(unittest.TestCase):
     def setUp(self):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
