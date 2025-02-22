@@ -4,7 +4,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from evox.core import ModuleBase, trace_impl, use_state
+from evox.core import ModuleBase, use_state
 
 
 class DummyModule(ModuleBase):
@@ -20,14 +20,6 @@ class DummyModule(ModuleBase):
         else:
             x = torch.tan(q)
         return x * x.shape[1]
-
-    @trace_impl(h)
-    def th(self, q: torch.Tensor) -> torch.Tensor:
-        x = torch.where(q.flatten()[0] > self.threshold, q + 2, q + 5)
-        x += self.g(x).abs()
-        x *= x.shape[1]
-        self.sub_mod.buf = x.sum()
-        return x
 
     def g(self, p: torch.Tensor) -> torch.Tensor:
         x = torch.cos(p)
@@ -50,7 +42,7 @@ class TestModule(unittest.TestCase):
 
     def test_th_function(self):
         q = torch.rand(100, 4)
-        result = self.test_instance.th(q)
+        result = self.test_instance.h(q)
         self.assertIsInstance(result, torch.Tensor)
 
     def test_add_mutable_list(self):
@@ -64,22 +56,8 @@ class TestModule(unittest.TestCase):
         self.assertTrue(torch.equal(self.test_instance.mut_dict["b"], torch.ones(20)))
 
     def test_trace_fn(self):
-        fn = use_state(lambda: self.test_instance.h, is_generator=True)
-        trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
-        self.assertIsNotNone(trace_fn)
-
-    def test_loop_function(self):
-        fn = use_state(lambda: self.test_instance.h, is_generator=True)
-        trace_fn = torch.jit.trace(fn, (fn.init_state(), torch.ones(10, 1)), strict=False)
-
-        def loop(init_state: Dict[str, torch.Tensor], init_x: torch.Tensor, n: int = 10):
-            state = init_state
-            ret = init_x
-            rets: List[torch.Tensor] = []
-            for _ in range(n):
-                state, ret = trace_fn(state, ret)
-                rets.append(state["self.sub_mod.buf"])
-            return rets
-
-        loop_traced = torch.jit.trace(loop, (fn.init_state(), torch.rand(10, 2)), strict=False)
-        self.assertIsNotNone(loop_traced)
+        fn = use_state(self.test_instance.h)
+        state = (dict(self.test_instance.named_parameters()), dict(self.test_instance.named_buffers()))
+        new_state, out = fn(state, torch.ones(3, 2))
+        self.assertIsNotNone(new_state)
+        self.assertIsNotNone(out)
