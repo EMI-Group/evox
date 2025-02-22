@@ -155,7 +155,7 @@ class HPOProblemWrapper(Problem):
             state = self._workflow_step_(state)
         # get final fitness
         monitor_state = get_sub_state(state, "monitor")
-        fit, _monitor_state = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
+        _monitor_state, fit = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
         return fit
 
     @torch.jit.ignore

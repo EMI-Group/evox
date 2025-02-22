@@ -1,6 +1,3 @@
-import inspect
-from contextlib import contextmanager
-from contextvars import ContextVar, Token
 import copy
 from torch.overrides import TorchFunctionMode
 from functools import wraps
@@ -20,8 +17,6 @@ from typing import (
 
 import torch
 import torch.nn as nn
-
-from ..core import _vmap_fix
 
 
 def _if_none(a, b):
@@ -201,7 +196,6 @@ class ModuleBase(nn.Module):
         :return: If `copy=True`, returns the return of `torch.nn.Module.load_state_dict`; otherwise, no return.
         """
         if copy:
-            assert not any(map(_vmap_fix.is_batched_tensor, state_dict.values())), "`copy=True` is not compatible with `vmap`"
             return super().load_state_dict(state_dict, **kwargs)
         # else
         sub_modules: Dict[str, Dict[str, torch.Tensor]] = {}
@@ -385,6 +379,6 @@ def use_state(stateful_func):
         if output is None:
             return params_and_buffers
         else:
-            return output, params_and_buffers
+            return params_and_buffers, output
 
     return wrapper
