@@ -2,8 +2,17 @@ from unittest import TestCase
 
 import torch
 
-from evox.core import Algorithm, Problem, jit, use_state, vmap
+from evox.core import Algorithm, Problem, use_state, vmap
 from evox.workflows import EvalMonitor, StdWorkflow
+
+
+def transform_getitem_args(x: torch.Tensor, index_args):
+    print(x, index_args)
+    if isinstance(index_args, tuple):
+        return (x, list(index_args))
+    elif not isinstance(index_args, (list, tuple)):
+        return (x, [index_args])
+    return (x, index_args)
 
 
 class Sphere(Problem):
@@ -16,40 +25,38 @@ class Sphere(Problem):
 
 class TestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
+        state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob, monitor)
+        workflow = StdWorkflow(algo, prob, monitor)
         workflow.init_step()
         self.assertIsNotNone(workflow.get_submodule("monitor").topk_fitness)
         for _ in range(3):
             workflow.step()
+        # reset state
+        algo.load_state_dict(state_dict)
 
     def run_trace_algorithm(self, algo: Algorithm):
+        state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob, monitor)
+        workflow = StdWorkflow(algo, prob, monitor)
         workflow.init_step()
-        state_step = use_state(lambda: workflow.step)
-        state = state_step.init_state()
-        self.assertIsNotNone(state["self.algorithm._monitor_.topk_fitness"])
-        jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+        jit_state_step = torch.compile(workflow.step)
         for _ in range(3):
-            state = jit_state_step(state)
+            jit_state_step()
+        # reset state
+        algo.load_state_dict(state_dict)
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
-        state_step = use_state(lambda: workflow.step)
-        vmap_state_step = vmap(state_step)
-        state = vmap_state_step.init_state(3)
-        vmap_state_step = jit(
-            vmap_state_step,
-            trace=True,
-            lazy=False,
-            example_inputs=(state,),
-        )
+        workflow = StdWorkflow(algo, prob)
+        state = torch.func.stack_module_state([workflow] * 3)
+
+        vmap_state_init_step = vmap(use_state(workflow.init_step), randomness="different")
+        vmap_state_init_step = torch.compile(vmap_state_init_step)
+        vmap_state_step = vmap(use_state(workflow.step), randomness="different")
+        vmap_state_step = torch.compile(vmap_state_step)
+        state = vmap_state_init_step(state)
         for _ in range(3):
             state = vmap_state_step(state)

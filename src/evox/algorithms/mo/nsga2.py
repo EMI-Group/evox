@@ -2,14 +2,13 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, jit_class
+from ...core import Algorithm, Mutable
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
 from ...operators.selection import nd_environmental_selection, tournament_selection_multifit
 from ...utils import clamp
 
 
-@jit_class
 class NSGA2(Algorithm):
     """
     An implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-II) for multi-objective optimization problems.

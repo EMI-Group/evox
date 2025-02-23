@@ -1,10 +1,9 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
-from ...utils import TracingCond, clamp
+from ...core import Algorithm, Mutable, Parameter
+from ...utils import clamp
 
 
-@jit_class
 class DMSPSOEL(Algorithm):
     """The DMSPSOEL algorithm.
 
@@ -117,17 +116,6 @@ class DMSPSOEL(Algorithm):
         self.iteration += 1
         self.fit = self.evaluate(self.pop)
 
-    @trace_impl(step)
-    def trace_step(self):
-        cond = self.iteration < 0.9 * self.max_iteration
-        branches = (self._update_strategy_1, self._update_strategy_2)
-        state, names = self.prepare_control_flow(*branches)
-        _if_else_ = TracingCond(*branches)
-        state = _if_else_.cond(state, cond)
-        self.after_control_flow(state, *names)
-        self.iteration += 1
-        self.fit = self.evaluate(self.pop)
-
     def _update_strategy_1(self):
         self._cond_regroup(self.fit)
         # Update personal_best
@@ -186,13 +174,6 @@ class DMSPSOEL(Algorithm):
     def _cond_regroup(self, fit: torch.Tensor):
         if (self.iteration % self.regrouped_iteration_num) == 0:
             self._regroup(fit)
-
-    @trace_impl(_cond_regroup)
-    def _trace_cond_regroup(self, fit: torch.Tensor):
-        state, names = self.prepare_control_flow(self._regroup)
-        _if_else_regroup_ = TracingCond(self._regroup, lambda _: None)
-        state = _if_else_regroup_.cond(state, (self.iteration % self.regrouped_iteration_num) == 0, fit)
-        self.after_control_flow(state, *names)
 
     def _regroup(self, fit: torch.Tensor):
         sort_index = torch.argsort(fit, dim=0)

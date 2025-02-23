@@ -3,7 +3,7 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, jit_class
+from ...core import Algorithm, Mutable
 from ...operators.crossover import simulated_binary_half
 from ...operators.mutation import polynomial_mutation
 from ...operators.sampling import uniform_sampling
@@ -20,7 +20,6 @@ def pbi(f: torch.Tensor, w: torch.Tensor, z: torch.Tensor):
     return d1 + 5 * d2
 
 
-@jit_class
 class MOEAD(Algorithm):
     """
     Implementation of the Original MOEA/D algorithm.
@@ -121,4 +120,3 @@ class MOEAD(Algorithm):
 
             self.fit[parents[g_old >= g_new]] = off_fit
             self.pop[parents[g_old >= g_new]] = offspring
-
