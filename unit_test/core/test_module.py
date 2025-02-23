@@ -24,6 +24,9 @@ class DummyModule(ModuleBase):
         x = torch.cos(p)
         return x * p.shape[0]
 
+    def add(self, x: torch.Tensor):
+        self.sub_mod.buf += x
+
 
 class TestModule(unittest.TestCase):
     def setUp(self):
@@ -60,3 +63,18 @@ class TestModule(unittest.TestCase):
         new_state, out = fn(state, torch.ones(3, 2))
         self.assertIsNotNone(new_state)
         self.assertIsNotNone(out)
+
+    def test_inplace_op(self):
+        self.test_instance.add(torch.ones(()))
+        self.assertTrue(torch.equal(self.test_instance.sub_mod.buf, torch.ones(())))
+
+    def test_use_state_inplace_op(self):
+        fn = use_state(self.test_instance.add)
+        state = (dict(self.test_instance.named_parameters()), dict(self.test_instance.named_buffers()))
+        state = fn(state, torch.ones(()))
+        params, buffers = state
+        self.assertTrue(torch.equal(buffers["sub_mod.buf"], torch.ones(())))
+
+        state = fn(state, torch.ones(()))
+        params, buffers = state
+        self.assertTrue(torch.equal(buffers["sub_mod.buf"], 2 * torch.ones(())))
