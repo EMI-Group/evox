@@ -109,7 +109,7 @@ class BraxProblem(Problem):
         self.state_forward = torch.compile(use_state(policy))
         if seed is None:
             seed = torch.randint(0, 2**31, (1,)).item()
-        self.key = from_jax_array(jax.random.PRNGKey(seed))
+        self.key = from_jax_array(jax.random.PRNGKey(seed), device)
         self.vmap_init_state = (params, buffers)
 
         copied_policy = copy.deepcopy(policy).to(device)
