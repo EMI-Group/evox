@@ -112,13 +112,15 @@ class RVEA(Algorithm):
         return self.reference_vector.clone()
 
     def _mating_pool(self):
-        mating_pool = torch.randint(0, self.pop.size(0), (self.pop_size,))
-        return self.pop[mating_pool]
+        no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
+        max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
+        mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
+        pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
+        return pop
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
-        nan_mask_survivor = torch.isnan(survivor).any(dim=1)
-        self.pop = survivor[~nan_mask_survivor]
-        self.fit = survivor_fit[~nan_mask_survivor]
+        self.pop = survivor
+        self.fit = survivor_fit
 
         self.reference_vector = torch.cond(
             self.gen % (1 / self.fr).type(torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
