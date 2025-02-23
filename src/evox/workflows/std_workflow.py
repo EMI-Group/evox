@@ -118,7 +118,9 @@ class StdWorkflow(Workflow):
         else:
             self.algorithm.step()
 
-        self.monitor.record_auxiliary(self.algorithm.record_step())
+        # If the monitor has override the `record_auxiliary` method, it will be called here.
+        if "record_auxiliary" in self.monitor.__class__.__dict__:
+            self.monitor.record_auxiliary(self.algorithm.record_step())
 
     def init_step(self):
         """
