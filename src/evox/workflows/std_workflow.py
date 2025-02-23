@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import torch
 
@@ -99,7 +99,7 @@ class StdWorkflow(Workflow):
         self.solution_transform = solution_transform
         self.fitness_transform = fitness_transform
 
-    def get_submodule(self, target: str):
+    def get_submodule(self, target: str) -> Any:
         return super().get_submodule(target)
 
     def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
