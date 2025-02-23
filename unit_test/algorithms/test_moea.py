@@ -11,16 +11,14 @@ from evox.workflows import StdWorkflow
 class MOTestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        workflow = StdWorkflow(algo, prob)
         workflow.init_step()
         for _ in range(3):
             workflow.step()
 
     def run_trace_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        workflow = StdWorkflow(algo, prob)
         workflow.init_step()
         jit_state_step = torch.compile(workflow.step)
         for _ in range(3):
@@ -28,8 +26,7 @@ class MOTestBase(TestCase):
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        workflow = StdWorkflow(algo, prob)
         state_step = use_state(workflow.step)
         vmap_state_step = vmap(state_step)
         state = torch.func.stack_module_state([workflow] * 3)

@@ -83,20 +83,18 @@ class TestBraxProblem(unittest.TestCase):
             ub=upper_bound,
             device=self.device,
         )
-        algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        workflow = StdWorkflow(opt_direction="max")
-        workflow.setup(
+        workflow = StdWorkflow(
             algorithm=algorithm,
             problem=problem,
-            solution_transform=adapter,
             monitor=pop_monitor,
+            opt_direction="max",
+            solution_transform=adapter,
             device=self.device,
         )
 
@@ -143,20 +141,18 @@ class TestBraxProblem(unittest.TestCase):
             ub=upper_bound,
             device=self.device,
         )
-        algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        workflow = StdWorkflow(opt_direction="max")
-        workflow.setup(
+        workflow = StdWorkflow(
             algorithm=algorithm,
             problem=problem,
-            solution_transform=adapter,
             monitor=pop_monitor,
+            opt_direction="max",
+            solution_transform=adapter,
             device=self.device,
         )
         compiled_step = torch.compile(workflow.step)

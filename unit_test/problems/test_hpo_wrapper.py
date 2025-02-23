@@ -45,15 +45,13 @@ class TestHPOWrapper(unittest.TestCase):
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob = BasicProblem()
         self.monitor = HPOFitnessMonitor()
-        self.workflow = StdWorkflow()
-        self.workflow.setup(self.algo, self.prob, monitor=self.monitor)
+        self.workflow = StdWorkflow(self.algo, self.prob, monitor=self.monitor)
         self.hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True)
 
         self.algo_mo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob_mo = DTLZ1(2, 2)
         self.monitor_mo = HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, self.prob_mo.pf()))
-        self.workflow_mo = StdWorkflow()
-        self.workflow_mo.setup(self.algo_mo, self.prob_mo, monitor=self.monitor_mo)
+        self.workflow_mo = StdWorkflow(self.algo_mo, self.prob_mo, monitor=self.monitor_mo)
         self.hpo_prob_mo = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow_mo, copy_init_state=True)
 
     def test_get_init_params(self):
@@ -72,8 +70,7 @@ class TestHPOWrapper(unittest.TestCase):
                 return {"algorithm.hp": x}
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
-        outer_workflow = StdWorkflow()
-        outer_workflow.setup(outer_algo, self.hpo_prob, solution_transform=solution_transform())
+        outer_workflow = StdWorkflow(outer_algo, self.hpo_prob, solution_transform=solution_transform())
         outer_workflow.init_step()
         self.assertIsInstance(outer_workflow.algorithm.fit, torch.Tensor)
 
@@ -83,7 +80,6 @@ class TestHPOWrapper(unittest.TestCase):
                 return {"algorithm.hp": x}
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
-        outer_workflow = StdWorkflow()
-        outer_workflow.setup(outer_algo, self.hpo_prob_mo, solution_transform=solution_transform())
+        outer_workflow = StdWorkflow(outer_algo, self.hpo_prob_mo, solution_transform=solution_transform())
         outer_workflow.init_step()
         self.assertIsInstance(outer_workflow.algorithm.fit, torch.Tensor)

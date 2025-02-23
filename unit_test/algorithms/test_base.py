@@ -28,8 +28,7 @@ class TestBase(TestCase):
         state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob, monitor)
+        workflow = StdWorkflow(algo, prob, monitor)
         workflow.init_step()
         self.assertIsNotNone(workflow.get_submodule("monitor").topk_fitness)
         for _ in range(3):
@@ -41,8 +40,7 @@ class TestBase(TestCase):
         state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob, monitor)
+        workflow = StdWorkflow(algo, prob, monitor)
         workflow.init_step()
         jit_state_step = torch.compile(workflow.step)
         for _ in range(3):
@@ -52,8 +50,7 @@ class TestBase(TestCase):
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = Sphere()
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        workflow = StdWorkflow(algo, prob)
         state = torch.func.stack_module_state([workflow] * 3)
 
         vmap_state_init_step = vmap(use_state(workflow.init_step), randomness="different")

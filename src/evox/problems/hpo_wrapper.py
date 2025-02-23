@@ -82,14 +82,10 @@ class HPOProblemWrapper(Problem):
     ## Usage
     ```
     algo = SomeAlgorithm(...)
-    algo.setup(...)
     prob = SomeProblem(...)
-    prob.setup(...)
     monitor = HPOFitnessMonitor()
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob, monitor=monitor)
+    workflow = StdWorkflow(algo, prob, monitor=monitor)
     hpo_prob = HPOProblemWrapper(iterations=..., num_instances=...)
-    hpo_prob.setup(workflow)
     params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
     hpo_prob.evaluate(params) # execute the evaluation
     # ...

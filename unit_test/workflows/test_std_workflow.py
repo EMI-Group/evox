@@ -43,8 +43,7 @@ class TestStdWorkflow(unittest.TestCase):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob = BasicProblem()
-        self.workflow = StdWorkflow()
-        self.workflow.setup(self.algo, self.prob)
+        self.workflow = StdWorkflow(self.algo, self.prob)
 
     def test_basic_workflow(self):
         compiled_step = torch.compile(self.workflow.step)
@@ -69,14 +68,12 @@ class TestStdWorkflow(unittest.TestCase):
                 return -f
 
         monitor = EvalMonitor(full_sol_history=True)
-        monitor = monitor.setup()
-        workflow = StdWorkflow()
-        workflow.setup(
+        workflow = StdWorkflow(
             self.algo,
             self.prob,
+            monitor=monitor,
             solution_transform=solution_transform(),
             fitness_transform=fitness_transform(),
-            monitor=monitor,
         )
         workflow.init_step()
         monitor = workflow.get_submodule("monitor")

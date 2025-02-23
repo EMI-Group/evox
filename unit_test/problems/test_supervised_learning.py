@@ -218,7 +218,6 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             pop_size=POP_SIZE,
             device=self.device,
         )
-        vmapped_problem.setup()
 
         pop_algorithm = PSO(
             pop_size=POP_SIZE,
@@ -226,20 +225,17 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             ub=self.upper_bound,
             device=self.device,
         )
-        pop_algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        pop_workflow = StdWorkflow()
-        pop_workflow.setup(
+        pop_workflow = StdWorkflow(
             algorithm=pop_algorithm,
             problem=vmapped_problem,
-            solution_transform=self.adapter,
             monitor=pop_monitor,
+            solution_transform=self.adapter,
             device=self.device,
         )
         self.neuroevolution_process(
