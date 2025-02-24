@@ -16,7 +16,7 @@ class MOTestBase(TestCase):
         for _ in range(3):
             workflow.step()
 
-    def run_trace_algorithm(self, algo: Algorithm):
+    def run_compiled_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
         workflow = StdWorkflow(algo, prob)
         workflow.init_step()
@@ -51,11 +51,6 @@ class TestMOVariants(MOTestBase):
 
     def test_moea_variants(self):
         for algo in self.algo:
-            if isinstance(algo, MOEAD):
-                self.run_algorithm(algo)
-            elif isinstance(algo, NSGA3):
-                self.run_algorithm(algo)
-            else:
-                self.run_algorithm(algo)
-                self.run_trace_algorithm(algo)
-                # self.run_vmap_algorithm(algo)
+            self.run_algorithm(algo)
+            self.run_compiled_algorithm(algo)
+            # self.run_vmap_algorithm(algo)
