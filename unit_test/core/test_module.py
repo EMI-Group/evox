@@ -70,11 +70,9 @@ class TestModule(unittest.TestCase):
 
     def test_use_state_inplace_op(self):
         fn = use_state(self.test_instance.add)
-        state = (dict(self.test_instance.named_parameters()), dict(self.test_instance.named_buffers()))
+        state = self.test_instance.state_dict()
         state = fn(state, torch.ones(()))
-        params, buffers = state
-        self.assertTrue(torch.equal(buffers["sub_mod.buf"], torch.ones(())))
+        self.assertTrue(torch.equal(state["sub_mod.buf"], torch.ones(())))
 
         state = fn(state, torch.ones(()))
-        params, buffers = state
-        self.assertTrue(torch.equal(buffers["sub_mod.buf"], 2 * torch.ones(())))
+        self.assertTrue(torch.equal(state["sub_mod.buf"], 2 * torch.ones(())))

@@ -100,7 +100,7 @@ class BraxProblem(Problem):
         self.vmap_brax_reset = jax.jit(vmap_env.reset)
         self.vmap_brax_step = jax.jit(vmap_env.step)
         # JIT stateful model forward
-        (params, buffers), self.vmap_state_forward = get_vmap_model_state_forward(
+        self.vmap_init_state, self.vmap_state_forward = get_vmap_model_state_forward(
             model=policy,
             pop_size=pop_size,
             in_dims=(0, 0),
@@ -110,19 +110,11 @@ class BraxProblem(Problem):
         if seed is None:
             seed = torch.randint(0, 2**31, (1,)).item()
         self.key = from_jax_array(jax.random.PRNGKey(seed), device)
-        self.vmap_init_state = (params, buffers)
 
         copied_policy = copy.deepcopy(policy).to(device)
-        params = dict(copied_policy.named_parameters())
-        buffers = dict(copied_policy.named_buffers())
-        for _, value in params.items():
+        self.init_state = copied_policy.state_dict()
+        for _name, value in self.init_state.items():
             value.requires_grad = False
-        for _, value in buffers.items():
-            value.requires_grad = False
-        self.init_state = (
-            params,
-            buffers,
-        )
 
         self.reduce_fn = reduce_fn
         self.rotate_key = rotate_key
@@ -142,7 +134,7 @@ class BraxProblem(Problem):
         if not record_trajectory:
             # check the pop_size in the inputs
             # Take a parameter and check its size
-            pop_size = next(iter(model_state[0].values())).size(0)
+            pop_size = next(iter(model_state.values())).size(0)
             assert pop_size == self.pop_size, (
                 f"The actual population size must match the pop_size parameter when creating BraxProblem. Expected: {self.pop_size}, Actual: {pop_size}"
             )
@@ -203,10 +195,9 @@ class BraxProblem(Problem):
         :param pop_params: A dictionary of parameters where each key is a parameter name and each value is a tensor of shape (batch_size, *param_shape) representing the batched parameters of batched models.
 
         :return: A tensor of shape (batch_size,) containing the reward of each sample in the population.
-        """  # Unpack parameters and buffers
-        params, buffers = self.vmap_init_state
-        params.update(pop_params)
-        model_state = (params, buffers)
+        """
+        # Merge the given parameters into the initial parameters
+        model_state = self.vmap_init_state | pop_params
         # Brax environment evaluation
         model_state, rewards = self._evaluate_brax(model_state)
         rewards = self.reduce_fn(rewards, dim=-1)
@@ -231,10 +222,7 @@ class BraxProblem(Problem):
             "HTML",
             "rgb_array",
         ], "output_type must be either HTML or rgb_array"
-        # Unpack parameters and buffers
-        params, buffers = self.init_state
-        params.update(weights)
-        model_state = (params, buffers)
+        model_state = self.init_state | weights
         # Brax environment evaluation
         model_state, _rewards, trajectory = self._evaluate_brax(model_state, record_trajectory=True)
         trajectory = [brax_state for brax_state in trajectory]

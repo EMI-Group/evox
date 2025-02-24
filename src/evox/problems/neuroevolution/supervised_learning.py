@@ -54,10 +54,7 @@ class SupervisedLearningProblem(Problem):
             pop_size,
             device=device,
         )
-        self.init_state = (
-            dict(model.named_parameters()),
-            dict(model.named_buffers()),
-        )
+        self.init_state = model.state_dict()
         self.state_forward = use_state(model)
         # JITed and vmapped state criterion initialization
         self.criterion = torch.compile(criterion)
@@ -102,9 +99,7 @@ class SupervisedLearningProblem(Problem):
         pop_params: Dict[str, nn.Parameter],
     ):
         # Initialize model and criterion states
-        params, buffer = self.vmap_init_state
-        params.update(pop_params)
-        model_state = (params, buffer)
+        model_state = self.vmap_init_state | pop_params
 
         losses = []
         if self.n_batch_per_eval == -1:
@@ -131,9 +126,7 @@ class SupervisedLearningProblem(Problem):
         params: Dict[str, nn.Parameter],
     ):
         # Initialize model and criterion states
-        params, buffer = self.init_state
-        params.update(params)
-        model_state = (params, buffer)
+        model_state = self.init_state | params
 
         losses = []
         if self.n_batch_per_eval == -1:

@@ -26,10 +26,12 @@ def get_vmap_model_state_forward(
     # Model initialization
     inference_model = copy.deepcopy(model)
     inference_model = inference_model.to(device=device)
-    for _, value in inference_model.named_parameters():
-        value.requires_grad = False
-
     state_forward = use_state(inference_model)
     vmap_state_forward = torch.compile(vmap(state_forward, in_dims=in_dims, randomness=randomness))
-    vmap_model_init_state = torch.func.stack_module_state([inference_model] * pop_size)
+    params, buffers = torch.func.stack_module_state([inference_model] * pop_size)
+    vmap_model_init_state = params | buffers
+
+    for _, value in vmap_model_init_state.items():
+        value.requires_grad = False
+
     return ModelStateForwardResult(vmap_model_init_state, vmap_state_forward)
