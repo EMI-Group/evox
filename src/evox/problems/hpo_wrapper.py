@@ -62,18 +62,16 @@ class HPOFitnessMonitor(HPOMonitor):
         return self.best_fitness
 
 
-def get_sub_state(state: Tuple[Dict[str, Any], Dict[str, Any]], name: str):
+def get_sub_state(state: Dict[str, Any], name: str):
     """Get the sub state from the tuple of states.
 
     :param state: The tuple of states.
 
     :return: The sub state.
     """
-    params, buffers = state
     prefix_len = len(name) + 1
-    params = {k[prefix_len:]: v for k, v in params.items() if k.startswith(name)}
-    buffers = {k[prefix_len:]: v for k, v in buffers.items() if k.startswith(name)}
-    return params, buffers
+    state = {k[prefix_len:]: v for k, v in state.items() if k.startswith(name)}
+    return state
 
 
 class HPOProblemWrapper(Problem):
@@ -113,18 +111,17 @@ class HPOProblemWrapper(Problem):
         state_step = use_state(workflow.step)
 
         # JIT workflow step
-        vmap_state_step = vmap(state_step, randomness="different")
-        init_state = torch.func.stack_module_state([workflow] * self.num_instances)
+        vmap_state_step = vmap(state_step, randomness="same")
+        self._init_params, self._init_buffers = torch.func.stack_module_state([workflow] * self.num_instances)
         self._workflow_step_ = torch.compile(vmap_state_step)
-        self._init_state_ = init_state
-        # self._get_monitor_fitness_ = torch.compile(get_monitor_fitness)
         if type(workflow).init_step == Workflow.init_step:
             # if no init step
+            print("No init step")
             self._workflow_init_step_ = self._workflow_step_
         else:
             # otherwise, JIT workflow init step
             state_init_step = use_state(workflow.init_step)
-            vmap_state_init_step = vmap(state_init_step, randomness="different")
+            vmap_state_init_step = vmap(state_init_step, randomness="same")
             self._workflow_init_step_ = torch.compile(vmap_state_init_step)
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
@@ -135,17 +132,19 @@ class HPOProblemWrapper(Problem):
 
         :return: The final fitness of the hyper parameters.
         """
-        if self.copy_init_state:
-            state = copy.deepcopy(self._init_state_)
-        else:
-            state = self._init_state_
-        params, buffers = self._init_state_
         # hyper parameters check
-        for k, v in hyper_parameters.items():
-            assert k in params, f"`{k}` should be a hyperparameter of the workflow, available keys are {list(params.keys())}"
+        for k, _v in hyper_parameters.items():
+            assert k in self._init_params, (
+                f"`{k}` should be a hyperparameter of the workflow, available keys are {self.get_params_keys()}"
+            )
+
+        state = self._init_params | self._init_buffers
+        if self.copy_init_state:
+            state = copy.deepcopy(state)
+
+        # Override with the given hyper parameters
+        state.update(hyper_parameters)
         # run the workflow
-        params.update(hyper_parameters)
-        state = (params, buffers)
         state = self._workflow_init_step_(state)
         for _ in range(self.iterations - 1):
             state = self._workflow_step_(state)
@@ -154,8 +153,9 @@ class HPOProblemWrapper(Problem):
         _monitor_state, fit = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
         return fit
 
-    @torch.jit.ignore
     def get_init_params(self):
         """Return the initial hyper-parameters dictionary of the underlying workflow."""
-        init_params, _init_buffers = self._init_state_
-        return init_params
+        return self._init_params
+
+    def get_params_keys(self):
+        return list(self._init_params.keys())
