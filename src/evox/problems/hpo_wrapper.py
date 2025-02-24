@@ -1,6 +1,6 @@
 import copy
 from abc import ABC
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional
 
 import torch
 from torch import nn
