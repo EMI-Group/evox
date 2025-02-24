@@ -28,8 +28,9 @@ class MOTestBase(TestCase):
         prob = DTLZ2(m=3)
         workflow = StdWorkflow(algo, prob)
         state_step = use_state(workflow.step)
-        vmap_state_step = vmap(state_step)
-        state = torch.func.stack_module_state([workflow] * 3)
+        vmap_state_step = vmap(state_step, randomness="different")
+        params, buffers = torch.func.stack_module_state([workflow] * 3)
+        state = params | buffers
         vmap_state_step = torch.compile(vmap_state_step)
         for _ in range(3):
             state = vmap_state_step(state)

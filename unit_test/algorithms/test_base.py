@@ -51,7 +51,8 @@ class TestBase(TestCase):
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = Sphere()
         workflow = StdWorkflow(algo, prob)
-        state = torch.func.stack_module_state([workflow] * 3)
+        params, buffers = torch.func.stack_module_state([workflow] * 3)
+        state = params | buffers
 
         vmap_state_init_step = vmap(use_state(workflow.init_step), randomness="different")
         vmap_state_init_step = torch.compile(vmap_state_init_step)

@@ -53,7 +53,8 @@ class TestStdWorkflow(unittest.TestCase):
     def test_vmap_workflow(self):
         state_step = use_state(self.workflow.step)
         vmap_state_step = vmap(state_step, randomness="different")
-        state = torch.func.stack_module_state([self.workflow] * 3)
+        params, buffers = torch.func.stack_module_state([self.workflow] * 3)
+        state = params | buffers
         self.assertIsNotNone(state)
         compiled_state_step = torch.compile(vmap_state_step)
         self.assertIsNotNone(compiled_state_step(state))
