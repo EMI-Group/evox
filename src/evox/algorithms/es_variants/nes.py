@@ -2,10 +2,9 @@ import math
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 
 
-@jit_class
 class XNES(Algorithm):
     """The implementation of the xNES algorithm.
 
@@ -59,9 +58,9 @@ class XNES(Algorithm):
             recombination_weights = torch.arange(1, pop_size + 1)
             recombination_weights = torch.clip(math.log(pop_size / 2 + 1) - torch.log(recombination_weights), 0)
             recombination_weights = recombination_weights / torch.sum(recombination_weights) - 1 / pop_size
-        assert (
-            recombination_weights[1:] <= recombination_weights[:-1]
-        ).all(), "recombination_weights must be in descending order"
+        assert (recombination_weights[1:] <= recombination_weights[:-1]).all(), (
+            "recombination_weights must be in descending order"
+        )
 
         # set hyperparameters
         self.learning_rate_mean = Parameter(learning_rate_mean, device=device)
@@ -119,7 +118,6 @@ class XNES(Algorithm):
         return {"mean": self.mean, "sigma": self.sigma, "B": self.B}
 
 
-@jit_class
 class SeparableNES(Algorithm):
     """The implementation of the Separable NES algorithm.
 

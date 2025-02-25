@@ -3,12 +3,10 @@ from typing import Tuple
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
-from ...utils import TracingCond
+from ...core import Algorithm, Mutable, Parameter
 from .sort_utils import sort_by_key
 
 
-@jit_class
 class CMAES(Algorithm):
     """The CMA-ES algorithm as described in "The CMA Evolution Strategy: A Tutorial" from https://arxiv.org/abs/1604.00772."""
 
@@ -151,24 +149,18 @@ class CMAES(Algorithm):
         return update
 
     def _conditional_decomposition(self, iteration: torch.Tensor, C: torch.Tensor):
-        cond = iteration % self.decomp_per_iter == 0
-        if cond:
-            return self._decomposition(C)
-        else:
-            return self.B, self.D, self.C_invsqrt
-
-    @trace_impl(_conditional_decomposition)
-    def _trace_conditional_decomposition(self, iteration: torch.Tensor, C: torch.Tensor):
-        cond = iteration % self.decomp_per_iter == 0
-        branches = (self._decomposition, self._no_decomposition)
-        state, names = self.prepare_control_flow(*branches)
-        _if_else = TracingCond(*branches)
-        state, ret = _if_else.cond(state, cond, C)
-        self.after_control_flow(state, *names)
-        return ret
+        # limitation of torch.cond: https://pytorch.org/docs/stable/generated/torch.cond.html
+        # It currently does not support pytree outputs, so we need to stack the outputs into a single tensor.
+        B, D, C_invsqrt = torch.cond(
+            iteration % self.decomp_per_iter == 0,
+            self._decomposition,
+            self._no_decomposition,
+            (C,),
+        )
+        return B, D, C_invsqrt
 
     def _no_decomposition(self, C: torch.Tensor):
-        return self.B, self.D, self.C_invsqrt
+        return torch.stack([self.B, self.D, self.C_invsqrt], dim=0)
 
     def _decomposition(
         self,
@@ -181,7 +173,7 @@ class CMAES(Algorithm):
         D = torch.diag(D)
         D = torch.sqrt(D)
         D = B @ D
-        return B.T, D, C_invsqrt
+        return torch.stack([B.T, D, C_invsqrt], dim=0)
 
     def record_step(self):
         return {

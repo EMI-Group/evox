@@ -2,7 +2,6 @@ from unittest import TestCase
 
 import torch
 
-from evox.core import jit
 from evox.operators.crossover import simulated_binary
 from evox.operators.mutation import polynomial_mutation
 
@@ -18,7 +17,7 @@ class TestOperators(TestCase):
     def test_simulated_binary(self):
         offspring = simulated_binary(self.x)
         self.assertEqual(offspring.size(0), self.x.size(0) // 2 * 2)
-        jit_simulated_binary = jit(simulated_binary, trace=True, lazy=True)
+        jit_simulated_binary = torch.compile(simulated_binary)
         offspring = jit_simulated_binary(self.x, pro_c=torch.tensor(0.5), dis_c=torch.tensor(20))
         self.assertEqual(offspring.size(0), self.x.size(0) // 2 * 2)
 
@@ -29,7 +28,7 @@ class TestOperators(TestCase):
             ub=self.ub,
         )
         self.assertEqual(offspring.size(), self.x.size())
-        jit_polynomial_mutation = jit(polynomial_mutation, trace=True, lazy=True)
+        jit_polynomial_mutation = torch.compile(polynomial_mutation)
         offspring = jit_polynomial_mutation(
             self.x,
             lb=self.lb,

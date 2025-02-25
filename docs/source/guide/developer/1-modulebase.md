@@ -34,7 +34,6 @@ There are many methods in this class, and some important methods are here:
 | Method            | Signature                                                    | Usage                                                        |
 | ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `__init__`        | `(self, ...)`                                                | Initialize the module.                                       |
-| `setup`           | `(self, ...) -> self`                                        | Module initialization lines should be written in the overwritten method of `setup` rather than `__init__`. |
 | `load_state_dict` | `(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)` | Copy parameters and buffers from `state_dict` into this module and its descendants. It overwrites [`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict). |
 | `add_mutable`     | `(self, name: str, value: Union[torch.Tensor \| nn.Module, Sequence[torch.Tensor \| nn.Module], Dict[str, torch.Tensor \| nn.Module]]) -> None` | Define a mutable value in this module that can be accessed via `self.[name]` and modified in-place. |
 
@@ -73,78 +72,5 @@ def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 ```
 ### Non-static Methods
 
-If a method with python dynamic control flows like `if` were to be JIT, a separated static method with `jit(..., trace=False)` or `torch.jit.script_if_tracing` shall be used:
-
-```python
-# Set an module inherited from the ModuleBase class
-class ExampleModule(ModuleBase):
-
-    ...
-
-    # An example of one method with python dynamic control flows like "if"
-    # The method using jit(..., trace=False)
-    @partial(jit, trace=False)
-    def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
-        if x.flatten()[0] > threshold:
-            return torch.sin(x)
-        else:
-            return torch.tan(x)
-
-    # The method to be JIT
-    @jit
-    def jit_func(self, p: torch.Tensor) -> torch.Tensor:
-        return ExampleModule.static_func(p, self.threshold)
-
-    ...
-
-```
-
-### Supporting for JIT and non-JIT functions
-
-[`ModuleBase`](#evox.core.module.ModuleBase) is usually used with `jit_class` to automatically JIT all non-magic member methods:
-
-```python
-@jit_class
-class ExampleModule(ModuleBase):
-    # This function will be automatically JIT
-    def func1(self, x: torch.Tensor) -> torch.Tensor:
-        pass
-
-    # Use `torch.jit.ignore` to disable JIT and leave this function as Python callback
-    @torch.jit.ignore
-    def func2(self, x: torch.Tensor) -> torch.Tensor:
-        # you can implement pure Python logic here
-        pass
-
-    # JIT functions can invoke other JIT functions as well as non-JIT functions
-    def func3(self, x: torch.Tensor) -> torch.Tensor:
-        y = self.func1(x)
-        z = self.func2(x)
-        pass
-```
-
-### Examples
-
-An example of one module inherited from the [`ModuleBase`](#evox.core.module.ModuleBase) is like:
-
-```python
-class ExampleModule(ModuleBase):
-        def setup(self, mut: torch.Tensor):
-            self.add_mutable("mut", mut)
-            # or
-            self.mut = Mutable(mut)
-            return self
-
-        @partial(jit, trace=False)
-        def static_func(x: torch.Tensor, threshold: float) -> torch.Tensor:
-            if x.flatten()[0] > threshold:
-                return torch.sin(x)
-            else:
-                return torch.tan(x)
-        @jit
-        def jit_func(self, p: torch.Tensor) -> torch.Tensor:
-            x = ExampleModule.static_func(p, self.threshold)
-            ...
-```
-
-For more details, please look through [the Module in EvoX](#evox.core.module).
+If a method with python dynamic control flows like `if` were to be used with `vmap`,
+please use [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond) to explicitly define the control flow.

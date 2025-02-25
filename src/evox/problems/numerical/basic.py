@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Problem, jit_class
+from ...core import Problem
 
 
 class ShiftAffineNumericalProblem(Problem):
@@ -46,7 +46,6 @@ def ackley_func(a: float, b: float, c: float, x: torch.Tensor) -> torch.Tensor:
     )
 
 
-@jit_class
 class Ackley(ShiftAffineNumericalProblem):
     """The Ackley function whose minimum is x = [0, ..., 0]"""
 
@@ -72,7 +71,6 @@ def griewank_func(x: torch.Tensor) -> torch.Tensor:
     return f
 
 
-@jit_class
 class Griewank(ShiftAffineNumericalProblem):
     """The Griewank function whose minimum is x = [0, ..., 0]"""
 
@@ -91,7 +89,6 @@ def rastrigin_func(x: torch.Tensor) -> torch.Tensor:
     return 10 * x.size(1) + torch.sum(x**2 - 10 * torch.cos(2 * torch.pi * x), dim=1)
 
 
-@jit_class
 class Rastrigin(ShiftAffineNumericalProblem):
     """The Rastrigin function whose minimum is x = [0, ..., 0]"""
 
@@ -111,7 +108,6 @@ def rosenbrock_func(x):
     return f
 
 
-@jit_class
 class Rosenbrock(ShiftAffineNumericalProblem):
     """The Rosenbrock function whose minimum is x = [1, ..., 1]"""
 
@@ -130,7 +126,6 @@ def schwefel_func(x):
     return 418.9828872724338 * x.size(1) - torch.sum(x * torch.sin(torch.sqrt(torch.abs(x))), dim=1)
 
 
-@jit_class
 class Schwefel(ShiftAffineNumericalProblem):
     """The Schwefel function whose minimum is x = [420.9687, ..., 420.9687]"""
 
@@ -149,7 +144,6 @@ def sphere_func(x):
     return torch.sum(x**2, dim=1)
 
 
-@jit_class
 class Sphere(ShiftAffineNumericalProblem):
     """The sphere function whose minimum is x = [0, ..., 0]"""
 

@@ -2,7 +2,6 @@ import unittest
 
 import torch
 
-from evox.core import jit
 from evox.operators.selection import ref_vec_guided
 
 
@@ -16,7 +15,7 @@ class TestRefVecGuided(unittest.TestCase):
         self.v = torch.randn(self.nv, self.m)
         self.theta = torch.tensor(0.5)
 
-        self.jit_ref_vec_guided = jit(ref_vec_guided, trace=True, lazy=True)
+        self.jit_ref_vec_guided = torch.compile(ref_vec_guided)
 
     def test_ref_vec_guided(self):
         next_x, next_f = ref_vec_guided(self.x, self.f, self.v, self.theta)

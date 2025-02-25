@@ -8,7 +8,6 @@ import torchvision
 from torch.utils.data import DataLoader
 
 from evox.algorithms import PSO
-from evox.core import Algorithm, Mutable, Parameter, jit_class
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -174,7 +173,7 @@ class TestSupervisedLearningProblem(unittest.TestCase):
 
                 running_loss += loss.item()
                 if print_frequent > 0 and step % print_frequent == 0:
-                    print(f"[Epoch {epoch:2d}, step {step:4d}] " f"running loss: {running_loss:.4f} ")
+                    print(f"[Epoch {epoch:2d}, step {step:4d}] running loss: {running_loss:.4f} ")
                     running_loss = 0.0
         return model
 
@@ -219,7 +218,6 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             pop_size=POP_SIZE,
             device=self.device,
         )
-        vmapped_problem.setup()
 
         pop_algorithm = PSO(
             pop_size=POP_SIZE,
@@ -227,87 +225,21 @@ class TestSupervisedLearningProblem(unittest.TestCase):
             ub=self.upper_bound,
             device=self.device,
         )
-        pop_algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        pop_workflow = StdWorkflow()
-        pop_workflow.setup(
+        pop_workflow = StdWorkflow(
             algorithm=pop_algorithm,
             problem=vmapped_problem,
-            solution_transform=self.adapter,
             monitor=pop_monitor,
+            solution_transform=self.adapter,
             device=self.device,
         )
         self.neuroevolution_process(
             workflow=pop_workflow,
-            adapter=self.adapter,
-            model=self.model,
-            test_loader=self.pre_test_loader,
-            device=self.device,
-            best_acc=0.0,
-            max_generation=3,
-        )
-
-    def test_single_individual_neuroevolution(self):
-        print("Single-individual neuroevolution process start.")
-        single_problem = SupervisedLearningProblem(
-            model=self.model,
-            data_loader=self.pre_ne_train_loader,
-            criterion=self.weighted_criterion,
-            pop_size=None,
-            device=self.device,
-        )
-        single_problem.setup()
-
-        @jit_class
-        class RandAlgorithm(Algorithm):
-            def __init__(self, lb, ub):
-                super().__init__()
-                assert lb.ndim == 1 and ub.ndim == 1, (
-                    f"Lower and upper bounds shall have ndim of 1, " f"got {lb.ndim} and {ub.ndim}. "
-                )
-                assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, " f"got {lb.ndim} and {ub.ndim}. "
-                self.hp = Parameter([1.0, 2.0])
-                self.lb = lb
-                self.ub = ub
-                self.dim = lb.shape[0]
-                self.pop = Mutable(torch.empty(1, lb.shape[0], dtype=lb.dtype, device=lb.device))
-                self.fit = Mutable(torch.empty(1, dtype=lb.dtype, device=lb.device))
-
-            def step(self):
-                pop = torch.rand(
-                    self.dim,
-                    dtype=self.lb.dtype,
-                    device=self.lb.device,
-                )
-                pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-                pop = pop * self.hp[0]
-                self.pop.copy_(pop)
-                self.fit.copy_(self.evaluate(pop))
-
-        single_algorithm = RandAlgorithm(lb=self.lower_bound, ub=self.upper_bound)
-
-        single_monitor = EvalMonitor(
-            topk=1,
-            device=self.device,
-        )
-        single_monitor.setup()
-
-        single_workflow = StdWorkflow()
-        single_workflow.setup(
-            algorithm=single_algorithm,
-            problem=single_problem,
-            solution_transform=self.adapter,
-            monitor=single_monitor,
-            device=self.device,
-        )
-        self.neuroevolution_process(
-            workflow=single_workflow,
             adapter=self.adapter,
             model=self.model,
             test_loader=self.pre_test_loader,

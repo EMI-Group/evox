@@ -31,7 +31,6 @@ The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from [`Mod
 | Method       | Signature                               | Usage                                                                                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
-| `setup` (optional) | `(self, ...) -> self` | Initialize the mutable submodule(s) of the algorithm. See [`ModuleBase`](#evox.core.module.ModuleBase). Usually, it is not necessary to overwrite this method. |
 | `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
 | `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
@@ -44,7 +43,7 @@ If such `setup` method in [`ModuleBase`](#evox.core.module.ModuleBase) is not su
 
 ## Problem class
 
-The [`Problem`](#evox.core.components.Problem) class is also inherited from [`ModuleBase`](#evox.core.module.ModuleBase). 
+The [`Problem`](#evox.core.components.Problem) class is also inherited from [`ModuleBase`](#evox.core.module.ModuleBase).
 
 However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
 
@@ -70,11 +69,11 @@ Set hyper-parameters
 Generate the initial population
 Do
     Compute fitness
-    
+
     Update the local best fitness and the global best fitness
     Update the velocity
     Update the population
-    
+
 Until stopping criterion
 ```
 
@@ -87,7 +86,7 @@ Generate the initial population # Algorithm.setup
 Do
     # Problem.evaluate (not part of the algorithm)
     Compute fitness
-    
+
     # Algorithm.step
     Update the local best fitness and the global best fitness
     Update the velocity
@@ -107,9 +106,8 @@ import torch
 from typing import List
 
 from evox.utils import clamp
-from evox.core import Parameter, Mutable, Algorithm, jit_class
+from evox.core import Parameter, Mutable, Algorithm
 
-@jit_class
 class PSO(Algorithm):
     #Initialize the PSO algorithm with the given parameters.
     def __init__(
@@ -151,7 +149,7 @@ class PSO(Algorithm):
     def step(self):
         # Compute fitness
         fitness = self.evaluate(self.population)
-        
+
         # Update the local best fitness and the global best fitness
         compare = self.local_best_fitness - fitness
         self.local_best_location = torch.where(
@@ -162,7 +160,7 @@ class PSO(Algorithm):
             [self.global_best_location.unsqueeze(0), self.population],
             [self.global_best_fitness.unsqueeze(0), fitness],
         )
-        
+
         # Update the velocity
         rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
         rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
@@ -171,13 +169,13 @@ class PSO(Algorithm):
             + self.phi_p * rp * (self.local_best_location - self.population)
             + self.phi_g * rg * (self.global_best_location - self.population)
         )
-        
+
         # Update the population
         population = self.population + velocity
         self.population = clamp(population, self.lb, self.ub)
         self.velocity = clamp(velocity, self.lb, self.ub)
-        
-    def _min_by(self, values: List[torch.Tensor],keys: List[torch.Tensor],):
+
+    def _min_by(self, values: List[torch.Tensor], keys: List[torch.Tensor]):
         # Find the value with the minimum key
         values = torch.cat(values, dim=0)
         keys = torch.cat(keys, dim=0)

@@ -1,10 +1,9 @@
 import torch
 
-from ...core import Algorithm, Mutable, jit_class
+from ...core import Algorithm, Mutable
 from ...utils import clamp
 
 
-@jit_class
 class JaDE(Algorithm):
     """
     Adaptive Differential Evolution (JaDE) algorithm for optimization.

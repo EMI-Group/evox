@@ -3,10 +3,10 @@ from functools import partial
 
 import torch
 
-from evox.core import jit, vmap
+from evox.core import vmap
 
 
-@partial(vmap, example_ndim=2)
+@partial(vmap)
 def _single_eval(x: torch.Tensor, p: float = 2.0, q: torch.Tensor = torch.tensor([0, 1])):
     return (x**p).sum() * q.sum()
 
@@ -20,9 +20,9 @@ class TestJitUtil(unittest.TestCase):
         self.assertTrue(torch.equal(result, self.expected))
 
     def test_jit_single_eval(self):
-        result = jit(_single_eval)(2 * torch.ones(10, 2))
+        result = torch.compile(_single_eval)(2 * torch.ones(10, 2))
         self.assertTrue(torch.equal(result, self.expected))
 
     def test_jit_single_eval_trace_lazy(self):
-        result = jit(_single_eval, trace=True, lazy=True)(2 * torch.ones(10, 2))
+        result = torch.compile(_single_eval)(2 * torch.ones(10, 2))
         self.assertTrue(torch.equal(result, self.expected))
