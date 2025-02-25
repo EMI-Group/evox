@@ -3,6 +3,7 @@ from typing import Literal
 import torch
 
 from evox.core import Algorithm, Mutable, Parameter
+
 from .adam_step import adam_single_tensor
 
 

@@ -12,6 +12,7 @@ from brax import envs
 from brax.io import html, image
 
 from evox.core import Problem, use_state
+
 from .utils import get_vmap_model_state_forward
 
 
