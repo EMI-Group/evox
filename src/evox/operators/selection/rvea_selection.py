@@ -24,7 +24,7 @@ def apd_fn(
     """
     selected_z = torch.gather(z, 0, torch.relu(x))
     left = (1 + obj.size(1) * theta * selected_z) / y[None, :]
-    norm_obj = torch.linalg.vector_norm(obj**2, dim=1)
+    norm_obj = torch.linalg.vector_norm(obj, dim=1)
     right = norm_obj[x]
     return left * right
 
@@ -80,9 +80,9 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
     nan_mask = torch.isnan(obj).any(dim=1)
     associate = torch.argmin(angle, dim=1)
     associate = torch.where(nan_mask, -1, associate)
-    associate = associate[:, None]
-    partition = torch.arange(0, n, device=f.device)[:, None]
-    IndexMatrix = torch.arange(0, nv, device=f.device)[None, :]
+    associate = associate.unsqueeze(1)
+    partition = torch.arange(0, n, device=f.device).unsqueeze(1)
+    IndexMatrix = torch.arange(0, nv, device=f.device).unsqueeze(0)
     partition = (associate == IndexMatrix) * partition + (associate != IndexMatrix) * -1
 
     mask = associate != IndexMatrix
@@ -94,5 +94,11 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
     next_ind = torch.argmin(apd, dim=0)
     next_x = torch.where(mask_null.unsqueeze(1), torch.nan, x[next_ind])
     next_f = torch.where(mask_null.unsqueeze(1), torch.nan, f[next_ind])
+
+    # rv_performance = torch.ones_like(apd)
+    # rv_performance = torch.where(mask, 0, rv_performance)
+    # rv_set_num = torch.sum(rv_performance, dim=0)
+    # total_num = rv_set_num.sum()
+    # debug_print("total_num: {}", total_num)
 
     return next_x, next_f

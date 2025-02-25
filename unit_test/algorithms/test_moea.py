@@ -66,8 +66,3 @@ class TestMOVariants(MOTestBase):
                 self.run_algorithm(algo)
                 self.run_trace_algorithm(algo)
                 # self.run_vmap_algorithm(algo)
-
-if __name__ == "__main__":
-    test = TestMOVariants()
-    test.setUp()
-    test.test_moea_variants()

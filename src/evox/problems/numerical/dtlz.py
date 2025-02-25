@@ -1,10 +1,12 @@
+from typing import Optional
+
 import torch
 
-from ...core import Problem, jit_class
+from ...core import Problem
 from ...operators.sampling import grid_sampling, uniform_sampling
 
 
-class DTLZTestSuit(Problem):
+class DTLZ(Problem):
     """
     Base class for DTLZ test suite problems in multi-objective optimization.
 
@@ -15,14 +17,15 @@ class DTLZTestSuit(Problem):
     :param ref_num: Number of reference points used in the problem.
     """
 
-    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000):
+    def __init__(self, d: int = None, m: int = None, ref_num: int = 1000, device: Optional[torch.device] = None):
         """Override the setup method to initialize the parameters"""
         super().__init__()
+        device = device or torch.get_default_device()
         self.d = d
         self.m = m
         self.ref_num = ref_num
-        self.sample, _ = uniform_sampling(self.ref_num * self.m, self.m)  # Assuming UniformSampling is defined
-        self.device = self.sample.device
+        sample, _ = uniform_sampling(self.ref_num * self.m, self.m)  # Assuming UniformSampling is defined
+        self.sample = sample.to(device=device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         """
@@ -43,10 +46,9 @@ class DTLZTestSuit(Problem):
         return f
 
 
-@jit_class
-class DTLZ1(DTLZTestSuit):
-    def __init__(self, d: int = 7, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ1(DTLZ):
+    def __init__(self, d: int = 7, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
@@ -79,10 +81,9 @@ class DTLZ1(DTLZTestSuit):
         return f
 
 
-@jit_class
-class DTLZ2(DTLZTestSuit):
-    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ2(DTLZ):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
@@ -122,10 +123,9 @@ class DTLZ2(DTLZTestSuit):
         return f
 
 
-@jit_class
-class DTLZ3(DTLZ2.__wrapped__):
-    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ3(DTLZ2):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         n, d = X.size()
@@ -169,10 +169,9 @@ class DTLZ3(DTLZ2.__wrapped__):
         return f
 
 
-@jit_class
-class DTLZ4(DTLZ2.__wrapped__):
-    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ4(DTLZ2):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
@@ -211,10 +210,9 @@ class DTLZ4(DTLZ2.__wrapped__):
         return f
 
 
-@jit_class
-class DTLZ5(DTLZTestSuit):
-    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ5(DTLZ):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
@@ -260,14 +258,14 @@ class DTLZ5(DTLZTestSuit):
             (
                 torch.hstack(
                     (
-                        torch.arange(0, 1, 1.0 / (n - 1), device=self.device),
-                        torch.tensor(1.0, device=self.device),
+                        torch.arange(0, 1, 1.0 / (n - 1), device=self.sample.device),
+                        torch.tensor(1.0, device=self.sample.device),
                     )
                 ),
                 torch.hstack(
                     (
-                        torch.arange(1, 0, -1.0 / (n - 1), device=self.device),
-                        torch.tensor(0.0, device=self.device),
+                        torch.arange(1, 0, -1.0 / (n - 1), device=self.sample.device),
+                        torch.tensor(0.0, device=self.sample.device),
                     )
                 ),
             )
@@ -278,11 +276,11 @@ class DTLZ5(DTLZTestSuit):
         for i in range(self.m - 2):
             f = torch.cat((f[:, 0:1], f), dim=1)
 
-        f = f / torch.sqrt(torch.tensor(2.0, device=self.device)) ** torch.tile(
+        f = f / torch.sqrt(torch.tensor(2.0, device=self.sample.device)) ** torch.tile(
             torch.hstack(
                 (
-                    torch.tensor(self.m - 2, device=self.device),
-                    torch.arange(self.m - 2, -1, -1, device=self.device),
+                    torch.tensor(self.m - 2, device=self.sample.device),
+                    torch.arange(self.m - 2, -1, -1, device=self.sample.device),
                 )
             ),
             (f.size(0), 1),
@@ -290,10 +288,9 @@ class DTLZ5(DTLZTestSuit):
         return f
 
 
-@jit_class
-class DTLZ6(DTLZTestSuit):
-    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
+class DTLZ6(DTLZ):
+    def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
@@ -337,14 +334,14 @@ class DTLZ6(DTLZTestSuit):
             (
                 torch.hstack(
                     (
-                        torch.arange(0, 1, 1.0 / (n - 1), device=self.device),
-                        torch.tensor(1.0, device=self.device),
+                        torch.arange(0, 1, 1.0 / (n - 1), device=self.sample.device),
+                        torch.tensor(1.0, device=self.sample.device),
                     )
                 ),
                 torch.hstack(
                     (
-                        torch.arange(1, 0, -1.0 / (n - 1), device=self.device),
-                        torch.tensor(0.0, device=self.device),
+                        torch.arange(1, 0, -1.0 / (n - 1), device=self.sample.device),
+                        torch.tensor(0.0, device=self.sample.device),
                     )
                 ),
             )
@@ -355,11 +352,11 @@ class DTLZ6(DTLZTestSuit):
         for i in range(self.m - 2):
             f = torch.cat((f[:, 0:1], f), dim=1)
 
-        f = f / torch.sqrt(torch.tensor(2.0, device=self.device)) ** torch.tile(
+        f = f / torch.sqrt(torch.tensor(2.0, device=self.sample.device)) ** torch.tile(
             torch.hstack(
                 (
-                    torch.tensor(self.m - 2, device=self.device),
-                    torch.arange(self.m - 2, -1, -1, device=self.device),
+                    torch.tensor(self.m - 2, device=self.sample.device),
+                    torch.arange(self.m - 2, -1, -1, device=self.sample.device),
                 )
             ),
             (f.size(0), 1),
@@ -367,11 +364,11 @@ class DTLZ6(DTLZTestSuit):
         return f
 
 
-@jit_class
-class DTLZ7(DTLZTestSuit):
-    def __init__(self, d: int = 21, m: int = 3, ref_num: int = 1000):
-        super().__init__(d, m, ref_num)
-        self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
+class DTLZ7(DTLZ):
+    def __init__(self, d: int = 21, m: int = 3, ref_num: int = 1000, device: Optional[torch.device] = None):
+        super().__init__(d, m, ref_num, device)
+        sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
+        self.sample = sample.to(device or torch.get_default_device())
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         n, d = X.size()
@@ -391,10 +388,10 @@ class DTLZ7(DTLZTestSuit):
         return f
 
     def pf(self):
-        interval = torch.tensor([0.0, 0.251412, 0.631627, 0.859401], dtype=torch.float, device=self.device)
-        median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0]).to(self.device)
+        interval = torch.tensor([0.0, 0.251412, 0.631627, 0.859401], dtype=torch.float, device=self.sample.device)
+        median = (interval[1] - interval[0]) / (interval[3] - interval[2] + interval[1] - interval[0]).to(self.sample.device)
 
-        x = self.sample.to(self.device)
+        x = self.sample.to(self.sample.device)
 
         mask_less_equal_median = x <= median
         mask_greater_median = x > median

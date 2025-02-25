@@ -2,7 +2,7 @@ from functools import partial
 
 import torch
 
-from ...core import Problem, jit_class
+from ...core import Problem
 
 
 def _generic_zdt(f1, g, h, x):
@@ -11,7 +11,7 @@ def _generic_zdt(f1, g, h, x):
     return torch.stack([f1_x, g_x * h(f1_x, g_x)],dim=1)
 
 
-class ZDTTestSuit(Problem):
+class ZDT(Problem):
     def __init__(self, n: int, ref_num: int = 100):
         super().__init__()
         self.n = n
@@ -26,8 +26,7 @@ class ZDTTestSuit(Problem):
         return torch.stack([x, 1 - torch.sqrt(x)], dim=1)
 
 
-@jit_class
-class ZDT1(ZDTTestSuit):
+class ZDT1(ZDT):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[:,0]
@@ -36,8 +35,7 @@ class ZDT1(ZDTTestSuit):
         self._zdt = partial(_generic_zdt, f1, g, h)
 
 
-@jit_class
-class ZDT2(ZDTTestSuit):
+class ZDT2(ZDT):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[:,0]
@@ -50,8 +48,7 @@ class ZDT2(ZDTTestSuit):
         return torch.stack([x, 1 - x**2], dim=1)
 
 
-@jit_class
-class ZDT3(ZDTTestSuit):
+class ZDT3(ZDT):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[:,0]
@@ -80,8 +77,7 @@ class ZDT3(ZDTTestSuit):
         return pf
 
 
-@jit_class
-class ZDT4(ZDTTestSuit):
+class ZDT4(ZDT):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: x[:,0]
@@ -90,8 +86,7 @@ class ZDT4(ZDTTestSuit):
         self._zdt = partial(_generic_zdt, f1, g, h)
 
 
-@jit_class
-class ZDT6(ZDTTestSuit):
+class ZDT6(ZDT):
     def __init__(self, n):
         super().__init__(n)
         f1 = lambda x: 1 - torch.exp(-4.0 * x[:,0]) * torch.sin(6.0 * torch.pi * x[:,0]) ** 6

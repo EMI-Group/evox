@@ -4,14 +4,13 @@ from typing import List, Optional
 
 import torch
 
-from ...core import Problem, jit_class
+from ...core import Problem
 
 
-@jit_class
 class CEC2022(Problem):
     """The CEC 2022 single-objective test suite Problem"""
 
-    def __init__(self, problem_number: int, dimension: int, device: torch.device | None = None):
+    def __init__(self, problem_number: int, dimension: int, device: Optional[torch.device] = None):
         """
         Initialize a single test function instance from the CEC2022 test suite.
 
@@ -25,6 +24,7 @@ class CEC2022(Problem):
             FileNotFoundError: If the necessary data files for the problem are not found.
         """
         super().__init__()
+        device = device or torch.get_default_device()
         self.nx = dimension
         self.func_num = problem_number
 

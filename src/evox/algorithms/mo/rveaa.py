@@ -3,7 +3,7 @@ from typing import Callable, Optional
 import torch
 import torch.nn.functional as F
 
-from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
+from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl, debug_print
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
 from ...operators.sampling import uniform_sampling
@@ -60,7 +60,7 @@ class RVEAa(Algorithm):
         sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
 
         v = sampling.to(device=device)
-        v0 = v
+        v0 = v.clone()
         self.pop_size = v.size(0)
         length = ub - lb
         population0 = torch.rand(self.pop_size, self.dim, device=device)
@@ -91,15 +91,15 @@ class RVEAa(Algorithm):
         return self.reference_vector[: self.pop_size]
 
     def _mating_pool(self):
-        mating_pool = torch.randint(0, self.pop_size*2, (self.pop_size,))
+        mating_pool = torch.randint(0, self.pop.size(0), (self.pop_size,))
         return self.pop[mating_pool]
 
     @trace_impl(_mating_pool)
     def _trace_mating_pool(self):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
-        mating_pool = torch.randint(0, max_idx, (self.pop_size*2,), device=self.device)
-        pop_index = torch.where(no_nan_pop, torch.arange(self.pop_size*2, device=self.device), int(1e10))
+        mating_pool = torch.randint(0, max_idx, (self.pop_size * 2,), device=self.device)
+        pop_index = torch.where(no_nan_pop, torch.arange(self.pop_size * 2, device=self.device), int(1e10))
         pop_index = torch.argsort(pop_index, stable=True)
         pop = self.pop[pop_index[mating_pool].squeeze()]
         return pop
@@ -146,15 +146,12 @@ class RVEAa(Algorithm):
             v_adapt = self._rv_adaptation(survivor_fit)
         else:
             v_adapt = self._no_rv_adaptation(survivor_fit)
-        v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[: self.pop_size])
+        # v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
+        v_regen = self.reference_vector[self.pop_size :]
         self.reference_vector = torch.cat([v_adapt, v_regen], dim=0)
 
-        if self.gen + 1 == self.max_gen:
+        if self.gen == self.max_gen:
             self._batch_truncation(survivor, survivor_fit)
-
-        nan_mask_survivor = torch.isnan(survivor).any(dim=1)
-        self.pop = survivor[~nan_mask_survivor]
-        self.fit = survivor_fit[~nan_mask_survivor]
 
     @trace_impl(_update_pop_and_rv)
     def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
@@ -163,7 +160,8 @@ class RVEAa(Algorithm):
         state1, v_adapt = if_else1.cond(state1, self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
         self.after_control_flow(state1, *names1)
 
-        v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[: self.pop_size])
+        # v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
+        v_regen = self.reference_vector[self.pop_size :]
         self.reference_vector = torch.cat([v_adapt, v_regen], dim=0)
 
         state2, names2 = self.prepare_control_flow(self._batch_truncation, self._no_batch_truncation)
@@ -174,7 +172,7 @@ class RVEAa(Algorithm):
     def step(self):
         """Perform a single optimization step."""
 
-        self.gen = self.gen + torch.tensor(1)
+        self.gen = self.gen + torch.tensor(1, device=self.device)
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)
