@@ -1,11 +1,10 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...core import Algorithm, Mutable, Parameter
 from ...utils import clamp
 from .utils import min_by
 
 
-@jit_class
 class FSPSO(Algorithm):
     """The Feature Selection PSO algorithm."""
 
