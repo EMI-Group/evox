@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import torch
 
-from evox.algorithms import MOEAD, NSGA2, RVEA
+from evox.algorithms import MOEAD, NSGA2, RVEA, HypE
 from evox.core import Algorithm, jit, use_state, vmap
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow
@@ -55,6 +55,7 @@ class TestMOVariants(MOTestBase):
             NSGA2(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             RVEA(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             MOEAD(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
+            HypE(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
         ]
 
     def test_moea_variants(self):
