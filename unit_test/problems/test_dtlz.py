@@ -27,7 +27,3 @@ class TestDTLZ(TestCase):
             pf = pro.pf()
             assert pf.size(1) == 3
 
-if __name__ == "__main__":
-    test = TestDTLZ()
-    test.setUp()
-    test.test_dtlz()
