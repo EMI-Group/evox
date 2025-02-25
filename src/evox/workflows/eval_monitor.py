@@ -3,10 +3,10 @@ from typing import Dict, List
 
 import torch
 
-from ..core import Monitor, Mutable
+from evox.core import Monitor, Mutable
 
 try:
-    from ..vis_tools import plot
+    from evox.vis_tools import plot
 except ImportError:
     plot = None
 

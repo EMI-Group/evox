@@ -3,11 +3,11 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable
-from ...operators.crossover import simulated_binary_half
-from ...operators.mutation import polynomial_mutation
-from ...operators.sampling import uniform_sampling
-from ...utils import clamp, minimum
+from evox.core import Algorithm, Mutable
+from evox.operators.crossover import simulated_binary_half
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.sampling import uniform_sampling
+from evox.utils import clamp, minimum
 
 
 def pbi(f: torch.Tensor, w: torch.Tensor, z: torch.Tensor):

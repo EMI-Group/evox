@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import torch
 
-from ...core import Problem
+from evox.core import Problem
 
 
 class CEC2022(Problem):

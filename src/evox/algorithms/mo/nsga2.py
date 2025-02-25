@@ -2,11 +2,11 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable
-from ...operators.crossover import simulated_binary
-from ...operators.mutation import polynomial_mutation
-from ...operators.selection import nd_environmental_selection, tournament_selection_multifit
-from ...utils import clamp
+from evox.core import Algorithm, Mutable
+from evox.operators.crossover import simulated_binary
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.selection import nd_environmental_selection, tournament_selection_multifit
+from evox.utils import clamp
 
 
 class NSGA2(Algorithm):

@@ -3,7 +3,7 @@ from typing import Tuple
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from evox.core import Algorithm, Mutable, Parameter
 from .sort_utils import sort_by_key
 
 

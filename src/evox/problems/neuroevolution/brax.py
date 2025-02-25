@@ -11,7 +11,7 @@ import torch.utils.dlpack
 from brax import envs
 from brax.io import html, image
 
-from ...core import Problem, use_state
+from evox.core import Problem, use_state
 from .utils import get_vmap_model_state_forward
 
 

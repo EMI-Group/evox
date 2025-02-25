@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from evox.core import Algorithm, Mutable, Parameter
 
 
 class XNES(Algorithm):

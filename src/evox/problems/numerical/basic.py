@@ -1,6 +1,6 @@
 import torch
 
-from ...core import Problem
+from evox.core import Problem
 
 
 class ShiftAffineNumericalProblem(Problem):

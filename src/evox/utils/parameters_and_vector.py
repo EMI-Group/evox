@@ -4,7 +4,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from ..core import ModuleBase
+from evox.core import ModuleBase
 from .re_export import tree_flatten, tree_unflatten
 
 

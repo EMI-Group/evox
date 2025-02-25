@@ -2,12 +2,12 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, vmap
-from ...operators.crossover import simulated_binary
-from ...operators.mutation import polynomial_mutation
-from ...operators.sampling import uniform_sampling
-from ...operators.selection import non_dominate_rank, tournament_selection_multifit
-from ...utils import clamp
+from evox.core import Algorithm, Mutable, vmap
+from evox.operators.crossover import simulated_binary
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.sampling import uniform_sampling
+from evox.operators.selection import non_dominate_rank, tournament_selection_multifit
+from evox.utils import clamp
 
 
 def _get_table_row_inner(bool_ref_candidate: torch.Tensor, upper_bound: torch.Tensor):
