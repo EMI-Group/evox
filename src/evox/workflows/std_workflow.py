@@ -2,7 +2,7 @@ from typing import Any
 
 import torch
 
-from ..core import Algorithm, Monitor, Problem, Workflow
+from evox.core import Algorithm, Monitor, Problem, Workflow
 
 
 class _NegModule(torch.nn.Module):

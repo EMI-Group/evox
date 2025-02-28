@@ -4,7 +4,7 @@ from typing import Literal
 import torch
 import torch.nn.functional as F
 
-from ...core import Algorithm, Mutable, Parameter
+from evox.core import Algorithm, Mutable, Parameter
 
 
 class SNES(Algorithm):

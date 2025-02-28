@@ -1,14 +1,14 @@
 import torch
 
-from ...core import Algorithm, Mutable
-from ...operators.crossover import (
+from evox.core import Algorithm, Mutable
+from evox.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
     DE_exponential_crossover,
 )
-from ...operators.selection import select_rand_pbest
-from ...utils import clamp
+from evox.operators.selection import select_rand_pbest
+from evox.utils import clamp
 
 # Strategy codes(4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]
 # base_vec: 0="rand", 1="best", 2="pbest", 3="current", cross_strategy: 0=bin, 1=exp, 2=arith

@@ -1,12 +1,13 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
-from ...utils import clamp
+from evox.core import Algorithm, Mutable, Parameter
+from evox.utils import clamp, clamp_int
+
 from .utils import min_by
 
 
-class SLPSOGS(Algorithm):
-    """The basic Particle Swarm Optimization Social Learning PSO Using Gaussian Sampling for Demonstrator Choice (SLPSOGS) algorithm.
+class SLPSOUS(Algorithm):
+    """The basic Particle Swarm Optimization Social Learning PSO Using Uniform Sampling for Demonstrator Choice (SLPSOUS) algorithm.
 
     ## Class Methods
 
@@ -27,7 +28,7 @@ class SLPSOGS(Algorithm):
         device: torch.device | None = None,
     ):
         """
-        Initialize the SLPSOGS algorithm with the given parameters.
+        Initialize the SLPSOUS algorithm with the given parameters.
 
         :param pop_size: The size of the population.
         :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
@@ -69,7 +70,7 @@ class SLPSOGS(Algorithm):
         self.global_best_fit = torch.min(self.fit)
 
     def step(self):
-        """Perform a normal optimization step using SLPSOGS."""
+        """Perform a normal optimization step using SLPSOUS."""
         device = self.pop.device
         global_best_location, global_best_fit = min_by(
             [self.global_best_location.unsqueeze(0), self.pop],
@@ -77,20 +78,26 @@ class SLPSOGS(Algorithm):
         )
         # Demonstrator Choice
         # sort from largest fitness to smallest fitness (worst to best)
-        ranked_population = self.pop[torch.argsort(self.fit, descending=True)]
-        sigma = self.demonstrator_choice_factor * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1))
-        # normal distribution (shape=(self.pop_size,)) means
-        # each individual choose a demonstrator by normal distribution
-        # with mean = pop_size and std = sigma
-        standard_normal_distribution = torch.randn(self.pop_size, device=device)
-        normal_distribution = sigma * (-torch.abs(standard_normal_distribution)) + self.pop_size
-        index_k = torch.clamp(normal_distribution, 1, self.pop_size).to(dtype=torch.int64) - 1
+        ranked_population = self.pop[torch.argsort(-self.fit)]
+        # demonstrator choice: q to pop_size
+        q = clamp_int(
+            self.pop_size
+            - torch.ceil(
+                self.demonstrator_choice_factor * (self.pop_size - (torch.arange(self.pop_size, device=device) + 1) - 1)
+            ),
+            1,
+            self.pop_size,
+        )
+        # uniform distribution (shape: (pop_size,)) means
+        # each individual choose a demonstrator by uniform distribution in the range of q to pop_size
+        uniform_distribution = torch.rand(self.pop_size, device=device) * (self.pop_size + 1 - q) + q
+        index_k = clamp_int(torch.floor(uniform_distribution).to(dtype=torch.int64) - 1, 0, self.pop_size - 1)
         X_k = ranked_population[index_k]
         # Update population and velocity
-        X_avg = torch.mean(self.pop, dim=0)
         r1 = torch.rand(self.pop_size, self.dim, device=device)
         r2 = torch.rand(self.pop_size, self.dim, device=device)
         r3 = torch.rand(self.pop_size, self.dim, device=device)
+        X_avg = self.pop.mean(dim=0)
         velocity = r1 * self.velocity + r2 * (X_k - self.pop) + r3 * self.social_influence_factor * (X_avg - self.pop)
         pop = self.pop + velocity
         pop = clamp(pop, self.lb, self.ub)

@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import torch
 
-from ..core.module import ModuleBase
+from evox.core.module import ModuleBase
 
 
 class Algorithm(ModuleBase, ABC):

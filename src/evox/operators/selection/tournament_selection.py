@@ -2,7 +2,7 @@ from typing import List
 
 import torch
 
-from ...utils import lexsort
+from evox.utils import lexsort
 
 
 def tournament_selection_multifit(n_round: int, fitnesses: List[torch.Tensor], tournament_size: int = 2) -> torch.Tensor:

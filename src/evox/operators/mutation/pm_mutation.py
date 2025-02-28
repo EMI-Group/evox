@@ -1,6 +1,6 @@
 import torch
 
-from ...utils import maximum, minimum
+from evox.utils import maximum, minimum
 
 
 def polynomial_mutation(

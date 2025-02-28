@@ -1,7 +1,7 @@
 import torch
 
-from ...core import ModuleBase
-from ...utils import lexsort
+from evox.core import ModuleBase
+from evox.utils import lexsort
 
 
 def dominate_relation(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:

@@ -1,7 +1,7 @@
 import torch
 
-from ...core import Algorithm, Mutable
-from ...utils import clamp
+from evox.core import Algorithm, Mutable
+from evox.utils import clamp
 
 
 class JaDE(Algorithm):

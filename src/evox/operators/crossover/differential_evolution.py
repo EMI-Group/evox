@@ -2,7 +2,7 @@ from typing import Tuple
 
 import torch
 
-from ...utils import minimum_int
+from evox.utils import minimum_int
 
 
 def DE_differential_sum(

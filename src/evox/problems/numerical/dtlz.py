@@ -1,7 +1,7 @@
 import torch
 
-from ...core import Problem
-from ...operators.sampling import grid_sampling, uniform_sampling
+from evox.core import Problem
+from evox.operators.sampling import grid_sampling, uniform_sampling
 
 
 class DTLZTestSuit(Problem):

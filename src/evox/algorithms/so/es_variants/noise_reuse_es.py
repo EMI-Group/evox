@@ -2,16 +2,17 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from evox.core import Algorithm, Mutable, Parameter
+
 from .adam_step import adam_single_tensor
 
 
-class GuidedES(Algorithm):
-    """The implementation of the Guided-ES algorithm.
+class NoiseReuseES(Algorithm):
+    """The implementation of the Noise-Reuse-ES algorithm.
 
     Reference:
-    Guided evolutionary strategies: Augmenting random search with surrogate gradients
-    (https://arxiv.org/abs/1806.10230)
+    Noise-Reuse in Online Evolution Strategies
+    (https://arxiv.org/pdf/2304.12180.pdf)
 
     This code has been inspired by or utilizes the algorithmic implementation from evosax.
     More information about evosax can be found at the following URL:
@@ -22,10 +23,11 @@ class GuidedES(Algorithm):
         self,
         pop_size: int,
         center_init: torch.Tensor,
-        subspace_dims: int | None = None,
         optimizer: Literal["adam"] | None = None,
+        lr: float = 0.05,
         sigma: float = 0.03,
-        lr: float = 60,
+        T: int = 100,  # inner problem length
+        K: int = 10,
         sigma_decay: float = 1.0,
         sigma_limit: float = 0.01,
         device: torch.device | None = None,
@@ -39,30 +41,29 @@ class GuidedES(Algorithm):
         :param sigma: The standard deviation of the noise. Defaults to 0.03.
         :param sigma_decay: The decay factor for the standard deviation. Defaults to 1.0.
         :param sigma_limit: The minimum value for the standard deviation. Defaults to 0.01.
-        :param subspace_dims: The dimension of the subspace. Defaults to None.
+        :param T: The inner problem length. Defaults to 100.
+        :param K: The number of inner problems. Defaults to 10.
         :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
-        assert pop_size > 1 and pop_size % 2 == 0
+        assert pop_size > 1
         dim = center_init.shape[0]
-        if subspace_dims is None:
-            subspace_dims = dim
         # set hyperparameters
-        self.beta = Parameter(1.0, device=device)
         self.lr = Parameter(lr, device=device)
+        self.T = Parameter(T, device=device)
+        self.K = Parameter(K, device=device)
         self.sigma_decay = Parameter(sigma_decay, device=device)
         self.sigma_limit = Parameter(sigma_limit, device=device)
         # set value
         self.dim = dim
         self.pop_size = pop_size
         self.optimizer = optimizer
-        self.subspace_dims = subspace_dims
         # setup
         center_init = center_init.to(device=device)
         self.center = Mutable(center_init)
-        self.alpha = Mutable(torch.tensor(0.5, device=device))
-        self.sigma = Mutable(torch.tensor(sigma, device=device))
-        self.grad_subspace = Mutable(torch.randn(subspace_dims, dim, device=device))
+        self.sigma = Mutable(torch.tensor(sigma))
+        self.inner_step_counter = Mutable(torch.tensor(0.0, device=device))
+        self.unroll_pert = Mutable(torch.zeros(pop_size, self.dim, device=device))
 
         if optimizer == "adam":
             self.exp_avg = Mutable(torch.zeros_like(self.center))
@@ -71,37 +72,29 @@ class GuidedES(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
-        """Run one step of the Guided-ES algorithm.
+        """
+        Take a single step of the NoiseReuseES algorithm.
 
-        The function will sample a population, evaluate their fitness, and then
-        update the center and standard deviation of the algorithm using the
-        sampled population.
+        This function follows the algorithm described in the reference paper.
+        It first generates a set of perturbations for the current population.
+        Then, it evaluates the fitness of the population with the perturbations.
+        Afterwards, it calculates the gradient of the policy parameters using the
+        perturbations and the fitness.
+        Finally, it updates the policy parameters using the gradient and the
+        learning rate.
         """
         device = self.center.device
 
-        a = self.sigma * torch.sqrt(self.alpha / self.dim)
-        c = self.sigma * torch.sqrt((1.0 - self.alpha) / self.subspace_dims)
-        eps_full = torch.randn(self.dim, int(self.pop_size // 2), device=device)
+        position_perturbations = torch.randn(self.pop_size // 2, self.dim, device=device) * self.sigma
+        negative_perturbations = -position_perturbations
+        perturbations = torch.cat([position_perturbations, negative_perturbations], dim=0)
+        unroll_pert = torch.where(self.inner_step_counter == 0, perturbations, self.unroll_pert)
 
-        eps_subspace = torch.randn(self.subspace_dims, int(self.pop_size // 2), device=device)
-        Q, _ = torch.linalg.qr(self.grad_subspace)
-
-        z_plus = a * eps_full + c * (Q @ eps_subspace)
-        z_plus = torch.swapaxes(z_plus, 0, 1)
-        z = torch.cat([z_plus, -1.0 * z_plus])
-        population = self.center + z
+        population = self.center + unroll_pert
 
         fitness = self.evaluate(population)
 
-        noise = z / self.sigma
-        noise_1 = noise[: int(self.pop_size / 2)]
-        fit_1 = fitness[: int(self.pop_size / 2)]
-        fit_2 = fitness[int(self.pop_size / 2) :]
-        fit_diff = fit_1 - fit_2
-        fit_diff_noise = noise_1.T @ fit_diff
-        theta_grad = (self.beta / self.pop_size) * fit_diff_noise
-
-        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[None, :]])[1:, :]
+        theta_grad = torch.mean(unroll_pert * fitness.reshape(-1, 1) / (self.sigma**2), dim=0)
 
         if self.optimizer is None:
             center = self.center - self.lr * theta_grad
@@ -116,6 +109,9 @@ class GuidedES(Algorithm):
                 self.lr,
             )
         self.center = center
+
+        inner_step_counter = torch.where(self.inner_step_counter + self.K >= self.T, 0, self.inner_step_counter + self.K)
+        self.inner_step_counter = inner_step_counter
 
         sigma = torch.maximum(self.sigma_decay * self.sigma, self.sigma_limit)
         self.sigma = sigma

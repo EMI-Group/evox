@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Optional
 import torch
 from torch import nn
 
-from ..core import Monitor, Mutable, Problem, Workflow, use_state, vmap
+from evox.core import Monitor, Mutable, Problem, Workflow, use_state, vmap
 
 
 class HPOMonitor(Monitor, ABC):
