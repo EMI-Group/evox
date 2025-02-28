@@ -29,12 +29,13 @@ __all__ = [
     "SLPSOUS",
     # MOEAs
     "RVEA",
+    "MOEAD",
     "NSGA2",
     "NSGA3",
-    "MOEAD",
+    "HypE",
 ]
 
-from .mo import MOEAD, NSGA2, NSGA3, RVEA
+from .mo import MOEAD, NSGA2, NSGA3, RVEA, HypE
 from .so import (
     ARS,
     ASEBO,
