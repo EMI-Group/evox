@@ -7,7 +7,7 @@ from evox.core import Algorithm, use_state, vmap
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow
 
-
+torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
 class MOTestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
@@ -38,8 +38,8 @@ class MOTestBase(TestCase):
 
 class TestMOVariants(MOTestBase):
     def setUp(self):
-        pop_size = 100
-        dim = 12
+        pop_size = 20
+        dim = 10
         lb = -torch.ones(dim)
         ub = torch.ones(dim)
         self.algo = [

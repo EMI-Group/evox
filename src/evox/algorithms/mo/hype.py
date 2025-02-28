@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, jit_class
+from ...core import Algorithm, Mutable
 from ...operators.crossover import simulated_binary
 from ...operators.mutation import polynomial_mutation
 from ...operators.selection import tournament_selection, non_dominate_rank
@@ -31,7 +31,6 @@ def cal_hv(fit: torch.Tensor, ref: torch.Tensor, pop_size: int, n_sample: int):
     return f
 
 
-@jit_class
 class HypE(Algorithm):
     """
     HypE algorithm
