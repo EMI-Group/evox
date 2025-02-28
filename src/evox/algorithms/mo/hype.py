@@ -32,9 +32,9 @@ def cal_hv(fit: torch.Tensor, ref: torch.Tensor, pop_size: int, n_sample: int):
 
 
 class HypE(Algorithm):
-    """
-    HypE algorithm
+    """The tensoried version of HypE algorithm.
 
+    :reference: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
     """
 
     def __init__(
@@ -49,12 +49,13 @@ class HypE(Algorithm):
         crossover_op: Optional[Callable] = None,
         device: torch.device | None = None,
     ):
-        """Initializes the NSGA-II algorithm.
+        """Initializes the HypE algorithm.
 
         :param pop_size: The size of the population.
         :param n_objs: The number of objective functions in the optimization problem.
         :param lb: The lower bounds for the decision variables (1D tensor).
         :param ub: The upper bounds for the decision variables (1D tensor).
+        :param n_sample: The number of samples for hypervolume calculation (optional).
         :param selection_op: The selection operation for evolutionary strategy (optional).
         :param mutation_op: The mutation operation, defaults to `polynomial_mutation` if not provided (optional).
         :param crossover_op: The crossover operation, defaults to `simulated_binary` if not provided (optional).
