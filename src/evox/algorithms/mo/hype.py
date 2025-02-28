@@ -43,7 +43,7 @@ class HypE(Algorithm):
         n_objs: int,
         lb: torch.Tensor,
         ub: torch.Tensor,
-        n_sample=10000,
+        n_sample: int = 10000,
         selection_op: Optional[Callable] = None,
         mutation_op: Optional[Callable] = None,
         crossover_op: Optional[Callable] = None,
