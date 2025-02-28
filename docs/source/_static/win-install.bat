@@ -95,7 +95,9 @@ if /i "!use_cpu!"=="Y" (
     pip install torch
 ) else (
     pip install "torch>=2.6.0" --index-url https://download.pytorch.org/whl/cu124
-    if /i "!install_triton!"=="Y" (
+    pip show triton > nul 2>&1
+    REM Check if install_triton is Y and triton-windows is not installed
+    if /i "!install_triton!"=="Y" if %errorlevel% neq 0 (
         echo [INFO] Installing triton-windows
         echo [INFO] Downloading MSVC and Windows SDK
         curl -L -o vs_buildtools.exe https://aka.ms/vs/17/release/vs_BuildTools.exe
