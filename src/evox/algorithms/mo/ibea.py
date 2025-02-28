@@ -20,8 +20,8 @@ from evox import Algorithm, State, jit_class
 @jax.jit
 def cal_fitness(pop_obj, kappa):
     n = jnp.shape(pop_obj)[0]
-    pop_obj = (pop_obj - jnp.tile(jnp.min(pop_obj), (n, 1))) / (
-        jnp.tile(jnp.max(pop_obj) - jnp.min(pop_obj), (n, 1))
+    pop_obj = (pop_obj - jnp.min(pop_obj, axis=0)) / (
+        jnp.max(pop_obj, axis=0) - jnp.min(pop_obj, axis=0)
     )
     I = cal_max(pop_obj, pop_obj)
 
