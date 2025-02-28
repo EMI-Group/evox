@@ -29,9 +29,9 @@ __all__ = [
     "SLPSOUS",
     # MOEAs
     "RVEA",
+    "MOEAD",
     "NSGA2",
     "NSGA3",
-    "MOEAD",
     "HypE",
 ]
 

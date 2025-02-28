@@ -2,11 +2,11 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable
-from ...operators.crossover import simulated_binary
-from ...operators.mutation import polynomial_mutation
-from ...operators.selection import tournament_selection, non_dominate_rank
-from ...utils import clamp, lexsort
+from evox.core import Algorithm, Mutable
+from evox.operators.crossover import simulated_binary
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.selection import non_dominate_rank, tournament_selection
+from evox.utils import clamp, lexsort
 
 
 def cal_hv(fit: torch.Tensor, ref: torch.Tensor, pop_size: int, n_sample: int):
