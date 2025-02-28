@@ -17,11 +17,10 @@ def tournament_selection_multifit(n_round: int, fitnesses: List[torch.Tensor], t
     This function performs tournament selection by randomly selecting a group of candidates for each round,
     and selecting the best one from each group based on their fitness values across multiple objectives.
     """
-
     fitness_tensor = torch.stack(fitnesses, dim=1)
 
     num_candidates = fitness_tensor.size(0)
-    parents = torch.randint(0, num_candidates, (n_round, tournament_size))
+    parents = torch.randint(0, num_candidates, (n_round, tournament_size), device=fitnesses[0].device)
     candidates_fitness = fitness_tensor[parents]
     candidates_fitness = lexsort(candidates_fitness.unbind(-1))
 
@@ -45,7 +44,7 @@ def tournament_selection(n_round: int, fitness: torch.Tensor, tournament_size: i
 
     num_candidates = fitness.size(0)
 
-    parents = torch.randint(0, num_candidates, (n_round, tournament_size))
+    parents = torch.randint(0, num_candidates, (n_round, tournament_size), device=fitness.device)
     candidates_fitness = fitness[parents]
 
     winner_indices = torch.argmin(candidates_fitness, dim=1)
