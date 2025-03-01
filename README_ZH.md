@@ -39,14 +39,15 @@
 
 ---
 
-<h3 align="center"> 🌟分布式 GPU 加速的可扩展演化计算框架🌟 </h3>
+<h3 align="center"> 🌟分布式 GPU 加速的通用演化计算框架🌟 </h3>
 
 ---
 
 ## 🔥 新闻
+- [2025-03-01] 发布 **EvoX 1.1.0** - 全面支持 `torch.compile` (TorchDynamo) [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=147)]
 - [2025-02-03] 发布 **EvoRL**：基于 **JAX** 的 GPU 加速 **进化强化学习** 框架！[[论文](https://arxiv.org/abs/2501.15129)] [[代码](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] 发布 **EvoGP**：基于 **PyTorch** & **CUDA** 的 GPU 加速 **遗传编程** 框架！[[论文](http://arxiv.org/abs/2501.17168)] [[代码](https://github.com/EMI-Group/evogp)]
-- [2025-01-14] 发布 **EvoX 1.1.0**，全面兼容 **PyTorch**，全面接入`torch.compile`！使用 **JAX 版本** 的用户可在 **v0.9.0 分支** 获取。
+- [2025-01-14] 发布 **EvoX 1.0.0**，全面兼容 **PyTorch**，全面接入`torch.compile`！使用 **JAX 版本** 的用户可在 **v0.9.0 分支** 获取。
 
 ## 目录
 
