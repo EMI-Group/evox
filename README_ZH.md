@@ -142,7 +142,8 @@ pip install evox
 
 **注意**：Windows 用户可使用 [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) 脚本安装。
 
-
+> [!NOTE]
+> 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的 API 参考。
 
 ## 相关项目
 
