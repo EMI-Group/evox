@@ -56,9 +56,10 @@
 1. [Overview](#Overview)
 2. [Key Features](#key-features)
 3. [Main Contents](#main-contents)
-4. [Quick Installation](#quick-installation)
-5. [Sister Projects](#sister-projects)
-6. [Community & Support](#community--support)
+4. [Installation Guide](#installation-guide)
+5. [Quick Start](#quick-start)
+6. [Sister Projects](#sister-projects)
+7. [Community & Support](#community--support)
 
 ## Overview
 
