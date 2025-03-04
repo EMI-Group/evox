@@ -148,7 +148,7 @@ pip install evox
 **Note**: Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
 
 > [!NOTE]
-> Detailed instructions are available at [Documentation](https://evorl.readthedocs.io/latest/), including installation steps, tutorials, examples, and API references.
+> For comprehensive guidance, please visit our [Documentation](https://evox.readthedocs.io/latest/), where you'll find detailed installation steps, tutorials, practical examples, and complete API references.
 
 ## Sister Projects
 - **EvoRL**:GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
