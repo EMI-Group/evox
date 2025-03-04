@@ -159,7 +159,7 @@ pip install evox
 
 - 在 [GitHub 讨论区](https://github.com/EMI-Group/evox/discussions) 参与讨论。
 - 通过 [Discord](https://discord.gg/Vbtgcpy7G4) 或 QQ 群（ID: 297969717）联系交流。
-- 访问 [EvoX官网](https://evox.group/)
+- 访问 [EvoX官网](https://evox.group/)。
   
 ## 引用 EvoX
 
