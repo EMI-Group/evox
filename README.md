@@ -164,7 +164,7 @@ Stay tuned - more exciting developments are on the way!  ✨
 
 - Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
 - Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
-- Keep posted via [Our Website](https://evox.group/).
+- Keep posted via [Offical Website](https://evox.group/).
 
 ## Citing EvoX
 
