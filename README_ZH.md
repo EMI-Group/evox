@@ -140,10 +140,8 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 pip install evox
 ```
 
-**注意**：Windows 用户可使用 [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) 脚本安装。
-
-> [!NOTE]
-> 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的API说明。
+> [!TIP]
+> Windows 用户可使用 [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) 脚本安装。
 
 ## 快速开始
 
@@ -255,6 +253,9 @@ workflow.init_step()
 for i in range(50):
     workflow.step()
 ```
+
+> [!NOTE]
+> 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的API说明。
 
 ## 相关项目
 
