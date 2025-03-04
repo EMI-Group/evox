@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import torch
 
-from ..core.module import ModuleBase
+from evox.core.module import ModuleBase
 
 
 class Algorithm(ModuleBase, ABC):
@@ -39,7 +39,7 @@ class Algorithm(ModuleBase, ABC):
 
     def record_step(self) -> None:
         """Record the current step."""
-        self._monitor_.record_auxiliary({"pop": self.pop, "fit": self.fit})
+        return {"pop": self.pop, "fit": self.fit}
 
 
 class Problem(ModuleBase, ABC):

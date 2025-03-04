@@ -2,15 +2,14 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
-from ...operators.crossover import simulated_binary
-from ...operators.mutation import polynomial_mutation
-from ...operators.sampling import uniform_sampling
-from ...operators.selection import ref_vec_guided
-from ...utils import TracingCond, clamp, nanmax, nanmin
+from evox.core import Algorithm, Mutable, Parameter
+from evox.operators.crossover import simulated_binary
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.sampling import uniform_sampling
+from evox.operators.selection import ref_vec_guided
+from evox.utils import clamp, nanmax, nanmin
 
 
-@jit_class
 class RVEA(Algorithm):
     """
     An implementation of the Reference Vector Guided Evolutionary Algorithm (RVEA) for multi-objective optimization problems.
@@ -110,14 +109,9 @@ class RVEA(Algorithm):
         return self.init_v * (max_vals - min_vals)
 
     def _no_rv_adaptation(self, pop_obj: torch.Tensor):
-        return self.reference_vector
+        return self.reference_vector.clone()
 
     def _mating_pool(self):
-        mating_pool = torch.randint(0, self.pop.size(0), (self.pop_size,))
-        return self.pop[mating_pool]
-
-    @trace_impl(_mating_pool)
-    def _trace_mating_pool(self):
         no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
         max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
         mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
@@ -125,26 +119,15 @@ class RVEA(Algorithm):
         return pop
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
-        nan_mask_survivor = torch.isnan(survivor).any(dim=1)
-        self.pop = survivor[~nan_mask_survivor]
-        self.fit = survivor_fit[~nan_mask_survivor]
-
-        if self.gen % (1 / self.fr).type(torch.int) == 0:
-            self.reference_vector = self._rv_adaptation(survivor_fit)
-
-    @trace_impl(_update_pop_and_rv)
-    def _trace_update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
-        state, names = self.prepare_control_flow(self._rv_adaptation, self._no_rv_adaptation)
-        if_else = TracingCond(self._rv_adaptation, self._no_rv_adaptation)
-        state, reference_vector = if_else.cond(state, self.gen % (1 / self.fr).type(torch.int) == 0, survivor_fit)
-        self.after_control_flow(state, *names)
-        self.reference_vector = reference_vector
         self.pop = survivor
         self.fit = survivor_fit
 
+        self.reference_vector = torch.cond(
+            self.gen % (1 / self.fr).type(torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
+        )
+
     def step(self):
-        """Perform a single optimization step.
-        """
+        """Perform a single optimization step."""
 
         self.gen = self.gen + torch.tensor(1)
         pop = self._mating_pool()

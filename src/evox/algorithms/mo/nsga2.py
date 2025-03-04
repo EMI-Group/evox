@@ -2,14 +2,13 @@ from typing import Callable, Optional
 
 import torch
 
-from ...core import Algorithm, Mutable, jit_class
-from ...operators.crossover import simulated_binary
-from ...operators.mutation import polynomial_mutation
-from ...operators.selection import nd_environmental_selection, tournament_selection_multifit
-from ...utils import clamp
+from evox.core import Algorithm, Mutable
+from evox.operators.crossover import simulated_binary
+from evox.operators.mutation import polynomial_mutation
+from evox.operators.selection import nd_environmental_selection, tournament_selection_multifit
+from evox.utils import clamp
 
 
-@jit_class
 class NSGA2(Algorithm):
     """
     An implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-II) for multi-objective optimization problems.
@@ -61,7 +60,6 @@ class NSGA2(Algorithm):
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
-        self.device = device
 
         if self.selection is None:
             self.selection = tournament_selection_multifit

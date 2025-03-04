@@ -29,12 +29,37 @@ __all__ = [
     "SLPSOUS",
     # MOEAs
     "RVEA",
-    "NSGA2",
     "MOEAD",
+    "NSGA2",
+    "NSGA3",
+    "HypE",
 ]
 
-
-from .de_variants import DE, ODE, SHADE, CoDE, JaDE, SaDE
-from .es_variants import ARS, ASEBO, CMAES, DES, ESMC, SNES, XNES, GuidedES, NoiseReuseES, OpenES, PersistentES, SeparableNES
-from .mo import MOEAD, NSGA2, RVEA
-from .pso_variants import CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS
+from .mo import MOEAD, NSGA2, NSGA3, RVEA, HypE
+from .so import (
+    ARS,
+    ASEBO,
+    CLPSO,
+    CMAES,
+    CSO,
+    DE,
+    DES,
+    DMSPSOEL,
+    ESMC,
+    FSPSO,
+    ODE,
+    PSO,
+    SHADE,
+    SLPSOGS,
+    SLPSOUS,
+    SNES,
+    XNES,
+    CoDE,
+    GuidedES,
+    JaDE,
+    NoiseReuseES,
+    OpenES,
+    PersistentES,
+    SaDE,
+    SeparableNES,
+)

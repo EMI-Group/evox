@@ -1,7 +1,7 @@
 import torch
 
-from ...core import ModuleBase, jit_class, trace_impl
-from ...utils import TracingWhile, lexsort
+from evox.core import ModuleBase
+from evox.utils import lexsort
 
 
 def dominate_relation(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -92,7 +92,6 @@ def non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
 _NDS_cache = None
 
 
-@jit_class
 class NonDominatedSort(ModuleBase):
     """
     A module for performing non-dominated sorting, implementing caching and support for PyTorch's full map-reduce method.
@@ -132,49 +131,6 @@ class NonDominatedSort(ModuleBase):
         """
 
         return non_dominated_sort_script(x)
-
-    @trace_impl(non_dominated_sort)
-    def trace_non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Perform non-dominated sorting using PyTorch's tracing mechanism for efficient computation.
-
-        :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
-
-        :returns: A one-dimensional tensor representing the ranking, starting from 0.
-        """
-
-        n = x.size(0)
-        # Domination relation matrix (n x n)
-        dominate_relation_matrix = dominate_relation(x, x)
-        # Count how many times each individual is dominated
-        dominate_count = dominate_relation_matrix.sum(dim=0)
-        # Initialize rank array
-        rank = torch.zeros(n, dtype=torch.int32, device=x.device)
-        current_rank = torch.tensor(0, dtype=torch.int32, device=x.device)
-        # Identify individuals in the first Pareto front (those that are not dominated)
-        pareto_front = dominate_count == 0
-
-        def body_func(
-            rank: torch.Tensor,
-            dominate_count: torch.Tensor,
-            current_rank: torch.IntTensor,
-            pareto_front: torch.BoolTensor,
-            dominate_relation_matrix: torch.Tensor,
-        ):
-            # Update rank and dominate count
-            rank, dominate_count = update_dc_and_rank(
-                dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
-            )
-            # Move to next rank
-            current_rank = current_rank + 1
-            pareto_front = dominate_count == 0
-            return rank, dominate_count, current_rank, pareto_front, dominate_relation_matrix
-
-        # Considering that this function may be vectorized mapped, the stateful while loop cannot be used
-        if not hasattr(self, "_while_loop_"):
-            self._while_loop_ = TracingWhile(lambda x, y, p, q, _: q.any(), body_func)
-        rank, _, _, _, _ = self._while_loop_.loop(rank, dominate_count, current_rank, pareto_front, dominate_relation_matrix)
-        return rank
 
 
 def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):

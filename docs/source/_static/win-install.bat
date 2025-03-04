@@ -3,6 +3,7 @@ setlocal enabledelayedexpansion
 
 REM Check NVIDIA driver version
 set "use_cpu=N"
+set "install_triton=Y"
 where nvidia-smi > nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] NVIDIA driver not found. Please install the latest NVIDIA driver first from https://www.nvidia.com/drivers/.
@@ -13,6 +14,18 @@ if %errorlevel% neq 0 (
         goto Continue
     ) else (
         exit /b 1
+    )
+)
+
+REM If using GPU, ask if the user want to install triton-windows for torch.compile support
+if /i "!use_cpu!"=="N" (
+    echo Do you want to install triton-windows for torch.compile support? ^(Y/N, default Y^)
+    set /p install_triton=">> "
+    if "!install_triton!"=="" set "install_triton=Y"
+    if /i "!install_triton!"=="Y" (
+        echo [INFO] Will install triton-windows
+    ) else (
+        echo [INFO] Skip triton-windows installation
     )
 )
 
@@ -81,8 +94,33 @@ pip install numpy jupyterlab nbformat
 if /i "!use_cpu!"=="Y" (
     pip install torch
 ) else (
-    pip install torch --index-url https://download.pytorch.org/whl/cu124
+    pip install "torch>=2.6.0" --index-url https://download.pytorch.org/whl/cu124
+    pip show triton > nul 2>&1
+    REM Check if install_triton is Y and triton-windows is not installed
+    if /i "!install_triton!"=="Y" if %errorlevel% neq 0 (
+        echo [INFO] Installing triton-windows
+        echo [INFO] Downloading MSVC and Windows SDK
+        curl -L -o vs_buildtools.exe https://aka.ms/vs/17/release/vs_BuildTools.exe
+        if exist vs_buildtools.exe (
+            echo [INFO] Installing MSVC and Windows SDK
+            start /wait vs_buildtools.exe --quiet --wait --norestart --nocache --installPath %UserProfile%\vs_buildtools
+        )
+        echo [INFO] Downloading vcredist
+        curl -L -o vcredist.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
+        if exist vcredist.exe (
+            echo [INFO] Installing vcredist
+            start /wait vcredist.exe /install /quiet /norestart
+        )
+        echo [INFO] Installing triton-windows pip package
+        pip install https://github.com/woct0rdho/triton-windows/releases/download/v3.2.0-windows.post10/triton-3.2.0-cp310-cp310-win_amd64.whl
+
+        echo [INFO] Check if Windows file path length limit (260) exists
+        echo [INFO] Attempting to modify registry to enable long path support.
+        powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command New-ItemProperty -Path \"HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem\" -Name \"LongPathsEnabled\" -Value 1 -PropertyType DWORD -Force' -Verb RunAs"
+        echo [INFO] Long Path Support should now be enabled. Restart required.
+    )
 )
+echo [INFO] Installing EvoX packages...
 pip install "evox[vis]>=1.0.0" torchvision
 REM Download some demo
 mkdir %UserProfile%\evox-demo

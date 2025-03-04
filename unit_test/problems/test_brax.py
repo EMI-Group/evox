@@ -84,20 +84,18 @@ class TestBraxProblem(unittest.TestCase):
             ub=upper_bound,
             device=self.device,
         )
-        algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        workflow = StdWorkflow(opt_direction="max")
-        workflow.setup(
+        workflow = StdWorkflow(
             algorithm=algorithm,
             problem=problem,
-            solution_transform=adapter,
             monitor=pop_monitor,
+            opt_direction="max",
+            solution_transform=adapter,
             device=self.device,
         )
 
@@ -113,7 +111,7 @@ class TestBraxProblem(unittest.TestCase):
 
         problem.visualize(best_params)
 
-    def test_brax_problem_trace(self):
+    def test_compiled_brax_problem(self):
         model = SimpleCNN().to(self.device)
         for p in model.parameters():
             p.requires_grad = False
@@ -144,32 +142,27 @@ class TestBraxProblem(unittest.TestCase):
             ub=upper_bound,
             device=self.device,
         )
-        algorithm.setup()
 
         pop_monitor = EvalMonitor(
             topk=3,
             device=self.device,
         )
-        pop_monitor.setup()
 
-        workflow = StdWorkflow(opt_direction="max")
-        workflow.setup(
+        workflow = StdWorkflow(
             algorithm=algorithm,
             problem=problem,
-            solution_transform=adapter,
             monitor=pop_monitor,
+            opt_direction="max",
+            solution_transform=adapter,
             device=self.device,
         )
-        workflow_step = use_state(lambda: workflow.step)
-        state = workflow_step.init_state(clone=False)
-        jit_workflow_step = jit(workflow_step, trace=True, example_inputs=(state,))
+        compiled_step = torch.compile(workflow.step)
 
         for index in range(3):
             print(f"In generation {index}:")
             t = time.time()
-            state = jit_workflow_step(state)
+            compiled_step()
         print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
-        workflow_step.set_state(state)
         monitor: EvalMonitor = workflow.get_submodule("monitor")
         print(f"\tTop fitness: {monitor.topk_fitness}")
         best_params = adapter.to_params(monitor.topk_solutions[0])
