@@ -145,6 +145,14 @@ Install `evox` effortlessly via `pip`:
 pip install evox
 ```
 
+Install the latest version from the source code for testing or development:
+
+```bash
+git clone https://github.com/EMI-Group/evox.git
+cd evox
+pip install -e .
+```
+
 > [!TIP]
 > Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
 
