@@ -204,6 +204,16 @@ for i in range(100):
 monitor.plot()
 ```
 
+<details>
+  <summary>Example Output</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/1-single-objective-output.avif">
+    <img src="docs/source/_static/1-single-objective-output.png">
+  </picture>
+
+</details>
+
 ### Multi-objective Optimization
 
 Solve the DTLZ2 problem using the RVEA algorithm:
@@ -231,6 +241,16 @@ for i in range(100):
 
 monitor.plot()
 ```
+
+<details>
+  <summary>Example Output</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/2-multi-objective-output.avif">
+    <img src="docs/source/_static/2-multi-objective-output.png">
+  </picture>
+
+</details>
 
 ### Neuroevolution
 
@@ -289,6 +309,16 @@ workflow.init_step()
 for i in range(50):
     workflow.step()
 ```
+
+<details>
+  <summary>Example Output</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/3-neuroevolution-output.avif">
+    <img src="docs/source/_static/3-neuroevolution-output.gif">
+  </picture>
+
+</details>
 
 > [!NOTE]
 > For comprehensive guidance, please visit our [Documentation](https://evox.readthedocs.io/en/latest/), where you'll find detailed installation steps, tutorials, practical examples, and complete API references.

@@ -200,6 +200,16 @@ for i in range(100):
 monitor.plot()
 ```
 
+<details>
+  <summary>样例输出</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/1-single-objective-output.avif">
+    <img src="docs/source/_static/1-single-objective-output.png">
+  </picture>
+
+</details>
+
 ### 多目标优化
 
 使用 RVEA 算法求解 DTLZ2 问题：
@@ -227,6 +237,16 @@ for i in range(100):
 
 monitor.plot()
 ```
+
+<details>
+  <summary>样例输出</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/2-multi-objective-output.avif">
+    <img src="docs/source/_static/2-multi-objective-output.png">
+  </picture>
+
+</details>
 
 ### 神经演化
 
@@ -285,6 +305,16 @@ workflow.init_step()
 for i in range(50):
     workflow.step()
 ```
+
+<details>
+  <summary>样例输出</summary>
+
+  <picture>
+    <source type="image/avif" srcset="docs/source/_static/3-neuroevolution-output.avif">
+    <img src="docs/source/_static/3-neuroevolution-output.gif">
+  </picture>
+
+</details>
 
 > [!NOTE]
 > 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的API说明。
