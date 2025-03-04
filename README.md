@@ -110,16 +110,52 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 
 ## Main Contents
 
-| Category                              | Subcategory                     | Notable Algorithms / Problems             |
-|---------------------------------------|---------------------------------|-------------------------------------------|
-| **Single-objective Optimization**     | **Differential Evolution**      | CoDE, JaDE, SaDE, SHADE, IMODE, ...       |
-|                                       | **Evolution Strategy**          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-|                                       | **Particle Swarm Optimization** | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...       |
-| **Multi-objective Optimization**      | **Dominance-based**             | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ... |
-|                                       | **Decomposition-based**         | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-|                                       | **Indicator-based**             | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...  |
-| **Benchmark Problems / Environments** | **Numerical**                   | DTLZ, LSMOP, MaF, ZDT, CEC'22, ...        |
-|                                       | **Neuroevolution / RL**         | Brax, TorchVision Dataset, ...            |
+<table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
+  <thead>
+    <tr style="background-color: #f2f2f2;">
+      <th>Category</th>
+      <th>Subcategory</th>
+      <th>Notable Algorithms / Benchmark Problems</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3">Single-objective Optimization</td>
+      <td><b>Differential Evolution</b></td>
+      <td>CoDE, JaDE, SaDE, SHADE, IMODE, ...</td>
+    </tr>
+    <tr>
+      <td><b>Evolution Strategy</b></td>
+      <td>CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ...</td>
+    </tr>
+    <tr>
+      <td><b>Particle Swarm Optimization</b></td>
+      <td>FIPS, CSO, CPSO, CLPSO, SL-PSO, ...</td>
+    </tr>
+    <tr>
+      <td rowspan="3">Multi-objective Optimization</td>
+      <td><b>Dominance-based</b></td>
+      <td>NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...</td>
+    </tr>
+    <tr>
+      <td><b>Decomposition-based</b></td>
+      <td>MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ...</td>
+    </tr>
+    <tr>
+      <td><b>Indicator-based</b></td>
+      <td>IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...</td>
+    </tr>
+    <tr>
+      <td rowspan="2">Benchmark Problems / Environments</td>
+      <td><b>Numerical</b></td>
+      <td>DTLZ, LSMOP, MaF, ZDT, CEC'22, ...</td>
+    </tr>
+    <tr>
+      <td><b>Neuroevolution / RL</b></td>
+      <td>Brax, TorchVision Dataset, ...</td>
+    </tr>
+  </tbody>
+</table>
 
 For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
 

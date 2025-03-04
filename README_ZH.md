@@ -109,7 +109,7 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 
 <table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
   <thead>
-    <tr style="background-color: #f2f2f2;">
+    <tr>
       <th>类别</th>
       <th>子类别</th>
       <th>主要算法 / 基准问题</th>
@@ -117,7 +117,7 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
   </thead>
   <tbody>
     <tr>
-      <td rowspan="3" style="font-weight: bold; background-color: #e6f7ff;">单目标优化</td>
+      <td rowspan="3">单目标优化</td>
       <td><b>差分演化</b></td>
       <td>CoDE, JaDE, SaDE, SHADE, IMODE, ...</td>
     </tr>
@@ -130,7 +130,7 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
       <td>FIPS, CSO, CPSO, CLPSO, SL-PSO, ...</td>
     </tr>
     <tr>
-      <td rowspan="3" style="font-weight: bold; background-color: #e6f7ff;">多目标优化</td>
+      <td rowspan="3">多目标优化</td>
       <td><b>基于支配关系</b></td>
       <td>NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...</td>
     </tr>
@@ -143,7 +143,7 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
       <td>IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...</td>
     </tr>
     <tr>
-      <td rowspan="2" style="font-weight: bold; background-color: #e6f7ff;">基准问题 / 评测环境</td>
+      <td rowspan="2">基准问题 / 评测环境</td>
       <td><b>数值优化问题</b></td>
       <td>DTLZ, LSMOP, MaF, ZDT, CEC'22, ...</td>
     </tr>
