@@ -108,32 +108,18 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 #### 📂 Real-Time Data Streaming
 - Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
 
-
-
 ## Main Contents
 
-### Evolutionary Algorithms for Single-objective Optimization
-
-| Category                    | Algorithms                                 |
-| --------------------------- | ------------------------------------------ |
-| Differential Evolution      | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| Evolution Strategy          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-| Particle Swarm Optimization | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
-
-### Evolutionary Algorithms for Multi-objective Optimization
-
-| Category            | Algorithms                                     |
-| ------------------- | ---------------------------------------------- |
-| Dominance-based     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
-| Decomposition-based | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-| Indicator-based     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
-
-### Benchmark Problems/Environments
-
-| Category          | Problems/Environments               |
-| ----------------- | ----------------------------------- |
-| Numerical         | DTLZ, LSMOP, MaF, ZDT, CEC'22,  ... |
-| Neuroevolution/RL | Brax, TorchVision Dataset, ...      |
+| Category                              | Subcategory                     | Notable Algorithms / Problems             |
+|---------------------------------------|---------------------------------|-------------------------------------------|
+| **Single-objective Optimization**     | **Differential Evolution**      | CoDE, JaDE, SaDE, SHADE, IMODE, ...       |
+|                                       | **Evolution Strategy**          | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+|                                       | **Particle Swarm Optimization** | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...       |
+| **Multi-objective Optimization**      | **Dominance-based**             | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ... |
+|                                       | **Decomposition-based**         | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
+|                                       | **Indicator-based**             | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...  |
+| **Benchmark Problems / Environments** | **Numerical**                   | DTLZ, LSMOP, MaF, ZDT, CEC'22, ...        |
+|                                       | **Neuroevolution / RL**         | Brax, TorchVision Dataset, ...            |
 
 For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
 

@@ -107,31 +107,18 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 
 ## 主要内容
 
-### 用于单目标优化的进化算法
+| 类别                               | 子类别                         | 主要算法 / 基准问题                     |
+|-----------------------------------|------------------------------|--------------------------------------|
+| **单目标优化**                     | **差分演化**                  | CoDE, JaDE, SaDE, SHADE, IMODE, ... |
+|                                   | **演化策略**                  | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
+|                                   | **粒子群优化**                | FIPS, CSO, CPSO, CLPSO, SL-PSO, ... |
+| **多目标优化**                     | **基于支配关系**              | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ... |
+|                                   | **基于分解策略**              | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
+|                                   | **基于指标**                  | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ... |
+| **基准问题 / 评测环境**             | **数值优化问题**              | DTLZ, LSMOP, MaF, ZDT, CEC'22, ... |
+|                                   | **神经演化 / 强化学习**       | Brax, TorchVision 数据集, ... |
 
-| 类别                      | 算法                                         |
-| ------------------------- | -------------------------------------------- |
-| 差分进化 (Differential Evolution) | CoDE, JaDE, SaDE, SHADE, IMODE, ...        |
-| 进化策略 (Evolution Strategy)   | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-| 粒子群优化 (Particle Swarm Optimization) | FIPS, CSO, CPSO, CLPSO, SL-PSO, ...        |
-
-### 用于多目标优化的进化算法
-
-| 类别              | 算法                                           |
-| ---------------- | ---------------------------------------------- |
-| 基于支配关系 (Dominance-based)     | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...      |
-| 基于分解策略 (Decomposition-based) | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-| 基于指标 (Indicator-based)     | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...       |
-
-### 基准测试问题/环境
-
-| 类别              | 问题/环境                                   |
-| ---------------- | ----------------------------------------- |
-| 数值优化 (Numerical)         | DTLZ, LSMOP, MaF, ZDT, CEC'22, ... |
-| 神经进化/强化学习 (Neuroevolution/RL) | Brax, TorchVision 数据集, ...      |
-
-要查看所有算法的完整列表及详细描述，请访问 [算法 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html)。
-要查看基准测试问题/环境，请参考 [问题 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)。
+如需完整的算法列表及详细描述，请访问 [算法 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html)，基准问题及环境请参考 [问题 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)。
 
 ## 安装指南
 
