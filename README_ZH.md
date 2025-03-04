@@ -132,7 +132,7 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 要查看所有算法的完整列表及详细描述，请访问 [算法 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html)。
 要查看基准测试问题/环境，请参考 [问题 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)。
 
-## 快速安装
+## 安装指南
 
 使用 `pip` 轻松安装 `evox`：
 
@@ -144,6 +144,117 @@ pip install evox
 
 > [!NOTE]
 > 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的API说明。
+
+## 快速开始
+
+以下是一些示例，帮助你快速上手 EvoX：
+
+### 单目标优化
+
+使用 PSO 算法求解 Ackley 问题：
+
+```python
+import torch
+import evox.algorithms.pso_variants import PSO
+import evox.problems.numerical import Ackley
+import evox.workflows import StdWorkflow, EvalMonitor
+
+algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
+problem = Ackley()
+monitor = EvalMonitor()
+workflow = StdWorkflow(algorithm, problem, monitor)
+workflow.init_step()
+for i in range(100):
+    workflow.step()
+
+monitor.plot()
+```
+
+### 多目标优化
+
+使用 RVEA 算法求解 DTLZ2 问题：
+
+```python
+import torch
+import evox.algorithms import RVEA
+import evox.metrics import igd
+import evox.problems.numerical import DTLZ2
+import evox.workflows import StdWorkflow, EvalMonitor
+
+prob = DTLZ2(m=3)
+pf = prob.pf()
+algo = RVEA(
+    pop_size=100,
+    n_objs=3,
+    lb=-torch.zeros(12),
+    ub=torch.ones(12)
+)
+monitor = EvalMonitor()
+workflow = StdWorkflow(algo, prob, monitor)
+workflow.init_step()
+for i in range(100):
+    workflow.step()
+
+monitor.plot()
+```
+
+### 神经演化
+
+进化一个简单的 MLP 模型，求解 HalfCheetah 环境：
+
+```python
+import torch
+import torch.nn as nn
+import evox.algorithms import PSO
+import evox.problems.neuroevolution.brax import BraxProblem
+import evox.utils import ParamsAndVector
+import evox.workflows import EvalMonitor, StdWorkflow
+
+class SimpleMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # 观察空间维度为 17，动作空间维度为 6。
+        self.features = nn.Sequential(nn.Linear(17, 8), nn.Tanh(), nn.Linear(8, 6))
+
+    def forward(self, x):
+        return torch.tanh(self.features(x))
+
+# 初始化 MLP 模型
+model = SimpleMLP()
+adapter = ParamsAndVector(dummy_model=model)
+# 设置种群大小
+POP_SIZE = 1024
+# 获取 PSO 算法的边界
+model_params = dict(model.named_parameters())
+pop_center = adapter.to_vector(model_params)
+lb = torch.full_like(pop_center, -5)
+ub = torch.full_like(pop_center, 5)
+# 初始化 PSO 算法，你也可以使用其他算法
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+# 初始化 Brax 问题
+problem = BraxProblem(
+    policy=model,
+    env_name="halfcheetah",
+    max_episode_length=1000,
+    num_episodes=3,
+    pop_size=POP_SIZE,
+    device=device,
+)
+# 设置监视器，可记录最佳 3 个适应度值
+monitor = EvalMonitor(topk=3, device=device)
+# 初始化工作流
+workflow = StdWorkflow(
+    algorithm=algorithm,
+    problem=problem,
+    monitor=monitor,
+    opt_direction="max",
+    solution_transform=adapter,
+    device=device,
+)
+workflow.init_step()
+for i in range(50):
+    workflow.step()
+```
 
 ## 相关项目
 
@@ -161,7 +272,7 @@ pip install evox
 - 在 [GitHub 讨论区](https://github.com/EMI-Group/evox/discussions) 参与讨论。
 - 通过 [Discord](https://discord.gg/Vbtgcpy7G4) 或 QQ 群（ID: 297969717）联系交流。
 - 访问 [EvoX官网](https://evox.group/)。
-  
+
 ## 引用 EvoX
 
 如果 EvoX 对您的研究有帮助，请引用：

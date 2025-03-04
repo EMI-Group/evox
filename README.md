@@ -137,7 +137,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
 
 
-## Quick Installation
+## Installation Guide
 
 Install `evox` effortlessly via `pip`:
 
@@ -149,6 +149,117 @@ pip install evox
 
 > [!NOTE]
 > For comprehensive guidance, please visit our [Documentation](https://evox.readthedocs.io/en/latest/), where you'll find detailed installation steps, tutorials, practical examples, and complete API references.
+
+## Quick Start
+
+Here are some examples to get you started with EvoX:
+
+### Single-objective Optimization
+
+Solve the Ackley problem using the PSO algorithm:
+
+```python
+import torch
+import evox.algorithms.pso_variants import PSO
+import evox.problems.numerical import Ackley
+import evox.workflows import StdWorkflow, EvalMonitor
+
+algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
+problem = Ackley()
+monitor = EvalMonitor()
+workflow = StdWorkflow(algorithm, problem, monitor)
+workflow.init_step()
+for i in range(100):
+    workflow.step()
+
+monitor.plot()
+```
+
+### Multi-objective Optimization
+
+Solve the DTLZ2 problem using the RVEA algorithm:
+
+```python
+import torch
+import evox.algorithms import RVEA
+import evox.metrics import igd
+import evox.problems.numerical import DTLZ2
+import evox.workflows import StdWorkflow, EvalMonitor
+
+prob = DTLZ2(m=3)
+pf = prob.pf()
+algo = RVEA(
+    pop_size=100,
+    n_objs=3,
+    lb=-torch.zeros(12),
+    ub=torch.ones(12)
+)
+monitor = EvalMonitor()
+workflow = StdWorkflow(algo, prob, monitor)
+workflow.init_step()
+for i in range(100):
+    workflow.step()
+
+monitor.plot()
+```
+
+### Neuroevolution
+
+Evolving a simple MLP model to solve the Brax HalfCheetah environment:
+
+```python
+import torch
+import torch.nn as nn
+import evox.algorithms import PSO
+import evox.problems.neuroevolution.brax import BraxProblem
+import evox.utils import ParamsAndVector
+import evox.workflows import EvalMonitor, StdWorkflow
+
+class SimpleMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # observation space is 17-dim, action space is 6-dim.
+        self.features = nn.Sequential(nn.Linear(17, 8), nn.Tanh(), nn.Linear(8, 6))
+
+    def forward(self, x):
+        return torch.tanh(self.features(x))
+
+# Initialize the MLP model
+model = SimpleMLP()
+adapter = ParamsAndVector(dummy_model=model)
+# Set the population size
+POP_SIZE = 1024
+# Get the bound of the PSO algorithm
+model_params = dict(model.named_parameters())
+pop_center = adapter.to_vector(model_params)
+lb = torch.full_like(pop_center, -5)
+ub = torch.full_like(pop_center, 5)
+# Initialize the PSO, and you can also use any other algorithms
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+# Initialize the Brax problem
+problem = BraxProblem(
+    policy=model,
+    env_name="halfcheetah",
+    max_episode_length=1000,
+    num_episodes=3,
+    pop_size=POP_SIZE,
+    device=device,
+)
+# set an monitor, and it can record the top 3 best fitnesses
+monitor = EvalMonitor(topk=3, device=device)
+# Initiate an workflow
+workflow = StdWorkflow(
+    algorithm=algorithm,
+    problem=problem,
+    monitor=monitor,
+    opt_direction="max",
+    solution_transform=adapter,
+    device=device,
+)
+workflow.init_step()
+for i in range(50):
+    workflow.step()
+```
 
 ## Sister Projects
 - **EvoRL**:GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
