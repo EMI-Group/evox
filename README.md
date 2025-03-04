@@ -323,6 +323,10 @@ If EvoX contributes to your research, please cite it:
 }
 ```
 
+## License Notice
+
+EvoX is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. For full terms and conditions, please refer to the [LICENSE](./LICENSE) file.
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
