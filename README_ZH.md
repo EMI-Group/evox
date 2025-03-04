@@ -107,16 +107,52 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 
 ## 主要内容
 
-| 类别                               | 子类别                         | 主要算法 / 基准问题                     |
-|-----------------------------------|------------------------------|--------------------------------------|
-| **单目标优化**                     | **差分演化**                  | CoDE, JaDE, SaDE, SHADE, IMODE, ... |
-|                                   | **演化策略**                  | CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ... |
-|                                   | **粒子群优化**                | FIPS, CSO, CPSO, CLPSO, SL-PSO, ... |
-| **多目标优化**                     | **基于支配关系**              | NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ... |
-|                                   | **基于分解策略**              | MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ... |
-|                                   | **基于指标**                  | IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ... |
-| **基准问题 / 评测环境**             | **数值优化问题**              | DTLZ, LSMOP, MaF, ZDT, CEC'22, ... |
-|                                   | **神经演化 / 强化学习**       | Brax, TorchVision 数据集, ... |
+<table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
+  <thead>
+    <tr style="background-color: #f2f2f2;">
+      <th>类别</th>
+      <th>子类别</th>
+      <th>主要算法 / 基准问题</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3" style="font-weight: bold; background-color: #e6f7ff;">单目标优化</td>
+      <td><b>差分演化</b></td>
+      <td>CoDE, JaDE, SaDE, SHADE, IMODE, ...</td>
+    </tr>
+    <tr>
+      <td><b>演化策略</b></td>
+      <td>CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ...</td>
+    </tr>
+    <tr>
+      <td><b>粒子群优化</b></td>
+      <td>FIPS, CSO, CPSO, CLPSO, SL-PSO, ...</td>
+    </tr>
+    <tr>
+      <td rowspan="3" style="font-weight: bold; background-color: #e6f7ff;">多目标优化</td>
+      <td><b>基于支配关系</b></td>
+      <td>NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...</td>
+    </tr>
+    <tr>
+      <td><b>基于分解策略</b></td>
+      <td>MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ...</td>
+    </tr>
+    <tr>
+      <td><b>基于指标</b></td>
+      <td>IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...</td>
+    </tr>
+    <tr>
+      <td rowspan="2" style="font-weight: bold; background-color: #e6f7ff;">基准问题 / 评测环境</td>
+      <td><b>数值优化问题</b></td>
+      <td>DTLZ, LSMOP, MaF, ZDT, CEC'22, ...</td>
+    </tr>
+    <tr>
+      <td><b>神经演化 / 强化学习</b></td>
+      <td>Brax, TorchVision 数据集, ...</td>
+    </tr>
+  </tbody>
+</table>
 
 如需完整的算法列表及详细描述，请访问 [算法 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html)，基准问题及环境请参考 [问题 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)。
 
