@@ -139,6 +139,8 @@ For a comprehensive list and detailed descriptions of all algorithms, please che
 
 ## Quick Installation
 
+🌹 Starring and forking are good habits 🌹
+
 Install `evox` effortlessly via `pip`:
 
 ```bash
