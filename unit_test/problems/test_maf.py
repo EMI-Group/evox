@@ -21,7 +21,7 @@ from evox.problems.numerical import (
 )
 
 
-class TestMAF(TestCase):
+class TestDTLZ(TestCase):
     def setUp(self):
         d = 12
         m = 2
@@ -73,3 +73,7 @@ class TestMAF(TestCase):
                 if pf.size(1) == 2:
                     print(pf.size())
 
+if __name__ == "__main__":
+    test = TestDTLZ()
+    test.setUp()
+    test.test_dtlz()

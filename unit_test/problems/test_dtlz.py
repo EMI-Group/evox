@@ -26,3 +26,4 @@ class TestDTLZ(TestCase):
             assert fit.size() == (2, 3)
             pf = pro.pf()
             assert pf.size(1) == 3
+
