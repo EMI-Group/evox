@@ -21,7 +21,7 @@ from evox.problems.numerical import (
 )
 
 
-class TestDTLZ(TestCase):
+class TestMAF(TestCase):
     def setUp(self):
         d = 12
         m = 2
@@ -43,7 +43,7 @@ class TestDTLZ(TestCase):
                 MAF15(d,m),
         ]
 
-    def test_dtlz(self):
+    def test_maf(self):
         for pro in self.pro:
             if pro.__class__ in [MAF11]:
                 pop = torch.rand(7, 11)
@@ -74,6 +74,6 @@ class TestDTLZ(TestCase):
                     print(pf.size())
 
 if __name__ == "__main__":
-    test = TestDTLZ()
+    test = TestMAF()
     test.setUp()
-    test.test_dtlz()
+    test.test_maf()
