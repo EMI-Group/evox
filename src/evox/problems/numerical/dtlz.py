@@ -3,7 +3,6 @@ from typing import Optional
 import torch
 
 from ...core import Problem
-from ...core import Problem
 from ...operators.sampling import grid_sampling, uniform_sampling
 
 

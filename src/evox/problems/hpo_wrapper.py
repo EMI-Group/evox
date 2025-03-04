@@ -1,11 +1,11 @@
-import copy
-from abc import ABC
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Dict, Optional
 
 import torch
 from torch import nn
 
-from ..core import Monitor, Mutable, Problem, Workflow, use_state, vmap
+from ..core import Monitor, Mutable, Problem, Workflow, jit, jit_class, use_state, vmap, vmap_impl
+from ..core._vmap_fix import unwrap_batch_tensor, wrap_batch_tensor
+from ..core.module import _WrapClassBase
 
 
 class HPOMonitor(Monitor):
@@ -126,28 +126,21 @@ class HPOFitnessMonitor(HPOMonitor):
         return wrap_batch_tensor(actual_best, 0)
 
 
-def get_sub_state(state: Dict[str, Any], name: str):
-    """Get the sub state from the tuple of states.
-
-    :param state: The tuple of states.
-
-    :return: The sub state.
-    """
-    prefix_len = len(name) + 1
-    state = {k[prefix_len:]: v for k, v in state.items() if k.startswith(name)}
-    return state
-
-
+@jit_class
 class HPOProblemWrapper(Problem):
     """The problem for hyper parameter optimization (HPO).
 
     ## Usage
     ```
     algo = SomeAlgorithm(...)
+    algo.setup(...)
     prob = SomeProblem(...)
+    prob.setup(...)
     monitor = HPOFitnessMonitor()
-    workflow = StdWorkflow(algo, prob, monitor=monitor)
+    workflow = StdWorkflow()
+    workflow.setup(algo, prob, monitor=monitor)
     hpo_prob = HPOProblemWrapper(iterations=..., num_instances=...)
+    hpo_prob.setup(workflow)
     params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
     hpo_prob.evaluate(params) # execute the evaluation
     # ...
@@ -171,8 +164,11 @@ class HPOProblemWrapper(Problem):
         self.num_instances = num_instances
         self.num_repeats = num_repeats
         self.copy_init_state = copy_init_state
+        # compile workflow steps
+        assert isinstance(workflow, _WrapClassBase), f"Expect `workflow` to be wrapped by `jit_class`, got {type(workflow)}"
+        workflow.__sync__()
         # check monitor
-        monitor = workflow.monitor
+        monitor = workflow.get_submodule("monitor")
         assert isinstance(monitor, HPOMonitor), f"Expect workflow monitor to be `HPOMonitor`, got {type(monitor)}"
         monitor.num_repeats = num_repeats
         monitor_state = monitor.state_dict(keep_vars=True)
@@ -206,8 +202,7 @@ class HPOProblemWrapper(Problem):
         monitor.load_state_dict(monitor_state)
         # if no init step
         if type(workflow).init_step == Workflow.init_step:
-            # if no init step
-            print("No init step")
+            self._init_state_ = init_state
             self._workflow_init_step_ = self._workflow_step_
             return
         # otherwise, JIT workflow init step
@@ -240,12 +235,13 @@ class HPOProblemWrapper(Problem):
         :return: The final fitness of the hyper parameters.
         """
         # hyper parameters check
-        for k, _v in hyper_parameters.items():
-            assert k in self._init_params, (
-                f"`{k}` should be a hyperparameter of the workflow, available keys are {self.get_params_keys()}"
+        for k, v in hyper_parameters.items():
+            assert k in self._init_state_, f"`{k}` should be in state dict of workflow and is `torch.nn.Parameter`"
+            assert isinstance(self._init_state_[k], nn.Parameter) and isinstance(v, nn.Parameter), (
+                f"`{k}` should correspond to a `torch.nn.Parameter`, got {type(self._init_state_[k])} and {type(v)}"
             )
-
-        state = self._init_params | self._init_buffers
+        # run the workflow
+        state = {}
         if self.copy_init_state:
             for k, v in self._init_state_.items():
                 state[k] = v.clone()
@@ -253,18 +249,13 @@ class HPOProblemWrapper(Problem):
             state = self._init_state_
         hyper_parameters = self._expand_hp_(hyper_parameters)
         state.update(hyper_parameters)
-        # run the workflow
         state = self._workflow_init_step_(state)
         for _ in range(self.iterations - 1):
             state = self._workflow_step_(state)
         # get final fitness
-        monitor_state = get_sub_state(state, "monitor")
-        _monitor_state, fit = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
-        return fit
+        return self._get_monitor_fitness_(state)
 
+    @torch.jit.ignore
     def get_init_params(self):
         """Return the initial hyper-parameters dictionary of the underlying workflow."""
-        return self._init_params
-
-    def get_params_keys(self):
-        return list(self._init_params.keys())
+        return {k: v for k, v in self._init_state_.items() if k in self._hyper_param_keys_}

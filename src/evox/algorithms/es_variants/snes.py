@@ -4,9 +4,10 @@ from typing import Literal
 import torch
 import torch.nn.functional as F
 
-from ...core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 
 
+@jit_class
 class SNES(Algorithm):
     """The implementation of the SNES algorithm.
 

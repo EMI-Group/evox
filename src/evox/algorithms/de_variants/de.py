@@ -2,10 +2,11 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
 
 
+@jit_class
 class DE(Algorithm):
     """
     Differential Evolution (DE) algorithm for optimization.

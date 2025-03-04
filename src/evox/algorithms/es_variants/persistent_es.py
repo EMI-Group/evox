@@ -2,10 +2,11 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from .adam_step import adam_single_tensor
 
 
+@jit_class
 class PersistentES(Algorithm):
     """The implementation of the Persistent ES algorithm.
 

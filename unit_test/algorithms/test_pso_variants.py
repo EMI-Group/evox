@@ -32,6 +32,4 @@ class TestPSOVariants(TestBase):
         for algo in self.algos:
             self.run_algorithm(algo)
             self.run_trace_algorithm(algo)
-
-            if not isinstance(algo, DMSPSOEL):
-                self.run_vmap_algorithm(algo)
+            self.run_vmap_algorithm(algo)

@@ -1,10 +1,11 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
 from .utils import min_by
 
 
+@jit_class
 class SLPSOGS(Algorithm):
     """The basic Particle Swarm Optimization Social Learning PSO Using Gaussian Sampling for Demonstrator Choice (SLPSOGS) algorithm.
 

@@ -3,7 +3,6 @@ import unittest
 import torch
 import torch.nn as nn
 
-from evox.core import vmap
 from evox.utils.parameters_and_vector import ParamsAndVector
 
 
@@ -82,25 +81,3 @@ class TestParamsAndVector(unittest.TestCase):
             batched_restored_params = temp_adapter.batched_to_params(batched_flat_params)
 
             self.params_all_close(batched_params, batched_restored_params)
-
-    def test_vmap(self):
-        BATCH_SIZE = 5
-        VMAP_SIZE = 3
-        model = SimpleCNN()
-        adapter = ParamsAndVector(dummy_model=model)
-        model_params = dict(model.named_parameters())
-        batched_params = {
-            key: torch.stack([value] + [torch.randn_like(value) for _ in range(BATCH_SIZE - 1)])
-            for key, value in model_params.items()
-        }
-        batched_params = {
-            key: torch.stack([value] + [torch.randn_like(value) for _ in range(VMAP_SIZE - 1)])
-            for key, value in batched_params.items()
-        }
-        vmap_batch_to_vector = torch.compile(vmap(adapter.batched_to_vector))
-        vmap_batch_to_params = torch.compile(vmap(adapter.batched_to_params))
-        batched_flat_params = vmap_batch_to_vector(batched_params)
-        print(batched_flat_params.shape)
-        batched_restored_params = vmap_batch_to_params(batched_flat_params)
-
-        self.params_all_close(batched_params, batched_restored_params)

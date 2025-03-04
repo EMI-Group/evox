@@ -6,7 +6,7 @@ import torch
 from torch.profiler import ProfilerActivity, profile
 
 from evox.algorithms import PSO
-from evox.core import Problem
+from evox.core import Problem, jit, use_state, vmap
 from evox.workflows import StdWorkflow
 
 
@@ -18,9 +18,7 @@ def run_pso():
         def evaluate(self, pop: torch.Tensor):
             return (pop**2).sum(-1)
 
-    pop_size = 100
-    dim = 500
-    algo = PSO(pop_size=pop_size, lb=-10 * torch.ones(dim), ub=10 * torch.ones(dim))
+    algo = PSO(pop_size=10, lb=-10 * torch.ones(3), ub=10 * torch.ones(3))
     prob = Sphere()
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
@@ -29,6 +27,12 @@ def run_pso():
     workflow.setup(algo, prob)
     workflow.init_step()
     workflow.step()
+    state_step = use_state(lambda: workflow.step)
+    vmap_state_step = vmap(state_step)
+    print(vmap_state_step.init_state(2))
+    state = state_step.init_state()
+    jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+    state = state_step.init_state()
     t = time.time()
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
@@ -37,11 +41,8 @@ def run_pso():
     ) as prof:
         for _ in range(1000):
             workflow.step()
-    print(time.time() - t)
     print(prof.key_averages().table())
     torch.cuda.synchronize()
-    compiled_step = torch.compile(workflow.step)
-    compiled_step()
     t = time.time()
     with profile(
         activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
@@ -49,24 +50,10 @@ def run_pso():
         profile_memory=True,
     ) as prof:
         for _ in range(1000):
-            compiled_step()
+            state = jit_state_step(state)
+    print(prof.key_averages().table())
     torch.cuda.synchronize()
     print(time.time() - t)
-    print(prof.key_averages().table())
-
-    compiled_step = torch.compile(workflow.step, mode="max-autotune-no-cudagraphs")
-    compiled_step()
-    t = time.time()
-    with profile(
-        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-        record_shapes=True,
-        profile_memory=True,
-    ) as prof:
-        for _ in range(1000):
-            compiled_step()
-    torch.cuda.synchronize()
-    print(time.time() - t)
-    print(prof.key_averages().table())
 
 
 if __name__ == "__main__":

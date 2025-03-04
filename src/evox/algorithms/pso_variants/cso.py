@@ -1,9 +1,10 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 from ...utils import clamp
 
 
+@jit_class
 class CSO(Algorithm):
     """The basic CSO algorithm.
 
