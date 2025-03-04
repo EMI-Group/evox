@@ -142,6 +142,8 @@ pip install evox
 
 **注意**：Windows 用户可使用 [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) 脚本安装。
 
+
+
 ## 相关项目
 
 - **EvoRL**: 基于 GPU 加速的进化强化学习框架。查看详情：点击这里。
@@ -157,8 +159,8 @@ pip install evox
 
 - 在 [GitHub 讨论区](https://github.com/EMI-Group/evox/discussions) 参与讨论。
 - 通过 [Discord](https://discord.gg/Vbtgcpy7G4) 或 QQ 群（ID: 297969717）联系交流。
-- 在 [Weblate](https://hosted.weblate.org/projects/evox/evox/) 帮助翻译 EvoX 文档。
-  我们目前支持两种语言的翻译：[English](https://evox.readthedocs.io/en/latest/) / [中文](https://evox.readthedocs.io/zh/latest/)。
+- 访问 [EvoX官网](https://evox.group/)
+  
 ## 引用 EvoX
 
 如果 EvoX 对您的研究有帮助，请引用：
