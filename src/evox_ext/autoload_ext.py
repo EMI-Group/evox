@@ -27,7 +27,7 @@ def auto_load_extensions():
         import evox.utils
         import evox_ext.utils
 
-        load_extension(evox_ext.algorithms, evox.algorithms)
+        load_extension(evox_ext.utils, evox.utils)
     except ImportError:
         pass
 
