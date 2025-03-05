@@ -187,7 +187,7 @@ pip install -e .
 
 ```python
 import torch
-from evox.algorithms.pso_variants import PSO
+from evox.algorithms import PSO
 from evox.problems.numerical import Ackley
 from evox.workflows import StdWorkflow, EvalMonitor
 
