@@ -185,9 +185,9 @@ pip install -e .
 
 ```python
 import torch
-import evox.algorithms.pso_variants import PSO
-import evox.problems.numerical import Ackley
-import evox.workflows import StdWorkflow, EvalMonitor
+from evox.algorithms.pso_variants import PSO
+from evox.problems.numerical import Ackley
+from evox.workflows import StdWorkflow, EvalMonitor
 
 algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
 problem = Ackley()
@@ -216,10 +216,10 @@ monitor.plot()
 
 ```python
 import torch
-import evox.algorithms import RVEA
-import evox.metrics import igd
-import evox.problems.numerical import DTLZ2
-import evox.workflows import StdWorkflow, EvalMonitor
+from evox.algorithms import RVEA
+from evox.metrics import igd
+from evox.problems.numerical import DTLZ2
+from evox.workflows import StdWorkflow, EvalMonitor
 
 prob = DTLZ2(m=3)
 pf = prob.pf()
@@ -255,10 +255,10 @@ monitor.plot()
 ```python
 import torch
 import torch.nn as nn
-import evox.algorithms import PSO
-import evox.problems.neuroevolution.brax import BraxProblem
-import evox.utils import ParamsAndVector
-import evox.workflows import EvalMonitor, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.neuroevolution.brax import BraxProblem
+from evox.utils import ParamsAndVector
+from evox.workflows import EvalMonitor, StdWorkflow
 
 class SimpleMLP(nn.Module):
     def __init__(self):
