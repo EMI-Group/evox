@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import torch
 
 from evox.core import ModuleBase
@@ -51,7 +53,7 @@ def update_dc_and_rank(
     # Update the rank for individuals in the Pareto front
     rank = torch.where(pareto_front, current_rank, rank)
     # Calculate how many individuals in the Pareto front dominate others
-    count_desc = torch.sum(pareto_front[:, None] * dominate_relation_matrix, dim=0)
+    count_desc = torch.sum(pareto_front.unsqueeze(-1) * dominate_relation_matrix, dim=-2)
 
     # Update dominate_count (remove those in the current Pareto front)
     dominate_count = dominate_count - count_desc
@@ -60,14 +62,97 @@ def update_dc_and_rank(
     return rank, dominate_count
 
 
-def non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
-    """
-    Perform non-dominated sort using PyTorch in torch.script mode.
+_compiled_update_dc_and_rank = torch.compile(update_dc_and_rank, fullgraph=True)
 
-    :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
+
+@torch.library.custom_op("evox::_vmap_iterative_get_ranks", mutates_args=())
+def _vmap_iterative_get_ranks(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    current_rank = 0
+    while pareto_front.any():
+        rank, dominate_count = _compiled_update_dc_and_rank(
+            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+        )
+        current_rank += 1
+        new_pareto_front = dominate_count == 0
+        pareto_front = torch.where(pareto_front.any(dim=1, keepdim=True), new_pareto_front, pareto_front)
+    return rank
+
+
+@_vmap_iterative_get_ranks.register_fake
+def _vigr_fake(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    return rank.new_empty(dominate_count.size())
+
+
+@torch.library.custom_op("evox::_iterative_get_ranks", mutates_args=())
+def _iterative_get_ranks(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    current_rank = 0
+    while pareto_front.any():
+        rank, dominate_count = _compiled_update_dc_and_rank(
+            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+        )
+        current_rank += 1
+        pareto_front = dominate_count == 0
+    return rank
+
+
+@_iterative_get_ranks.register_vmap
+def _igr_vmap(
+    info,
+    in_dims: Tuple[int | None, ...],
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+):
+    dominate_relation_matrix = (
+        dominate_relation_matrix.movedim(in_dims[0], 0)
+        if in_dims[0] is not None
+        else dominate_relation_matrix.unsqueeze(0)
+    )
+    dominate_count = (
+        dominate_count.movedim(in_dims[1], 0) if in_dims[1] is not None else dominate_count.unsqueeze(0)
+    )
+    rank = rank.movedim(in_dims[2], 0) if in_dims[2] is not None else rank.unsqueeze(0)
+    pareto_front = pareto_front.movedim(in_dims[3], 0) if in_dims[3] is not None else pareto_front.unsqueeze(0)
+    rank = _vmap_iterative_get_ranks(dominate_relation_matrix, dominate_count, rank, pareto_front)
+    return rank, 0
+
+
+@_iterative_get_ranks.register_fake
+def _igr_fake(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    return rank.new_empty(dominate_count.size())
+
+
+def non_dominate_rank(x: torch.Tensor) -> torch.Tensor:
+    """
+    Compute the non-domination rank for a set of solutions in multi-objective optimization.
+
+    The non-domination rank is a measure of the Pareto optimality of each solution.
+
+    :param f: A 2D tensor where each row represents a solution, and each column represents an objective.
 
     :returns:
-        A one-dimensional tensor representing the ranking, starting from 0.
+        A 1D tensor containing the non-domination rank for each solution.
     """
 
     n = x.size(0)
@@ -77,60 +162,11 @@ def non_dominated_sort_script(x: torch.Tensor) -> torch.Tensor:
     dominate_count = dominate_relation_matrix.sum(dim=0)
     # Initialize rank array
     rank = torch.zeros(n, dtype=torch.int32, device=x.device)
-    current_rank = 0
     # Identify individuals in the first Pareto front (those that are not dominated)
     pareto_front = dominate_count == 0
     # Iteratively identify Pareto fronts
-    while pareto_front.any():
-        rank, dominate_count = update_dc_and_rank(dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank)
-        current_rank += 1
-        pareto_front = dominate_count == 0
-
+    rank = _iterative_get_ranks(dominate_relation_matrix, dominate_count, rank, pareto_front)
     return rank
-
-
-_NDS_cache = None
-
-
-class NonDominatedSort(ModuleBase):
-    """
-    A module for performing non-dominated sorting, implementing caching and support for PyTorch's full map-reduce method.
-
-    This class provides an efficient implementation of non-dominated sorting using both direct computation and a
-    traceable map-reduce method for large-scale multi-objective optimization problems.
-
-    :note:
-        This class is designed to automatically identify script and trace modes, with a particular focus on supporting `vmap`.
-        In script mode, use `non_dominated_sort_script`, and in trace mode, use `trace_non_dominated_sort`.
-    """
-
-    def __new__(cls):
-        global _NDS_cache
-        if _NDS_cache is not None:
-            return _NDS_cache
-        else:
-            return super().__new__(cls)
-
-    def __init__(self):
-        """
-        Initialize the NonDominatedSort module, setting up caching for efficient reuse.
-        """
-        global _NDS_cache
-        if _NDS_cache is not None:
-            return
-        super().__init__()
-        _NDS_cache = self
-
-    def non_dominated_sort(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Perform non-dominated sorting using PyTorch's scripting mechanism for efficient computation.
-
-        :param x: An array with shape (n, m) where n is the population size and m is the number of objectives.
-
-        :returns: A one-dimensional tensor representing the ranking, starting from 0.
-        """
-
-        return non_dominated_sort_script(x)
 
 
 def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
@@ -159,7 +195,7 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     rank = lexsort([costs, inverted_mask], dim=0)
     # TODO: num_valid_elem preventing vmap
     costs = torch.gather(costs, dim=0, index=rank)
-    distance_range = costs[num_valid_elem - 1, :] - costs[0, :]
+    distance_range = costs[num_valid_elem - 1] - costs[0]
     distance = torch.empty(costs.size(), device=costs.device)
     distance = distance.scatter(0, rank[1:-1], (costs[2:] - costs[:-2]) / distance_range)
     distance[rank[0], :] = torch.inf
@@ -168,24 +204,6 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     crowding_distances = torch.sum(crowding_distances, dim=1)
 
     return crowding_distances
-
-
-def non_dominate_rank(f: torch.Tensor):
-    """
-    Compute the non-domination rank for a set of solutions in multi-objective optimization.
-
-    The non-domination rank is a measure of the Pareto optimality of each solution.
-
-    :param f: A 2D tensor where each row represents a solution, and each column represents an objective.
-
-    :returns:
-        A 1D tensor containing the non-domination rank for each solution.
-    """
-    rank = NonDominatedSort().non_dominated_sort(f)
-    return rank
-
-
-non_dominate_rank.__prepare_scriptable__ = lambda: non_dominated_sort_script
 
 
 def nd_environmental_selection(x: torch.Tensor, f: torch.Tensor, topk: int):
