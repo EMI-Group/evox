@@ -2,6 +2,7 @@ __all__ = [
     "Parameter",
     "Mutable",
     "ModuleBase",
+    "compile",
     "use_state",
     "vmap",
     "Algorithm",
@@ -11,4 +12,4 @@ __all__ = [
 ]
 
 from .components import Algorithm, Monitor, Problem, Workflow
-from .module import ModuleBase, Mutable, Parameter, use_state, vmap
+from .module import ModuleBase, Mutable, Parameter, compile, use_state, vmap

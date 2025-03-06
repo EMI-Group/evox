@@ -5,15 +5,6 @@ import torch
 import torch.nn as nn
 from torch.overrides import TorchFunctionMode
 
-
-def _if_none(a, b):
-    return b if a is None else a
-
-
-def _is_magic(name: str):
-    return name.startswith("__") and name.endswith("__")
-
-
 ParameterT = TypeVar("ParameterT", torch.Tensor, int, float, complex)
 
 
@@ -106,9 +97,26 @@ class TransformGetSetItemToIndex(TorchFunctionMode):
         return func(*args, **(kwargs or {}))
 
 
+@wraps(torch.compile)
+def compile(*args, **kwargs) -> Callable:
+    """Fix the `torch.compile`'s issue with __getitem__ and __setitem__
+    that recognizes scalar indexes as `.item()` and causes graph breaks.
+    Related issue: https://github.com/pytorch/pytorch/issues/124423.
+    """
+
+    with TransformGetSetItemToIndex():
+        compiled = torch.compile(*args, **kwargs)
+
+    def wrapper(*args, **kwargs):
+        with TransformGetSetItemToIndex():
+            return compiled(*args, **kwargs)
+
+    return wrapper
+
+
 @wraps(torch.vmap)
 def vmap(*args, **kwargs) -> Callable:
-    """Fix the torch.vmap's issue with __getitem__ and __setitem__.
+    """Fix the `torch.vmap`'s issue with __getitem__ and __setitem__.
     Related issue: https://github.com/pytorch/pytorch/issues/124423.
     """
 
@@ -121,12 +129,26 @@ def vmap(*args, **kwargs) -> Callable:
     return wrapper
 
 
+class _ReplaceForward:
+    def __init__(self, module, new_forward):
+        self.module = module
+        self.new_forward = new_forward
+        self.original_forward = None
+
+    def __enter__(self):
+        self.original_forward = self.module.forward
+        self.module.forward = self.new_forward
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.module.forward = self.original_forward
+        return False
+
+
 def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     """Transform a `torch.nn.Module`'s method or an `torch.nn.Module` into a stateful function.
     When using `torch.nn.Module`, the stateful version of the default `forward` method will be created.
     The stateful function will have a signature of `fn(params_and_buffers, *args, **kwargs) -> params_and_buffers | Tuple[params_and_buffers, <original_returns>]]`.
-
-    :note: This function **in-place** sets the `forward` method of the underlying `torch.nn.Module` to `stateful_func`. Therefore, an additional `reset_forward` method is provided to restore the original `forward` method.
 
     ## Examples
 
@@ -137,9 +159,6 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     vmap_stateful_step = vmap(stateful_step)
     batch_state = torch.func.stack_module_states([workflow] * 3)
     new_batch_state = vmap_stateful_step(batch_state)
-    # if your workflow has `forward` that you want to invoke, use "reset_forward" to restore it
-    stateful_step.reset_forward()
-    workflow.forward(...)
     ```
     """
     if not isinstance(stateful_func, torch.nn.Module):
@@ -147,24 +166,17 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
         assert isinstance(module, torch.nn.Module), (
             "`stateful_func` must be a `torch.nn.Module` or a method of a `torch.nn.Module`"
         )
-        ori_forward = module.forward
-        module.forward = stateful_func
-
-        def reset_forward():
-            return setattr(module, "forward", ori_forward)
+        new_forward = stateful_func
     else:
         module = stateful_func
-
-        def reset_forward():
-            pass
+        new_forward = module.forward
 
     def wrapper(params_and_buffers, *args, **kwargs):
-        output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
+        with _ReplaceForward(module, new_forward):
+            output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
         if output is None:
             return params_and_buffers
         else:
             return params_and_buffers, output
-
-    wrapper.reset_forward = reset_forward
 
     return wrapper
