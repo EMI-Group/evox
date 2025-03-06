@@ -34,8 +34,6 @@ def from_jax_array(x: jax.Array, device: Optional[torch.device] = None) -> torch
 class BraxProblem(Problem):
     """The Brax problem wrapper."""
 
-    _evaluator: _BraxEvaluatorTuple
-
     def __init__(
         self,
         policy: nn.Module,
