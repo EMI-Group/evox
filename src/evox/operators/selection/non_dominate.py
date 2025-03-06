@@ -2,7 +2,6 @@ from typing import Tuple
 
 import torch
 
-from evox.core import ModuleBase
 from evox.utils import lexsort
 
 
