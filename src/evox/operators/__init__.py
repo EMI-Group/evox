@@ -1,3 +1,3 @@
-__all__ = ["NonDominatedSort", "crowding_distance", "non_dominate_rank", "non_dominated_sort_script"]
+__all__ = ["crowding_distance", "non_dominate_rank"]
 
-from .selection import NonDominatedSort, crowding_distance, non_dominate_rank, non_dominated_sort_script
+from .selection import crowding_distance, non_dominate_rank
