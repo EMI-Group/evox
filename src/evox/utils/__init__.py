@@ -10,6 +10,7 @@ __all__ = [
     "minimum_float",
     "maximum_int",
     "minimum_int",
+    "register_vmap_op",
     "ParamsAndVector",
     "lexsort",
     "nanmin",
@@ -34,6 +35,7 @@ from .jit_fix_operator import (
     nanmin,
     switch,
 )
+from .op_register import register_vmap_op
 from .parameters_and_vector import ParamsAndVector
 from .re_export import tree_flatten, tree_unflatten
 

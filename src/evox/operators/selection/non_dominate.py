@@ -1,8 +1,7 @@
 from typing import Tuple
-
 import torch
 
-from evox.utils import lexsort
+from evox.utils import lexsort, register_vmap_op
 
 
 def dominate_relation(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -64,26 +63,7 @@ def update_dc_and_rank(
 _compiled_update_dc_and_rank = torch.compile(update_dc_and_rank, fullgraph=True)
 
 
-@torch.library.custom_op("evox::_vmap_iterative_get_ranks", mutates_args=())
-def _vmap_iterative_get_ranks(
-    dominate_relation_matrix: torch.Tensor,
-    dominate_count: torch.Tensor,
-    rank: torch.Tensor,
-    pareto_front: torch.Tensor,
-) -> torch.Tensor:
-    current_rank = 0
-    while pareto_front.any():
-        rank, dominate_count = _compiled_update_dc_and_rank(
-            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
-        )
-        current_rank += 1
-        new_pareto_front = dominate_count == 0
-        pareto_front = torch.where(pareto_front.any(dim=1, keepdim=True), new_pareto_front, pareto_front)
-    return rank
-
-
-@_vmap_iterative_get_ranks.register_fake
-def _vigr_fake(
+def _igr_fake(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
@@ -92,7 +72,33 @@ def _vigr_fake(
     return rank.new_empty(dominate_count.size())
 
 
-@torch.library.custom_op("evox::_iterative_get_ranks", mutates_args=())
+def _igr_fake_vmap(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> Tuple[torch.Tensor, int]:
+    return rank.new_empty(dominate_count.size()), 0
+
+
+def _vmap_iterative_get_ranks(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> Tuple[torch.Tensor, int]:
+    current_rank = 0
+    while pareto_front.any():
+        rank, dominate_count = _compiled_update_dc_and_rank(
+            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+        )
+        current_rank += 1
+        new_pareto_front = dominate_count == 0
+        pareto_front = torch.where(pareto_front.any(dim=1, keepdim=True), new_pareto_front, pareto_front)
+    return rank, 0
+
+
+@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap)
 def _iterative_get_ranks(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
@@ -107,39 +113,6 @@ def _iterative_get_ranks(
         current_rank += 1
         pareto_front = dominate_count == 0
     return rank
-
-
-@_iterative_get_ranks.register_vmap
-def _igr_vmap(
-    info,
-    in_dims: Tuple[int | None, ...],
-    dominate_relation_matrix: torch.Tensor,
-    dominate_count: torch.Tensor,
-    rank: torch.Tensor,
-    pareto_front: torch.Tensor,
-):
-    dominate_relation_matrix = (
-        dominate_relation_matrix.movedim(in_dims[0], 0)
-        if in_dims[0] is not None
-        else dominate_relation_matrix.unsqueeze(0)
-    )
-    dominate_count = (
-        dominate_count.movedim(in_dims[1], 0) if in_dims[1] is not None else dominate_count.unsqueeze(0)
-    )
-    rank = rank.movedim(in_dims[2], 0) if in_dims[2] is not None else rank.unsqueeze(0)
-    pareto_front = pareto_front.movedim(in_dims[3], 0) if in_dims[3] is not None else pareto_front.unsqueeze(0)
-    rank = _vmap_iterative_get_ranks(dominate_relation_matrix, dominate_count, rank, pareto_front)
-    return rank, 0
-
-
-@_iterative_get_ranks.register_fake
-def _igr_fake(
-    dominate_relation_matrix: torch.Tensor,
-    dominate_count: torch.Tensor,
-    rank: torch.Tensor,
-    pareto_front: torch.Tensor,
-) -> torch.Tensor:
-    return rank.new_empty(dominate_count.size())
 
 
 def non_dominate_rank(x: torch.Tensor) -> torch.Tensor:

@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Optional, TypeVar, Union
+from typing import Callable, Optional, TypeVar, Union, Dict
 
 import torch
 import torch.nn as nn
@@ -111,6 +111,7 @@ def compile(*args, **kwargs) -> Callable:
         with TransformGetSetItemToIndex():
             return compiled(*args, **kwargs)
 
+    wrapper.__wrapped__ = compiled
     return wrapper
 
 
@@ -129,20 +130,14 @@ def vmap(*args, **kwargs) -> Callable:
     return wrapper
 
 
-class _ReplaceForward:
-    def __init__(self, module, new_forward):
-        self.module = module
+class _ReplaceForwardModule(nn.Module):
+    def __init__(self, module: nn.Module, new_forward: Callable):
+        super().__init__()
+        self._inner_module = module
         self.new_forward = new_forward
-        self.original_forward = None
 
-    def __enter__(self):
-        self.original_forward = self.module.forward
-        self.module.forward = self.new_forward
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.module.forward = self.original_forward
-        return False
+    def forward(self, *args, **kwargs):
+        return self.new_forward(self._inner_module, *args, **kwargs)
 
 
 def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
@@ -166,14 +161,15 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
         assert isinstance(module, torch.nn.Module), (
             "`stateful_func` must be a `torch.nn.Module` or a method of a `torch.nn.Module`"
         )
-        new_forward = stateful_func
+        new_forward = stateful_func.__func__
     else:
         module = stateful_func
-        new_forward = module.forward
+        new_forward = module.forward.__func__
+    module = _ReplaceForwardModule(module, new_forward)
 
-    def wrapper(params_and_buffers, *args, **kwargs):
-        with _ReplaceForward(module, new_forward):
-            output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
+    def wrapper(params_and_buffers: Dict[str, torch.Tensor], *args, **kwargs):
+        params_and_buffers = {"_inner_module." + k: v for k, v in params_and_buffers.items()}
+        output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
         if output is None:
             return params_and_buffers
         else:
