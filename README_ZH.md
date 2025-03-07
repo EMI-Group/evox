@@ -356,6 +356,7 @@ for i in range(50):
 
 EvoX 遵循 **GNU 通用公共许可证 3.0 (GPL-3.0)** 进行授权。完整的条款和条件请参阅 [LICENSE](./LICENSE) 文件。
 
+<!--
 ## Star 历史
-
 [![Star 历史图表](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
+-->
