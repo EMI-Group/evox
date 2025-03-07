@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Optional, TypeVar, Union, Dict
+from typing import Callable, Dict, Optional, TypeVar, Union
 
 import torch
 import torch.nn as nn

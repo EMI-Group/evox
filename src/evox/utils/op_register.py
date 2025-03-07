@@ -1,4 +1,3 @@
-import inspect
 from typing import Any, Protocol, Sequence, Tuple, TypeVar
 
 import torch
