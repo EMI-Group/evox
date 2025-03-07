@@ -168,7 +168,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     module = _ReplaceForwardModule(module, new_forward)
 
     def wrapper(params_and_buffers: Dict[str, torch.Tensor], *args, **kwargs):
-        params_and_buffers = {"_inner_module." + k: v for k, v in params_and_buffers.items()}
+        params_and_buffers = {("_inner_module." + k): v for k, v in params_and_buffers.items()}
         output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
         params_and_buffers = {k[len("_inner_module."):]: v for k, v in params_and_buffers.items()}
         if output is None:
