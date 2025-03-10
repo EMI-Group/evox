@@ -99,6 +99,7 @@ class EvalMonitor(Monitor):
         elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
+            raise NotImplementedError("Monitor of multi-objective optimization is not implemented yet.")
         else:
             raise ValueError(f"Invalid fitness shape: {fitness.shape}")
 

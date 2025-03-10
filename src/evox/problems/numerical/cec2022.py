@@ -14,14 +14,12 @@ class CEC2022(Problem):
         """
         Initialize a single test function instance from the CEC2022 test suite.
 
-        Args:
-            problem_number (`int`): The index for the specific test function to be used. Must be ranged from 1 to 12.
-            dimension (`int`): The dimensionality of the problem. Must be one of [2, 10, 20].
-            device (`torch.device`, optional): The device on which tensors will be allocated. Defaults to None.
+        :param problem_number: The index for the specific test function to be used. Must be ranged from 1 to 12.
+        :param dimension (`int`): The dimensionality of the problem. Must be one of [2, 10, 20].
+        :param device (`torch.device`, optional): The device on which tensors will be allocated. Defaults to None.
 
-        Raises:
-            AssertionError: If the dimension is not one of the allowed values or if the function is not defined.
-            FileNotFoundError: If the necessary data files for the problem are not found.
+        :raises AssertionError: If the dimension is not one of the allowed values or if the function is not defined.
+        :raises FileNotFoundError: If the necessary data files for the problem are not found.
         """
         super().__init__()
         self.nx = dimension

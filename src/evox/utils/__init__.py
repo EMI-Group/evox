@@ -10,6 +10,8 @@ __all__ = [
     "minimum_float",
     "maximum_int",
     "minimum_int",
+    "VmapInfo",
+    "register_vmap_op",
     "ParamsAndVector",
     "lexsort",
     "nanmin",
@@ -34,15 +36,14 @@ from .jit_fix_operator import (
     nanmin,
     switch,
 )
+from .op_register import VmapInfo, register_vmap_op
 from .parameters_and_vector import ParamsAndVector
 from .re_export import tree_flatten, tree_unflatten
 
 
 ################### NOTICE ###################
 #
-# 1. The functions in this module are all for JIT operator fusion, JIT tracing, or vectorized-map since their original implementations are not supported.
-# 2. When using `core.vmap`, all input tensors are assumed to be float tensors. If integer tensors are used, please use `core.vmap(..., trace=False)` and manually JIT it afterward using `core.jit(..., trace=True, example_inputs=(...))` or add type hint of `torch.IntTensor`.
-# 3. Python's control flow statements cannot be vector-mapped directly, please use the function in this module instead.
-# 4. DO NOT directly use `torch.jit.script` to JIT `torch.vmap` functions. You may get unexpected results without any warning.
+# 1. The functions in this module are all for compiler operator fusion, or vectorized-map since their original implementations are not supported in operator fusion yet or not present in PyTorch and may cause performance loss. However, these implmentations have their own limitations, please read the docstrings for details.
+# 2. Python's control flow statements cannot be vector-mapped directly, please use `torch.cond` for `if-else` statement and `torch.while_loop` for `while` and `for` loops. If you want to vectorized-map a loop, please follow in the instruction on the documentation.
 #
 ################# END NOTICE #################
