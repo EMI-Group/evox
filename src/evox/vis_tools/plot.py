@@ -445,7 +445,7 @@ def plot_obj_space_2d(
     return fig
 
 
-def plot_obj_space_3d(fitness_history, sort_points: bool = False, problem_pf: np.ndarray = None, **kwargs):
+def plot_obj_space_3d(fitness_history, problem_pf: np.ndarray = None, sort_points: bool = False, **kwargs):
     """Visualize the fitness values of the population in a multi-objective (3 objectives) optimization problem.
 
     :param fitness_history: A list of arrays, each array represents the fitness values of the population of one generation.
