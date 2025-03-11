@@ -5,7 +5,7 @@ import torch
 from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA, HypE
 from evox.core import Algorithm, compile, use_state, vmap
 from evox.problems.numerical import DTLZ2
-from evox.workflows import StdWorkflow, EvalMonitor
+from evox.workflows import EvalMonitor, StdWorkflow
 
 
 class MOTestBase(TestCase):
