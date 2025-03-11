@@ -5,24 +5,32 @@ import torch
 from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA, HypE
 from evox.core import Algorithm, compile, use_state, vmap
 from evox.problems.numerical import DTLZ2
-from evox.workflows import StdWorkflow
+from evox.workflows import StdWorkflow, EvalMonitor
 
 
 class MOTestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow(algo, prob)
+        monitor = EvalMonitor(multi_obj=True, full_sol_history=True)
+        workflow = StdWorkflow(algo, prob, monitor=monitor)
         workflow.init_step()
         for _ in range(3):
             workflow.step()
 
+        monitor.get_pf()
+        monitor.get_pf_fitness()
+
     def run_compiled_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow(algo, prob)
+        monitor = EvalMonitor(multi_obj=True, full_sol_history=True)
+        workflow = StdWorkflow(algo, prob, monitor=monitor)
         workflow.init_step()
         jit_state_step = compile(workflow.step)
         for _ in range(3):
             jit_state_step()
+
+        monitor.get_pf()
+        monitor.get_pf_fitness()
 
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
