@@ -1,7 +1,8 @@
 __all__ = ["BraxProblem"]
 
+import copy
 import weakref
-from typing import Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -11,7 +12,9 @@ import torch.utils.dlpack
 from brax import envs
 from brax.io import html, image
 
-from ...core import Problem, _vmap_fix, jit_class, vmap_impl
+from evox.core import Problem, use_state
+from evox.utils import VmapInfo
+
 from .utils import get_vmap_model_state_forward
 
 
@@ -27,11 +30,169 @@ def from_jax_array(x: jax.Array) -> torch.Tensor:
 
 __brax_data__: Dict[
     int,
-    Tuple[Callable[[jax.Array], envs.State], Callable[[envs.State, jax.Array], envs.State]],
-] = {}  # Cannot be a weakref.WeakValueDictionary because the values are only stored here
+    Tuple[
+        Callable[[jax.Array], envs.State],  # vmap_brax_reset
+        Callable[[envs.State, jax.Array], envs.State],  # vmap_brax_step
+        Callable[
+            [Dict[str, torch.Tensor], torch.Tensor], Tuple[Dict[str, torch.Tensor], torch.Tensor]
+        ],  # vmap_state_forward
+        List[str],  # state_keys
+    ],
+] = {}
 
 
-@jit_class
+def _evaluate_brax_main(
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+    # check the pop_size in the inputs
+    # Take a parameter and check its size
+    actual_pop_size = model_state[0].size(0)
+    assert actual_pop_size == pop_size, (
+        f"The actual population size must match the pop_size parameter when creating BraxProblem. Expected: {pop_size}, Actual: {actual_pop_size}"
+    )
+    device = model_state[0].device
+    vmap_brax_reset, vmap_brax_step, vmap_state_forward, state_keys = __brax_data__.get(env_id)
+    model_state = {k: v.clone() for k, v in zip(state_keys, model_state)}
+
+    key = to_jax_array(key)
+    # For each episode, we need a different random key.
+    # For each individual in the population, we need the same set of keys.
+    # Loop until environment stops
+    if rotate_key:
+        key, eval_key = jax.random.split(key)
+    else:
+        key, eval_key = key, key
+
+    keys = jax.random.split(eval_key, num_episodes)
+    keys = jnp.broadcast_to(keys, (pop_size, *keys.shape)).reshape(pop_size * num_episodes, -1)
+    done = jnp.zeros((pop_size * num_episodes,), dtype=bool)
+    total_reward = jnp.zeros((pop_size * num_episodes,))
+    counter = 0
+    brax_state = vmap_brax_reset(keys)
+
+    while counter < max_episode_length and ~done.all():
+        model_state, action = vmap_state_forward(
+            model_state, from_jax_array(brax_state.obs, device).view(pop_size, num_episodes, -1)
+        )
+        action = action.view(pop_size * num_episodes, -1)
+        brax_state = vmap_brax_step(brax_state, to_jax_array(action))
+        done = brax_state.done * (1 - done)
+        total_reward += (1 - done) * brax_state.reward
+        counter += 1
+
+    # Return
+    new_key = from_jax_array(key, device)
+    total_reward = from_jax_array(total_reward, device)
+    total_reward = total_reward.view(pop_size, num_episodes)
+    model_state = [model_state[k] for k in state_keys]
+    return new_key, model_state, total_reward
+
+
+@torch.library.custom_op("evox::_evaluate_brax", mutates_args=())
+def _evaluate_brax(
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+    return _evaluate_brax_main(env_id, pop_size, rotate_key, num_episodes, max_episode_length, key, model_state)
+
+
+@_evaluate_brax.register_fake
+def _fake_evaluate_brax(
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+    return (
+        key.new_empty(key.size()),
+        [v.new_empty(v.size()) for v in model_state],
+        model_state[0].new_empty(pop_size, num_episodes),
+    )
+
+
+@torch.library.custom_op("evox::_evaluate_brax_vmap_main", mutates_args=())
+def _evaluate_brax_vmap_main(
+    batch_size: int,
+    in_dim: List[int],
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+    # flatten vmap dim and pop dim
+    model_state = [(v if d is None else v.movedim(d, 0).flatten(0, 1)) for d, v in zip(in_dim, model_state)]
+    key, model_state, reward = _evaluate_brax_main(
+        env_id, pop_size, rotate_key, num_episodes, max_episode_length, key, model_state
+    )
+    model_state = [(v if d is None else v.unflatten(0, (batch_size, -1))) for d, v in zip(in_dim, model_state)]
+    reward = reward.unflatten(0, (batch_size, -1))
+    return key, model_state, reward
+
+
+@_evaluate_brax.register_vmap
+def _evaluate_brax_vmap(
+    vmap_info: VmapInfo,
+    in_dims: Tuple[int | None | List[int], ...],
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor], Tuple[int | None, List[int], int]]:
+    assert all(d is None for d in in_dims[:-1]), "Cannot vmap over `BraxProblem` itself"
+    assert in_dims[-1] is not None, "Cannot vmap none of the dimensions"
+    key, model_state, reward = _evaluate_brax_vmap_main(
+        vmap_info.batch_size,
+        in_dims[-1],
+        env_id,
+        pop_size,
+        rotate_key,
+        num_episodes,
+        max_episode_length,
+        key,
+        model_state,
+    )
+    return (key, model_state, reward), (None, [0] * len(model_state), 0)
+
+
+@_evaluate_brax_vmap_main.register_fake
+def _fake_evaluate_brax_vmap(
+    batch_size: int,
+    in_dim: List[int],
+    env_id: int,
+    pop_size: int,
+    rotate_key: bool,
+    num_episodes: int,
+    max_episode_length: int,
+    key: torch.Tensor,
+    model_state: List[torch.Tensor],
+) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+    return (
+        key.new_empty(key.size()),
+        [v.new_empty(v.size()).movedim(d, 0) for d, v in zip(in_dim, model_state)],
+        model_state[0].new_empty(batch_size, pop_size, num_episodes),
+    )
+
+
 class BraxProblem(Problem):
     """The Brax problem wrapper."""
 
@@ -123,34 +284,69 @@ class BraxProblem(Problem):
             vmap_in_dims=(0, 0),
             get_non_vmap=True,
         )
-        model_init_state, jit_state_forward, dummy_single_logits, param_to_state_key_map, model_buffer = non_vmap_result
-        vmap_model_init_state, jit_vmap_state_forward, dummy_vmap_logits, _, vmap_model_buffers = vmap_result
-        self._jit_state_forward = jit_state_forward
-        self._jit_vmap_state_forward = jit_vmap_state_forward
-        self._param_to_state_key_map = param_to_state_key_map
-        vmap_model_buffers["key"] = torch.random.get_rng_state().view(dtype=torch.uint32)[:2].detach().clone().to(device=device)
-        self._vmap_model_buffers = vmap_model_buffers
-        self._model_buffers = model_buffer
-        # Set constants
+        self.state_forward = torch.compile(use_state(policy))
+        if seed is None:
+            seed = torch.randint(0, 2**31, (1,)).item()
+        self.key = from_jax_array(jax.random.PRNGKey(seed), device)
+        copied_policy = copy.deepcopy(policy).to(device)
+        self.init_state = copied_policy.state_dict()
+        for _name, value in self.init_state.items():
+            value.requires_grad = False
+        # Store to global
+        self.state_keys = list(self.init_state.keys())
+        global __brax_data__
+        __brax_data__[id(self)] = (
+            self.vmap_brax_reset,
+            self.vmap_brax_step,
+            self.vmap_state_forward,
+            self.state_keys,
+        )
+        weakref.finalize(self, __brax_data__.pop, id(self), None)
+        # Store variables
+        self._id_ = id(self)
+        self.reduce_fn = reduce_fn
+        self.rotate_key = rotate_key
+        self.pop_size = pop_size
+        self.num_episodes = num_episodes
         self.max_episode_length = max_episode_length
         self.num_episodes = num_episodes
         self.pop_size = pop_size
         self.rotate_key = rotate_key
         self.reduce_fn = reduce_fn
 
-    def _normal_evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
-        # Unpack parameters and buffers
-        state_params = {self._param_to_state_key_map[key]: value for key, value in pop_params.items()}
-        model_state = dict(self._vmap_model_buffers)
-        model_state.update(state_params)
-        rand_key = model_state.pop("key")
-        # Brax environment evaluation
-        model_state, rewards = self._evaluate_brax(model_state, rand_key, False)
-        rewards = self.reduce_fn(rewards, dim=-1)
-        # Update buffers
-        self._vmap_model_buffers = {key: model_state[key] for key in self._vmap_model_buffers}
+    # disable torch.compile for JAX code
+    @torch.compiler.disable
+    def _evaluate_brax_record(
+        self,
+        model_state: Dict[str, torch.Tensor],
+    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor, List[Any]]:
+        key = to_jax_array(self.key)
+        # For each episode, we need a different random key.
+        # For each individual in the population, we need the same set of keys.
+        # Loop until environment stops
+        if self.rotate_key:
+            key, eval_key = jax.random.split(key)
+        else:
+            key, eval_key = key, key
+
+        keys = eval_key
+        done = jnp.zeros((), dtype=bool)
+        total_reward = jnp.zeros(())
+        counter = 0
+        brax_state = self.brax_reset(keys)
+        trajectory = [brax_state.pipeline_state]
+
+        while counter < self.max_episode_length and ~done.all():
+            model_state, action = self.state_forward(model_state, from_jax_array(brax_state.obs, self.device))
+            brax_state = self.brax_step(brax_state, to_jax_array(action))
+            done = brax_state.done * (1 - done)
+            total_reward += (1 - done) * brax_state.reward
+            counter += 1
+            trajectory.append(brax_state.pipeline_state)
         # Return
-        return rewards
+        self.key = from_jax_array(key, self.device)
+        total_reward = from_jax_array(total_reward, self.device)
+        return model_state, total_reward, trajectory
 
     def evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
         """Evaluate the final rewards of a population (batch) of model parameters.
@@ -159,7 +355,23 @@ class BraxProblem(Problem):
 
         :return: A tensor of shape (batch_size,) containing the reward of each sample in the population.
         """
-        return self._normal_evaluate(pop_params)
+        # Merge the given parameters into the initial parameters
+        model_state = {**self.vmap_init_state, **pop_params}
+        # CANNOT COMPILE: model_state = self.vmap_init_state | pop_params
+        model_state = [model_state[k] for k in self.state_keys]
+        # Brax environment evaluation
+        key, _, rewards = _evaluate_brax(
+            env_id=self._id_,
+            pop_size=self.pop_size,
+            rotate_key=self.rotate_key,
+            num_episodes=self.num_episodes,
+            max_episode_length=self.max_episode_length,
+            key=self.key,
+            model_state=model_state,
+        )
+        self.key = key
+        rewards = self.reduce_fn(rewards, dim=-1)
+        return rewards
 
     @vmap_impl(evaluate)
     def _vmap_evaluate(self, pop_params: Dict[str, nn.Parameter]) -> torch.Tensor:
@@ -265,8 +477,7 @@ class BraxProblem(Problem):
         model_state = dict(self._model_buffers)
         model_state.update(state_params)
         # Brax environment evaluation
-        rand_key = from_jax_array(jax.random.PRNGKey(seed))
-        model_state, rewards, trajectory = self._evaluate_brax(model_state, rand_key, record_trajectory=True)
+        model_state, _rewards, trajectory = self._evaluate_brax_record(model_state)
         trajectory = [brax_state for brax_state in trajectory]
 
         _, _, _, _, env_sys = __brax_data__[self._index_id_]

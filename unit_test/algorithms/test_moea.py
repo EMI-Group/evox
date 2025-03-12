@@ -2,60 +2,59 @@ from unittest import TestCase
 
 import torch
 
-from evox.algorithms import MOEAD, NSGA2, RVEA, RVEAa
-from evox.core import Algorithm, jit, use_state, vmap
+from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA, HypE
+from evox.core import Algorithm, compile, use_state, vmap
 from evox.problems.numerical import DTLZ2
-from evox.workflows import StdWorkflow
+from evox.workflows import EvalMonitor, StdWorkflow
 
 
 class MOTestBase(TestCase):
     def run_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        monitor = EvalMonitor(multi_obj=True, full_sol_history=True)
+        workflow = StdWorkflow(algo, prob, monitor=monitor)
         workflow.init_step()
         for _ in range(3):
             workflow.step()
 
-    def run_trace_algorithm(self, algo: Algorithm):
+        monitor.get_pf()
+        monitor.get_pf_fitness()
+
+    def run_compiled_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
+        monitor = EvalMonitor(multi_obj=True, full_sol_history=True)
+        workflow = StdWorkflow(algo, prob, monitor=monitor)
         workflow.init_step()
-        state_step = use_state(lambda: workflow.step)
-        state = state_step.init_state()
-        jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+        jit_state_step = compile(workflow.step)
         for _ in range(3):
             state = jit_state_step(state)
 
+        monitor.get_pf()
+        monitor.get_pf_fitness()
+
     def run_vmap_algorithm(self, algo: Algorithm):
         prob = DTLZ2(m=3)
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob)
-        state_step = use_state(lambda: workflow.step)
-        vmap_state_step = vmap(state_step)
-        state = vmap_state_step.init_state(3)
-        vmap_state_step = jit(
-            vmap_state_step,
-            trace=True,
-            lazy=False,
-            example_inputs=(state,),
-        )
+        workflow = StdWorkflow(algo, prob)
+        state_step = use_state(workflow.step)
+        vmap_state_step = vmap(state_step, randomness="different")
+        params, buffers = torch.func.stack_module_state([workflow] * 3)
+        state = params | buffers
+        vmap_state_step = compile(vmap_state_step)
         for _ in range(3):
             state = vmap_state_step(state)
 
 
 class TestMOVariants(MOTestBase):
     def setUp(self):
-        pop_size = 100
-        dim = 12
+        pop_size = 20
+        dim = 10
         lb = -torch.ones(dim)
         ub = torch.ones(dim)
         self.algo = [
             NSGA2(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             RVEA(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             MOEAD(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            RVEAa(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
+            HypE(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
         ]
 
     def test_moea_variants(self):

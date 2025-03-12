@@ -2,17 +2,18 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from evox.core import Algorithm, Mutable, Parameter
+
 from .adam_step import adam_single_tensor
 
 
 @jit_class
-class NoiseReuseES(Algorithm):
-    """The implementation of the Noise-Reuse-ES algorithm.
+class PersistentES(Algorithm):
+    """The implementation of the Persistent ES algorithm.
 
     Reference:
-    Noise-Reuse in Online Evolution Strategies
-    (https://arxiv.org/pdf/2304.12180.pdf)
+    Unbiased Gradient Estimation in Unrolled Computation Graphs with Persistent Evolution Strategies
+    (http://proceedings.mlr.press/v139/vicol21a.html)
 
     This code has been inspired by or utilizes the algorithmic implementation from evosax.
     More information about evosax can be found at the following URL:
@@ -26,13 +27,13 @@ class NoiseReuseES(Algorithm):
         optimizer: Literal["adam"] | None = None,
         lr: float = 0.05,
         sigma: float = 0.03,
-        T: int = 100,  # inner problem length
+        T: int = 100,
         K: int = 10,
         sigma_decay: float = 1.0,
         sigma_limit: float = 0.01,
         device: torch.device | None = None,
     ):
-        """Initialize the Guided-ES algorithm with the given parameters.
+        """Initialize the Persistent-ES algorithm with the given parameters.
 
         :param pop_size: The size of the population.
         :param center_init: The initial center of the population. Must be a 1D tensor.
@@ -46,7 +47,7 @@ class NoiseReuseES(Algorithm):
         :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
-        assert pop_size > 1
+        assert pop_size > 1 and pop_size % 2 == 0  # Population size must be even
         dim = center_init.shape[0]
         # set hyperparameters
         self.lr = Parameter(lr, device=device)
@@ -60,10 +61,10 @@ class NoiseReuseES(Algorithm):
         self.optimizer = optimizer
         # setup
         center_init = center_init.to(device=device)
-        self.center = Mutable(center_init)
         self.sigma = Mutable(torch.tensor(sigma))
-        self.inner_step_counter = Mutable(torch.tensor(0.0, device=device))
-        self.unroll_pert = Mutable(torch.zeros(pop_size, self.dim, device=device))
+        self.center = Mutable(center_init)
+        self.inner_step_counter = Mutable(torch.tensor(0.0))
+        self.pert_accum = Mutable(torch.zeros(pop_size, dim, device=device))
 
         if optimizer == "adam":
             self.exp_avg = Mutable(torch.zeros_like(self.center))
@@ -72,29 +73,17 @@ class NoiseReuseES(Algorithm):
             self.beta2 = Parameter(0.999, device=device)
 
     def step(self):
-        """
-        Take a single step of the NoiseReuseES algorithm.
-
-        This function follows the algorithm described in the reference paper.
-        It first generates a set of perturbations for the current population.
-        Then, it evaluates the fitness of the population with the perturbations.
-        Afterwards, it calculates the gradient of the policy parameters using the
-        perturbations and the fitness.
-        Finally, it updates the policy parameters using the gradient and the
-        learning rate.
-        """
         device = self.center.device
 
-        position_perturbations = torch.randn(self.pop_size // 2, self.dim, device=device) * self.sigma
-        negative_perturbations = -position_perturbations
-        perturbations = torch.cat([position_perturbations, negative_perturbations], dim=0)
-        unroll_pert = torch.where(self.inner_step_counter == 0, perturbations, self.unroll_pert)
-
-        population = self.center + unroll_pert
+        pos_perts = torch.randn(self.pop_size // 2, self.dim, device=device) * self.sigma
+        neg_perts = -pos_perts
+        perts = torch.cat([pos_perts, neg_perts], dim=0)
+        pert_accum = self.pert_accum + perts
+        population = self.center + perts
 
         fitness = self.evaluate(population)
 
-        theta_grad = torch.mean(unroll_pert * fitness.reshape(-1, 1) / (self.sigma**2), dim=0)
+        theta_grad = torch.mean(pert_accum * fitness.reshape(-1, 1) / (self.sigma**2), dim=0)
 
         if self.optimizer is None:
             center = self.center - self.lr * theta_grad
@@ -110,11 +99,18 @@ class NoiseReuseES(Algorithm):
             )
         self.center = center
 
-        inner_step_counter = torch.where(self.inner_step_counter + self.K >= self.T, 0, self.inner_step_counter + self.K)
+        inner_step_counter = self.inner_step_counter + self.K
         self.inner_step_counter = inner_step_counter
 
-        sigma = torch.maximum(self.sigma_decay * self.sigma, self.sigma_limit)
+        reset = self.inner_step_counter >= self.T
+        inner_step_counter = torch.where(reset, 0, inner_step_counter)
+        pert_accum = torch.where(reset, torch.zeros(self.pop_size, self.dim, device=device), pert_accum)
+
+        sigma = self.sigma_decay * self.sigma
+        sigma = torch.maximum(sigma, self.sigma_limit)
+
         self.sigma = sigma
+        self.pert_accum = pert_accum
 
     def record_step(self):
         return {"center": self.center, "sigma": self.sigma}

@@ -2,20 +2,19 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
-from ...utils import clamp
+from evox.core import Algorithm, Mutable, Parameter
+from evox.utils import clamp
 
 
-@jit_class
-class ODE(Algorithm):
+class DE(Algorithm):
     """
-    Opposition-based Differential Evolution (ODE) algorithm for optimization.
+    Differential Evolution (DE) algorithm for optimization.
 
     ## Class Methods
 
-    * `__init__`: Initializes the ODE algorithm with the given parameters, including population size, bounds, mutation strategy, and other hyperparameters.
+    * `__init__`: Initializes the DE algorithm with the given parameters, including population size, bounds, mutation strategy, and other hyperparameters.
     * `init_step`: Performs the initial evaluation of the population's fitness and proceeds to the first optimization step.
-    * `step`: Executes a single optimization step of the ODE algorithm, involving mutation, crossover, selection, and opposition-based mechanisms.
+    * `step`: Executes a single optimization step of the DE algorithm, involving mutation, crossover, and selection processes.
 
     Note that the `evaluate` method is not defined in this class. It is expected to be provided by the `Problem` class or another external component.
     """
@@ -34,17 +33,17 @@ class ODE(Algorithm):
         device: torch.device | None = None,
     ):
         """
-        Initialize the Opposition-based Differential Evolution (ODE) algorithm with the given parameters.
+        Initialize the DE algorithm with the given parameters.
 
         :param pop_size: The size of the population.
-        :param lb: The lower bounds of the particle positions. Must be a 1D tensor.
-        :param ub: The upper bounds of the particle positions. Must be a 1D tensor.
+        :param lb: The lower bounds of the search space. Must be a 1D tensor.
+        :param ub: The upper bounds of the search space. Must be a 1D tensor.
         :param base_vector: The base vector type used in mutation. Either "best" or "rand". Defaults to "rand".
         :param num_difference_vectors: The number of difference vectors used in mutation. Must be at least 1 and less than half of the population size. Defaults to 1.
-        :param differential_weight: The differential weight(s) (F) applied to difference vectors. Can be a float or a tensor of shape [num_difference_vectors]. Defaults to 0.5.
-        :param cross_probability: The crossover probability (CR). Must be in (0, 1]. Defaults to 0.9.
-        :param mean: The mean for initializing the population with a normal distribution. Must be provided with `stdev` if used. Defaults to None.
-        :param stdev: The standard deviation for initializing the population with a normal distribution. Must be provided with `mean` if used. Defaults to None.
+        :param differential_weight: The differential weight(s) (F) applied to difference vectors. Can be a float or a tensor. Defaults to 0.5.
+        :param cross_probability: The crossover probability (CR). Defaults to 0.9.
+        :param mean: The mean for initializing the population with a normal distribution. Defaults to None.
+        :param stdev: The standard deviation for initializing the population with a normal distribution. Defaults to None.
         :param device: The device to use for tensor computations. Defaults to None.
         """
         super().__init__()
@@ -82,15 +81,15 @@ class ODE(Algorithm):
         # Initialize population
         if mean is not None and stdev is not None:
             # Initialize population using a normal distribution
-            population = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
-            population = clamp(population, lb=self.lb, ub=self.ub)
+            pop = mean + stdev * torch.randn(self.pop_size, self.dim, device=device)
+            pop = clamp(pop, lb=self.lb, ub=self.ub)
         else:
             # Initialize population uniformly within bounds
-            population = torch.rand(self.pop_size, self.dim, device=device)
-            population = population * (self.ub - self.lb) + self.lb
+            pop = torch.rand(self.pop_size, self.dim, device=device)
+            pop = pop * (self.ub - self.lb) + self.lb
 
         # Mutable attributes to store population and fitness
-        self.pop = Mutable(population)
+        self.pop = Mutable(pop)
         self.fit = Mutable(torch.empty(self.pop_size, device=device).fill_(float("inf")))
 
     def init_step(self):
@@ -104,13 +103,12 @@ class ODE(Algorithm):
 
     def step(self):
         """
-        Execute a single optimization step of the ODE algorithm.
+        Execute a single optimization step of the DE algorithm.
 
         This involves the following sub-steps:
         1. Mutation: Generate mutant vectors based on the specified base vector strategy (`best` or `rand`) and the number of difference vectors.
         2. Crossover: Perform crossover between the current population and the mutant vectors based on the crossover probability.
         3. Selection: Evaluate the fitness of the new population and select the better individuals between the current and new populations.
-        4. Opposition-Based Mechanism: Generate opposition-based population, evaluate their fitness, and perform selection to potentially replace current individuals with their opposites if they are better.
 
         The method ensures that all new population vectors are clamped within the specified bounds.
         """
@@ -141,35 +139,20 @@ class ODE(Algorithm):
         ).sum(dim=0)
 
         # Create mutant vectors by adding weighted difference vectors to the base vector
-        new_population = base_vector + self.differential_weight * difference_vector
+        new_pop = base_vector + self.differential_weight * difference_vector
 
         # Crossover: Determine which dimensions to crossover based on the crossover probability
         cross_prob = torch.rand(self.pop_size, self.dim, device=device)
         random_dim = torch.randint(0, self.dim, (self.pop_size, 1), device=device)
         mask = cross_prob < self.cross_probability
         mask = mask.scatter(dim=1, index=random_dim, value=1)
-        new_population = torch.where(mask, new_population, self.pop)
+        new_pop = torch.where(mask, new_pop, self.pop)
 
         # Ensure new population is within bounds
-        new_population = clamp(new_population, self.lb, self.ub)
+        new_pop = clamp(new_pop, self.lb, self.ub)
 
         # Selection: Evaluate fitness of the new population and select the better individuals
-        new_fitness = self.evaluate(new_population)
+        new_fitness = self.evaluate(new_pop)
         compare = new_fitness < self.fit
-        self.pop = torch.where(compare[:, None], new_population, self.pop)
+        self.pop = torch.where(compare[:, None], new_pop, self.pop)
         self.fit = torch.where(compare, new_fitness, self.fit)
-
-        # Opposition-Based Population: Generate opposite solutions
-        opposition_population = self.lb + self.ub - self.pop
-
-        # Opposition-Based Selection: Evaluate fitness of the opposition population
-        opposition_fitness = self.evaluate(opposition_population)
-        compare_opposition = opposition_fitness < self.fit
-
-        # Replace individuals with their opposites if the opposites are better
-        updated_population = torch.where(compare_opposition[:, None], opposition_population, self.pop)
-        updated_fitness = torch.where(compare_opposition, opposition_fitness, self.fit)
-
-        # Update population and fitness with opposition-based selections
-        self.pop = updated_population
-        self.fit = updated_fitness

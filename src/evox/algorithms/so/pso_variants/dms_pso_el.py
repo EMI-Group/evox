@@ -1,7 +1,7 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class, trace_impl
-from ...utils import TracingCond, clamp
+from evox.core import Algorithm, Mutable, Parameter
+from evox.utils import clamp
 
 
 @jit_class

@@ -2,11 +2,11 @@ from typing import Literal
 
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from evox.core import Algorithm, Mutable, Parameter
+
 from .adam_step import adam_single_tensor
 
 
-@jit_class
 class ARS(Algorithm):
     """The implementation of the ARS algorithm.
 

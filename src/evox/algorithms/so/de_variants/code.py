@@ -1,14 +1,14 @@
 import torch
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
-from ...operators.crossover import (
+from evox.core import Algorithm, Mutable, Parameter
+from evox.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
     DE_exponential_crossover,
 )
-from ...operators.selection import select_rand_pbest
-from ...utils import clamp
+from evox.operators.selection import select_rand_pbest
+from evox.utils import clamp
 
 """
 Strategy codes(4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]
@@ -23,7 +23,6 @@ rand2best_2_bin = [0, 1, 2, 0]
 current2pbest_1_bin = [3, 2, 1, 0]
 
 
-@jit_class
 class CoDE(Algorithm):
     """The implementation of CoDE algorithm.
 

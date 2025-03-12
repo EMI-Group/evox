@@ -5,8 +5,7 @@ from typing import Any, Callable, Dict, NamedTuple, Tuple
 import torch
 import torch.nn as nn
 
-from ...core import jit, use_state, vmap
-from ...core.module import assign_load_state_dict
+from evox.core import use_state, vmap
 
 
 class ModelStateForwardResult(NamedTuple):

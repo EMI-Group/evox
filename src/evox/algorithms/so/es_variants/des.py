@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from ...core import Algorithm, Mutable, Parameter, jit_class
+from evox.core import Algorithm, Mutable, Parameter
 
 
 @jit_class

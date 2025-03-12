@@ -4,8 +4,9 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
-from ..core import ModuleBase, jit, jit_class
-from ..core._vmap_fix import tree_flatten, tree_unflatten
+from evox.core import ModuleBase
+
+from .re_export import tree_flatten, tree_unflatten
 
 
 @jit_class
