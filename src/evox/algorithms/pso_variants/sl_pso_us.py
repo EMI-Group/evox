@@ -1,8 +1,7 @@
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter
-from evox.utils import clamp, clamp_int
-
+from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...utils import clamp, clamp_int
 from .utils import min_by
 
 

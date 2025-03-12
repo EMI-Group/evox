@@ -1,12 +1,12 @@
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter
-from evox.operators.crossover import (
+from ...core import Algorithm, Mutable, Parameter, jit_class
+from ...operators.crossover import (
     DE_binary_crossover,
     DE_differential_sum,
 )
-from evox.operators.selection import select_rand_pbest
-from evox.utils import clamp
+from ...operators.selection import select_rand_pbest
+from ...utils import clamp
 
 
 @jit_class

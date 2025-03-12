@@ -2,7 +2,8 @@ from typing import Any, Dict
 
 import torch
 
-from evox.core import Algorithm, Monitor, Problem, Workflow
+from ..core import Algorithm, Monitor, Problem, Workflow, jit_class
+from ..core.module import _WrapClassBase
 
 
 class _NegModule(torch.nn.Module):

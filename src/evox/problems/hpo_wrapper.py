@@ -3,7 +3,9 @@ from typing import Callable, Dict, Optional
 import torch
 from torch import nn
 
-from evox.core import Monitor, Mutable, Problem, Workflow, use_state, vmap
+from ..core import Monitor, Mutable, Problem, Workflow, jit, jit_class, use_state, vmap, vmap_impl
+from ..core._vmap_fix import unwrap_batch_tensor, wrap_batch_tensor
+from ..core.module import _WrapClassBase
 
 
 class HPOMonitor(Monitor):

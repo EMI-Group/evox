@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter
+from ...core import Algorithm, Mutable, Parameter, jit_class
 
 
 @jit_class

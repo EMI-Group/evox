@@ -7,8 +7,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from evox.core import Problem, use_state, vmap
-
+from ...core import Problem, jit, jit_class, use_state, vmap
 from .utils import get_vmap_model_state_forward
 
 __supervised_data__: Dict[
