@@ -1,14 +1,25 @@
 import warnings
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import torch
 
 from evox.core import Monitor, Mutable
+from evox.operators.selection import non_dominate_rank
 
 try:
     from evox.vis_tools import plot
 except ImportError:
     plot = None
+
+
+# https://github.com/pytorch/pytorch/issues/36748
+def unique(x, dim=0):
+    """Return the unique elements of the input tensor, as well as the unique index."""
+    unique, inverse, counts = torch.unique(x, dim=dim, sorted=True, return_inverse=True, return_counts=True)
+    inv_sorted = inverse.argsort(stable=True)
+    tot_counts = torch.cat((counts.new_zeros(1), counts.cumsum(dim=0)))[:-1]
+    index = inv_sorted[tot_counts]
+    return unique, inverse, counts, index
 
 
 class EvalMonitor(Monitor):
@@ -99,9 +110,16 @@ class EvalMonitor(Monitor):
         elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
+            # In multi-objective, we can't simply take the topk solutions.
+            # Instead, we need to record the solutions and fitness values.
+            # And in the end, we can get the pareto front.
         else:
             raise ValueError(f"Invalid fitness shape: {fitness.shape}")
 
+        self.record_history()
+
+    @torch.compiler.disable
+    def record_history(self):
         if self.full_fit_history or self.full_sol_history:
             if self.full_sol_history:
                 self.solution_history.append(self.latest_solution.to(self.device))
@@ -126,19 +144,70 @@ class EvalMonitor(Monitor):
     @torch.jit.ignore
     def get_topk_solutions(self) -> torch.Tensor:
         """Get the topk solutions so far."""
+        if self.multi_obj:
+            raise ValueError("Multi-objective optimization does not have a single best solution. Please use get_pf_solutions")
         return self.topk_solutions
 
     @torch.jit.ignore
     def get_best_solution(self) -> torch.Tensor:
         """Get the best solution so far."""
+        if self.multi_obj:
+            raise ValueError("Multi-objective optimization does not have a single best solution. Please use get_pf_solutions")
         return self.topk_solutions[0]
 
     @torch.jit.ignore
     def get_best_fitness(self) -> torch.Tensor:
         """Get the best fitness value so far."""
         if self.multi_obj:
-            raise ValueError("Multi-objective optimization does not have a single best fitness.")
+            raise ValueError("Multi-objective optimization does not have a single best fitness. Please use get_pf_fitness")
         return self.opt_direction * self.topk_fitness[0]
+
+    def get_pf_fitness(self, deduplicate=True) -> torch.Tensor:
+        """Get the approximate pareto front fitness values of all the solutions evaluated so far.
+        Requires enabling `full_fit_history`."""
+        if not self.multi_obj:
+            raise ValueError("get_pf_fitness is only available for multi-objective optimization.")
+        if not self.full_fit_history:
+            warnings.warn("`get_pf_fitness` requires enabling `full_fit_history`.")
+        all_fitness = self.fitness_history
+        all_fitness = torch.cat(all_fitness, dim=0)
+        if deduplicate:
+            all_fitness = torch.unique(all_fitness, dim=0)
+        rank = non_dominate_rank(all_fitness)
+        pf_fit = all_fitness[rank == 0]
+        return pf_fit * self.opt_direction
+
+    def get_pf_solutions(self, deduplicate=True) -> torch.Tensor:
+        """Get the approximate pareto front solutions of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        if not self.multi_obj:
+            raise ValueError("get_pf_solutions is only available for multi-objective optimization.")
+        pf_solutions, _pf_fitness = self.get_pf(deduplicate)
+        return pf_solutions
+
+    def get_pf(self, deduplicate=True) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Get the approximate pareto front solutions and fitness values of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        if not self.multi_obj:
+            raise ValueError("get_pf is only available for multi-objective optimization.")
+        if not self.full_fit_history or not self.full_sol_history:
+            warnings.warn("`get_pf` requires enabling both `full_sol_history` and `full_sol_history`.")
+        all_solutions = self.get_solution_history()
+        all_solutions = torch.cat(all_solutions, dim=0)
+        all_fitness = self.fitness_history
+        all_fitness = torch.cat(all_fitness, dim=0)
+
+        if deduplicate:
+            _, unique_index, _, _ = unique(all_solutions)
+            all_solutions = all_solutions[unique_index]
+            all_fitness = all_fitness[unique_index]
+
+        rank = non_dominate_rank(all_fitness)
+        pf_fitness = all_fitness[rank == 0]
+        pf_solutions = all_solutions[rank == 0]
+        return pf_solutions, pf_fitness * self.opt_direction
 
     @torch.jit.ignore
     def get_fitness_history(self) -> List[torch.Tensor]:
@@ -151,22 +220,37 @@ class EvalMonitor(Monitor):
         return self.solution_history
 
     @torch.jit.ignore
-    def plot(self, problem_pf=None, **kwargs):
-        if not self.fitness_history:
+    def plot(self, problem_pf=None, source="eval", **kwargs):
+        """Plot the fitness history.
+        If the problem's Pareto front is provided, it will be plotted as well.
+
+        :param problem_pf: The Pareto front of the problem. Default to None.
+        :param source: The source of the data, either "eval" or "pop", default to "eval".
+            When "eval", the fitness from the problem evaluation side will be plotted, representing what the problem sees.
+            When "pop", the fitness from the population inside the algorithm will be plotted, representing what the algorithm sees.
+        :param kwargs: Additional arguments for the plot.
+        """
+        if not self.fitness_history and not self.auxiliary:
             warnings.warn("No fitness history recorded, return None")
             return
 
         if plot is None:
-            warnings.warn("No visualization tool available, return None")
+            warnings.warn('No visualization tool available, return None. Hint: pip install "evox[vis]"')
             return
 
-        if self.fitness_history[0].ndim == 1:
+        if source == "pop":
+            fitness_history = [aux["fit"] for aux in self.auxiliary]
+        elif source == "eval":
+            fitness_history = self.get_fitness_history()
+        else:
+            raise ValueError(f"Invalid source argument: {source}, expect 'eval' or 'pop'.")
+
+        fitness_history = [f.cpu().numpy() for f in fitness_history]
+
+        if fitness_history[0].ndim == 1:
             n_objs = 1
         else:
             n_objs = self.fitness_history[0].shape[1]
-
-        fitness_history = self.get_fitness_history()
-        fitness_history = [f.cpu().numpy() for f in fitness_history]
 
         if n_objs == 1:
             return plot.plot_obj_space_1d(fitness_history, **kwargs)

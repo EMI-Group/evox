@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from evox.algorithms import PSO
+from evox.core import compile
 from evox.problems.neuroevolution.brax import BraxProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -155,7 +156,7 @@ class TestBraxProblem(unittest.TestCase):
             solution_transform=adapter,
             device=self.device,
         )
-        compiled_step = torch.compile(workflow.step)
+        compiled_step = compile(workflow.step)
 
         for index in range(3):
             print(f"In generation {index}:")
