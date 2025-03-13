@@ -9,8 +9,6 @@ from evox.operators.sampling import uniform_sampling
 from evox.operators.selection import ref_vec_guided
 from evox.utils import clamp, nanmax, nanmin
 
-INT32_MAX = 2147483647
-
 
 class RVEA(Algorithm):
     """
@@ -56,8 +54,7 @@ class RVEA(Algorithm):
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
-        if device is None:
-            device = torch.get_default_device()
+        device = torch.get_default_device() if device is None else device
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
@@ -92,7 +89,7 @@ class RVEA(Algorithm):
         population = length * population + lb
 
         self.pop = Mutable(population)
-        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
         self.reference_vector = Mutable(v)
         self.init_v = v0
         self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
@@ -117,7 +114,7 @@ class RVEA(Algorithm):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
         mating_pool = torch.randint(0, num_valid, (self.pop_size,), device=self.pop.device)
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), INT32_MAX)
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), torch.inf)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
