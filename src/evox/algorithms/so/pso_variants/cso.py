@@ -75,45 +75,31 @@ class CSO(Algorithm):
         search for the optimal solution.
         """
         device = self.pop.device
-        # Get the shuffled indices, lambda1, lambda2 and lambda3
-        shuffle_idx = torch.randperm(self.pop_size, device=device)
-        lambda1 = torch.rand(self.pop_size // 2, self.dim, device=device)
-        lambda2 = torch.rand(self.pop_size // 2, self.dim, device=device)
-        lambda3 = torch.rand(self.pop_size // 2, self.dim, device=device)
-        # Get the population and velocity of the shuffled indices
-        pop = self.pop[shuffle_idx]
-        vec = self.velocity[shuffle_idx]
-        # Get the center of the population
-        center = self.pop.mean(dim=0, keepdim=True)
-        # Evaluate the fitness of the population
-        # Split the population into two parts
-        left_pop = pop[: self.pop_size // 2]
-        right_pop = pop[self.pop_size // 2 :]
-        left_vec = vec[: self.pop_size // 2]
-        right_vec = vec[self.pop_size // 2 :]
-        left_fit = self.fit[: self.pop_size // 2]
-        right_fit = self.fit[self.pop_size // 2 :]
-        # Calculate the mask
-        mask = (left_fit < right_fit)[:, None]
-        # Update the velocity of the left part of the population
-        left_velocity = torch.where(
-            mask,
-            left_vec,
-            lambda1 * right_vec + lambda2 * (right_pop - left_pop) + self.phi * lambda3 * (center - left_pop),
+        # Random pairing and compare their fitness
+        left, right = torch.randperm(self.pop_size, device=device).view(2, -1)
+        mask = self.fit[left] < self.fit[right]
+        # Assign the teachers and students
+        teachers = torch.where(mask, left, right)
+        students = torch.where(mask, right, left)
+        # Calculate the center of the population
+        center = torch.mean(self.pop, axis=0)
+
+        # CSO update rule
+        lambda1, lambda2, lambda3 = torch.rand((3, self.pop_size // 2, self.dim), device=device)
+
+        student_velocity = (
+            lambda1 * self.velocity[students] # Inertia
+            + lambda2 * (self.pop[teachers] - self.pop[students]) # Learn from teachers
+            + self.phi * lambda3 * (center - self.pop[students]) # converge to the center
         )
-        # Update the velocity of the right part of the population
-        right_velocity = torch.where(
-            mask,
-            right_vec,
-            lambda1 * left_vec + lambda2 * (left_pop - right_pop) + self.phi * lambda3 * (center - right_pop),
-        )
-        # Update the position of the left and right part of the population
-        left_pop = left_pop + left_velocity
-        right_pop = right_pop + right_velocity
+
         # Clamp the position and velocity to the bounds
-        pop = clamp(torch.cat([left_pop, right_pop]), self.lb, self.ub)
-        vec = clamp(torch.cat([left_velocity, right_velocity]), self.lb, self.ub)
-        # Update the population and velocity
-        self.pop = pop
-        self.velocity = vec
-        self.fit = self.evaluate(self.pop)
+        vel_range = self.ub - self.lb
+        student_velocity = clamp(student_velocity, -vel_range, vel_range)
+        candidates = clamp(self.pop[students] + student_velocity, self.lb, self.ub)
+        self.pop[students] = candidates
+
+        # Evaluate the fitness of the new solutions
+        candidates_fit = self.evaluate(candidates)
+        # Update the population with the new solutions
+        self.fit[students] = candidates_fit
