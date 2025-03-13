@@ -116,7 +116,7 @@ class RVEA(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
-        mating_pool = torch.randint(0, INT32_MAX, (self.pop_size,), device=self.pop.device) % num_valid
+        mating_pool = torch.randint(0, num_valid, (self.pop_size,), device=self.pop.device)
         sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), INT32_MAX)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
