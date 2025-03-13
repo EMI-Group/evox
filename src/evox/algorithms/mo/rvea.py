@@ -54,8 +54,7 @@ class RVEA(Algorithm):
         super().__init__()
         self.pop_size = pop_size
         self.n_objs = n_objs
-        if device is None:
-            device = torch.get_default_device()
+        device = torch.get_default_device() if device is None else device
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
@@ -90,7 +89,7 @@ class RVEA(Algorithm):
         population = length * population + lb
 
         self.pop = Mutable(population)
-        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
+        self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
         self.reference_vector = Mutable(v)
         self.init_v = v0
         self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
@@ -112,10 +111,12 @@ class RVEA(Algorithm):
         return self.reference_vector.clone()
 
     def _mating_pool(self):
-        no_nan_pop = ~torch.isnan(self.pop).all(dim=1)
-        max_idx = torch.sum(no_nan_pop, dtype=torch.int32)
-        mating_pool = torch.randint(0, max_idx, (self.pop_size,), device=self.device)
-        pop = self.pop[torch.nonzero(no_nan_pop)[mating_pool].squeeze()]
+        valid_mask = ~torch.isnan(self.pop).all(dim=1)
+        num_valid = torch.sum(valid_mask, dtype=torch.int32)
+        mating_pool = torch.randint(0, num_valid, (self.pop_size,), device=self.pop.device)
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), torch.inf)
+        sorted_indices = torch.argsort(sorted_indices, stable=True)
+        pop = self.pop[sorted_indices[mating_pool]]
         return pop
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
