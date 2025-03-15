@@ -106,8 +106,8 @@ class EvalMonitor(Monitor):
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
                 rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
-                self.topk_fitness.copy_(topk_fitness[rank])
-                self.topk_solutions.copy_(topk_solutions[rank])
+                self.topk_fitness = topk_fitness[rank]
+                self.topk_solutions = topk_solutions[rank]
         elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
