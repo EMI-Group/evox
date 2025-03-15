@@ -126,36 +126,30 @@ class EvalMonitor(Monitor):
             if self.full_fit_history:
                 self.fitness_history.append(self.latest_fitness.to(self.device))
 
-    @torch.jit.ignore
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
         return self.opt_direction * self.latest_fitness
 
-    @torch.jit.ignore
     def get_latest_solution(self) -> torch.Tensor:
         """Get the solution from the latest iteration."""
         return self.latest_solution
 
-    @torch.jit.ignore
     def get_topk_fitness(self) -> torch.Tensor:
         """Get the topk fitness values so far."""
         return self.opt_direction * self.topk_fitness
 
-    @torch.jit.ignore
     def get_topk_solutions(self) -> torch.Tensor:
         """Get the topk solutions so far."""
         if self.multi_obj:
             raise ValueError("Multi-objective optimization does not have a single best solution. Please use get_pf_solutions")
         return self.topk_solutions
 
-    @torch.jit.ignore
     def get_best_solution(self) -> torch.Tensor:
         """Get the best solution so far."""
         if self.multi_obj:
             raise ValueError("Multi-objective optimization does not have a single best solution. Please use get_pf_solutions")
         return self.topk_solutions[0]
 
-    @torch.jit.ignore
     def get_best_fitness(self) -> torch.Tensor:
         """Get the best fitness value so far."""
         if self.multi_obj:
@@ -209,17 +203,15 @@ class EvalMonitor(Monitor):
         pf_solutions = all_solutions[rank == 0]
         return pf_solutions, pf_fitness * self.opt_direction
 
-    @torch.jit.ignore
     def get_fitness_history(self) -> List[torch.Tensor]:
         """Get the full history of fitness values."""
         return [self.opt_direction * fit for fit in self.fitness_history]
 
-    @torch.jit.ignore
     def get_solution_history(self) -> List[torch.Tensor]:
         """Get the full history of solutions."""
         return self.solution_history
 
-    @torch.jit.ignore
+    @torch.compiler.disable
     def plot(self, problem_pf=None, source="eval", **kwargs):
         """Plot the fitness history.
         If the problem's Pareto front is provided, it will be plotted as well.
