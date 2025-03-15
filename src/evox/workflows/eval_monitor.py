@@ -2,6 +2,7 @@ import warnings
 from typing import Dict, List, Tuple
 
 import torch
+from torch._C._functorch import get_unwrapped, is_batchedtensor
 
 from evox.core import Monitor, Mutable
 from evox.operators.selection import non_dominate_rank
@@ -105,8 +106,8 @@ class EvalMonitor(Monitor):
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
                 rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
-                self.topk_fitness.copy_(topk_fitness[rank])
-                self.topk_solutions.copy_(topk_solutions[rank])
+                self.topk_fitness = topk_fitness[rank]
+                self.topk_solutions = topk_solutions[rank]
         elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
@@ -122,9 +123,15 @@ class EvalMonitor(Monitor):
     def record_history(self):
         if self.full_fit_history or self.full_sol_history:
             if self.full_sol_history:
-                self.solution_history.append(self.latest_solution.to(self.device))
+                latest_solution = self.latest_solution.to(self.device)
+                if is_batchedtensor(self.latest_solution):
+                    latest_solution = get_unwrapped(latest_solution)
+                self.solution_history.append(latest_solution)
             if self.full_fit_history:
-                self.fitness_history.append(self.latest_fitness.to(self.device))
+                latest_fitness = self.latest_fitness.to(self.device)
+                if is_batchedtensor(self.latest_fitness):
+                    latest_fitness = get_unwrapped(latest_fitness)
+                self.fitness_history.append(latest_fitness)
 
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
