@@ -59,6 +59,11 @@ docs = [
   "polib",
 ]
 
+default = [
+  "plotly >= 5.0.0",
+  "pandas >= 2.0.0",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
