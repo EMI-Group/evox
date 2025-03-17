@@ -33,9 +33,10 @@ __all__ = [
     "NSGA2",
     "NSGA3",
     "HypE",
+    "RVEAa"
 ]
 
-from .mo import MOEAD, NSGA2, NSGA3, RVEA, HypE
+from .mo import MOEAD, NSGA2, NSGA3, RVEA, HypE, RVEAa
 from .so import (
     ARS,
     ASEBO,

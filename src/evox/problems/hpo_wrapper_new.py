@@ -1,29 +1,74 @@
 import copy
 from abc import ABC
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import torch
 from torch import nn
 
-from evox.core import Monitor, Mutable, Problem, Workflow, compile, use_state, vmap
-from evox.utils import register_vmap_op
+from ..core import Monitor, Mutable, Problem, Workflow, compile, use_state, vmap
+from ..utils import register_vmap_op
 
 
-def _vmap_mean_fit_aggregation(fit: torch.Tensor) -> torch.Tensor:
-    return torch.mean(fit, dim=0)
+def _igr_fake(
+    num_repeats: int,
+    fitness: torch.Tensor,
+) -> torch.Tensor:
+    return fitness.new_empty(fitness.size().size())
 
-@register_vmap_op(fake_fn=lambda f: f.new_empty(f.size()), vmap_fn=_vmap_mean_fit_aggregation, fake_vmap_fn=lambda f: (f.new_empty(1, *f.size()[1:]), 0))
-def _mean_fit_aggregation(fit: torch.Tensor) -> torch.Tensor:
-    return fit
 
+def _igr_fake_vmap(
+    fitness: torch.Tensor,
+) -> Tuple[torch.Tensor, int]:
+    return fitness.new_empty(fitness.size()), 0
+
+def _vmap_fitness(fitness: torch.Tensor):
+        """
+        Unwrap the `num_repeats` batch dimension from the given fitness tensor.
+
+        :param fitness: The fitness tensor to be unwrapped.
+        :return: The unwrapped fitness tensor.
+        """
+        return fitness
+
+@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_fitness, fake_vmap_fn=_igr_fake_vmap)
+def _fitness_unwrap_repeats(num_repeats: int, fitness: torch.Tensor):
+        return fitness
+
+def _vmap_fitness_unwrap(self, fitness: torch.Tensor):
+        fitness, pop_size = _fitness_unwrap_repeats(fitness)
+        original_best = self.best_fitness[0]
+        if original_best.size(0) != pop_size:
+            self.best_fitness = original_best[:pop_size]
+        return fitness
+
+@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_fitness_unwrap, fake_vmap_fn=_igr_fake_vmap)
+def _fitness_unwrap(fitness: torch.Tensor):
+        return fitness
+
+def _fitness_unwrap(self, fitness: torch.Tensor):
+        fitness, pop_size = _fitness_unwrap_repeats(fitness)
+        original_best = self.best_fitness[0]
+        if original_best.size(0) != pop_size:
+            self.best_fitness = original_best[:pop_size]
+        return fitness
+
+
+def _fitness_wrap(self, best_fitness: torch.Tensor):
+    original_best = best_fitness[0]
+    original_best = original_best.repeat(self.num_repeats)
+    return original_best
 
 class HPOMonitor(Monitor, ABC):
     """The base class for hyper parameter optimization (HPO) monitors used in `HPOProblem.workflow.monitor`."""
 
-    def __init__(self, num_repeats: int = 1, fit_aggregation: Optional[Callable[[torch.Tensor, int], torch.Tensor]] = _mean_fit_aggregation):
+    def __init__(self, num_repeats: int = 1):
+        """
+        Initialize the HPO monitor.
+
+        :param num_repeats: The number of workflow repeats to be executed in the optimization process. Defaults to 1.
+        """
         super().__init__()
         self.num_repeats = num_repeats
-        self.fit_aggregation = fit_aggregation
 
     def tell_fitness(self) -> torch.Tensor:
         """Get the best fitness found so far in the optimization process that this monitor is monitoring.
@@ -36,19 +81,25 @@ class HPOMonitor(Monitor, ABC):
 class HPOFitnessMonitor(HPOMonitor):
     """The monitor for hyper parameter optimization (HPO) that records the best fitness found so far in the optimization process."""
 
-    def __init__(self, num_repeats: int = 1,
-        fit_aggregation: Optional[Callable[[torch.Tensor, int], torch.Tensor]] = _mean_fit_aggregation,
-        multi_obj_metric: Optional[Callable] = None):
+    def __init__(
+        self,
+        *,
+        num_repeats: int = 1,
+        fit_aggregation: Optional[Callable[[torch.Tensor, int], torch.Tensor]] = torch.mean,
+        multi_obj_metric: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+    ):
         """
         Initialize the HPO fitness monitor.
 
-        :param multi_obj_metric: The metric function to use for multi-objective optimization, unused in single-objective optimization.
-            Currently we only support "IGD" or "HV" for multi-objective optimization. Defaults to `None`.
+        :param num_repeats: The number of workflow repeats to be executed in the optimization process. Defaults to 1.
+        :param fit_aggregation: The aggregation function to use for fitness aggregation when `num_repeats` > 1. Defaults to `torch.mean`.
+        :param multi_obj_metric: The metric function to use for multi-objective optimization, unused in single-objective optimization. Defaults to `None`.
         """
-        super().__init__(num_repeats, fit_aggregation)
+        super().__init__(num_repeats=num_repeats)
         assert multi_obj_metric is None or callable(multi_obj_metric), (
             f"Expect `multi_obj_metric` to be `None` or callable, got {multi_obj_metric}"
         )
+        self.fit_aggregation = fit_aggregation
         self.multi_obj_metric = multi_obj_metric
         self.best_fitness = Mutable(torch.tensor(torch.inf))
 
@@ -59,15 +110,20 @@ class HPOFitnessMonitor(HPOMonitor):
 
         :raises AssertionError: If the dimensionality of the fitness tensor is not 1 or 2.
         """
+        # fitness = _fitness_unwrap(fitness)
         has_repeat = 1 if self.num_repeats > 1 else 0
         assert 1 <= fitness.ndim - has_repeat <= 2
-        fitness = self.fit_aggregation(fitness) if self.num_repeats > 1 else fitness
         if fitness.ndim - has_repeat == 1:
             # single-objective
-            self.best_fitness = torch.min(torch.min(fitness), self.best_fitness)
+            if self.num_repeats > 1:
+                fitness = self.fit_aggregation(fitness, dim=0)
+            best_fitness = torch.min(torch.min(fitness), self.best_fitness)
         else:
             # multi-objective
-            self.best_fitness = torch.min(self.multi_obj_metric(fitness), self.best_fitness)
+            if self.num_repeats > 1:
+                fitness = self.fit_aggregation(fitness, dim=0)
+            best_fitness = torch.min(self.multi_obj_metric(fitness), self.best_fitness)
+        self.best_fitness = _fitness_wrap(best_fitness)
 
     def tell_fitness(self) -> torch.Tensor:
         """Get the best fitness found so far in the optimization process that this monitor is monitoring.
@@ -118,6 +174,7 @@ class HPOProblemWrapper(Problem):
         assert num_instances > 0, f"`num_instances` should be greater than 0, got {num_instances}"
         self.iterations = iterations
         self.num_instances = num_instances
+        self.num_repeats = num_repeats
         self.copy_init_state = copy_init_state
         # check monitor
         monitor = workflow.monitor
@@ -127,11 +184,8 @@ class HPOProblemWrapper(Problem):
         state_step = use_state(workflow.step)
 
         # JIT workflow step
-        vmap_state_step = vmap(vmap(state_step, randomness="same"), randomness="different") if num_repeats > 1 else vmap(state_step, randomness="different")
+        vmap_state_step = vmap(vmap(state_step, randomness="same"), randomness="different")
         self._init_params, self._init_buffers = torch.func.stack_module_state([workflow] * self.num_instances)
-        if num_repeats > 1:
-            self._init_params = {k: torch.stack([v] * num_repeats) for k, v in self._init_params.items()}
-            self._init_buffers = {k: torch.stack([v] * num_repeats) for k, v in self._init_buffers.items()}
         self._workflow_step_ = compile(vmap_state_step)
         if type(workflow).init_step == Workflow.init_step:
             # if no init step
@@ -140,7 +194,7 @@ class HPOProblemWrapper(Problem):
         else:
             # otherwise, JIT workflow init step
             state_init_step = use_state(workflow.init_step)
-            vmap_state_init_step = vmap(vmap(state_init_step, randomness="same"), randomness="different")  if num_repeats > 1 else vmap(state_init_step, randomness="different")
+            vmap_state_init_step = vmap(vmap(state_init_step, randomness="same"), randomness="different")
             self._workflow_init_step_ = compile(vmap_state_init_step)
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
@@ -169,13 +223,8 @@ class HPOProblemWrapper(Problem):
             state = self._workflow_step_(state)
         # get final fitness
         monitor_state = get_sub_state(state, "monitor")
-        fit: torch.Tensor
-        if self.hpo_monitor.num_repeats > 1:
-            _, fit = vmap(vmap(use_state(self.hpo_monitor.tell_fitness)))(monitor_state)
-            return fit.squeeze(0)
-        else:
-            _, fit = vmap(use_state(self.hpo_monitor.tell_fitness))(monitor_state)
-            return fit
+        _monitor_state, fit = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
+        return fit
 
     def get_init_params(self):
         """Return the initial hyper-parameters dictionary of the underlying workflow."""
