@@ -56,7 +56,7 @@ class Problem(ModuleBase, ABC):
         :return: The fitness.
 
         ## Notice
-        If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
+        If this function contains external evaluations that cannot be compiled by `torch.compile`, please wrap it with `torch.compiler.disable` or use `evox.utils.register_vmap_op` to register external functions as operators.
         """
         return torch.empty(0)
 

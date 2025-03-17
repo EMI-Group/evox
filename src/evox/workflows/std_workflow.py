@@ -42,7 +42,8 @@ class StdWorkflow(Workflow):
     ```
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         algorithm: Algorithm,
         problem: Problem,
         monitor: Monitor | None = None,
@@ -55,11 +56,13 @@ class StdWorkflow(Workflow):
 
         :param algorithm: The algorithm to be used in the workflow.
         :param problem: The problem to be used in the workflow.
-        :param monitors: The monitors to be used in the workflow. Defaults to None. Notice: usually, monitors can only be used when using JIT script mode.
+        :param monitors: The monitors to be used in the workflow. Defaults to None.
         :param opt_direction: The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
-        :param solution_transform: The solution transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
-        :param fitness_transforms: The fitness transformation function. MUST be JIT-compatible module/function for JIT trace mode or a plain module for JIT script mode (default mode). Defaults to None.
+        :param solution_transform: The solution transformation function. MUST be compile-compatible module/function. Defaults to None.
+        :param fitness_transforms: The fitness transformation function. MUST be compile-compatible module/function. Defaults to None.
         :param device: The device of the workflow. Defaults to None.
+
+        :note: The `algorithm`, `problem`, `solution_transform`, and `fitness_transform` will be IN-PLACE moved to the device specified by `device`.
         """
         super().__init__()
         assert opt_direction in [
@@ -84,16 +87,27 @@ class StdWorkflow(Workflow):
         if isinstance(fitness_transform, torch.nn.Module):
             fitness_transform.to(device=device)
 
-        self.algorithm = algorithm
-        self._has_init_ = type(algorithm).init_step != Algorithm.init_step
-
         if monitor is None:
             monitor = Monitor()
         else:
             monitor.set_config(opt_direction=self.opt_direction)
+        algorithm.to(device=device)
+        monitor.to(device=device)
+        problem.to(device=device)
 
         # set algorithm evaluate
-        self.algorithm.evaluate = self._evaluate
+        self._has_init_ = type(algorithm).init_step != Algorithm.init_step
+
+        class _SubAlgorithm(type(algorithm)):
+            def __init__(self_algo):
+                super(type(algorithm), self_algo).__init__()
+                self_algo.__dict__.update(algorithm.__dict__)
+
+            def evaluate(self_algo, pop: torch.Tensor) -> torch.Tensor:
+                return self._evaluate(pop)
+
+        # set submodules
+        self.algorithm = _SubAlgorithm()
         self.monitor = monitor
         self.problem = problem
         self.solution_transform = solution_transform

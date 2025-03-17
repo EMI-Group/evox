@@ -163,10 +163,10 @@ For a comprehensive list and detailed descriptions of all algorithms, please che
 
 ## Installation Guide
 
-Install `evox` effortlessly via `pip`:
+Install `evox` with default feature sets via `pip`:
 
 ```bash
-pip install evox
+pip install "evox[default]"
 ```
 
 Install the latest version from the source code for testing or development:
