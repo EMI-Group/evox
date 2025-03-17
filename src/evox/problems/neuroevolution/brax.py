@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
 from brax.io import html, image
+from torch._C._functorch import get_unwrapped, is_batchedtensor
 
 from ...core import Problem, _vmap_fix, jit_class, vmap_impl
 from .utils import get_vmap_model_state_forward
@@ -18,6 +19,11 @@ from .utils import get_vmap_model_state_forward
 # to_dlpack is not necessary for torch.Tensor and jax.Array
 # because they have a __dlpack__ method, which is called by their respective from_dlpack methods.
 def to_jax_array(x: torch.Tensor) -> jax.Array:
+    # When the torch has GPU support but the jax does not, we need to move the tensor to CPU first.
+    if is_batchedtensor(x):
+        x = get_unwrapped(x)
+    if x.device.type != "cpu" and jax.default_backend() == "cpu":
+        return jax.dlpack.from_dlpack(x.detach().cpu())
     return jax.dlpack.from_dlpack(x.detach())
 
 

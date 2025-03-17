@@ -1,3 +1,4 @@
-__all__ = ["NonDominatedSort", "crowding_distance", "non_dominate_rank", "non_dominated_sort_script"]
+__all__ = ["crossover", "mutation", "sampling", "selection", "crowding_distance", "non_dominate_rank"]
 
-from .selection import NonDominatedSort, crowding_distance, non_dominate_rank, non_dominated_sort_script
+from . import crossover, mutation, sampling, selection
+from .selection import crowding_distance, non_dominate_rank

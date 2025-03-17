@@ -2,6 +2,7 @@ import warnings
 from typing import Dict, List
 
 import torch
+from torch._C._functorch import get_unwrapped, is_batchedtensor
 
 from ..core import Monitor, Mutable
 
@@ -94,8 +95,8 @@ class EvalMonitor(Monitor):
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
                 rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
-                self.topk_fitness.copy_(topk_fitness[rank])
-                self.topk_solutions.copy_(topk_solutions[rank])
+                self.topk_fitness = topk_fitness[rank]
+                self.topk_solutions = topk_solutions[rank]
         elif fitness.ndim == 2:
             # multi-objective
             self.multi_obj = True
@@ -104,55 +105,109 @@ class EvalMonitor(Monitor):
 
         if self.full_fit_history or self.full_sol_history:
             if self.full_sol_history:
-                self.solution_history.append(self.latest_solution.to(self.device))
+                latest_solution = self.latest_solution.to(self.device)
+                if is_batchedtensor(self.latest_solution):
+                    latest_solution = get_unwrapped(latest_solution)
+                self.solution_history.append(latest_solution)
             if self.full_fit_history:
-                self.fitness_history.append(self.latest_fitness.to(self.device))
+                latest_fitness = self.latest_fitness.to(self.device)
+                if is_batchedtensor(self.latest_fitness):
+                    latest_fitness = get_unwrapped(latest_fitness)
+                self.fitness_history.append(latest_fitness)
 
-    @torch.jit.ignore
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
         return self.opt_direction * self.latest_fitness
 
-    @torch.jit.ignore
     def get_latest_solution(self) -> torch.Tensor:
         """Get the solution from the latest iteration."""
         return self.latest_solution
 
-    @torch.jit.ignore
     def get_topk_fitness(self) -> torch.Tensor:
         """Get the topk fitness values so far."""
         return self.opt_direction * self.topk_fitness
 
-    @torch.jit.ignore
     def get_topk_solutions(self) -> torch.Tensor:
         """Get the topk solutions so far."""
         return self.topk_solutions
 
-    @torch.jit.ignore
     def get_best_solution(self) -> torch.Tensor:
         """Get the best solution so far."""
         return self.topk_solutions[0]
 
-    @torch.jit.ignore
     def get_best_fitness(self) -> torch.Tensor:
         """Get the best fitness value so far."""
         if self.multi_obj:
             raise ValueError("Multi-objective optimization does not have a single best fitness.")
         return self.opt_direction * self.topk_fitness[0]
 
-    @torch.jit.ignore
+    def get_pf_fitness(self, deduplicate=True) -> torch.Tensor:
+        """Get the approximate pareto front fitness values of all the solutions evaluated so far.
+        Requires enabling `full_fit_history`."""
+        if not self.multi_obj:
+            raise ValueError("get_pf_fitness is only available for multi-objective optimization.")
+        if not self.full_fit_history:
+            warnings.warn("`get_pf_fitness` requires enabling `full_fit_history`.")
+        all_fitness = self.fitness_history
+        all_fitness = torch.cat(all_fitness, dim=0)
+        if deduplicate:
+            all_fitness = torch.unique(all_fitness, dim=0)
+        rank = non_dominate_rank(all_fitness)
+        pf_fit = all_fitness[rank == 0]
+        return pf_fit * self.opt_direction
+
+    def get_pf_solutions(self, deduplicate=True) -> torch.Tensor:
+        """Get the approximate pareto front solutions of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        if not self.multi_obj:
+            raise ValueError("get_pf_solutions is only available for multi-objective optimization.")
+        pf_solutions, _pf_fitness = self.get_pf(deduplicate)
+        return pf_solutions
+
+    def get_pf(self, deduplicate=True) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Get the approximate pareto front solutions and fitness values of all the solutions evaluated so far.
+        Requires enabling both `full_sol_history` and `full_sol_history`.
+        If `deduplicate` is set to True, the duplicated solutions will be removed."""
+        if not self.multi_obj:
+            raise ValueError("get_pf is only available for multi-objective optimization.")
+        if not self.full_fit_history or not self.full_sol_history:
+            warnings.warn("`get_pf` requires enabling both `full_sol_history` and `full_sol_history`.")
+        all_solutions = self.get_solution_history()
+        all_solutions = torch.cat(all_solutions, dim=0)
+        all_fitness = self.fitness_history
+        all_fitness = torch.cat(all_fitness, dim=0)
+
+        if deduplicate:
+            _, unique_index, _, _ = unique(all_solutions)
+            all_solutions = all_solutions[unique_index]
+            all_fitness = all_fitness[unique_index]
+
+        rank = non_dominate_rank(all_fitness)
+        pf_fitness = all_fitness[rank == 0]
+        pf_solutions = all_solutions[rank == 0]
+        return pf_solutions, pf_fitness * self.opt_direction
+
     def get_fitness_history(self) -> List[torch.Tensor]:
         """Get the full history of fitness values."""
         return [self.opt_direction * fit for fit in self.fitness_history]
 
-    @torch.jit.ignore
     def get_solution_history(self) -> List[torch.Tensor]:
         """Get the full history of solutions."""
         return self.solution_history
 
-    @torch.jit.ignore
-    def plot(self, problem_pf=None, **kwargs):
-        if not self.fitness_history:
+    @torch.compiler.disable
+    def plot(self, problem_pf=None, source="eval", **kwargs):
+        """Plot the fitness history.
+        If the problem's Pareto front is provided, it will be plotted as well.
+
+        :param problem_pf: The Pareto front of the problem. Default to None.
+        :param source: The source of the data, either "eval" or "pop", default to "eval".
+            When "eval", the fitness from the problem evaluation side will be plotted, representing what the problem sees.
+            When "pop", the fitness from the population inside the algorithm will be plotted, representing what the algorithm sees.
+        :param kwargs: Additional arguments for the plot.
+        """
+        if not self.fitness_history and not self.auxiliary:
             warnings.warn("No fitness history recorded, return None")
             return
 

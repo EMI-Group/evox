@@ -133,10 +133,10 @@ For a comprehensive list and detailed descriptions of all algorithms, please che
 
 ## Quick Installation
 
-Install `evox` effortlessly via `pip`:
+Install `evox` with default feature sets via `pip`:
 
 ```bash
-pip install evox
+pip install "evox[default]"
 ```
 
 **Note**: Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
