@@ -34,8 +34,8 @@ class BasicAlgorithm(Algorithm):
     def step(self):
         pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-        self.pop.copy_(pop)
-        self.fit.copy_(self.evaluate(pop))
+        self.pop = pop
+        self.fit = self.evaluate(pop)
 
 
 class TestStdWorkflow(unittest.TestCase):
@@ -43,7 +43,8 @@ class TestStdWorkflow(unittest.TestCase):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob = BasicProblem()
-        self.workflow = StdWorkflow(self.algo, self.prob)
+        self.monitor = EvalMonitor()
+        self.workflow = StdWorkflow(self.algo, self.prob, monitor=self.monitor)
 
     def test_basic_workflow(self):
         compiled_step = torch.compile(self.workflow.step)
@@ -58,6 +59,8 @@ class TestStdWorkflow(unittest.TestCase):
         self.assertIsNotNone(state)
         compiled_state_step = torch.compile(vmap_state_step)
         self.assertIsNotNone(compiled_state_step(state))
+        # Test if the monitor's history is a normal tensor (not batched)
+        self.assertIsNotNone(self.monitor.fitness_history[0] * 1)
 
     def test_classic_workflow(self):
         class solution_transform(nn.Module):

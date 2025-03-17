@@ -10,13 +10,13 @@ EvoX is available at PyPI and can be installed via:
 pip install torch
 
 # then install EvoX
-pip install evox
+pip install "evox[default]"
 ```
 
-You can also assign extra options during the installation, currently available extras are `vis`, `neuroevolution`, `test`, `docs`. For example, to install EvoX with all features, run the following command:
+You can also assign extra options during the installation, currently available extras are `vis`, `neuroevolution`, `test`, `docs`, `default`. For example, to install EvoX with all features, run the following command:
 
 ```bash
-pip install evox[vis,neuroevolution]
+pip install "evox[vis,neuroevolution]"
 ```
 
 ## Install PyTorch with accelerator support

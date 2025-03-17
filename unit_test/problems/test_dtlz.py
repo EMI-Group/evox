@@ -5,7 +5,7 @@ import torch
 from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 
 
-class TestBraxProblem(TestCase):
+class TestDTLZ(TestCase):
     def setUp(self):
         d = 12
         m = 3
@@ -21,8 +21,15 @@ class TestBraxProblem(TestCase):
 
     def test_dtlz(self):
         pop = torch.rand(2, 12)
+        original_pop = pop.clone()
         for pro in self.pro:
             fit = pro.evaluate(pop)
+            assert (pop - original_pop).sum() == 0
             assert fit.size() == (2, 3)
             pf = pro.pf()
             assert pf.size(1) == 3
+
+if __name__ == "__main__":
+    t = TestDTLZ()
+    t.setUp()
+    t.test_dtlz()

@@ -24,6 +24,10 @@ class Algorithm(ModuleBase, ABC):
         """Initialize the algorithm and execute the algorithm procedure for the first step."""
         self.step()
 
+    def final_step(self) -> None:
+        """Execute the algorithm procedure for the final step."""
+        self.step()
+
     def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
         """Evaluate the fitness at given points.
         This function is a proxy function of `Problem.evaluate` set by workflow.
@@ -56,13 +60,15 @@ class Problem(ModuleBase, ABC):
         :return: The fitness.
 
         ## Notice
-        If this function contains external evaluations that cannot be JIT by `torch.jit`, please wrap it with `torch.jit.ignore`.
+        If this function contains external evaluations that cannot be compiled by `torch.compile`, please wrap it with `torch.compiler.disable` or use `evox.utils.register_vmap_op` to register external functions as operators.
         """
         return torch.empty(0)
 
 
 class Workflow(ModuleBase, ABC):
     """The base class for workflow."""
+    algorithm: Algorithm
+    problem: Problem
 
     def init_step(self) -> None:
         """Perform the first optimization step of the workflow."""
@@ -71,6 +77,10 @@ class Workflow(ModuleBase, ABC):
     def step(self) -> None:
         """The basic function to step a workflow."""
         pass
+
+    def final_step(self) -> None:
+        """Perform the final optimization step of the workflow."""
+        return self.step()
 
 
 class Monitor(ModuleBase, ABC):

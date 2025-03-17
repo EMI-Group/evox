@@ -2,6 +2,7 @@ from typing import Tuple
 
 import torch
 
+from evox.core import compile
 from evox.utils import lexsort, register_vmap_op
 
 
@@ -61,7 +62,7 @@ def update_dc_and_rank(
     return rank, dominate_count
 
 
-_compiled_update_dc_and_rank = torch.compile(update_dc_and_rank, fullgraph=True)
+_compiled_update_dc_and_rank = compile(update_dc_and_rank, fullgraph=True)
 
 
 def _igr_fake(
@@ -90,7 +91,7 @@ def _vmap_iterative_get_ranks(
 ) -> Tuple[torch.Tensor, int]:
     current_rank = 0
     while pareto_front.any():
-        rank, dominate_count = _compiled_update_dc_and_rank(
+        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
             dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
         )
         current_rank += 1
@@ -108,7 +109,7 @@ def _iterative_get_ranks(
 ) -> torch.Tensor:
     current_rank = 0
     while pareto_front.any():
-        rank, dominate_count = _compiled_update_dc_and_rank(
+        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
             dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
         )
         current_rank += 1
@@ -163,10 +164,9 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
 
     inverted_mask = ~mask
 
-    inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(costs.dtype)
+    inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(dtype=costs.dtype, device=costs.device)
 
     rank = lexsort([costs, inverted_mask], dim=0)
-    # TODO: num_valid_elem preventing vmap
     costs = torch.gather(costs, dim=0, index=rank)
     distance_range = costs[num_valid_elem - 1] - costs[0]
     distance = torch.empty(costs.size(), device=costs.device)
