@@ -46,7 +46,7 @@
 
 
 ## 🔥 News
-- [2025-03-01] Released **EvoX 1.1.0** - now switched to `torch.compile` (TorchDynamo) [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=147)]
+- [2025-03-18] Released **EvoX 1.1.1** - a minor release with bug fixes. [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] Released **EvoRL**: A GPU-accelerated framework for **Evolutionary Reinforcement Learning**, powered by **JAX** ! [[Paper](https://arxiv.org/abs/2501.15129)] [[Code](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] Released **EvoGP**: A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] Released **EvoX 1.0.0** - now fully compatible with **PyTorch**, with full `torch.compile` support! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
