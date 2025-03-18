@@ -145,8 +145,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     When using `torch.nn.Module`, the stateful version of the default `forward` method will be created.
     The stateful function will have a signature of `fn(params_and_buffers, *args, **kwargs) -> params_and_buffers | Tuple[params_and_buffers, <original_returns>]]`.
 
-    ## Examples
-
+    ## Example
     ```python
     from evox import use_state, vmap
     workflow = ... # define your workflow

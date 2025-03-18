@@ -1,11 +1,10 @@
-import copy
 from abc import ABC
 from typing import Any, Callable, Dict, Optional
 
 import torch
 from torch import nn
 
-from evox.core import Monitor, Mutable, Problem, Workflow, use_state, vmap
+from evox.core import Monitor, Mutable, Problem, Workflow, compile, use_state, vmap
 
 
 class HPOMonitor(Monitor, ABC):
@@ -77,14 +76,15 @@ def get_sub_state(state: Dict[str, Any], name: str):
 class HPOProblemWrapper(Problem):
     """The problem for hyper parameter optimization (HPO).
 
-    ## Usage
-    ```
+    ## Example
+    ```python
     algo = SomeAlgorithm(...)
     prob = SomeProblem(...)
     monitor = HPOFitnessMonitor()
     workflow = StdWorkflow(algo, prob, monitor=monitor)
     hpo_prob = HPOProblemWrapper(iterations=..., num_instances=...)
-    params = HPOProblemWrapper.extract_parameters(hpo_prob.init_state)
+    params = hpo_prob.get_init_params()
+    # alter `params` ...
     hpo_prob.evaluate(params) # execute the evaluation
     # ...
     ```
@@ -94,8 +94,8 @@ class HPOProblemWrapper(Problem):
         """Initialize the HPO problem wrapper.
 
         :param iterations: The number of iterations to be executed in the optimization process.
-        :param num_instances: The number of instances to be executed in parallel in the optimization process.
-        :param workflow: The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
+        :param num_instances: The number of instances to be executed in parallel in the optimization process, i.e., the population size of the outer algorithm.
+        :param workflow: The workflow to be used in the optimization process.
         :param copy_init_state: Whether to copy the initial state of the workflow for each evaluation. Defaults to `True`. If your workflow contains operations that IN-PLACE modify the tensor(s) in initial state, this should be set to `True`. Otherwise, you can set it to `False` to save memory.
         """
         super().__init__()
@@ -107,13 +107,12 @@ class HPOProblemWrapper(Problem):
         # check monitor
         monitor = workflow.monitor
         assert isinstance(monitor, HPOMonitor), f"Expect workflow monitor to be `HPOMonitor`, got {type(monitor)}"
-        self.hpo_monitor = monitor
         state_step = use_state(workflow.step)
 
-        # JIT workflow step
-        vmap_state_step = vmap(state_step, randomness="same")
+        # compile workflow step
+        vmap_state_step = torch.vmap(state_step, randomness="same")
         self._init_params, self._init_buffers = torch.func.stack_module_state([workflow] * self.num_instances)
-        self._workflow_step_ = torch.compile(vmap_state_step)
+        self._workflow_step_ = compile(vmap_state_step)
         if type(workflow).init_step == Workflow.init_step:
             # if no init step
             print("No init step")
@@ -121,8 +120,10 @@ class HPOProblemWrapper(Problem):
         else:
             # otherwise, JIT workflow init step
             state_init_step = use_state(workflow.init_step)
-            vmap_state_init_step = vmap(state_init_step, randomness="same")
-            self._workflow_init_step_ = torch.compile(vmap_state_init_step)
+            vmap_state_init_step = torch.vmap(state_init_step, randomness="same")
+            self._workflow_init_step_ = compile(vmap_state_init_step)
+
+        self._stateful_tell_fitness = use_state(monitor.tell_fitness)
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
         """
@@ -133,14 +134,14 @@ class HPOProblemWrapper(Problem):
         :return: The final fitness of the hyper parameters.
         """
         # hyper parameters check
-        for k, _v in hyper_parameters.items():
+        for k, _ in hyper_parameters.items():
             assert k in self._init_params, (
                 f"`{k}` should be a hyperparameter of the workflow, available keys are {self.get_params_keys()}"
             )
 
-        state = self._init_params | self._init_buffers
+        state = {**self._init_params, **self._init_buffers}
         if self.copy_init_state:
-            state = copy.deepcopy(state)
+            state = {k: v.clone() for k, v in state.items()}
 
         # Override with the given hyper parameters
         state.update(hyper_parameters)
@@ -150,7 +151,7 @@ class HPOProblemWrapper(Problem):
             state = self._workflow_step_(state)
         # get final fitness
         monitor_state = get_sub_state(state, "monitor")
-        _monitor_state, fit = vmap(use_state(self.hpo_monitor.tell_fitness), randomness="same")(monitor_state)
+        _, fit = vmap(self._stateful_tell_fitness)(monitor_state)
         return fit
 
     def get_init_params(self):
