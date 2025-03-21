@@ -226,7 +226,7 @@ from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
-prob = DTLZ2(m=3)
+prob = DTLZ2(m=2)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,

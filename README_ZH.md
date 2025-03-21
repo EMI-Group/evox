@@ -199,8 +199,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
-```
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 
 <details>
   <summary>样例输出</summary>
@@ -223,11 +222,11 @@ from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
-prob = DTLZ2(m=3)
+prob = DTLZ2(m=2)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -237,7 +236,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
@@ -282,7 +281,7 @@ pop_center = adapter.to_vector(model_params)
 lb = torch.full_like(pop_center, -5)
 ub = torch.full_like(pop_center, 5)
 # 初始化 PSO 算法，你也可以使用其他算法
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
 # 初始化 Brax 问题
 problem = BraxProblem(
     policy=model,
@@ -290,7 +289,6 @@ problem = BraxProblem(
     max_episode_length=1000,
     num_episodes=3,
     pop_size=POP_SIZE,
-    device=device,
 )
 # 设置监视器，可记录最佳 3 个适应度值
 monitor = EvalMonitor(topk=3, device=device)
@@ -301,11 +299,12 @@ workflow = StdWorkflow(
     monitor=monitor,
     opt_direction="max",
     solution_transform=adapter,
-    device=device,
 )
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
