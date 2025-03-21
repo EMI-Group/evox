@@ -117,21 +117,22 @@ class EvalMonitor(Monitor):
         else:
             raise ValueError(f"Invalid fitness shape: {fitness.shape}")
 
-        self.record_history()
+        if self.full_fit_history or self.full_sol_history:
+            self.record_history()
 
     @torch.compiler.disable
+    # TODO
     def record_history(self):
-        if self.full_fit_history or self.full_sol_history:
-            if self.full_sol_history:
-                latest_solution = self.latest_solution.to(self.device)
-                if is_batchedtensor(self.latest_solution):
-                    latest_solution = get_unwrapped(latest_solution)
-                self.solution_history.append(latest_solution)
-            if self.full_fit_history:
-                latest_fitness = self.latest_fitness.to(self.device)
-                if is_batchedtensor(self.latest_fitness):
-                    latest_fitness = get_unwrapped(latest_fitness)
-                self.fitness_history.append(latest_fitness)
+        if self.full_sol_history:
+            latest_solution = self.latest_solution.to(self.device)
+            if is_batchedtensor(self.latest_solution):
+                latest_solution = get_unwrapped(latest_solution)
+            self.solution_history.append(latest_solution)
+        if self.full_fit_history:
+            latest_fitness = self.latest_fitness.to(self.device)
+            if is_batchedtensor(self.latest_fitness):
+                latest_fitness = get_unwrapped(latest_fitness)
+            self.fitness_history.append(latest_fitness)
 
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
