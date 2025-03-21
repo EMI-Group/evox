@@ -5,7 +5,7 @@ import torch
 from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 
 
-class TestBraxProblem(TestCase):
+class TestDTLZ(TestCase):
     def setUp(self):
         d = 12
         m = 3
