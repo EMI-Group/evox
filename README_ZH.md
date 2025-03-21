@@ -199,7 +199,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
@@ -237,7 +237,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>

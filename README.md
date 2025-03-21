@@ -202,7 +202,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
@@ -240,7 +240,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
