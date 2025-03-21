@@ -230,7 +230,7 @@ prob = DTLZ2(m=3)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -307,6 +307,8 @@ workflow = StdWorkflow(
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
