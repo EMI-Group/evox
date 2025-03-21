@@ -202,7 +202,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
@@ -230,7 +230,7 @@ prob = DTLZ2(m=3)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -240,7 +240,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
@@ -285,7 +285,7 @@ pop_center = adapter.to_vector(model_params)
 lb = torch.full_like(pop_center, -5)
 ub = torch.full_like(pop_center, 5)
 # Initialize the PSO, and you can also use any other algorithms
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
 # Initialize the Brax problem
 problem = BraxProblem(
     policy=model,
@@ -293,10 +293,9 @@ problem = BraxProblem(
     max_episode_length=1000,
     num_episodes=3,
     pop_size=POP_SIZE,
-    device=device,
 )
 # set an monitor, and it can record the top 3 best fitnesses
-monitor = EvalMonitor(topk=3, device=device)
+monitor = EvalMonitor(topk=3)
 # Initiate an workflow
 workflow = StdWorkflow(
     algorithm=algorithm,
@@ -304,11 +303,12 @@ workflow = StdWorkflow(
     monitor=monitor,
     opt_direction="max",
     solution_transform=adapter,
-    device=device,
 )
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
