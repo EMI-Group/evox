@@ -197,7 +197,7 @@ def _fake_evaluate_brax_vmap(
     return (
         key.new_empty(key.size()),
         [v.new_empty(v.size()).movedim(d, 0) for d, v in zip(in_dim, model_state)],
-        model_state[0].new_empty(batch_size, pop_size, num_episodes),
+        model_state[0].new_empty(batch_size, pop_size // batch_size, num_episodes),
     )
 
 
