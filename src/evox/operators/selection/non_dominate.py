@@ -1,7 +1,6 @@
-from typing import Tuple
-
 import torch
 
+from evox.core import compile
 from evox.utils import lexsort, register_vmap_op
 
 
@@ -61,7 +60,7 @@ def update_dc_and_rank(
     return rank, dominate_count
 
 
-_compiled_update_dc_and_rank = torch.compile(update_dc_and_rank, fullgraph=True)
+_compiled_update_dc_and_rank = compile(update_dc_and_rank, fullgraph=True)
 
 
 def _igr_fake(
@@ -78,8 +77,8 @@ def _igr_fake_vmap(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
-) -> Tuple[torch.Tensor, int]:
-    return rank.new_empty(dominate_count.size()), 0
+) -> torch.Tensor:
+    return rank.new_empty(dominate_count.size())
 
 
 def _vmap_iterative_get_ranks(
@@ -87,19 +86,19 @@ def _vmap_iterative_get_ranks(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
-) -> Tuple[torch.Tensor, int]:
+) -> torch.Tensor:
     current_rank = 0
     while pareto_front.any():
-        rank, dominate_count = _compiled_update_dc_and_rank(
+        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
             dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
         )
         current_rank += 1
         new_pareto_front = dominate_count == 0
-        pareto_front = torch.where(pareto_front.any(dim=1, keepdim=True), new_pareto_front, pareto_front)
-    return rank, 0
+        pareto_front = torch.where(pareto_front.any(dim=-1, keepdim=True), new_pareto_front, pareto_front)
+    return rank
 
 
-@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap)
+@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap, max_vmap_level=2)
 def _iterative_get_ranks(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
@@ -108,7 +107,7 @@ def _iterative_get_ranks(
 ) -> torch.Tensor:
     current_rank = 0
     while pareto_front.any():
-        rank, dominate_count = _compiled_update_dc_and_rank(
+        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
             dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
         )
         current_rank += 1
@@ -166,7 +165,6 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
     inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(costs.dtype)
 
     rank = lexsort([costs, inverted_mask], dim=0)
-    # TODO: num_valid_elem preventing vmap
     costs = torch.gather(costs, dim=0, index=rank)
     distance_range = costs[num_valid_elem - 1] - costs[0]
     distance = torch.empty(costs.size(), device=costs.device)

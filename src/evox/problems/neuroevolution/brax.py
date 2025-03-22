@@ -197,7 +197,7 @@ def _fake_evaluate_brax_vmap(
     return (
         key.new_empty(key.size()),
         [v.new_empty(v.size()).movedim(d, 0) for d, v in zip(in_dim, model_state)],
-        model_state[0].new_empty(batch_size, pop_size, num_episodes),
+        model_state[0].new_empty(batch_size, pop_size // batch_size, num_episodes),
     )
 
 
@@ -243,6 +243,7 @@ class BraxProblem(Problem):
         ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`) out-of-box, i.e., the workflow containing this problem CANNOT be vmapped.
         *However*, by setting `pop_size` to the multiplication of inner population size and outer population size, you can still use this problem in a HPO workflow.
+        Yet, the `num_repeats` of HPO wrapper *must* be set to 1, please use the parameter `num_episodes` instead.
 
         ## Examples
         >>> from evox import problems
