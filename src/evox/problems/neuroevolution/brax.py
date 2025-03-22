@@ -243,6 +243,7 @@ class BraxProblem(Problem):
         ## Warning
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`) out-of-box, i.e., the workflow containing this problem CANNOT be vmapped.
         *However*, by setting `pop_size` to the multiplication of inner population size and outer population size, you can still use this problem in a HPO workflow.
+        Yet, the `num_repeats` of HPO wrapper *must* be set to 1, please use the parameter `num_episodes` instead.
 
         ## Examples
         >>> from evox import problems
