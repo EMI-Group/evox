@@ -8,7 +8,7 @@ from evox.operators.selection import non_dominate_rank
 
 class TestNonDominate(unittest.TestCase):
     def setUp(self):
-        torch.set_default_device("cuda")
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.n, self.m = 12, 3
         self.f = torch.randn(self.n, self.m)
         self.rank = non_dominate_rank(self.f)
