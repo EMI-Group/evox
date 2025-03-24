@@ -200,6 +200,7 @@ for i in range(100):
     workflow.step()
 
 monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
+```
 
 <details>
   <summary>样例输出</summary>
@@ -291,7 +292,7 @@ problem = BraxProblem(
     pop_size=POP_SIZE,
 )
 # 设置监视器，可记录最佳 3 个适应度值
-monitor = EvalMonitor(topk=3, device=device)
+monitor = EvalMonitor(topk=3)
 # 初始化工作流
 workflow = StdWorkflow(
     algorithm=algorithm,
