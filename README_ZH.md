@@ -223,11 +223,11 @@ from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
-prob = DTLZ2(m=3)
+prob = DTLZ2(m=2)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -304,6 +304,8 @@ workflow = StdWorkflow(
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
