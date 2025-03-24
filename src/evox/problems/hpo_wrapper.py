@@ -27,9 +27,7 @@ def _mean_fit_aggregation(fit: torch.Tensor) -> torch.Tensor:
 
 
 _mean_fit_aggregation.register_fake(lambda f: f.new_empty(f.size()))
-_mean_fit_aggregation.register_vmap(
-    lambda info, in_dims, fit: (_vmap_mean_fit_aggregation(fit.movedim(in_dims[0], 0)), 0)
-)
+_mean_fit_aggregation.register_vmap(lambda info, in_dims, fit: (_vmap_mean_fit_aggregation(fit.movedim(in_dims[0], 0)), 0))
 
 
 class HPOMonitor(Monitor, ABC):
@@ -237,38 +235,11 @@ class HPOProblemWrapper(Problem):
             )
             self._workflow_init_step_ = compile(vmap_state_init_step, fullgraph=True)
 
-        # TODO: is final step necessary?
-        # if type(workflow).final_step == Workflow.final_step:
-        #     # if no final step
-        #     self._workflow_final_step_ = self._workflow_step_
-        # else:
-        #     # otherwise, compile workflow final step
-        #     state_final_step = use_state(workflow.final_step)
-
-        #     def repeat_state_final_step(params: Dict[str, torch.Tensor], buffers: Dict[str, torch.Tensor]):
-        #         state = {**params, **buffers}
-        #         state = state_step(state)
-        #         return {k: state[k] for k in params.keys()}, {k: state[k] for k in buffers.keys()}
-
-        #     vmap_state_final_step = (
-        #         torch.vmap(
-        #             torch.vmap(repeat_state_final_step, randomness="same"),
-        #             randomness="different",
-        #             in_dims=(None, 0),
-        #             out_dims=(None, 0),
-        #         )
-        #         if num_repeats > 1
-        #         else torch.vmap(state_final_step, randomness="same")
-        #     )
-        #     self._workflow_final_step_ = compile(vmap_state_final_step, fullgraph=True)
-
         self.state_keys = (list(self._init_params.keys()), list(self._init_buffers.keys()))
         if self.num_repeats == 1:
             self.state_keys = sum(self.state_keys, [])
         global __hpo_data__
-        __hpo_data__[id(self)] = (self._workflow_step_,) + (
-            (self.state_keys,) if self.num_repeats == 1 else self.state_keys
-        )
+        __hpo_data__[id(self)] = (self._workflow_step_,) + ((self.state_keys,) if self.num_repeats == 1 else self.state_keys)
         self._id_ = id(self)
         weakref.finalize(self, __hpo_data__.pop, id(self), None)
 
@@ -302,9 +273,6 @@ class HPOProblemWrapper(Problem):
             state_values = _hpo_evaluate_loop(self._id_, self.iterations - 2, state_values)
             params = {k: v for k, v in zip(self.state_keys[0], state_values)}
             buffers = {k: v for k, v in zip(self.state_keys[1], state_values[len(params) :])}
-            # TODO: is final step necessary?
-            # params, buffers = self._workflow_final_step_(params, buffers)
-            # get final fitness
             monitor_state = get_sub_state(buffers, "monitor")
             _, fit = vmap(torch.vmap(self._stateful_tell_fitness))(monitor_state)
             return fit[0]
@@ -319,9 +287,6 @@ class HPOProblemWrapper(Problem):
             state_values = [state[k] for k in self.state_keys]
             state_values = _hpo_evaluate_loop(self._id_, self.iterations - 2, state_values)
             state = {k: v for k, v in zip(self.state_keys, state_values)}
-            # TODO: is final step necessary?
-            # state = self._workflow_final_step_(state)
-            # get final fitness
             monitor_state = get_sub_state(state, "monitor")
             _, fit = vmap(self._stateful_tell_fitness)(monitor_state)
             return fit
