@@ -6,7 +6,7 @@ import torch
 from torch.profiler import ProfilerActivity, profile
 
 from evox.algorithms import PSO
-from evox.core import Problem
+from evox.core import Problem, compile
 from evox.workflows import StdWorkflow
 
 
@@ -39,7 +39,7 @@ def run_pso():
     print(time.time() - t)
     print(prof.key_averages().table())
     torch.cuda.synchronize()
-    compiled_step = torch.compile(workflow.step)
+    compiled_step = compile(workflow.step)
     compiled_step()
     t = time.time()
     with profile(
@@ -53,7 +53,7 @@ def run_pso():
     print(time.time() - t)
     print(prof.key_averages().table())
 
-    compiled_step = torch.compile(workflow.step, mode="max-autotune-no-cudagraphs")
+    compiled_step = compile(workflow.step, mode="max-autotune-no-cudagraphs")
     compiled_step()
     t = time.time()
     with profile(
