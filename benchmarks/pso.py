@@ -25,8 +25,7 @@ def run_pso():
 
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.get_default_device())
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob)
+    workflow = StdWorkflow(algo, prob)
     workflow.init_step()
     workflow.step()
     t = time.time()
