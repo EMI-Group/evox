@@ -401,7 +401,7 @@ class StdWorkflow(Workflow):
         """
         if not devices:
             # auto select all local devices
-            devices = jax.devices()
+            devices = jax.local_devices()
 
         self.multi_device_config = MultiDeviceConfig(
             devices=devices,
