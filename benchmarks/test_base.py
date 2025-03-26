@@ -3,7 +3,7 @@ import os
 import torch
 from torch.profiler import ProfilerActivity, profile
 
-from evox.core import Algorithm, Problem, jit, use_state, vmap
+from evox.core import Algorithm, Problem, compile, use_state, vmap
 from evox.workflows import EvalMonitor, StdWorkflow
 
 
@@ -26,15 +26,14 @@ def test(
 
     monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
     prob = Sphere()
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob)
+    workflow = StdWorkflow(algo, prob)
     # test trace step
     if test_trace:
         state_step = use_state(lambda: workflow.step)
         state = state_step.init_state()
-        jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+        compile_state_step = compile(state_step, trace=True, example_inputs=(state,))
         vmap_state_step = vmap(state_step)
-        vmap_state_step = jit(
+        vmap_state_step = compile(
             vmap_state_step,
             trace=True,
             lazy=False,
@@ -46,12 +45,11 @@ def test(
             ff.write(workflow.step.inlined_graph.__str__())
         if test_trace:
             with open(os.path.join(print_path, "trace.md"), "w") as ff:
-                ff.write(jit_state_step.inlined_graph.__str__())
+                ff.write(compile_state_step.inlined_graph.__str__())
             with open(os.path.join(print_path, "vmap.md"), "w") as ff:
                 ff.write(vmap_state_step.inlined_graph.__str__())
     # profile
-    workflow = StdWorkflow()
-    workflow.setup(algo, prob, monitor)
+    workflow = StdWorkflow(algo, prob, monitor)
     workflow.init_step()
     print("Initial best fitness:", workflow.get_submodule("monitor").topk_fitness)
     if profiling:
@@ -65,22 +63,21 @@ def test(
     print("Final best fitness:", workflow.get_submodule("monitor").topk_fitness)
     torch.cuda.synchronize()
     if test_trace:
-        workflow = StdWorkflow()
-        workflow.setup(algo, prob, monitor)
+        workflow = StdWorkflow(algo, prob, monitor)
         workflow.init_step()
         state_step = use_state(lambda: workflow.step)
         state = state_step.init_state()
         print("Initial best fitness:", state["self.algorithm._monitor_.topk_fitness"])
-        jit_state_step = jit(state_step, trace=True, example_inputs=(state,))
+        compile_state_step = compile(state_step, trace=True, example_inputs=(state,))
         if profiling:
             with profile(
                 activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
             ) as prof:
                 for _ in range(1000):
-                    state = jit_state_step(state)
+                    state = compile_state_step(state)
             print(prof.key_averages().table())
         else:
             for _ in range(1000):
-                state = jit_state_step(state)
+                state = compile_state_step(state)
         print("Final best fitness:", state["self.algorithm._monitor_.topk_fitness"])
         torch.cuda.synchronize()
