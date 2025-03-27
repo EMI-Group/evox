@@ -51,6 +51,8 @@ class EvalMonitor(Monitor):
         :param full_sol_history: Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
         :param topk: Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
         :param device: The device of the monitor. Defaults to None.
+
+        :note: If any of `full_fit_history` or `full_sol_history` is set to True, this monitor will introduce a graph break in `torch.compile`.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
@@ -117,21 +119,21 @@ class EvalMonitor(Monitor):
         else:
             raise ValueError(f"Invalid fitness shape: {fitness.shape}")
 
-        self.record_history()
+        if self.full_fit_history or self.full_sol_history:
+            self.record_history()
 
     @torch.compiler.disable
     def record_history(self):
-        if self.full_fit_history or self.full_sol_history:
-            if self.full_sol_history:
-                latest_solution = self.latest_solution.to(self.device)
-                if is_batchedtensor(self.latest_solution):
-                    latest_solution = get_unwrapped(latest_solution)
-                self.solution_history.append(latest_solution)
-            if self.full_fit_history:
-                latest_fitness = self.latest_fitness.to(self.device)
-                if is_batchedtensor(self.latest_fitness):
-                    latest_fitness = get_unwrapped(latest_fitness)
-                self.fitness_history.append(latest_fitness)
+        if self.full_sol_history:
+            latest_solution = self.latest_solution.to(self.device)
+            if is_batchedtensor(self.latest_solution):
+                latest_solution = get_unwrapped(latest_solution)
+            self.solution_history.append(latest_solution)
+        if self.full_fit_history:
+            latest_fitness = self.latest_fitness.to(self.device)
+            if is_batchedtensor(self.latest_fitness):
+                latest_fitness = get_unwrapped(latest_fitness)
+            self.fitness_history.append(latest_fitness)
 
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""

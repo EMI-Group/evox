@@ -11,6 +11,7 @@ from evox.workflows import StdWorkflow
 
 
 def run_pso():
+    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
     class Sphere(Problem):
         def __init__(self):
             super().__init__()
@@ -37,8 +38,10 @@ def run_pso():
         for _ in range(1000):
             workflow.step()
     print(time.time() - t)
-    print(prof.key_averages().table())
+    print(prof.key_averages().table(), flush=True)
+    print("\n")
     torch.cuda.synchronize()
+
     compiled_step = compile(workflow.step)
     compiled_step()
     t = time.time()
@@ -51,7 +54,8 @@ def run_pso():
             compiled_step()
     torch.cuda.synchronize()
     print(time.time() - t)
-    print(prof.key_averages().table())
+    print(prof.key_averages().table(), flush=True)
+    print("\n")
 
     compiled_step = compile(workflow.step, mode="max-autotune-no-cudagraphs")
     compiled_step()
@@ -65,7 +69,8 @@ def run_pso():
             compiled_step()
     torch.cuda.synchronize()
     print(time.time() - t)
-    print(prof.key_averages().table())
+    print(prof.key_averages().table(), flush=True)
+    print("\n")
 
 
 if __name__ == "__main__":
