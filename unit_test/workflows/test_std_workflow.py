@@ -1,6 +1,8 @@
+import os
 import unittest
 
 import torch
+import torch.multiprocessing as mp
 import torch.nn as nn
 
 from evox.core import Algorithm, Mutable, Problem, use_state, vmap
@@ -34,8 +36,8 @@ class BasicAlgorithm(Algorithm):
     def step(self):
         pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
         pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-        self.pop.copy_(pop)
-        self.fit.copy_(self.evaluate(pop))
+        self.pop = pop
+        self.fit = self.evaluate(pop)
 
 
 class TestStdWorkflow(unittest.TestCase):
@@ -43,7 +45,8 @@ class TestStdWorkflow(unittest.TestCase):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob = BasicProblem()
-        self.workflow = StdWorkflow(self.algo, self.prob)
+        self.monitor = EvalMonitor()
+        self.workflow = StdWorkflow(self.algo, self.prob, monitor=self.monitor)
 
     def test_basic_workflow(self):
         compiled_step = torch.compile(self.workflow.step)
@@ -58,6 +61,8 @@ class TestStdWorkflow(unittest.TestCase):
         self.assertIsNotNone(state)
         compiled_state_step = torch.compile(vmap_state_step)
         self.assertIsNotNone(compiled_state_step(state))
+        # Test if the monitor's history is a normal tensor (not batched)
+        self.assertIsNotNone(self.monitor.fitness_history[0] * 1)
 
     def test_classic_workflow(self):
         class solution_transform(nn.Module):
@@ -85,3 +90,27 @@ class TestStdWorkflow(unittest.TestCase):
         self.assertIsNotNone(monitor.topk_fitness)
         # test the plot function
         self.assertIsNotNone(monitor.plot())
+
+
+def run_distributed_step(rank, world_size):
+    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(0)
+    # the population size is 9, which is not divisible by 2
+    # in this case, the last process will have a smaller population size
+    algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
+    prob = BasicProblem()
+    workflow = StdWorkflow(algo, prob, enable_distributed=True)
+    torch.distributed.init_process_group(rank=rank, world_size=world_size)
+    workflow.init_step()
+    compiled_step = torch.compile(workflow.step)
+    for _ in range(3):
+        compiled_step()
+
+
+class TestDistributedStdWorkflow(unittest.TestCase):
+    def test_distributed_workflow(self):
+        world_size = 2
+        # set MASTER_ADDR and MASTER_PORT
+        os.environ["MASTER_ADDR"] = "localhost"
+        os.environ["MASTER_PORT"] = "29501"
+        mp.spawn(run_distributed_step, args=(world_size,), nprocs=world_size, join=True)

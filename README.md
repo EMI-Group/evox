@@ -46,7 +46,7 @@
 
 
 ## 🔥 News
-- [2025-03-01] Released **EvoX 1.1.0** - now switched to `torch.compile` (TorchDynamo) [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=147)]
+- [2025-03-18] Released **EvoX 1.1.1** - a minor release with bug fixes. [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] Released **EvoRL**: A GPU-accelerated framework for **Evolutionary Reinforcement Learning**, powered by **JAX** ! [[Paper](https://arxiv.org/abs/2501.15129)] [[Code](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] Released **EvoGP**: A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] Released **EvoX 1.0.0** - now fully compatible with **PyTorch**, with full `torch.compile` support! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
@@ -163,10 +163,10 @@ For a comprehensive list and detailed descriptions of all algorithms, please che
 
 ## Installation Guide
 
-Install `evox` effortlessly via `pip`:
+Install `evox` with default feature sets via `pip`:
 
 ```bash
-pip install evox
+pip install "evox[default]"
 ```
 
 Install the latest version from the source code for testing or development:
@@ -202,7 +202,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
@@ -226,11 +226,11 @@ from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
-prob = DTLZ2(m=3)
+prob = DTLZ2(m=2)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -240,7 +240,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>
@@ -285,7 +285,7 @@ pop_center = adapter.to_vector(model_params)
 lb = torch.full_like(pop_center, -5)
 ub = torch.full_like(pop_center, 5)
 # Initialize the PSO, and you can also use any other algorithms
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
 # Initialize the Brax problem
 problem = BraxProblem(
     policy=model,
@@ -293,10 +293,9 @@ problem = BraxProblem(
     max_episode_length=1000,
     num_episodes=3,
     pop_size=POP_SIZE,
-    device=device,
 )
 # set an monitor, and it can record the top 3 best fitnesses
-monitor = EvalMonitor(topk=3, device=device)
+monitor = EvalMonitor(topk=3)
 # Initiate an workflow
 workflow = StdWorkflow(
     algorithm=algorithm,
@@ -304,11 +303,12 @@ workflow = StdWorkflow(
     monitor=monitor,
     opt_direction="max",
     solution_transform=adapter,
-    device=device,
 )
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # or monitor.plot().show() if you are using headless mode
 ```
 
 <details>

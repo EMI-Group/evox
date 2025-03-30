@@ -44,7 +44,7 @@
 ---
 
 ## 🔥 新闻
-- [2025-03-01] 发布 **EvoX 1.1.0** - 全面支持 `torch.compile` (TorchDynamo) [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=147)]
+- [2025-03-18] 发布 **EvoX 1.1.1** - 一个包含错误修复的小版本更新。 [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] 发布 **EvoRL**：基于 **JAX** 的 GPU 加速 **进化强化学习** 框架！[[论文](https://arxiv.org/abs/2501.15129)] [[代码](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] 发布 **EvoGP**：基于 **PyTorch** & **CUDA** 的 GPU 加速 **遗传编程** 框架！[[论文](http://arxiv.org/abs/2501.17168)] [[代码](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] 发布 **EvoX 1.0.0**，全面兼容 **PyTorch**，全面接入`torch.compile`！使用 **JAX 版本** 的用户可在 **v0.9.0 分支** 获取。
@@ -160,10 +160,10 @@ EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。�
 
 ## 安装指南
 
-使用 `pip` 轻松安装 `evox`：
+使用 `pip` 轻松安装包含基础功能的 `evox`：
 
 ```bash
-pip install evox
+pip install "evox[default]"
 ```
 
 从源代码安装最新版本以进行测试或开发：
@@ -199,7 +199,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
@@ -223,11 +223,11 @@ from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
-prob = DTLZ2(m=3)
+prob = DTLZ2(m=2)
 pf = prob.pf()
 algo = RVEA(
     pop_size=100,
-    n_objs=3,
+    n_objs=2,
     lb=-torch.zeros(12),
     ub=torch.ones(12)
 )
@@ -237,7 +237,7 @@ workflow.init_step()
 for i in range(100):
     workflow.step()
 
-monitor.plot()
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
@@ -282,7 +282,7 @@ pop_center = adapter.to_vector(model_params)
 lb = torch.full_like(pop_center, -5)
 ub = torch.full_like(pop_center, 5)
 # 初始化 PSO 算法，你也可以使用其他算法
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub, device=device)
+algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
 # 初始化 Brax 问题
 problem = BraxProblem(
     policy=model,
@@ -290,10 +290,9 @@ problem = BraxProblem(
     max_episode_length=1000,
     num_episodes=3,
     pop_size=POP_SIZE,
-    device=device,
 )
 # 设置监视器，可记录最佳 3 个适应度值
-monitor = EvalMonitor(topk=3, device=device)
+monitor = EvalMonitor(topk=3)
 # 初始化工作流
 workflow = StdWorkflow(
     algorithm=algorithm,
@@ -301,11 +300,12 @@ workflow = StdWorkflow(
     monitor=monitor,
     opt_direction="max",
     solution_transform=adapter,
-    device=device,
 )
 workflow.init_step()
 for i in range(50):
     workflow.step()
+
+monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 ```
 
 <details>
