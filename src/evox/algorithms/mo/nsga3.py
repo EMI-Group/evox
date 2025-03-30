@@ -54,14 +54,16 @@ vmap_get_extreme = vmap(
 
 class NSGA3(Algorithm):
     """
-    An implementation of the reference-point based many-objective NSGA-II (NSGA-III) for many-objective optimization problems.
-
-    This class provides a framework for solving many-objective optimization problems using reference-points,
-    which is widely used for many-objective optimization.
+    An implementation of the tensorized NSGA-III for many-objective optimization problems.
 
     :references:
-        - "An Evolutionary Many-Objective Optimization Algorithm Using Reference-Point-Based Nondominated Sorting Approach, Part I: Solving Problems With Box Constraints" IEEE Transactions on Evolutionary Computation.
-          `Link <https://ieeexplore.ieee.org/document/6600851>`_
+        [1] K. Deb and H. Jain, "An Evolutionary Many-Objective Optimization Algorithm Using Reference-Point-Based
+            Nondominated Sorting Approach, Part I: Solving Problems With Box Constraints," IEEE Transactions on Evolutionary
+            Computation, vol. 18, no. 4, pp. 577-601, 2014. Available: https://ieeexplore.ieee.org/document/6600851
+
+        [2] Z. Liang, H. Li, N. Yu, K. Sun, and R. Cheng, "Bridging Evolutionary Multiobjective Optimization and
+            GPU Acceleration via Tensorization," IEEE Transactions on Evolutionary Computation, 2025. Available:
+            https://ieeexplore.ieee.org/document/10944658
     """
 
     def __init__(
