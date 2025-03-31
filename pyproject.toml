@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evox"
-version = "1.1.1"
+version = "1.1.2"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Boqing Xu", email = "xuboqing123@gmail.com" },
@@ -19,7 +19,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: BSD License",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
