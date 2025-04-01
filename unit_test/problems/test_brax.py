@@ -172,14 +172,14 @@ class TestBraxProblem(unittest.TestCase):
         problem.visualize(best_params)
 
     def test_hpo_brax_problem(self):
-        model = SimpleCNN()
+        model = SimpleCNN().to(device=self.device)
         for p in model.parameters():
             p.requires_grad = False
         total_params = sum(p.numel() for p in model.parameters())
         print(f"Total number of model parameters: {total_params}")
         print()
 
-        adapter = ParamsAndVector(dummy_model=model)
+        adapter = ParamsAndVector(dummy_model=model).to(device=self.device)
         model_params = dict(model.named_parameters())
         pop_center = adapter.to_vector(model_params)
         lower_bound = pop_center - 1
@@ -193,12 +193,14 @@ class TestBraxProblem(unittest.TestCase):
             max_episode_length=10,
             num_episodes=3,
             pop_size=POP_SIZE * OUTER_POP,
+            device=self.device,
         )
 
         algorithm = PSO(
             pop_size=POP_SIZE,
             lb=lower_bound,
             ub=upper_bound,
+            device=self.device,
         )
 
         pop_monitor = HPOFitnessMonitor()
@@ -209,11 +211,26 @@ class TestBraxProblem(unittest.TestCase):
             monitor=pop_monitor,
             opt_direction="max",
             solution_transform=adapter,
+            device=self.device,
         )
 
         outer_prob = HPOProblemWrapper(10, num_instances=OUTER_POP, workflow=workflow, copy_init_state=False)
-        outer_algo = DE(OUTER_POP, lb=torch.zeros(3), ub=torch.tensor([1.0, 5.0, 2.0], device=torch.get_default_device()))
-        outer_workflow = StdWorkflow(outer_algo, outer_prob, solution_transform=lambda x: {"algorithm.w": x[:, 0], "algorithm.phi_p": x[:, 1], "algorithm.phi_g": x[:, 2]})
+        outer_algo = DE(
+            OUTER_POP,
+            lb=torch.zeros(3, device=self.device),
+            ub=torch.tensor([1.0, 5.0, 2.0], device=self.device),
+            device=self.device,
+        )
+        outer_workflow = StdWorkflow(
+            outer_algo,
+            outer_prob,
+            solution_transform=lambda x: {
+                "algorithm.w": x[:, 0],
+                "algorithm.phi_p": x[:, 1],
+                "algorithm.phi_g": x[:, 2],
+            },
+            device=self.device,
+        )
         compiled_step = compile(outer_workflow.step)
         compiled_step()
 
