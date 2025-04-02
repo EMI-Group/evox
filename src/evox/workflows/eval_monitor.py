@@ -122,8 +122,8 @@ class EvalMonitor(Monitor):
         if self.full_fit_history or self.full_sol_history:
             self.record_history()
 
+    # TODO : Use the register_vmap_op instead to support the compile
     @torch.compiler.disable
-    # TODO
     def record_history(self):
         if self.full_sol_history:
             latest_solution = self.latest_solution.to(self.device)
