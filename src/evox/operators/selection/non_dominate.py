@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import torch
 
 from evox.core import compile
@@ -79,8 +77,8 @@ def _igr_fake_vmap(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
-) -> Tuple[torch.Tensor, int]:
-    return rank.new_empty(dominate_count.size()), 0
+) -> torch.Tensor:
+    return rank.new_empty(dominate_count.size())
 
 
 def _vmap_iterative_get_ranks(
@@ -88,7 +86,7 @@ def _vmap_iterative_get_ranks(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
-) -> Tuple[torch.Tensor, int]:
+) -> torch.Tensor:
     current_rank = 0
     while pareto_front.any():
         rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
@@ -96,11 +94,11 @@ def _vmap_iterative_get_ranks(
         )
         current_rank += 1
         new_pareto_front = dominate_count == 0
-        pareto_front = torch.where(pareto_front.any(dim=1, keepdim=True), new_pareto_front, pareto_front)
-    return rank, 0
+        pareto_front = torch.where(pareto_front.any(dim=-1, keepdim=True), new_pareto_front, pareto_front)
+    return rank
 
 
-@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap)
+@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap, max_vmap_level=2)
 def _iterative_get_ranks(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,

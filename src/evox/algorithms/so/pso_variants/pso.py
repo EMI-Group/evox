@@ -39,7 +39,7 @@ class PSO(Algorithm):
         :param device: The device to use for the tensors. Defaults to None.
         """
         super().__init__()
-        device = torch.get_default_device() if device is None else device
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
         self.pop_size = pop_size
         self.dim = lb.shape[0]
