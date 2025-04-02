@@ -102,8 +102,6 @@ class RVEAa(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
-
-
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -161,25 +159,24 @@ class RVEAa(Algorithm):
     def _no_batch_truncation(self, pop: torch.Tensor, obj: torch.Tensor):
         return pop.clone(), obj.clone()
 
-    def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
+    def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor, final: bool):
         v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
         if torch.compiler.is_compiling():
             v_adapt = torch.cond(
                 self.gen % (1 / self.fr) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
             )
-            self.pop, self.fit = torch.cond(self.gen == self.max_gen, self._batch_truncation, self._no_batch_truncation, (survivor, survivor_fit))
         else:
-            if self.gen % (1 / self.fr) == 0:
+            if self.gen % (1 / self.fr).to(dtype=torch.int) == 0:
                 v_adapt = self._rv_adaptation(survivor_fit)
             else:
                 v_adapt = self._no_rv_adaptation(survivor_fit)
-            if self.gen == self.max_gen:
-                self.pop, self.fit = self._batch_truncation(survivor, survivor_fit)
-            else:
-                self.pop, self.fit = self._no_batch_truncation(survivor, survivor_fit)
+        if final:
+            self.pop, self.fit = self._batch_truncation(survivor, survivor_fit)
+        else:
+            self.pop, self.fit = survivor, survivor_fit
         self.reference_vector = torch.cat([v_adapt, v_regen], dim=0)
 
-    def step(self):
+    def _step(self, final: bool = False):
         """Perform a single optimization step."""
 
         self.gen = self.gen + 1
@@ -202,4 +199,10 @@ class RVEAa(Algorithm):
             (self.gen / self.max_gen) ** self.alpha,
         )
 
-        self._update_pop_and_rv(survivor, survivor_fit)
+        self._update_pop_and_rv(survivor, survivor_fit, final)
+
+    def step(self):
+        return self._step()
+
+    def final_step(self):
+        return self._step(final=True)
