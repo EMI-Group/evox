@@ -202,7 +202,7 @@ class HPOProblemWrapper(Problem):
         self._init_params, self._init_buffers = torch.func.stack_module_state([workflow] * self.num_instances)
         if num_repeats > 1:
             self._init_buffers = {k: torch.stack([v] * num_repeats) for k, v in self._init_buffers.items()}
-        self._workflow_step_ = compile(vmap_state_step, fullgraph=False, disable=True)
+        self._workflow_step_ = compile(vmap_state_step, fullgraph=True, disable=False)
 
         if type(workflow).init_step == Workflow.init_step:
             # if no init step
@@ -226,7 +226,7 @@ class HPOProblemWrapper(Problem):
                 if num_repeats > 1
                 else torch.vmap(state_init_step, randomness="same")
             )
-            self._workflow_init_step_ = compile(vmap_state_init_step, fullgraph=False, disable=True)
+            self._workflow_init_step_ = compile(vmap_state_init_step, fullgraph=True, disable=False)
 
         if type(workflow).final_step == Workflow.final_step:
             # if no final step
@@ -250,7 +250,7 @@ class HPOProblemWrapper(Problem):
                 if num_repeats > 1
                 else torch.vmap(state_final_step, randomness="same")
             )
-            self._workflow_final_step_ = compile(vmap_state_final_step, fullgraph=False, disable=True)
+            self._workflow_final_step_ = compile(vmap_state_final_step, fullgraph=True, disable=False)
 
         self.state_keys = (list(self._init_params.keys()), list(self._init_buffers.keys()))
         if self.num_repeats == 1:

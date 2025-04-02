@@ -113,8 +113,8 @@ class RVEA(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
-        mating_pool = torch.randint(0, num_valid, (self.pop_size,), device=self.pop.device)
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), torch.inf)
+        mating_pool = torch.randint(0, torch.iinfo(torch.int32).max, (self.pop_size,), device=self.pop.device) % num_valid
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device),  torch.iinfo(torch.int32).max)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
@@ -124,7 +124,7 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
         self.reference_vector = torch.cond(
-            self.gen % (1 / self.fr).type(torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
+            self.gen % (1 / self.fr).to(dtype=torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
         )
 
     def step(self):

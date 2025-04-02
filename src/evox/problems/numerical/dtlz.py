@@ -174,7 +174,7 @@ class DTLZ4(DTLZ2):
         m = self.m
 
         Xfront = X[:, : m - 1].pow(100)
-        Xrear = X[:, m - 1:]
+        Xrear = X[:, m - 1:].clone()
         # X[:, : m - 1] = X[:, : m - 1].pow(100)
 
         g = torch.sum((Xrear - 0.5) ** 2, dim=1, keepdim=True)
@@ -376,14 +376,12 @@ class DTLZ7(DTLZ):
         f = torch.zeros((n, m), device=X.device)
         g = 1 + 9 * torch.mean(X[:, m - 1 :], dim=1, keepdim=True)
 
-        f[:, : m - 1] = X[:, : m - 1]
-
         term = torch.sum(
-            f[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * f[:, : m - 1])),
+            X[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * X[:, : m - 1])),
             dim=1,
             keepdim=True,
         )
-        f[:, m - 1 :] = (1 + g) * (m - term)
+        f = torch.cat([X[:, : m - 1].clone(), (1 + g) * (m - term)], dim=1)
 
         return f
 

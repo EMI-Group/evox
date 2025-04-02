@@ -61,8 +61,8 @@ class RVEAa(Algorithm):
         assert lb.dtype == ub.dtype and lb.device == ub.device
         self.dim = lb.size(0)
         # write to self
-        self.lb = lb.to(device=device)
-        self.ub = ub.to(device=device)
+        self.lb = lb.unsqueeze(0).to(device=device)
+        self.ub = ub.unsqueeze(0).to(device=device)
 
         self.alpha = Parameter(alpha)
         self.fr = Parameter(fr)
@@ -71,7 +71,6 @@ class RVEAa(Algorithm):
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
-        self.device = device
 
         if self.selection is None:
             self.selection = ref_vec_guided
@@ -85,9 +84,9 @@ class RVEAa(Algorithm):
 
         v0 = v.clone()
         self.pop_size = v.size(0)
-        length = ub - lb
+        length = self.ub - self.lb
         population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + lb
+        population = length * population + self.lb
         v1 = torch.rand(self.pop_size, self.n_objs, device=device)
         v = torch.cat([v, v1], dim=0)
 
@@ -103,6 +102,8 @@ class RVEAa(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
+
+
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -117,7 +118,7 @@ class RVEAa(Algorithm):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
         mating_pool = torch.randint(0, torch.iinfo(torch.int32).max, (self.pop_size,), device=self.pop.device) % num_valid
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop.size(0), device=self.device), torch.inf)
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop.size(0), device=self.pop.device), torch.iinfo(torch.int32).max)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
@@ -128,8 +129,8 @@ class RVEAa(Algorithm):
 
         mask = torch.isnan(cosine)
         input_tensor = torch.where(mask, -torch.inf, cosine)
-        associate =  input_tensor.max(dim=1, keepdim=False).indices
-        associate = torch.where(input_tensor[:,0] == -torch.inf, -1, associate)
+        associate = input_tensor.max(dim=1, keepdim=False).indices
+        associate = torch.where(input_tensor[:, 0] == -torch.inf, -1, associate)
 
         invalid = torch.sum((associate.unsqueeze(1) == torch.arange(v.size(0), device=pop_obj.device)), dim=0)
         rand = torch.rand((v.size(0), v.size(1)), device=pop_obj.device) * nanmax(pop_obj, dim=0).values
