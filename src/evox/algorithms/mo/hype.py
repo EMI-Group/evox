@@ -32,9 +32,17 @@ def cal_hv(fit: torch.Tensor, ref: torch.Tensor, pop_size: int, n_sample: int):
 
 
 class HypE(Algorithm):
-    """The tensoried version of HypE algorithm.
+    """
+    The tensorized version of HypE algorithm.
 
-    :reference: https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
+    :references:
+        [1] J. Bader and E. Zitzler, "HypE: An algorithm for fast hypervolume-based many-objective optimization,"
+            Evolutionary Computation, vol. 19, no. 1, pp. 45-76, 2011. Available:
+            https://direct.mit.edu/evco/article-abstract/19/1/45/1363/HypE-An-Algorithm-for-Fast-Hypervolume-Based-Many
+
+        [2] Z. Liang, H. Li, N. Yu, K. Sun, and R. Cheng, "Bridging Evolutionary Multiobjective Optimization and
+            GPU Acceleration via Tensorization," IEEE Transactions on Evolutionary Computation, 2025. Available:
+            https://ieeexplore.ieee.org/document/10944658
     """
 
     def __init__(

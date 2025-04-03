@@ -4,8 +4,9 @@ import unittest
 import torch
 import torch.nn as nn
 
-from evox.algorithms import PSO
+from evox.algorithms import DE, PSO
 from evox.core import compile
+from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
 from evox.problems.neuroevolution.brax import BraxProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -169,3 +170,72 @@ class TestBraxProblem(unittest.TestCase):
         print(f"\tBest params: {best_params}")
 
         problem.visualize(best_params)
+
+    def test_hpo_brax_problem(self):
+        model = SimpleCNN().to(device=self.device)
+        for p in model.parameters():
+            p.requires_grad = False
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"Total number of model parameters: {total_params}")
+        print()
+
+        adapter = ParamsAndVector(dummy_model=model).to(device=self.device)
+        model_params = dict(model.named_parameters())
+        pop_center = adapter.to_vector(model_params)
+        lower_bound = pop_center - 1
+        upper_bound = pop_center + 1
+
+        POP_SIZE = 17
+        OUTER_POP = 7
+        problem = BraxProblem(
+            policy=model,
+            env_name="hopper",
+            max_episode_length=10,
+            num_episodes=3,
+            pop_size=POP_SIZE * OUTER_POP,
+            device=self.device,
+        )
+
+        algorithm = PSO(
+            pop_size=POP_SIZE,
+            lb=lower_bound,
+            ub=upper_bound,
+            device=self.device,
+        )
+
+        pop_monitor = HPOFitnessMonitor()
+
+        workflow = StdWorkflow(
+            algorithm=algorithm,
+            problem=problem,
+            monitor=pop_monitor,
+            opt_direction="max",
+            solution_transform=adapter,
+            device=self.device,
+        )
+
+        outer_prob = HPOProblemWrapper(10, num_instances=OUTER_POP, workflow=workflow, copy_init_state=False)
+        outer_algo = DE(
+            OUTER_POP,
+            lb=torch.zeros(3, device=self.device),
+            ub=torch.tensor([1.0, 5.0, 2.0], device=self.device),
+            device=self.device,
+        )
+        outer_workflow = StdWorkflow(
+            outer_algo,
+            outer_prob,
+            solution_transform=lambda x: {
+                "algorithm.w": x[:, 0],
+                "algorithm.phi_p": x[:, 1],
+                "algorithm.phi_g": x[:, 2],
+            },
+            device=self.device,
+        )
+        compiled_step = compile(outer_workflow.step)
+        compiled_step()
+
+        for index in range(3):
+            print(f"In generation {index}:")
+            t = time.time()
+            compiled_step()
+        print(f"\tTime elapsed: {time.time() - t: .4f}(s).")

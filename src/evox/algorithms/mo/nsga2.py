@@ -11,14 +11,17 @@ from evox.utils import clamp
 
 class NSGA2(Algorithm):
     """
-    An implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-II) for multi-objective optimization problems.
-
-    This class provides a framework for solving multi-objective optimization problems using a non-dominated sorting genetic algorithm,
-    which is widely used for Pareto-based optimization.
+    A tensorized implementation of the Non-dominated Sorting Genetic Algorithm II (NSGA-II)
+    for multi-objective optimization problems.
 
     :references:
-        - "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II," IEEE Transactions on Evolutionary Computation.
-          `Link <https://ieeexplore.ieee.org/document/996017>`_
+        [1] K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, "A fast and elitist multiobjective genetic algorithm: NSGA-II,"
+            IEEE Transactions on Evolutionary Computation, vol. 6, no. 2, pp. 182-197, 2002.
+            Available: https://ieeexplore.ieee.org/document/996017
+
+        [2] Z. Liang, H. Li, N. Yu, K. Sun, and R. Cheng, "Bridging Evolutionary Multiobjective Optimization and
+            GPU Acceleration via Tensorization," IEEE Transactions on Evolutionary Computation, 2025. Available:
+            https://ieeexplore.ieee.org/document/10944658
     """
 
     def __init__(

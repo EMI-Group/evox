@@ -25,12 +25,11 @@ class MOEAD(Algorithm):
     Implementation of the Original MOEA/D algorithm.
 
     :references:
-        - "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition," IEEE Transactions on Evolutionary Computation.
-          `Link <https://ieeexplore.ieee.org/document/4358754>`_
+        [1] Q. Zhang and H. Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition,"
+            IEEE Transactions on Evolutionary Computation, vol. 11, no. 6, pp. 712-731, 2007. Available:
+            https://ieeexplore.ieee.org/document/4358754
 
-
-    :note: This implementation is based on the original paper and may not be the most efficient implementation. It can not be traced by JIT.
-
+    :note: This implementation is based on the original paper and may not be the most efficient implementation.
     """
 
     def __init__(

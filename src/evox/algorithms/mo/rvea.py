@@ -12,16 +12,18 @@ from evox.utils import clamp, nanmax, nanmin
 
 class RVEA(Algorithm):
     """
-    An implementation of the Reference Vector Guided Evolutionary Algorithm (RVEA) for multi-objective optimization problems.
-
-    This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm.
+    A tensorized implementation of the Reference Vector Guided Evolutionary Algorithm (RVEA)
+    for multi-objective optimization problems.
 
     :references:
-        - "A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization," IEEE.
-          `Link <https://ieeexplore.ieee.org/document/7386636>`
-        - "GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized RVEA" ACM.
-          `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`
-    """
+        [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided evolutionary algorithm
+            for many-objective optimization," IEEE Transactions on Evolutionary Computation, vol. 20, no. 5,
+            pp. 773-791, 2016. Available: https://ieeexplore.ieee.org/document/7386636
+
+        [2] Z. Liang, T. Jiang, K. Sun, and R. Cheng, "GPU-accelerated Evolutionary Multiobjective Optimization
+            Using Tensorized RVEA," in Proceedings of the Genetic and Evolutionary Computation Conference,
+            ser. GECCO ’24, 2024, pp. 566–575. Available: https://doi.org/10.1145/3638529.3654223
+"""
 
     def __init__(
         self,
@@ -113,8 +115,8 @@ class RVEA(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
-        mating_pool = torch.randint(0, torch.iinfo(torch.int32).max, (self.pop_size,), device=self.pop.device) % num_valid
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device),  torch.iinfo(torch.int32).max)
+        mating_pool = torch.randint(0, self.pop_size, (self.pop_size,), device=self.pop.device) % num_valid
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), self.pop_size)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop

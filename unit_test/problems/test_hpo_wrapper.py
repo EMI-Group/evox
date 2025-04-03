@@ -54,6 +54,12 @@ class TestHPOWrapper(unittest.TestCase):
         self.workflow_mo = StdWorkflow(self.algo_mo, self.prob_mo, monitor=self.monitor_mo)
         self.hpo_prob_mo = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow_mo, copy_init_state=True)
 
+        self.algo_mo2 = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
+        self.prob_mo2 = DTLZ1(2, 2)
+        self.monitor_mo2 = HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, self.prob_mo2.pf()))
+        self.workflow_mo2 = StdWorkflow(self.algo_mo2, self.prob_mo2, monitor=self.monitor_mo2)
+        self.hpo_prob_mo2 = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow_mo2, copy_init_state=True)
+
     def test_get_init_params(self):
         params = self.hpo_prob.get_init_params()
         self.assertIn("algorithm.hp", params)
@@ -81,5 +87,15 @@ class TestHPOWrapper(unittest.TestCase):
 
         outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
         outer_workflow = StdWorkflow(outer_algo, self.hpo_prob_mo, solution_transform=solution_transform())
+        outer_workflow.init_step()
+        self.assertIsInstance(outer_workflow.algorithm.fit, torch.Tensor)
+
+    def test_outer_workflow_mo_repeat(self):
+        class solution_transform(torch.nn.Module):
+            def forward(self, x: torch.Tensor):
+                return {"algorithm.hp": x}
+
+        outer_algo = BasicAlgorithm(7, -10 * torch.ones(2), 10 * torch.ones(2))
+        outer_workflow = StdWorkflow(outer_algo, self.hpo_prob_mo2, solution_transform=solution_transform())
         outer_workflow.init_step()
         self.assertIsInstance(outer_workflow.algorithm.fit, torch.Tensor)
