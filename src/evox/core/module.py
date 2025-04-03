@@ -158,7 +158,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     """
     if not isinstance(stateful_func, torch.nn.Module):
         module: torch.nn.Module = stateful_func.__self__
-        assert isinstance(module, (torch.nn.Module)), (
+        assert isinstance(module, torch.nn.Module), (
             "`stateful_func` must be a `torch.nn.Module` or a method of a `torch.nn.Module`"
         )
         new_forward = stateful_func.__func__
