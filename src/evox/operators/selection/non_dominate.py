@@ -162,7 +162,7 @@ def crowding_distance(costs: torch.Tensor, mask: torch.Tensor):
 
     inverted_mask = ~mask
 
-    inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(dtype=costs.dtype, device=costs.device)
+    inverted_mask = inverted_mask.unsqueeze(1).expand(-1, costs.size(1)).to(costs.dtype)
 
     rank = lexsort([costs, inverted_mask], dim=0)
     costs = torch.gather(costs, dim=0, index=rank)

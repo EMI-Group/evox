@@ -68,6 +68,8 @@ class RVEAa(Algorithm):
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
 
+        self.rv_adapt_every = torch.max(torch.round(torch.tensor(1 / self.fr)), torch.tensor(1.0))
+
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -165,11 +167,11 @@ class RVEAa(Algorithm):
         v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
         if torch.compiler.is_compiling():
             v_adapt = torch.cond(
-                self.gen % (1 / self.fr) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
+                self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
             )
             self.pop, self.fit = torch.cond(self.gen == self.max_gen, self._batch_truncation, self._no_batch_truncation, (survivor, survivor_fit))
         else:
-            if self.gen % (1 / self.fr) == 0:
+            if self.gen % self.rv_adapt_every == 0:
                 v_adapt = self._rv_adaptation(survivor_fit)
             else:
                 v_adapt = self._no_rv_adaptation(survivor_fit)

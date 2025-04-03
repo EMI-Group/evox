@@ -67,8 +67,6 @@ class Problem(ModuleBase, ABC):
 
 class Workflow(ModuleBase, ABC):
     """The base class for workflow."""
-    algorithm: Algorithm
-    problem: Problem
 
     def init_step(self) -> None:
         """Perform the first optimization step of the workflow."""
