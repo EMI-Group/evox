@@ -24,6 +24,10 @@ class Algorithm(ModuleBase, ABC):
         """Initialize the algorithm and execute the algorithm procedure for the first step."""
         self.step()
 
+    def final_step(self) -> None:
+        """Execute the algorithm procedure for the final step."""
+        self.step()
+
     def evaluate(self, pop: torch.Tensor) -> torch.Tensor:
         """Evaluate the fitness at given points.
         This function is a proxy function of `Problem.evaluate` set by workflow.
@@ -71,6 +75,10 @@ class Workflow(ModuleBase, ABC):
     def step(self) -> None:
         """The basic function to step a workflow."""
         pass
+
+    def final_step(self) -> None:
+        """Perform the final optimization step of the workflow."""
+        return self.step()
 
 
 class Monitor(ModuleBase, ABC):

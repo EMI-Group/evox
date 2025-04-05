@@ -69,6 +69,8 @@ class RVEA(Algorithm):
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
 
+        self.rv_adapt_every = torch.max(torch.round(torch.tensor(1 / self.fr)), torch.tensor(1.0))
+
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -126,7 +128,7 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
         self.reference_vector = torch.cond(
-            self.gen % (1 / self.fr).type(torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
+            self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
         )
 
     def step(self):

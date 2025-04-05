@@ -156,9 +156,11 @@ class StdWorkflow(Workflow):
         self.monitor.pre_tell(fitness)
         return fitness
 
-    def _step(self, init: bool):
+    def _step(self, init: bool=False, final: bool=False):
         if init and self._has_init_:
             self.algorithm.init_step()
+        elif final and self._has_final_:
+            self.algorithm.final_step()
         else:
             self.algorithm.step()
 
@@ -172,8 +174,16 @@ class StdWorkflow(Workflow):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
-        self._step(init=True)
+        self._step(init=True, final=False)
+
+    def final_step(self):
+        """
+        Perform the last optimization step of the workflow.
+
+        Calls the `final_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
+        """
+        self._step(init=False, final=True)
 
     def step(self):
         """Perform a single optimization step using the algorithm and the problem."""
-        self._step(init=False)
+        self._step()

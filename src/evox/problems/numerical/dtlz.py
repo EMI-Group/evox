@@ -4,7 +4,7 @@ from evox.core import Problem
 from evox.operators.sampling import grid_sampling, uniform_sampling
 
 
-class DTLZTestSuit(Problem):
+class DTLZ(Problem):
     """
     Base class for DTLZ test suite problems in multi-objective optimization.
 
@@ -43,7 +43,7 @@ class DTLZTestSuit(Problem):
         return f
 
 
-class DTLZ1(DTLZTestSuit):
+class DTLZ1(DTLZ):
     def __init__(self, d: int = 7, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
@@ -78,7 +78,7 @@ class DTLZ1(DTLZTestSuit):
         return f
 
 
-class DTLZ2(DTLZTestSuit):
+class DTLZ2(DTLZ):
     def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
@@ -173,9 +173,11 @@ class DTLZ4(DTLZ2):
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         m = self.m
 
-        X[:, : m - 1] = X[:, : m - 1].pow(100)
+        Xfront = X[:, : m - 1].pow(100)
+        Xrear = X[:, m - 1:].clone()
+        # X[:, : m - 1] = X[:, : m - 1].pow(100)
 
-        g = torch.sum((X[:, m - 1 :] - 0.5) ** 2, dim=1, keepdim=True)
+        g = torch.sum((Xrear - 0.5) ** 2, dim=1, keepdim=True)
 
         f = (
             (1 + g)
@@ -185,7 +187,7 @@ class DTLZ4(DTLZ2):
                         [
                             torch.ones((g.size(0), 1), device=X.device),
                             torch.maximum(
-                                torch.cos(X[:, : m - 1] * torch.pi / 2),
+                                torch.cos(Xfront * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
                             ),
                         ],
@@ -198,7 +200,7 @@ class DTLZ4(DTLZ2):
             * torch.cat(
                 [
                     torch.ones((g.size(0), 1), device=X.device),
-                    torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
+                    torch.sin(torch.flip(Xfront, dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
             )
@@ -207,7 +209,7 @@ class DTLZ4(DTLZ2):
         return f
 
 
-class DTLZ5(DTLZTestSuit):
+class DTLZ5(DTLZ):
     def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
@@ -217,7 +219,8 @@ class DTLZ5(DTLZTestSuit):
         g = torch.sum((X[:, m - 1 :] - 0.5) ** 2, dim=1, keepdim=True)
         temp = g.repeat(1, m - 2)
 
-        X[:, 1 : m - 1] = (1 + 2 * temp * X[:, 1 : m - 1]) / (2 + 2 * temp)
+        Xfront = X[:, : m - 1].clone()
+        Xfront[:, 1:] = (1 + 2 * temp * Xfront[:, 1:]) / (2 + 2 * temp)
 
         f = (
             (1 + g)
@@ -227,7 +230,7 @@ class DTLZ5(DTLZTestSuit):
                         [
                             torch.ones((g.size(0), 1), device=X.device),
                             torch.maximum(
-                                torch.cos(X[:, : m - 1] * torch.pi / 2),
+                                torch.cos(Xfront * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
                             ),
                         ],
@@ -240,7 +243,7 @@ class DTLZ5(DTLZTestSuit):
             * torch.cat(
                 [
                     torch.ones((g.size(0), 1), device=X.device),
-                    torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
+                    torch.sin(torch.flip(Xfront, dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
             )
@@ -285,7 +288,7 @@ class DTLZ5(DTLZTestSuit):
         return f
 
 
-class DTLZ6(DTLZTestSuit):
+class DTLZ6(DTLZ):
     def __init__(self, d: int = 12, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
 
@@ -293,7 +296,8 @@ class DTLZ6(DTLZTestSuit):
         m = self.m
         g = torch.sum((X[:, m - 1 :] ** 0.1), dim=1, keepdim=True)
         temp = torch.tile(g, (1, m - 2))
-        X[:, 1 : m - 1] = (1 + 2 * temp * X[:, 1 : m - 1]) / (2 + 2 * temp)
+        Xfront = X[:, : m - 1].clone()
+        Xfront[:, 1:] = (1 + 2 * temp * Xfront[:, 1:]) / (2 + 2 * temp)
 
         f = (
             torch.tile(1 + g, (1, m))
@@ -303,7 +307,7 @@ class DTLZ6(DTLZTestSuit):
                         [
                             torch.ones((X.size(0), 1), device=X.device),
                             torch.maximum(
-                                torch.cos(X[:, : m - 1] * torch.pi / 2),
+                                torch.cos(Xfront * torch.pi / 2),
                                 torch.tensor(0.0, device=X.device),
                             ),
                         ],
@@ -316,7 +320,7 @@ class DTLZ6(DTLZTestSuit):
             * torch.cat(
                 [
                     torch.ones((X.size(0), 1), device=X.device),
-                    torch.sin(torch.flip(X[:, : m - 1], dims=[1]) * torch.pi / 2),
+                    torch.sin(torch.flip(Xfront, dims=[1]) * torch.pi / 2),
                 ],
                 dim=1,
             )
@@ -361,7 +365,7 @@ class DTLZ6(DTLZTestSuit):
         return f
 
 
-class DTLZ7(DTLZTestSuit):
+class DTLZ7(DTLZ):
     def __init__(self, d: int = 21, m: int = 3, ref_num: int = 1000):
         super().__init__(d, m, ref_num)
         self.sample, _ = grid_sampling(self.ref_num * self.m, self.m - 1)
@@ -372,14 +376,12 @@ class DTLZ7(DTLZTestSuit):
         f = torch.zeros((n, m), device=X.device)
         g = 1 + 9 * torch.mean(X[:, m - 1 :], dim=1, keepdim=True)
 
-        f[:, : m - 1] = X[:, : m - 1]
-
         term = torch.sum(
-            f[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * f[:, : m - 1])),
+            X[:, : m - 1] / (1 + torch.tile(g, (1, m - 1))) * (1 + torch.sin(3 * torch.pi * X[:, : m - 1])),
             dim=1,
             keepdim=True,
         )
-        f[:, m - 1 :] = (1 + g) * (m - term)
+        f = torch.cat([X[:, : m - 1].clone(), (1 + g) * (m - term)], dim=1)
 
         return f
 

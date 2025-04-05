@@ -123,6 +123,7 @@ class EvalMonitor(Monitor):
             self.record_history()
 
     @torch.compiler.disable
+    # TODO
     def record_history(self):
         if self.full_sol_history:
             latest_solution = self.latest_solution.to(self.device)
