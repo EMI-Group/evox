@@ -1,5 +1,7 @@
 import importlib
+import warnings
 import pkgutil
+import types
 
 
 def iter_namespace(ns_pkg):
@@ -14,12 +16,17 @@ def load_extension(package, exposed_module):
     discovered_plugins = {name: importlib.import_module(name) for finder, name, ispkg in iter_namespace(package)}
 
     for name, external_module in discovered_plugins.items():
+        module_name = external_module.__name__.split(".")[-1]
         # Find all classes inside the module and add them to evox.algorithms
-        for attr_name in dir(external_module):
-            attr = getattr(external_module, attr_name)
-            # add to the exposed_module
-            setattr(exposed_module, attr_name, attr)
-            exposed_module.__all__.append(attr_name)
+        # if the package already existed in the exposed_module, recursively merge the two packages
+        if module_name in exposed_module.__dict__:
+            # if the attribute is a module, recursively load its contents
+            if isinstance(exposed_module.__dict__[module_name], types.ModuleType):
+                load_extension(external_module, exposed_module.__dict__[module_name])
+        else:
+            # directly add it to the exposed_module
+            setattr(exposed_module, module_name, external_module)
+            exposed_module.__all__.append(name)
 
 
 def auto_load_extensions():
