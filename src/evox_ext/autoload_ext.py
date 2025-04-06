@@ -1,5 +1,4 @@
 import importlib
-import warnings
 import pkgutil
 import types
 
@@ -21,8 +20,9 @@ def load_extension(package, exposed_module):
         # if the package already existed in the exposed_module, recursively merge the two packages
         if module_name in exposed_module.__dict__:
             # if the attribute is a module, recursively load its contents
-            if isinstance(exposed_module.__dict__[module_name], types.ModuleType):
-                load_extension(external_module, exposed_module.__dict__[module_name])
+            sub_module = exposed_module.__dict__[module_name]
+            if isinstance(sub_module, types.ModuleType):
+                load_extension(external_module, sub_module)
         else:
             # directly add it to the exposed_module
             setattr(exposed_module, module_name, external_module)
