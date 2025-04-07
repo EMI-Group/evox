@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import pkgutil
 import types
 
@@ -27,6 +28,14 @@ def load_extension(package, exposed_module):
             # directly add it to the exposed_module
             setattr(exposed_module, module_name, external_module)
             exposed_module.__all__.append(name)
+
+    for attr_name in dir(package):
+        attr = getattr(package, attr_name)
+        # if the attribute is a class or function, add it to the exposed_module
+        if inspect.isclass(attr) or inspect.isfunction(attr):
+            # add to the exposed_module
+            setattr(exposed_module, attr_name, attr)
+            exposed_module.__all__.append(attr_name)
 
 
 def auto_load_extensions():
