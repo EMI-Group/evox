@@ -16,7 +16,6 @@ authors = [
 description = "evox"
 readme = "README.md"
 license = "GPL-3.0-or-later"
-license-file = "LICENSE"
 requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3",
