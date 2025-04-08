@@ -27,6 +27,9 @@ def load_extension(package, exposed_module):
         else:
             # directly add it to the exposed_module
             setattr(exposed_module, module_name, external_module)
+            # if __all__ is not defined, create it
+            if not hasattr(exposed_module, "__all__"):
+                exposed_module.__all__ = []
             exposed_module.__all__.append(name)
 
     for attr_name in dir(package):
@@ -35,6 +38,9 @@ def load_extension(package, exposed_module):
         if inspect.isclass(attr) or inspect.isfunction(attr):
             # add to the exposed_module
             setattr(exposed_module, attr_name, attr)
+            # if __all__ is not defined, create it
+            if not hasattr(exposed_module, "__all__"):
+                exposed_module.__all__ = []
             exposed_module.__all__.append(attr_name)
 
 
