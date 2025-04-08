@@ -10,9 +10,10 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
-from brax.io import html, image
 from mujoco_playground import MjxEnv, State, registry, wrapper
 from torch._C._functorch import get_unwrapped, is_batchedtensor
+import mediapy as media
+import imageio
 
 from evox.core import Problem, use_state
 from evox.utils import VmapInfo
@@ -240,7 +241,6 @@ class MujocoProblem(Problem):
         pop_size: int | None = None,
         rotate_key: bool = True,
         reduce_fn: Callable[[torch.Tensor, int], torch.Tensor] = torch.mean,
-        backend: str | None = None,
         device: torch.device | None = None,
     ):
         """Construct a Brax-based problem.
@@ -260,7 +260,6 @@ class MujocoProblem(Problem):
         :param pop_size: The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
         :param rotate_key: Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
         :param reduce_fn: The function to reduce the rewards of multiple episodes. Default to `torch.mean`.
-        :param backend: Brax's backend. If None, the default backend of the environment will be used. Default to None.
         :param device: The device to run the computations on. Defaults to the current default device.
 
         ## Notice
@@ -286,27 +285,24 @@ class MujocoProblem(Problem):
         device = torch.get_default_device() if device is None else device
         pop_size = 1 if pop_size is None else pop_size
         # Create Brax environment
-        env: MjxEnv = (
-            registry(env_name=env_name)
-            if backend is None
-            else registry(env_name=env_name, backend=backend)
-        )
+        env: MjxEnv = registry.load(env_name=env_name)
         vmap_env = wrapper.wrap_for_brax_training(
             env,
             num_vision_envs=pop_size,
             episode_length=max_episode_length,
             action_repeat=num_episodes,
         )
-        visual_env = wrapper.wrap_for_brax_training(
-            env,
-            vision=True,
-            num_vision_envs=pop_size,
-            episode_length=max_episode_length,
-            action_repeat=num_episodes,
-        )
+        # visual_env = wrapper.wrap_for_brax_training(
+        #     env,
+        #     vision=True,
+        #     num_vision_envs=pop_size,
+        #     episode_length=max_episode_length,
+        #     action_repeat=num_episodes,
+        # )
+        self.visual_env = env
         # Compile Brax environment
-        self.vis_mjx_reset = jax.jit(visual_env.reset)
-        self.vis_mjx_step = jax.jit(visual_env.step)
+        self.vis_mjx_reset = jax.jit(self.visual_env.reset)
+        self.vis_mjx_step = jax.jit(self.visual_env.step)
         self.vmap_mjx_reset = jax.jit(vmap_env.reset)
         self.vmap_mjx_step = jax.jit(vmap_env.step)
         # JIT stateful model forward
@@ -341,7 +337,7 @@ class MujocoProblem(Problem):
         self.pop_size = pop_size
         self.num_episodes = num_episodes
         self.max_episode_length = max_episode_length
-        self.env_sys = env.sys
+        # self.env_sys = env.sys
         self.device = device
 
     # disable torch.compile for JAX code
@@ -364,7 +360,7 @@ class MujocoProblem(Problem):
         total_reward = jnp.zeros(())
         counter = 0
         mjx_state = self.vis_mjx_reset(keys)
-        trajectory = [mjx_state.pipeline_state]
+        trajectory = [mjx_state]
 
         while counter < self.max_episode_length and ~done.all():
             obs = mjx_state.obs
@@ -382,7 +378,7 @@ class MujocoProblem(Problem):
             done = mjx_state.done * (1 - done)
             total_reward += (1 - done) * mjx_state.reward
             counter += 1
-            trajectory.append(mjx_state.pipeline_state)
+            trajectory.append(mjx_state)
         # Return
         self.key = from_jax_array(key, self.device)
         total_reward = from_jax_array(total_reward, self.device)
@@ -417,7 +413,7 @@ class MujocoProblem(Problem):
         self,
         weights: Dict[str, nn.Parameter],
         seed: int = 0,
-        output_type: str = "HTML",
+        output_type: str = "video",
         *args,
         **kwargs,
     ) -> str | torch.Tensor:
@@ -429,14 +425,28 @@ class MujocoProblem(Problem):
         :return: The visualization output.
         """
         assert output_type in [
-            "HTML",
-            "rgb_array",
-        ], "output_type must be either HTML or rgb_array"
+            "video",
+        ], "output_type must be video"
         model_state = self.init_state | weights
         # Brax environment evaluation
         model_state, _rewards, trajectory = self._evaluate_mjx_record(model_state)
-        trajectory = [mjx_state for mjx_state in trajectory]
-        if output_type == "HTML":
-            return html.render(self.env_sys, trajectory, *args, **kwargs)
+        render_every = 1
+        fps = 1.0 / self.visual_env.dt / render_every
+        print(f"fps: {fps}")
+        # trajectory = [mjx_state for mjx_state in trajectory]
+        trajectory = trajectory[::render_every]
+        if output_type == "video":
+            frames = self.visual_env.render(
+                trajectory=trajectory,
+                height=480,
+                width=640,
+                camera="track",
+            )
+            media.show_video(frames, fps=fps)
+            output_path = "output_video.mp4"
+            with imageio.get_writer(output_path, fps=fps) as writer:
+                for frame in frames:
+                    writer.append_data(frame)
+            print(f"Video saved at {output_path}")
         else:
-            return image.render_array(self.env_sys, trajectory, **kwargs)
+            print("Not support file type.")
