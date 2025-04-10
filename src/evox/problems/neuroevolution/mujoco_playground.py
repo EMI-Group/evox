@@ -405,7 +405,7 @@ class MujocoProblem(Problem):
         self,
         weights: Dict[str, nn.Parameter],
         seed: int = 0,
-        output_type: str = "video",
+        output_type: str = "mp4",
         *args,
         **kwargs,
     ) -> str | torch.Tensor:
@@ -417,8 +417,8 @@ class MujocoProblem(Problem):
         :return: The visualization output.
         """
         assert output_type in [
-            "video",
-        ], "output_type must be video"
+            "mp4",
+        ], "output_type must be mp4"
         model_state = self.init_state | weights
         # mjx environment evaluation
         model_state, _rewards, trajectory = self._evaluate_mjx_record(model_state)
@@ -427,7 +427,7 @@ class MujocoProblem(Problem):
         print(f"fps: {fps}")
         # trajectory = [mjx_state for mjx_state in trajectory]
         trajectory = trajectory[::render_every]
-        if output_type == "video":
+        if output_type == "mp4":
             frames = self.visual_env.render(
                 trajectory=trajectory,
                 height=480,
