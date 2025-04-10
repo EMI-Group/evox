@@ -129,7 +129,7 @@ def _hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: 
         state = {k: v.clone() for k, v in zip(state_keys, state_values)}
         if compiling:
             for _ in range(iterations):
-                    state = compiled_workflow_step(state)
+                state = compiled_workflow_step(state)
         else:
             for _ in range(iterations):
                 state = workflow_step(state)
@@ -255,7 +255,7 @@ class HPOProblemWrapper(Problem):
 
             def repeat_state_final_step(params: Dict[str, torch.Tensor], buffers: Dict[str, torch.Tensor]):
                 state = {**params, **buffers}
-                state = state_step(state)
+                state = state_final_step(state)
                 return {k: state[k] for k in params.keys()}, {k: state[k] for k in buffers.keys()}
 
             vmap_state_final_step = (
@@ -314,7 +314,7 @@ class HPOProblemWrapper(Problem):
             else:
                 params, buffers = self._workflow_init_step_(params, buffers)
             state_values = [params[k] for k in self.state_keys[0]] + [buffers[k] for k in self.state_keys[1]]
-            state_values = _hpo_evaluate_loop(self._id_, self.iterations - 2, state_values)
+            state_values = _hpo_evaluate_loop(torch.compiler.is_compiling(), self._id_, self.iterations - 2, state_values)
             params = {k: v for k, v in zip(self.state_keys[0], state_values)}
             buffers = {k: v for k, v in zip(self.state_keys[1], state_values[len(params) :])}
             if torch.compiler.is_compiling():
