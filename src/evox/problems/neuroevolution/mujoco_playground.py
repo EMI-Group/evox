@@ -432,7 +432,7 @@ class MujocoProblem(Problem):
                 trajectory=trajectory,
                 height=480,
                 width=640,
-                camera="track",
+                camera="tracking1",
             )
             media.show_video(frames, fps=fps)
             output_path = "output_video.mp4"
