@@ -245,7 +245,7 @@ class MujocoProblem(Problem):
     ):
         """Construct a Brax-based problem.
         Firstly, you need to define a policy model.
-        Then you need to set the `environment name <https://github.com/google/brax/tree/main/brax/envs>`,
+        Then you need to set the `environment name <https://github.com/google-deepmind/mujoco_playground/tree/main/mujoco_playground/_src/registry.py>`,
         the maximum episode length, the number of episodes to evaluate for each individual.
         For each individual,
         it will run the policy with the environment for num_episodes times with different seed,
@@ -272,8 +272,8 @@ class MujocoProblem(Problem):
 
         ## Examples
         >>> from evox import problems
-        >>> problem = problems.neuroevolution.Brax(
-        ...    env_name="swimmer",
+        >>> problem = problems.neuroevolution.MujocoProblem(
+        ...    env_name="SwimmerSwimmer6",
         ...    policy=model,
         ...    max_episode_length=1000,
         ...    num_episodes=3,
@@ -284,7 +284,7 @@ class MujocoProblem(Problem):
         super().__init__()
         device = torch.get_default_device() if device is None else device
         pop_size = 1 if pop_size is None else pop_size
-        # Create Brax environment
+        # Create mjx environment
         env: MjxEnv = registry.load(env_name=env_name)
         vmap_env = wrapper.wrap_for_brax_training(
             env,
@@ -292,15 +292,8 @@ class MujocoProblem(Problem):
             episode_length=max_episode_length,
             action_repeat=num_episodes,
         )
-        # visual_env = wrapper.wrap_for_brax_training(
-        #     env,
-        #     vision=True,
-        #     num_vision_envs=pop_size,
-        #     episode_length=max_episode_length,
-        #     action_repeat=num_episodes,
-        # )
         self.visual_env = env
-        # Compile Brax environment
+        # Compile mjx environment
         self.vis_mjx_reset = jax.jit(self.visual_env.reset)
         self.vis_mjx_step = jax.jit(self.visual_env.step)
         self.vmap_mjx_reset = jax.jit(vmap_env.reset)
@@ -337,7 +330,6 @@ class MujocoProblem(Problem):
         self.pop_size = pop_size
         self.num_episodes = num_episodes
         self.max_episode_length = max_episode_length
-        # self.env_sys = env.sys
         self.device = device
 
     # disable torch.compile for JAX code
@@ -395,7 +387,7 @@ class MujocoProblem(Problem):
         model_state = {**self.vmap_init_state, **pop_params}
         # CANNOT COMPILE: model_state = self.vmap_init_state | pop_params
         model_state = [model_state[k] for k in self.state_keys]
-        # Brax environment evaluation
+        # mjx environment evaluation
         key, _, rewards = _evaluate_mjx(
             env_id=self._id_,
             pop_size=self.pop_size,
@@ -428,7 +420,7 @@ class MujocoProblem(Problem):
             "video",
         ], "output_type must be video"
         model_state = self.init_state | weights
-        # Brax environment evaluation
+        # mjx environment evaluation
         model_state, _rewards, trajectory = self._evaluate_mjx_record(model_state)
         render_every = 1
         fps = 1.0 / self.visual_env.dt / render_every
