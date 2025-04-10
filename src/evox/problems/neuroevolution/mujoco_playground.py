@@ -4,16 +4,16 @@ import copy
 import weakref
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import imageio
 import jax
 import jax.numpy as jnp
+import mediapy as media
 import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from brax import envs
 from mujoco_playground import MjxEnv, State, registry, wrapper
 from torch._C._functorch import get_unwrapped, is_batchedtensor
-import mediapy as media
-import imageio
 
 from evox.core import Problem, use_state
 from evox.utils import VmapInfo
