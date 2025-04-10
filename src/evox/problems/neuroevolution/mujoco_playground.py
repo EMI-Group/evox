@@ -7,7 +7,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import imageio
 import jax
 import jax.numpy as jnp
-import mediapy as media
 import torch
 import torch.nn as nn
 import torch.utils.dlpack
@@ -416,9 +415,7 @@ class MujocoProblem(Problem):
 
         :return: The visualization output.
         """
-        assert output_type in [
-            "mp4",
-        ], "output_type must be mp4"
+        assert output_type in ["mp4", "gif"], "output_type must be either mp4 or gif"
         model_state = self.init_state | weights
         # mjx environment evaluation
         model_state, _rewards, trajectory = self._evaluate_mjx_record(model_state)
@@ -427,18 +424,19 @@ class MujocoProblem(Problem):
         print(f"fps: {fps}")
         # trajectory = [mjx_state for mjx_state in trajectory]
         trajectory = trajectory[::render_every]
+        frames = self.visual_env.render(
+            trajectory=trajectory,
+            height=480,
+            width=640,
+            camera="tracking1",
+        )
+        output_path = f"output_video.{output_type}"
         if output_type == "mp4":
-            frames = self.visual_env.render(
-                trajectory=trajectory,
-                height=480,
-                width=640,
-                camera="tracking1",
-            )
-            media.show_video(frames, fps=fps)
-            output_path = "output_video.mp4"
-            with imageio.get_writer(output_path, fps=fps) as writer:
-                for frame in frames:
-                    writer.append_data(frame)
+            # mediapy.show_video(frames, fps=fps)
+            imageio.mimsave(output_path, frames, fps=fps, codec="libx264", format="mp4")
             print(f"Video saved at {output_path}")
+        elif output_type == "gif":
+            imageio.mimsave(output_path, frames, *args, **kwargs)
+            print(f"Gif saved at {output_path}")
         else:
             print("Not support file type.")
