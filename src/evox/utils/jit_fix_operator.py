@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Sequence
 
 import torch
 
@@ -328,3 +328,59 @@ def nanmax(input_tensor: torch.Tensor, dim: int = -1, keepdim: bool = False):
     mask = torch.isnan(input_tensor)
     input_tensor = torch.where(mask, -torch.inf, input_tensor)
     return input_tensor.max(dim=dim, keepdim=keepdim)
+
+
+def randint(
+    low: torch.Tensor | int | torch.SymInt,
+    high: torch.Tensor | int | torch.SymInt,
+    size: Sequence[int | torch.SymInt] | torch.Size,
+    dtype: torch.dtype | None = None,
+    device: torch.device | None = None,
+    generator: torch.Generator | None = None,
+):
+    """
+    Randomly generate a tensor of integers within a specified range like `torch.randint`. However, the low and high values are now tensors.
+
+    This function first generate a uniform random tensor of floats with range [0, 1), and then adjust the range with given low and high values.
+
+    :param low: The input lower bound tensor (inclusive) or int. It must be a scalar.
+    :param high: The input upper bound tensor (exclusive) or int. It must be a scalar.
+    :param size: The desired size of the output tensor.
+    :param dtype: The desired data type of the output tensor. Default `None` means the same as `low` or `high`.
+    :param device: The desired device for the output tensor. Default `None` means the same as `low` or `high`.
+    :param generator: The random number generator to use. Default is `None`.
+
+    :return: A random tensor of integers within the specified range of given `size`.
+
+    ## Example
+    ```python
+    high = torch.tensor(8)
+    randint(0, high, (2, 2))
+    ```
+
+    ```{note}
+    When used with `torch.compile` and the the `low`, `high` or `size` can be dynamic integers (e.g. size of another tensor), this function **MUST** be used with `torch.compile(..., dynamic=False)`.
+    ```
+    """
+    if isinstance(low, int) and isinstance(high, int):
+        return torch.randint(low, high, size, dtype=dtype, device=device, generator=generator)
+    if isinstance(low, int):
+        dtype = dtype or high.dtype
+        device = device or high.device
+        low = torch.tensor(low, dtype=dtype, device=device)
+    if isinstance(high, int) and dtype is None:
+        dtype = dtype or low.dtype
+        device = device or low.device
+        high = torch.tensor(high, dtype=dtype, device=device)
+    assert low.ndim == 0 and high.ndim == 0, (
+        f"low and high should be scalars, got ndims = {low.ndim} and {high.ndim}"
+    )
+    assert low.device == high.device, (
+        f"low and high should be on the same device, got {low.device} and {high.device}"
+    )
+    assert low.dtype == high.dtype, f"low and high should be on the same dtype, got {low.dtype} and {high.dtype}"
+    if dtype is None:
+        dtype = low.dtype
+    original_rand = torch.rand(size, dtype=torch.get_default_dtype(), device=device, generator=generator)
+    r = high - low
+    return low + (original_rand * r).to(dtype=dtype)

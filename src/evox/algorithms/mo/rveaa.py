@@ -8,7 +8,7 @@ from evox.operators.crossover import simulated_binary
 from evox.operators.mutation import polynomial_mutation
 from evox.operators.sampling import uniform_sampling
 from evox.operators.selection import non_dominate_rank, ref_vec_guided
-from evox.utils import clamp, nanmax, nanmin
+from evox.utils import clamp, nanmax, nanmin, randint
 
 
 class RVEAa(Algorithm):
@@ -68,7 +68,7 @@ class RVEAa(Algorithm):
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
 
-        self.rv_adapt_every = torch.max(torch.round(torch.tensor(1 / self.fr)), torch.tensor(1.0))
+        self.rv_adapt_every = Mutable(torch.max(torch.round(1 / self.fr), torch.tensor(1.0)))
 
         self.selection = selection_op
         self.mutation = mutation_op
@@ -104,8 +104,7 @@ class RVEAa(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
-
-
+        self.rv_adapt_every = torch.max(torch.round(1 / self.fr), torch.tensor(1.0))
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -119,7 +118,7 @@ class RVEAa(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
-        mating_pool = torch.randint(0, torch.iinfo(torch.int32).max, (self.pop_size,), device=self.pop.device) % num_valid
+        mating_pool = randint(0, num_valid, (self.pop_size,), device=self.pop.device)
         sorted_indices = torch.where(valid_mask, torch.arange(self.pop.size(0), device=self.pop.device), torch.iinfo(torch.int32).max)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
