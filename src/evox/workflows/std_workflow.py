@@ -101,6 +101,7 @@ class StdWorkflow(Workflow):
 
         # set algorithm evaluate
         self._has_init_ = type(algorithm).init_step != Algorithm.init_step
+        self._has_final_ = type(algorithm).final_step != Algorithm.final_step
 
         class _SubAlgorithm(type(algorithm)):
             def __init__(self_algo):
