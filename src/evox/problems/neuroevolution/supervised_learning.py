@@ -58,8 +58,8 @@ class SupervisedLearningProblem(Problem):
         self.init_state = model.state_dict()
         self.state_forward = use_state(model)
         # JITed and vmapped state criterion initialization
-        self.criterion = torch.compile(criterion)
-        self.vmap_criterion = torch.compile(vmap(criterion, in_dims=(0, None)))
+        self.criterion = criterion
+        self.vmap_criterion = vmap(criterion, in_dims=(0, None))
 
     def _vmap_forward_pass(
         self, model_state: Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]], data: Tuple[torch.Tensor, torch.Tensor]

@@ -13,7 +13,7 @@ from brax import envs
 from brax.io import html, image
 from torch._C._functorch import get_unwrapped, is_batchedtensor
 
-from evox.core import Problem, use_state
+from evox.core import Problem, compile, use_state
 from evox.utils import VmapInfo
 
 from .utils import get_vmap_model_state_forward
@@ -41,9 +41,7 @@ __brax_data__: Dict[
     Tuple[
         Callable[[jax.Array], envs.State],  # vmap_brax_reset
         Callable[[envs.State, jax.Array], envs.State],  # vmap_brax_step
-        Callable[
-            [Dict[str, torch.Tensor], torch.Tensor], Tuple[Dict[str, torch.Tensor], torch.Tensor]
-        ],  # vmap_state_forward
+        Callable[[Dict[str, torch.Tensor], torch.Tensor], Tuple[Dict[str, torch.Tensor], torch.Tensor]],  # vmap_state_forward
         List[str],  # state_keys
     ],
 ] = {}
@@ -216,6 +214,7 @@ class BraxProblem(Problem):
         reduce_fn: Callable[[torch.Tensor, int], torch.Tensor] = torch.mean,
         backend: str | None = None,
         device: torch.device | None = None,
+        compile_policy: bool = True,
     ):
         """Construct a Brax-based problem.
         Firstly, you need to define a policy model.
@@ -236,6 +235,7 @@ class BraxProblem(Problem):
         :param reduce_fn: The function to reduce the rewards of multiple episodes. Default to `torch.mean`.
         :param backend: Brax's backend. If None, the default backend of the environment will be used. Default to None.
         :param device: The device to run the computations on. Defaults to the current default device.
+        :param compile_policy: Whether to compile the policy model. Default to True.
 
         ## Notice
         The initial key is obtained from `torch.random.get_rng_state()`.
@@ -278,7 +278,10 @@ class BraxProblem(Problem):
             in_dims=(0, 0),
             device=device,
         )
-        self.state_forward = torch.compile(use_state(policy))
+        self.state_forward = use_state(policy)
+        if compile_policy:
+            self.vmap_state_forward = compile(self.vmap_state_forward)
+            self.state_forward = compile(self.state_forward)
         if seed is None:
             seed = torch.randint(0, 2**31, (1,)).item()
         self.key = from_jax_array(jax.random.PRNGKey(seed), device)
