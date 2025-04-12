@@ -36,12 +36,16 @@ vis = [
 neuroevolution = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
+  "mujoco_playground >= 0.0.4",
+  "imageio >= 2.0.0",
 ]
 
 test = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
   "plotly >= 5.0.0",
+  "mujoco_playground >= 0.0.4",
+  "imageio >= 2.0.0",
 ]
 
 docs = [
