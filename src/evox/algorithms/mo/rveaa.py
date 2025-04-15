@@ -19,7 +19,7 @@ class RVEAa(Algorithm):
     This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm.
 
     :references:
-        - [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided evolutionary algorithm
+        [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided evolutionary algorithm
             for many-objective optimization," IEEE Transactions on Evolutionary Computation, vol. 20, no. 5,
             pp. 773-791, 2016. Available: https://ieeexplore.ieee.org/document/7386636
     """
