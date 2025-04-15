@@ -11,7 +11,6 @@ from evox.utils import clamp
 
 
 def _get_table_row_inner(bool_ref_candidate: torch.Tensor, upper_bound: torch.Tensor):
-    # true_indices = torch.nonzero_static(bool_ref_candidate, size=bool_ref_candidate.size(0), fill_value=upper_bound).squeeze(-1)
     true_indices = torch.where(
         bool_ref_candidate,
         torch.arange(bool_ref_candidate.size(0), dtype=torch.int32, device=torch.get_default_device()),
@@ -61,9 +60,8 @@ class NSGA3(Algorithm):
             Nondominated Sorting Approach, Part I: Solving Problems With Box Constraints," IEEE Transactions on Evolutionary
             Computation, vol. 18, no. 4, pp. 577-601, 2014. Available: https://ieeexplore.ieee.org/document/6600851
 
-        [2] Z. Liang, H. Li, N. Yu, K. Sun, and R. Cheng, "Bridging Evolutionary Multiobjective Optimization and
-            GPU Acceleration via Tensorization," IEEE Transactions on Evolutionary Computation, 2025. Available:
-            https://ieeexplore.ieee.org/document/10944658
+        [2] H. Li, Z. Liang, and R. Cheng, "GPU-accelerated Evolutionary Many-objective Optimization Using Tensorized
+            NSGA-III," in 2025 IEEE Congress on Evolutionary Computation, 2025.
     """
 
     def __init__(
@@ -161,7 +159,7 @@ class NSGA3(Algorithm):
         norm_fit = merge_fit - ideal_point
         weight = torch.eye(self.n_objs, device=device) + 1e-6
         ex_idx = vmap_get_extreme(norm_fit, weight)
-        extreme = norm_fit[ex_idx]  # shape: (n_objs, dim)
+        extreme = norm_fit[ex_idx]
         if torch.linalg.matrix_rank(extreme) == self.n_objs:
             hyperplane = torch.linalg.solve(extreme, torch.ones(self.n_objs, device=device))
             intercepts = 1.0 / hyperplane
@@ -200,7 +198,7 @@ class NSGA3(Algorithm):
 
         # second selection stage
         group_id[candi_idx[_selected_ref]] = upper_bound
-        bool_ref_candidates = row_indices[:, None] == group_id[None, :]  # shape (ref.shape[0], group_id.shape[0])
+        bool_ref_candidates = row_indices[:, None] == group_id[None, :]
         ref_candidates = vmap_get_table_row(bool_ref_candidates, upper_bound)
         ref_cand_idx = torch.zeros_like(rho)
         while selected_num < self.pop_size:
@@ -230,16 +228,16 @@ class NSGA3(Algorithm):
 
     def _compute_distances(self, fit: torch.Tensor, ref: torch.Tensor):
         # Normalize solutions and reference points to unit vectors
-        fit_magnitude = torch.norm(fit, dim=1, keepdim=True).clamp_min(1e-10)  # Shape: (pop_size, 1)
+        fit_magnitude = torch.norm(fit, dim=1, keepdim=True).clamp_min(1e-10)
         fit_norm = fit / fit_magnitude
         ref_norm = ref / torch.norm(ref, dim=1, keepdim=True).clamp_min(1e-10)
 
         # Compute cosine similarity (dot product of normalized vectors)
-        cosine_sim = torch.matmul(fit_norm, ref_norm.T)  # Shape: (pop_size, ref_size)
+        cosine_sim = torch.matmul(fit_norm, ref_norm.T)
 
         # Compute the angular distance component (sqrt(1 - cosine_similarity^2))
-        angular_distance = torch.sqrt((1 - cosine_sim**2).clamp_min(1e-10))  # Shape: (pop_size, ref_size)
+        angular_distance = torch.sqrt((1 - cosine_sim**2).clamp_min(1e-10))
 
         # Compute the final distance by multiplying magnitude with angular distance
-        distances = fit_magnitude * angular_distance  # Shape: (pop_size, ref_size)
+        distances = fit_magnitude * angular_distance
         return distances

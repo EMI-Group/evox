@@ -13,15 +13,15 @@ from evox.utils import clamp, nanmax, nanmin, randint
 
 class RVEAa(Algorithm):
     """
-    An implementation of the Reference Vector Guided Evolutionary Algorithm embedded with the reference vector regeneration strategy (RVEAa) for multi-objective optimization problems.
+    An implementation of the Reference Vector Guided Evolutionary Algorithm embedded with the reference vector
+    regeneration strategy (RVEAa) for multi-objective optimization problems.
 
     This class is designed to solve multi-objective optimization problems using a reference vector guided evolutionary algorithm.
 
     :references:
-        - "A Reference Vector Guided Evolutionary Algorithm for Many-Objective Optimization," IEEE.
-          `Link <https://ieeexplore.ieee.org/document/7386636>`
-        - "GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized RVEA" ACM.
-          `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`
+        - [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided evolutionary algorithm
+            for many-objective optimization," IEEE Transactions on Evolutionary Computation, vol. 20, no. 5,
+            pp. 773-791, 2016. Available: https://ieeexplore.ieee.org/document/7386636
     """
 
     def __init__(
