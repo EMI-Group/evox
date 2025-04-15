@@ -8,6 +8,7 @@ from .test_base import TestBase
 class TestDEVariants(TestBase):
     def setUp(self):
         torch.manual_seed(42)
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         pop_size = 10
         dim = 4
         lb = -10 * torch.ones(dim)

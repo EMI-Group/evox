@@ -14,8 +14,9 @@ except ImportError:
 
 
 # https://github.com/pytorch/pytorch/issues/36748
-def unique(x, dim=0):
+def unique(x: torch.Tensor, dim=0):
     """Return the unique elements of the input tensor, as well as the unique index."""
+    x = x.nan_to_num()
     unique, inverse, counts = torch.unique(x, dim=dim, sorted=True, return_inverse=True, return_counts=True)
     inv_sorted = inverse.argsort(stable=True)
     tot_counts = torch.cat((counts.new_zeros(1), counts.cumsum(dim=0)))[:-1]

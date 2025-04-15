@@ -16,6 +16,7 @@ __all__ = [
     "lexsort",
     "nanmin",
     "nanmax",
+    "randint",
     "tree_flatten",
     "tree_unflatten",
 ]
@@ -34,6 +35,7 @@ from .jit_fix_operator import (
     minimum_int,
     nanmax,
     nanmin,
+    randint,
     switch,
 )
 from .op_register import VmapInfo, register_vmap_op

@@ -117,30 +117,32 @@ class HPOData(NamedTuple):
 __hpo_data__: Dict[int, HPOData] = {}
 
 
-def _fake_hpo_evaluate_loop(id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
+def _fake_hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
     return [v.new_empty(v.size()) for v in state_values]
 
 
 @torch.library.custom_op("evox::_hpo_evaluate_loop", mutates_args=())
-def _hpo_evaluate_loop(id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
+def _hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
     global __hpo_data__
     workflow_step, compiled_workflow_step, state_keys, buffer_keys = __hpo_data__[id]
     if buffer_keys is None:
         state = {k: v.clone() for k, v in zip(state_keys, state_values)}
-        for _ in range(iterations):
-            if torch.compiler.is_compiling():
+        if compiling:
+            for _ in range(iterations):
                 state = compiled_workflow_step(state)
-            else:
+        else:
+            for _ in range(iterations):
                 state = workflow_step(state)
         return [state[k] for k in state_keys]
     else:
         param_keys, buffer_keys = state_keys, buffer_keys
         params = {k: v.clone() for k, v in zip(param_keys, state_values)}
         buffers = {k: v.clone() for k, v in zip(buffer_keys, state_values[len(param_keys) :])}
-        for _ in range(iterations):
-            if torch.compiler.is_compiling():
+        if compiling:
+            for _ in range(iterations):
                 params, buffers = compiled_workflow_step(params, buffers)
-            else:
+        else:
+            for _ in range(iterations):
                 params, buffers = workflow_step(params, buffers)
         return [params[k] for k in param_keys] + [buffers[k] for k in buffer_keys]
 
@@ -202,14 +204,14 @@ class HPOProblemWrapper(Problem):
             return {k: state[k] for k in params.keys()}, {k: state[k] for k in buffers.keys()}
 
         vmap_state_step = (
-            torch.vmap(
+            vmap(
                 torch.vmap(repeat_state_step, randomness="same"),
                 randomness="different",
                 in_dims=(None, 0),
                 out_dims=(None, 0),
             )
             if num_repeats > 1
-            else torch.vmap(state_step, randomness="same")
+            else vmap(state_step, randomness="same")
         )
         self._init_params, self._init_buffers = torch.func.stack_module_state([workflow] * self.num_instances)
         if num_repeats > 1:
@@ -231,17 +233,43 @@ class HPOProblemWrapper(Problem):
                 return {k: state[k] for k in params.keys()}, {k: state[k] for k in buffers.keys()}
 
             vmap_state_init_step = (
-                torch.vmap(
+                vmap(
                     torch.vmap(repeat_state_init_step, randomness="same"),
                     randomness="different",
                     in_dims=(None, 0),
                     out_dims=(None, 0),
                 )
                 if num_repeats > 1
-                else torch.vmap(state_init_step, randomness="same")
+                else vmap(state_init_step, randomness="same")
             )
             self._workflow_init_step_ = vmap_state_init_step
-            self._compiled_workflow_init_step_ = compile(vmap_state_init_step, fullgraph=True)
+            self._compiled_init_step_ = compile(vmap_state_init_step, fullgraph=True)
+
+        if type(workflow).final_step == Workflow.final_step:
+            # if no final step
+            self._workflow_final_step_ = self._workflow_step_
+            self._compiled_final_step_ = self._compiled_workflow_step_
+        else:
+            # otherwise, compile workflow final step
+            state_final_step = use_state(workflow.final_step)
+
+            def repeat_state_final_step(params: Dict[str, torch.Tensor], buffers: Dict[str, torch.Tensor]):
+                state = {**params, **buffers}
+                state = state_final_step(state)
+                return {k: state[k] for k in params.keys()}, {k: state[k] for k in buffers.keys()}
+
+            vmap_state_final_step = (
+                vmap(
+                    torch.vmap(repeat_state_final_step, randomness="same"),
+                    randomness="different",
+                    in_dims=(None, 0),
+                    out_dims=(None, 0),
+                )
+                if num_repeats > 1
+                else vmap(state_final_step, randomness="same")
+            )
+            self._workflow_final_step_ = vmap_state_final_step
+            self._compiled_final_step_ = compile(vmap_state_step, fullgraph=True)
 
         self.state_keys = (list(self._init_params.keys()), list(self._init_buffers.keys()))
         if self.num_repeats == 1:
@@ -282,13 +310,17 @@ class HPOProblemWrapper(Problem):
             params = {**self._init_params, **hyper_parameters}
             # run the workflow
             if torch.compiler.is_compiling():
-                params, buffers = self._compiled_workflow_init_step_(params, buffers)
+                params, buffers = self._compiled_init_step_(params, buffers)
             else:
                 params, buffers = self._workflow_init_step_(params, buffers)
             state_values = [params[k] for k in self.state_keys[0]] + [buffers[k] for k in self.state_keys[1]]
-            state_values = _hpo_evaluate_loop(self._id_, self.iterations - 1, state_values)
+            state_values = _hpo_evaluate_loop(torch.compiler.is_compiling(), self._id_, self.iterations - 2, state_values)
             params = {k: v for k, v in zip(self.state_keys[0], state_values)}
             buffers = {k: v for k, v in zip(self.state_keys[1], state_values[len(params) :])}
+            if torch.compiler.is_compiling():
+                params, buffers = self._compiled_final_step_(params, buffers)
+            else:
+                params, buffers = self._workflow_final_step_(params, buffers)
             monitor_state = get_sub_state(buffers, "monitor")
             _, fit = vmap(torch.vmap(self._stateful_tell_fitness))(monitor_state)
             return fit[0]
@@ -300,12 +332,16 @@ class HPOProblemWrapper(Problem):
             state.update(hyper_parameters)
             # run the workflow
             if torch.compiler.is_compiling():
-                state = self._compiled_workflow_init_step_(state)
+                state = self._compiled_init_step_(state)
             else:
                 state = self._workflow_init_step_(state)
             state_values = [state[k] for k in self.state_keys]
-            state_values = _hpo_evaluate_loop(self._id_, self.iterations - 1, state_values)
+            state_values = _hpo_evaluate_loop(torch.compiler.is_compiling(), self._id_, self.iterations - 2, state_values)
             state = {k: v for k, v in zip(self.state_keys, state_values)}
+            if torch.compiler.is_compiling():
+                state = self._compiled_final_step_(state)
+            else:
+                state = self._workflow_final_step_(state)
             monitor_state = get_sub_state(state, "monitor")
             _, fit = vmap(self._stateful_tell_fitness)(monitor_state)
             return fit

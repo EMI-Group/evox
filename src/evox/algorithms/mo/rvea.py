@@ -7,7 +7,7 @@ from evox.operators.crossover import simulated_binary
 from evox.operators.mutation import polynomial_mutation
 from evox.operators.sampling import uniform_sampling
 from evox.operators.selection import ref_vec_guided
-from evox.utils import clamp, nanmax, nanmin
+from evox.utils import clamp, nanmax, nanmin, randint
 
 
 class RVEA(Algorithm):
@@ -69,6 +69,8 @@ class RVEA(Algorithm):
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
 
+        self.rv_adapt_every = Mutable(torch.max(torch.round(1 / self.fr), torch.tensor(1.0)))
+
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -102,6 +104,7 @@ class RVEA(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
+        self.rv_adapt_every = torch.max(torch.round(1 / self.fr), torch.tensor(1.0))
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -115,8 +118,8 @@ class RVEA(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
-        mating_pool = torch.randint(0, self.pop_size, (self.pop_size,), device=self.pop.device) % num_valid
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), self.pop_size)
+        mating_pool = randint(0, num_valid, (self.pop_size,), device=self.pop.device)
+        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), torch.iinfo(torch.int32).max)
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
@@ -126,7 +129,7 @@ class RVEA(Algorithm):
         self.fit = survivor_fit
 
         self.reference_vector = torch.cond(
-            self.gen % (1 / self.fr).type(torch.int) == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
+            self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
         )
 
     def step(self):

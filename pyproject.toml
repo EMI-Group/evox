@@ -15,11 +15,10 @@ authors = [
 ]
 description = "evox"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "GPL-3.0-or-later"
 requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
@@ -37,12 +36,16 @@ vis = [
 neuroevolution = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
+  "playground >= 0.0.4",
+  "imageio >= 2.0.0",
 ]
 
 test = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
   "plotly >= 5.0.0",
+  "playground >= 0.0.4",
+  "imageio >= 2.0.0",
 ]
 
 docs = [

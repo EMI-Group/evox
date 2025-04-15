@@ -5,57 +5,37 @@ import torch
 import torch.nn as nn
 
 from evox.algorithms import DE, PSO
-from evox.core import compile
 from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
-from evox.problems.neuroevolution.brax import BraxProblem
+from evox.problems.neuroevolution.mujoco_playground import MujocoProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 
 
-class SimpleCNN(nn.Module):
+class SimpleMLP(nn.Module):
     def __init__(self):
-        super(SimpleCNN, self).__init__()
-        self.features = nn.Sequential(nn.Linear(11, 4), nn.Tanh(), nn.Linear(4, 3))
+        super(SimpleMLP, self).__init__()
+        self.features = nn.Sequential(nn.Linear(25, 8), nn.Tanh(), nn.Linear(8, 5))
 
     def forward(self, x):
         x = self.features(x)
-        return x
+        return torch.tanh(x)
 
 
 def test_model(model, device):
-    inputs = torch.rand(1, 11, device=device)
+    inputs = torch.rand(1, 25, device=device)
     outputs = model(inputs)
     print("Test model output:", outputs)
 
 
-def neuroevolution_process(
-    workflow: StdWorkflow,
-    adapter: ParamsAndVector,
-    max_generation,
-) -> None:
-    for index in range(max_generation):
-        print(f"In generation {index}:")
-        t = time.time()
-        workflow.step()
-
-    print(f"\tTime elapsed: {time.time() - t: .4f}(s).")
-    monitor: EvalMonitor = workflow.get_submodule("monitor")
-    print(f"\tTop fitness: {monitor.topk_fitness}")
-    best_params = adapter.to_params(monitor.topk_solutions[0])
-    print(f"\tBest params: {best_params}")
-
-    return best_params
-
-
-class TestBraxProblem(unittest.TestCase):
+class TestMujocoProblem(unittest.TestCase):
     def setUp(self):
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         seed = 1234
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
 
-    def test_brax_problem(self):
-        model = SimpleCNN().to(self.device)
+    def test_mujoco_problem(self):
+        model = SimpleMLP().to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         total_params = sum(p.numel() for p in model.parameters())
@@ -66,13 +46,13 @@ class TestBraxProblem(unittest.TestCase):
         adapter = ParamsAndVector(dummy_model=model)
         model_params = dict(model.named_parameters())
         pop_center = adapter.to_vector(model_params)
-        lower_bound = pop_center - 1
-        upper_bound = pop_center + 1
+        lower_bound = torch.full_like(pop_center, -5)
+        upper_bound = torch.full_like(pop_center, 5)
 
         POP_SIZE = 10
-        problem = BraxProblem(
+        problem = MujocoProblem(
             policy=model,
-            env_name="hopper",
+            env_name="SwimmerSwimmer6",
             max_episode_length=100,
             num_episodes=3,
             pop_size=POP_SIZE,
@@ -100,7 +80,9 @@ class TestBraxProblem(unittest.TestCase):
             device=self.device,
         )
 
-        for index in range(3):
+        # Running for a fixed number of generations
+        max_generation = 3
+        for index in range(max_generation):
             print(f"In generation {index}:")
             t = time.time()
             workflow.step()
@@ -112,8 +94,8 @@ class TestBraxProblem(unittest.TestCase):
 
         problem.visualize(best_params)
 
-    def test_compiled_brax_problem(self):
-        model = SimpleCNN().to(self.device)
+    def test_compiled_mujoco_problem(self):
+        model = SimpleMLP().to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         total_params = sum(p.numel() for p in model.parameters())
@@ -124,13 +106,13 @@ class TestBraxProblem(unittest.TestCase):
         adapter = ParamsAndVector(dummy_model=model)
         model_params = dict(model.named_parameters())
         pop_center = adapter.to_vector(model_params)
-        lower_bound = pop_center - 1
-        upper_bound = pop_center + 1
+        lower_bound = torch.full_like(pop_center, -5)
+        upper_bound = torch.full_like(pop_center, 5)
 
         POP_SIZE = 5
-        problem = BraxProblem(
+        problem = MujocoProblem(
             policy=model,
-            env_name="hopper",
+            env_name="SwimmerSwimmer6",
             max_episode_length=10,
             num_episodes=3,
             pop_size=POP_SIZE,
@@ -157,7 +139,8 @@ class TestBraxProblem(unittest.TestCase):
             solution_transform=adapter,
             device=self.device,
         )
-        compiled_step = compile(workflow.step)
+
+        compiled_step = torch.compile(workflow.step)
 
         for index in range(3):
             print(f"In generation {index}:")
@@ -169,28 +152,29 @@ class TestBraxProblem(unittest.TestCase):
         best_params = adapter.to_params(monitor.topk_solutions[0])
         print(f"\tBest params: {best_params}")
 
-        problem.visualize(best_params)
+        problem.visualize(best_params, output_type="gif")
 
-    def test_hpo_brax_problem(self):
-        model = SimpleCNN().to(device=self.device)
+    def test_hpo_mujoco_problem(self):
+        model = SimpleMLP().to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         total_params = sum(p.numel() for p in model.parameters())
         print(f"Total number of model parameters: {total_params}")
+        test_model(model, self.device)
         print()
 
-        adapter = ParamsAndVector(dummy_model=model).to(device=self.device)
+        adapter = ParamsAndVector(dummy_model=model)
         model_params = dict(model.named_parameters())
         pop_center = adapter.to_vector(model_params)
-        lower_bound = pop_center - 1
-        upper_bound = pop_center + 1
+        lower_bound = torch.full_like(pop_center, -5)
+        upper_bound = torch.full_like(pop_center, 5)
 
         POP_SIZE = 17
         OUTER_POP = 7
-        problem = BraxProblem(
+        problem = MujocoProblem(
             policy=model,
-            env_name="hopper",
-            max_episode_length=10,
+            env_name="SwimmerSwimmer6",
+            max_episode_length=1000,
             num_episodes=3,
             pop_size=POP_SIZE * OUTER_POP,
             device=self.device,
@@ -214,7 +198,9 @@ class TestBraxProblem(unittest.TestCase):
             device=self.device,
         )
 
-        outer_prob = HPOProblemWrapper(10, num_instances=OUTER_POP, workflow=workflow, copy_init_state=False)
+        outer_prob = HPOProblemWrapper(
+            10, num_instances=OUTER_POP, workflow=workflow, copy_init_state=False
+        )
         outer_algo = DE(
             OUTER_POP,
             lb=torch.zeros(3, device=self.device),
@@ -231,7 +217,7 @@ class TestBraxProblem(unittest.TestCase):
             },
             device=self.device,
         )
-        compiled_step = compile(outer_workflow.step)
+        compiled_step = torch.compile(outer_workflow.step)
         compiled_step()
 
         for index in range(3):

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import torch
 
-from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA, HypE
+from evox.algorithms import MOEAD, NSGA2, NSGA3, RVEA, HypE, RVEAa
 from evox.core import Algorithm, compile, use_state, vmap
 from evox.problems.numerical import DTLZ2
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -25,9 +25,9 @@ class MOTestBase(TestCase):
         monitor = EvalMonitor(multi_obj=True, full_sol_history=True)
         workflow = StdWorkflow(algo, prob, monitor=monitor)
         workflow.init_step()
-        jit_state_step = compile(workflow.step)
+        jit_step = compile(workflow.step, dynamic=False)
         for _ in range(3):
-            jit_state_step()
+            jit_step()
 
         monitor.get_pf()
         monitor.get_pf_fitness()
@@ -46,6 +46,9 @@ class MOTestBase(TestCase):
 
 class TestMOVariants(MOTestBase):
     def setUp(self):
+        torch.compiler.reset()
+        torch.manual_seed(42)
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         pop_size = 20
         dim = 10
         lb = -torch.ones(dim)
@@ -56,6 +59,7 @@ class TestMOVariants(MOTestBase):
             RVEA(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             MOEAD(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
             HypE(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
+            RVEAa(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
         ]
 
     def test_moea_variants(self):
