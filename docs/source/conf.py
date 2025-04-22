@@ -38,7 +38,8 @@ extensions = [
     "sphinx_design",
     "sphinx_favicon",
     "sphinxcontrib.mermaid",
-    "myst_nb",
+    "nbsphinx",
+    "myst_parser",
 ]
 
 autodoc2_packages = [
@@ -124,6 +125,7 @@ numpydoc_show_class_members = False
 autosummary_generate = True
 autosummary_imported_members = True
 nb_execution_mode = "off"
+nbsphinx_execute = "never"
 myst_enable_extensions = ["dollarmath", "fieldlist", "linkify"]
 locale_dirs = ["locale/"]
 gettext_compact = "docs"
