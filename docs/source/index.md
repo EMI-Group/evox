@@ -1,18 +1,24 @@
 # Welcome to EvoX's documentation!
 
+````{only} language == 'zh'
 ```{toctree}
 :caption: 'Tutorial'
 :maxdepth: 1
 :hidden:
 
-tutorial/tutorial_part1
-tutorial/tutorial_part2
-tutorial/tutorial_part3
-tutorial/tutorial_part4
-tutorial/tutorial_part5
-tutorial/tutorial_part6
-tutorial/tutorial_part7
+zh/tutorial/index
 ```
+````
+
+````{only} language == 'en'
+```{toctree}
+:caption: 'Tutorial'
+:maxdepth: 1
+:hidden:
+
+tutorial/index
+```
+````
 
 
 ```{toctree}
