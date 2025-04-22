@@ -2,10 +2,11 @@ __all__ = ["BraxProblem"]
 
 import copy
 import weakref
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Tuple
 
 import jax
 import jax.numpy as jnp
+import numpy
 import torch
 import torch.nn as nn
 import torch.utils.dlpack
@@ -313,22 +314,14 @@ class BraxProblem(Problem):
     @torch.compiler.disable
     def _evaluate_brax_record(
         self,
+        key: torch.Tensor,
         model_state: Dict[str, torch.Tensor],
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor, List[Any]]:
-        key = to_jax_array(self.key)
-        # For each episode, we need a different random key.
-        # For each individual in the population, we need the same set of keys.
-        # Loop until environment stops
-        if self.rotate_key:
-            key, eval_key = jax.random.split(key)
-        else:
-            key, eval_key = key, key
-
-        keys = eval_key
+        key = to_jax_array(key)
         done = jnp.zeros((), dtype=bool)
         total_reward = jnp.zeros(())
         counter = 0
-        brax_state = self.brax_reset(keys)
+        brax_state = self.brax_reset(key)
         trajectory = [brax_state.pipeline_state]
 
         while counter < self.max_episode_length and ~done.all():
@@ -339,7 +332,6 @@ class BraxProblem(Problem):
             counter += 1
             trajectory.append(brax_state.pipeline_state)
         # Return
-        self.key = from_jax_array(key, self.device)
         total_reward = from_jax_array(total_reward, self.device)
         return model_state, total_reward, trajectory
 
@@ -371,15 +363,17 @@ class BraxProblem(Problem):
     def visualize(
         self,
         weights: Dict[str, nn.Parameter],
-        seed: int = 0,
-        output_type: str = "HTML",
-        *args,
+        seed: int | None = None,
+        output_type: Literal["HTML", "rbg_array"] = "HTML",
+        /,
         **kwargs,
-    ) -> str | torch.Tensor:
+    ) -> str | Sequence[numpy.ndarray] | numpy.ndarray:
         """Visualize the brax environment with the given policy and weights.
 
         :param weights: The weights of the policy model. Which is a dictionary of parameters.
+        :param seed: The seed used to create a PRNGKey for the brax environment. When None, use the current key. Default to None.
         :param output_type: The output type of the visualization, "HTML" or "rgb_array". Default to "HTML".
+        :param kwargs: Additional arguments to be passed to the visualization function.
 
         :return: The visualization output.
         """
@@ -388,10 +382,20 @@ class BraxProblem(Problem):
             "rgb_array",
         ], "output_type must be either HTML or rgb_array"
         model_state = self.init_state | weights
+        seed = seed or kwargs.get("seed")
+        output_type = output_type or kwargs.get("output_type")
+        if "seed" in kwargs:
+            del kwargs["seed"]
+        if "output_type" in kwargs:
+            del kwargs["output_type"]
         # Brax environment evaluation
-        model_state, _rewards, trajectory = self._evaluate_brax_record(model_state)
+        if seed is None:
+            key = self.key
+        else:
+            key = from_jax_array(jax.random.PRNGKey(seed), self.device)
+        model_state, _, trajectory = self._evaluate_brax_record(key, model_state)
         trajectory = [brax_state for brax_state in trajectory]
         if output_type == "HTML":
-            return html.render(self.env_sys, trajectory, *args, **kwargs)
+            return html.render(self.env_sys, trajectory, **kwargs)
         else:
             return image.render_array(self.env_sys, trajectory, **kwargs)

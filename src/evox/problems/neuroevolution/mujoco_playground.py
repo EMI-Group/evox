@@ -2,9 +2,8 @@ __all__ = ["MujocoProblem"]
 
 import copy
 import weakref
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
-import imageio
 import jax
 import jax.numpy as jnp
 import torch
@@ -63,13 +62,11 @@ def _evaluate_mjx_main(
     # check the pop_size in the inputs
     # Take a parameter and check its size
     actual_pop_size = model_state[0].size(0)
-    assert (
-        actual_pop_size == pop_size
-    ), f"The actual population size must match the pop_size parameter when creating BraxProblem. Expected: {pop_size}, Actual: {actual_pop_size}"
-    device = model_state[0].device
-    vmap_mjx_reset, vmap_mjx_step, vmap_state_forward, state_keys = __mjx_data__.get(
-        env_id
+    assert actual_pop_size == pop_size, (
+        f"The actual population size must match the pop_size parameter when creating BraxProblem. Expected: {pop_size}, Actual: {actual_pop_size}"
     )
+    device = model_state[0].device
+    vmap_mjx_reset, vmap_mjx_step, vmap_state_forward, state_keys = __mjx_data__.get(env_id)
     model_state = {k: v.clone() for k, v in zip(state_keys, model_state)}
 
     key = to_jax_array(key)
@@ -82,9 +79,7 @@ def _evaluate_mjx_main(
         key, eval_key = key, key
 
     keys = jax.random.split(eval_key, num_episodes)
-    keys = jnp.broadcast_to(keys, (pop_size, *keys.shape)).reshape(
-        pop_size * num_episodes, -1
-    )
+    keys = jnp.broadcast_to(keys, (pop_size, *keys.shape)).reshape(pop_size * num_episodes, -1)
     done = jnp.zeros((pop_size * num_episodes,), dtype=bool)
     total_reward = jnp.zeros((pop_size * num_episodes,))
     counter = 0
@@ -96,9 +91,7 @@ def _evaluate_mjx_main(
             if "state" in obs:
                 obs = obs["state"]
             else:
-                raise ImportError(
-                    f"This Pytree observation space is not supported yet: {obs}"
-                )
+                raise ImportError(f"This Pytree observation space is not supported yet: {obs}")
         model_state, action = vmap_state_forward(
             model_state,
             from_jax_array(obs, device).view(pop_size, num_episodes, -1),
@@ -127,9 +120,7 @@ def _evaluate_mjx(
     key: torch.Tensor,
     model_state: List[torch.Tensor],
 ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
-    return _evaluate_mjx_main(
-        env_id, pop_size, rotate_key, num_episodes, max_episode_length, key, model_state
-    )
+    return _evaluate_mjx_main(env_id, pop_size, rotate_key, num_episodes, max_episode_length, key, model_state)
 
 
 @_evaluate_mjx.register_fake
@@ -162,17 +153,11 @@ def _evaluate_mjx_vmap_main(
     model_state: List[torch.Tensor],
 ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
     # flatten vmap dim and pop dim
-    model_state = [
-        (v if d is None else v.movedim(d, 0).flatten(0, 1))
-        for d, v in zip(in_dim, model_state)
-    ]
+    model_state = [(v if d is None else v.movedim(d, 0).flatten(0, 1)) for d, v in zip(in_dim, model_state)]
     key, model_state, reward = _evaluate_mjx_main(
         env_id, pop_size, rotate_key, num_episodes, max_episode_length, key, model_state
     )
-    model_state = [
-        (v if d is None else v.unflatten(0, (batch_size, -1)))
-        for d, v in zip(in_dim, model_state)
-    ]
+    model_state = [(v if d is None else v.unflatten(0, (batch_size, -1))) for d, v in zip(in_dim, model_state)]
     reward = reward.unflatten(0, (batch_size, -1))
     return key, model_state, reward
 
@@ -335,22 +320,14 @@ class MujocoProblem(Problem):
     @torch.compiler.disable
     def _evaluate_mjx_record(
         self,
+        key: torch.Tensor,
         model_state: Dict[str, torch.Tensor],
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor, List[Any]]:
-        key = to_jax_array(self.key)
-        # For each episode, we need a different random key.
-        # For each individual in the population, we need the same set of keys.
-        # Loop until environment stops
-        if self.rotate_key:
-            key, eval_key = jax.random.split(key)
-        else:
-            key, eval_key = key, key
-
-        keys = eval_key
+        key = to_jax_array(key)
         done = jnp.zeros((), dtype=bool)
         total_reward = jnp.zeros(())
         counter = 0
-        mjx_state = self.vis_mjx_reset(keys)
+        mjx_state = self.vis_mjx_reset(key)
         trajectory = [mjx_state]
 
         while counter < self.max_episode_length and ~done.all():
@@ -359,19 +336,14 @@ class MujocoProblem(Problem):
                 if "state" in obs:
                     obs = obs["state"]
                 else:
-                    raise ImportError(
-                        f"This Pytree observation space is not supported yet: {obs}"
-                    )
-            model_state, action = self.state_forward(
-                model_state, from_jax_array(obs, self.device)
-            )
+                    raise ImportError(f"This Pytree observation space is not supported yet: {obs}")
+            model_state, action = self.state_forward(model_state, from_jax_array(obs, self.device))
             mjx_state = self.vis_mjx_step(mjx_state, to_jax_array(action))
             done = mjx_state.done * (1 - done)
             total_reward += (1 - done) * mjx_state.reward
             counter += 1
             trajectory.append(mjx_state)
         # Return
-        self.key = from_jax_array(key, self.device)
         total_reward = from_jax_array(total_reward, self.device)
         return model_state, total_reward, trajectory
 
@@ -403,40 +375,51 @@ class MujocoProblem(Problem):
     def visualize(
         self,
         weights: Dict[str, nn.Parameter],
-        seed: int = 0,
-        output_type: str = "mp4",
-        *args,
+        seed: int | None = None,
+        output_type: Literal["mp4", "gif"] = "mp4",
+        output_path: str = "output_video",
+        /,
         **kwargs,
-    ) -> str | torch.Tensor:
+    ) -> str:
         """Visualize the brax environment with the given policy and weights.
 
         :param weights: The weights of the policy model. Which is a dictionary of parameters.
-        :param output_type: The output type of the visualization, "HTML" or "rgb_array". Default to "HTML".
+        :param seed: The seed used to create a PRNGKey for the brax environment. When None, use the current key. Default to None.
+        :param output_type: The output type of the visualization, "mp4" or "gif". Default to "mp4".
+        :param output_path: The path to save the output video. Default to "output_video".
+        :param kwargs: Additional arguments to be passed to the `MjxEnv.render()` function.
 
-        :return: The visualization output.
+        :return: The path to the saved file.
         """
+        import imageio
+
         assert output_type in ["mp4", "gif"], "output_type must be either mp4 or gif"
         model_state = self.init_state | weights
+        seed = seed or kwargs.get("seed")
+        output_type = output_type or kwargs.get("output_type")
+        output_path = output_path or kwargs.get("output_path")
+        if "seed" in kwargs:
+            del kwargs["seed"]
+        if "output_type" in kwargs:
+            del kwargs["output_type"]
+        if "output_path" in kwargs:
+            del kwargs["output_path"]
         # mjx environment evaluation
-        model_state, _rewards, trajectory = self._evaluate_mjx_record(model_state)
+        if seed is None:
+            key = self.key
+        else:
+            key = from_jax_array(jax.random.PRNGKey(seed), self.device)
+        model_state, _, trajectory = self._evaluate_mjx_record(key, model_state)
         render_every = 1
         fps = 1.0 / self.visual_env.dt / render_every
         print(f"fps: {fps}")
         # trajectory = [mjx_state for mjx_state in trajectory]
         trajectory = trajectory[::render_every]
-        frames = self.visual_env.render(
-            trajectory=trajectory,
-            height=480,
-            width=640,
-            camera="tracking1",
-        )
-        output_path = f"output_video.{output_type}"
+        kwargs = {"height": 480, "width": 640, "camera": "tracking1", **kwargs}
+        frames = self.visual_env.render(trajectory, **kwargs)
+        output_path = f"{output_path}.{output_type}"
         if output_type == "mp4":
-            # mediapy.show_video(frames, fps=fps)
             imageio.mimsave(output_path, frames, fps=fps, codec="libx264", format="mp4")
-            print(f"Video saved at {output_path}")
         elif output_type == "gif":
-            imageio.mimsave(output_path, frames, *args, **kwargs)
-            print(f"Gif saved at {output_path}")
-        else:
-            print("Not support file type.")
+            imageio.mimsave(output_path, frames, format="gif")
+        return output_path
