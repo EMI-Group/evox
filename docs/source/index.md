@@ -18,7 +18,7 @@ guide/experimental/index
 :hidden:
 
 apidocs/index
-Examples <example/index>
+Examples <examples/index>
 Miscellaneous <miscellaneous/index>
 ```
 
