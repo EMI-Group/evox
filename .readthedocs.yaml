@@ -10,6 +10,8 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.11"
+  apt_packages:
+    - pandoc
   jobs:
     pre_build:
       # If language is not "en", override the tutorials with the language-specific ones
@@ -39,4 +41,3 @@ python:
       path: .
       extra_requirements:
         - docs
-    - requirements: extra-build-requirements.txt
