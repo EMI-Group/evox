@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 1. Introduction
+# 1. Introduction
 
 ### What is EvoX?
 

@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 6. Troubleshooting and Optimization
+# 6. Troubleshooting and Optimization
 
 When using EvoX, you may encounter issues or want to fine-tune your algorithms. This chapter outlines common problems and solutions, along with debugging strategies and performance tuning tips to help you resolve issues and optimize your experience.
 

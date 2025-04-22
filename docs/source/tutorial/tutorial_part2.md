@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 2. Installation and Environment Setup
+# 2. Installation and Environment Setup
 
 Before using EvoX, you need to properly install the software and its dependencies. This chapter covers installation steps for both Windows and Linux, as well as how to prepare and configure the required dependencies. Make sure you meet the basic system requirements before installation: **Python 3.10+**, sufficient disk space, and optionally a supported GPU with the appropriate driver.
 

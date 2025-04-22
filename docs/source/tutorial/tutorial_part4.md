@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 4. Advanced Features
+# 4. Advanced Features
 
 EvoX offers many **advanced features** to meet more complex needs. After getting familiar with the basics, this chapter introduces how to customize the framework configuration, manage optional plugin modules, and optimize performance—enabling you to extend and tune EvoX when necessary.
 

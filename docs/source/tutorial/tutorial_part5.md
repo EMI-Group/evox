@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 5. Development and Extension
+# 5. Development and Extension
 
 EvoX not only offers out-of-the-box functionality but also provides developers and advanced users with a rich set of interfaces for custom development and extended integration. This chapter details how to implement custom algorithms and problems, how to utilize EvoX's APIs for deeper control, and how to integrate EvoX with other tools to build more complex applications.
 

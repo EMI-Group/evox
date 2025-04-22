@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 3. Configuring an EvoX Project
+# 3. Configuring an EvoX Project
 
 In the example above, we've created a basic configuration for an EvoX project, including selecting an algorithm, defining the problem, and assembling the workflow. Generally, configuring an EvoX project involves the following steps:
 

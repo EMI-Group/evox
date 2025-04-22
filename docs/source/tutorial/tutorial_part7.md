@@ -1,6 +1,4 @@
-# EvoX Tutorial
-
-## 7. Practical Examples
+# 7. Practical Examples
 
 This chapter presents several complete, practical examples to demonstrate how to apply the knowledge from previous chapters. We'll build an optimization project from scratch and showcase how EvoX can be integrated with other tools. These examples cover a range of problem types to help you apply EvoX in real-world scenarios.
 
