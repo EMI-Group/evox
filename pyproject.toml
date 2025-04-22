@@ -49,7 +49,7 @@ test = [
 ]
 
 docs = [
-  "sphinx-book-theme > 1.0",
+  "shibuya",
   "sphinx-autodoc2",
   "sphinx",
   # Use the nightly version of MyST-NB (in extra-build-requirements.txt), https://github.com/executablebooks/MyST-NB/pull/600

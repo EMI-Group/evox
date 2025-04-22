@@ -14,6 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../../src"))
+readthedocs_lang = os.environ.get("READTHEDOCS_LANGUAGE", "en")
 
 
 # -- Project information -----------------------------------------------------
@@ -73,37 +74,45 @@ autodoc_mock_imports = [
 
 # -- Options for HTML output -------------------------------------------------
 
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = ["_static"]
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+tutorial_title = "Tutorial" if readthedocs_lang == "en" else "教程"
+
 html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"]
-html_theme = "sphinx_book_theme"
+html_theme = "shibuya"
 html_logo = "_static/evox_logo_light.png"
+html_context = {
+    "languages": [
+        ("English", "/en/%s/", "en"),
+        ("中文", "/zh/%s/", "zh"),
+    ],
+}
 html_theme_options = {
+    "light_logo": "_static/evox_logo_light.png",
+    "dark_logo": "_static/evox_logo_dark.png",
+    "nav_links": [
+        {
+            "title": tutorial_title,
+            "url": "tutorial/index",
+        },
+    ],
+    "github_url": "https://github.com/EMI-Group/evox",
     "repository_branch": "main",
     "path_to_docs": "/docs/source",
-    "repository_url": "https://github.com/EMI-Group/evox",
     "use_repository_button": True,
     "launch_buttons": {"colab_url": "https://colab.research.google.com"},
-    "logo": {
-        "image_light": "_static/evox_logo_light.png",
-        "image_dark": "_static/evox_logo_dark.png",
-        "alt_text": "EvoX logo image",
-        "text": "",
-    },
-    "pygments_light_style": "default",
-    "pygments_dark_style": "monokai",
 }
 favicons = [
     "favicon-16x16.ico",
     "favicon-32x32.ico",
 ]
 
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
 
 autodoc_typehints_format = "short"
 autodoc_typehints = "description"
