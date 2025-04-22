@@ -10,6 +10,16 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.11"
+  jobs:
+    pre_build:
+      # If language is not "en", override the tutorials with the language-specific ones
+      - name: "Pre-build"
+        command: |
+          if [ "$READTHEDOCS_LANGUAGE" != "en" ]; then
+            echo "Overriding tutorials with language-specific ones"
+            echo "READTHEDOCS_LANGUAGE: $READTHEDOCS_LANGUAGE"
+            cp -r docs/source/locale/${READTHEDOCS_LANGUAGE}/tutorial docs/source
+          fi
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

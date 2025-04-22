@@ -1,16 +1,5 @@
 # Welcome to EvoX's documentation!
 
-````{only} language == 'zh'
-```{toctree}
-:caption: 'Tutorial'
-:maxdepth: 1
-:hidden:
-
-zh/tutorial/index
-```
-````
-
-````{only} language == 'en'
 ```{toctree}
 :caption: 'Tutorial'
 :maxdepth: 1
@@ -18,8 +7,6 @@ zh/tutorial/index
 
 tutorial/index
 ```
-````
-
 
 ```{toctree}
 :caption: 'User Guide'
