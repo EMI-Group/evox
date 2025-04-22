@@ -82,6 +82,7 @@ autodoc_mock_imports = [
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
+html_file_suffix = "/"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
