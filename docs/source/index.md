@@ -1,18 +1,11 @@
 # Welcome to EvoX's documentation!
 
 ```{toctree}
-:caption: 'Tutorial'
+:caption: 'Getting Started'
 :maxdepth: 1
 :hidden:
 
 tutorial/index
-```
-
-```{toctree}
-:caption: 'User Guide'
-:maxdepth: 1
-:hidden:
-
 guide/install/index
 guide/user/index
 guide/developer/index
@@ -20,22 +13,16 @@ guide/experimental/index
 ```
 
 ```{toctree}
-:caption: 'API Reference'
-:maxdepth: 1
-:hidden:
-apidocs/index
-```
-
-```{toctree}
 :caption: 'Additional Resources'
 :maxdepth: 2
 :hidden:
 
+apidocs/index
 Examples <example/index>
 Miscellaneous <miscellaneous/index>
 ```
 
-[[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh/latest/)
+[[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh-cn/latest/)
 
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
 
