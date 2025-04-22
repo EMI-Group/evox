@@ -16,6 +16,7 @@ import sys
 sys.path.insert(0, os.path.abspath("../../src"))
 readthedocs_lang = os.environ.get("READTHEDOCS_LANGUAGE", "en")
 readthedocs_ver = os.environ.get("READTHEDOCS_VERSION_NAME", "latest")
+readthedocs_canonical = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 
 
 # -- Project information -----------------------------------------------------
@@ -82,7 +83,7 @@ autodoc_mock_imports = [
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
-html_file_suffix = "/"
+html_baseurl = readthedocs_canonical
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
