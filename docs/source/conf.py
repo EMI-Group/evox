@@ -39,8 +39,9 @@ extensions = [
     "sphinx_design",
     "sphinx_favicon",
     "sphinxcontrib.mermaid",
-    "nbsphinx",
-    "myst_parser",
+    # "nbsphinx",
+    # "myst_parser",
+    "myst_nb",
 ]
 
 autodoc2_packages = [
