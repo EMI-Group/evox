@@ -274,7 +274,6 @@ class MujocoProblem(Problem):
             env,
             num_vision_envs=pop_size,
             episode_length=max_episode_length,
-            action_repeat=num_episodes,
         )
         self.visual_env = env
         # Compile mjx environment
