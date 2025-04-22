@@ -91,7 +91,7 @@ html_logo = "_static/evox_logo_light.png"
 html_context = {
     "languages": [
         ("English", "/en/%s/", "en"),
-        ("中文", "/zh/%s/", "zh"),
+        ("中文", "/zh-cn/%s/", "zh-cn"),
     ],
 }
 html_theme_options = {
