@@ -67,6 +67,7 @@ exclude_patterns = []
 # mock these modules, so we can build the document without these dependencies.
 autodoc_mock_imports = [
     "brax",
+    "mujoco_playground",
     "torchvision",
 ]
 
