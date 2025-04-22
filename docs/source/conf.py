@@ -85,6 +85,9 @@ html_static_path = ["_static"]
 # a list of builtin themes.
 #
 tutorial_title = "Tutorial" if readthedocs_lang == "en" else "教程"
+api_title = "API Doc" if readthedocs_lang == "en" else "API文档"
+example_title = "Examples" if readthedocs_lang == "en" else "示例"
+ecosystem_title = "Ecosystem" if readthedocs_lang == "en" else "生态系统"
 
 html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"]
 html_theme = "shibuya"
@@ -98,10 +101,48 @@ html_context = {
 html_theme_options = {
     "light_logo": "_static/evox_logo_light.png",
     "dark_logo": "_static/evox_logo_dark.png",
+    "og_image": "_static/evox_logo.png",
     "nav_links": [
         {
             "title": tutorial_title,
             "url": "tutorial/index",
+        },
+        {
+            "title": api_title,
+            "url": "apidocs/index",
+        },
+        {
+            "title": example_title,
+            "url": "examples/index",
+        },
+        {
+            "title": ecosystem_title,
+            "url": "https://evox.group",
+            "external": True,
+            "children": [
+                {
+                    "title": "EvoMO",
+                    "url": "https://github.com/EMI-Group/evomo",
+                },
+                {
+                    "title": "EvoRL",
+                    "url": "https://github.com/EMI-Group/evorl",
+                },
+                {
+                    "title": "EvoGP",
+                    "url": "https://github.com/EMI-Group/evogp",
+                },
+                {
+                    "title": "TensorNEAT",
+                    "url": "https://github.com/EMI-Group/tensorneat",
+                },
+                {
+                    "title": "TensorRVEA",
+                    "url": "https://github.com/EMI-Group/tensorrvea",
+                },
+                {"title": "TensorACO", "url": "https://github.com/EMI-Group/tensoraco"},
+                {"title": "EvoXBench", "url": "https://github.com/EMI-Group/evoxbench"},
+            ],
         },
     ],
     "github_url": "https://github.com/EMI-Group/evox",
