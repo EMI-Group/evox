@@ -1,4 +1,4 @@
-# EvoX Getting Started Tutorial
+# EvoX Tutorial
 
 ## 4. Advanced Features
 

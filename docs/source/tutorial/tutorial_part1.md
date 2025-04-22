@@ -1,4 +1,4 @@
-# EvoX Getting Started Guide
+# EvoX Tutorial
 
 ## 1. Introduction
 

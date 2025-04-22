@@ -1,4 +1,4 @@
-# EvoX Getting Started Guide
+# EvoX Tutorial
 
 ## 2. Installation and Environment Setup
 

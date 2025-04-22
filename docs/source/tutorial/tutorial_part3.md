@@ -1,4 +1,4 @@
-# EvoX Getting Started Tutorial
+# EvoX Tutorial
 
 ## 3. Configuring an EvoX Project
 
