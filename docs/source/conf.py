@@ -15,6 +15,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../../src"))
 readthedocs_lang = os.environ.get("READTHEDOCS_LANGUAGE", "en")
+readthedocs_ver = os.environ.get("READTHEDOCS_VERSION_NAME", "latest")
 
 
 # -- Project information -----------------------------------------------------
@@ -90,8 +91,8 @@ html_theme = "shibuya"
 html_logo = "_static/evox_logo_light.png"
 html_context = {
     "languages": [
-        ("English", "/en/%s/", "en"),
-        ("中文", "/zh-cn/%s/", "zh-cn"),
+        ("English", f"/en/{readthedocs_ver}/%s/", "en"),
+        ("中文", f"/zh-cn/{readthedocs_ver}/%s/", "zh-cn"),
     ],
 }
 html_theme_options = {
