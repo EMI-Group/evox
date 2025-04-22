@@ -81,6 +81,7 @@ autodoc_mock_imports = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -169,6 +170,7 @@ autosummary_generate = True
 autosummary_imported_members = True
 nb_execution_mode = "off"
 nbsphinx_execute = "never"
+nb_output_stderr = "remove"
 myst_enable_extensions = ["dollarmath", "fieldlist", "linkify"]
 locale_dirs = ["locale/"]
 gettext_compact = "docs"
