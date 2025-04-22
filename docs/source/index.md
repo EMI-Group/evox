@@ -3,6 +3,7 @@
 ```{toctree}
 :caption: 'Tutorial'
 :maxdepth: 1
+:hidden:
 
 tutorial/tutorial_part1
 tutorial/tutorial_part2
