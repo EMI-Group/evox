@@ -1,5 +1,18 @@
 # Welcome to EvoX's documentation!
 
+```{toctree}
+:caption: 'Tutorial'
+:maxdepth: 1
+
+tutorial/tutorial_part1
+tutorial/tutorial_part2
+tutorial/tutorial_part3
+tutorial/tutorial_part4
+tutorial/tutorial_part5
+tutorial/tutorial_part6
+tutorial/tutorial_part7
+```
+
 
 ```{toctree}
 :caption: 'User Guide'
