@@ -84,6 +84,7 @@ autodoc_mock_imports = [
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
 html_baseurl = readthedocs_canonical
+html_link_suffix = ""
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
