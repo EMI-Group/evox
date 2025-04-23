@@ -15,6 +15,7 @@ template = """Please translate the following text from a Python evolutionary alg
 - For specific terms such as class names and function names (e.g. Algorithms, Problems, jit, API), retain their original English form.
 - For python code only segments, please do not translate them, return them as they are.
 - For references to academic papers, please do not translate them, return them as they are.
+- When the input is too short to give a meaningful translation, please return the original text.
 - Maintain the same structured format (e.g. `...`, **...**, (...)[...] block) as the original text.
 - Maintain the original links and cross-references.
 - Only translate the given text, do not expand or add new content.
