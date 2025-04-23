@@ -2,7 +2,7 @@
 
 Before using EvoX, you need to properly install the software and its dependencies. This chapter covers installation steps for both Windows and Linux, as well as how to prepare and configure the required dependencies. Make sure you meet the basic system requirements before installation: **Python 3.10+**, sufficient disk space, and optionally a supported GPU with the appropriate driver.
 
-### Dependencies and Preparations
+## Dependencies and Preparations
 
 - **Python Environment**: EvoX is built on Python, so ensure Python 3.10 or higher is installed. It’s recommended to use a virtual environment (such as `venv`) to avoid dependency conflicts.
 
@@ -25,7 +25,7 @@ It’s recommended to update `pip` to the latest version and ensure a stable int
 
 Windows users can choose **automatic script installation** or **manual installation**. The official one-click installer provides an easy way to set up EvoX and its dependencies in a clean environment, but manual installation allows more control.
 
-**Option 1: Using the One-Click Installation Script (win-install.bat)**  
+**Option 1: Using the One-Click Installation Script (win-install.bat)**
 EvoX provides a [quick installation script](https://evox.readthedocs.io/en/stable/guide/install/install.html#nvidia-gpu-support-on-windows) for Windows 10/11 (64-bit). The script installs Miniforge3 (a lightweight Conda), Python, PyTorch (with CUDA), EvoX, and useful tools like VSCode and Git. To use:
 
 1. Download `win-install.bat` from the EvoX docs or GitHub. Make sure you have a [NVIDIA driver](https://www.nvidia.com/en-us/drivers/) installed and a stable internet connection.
@@ -34,7 +34,7 @@ EvoX provides a [quick installation script](https://evox.readthedocs.io/en/stabl
 
 > **Note**: If the script fails due to network issues, close it and rerun. It supports resume on failure.
 
-**Option 2: Manual Installation**  
+**Option 2: Manual Installation**
 To manually install EvoX:
 
 1. **Install GPU Driver**: Install the latest NVIDIA driver from the [official website](https://www.nvidia.cn/Download/index.aspx). If no dedicated GPU, skip this step.
@@ -67,11 +67,17 @@ Installing EvoX on Linux (e.g., Ubuntu) is straightforward and mostly handled vi
 
 2. **Install GPU Driver** (if using GPU): Use the appropriate package manager (e.g., `apt`) to install NVIDIA drivers. Verify installation with `nvidia-smi`. Skip if using CPU.
 
-   - Note: On WSL, **do not** install NVIDIA drivers inside the Linux subsystem—install them on the Windows side.
+```{note}
+On WSL, **do not** install NVIDIA drivers inside the Linux subsystem—install them on the Windows side.
+```
 
-3. **Install PyTorch**: As on Windows, install based on hardware. Refer to the [PyTorch official guide](https://pytorch.org).
+```{tip}
+It's very likely that you only need to install the driver, but do NOT need to install CUDA or other dependencies. Those libraries are already included in the PyTorch installation via pip.
+```
 
-4. **Install EvoX**:
+1. **Install PyTorch**: As on Windows, install based on hardware. Refer to the [PyTorch official guide](https://pytorch.org).
+
+2. **Install EvoX**:
 
    ```bash
    pip install evox
@@ -85,7 +91,7 @@ Installing EvoX on Linux (e.g., Ubuntu) is straightforward and mostly handled vi
 
    This installs visualization modules and neuroevolution dependencies (like Brax). You can also choose individual extras like `vis` or `neuroevolution`.
 
-### Docker Installation
+#### Container Installation (Docker, Podman)
 
 For AMD GPU users or those seeking environment isolation, Docker is recommended. For example, using the official PyTorch Docker image with ROCm:
 
@@ -95,7 +101,7 @@ docker run -it --gpus all --shm-size=8g pytorch/pytorch:rocm5.4_ubuntu20.04
 
 Inside the container, install EvoX as usual using `pip`.
 
-### Verifying EvoX Installation
+## Verifying EvoX Installation
 
 To verify that EvoX is properly installed:
 

@@ -2,7 +2,7 @@
 
 EvoX offers many **advanced features** to meet more complex needs. After getting familiar with the basics, this chapter introduces how to customize the framework configuration, manage optional plugin modules, and optimize performance—enabling you to extend and tune EvoX when necessary.
 
-### Custom Configuration
+## Custom Configuration
 
 EvoX's default settings suit most situations, but sometimes you might want to customize the framework’s behavior or parameters. For example:
 
@@ -16,13 +16,13 @@ EvoX's default settings suit most situations, but sometimes you might want to cu
 
 In summary, custom configuration means modifying EvoX’s default behavior for a specific task. This usually involves deeper usage of EvoX's API. We’ll cover more in the **development and extension** section. For beginners, just remember: EvoX offers flexible interfaces that let experienced users tweak nearly every detail—but you can also stick with defaults and get results quickly.
 
-### Plugin Management
+## Plugin Management
 
 "Plugins" here refer to optional components or extension modules in EvoX—such as visualization tools, reinforcement learning environment wrappers, and sibling projects in the EvoX ecosystem. Managing plugins in EvoX mainly involves **installing and using optional modules**. Here are some key extensions and how to manage them:
 
 - **Visualization Plugin**: EvoX includes the `evox.vis_tools` module, which contains a `plot` submodule for charting and supports the `.exv` log format for real-time data streams. To use visualization, install EvoX with the `vis` extra: `pip install evox[vis]`. (If not installed initially, you can install later or just run `pip install plotly` to satisfy dependencies.) When using visual tools, you typically call plot functions after the monitor logs data—for example, `EvalMonitor.plot()` uses `vis_tools.plot`. Ensuring this plugin is installed avoids errors from missing libraries like `matplotlib`.
 
-- **Neuroevolution Plugin**: EvoX supports reinforcement learning environments (like the Brax physics engine) and neural individual optimization (neuroevolution). These features are bundled in the `neuroevolution` extension, installed via `pip install evox[neuroevolution]`. This includes the Google Brax library, Gym, and more. After installation, you can use wrappers like `BraxProblem` in `evox.problems.neuroevolution` to turn RL environments into optimization problems. Tools like `ParamsAndVector` are also included for flattening PyTorch model parameters into vectors for evolution. Note that Brax only works on Linux or Windows via WSL—native Windows Python may only run on CPU. In short, enabling or disabling EvoX plugins is controlled via installation of specific extras.
+- **Neuroevolution Plugin**: EvoX supports reinforcement learning environments (like the Brax physics engine) and neural individual optimization (neuroevolution). These features are bundled in the `neuroevolution` extension, installed via `pip install "evox[neuroevolution]"`. This includes the Google Brax library, Gym, and more. After installation, you can use wrappers like `BraxProblem` in `evox.problems.neuroevolution` to turn RL environments into optimization problems. Tools like `ParamsAndVector` are also included for flattening PyTorch model parameters into vectors for evolution. Note that Brax only works on Linux or Windows via WSL—native Windows Python may only run on CPU. In short, enabling or disabling EvoX plugins is controlled via installation of specific extras.
 
 - **Sibling Projects**: EvoX has related projects such as EvoRL (focused on evolutionary reinforcement learning) and EvoGP (GPU-accelerated genetic programming). These share EvoX's design philosophy and interface. If your task is RL-heavy, you might prefer these dedicated frameworks. Managing these plugins means ensuring version compatibility and satisfying dependencies. For example, EvoRL uses JAX and Brax, while EvoGP may require symbolic tree libraries. These libraries can usually coexist without conflicts. Think of them as complementary tools that can be called from the main EvoX project—or left out entirely for a lean setup.
 
@@ -30,7 +30,7 @@ In summary, custom configuration means modifying EvoX’s default behavior for a
 
 Overall, plugin management in EvoX is about **flexible extension and dependency control**. As a beginner, during installation, you can decide whether to include the `vis` and `neuroevolution` extensions. If not initially installed, they can be added later. With plugins, you can monitor optimization progress more easily and integrate EvoX with external tools for greater power.
 
-### Performance Optimization
+## Performance Optimization
 
 Performance is a major strength of EvoX. Even using the same algorithm, EvoX’s GPU support can boost speed by several orders of magnitude. However, to fully tap into this, you'll want to follow a few tips:
 
@@ -44,7 +44,10 @@ Performance is a major strength of EvoX. Even using the same algorithm, EvoX’s
   jit_state_step = torch.compile(workflow.step())
   ```
 
-  This can significantly improve performance. Note: compilation adds overhead and isn’t always supported by all functions or problems. Best suited for large-scale, long-running tasks. On Windows, ensure Triton is installed for `torch.compile` to work.
+  This could significantly improve performance.
+  ```{note}
+  Compilation adds overhead and isn’t always supported by all functions or problems. Best suited for large-scale, long-running tasks. On Windows, ensure Triton is installed for `torch.compile` to work.
+  ```
 
 - **Tune Population Size**: A larger population increases diversity and global search ability—but also increases per-generation computation. Balance quality and speed by tuning `pop_size`. On GPU, you can often increase it without a linear time cost (thanks to parallelism). But too large a size can cause memory issues. If you’re running out of GPU memory, reduce population size or problem dimension, or use FP16 to save space (set via `torch.set_float32_matmul_precision('medium')`).
 

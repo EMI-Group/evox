@@ -2,11 +2,11 @@
 
 EvoX not only offers out-of-the-box functionality but also provides developers and advanced users with a rich set of interfaces for custom development and extended integration. This chapter details how to implement custom algorithms and problems, how to utilize EvoX's APIs for deeper control, and how to integrate EvoX with other tools to build more complex applications.
 
-### 5.1 Developing Custom Modules
+## 5.1 Developing Custom Modules
 
 Sometimes the problem you’re solving or the algorithm you want to use isn’t included in EvoX’s standard library. In such cases, you can develop custom modules using the interfaces EvoX provides.
 
-#### 5.1.1 Custom Problems (MyProblem)
+### 5.1.1 Custom Problems (MyProblem)
 
 If your objective function isn’t available in `evox.problems`, you can define your own by inheriting from the `evox.core.Problem` base class (or conforming to the required interface). A typical problem class needs to implement an `evaluate` function, which receives a batch of solutions (`pop`) and returns the corresponding fitness/objective values. To leverage parallel computation, EvoX requires that `evaluate` support **batch input**.
 
@@ -60,7 +60,7 @@ problem = MyProblem()
 initial_fitness = problem.evaluate(initial_pop)
 ```
 
-#### 5.1.2 Custom Algorithms (MyAlgorithm)
+### 5.1.2 Custom Algorithms (MyAlgorithm)
 
 Creating a custom algorithm is more involved, as it includes initialization, generating new solutions, and selection. To create a new algorithm, inherit from `evox.core.Algorithm` and implement at least:
 
@@ -162,15 +162,15 @@ for i in range(10):
     workflow.step()
 ```
 
-#### 5.1.3 Custom Other Modules
+### 5.1.3 Custom Other Modules
 
 You can also customize `Monitor`, `Operator`, or any module in EvoX. For example, implement a `MyMonitor` to record population diversity or create a `MyOperator` for custom crossover/mutation strategies. Refer to existing base classes and examples to understand which methods to override.
 
-### 5.2 Using the API
+## 5.2 Using the API
 
 EvoX organizes its APIs into modules, making it easy to extend and combine components.
 
-#### 5.2.1 Algorithms and Problems
+### 5.2.1 Algorithms and Problems
 
 - **Algorithms**: Found in `evox.algorithms.so` (single-objective) and `evox.algorithms.mo` (multi-objective).
 
@@ -214,7 +214,7 @@ hpo_problem = HPOProblemWrapper(
 )
 ```
 
-#### 5.2.2 Workflows and Tools
+### 5.2.2 Workflows and Tools
 
 - **Workflows**: `evox.workflows.StdWorkflow` for basic optimization loops.
 - **Monitors**: `EvalMonitor` for tracking performance.
@@ -238,11 +238,11 @@ igd_value = igd(current_population, true_pareto_front)
 
 - **PyTorch Interoperability**: Seamless integration with `torch.nn`, `torch.Tensor`, etc.
 
-### 5.3 Integration with Other Tools
+## 5.3 Integration with Other Tools
 
 EvoX is designed to integrate easily with external tools.
 
-#### 5.3.1 Machine Learning Integration
+### 5.3.1 Machine Learning Integration
 
 Use EvoX to tune hyperparameters:
 
@@ -251,7 +251,7 @@ Use EvoX to tune hyperparameters:
 3. Optimize hyperparameters over multiple runs.
 4. Train final model with the best parameters.
 
-#### 5.3.2 Reinforcement Learning Integration
+### 5.3.2 Reinforcement Learning Integration
 
 Use EvoX to evolve neural network policies:
 

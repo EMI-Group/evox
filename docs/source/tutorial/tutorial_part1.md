@@ -1,12 +1,12 @@
 # 1. Introduction
 
-### What is EvoX?
+## What is EvoX?
 
 EvoX is an open-source evolutionary computation library developed by the EMI-Group, mainly used to solve various complex optimization problems. Evolutionary computation is a category of algorithms that simulate natural evolution to search for optimal solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), Particle Swarm Optimization (PSO), etc.
 
 Traditional evolutionary frameworks are often limited by computational resources and programming models, making them inefficient for large-scale problems. EvoX overcomes these challenges by combining **GPU acceleration** and **distributed computing**, offering an efficient and scalable solution that allows users to find better solutions faster in complex search spaces.
 
-### Key Features of EvoX
+## Key Features of EvoX
 
 - **Modular Architecture**: EvoX breaks down the optimization process into independent modules: Algorithm, Problem, Monitor, and Workflow. Users don’t need to worry about low-level parallel implementations—EvoX automatically leverages hardware to boost performance.
 - **Distributed Execution**: EvoX supports multi-GPU and even multi-node distributed execution. The same code can run on a single machine or scale up to a GPU cluster with little to no additional parallel programming effort. This means your optimization tasks can easily scale from a laptop to a server cluster environment.
@@ -14,7 +14,7 @@ Traditional evolutionary frameworks are often limited by computational resources
 - **Visualization and Monitoring**: EvoX includes rich visualization tools and monitoring modules to track the evolutionary process in real time. It uses a dedicated `.exv` data format for efficient streaming and logging of optimization data and provides user-friendly visualization modules to plot convergence curves and more. These tools give users an intuitive understanding of algorithm performance and convergence status.
 - **Extensive Algorithm and Problem Libraries**: EvoX includes over 50 single- and multi-objective evolutionary algorithms and over 100 benchmark optimization problems. Whether it’s classical function optimization, complex engineering challenges, or machine learning tasks like hyperparameter optimization (HPO) and neuroevolution, EvoX provides ready-to-use algorithms and problem interfaces out of the box.
 
-### Use Cases
+## Use Cases
 
 Thanks to the above features, EvoX is especially suitable for the following scenarios:
 
@@ -25,3 +25,7 @@ Thanks to the above features, EvoX is especially suitable for the following scen
 - **Academic Research and Engineering Applications**: For researchers in evolutionary algorithms, EvoX offers a highly flexible platform to implement and test new methods. For engineering optimization tasks (like tuning industrial process parameters or adjusting control systems), EvoX provides a high-performance solver that can obtain near-optimal solutions within a reasonable time frame.
 
 In summary, EvoX is suitable for any optimization task that **requires exploring a large solution space quickly**, as long as the task can be massively parallelized on a GPU. Whether you’re an AI researcher or an engineering developer facing complex optimization problems, EvoX is a powerful tool to improve your solving efficiency.
+
+```{tip}
+EvoX can run on many GPU devices, including NVIDIA GPUs and AMD GPUs, or even the GPU in your Mac.
+```

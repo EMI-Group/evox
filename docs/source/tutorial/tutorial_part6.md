@@ -4,7 +4,7 @@ When using EvoX, you may encounter issues or want to fine-tune your algorithms. 
 
 ---
 
-### 6.1 Common Issues and Solutions
+## 6.1 Common Issues and Solutions
 
 Here are some frequently encountered problems and how to address them:
 
@@ -68,7 +68,7 @@ Here are some frequently encountered problems and how to address them:
 
 ---
 
-### 6.2 Debugging Tips
+## 6.2 Debugging Tips
 
 Debugging evolutionary algorithms can be tricky due to their stochastic nature. Here are practical tips:
 
@@ -111,7 +111,7 @@ Overall, debugging EvoX projects requires a balance of correctness checks and re
 
 ---
 
-### 6.3 Performance Tuning Guide
+## 6.3 Performance Tuning Guide
 
 These tips help you squeeze more speed and quality from EvoX:
 

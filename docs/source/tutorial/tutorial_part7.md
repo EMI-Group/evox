@@ -4,7 +4,7 @@ This chapter presents several complete, practical examples to demonstrate how to
 
 ---
 
-### Example 1: Single-Objective Optimization
+## Example 1: Single-Objective Optimization
 
 **Problem**: Optimize the classic Rastrigin function:
 
@@ -81,7 +81,7 @@ The PSO algorithm finds a near-optimal solution close to the origin, as expected
 
 ---
 
-### Example 2: Multi-Objective Optimization
+## Example 2: Multi-Objective Optimization
 
 **Problem**: Minimize two objectives:
 
@@ -172,7 +172,7 @@ monitor.plot()
 
 ---
 
-### Example 3: Hyperparameter Optimization (HPO)
+## Example 3: Hyperparameter Optimization (HPO)
 
 **Problem**: Tune `C` and `max_iter` of a logistic regression classifier on the breast cancer dataset to maximize validation accuracy.
 

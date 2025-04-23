@@ -1,4 +1,63 @@
-# 3. Configuring an EvoX Project
+# 3. Basic Operations
+
+In this chapter, we will guide you through running your first EvoX optimization task, including how to **start EvoX** and **initialize the optimization process**, how to **configure an EvoX project** (selecting algorithms and problems and assembling them), and the commonly used **basic commands** (or methods) to control the optimization process. Through a simple example, you will learn the basic usage of EvoX.
+
+## Starting and Initializing
+
+After verifying the installation, you can start writing optimization scripts using EvoX. You can import EvoX in any Python environment (such as terminal, Jupyter Notebook, IDE, etc.).
+
+First, let’s import EvoX and its related modules, and initialize a simple optimization task. For example, we will use the Particle Swarm Optimization (PSO) algorithm to optimize the classic Ackley function. The Ackley function is a common benchmark function with a known global optimum at \((0,0,\dots,0)\), making it suitable for demonstration.
+Here is a minimal EvoX example code that demonstrates how to start and run the optimization:
+
+```python
+import torch
+from evox.algorithms import PSO                      # Import PSO algorithm
+from evox.problems.numerical import Ackley           # Import Ackley optimization problem
+from evox.workflows import StdWorkflow, EvalMonitor  # Import standard workflow and monitor
+
+# 1. Define the optimization algorithm and problem
+algorithm = PSO(
+    pop_size=50,                    # Population size of 50
+    lb=-32 * torch.ones(2),         # Decision variable lower bound: 2D vector, each -32
+    ub= 32 * torch.ones(2)          # Decision variable upper bound: 2D vector, each 32
+)
+problem = Ackley()                  # Optimization problem: Ackley function (default dimension matches the algorithm)
+
+# 2. Assemble the workflow and add a monitor to track results
+monitor = EvalMonitor()
+workflow = StdWorkflow(algorithm, problem, monitor)
+
+# 3. Initialize the workflow
+workflow.init_step()  # Initialize the internal state of the algorithm and problem
+
+# 4. Execute optimization iterations
+for i in range(100):
+    workflow.step()   # Advance the optimization by one step
+
+# 5. Obtain results (e.g., print the optimal value)
+best_fitness = monitor.get_best_fitness() # Get the best fitness value from the monitor
+print("Iteration completed, current best fitness value found:", float(best_fitness))
+```
+
+The above code includes the following steps:
+- First, we set the parameters for the PSO algorithm: population size of 50 and a search space in 2D ranging from [-32, 32].
+- Then, we define the Ackley problem (the Ackley function is defined as 2D by default).
+- We create a standard workflow `StdWorkflow` that **assembles** the algorithm and problem, and pass in a monitor `EvalMonitor` to record the optimization process data.
+- Next, we complete the initialization process using `workflow.init_step()`, which automatically initializes the population, random seed, and other internal states.
+- Then, we run a loop to continuously execute 100 iterations using `workflow.step()`. Each time `step()` is called, the algorithm generates new solutions and evaluates their fitness, continuously approaching the optimal solution.
+- Finally, we use the method `get_min_fitness()` provided by the monitor to obtain the best fitness value during the iteration process and print it out.
+
+When you run this script, you will see the output of the optimization iterations, for example:
+
+```text
+Iteration completed, current best fitness value found: 9.5367431640625e-07
+```
+
+Since we did not explicitly print the intermediate results in the loop, the intermediate results will not be displayed. However, you can judge whether the algorithm has converged based on the final fitness value. For example, the optimal value of the Ackley function is 0, and if the output is close to 0, it indicates that PSO has found a solution close to the global optimum. You can also call `print(monitor.history)` to view the historical data recorded by the monitor or use `monitor.plot()` to plot convergence curves (requires visualization support like Plotly).
+
+```{note}
+`StdWorkflow` is a **standard optimization process** encapsulation provided by EvoX. It internally implements the "initialization-iteration update" logic found in traditional evolutionary algorithms and encapsulates the interaction between the algorithm and the problem. For most simple applications, using `StdWorkflow` directly will suffice. The `EvalMonitor` is a monitor that implements methods like `get_best_fitness()` and `plot()` to collect and display performance metrics during the optimization process. Beginners can temporarily understand it as a record book that records the best results of each iteration for later analysis.
+```
 
 In the example above, we've created a basic configuration for an EvoX project, including selecting an algorithm, defining the problem, and assembling the workflow. Generally, configuring an EvoX project involves the following steps:
 
@@ -18,17 +77,17 @@ By following these steps, you can clearly structure your optimization task code.
 
 Next, we’ll introduce some basic commands and function calls available in EvoX to help deepen your understanding of the optimization process.
 
-### Basic Command Overview
+## Basic Command Overview
 
 When using EvoX, there are some **commonly used methods and functions** that act as “commands” you’ll want to be familiar with:
 
-#### Workflow-Related Methods
+### Workflow-Related Methods
 
 - **`StdWorkflow.init_step()`**: Initialization. This is a quick-start command for launching the optimization process, often used at the beginning of a script. It calls the initialization logic for both the algorithm and problem, generates the initial population, and evaluates fitness. After this, the workflow contains the initial state and is ready for iteration.
 
 - **`StdWorkflow.step()`**: Advance one step in the optimization. Each call makes the algorithm generate new candidate solutions based on the current population state, evaluate them, and select the next generation. Users typically call this multiple times inside a loop. The `step()` function usually returns nothing (the internal state is updated within the workflow), though older versions may return a new state. For beginners, you can simply call it without worrying about the return value.
 
-#### Monitor-Related Methods
+### Monitor-Related Methods
 
 Using `EvalMonitor` as an example, the common methods include:
 
@@ -37,7 +96,7 @@ Using `EvalMonitor` as an example, the common methods include:
 - `EvalMonitor.plot()`: Plots convergence or performance curves; requires a graphical environment or Notebook. The monitor usually uses Plotly to render graphs, helping you visually assess algorithm performance.
   Internally, the monitor records the number of evaluations and their results each generation — you typically don't need to intervene, just extract the data when needed.
 
-#### Algorithm-Related Methods
+### Algorithm-Related Methods
 
 - `Algorithm.__init__()` method: Initialization method of an algorithm. Variables are usually wrapped using `evox.core.Mutable()` and hyperparameters with `evox.core.Parameter()`.
 
@@ -45,7 +104,7 @@ Using `EvalMonitor` as an example, the common methods include:
 
 - `Algorithm.init_step()` method: The `init_step()` method includes the algorithm’s first iteration. If not overridden, it simply calls the `step()` method. For typical cases, the first iteration is no different from others, so many algorithms may not need a custom `init_step()`. But for algorithms involving hyperparameter tuning, you may need to update hyperparameters or related variables here.
 
-#### Device and Parallel Control
+### Device and Parallel Control
 
 - `.to(device)` method: If you need to switch computation devices in your program, use PyTorch’s `.to(device)` method to move tensors (`torch.Tensor`) to GPU/CPU (some PyTorch methods like `torch.randn` also need the device specified). Generally, if you set the device using `torch.set_default_device()` to `cuda:0` (assuming your system supports it and EvoX and dependencies are installed correctly — verify with `torch.cuda.is_available()`), most EvoX high-performance parallel computations will run on GPU automatically. When writing custom algorithms, problems, or monitors, if you create new tensors or use device-sensitive PyTorch methods, it’s recommended to explicitly specify the `device` as `cuda:0` or use `torch.get_default_device()` to avoid performance drops from computations spread across different devices.
 
