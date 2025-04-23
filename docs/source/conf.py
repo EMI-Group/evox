@@ -84,7 +84,6 @@ autodoc_mock_imports = [
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
 html_baseurl = readthedocs_canonical
-html_link_suffix = ""
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -99,8 +98,8 @@ html_theme = "shibuya"
 html_logo = "_static/evox_logo_light.png"
 html_context = {
     "languages": [
-        ("English", f"/en/{readthedocs_ver}/%s/", "en"),
-        ("中文", f"/zh-cn/{readthedocs_ver}/%s/", "zh-cn"),
+        ("English", f"/en/{readthedocs_ver}/%s.html", "en"),
+        ("中文", f"/zh-cn/{readthedocs_ver}/%s.html", "zh-cn"),
     ],
 }
 html_theme_options = {
