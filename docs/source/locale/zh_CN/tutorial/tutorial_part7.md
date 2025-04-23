@@ -14,7 +14,7 @@ f(\mathbf{x}) = 10 d + \sum_{i=1}^{d}[x_i^2 - 10 \cos{(2\pi x_i)}],
 
 其中$\mathbf{x} \in \mathbb{R}^d$, $d$为该函数的维数。Rastrigin 函数的全局最优值为$0$，出现在原点。为了清晰地展示该函数具有多个局部极值点的性质，我们绘制了二维 Rastrigin 函数的图像。
 
-<img src="plot.png" alt="plot" style="zoom:50%;" />
+![Rastrigin Function](/_static/rastrigin_function.svg)
 
 在本案例中，我们将使用粒子群优化（PSO）算法在十维 Rastrigin 函数上寻优。
 
@@ -124,6 +124,8 @@ EvoX 内置很多多目标测试问题，但在这个案例中，我们需要参
 
 ```python
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
 from evox.algorithms import NSGA2
 from evox.workflows import StdWorkflow, EvalMonitor
@@ -192,9 +194,6 @@ def f2(x):
 f1_values = data[:, 0]
 f2_values = data[:, 1]
 
-from matplotlib import rcParams
-rcParams['font.family'] = 'SimHei'
-
 x_vals = np.linspace(0, 2, 400)
 pf_f1 = f1(x_vals)
 pf_f2 = f2(x_vals)
@@ -202,11 +201,10 @@ pf_f2 = f2(x_vals)
 
 # 绘制图形
 plt.figure(figsize=(8, 6))
-plt.scatter(f1_values, f2_values, c='blue', label='优化后种群', alpha=0.7)
-plt.plot(pf_f1, pf_f2, 'r-', linewidth=2, label='帕累托前沿')
+plt.scatter(f1_values, f2_values, c='blue', alpha=0.7)
+plt.plot(pf_f1, pf_f2, 'r-', linewidth=2)
 plt.xlabel("f1")
 plt.ylabel("f2")
-plt.title("NSGA-II算法求解双目标优化问题")
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -214,7 +212,7 @@ plt.show()
 
 我们可以得到多次迭代后的种群分布情况，实验结果同样符合我们的预期：
 
-![](nsga2.png)
+![Example NSGA-II Population](/_static/example_nsga2_result.svg)
 
 同时，在 JupyterNotebook 中，您还可以通过 EvoX 的可视化模块直接得到动态的实验结果，您可以直观地看到种群是如何随着算法的迭代更新的。为了实现这一目标，您只需要运行一行代码：
 

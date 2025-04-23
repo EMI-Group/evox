@@ -12,7 +12,11 @@ This chapter presents several complete, practical examples to demonstrate how to
 f(\mathbf{x}) = 10 d + \sum_{i=1}^{d}[x_i^2 - 10 \cos{(2\pi x_i)}],
 ```
 
-where $\mathbf{x} \in \mathbb{R}^d$ and $d$ is the dimensionality. The global optimum is 0 at the origin. The function is highly multimodal, making it ideal for testing global optimization algorithms.
+where $\mathbf{x} \in \mathbb{R}^d$ and $d$ is the dimensionality. The global optimum is 0 at the origin. The function is highly multimodal, making it ideal for testing global optimization algorithms. Here's a plot of the Rastrigin function
+
+![Rastrigin Function](/_static/rastrigin_function.svg)
+
+In this example, we will use the Particle Swarm Optimization (PSO) algorithm to optimize the 10-dimensional Rastrigin function.
 
 **Step 1: Setup**
 
@@ -98,13 +102,27 @@ Make sure you have EvoX installed with NSGA-II support.
 
 **Step 2: Define the Custom Problem**
 
+EvoX has many built-in multi-objective test problems, but for this example, we will define a custom problem to optimize the two objectives:
+
 ```python
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+from evox.algorithms import NSGA2
+from evox.workflows import StdWorkflow, EvalMonitor
+# Import evox core classes, see Chapter 5 for details
 from evox.core import Problem
 
 class TwoObjectiveProblem(Problem):
-    def __init__(self):
+    def __init__(
+        self,
+        d: int = 1,
+        m: int = 2,
+    ):
         super().__init__()
+        self.d = d
+        self.m = m
 
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         x = X[:, 0]
@@ -112,8 +130,9 @@ class TwoObjectiveProblem(Problem):
         f_2 = (x - 2) ** 2
         return torch.stack([f_1, f_2], dim=1)
 
-    def pf(self):
-        pass  # Can be implemented if needed
+    # Optional: Define the Pareto front function
+    def pf(self) -> torch.Tensor:
+        pass
 ```
 
 **Step 3: Define Algorithm and Workflow**
@@ -164,7 +183,11 @@ plt.grid(True)
 plt.show()
 ```
 
-To visualize in Jupyter:
+We can visualize the results using Matplotlib. The blue points represent the optimized population, while the red line shows the Pareto front.
+
+![Example NSGA-II Population](/_static/example_nsga2_result.svg)
+
+In Jupyter Notebook, you can use EvoX's built-in plotting capabilities to visualize the optimization process and monitor how the population evolves over generations.
 
 ```python
 monitor.plot()
