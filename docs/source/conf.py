@@ -105,7 +105,7 @@ html_context = {
 html_theme_options = {
     "light_logo": "_static/evox_logo_light.png",
     "dark_logo": "_static/evox_logo_dark.png",
-    "og_image": "_static/evox_logo.png",
+    "og_image_url": "_static/evox_logo.png",
     "nav_links": [
         {
             "title": tutorial_title,
