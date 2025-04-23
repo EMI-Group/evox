@@ -26,7 +26,7 @@
 
 <div align="center">
   <a href="https://arxiv.org/abs/2301.12457"><img src="https://img.shields.io/badge/arxiv-2212.05652-red" alt="arXiv"></a>
-  <a href="https://evox.readthedocs.io/"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="Documentation"></a>
+  <a href="https://evox.readthedocs.io/en/latest/index.html"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="Documentation"></a>
   <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?logo=python" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/badge/python-3.10+-orange?logo=python" alt="Python Version"></a>
   <a href="https://discord.gg/Vbtgcpy7G4"><img src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord" alt="Discord Server"></a>
@@ -46,7 +46,7 @@
 
 
 ## 🔥 News
-- [2025-03-31] Released **EvoX 1.1.2** - a minor release with bug fixes. [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
+- [2025-03-31] Released **EvoX 1.2.0** - 🚀 EvoX v1.2.0 is out with new features like Mujoco Playground, and an official tutorial! [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] Released **EvoRL**: A GPU-accelerated framework for **Evolutionary Reinforcement Learning**, powered by **JAX** ! [[Paper](https://arxiv.org/abs/2501.15129)] [[Code](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] Released **EvoGP**: A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] Released **EvoX 1.0.0** - now fully compatible with **PyTorch**, with full `torch.compile` support! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
@@ -63,7 +63,7 @@
 
 ## Overview
 
-EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch**.  With a user-friendly programming model, it offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/) / [文档](https://evox.readthedocs.io/zh/latest/).
+EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch**.  With a user-friendly programming model, it offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/index.html) / [文档](https://evox.readthedocs.io/zh_CN/latest/index.html).
 
 > [!NOTE]
 > Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.

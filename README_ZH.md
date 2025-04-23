@@ -25,7 +25,7 @@
 
 <div align="center">
   <a href="https://arxiv.org/abs/2301.12457"><img src="https://img.shields.io/badge/arxiv-2212.05652-red" alt="arXiv"></a>
-  <a href="https://evox.readthedocs.io/zh/latest/"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="文档"></a>
+  <a href="https://evox.readthedocs.io/zh_CN/latest/index.html"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="文档"></a>
   <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?logo=python" alt="PyPI 版本"></a>
   <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/badge/python-3.10+-orange?logo=python" alt="Python 版本"></a>
   <a href="https://discord.gg/Vbtgcpy7G4"><img src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord" alt="Discord 服务器"></a>
@@ -44,7 +44,7 @@
 ---
 
 ## 🔥 新闻
-- [2025-03-18] 发布 **EvoX 1.1.1** - 一个包含错误修复的小版本更新。 [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
+- [2025-03-18] 发布 **EvoX 1.2.0** - 🚀 EvoX v1.2.0 发布，新增 Mujoco Playground 及官方教程！ [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] 发布 **EvoRL**：基于 **JAX** 的 GPU 加速 **进化强化学习** 框架！[[论文](https://arxiv.org/abs/2501.15129)] [[代码](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] 发布 **EvoGP**：基于 **PyTorch** & **CUDA** 的 GPU 加速 **遗传编程** 框架！[[论文](http://arxiv.org/abs/2501.17168)] [[代码](https://github.com/EMI-Group/evogp)]
 - [2025-01-14] 发布 **EvoX 1.0.0**，全面兼容 **PyTorch**，全面接入`torch.compile`！使用 **JAX 版本** 的用户可在 **v0.9.0 分支** 获取。
