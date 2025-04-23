@@ -3,5 +3,6 @@
 ```{toctree}
 :maxdepth: 1
 
-install
+python
+torch_and_evox
 ```
