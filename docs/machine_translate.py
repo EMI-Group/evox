@@ -100,13 +100,20 @@ if __name__ == "__main__":
     base_url = sys.argv[1]
     api_key = sys.argv[2]
     tgi = TGIBackend(base_url=base_url, api_key=api_key)
-    po = polib.pofile("docs/source/locale/zh/LC_MESSAGES/docs.po")
+    po = polib.pofile("docs/source/locale/zh_CN/LC_MESSAGES/docs.po")
     try:
         for entry in po:
             if entry.msgstr and not entry.fuzzy:
                 continue
 
             if pattern.match(entry.msgid) or entry.msgid.startswith("<svg"):
+                logging.info(f"Skipping: {entry.msgid}")
+                entry.msgstr = entry.msgid
+                continue
+
+            occur_in_tutorial = [("source/tutorial" in filename) for filename, line_num in entry.occurrences]
+            occur_in_tutorial = all(occur_in_tutorial)
+            if occur_in_tutorial:
                 logging.info(f"Skipping: {entry.msgid}")
                 entry.msgstr = entry.msgid
                 continue
@@ -123,4 +130,4 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"An error occurred: {e}")
     finally:
-        po.save("docs/source/locale/zh/LC_MESSAGES/docs.po")
+        po.save("docs/source/locale/zh_CN/LC_MESSAGES/docs.po")
