@@ -6927,7 +6927,7 @@ msgstr "API文档"
 
 #: ../../source/apidocs/index.rst:4
 msgid "This page contains auto-generated API reference documentation [#f1]_."
-msgstr "此页面包含自动生成的API参考文档[#f1]_。"
+msgstr "此页面包含自动生成的API参考文档 [#f1]_。"
 
 #: ../../source/apidocs/index.rst:11
 msgid ""
@@ -7548,7 +7548,7 @@ msgstr "[`Monitor`](evox.core.components.Monitor)"
 
 #: ../../source/guide/developer/1-modulebase.md:18
 msgid "[`Workflow`](#evox.core.components.Workflow)"
-msgstr "抱歉，我需要更多的上下文或具体的文本内容来进行翻译。请提供需要翻译的具体文本。"
+msgstr "[`Workflow`](#evox.core.components.Workflow)"
 
 #: ../../source/guide/developer/1-modulebase.md:21
 msgid ""
@@ -8658,7 +8658,7 @@ msgstr "缩进在循环和条件语句中对于确定作用域是重要的（没
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:67
 msgid "Printing and Comments"
-msgstr "抱歉，我需要更多的上下文或具体的文本内容来进行翻译。请提供需要翻译的具体文本。"
+msgstr "打印与注释"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:71
 msgid "Uses `fprintf()` functions for formatted output."
@@ -8678,7 +8678,7 @@ msgstr "使用 `#` 进行单行注释。"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:79
 msgid "Multi-line Coding"
-msgstr "抱歉，我需要更多详细内容才能进行翻译。请提供具体的多行代码或完整的文本内容。"
+msgstr "多行代码"
 
 #: ../../source/guide/developer/4-transfer-from-matlab.md:83
 msgid ""
@@ -8988,8 +8988,7 @@ msgstr "克隆仓库并以可编辑模式安装（推荐）"
 
 #: ../../source/guide/developer/environment.md:11
 msgid "Nix"
-msgstr ""
-"抱歉，我不清楚您提供的文本“Nix”是需要翻译的目标内容，还是一个占位符。如果您能够更明确地提供要翻译的实际文本内容，我很乐意为您翻译成中文。"
+msgstr "Nix"
 
 #: ../../source/guide/developer/environment.md:13
 msgid "Enable the Nix environment by running the following command:"
