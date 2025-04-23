@@ -321,23 +321,23 @@ torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
 inner_algo = PSO(
     pop_size=100,
     lb= -10 * torch.ones(10),
-    ub= 10 * torch.ones(10)，
-  )
+    ub= 10 * torch.ones(10),
+)
 inner_prob = Sphere()
 inner_monitor = HPOFitnessMonitor()
 inner_workflow = StdWorkflow(
     inner_algo,
     inner_prob,
-    monitor=inner_monitor
-    )
+    monitor=inner_monitor,
+)
 
 # 将内层算法工作流转换成一个HPO问题，该问题的目标就是优化内层算法的参数，得到内层问题的最优结果
 hpo_problem = HPOProblemWrapper(
     iterations=30,
     num_instances=128,
     workflow=inner_workflow,
-    copy_init_state=True
-    )
+    copy_init_state=True,
+)
 ```
 
 &emsp;&emsp;使用这些模块时，建议配合官方文档来了解对应问题类的构造参数。有的复杂问题可能需要提供额外数据，例如某些工程问题需要读入数据集或者设定实例规模。EvoX的API部分（[API Reference/problems - EvoX Documentation](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)）有详细说明。利用好这些现有API，可以大大减少自己编码的工作量。

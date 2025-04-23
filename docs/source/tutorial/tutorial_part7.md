@@ -8,7 +8,7 @@ This chapter presents several complete, practical examples to demonstrate how to
 
 **Problem**: Optimize the classic Rastrigin function:
 
-```math
+```{math}
 f(\mathbf{x}) = 10 d + \sum_{i=1}^{d}[x_i^2 - 10 \cos{(2\pi x_i)}],
 ```
 
@@ -85,7 +85,7 @@ The PSO algorithm finds a near-optimal solution close to the origin, as expected
 
 **Problem**: Minimize two objectives:
 
-```math
+```{math}
 f_1(x) = x^2, \quad
 f_2(x) = (x - 2)^2
 ```
