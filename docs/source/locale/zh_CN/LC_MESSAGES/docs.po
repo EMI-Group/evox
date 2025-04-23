@@ -4495,7 +4495,7 @@ msgstr "Bases: {py:obj}`typing.NamedTuple`"
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:76
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:87
 msgid "None"
-msgstr "没有可翻译的文本。"
+msgstr "None"
 
 #: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:250
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:163
@@ -7249,7 +7249,7 @@ msgstr ""
 
 #: ../../source/examples/hpo.ipynb:30002
 msgid "The Key Component -- `HPOProblemWrapper`"
-msgstr "关键组件 -- `HPOProblemWrapper"
+msgstr "关键组件 -- `HPOProblemWrapper`"
 
 #: ../../source/examples/hpo.ipynb:30004
 msgid ""
@@ -9413,7 +9413,7 @@ msgstr ""
 msgid ""
 "EvoX is a distributed GPU-accelerated framework for scalable evolutionary "
 "computation."
-msgstr "EvoX是一个可以对大规模演化计算进行分布式GPU加速的框架。"
+msgstr "EvoX是一个分布式GPU加速的演化计算框架。"
 
 #: ../../source/index.md:30
 msgid "Key Features"
