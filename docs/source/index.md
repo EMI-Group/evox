@@ -25,8 +25,6 @@ Miscellaneous <miscellaneous/index>
 
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
 
----
-
 ## Key Features
 
 - 🚀 **Fast Performance**:
@@ -43,7 +41,6 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
   - Benefit from **Hierarchical State Management**, ensuring modular and clean programming.
 
 ---
-<br></br>
 
 ```{eval-rst}
 .. grid:: 3
