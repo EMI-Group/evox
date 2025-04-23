@@ -1,0 +1,10 @@
+/* Removing cell background */
+div.cell div.cell_input,
+div.cell details.above-input > summary {
+    background-color: transparent !important;
+}
+
+.cell_output .output.text_plain,
+.cell_output .output.stream {
+    background: transparent !important;
+}

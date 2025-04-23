@@ -10,6 +10,25 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.11"
+  apt_packages:
+    - pandoc
+  jobs:
+    pre_build:
+      # If language is not "en", override the tutorials with the language-specific ones
+      # Note: readthedocs uses dashes and lowercase for language codes, e.g., "zh-cn" for Chinese
+      # However, the locale directory uses underscores and uppercase, e.g., "zh_CN"
+      - |
+        if [ "$READTHEDOCS_LANGUAGE" != "en" ]; then
+          echo "Overriding tutorials with language-specific ones"
+          echo "READTHEDOCS_LANGUAGE: $READTHEDOCS_LANGUAGE"
+          # set the language code to the one used in the locale directory
+          if [ "$READTHEDOCS_LANGUAGE" = "zh-cn" ]; then
+            LANGUAGE_CODE="zh_CN"
+          else
+            LANGUAGE_CODE="$READTHEDOCS_LANGUAGE"
+          fi
+          cp -r docs/source/locale/${LANGUAGE_CODE}/tutorial docs/source
+        fi
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -22,4 +41,3 @@ python:
       path: .
       extra_requirements:
         - docs
-    - requirements: extra-build-requirements.txt

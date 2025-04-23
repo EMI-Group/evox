@@ -177,7 +177,7 @@ class EvoXVisionAdapter:
         :param buffering: The buffer size to use for file operations, passed directly to the `open()` function.
             The default is `0`, which disables buffering (unbuffered mode).
 
-        ```{notes}
+        ```{note}
         * Buffering affects how data is written to the file to minimize system call overhead.
         However, from a filesystem perspective, operations are always be considered buffered.
         * Disabling buffering (`buffering=0`) is often recommended in scenarios where system call overhead

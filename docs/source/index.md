@@ -1,22 +1,14 @@
 # Welcome to EvoX's documentation!
 
-
 ```{toctree}
-:caption: 'User Guide'
+:caption: 'Getting Started'
 :maxdepth: 1
 :hidden:
 
+tutorial/index
 guide/install/index
-guide/user/index
 guide/developer/index
 guide/experimental/index
-```
-
-```{toctree}
-:caption: 'API Reference'
-:maxdepth: 1
-:hidden:
-apidocs/index
 ```
 
 ```{toctree}
@@ -24,11 +16,12 @@ apidocs/index
 :maxdepth: 2
 :hidden:
 
-Examples <example/index>
+apidocs/index
+Examples <examples/index>
 Miscellaneous <miscellaneous/index>
 ```
 
-[[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh/latest/)
+[[English Version]](https://evox.readthedocs.io/en/latest/)   [[中文版本]](https://evox.readthedocs.io/zh-cn/latest/)
 
 EvoX is a distributed GPU-accelerated framework for scalable evolutionary computation.
 
@@ -57,16 +50,16 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
    :gutter: 1 2 3 5
    :padding: 1
 
+   .. grid-item-card:: :octicon:`people;1.5em` Tutorials
+      :padding: 3
+      :margin: 0
+      :link: tutorial/index
+      :link-type: doc
+
    .. grid-item-card:: :octicon:`desktop-download;1.5em` Installation Guide
       :padding: 3
       :margin: 0
       :link: guide/install/index
-      :link-type: doc
-
-   .. grid-item-card:: :octicon:`people;1.5em` User Guide
-      :padding: 3
-      :margin: 0
-      :link: guide/user/index
       :link-type: doc
 
    .. grid-item-card:: :octicon:`mortar-board;1.5em` Developer Guide
