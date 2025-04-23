@@ -394,15 +394,10 @@ class MujocoProblem(Problem):
 
         assert output_type in ["mp4", "gif"], "output_type must be either mp4 or gif"
         model_state = self.init_state | weights
-        seed = seed or kwargs.get("seed")
-        output_type = output_type or kwargs.get("output_type")
-        output_path = output_path or kwargs.get("output_path")
-        if "seed" in kwargs:
-            del kwargs["seed"]
-        if "output_type" in kwargs:
-            del kwargs["output_type"]
-        if "output_path" in kwargs:
-            del kwargs["output_path"]
+        output_type = kwargs.pop("output_type", output_type)
+        output_path = kwargs.pop("output_path", output_path)
+        seed = kwargs.pop("seed", seed)
+
         # mjx environment evaluation
         if seed is None:
             key = self.key
