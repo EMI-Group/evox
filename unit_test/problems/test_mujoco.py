@@ -96,11 +96,6 @@ class TestMujocoProblem(unittest.TestCase):
         best_params = adapter.to_params(monitor.topk_solutions[0])
         print(f"\tBest params: {best_params}")
 
-        try:
-            problem.visualize(best_params)
-        except Exception as e:
-            print(f"imageio is not installed properly: {e}. Skipping visualization.")
-
     def test_compiled_mujoco_problem(self):
         model = SimpleMLP().to(self.device)
         for p in model.parameters():
@@ -158,11 +153,6 @@ class TestMujocoProblem(unittest.TestCase):
         print(f"\tTop fitness: {monitor.topk_fitness}")
         best_params = adapter.to_params(monitor.topk_solutions[0])
         print(f"\tBest params: {best_params}")
-
-        try:
-            problem.visualize(best_params, output_type="gif")
-        except Exception as e:
-            print(f"imageio is not installed properly: {e}. Skipping visualization.")
 
     def test_hpo_mujoco_problem(self):
         model = SimpleMLP().to(self.device)
