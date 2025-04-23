@@ -1,3 +1,7 @@
+import os
+
+os.environ["MUJOCO_GL"] = "osmesa"
+
 import time
 import unittest
 
