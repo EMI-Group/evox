@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 14:55+0800\n"
+"POT-Creation-Date: 2025-04-23 15:27+0800\n"
 "PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
@@ -429,7 +429,7 @@ msgstr "基础: {py:obj}`evox.core.Algorithm`"
 #: ../../../src/evox/algorithms/mo/nsga2.py:36
 #: ../../../src/evox/algorithms/mo/nsga3.py:126
 #: ../../../src/evox/algorithms/mo/rvea.py:36
-#: ../../../src/evox/algorithms/mo/rveaa.py:37
+#: ../../../src/evox/algorithms/mo/rveaa.py:38
 msgid "References"
 msgstr "参考文献"
 
@@ -447,7 +447,6 @@ msgstr ""
 
 #: ../../../src/evox/algorithms/mo/hype.py:59
 #: ../../../src/evox/algorithms/mo/nsga2.py:41
-#: ../../../src/evox/algorithms/mo/nsga3.py:131
 msgid ""
 "[2] Z. Liang, H. Li, N. Yu, K. Sun, and R. Cheng, \"Bridging Evolutionary "
 "Multiobjective Optimization and     GPU Acceleration via Tensorization,\" "
@@ -881,6 +880,16 @@ msgstr ""
 "Transactions on Evolutionary Computation》，第 18 卷，第 4 期，第 577-601 页，2014。链接: "
 "https://ieeexplore.ieee.org/document/6600851"
 
+#: ../../../src/evox/algorithms/mo/nsga3.py:131
+msgid ""
+"[2] H. Li, Z. Liang, and R. Cheng, \"GPU-accelerated Evolutionary Many-"
+"objective Optimization Using Tensorized     NSGA-III,\" in 2025 IEEE "
+"Congress on Evolutionary Computation, 2025."
+msgstr ""
+"[2] H. Li, Z. Liang, and R. Cheng, \"GPU-accelerated Evolutionary Many-"
+"objective Optimization Using Tensorized NSGA-III,\" in 2025 IEEE Congress on"
+" Evolutionary Computation, 2025."
+
 #: ../../../src/evox/algorithms/mo/nsga3.py:130
 msgid "Initializes the NSGA-III algorithm."
 msgstr "初始化 NSGA-III 算法。"
@@ -909,6 +918,7 @@ msgid ""
 msgstr "一个针对多目标优化问题的参考向量引导演化算法（RVEA）的张量化实现。"
 
 #: ../../../src/evox/algorithms/mo/rvea.py:37
+#: ../../../src/evox/algorithms/mo/rveaa.py:39
 msgid ""
 "[1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, \"A reference vector "
 "guided evolutionary algorithm     for many-objective optimization,\" IEEE "
@@ -1002,27 +1012,11 @@ msgid ""
 "objective optimization problems."
 msgstr "一个参考向量引导的演化算法（RVEAa）的实现，嵌入了参考向量重生成策略，用于多目标优化问题。"
 
-#: ../../../src/evox/algorithms/mo/rveaa.py:35
+#: ../../../src/evox/algorithms/mo/rveaa.py:36
 msgid ""
 "This class is designed to solve multi-objective optimization problems using "
 "a reference vector guided evolutionary algorithm."
 msgstr "这类是设计用来使用参考向量引导的进化算法来解决多目标优化问题的。"
-
-#: ../../../src/evox/algorithms/mo/rveaa.py:38
-msgid ""
-"\"A Reference Vector Guided Evolutionary Algorithm for Many-Objective "
-"Optimization,\" IEEE. `Link <https://ieeexplore.ieee.org/document/7386636>`"
-msgstr ""
-"面向多目标优化的参考向量引导的演化算法, IEEE. `Link "
-"<https://ieeexplore.ieee.org/document/7386636>`"
-
-#: ../../../src/evox/algorithms/mo/rveaa.py:40
-msgid ""
-"\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
-"RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
-msgstr ""
-"\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
-"RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
 
 #: ../../../src/evox/algorithms/mo/rveaa.py:39
 msgid "Initialize the RVEAa algorithm with the given parameters."
@@ -4850,12 +4844,21 @@ msgstr "策略模型的权重。这是一个参数字典。"
 #: ../../../src/evox/problems/neuroevolution/brax.py:198
 #: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:198
 msgid ""
+"The seed used to create a PRNGKey for the brax environment. When None, use "
+"the current key. Default to None."
+msgstr "用于为 brax 环境创建 PRNGKey 的种子。当为 None 时，使用当前的 key。默认值为 None。"
+
+#: ../../../src/evox/problems/neuroevolution/brax.py:199
+msgid ""
 "The output type of the visualization, \"HTML\" or \"rgb_array\". Default to "
 "\"HTML\"."
 msgstr "可视化的输出类型，“HTML”或“rgb_array”。默认为“HTML”。"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:200
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:200
+msgid "Additional arguments to be passed to the visualization function."
+msgstr "传递给可视化函数的附加参数。"
+
+#: ../../../src/evox/problems/neuroevolution/brax.py:202
 msgid "The visualization output."
 msgstr "可视化输出。"
 
@@ -5008,6 +5011,22 @@ msgstr ""
 "    rotate_key=False,  \n"
 "    ...  \n"
 ")  "
+
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:199
+msgid "The output type of the visualization, \"mp4\" or \"gif\". Default to \"mp4\"."
+msgstr "可视化的输出类型，“mp4”或“gif”。默认值为“mp4”。"
+
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:200
+msgid "The path to save the output video. Default to \"output_video\"."
+msgstr "保存输出视频的路径。默认值为 \"output_video\"。"
+
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:201
+msgid "Additional arguments to be passed to the MjxEnv.render() function."
+msgstr "传递给 MjxEnv.render() 函数的额外参数。"
+
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:203
+msgid "The path to the saved file."
+msgstr "保存文件的路径。"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:1
 #, python-brace-format
@@ -12280,3 +12299,17 @@ msgstr ""
 " workflows. Once you're comfortable with the basic structure—**Algorithm + "
 "Problem + Monitor + Workflow**—you can adapt EvoX to suit almost any "
 "optimization task."
+
+#~ msgid ""
+#~ "\"A Reference Vector Guided Evolutionary Algorithm for Many-Objective "
+#~ "Optimization,\" IEEE. `Link <https://ieeexplore.ieee.org/document/7386636>`"
+#~ msgstr ""
+#~ "面向多目标优化的参考向量引导的演化算法, IEEE. `Link "
+#~ "<https://ieeexplore.ieee.org/document/7386636>`"
+
+#~ msgid ""
+#~ "\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
+#~ "RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
+#~ msgstr ""
+#~ "\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
+#~ "RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
