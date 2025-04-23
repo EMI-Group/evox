@@ -14,7 +14,13 @@ f(\mathbf{x}) = 10 d + \sum_{i=1}^{d}[x_i^2 - 10 \cos{(2\pi x_i)}],
 
 where $\mathbf{x} \in \mathbb{R}^d$ and $d$ is the dimensionality. The global optimum is 0 at the origin. The function is highly multimodal, making it ideal for testing global optimization algorithms. Here's a plot of the Rastrigin function
 
-![Rastrigin Function](/_static/rastrigin_function.svg)
+```{figure} /_static/rastrigin_function.svg
+:alt: A plot of the Rastrigin function
+:figwidth: 70%
+:align: center
+
+Rastrigin function
+```
 
 In this example, we will use the Particle Swarm Optimization (PSO) algorithm to optimize the 10-dimensional Rastrigin function.
 
@@ -185,7 +191,13 @@ plt.show()
 
 We can visualize the results using Matplotlib. The blue points represent the optimized population, while the red line shows the Pareto front.
 
-![Example NSGA-II Population](/_static/example_nsga2_result.svg)
+```{figure} /_static/example_nsga2_result.svg
+:alt: A plot of the NSGA-II population
+:figwidth: 70%
+:align: center
+
+A plot of the NSGA-II population after optimization
+```
 
 In Jupyter Notebook, you can use EvoX's built-in plotting capabilities to visualize the optimization process and monitor how the population evolves over generations.
 
