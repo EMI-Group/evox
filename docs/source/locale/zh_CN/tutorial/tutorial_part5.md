@@ -257,7 +257,7 @@ import evox
 help(evox.algorithms.so.PSO)
 ```
 
-&emsp;&emsp;这将显示 PSO 算法的文档字符串和参数说明。此外，您也可以查阅 EvoX 在线文档中的对应部分查看这些信息 ([API Reference/algorithms - Evox · Documentation](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html))。
+&emsp;&emsp;这将显示 PSO 算法的文档字符串和参数说明。此外，您也可以查阅 EvoX 在线文档中的对应部分查看这些信息 ([API Reference/algorithms - Evox · Documentation](#apidocs))。
 
 **（2）问题模块**  (`evox.problems`)
 &emsp;&emsp;EvoX 的问题模块同样分类别进行了组织，涵盖了数值优化、神经进化、超参数优化等多种场景。
@@ -306,7 +306,7 @@ neuroevolution_problem = BraxProblem(
 )
 ```
 
-  - `evox.problems.hpo_wrapper` 则提供了对机器学习训练过程的封装，适用于超参数优化任务（完整实例可参考 EvoX 文档 （[HPO example - EvoX Documentation](https://evox.readthedocs.io/en/latest/guide/user/3-hpo.html)））。
+  - `evox.problems.hpo_wrapper` 则提供了对机器学习训练过程的封装，适用于超参数优化任务（完整实例可参考 EvoX 文档 （[HPO example - EvoX Documentation](#Deploy HPO with Custom Algorithms)）。
 
 ```python
 import torch
@@ -340,7 +340,7 @@ hpo_problem = HPOProblemWrapper(
 )
 ```
 
-&emsp;&emsp;使用这些模块时，建议配合官方文档来了解对应问题类的构造参数。有的复杂问题可能需要提供额外数据，例如某些工程问题需要读入数据集或者设定实例规模。EvoX的API部分（[API Reference/problems - EvoX Documentation](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)）有详细说明。利用好这些现有API，可以大大减少自己编码的工作量。
+&emsp;&emsp;使用这些模块时，建议配合官方文档来了解对应问题类的构造参数。有的复杂问题可能需要提供额外数据，例如某些工程问题需要读入数据集或者设定实例规模。EvoX的API部分（[API Reference/problems - EvoX Documentation](#apidocs)）有详细说明。利用好这些现有API，可以大大减少自己编码的工作量。
 
 ### 5.2.2 工作流与工具 API
 
@@ -419,9 +419,9 @@ print(dir(evox.algorithms))
 
 &emsp;&emsp;当您在使用过程中需要寻求帮助时，EvoX 也提供了丰富的资源支持：
 
-- **在线文档**：EvoX 提供详细的用户指南和 API 参考文档（[EvoX  Documentation](https://evox.readthedocs.io/en/latest/index.html)），涵盖了从基础到高级的各类主题。如果您遇到问题，可以查阅文档中的 `Developer Guide` 或 `API Reference` 等部分。
+- **在线文档**：EvoX 提供详细的用户指南和 API 参考文档（[EvoX  Documentation](#apidocs)），涵盖了从基础到高级的各类主题。如果您遇到问题，可以查阅文档中的 `Developer Guide` 或 `API Reference` 等部分。
 - **社区支持**：您可以通过 EvoX 的 GitHub 仓库（[EvoX Github](https://github.com/EMI-Group/evox)）提交 Issues，或在相关论坛和 QQ 讨论群 （ID: 297969717）中寻求帮助。
-- **示例代码**：对于初学者，多参考官方示例是快速掌握 API 用法的有效途径。EvoX 官方文档的 `examples` 目录中包含了许多示例脚本（[Examples - EvoX Documentation](https://evox.readthedocs.io/en/latest/example/index.html)），您可以克隆仓库并运行这些脚本，边看代码边理解。
+- **示例代码**：对于初学者，多参考官方示例是快速掌握 API 用法的有效途径。EvoX 官方文档的 `examples` 目录中包含了许多示例脚本（[Examples - EvoX Documentation](#examples)），您可以克隆仓库并运行这些脚本，边看代码边理解。
 
 ```
   掌握EvoX API的使用将使您更自如地实现复杂的功能。例如，您可以通过API组合来实现多层优化：外层用EvoX优化内层算法的参数，实现AutoML中的自动算法配置。这种高级应用需要对EvoX API非常熟练，但从技术上完全可行。我们鼓励您在逐步深入学习后尝试创新性地运用这些接口，打造出适合自己场景的优化方案。

@@ -93,7 +93,7 @@ Linux 系统（如 Ubuntu）下安装 EvoX 相对直接，大部分情况下可�
    pip install evox[vis,neuroevolution]
    ```
 
-   这将同时安装可视化模块和 Brax 等神经进化相关依赖 ([EvoX Installation Guide — EvoX  documentation](https://evox.readthedocs.io/en/latest/guide/install/install.html#:~:text=You%20can%20also%20assign%20extra,features%2C%20run%20the%20following%20command))。您也可以根据需要选择 extras，比如只安装 `vis` 或 `neuroevolution`。
+   这将同时安装可视化模块和 Brax 等神经进化相关依赖 ([EvoX Installation Guide](#EvoX Installation Guide))。您也可以根据需要选择 extras，比如只安装 `vis` 或 `neuroevolution`。
 
 #### 使用容器安装 (Docker, Podman)
 
@@ -119,7 +119,7 @@ docker run -it --gpus all --shm-size=8g pytorch/pytorch:rocm5.4_ubuntu20.04
   print(get_pretty_env_info())
   ```
 
-  该代码将打印出 PyTorch 和系统的环境配置，如果包含 EvoX 并且没有错误信息，说明安装成功 ([EvoX Installation Guide — EvoX  documentation](https://evox.readthedocs.io/en/latest/guide/install/install.html#:~:text=Verify%20the%20installation))。您也可以尝试 `import evox; print(evox.__version__)` 查看EvoX版本号，确认无误。
+  该代码将打印出 PyTorch 和系统的环境配置，如果包含 EvoX 并且没有错误信息，说明安装成功。您也可以尝试 `import evox; print(evox.__version__)` 查看EvoX版本号，确认无误。
 
 - **其他环境配置**：根据需要，您可以调整线程数等影响性能的参数。例如，设置环境变量 `OMP_NUM_THREADS` 控制CPU上并行线程数， 增加共享内存(`--shm-size`)避免 Docker 容器内的内存不足等。如果您使用 Jupyter Notebook 或 PyCharm 等 IDE 进行开发，请确保其 Interpreter 使用的是刚安装 EvoX 的 Python 环境。
 
