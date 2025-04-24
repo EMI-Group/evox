@@ -49,21 +49,37 @@ class TestMOVariants(MOTestBase):
         torch.compiler.reset()
         torch.manual_seed(42)
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-        pop_size = 20
-        dim = 10
-        lb = -torch.ones(dim)
-        ub = torch.ones(dim)
-        self.algo = [
-            NSGA2(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            NSGA3(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            RVEA(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            MOEAD(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            HypE(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-            RVEAa(pop_size=pop_size, n_objs=3, lb=lb, ub=ub),
-        ]
+        self.pop_size = 20
+        self.dim = 10
+        self.lb = -torch.ones(self.dim)
+        self.ub = torch.ones(self.dim)
 
-    def test_moea_variants(self):
-        for algo in self.algo:
-            self.run_algorithm(algo)
-            self.run_compiled_algorithm(algo)
-            # self.run_vmap_algorithm(algo)
+    def test_nsga2(self):
+        algo = NSGA2(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+
+    def test_nsga3(self):
+        algo = NSGA3(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+
+    def test_rvea(self):
+        algo = RVEA(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+
+    def test_moead(self):
+        algo = MOEAD(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+
+    def test_hype(self):
+        algo = HypE(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+
+    def test_rveaa(self):
+        algo = RVEAa(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
