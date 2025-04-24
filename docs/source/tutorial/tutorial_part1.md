@@ -2,7 +2,7 @@
 
 ## What is EvoX?
 
-EvoX is an open-source evolutionary computation library developed by the EMI-Group, mainly used to solve various complex optimization problems. Evolutionary computation is a category of algorithms that simulate natural evolution to search for optimal solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), Particle Swarm Optimization (PSO), etc.
+EvoX is an open-source evolutionary computation library, mainly used to solve various complex optimization problems. Evolutionary computation is a category of algorithms that simulate natural evolution to search for optimal solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), Particle Swarm Optimization (PSO), etc.
 
 Traditional evolutionary frameworks are often limited by computational resources and programming models, making them inefficient for large-scale problems. EvoX overcomes these challenges by combining **GPU acceleration** and **distributed computing**, offering an efficient and scalable solution that allows users to find better solutions faster in complex search spaces.
 

@@ -9983,18 +9983,6 @@ msgstr "1. Introduction"
 msgid "What is EvoX?"
 msgstr "什么是 EvoX?"
 
-#: ../../source/tutorial/tutorial_part1.md:5
-msgid ""
-"EvoX is an open-source evolutionary computation library developed by the "
-"EMI-Group, mainly used to solve various complex optimization problems. "
-"Evolutionary computation is a category of algorithms that simulate natural "
-"evolution to search for optimal solutions, including Genetic Algorithms "
-"(GA), Evolution Strategies (ES), Particle Swarm Optimization (PSO), etc."
-msgstr ""
-"EvoX 是由 EMI-Group 开发的开源演化计算库，主要用于解决各种复杂优化问题。演化计算是一类模拟自然演化以搜索最优解的算法，包括 "
-"Genetic Algorithms (GA)、Evolution Strategies (ES)、Particle Swarm "
-"Optimization (PSO) 等。"
-
 #: ../../source/tutorial/tutorial_part1.md:7
 msgid ""
 "Traditional evolutionary frameworks are often limited by computational "
