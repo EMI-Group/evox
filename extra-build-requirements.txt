@@ -1,1 +1,0 @@
-myst-nb @ git+https://github.com/executablebooks/MyST-NB.git
