@@ -6,7 +6,7 @@ This notebook will introduce the basic module in EvoX: [`ModuleBase`](#evox.core
 
 ## Introduction to Module
 
-In the [Quick Start Documentation](#/guide/user/1-start) of the [User Guide](#/guide/user/index), we have mentioned the basic running process in EvoX:
+In the [tutorial](#/tutorial/index), we have mentioned the basic running process in EvoX:
 
 <center><b>Initiate an algorithm and a problem -- Set an monitor -- Initiate a workflow -- Run the workflow</b></center>
 
@@ -14,7 +14,7 @@ This process requires four basic class in EvoX:
 
 - [`Algorithm`](#evox.core.components.Algorithm)
 - [`Problem`](#evox.core.components.Problem)
-- [`Monitor`](evox.core.components.Monitor)
+- [`Monitor`](#evox.core.components.Monitor)
 - [`Workflow`](#evox.core.components.Workflow)
 
 
@@ -73,4 +73,4 @@ def func(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 ### Non-static Methods
 
 If a method with python dynamic control flows like `if` were to be used with `vmap`,
-please use [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond) to explicitly define the control flow.
+please use [`torch.cond`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond) to explicitly define the control flow.
