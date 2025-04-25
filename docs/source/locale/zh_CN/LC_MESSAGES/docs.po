@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 15:27+0800\n"
+"POT-Creation-Date: 2025-04-25 16:31+0800\n"
 "PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
@@ -7070,13 +7070,14 @@ msgstr "初始化一个算法和一个问题"
 
 #: ../../source/examples/brax.ipynb:110008
 msgid ""
-"We initiate a [PSO algorithm](#evox.algorithms.pso_variants.pso.PSO), and "
-"the problem is a [Brax "
+"We initiate a [PSO algorithm](#evox.algorithms.so.pso_variants.pso.PSO), and"
+" the problem is a [Brax "
 "problem](#evox.problems.neuroevolution.brax.BraxProblem) in \"swimmer\" "
 "environment."
 msgstr ""
-"我们初始化一个[PSO 算法](#evox.algorithms.pso_variants.pso.PSO)，问题是[Brax "
-"问题](#evox.problems.neuroevolution.brax.BraxProblem)中的“swimmer”环境。"
+"我们初始化一个 [PSO 算法](#evox.algorithms.so.pso_variants.pso.PSO)，并将问题设定为 "
+"\"swimmer\" 环境中的一个 [Brax "
+"问题](#evox.problems.neuroevolution.brax.BraxProblem)。"
 
 #: ../../source/examples/brax.ipynb:130002
 msgid ""
@@ -7141,7 +7142,7 @@ msgstr ""
 "在这个笔记本中，我们将展示如何使用[`Algorithm`](#evox.core.components.Algorithm)和[`Problem`](#evox.core.components.Problem)来创建一个自定义算法和问题。这里我们将给出一个**实现解决Sphere问题的PSO算法**的例子。"
 
 #: ../../source/examples/custom_algo_prob.ipynb:30002
-#: ../../source/guide/developer/3-custom-alg-pro.md:98
+#: ../../source/guide/developer/custom-alg-pro.md:98
 msgid "Algorithm example: PSO algorithm"
 msgstr "算法示例：PSO 算法"
 
@@ -7153,24 +7154,24 @@ msgid ""
 msgstr "粒子群优化（PSO）是一种基于种群的元启发式算法，灵感来自鸟类和鱼类的社会行为。它广泛用于解决连续和离散优化问题。"
 
 #: ../../source/examples/custom_algo_prob.ipynb:30006
-#: ../../source/guide/developer/3-custom-alg-pro.md:102
+#: ../../source/guide/developer/custom-alg-pro.md:102
 msgid "**Here is an implementation example of PSO algorithm in EvoX:**"
 msgstr "**以下是EvoX中PSO算法的实现示例：**"
 
 #: ../../source/examples/custom_algo_prob.ipynb:50002
-#: ../../source/guide/developer/3-custom-alg-pro.md:186
+#: ../../source/guide/developer/custom-alg-pro.md:186
 msgid "Problem example: Sphere problem"
 msgstr "问题示例：Sphere 问题"
 
 #: ../../source/examples/custom_algo_prob.ipynb:50004
-#: ../../source/guide/developer/3-custom-alg-pro.md:188
+#: ../../source/guide/developer/custom-alg-pro.md:188
 msgid ""
 "The Sphere problem is a simple, yet fundamental benchmark optimization "
 "problem used to test optimization algorithms."
 msgstr "Sphere问题是一个简单但基本的基准优化问题，用于测试优化算法。"
 
 #: ../../source/examples/custom_algo_prob.ipynb:50006
-#: ../../source/guide/developer/3-custom-alg-pro.md:190
+#: ../../source/guide/developer/custom-alg-pro.md:190
 msgid "The Sphere function is defined as:"
 msgstr ""
 "The Sphere function is defined as:\n"
@@ -7178,7 +7179,7 @@ msgstr ""
 "球体函数定义为："
 
 #: ../../source/examples/custom_algo_prob.ipynb:50008
-#: ../../source/guide/developer/3-custom-alg-pro.md:192
+#: ../../source/guide/developer/custom-alg-pro.md:192
 #, python-brace-format
 msgid ""
 "\n"
@@ -7186,7 +7187,7 @@ msgid ""
 msgstr "\\min f(x)= \\sum_{i=1}^{n} x_{i}^{2}"
 
 #: ../../source/examples/custom_algo_prob.ipynb:50011
-#: ../../source/guide/developer/3-custom-alg-pro.md:195
+#: ../../source/guide/developer/custom-alg-pro.md:195
 msgid "**Here is an implementation example of Sphere problem in EvoX:**"
 msgstr "**以下是EvoX中Sphere问题的实现示例：**"
 
@@ -7345,10 +7346,8 @@ msgid ""
 msgstr "`num_instances`: 在优化过程中的并行执行实例数量。"
 
 #: ../../source/examples/hpo.ipynb:110005
-msgid ""
-"`workflow`: The workflow to be used in the optimization process. Must be "
-"wrapped by [`jit_class`](#jit_class)."
-msgstr "`workflow`: 在优化过程中使用的工作流。必须由[`jit_class`](#jit_class)包装。"
+msgid "`workflow`: The workflow to be used in the optimization process."
+msgstr "`workflow`：在优化过程中使用的工作流。"
 
 #: ../../source/examples/hpo.ipynb:110006
 msgid ""
@@ -7468,9 +7467,10 @@ msgstr ""
 
 #: ../../source/examples/so-algorithm.ipynb:40002
 msgid ""
-"Here, we instantiate the [`PSO`](#evox.algorithms.pso_variants.pso) "
+"Here, we instantiate the [`PSO`](#evox.algorithms.so.pso_variants.pso.PSO) "
 "algorithm. We specify the following settings:"
-msgstr "在这里，我们实例化了[`PSO`](#evox.algorithms.pso_variants.pso)算法。我们指定了以下设置："
+msgstr ""
+"在这里，我们实例化[`PSO`](#evox.algorithms.so.pso_variants.pso.PSO) 算法。我们指定了以下设置："
 
 #: ../../source/examples/so-algorithm.ipynb:40004
 msgid "`pop_size`: The size of the particle swarm (population)."
@@ -7542,16 +7542,16 @@ msgstr "机器学习的神经演化"
 msgid ""
 "EvoX provides solutions for supervised learning tasks based on "
 "neuroevolution, with key modules including "
-"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
+"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem)"
 " and [`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector)."
 " Taking the MNIST classification task as an example, this section "
 "illustrates the neuroevolution process for supervised learning by adopting "
 "the modules of EvoX."
 msgstr ""
-"EvoX 提供基于神经演化的监督学习任务解决方案，主要模块包括 "
-"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
+"EvoX 提供基于神经演化的监督学习任务解决方案，关键模块包括 "
+"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem)"
 " 和 [`ParamsAndVector`](#evox.utils.parameters_and_vector.ParamsAndVector)。以 "
-"MNIST 分类任务为例，本节通过采用 EvoX 的模块来说明监督学习的神经演化过程。"
+"MNIST 分类任务为例，本节通过采用 EvoX 模块说明了用于监督学习的神经演化过程。"
 
 #: ../../source/examples/supervised-learning.ipynb:30002
 msgid "Basic Setup"
@@ -7688,13 +7688,14 @@ msgstr "种群基础的神经演化测试"
 msgid ""
 "In this example, the population-based algorithm for neuroevolution is tested"
 " first, using Particle Swarm Optimization "
-"([PSO](#evox.algorithms.pso_variants.PSO)) as a representation. The "
+"([PSO](#evox.algorithms.so.pso_variants.pso.PSO)) as a representation. The "
 "configuration for neuroevolution is similar to that of other optimization "
 "tasks &ndash; we need to define the problem, algorithm, monitor, and "
 "workflow, along with their respective `setup()` functions to complete the "
 "initialization."
 msgstr ""
-"在这个例子中，基于种群的神经演化算法首先被测试，使用粒子群优化（[PSO](#evox.algorithms.pso_variants.PSO)）作为表示。神经演化的配置与其他优化任务类似——我们需要定义问题、算法、监控器和工作流，以及它们各自的`setup()`函数来完成初始化。"
+"在此示例中，基于种群的神经演化算法首先进行测试，使用粒子群优化（[PSO](#evox.algorithms.so.pso_variants.pso.PSO)）作为表示。神经演化的配置与其他优化任务类似——我们需要定义问题、算法、监视器和工作流，并结合它们各自的"
+" `setup()` 函数来完成初始化。"
 
 #: ../../source/examples/supervised-learning.ipynb:270004
 msgid ""
@@ -7721,809 +7722,51 @@ msgstr ""
 #: ../../source/examples/supervised-learning.ipynb:320004
 msgid ""
 "A key point to note here is that "
-"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
-" should be set with `pop_size=None`, and "
-"[`EvalMonitor`](#evox.workflows.EvalMonitor) should have `topk=1`, as only a"
-" single individual is being searched. A careful hyper-parameter setup helps "
-"avoid unnecessary issues."
+"[`SupervisedLearningProblem`](#evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem)"
+" should be set with `pop_size=None`, and [`EvalMonitor`](#EvalMonitor) "
+"should have `topk=1`, as only a single individual is being searched. A "
+"careful hyper-parameter setup helps avoid unnecessary issues."
 msgstr ""
-"需要注意的一个关键点是，[`SupervisedLearningProblem`](#evox.problems.neuroevolution.SupervisedLearningProblem)"
-" 应该设置为 `pop_size=None`，并且 [`EvalMonitor`](#evox.workflows.EvalMonitor) 应该设置为"
-" `topk=1`，因为只搜索单个个体。仔细的超参数设置有助于避免不必要的问题。"
-
-#: ../../source/guide/developer/1-modulebase.md:1
-msgid "Working with Module in EvoX"
-msgstr "在 EvoX 中使用模块"
-
-#: ../../source/guide/developer/1-modulebase.md:3
-msgid ""
-"A **module** is a fundamental concept in programming that refers to a self-"
-"contained unit of code designed to perform a specific task or a set of "
-"related tasks."
-msgstr "一个**模块**是编程中的一个基本概念，指的是一个自包含的代码单元，旨在执行特定任务或一组相关任务。"
-
-#: ../../source/guide/developer/1-modulebase.md:5
-msgid ""
-"This notebook will introduce the basic module in EvoX: "
-"[`ModuleBase`](#evox.core.module.ModuleBase)."
-msgstr "此笔记本将介绍 EvoX 中的基本模块：[`ModuleBase`](#evox.core.module.ModuleBase)。"
-
-#: ../../source/guide/developer/1-modulebase.md:7
-msgid "Introduction to Module"
-msgstr "模块介绍"
-
-#: ../../source/guide/developer/1-modulebase.md:9
-msgid ""
-"In the [Quick Start Documentation](#/guide/user/1-start) of the [User "
-"Guide](#/guide/user/index), we have mentioned the basic running process in "
-"EvoX:"
-msgstr ""
-"在[用户指南](#/guide/user/index)的[快速入门文档](#/guide/user/1-start)中，我们提到了EvoX的基本运行过程："
-
-#: ../../source/guide/developer/1-modulebase.md:13
-msgid "This process requires four basic class in EvoX:"
-msgstr "在EvoX中，此过程需要四个基本类："
-
-#: ../../source/guide/developer/1-modulebase.md:15
-msgid "[`Algorithm`](#evox.core.components.Algorithm)"
-msgstr "[`Algorithm`](#evox.core.components.Algorithm)"
-
-#: ../../source/guide/developer/1-modulebase.md:16
-msgid "[`Problem`](#evox.core.components.Problem)"
-msgstr "[`Problem`](#evox.core.components.Problem)"
-
-#: ../../source/guide/developer/1-modulebase.md:17
-msgid "[`Monitor`](evox.core.components.Monitor)"
-msgstr "[`Monitor`](evox.core.components.Monitor)"
-
-#: ../../source/guide/developer/1-modulebase.md:18
-msgid "[`Workflow`](#evox.core.components.Workflow)"
-msgstr "[`Workflow`](#evox.core.components.Workflow)"
-
-#: ../../source/guide/developer/1-modulebase.md:21
-msgid ""
-"It is necessary to provide a unified module for them. In EvoX, the four "
-"classes are all inherited from the base module — "
-"[`ModuleBase`](#evox.core.module.ModuleBase)."
-msgstr ""
-"有必要为它们提供一个统一的模块。在EvoX中，这四个类都继承自基础模块——[`ModuleBase`](#evox.core.module.ModuleBase)。"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid "Module base"
-msgstr "模块 base"
-
-#: ../../source/guide/developer/1-modulebase.md:28
-msgid "ModuleBase class"
-msgstr "ModuleBase 类"
-
-#: ../../source/guide/developer/1-modulebase.md:30
-msgid ""
-"The [`ModuleBase`](#evox.core.module.ModuleBase) class is inherited from "
-"[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)."
-msgstr ""
-"[`ModuleBase`](#evox.core.module.ModuleBase) 类继承自 "
-"[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)。"
-
-#: ../../source/guide/developer/1-modulebase.md:32
-msgid ""
-"There are many methods in this class, and some important methods are here:"
-msgstr "在这个类中有许多方法，这里是一些重要的方法："
-
-#: ../../source/guide/developer/1-modulebase.md:23
-#: ../../source/guide/developer/3-custom-alg-pro.md
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
-msgid "Method"
-msgstr "方法"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-#: ../../source/guide/developer/3-custom-alg-pro.md
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
-msgid "Signature"
-msgstr "签名"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-#: ../../source/guide/developer/3-custom-alg-pro.md
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
-msgid "Usage"
-msgstr "使用情况"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-#: ../../source/guide/developer/3-custom-alg-pro.md
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
-msgid "`__init__`"
-msgstr "`__init__`"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-#: ../../source/guide/developer/3-custom-alg-pro.md
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
-msgid "`(self, ...)`"
-msgstr "`(self, ...)`"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid "Initialize the module."
-msgstr "初始化模块。"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid "`load_state_dict`"
-msgstr "`load_state_dict"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid ""
-"`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)`"
-msgstr ""
-"`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid ""
-"Copy parameters and buffers from `state_dict` into this module and its "
-"descendants. It overwrites "
-"[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)."
-msgstr ""
-"将`state_dict`中的参数和缓冲区复制到此模块及其子模块中。它会覆盖[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)。"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid "`add_mutable`"
-msgstr "`add_mutable"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid ""
-"`(self, name: str, value: Union[torch.Tensor | nn.Module, "
-"Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
-" None`"
-msgstr ""
-"`(self, name: str, value: Union[torch.Tensor | nn.Module, "
-"Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
-" None"
-
-#: ../../source/guide/developer/1-modulebase.md:23
-msgid ""
-"Define a mutable value in this module that can be accessed via `self.[name]`"
-" and modified in-place."
-msgstr "定义一个可变值，并将其在 `self.[name]` 中暴露出来，可以通过 `self.[name] = [值]` 来修改。"
-
-#: ../../source/guide/developer/1-modulebase.md:40
-msgid "Role of Module"
-msgstr "模块的作用"
-
-#: ../../source/guide/developer/1-modulebase.md:42
-msgid ""
-"In EvoX, the [`ModuleBase`](#evox.core.module.ModuleBase) could help to:"
-msgstr "在 EvoX 中，[`ModuleBase`](#evox.core.module.ModuleBase) 可以帮助："
-
-#: ../../source/guide/developer/1-modulebase.md:44
-msgid "**Contain mutable values**"
-msgstr "**包含可变值**"
-
-#: ../../source/guide/developer/1-modulebase.md:46
-msgid ""
-"​\tThis module is an object-oriented one that can contain mutable values."
-msgstr "该模块是一个面向对象的模块，可以包含可变值。"
-
-#: ../../source/guide/developer/1-modulebase.md:48
-msgid "**Support functional programming**"
-msgstr "**支持函数式编程**"
-
-#: ../../source/guide/developer/1-modulebase.md:50
-msgid ""
-"​\tFunctional programming model is supported via `self.state_dict()` and "
-"`self.load_state_dict(...)`."
-msgstr "支持函数式编程模型通过 `self.state_dict()` 和 `self.load_state_dict(...)"
-
-#: ../../source/guide/developer/1-modulebase.md:52
-msgid "**Standardize the initialization**:"
-msgstr "**标准化初始化**:"
-
-#: ../../source/guide/developer/1-modulebase.md:54
-msgid ""
-"​\tBasically, predefined submodule(s) which will be ADDED to this module and"
-" accessed later in member method(s) should be treated as \"non-static "
-"members\", while any other member(s) should be treated as \"static "
-"members\"."
-msgstr "基本上，预定义的子模块将被添加到此模块中，并在成员方法中访问，应该被视为“非静态成员”，而其他任何成员都应该被视为“静态成员”。"
-
-#: ../../source/guide/developer/1-modulebase.md:56
-msgid ""
-"​\tThe module initialization for non-static members are recommended to be "
-"written in the overwritten method of `setup` (or any other member method) "
-"rather than `__init__`."
-msgstr "建议将非静态成员的模块初始化写在重写的 `setup` 方法（或任何其他成员方法）中，而不是 `__init__` 中。"
-
-#: ../../source/guide/developer/1-modulebase.md:58
-msgid "Usage of Module"
-msgstr "模块使用"
-
-#: ../../source/guide/developer/1-modulebase.md:60
-msgid ""
-"Specifically, there are some rules for using "
-"[`ModuleBase`](#evox.core.module.ModuleBase) in EvoX:"
-msgstr "具体来说，在EvoX中使用[`ModuleBase`](#evox.core.module.ModuleBase)有一些规则："
-
-#: ../../source/guide/developer/1-modulebase.md:62
-msgid "Static methods"
-msgstr "静态方法"
-
-#: ../../source/guide/developer/1-modulebase.md:64
-msgid "Static methods to be JIT shall be defined like:"
-msgstr "要将静态方法定义为JIT，请这样定义："
-
-#: ../../source/guide/developer/1-modulebase.md:73
-msgid "Non-static Methods"
-msgstr "非静态方法"
-
-#: ../../source/guide/developer/1-modulebase.md:75
-msgid ""
-"If a method with python dynamic control flows like `if` were to be used with"
-" `vmap`, please use "
-"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond)"
-" to explicitly define the control flow."
-msgstr ""
-"如果使用具有 Python 动态控制流（如 `if`）的方法与 `vmap`一起，请使用 "
-"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond)显式定义控制流。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:10002
-msgid "Optimizing Development for EvoX via PyTorch Advanced Techniques"
-msgstr "通过 PyTorch 高级技术优化 EvoX 的开发"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:20002
-msgid "Basic Optimization Support for Functions in PyTorch"
-msgstr "PyTorch中函数的基本优化支持"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:20004
-msgid ""
-"PyTorch provides fundamental optimization support for functions, primarily "
-"through vectorizing map (vmap) operations and Just-In-Time (JIT) "
-"compilation. These techniques enable efficient batch processing and enhance "
-"execution performance, respectively. Introductions of these optimizations "
-"are provided in the following sections."
-msgstr ""
-"PyTorch "
-"提供了对函数的基本优化支持，主要通过矢量化映射（vmap）操作和即时编译（JIT）实现。这些技术分别使得批处理更加高效并提升执行性能。关于这些优化的介绍将在以下部分提供。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:30002
-msgid "Batch Processing Support through Vectorizing Map in PyTorch"
-msgstr "在 PyTorch 中通过矢量化映射支持批处理"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:30004
-msgid ""
-"Vectorizing map, implemented in PyTorch as "
-"[`torch.vmap`](https://pytorch.org/docs/stable/generated/torch.vmap.html), "
-"is a powerful tool that takes a callable function and returns a batched "
-"version of it. According to specified strategy, this new function vectorizes"
-" the operations of the original one, which facilitates efficient batch "
-"processing. In EvoX, for example, this feature plays a crucial role in "
-"hyperparameter optimization (HPO)."
-msgstr ""
-"在PyTorch中实现的向量化映射[`torch.vmap`](https://pytorch.org/docs/stable/generated/torch.vmap.html)是一个强大的工具，它接受一个可调用函数并返回其批处理版本。根据指定的策略，这个新函数对原始函数的操作进行向量化，从而促进高效的批处理。在EvoX中，例如，这一特性在超参数优化（HPO）中起着至关重要的作用。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50002
-msgid "Just-In-Time (JIT) Support in PyTorch"
-msgstr "在PyTorch中支持即时编译（Just-In-Time, JIT）"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50004
-msgid ""
-"In PyTorch, "
-"[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
-" and "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" provide two distinct types of JIT tools, supporting function performance "
-"optimization through tracing and scripting, respectively."
-msgstr ""
-"在 PyTorch "
-"中，[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
-" 和 "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" 提供了两种不同类型的 JIT 工具，分别通过追踪和脚本化支持函数性能优化。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:50006
-msgid ""
-"Based on the tracing strategy, the `torch.jit.trace` method offers higher "
-"parsing speed and broader compatibility, such as with `torch.vmap` "
-"operations. Although it provides excellent support for simple functions, it "
-"is not suitable for complex tasks involving dynamic if-else branches and "
-"loop control flows."
-msgstr ""
-"根据追踪策略，`torch.jit.trace` 方法提供了更高的解析速度和更广泛的兼容性，例如与 `torch.vmap` "
-"操作的兼容性。尽管它对简单函数提供了出色的支持，但不适用于涉及动态 if-else 分支和循环控制流的复杂任务。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:70002
-msgid ""
-"In the example below, the traced `vmap` function successfully returns the "
-"correct code representation:"
-msgstr "在下面的例子中，跟踪的 `vmap` 函数成功返回了正确的代码表示："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:90002
-msgid ""
-"However, dynamic python control-flow cannot be traced correctly and a "
-"warning will be raised:"
-msgstr "然而，动态的 Python 控制流无法被正确追踪，并且会发出警告："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:110002
-msgid ""
-"Alternatively, the `torch.jit.script` method, which adopts a scripting "
-"strategy, is better suited for complex tasks that involve dynamic control "
-"flows but has limited compatibility."
-msgstr "或者，采用脚本策略的 `torch.jit.script` 方法更适合涉及动态控制流的复杂任务，但兼容性有限。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:120002
-msgid ""
-"In this example, the same `vmap_sample_func` function, after being scripted,"
-" returns an **incorrect** code representation:"
-msgstr "在这个例子中，相同的 `vmap_sample_func` 函数，在被脚本化后，返回了一个**不正确**的代码表示："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:140002
-msgid "Yet, it can correctly deal with complex dynamic python control flow:"
-msgstr "然而，它可以正确处理复杂的动态 Python 控制流："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:160003
-msgid ""
-"`torch.jit.script` relies on type hint to work properly. For example, any "
-"unannotated input argument is treated as a `torch.Tensor` while you can "
-"annotate some input arguments to be python types to make `torch.jit.script` "
-"work as intended."
-msgstr ""
-"`torch.jit.script` 依赖类型提示才能正常工作。例如，任何未注释的输入参数都会被视为 "
-"`torch.Tensor`，而你可以将一些输入参数注释为 python 类型，以使 `torch.jit.script` 按预期工作。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170002
-msgid "Combined Usage of JIT and Vectorizing Map in PyTorch"
-msgstr "在PyTorch中结合使用JIT和Vectorizing Map"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170004
-msgid ""
-"Based on the introductions above, when `torch.jit.trace` and "
-"`torch.jit.script` are used in combination with `torch.vmap`, coordination "
-"is required due to compatibility considerations."
-msgstr ""
-"根据上述介绍，当 `torch.jit.trace` 和 `torch.jit.script` 与 `torch.vmap` "
-"结合使用时，由于兼容性考虑，需要进行协调。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170006
-msgid ""
-"The figure below illustrates the relationship between `torch.jit.script`, "
-"`torch.jit.trace`, and `torch.vmap`, highlighting their mutual invocation "
-"paths. If module A invokes module B, it implies that B can be called by A."
-msgstr ""
-"下图说明了 `torch.jit.script`、`torch.jit.trace` 和 `torch.vmap` "
-"之间的关系，突出显示了它们的相互调用路径。如果模块 A 调用模块 B，这意味着 B 可以被 A 调用。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170008
-msgid "JIT introduction"
-msgstr "JIT 介绍"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:170013
-msgid ""
-"For detailed usage of JIT and vectorizing map on PyTorch, please refer to "
-"the official PyTorch documentation for "
-"[TorchScript](#https://pytorch.org/docs/stable/jit.html) and "
-"[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)."
-msgstr ""
-"有关在 PyTorch 上使用 JIT 和矢量化映射的详细信息，请参阅 PyTorch 官方文档中的 "
-"[TorchScript](#https://pytorch.org/docs/stable/jit.html) 和 "
-"[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:180002
-msgid "Specific Optimization Support in EvoX"
-msgstr "EvoX中的特定优化支持"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:180004
-msgid ""
-"Within EvoX, most functions are defined inside classes, particularly "
-"subclasses of [`ModuleBase`](#evox.core.module.ModuleBase). To provide more "
-"comprehensive optimization supports, EvoX offers specific enhancements."
-msgstr ""
-"在 EvoX 中，大多数函数是在类中定义的，特别是 [`ModuleBase`](#evox.core.module.ModuleBase) "
-"的子类中。为了提供更全面的优化支持，EvoX 提供了特定的增强功能。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:190002
-msgid ""
-"Using JIT to Subclasses of [`ModuleBase`](#evox.core.module.ModuleBase)"
-msgstr "使用 JIT 到 [`ModuleBase`](#evox.core.module.ModuleBase) 的子类"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:200002
-msgid ""
-"For better understanding of this part, we need to explain three important "
-"functions in EvoX: [`jit_class`](#evox.core.module.jit_class), "
-"[`vmap`](#evox.core.jit_util.vmap) and [`jit`](l#evox.core.jit_util.jit)."
-msgstr ""
-"为了更好地理解这一部分，我们需要解释EvoX中的三个重要函数：[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)和[`jit`](#evox.core.jit_util.jit)。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:210002
-msgid "[`jit_class`](#evox.core.module.jit_class) Function"
-msgstr "[`jit_class`](#evox.core.module.jit_class) 函数"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220002
-msgid ""
-"[`jit_class`](#evox.core.module.jit_class) is a helper function used to "
-"Just-In-Time (JIT) script of "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" or trace "
-"([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
-"jit-trace-module)) all member methods of the input class."
-msgstr ""
-"[`jit_class`](#evox.core.module.jit_class) 是一个辅助函数，用于对输入类的所有成员方法进行 Just-In-"
-"Time (JIT) 脚本化的 "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" 或跟踪 "
-"([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
-"jit-trace-module))。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220004
-msgid "[`jit_class`](#evox.core.module.jit_class) has two parameters:"
-msgstr "[`jit_class`](#evox.core.module.jit_class) 有两个参数："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220006
-msgid "`cls`: the original class whose member methods are to be lazy JIT."
-msgstr "`cls`: 原始类，其成员方法将被懒惰 JIT。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220007
-msgid ""
-"`trace`: whether to trace the module or to script the module. Default to "
-"`False`."
-msgstr "`trace`: 是否追踪模块或将模块脚本化。默认值为 `False`。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220010
-msgid ""
-"In many cases, it is not necessary to wrap your custom algorithms or "
-"problems with [`jit_class`](#evox.core.module.jit_class), the workflow(s) "
-"will do the trick for you."
-msgstr ""
-"在许多情况下，不需要用[`jit_class`](#evox.core.module.jit_class)包装您的自定义算法或问题，工作流将为您解决问题。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220011
-msgid ""
-"With `trace=True`, all the member functions are effectively modified to "
-"return `self` additionally since side-effects cannot be traced. If you want "
-"to preserve the side effects, please set `trace=False` and use the "
-"`use_state` function to wrap the member method to generate pure-functional "
-"(the `use_state` function will be explained in the next part)."
-msgstr ""
-"在 `trace=True` 的情况下，所有成员函数都会被有效地修改为额外返回 `self`，因为副作用无法被追踪。如果你想保留副作用，请设置 "
-"`trace=False` 并使用 `use_state` 函数来包装成员方法以生成纯函数（`use_state` 函数将在下一部分中解释）。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:220012
-msgid ""
-"Similarly, all module-wide operations like `self.to(...)` can only returns "
-"the unwrapped module, which may not be desired. Since most of them are in-"
-"place operations, a simple `module.to(...)` can be used instead of `module ="
-" module.to(...)`."
-msgstr ""
-"类似地，所有模块级的操作如 `self.to(...)` 只能返回未包装的模块，这可能不是我们想要的。由于它们大多是就地操作，可以使用简单的 "
-"`module.to(...)` 来替代 `module = module.to(...)`。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:230003
-msgid "[`vmap`](#evox.core.jit_util.vmap) Function"
-msgstr "[`vmap`](#evox.core.jit_util.vmap) 函数"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:240002
-msgid ""
-"[`vmap`](#evox.core.jit_util.vmap) function vectorized map the given "
-"function to its mapped version. Based on "
-"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html), we "
-"made many improvements, and you can see "
-"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for "
-"more information."
-msgstr ""
-"[`vmap`](#evox.core.jit_util.vmap) 函数将给定函数矢量化映射到其映射版本。基于 "
-"[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html)，我们进行了许多改进，您可以查看"
-" [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) "
-"以获取更多信息。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:250002
-msgid "[`jit`](#evox.core.jit_util.jit) Function"
-msgstr "[`jit`](#evox.core.jit_util.jit) 函数"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260002
-msgid ""
-"[`jit`](#evox.core.jit_util.jit) compile the given `func` via "
-"[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" (`trace=True`) or "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
-" (`trace=False`)."
-msgstr ""
-"[`jit`](#evox.core.jit_util.jit) 使用 "
-"[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
-" (`trace=True`) 或 "
-"[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
-" (`trace=False`) 编译给定的 `func"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260004
-msgid ""
-"This function wrapper effectively deals with nested JIT and vector map "
-"(`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`, preventing"
-" possible errors."
-msgstr ""
-"该函数包装器有效处理嵌套的 JIT 和向量映射 (`vmap`) 表达式，如 `jit(func1)` -> `vmap` -> "
-"`jit(func2)`，从而防止可能出现的错误。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260007
-msgid ""
-"With `trace=True`, `torch.jit.trace` cannot use SAME example input arguments"
-" for function of DIFFERENT parameters,e.g., you cannot pass `tensor_a, "
-"tensor_a` to `torch.jit.trace`d version of `f(x: torch.Tensor, y: "
-"torch.Tensor)`."
-msgstr ""
-"在 `trace=True` 的情况下，`torch.jit.trace` 不能对具有不同参数的函数使用相同的示例输入参数，例如，你不能将 "
-"`tensor_a, tensor_a` 传递给 `torch.jit.trace` 版本的 `f(x: torch.Tensor, y: "
-"torch.Tensor)"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260008
-msgid ""
-"With `trace=False`, `torch.jit.script` cannot contain `vmap` expressions "
-"directly, please wrap them with `jit(..., trace=True)` or `torch.jit.trace`."
-msgstr ""
-"在 `trace=False` 的情况下，`torch.jit.script` 不能直接包含 `vmap` 表达式，请使用 `jit(..., "
-"trace=True)` 或 `torch.jit.trace` 包装它们。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:260011
-msgid ""
-"In the [Working with Module in EvoX](#/guide/developer/1-modulebase), we "
-"have briefly introduced some rules about the methods inside a subclass of "
-"the [`ModuleBase`](#evox.core.module.ModuleBase) . Now that "
-"[`jit_class`](#evox.core.module.jit_class), "
-"[`vmap`](#evox.core.jit_util.vmap) and [`jit`](#evox.core.jit_util.jit) have"
-" been explained, we will explain more rules and provide some specific hints."
-msgstr ""
-"在 [EvoX 中的模块工作](#/guide/developer/1-modulebase) 中，我们简要介绍了关于 "
-"[`ModuleBase`](#evox.core.module.ModuleBase) 子类中方法的一些规则。现在 "
-"[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)"
-" 和 [`jit`](#evox.core.jit_util.jit) 已经被解释，我们将解释更多规则并提供一些具体提示。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:270002
-msgid "Definition of Static Methods Inside the Subclass"
-msgstr "子类中静态方法的定义"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:280002
-msgid "Inside the subclass, static methods to be JIT shall be defined like:"
-msgstr "在子类中，静态方法要被 JIT 定义为："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:290002
-msgid "Definition of Non-static Methods Inside the Subclass"
-msgstr "在子类中定义非静态方法"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:300002
-msgid ""
-"If a method with **Python dynamic control flows** like `if` were to be JIT, "
-"a separated static method with `jit(..., trace=False)` or "
-"`torch.jit.script_if_tracing` shall be used:"
-msgstr ""
-"如果一个方法使用了**Python动态控制流**，例如`if`，并且需要进行JIT，那么应使用一个独立的静态方法，并使用`jit(..., "
-"trace=False)`或`torch.jit.script_if_tracing"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:300035
-msgid ""
-"Dynamic control flow in Python refers to control structures that change "
-"dynamically based on conditions at runtime. `if...elif...else` Conditional "
-"Statements, `for`loop and `while` loop are all dynamic control flows. If you"
-" have to use them when defining non-static Methods inside the subclass of "
-"[`ModuleBase`](#evox.core.module.ModuleBase), please follow the above rule."
-msgstr ""
-"在Python中，动态控制流是指根据运行时的条件动态变化的控制结构。`if...elif...else` 条件语句、`for` 循环和 `while` "
-"循环都是动态控制流。如果在定义 [`ModuleBase`](#evox.core.module.ModuleBase) "
-"子类中的非静态方法时必须使用它们，请遵循上述规则。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:310002
-msgid "Invocation of External Methods Inside the Subclass"
-msgstr "调用子类中的外部方法"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:320002
-msgid ""
-"Inside the subclass, external JIT methods can be invocated by the class "
-"methods to be JIT:"
-msgstr "在子类中，外部 JIT 方法可以通过类方法调用以实现 JIT："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:330002
-msgid "Automatically JIT for the Subclass Used with `jit_class`"
-msgstr "自动为使用 `jit_class` 的子类进行 JIT 处理"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:340002
-msgid ""
-"[`ModuleBase`](#evox.core.module.ModuleBase)  and its subclasses are usually"
-" used with [`jit_class`](#evox.core.module.jit_class) to automatically JIT "
-"all non-magic member methods:"
-msgstr ""
-"[`ModuleBase`](#evox.core.module.ModuleBase) 及其子类通常与 "
-"[`jit_class`](#evox.core.module.jit_class) 一起使用，以自动JIT所有非魔术成员方法："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:350002
-msgid "Invocation of External Vmap-wrapped Methods Inside the Subclass"
-msgstr "在子类中调用外部 Vmap 包装的方法"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:360002
-msgid ""
-"Inside the subclass, external vmap-wrapped methods can be invocated by the "
-"class methods to be JIT:"
-msgstr "在子类内部，外部 vmap 包装的方法可以通过类方法调用以实现 JIT："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:360034
-msgid ""
-"If method A invokes vmap-wrapped method B, then A and all methods invoke "
-"method A can not be vmap-wrapped again."
-msgstr "如果方法 A 调用 vmap 包装的方法 B，那么 A 和所有调用方法 A 的方法不能再次被 vmap 包装。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:370002
-msgid "Internal Vmap-wrapped Methods Inside the Subclass"
-msgstr "子类内部的 Vmap 包装方法"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:380002
-msgid ""
-"Inside the subclass, internal vmap-wrapped methods can be  JIT by using the "
-"[`trace_impl`](#evox.core.module.trace_impl):"
-msgstr ""
-"在子类内部，可以使用 [`trace_impl`](#evox.core.module.trace_impl) 对内部 vmap 包装的方法进行 "
-"JIT。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:380040
-msgid ""
-"If a class method use [`trace_impl`](#evox.core.module.trace_impl), it will "
-"be only available in the trace mode. More details about `trace_impl` will be"
-" shown in the next part."
-msgstr ""
-"如果一个类方法使用了[`trace_impl`](#evox.core.module.trace_impl)，它将仅在追踪模式下可用。关于`trace_impl`的更多细节将在下一部分展示。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390002
-msgid "Using `@trace_impl` and `@vmap_impl`"
-msgstr "使用 `@trace_impl` 和 `@vmap_impl"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390004
-msgid ""
-"When designing a function or method, you may not always consider whether it "
-"is `JIT`-compatible. However, this property becomes crucial in specific "
-"scenarios, such as solving Hyperparameter Optimization (HPO) problems. For "
-"more details on deploying HPO with EvoX, refer to [Efficient HPO with "
-"EvoX](#/guide/user/3-hpo)."
-msgstr ""
-"在设计函数或方法时，您可能并不总是考虑它是否与`JIT`兼容。然而，这一特性在特定场景中变得至关重要，例如解决超参数优化（HPO）问题。有关使用EvoX部署HPO的更多详细信息，请参阅[Efficient"
-" HPO with EvoX](#/guide/user/3-hpo)。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390006
-msgid ""
-"A typical characteristic of such problems is that only certain parts of the "
-"algorithm need modification—for instance, the `step` method of an algorithm."
-" This allows you to avoid rewriting the entire algorithm. In such cases, you"
-" can use the `@trace_impl` or `@vmap_impl` decorator to rewrite the function"
-" as a trace-JIT-time or vmap-JIT-time proxy for the specified `target` "
-"method."
-msgstr ""
-"这类问题的一个典型特征是，只需要修改算法的某些部分——例如，算法的 `step` 方法。这使您可以避免重写整个算法。在这种情况下，您可以使用 "
-"`@trace_impl` 或 `@vmap_impl` 装饰器，将函数重写为指定 `target` 方法的 trace-JIT-time 或 "
-"vmap-JIT-time 代理。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390008
-msgid ""
-"The decorators [`@trace_impl`](#trace_impl) and [`@vmap_impl`](#vmap_impl) "
-"accept a single input parameter: the target method invoked when not "
-"tracing/vmapping JIT. These decorators are applicable **only** to member "
-"methods within a `jit_class`."
-msgstr ""
-"装饰器 [`@trace_impl`](#trace_impl) 和 [`@vmap_impl`](#vmap_impl) "
-"接受一个输入参数：在不进行追踪/vmap JIT 时调用的目标方法。这些装饰器**仅**适用于 `jit_class` 中的成员方法。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390010
-msgid ""
-"Since the annotated function serves as a rewritten version of the target "
-"function, it must maintain identical input/output signatures (e.g., number "
-"and types of arguments). Otherwise, the resulting behavior is undefined."
-msgstr "由于注释函数作为目标函数的重写版本，它必须保持相同的输入/输出签名（例如，参数的数量和类型）。否则，结果行为是未定义的。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390012
-msgid ""
-"If the annotated function is intended for use with `vmap`, it must satisfy "
-"three additional constraints:"
-msgstr "如果注释的函数打算与`vmap`一起使用，它必须满足三个额外的约束："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390014
-msgid ""
-"**No In-Place Operations on Attributes:** The algorithm must not include "
-"methods that perform in-place operations on its attributes."
-msgstr "**禁止对属性进行原地操作：** 算法不得包含对其属性执行原地操作的方法。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390029
-msgid ""
-"**Avoid Python Control Flow:** The code logic must not rely on Python "
-"control flow structures. To handle Python control flow, use "
-"[`TracingCond`](#TracingCond), [`TracingWhile`](#TracingWhile), and "
-"[`TracingSwitch`](#TracingSwitch)."
-msgstr ""
-"**避免使用 Python 控制流：** 代码逻辑不能依赖于 Python 控制流结构。要处理 Python 控制流，请使用 "
-"[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
-"[`TracingSwitch`](#TracingSwitch)。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390079
-msgid ""
-"**Avoid In-Place Operations on `self`:** Vectorized map in-place operations "
-"on `self` are not well-defined and cannot be compiled. Even if it is "
-"compiled successfully, you can still silently get incorrect results."
-msgstr ""
-"**避免对 `self` 进行就地操作：** 向量化映射对 `self` "
-"的就地操作定义不明确，无法编译。即使成功编译，您仍可能会悄无声息地得到错误的结果。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390082
-msgid "Using `use_state`"
-msgstr "使用 `use_state`"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390084
-msgid ""
-"[`use_state`](#use_state) transforms a given stateful function (which "
-"performs in-place alterations on `nn.Module`s) into a pure-functional "
-"version that receives an additional `state` parameter (of type `Dict[str, "
-"torch.Tensor]`) and returns the altered state."
-msgstr ""
-"[`use_state`](#use_state) 将给定的有状态函数（对 `nn.Module` 进行就地更改）转换为纯函数版本，该版本接收一个额外的"
-" `state` 参数（类型为 `Dict[str, torch.Tensor]`），并返回更改后的状态。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390086
-msgid ""
-"The input `func` is the stateful function to be transformed or its generator"
-" function, and `is_generator` specifies whether `func` is a function or a "
-"function generator (e.g., a lambda that returns the stateful function). It "
-"defaults to `True`."
-msgstr ""
-"输入 `func` 是要转换的有状态函数或其生成器函数，而 `is_generator` 指定 `func` "
-"是一个函数还是一个函数生成器（例如，返回有状态函数的 lambda）。默认值为 `True"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390088
-msgid "Here is a simple example:"
-msgstr "以下是一个简单的例子："
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390129
-msgid "Using `core._vmap_fix`"
-msgstr "使用 `core._vmap_fix"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390131
-msgid ""
-"The module [`_vmap_fix`](#_vmap_fix) provides useful functions. After the "
-"automatic import, `_vmap_fix` enables `torch.vmap` to be correctly traced by"
-" `torch.jit.trace`, while resolving issues such as random number handling "
-"that couldn't be properly traced during the `vmap` process. It also provides"
-" the `debug_print` function, which allows dynamic printing of Tensor values "
-"during both `vmap` and tracing."
-msgstr ""
-"模块 [`_vmap_fix`](#_vmap_fix) 提供了有用的函数。在自动导入后，`_vmap_fix` 使 `torch.vmap` 能够被 "
-"`torch.jit.trace` 正确追踪，同时解决了在 `vmap` 过程中无法正确追踪的随机数处理等问题。它还提供了 `debug_print` "
-"函数，允许在 `vmap` 和追踪过程中动态打印 Tensor 值。"
-
-#: ../../source/guide/developer/2-jit-vmap-tutorial.ipynb:390133
-msgid ""
-"Detailed information can be found in the [`_vmap_fix`](#_vmap_fix) "
-"documentation."
-msgstr "详细信息可以在[`_vmap_fix`](#_vmap_fix)文档中找到。"
-
-#: ../../source/guide/developer/3-custom-alg-pro.md:1
+"需要注意的一个关键点是，[`SupervisedLearningProblem`](#evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem)"
+" 应该设置为 `pop_size=None`，并且 [`EvalMonitor`](#EvalMonitor) 应设置为 "
+"`topk=1`，因为这里仅搜索一个个体。谨慎的超参数设置有助于避免不必要的问题。"
+
+#: ../../source/guide/developer/custom-alg-pro.md:1
 msgid "Custom algorithms and problems in EvoX"
 msgstr "EvoX中的自定义算法和问题"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:3
+#: ../../source/guide/developer/custom-alg-pro.md:3
 msgid ""
 "In this chapter, we will introduce how to implement your own algorithms and "
 "problems in EvoX."
 msgstr "在本章节中，我们将介绍如何在EvoX中实现您自己的算法和问题。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:5
+#: ../../source/guide/developer/custom-alg-pro.md:5
 msgid "Layout of the algorithms and problems"
 msgstr "算法和问题的布局"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:7
+#: ../../source/guide/developer/custom-alg-pro.md:7
 msgid ""
 "In most traditional EC libraries, algorithms usually call the objective "
 "function internally, which gives the following layout:"
 msgstr "在大多数传统的进化计算（EC）库中，算法通常在内部调用目标函数，其布局如下："
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:15
+#: ../../source/guide/developer/custom-alg-pro.md:15
 msgid "**But in EvoX, we have a flat layout:**"
 msgstr "但在 EvoX 中，我们使用了扁平化布局："
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:21
+#: ../../source/guide/developer/custom-alg-pro.md:21
 msgid ""
 "This layout makes both algorithms and problems more universal: an algorithm "
 "can optimize different problems, while a problem can also be suitable for "
 "many algorithms."
 msgstr "这种布局使得算法和问题更加通用：一个算法可以优化不同的问题，而一个问题也可以适用于许多算法。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:25
+#: ../../source/guide/developer/custom-alg-pro.md:25
 msgid "Algorithm class"
 msgstr "Algorithm 类"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:27
+#: ../../source/guide/developer/custom-alg-pro.md:27
 msgid ""
 "The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
@@ -8531,13 +7774,43 @@ msgstr ""
 "[`Algorithm`](#evox.core.components.Algorithm) 类继承自 "
 "[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:29
+#: ../../source/guide/developer/custom-alg-pro.md:29
 msgid ""
 "**In total,** **there are 5 methods (2 methods are optional) that we need to"
 " implement:**"
 msgstr "总共有5个方法（其中2个方法是可选的）需要我们实现："
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md:37
+#: ../../source/guide/developer/modulebase.md:23
+msgid "Method"
+msgstr "方法"
+
+#: ../../source/guide/developer/custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md:37
+#: ../../source/guide/developer/modulebase.md:23
+msgid "Signature"
+msgstr "签名"
+
+#: ../../source/guide/developer/custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md:37
+#: ../../source/guide/developer/modulebase.md:23
+msgid "Usage"
+msgstr "使用情况"
+
+#: ../../source/guide/developer/custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md:37
+#: ../../source/guide/developer/modulebase.md:23
+msgid "`__init__`"
+msgstr "`__init__`"
+
+#: ../../source/guide/developer/custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md:37
+#: ../../source/guide/developer/modulebase.md:23
+msgid "`(self, ...)`"
+msgstr "`(self, ...)`"
+
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid ""
 "Initialize the algorithm instance, for example, the population size (keeps "
 "constant during iteration), hyper-parameters (can only be set by HPO problem"
@@ -8546,29 +7819,29 @@ msgid ""
 msgstr ""
 "初始化算法实例，例如，种群大小（在迭代过程中保持不变）、超参数（只能通过HPO问题包装器设置或在此初始化）、和/或可变张量（可以动态修改）。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid "`step`"
 msgstr "步骤"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid "`(self)`"
 msgstr "`(self)"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid "Perform a normal optimization iteration step of the algorithm."
 msgstr "执行算法的正常优化迭代步骤。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid "`init_step` (optional)"
 msgstr "`init_step`（可选）"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md
+#: ../../source/guide/developer/custom-alg-pro.md
 msgid ""
 "Perform the first step of the optimization of the algorithm. If this method "
 "were not overwritten, the `step` method would be invoked instead."
 msgstr "执行算法优化的第一步。如果此方法未被覆盖，将调用 `step` 方法。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:38
+#: ../../source/guide/developer/custom-alg-pro.md:38
 msgid ""
 "The static initialization can still be written in the `__init__` while the "
 "mutable submodule(s) initialization cannot. Therefore, multiple calls of "
@@ -8578,7 +7851,7 @@ msgid ""
 msgstr ""
 "静态初始化仍然可以在`__init__`中编写，而可变子模块的初始化则不能。因此，如果重写的`setup`方法首先调用[`ModuleBase`](#evox.core.module.ModuleBase)的`setup()`，则可以多次调用`setup`进行重复初始化。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:40
+#: ../../source/guide/developer/custom-alg-pro.md:40
 msgid ""
 "If such `setup` method in [`ModuleBase`](#evox.core.module.ModuleBase) is "
 "not suitable for your algorithm, you can override the `setup` method when "
@@ -8586,11 +7859,11 @@ msgid ""
 msgstr ""
 "如果在[`ModuleBase`](#evox.core.module.ModuleBase)中的这种`setup`方法不适合你的算法，你可以在创建自己的算法类时重写`setup`方法。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:44
+#: ../../source/guide/developer/custom-alg-pro.md:44
 msgid "Problem class"
 msgstr "问题类"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:46
+#: ../../source/guide/developer/custom-alg-pro.md:46
 msgid ""
 "The [`Problem`](#evox.core.components.Problem) class is also inherited from "
 "[`ModuleBase`](#evox.core.module.ModuleBase)."
@@ -8598,66 +7871,66 @@ msgstr ""
 "[`Problem`](#evox.core.components.Problem) 类也继承自 "
 "[`ModuleBase`](#evox.core.module.ModuleBase)。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:48
+#: ../../source/guide/developer/custom-alg-pro.md:48
 msgid ""
 "However, the Problem class is quite simple. **Beside the `__init__` method, "
 "the only necessary method is the `evaluate` method.**"
 msgstr "但是，Problem 类非常简单。**除了 `__init__` 方法，唯一必须的方法是 `evaluate` 方法。**"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
+#: ../../source/guide/developer/custom-alg-pro.md:37
 msgid "Initialize the settings of the problem."
 msgstr "为问题初始化设置。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
+#: ../../source/guide/developer/custom-alg-pro.md:37
 msgid "`evaluate`"
 msgstr "评估"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
+#: ../../source/guide/developer/custom-alg-pro.md:37
 msgid "`(self, pop: torch.Tensor) -> torch.Tensor`"
 msgstr "`(self, pop: torch.Tensor) -> torch.Tensor"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:37
+#: ../../source/guide/developer/custom-alg-pro.md:37
 msgid "Evaluate the fitness of the given population."
 msgstr "评估给定种群的适应度。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:55
+#: ../../source/guide/developer/custom-alg-pro.md:55
 msgid ""
 "However, the type of `pop` argument in `evaluate` can be changed to other "
 "JIT-compatible types in the overwritten method."
 msgstr "然而，在重写的方法中，`evaluate` 中 `pop` 参数的类型可以更改为其他与 JIT 兼容的类型。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:58
+#: ../../source/guide/developer/custom-alg-pro.md:58
 msgid "Example"
 msgstr "样例"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:60
+#: ../../source/guide/developer/custom-alg-pro.md:60
 msgid ""
 "Here we give an example of **implementing a PSO algorithm that solves the "
 "Sphere problem**."
 msgstr "这里我们给出一个**实现一个解决Sphere问题的PSO算法的例子**。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:62
+#: ../../source/guide/developer/custom-alg-pro.md:62
 msgid "Pseudo-code of the example"
 msgstr "示例的伪代码"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:64
+#: ../../source/guide/developer/custom-alg-pro.md:64
 msgid "Here is a pseudo-code:"
 msgstr "以下是一段伪代码："
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:80
+#: ../../source/guide/developer/custom-alg-pro.md:80
 msgid ""
 "And here is what each part of the algorithm and the problem corresponds to "
 "in EvoX."
 msgstr "以下是算法和问题中每个部分在EvoX中的对应关系。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:100
+#: ../../source/guide/developer/custom-alg-pro.md:100
 msgid ""
 "Particle Swarm Optimization (PSO) is a population-based meta-heuristic "
 "algorithm inspired by the social behavior of birds and fish. It is widely "
 "used for solving continuous and discrete optimization problems."
 msgstr "粒子群优化（PSO）是一种基于种群的元启发式算法，灵感来自鸟类和鱼类的社会行为。它被广泛用于解决连续和离散优化问题。"
 
-#: ../../source/guide/developer/3-custom-alg-pro.md:210
+#: ../../source/guide/developer/custom-alg-pro.md:210
 msgid "Now, you can initiate a workflow and run it."
 msgstr "现在，您可以启动一个工作流并运行它。"
 
@@ -8669,12 +7942,12 @@ msgstr "部署具有自定义算法的HPO"
 msgid ""
 "In this chapter, we will focus on deploying HPO with custom algorithms, "
 "emphasizing the details rather than the overall workflow. A brief "
-"introduction to HPO deployment is provided in the previous chapter, "
-"[Efficient HPO with EvoX](#/guide/user/3-hpo), and prior reading is highly "
+"introduction to HPO deployment is provided in the "
+"[tutorial](#/tutorial/tutorial_part7), and prior reading is highly "
 "recommended."
 msgstr ""
-"在本章中，我们将专注于使用自定义算法部署HPO，强调细节而不是整体工作流。上一章[Efficient HPO with "
-"EvoX](#/guide/user/3-hpo)中提供了HPO部署的简要介绍，强烈建议事先阅读。"
+"在本章中，我们将重点讲解如何使用自定义算法部署 HPO，强调细节而非整体工作流。[教程](#/tutorial/tutorial_part7)中提供了 "
+"HPO 部署的简要介绍，非常建议先行阅读。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20002
 msgid "Making Algorithms Parallelizable"
@@ -8689,46 +7962,13 @@ msgstr "由于我们需要将内部算法转化为问题，确保内部算法是
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:20006
 msgid ""
-"To ensure the function is JIT-compilable, it must meet the conditions "
-"outlined in [JIT components](#/guide/developer/2-jit-able). In addition to "
-"these requirements, the algorithm must also satisfy the following two "
-"constraints:"
-msgstr ""
-"为了确保函数是 JIT 可编译的，它必须满足 [JIT components](#/guide/developer/2-jit-able) "
-"中列出的条件。除了这些要求外，算法还必须满足以下两个约束："
-
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:20008
-msgid ""
 "The algorithm should have no methods with in-place operations on the "
 "attributes of the algorithm itself."
 msgstr "算法不应有对其自身属性进行就地操作的方法。"
 
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:20025
+#: ../../source/guide/developer/custom_hpo_prob.ipynb:20020
 msgid "The code logic does not rely on python control flow."
 msgstr "代码逻辑不依赖于 python 控制流。"
-
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:20058
-msgid ""
-"In EvoX, we can easily make the algorithm parallelizable by the "
-"[`@trace_impl`](#trace_impl) decorator."
-msgstr "在 EvoX 中，我们可以通过 [`@trace_impl`](#trace_impl) 装饰器轻松地使算法并行化。"
-
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:20060
-msgid ""
-"The parameter of this decorator is a non-parallelizable function, and the "
-"decorated function is a rewrite of the original function. Detailed "
-"introduction of [`@trace_impl`](#trace_impl) can be found in [JIT "
-"Components](#/guide/developer/2-jit-able)."
-msgstr ""
-"此装饰器的参数是一个不可并行化的函数，装饰后的函数是对原始函数的重写。关于[`@trace_impl`](#trace_impl)的详细介绍可以在[JIT"
-" Components](#/guide/developer/2-jit-able)中找到。"
-
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:20062
-msgid ""
-"Under this mechanism, we can retain the original function for use outside "
-"HPO tasks while enabling efficient computation within HPO tasks. Moreover, "
-"this modification is highly convenient."
-msgstr "在这种机制下，我们可以保留原始函数以便在 HPO 任务之外使用，同时在 HPO 任务中实现高效计算。此外，这种修改非常方便。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:30002
 msgid "Utilizing the HPOMonitor"
@@ -8778,41 +8018,28 @@ msgstr "接下来，我们定义一个简单的球体问题。请注意，这与
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:80002
 msgid ""
-"Next, we define the algorithm. The original `step` function is non-"
-"parallelizable, so we rewrite it using the [`@trace_impl`](#trace_impl) "
-"decorator to make it parallelizable. Specifically, we modify in-place "
-"operations and adjust the Python control flow."
+"Next, we define the algorithm, we use the "
+"[`torch.cond`](#https://pytorch.org/docs/stable/generated/torch.cond.html) "
+"function and make sure it is parallelizable. Specifically, we modify in-"
+"place operations and adjust the Python control flow."
 msgstr ""
-"接下来，我们定义算法。原始的`step`函数是不可并行化的，因此我们使用[`@trace_impl`](#trace_impl)装饰器重写它以实现并行化。具体来说，我们修改了就地操作并调整了Python控制流。"
+"接下来，我们定义算法，我们使用 "
+"[`torch.cond`](#https://pytorch.org/docs/stable/generated/torch.cond.html) "
+"函数并确保它是可并行化的。具体来说，我们修改原地操作并调整 Python 控制流。"
 
 #: ../../source/guide/developer/custom_hpo_prob.ipynb:100002
 msgid ""
-"To handle the Python control flow, we use [`TracingCond`](#TracingCond), "
-"[`TracingWhile`](#TracingWhile) and [`TracingSwitch`](#TracingSwitch). "
-"Since, in tracing mode, variables outside the method may be incorrectly "
-"interpreted as static variables, we need to use state to track them. A "
-"detailed introduction to [`TracingCond`](#TracingCond), "
-"[`TracingWhile`](#TracingWhile) and [`TracingSwitch`](#TracingSwitch) can be"
-" found in [JIT Components](#/guide/developer/2-jit-able). Below, we provide "
-"two equivalent implementations for the `trace_step` method."
-msgstr ""
-"要处理 Python 控制流，我们使用 "
-"[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
-"[`TracingSwitch`](#TracingSwitch)。由于在追踪模式中，方法外的变量可能会被错误地解释为静态变量，我们需要使用状态来跟踪它们。关于"
-" [`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
-"[`TracingSwitch`](#TracingSwitch) 的详细介绍可以在 [JIT "
-"Components](#/guide/developer/2-jit-able) 中找到。下面，我们提供了 `trace_step` "
-"方法的两个等效实现。"
-
-#: ../../source/guide/developer/custom_hpo_prob.ipynb:100043
-msgid ""
-"Next, we can use the [`StdWorkflow`](#StdWorkflow) to wrap the "
+"To handle the Python control flow, we use "
+"[`torch.cond`](https://pytorch.org/docs/stable/generated/torch.cond.html), "
+"next, we can use the [`StdWorkflow`](#StdWorkflow) to wrap the "
 "[`problem`](#evox.problems), [`algorithm`](#evox.algorithms) and "
 "[`monitor`](#Monitor). Then we use the "
 "[`HPOProblemWrapper`](#HPOProblemWrapper) to transform the "
 "[`StdWorkflow`](#StdWorkflow) to HPO problem."
 msgstr ""
-"接下来，我们可以使用 [`StdWorkflow`](#StdWorkflow) 来包装 "
+"为了处理 Python 控制流，我们使用 "
+"[`torch.cond`](https://pytorch.org/docs/stable/generated/torch.cond.html)。接下来，我们可以使用"
+" [`StdWorkflow`](#StdWorkflow) 来包装 "
 "[`problem`](#evox.problems)、[`algorithm`](#evox.algorithms) 和 "
 "[`monitor`](#Monitor)。然后我们使用 [`HPOProblemWrapper`](#HPOProblemWrapper) 将 "
 "[`StdWorkflow`](#StdWorkflow) 转换为 HPO 问题。"
@@ -8916,6 +8143,204 @@ msgstr "请运行单元测试："
 #: ../../source/guide/developer/index.md:1
 msgid "Developer Guide"
 msgstr "开发者指引"
+
+#: ../../source/guide/developer/modulebase.md:1
+msgid "Working with Module in EvoX"
+msgstr "在 EvoX 中使用模块"
+
+#: ../../source/guide/developer/modulebase.md:3
+msgid ""
+"A **module** is a fundamental concept in programming that refers to a self-"
+"contained unit of code designed to perform a specific task or a set of "
+"related tasks."
+msgstr "一个**模块**是编程中的一个基本概念，指的是一个自包含的代码单元，旨在执行特定任务或一组相关任务。"
+
+#: ../../source/guide/developer/modulebase.md:5
+msgid ""
+"This notebook will introduce the basic module in EvoX: "
+"[`ModuleBase`](#evox.core.module.ModuleBase)."
+msgstr "此笔记本将介绍 EvoX 中的基本模块：[`ModuleBase`](#evox.core.module.ModuleBase)。"
+
+#: ../../source/guide/developer/modulebase.md:7
+msgid "Introduction to Module"
+msgstr "模块介绍"
+
+#: ../../source/guide/developer/modulebase.md:9
+msgid ""
+"In the [tutorial](#/tutorial/index), we have mentioned the basic running "
+"process in EvoX:"
+msgstr "在[教程](#/tutorial/index)中，我们提到了EvoX中的基本运行流程："
+
+#: ../../source/guide/developer/modulebase.md:13
+msgid "This process requires four basic class in EvoX:"
+msgstr "在EvoX中，此过程需要四个基本类："
+
+#: ../../source/guide/developer/modulebase.md:15
+msgid "[`Algorithm`](#evox.core.components.Algorithm)"
+msgstr "[`Algorithm`](#evox.core.components.Algorithm)"
+
+#: ../../source/guide/developer/modulebase.md:16
+msgid "[`Problem`](#evox.core.components.Problem)"
+msgstr "[`Problem`](#evox.core.components.Problem)"
+
+#: ../../source/guide/developer/modulebase.md:17
+msgid "[`Monitor`](#evox.core.components.Monitor)"
+msgstr "[`Monitor`](#evox.core.components.Monitor)"
+
+#: ../../source/guide/developer/modulebase.md:18
+msgid "[`Workflow`](#evox.core.components.Workflow)"
+msgstr "[`Workflow`](#evox.core.components.Workflow)"
+
+#: ../../source/guide/developer/modulebase.md:21
+msgid ""
+"It is necessary to provide a unified module for them. In EvoX, the four "
+"classes are all inherited from the base module — "
+"[`ModuleBase`](#evox.core.module.ModuleBase)."
+msgstr ""
+"有必要为它们提供一个统一的模块。在EvoX中，这四个类都继承自基础模块——[`ModuleBase`](#evox.core.module.ModuleBase)。"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid "Module base"
+msgstr "模块 base"
+
+#: ../../source/guide/developer/modulebase.md:28
+msgid "ModuleBase class"
+msgstr "ModuleBase 类"
+
+#: ../../source/guide/developer/modulebase.md:30
+msgid ""
+"The [`ModuleBase`](#evox.core.module.ModuleBase) class is inherited from "
+"[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)."
+msgstr ""
+"[`ModuleBase`](#evox.core.module.ModuleBase) 类继承自 "
+"[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#)。"
+
+#: ../../source/guide/developer/modulebase.md:32
+msgid ""
+"There are many methods in this class, and some important methods are here:"
+msgstr "在这个类中有许多方法，这里是一些重要的方法："
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid "Initialize the module."
+msgstr "初始化模块。"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid "`load_state_dict`"
+msgstr "`load_state_dict"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid ""
+"`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)`"
+msgstr ""
+"`(self, state_dict: Mapping[str, torch.Tensor], copy: bool = False, ...)"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid ""
+"Copy parameters and buffers from `state_dict` into this module and its "
+"descendants. It overwrites "
+"[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)."
+msgstr ""
+"将`state_dict`中的参数和缓冲区复制到此模块及其子模块中。它会覆盖[`torch.nn.Module.load_state_dict`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)。"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid "`add_mutable`"
+msgstr "`add_mutable"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid ""
+"`(self, name: str, value: Union[torch.Tensor | nn.Module, "
+"Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
+" None`"
+msgstr ""
+"`(self, name: str, value: Union[torch.Tensor | nn.Module, "
+"Sequence[torch.Tensor | nn.Module], Dict[str, torch.Tensor | nn.Module]]) ->"
+" None"
+
+#: ../../source/guide/developer/modulebase.md:23
+msgid ""
+"Define a mutable value in this module that can be accessed via `self.[name]`"
+" and modified in-place."
+msgstr "定义一个可变值，并将其在 `self.[name]` 中暴露出来，可以通过 `self.[name] = [值]` 来修改。"
+
+#: ../../source/guide/developer/modulebase.md:40
+msgid "Role of Module"
+msgstr "模块的作用"
+
+#: ../../source/guide/developer/modulebase.md:42
+msgid ""
+"In EvoX, the [`ModuleBase`](#evox.core.module.ModuleBase) could help to:"
+msgstr "在 EvoX 中，[`ModuleBase`](#evox.core.module.ModuleBase) 可以帮助："
+
+#: ../../source/guide/developer/modulebase.md:44
+msgid "**Contain mutable values**"
+msgstr "**包含可变值**"
+
+#: ../../source/guide/developer/modulebase.md:46
+msgid ""
+"​\tThis module is an object-oriented one that can contain mutable values."
+msgstr "该模块是一个面向对象的模块，可以包含可变值。"
+
+#: ../../source/guide/developer/modulebase.md:48
+msgid "**Support functional programming**"
+msgstr "**支持函数式编程**"
+
+#: ../../source/guide/developer/modulebase.md:50
+msgid ""
+"​\tFunctional programming model is supported via `self.state_dict()` and "
+"`self.load_state_dict(...)`."
+msgstr "支持函数式编程模型通过 `self.state_dict()` 和 `self.load_state_dict(...)"
+
+#: ../../source/guide/developer/modulebase.md:52
+msgid "**Standardize the initialization**:"
+msgstr "**标准化初始化**:"
+
+#: ../../source/guide/developer/modulebase.md:54
+msgid ""
+"​\tBasically, predefined submodule(s) which will be ADDED to this module and"
+" accessed later in member method(s) should be treated as \"non-static "
+"members\", while any other member(s) should be treated as \"static "
+"members\"."
+msgstr "基本上，预定义的子模块将被添加到此模块中，并在成员方法中访问，应该被视为“非静态成员”，而其他任何成员都应该被视为“静态成员”。"
+
+#: ../../source/guide/developer/modulebase.md:56
+msgid ""
+"​\tThe module initialization for non-static members are recommended to be "
+"written in the overwritten method of `setup` (or any other member method) "
+"rather than `__init__`."
+msgstr "建议将非静态成员的模块初始化写在重写的 `setup` 方法（或任何其他成员方法）中，而不是 `__init__` 中。"
+
+#: ../../source/guide/developer/modulebase.md:58
+msgid "Usage of Module"
+msgstr "模块使用"
+
+#: ../../source/guide/developer/modulebase.md:60
+msgid ""
+"Specifically, there are some rules for using "
+"[`ModuleBase`](#evox.core.module.ModuleBase) in EvoX:"
+msgstr "具体来说，在EvoX中使用[`ModuleBase`](#evox.core.module.ModuleBase)有一些规则："
+
+#: ../../source/guide/developer/modulebase.md:62
+msgid "Static methods"
+msgstr "静态方法"
+
+#: ../../source/guide/developer/modulebase.md:64
+msgid "Static methods to be JIT shall be defined like:"
+msgstr "要将静态方法定义为JIT，请这样定义："
+
+#: ../../source/guide/developer/modulebase.md:73
+msgid "Non-static Methods"
+msgstr "非静态方法"
+
+#: ../../source/guide/developer/modulebase.md:75
+msgid ""
+"If a method with python dynamic control flows like `if` were to be used with"
+" `vmap`, please use "
+"[`torch.cond`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond)"
+" to explicitly define the control flow."
+msgstr ""
+"如果在使用 `vmap` 时需要使用带有 Python 动态控制流（例如 `if`）的方法，请使用 "
+"[`torch.cond`](https://pytorch.org/docs/main/generated/torch.cond.html#torch.cond)"
+" 明确定义控制流。"
 
 #: ../../source/guide/experimental/distributed_workflow.md:1
 msgid "Multi-GPU and Distributed Workflow"
@@ -9415,69 +8840,65 @@ msgid ""
 "computation."
 msgstr "EvoX是一个分布式GPU加速的演化计算框架。"
 
-#: ../../source/index.md:30
+#: ../../source/index.md:28
 msgid "Key Features"
 msgstr "关键特征"
 
-#: ../../source/index.md:32
+#: ../../source/index.md:30
 msgid "🚀 **Fast Performance**:"
 msgstr "🚀 **超高性能**："
 
-#: ../../source/index.md:33
+#: ../../source/index.md:31
 msgid ""
 "Experience **GPU-Accelerated** optimization, achieving speeds over 100x "
 "faster than traditional methods."
 msgstr "体验**GPU 加速**的优化，速度比传统方法快百倍以上。"
 
-#: ../../source/index.md:34
+#: ../../source/index.md:32
 msgid ""
 "Leverage the power of Distributed Workflows for even more rapid "
 "optimization."
 msgstr "利用分布式工作流的强大功能，实现更快速的优化。"
 
-#: ../../source/index.md:36
+#: ../../source/index.md:34
 msgid "🌐 **Versatile Optimization Suite**:"
 msgstr "🌐 **多功能优化套件**:"
 
-#: ../../source/index.md:37
+#: ../../source/index.md:35
 msgid ""
 "Cater to all your needs with both [Single-objective and Multi-"
 "objective](#algorithms) optimization capabilities."
 msgstr "满足您所有需求，包括[单目标和多目标](#algorithms)优化。"
 
-#: ../../source/index.md:38
+#: ../../source/index.md:36
 msgid ""
 "Dive into a comprehensive library of [Benchmark Problems](#problems), "
 "ensuring robust testing and evaluation."
 msgstr "深入了解全面的[基准测试问题库](#problems)，确保进行稳健的测试和评估。"
 
-#: ../../source/index.md:39
+#: ../../source/index.md:37
 msgid ""
 "Explore the frontier of AI with extensive tools for "
 "[Neuroevolution](#neuroevolution) tasks."
 msgstr "探索人工智能前沿领域，利用丰富的工具进行[神经演化](#neuroevolution)任务。"
 
-#: ../../source/index.md:41
+#: ../../source/index.md:39
 msgid "🛠️ **Designed for Simplicity**:"
 msgstr "🛠️ **简易性设计**:"
 
-#: ../../source/index.md:42
+#: ../../source/index.md:40
 msgid ""
 "Embrace the elegance of **Functional Programming**, simplifying complex "
 "algorithmic compositions."
 msgstr "拥抱优雅的**函数式编程**，化繁为简，轻松构建复杂算法。"
 
-#: ../../source/index.md:43
+#: ../../source/index.md:41
 msgid ""
 "Benefit from **Hierarchical State Management**, ensuring modular and clean "
 "programming."
 msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
 
-#: ../../source/index.md:46
-msgid "<br></br>"
-msgstr "<br></br>"
-
-#: ../../source/index.md:53
+#: ../../source/index.md:50
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
@@ -9500,7 +8921,7 @@ msgstr ""
 "0-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0 0 17.29 "
 "8Z\"></path></svg> Tutorials"
 
-#: ../../source/index.md:59
+#: ../../source/index.md:56
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -9529,7 +8950,7 @@ msgstr ""
 "1.266-.564 2.445-1.223 "
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5Z\"></path></svg> 安装教程"
 
-#: ../../source/index.md:65
+#: ../../source/index.md:62
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -9569,7 +8990,7 @@ msgstr ""
 "1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.433 1.433 0"
 " 0 0 5 15Z\"></path></svg> 开发者教程"
 
-#: ../../source/index.md:75
+#: ../../source/index.md:72
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -9586,7 +9007,7 @@ msgstr ""
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 算法"
 
-#: ../../source/index.md:81
+#: ../../source/index.md:78
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -9603,7 +9024,7 @@ msgstr ""
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 问题"
 
-#: ../../source/index.md:88
+#: ../../source/index.md:85
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -9982,6 +9403,20 @@ msgstr "1. Introduction"
 #: ../../source/tutorial/tutorial_part1.md:3
 msgid "What is EvoX?"
 msgstr "什么是 EvoX?"
+
+#: ../../source/tutorial/tutorial_part1.md:5
+msgid ""
+"EvoX is an open-source evolutionary computation library, mainly used to "
+"solve various complex optimization problems. Evolutionary computation is a "
+"category of algorithms that simulate natural evolution to search for optimal"
+" solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), "
+"Particle Swarm Optimization (PSO), etc."
+msgstr ""
+"EvoX is an open-source evolutionary computation library, mainly used to "
+"solve various complex optimization problems. Evolutionary computation is a "
+"category of algorithms that simulate natural evolution to search for optimal"
+" solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), "
+"Particle Swarm Optimization (PSO), etc."
 
 #: ../../source/tutorial/tutorial_part1.md:7
 msgid ""
@@ -12129,55 +11564,76 @@ msgid "f(\\mathbf{x}) = 10 d + \\sum_{i=1}^{d}[x_i^2 - 10 \\cos{(2\\pi x_i)}],"
 msgstr "f(\\mathbf{x}) = 10 d + \\sum_{i=1}^{d}[x_i^2 - 10 \\cos{(2\\pi x_i)}],"
 
 #: ../../source/tutorial/tutorial_part7.md:15
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 "where $\\mathbf{x} \\in \\mathbb{R}^d$ and $d$ is the dimensionality. The "
 "global optimum is 0 at the origin. The function is highly multimodal, making"
-" it ideal for testing global optimization algorithms."
+" it ideal for testing global optimization algorithms. Here's a plot of the "
+"Rastrigin function"
 msgstr ""
 "where $\\mathbf{x} \\in \\mathbb{R}^d$ and $d$ is the dimensionality. The "
 "global optimum is 0 at the origin. The function is highly multimodal, making"
-" it ideal for testing global optimization algorithms."
+" it ideal for testing global optimization algorithms. Here's a plot of the "
+"Rastrigin function"
 
 #: ../../source/tutorial/tutorial_part7.md:17
+#, fuzzy
+msgid "A plot of the Rastrigin function"
+msgstr "A plot of the Rastrigin function"
+
+#: ../../source/tutorial/tutorial_part7.md:22
+#, fuzzy
+msgid "Rastrigin function"
+msgstr "Rastrigin function"
+
+#: ../../source/tutorial/tutorial_part7.md:25
+#, fuzzy
+msgid ""
+"In this example, we will use the Particle Swarm Optimization (PSO) algorithm"
+" to optimize the 10-dimensional Rastrigin function."
+msgstr ""
+"In this example, we will use the Particle Swarm Optimization (PSO) algorithm"
+" to optimize the 10-dimensional Rastrigin function."
+
+#: ../../source/tutorial/tutorial_part7.md:27
 msgid "**Step 1: Setup**"
 msgstr "**Step 1: Setup**"
 
-#: ../../source/tutorial/tutorial_part7.md:19
+#: ../../source/tutorial/tutorial_part7.md:29
 msgid ""
 "Assuming you've configured your EvoX environment as explained in Chapter 2."
 msgstr ""
 "Assuming you've configured your EvoX environment as explained in Chapter 2."
 
-#: ../../source/tutorial/tutorial_part7.md:21
+#: ../../source/tutorial/tutorial_part7.md:31
 msgid "**Step 2: Workflow Setup**"
 msgstr "**Step 2: Workflow Setup**"
 
-#: ../../source/tutorial/tutorial_part7.md:23
+#: ../../source/tutorial/tutorial_part7.md:33
 msgid "Create a Python script `opt_rastrigin_10.py`:"
 msgstr "Create a Python script `opt_rastrigin_10.py`:"
 
-#: ../../source/tutorial/tutorial_part7.md:32
+#: ../../source/tutorial/tutorial_part7.md:42
 #, fuzzy
 msgid "Define the PSO algorithm:"
 msgstr "Define the PSO algorithm:"
 
-#: ../../source/tutorial/tutorial_part7.md:43
+#: ../../source/tutorial/tutorial_part7.md:53
 #, fuzzy
 msgid "Set up the problem and workflow:"
 msgstr "Set up the problem and workflow:"
 
-#: ../../source/tutorial/tutorial_part7.md:55
+#: ../../source/tutorial/tutorial_part7.md:65
 #, fuzzy
 msgid "**Step 3: Run Optimization**"
 msgstr "**Step 3: Run Optimization**"
 
-#: ../../source/tutorial/tutorial_part7.md:68
-#: ../../source/tutorial/tutorial_part7.md:247
+#: ../../source/tutorial/tutorial_part7.md:78
+#: ../../source/tutorial/tutorial_part7.md:282
 msgid "**Sample Output**:"
 msgstr "**Sample Output**:"
 
-#: ../../source/tutorial/tutorial_part7.md:80
+#: ../../source/tutorial/tutorial_part7.md:90
 msgid ""
 "The PSO algorithm finds a near-optimal solution close to the origin, as "
 "expected."
@@ -12185,15 +11641,15 @@ msgstr ""
 "The PSO algorithm finds a near-optimal solution close to the origin, as "
 "expected."
 
-#: ../../source/tutorial/tutorial_part7.md:84
+#: ../../source/tutorial/tutorial_part7.md:94
 msgid "Example 2: Multi-Objective Optimization"
 msgstr "Example 2: Multi-Objective Optimization"
 
-#: ../../source/tutorial/tutorial_part7.md:86
+#: ../../source/tutorial/tutorial_part7.md:96
 msgid "**Problem**: Minimize two objectives:"
 msgstr "**Problem**: Minimize two objectives:"
 
-#: ../../source/tutorial/tutorial_part7.md:88
+#: ../../source/tutorial/tutorial_part7.md:98
 msgid ""
 "f_1(x) = x^2, \\quad\n"
 "f_2(x) = (x - 2)^2"
@@ -12201,7 +11657,7 @@ msgstr ""
 "f_1(x) = x^2, \\quad\n"
 "f_2(x) = (x - 2)^2"
 
-#: ../../source/tutorial/tutorial_part7.md:93
+#: ../../source/tutorial/tutorial_part7.md:103
 msgid ""
 "The Pareto front lies between $x = 0$ (optimal for $f_1$) and $x = 2$ "
 "(optimal for $f_2$)."
@@ -12209,39 +11665,69 @@ msgstr ""
 "The Pareto front lies between $x = 0$ (optimal for $f_1$) and $x = 2$ "
 "(optimal for $f_2$)."
 
-#: ../../source/tutorial/tutorial_part7.md:95
+#: ../../source/tutorial/tutorial_part7.md:105
 #, fuzzy
 msgid "**Step 1: Environment Setup**"
 msgstr "**Step 1: Environment Setup**"
 
-#: ../../source/tutorial/tutorial_part7.md:97
+#: ../../source/tutorial/tutorial_part7.md:107
 #, fuzzy
 msgid "Make sure you have EvoX installed with NSGA-II support."
 msgstr "Make sure you have EvoX installed with NSGA-II support."
 
-#: ../../source/tutorial/tutorial_part7.md:99
+#: ../../source/tutorial/tutorial_part7.md:109
 msgid "**Step 2: Define the Custom Problem**"
 msgstr "**Step 2: Define the Custom Problem**"
 
-#: ../../source/tutorial/tutorial_part7.md:119
+#: ../../source/tutorial/tutorial_part7.md:111
+msgid ""
+"EvoX has many built-in multi-objective test problems, but for this example, "
+"we will define a custom problem to optimize the two objectives:"
+msgstr ""
+"EvoX has many built-in multi-objective test problems, but for this example, "
+"we will define a custom problem to optimize the two objectives:"
+
+#: ../../source/tutorial/tutorial_part7.md:144
 msgid "**Step 3: Define Algorithm and Workflow**"
 msgstr "**Step 3: Define Algorithm and Workflow**"
 
-#: ../../source/tutorial/tutorial_part7.md:140
+#: ../../source/tutorial/tutorial_part7.md:165
 msgid "**Step 4: Optimization and Visualization**"
 msgstr "**Step 4: Optimization and Visualization**"
 
-#: ../../source/tutorial/tutorial_part7.md:167
-#, fuzzy
-msgid "To visualize in Jupyter:"
-msgstr "To visualize in Jupyter:"
+#: ../../source/tutorial/tutorial_part7.md:192
+msgid ""
+"We can visualize the results using Matplotlib. The blue points represent the"
+" optimized population, while the red line shows the Pareto front."
+msgstr ""
+"We can visualize the results using Matplotlib. The blue points represent the"
+" optimized population, while the red line shows the Pareto front."
 
-#: ../../source/tutorial/tutorial_part7.md:175
+#: ../../source/tutorial/tutorial_part7.md:194
+#, fuzzy
+msgid "A plot of the NSGA-II population"
+msgstr "A plot of the NSGA-II population"
+
+#: ../../source/tutorial/tutorial_part7.md:199
+msgid "A plot of the NSGA-II population after optimization"
+msgstr "A plot of the NSGA-II population after optimization"
+
+#: ../../source/tutorial/tutorial_part7.md:202
+msgid ""
+"In Jupyter Notebook, you can use EvoX's built-in plotting capabilities to "
+"visualize the optimization process and monitor how the population evolves "
+"over generations."
+msgstr ""
+"In Jupyter Notebook, you can use EvoX's built-in plotting capabilities to "
+"visualize the optimization process and monitor how the population evolves "
+"over generations."
+
+#: ../../source/tutorial/tutorial_part7.md:210
 #, fuzzy
 msgid "Example 3: Hyperparameter Optimization (HPO)"
 msgstr "Example 3: Hyperparameter Optimization (HPO)"
 
-#: ../../source/tutorial/tutorial_part7.md:177
+#: ../../source/tutorial/tutorial_part7.md:212
 msgid ""
 "**Problem**: Tune `C` and `max_iter` of a logistic regression classifier on "
 "the breast cancer dataset to maximize validation accuracy."
@@ -12249,24 +11735,24 @@ msgstr ""
 "**Problem**: Tune `C` and `max_iter` of a logistic regression classifier on "
 "the breast cancer dataset to maximize validation accuracy."
 
-#: ../../source/tutorial/tutorial_part7.md:179
+#: ../../source/tutorial/tutorial_part7.md:214
 msgid "**Step 1: Load Data and Model**"
 msgstr "**Step 1: Load Data and Model**"
 
-#: ../../source/tutorial/tutorial_part7.md:196
+#: ../../source/tutorial/tutorial_part7.md:231
 msgid "**Step 2: Define the Problem**"
 msgstr "**Step 2: Define the Problem**"
 
-#: ../../source/tutorial/tutorial_part7.md:216
+#: ../../source/tutorial/tutorial_part7.md:251
 msgid "**Step 3: Workflow Setup**"
 msgstr "**Step 3: Workflow Setup**"
 
-#: ../../source/tutorial/tutorial_part7.md:235
+#: ../../source/tutorial/tutorial_part7.md:270
 #, fuzzy
 msgid "**Step 4: Optimization**"
 msgstr "**Step 4: Optimization**"
 
-#: ../../source/tutorial/tutorial_part7.md:254
+#: ../../source/tutorial/tutorial_part7.md:289
 msgid ""
 "With just a few lines of code, EvoX automates the tedious trial-and-error of"
 " hyperparameter tuning."
@@ -12274,7 +11760,7 @@ msgstr ""
 "With just a few lines of code, EvoX automates the tedious trial-and-error of"
 " hyperparameter tuning."
 
-#: ../../source/tutorial/tutorial_part7.md:258
+#: ../../source/tutorial/tutorial_part7.md:293
 msgid ""
 "These practical examples illustrate how EvoX can be effectively applied "
 "across various domains, from mathematical test functions to machine learning"
@@ -12301,3 +11787,514 @@ msgstr ""
 #~ msgstr ""
 #~ "\"GPU-accelerated Evolutionary Multiobjective Optimization Using Tensorized "
 #~ "RVEA\" ACM. `Link <https://dl.acm.org/doi/abs/10.1145/3638529.3654223>`"
+
+#~ msgid "Optimizing Development for EvoX via PyTorch Advanced Techniques"
+#~ msgstr "通过 PyTorch 高级技术优化 EvoX 的开发"
+
+#~ msgid "Basic Optimization Support for Functions in PyTorch"
+#~ msgstr "PyTorch中函数的基本优化支持"
+
+#~ msgid ""
+#~ "PyTorch provides fundamental optimization support for functions, primarily "
+#~ "through vectorizing map (vmap) operations and Just-In-Time (JIT) "
+#~ "compilation. These techniques enable efficient batch processing and enhance "
+#~ "execution performance, respectively. Introductions of these optimizations "
+#~ "are provided in the following sections."
+#~ msgstr ""
+#~ "PyTorch "
+#~ "提供了对函数的基本优化支持，主要通过矢量化映射（vmap）操作和即时编译（JIT）实现。这些技术分别使得批处理更加高效并提升执行性能。关于这些优化的介绍将在以下部分提供。"
+
+#~ msgid "Batch Processing Support through Vectorizing Map in PyTorch"
+#~ msgstr "在 PyTorch 中通过矢量化映射支持批处理"
+
+#~ msgid ""
+#~ "Vectorizing map, implemented in PyTorch as "
+#~ "[`torch.vmap`](https://pytorch.org/docs/stable/generated/torch.vmap.html), "
+#~ "is a powerful tool that takes a callable function and returns a batched "
+#~ "version of it. According to specified strategy, this new function vectorizes"
+#~ " the operations of the original one, which facilitates efficient batch "
+#~ "processing. In EvoX, for example, this feature plays a crucial role in "
+#~ "hyperparameter optimization (HPO)."
+#~ msgstr ""
+#~ "在PyTorch中实现的向量化映射[`torch.vmap`](https://pytorch.org/docs/stable/generated/torch.vmap.html)是一个强大的工具，它接受一个可调用函数并返回其批处理版本。根据指定的策略，这个新函数对原始函数的操作进行向量化，从而促进高效的批处理。在EvoX中，例如，这一特性在超参数优化（HPO）中起着至关重要的作用。"
+
+#~ msgid "Just-In-Time (JIT) Support in PyTorch"
+#~ msgstr "在PyTorch中支持即时编译（Just-In-Time, JIT）"
+
+#~ msgid ""
+#~ "In PyTorch, "
+#~ "[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+#~ " and "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " provide two distinct types of JIT tools, supporting function performance "
+#~ "optimization through tracing and scripting, respectively."
+#~ msgstr ""
+#~ "在 PyTorch "
+#~ "中，[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+#~ " 和 "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " 提供了两种不同类型的 JIT 工具，分别通过追踪和脚本化支持函数性能优化。"
+
+#~ msgid ""
+#~ "Based on the tracing strategy, the `torch.jit.trace` method offers higher "
+#~ "parsing speed and broader compatibility, such as with `torch.vmap` "
+#~ "operations. Although it provides excellent support for simple functions, it "
+#~ "is not suitable for complex tasks involving dynamic if-else branches and "
+#~ "loop control flows."
+#~ msgstr ""
+#~ "根据追踪策略，`torch.jit.trace` 方法提供了更高的解析速度和更广泛的兼容性，例如与 `torch.vmap` "
+#~ "操作的兼容性。尽管它对简单函数提供了出色的支持，但不适用于涉及动态 if-else 分支和循环控制流的复杂任务。"
+
+#~ msgid ""
+#~ "In the example below, the traced `vmap` function successfully returns the "
+#~ "correct code representation:"
+#~ msgstr "在下面的例子中，跟踪的 `vmap` 函数成功返回了正确的代码表示："
+
+#~ msgid ""
+#~ "However, dynamic python control-flow cannot be traced correctly and a "
+#~ "warning will be raised:"
+#~ msgstr "然而，动态的 Python 控制流无法被正确追踪，并且会发出警告："
+
+#~ msgid ""
+#~ "Alternatively, the `torch.jit.script` method, which adopts a scripting "
+#~ "strategy, is better suited for complex tasks that involve dynamic control "
+#~ "flows but has limited compatibility."
+#~ msgstr "或者，采用脚本策略的 `torch.jit.script` 方法更适合涉及动态控制流的复杂任务，但兼容性有限。"
+
+#~ msgid ""
+#~ "In this example, the same `vmap_sample_func` function, after being scripted,"
+#~ " returns an **incorrect** code representation:"
+#~ msgstr "在这个例子中，相同的 `vmap_sample_func` 函数，在被脚本化后，返回了一个**不正确**的代码表示："
+
+#~ msgid "Yet, it can correctly deal with complex dynamic python control flow:"
+#~ msgstr "然而，它可以正确处理复杂的动态 Python 控制流："
+
+#~ msgid ""
+#~ "`torch.jit.script` relies on type hint to work properly. For example, any "
+#~ "unannotated input argument is treated as a `torch.Tensor` while you can "
+#~ "annotate some input arguments to be python types to make `torch.jit.script` "
+#~ "work as intended."
+#~ msgstr ""
+#~ "`torch.jit.script` 依赖类型提示才能正常工作。例如，任何未注释的输入参数都会被视为 "
+#~ "`torch.Tensor`，而你可以将一些输入参数注释为 python 类型，以使 `torch.jit.script` 按预期工作。"
+
+#~ msgid "Combined Usage of JIT and Vectorizing Map in PyTorch"
+#~ msgstr "在PyTorch中结合使用JIT和Vectorizing Map"
+
+#~ msgid ""
+#~ "Based on the introductions above, when `torch.jit.trace` and "
+#~ "`torch.jit.script` are used in combination with `torch.vmap`, coordination "
+#~ "is required due to compatibility considerations."
+#~ msgstr ""
+#~ "根据上述介绍，当 `torch.jit.trace` 和 `torch.jit.script` 与 `torch.vmap` "
+#~ "结合使用时，由于兼容性考虑，需要进行协调。"
+
+#~ msgid ""
+#~ "The figure below illustrates the relationship between `torch.jit.script`, "
+#~ "`torch.jit.trace`, and `torch.vmap`, highlighting their mutual invocation "
+#~ "paths. If module A invokes module B, it implies that B can be called by A."
+#~ msgstr ""
+#~ "下图说明了 `torch.jit.script`、`torch.jit.trace` 和 `torch.vmap` "
+#~ "之间的关系，突出显示了它们的相互调用路径。如果模块 A 调用模块 B，这意味着 B 可以被 A 调用。"
+
+#~ msgid "JIT introduction"
+#~ msgstr "JIT 介绍"
+
+#~ msgid ""
+#~ "For detailed usage of JIT and vectorizing map on PyTorch, please refer to "
+#~ "the official PyTorch documentation for "
+#~ "[TorchScript](#https://pytorch.org/docs/stable/jit.html) and "
+#~ "[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)."
+#~ msgstr ""
+#~ "有关在 PyTorch 上使用 JIT 和矢量化映射的详细信息，请参阅 PyTorch 官方文档中的 "
+#~ "[TorchScript](#https://pytorch.org/docs/stable/jit.html) 和 "
+#~ "[`torch.vmap`](#https://pytorch.org/docs/stable/generated/torch.vmap.html)。"
+
+#~ msgid "Specific Optimization Support in EvoX"
+#~ msgstr "EvoX中的特定优化支持"
+
+#~ msgid ""
+#~ "Within EvoX, most functions are defined inside classes, particularly "
+#~ "subclasses of [`ModuleBase`](#evox.core.module.ModuleBase). To provide more "
+#~ "comprehensive optimization supports, EvoX offers specific enhancements."
+#~ msgstr ""
+#~ "在 EvoX 中，大多数函数是在类中定义的，特别是 [`ModuleBase`](#evox.core.module.ModuleBase) "
+#~ "的子类中。为了提供更全面的优化支持，EvoX 提供了特定的增强功能。"
+
+#~ msgid ""
+#~ "Using JIT to Subclasses of [`ModuleBase`](#evox.core.module.ModuleBase)"
+#~ msgstr "使用 JIT 到 [`ModuleBase`](#evox.core.module.ModuleBase) 的子类"
+
+#~ msgid ""
+#~ "For better understanding of this part, we need to explain three important "
+#~ "functions in EvoX: [`jit_class`](#evox.core.module.jit_class), "
+#~ "[`vmap`](#evox.core.jit_util.vmap) and [`jit`](l#evox.core.jit_util.jit)."
+#~ msgstr ""
+#~ "为了更好地理解这一部分，我们需要解释EvoX中的三个重要函数：[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)和[`jit`](#evox.core.jit_util.jit)。"
+
+#~ msgid "[`jit_class`](#evox.core.module.jit_class) Function"
+#~ msgstr "[`jit_class`](#evox.core.module.jit_class) 函数"
+
+#~ msgid ""
+#~ "[`jit_class`](#evox.core.module.jit_class) is a helper function used to "
+#~ "Just-In-Time (JIT) script of "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " or trace "
+#~ "([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
+#~ "jit-trace-module)) all member methods of the input class."
+#~ msgstr ""
+#~ "[`jit_class`](#evox.core.module.jit_class) 是一个辅助函数，用于对输入类的所有成员方法进行 Just-In-"
+#~ "Time (JIT) 脚本化的 "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " 或跟踪 "
+#~ "([`torch.jit.trace_module`](https://pytorch.org/docs/stable/generated/torch.jit.trace_module.html#torch-"
+#~ "jit-trace-module))。"
+
+#~ msgid "[`jit_class`](#evox.core.module.jit_class) has two parameters:"
+#~ msgstr "[`jit_class`](#evox.core.module.jit_class) 有两个参数："
+
+#~ msgid "`cls`: the original class whose member methods are to be lazy JIT."
+#~ msgstr "`cls`: 原始类，其成员方法将被懒惰 JIT。"
+
+#~ msgid ""
+#~ "`trace`: whether to trace the module or to script the module. Default to "
+#~ "`False`."
+#~ msgstr "`trace`: 是否追踪模块或将模块脚本化。默认值为 `False`。"
+
+#~ msgid ""
+#~ "In many cases, it is not necessary to wrap your custom algorithms or "
+#~ "problems with [`jit_class`](#evox.core.module.jit_class), the workflow(s) "
+#~ "will do the trick for you."
+#~ msgstr ""
+#~ "在许多情况下，不需要用[`jit_class`](#evox.core.module.jit_class)包装您的自定义算法或问题，工作流将为您解决问题。"
+
+#~ msgid ""
+#~ "With `trace=True`, all the member functions are effectively modified to "
+#~ "return `self` additionally since side-effects cannot be traced. If you want "
+#~ "to preserve the side effects, please set `trace=False` and use the "
+#~ "`use_state` function to wrap the member method to generate pure-functional "
+#~ "(the `use_state` function will be explained in the next part)."
+#~ msgstr ""
+#~ "在 `trace=True` 的情况下，所有成员函数都会被有效地修改为额外返回 `self`，因为副作用无法被追踪。如果你想保留副作用，请设置 "
+#~ "`trace=False` 并使用 `use_state` 函数来包装成员方法以生成纯函数（`use_state` 函数将在下一部分中解释）。"
+
+#~ msgid ""
+#~ "Similarly, all module-wide operations like `self.to(...)` can only returns "
+#~ "the unwrapped module, which may not be desired. Since most of them are in-"
+#~ "place operations, a simple `module.to(...)` can be used instead of `module ="
+#~ " module.to(...)`."
+#~ msgstr ""
+#~ "类似地，所有模块级的操作如 `self.to(...)` 只能返回未包装的模块，这可能不是我们想要的。由于它们大多是就地操作，可以使用简单的 "
+#~ "`module.to(...)` 来替代 `module = module.to(...)`。"
+
+#~ msgid "[`vmap`](#evox.core.jit_util.vmap) Function"
+#~ msgstr "[`vmap`](#evox.core.jit_util.vmap) 函数"
+
+#~ msgid ""
+#~ "[`vmap`](#evox.core.jit_util.vmap) function vectorized map the given "
+#~ "function to its mapped version. Based on "
+#~ "[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html), we "
+#~ "made many improvements, and you can see "
+#~ "[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) for "
+#~ "more information."
+#~ msgstr ""
+#~ "[`vmap`](#evox.core.jit_util.vmap) 函数将给定函数矢量化映射到其映射版本。基于 "
+#~ "[`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html)，我们进行了许多改进，您可以查看"
+#~ " [`torch.vmap`](https://pytorch.org/docs/main/generated/torch.vmap.html) "
+#~ "以获取更多信息。"
+
+#~ msgid "[`jit`](#evox.core.jit_util.jit) Function"
+#~ msgstr "[`jit`](#evox.core.jit_util.jit) 函数"
+
+#~ msgid ""
+#~ "[`jit`](#evox.core.jit_util.jit) compile the given `func` via "
+#~ "[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " (`trace=True`) or "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+#~ " (`trace=False`)."
+#~ msgstr ""
+#~ "[`jit`](#evox.core.jit_util.jit) 使用 "
+#~ "[`torch.jit.trace`](https://pytorch.org/docs/stable/generated/torch.jit.script.html)"
+#~ " (`trace=True`) 或 "
+#~ "[`torch.jit.script`](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)"
+#~ " (`trace=False`) 编译给定的 `func"
+
+#~ msgid ""
+#~ "This function wrapper effectively deals with nested JIT and vector map "
+#~ "(`vmap`) expressions like `jit(func1)` -> `vmap` -> `jit(func2)`, preventing"
+#~ " possible errors."
+#~ msgstr ""
+#~ "该函数包装器有效处理嵌套的 JIT 和向量映射 (`vmap`) 表达式，如 `jit(func1)` -> `vmap` -> "
+#~ "`jit(func2)`，从而防止可能出现的错误。"
+
+#~ msgid ""
+#~ "With `trace=True`, `torch.jit.trace` cannot use SAME example input arguments"
+#~ " for function of DIFFERENT parameters,e.g., you cannot pass `tensor_a, "
+#~ "tensor_a` to `torch.jit.trace`d version of `f(x: torch.Tensor, y: "
+#~ "torch.Tensor)`."
+#~ msgstr ""
+#~ "在 `trace=True` 的情况下，`torch.jit.trace` 不能对具有不同参数的函数使用相同的示例输入参数，例如，你不能将 "
+#~ "`tensor_a, tensor_a` 传递给 `torch.jit.trace` 版本的 `f(x: torch.Tensor, y: "
+#~ "torch.Tensor)"
+
+#~ msgid ""
+#~ "With `trace=False`, `torch.jit.script` cannot contain `vmap` expressions "
+#~ "directly, please wrap them with `jit(..., trace=True)` or `torch.jit.trace`."
+#~ msgstr ""
+#~ "在 `trace=False` 的情况下，`torch.jit.script` 不能直接包含 `vmap` 表达式，请使用 `jit(..., "
+#~ "trace=True)` 或 `torch.jit.trace` 包装它们。"
+
+#~ msgid ""
+#~ "In the [Working with Module in EvoX](#/guide/developer/1-modulebase), we "
+#~ "have briefly introduced some rules about the methods inside a subclass of "
+#~ "the [`ModuleBase`](#evox.core.module.ModuleBase) . Now that "
+#~ "[`jit_class`](#evox.core.module.jit_class), "
+#~ "[`vmap`](#evox.core.jit_util.vmap) and [`jit`](#evox.core.jit_util.jit) have"
+#~ " been explained, we will explain more rules and provide some specific hints."
+#~ msgstr ""
+#~ "在 [EvoX 中的模块工作](#/guide/developer/1-modulebase) 中，我们简要介绍了关于 "
+#~ "[`ModuleBase`](#evox.core.module.ModuleBase) 子类中方法的一些规则。现在 "
+#~ "[`jit_class`](#evox.core.module.jit_class)、[`vmap`](#evox.core.jit_util.vmap)"
+#~ " 和 [`jit`](#evox.core.jit_util.jit) 已经被解释，我们将解释更多规则并提供一些具体提示。"
+
+#~ msgid "Definition of Static Methods Inside the Subclass"
+#~ msgstr "子类中静态方法的定义"
+
+#~ msgid "Inside the subclass, static methods to be JIT shall be defined like:"
+#~ msgstr "在子类中，静态方法要被 JIT 定义为："
+
+#~ msgid "Definition of Non-static Methods Inside the Subclass"
+#~ msgstr "在子类中定义非静态方法"
+
+#~ msgid ""
+#~ "If a method with **Python dynamic control flows** like `if` were to be JIT, "
+#~ "a separated static method with `jit(..., trace=False)` or "
+#~ "`torch.jit.script_if_tracing` shall be used:"
+#~ msgstr ""
+#~ "如果一个方法使用了**Python动态控制流**，例如`if`，并且需要进行JIT，那么应使用一个独立的静态方法，并使用`jit(..., "
+#~ "trace=False)`或`torch.jit.script_if_tracing"
+
+#~ msgid ""
+#~ "Dynamic control flow in Python refers to control structures that change "
+#~ "dynamically based on conditions at runtime. `if...elif...else` Conditional "
+#~ "Statements, `for`loop and `while` loop are all dynamic control flows. If you"
+#~ " have to use them when defining non-static Methods inside the subclass of "
+#~ "[`ModuleBase`](#evox.core.module.ModuleBase), please follow the above rule."
+#~ msgstr ""
+#~ "在Python中，动态控制流是指根据运行时的条件动态变化的控制结构。`if...elif...else` 条件语句、`for` 循环和 `while` "
+#~ "循环都是动态控制流。如果在定义 [`ModuleBase`](#evox.core.module.ModuleBase) "
+#~ "子类中的非静态方法时必须使用它们，请遵循上述规则。"
+
+#~ msgid "Invocation of External Methods Inside the Subclass"
+#~ msgstr "调用子类中的外部方法"
+
+#~ msgid ""
+#~ "Inside the subclass, external JIT methods can be invocated by the class "
+#~ "methods to be JIT:"
+#~ msgstr "在子类中，外部 JIT 方法可以通过类方法调用以实现 JIT："
+
+#~ msgid "Automatically JIT for the Subclass Used with `jit_class`"
+#~ msgstr "自动为使用 `jit_class` 的子类进行 JIT 处理"
+
+#~ msgid ""
+#~ "[`ModuleBase`](#evox.core.module.ModuleBase)  and its subclasses are usually"
+#~ " used with [`jit_class`](#evox.core.module.jit_class) to automatically JIT "
+#~ "all non-magic member methods:"
+#~ msgstr ""
+#~ "[`ModuleBase`](#evox.core.module.ModuleBase) 及其子类通常与 "
+#~ "[`jit_class`](#evox.core.module.jit_class) 一起使用，以自动JIT所有非魔术成员方法："
+
+#~ msgid "Invocation of External Vmap-wrapped Methods Inside the Subclass"
+#~ msgstr "在子类中调用外部 Vmap 包装的方法"
+
+#~ msgid ""
+#~ "Inside the subclass, external vmap-wrapped methods can be invocated by the "
+#~ "class methods to be JIT:"
+#~ msgstr "在子类内部，外部 vmap 包装的方法可以通过类方法调用以实现 JIT："
+
+#~ msgid ""
+#~ "If method A invokes vmap-wrapped method B, then A and all methods invoke "
+#~ "method A can not be vmap-wrapped again."
+#~ msgstr "如果方法 A 调用 vmap 包装的方法 B，那么 A 和所有调用方法 A 的方法不能再次被 vmap 包装。"
+
+#~ msgid "Internal Vmap-wrapped Methods Inside the Subclass"
+#~ msgstr "子类内部的 Vmap 包装方法"
+
+#~ msgid ""
+#~ "Inside the subclass, internal vmap-wrapped methods can be  JIT by using the "
+#~ "[`trace_impl`](#evox.core.module.trace_impl):"
+#~ msgstr ""
+#~ "在子类内部，可以使用 [`trace_impl`](#evox.core.module.trace_impl) 对内部 vmap 包装的方法进行 "
+#~ "JIT。"
+
+#~ msgid ""
+#~ "If a class method use [`trace_impl`](#evox.core.module.trace_impl), it will "
+#~ "be only available in the trace mode. More details about `trace_impl` will be"
+#~ " shown in the next part."
+#~ msgstr ""
+#~ "如果一个类方法使用了[`trace_impl`](#evox.core.module.trace_impl)，它将仅在追踪模式下可用。关于`trace_impl`的更多细节将在下一部分展示。"
+
+#~ msgid "Using `@trace_impl` and `@vmap_impl`"
+#~ msgstr "使用 `@trace_impl` 和 `@vmap_impl"
+
+#~ msgid ""
+#~ "When designing a function or method, you may not always consider whether it "
+#~ "is `JIT`-compatible. However, this property becomes crucial in specific "
+#~ "scenarios, such as solving Hyperparameter Optimization (HPO) problems. For "
+#~ "more details on deploying HPO with EvoX, refer to [Efficient HPO with "
+#~ "EvoX](#/guide/user/3-hpo)."
+#~ msgstr ""
+#~ "在设计函数或方法时，您可能并不总是考虑它是否与`JIT`兼容。然而，这一特性在特定场景中变得至关重要，例如解决超参数优化（HPO）问题。有关使用EvoX部署HPO的更多详细信息，请参阅[Efficient"
+#~ " HPO with EvoX](#/guide/user/3-hpo)。"
+
+#~ msgid ""
+#~ "A typical characteristic of such problems is that only certain parts of the "
+#~ "algorithm need modification—for instance, the `step` method of an algorithm."
+#~ " This allows you to avoid rewriting the entire algorithm. In such cases, you"
+#~ " can use the `@trace_impl` or `@vmap_impl` decorator to rewrite the function"
+#~ " as a trace-JIT-time or vmap-JIT-time proxy for the specified `target` "
+#~ "method."
+#~ msgstr ""
+#~ "这类问题的一个典型特征是，只需要修改算法的某些部分——例如，算法的 `step` 方法。这使您可以避免重写整个算法。在这种情况下，您可以使用 "
+#~ "`@trace_impl` 或 `@vmap_impl` 装饰器，将函数重写为指定 `target` 方法的 trace-JIT-time 或 "
+#~ "vmap-JIT-time 代理。"
+
+#~ msgid ""
+#~ "The decorators [`@trace_impl`](#trace_impl) and [`@vmap_impl`](#vmap_impl) "
+#~ "accept a single input parameter: the target method invoked when not "
+#~ "tracing/vmapping JIT. These decorators are applicable **only** to member "
+#~ "methods within a `jit_class`."
+#~ msgstr ""
+#~ "装饰器 [`@trace_impl`](#trace_impl) 和 [`@vmap_impl`](#vmap_impl) "
+#~ "接受一个输入参数：在不进行追踪/vmap JIT 时调用的目标方法。这些装饰器**仅**适用于 `jit_class` 中的成员方法。"
+
+#~ msgid ""
+#~ "Since the annotated function serves as a rewritten version of the target "
+#~ "function, it must maintain identical input/output signatures (e.g., number "
+#~ "and types of arguments). Otherwise, the resulting behavior is undefined."
+#~ msgstr "由于注释函数作为目标函数的重写版本，它必须保持相同的输入/输出签名（例如，参数的数量和类型）。否则，结果行为是未定义的。"
+
+#~ msgid ""
+#~ "If the annotated function is intended for use with `vmap`, it must satisfy "
+#~ "three additional constraints:"
+#~ msgstr "如果注释的函数打算与`vmap`一起使用，它必须满足三个额外的约束："
+
+#~ msgid ""
+#~ "**No In-Place Operations on Attributes:** The algorithm must not include "
+#~ "methods that perform in-place operations on its attributes."
+#~ msgstr "**禁止对属性进行原地操作：** 算法不得包含对其属性执行原地操作的方法。"
+
+#~ msgid ""
+#~ "**Avoid Python Control Flow:** The code logic must not rely on Python "
+#~ "control flow structures. To handle Python control flow, use "
+#~ "[`TracingCond`](#TracingCond), [`TracingWhile`](#TracingWhile), and "
+#~ "[`TracingSwitch`](#TracingSwitch)."
+#~ msgstr ""
+#~ "**避免使用 Python 控制流：** 代码逻辑不能依赖于 Python 控制流结构。要处理 Python 控制流，请使用 "
+#~ "[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+#~ "[`TracingSwitch`](#TracingSwitch)。"
+
+#~ msgid ""
+#~ "**Avoid In-Place Operations on `self`:** Vectorized map in-place operations "
+#~ "on `self` are not well-defined and cannot be compiled. Even if it is "
+#~ "compiled successfully, you can still silently get incorrect results."
+#~ msgstr ""
+#~ "**避免对 `self` 进行就地操作：** 向量化映射对 `self` "
+#~ "的就地操作定义不明确，无法编译。即使成功编译，您仍可能会悄无声息地得到错误的结果。"
+
+#~ msgid "Using `use_state`"
+#~ msgstr "使用 `use_state`"
+
+#~ msgid ""
+#~ "[`use_state`](#use_state) transforms a given stateful function (which "
+#~ "performs in-place alterations on `nn.Module`s) into a pure-functional "
+#~ "version that receives an additional `state` parameter (of type `Dict[str, "
+#~ "torch.Tensor]`) and returns the altered state."
+#~ msgstr ""
+#~ "[`use_state`](#use_state) 将给定的有状态函数（对 `nn.Module` 进行就地更改）转换为纯函数版本，该版本接收一个额外的"
+#~ " `state` 参数（类型为 `Dict[str, torch.Tensor]`），并返回更改后的状态。"
+
+#~ msgid ""
+#~ "The input `func` is the stateful function to be transformed or its generator"
+#~ " function, and `is_generator` specifies whether `func` is a function or a "
+#~ "function generator (e.g., a lambda that returns the stateful function). It "
+#~ "defaults to `True`."
+#~ msgstr ""
+#~ "输入 `func` 是要转换的有状态函数或其生成器函数，而 `is_generator` 指定 `func` "
+#~ "是一个函数还是一个函数生成器（例如，返回有状态函数的 lambda）。默认值为 `True"
+
+#~ msgid "Here is a simple example:"
+#~ msgstr "以下是一个简单的例子："
+
+#~ msgid "Using `core._vmap_fix`"
+#~ msgstr "使用 `core._vmap_fix"
+
+#~ msgid ""
+#~ "The module [`_vmap_fix`](#_vmap_fix) provides useful functions. After the "
+#~ "automatic import, `_vmap_fix` enables `torch.vmap` to be correctly traced by"
+#~ " `torch.jit.trace`, while resolving issues such as random number handling "
+#~ "that couldn't be properly traced during the `vmap` process. It also provides"
+#~ " the `debug_print` function, which allows dynamic printing of Tensor values "
+#~ "during both `vmap` and tracing."
+#~ msgstr ""
+#~ "模块 [`_vmap_fix`](#_vmap_fix) 提供了有用的函数。在自动导入后，`_vmap_fix` 使 `torch.vmap` 能够被 "
+#~ "`torch.jit.trace` 正确追踪，同时解决了在 `vmap` 过程中无法正确追踪的随机数处理等问题。它还提供了 `debug_print` "
+#~ "函数，允许在 `vmap` 和追踪过程中动态打印 Tensor 值。"
+
+#~ msgid ""
+#~ "Detailed information can be found in the [`_vmap_fix`](#_vmap_fix) "
+#~ "documentation."
+#~ msgstr "详细信息可以在[`_vmap_fix`](#_vmap_fix)文档中找到。"
+
+#~ msgid ""
+#~ "To ensure the function is JIT-compilable, it must meet the conditions "
+#~ "outlined in [JIT components](#/guide/developer/2-jit-able). In addition to "
+#~ "these requirements, the algorithm must also satisfy the following two "
+#~ "constraints:"
+#~ msgstr ""
+#~ "为了确保函数是 JIT 可编译的，它必须满足 [JIT components](#/guide/developer/2-jit-able) "
+#~ "中列出的条件。除了这些要求外，算法还必须满足以下两个约束："
+
+#~ msgid ""
+#~ "In EvoX, we can easily make the algorithm parallelizable by the "
+#~ "[`@trace_impl`](#trace_impl) decorator."
+#~ msgstr "在 EvoX 中，我们可以通过 [`@trace_impl`](#trace_impl) 装饰器轻松地使算法并行化。"
+
+#~ msgid ""
+#~ "The parameter of this decorator is a non-parallelizable function, and the "
+#~ "decorated function is a rewrite of the original function. Detailed "
+#~ "introduction of [`@trace_impl`](#trace_impl) can be found in [JIT "
+#~ "Components](#/guide/developer/2-jit-able)."
+#~ msgstr ""
+#~ "此装饰器的参数是一个不可并行化的函数，装饰后的函数是对原始函数的重写。关于[`@trace_impl`](#trace_impl)的详细介绍可以在[JIT"
+#~ " Components](#/guide/developer/2-jit-able)中找到。"
+
+#~ msgid ""
+#~ "Under this mechanism, we can retain the original function for use outside "
+#~ "HPO tasks while enabling efficient computation within HPO tasks. Moreover, "
+#~ "this modification is highly convenient."
+#~ msgstr "在这种机制下，我们可以保留原始函数以便在 HPO 任务之外使用，同时在 HPO 任务中实现高效计算。此外，这种修改非常方便。"
+
+#~ msgid ""
+#~ "To handle the Python control flow, we use [`TracingCond`](#TracingCond), "
+#~ "[`TracingWhile`](#TracingWhile) and [`TracingSwitch`](#TracingSwitch). "
+#~ "Since, in tracing mode, variables outside the method may be incorrectly "
+#~ "interpreted as static variables, we need to use state to track them. A "
+#~ "detailed introduction to [`TracingCond`](#TracingCond), "
+#~ "[`TracingWhile`](#TracingWhile) and [`TracingSwitch`](#TracingSwitch) can be"
+#~ " found in [JIT Components](#/guide/developer/2-jit-able). Below, we provide "
+#~ "two equivalent implementations for the `trace_step` method."
+#~ msgstr ""
+#~ "要处理 Python 控制流，我们使用 "
+#~ "[`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+#~ "[`TracingSwitch`](#TracingSwitch)。由于在追踪模式中，方法外的变量可能会被错误地解释为静态变量，我们需要使用状态来跟踪它们。关于"
+#~ " [`TracingCond`](#TracingCond)、[`TracingWhile`](#TracingWhile) 和 "
+#~ "[`TracingSwitch`](#TracingSwitch) 的详细介绍可以在 [JIT "
+#~ "Components](#/guide/developer/2-jit-able) 中找到。下面，我们提供了 `trace_step` "
+#~ "方法的两个等效实现。"
+
+#~ msgid "<br></br>"
+#~ msgstr "<br></br>"
+
+#~ msgid "To visualize in Jupyter:"
+#~ msgstr "To visualize in Jupyter:"
