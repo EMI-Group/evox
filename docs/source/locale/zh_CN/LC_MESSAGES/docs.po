@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-25 16:31+0800\n"
+"POT-Creation-Date: 2025-04-25 16:56+0800\n"
 "PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
@@ -7900,6 +7900,7 @@ msgid ""
 msgstr "然而，在重写的方法中，`evaluate` 中 `pop` 参数的类型可以更改为其他与 JIT 兼容的类型。"
 
 #: ../../source/guide/developer/custom-alg-pro.md:58
+#: ../../source/guide/developer/document.md:25
 msgid "Example"
 msgstr "样例"
 
@@ -8073,6 +8074,150 @@ msgid ""
 "[`HPOProblemWrapper`](#HPOProblemWrapper) requires a dictionary as input."
 msgstr ""
 "现在，我们使用[`PSO`](#PSO)算法来优化`ExampleAlgorithm`的超参数。请注意，[`PSO`](#PSO)的种群大小必须与实例数量匹配，否则可能会发生意外错误。在这种情况下，我们需要在外部工作流中转换解决方案，因为[`HPOProblemWrapper`](#HPOProblemWrapper)需要一个字典作为输入。"
+
+#: ../../source/guide/developer/document.md:1
+msgid "Document Writing Guide"
+msgstr "文档编写指南"
+
+#: ../../source/guide/developer/document.md:3
+msgid ""
+"This guide outlines best practices for writing and maintaining documentation"
+" across the codebase and supplementary files."
+msgstr "本指南概述了在代码库及补充文件中书写和维护文档的最佳实践。"
+
+#: ../../source/guide/developer/document.md:7
+msgid "In-Code Documentation (Docstrings)"
+msgstr "In-Code Documentation (Docstrings)"
+
+#: ../../source/guide/developer/document.md:9
+msgid ""
+"Docstrings are essential for understanding the purpose, usage, and behavior "
+"of your code. Please adhere to the following conventions:"
+msgstr "文档字符串对于理解代码的目的、用法和行为至关重要。请遵守以下约定："
+
+#: ../../source/guide/developer/document.md:11
+msgid "General Rules"
+msgstr "一般规则"
+
+#: ../../source/guide/developer/document.md:13
+msgid ""
+"Document **all public classes, methods, and functions** using docstrings."
+msgstr "文档 **所有公共类、方法和函数** 使用 docstrings。"
+
+#: ../../source/guide/developer/document.md:14
+msgid "Use **Sphinx-style** docstrings."
+msgstr "使用 **Sphinx-style** 文档字符串。"
+
+#: ../../source/guide/developer/document.md:15
+msgid ""
+"**Do not** include parameter types in the docstring—they are expected to be "
+"declared in the function signature using type hints."
+msgstr "不要在docstring中包含参数类型——它们应使用类型提示在函数签名中声明。"
+
+#: ../../source/guide/developer/document.md:17
+msgid "Format and Directives"
+msgstr "Format and Directives"
+
+#: ../../source/guide/developer/document.md:19
+msgid "Use the following directives to describe different elements:"
+msgstr "使用以下指令来描述不同元素："
+
+#: ../../source/guide/developer/document.md:21
+msgid "`:param <name>:` — Describe a parameter."
+msgstr "`:param <name>:` — 描述一个参数。"
+
+#: ../../source/guide/developer/document.md:22
+msgid "`:return:` — Describe the return value."
+msgstr ":return: — 描述返回值。"
+
+#: ../../source/guide/developer/document.md:23
+msgid "`:raises <exception>:` — Describe exceptions the function might raise."
+msgstr "`:raises <exception>:` — 描述函数可能引发的异常。"
+
+#: ../../source/guide/developer/document.md:44
+msgid "External Documentation (`docs/` Directory)"
+msgstr "外部文档 (`docs/` 目录)"
+
+#: ../../source/guide/developer/document.md:46
+msgid ""
+"All project-level documentation is located in the `docs/` directory. These "
+"documents support both users and developers by providing guides, examples, "
+"and references."
+msgstr "所有项目级文档都位于 `docs/` 目录中。这些文档通过提供指南、示例和参考资料，为用户和开发者提供支持。"
+
+#: ../../source/guide/developer/document.md:48
+msgid "Format"
+msgstr "格式"
+
+#: ../../source/guide/developer/document.md:50
+msgid ""
+"Use **Markdown (`.md`)** or **Jupyter Notebooks (`.ipynb`)** for "
+"documentation."
+msgstr " **Markdown (`.md`)** 或 **Jupyter Notebooks (`.ipynb`)** 进行文档编写。"
+
+#: ../../source/guide/developer/document.md:51
+msgid "Markdown is preferred for narrative content and static documentation."
+msgstr "Markdown 更适合用于叙述性内容和静态文档。"
+
+#: ../../source/guide/developer/document.md:52
+msgid ""
+"Use Jupyter Notebooks for executable, interactive content (e.g., tutorials "
+"or demos)."
+msgstr "使用 Jupyter Notebooks 创建可执行的交互式内容（例如教程或演示）。"
+
+#: ../../source/guide/developer/document.md:54
+msgid "Jupyter Notebook Guidelines"
+msgstr "Jupyter Notebook 指南"
+
+#: ../../source/guide/developer/document.md:56
+msgid "Ensure all notebooks are **fully executable**."
+msgstr "确保所有笔记本都**完全可执行**。"
+
+#: ../../source/guide/developer/document.md:57
+msgid "Always **run all cells** and **save the output** before committing."
+msgstr "始终**运行所有单元格**并**保存输出**再提交。"
+
+#: ../../source/guide/developer/document.md:58
+msgid ""
+"Our CI/CD environment does **not support GPU execution**, so notebooks must "
+"be pre-executed locally."
+msgstr "我们的CI/CD环境**不支持GPU执行**，因此笔记本文件必须在本地预先执行。"
+
+#: ../../source/guide/developer/document.md:60
+msgid "Markdown & Notebook Directives"
+msgstr "Markdown & Notebook Directives"
+
+#: ../../source/guide/developer/document.md:62
+msgid "Use the following patterns for rich formatting:"
+msgstr "使用以下模式进行丰富格式化:"
+
+#: ../../source/guide/developer/document.md:64
+msgid ""
+"`[name](#ref)` — Internal cross-reference, e.g., "
+"`[ModuleBase](#evox.core.module.ModuleBase)` or `[ModuleBase](#ModuleBase)`"
+msgstr ""
+"`[name](#ref)` — 内部交叉引用，例如 `[ModuleBase](#evox.core.module.ModuleBase)` 或 "
+"`[ModuleBase](#ModuleBase)`"
+
+#: ../../source/guide/developer/document.md:65
+msgid ""
+"`![Alt Text](path)` — Embed images, e.g., `![Module "
+"base](/_static/modulebase.png)`"
+msgstr "`![替代文本](path)` — 嵌入图片，例如，`![Module base](/_static/modulebase.png)`"
+
+#: ../../source/guide/developer/document.md:69
+msgid "Translation"
+msgstr "翻译"
+
+#: ../../source/guide/developer/document.md:71
+msgid ""
+"The documentation supports multilingual content. Follow the steps below to "
+"update or generate translations."
+msgstr "文档支持多语言内容。按照以下步骤更新或生成翻译。"
+
+#: ../../source/guide/developer/document.md:73
+msgid "Updating Translations (e.g., for `zh_CN`)"
+msgstr "更新翻译（例如，针对 `zh_CN`）"
 
 #: ../../source/guide/developer/environment.md:1
 msgid "Develop environment"
