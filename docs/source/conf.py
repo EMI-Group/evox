@@ -101,11 +101,18 @@ html_context = {
         ("English", f"/en/{readthedocs_ver}/%s.html", "en"),
         ("中文", f"/zh-cn/{readthedocs_ver}/%s.html", "zh-cn"),
     ],
+    "source_type": "github",
+    "source_user": "EMI-Group",
+    "source_repo": "evox",
+    "source_version": "main",
+    "source_docs_path": "/docs/source/",
 }
 html_theme_options = {
     "light_logo": "_static/evox_logo_light.png",
     "dark_logo": "_static/evox_logo_dark.png",
     "og_image_url": "_static/evox_logo.png",
+    "github_url": "https://github.com/EMI-Group/evox",
+    "discord_url": "https://discord.gg/Vbtgcpy7G4",
     "nav_links": [
         {
             "title": tutorial_title,
@@ -149,7 +156,6 @@ html_theme_options = {
             ],
         },
     ],
-    "github_url": "https://github.com/EMI-Group/evox",
     "repository_branch": "main",
     "path_to_docs": "/docs/source",
     "use_repository_button": True,
