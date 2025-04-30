@@ -105,7 +105,7 @@ class StdWorkflow(Workflow):
 
         class _SubAlgorithm(type(algorithm)):
             def __init__(self_algo):
-                super(type(algorithm), self_algo).__init__()
+                super(Algorithm, self_algo).__init__()
                 self_algo.__dict__.update(algorithm.__dict__)
 
             def evaluate(self_algo, pop: torch.Tensor) -> torch.Tensor:
@@ -143,7 +143,7 @@ class StdWorkflow(Workflow):
             with torch.random.fork_rng():
                 fitness = self.problem.evaluate(population)
 
-            # contruct a list of tensors to gather all fitness
+            # construct a list of tensors to gather all fitness
             all_fitness = torch.zeros(pop_size, *fitness.shape[1:], device=fitness.device, dtype=fitness.dtype)
             all_fitness = list(all_fitness.tensor_split(world_size, dim=0))
             # gather all fitness
