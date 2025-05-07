@@ -1,11 +1,13 @@
 import warnings
-from typing import Dict, List, Tuple
+import weakref
+from enum import IntEnum
+from typing import Dict, List, NamedTuple, Tuple
 
 import torch
-from torch._C._functorch import get_unwrapped, is_batchedtensor
 
 from evox.core import Monitor, Mutable
 from evox.operators.selection import non_dominate_rank
+from evox.utils import register_vmap_op
 
 try:
     from evox.vis_tools import plot
@@ -24,6 +26,57 @@ def unique(x: torch.Tensor, dim=0):
     return unique, inverse, counts, index
 
 
+class HistoryType(IntEnum):
+    """History type for the monitor."""
+
+    FITNESS = 0
+    SOLUTION = 1
+    AUXILIARY = 2
+
+
+class MonitorHisotry(NamedTuple):
+    fit_history: List[torch.Tensor]
+    sol_history: List[torch.Tensor]
+    aux_history: List[torch.Tensor]
+
+
+__monitor_history__: Dict[int, MonitorHisotry] = {}
+
+
+def _fake_data_sink(monitor_id: int, data: torch.Tensor, data_type: int, token: torch.Tensor) -> torch.Tensor:
+    return token.new_empty(token.size())
+
+
+def _fake_vmap_data_sink(
+    monitor_id: int,
+    data: torch.Tensor,
+    data_type: int,
+    token: torch.Tensor,
+) -> torch.Tensor:
+    return token.new_empty(token.size())
+
+
+def _vmap_data_sink(
+    monitor_id: int,
+    data: torch.Tensor,
+    data_type: int,
+    token: torch.Tensor,
+) -> torch.Tensor:
+    __monitor_history__[monitor_id][data_type].append(data)
+    return token + 1
+
+
+@register_vmap_op(fake_fn=_fake_data_sink, vmap_fn=_vmap_data_sink, fake_vmap_fn=_fake_vmap_data_sink)
+def _data_sink(monitor_id: int, data: torch.Tensor, data_type: int, token: torch.Tensor) -> torch.Tensor:
+    """Record the data into the monitor history log.
+
+    This function uses the provided token to establish data dependencies between
+    successive function calls, ensuring proper tracking and ordering of monitored values.
+    """
+    __monitor_history__[monitor_id][data_type].append(data)
+    return token + 1
+
+
 class EvalMonitor(Monitor):
     """Evaluation monitor.
     Used for both single-objective and multi-objective workflow.
@@ -31,10 +84,6 @@ class EvalMonitor(Monitor):
     can monitor the offspring, their corresponding fitness and keep track of the evaluation count.
     Moreover, it can also record the best solution or the pareto front on-the-fly.
     """
-
-    fitness_history: List[torch.Tensor]
-    solution_history: List[torch.Tensor]
-    auxiliary: List[Dict[str, torch.Tensor]]
 
     def __init__(
         self,
@@ -44,6 +93,7 @@ class EvalMonitor(Monitor):
         full_pop_history: bool = False,
         topk: int = 1,
         device: torch.device | None = None,
+        history_device: torch.device | None = None,
     ):
         """Initialize the monitor.
 
@@ -57,6 +107,7 @@ class EvalMonitor(Monitor):
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
+        history_device = torch.device("cpu") if history_device is None else history_device
         self.multi_obj = multi_obj
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
@@ -64,14 +115,59 @@ class EvalMonitor(Monitor):
         self.opt_direction = 1
         self.topk = topk
         self.device = device
+        self.history_device = history_device
+        self.aux_keys = []
         # mutable
         self.latest_solution = Mutable(torch.empty(0, device=device))
         self.latest_fitness = Mutable(torch.empty(0, device=device))
         self.topk_solutions = Mutable(torch.empty(0, device=device))
         self.topk_fitness = Mutable(torch.empty(0, device=device))
-        self.fitness_history = []
-        self.solution_history = []
-        self.auxiliary = []
+        self._id_ = id(self)
+        self._token = Mutable(torch.tensor(0, device=device))
+        __monitor_history__[self._id_] = MonitorHisotry([], [], [])
+        weakref.finalize(
+            self,
+            __monitor_history__.pop,
+            self._id_,
+            None,
+        )
+
+    @property
+    def fitness_history(self) -> List[torch.Tensor]:
+        return __monitor_history__[self._id_][HistoryType.FITNESS]
+
+    @property
+    def fit_history(self) -> List[torch.Tensor]:
+        # alias for fitness_history
+        return self.fitness_history
+
+    @property
+    def solution_history(self) -> List[torch.Tensor]:
+        return __monitor_history__[self._id_][HistoryType.SOLUTION]
+
+    @property
+    def sol_history(self) -> List[torch.Tensor]:
+        # alias for solution_history
+        return self.solution_history
+
+    @property
+    def aux_history(self) -> Dict[str, List[torch.Tensor]]:
+        # alias for auxiliary_history
+        return self.auxiliary_history
+
+    @property
+    def auxiliary_history(self) -> Dict[str, List[torch.Tensor]]:
+        raw_aux_history = __monitor_history__[self._id_][HistoryType.AUXILIARY]
+        n_keys = len(self.aux_keys)
+        if n_keys == 0:
+            return {}
+
+        assert len(raw_aux_history) % n_keys == 0
+        aux_history = {}
+        for i, key in enumerate(self.aux_keys):
+            aux_history[key] = raw_aux_history[i::n_keys]
+
+        return aux_history
 
     def set_config(self, **config):
         if "multi_obj" in config:
@@ -88,7 +184,14 @@ class EvalMonitor(Monitor):
 
     def record_auxiliary(self, aux: Dict[str, torch.Tensor]):
         if self.full_pop_history:
-            self.auxiliary.append(aux)
+            if len(self.aux_keys) == 0:
+                self.aux_keys = list(aux.keys())
+
+            for key in self.aux_keys:
+                assert isinstance(aux[key], torch.Tensor)
+                self._token = _data_sink(
+                    self._id_, aux[key].to(self.history_device, non_blocking=True), HistoryType.AUXILIARY, self._token
+                )
 
     def post_ask(self, candidate_solution: torch.Tensor):
         self.latest_solution = candidate_solution
@@ -123,18 +226,15 @@ class EvalMonitor(Monitor):
         if self.full_fit_history or self.full_sol_history:
             self.record_history()
 
-    @torch.compiler.disable
     def record_history(self):
         if self.full_sol_history:
-            latest_solution = self.latest_solution.to(self.device)
-            if is_batchedtensor(self.latest_solution):
-                latest_solution = get_unwrapped(latest_solution)
-            self.solution_history.append(latest_solution)
+            latest_solution = self.latest_solution.to(self.history_device, non_blocking=True)
+            assert isinstance(latest_solution, torch.Tensor)
+            self._token = _data_sink(self._id_, latest_solution, HistoryType.SOLUTION, self._token)
         if self.full_fit_history:
-            latest_fitness = self.latest_fitness.to(self.device)
-            if is_batchedtensor(self.latest_fitness):
-                latest_fitness = get_unwrapped(latest_fitness)
-            self.fitness_history.append(latest_fitness)
+            latest_fitness = self.latest_fitness.to(self.history_device, non_blocking=True)
+            assert isinstance(latest_fitness, torch.Tensor)
+            self._token = _data_sink(self._id_, latest_fitness, HistoryType.FITNESS, self._token)
 
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
@@ -232,7 +332,7 @@ class EvalMonitor(Monitor):
             When "pop", the fitness from the population inside the algorithm will be plotted, representing what the algorithm sees.
         :param kwargs: Additional arguments for the plot.
         """
-        if not self.fitness_history and not self.auxiliary:
+        if not self.fitness_history and not self.aux_history:
             warnings.warn("No fitness history recorded, return None")
             return
 
@@ -241,7 +341,7 @@ class EvalMonitor(Monitor):
             return
 
         if source == "pop":
-            fitness_history = [aux["fit"] for aux in self.auxiliary]
+            fitness_history = self.aux_history["fit"]
         elif source == "eval":
             fitness_history = self.get_fitness_history()
         else:
