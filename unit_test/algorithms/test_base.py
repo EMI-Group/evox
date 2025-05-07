@@ -36,7 +36,7 @@ class TestBase(TestCase):
         # reset state
         algo.load_state_dict(state_dict)
 
-    def run_trace_algorithm(self, algo: Algorithm):
+    def run_compiled_algorithm(self, algo: Algorithm):
         state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
@@ -61,3 +61,8 @@ class TestBase(TestCase):
         state = vmap_state_init_step(state)
         for _ in range(3):
             state = vmap_state_step(state)
+
+    def run_all(self, algo: Algorithm):
+        self.run_algorithm(algo)
+        self.run_compiled_algorithm(algo)
+        self.run_vmap_algorithm(algo)
