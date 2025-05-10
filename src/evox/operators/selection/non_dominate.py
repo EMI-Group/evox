@@ -1,6 +1,5 @@
 import torch
 
-from evox.core import compile
 from evox.utils import lexsort, register_vmap_op
 
 
@@ -60,14 +59,12 @@ def update_dc_and_rank(
     return rank, dominate_count
 
 
-_compiled_update_dc_and_rank = compile(update_dc_and_rank, fullgraph=True)
-
-
 def _igr_fake(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
+    compiling: bool,
 ) -> torch.Tensor:
     return rank.new_empty(dominate_count.size())
 
@@ -77,8 +74,36 @@ def _igr_fake_vmap(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
+    compiling: bool,
 ) -> torch.Tensor:
     return rank.new_empty(dominate_count.size())
+
+
+def _vmap_iterative_get_ranks_compile(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    def cond_fn(r, cr, dc, pf):
+        return pf.any()
+
+    def body_fn(r, cr, dc, pf):
+        r, dc = update_dc_and_rank(dominate_relation_matrix, dc, pf, r, cr)
+        cr = cr + 1
+        new_pareto_front = dc == 0
+        pf = torch.where(pf.any(dim=-1, keepdim=True), new_pareto_front, pf)
+        return r, cr, dc, pf
+
+    rank = rank.expand_as(dominate_count).contiguous() # contiguous to unify carry stride
+    rank, *_ = torch.while_loop(
+        cond_fn, body_fn, (rank, torch.tensor(0, device=rank.device), dominate_count, pareto_front)
+    )
+    return rank
+
+
+# evox.core.compile is not necessary since no indexing here
+_vmap_iterative_get_ranks_compile = torch.compile(_vmap_iterative_get_ranks_compile, fullgraph=True)
 
 
 def _vmap_iterative_get_ranks(
@@ -86,32 +111,67 @@ def _vmap_iterative_get_ranks(
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
+    compiling: bool,
 ) -> torch.Tensor:
     current_rank = 0
-    while pareto_front.any():
-        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
-            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
-        )
-        current_rank += 1
-        new_pareto_front = dominate_count == 0
-        pareto_front = torch.where(pareto_front.any(dim=-1, keepdim=True), new_pareto_front, pareto_front)
+    if compiling:
+        rank = _vmap_iterative_get_ranks_compile(dominate_relation_matrix, dominate_count, rank, pareto_front)
+    else:
+        while pareto_front.any():
+            rank, dominate_count = update_dc_and_rank(
+                dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+            )
+            current_rank += 1
+            new_pareto_front = dominate_count == 0
+            pareto_front = torch.where(pareto_front.any(dim=-1, keepdim=True), new_pareto_front, pareto_front)
     return rank
 
 
-@register_vmap_op(fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap, max_vmap_level=2)
-def _iterative_get_ranks(
+def _iterative_get_ranks_compile(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
 ) -> torch.Tensor:
-    current_rank = 0
-    while pareto_front.any():
-        rank, dominate_count = (_compiled_update_dc_and_rank if torch.compiler.is_compiling() else update_dc_and_rank)(
-            dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
-        )
-        current_rank += 1
-        pareto_front = dominate_count == 0
+    def cond_fn(r, cr, dc, pf):
+        return pf.any()
+
+    def body_fn(r, cr, dc, pf):
+        r, dc = update_dc_and_rank(dominate_relation_matrix, dc, pf, r, cr)
+        cr = cr + 1
+        pf = dc == 0
+        return r, cr, dc, pf
+
+    rank, *_ = torch.while_loop(
+        cond_fn, body_fn, (rank, torch.tensor(0, device=rank.device), dominate_count, pareto_front)
+    )
+    return rank
+
+
+# evox.core.compile is not necessary since no indexing here
+_iterative_get_ranks_compile = torch.compile(_iterative_get_ranks_compile, fullgraph=True)
+
+
+@register_vmap_op(
+    fake_fn=_igr_fake, vmap_fn=_vmap_iterative_get_ranks, fake_vmap_fn=_igr_fake_vmap, max_vmap_level=2
+)
+def _iterative_get_ranks(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+    compiling: bool,
+) -> torch.Tensor:
+    if compiling:
+        rank = _iterative_get_ranks_compile(dominate_relation_matrix, dominate_count, rank, pareto_front)
+    else:
+        current_rank = 0
+        while pareto_front.any():
+            rank, dominate_count = update_dc_and_rank(
+                dominate_relation_matrix, dominate_count, pareto_front, rank, current_rank
+            )
+            current_rank += 1
+            pareto_front = dominate_count == 0
     return rank
 
 
@@ -137,7 +197,9 @@ def non_dominate_rank(x: torch.Tensor) -> torch.Tensor:
     # Identify individuals in the first Pareto front (those that are not dominated)
     pareto_front = dominate_count == 0
     # Iteratively identify Pareto fronts
-    rank = _iterative_get_ranks(dominate_relation_matrix, dominate_count, rank, pareto_front)
+    rank = _iterative_get_ranks(
+        dominate_relation_matrix, dominate_count, rank, pareto_front, torch.compiler.is_compiling()
+    )
     return rank
 
 
