@@ -156,7 +156,7 @@ class Sphere(ShiftAffineNumericalProblem):
 
     def _true_evaluate(self, x: torch.Tensor) -> torch.Tensor:
         return sphere_func(x)
-    
+
 
 class Ellipsoid(ShiftAffineNumericalProblem):
     """The Ellipsoid function whose minimum is x = [0, ..., 0]"""
@@ -170,23 +170,7 @@ class Ellipsoid(ShiftAffineNumericalProblem):
 
     def _true_evaluate(self, x: torch.Tensor) -> torch.Tensor:
         return ellipsoid_func(x)
-    
+
+
 def ellipsoid_func(x: torch.Tensor):
     return torch.sum(torch.arange(1, x.size(1) + 1, device=x.device) * x**2, dim=1)
-
-
-class Griewank(ShiftAffineNumericalProblem):
-    """The Griewank function whose minimum is x = [0, ..., 0]"""
-
-    def __init__(self, **kwargs):
-        """Initialize the Griewank function with the given parameters.
-
-        :param **kwargs: The keyword arguments (`shift` and `affine`) to pass to the superclass `ShiftAffineNumericalProblem`.
-        """
-        super().__init__(**kwargs)
-
-    def _true_evaluate(self, x: torch.Tensor) -> torch.Tensor:
-        return griewank_func(x)
-    
-def griewank_func(x: torch.Tensor):
-    return 1 / 4000 * torch.sum(x**2, dim=1) - torch.prod(torch.cos(x / torch.sqrt(torch.arange(1, x.size(1) + 1, device=x.device)))) + 1.0

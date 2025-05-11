@@ -6,7 +6,6 @@ __all__ = [
     "Schwefel",
     "Sphere",
     "Ellipsoid",
-    "Griewank",
     "CEC2022",
     "DTLZ1",
     "DTLZ2",
@@ -22,26 +21,23 @@ __all__ = [
     "schwefel_func",
     "sphere_func",
     "ellipsoid_func",
-    "griewank_func",
 ]
 
 from .basic import (
     Ackley,
+    Ellipsoid,
     Griewank,
     Rastrigin,
     Rosenbrock,
     Schwefel,
     Sphere,
-    Ellipsoid,
-    Griewank,
     ackley_func,
+    ellipsoid_func,
     griewank_func,
     rastrigin_func,
     rosenbrock_func,
     schwefel_func,
     sphere_func,
-    ellipsoid_func,
-    griewank_func,
 )
 from .cec2022 import CEC2022
 from .dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7

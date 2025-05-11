@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from evox.problems.numerical import Ackley, Griewank, Rastrigin, Rosenbrock, Schwefel, Ellipsoid, Griewank
+from evox.problems.numerical import Ackley, Ellipsoid, Griewank, Rastrigin, Rosenbrock, Schwefel
 
 
 class TestBasic(unittest.TestCase):
@@ -16,7 +16,6 @@ class TestBasic(unittest.TestCase):
             Rosenbrock,
             Schwefel,
             Ellipsoid,
-            Griewank,
         ]
 
     def test_evaluate(self):
