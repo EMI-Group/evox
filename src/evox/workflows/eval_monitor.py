@@ -1,3 +1,6 @@
+__all__ = ["EvalMonitor"]
+
+
 import warnings
 import weakref
 from enum import IntEnum
