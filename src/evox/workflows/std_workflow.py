@@ -68,7 +68,15 @@ class StdWorkflow(Workflow):
         :param enable_distributed: Whether to enable distributed workflow. Defaults to False.
         :param group: The group name used in the distributed workflow. Defaults to None.
 
-        :note: The `algorithm`, `problem`, `solution_transform`, and `fitness_transform` will be IN-PLACE moved to the device specified by `device`.
+        ```{note}
+        The `algorithm`, `problem`, `solution_transform`, and `fitness_transform` will be IN-PLACE moved to the device specified by `device`.
+        ```
+
+        ```{note}
+        The `opt_direction` parameter determines the optimization direction.
+        Since EvoX algorithms are designed to minimize by default,
+        setting `opt_direction="max"` will cause the fitness values to be negated before being passed to `fitness_transform` and the monitor.
+        ```
         """
         super().__init__()
         assert opt_direction in [

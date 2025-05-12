@@ -107,7 +107,17 @@ class EvalMonitor(Monitor):
         :param device: The device of the monitor. Defaults to None.
         :param history_device: The device to record the history. Defaults to None. If None, it will use cpu.
 
-        :note: Setting the `history_device` to the same device as the monitor will save the data transfer time, but may increase the memory usage on the device.
+        ```{tip}
+        Setting the `history_device` to the same device as the monitor will save the data transfer time,
+        but may increase the memory usage on the device.
+        ```
+
+        ```{note}
+        When `opt_direction="max"` is used,
+        fitness values are internally multiplied by -1 to ensure that optimization logic always treats the best fitness as the minimum value.
+        As a result, raw fitness values (e.g., `monitor.topk_fitness`, `monitor.fitness_history`, etc.) will appear negated.
+        However, access methods such as `monitor.get_best_fitness()` and `monitor.get_pf_fitness()` automatically reverse this negation and return the original, unmodified values.
+        ```
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
