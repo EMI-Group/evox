@@ -34,13 +34,13 @@ class HistoryType(IntEnum):
     AUXILIARY = 2
 
 
-class MonitorHisotry(NamedTuple):
+class MonitorHistory(NamedTuple):
     fit_history: List[torch.Tensor]
     sol_history: List[torch.Tensor]
     aux_history: List[torch.Tensor]
 
 
-__monitor_history__: Dict[int, MonitorHisotry] = {}
+__monitor_history__: Dict[int, MonitorHistory] = {}
 
 
 def _fake_data_sink(monitor_id: int, data: torch.Tensor, data_type: int, token: torch.Tensor) -> torch.Tensor:
@@ -124,7 +124,7 @@ class EvalMonitor(Monitor):
         self.topk_fitness = Mutable(torch.empty(0, device=device))
         self._id_ = id(self)
         self._token = Mutable(torch.tensor(0, device=device))
-        __monitor_history__[self._id_] = MonitorHisotry([], [], [])
+        __monitor_history__[self._id_] = MonitorHistory([], [], [])
         weakref.finalize(
             self,
             __monitor_history__.pop,
