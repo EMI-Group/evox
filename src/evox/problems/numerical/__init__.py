@@ -5,6 +5,7 @@ __all__ = [
     "Rosenbrock",
     "Schwefel",
     "Sphere",
+    "Ellipsoid",
     "CEC2022",
     "DTLZ1",
     "DTLZ2",
@@ -19,16 +20,19 @@ __all__ = [
     "rosenbrock_func",
     "schwefel_func",
     "sphere_func",
+    "ellipsoid_func",
 ]
 
 from .basic import (
     Ackley,
+    Ellipsoid,
     Griewank,
     Rastrigin,
     Rosenbrock,
     Schwefel,
     Sphere,
     ackley_func,
+    ellipsoid_func,
     griewank_func,
     rastrigin_func,
     rosenbrock_func,
