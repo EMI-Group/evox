@@ -33,11 +33,10 @@ class StdWorkflow(Workflow):
         solution_transform=solution_transform(),
         fitness_transform=fitness_transform(),
     )
-    monitor = workflow.get_submodule("monitor")
     workflow.init_step()
-    print(monitor.topk_fitness)
+    print(monitor.get_topk_fitness())
     workflow.step()
-    print(monitor.topk_fitness)
+    print(monitor.get_topk_fitness())
     # run rest of the steps ...
     ```
     """
