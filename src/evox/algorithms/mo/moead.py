@@ -28,8 +28,10 @@ class MOEAD(Algorithm):
         [1] Q. Zhang and H. Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition,"
             IEEE Transactions on Evolutionary Computation, vol. 11, no. 6, pp. 712-731, 2007. Available:
             https://ieeexplore.ieee.org/document/4358754
-
-    :note: This implementation is based on the original paper and may not be the most efficient implementation.
+    ```{note}
+    This implementation closely follows the original paper and reference code.
+    It is not optimized for tensorized computation and may therefore be less efficient on GPU.
+    ```
     """
 
     def __init__(

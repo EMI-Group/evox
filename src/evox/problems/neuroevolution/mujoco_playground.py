@@ -227,7 +227,7 @@ class MujocoProblem(Problem):
         reduce_fn: Callable[[torch.Tensor, int], torch.Tensor] = torch.mean,
         device: torch.device | None = None,
     ):
-        """Construct a Brax-based problem.
+        """Construct a MujocoPlayground-based problem.
         Firstly, you need to define a policy model.
         Then you need to set the `environment name <https://github.com/google-deepmind/mujoco_playground/tree/main/mujoco_playground/_src/registry.py>`,
         the maximum episode length, the number of episodes to evaluate for each individual.
@@ -240,30 +240,34 @@ class MujocoProblem(Problem):
         :param env_name: The environment name.
         :param max_episode_length: The maximum number of time steps of each episode.
         :param num_episodes: The number of episodes to evaluate for each individual.
-        :param seed: The seed used to create a PRNGKey for the brax environment. When None, randomly select one. Default to None.
+        :param seed: The seed used to create a PRNGKey for the Mujoco environment. When None, randomly select one. Default to None.
         :param pop_size: The size of the population to be evaluated. If None, we expect the input to have a population size of 1.
         :param rotate_key: Indicates whether to rotate the random key for each iteration (default is True). <br/> If True, the random key will rotate after each iteration, resulting in non-deterministic and potentially noisy fitness evaluations. This means that identical policy weights may yield different fitness values across iterations. <br/> If False, the random key remains the same for all iterations, ensuring consistent fitness evaluations.
         :param reduce_fn: The function to reduce the rewards of multiple episodes. Default to `torch.mean`.
         :param device: The device to run the computations on. Defaults to the current default device.
 
-        ## Notice
-        The initial key is obtained from `torch.random.get_rng_state()`.
+        ## Examples
+        ```python
+        from evox import problems
+        problem = problems.neuroevolution.MujocoProblem(
+            env_name="SwimmerSwimmer6",
+            policy=model,
+            max_episode_length=1000,
+            num_episodes=3,
+            pop_size=100,
+            rotate_key=False,
+        )
+        ```
 
-        ## Warning
+        ```{note}
+        The initial key is obtained from `torch.random.get_rng_state()`.
+        ```
+
+        ```{warning}
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`) out-of-box, i.e., the workflow containing this problem CANNOT be vmapped.
         *However*, by setting `pop_size` to the multiplication of inner population size and outer population size, you can still use this problem in a HPO workflow.
         Yet, the `num_repeats` of HPO wrapper *must* be set to 1, please use the parameter `num_episodes` instead.
-
-        ## Examples
-        >>> from evox import problems
-        >>> problem = problems.neuroevolution.MujocoProblem(
-        ...    env_name="SwimmerSwimmer6",
-        ...    policy=model,
-        ...    max_episode_length=1000,
-        ...    num_episodes=3,
-        ...    pop_size=100,
-        ...    rotate_key=False,
-        ...)
+        ```
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

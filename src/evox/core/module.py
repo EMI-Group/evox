@@ -53,7 +53,9 @@ class ModuleBase(nn.Module):
     """
     The base module for all algorithms, problems, and workflows in the library.
 
-    :note: To prevent ambiguity, `ModuleBase.eval()` is disabled.
+    ```{note}
+    To prevent ambiguity, `ModuleBase.eval()` is disabled.
+    ```
     """
 
     def __init__(self, *args, **kwargs):

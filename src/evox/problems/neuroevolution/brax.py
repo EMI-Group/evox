@@ -238,24 +238,28 @@ class BraxProblem(Problem):
         :param device: The device to run the computations on. Defaults to the current default device.
         :param compile_policy: Whether to compile the policy model. Default to True.
 
-        ## Notice
-        The initial key is obtained from `torch.random.get_rng_state()`.
+        ## Examples
+        ```python
+        from evox import problems
+        problem = problems.neuroevolution.Brax(
+            env_name="swimmer",
+            policy=model,
+            max_episode_length=1000,
+            num_episodes=3,
+            pop_size=100,
+            rotate_key=False,
+        )
+        ```
 
-        ## Warning
+        ```{note}
+        The initial key is obtained from `torch.random.get_rng_state()`.
+        ```
+
+        ```{warning}
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`) out-of-box, i.e., the workflow containing this problem CANNOT be vmapped.
         *However*, by setting `pop_size` to the multiplication of inner population size and outer population size, you can still use this problem in a HPO workflow.
         Yet, the `num_repeats` of HPO wrapper *must* be set to 1, please use the parameter `num_episodes` instead.
-
-        ## Examples
-        >>> from evox import problems
-        >>> problem = problems.neuroevolution.Brax(
-        ...    env_name="swimmer",
-        ...    policy=model,
-        ...    max_episode_length=1000,
-        ...    num_episodes=3,
-        ...    pop_size=100,
-        ...    rotate_key=False,
-        ...)
+        ```
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device

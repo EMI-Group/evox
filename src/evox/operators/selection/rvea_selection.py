@@ -46,11 +46,12 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
         - next_x: The next selected solutions.
         - next_f: The objective values of the next selected solutions.
 
-    :note:
-        The function computes the distances between the solutions and reference vectors,
-        and selects the solutions with the minimum APD.
-        It currently uses a suboptimal selection implementation, and future improvements
-        will optimize the process using a `segment_sort` or `segment_argmin` in CUDA.
+    ```{note}
+    The function computes the distances between the solutions and reference vectors,
+    and selects the solutions with the minimum APD.
+    It currently uses a suboptimal selection implementation, and future improvements
+    will optimize the process using a `segment_sort` or `segment_argmin` in CUDA.
+    ```
     """
     n = f.size(0)
     nv = v.size(0)

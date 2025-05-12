@@ -37,8 +37,9 @@ class SupervisedLearningProblem(Problem):
 
         :raises RuntimeError: If the data loader contains no items.
 
-        ## Warning
+        ```{warning}
         This problem does NOT support HPO wrapper (`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing this problem CANNOT be vmapped.
+        ```
         """
         super().__init__()
         self.device = torch.get_default_device() if device is None else device

@@ -230,7 +230,7 @@ def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
                       These indices indicate the order of elements in the sorted tensors.
 
     ## Example
-    ```
+    ```python
     key1 = torch.tensor([1, 3, 2])
     key2 = torch.tensor([9, 7, 8])
     sorted_indices = lexsort([key1, key2])
@@ -238,7 +238,9 @@ def lexsort(keys: List[torch.Tensor], dim: int = -1) -> torch.Tensor:
     # and then by key1 in case of ties.
     ```
 
-    :note: You can use `torch.unbind` to split the tensor into list.
+    ```{tip}
+    You can use `torch.unbind` to split the tensor into list.
+    ```
     """
 
     sorted_indices = torch.argsort(keys[0], dim=dim, stable=True)
