@@ -60,7 +60,7 @@ class StdWorkflow(Workflow):
 
         :param algorithm: The algorithm to be used in the workflow.
         :param problem: The problem to be used in the workflow.
-        :param monitors: The monitors to be used in the workflow. Defaults to None.
+        :param monitor: The monitors to be used in the workflow. Defaults to None.
         :param opt_direction: The optimization direction, can only be "min" or "max". Defaults to "min". If "max", the fitness will be negated prior to `fitness_transform` and monitor.
         :param solution_transform: The solution transformation function. MUST be compile-compatible module/function. Defaults to None.
         :param fitness_transforms: The fitness transformation function. MUST be compile-compatible module/function. Defaults to None.
