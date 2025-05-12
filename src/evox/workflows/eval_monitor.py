@@ -102,8 +102,9 @@ class EvalMonitor(Monitor):
         :param full_sol_history: Whether to record the full history of solutions. Default to False. Setting it to True may increase memory usage.
         :param topk: Only affect Single-objective optimization. The number of elite solutions to record. Default to 1, which will record the best individual.
         :param device: The device of the monitor. Defaults to None.
+        :param history_device: The device to record the history. Defaults to None. If None, it will use cpu.
 
-        :note: If any of `full_fit_history` or `full_sol_history` is set to True, this monitor will introduce a graph break in `torch.compile`.
+        :note: Setting the `history_device` to the same device as the monitor will save the data transfer time, but may increase the memory usage on the device.
         """
         super().__init__()
         device = torch.get_default_device() if device is None else device
