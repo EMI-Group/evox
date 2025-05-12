@@ -1,3 +1,14 @@
+__all__ = [
+    "Parameter",
+    "Mutable",
+    "ModuleBase",
+    "TransformGetSetItemToIndex",
+    "compile",
+    "vmap",
+    "use_state",
+]
+
+
 from functools import wraps
 from typing import Callable, Dict, Optional, TypeVar, Union
 
@@ -34,9 +45,7 @@ def Parameter(
     )
 
 
-def Mutable(
-    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
-) -> torch.Tensor:
+def Mutable(value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> torch.Tensor:
     """Wraps a value as a mutable tensor.
     This is often used to label a value in an algorithm as a mutable tensor that may changes during iteration(s).
 
@@ -172,7 +181,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     def wrapper(params_and_buffers: Dict[str, torch.Tensor], *args, **kwargs):
         params_and_buffers = {("_inner_module." + k): v for k, v in params_and_buffers.items()}
         output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
-        params_and_buffers = {k[len("_inner_module."):]: v for k, v in params_and_buffers.items()}
+        params_and_buffers = {k[len("_inner_module.") :]: v for k, v in params_and_buffers.items()}
         if output is None:
             return params_and_buffers
         else:

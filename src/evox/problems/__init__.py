@@ -1,4 +1,4 @@
-__all__ = ["neuroevolution", "numerical"]
+__all__ = ["neuroevolution", "numerical", "hpo_wrapper"]
 
 
-from . import neuroevolution, numerical
+from . import neuroevolution, numerical, hpo_wrapper

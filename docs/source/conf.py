@@ -48,7 +48,9 @@ autodoc2_packages = [
 ]
 
 autodoc2_module_all_regexes = [
-    r"evox\..*",
+    r"evox\.core\..*",
+    r"evox\.problems\..*",
+    r"evox\.workflows\..*",
 ]
 
 autodoc2_render_plugin = "myst"

@@ -1,4 +1,7 @@
 __all__ = [
+    "basic",
+    "cec2022",
+    "dtlz",
     "Ackley",
     "Griewank",
     "Rastrigin",
@@ -23,6 +26,7 @@ __all__ = [
     "ellipsoid_func",
 ]
 
+from . import basic, cec2022, dtlz
 from .basic import (
     Ackley,
     Ellipsoid,
