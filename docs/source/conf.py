@@ -40,8 +40,6 @@ extensions = [
     "sphinx_design",
     "sphinx_favicon",
     "sphinxcontrib.mermaid",
-    # "nbsphinx",
-    # "myst_parser",
     "myst_nb",
 ]
 
@@ -50,13 +48,7 @@ autodoc2_packages = [
 ]
 
 autodoc2_module_all_regexes = [
-    r"evox",
-    r"evox\..algorithms",
-    r"evox\..metrics",
-    r"evox\..operators",
-    r"evox\..problems",
-    r"evox\..utils",
-    r"evox\..workflows",
+    r"evox\..*",
 ]
 
 autodoc2_render_plugin = "myst"
