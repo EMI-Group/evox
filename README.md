@@ -194,6 +194,8 @@ from evox.algorithms import PSO
 from evox.problems.numerical import Ackley
 from evox.workflows import StdWorkflow, EvalMonitor
 
+# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
+
 algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
 problem = Ackley()
 monitor = EvalMonitor()
@@ -225,6 +227,8 @@ from evox.algorithms import RVEA
 from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
+
+# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
 
 prob = DTLZ2(m=2)
 pf = prob.pf()
@@ -264,6 +268,8 @@ from evox.algorithms import PSO
 from evox.problems.neuroevolution.brax import BraxProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
+
+# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
 
 class SimpleMLP(nn.Module):
     def __init__(self):
