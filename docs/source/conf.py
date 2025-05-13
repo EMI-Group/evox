@@ -102,6 +102,7 @@ html_context = {
     "source_docs_path": "/docs/source/",
 }
 html_theme_options = {
+    "toctree_maxdepth": 5,
     "light_logo": "_static/evox_logo_light.png",
     "dark_logo": "_static/evox_logo_dark.png",
     "og_image_url": "_static/evox_logo.png",
