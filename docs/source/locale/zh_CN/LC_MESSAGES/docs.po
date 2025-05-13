@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-25 16:56+0800\n"
+"POT-Creation-Date: 2025-05-13 12:35+0800\n"
 "PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
@@ -31,11 +31,6 @@ msgstr "{py:mod}`evox`"
 msgid "Subpackages"
 msgstr "子包"
 
-#: ../../source/apidocs/evox/evox.algorithms.md:1
-#, python-brace-format
-msgid "{py:mod}`evox.algorithms`"
-msgstr "{py:mod}`evox.algorithms`"
-
 #: ../../source/apidocs/evox/evox.algorithms.md:20
 #: ../../source/apidocs/evox/evox.algorithms.mo.md:24
 #: ../../source/apidocs/evox/evox.algorithms.so.de_variants.md:24
@@ -43,6 +38,7 @@ msgstr "{py:mod}`evox.algorithms`"
 #: ../../source/apidocs/evox/evox.algorithms.so.md:21
 #: ../../source/apidocs/evox/evox.algorithms.so.pso_variants.md:26
 #: ../../source/apidocs/evox/evox.core.md:20
+#: ../../source/apidocs/evox/evox.md:26
 #: ../../source/apidocs/evox/evox.metrics.md:21
 #: ../../source/apidocs/evox/evox.operators.crossover.md:21
 #: ../../source/apidocs/evox/evox.operators.md:22
@@ -66,20 +62,14 @@ msgstr "软件包内容"
 #: ../../source/apidocs/evox/evox.algorithms.so.md:23
 #: ../../source/apidocs/evox/evox.algorithms.so.pso_variants.md:28
 #: ../../source/apidocs/evox/evox.core.md:22
-#: ../../source/apidocs/evox/evox.core.module.md:56
+#: ../../source/apidocs/evox/evox.md:28
 #: ../../source/apidocs/evox/evox.metrics.md:23
 #: ../../source/apidocs/evox/evox.operators.crossover.md:23
 #: ../../source/apidocs/evox/evox.operators.md:24
 #: ../../source/apidocs/evox/evox.operators.mutation.md:21
 #: ../../source/apidocs/evox/evox.operators.sampling.md:23
 #: ../../source/apidocs/evox/evox.operators.selection.md:24
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:56
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:68
 #: ../../source/apidocs/evox/evox.problems.md:31
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:64
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:64
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:24
-#: ../../source/apidocs/evox/evox.problems.numerical.md:23
 #: ../../source/apidocs/evox/evox.utils.md:24
 #: ../../source/apidocs/evox/evox.utils.op_register.md:52
 #: ../../source/apidocs/evox/evox.utils.re_export.md:12
@@ -87,10 +77,10 @@ msgstr "软件包内容"
 msgid "Data"
 msgstr "数据"
 
-#: ../../source/apidocs/evox/evox.algorithms.md:28
-#, python-brace-format
-msgid "{py:obj}`__all__ <evox.algorithms.__all__>`"
-msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
+#: ../../source/apidocs/evox/evox.md:34
+#, fuzzy, python-brace-format
+msgid "{py:obj}`__all__ <evox.__all__>`"
+msgstr "{py:obj}`__all__ <evox.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.md:34
 #: ../../source/apidocs/evox/evox.algorithms.mo.hype.md:36
@@ -133,7 +123,8 @@ msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
 #: ../../source/apidocs/evox/evox.algorithms.so.pso_variants.utils.md:28
 #: ../../source/apidocs/evox/evox.core.components.md:36
 #: ../../source/apidocs/evox/evox.core.md:34
-#: ../../source/apidocs/evox/evox.core.module.md:68
+#: ../../source/apidocs/evox/evox.core.module.md:54
+#: ../../source/apidocs/evox/evox.md:40
 #: ../../source/apidocs/evox/evox.metrics.gd.md:24
 #: ../../source/apidocs/evox/evox.metrics.hv.md:24
 #: ../../source/apidocs/evox/evox.metrics.igd.md:24
@@ -151,19 +142,19 @@ msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
 #: ../../source/apidocs/evox/evox.operators.sampling.uniform.md:24
 #: ../../source/apidocs/evox/evox.operators.selection.find_pbest.md:24
 #: ../../source/apidocs/evox/evox.operators.selection.md:36
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:68
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:64
 #: ../../source/apidocs/evox/evox.operators.selection.rvea_selection.md:28
 #: ../../source/apidocs/evox/evox.operators.selection.tournament_selection.md:28
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:80
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:36
 #: ../../source/apidocs/evox/evox.problems.md:43
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:80
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:80
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:36
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:24
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:24
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:24
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:36
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:80
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:88
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:24
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:38
-#: ../../source/apidocs/evox/evox.problems.numerical.md:35
+#: ../../source/apidocs/evox/evox.problems.numerical.md:113
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:80
 #: ../../source/apidocs/evox/evox.utils.md:36
 #: ../../source/apidocs/evox/evox.utils.op_register.md:64
@@ -171,11 +162,29 @@ msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
 #: ../../source/apidocs/evox/evox.utils.re_export.md:24
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:40
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:44
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:36
+#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:24
 #: ../../source/apidocs/evox/evox.workflows.md:34
-#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:26
+#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:24
 msgid "API"
 msgstr "API"
+
+#: ../../source/apidocs/evox/evox.md:46
+msgid ""
+"['core', 'utils', 'algorithms', 'problems', 'workflows', 'operators', "
+"'vis_tools', 'metrics', 'Modul..."
+msgstr ""
+"['core', 'utils', 'algorithms', 'problems', 'workflows', 'operators', "
+"'vis_tools', 'metrics', 'Modul..."
+
+#: ../../source/apidocs/evox/evox.algorithms.md:1
+#, python-brace-format
+msgid "{py:mod}`evox.algorithms`"
+msgstr "{py:mod}`evox.algorithms`"
+
+#: ../../source/apidocs/evox/evox.algorithms.md:28
+#, python-brace-format
+msgid "{py:obj}`__all__ <evox.algorithms.__all__>`"
+msgstr "{py:obj}`__all__ <evox.algorithms.__all__>`"
 
 #: ../../source/apidocs/evox/evox.algorithms.md:40
 #: ../../source/apidocs/evox/evox.algorithms.so.md:41
@@ -332,6 +341,7 @@ msgstr "模块内容"
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:12
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:12
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:12
+#: ../../source/apidocs/evox/evox.problems.numerical.md:23
 #: ../../source/apidocs/evox/evox.utils.op_register.md:12
 #: ../../source/apidocs/evox/evox.utils.parameters_and_vector.md:12
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:12
@@ -356,7 +366,7 @@ msgstr "HypE算法的张量化版本。"
 #: ../../source/apidocs/evox/evox.algorithms.so.es_variants.adam_step.md:12
 #: ../../source/apidocs/evox/evox.algorithms.so.es_variants.sort_utils.md:12
 #: ../../source/apidocs/evox/evox.algorithms.so.pso_variants.utils.md:12
-#: ../../source/apidocs/evox/evox.core.module.md:28
+#: ../../source/apidocs/evox/evox.core.module.md:26
 #: ../../source/apidocs/evox/evox.metrics.gd.md:12
 #: ../../source/apidocs/evox/evox.metrics.hv.md:12
 #: ../../source/apidocs/evox/evox.metrics.igd.md:12
@@ -371,16 +381,13 @@ msgstr "HypE算法的张量化版本。"
 #: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:12
 #: ../../source/apidocs/evox/evox.operators.selection.rvea_selection.md:12
 #: ../../source/apidocs/evox/evox.operators.selection.tournament_selection.md:12
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:36
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:24
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:24
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:24
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:48
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:52
+#: ../../source/apidocs/evox/evox.problems.numerical.md:77
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md:12
 #: ../../source/apidocs/evox/evox.utils.op_register.md:32
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:24
 #: ../../source/apidocs/evox/evox.vis_tools.plot.md:12
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:24
 msgid "Functions"
 msgstr "函数"
 
@@ -493,26 +500,35 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.core.components.md:104
 #: ../../source/apidocs/evox/evox.core.components.md:128
 #: ../../source/apidocs/evox/evox.core.components.md:168
-#: ../../source/apidocs/evox/evox.core.module.md:103
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:112
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:137
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:255
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:168
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:168
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:57
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:91
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:122
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:153
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:184
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:215
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:246
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:277
+#: ../../source/apidocs/evox/evox.core.module.md:79
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:47
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:72
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:104
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:35
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:35
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:35
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:99
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:123
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:147
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:171
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:195
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:219
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:243
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:267
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:35
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:49
+#: ../../source/apidocs/evox/evox.problems.numerical.md:124
+#: ../../source/apidocs/evox/evox.problems.numerical.md:148
+#: ../../source/apidocs/evox/evox.problems.numerical.md:172
+#: ../../source/apidocs/evox/evox.problems.numerical.md:196
+#: ../../source/apidocs/evox/evox.problems.numerical.md:220
+#: ../../source/apidocs/evox/evox.problems.numerical.md:244
+#: ../../source/apidocs/evox/evox.problems.numerical.md:268
+#: ../../source/apidocs/evox/evox.problems.numerical.md:292
 #: ../../source/apidocs/evox/evox.utils.parameters_and_vector.md:35
 #: ../../source/apidocs/evox/evox.vis_tools.exv.md:63
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:54
-#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:52
+#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:35
+#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:35
 msgid "Initialization"
 msgstr "初始化"
 
@@ -574,6 +590,7 @@ msgstr "初始化 HypE 算法。"
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md
+#: ../../source/apidocs/evox/evox.problems.numerical.md
 #: ../../source/apidocs/evox/evox.utils.jit_fix_operator.md
 #: ../../source/apidocs/evox/evox.utils.op_register.md
 #: ../../source/apidocs/evox/evox.utils.parameters_and_vector.md
@@ -691,7 +708,7 @@ msgstr "执行工作流的初始化步骤。"
 #: ../../../src/evox/algorithms/mo/nsga3.py:139
 #: ../../../src/evox/algorithms/mo/rvea.py:48
 #: ../../../src/evox/algorithms/mo/rveaa.py:48
-#: ../../../src/evox/workflows/std_workflow.py:86
+#: ../../../src/evox/workflows/std_workflow.py:69
 msgid ""
 "Calls the `init_step` of the algorithm if overwritten; otherwise, its `step`"
 " method will be invoked."
@@ -736,20 +753,11 @@ msgstr ""
 "https://ieeexplore.ieee.org/document/4358754"
 
 #: ../../../src/evox/algorithms/mo/moead.py:59
-#: ../../../src/evox/core/module.py:103 ../../../src/evox/metrics/gd.py:39
-#: ../../../src/evox/metrics/igd.py:40
-#: ../../../src/evox/operators/selection/rvea_selection.py:56
-#: ../../../src/evox/utils/jit_fix_operator.py:186
-#: ../../../src/evox/workflows/eval_monitor.py:66
-#: ../../../src/evox/workflows/std_workflow.py:68
-msgid "Note"
-msgstr "注意"
-
-#: ../../../src/evox/algorithms/mo/moead.py:59
 msgid ""
-"This implementation is based on the original paper and may not be the most "
-"efficient implementation."
-msgstr "此实现基于原始论文，可能不是最有效的实现。"
+"This implementation closely follows the original paper and reference code. "
+"It is not optimized for tensorized computation and may therefore be less "
+"efficient on GPU."
+msgstr "此实现严格遵循原始论文和参考代码。它未针对张量化计算进行优化，因此在GPU上的效率可能较低。"
 
 #: ../../../src/evox/algorithms/mo/moead.py:58
 msgid "Initializes the MOEA/D algorithm."
@@ -2918,40 +2926,31 @@ msgstr "监视器基类。"
 msgid "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
 msgstr "Bases: {py:obj}`evox.core.module.ModuleBase`, {py:obj}`abc.ABC`"
 
-#: ../../../src/evox/core/components.py:48
-msgid ""
-"If a subclass have defined `trace_impl` of `step`, its corresponding "
-"`init_step` must be overwritten even though nothing special is to be "
-"included due to Python's object-oriented limitations."
-msgstr ""
-"如果子类定义了 `step` 的 `trace_impl` 方法，即使不需要添加任何特殊内容，由于 Python 对象模型的限制，其对应的 "
-"`init_step` 方法必须被覆盖重写。"
-
 #: ../../../src/evox/core/components.py:132
 #: ../../../src/evox/core/components.py:172
-#: ../../../src/evox/core/module.py:51 ../../../src/evox/core/module.py:107
-#: ../../../src/evox/core/module.py:108 ../../../src/evox/core/module.py:116
+#: ../../../src/evox/core/module.py:51 ../../../src/evox/core/module.py:83
+#: ../../../src/evox/core/module.py:108
 msgid "Initialize the ModuleBase."
 msgstr "初始化 ModuleBase。"
 
 #: ../../../src/evox/core/components.py:134
 #: ../../../src/evox/core/components.py:174
-#: ../../../src/evox/core/module.py:53 ../../../src/evox/core/module.py:109
-#: ../../../src/evox/core/module.py:110 ../../../src/evox/core/module.py:118
+#: ../../../src/evox/core/module.py:53 ../../../src/evox/core/module.py:85
+#: ../../../src/evox/core/module.py:110
 msgid "Variable length argument list, passed to the parent class initializer."
 msgstr "可变长度参数列表，传递给父类的初始化函数。"
 
 #: ../../../src/evox/core/components.py:135
 #: ../../../src/evox/core/components.py:175
-#: ../../../src/evox/core/module.py:54 ../../../src/evox/core/module.py:110
-#: ../../../src/evox/core/module.py:111 ../../../src/evox/core/module.py:119
+#: ../../../src/evox/core/module.py:54 ../../../src/evox/core/module.py:86
+#: ../../../src/evox/core/module.py:111
 msgid "Arbitrary keyword arguments, passed to the parent class initializer."
 msgstr "任意关键字参数，传递给父类初始化器。"
 
 #: ../../../src/evox/core/components.py:137
 #: ../../../src/evox/core/components.py:177
-#: ../../../src/evox/core/module.py:56 ../../../src/evox/core/module.py:112
-#: ../../../src/evox/core/module.py:113 ../../../src/evox/core/module.py:121
+#: ../../../src/evox/core/module.py:56 ../../../src/evox/core/module.py:88
+#: ../../../src/evox/core/module.py:113
 msgid ""
 "Attributes:     __static_names__ (list): A list to store static member "
 "names."
@@ -3000,6 +2999,10 @@ msgstr "记录当前步骤。"
 msgid "Evaluate the fitness at given points"
 msgstr "在给定点评估适应度"
 
+#: ../../../src/evox/core/components.py:121
+msgid "Notice"
+msgstr "注意"
+
 #: ../../../src/evox/core/components.py:122
 msgid ""
 "If this function contains external evaluations that cannot be compiled by "
@@ -3010,7 +3013,7 @@ msgstr ""
 "`evox.utils.register_vmap_op` 将外部函数注册为操作符。"
 
 #: ../../../src/evox/core/components.py:139
-#: ../../../src/evox/workflows/std_workflow.py:84
+#: ../../../src/evox/workflows/std_workflow.py:67
 msgid "Perform the first optimization step of the workflow."
 msgstr "用于让工作流执行一步的函数。"
 
@@ -3107,7 +3110,7 @@ msgstr "{py:mod}`evox.core.module`"
 msgid "{py:obj}`ModuleBase <evox.core.module.ModuleBase>`"
 msgstr "{py:obj}`ModuleBase <evox.core.module.ModuleBase>`"
 
-#: ../../../src/evox/core/module.py:20 ../../../src/evox/core/module.py:101
+#: ../../../src/evox/core/module.py:20 ../../../src/evox/core/module.py:77
 msgid ""
 "The base module for all algorithms, problems, and workflows in the library."
 msgstr "用于库中所有算法、问题和工作流的基础模块。"
@@ -3121,19 +3124,12 @@ msgstr ""
 "{py:obj}`TransformGetSetItemToIndex "
 "<evox.core.module.TransformGetSetItemToIndex>`"
 
-#: ../../source/apidocs/evox/evox.core.module.md:24
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_ReplaceForwardModule <evox.core.module._ReplaceForwardModule>`"
-msgstr ""
-"{py:obj}`_ReplaceForwardModule <evox.core.module._ReplaceForwardModule>`"
-
-#: ../../source/apidocs/evox/evox.core.module.md:34
+#: ../../source/apidocs/evox/evox.core.module.md:32
 #, python-brace-format
 msgid "{py:obj}`Parameter <evox.core.module.Parameter>`"
 msgstr "{py:obj}`Parameter <evox.core.module.Parameter>`"
 
-#: ../../../src/evox/core/module.py:36 ../../../src/evox/core/module.py:84
+#: ../../../src/evox/core/module.py:34 ../../../src/evox/core/module.py:60
 msgid ""
 "Wraps a value as parameter with `requires_grad=False`. This is often used to"
 " label a value in an algorithm as a hyperparameter that can be identified by"
@@ -3141,23 +3137,23 @@ msgid ""
 msgstr ""
 "将值包装为参数，并设置`requires_grad=False`。这通常用于在算法中将某个值标记为超参数，这些超参数可以通过`HPOProblemWrapper`识别。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:38
+#: ../../source/apidocs/evox/evox.core.module.md:36
 #, python-brace-format
 msgid "{py:obj}`Mutable <evox.core.module.Mutable>`"
 msgstr "{py:obj}`Mutable <evox.core.module.Mutable>`"
 
-#: ../../../src/evox/core/module.py:40 ../../../src/evox/core/module.py:91
+#: ../../../src/evox/core/module.py:38 ../../../src/evox/core/module.py:67
 msgid ""
 "Wraps a value as a mutable tensor. This is often used to label a value in an"
 " algorithm as a mutable tensor that may changes during iteration(s)."
 msgstr "将一个值包装为可变张量。这通常用于在算法中将某个值标记为可变张量，该值可能会在迭代过程中发生改变。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:42
+#: ../../source/apidocs/evox/evox.core.module.md:40
 #, fuzzy, python-brace-format
 msgid "{py:obj}`compile <evox.core.module.compile>`"
 msgstr "{py:obj}`compile <evox.core.module.compile>`"
 
-#: ../../../src/evox/core/module.py:44 ../../../src/evox/core/module.py:134
+#: ../../../src/evox/core/module.py:42 ../../../src/evox/core/module.py:110
 msgid ""
 "Fix the `torch.compile`'s issue with __getitem__ and __setitem__ that "
 "recognizes scalar indexes as `.item()` and causes graph breaks. Related "
@@ -3166,12 +3162,12 @@ msgstr ""
 "修复 `torch.compile` 中的 __getitem__ 和 __setitem__ 问题，该问题将标量索引识别为 `.item()` "
 "并导致图断裂。相关问题链接：https://github.com/pytorch/pytorch/issues/124423。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:46
+#: ../../source/apidocs/evox/evox.core.module.md:44
 #, fuzzy, python-brace-format
 msgid "{py:obj}`vmap <evox.core.module.vmap>`"
 msgstr "{py:obj}`vmap <evox.core.module.vmap>`"
 
-#: ../../../src/evox/core/module.py:48 ../../../src/evox/core/module.py:141
+#: ../../../src/evox/core/module.py:46 ../../../src/evox/core/module.py:117
 msgid ""
 "Fix the `torch.vmap`'s issue with __getitem__ and __setitem__. Related "
 "issue: https://github.com/pytorch/pytorch/issues/124423."
@@ -3179,12 +3175,12 @@ msgstr ""
 "修复 `torch.vmap` 中与 `__getitem__` 和 `__setitem__` "
 "相关的问题。相关问题：https://github.com/pytorch/pytorch/issues/124423。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:50
+#: ../../source/apidocs/evox/evox.core.module.md:48
 #, python-brace-format
 msgid "{py:obj}`use_state <evox.core.module.use_state>`"
 msgstr "{py:obj}`use_state <evox.core.module.use_state>`"
 
-#: ../../../src/evox/core/module.py:52 ../../../src/evox/core/module.py:163
+#: ../../../src/evox/core/module.py:50 ../../../src/evox/core/module.py:124
 msgid ""
 "Transform a `torch.nn.Module`'s method or an `torch.nn.Module` into a "
 "stateful function. When using `torch.nn.Module`, the stateful version of the"
@@ -3197,64 +3193,52 @@ msgstr ""
 "**kwargs) -> params_and_buffers | Tuple[params_and_buffers, "
 "<original_returns>]]`。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:62
-#, python-brace-format
-msgid "{py:obj}`ParameterT <evox.core.module.ParameterT>`"
-msgstr "{py:obj}`ParameterT <evox.core.module.ParameterT>`"
-
-#: ../../source/apidocs/evox/evox.core.module.md:74
-#: ../../source/apidocs/evox/evox.utils.op_register.md:70
-msgid "'TypeVar(...)'"
-msgstr "TypeVar(...)"
-
-#: ../../../src/evox/core/module.py:87
+#: ../../../src/evox/core/module.py:63
 msgid "The parameter value."
 msgstr "参数值。"
 
-#: ../../../src/evox/core/module.py:88
+#: ../../../src/evox/core/module.py:64
 msgid "The dtype of the parameter. Defaults to None."
 msgstr "参数的数据类型。默认为 None。"
 
-#: ../../../src/evox/core/module.py:89
+#: ../../../src/evox/core/module.py:65
 msgid "The device of the parameter. Defaults to None."
 msgstr "参数的设备。默认值为 None。"
 
-#: ../../../src/evox/core/module.py:90
+#: ../../../src/evox/core/module.py:66
 msgid "Whether the parameter requires gradient. Defaults to False."
 msgstr "参数是否需要梯度。默认值为 False。"
 
-#: ../../../src/evox/core/module.py:92
+#: ../../../src/evox/core/module.py:68
 msgid "The parameter."
 msgstr "参数。"
 
-#: ../../../src/evox/core/module.py:94
+#: ../../../src/evox/core/module.py:70
 msgid "The value to be wrapped."
 msgstr "要包装的值。"
 
-#: ../../../src/evox/core/module.py:95
+#: ../../../src/evox/core/module.py:71
 msgid "The dtype of the tensor. Defaults to None."
 msgstr "张量的 dtype。默认值为 None。"
 
-#: ../../../src/evox/core/module.py:96
+#: ../../../src/evox/core/module.py:72
 msgid "The device of the tensor. Defaults to None."
 msgstr "张量的设备。默认为 None。"
 
-#: ../../../src/evox/core/module.py:98
+#: ../../../src/evox/core/module.py:74
 msgid "The wrapped tensor."
 msgstr "被包装的张量。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:98
-#: ../../source/apidocs/evox/evox.core.module.md:148
-#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:32
+#: ../../source/apidocs/evox/evox.core.module.md:74
 #, python-brace-format
 msgid "Bases: {py:obj}`torch.nn.Module`"
 msgstr "Bases: {py:obj}`torch.nn.Module`"
 
-#: ../../../src/evox/core/module.py:103
+#: ../../../src/evox/core/module.py:80
 msgid "To prevent ambiguity, `ModuleBase.eval()` is disabled."
 msgstr "为防止产生歧义，`ModuleBase.eval()` 已被禁用。"
 
-#: ../../source/apidocs/evox/evox.core.module.md:119
+#: ../../source/apidocs/evox/evox.core.module.md:95
 #, fuzzy, python-brace-format
 msgid "Bases: {py:obj}`torch.overrides.TorchFunctionMode`"
 msgstr "Bases: {py:obj}`torch.overrides.TorchFunctionMode`"
@@ -3309,8 +3293,9 @@ msgstr "GD 分数是一种标量，代表着解与帕雷托前沿的平均距离
 
 #: ../../../src/evox/metrics/gd.py:40
 msgid ""
-"The GD score is lower when the approximation is closer to the Pareto front."
-msgstr "GD 得分会随着近似值逼近帕累托前沿而降低。"
+"A lower GD score indicates that the approximation is closer to the Pareto "
+"front."
+msgstr "较低的 GD 分数表明近似值更接近 Pareto 前沿。"
 
 #: ../../source/apidocs/evox/evox.metrics.hv.md:1
 #, python-brace-format
@@ -3372,8 +3357,9 @@ msgstr "IGD得分是一个标量，表示解到帕累托前沿的平均距离。
 
 #: ../../../src/evox/metrics/igd.py:41
 msgid ""
-"The IGD score is lower when the approximation is closer to the Pareto front."
-msgstr "当近似值接近Pareto前沿时，IGD得分较低。"
+"A lower IGD score indicates that the approximation is closer to the Pareto "
+"front."
+msgstr "较低的 IGD 分数表示该近似值更接近 Pareto 前沿。"
 
 #: ../../source/apidocs/evox/evox.operators.md:1
 #, python-brace-format
@@ -3863,7 +3849,7 @@ msgstr ""
 "<evox.operators.selection.non_dominate.dominate_relation>`"
 
 #: ../../../src/evox/operators/selection/non_dominate.py:20
-#: ../../../src/evox/operators/selection/non_dominate.py:74
+#: ../../../src/evox/operators/selection/non_dominate.py:70
 #, python-brace-format
 msgid ""
 "Return the domination relation matrix A, where A_{ij} is True if x_i "
@@ -3880,7 +3866,7 @@ msgstr ""
 "<evox.operators.selection.non_dominate.update_dc_and_rank>`"
 
 #: ../../../src/evox/operators/selection/non_dominate.py:24
-#: ../../../src/evox/operators/selection/non_dominate.py:81
+#: ../../../src/evox/operators/selection/non_dominate.py:77
 msgid "Update the dominate count and ranks for the current Pareto front."
 msgstr "更新当前帕累托前沿的主导计数和等级。"
 
@@ -3901,13 +3887,31 @@ msgstr ""
 #: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:34
 #, fuzzy, python-brace-format
 msgid ""
+"{py:obj}`_vmap_iterative_get_ranks_compile "
+"<evox.operators.selection.non_dominate._vmap_iterative_get_ranks_compile>`"
+msgstr ""
+"{py:obj}`_vmap_iterative_get_ranks_compile "
+"<evox.operators.selection.non_dominate._vmap_iterative_get_ranks_compile>`"
+
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:38
+#, fuzzy, python-brace-format
+msgid ""
 "{py:obj}`_vmap_iterative_get_ranks "
 "<evox.operators.selection.non_dominate._vmap_iterative_get_ranks>`"
 msgstr ""
 "{py:obj}`_vmap_iterative_get_ranks "
 "<evox.operators.selection.non_dominate._vmap_iterative_get_ranks>`"
 
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:38
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:42
+#, fuzzy, python-brace-format
+msgid ""
+"{py:obj}`_iterative_get_ranks_compile "
+"<evox.operators.selection.non_dominate._iterative_get_ranks_compile>`"
+msgstr ""
+"{py:obj}`_iterative_get_ranks_compile "
+"<evox.operators.selection.non_dominate._iterative_get_ranks_compile>`"
+
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:46
 #, fuzzy, python-brace-format
 msgid ""
 "{py:obj}`_iterative_get_ranks "
@@ -3916,7 +3920,7 @@ msgstr ""
 "{py:obj}`_iterative_get_ranks "
 "<evox.operators.selection.non_dominate._iterative_get_ranks>`"
 
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:42
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:50
 #, python-brace-format
 msgid ""
 "{py:obj}`non_dominate_rank "
@@ -3925,14 +3929,14 @@ msgstr ""
 "{py:obj}`non_dominate_rank "
 "<evox.operators.selection.non_dominate.non_dominate_rank>`"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:44
+#: ../../../src/evox/operators/selection/non_dominate.py:52
 #: ../../../src/evox/operators/selection/non_dominate.py:126
 msgid ""
 "Compute the non-domination rank for a set of solutions in multi-objective "
 "optimization."
 msgstr "计算多目标优化中一组解的非支配等级。"
 
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:46
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:54
 #, python-brace-format
 msgid ""
 "{py:obj}`crowding_distance "
@@ -3941,14 +3945,14 @@ msgstr ""
 "{py:obj}`crowding_distance "
 "<evox.operators.selection.non_dominate.crowding_distance>`"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:48
+#: ../../../src/evox/operators/selection/non_dominate.py:56
 #: ../../../src/evox/operators/selection/non_dominate.py:133
 msgid ""
 "Compute the crowding distance for a set of solutions in multi-objective "
 "optimization."
 msgstr "计算多目标优化中一组解的拥挤距离。"
 
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:50
+#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:58
 #, python-brace-format
 msgid ""
 "{py:obj}`nd_environmental_selection "
@@ -3957,76 +3961,63 @@ msgstr ""
 "{py:obj}`nd_environmental_selection "
 "<evox.operators.selection.non_dominate.nd_environmental_selection>`"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:52
+#: ../../../src/evox/operators/selection/non_dominate.py:60
 #: ../../../src/evox/operators/selection/non_dominate.py:140
 msgid ""
 "Perform environmental selection based on non-domination rank and crowding "
 "distance."
 msgstr "基于非支配等级和拥挤距离进行环境选择。"
 
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:62
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_compiled_update_dc_and_rank "
-"<evox.operators.selection.non_dominate._compiled_update_dc_and_rank>`"
-msgstr ""
-"{py:obj}`_compiled_update_dc_and_rank "
-"<evox.operators.selection.non_dominate._compiled_update_dc_and_rank>`"
-
-#: ../../../src/evox/operators/selection/non_dominate.py:76
+#: ../../../src/evox/operators/selection/non_dominate.py:72
 msgid ""
 "An array with shape (n1, m) where n1 is the population size and m is the "
 "number of objectives."
 msgstr "一个形状为 (n1, m) 的数组，其中 n1 是种群大小，m 是目标数量。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:77
+#: ../../../src/evox/operators/selection/non_dominate.py:73
 msgid ""
 "An array with shape (n2, m) where n2 is the population size and m is the "
 "number of objectives."
 msgstr "一个形状为 (n2, m) 的数组，其中 n2 是种群大小，m 是目标数量。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:79
+#: ../../../src/evox/operators/selection/non_dominate.py:75
 msgid "The domination relation matrix of x and y."
 msgstr "x 和 y 的支配关系矩阵。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:83
+#: ../../../src/evox/operators/selection/non_dominate.py:79
 msgid "The domination relation matrix between individuals."
 msgstr "个体之间的支配关系矩阵。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:84
+#: ../../../src/evox/operators/selection/non_dominate.py:80
 msgid "The count of how many individuals dominate each individual."
 msgstr "每个个体被多少个体所支配的计数。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:85
+#: ../../../src/evox/operators/selection/non_dominate.py:81
 msgid "A tensor indicating which individuals are in the current Pareto front."
 msgstr "一个张量表示当前帕累托前沿中的个体。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:86
+#: ../../../src/evox/operators/selection/non_dominate.py:82
 msgid "A tensor storing the rank of each individual."
 msgstr "每个个体的等级的张量。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:87
+#: ../../../src/evox/operators/selection/non_dominate.py:83
 msgid "The current Pareto front rank."
 msgstr "当前帕累托前沿排名"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:89
+#: ../../../src/evox/operators/selection/non_dominate.py:85
 msgid ""
 "rank: Updated rank tensor.  dominate_count: Updated dominate count tensor."
 msgstr ""
 "**rank:** 更新的排名张量。\n"
 "**dominate_count:** 更新的支配计数张量。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:90
+#: ../../../src/evox/operators/selection/non_dominate.py:86
 msgid "**rank**: Updated rank tensor."
 msgstr "**rank**: 更新后的等级张量。"
 
-#: ../../../src/evox/operators/selection/non_dominate.py:91
+#: ../../../src/evox/operators/selection/non_dominate.py:87
 msgid "**dominate_count**: Updated dominate count tensor."
 msgstr "**dominate_count**: 更新的支配计数张量。"
-
-#: ../../source/apidocs/evox/evox.operators.selection.non_dominate.md:88
-msgid "'compile(...)'"
-msgstr "'compile(...)'"
 
 #: ../../../src/evox/operators/selection/non_dominate.py:128
 msgid ""
@@ -4303,8 +4294,8 @@ msgid "{py:obj}`__all__ <evox.problems.__all__>`"
 msgstr "{py:obj}`__all__ <evox.problems.__all__>`"
 
 #: ../../source/apidocs/evox/evox.problems.md:49
-msgid "['neuroevolution', 'numerical']"
-msgstr "['神经演化', '数值']"
+msgid "['neuroevolution', 'numerical', 'hpo_wrapper']"
+msgstr "['神经演化', '数值', 'hpo_wrapper']"
 
 #: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:1
 #, python-brace-format
@@ -4317,7 +4308,7 @@ msgid "{py:obj}`HPOMonitor <evox.problems.hpo_wrapper.HPOMonitor>`"
 msgstr "{py:obj}`HPOMonitor <evox.problems.hpo_wrapper.HPOMonitor>`"
 
 #: ../../../src/evox/problems/hpo_wrapper.py:20
-#: ../../../src/evox/problems/hpo_wrapper.py:110
+#: ../../../src/evox/problems/hpo_wrapper.py:45
 msgid ""
 "The base class for hyper parameter optimization (HPO) monitors used in "
 "`HPOProblem.workflow.monitor`."
@@ -4331,127 +4322,69 @@ msgstr ""
 "{py:obj}`HPOFitnessMonitor <evox.problems.hpo_wrapper.HPOFitnessMonitor>`"
 
 #: ../../../src/evox/problems/hpo_wrapper.py:24
-#: ../../../src/evox/problems/hpo_wrapper.py:135
+#: ../../../src/evox/problems/hpo_wrapper.py:70
 msgid ""
 "The monitor for hyper parameter optimization (HPO) that records the best "
 "fitness found so far in the optimization process."
 msgstr "用于超参数优化（HPO）的监视器，记录在优化过程中迄今为止发现的最佳适应度。"
 
 #: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:26
+#, python-brace-format
+msgid ""
+"{py:obj}`HPOProblemWrapper <evox.problems.hpo_wrapper.HPOProblemWrapper>`"
+msgstr ""
+"{py:obj}`HPOProblemWrapper <evox.problems.hpo_wrapper.HPOProblemWrapper>`"
+
+#: ../../../src/evox/problems/hpo_wrapper.py:28
+#: ../../../src/evox/problems/hpo_wrapper.py:102
+msgid "The problem for hyper parameter optimization (HPO)."
+msgstr "超参数优化（HPO）问题。"
+
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:30
 #, fuzzy, python-brace-format
 msgid "{py:obj}`HPOData <evox.problems.hpo_wrapper.HPOData>`"
 msgstr "{py:obj}`HPOData <evox.problems.hpo_wrapper.HPOData>`"
 
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:30
-#, python-brace-format
-msgid ""
-"{py:obj}`HPOProblemWrapper <evox.problems.hpo_wrapper.HPOProblemWrapper>`"
-msgstr ""
-"{py:obj}`HPOProblemWrapper <evox.problems.hpo_wrapper.HPOProblemWrapper>`"
-
-#: ../../../src/evox/problems/hpo_wrapper.py:32
-#: ../../../src/evox/problems/hpo_wrapper.py:253
-msgid "The problem for hyper parameter optimization (HPO)."
-msgstr "超参数优化（HPO）问题。"
-
 #: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:42
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_vmap_vmap_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._vmap_vmap_mean_fit_aggregation>`"
-msgstr ""
-"{py:obj}`_vmap_vmap_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._vmap_vmap_mean_fit_aggregation>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:46
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_vmap_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._vmap_mean_fit_aggregation>`"
-msgstr ""
-"{py:obj}`_vmap_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._vmap_mean_fit_aggregation>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:50
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._mean_fit_aggregation>`"
-msgstr ""
-"{py:obj}`_mean_fit_aggregation "
-"<evox.problems.hpo_wrapper._mean_fit_aggregation>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:54
-#, fuzzy, python-brace-format
-msgid "{py:obj}`get_sub_state <evox.problems.hpo_wrapper.get_sub_state>`"
-msgstr "{py:obj}`get_sub_state <evox.problems.hpo_wrapper.get_sub_state>`"
-
-#: ../../../src/evox/problems/hpo_wrapper.py:56
-#: ../../../src/evox/problems/hpo_wrapper.py:164
-msgid "Get the sub state from the tuple of states."
-msgstr "从状态元组中获取子状态。"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:58
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_fake_hpo_evaluate_loop "
-"<evox.problems.hpo_wrapper._fake_hpo_evaluate_loop>`"
-msgstr ""
-"{py:obj}`_fake_hpo_evaluate_loop "
-"<evox.problems.hpo_wrapper._fake_hpo_evaluate_loop>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:62
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_hpo_evaluate_loop <evox.problems.hpo_wrapper._hpo_evaluate_loop>`"
-msgstr ""
-"{py:obj}`_hpo_evaluate_loop <evox.problems.hpo_wrapper._hpo_evaluate_loop>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:74
-#, fuzzy, python-brace-format
-msgid "{py:obj}`__hpo_data__ <evox.problems.hpo_wrapper.__hpo_data__>`"
-msgstr "{py:obj}`__hpo_data__ <evox.problems.hpo_wrapper.__hpo_data__>`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:107
 #, python-brace-format
 msgid "Bases: {py:obj}`evox.core.Monitor`, {py:obj}`abc.ABC`"
 msgstr "Bases: {py:obj}`evox.core.Monitor`, {py:obj}`abc.ABC`"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:124
-#: ../../../src/evox/problems/hpo_wrapper.py:156
+#: ../../../src/evox/problems/hpo_wrapper.py:59
+#: ../../../src/evox/problems/hpo_wrapper.py:91
 msgid ""
 "Get the best fitness found so far in the optimization process that this "
 "monitor is monitoring."
 msgstr "在此监控器监控的优化过程中，获取迄今为止找到的最佳适应度。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:126
-#: ../../../src/evox/problems/hpo_wrapper.py:158
+#: ../../../src/evox/problems/hpo_wrapper.py:61
+#: ../../../src/evox/problems/hpo_wrapper.py:93
 msgid "The best fitness so far."
 msgstr "迄今为止的最佳适应度。"
 
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:132
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:67
 #, python-brace-format
 msgid "Bases: {py:obj}`evox.problems.hpo_wrapper.HPOMonitor`"
 msgstr "Bases: {py:obj}`evox.problems.hpo_wrapper.HPOMonitor`"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:141
+#: ../../../src/evox/problems/hpo_wrapper.py:76
 msgid "Initialize the HPO fitness monitor."
 msgstr "初始化 HPO 适应度监控器。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:143
+#: ../../../src/evox/problems/hpo_wrapper.py:78
 msgid ""
 "The metric function to use for multi-objective optimization, unused in "
 "single-objective optimization. Currently we only support \"IGD\" or \"HV\" "
 "for multi-objective optimization. Defaults to None."
 msgstr "用于多目标优化的度量函数，在单目标优化中不使用。目前，我们仅支持多目标优化的“IGD”或“HV”。默认为None。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:148
+#: ../../../src/evox/problems/hpo_wrapper.py:83
 msgid ""
 "Update the best fitness value found so far based on the provided fitness "
 "tensor and multi-objective metric."
 msgstr "根据提供的适应度张量和多目标度量更新迄今为止找到的最佳适应度值。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:150
+#: ../../../src/evox/problems/hpo_wrapper.py:85
 msgid ""
 "A tensor representing fitness values. It can be either a 1D tensor for "
 "single-objective optimization or a 2D tensor for multi-objective "
@@ -4461,80 +4394,53 @@ msgstr "表示适应度值的张量。对于单目标优化，它可以是一个
 #: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md
+#: ../../source/apidocs/evox/evox.problems.numerical.md
 msgid "Raises"
 msgstr "引发"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:152
+#: ../../../src/evox/problems/hpo_wrapper.py:87
 msgid "If the dimensionality of the fitness tensor is not 1 or 2."
 msgstr "如果适应度张量的维度不是1或2。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:166
-msgid "The tuple of states."
-msgstr "状态的元组。"
-
-#: ../../../src/evox/problems/hpo_wrapper.py:168
-msgid "The sub state."
-msgstr "子状态。"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:171
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:42
-#, python-brace-format
-msgid "Bases: {py:obj}`typing.NamedTuple`"
-msgstr "Bases: {py:obj}`typing.NamedTuple`"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:181
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:192
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:203
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:214
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:226
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:111
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:111
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:52
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:63
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:65
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:76
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:87
-msgid "None"
-msgstr "None"
-
-#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:250
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:163
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:163
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:52
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:86
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:99
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:30
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:30
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:30
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:94
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:30
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:44
+#: ../../source/apidocs/evox/evox.problems.numerical.md:287
 #, python-brace-format
 msgid "Bases: {py:obj}`evox.core.Problem`"
 msgstr "Bases: {py:obj}`evox.core.Problem`"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:259
+#: ../../../src/evox/problems/hpo_wrapper.py:108
 msgid "Initialize the HPO problem wrapper."
 msgstr "初始化 HPO 问题包装器。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:261
+#: ../../../src/evox/problems/hpo_wrapper.py:110
 msgid "The number of iterations to be executed in the optimization process."
 msgstr "在优化过程中要执行的迭代次数。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:262
+#: ../../../src/evox/problems/hpo_wrapper.py:111
 msgid ""
 "The number of instances to be executed in parallel in the optimization "
 "process, i.e., the population size of the outer algorithm."
 msgstr "在优化过程中并行执行的实例数量，即外层算法的种群大小。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:263
+#: ../../../src/evox/problems/hpo_wrapper.py:112
 msgid ""
 "The workflow to be used in the optimization process. Must be wrapped by "
 "core.jit_class."
 msgstr "在优化过程中使用的工作流。必须由 core.jit_class 包装。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:264
+#: ../../../src/evox/problems/hpo_wrapper.py:113
 msgid ""
 "The number of times to repeat the evaluation process for each instance. "
 "Defaults to 1."
 msgstr "每个实例重复评估过程的次数。默认值为1。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:265
+#: ../../../src/evox/problems/hpo_wrapper.py:114
 msgid ""
 "Whether to copy the initial state of the workflow for each evaluation. "
 "Defaults to True. If your workflow contains operations that IN-PLACE modify "
@@ -4544,24 +4450,39 @@ msgstr ""
 "是否为每次评估复制工作流的初始状态。默认为 True。如果您的工作流包含对初始状态中的张量进行原地修改的操作，则应将其设置为 "
 "True。否则，您可以将其设置为 False 以节省内存。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:266
+#: ../../../src/evox/problems/hpo_wrapper.py:115
 msgid ""
 "Evaluate the fitness (given by the internal workflow's monitor) of the batch"
 " of hyper parameters by running the internal workflow."
 msgstr "评估一批超参数的适应度（由内部工作流的监控器提供），通过运行内部工作流。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:268
+#: ../../../src/evox/problems/hpo_wrapper.py:117
 msgid "The hyper parameters to evaluate."
 msgstr "需要评估的超参数。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:270
+#: ../../../src/evox/problems/hpo_wrapper.py:119
 msgid "The final fitness of the hyper parameters."
 msgstr "最终的超参数适应度。"
 
-#: ../../../src/evox/problems/hpo_wrapper.py:274
+#: ../../../src/evox/problems/hpo_wrapper.py:123
 msgid ""
 "Return the initial hyper-parameters dictionary of the underlying workflow."
 msgstr "返回底层工作流的初始超参数字典。"
+
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:139
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:42
+#, python-brace-format
+msgid "Bases: {py:obj}`typing.NamedTuple`"
+msgstr "Bases: {py:obj}`typing.NamedTuple`"
+
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:149
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:160
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:171
+#: ../../source/apidocs/evox/evox.problems.hpo_wrapper.md:182
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:52
+#: ../../source/apidocs/evox/evox.problems.neuroevolution.utils.md:63
+msgid "None"
+msgstr "None"
 
 #: ../../source/apidocs/evox/evox.problems.neuroevolution.md:1
 #, python-brace-format
@@ -4579,93 +4500,11 @@ msgid "{py:obj}`BraxProblem <evox.problems.neuroevolution.brax.BraxProblem>`"
 msgstr "{py:obj}`BraxProblem <evox.problems.neuroevolution.brax.BraxProblem>`"
 
 #: ../../../src/evox/problems/neuroevolution/brax.py:20
-#: ../../../src/evox/problems/neuroevolution/brax.py:166
+#: ../../../src/evox/problems/neuroevolution/brax.py:33
 msgid "The Brax problem wrapper."
 msgstr "Brax 问题封装器。"
 
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:30
-#, python-brace-format
-msgid ""
-"{py:obj}`to_jax_array <evox.problems.neuroevolution.brax.to_jax_array>`"
-msgstr ""
-"{py:obj}`to_jax_array <evox.problems.neuroevolution.brax.to_jax_array>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:34
-#, python-brace-format
-msgid ""
-"{py:obj}`from_jax_array <evox.problems.neuroevolution.brax.from_jax_array>`"
-msgstr ""
-"{py:obj}`from_jax_array <evox.problems.neuroevolution.brax.from_jax_array>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:38
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_brax_main "
-"<evox.problems.neuroevolution.brax._evaluate_brax_main>`"
-msgstr ""
-"{py:obj}`_evaluate_brax_main "
-"<evox.problems.neuroevolution.brax._evaluate_brax_main>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:42
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_brax <evox.problems.neuroevolution.brax._evaluate_brax>`"
-msgstr ""
-"{py:obj}`_evaluate_brax <evox.problems.neuroevolution.brax._evaluate_brax>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:46
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_fake_evaluate_brax "
-"<evox.problems.neuroevolution.brax._fake_evaluate_brax>`"
-msgstr ""
-"{py:obj}`_fake_evaluate_brax "
-"<evox.problems.neuroevolution.brax._fake_evaluate_brax>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:50
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_brax_vmap_main "
-"<evox.problems.neuroevolution.brax._evaluate_brax_vmap_main>`"
-msgstr ""
-"{py:obj}`_evaluate_brax_vmap_main "
-"<evox.problems.neuroevolution.brax._evaluate_brax_vmap_main>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:54
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_brax_vmap "
-"<evox.problems.neuroevolution.brax._evaluate_brax_vmap>`"
-msgstr ""
-"{py:obj}`_evaluate_brax_vmap "
-"<evox.problems.neuroevolution.brax._evaluate_brax_vmap>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:58
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_fake_evaluate_brax_vmap "
-"<evox.problems.neuroevolution.brax._fake_evaluate_brax_vmap>`"
-msgstr ""
-"{py:obj}`_fake_evaluate_brax_vmap "
-"<evox.problems.neuroevolution.brax._fake_evaluate_brax_vmap>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:70
-#, python-brace-format
-msgid "{py:obj}`__all__ <evox.problems.neuroevolution.brax.__all__>`"
-msgstr "{py:obj}`__all__ <evox.problems.neuroevolution.brax.__all__>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:74
-#, python-brace-format
-msgid ""
-"{py:obj}`__brax_data__ <evox.problems.neuroevolution.brax.__brax_data__>`"
-msgstr ""
-"{py:obj}`__brax_data__ <evox.problems.neuroevolution.brax.__brax_data__>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.brax.md:86
-msgid "['BraxProblem']"
-msgstr "['BraxProblem']"
-
-#: ../../../src/evox/problems/neuroevolution/brax.py:172
+#: ../../../src/evox/problems/neuroevolution/brax.py:39
 msgid ""
 "Construct a Brax-based problem. Firstly, you need to define a policy model. "
 "Then you need to set the `environment name "
@@ -4681,44 +4520,43 @@ msgstr ""
 "长度，以及用于评估每个个体的 episode 数量。对于每个个体，它将在环境中运行策略 num_episodes 次，每次使用不同的种子，并使用 "
 "reduce_fn 函数对奖励进行归约（默认为取平均值）。在每次迭代中，不同个体将共享同一组随机键。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:181
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:181
+#: ../../../src/evox/problems/neuroevolution/brax.py:48
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:48
 msgid ""
 "The policy model whose forward function is :code:forward(batched_obs) -> "
 "action."
 msgstr "该策略模型的前向函数是: `forward(batched_obs) -> action"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:182
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:182
+#: ../../../src/evox/problems/neuroevolution/brax.py:49
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:49
 msgid "The environment name."
 msgstr "环境名。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:183
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:183
+#: ../../../src/evox/problems/neuroevolution/brax.py:50
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:50
 msgid "The maximum number of time steps of each episode."
 msgstr "每个episode的最大时间步数。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:184
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:184
+#: ../../../src/evox/problems/neuroevolution/brax.py:51
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:51
 msgid "The number of episodes to evaluate for each individual."
 msgstr "用于评估每个个体的幕数量。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:185
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:185
+#: ../../../src/evox/problems/neuroevolution/brax.py:52
 msgid ""
 "The seed used to create a PRNGKey for the brax environment. When None, "
 "randomly select one. Default to None."
 msgstr "用于为 brax 环境创建 PRNGKey 的 seed。当为 None 时，随机选择一个。默认值为 None。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:186
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:186
+#: ../../../src/evox/problems/neuroevolution/brax.py:53
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:53
 msgid ""
 "The size of the population to be evaluated. If None, we expect the input to "
 "have a population size of 1."
 msgstr "要评估的种群大小。如果为 None，我们期望输入的种群大小为 1。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:187
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:187
+#: ../../../src/evox/problems/neuroevolution/brax.py:54
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:54
 msgid ""
 "Indicates whether to rotate the random key for each iteration (default is "
 "True). <br/> If True, the random key will rotate after each iteration, "
@@ -4731,49 +4569,44 @@ msgstr ""
 "True，随机键将在每次迭代后旋转，从而导致非确定性且可能有噪声的适应度评估。这意味着相同的策略权重在不同迭代中可能会产生不同的适应度值。<br/> "
 "如果为 False，随机键在所有迭代中保持不变，以确保适应度评估的一致性。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:188
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:188
+#: ../../../src/evox/problems/neuroevolution/brax.py:55
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:55
 msgid ""
 "The function to reduce the rewards of multiple episodes. Default to "
 "torch.mean."
 msgstr "用于减少多个episode奖励的函数。默认值为torch.mean。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:189
+#: ../../../src/evox/problems/neuroevolution/brax.py:56
 msgid ""
 "Brax's backend. If None, the default backend of the environment will be "
 "used. Default to None."
 msgstr "Brax 的后端。如果为 None，将使用环境的默认后端。默认为 None。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:190
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:189
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:68
+#: ../../../src/evox/problems/neuroevolution/brax.py:57
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:56
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:46
 msgid ""
 "The device to run the computations on. Defaults to the current default "
 "device."
 msgstr "用于运行计算的设备。默认为当前默认设备。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:191
+#: ../../../src/evox/problems/neuroevolution/brax.py:58
 msgid "Whether to compile the policy model. Default to True."
 msgstr "是否编译策略模型。默认值为 True。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:193
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:191
-msgid "Notice"
-msgstr "注意"
+#: ../../../src/evox/problems/neuroevolution/brax.py:60
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:58
+#: ../../source/index.md:14
+msgid "Examples"
+msgstr "示例"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:194
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:192
+#: ../../../src/evox/problems/neuroevolution/brax.py:74
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:72
 msgid "The initial key is obtained from `torch.random.get_rng_state()`."
 msgstr "初始密钥是从 `torch.random.get_rng_state()` 获得的。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:196
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:194
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:73
-msgid "Warning"
-msgstr "警告"
-
-#: ../../../src/evox/problems/neuroevolution/brax.py:197
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:195
+#: ../../../src/evox/problems/neuroevolution/brax.py:78
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:76
 msgid ""
 "This problem does NOT support HPO wrapper "
 "(`problems.hpo_wrapper.HPOProblemWrapper`) out-of-box, i.e., the workflow "
@@ -4787,78 +4620,56 @@ msgstr ""
 " vmapped*然而*，通过将 `pop_size` 设置为内种群大小与外种群大小的乘积，仍然可以在 HPO 工作流中使用此问题。但 HPO 包装器的"
 " `num_repeats` *必须* 设置为 1，请使用参数 `num_episodes` 替代。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:201
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:199
-#: ../../source/index.md:14
-msgid "Examples"
-msgstr "示例"
-
-#: ../../../src/evox/problems/neuroevolution/brax.py:202
-msgid ""
-"from evox import problems problem = problems.neuroevolution.Brax( ...    "
-"env_name=\"swimmer\", ...    policy=model, ...    max_episode_length=1000, "
-"...    num_episodes=3, ...    pop_size=100, ...    rotate_key=False, ...)"
-msgstr ""
-"from evox import problems\n"
-"problem = problems.neuroevolution.Brax(\n"
-"    ...    env_name=\"swimmer\",\n"
-"    ...    policy=model,\n"
-"    ...    max_episode_length=1000,\n"
-"    ...    num_episodes=3,\n"
-"    ...    pop_size=100,\n"
-"    ...    rotate_key=False,\n"
-"...)"
-
-#: ../../../src/evox/problems/neuroevolution/brax.py:187
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:187
+#: ../../../src/evox/problems/neuroevolution/brax.py:54
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:54
 msgid ""
 "Evaluate the final rewards of a population (batch) of model parameters."
 msgstr "评估一组模型参数种群（批量）的最终奖励。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:189
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:189
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:102
+#: ../../../src/evox/problems/neuroevolution/brax.py:56
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:56
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:80
 msgid ""
 "A dictionary of parameters where each key is a parameter name and each value"
 " is a tensor of shape (batch_size, *param_shape) representing the batched "
 "parameters of batched models."
 msgstr "参数字典，其中每个键是参数名称，每个值是形状为 (batch_size, *param_shape) 的张量，表示批量模型的批量参数。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:191
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:191
+#: ../../../src/evox/problems/neuroevolution/brax.py:58
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:58
 msgid ""
 "A tensor of shape (batch_size,) containing the reward of each sample in the "
 "population."
 msgstr "形状为 (batch_size,) 的张量，包含种群中每个样本的奖励。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:195
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:195
+#: ../../../src/evox/problems/neuroevolution/brax.py:62
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:62
 msgid "Visualize the brax environment with the given policy and weights."
 msgstr "可视化带有指定策略和权重的brax环境。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:197
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:197
+#: ../../../src/evox/problems/neuroevolution/brax.py:64
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:64
 msgid "The weights of the policy model. Which is a dictionary of parameters."
 msgstr "策略模型的权重。这是一个参数字典。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:198
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:198
+#: ../../../src/evox/problems/neuroevolution/brax.py:65
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:65
 msgid ""
 "The seed used to create a PRNGKey for the brax environment. When None, use "
 "the current key. Default to None."
 msgstr "用于为 brax 环境创建 PRNGKey 的种子。当为 None 时，使用当前的 key。默认值为 None。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:199
+#: ../../../src/evox/problems/neuroevolution/brax.py:66
 msgid ""
 "The output type of the visualization, \"HTML\" or \"rgb_array\". Default to "
 "\"HTML\"."
 msgstr "可视化的输出类型，“HTML”或“rgb_array”。默认为“HTML”。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:200
+#: ../../../src/evox/problems/neuroevolution/brax.py:67
 msgid "Additional arguments to be passed to the visualization function."
 msgstr "传递给可视化函数的附加参数。"
 
-#: ../../../src/evox/problems/neuroevolution/brax.py:202
+#: ../../../src/evox/problems/neuroevolution/brax.py:69
 msgid "The visualization output."
 msgstr "可视化输出。"
 
@@ -4877,106 +4688,15 @@ msgstr ""
 "<evox.problems.neuroevolution.mujoco_playground.MujocoProblem>`"
 
 #: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:20
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:166
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:33
 msgid "The MJX problem wrapper."
 msgstr "MJX 问题封装器。"
 
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:30
-#, fuzzy, python-brace-format
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:39
 msgid ""
-"{py:obj}`to_jax_array "
-"<evox.problems.neuroevolution.mujoco_playground.to_jax_array>`"
-msgstr ""
-"{py:obj}`to_jax_array "
-"<evox.problems.neuroevolution.mujoco_playground.to_jax_array>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:34
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`from_jax_array "
-"<evox.problems.neuroevolution.mujoco_playground.from_jax_array>`"
-msgstr ""
-"{py:obj}`from_jax_array "
-"<evox.problems.neuroevolution.mujoco_playground.from_jax_array>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:38
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_mjx_main "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_main>`"
-msgstr ""
-"{py:obj}`_evaluate_mjx_main "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_main>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:42
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_mjx "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx>`"
-msgstr ""
-"{py:obj}`_evaluate_mjx "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:46
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_fake_evaluate_mjx "
-"<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx>`"
-msgstr ""
-"{py:obj}`_fake_evaluate_mjx "
-"<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:50
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_mjx_vmap_main "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap_main>`"
-msgstr ""
-"{py:obj}`_evaluate_mjx_vmap_main "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap_main>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:54
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_evaluate_mjx_vmap "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap>`"
-msgstr ""
-"{py:obj}`_evaluate_mjx_vmap "
-"<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:58
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`_fake_evaluate_mjx_vmap "
-"<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx_vmap>`"
-msgstr ""
-"{py:obj}`_fake_evaluate_mjx_vmap "
-"<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx_vmap>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:70
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`__all__ <evox.problems.neuroevolution.mujoco_playground.__all__>`"
-msgstr ""
-"{py:obj}`__all__ <evox.problems.neuroevolution.mujoco_playground.__all__>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:74
-#, fuzzy, python-brace-format
-msgid ""
-"{py:obj}`__mjx_data__ "
-"<evox.problems.neuroevolution.mujoco_playground.__mjx_data__>`"
-msgstr ""
-"{py:obj}`__mjx_data__ "
-"<evox.problems.neuroevolution.mujoco_playground.__mjx_data__>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.mujoco_playground.md:86
-msgid "['MujocoProblem']"
-msgstr "['MujocoProblem']"
-
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:172
-msgid ""
-"Construct a Brax-based problem. Firstly, you need to define a policy model. "
-"Then you need to set the `environment name <https://github.com/google-"
+"Construct a MujocoPlayground-based problem. Firstly, you need to define a "
+"policy model. Then you need to set the `environment name "
+"<https://github.com/google-"
 "deepmind/mujoco_playground/tree/main/mujoco_playground/_src/registry.py>`, "
 "the maximum episode length, the number of episodes to evaluate for each "
 "individual. For each individual, it will run the policy with the environment"
@@ -4984,47 +4704,30 @@ msgid ""
 " the rewards (default to average). Different individuals will share the same"
 " set of random keys in each iteration."
 msgstr ""
-"构建一个基于 Brax 的问题。首先，您需要定义一个策略模型。然后，您需要设置`environment name "
+"构建一个基于MujocoPlayground的问题。首先，你需要定义一个policy模型。然后，你需要设置`environment name "
 "<https://github.com/google-"
-"deepmind/mujoco_playground/tree/main/mujoco_playground/_src/registry.py>`，最大episode长度，以及每个个体评估的episode数量。对于每个个体，它将在环境中运行该策略`num_episodes`次，并使用不同的种子，使用`reduce_fn`对奖励进行归约（默认是求平均值）。在每次迭代中，不同个体将共享同一组随机密钥。"
+"deepmind/mujoco_playground/tree/main/mujoco_playground/_src/registry.py>`，最大episode长度，以及评估每个个体的episode数量。对于每个个体，将使用不同的seed在环境中运行该policy"
+" num_episodes次，并使用reduce_fn来合并奖励（默认是平均值）。在每次迭代中，不同个体将共享同一组随机键。"
 
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:200
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:52
 msgid ""
-"from evox import problems problem = problems.neuroevolution.MujocoProblem( "
-"...    env_name=\"SwimmerSwimmer6\", ...    policy=model, ...    "
-"max_episode_length=1000, ...    num_episodes=3, ...    pop_size=100, ...    "
-"rotate_key=False, ...)"
-msgstr ""
-"from evox import problems  \n"
-"problem = problems.neuroevolution.MujocoProblem(  \n"
-"    ...    \n"
-"    env_name=\"SwimmerSwimmer6\",  \n"
-"    ...    \n"
-"    policy=model,  \n"
-"    ...    \n"
-"    max_episode_length=1000,  \n"
-"    ...    \n"
-"    num_episodes=3,  \n"
-"    ...    \n"
-"    pop_size=100,  \n"
-"    ...    \n"
-"    rotate_key=False,  \n"
-"    ...  \n"
-")  "
+"The seed used to create a PRNGKey for the Mujoco environment. When None, "
+"randomly select one. Default to None."
+msgstr "用于为Mujoco环境创建PRNGKey的种子。当为None时，随机选择一个。默认值为None。"
 
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:199
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:66
 msgid "The output type of the visualization, \"mp4\" or \"gif\". Default to \"mp4\"."
 msgstr "可视化的输出类型，“mp4”或“gif”。默认值为“mp4”。"
 
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:200
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:67
 msgid "The path to save the output video. Default to \"output_video\"."
 msgstr "保存输出视频的路径。默认值为 \"output_video\"。"
 
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:201
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:68
 msgid "Additional arguments to be passed to the MjxEnv.render() function."
 msgstr "传递给 MjxEnv.render() 函数的额外参数。"
 
-#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:203
+#: ../../../src/evox/problems/neuroevolution/mujoco_playground.py:70
 msgid "The path to the saved file."
 msgstr "保存文件的路径。"
 
@@ -5043,62 +4746,51 @@ msgstr ""
 "<evox.problems.neuroevolution.supervised_learning.SupervisedLearningProblem>`"
 
 #: ../../../src/evox/problems/neuroevolution/supervised_learning.py:20
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:55
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:33
 msgid ""
 "The supervised learning problem to test a model's parameters or a batch of "
 "parameters with given data and criterion."
 msgstr "监督学习问题是使用给定的数据和标准来测试模型参数或一批参数。"
 
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:30
-#, python-brace-format
-msgid ""
-"{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
-msgstr ""
-"{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
-
-#: ../../source/apidocs/evox/evox.problems.neuroevolution.supervised_learning.md:42
-msgid "['SupervisedLearningProblem']"
-msgstr "['监督学习问题']"
-
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:61
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:39
 msgid "Initialize the `SupervisedLearningProblem`."
 msgstr "初始化 `SupervisedLearningProblem`。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:63
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:41
 msgid "The neural network model whose parameters need to be evaluated."
 msgstr "需要评估参数的神经网络模型。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:64
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:42
 msgid "The data loader providing the dataset for evaluation."
 msgstr "用于评估的数据加载器提供数据集。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:65
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:43
 msgid "The loss function used to evaluate the parameters' performance."
 msgstr "用于评估参数性能的损失函数。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:66
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:44
 msgid ""
 "The number of batches to be evaluated in a single evaluation. When set to "
 "-1, will go through the whole dataset. Defaults to 1."
 msgstr "每次评估中要计算的批次数。当设置为 -1 时，将遍历整个数据集。默认值为 1。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:67
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:45
 msgid ""
 "The size of the population (batch size of the parameters) to be evaluated. "
 "Defaults to None for single-run mode."
 msgstr "种群的大小（参数的批量大小）需要进行评估。默认为 None，表示单次运行模式。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:69
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:47
 msgid ""
 "The reduction method for the criterion. 'mean' | 'sum'. Defaults to "
 "\"mean\"."
 msgstr "用于标准的归约方法。'mean' | 'sum'。默认值为“mean”。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:71
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:49
 msgid "If the data loader contains no items."
 msgstr "如果数据加载器不包含任何项目。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:74
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:52
 msgid ""
 "This problem does NOT support HPO wrapper "
 "(`problems.hpo_wrapper.HPOProblemWrapper`), i.e., the workflow containing "
@@ -5107,11 +4799,11 @@ msgstr ""
 "此问题不支持 HPO 包装器 (`problems.hpo_wrapper.HPOProblemWrapper`)，即包含此问题的工作流不能被 "
 "vmapped。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:100
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:78
 msgid "Evaluate the fitness of a population (batch) of model parameters."
 msgstr "评估一组模型参数种群（批次）的适应度。"
 
-#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:104
+#: ../../../src/evox/problems/neuroevolution/supervised_learning.py:82
 msgid ""
 "A tensor of shape (batch_size,) containing the fitness of each sample in the"
 " population."
@@ -5156,18 +4848,425 @@ msgstr ""
 msgid "{py:mod}`evox.problems.numerical`"
 msgstr "{py:mod}`evox.problems.numerical`"
 
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:22
 #: ../../source/apidocs/evox/evox.problems.numerical.md:29
 #, python-brace-format
-msgid "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
-msgstr "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
+msgid "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
+msgstr "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
 
+#: ../../../src/evox/problems/numerical/basic.py:24
+#: ../../../src/evox/problems/numerical/basic.py:31
+#: ../../../src/evox/problems/numerical/basic.py:121
+#: ../../../src/evox/problems/numerical/basic.py:122
+msgid "The Ackley function whose minimum is x = [0, ..., 0]"
+msgstr "Ackley 函数的最小值为 x = [0, ..., 0]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:26
+#: ../../source/apidocs/evox/evox.problems.numerical.md:33
+#, python-brace-format
+msgid "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
+msgstr "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:28
+#: ../../../src/evox/problems/numerical/basic.py:35
+#: ../../../src/evox/problems/numerical/basic.py:145
+#: ../../../src/evox/problems/numerical/basic.py:146
+msgid "The Griewank function whose minimum is x = [0, ..., 0]"
+msgstr "Griewank 函数的最小值是 x = [0, ..., 0]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:30
+#: ../../source/apidocs/evox/evox.problems.numerical.md:37
+#, python-brace-format
+msgid "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
+msgstr "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:32
+#: ../../../src/evox/problems/numerical/basic.py:39
+#: ../../../src/evox/problems/numerical/basic.py:169
+#: ../../../src/evox/problems/numerical/basic.py:170
+msgid "The Rastrigin function whose minimum is x = [0, ..., 0]"
+msgstr "Rastrigin 函数的最小值是 x = [0, ..., 0]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:34
 #: ../../source/apidocs/evox/evox.problems.numerical.md:41
+#, python-brace-format
+msgid "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
+msgstr "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:36
+#: ../../../src/evox/problems/numerical/basic.py:43
+#: ../../../src/evox/problems/numerical/basic.py:193
+#: ../../../src/evox/problems/numerical/basic.py:194
+msgid "The Rosenbrock function whose minimum is x = [1, ..., 1]"
+msgstr "Rosenbrock 函数的最小值为 x = [1, ..., 1]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:38
+#: ../../source/apidocs/evox/evox.problems.numerical.md:45
+#, python-brace-format
+msgid "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
+msgstr "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:40
+#: ../../../src/evox/problems/numerical/basic.py:47
+#: ../../../src/evox/problems/numerical/basic.py:217
+#: ../../../src/evox/problems/numerical/basic.py:218
+msgid "The Schwefel function whose minimum is x = [420.9687, ..., 420.9687]"
+msgstr "Schwefel 函数的最小值为 x = [420.9687, ..., 420.9687]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:42
+#: ../../source/apidocs/evox/evox.problems.numerical.md:49
+#, python-brace-format
+msgid "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
+msgstr "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:44
+#: ../../../src/evox/problems/numerical/basic.py:51
+#: ../../../src/evox/problems/numerical/basic.py:241
+#: ../../../src/evox/problems/numerical/basic.py:242
+msgid "The sphere function whose minimum is x = [0, ..., 0]"
+msgstr "球体函数（sphere function），其最小值为 x = [0, ..., 0]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:46
+#: ../../source/apidocs/evox/evox.problems.numerical.md:53
+#, fuzzy, python-brace-format
+msgid "{py:obj}`Ellipsoid <evox.problems.numerical.basic.Ellipsoid>`"
+msgstr "{py:obj}`Ellipsoid <evox.problems.numerical.basic.Ellipsoid>`"
+
+#: ../../../src/evox/problems/numerical/basic.py:48
+#: ../../../src/evox/problems/numerical/basic.py:55
+#: ../../../src/evox/problems/numerical/basic.py:265
+#: ../../../src/evox/problems/numerical/basic.py:266
+msgid "The Ellipsoid function whose minimum is x = [0, ..., 0]"
+msgstr "椭球函数，其最小值为 x = [0, ..., 0]"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:18
+#: ../../source/apidocs/evox/evox.problems.numerical.md:57
+#, python-brace-format
+msgid "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
+msgstr "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:20
+#: ../../../src/evox/problems/numerical/cec2022.py:33
+#: ../../../src/evox/problems/numerical/cec2022.py:59
+#: ../../../src/evox/problems/numerical/cec2022.py:290
+msgid "The CEC 2022 single-objective test suite Problem"
+msgstr "CEC 2022 单目标测试套件问题"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:22
+#: ../../source/apidocs/evox/evox.problems.numerical.md:61
+#, python-brace-format
+msgid "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
+msgstr "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:24
+#: ../../source/apidocs/evox/evox.problems.numerical.md:63
+#, python-brace-format
+msgid "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
+msgstr "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:26
+#: ../../source/apidocs/evox/evox.problems.numerical.md:65
+#, python-brace-format
+msgid "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
+msgstr "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:28
+#: ../../source/apidocs/evox/evox.problems.numerical.md:67
+#, python-brace-format
+msgid "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
+msgstr "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:30
+#: ../../source/apidocs/evox/evox.problems.numerical.md:69
+#, python-brace-format
+msgid "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
+msgstr "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:32
+#: ../../source/apidocs/evox/evox.problems.numerical.md:71
+#, python-brace-format
+msgid "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
+msgstr "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:34
+#: ../../source/apidocs/evox/evox.problems.numerical.md:73
+#, python-brace-format
+msgid "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
+msgstr "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:58
+#: ../../source/apidocs/evox/evox.problems.numerical.md:83
+#, python-brace-format
+msgid "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
+msgstr "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:62
+#: ../../source/apidocs/evox/evox.problems.numerical.md:87
+#, python-brace-format
+msgid "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
+msgstr "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:66
+#: ../../source/apidocs/evox/evox.problems.numerical.md:91
+#, python-brace-format
 msgid ""
-"['Ackley', 'Griewank', 'Rastrigin', 'Rosenbrock', 'Schwefel', 'Sphere', "
-"'CEC2022', 'DTLZ1', 'DTLZ2',..."
+"{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
 msgstr ""
-"['Ackley', 'Griewank', 'Rastrigin', 'Rosenbrock', 'Schwefel', 'Sphere', "
-"'CEC2022', 'DTLZ1', 'DTLZ2',..."
+"{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:70
+#: ../../source/apidocs/evox/evox.problems.numerical.md:95
+#, python-brace-format
+msgid ""
+"{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
+msgstr ""
+"{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:74
+#: ../../source/apidocs/evox/evox.problems.numerical.md:99
+#, python-brace-format
+msgid "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
+msgstr "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:78
+#: ../../source/apidocs/evox/evox.problems.numerical.md:103
+#, python-brace-format
+msgid "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
+msgstr "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:82
+#: ../../source/apidocs/evox/evox.problems.numerical.md:107
+#, fuzzy, python-brace-format
+msgid ""
+"{py:obj}`ellipsoid_func <evox.problems.numerical.basic.ellipsoid_func>`"
+msgstr ""
+"{py:obj}`ellipsoid_func <evox.problems.numerical.basic.ellipsoid_func>`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:118
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:142
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:166
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:190
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:214
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:238
+#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:262
+#: ../../source/apidocs/evox/evox.problems.numerical.md:119
+#: ../../source/apidocs/evox/evox.problems.numerical.md:143
+#: ../../source/apidocs/evox/evox.problems.numerical.md:167
+#: ../../source/apidocs/evox/evox.problems.numerical.md:191
+#: ../../source/apidocs/evox/evox.problems.numerical.md:215
+#: ../../source/apidocs/evox/evox.problems.numerical.md:239
+#: ../../source/apidocs/evox/evox.problems.numerical.md:263
+#, python-brace-format
+msgid ""
+"Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
+msgstr ""
+"Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
+
+#: ../../../src/evox/problems/numerical/basic.py:127
+#: ../../../src/evox/problems/numerical/basic.py:128
+msgid "Initialize the Ackley function with the given parameters."
+msgstr "用给定的参数初始化 Ackley 函数。"
+
+#: ../../../src/evox/problems/numerical/basic.py:129
+#: ../../../src/evox/problems/numerical/basic.py:130
+msgid "The parameter a in the equation. Defaults to 20.0."
+msgstr "方程中的参数a。默认值为20.0。"
+
+#: ../../../src/evox/problems/numerical/basic.py:130
+#: ../../../src/evox/problems/numerical/basic.py:131
+msgid "The parameter b in the equation. Defaults to 0.2."
+msgstr "方程中的参数 b。默认值为 0.2。"
+
+#: ../../../src/evox/problems/numerical/basic.py:131
+#: ../../../src/evox/problems/numerical/basic.py:132
+msgid "The parameter c in the equation. Defaults to 2 * pi."
+msgstr "方程中的参数c。默认值为2 * pi。"
+
+#: ../../../src/evox/problems/numerical/basic.py:132
+#: ../../../src/evox/problems/numerical/basic.py:133
+#: ../../../src/evox/problems/numerical/basic.py:153
+#: ../../../src/evox/problems/numerical/basic.py:154
+#: ../../../src/evox/problems/numerical/basic.py:177
+#: ../../../src/evox/problems/numerical/basic.py:178
+#: ../../../src/evox/problems/numerical/basic.py:201
+#: ../../../src/evox/problems/numerical/basic.py:202
+#: ../../../src/evox/problems/numerical/basic.py:225
+#: ../../../src/evox/problems/numerical/basic.py:226
+#: ../../../src/evox/problems/numerical/basic.py:249
+#: ../../../src/evox/problems/numerical/basic.py:250
+#: ../../../src/evox/problems/numerical/basic.py:273
+#: ../../../src/evox/problems/numerical/basic.py:274
+msgid ""
+"The keyword arguments (shift and affine) to pass to the superclass "
+"ShiftAffineNumericalProblem."
+msgstr "传递给超类 ShiftAffineNumericalProblem 的关键字参数（shift 和 affine）。"
+
+#: ../../../src/evox/problems/numerical/basic.py:151
+#: ../../../src/evox/problems/numerical/basic.py:152
+#: ../../../src/evox/problems/numerical/basic.py:175
+#: ../../../src/evox/problems/numerical/basic.py:176
+#: ../../../src/evox/problems/numerical/basic.py:199
+#: ../../../src/evox/problems/numerical/basic.py:200
+#: ../../../src/evox/problems/numerical/basic.py:223
+#: ../../../src/evox/problems/numerical/basic.py:224
+#: ../../../src/evox/problems/numerical/basic.py:247
+#: ../../../src/evox/problems/numerical/basic.py:248
+msgid "Initialize the Griewank function with the given parameters."
+msgstr "用给定的参数初始化 Griewank 函数。"
+
+#: ../../../src/evox/problems/numerical/basic.py:271
+#: ../../../src/evox/problems/numerical/basic.py:272
+msgid "Initialize the Ellipsoid function with the given parameters."
+msgstr "使用给定参数初始化 Ellipsoid 函数。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:39
+#: ../../../src/evox/problems/numerical/cec2022.py:296
+msgid ""
+"Initialize a single test function instance from the CEC2022 test suite."
+msgstr "从CEC2022测试套件初始化一个单一测试函数实例。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:41
+#: ../../../src/evox/problems/numerical/cec2022.py:298
+msgid ""
+"The index for the specific test function to be used. Must be ranged from 1 "
+"to 12."
+msgstr "特定测试函数的索引。必须在1到12之间。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:42
+#: ../../../src/evox/problems/numerical/cec2022.py:299
+msgid "The dimensionality of the problem. Must be one of [2, 10, 20]."
+msgstr "问题的维度。必须是 [2, 10, 20] 之一。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:43
+#: ../../../src/evox/problems/numerical/cec2022.py:300
+msgid "The device on which tensors will be allocated. Defaults to None."
+msgstr "张量将被分配的设备。默认值为 None。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:45
+#: ../../../src/evox/problems/numerical/cec2022.py:302
+msgid ""
+"If the dimension is not one of the allowed values or if the function is not "
+"defined."
+msgstr "如果维度不是允许的值之一，或者函数未定义。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:46
+#: ../../../src/evox/problems/numerical/cec2022.py:303
+msgid "If the necessary data files for the problem are not found."
+msgstr "如果未找到该问题所需的数据文件。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:46
+#: ../../../src/evox/problems/numerical/cec2022.py:303
+msgid "Shift the input vector."
+msgstr "将输入向量移位。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:54
+#: ../../../src/evox/problems/numerical/cec2022.py:311
+msgid "Rotate the input vector."
+msgstr "旋转输入向量。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:70
+#: ../../../src/evox/problems/numerical/cec2022.py:327
+msgid "Shift and rotate function with rate."
+msgstr "平移和旋转函数与速率。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:86
+#: ../../../src/evox/problems/numerical/cec2022.py:343
+msgid "Zakharov Function"
+msgstr "Zakharov 函数"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:94
+#: ../../../src/evox/problems/numerical/cec2022.py:351
+msgid "Rosenbrock Function"
+msgstr "Rosenbrock Function  \n"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:102
+#: ../../../src/evox/problems/numerical/cec2022.py:359
+msgid "Schaffer F7 Function"
+msgstr "Schaffer F7 函数"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:110
+#: ../../../src/evox/problems/numerical/cec2022.py:367
+msgid "Step Rastrigin Function (Noncontinuous Rastrigin's)"
+msgstr "Rastrigin 函数步骤（不连续的 Rastrigin's）"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:118
+#: ../../../src/evox/problems/numerical/cec2022.py:375
+msgid "Levy Function"
+msgstr ""
+"Levy Function  \n"
+"Levy Function"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:126
+#: ../../../src/evox/problems/numerical/cec2022.py:383
+msgid "Hybrid Function 2"
+msgstr "混合函数2"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:134
+#: ../../../src/evox/problems/numerical/cec2022.py:391
+msgid "Hybrid Function 10"
+msgstr "混合函数 10"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:142
+#: ../../../src/evox/problems/numerical/cec2022.py:399
+msgid "Hybrid Function 6"
+msgstr "混合函数6"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:150
+#: ../../../src/evox/problems/numerical/cec2022.py:407
+msgid "Composition Function 1"
+msgstr "Composition Function 1"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:158
+#: ../../../src/evox/problems/numerical/cec2022.py:415
+msgid "Composition Function 2"
+msgstr "Composition Function 2"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:166
+#: ../../../src/evox/problems/numerical/cec2022.py:423
+msgid "Composition Function 6"
+msgstr "Composition Function 6"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:174
+#: ../../../src/evox/problems/numerical/cec2022.py:431
+msgid "Composition Function 7"
+msgstr "Composition Function 7"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:182
+#: ../../../src/evox/problems/numerical/cec2022.py:439
+msgid "Problem number = 1."
+msgstr "问题编号 = 1。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:190
+#: ../../../src/evox/problems/numerical/cec2022.py:447
+msgid "Problem number = 4."
+msgstr "问题编号 = 4。"
+
+#: ../../../src/evox/problems/numerical/cec2022.py:198
+#: ../../../src/evox/problems/numerical/cec2022.py:455
+msgid "Problem number = 5."
+msgstr "问题编号 = 5。"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:77
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:89
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:130
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:147
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:164
+#: ../../source/apidocs/evox/evox.problems.numerical.md:580
+#: ../../source/apidocs/evox/evox.problems.numerical.md:592
+#: ../../source/apidocs/evox/evox.problems.numerical.md:633
+#: ../../source/apidocs/evox/evox.problems.numerical.md:650
+#: ../../source/apidocs/evox/evox.problems.numerical.md:667
+#, fuzzy, python-brace-format
+msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ`"
+msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ`"
+
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:106
+#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:118
+#: ../../source/apidocs/evox/evox.problems.numerical.md:609
+#: ../../source/apidocs/evox/evox.problems.numerical.md:621
+#, python-brace-format
+msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
+msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.basic.md:1
 #, python-brace-format
@@ -5184,299 +5283,45 @@ msgstr ""
 "<evox.problems.numerical.basic.ShiftAffineNumericalProblem>`"
 
 #: ../../../src/evox/problems/numerical/basic.py:20
-#: ../../../src/evox/problems/numerical/basic.py:89
+#: ../../../src/evox/problems/numerical/basic.py:97
 msgid ""
 "A numerical problem with a shift and affine transformations to the input "
 "points."
 msgstr "一个数值问题，包含对输入点的平移和仿射变换。"
 
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:22
-#, python-brace-format
-msgid "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
-msgstr "{py:obj}`Ackley <evox.problems.numerical.basic.Ackley>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:24
-#: ../../../src/evox/problems/numerical/basic.py:120
-msgid "The Ackley function whose minimum is x = [0, ..., 0]"
-msgstr "Ackley 函数的最小值为 x = [0, ..., 0]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:26
-#, python-brace-format
-msgid "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
-msgstr "{py:obj}`Griewank <evox.problems.numerical.basic.Griewank>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:28
-#: ../../../src/evox/problems/numerical/basic.py:151
-msgid "The Griewank function whose minimum is x = [0, ..., 0]"
-msgstr "Griewank 函数的最小值是 x = [0, ..., 0]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:30
-#, python-brace-format
-msgid "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
-msgstr "{py:obj}`Rastrigin <evox.problems.numerical.basic.Rastrigin>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:32
-#: ../../../src/evox/problems/numerical/basic.py:182
-msgid "The Rastrigin function whose minimum is x = [0, ..., 0]"
-msgstr "Rastrigin 函数的最小值是 x = [0, ..., 0]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:34
-#, python-brace-format
-msgid "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
-msgstr "{py:obj}`Rosenbrock <evox.problems.numerical.basic.Rosenbrock>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:36
-#: ../../../src/evox/problems/numerical/basic.py:213
-msgid "The Rosenbrock function whose minimum is x = [1, ..., 1]"
-msgstr "Rosenbrock 函数的最小值为 x = [1, ..., 1]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:38
-#, python-brace-format
-msgid "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
-msgstr "{py:obj}`Schwefel <evox.problems.numerical.basic.Schwefel>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:40
-#: ../../../src/evox/problems/numerical/basic.py:244
-msgid "The Schwefel function whose minimum is x = [420.9687, ..., 420.9687]"
-msgstr "Schwefel 函数的最小值为 x = [420.9687, ..., 420.9687]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:42
-#, python-brace-format
-msgid "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
-msgstr "{py:obj}`Sphere <evox.problems.numerical.basic.Sphere>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:44
-#: ../../../src/evox/problems/numerical/basic.py:275
-msgid "The sphere function whose minimum is x = [0, ..., 0]"
-msgstr "球体函数（sphere function），其最小值为 x = [0, ..., 0]"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:54
-#, python-brace-format
-msgid "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
-msgstr "{py:obj}`ackley_func <evox.problems.numerical.basic.ackley_func>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:58
-#, python-brace-format
-msgid "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
-msgstr "{py:obj}`griewank_func <evox.problems.numerical.basic.griewank_func>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:62
-#, python-brace-format
-msgid ""
-"{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
-msgstr ""
-"{py:obj}`rastrigin_func <evox.problems.numerical.basic.rastrigin_func>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:66
-#, python-brace-format
-msgid ""
-"{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
-msgstr ""
-"{py:obj}`rosenbrock_func <evox.problems.numerical.basic.rosenbrock_func>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:70
-#, python-brace-format
-msgid "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
-msgstr "{py:obj}`schwefel_func <evox.problems.numerical.basic.schwefel_func>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:74
-#, python-brace-format
-msgid "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
-msgstr "{py:obj}`sphere_func <evox.problems.numerical.basic.sphere_func>`"
-
-#: ../../../src/evox/problems/numerical/basic.py:95
+#: ../../../src/evox/problems/numerical/basic.py:103
 msgid "Initialize the ShiftAffineNumericalProblem."
 msgstr "初始化 ShiftAffineNumericalProblem。"
 
-#: ../../../src/evox/problems/numerical/basic.py:97
+#: ../../../src/evox/problems/numerical/basic.py:105
 msgid "The shift vector. Defaults to None. None represents no shift."
 msgstr "偏移向量。默认为 None。None 表示没有偏移。"
 
-#: ../../../src/evox/problems/numerical/basic.py:98
+#: ../../../src/evox/problems/numerical/basic.py:106
 msgid ""
 "The affine transformation matrix. Defaults to None. None represents no "
 "affine transformation."
 msgstr "仿射变换矩阵。默认为 None。None 表示没有仿射变换。"
 
-#: ../../../src/evox/problems/numerical/basic.py:102
+#: ../../../src/evox/problems/numerical/basic.py:110
 msgid ""
 "Evaluate the given population by shifting and applying an affine "
 "transformation to the input points first, and then evaluating the points "
 "with the actual function."
 msgstr "首先对给定的种群进行平移和仿射变换，然后用实际函数评估这些点。"
 
-#: ../../../src/evox/problems/numerical/basic.py:104
+#: ../../../src/evox/problems/numerical/basic.py:112
 msgid "The population of points to evaluate."
 msgstr "要评估的点的种群。"
 
-#: ../../../src/evox/problems/numerical/basic.py:106
+#: ../../../src/evox/problems/numerical/basic.py:114
 msgid "The evaluated fitness of the population."
 msgstr "种群的适应度评估结果。"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:117
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:148
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:179
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:210
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:241
-#: ../../source/apidocs/evox/evox.problems.numerical.basic.md:272
-#, python-brace-format
-msgid ""
-"Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
-msgstr ""
-"Bases: {py:obj}`evox.problems.numerical.basic.ShiftAffineNumericalProblem`"
-
-#: ../../../src/evox/problems/numerical/basic.py:126
-msgid "Initialize the Ackley function with the given parameters."
-msgstr "用给定的参数初始化 Ackley 函数。"
-
-#: ../../../src/evox/problems/numerical/basic.py:128
-msgid "The parameter a in the equation. Defaults to 20.0."
-msgstr "方程中的参数a。默认值为20.0。"
-
-#: ../../../src/evox/problems/numerical/basic.py:129
-msgid "The parameter b in the equation. Defaults to 0.2."
-msgstr "方程中的参数 b。默认值为 0.2。"
-
-#: ../../../src/evox/problems/numerical/basic.py:130
-msgid "The parameter c in the equation. Defaults to 2 * pi."
-msgstr "方程中的参数c。默认值为2 * pi。"
-
-#: ../../../src/evox/problems/numerical/basic.py:131
-#: ../../../src/evox/problems/numerical/basic.py:159
-#: ../../../src/evox/problems/numerical/basic.py:190
-#: ../../../src/evox/problems/numerical/basic.py:221
-#: ../../../src/evox/problems/numerical/basic.py:252
-#: ../../../src/evox/problems/numerical/basic.py:283
-msgid ""
-"The keyword arguments (shift and affine) to pass to the superclass "
-"ShiftAffineNumericalProblem."
-msgstr "传递给超类 ShiftAffineNumericalProblem 的关键字参数（shift 和 affine）。"
-
-#: ../../../src/evox/problems/numerical/basic.py:157
-#: ../../../src/evox/problems/numerical/basic.py:188
-#: ../../../src/evox/problems/numerical/basic.py:219
-#: ../../../src/evox/problems/numerical/basic.py:250
-#: ../../../src/evox/problems/numerical/basic.py:281
-msgid "Initialize the Griewank function with the given parameters."
-msgstr "用给定的参数初始化 Griewank 函数。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:1
 #, python-brace-format
 msgid "{py:mod}`evox.problems.numerical.cec2022`"
 msgstr "{py:mod}`evox.problems.numerical.cec2022`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.cec2022.md:18
-#, python-brace-format
-msgid "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
-msgstr "{py:obj}`CEC2022 <evox.problems.numerical.cec2022.CEC2022>`"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:20
-#: ../../../src/evox/problems/numerical/cec2022.py:33
-msgid "The CEC 2022 single-objective test suite Problem"
-msgstr "CEC 2022 单目标测试套件问题"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:39
-msgid ""
-"Initialize a single test function instance from the CEC2022 test suite."
-msgstr "从CEC2022测试套件初始化一个单一测试函数实例。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:41
-msgid ""
-"The index for the specific test function to be used. Must be ranged from 1 "
-"to 12."
-msgstr "特定测试函数的索引。必须在1到12之间。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:42
-msgid "The dimensionality of the problem. Must be one of [2, 10, 20]."
-msgstr "问题的维度。必须是 [2, 10, 20] 之一。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:43
-msgid "The device on which tensors will be allocated. Defaults to None."
-msgstr "张量将被分配的设备。默认值为 None。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:45
-msgid ""
-"If the dimension is not one of the allowed values or if the function is not "
-"defined."
-msgstr "如果维度不是允许的值之一，或者函数未定义。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:46
-msgid "If the necessary data files for the problem are not found."
-msgstr "如果未找到该问题所需的数据文件。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:46
-msgid "Shift the input vector."
-msgstr "将输入向量移位。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:54
-msgid "Rotate the input vector."
-msgstr "旋转输入向量。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:70
-msgid "Shift and rotate function with rate."
-msgstr "平移和旋转函数与速率。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:86
-msgid "Zakharov Function"
-msgstr "Zakharov 函数"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:94
-msgid "Rosenbrock Function"
-msgstr "Rosenbrock Function  \n"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:102
-msgid "Schaffer F7 Function"
-msgstr "Schaffer F7 函数"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:110
-msgid "Step Rastrigin Function (Noncontinuous Rastrigin's)"
-msgstr "Rastrigin 函数步骤（不连续的 Rastrigin's）"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:118
-msgid "Levy Function"
-msgstr ""
-"Levy Function  \n"
-"Levy Function"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:126
-msgid "Hybrid Function 2"
-msgstr "混合函数2"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:134
-msgid "Hybrid Function 10"
-msgstr "混合函数 10"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:142
-msgid "Hybrid Function 6"
-msgstr "混合函数6"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:150
-msgid "Composition Function 1"
-msgstr "Composition Function 1"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:158
-msgid "Composition Function 2"
-msgstr "Composition Function 2"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:166
-msgid "Composition Function 6"
-msgstr "Composition Function 6"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:174
-msgid "Composition Function 7"
-msgstr "Composition Function 7"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:182
-msgid "Problem number = 1."
-msgstr "问题编号 = 1。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:190
-msgid "Problem number = 4."
-msgstr "问题编号 = 4。"
-
-#: ../../../src/evox/problems/numerical/cec2022.py:198
-msgid "Problem number = 5."
-msgstr "问题编号 = 5。"
 
 #: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:1
 #, python-brace-format
@@ -5493,41 +5338,6 @@ msgstr "{py:obj}`DTLZ <evox.problems.numerical.dtlz.DTLZ>`"
 msgid ""
 "Base class for DTLZ test suite problems in multi-objective optimization."
 msgstr "用于多目标优化中DTLZ测试套件问题的基类。"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:22
-#, python-brace-format
-msgid "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
-msgstr "{py:obj}`DTLZ1 <evox.problems.numerical.dtlz.DTLZ1>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:24
-#, python-brace-format
-msgid "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
-msgstr "{py:obj}`DTLZ2 <evox.problems.numerical.dtlz.DTLZ2>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:26
-#, python-brace-format
-msgid "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
-msgstr "{py:obj}`DTLZ3 <evox.problems.numerical.dtlz.DTLZ3>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:28
-#, python-brace-format
-msgid "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
-msgstr "{py:obj}`DTLZ4 <evox.problems.numerical.dtlz.DTLZ4>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:30
-#, python-brace-format
-msgid "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
-msgstr "{py:obj}`DTLZ5 <evox.problems.numerical.dtlz.DTLZ5>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:32
-#, python-brace-format
-msgid "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
-msgstr "{py:obj}`DTLZ6 <evox.problems.numerical.dtlz.DTLZ6>`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:34
-#, python-brace-format
-msgid "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
-msgstr "{py:obj}`DTLZ7 <evox.problems.numerical.dtlz.DTLZ7>`"
 
 #: ../../../src/evox/problems/numerical/dtlz.py:49
 msgid "Inherit this class to implement specific DTLZ problem variants."
@@ -5568,21 +5378,6 @@ msgstr "返回问题的帕累托前沿。"
 #: ../../../src/evox/problems/numerical/dtlz.py:71
 msgid "A tensor representing the Pareto front."
 msgstr "表示帕累托前沿的张量。"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:77
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:89
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:130
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:147
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:164
-#, fuzzy, python-brace-format
-msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ`"
-msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ`"
-
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:106
-#: ../../source/apidocs/evox/evox.problems.numerical.dtlz.md:118
-#, python-brace-format
-msgid "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
-msgstr "Bases: {py:obj}`evox.problems.numerical.dtlz.DTLZ2`"
 
 #: ../../source/apidocs/evox/evox.utils.md:1
 #, python-brace-format
@@ -6003,7 +5798,7 @@ msgid ""
 "sorted tensors."
 msgstr "一个张量，包含按字典顺序对输入张量进行排序的索引。这些索引指示排序后张量中元素的顺序。"
 
-#: ../../../src/evox/utils/jit_fix_operator.py:186
+#: ../../../src/evox/utils/jit_fix_operator.py:187
 msgid "You can use `torch.unbind` to split the tensor into list."
 msgstr "您可以使用 `torch.unbind` 将张量拆分为列表。"
 
@@ -6248,6 +6043,10 @@ msgstr ""
 #, fuzzy, python-brace-format
 msgid "{py:obj}`T <evox.utils.op_register.T>`"
 msgstr "{py:obj}`T <evox.utils.op_register.T>`"
+
+#: ../../source/apidocs/evox/evox.utils.op_register.md:70
+msgid "'TypeVar(...)'"
+msgstr "TypeVar(...)"
 
 #: ../../source/apidocs/evox/evox.utils.op_register.md:80
 #: ../../source/apidocs/evox/evox.utils.op_register.md:98
@@ -6737,7 +6536,7 @@ msgid "{py:obj}`EvalMonitor <evox.workflows.eval_monitor.EvalMonitor>`"
 msgstr "{py:obj}`EvalMonitor <evox.workflows.eval_monitor.EvalMonitor>`"
 
 #: ../../../src/evox/workflows/eval_monitor.py:20
-#: ../../../src/evox/workflows/eval_monitor.py:52
+#: ../../../src/evox/workflows/eval_monitor.py:33
 msgid ""
 "Evaluation monitor. Used for both single-objective and multi-objective "
 "workflow. Hooked around the evaluation process, can monitor the offspring, "
@@ -6748,90 +6547,98 @@ msgstr ""
 "评估监控器被用于单目标和多目标工作流。它与评估流程挂钩，可以监控子代及其相应的适应度并对评估计数进行跟踪。此外，它还能即时记录最优解或帕累托前沿。"
 
 #: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:30
-#, fuzzy, python-brace-format
-msgid "{py:obj}`unique <evox.workflows.eval_monitor.unique>`"
-msgstr "{py:obj}`unique <evox.workflows.eval_monitor.unique>`"
-
-#: ../../../src/evox/workflows/eval_monitor.py:32
-#: ../../../src/evox/workflows/eval_monitor.py:42
-msgid ""
-"Return the unique elements of the input tensor, as well as the unique index."
-msgstr "返回输入张量的唯一元素及其唯一索引。"
-
-#: ../../source/apidocs/evox/evox.workflows.eval_monitor.md:49
 #, python-brace-format
 msgid "Bases: {py:obj}`evox.core.Monitor`"
 msgstr "Bases: {py:obj}`evox.core.Monitor`"
 
-#: ../../../src/evox/workflows/eval_monitor.py:58
+#: ../../../src/evox/workflows/eval_monitor.py:39
 msgid "Initialize the monitor."
 msgstr "初始化监视器。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:60
+#: ../../../src/evox/workflows/eval_monitor.py:41
 msgid "Whether the optimization is multi-objective. Defaults to False."
 msgstr "是否为多目标优化。默认值为 False。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:61
+#: ../../../src/evox/workflows/eval_monitor.py:42
 msgid ""
 "Whether to record the full history of fitness value. Default to True. "
 "Setting it to False may reduce memory usage."
 msgstr "是否记录适应度值的完整历史。默认为True。将其设置为FALSE可能会减少内存使用。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:62
+#: ../../../src/evox/workflows/eval_monitor.py:43
 msgid ""
 "Whether to record the full history of solutions. Default to False. Setting "
 "it to True may increase memory usage."
 msgstr "是否记录完整的解的历史。默认为 False。将其设置为 True 可能会增加内存使用量。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:63
+#: ../../../src/evox/workflows/eval_monitor.py:44
 msgid ""
 "Only affect Single-objective optimization. The number of elite solutions to "
 "record. Default to 1, which will record the best individual."
 msgstr "只影响单目标优化。要记录的精英解决方案的数量。默认为 1，将记录最佳个人。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:64
+#: ../../../src/evox/workflows/eval_monitor.py:45
 msgid "The device of the monitor. Defaults to None."
 msgstr "监视器的设备。默认值为 None。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:66
+#: ../../../src/evox/workflows/eval_monitor.py:46
 msgid ""
-"If any of `full_fit_history` or `full_sol_history` is set to True, this "
-"monitor will introduce a graph break in `torch.compile`."
-msgstr ""
-"如果 `full_fit_history` 或 `full_sol_history` 中的任何一个被设置为 True，这个监视器将在 "
-"`torch.compile` 中引入一个图断点。"
+"The device to record the history. Defaults to None. If None, it will use "
+"cpu."
+msgstr "记录历史的设备。默认为 None。如果为 None，将使用 cpu。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:126
+#: ../../../src/evox/workflows/eval_monitor.py:49
+msgid ""
+"Setting the `history_device` to the same device as the monitor will save the"
+" data transfer time, but may increase the memory usage on the device."
+msgstr "将 `history_device` 设置为与监视器相同的设备可以节省数据传输时间，但可能会增加设备上的内存使用量。"
+
+#: ../../../src/evox/workflows/eval_monitor.py:54
+msgid ""
+"When `opt_direction=\"max\"` is used, fitness values are internally "
+"multiplied by -1 to ensure that optimization logic always treats the best "
+"fitness as the minimum value. As a result, raw fitness values (e.g., "
+"`monitor.topk_fitness`, `monitor.fitness_history`, etc.) will appear "
+"negated. However, access methods such as `monitor.get_best_fitness()` and "
+"`monitor.get_pf_fitness()` automatically reverse this negation and return "
+"the original, unmodified values."
+msgstr ""
+"当使用 `opt_direction=\"max\"` 时，适应度值会在内部被乘以 "
+"-1，以确保优化逻辑始终将最优适应度视为最小值。因此，原始适应度值（例如，`monitor.topk_fitness`、`monitor.fitness_history`"
+" 等）将显示为取反的值。然而，像 `monitor.get_best_fitness()` 和 `monitor.get_pf_fitness()` "
+"这样的访问方法会自动反转这种取反操作并返回原始的、未修改的值。"
+
+#: ../../../src/evox/workflows/eval_monitor.py:128
 msgid "Get the fitness values from the latest iteration."
 msgstr "从最新迭代中获取适应度值。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:134
+#: ../../../src/evox/workflows/eval_monitor.py:136
 msgid "Get the solution from the latest iteration."
 msgstr "从最新的迭代中获取解决方案。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:142
+#: ../../../src/evox/workflows/eval_monitor.py:144
 msgid "Get the topk fitness values so far."
 msgstr "获取当前前k个适应度值。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:150
+#: ../../../src/evox/workflows/eval_monitor.py:152
 msgid "Get the topk solutions so far."
 msgstr "获取当前最优的前k个解。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:158
+#: ../../../src/evox/workflows/eval_monitor.py:160
 msgid "Get the best solution so far."
 msgstr "获取迄今为止的最佳解决方案。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:166
+#: ../../../src/evox/workflows/eval_monitor.py:168
 msgid "Get the best fitness value so far."
 msgstr "获取当前最佳适应度值。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:174
+#: ../../../src/evox/workflows/eval_monitor.py:176
 msgid ""
 "Get the approximate pareto front fitness values of all the solutions "
 "evaluated so far. Requires enabling `full_fit_history`."
 msgstr "获取到目前为止评估的所有解决方案的近似帕累托前沿适应度值。需要启用 `full_fit_history`。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:182
+#: ../../../src/evox/workflows/eval_monitor.py:184
 msgid ""
 "Get the approximate pareto front solutions of all the solutions evaluated so"
 " far. Requires enabling both `full_sol_history` and `full_sol_history`. If "
@@ -6840,7 +6647,7 @@ msgstr ""
 "获取到目前为止已评估的所有解决方案的近似帕累托前沿解。需要启用 `full_sol_history` 和 `full_sol_history`。如果 "
 "`deduplicate` 设置为 True，则重复的解决方案将被删除。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:190
+#: ../../../src/evox/workflows/eval_monitor.py:192
 msgid ""
 "Get the approximate pareto front solutions and fitness values of all the "
 "solutions evaluated so far. Requires enabling both `full_sol_history` and "
@@ -6850,25 +6657,25 @@ msgstr ""
 "获取到目前为止评估的所有解的近似帕累托前沿解和适应度值。需要启用 `full_sol_history` 和 "
 "`full_fitness_history`。如果将 `deduplicate` 设置为 True，则重复的解将被移除。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:198
+#: ../../../src/evox/workflows/eval_monitor.py:200
 msgid "Get the full history of fitness values."
 msgstr "获取适应度值的完整历史记录。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:206
+#: ../../../src/evox/workflows/eval_monitor.py:208
 msgid "Get the full history of solutions."
 msgstr "获取完整的解决方案历史。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:214
+#: ../../../src/evox/workflows/eval_monitor.py:216
 msgid ""
 "Plot the fitness history. If the problem's Pareto front is provided, it will"
 " be plotted as well."
 msgstr "绘制适应度历史。如果提供了问题的 Pareto front，它也会被绘制。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:217
+#: ../../../src/evox/workflows/eval_monitor.py:219
 msgid "The Pareto front of the problem. Default to None."
 msgstr "问题的帕累托前沿。默认值为 None。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:218
+#: ../../../src/evox/workflows/eval_monitor.py:220
 msgid ""
 "The source of the data, either \"eval\" or \"pop\", default to \"eval\". "
 "When \"eval\", the fitness from the problem evaluation side will be plotted,"
@@ -6879,7 +6686,7 @@ msgstr ""
 "数据来源，可以是 \"eval\" 或 \"pop\"，默认为 \"eval\"。当选择 \"eval\" "
 "时，将绘制来自问题评估端的适应度，表示问题所观察到的内容。当选择 \"pop\" 时，将绘制算法内部种群的适应度，表示算法所观察到的内容。"
 
-#: ../../../src/evox/workflows/eval_monitor.py:221
+#: ../../../src/evox/workflows/eval_monitor.py:223
 msgid "Additional arguments for the plot."
 msgstr "为绘图提供的额外参数。"
 
@@ -6890,41 +6697,36 @@ msgstr "{py:mod}`evox.workflows.std_workflow`"
 
 #: ../../source/apidocs/evox/evox.workflows.std_workflow.md:18
 #, python-brace-format
-msgid "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
-msgstr "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
-
-#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:20
-#, python-brace-format
 msgid "{py:obj}`StdWorkflow <evox.workflows.std_workflow.StdWorkflow>`"
 msgstr "{py:obj}`StdWorkflow <evox.workflows.std_workflow.StdWorkflow>`"
 
-#: ../../../src/evox/workflows/std_workflow.py:22
-#: ../../../src/evox/workflows/std_workflow.py:50
+#: ../../../src/evox/workflows/std_workflow.py:20
+#: ../../../src/evox/workflows/std_workflow.py:33
 msgid "The standard workflow."
 msgstr "标准工作流。"
 
-#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:47
+#: ../../source/apidocs/evox/evox.workflows.std_workflow.md:30
 #, python-brace-format
 msgid "Bases: {py:obj}`evox.core.Workflow`"
 msgstr "Bases: {py:obj}`evox.core.Workflow`"
 
-#: ../../../src/evox/workflows/std_workflow.py:56
+#: ../../../src/evox/workflows/std_workflow.py:39
 msgid "Initialize the standard workflow with static arguments."
 msgstr "使用静态参数初始化标准工作流。"
 
-#: ../../../src/evox/workflows/std_workflow.py:58
+#: ../../../src/evox/workflows/std_workflow.py:41
 msgid "The algorithm to be used in the workflow."
 msgstr "在工作流中要使用的算法。"
 
-#: ../../../src/evox/workflows/std_workflow.py:59
+#: ../../../src/evox/workflows/std_workflow.py:42
 msgid "The problem to be used in the workflow."
 msgstr "在工作流中要使用的问题。"
 
-#: ../../../src/evox/workflows/std_workflow.py:60
+#: ../../../src/evox/workflows/std_workflow.py:43
 msgid "The monitors to be used in the workflow. Defaults to None."
 msgstr "在工作流中使用的监视器。默认值为 None。"
 
-#: ../../../src/evox/workflows/std_workflow.py:61
+#: ../../../src/evox/workflows/std_workflow.py:44
 msgid ""
 "The optimization direction, can only be \"min\" or \"max\". Defaults to "
 "\"min\". If \"max\", the fitness will be negated prior to fitness_transform "
@@ -6933,31 +6735,31 @@ msgstr ""
 "优化方向只能是“min”或“max”。默认为“min”。如果是“max”，适应度将在 `fitness_transform` 和 `monitor` "
 "之前取反。"
 
-#: ../../../src/evox/workflows/std_workflow.py:62
+#: ../../../src/evox/workflows/std_workflow.py:45
 msgid ""
 "The solution transformation function. MUST be compile-compatible "
 "module/function. Defaults to None."
 msgstr "解决方案转换函数。必须是可编译兼容的模块/函数。默认值为 None。"
 
-#: ../../../src/evox/workflows/std_workflow.py:63
+#: ../../../src/evox/workflows/std_workflow.py:46
 msgid ""
 "The fitness transformation function. MUST be compile-compatible "
 "module/function. Defaults to None."
 msgstr "适应度转换函数。必须是可编译兼容的模块/函数。默认值为 None。"
 
-#: ../../../src/evox/workflows/std_workflow.py:64
+#: ../../../src/evox/workflows/std_workflow.py:47
 msgid "The device of the workflow. Defaults to None."
 msgstr "工作流的设备。默认为 None。"
 
-#: ../../../src/evox/workflows/std_workflow.py:65
+#: ../../../src/evox/workflows/std_workflow.py:48
 msgid "Whether to enable distributed workflow. Defaults to False."
 msgstr "是否启用分布式工作流。默认值为 False。"
 
-#: ../../../src/evox/workflows/std_workflow.py:66
+#: ../../../src/evox/workflows/std_workflow.py:49
 msgid "The group name used in the distributed workflow. Defaults to None."
 msgstr "在分布式工作流中使用的组名。默认为 None。"
 
-#: ../../../src/evox/workflows/std_workflow.py:68
+#: ../../../src/evox/workflows/std_workflow.py:52
 msgid ""
 "The `algorithm`, `problem`, `solution_transform`, and `fitness_transform` "
 "will be IN-PLACE moved to the device specified by `device`."
@@ -6965,17 +6767,27 @@ msgstr ""
 "`algorithm`、`problem`、`solution_transform` 和 `fitness_transform` 将会被原地移动到由 "
 "`device` 指定的设备上。"
 
-#: ../../../src/evox/workflows/std_workflow.py:92
+#: ../../../src/evox/workflows/std_workflow.py:56
+msgid ""
+"The `opt_direction` parameter determines the optimization direction. Since "
+"EvoX algorithms are designed to minimize by default, setting "
+"`opt_direction=\"max\"` will cause the fitness values to be negated before "
+"being passed to `fitness_transform` and the monitor."
+msgstr ""
+"`opt_direction` 参数决定了优化的方向。由于 EvoX 算法默认设计为最小化，因此设置 `opt_direction=\"max\"` "
+"会在将适应度值传递给 `fitness_transform` 和监视器之前将其取反。"
+
+#: ../../../src/evox/workflows/std_workflow.py:75
 msgid "Perform the last optimization step of the workflow."
 msgstr "执行工作流的最后一步优化。"
 
-#: ../../../src/evox/workflows/std_workflow.py:94
+#: ../../../src/evox/workflows/std_workflow.py:77
 msgid ""
 "Calls the `final_step` of the algorithm if overwritten; otherwise, its "
 "`step` method will be invoked."
 msgstr "调用算法的 `final_step` 方法（如果被重写）；否则，将调用其 `step` 方法。"
 
-#: ../../../src/evox/workflows/std_workflow.py:100
+#: ../../../src/evox/workflows/std_workflow.py:83
 msgid ""
 "Perform a single optimization step using the algorithm and the problem."
 msgstr "使用算法和问题执行单个优化步骤。"
@@ -9185,6 +8997,86 @@ msgstr ""
 "6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 "
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 指标"
+
+#: ../../source/miscellaneous/other_gpus.md:1
+msgid "Use Non-NVIDIA GPUs"
+msgstr "使用非NVIDIA GPUs"
+
+#: ../../source/miscellaneous/other_gpus.md:3
+msgid ""
+"This guide explains how to use AMD GPUs and Apple Silicon GPUs with PyTorch "
+"in the context of EvoX."
+msgstr "本指南解释如何在EvoX中使用PyTorch与AMD GPUs和Apple Silicon GPUs。"
+
+#: ../../source/miscellaneous/other_gpus.md:5
+msgid ""
+"While NVIDIA GPUs are a reliable choice and generally offer strong "
+"performance, newer models are optimized for deep learning workloads and "
+"large language models. Many of their advanced features, such as support for "
+"low-precision data types, are currently underutilized in EvoX. In some "
+"cases, non-NVIDIA GPUs can provide better performance and lower cost for "
+"evolutionary tasks."
+msgstr ""
+"尽管 NVIDIA GPU "
+"是一个可靠的选择，通常提供较强的性能，但其较新的型号主要针对深度学习工作负载和大型语言模型进行了优化。它们的许多高级特性，如对低精度数据类型的支持，目前在"
+" EvoX 中尚未被充分利用。在某些情况下，非 NVIDIA GPU 在演化任务中可能提供更好的性能和更低的成本。"
+
+#: ../../source/miscellaneous/other_gpus.md:7
+msgid "AMD GPU Support"
+msgstr "AMD GPU 支持"
+
+#: ../../source/miscellaneous/other_gpus.md:9
+msgid ""
+"AMD GPU support in PyTorch is provided via ROCm. AMD devices are recognized "
+"as `cuda` devices (just like NVIDIA GPUs). To use an AMD GPU:"
+msgstr ""
+"PyTorch 中对 AMD GPU 的支持通过 ROCm 提供。AMD 设备被识别为 `cuda` 设备（与 NVIDIA GPU 一样）。要使用 "
+"AMD GPU："
+
+#: ../../source/miscellaneous/other_gpus.md:11
+msgid "Install the ROCm-compatible version of PyTorch."
+msgstr "安装兼容ROCm的PyTorch版本。"
+
+#: ../../source/miscellaneous/other_gpus.md:12
+msgid "Use the standard device setup, e.g., `device = torch.device(\"cuda\")`."
+msgstr "使用标准设备设置，例如：`device = torch.device(\"cuda\")`。"
+
+#: ../../source/miscellaneous/other_gpus.md:14
+msgid "No additional changes are needed beyond using the ROCm build."
+msgstr "无需额外更改，只需使用ROCm构建即可。"
+
+#: ../../source/miscellaneous/other_gpus.md:16
+msgid "Apple Silicon GPU Support"
+msgstr "Apple Silicon GPU 支持"
+
+#: ../../source/miscellaneous/other_gpus.md:18
+msgid ""
+"If you own an Apple Silicon Mac, you can leverage the built-in GPU to "
+"accelerate your EvoX workloads. Apple Silicon GPUs are supported via the "
+"Metal Performance Shaders (MPS) backend and are accessible using the `mps` "
+"device in PyTorch."
+msgstr ""
+"如果您使用的是 Apple Silicon Mac，您可以利用内置 GPU 加速您的 EvoX 工作流。Apple Silicon GPU 通过 "
+"Metal Performance Shaders (MPS) 后端支持，并且可以通过 PyTorch 中的 `mps` 设备访问。"
+
+#: ../../source/miscellaneous/other_gpus.md:21
+msgid "To use an Apple Silicon GPU:"
+msgstr "要使用Apple Silicon GPU:"
+
+#: ../../source/miscellaneous/other_gpus.md:23
+msgid "Ensure you have the MPS-compatible version of PyTorch installed."
+msgstr "确保已安装支持 MPS 的 PyTorch 版本。"
+
+#: ../../source/miscellaneous/other_gpus.md:24
+msgid ""
+"Move your tensors and models to the `mps` device, e.g., `device = "
+"torch.device(\"mps\")`."
+msgstr "将您的张量和模型移动到 `mps` 设备，例如 `device = torch.device(\"mps\")`。"
+
+#: ../../source/miscellaneous/other_gpus.md:27
+msgid ""
+"The `mps` device does **not** support compilation (e.g., `#evox.compile`)."
+msgstr "`mps` 设备**不**支持编译（例如，`#evox.compile`）。"
 
 #: ../../source/miscellaneous/selecting_gpu.md:1
 msgid "Selecting GPU / CPU"
@@ -12443,3 +12335,293 @@ msgstr ""
 
 #~ msgid "To visualize in Jupyter:"
 #~ msgstr "To visualize in Jupyter:"
+
+#~ msgid "Note"
+#~ msgstr "注意"
+
+#~ msgid ""
+#~ "This implementation is based on the original paper and may not be the most "
+#~ "efficient implementation."
+#~ msgstr "此实现基于原始论文，可能不是最有效的实现。"
+
+#~ msgid ""
+#~ "If a subclass have defined `trace_impl` of `step`, its corresponding "
+#~ "`init_step` must be overwritten even though nothing special is to be "
+#~ "included due to Python's object-oriented limitations."
+#~ msgstr ""
+#~ "如果子类定义了 `step` 的 `trace_impl` 方法，即使不需要添加任何特殊内容，由于 Python 对象模型的限制，其对应的 "
+#~ "`init_step` 方法必须被覆盖重写。"
+
+#~ msgid ""
+#~ "{py:obj}`_ReplaceForwardModule <evox.core.module._ReplaceForwardModule>`"
+#~ msgstr ""
+#~ "{py:obj}`_ReplaceForwardModule <evox.core.module._ReplaceForwardModule>`"
+
+#~ msgid "{py:obj}`ParameterT <evox.core.module.ParameterT>`"
+#~ msgstr "{py:obj}`ParameterT <evox.core.module.ParameterT>`"
+
+#~ msgid ""
+#~ "{py:obj}`_compiled_update_dc_and_rank "
+#~ "<evox.operators.selection.non_dominate._compiled_update_dc_and_rank>`"
+#~ msgstr ""
+#~ "{py:obj}`_compiled_update_dc_and_rank "
+#~ "<evox.operators.selection.non_dominate._compiled_update_dc_and_rank>`"
+
+#~ msgid "'compile(...)'"
+#~ msgstr "'compile(...)'"
+
+#~ msgid ""
+#~ "{py:obj}`_vmap_vmap_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._vmap_vmap_mean_fit_aggregation>`"
+#~ msgstr ""
+#~ "{py:obj}`_vmap_vmap_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._vmap_vmap_mean_fit_aggregation>`"
+
+#~ msgid ""
+#~ "{py:obj}`_vmap_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._vmap_mean_fit_aggregation>`"
+#~ msgstr ""
+#~ "{py:obj}`_vmap_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._vmap_mean_fit_aggregation>`"
+
+#~ msgid ""
+#~ "{py:obj}`_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._mean_fit_aggregation>`"
+#~ msgstr ""
+#~ "{py:obj}`_mean_fit_aggregation "
+#~ "<evox.problems.hpo_wrapper._mean_fit_aggregation>`"
+
+#~ msgid "{py:obj}`get_sub_state <evox.problems.hpo_wrapper.get_sub_state>`"
+#~ msgstr "{py:obj}`get_sub_state <evox.problems.hpo_wrapper.get_sub_state>`"
+
+#~ msgid "Get the sub state from the tuple of states."
+#~ msgstr "从状态元组中获取子状态。"
+
+#~ msgid ""
+#~ "{py:obj}`_fake_hpo_evaluate_loop "
+#~ "<evox.problems.hpo_wrapper._fake_hpo_evaluate_loop>`"
+#~ msgstr ""
+#~ "{py:obj}`_fake_hpo_evaluate_loop "
+#~ "<evox.problems.hpo_wrapper._fake_hpo_evaluate_loop>`"
+
+#~ msgid ""
+#~ "{py:obj}`_hpo_evaluate_loop <evox.problems.hpo_wrapper._hpo_evaluate_loop>`"
+#~ msgstr ""
+#~ "{py:obj}`_hpo_evaluate_loop <evox.problems.hpo_wrapper._hpo_evaluate_loop>`"
+
+#~ msgid "{py:obj}`__hpo_data__ <evox.problems.hpo_wrapper.__hpo_data__>`"
+#~ msgstr "{py:obj}`__hpo_data__ <evox.problems.hpo_wrapper.__hpo_data__>`"
+
+#~ msgid "The tuple of states."
+#~ msgstr "状态的元组。"
+
+#~ msgid "The sub state."
+#~ msgstr "子状态。"
+
+#~ msgid ""
+#~ "{py:obj}`to_jax_array <evox.problems.neuroevolution.brax.to_jax_array>`"
+#~ msgstr ""
+#~ "{py:obj}`to_jax_array <evox.problems.neuroevolution.brax.to_jax_array>`"
+
+#~ msgid ""
+#~ "{py:obj}`from_jax_array <evox.problems.neuroevolution.brax.from_jax_array>`"
+#~ msgstr ""
+#~ "{py:obj}`from_jax_array <evox.problems.neuroevolution.brax.from_jax_array>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_brax_main "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_main>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_brax_main "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_main>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_brax <evox.problems.neuroevolution.brax._evaluate_brax>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_brax <evox.problems.neuroevolution.brax._evaluate_brax>`"
+
+#~ msgid ""
+#~ "{py:obj}`_fake_evaluate_brax "
+#~ "<evox.problems.neuroevolution.brax._fake_evaluate_brax>`"
+#~ msgstr ""
+#~ "{py:obj}`_fake_evaluate_brax "
+#~ "<evox.problems.neuroevolution.brax._fake_evaluate_brax>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_brax_vmap_main "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_vmap_main>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_brax_vmap_main "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_vmap_main>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_brax_vmap "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_vmap>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_brax_vmap "
+#~ "<evox.problems.neuroevolution.brax._evaluate_brax_vmap>`"
+
+#~ msgid ""
+#~ "{py:obj}`_fake_evaluate_brax_vmap "
+#~ "<evox.problems.neuroevolution.brax._fake_evaluate_brax_vmap>`"
+#~ msgstr ""
+#~ "{py:obj}`_fake_evaluate_brax_vmap "
+#~ "<evox.problems.neuroevolution.brax._fake_evaluate_brax_vmap>`"
+
+#~ msgid "{py:obj}`__all__ <evox.problems.neuroevolution.brax.__all__>`"
+#~ msgstr "{py:obj}`__all__ <evox.problems.neuroevolution.brax.__all__>`"
+
+#~ msgid ""
+#~ "{py:obj}`__brax_data__ <evox.problems.neuroevolution.brax.__brax_data__>`"
+#~ msgstr ""
+#~ "{py:obj}`__brax_data__ <evox.problems.neuroevolution.brax.__brax_data__>`"
+
+#~ msgid "['BraxProblem']"
+#~ msgstr "['BraxProblem']"
+
+#~ msgid "Warning"
+#~ msgstr "警告"
+
+#~ msgid ""
+#~ "from evox import problems problem = problems.neuroevolution.Brax( ...    "
+#~ "env_name=\"swimmer\", ...    policy=model, ...    max_episode_length=1000, "
+#~ "...    num_episodes=3, ...    pop_size=100, ...    rotate_key=False, ...)"
+#~ msgstr ""
+#~ "from evox import problems\n"
+#~ "problem = problems.neuroevolution.Brax(\n"
+#~ "    ...    env_name=\"swimmer\",\n"
+#~ "    ...    policy=model,\n"
+#~ "    ...    max_episode_length=1000,\n"
+#~ "    ...    num_episodes=3,\n"
+#~ "    ...    pop_size=100,\n"
+#~ "    ...    rotate_key=False,\n"
+#~ "...)"
+
+#~ msgid ""
+#~ "{py:obj}`to_jax_array "
+#~ "<evox.problems.neuroevolution.mujoco_playground.to_jax_array>`"
+#~ msgstr ""
+#~ "{py:obj}`to_jax_array "
+#~ "<evox.problems.neuroevolution.mujoco_playground.to_jax_array>`"
+
+#~ msgid ""
+#~ "{py:obj}`from_jax_array "
+#~ "<evox.problems.neuroevolution.mujoco_playground.from_jax_array>`"
+#~ msgstr ""
+#~ "{py:obj}`from_jax_array "
+#~ "<evox.problems.neuroevolution.mujoco_playground.from_jax_array>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_mjx_main "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_main>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_mjx_main "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_main>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_mjx "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_mjx "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx>`"
+
+#~ msgid ""
+#~ "{py:obj}`_fake_evaluate_mjx "
+#~ "<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx>`"
+#~ msgstr ""
+#~ "{py:obj}`_fake_evaluate_mjx "
+#~ "<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_mjx_vmap_main "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap_main>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_mjx_vmap_main "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap_main>`"
+
+#~ msgid ""
+#~ "{py:obj}`_evaluate_mjx_vmap "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap>`"
+#~ msgstr ""
+#~ "{py:obj}`_evaluate_mjx_vmap "
+#~ "<evox.problems.neuroevolution.mujoco_playground._evaluate_mjx_vmap>`"
+
+#~ msgid ""
+#~ "{py:obj}`_fake_evaluate_mjx_vmap "
+#~ "<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx_vmap>`"
+#~ msgstr ""
+#~ "{py:obj}`_fake_evaluate_mjx_vmap "
+#~ "<evox.problems.neuroevolution.mujoco_playground._fake_evaluate_mjx_vmap>`"
+
+#~ msgid ""
+#~ "{py:obj}`__all__ <evox.problems.neuroevolution.mujoco_playground.__all__>`"
+#~ msgstr ""
+#~ "{py:obj}`__all__ <evox.problems.neuroevolution.mujoco_playground.__all__>`"
+
+#~ msgid ""
+#~ "{py:obj}`__mjx_data__ "
+#~ "<evox.problems.neuroevolution.mujoco_playground.__mjx_data__>`"
+#~ msgstr ""
+#~ "{py:obj}`__mjx_data__ "
+#~ "<evox.problems.neuroevolution.mujoco_playground.__mjx_data__>`"
+
+#~ msgid "['MujocoProblem']"
+#~ msgstr "['MujocoProblem']"
+
+#~ msgid ""
+#~ "from evox import problems problem = problems.neuroevolution.MujocoProblem( "
+#~ "...    env_name=\"SwimmerSwimmer6\", ...    policy=model, ...    "
+#~ "max_episode_length=1000, ...    num_episodes=3, ...    pop_size=100, ...    "
+#~ "rotate_key=False, ...)"
+#~ msgstr ""
+#~ "from evox import problems  \n"
+#~ "problem = problems.neuroevolution.MujocoProblem(  \n"
+#~ "    ...    \n"
+#~ "    env_name=\"SwimmerSwimmer6\",  \n"
+#~ "    ...    \n"
+#~ "    policy=model,  \n"
+#~ "    ...    \n"
+#~ "    max_episode_length=1000,  \n"
+#~ "    ...    \n"
+#~ "    num_episodes=3,  \n"
+#~ "    ...    \n"
+#~ "    pop_size=100,  \n"
+#~ "    ...    \n"
+#~ "    rotate_key=False,  \n"
+#~ "    ...  \n"
+#~ ")  "
+
+#~ msgid ""
+#~ "{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
+#~ msgstr ""
+#~ "{py:obj}`__all__ <evox.problems.neuroevolution.supervised_learning.__all__>`"
+
+#~ msgid "['SupervisedLearningProblem']"
+#~ msgstr "['监督学习问题']"
+
+#~ msgid "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
+#~ msgstr "{py:obj}`__all__ <evox.problems.numerical.__all__>`"
+
+#~ msgid ""
+#~ "['Ackley', 'Griewank', 'Rastrigin', 'Rosenbrock', 'Schwefel', 'Sphere', "
+#~ "'CEC2022', 'DTLZ1', 'DTLZ2',..."
+#~ msgstr ""
+#~ "['Ackley', 'Griewank', 'Rastrigin', 'Rosenbrock', 'Schwefel', 'Sphere', "
+#~ "'CEC2022', 'DTLZ1', 'DTLZ2',..."
+
+#~ msgid "{py:obj}`unique <evox.workflows.eval_monitor.unique>`"
+#~ msgstr "{py:obj}`unique <evox.workflows.eval_monitor.unique>`"
+
+#~ msgid ""
+#~ "Return the unique elements of the input tensor, as well as the unique index."
+#~ msgstr "返回输入张量的唯一元素及其唯一索引。"
+
+#~ msgid ""
+#~ "If any of `full_fit_history` or `full_sol_history` is set to True, this "
+#~ "monitor will introduce a graph break in `torch.compile`."
+#~ msgstr ""
+#~ "如果 `full_fit_history` 或 `full_sol_history` 中的任何一个被设置为 True，这个监视器将在 "
+#~ "`torch.compile` 中引入一个图断点。"
+
+#~ msgid "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
+#~ msgstr "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
