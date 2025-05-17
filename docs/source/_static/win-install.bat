@@ -88,7 +88,7 @@ if %ERRORLEVEL%==0 (
     echo Environment evox-env already exists. Removing...
     call conda env remove -n evox-env -y
 )
-call mamba create -n evox-env python=3.10 -y
+call mamba create -n evox-env python=3.12 -y
 call mamba activate evox-env
 pip install numpy jupyterlab nbformat
 if /i "!use_cpu!"=="Y" (
