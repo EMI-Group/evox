@@ -83,13 +83,13 @@ REM Temp activate conda
 call %UserProfile%\miniforge3\Scripts\activate.bat %UserProfile%\miniforge3
 call mamba info
 echo [INFO] Installing EvoX packages...
-call conda env list | findstr "evox-zoo" >nul
+call conda env list | findstr "evox-env" >nul
 if %ERRORLEVEL%==0 (
-    echo Environment evox-zoo already exists. Removing...
-    call conda env remove -n evox-zoo -y
+    echo Environment evox-env already exists. Removing...
+    call conda env remove -n evox-env -y
 )
-call mamba create -n evox-zoo python=3.10 -y
-call mamba activate evox-zoo
+call mamba create -n evox-env python=3.10 -y
+call mamba activate evox-env
 pip install numpy jupyterlab nbformat
 if /i "!use_cpu!"=="Y" (
     pip install torch
