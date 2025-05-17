@@ -26,7 +26,7 @@
 Windows 用户可以选择**自动脚本安装**或**手动安装**。官方提供了一键安装脚本，可在全新环境下一键部署 EvoX 及所需依赖，但手动安装可以让您更了解每一步细节。下面我们分别介绍两种方式：
 
 **方式一：使用一键安装脚本（win-install.bat）**
-EvoX 提供了适用于 Windows 10/11 (64位) 的[快速安装脚本](https://evox.readthedocs.io/en/stable/guide/install/install.html#nvidia-gpu-support-on-windows)。脚本会自动安装 Miniforge3 (轻量版  Conda)、最新的 Python 和 PyTorch（含CUDA支持）、EvoX，以及实用工具如 VSCode 和 Git。使用方法：
+EvoX 提供了适用于 Windows 10/11 (64位) 的[快速安装脚本](/_static/win-install.bat)。脚本会自动安装 Miniforge3 (轻量版  Conda)、最新的 Python 和 PyTorch（含CUDA支持）、EvoX，以及实用工具如 VSCode 和 Git。使用方法：
 
 1. 从官方获取 `win-install.bat` 脚本（可在 EvoX 文档或GitHub中找到下载链接）。确保您的Windows已安装[NVIDIA驱动](https://www.nvidia.com/en-us/drivers/)且网络良好。
 2. 运行该脚本。该脚本运行本身不需要管理员权限，但是过程中系统可能弹出权限请求，允许运行即可。脚本将自动执行环境配置和安装，全程需要联网下载多个组件。

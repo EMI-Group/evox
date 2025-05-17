@@ -26,7 +26,7 @@ It’s recommended to update `pip` to the latest version and ensure a stable int
 Windows users can choose **automatic script installation** or **manual installation**. The official one-click installer provides an easy way to set up EvoX and its dependencies in a clean environment, but manual installation allows more control.
 
 **Option 1: Using the One-Click Installation Script (win-install.bat)**
-EvoX provides a [quick installation script](https://evox.readthedocs.io/en/stable/guide/install/install.html#nvidia-gpu-support-on-windows) for Windows 10/11 (64-bit). The script installs Miniforge3 (a lightweight Conda), Python, PyTorch (with CUDA), EvoX, and useful tools like VSCode and Git. To use:
+EvoX provides a [quick installation script](/_static/win-install.bat) for Windows 10/11 (64-bit). The script installs Miniforge3 (a lightweight Conda), Python, PyTorch (with CUDA), EvoX, and useful tools like VSCode and Git. To use:
 
 1. Download `win-install.bat` from the EvoX docs or GitHub. Make sure you have a [NVIDIA driver](https://www.nvidia.com/en-us/drivers/) installed and a stable internet connection.
 2. Run the script. It doesn’t require admin privileges, but may request permission during execution—allow it. The script will install and configure everything automatically.
