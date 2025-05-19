@@ -7,6 +7,8 @@ __all__ = [
     "Schwefel",
     "Sphere",
     "Ellipsoid",
+    "Zakharov",
+    "Levy",
     "ackley_func",
     "griewank_func",
     "rastrigin_func",
@@ -14,6 +16,8 @@ __all__ = [
     "schwefel_func",
     "sphere_func",
     "ellipsoid_func",
+    "zakharov_func",
+    "levy_func",
 ]
 
 
@@ -86,7 +90,7 @@ class Ackley(ShiftAffineNumericalProblem):
 
 
 def griewank_func(x: torch.Tensor) -> torch.Tensor:
-    f = 1 / 4000 * torch.sum(x**2, dim=1) - torch.prod(torch.cos(x / torch.sqrt(torch.arange(1, x.size(1) + 1)))) + 1
+    f = 1 / 4000 * torch.sum(x**2, dim=1) - torch.prod(torch.cos(x / torch.sqrt(torch.arange(1, x.size(1) + 1, device=x.device))), dim=1) + 1
     return f
 
 
@@ -193,3 +197,45 @@ class Ellipsoid(ShiftAffineNumericalProblem):
 
 def ellipsoid_func(x: torch.Tensor):
     return torch.sum(torch.arange(1, x.size(1) + 1, device=x.device) * x**2, dim=1)
+
+
+def zakharov_func(x: torch.Tensor) -> torch.Tensor:
+    d = x.size(-1)
+    i = torch.arange(1, d + 1, dtype=x.dtype, device=x.device)
+    sum1 = torch.sum(x ** 2, dim=-1)
+    sum2 = torch.sum(0.5 * i * x, dim=-1)
+    return sum1 + sum2 ** 2 + sum2 ** 4
+
+
+class Zakharov(ShiftAffineNumericalProblem):
+    """The Zakharov function whose minimum is x = [0, ..., 0]"""
+
+    def __init__(self, **kwargs):
+        """Initialize the Zakharov function with the given parameters.
+
+        :param **kwargs: The keyword arguments (`shift` and `affine`) to pass to the superclass `ShiftAffineNumericalProblem`.
+        """
+        super().__init__(**kwargs)
+
+    def _true_evaluate(self, x: torch.Tensor) -> torch.Tensor:
+        return zakharov_func(x)
+
+def levy_func(x: torch.Tensor) -> torch.Tensor:
+    w = 1 + (x - 1) / 4
+    term1 = torch.sin(torch.pi * w[:, 0]) ** 2
+    term2 = torch.sum((w[:, :-1] - 1) ** 2 * (1 + 10 * torch.sin(torch.pi * w[:, :-1] + 1) ** 2), dim=1)
+    term3 = (w[:, -1] - 1) ** 2 * (1 + torch.sin(2 * torch.pi * w[:, -1]) ** 2)
+    return term1 + term2 + term3
+
+class Levy(ShiftAffineNumericalProblem):
+    """The Levy function whose minimum is x = [1, ..., 1]"""
+
+    def __init__(self, **kwargs):
+        """Initialize the Levy function with the given parameters.
+
+        :param **kwargs: The keyword arguments (`shift` and `affine`) to pass to the superclass `ShiftAffineNumericalProblem`.
+        """
+        super().__init__(**kwargs)
+
+    def _true_evaluate(self, x: torch.Tensor) -> torch.Tensor:
+        return levy_func(x)
