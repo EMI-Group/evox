@@ -9001,7 +9001,7 @@ msgstr ""
 
 #: ../../source/miscellaneous/linux_distribution.md:1
 msgid "Linux Distribution and GPU Driver"
-msgstr "Linux Distribution and GPU Driver"
+msgstr "Linux发行版与GPU驱动"
 
 #: ../../source/miscellaneous/linux_distribution.md:3
 msgid "Choosing a Linux Distribution"
@@ -9079,7 +9079,7 @@ msgstr ""
 
 #: ../../source/miscellaneous/other_gpus.md:1
 msgid "Use Non-NVIDIA GPUs"
-msgstr "使用非NVIDIA GPUs"
+msgstr "使用非NVIDIA GPU"
 
 #: ../../source/miscellaneous/other_gpus.md:3
 msgid ""
