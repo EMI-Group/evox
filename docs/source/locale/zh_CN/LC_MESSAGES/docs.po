@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EvoX\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 12:35+0800\n"
+"POT-Creation-Date: 2025-05-19 13:58+0800\n"
 "PO-Revision-Date: 2025-01-17 13:53+0000\n"
 "Last-Translator: BillHuang <bill.huang2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/projects/evox/evox/zh_Hans/>\n"
@@ -3706,7 +3706,6 @@ msgid "The number of sample points to generate."
 msgstr "生成的采样点数量。"
 
 #: ../../../src/evox/operators/sampling/latin_hypercube.py:37
-#: ../../../src/evox/operators/sampling/latin_hypercube.py:44
 msgid "The dimensionality of the samples."
 msgstr "样本的维度。"
 
@@ -3715,9 +3714,11 @@ msgid "The device on which to generate the samples."
 msgstr "生成样本的设备。"
 
 #: ../../../src/evox/operators/sampling/latin_hypercube.py:39
-#: ../../../src/evox/operators/sampling/latin_hypercube.py:47
-msgid "Whether to scramble the order of the samples. Defaults to True."
-msgstr "是否打乱样本的顺序。默认为 True。"
+#: ../../../src/evox/operators/sampling/latin_hypercube.py:46
+msgid ""
+"Whether to generate sample in random positions in the cells or not. Defaults"
+" to True."
+msgstr "是否在单元格中的随机位置生成样本。默认值为 True。"
 
 #: ../../../src/evox/operators/sampling/latin_hypercube.py:41
 msgid ""
@@ -3725,19 +3726,19 @@ msgid ""
 "column represents a dimension."
 msgstr "一个形状为 (n, d) 的张量，其中每行代表一个样本点，每列代表一个维度。"
 
+#: ../../../src/evox/operators/sampling/latin_hypercube.py:44
+msgid ""
+"The lower bounds of the hypercube. Must be a 1D tensor of size d with same "
+"shape, dtype, and device as ub."
+msgstr "超立方体的下界。必须是大小为 d 的一维张量，并且具有与 ub 相同的形状、数据类型和设备。"
+
 #: ../../../src/evox/operators/sampling/latin_hypercube.py:45
 msgid ""
-"The lower bounds of the hypercube. Must be a 1D tensor with same shape, "
-"dtype, and device as ub."
-msgstr "超立方体的下界。必须是与 `ub` 具有相同形状、数据类型和设备的一维张量。"
+"The upper bounds of the hypercube. Must be a 1D tensor of size d with same "
+"shape, dtype, and device as lb."
+msgstr "超立方体的上界。必须是大小为 d 的一维张量，并且与 lb 具有相同的形状、数据类型和设备。"
 
-#: ../../../src/evox/operators/sampling/latin_hypercube.py:46
-msgid ""
-"The upper bounds of the hypercube. Must be a 1D tensor with same shape, "
-"dtype, and device as lb."
-msgstr "超立方体的上界。必须是一个一维张量，其形状、数据类型和设备与 lb 相同。"
-
-#: ../../../src/evox/operators/sampling/latin_hypercube.py:49
+#: ../../../src/evox/operators/sampling/latin_hypercube.py:48
 msgid ""
 "A tensor of shape (n, d), where each row represents a sample point and each "
 "column represents a dimension whose device is the same as lb and ub."
@@ -8998,6 +8999,84 @@ msgstr ""
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 指标"
 
+#: ../../source/miscellaneous/linux_distribution.md:1
+msgid "Linux Distribution and GPU Driver"
+msgstr "Linux Distribution and GPU Driver"
+
+#: ../../source/miscellaneous/linux_distribution.md:3
+msgid "Choosing a Linux Distribution"
+msgstr "选择一个Linux发行版"
+
+#: ../../source/miscellaneous/linux_distribution.md:5
+msgid ""
+"Many people assume that an \"old and stable\" Linux distribution is the best"
+" choice for a server. However, this isn't always true—especially for GPU "
+"servers."
+msgstr "许多人认为“成熟且稳定”的Linux发行版是服务器的最佳选择。然而，这并不总是正确的——尤其是对于GPU服务器。"
+
+#: ../../source/miscellaneous/linux_distribution.md:7
+msgid ""
+"The stability of a GPU server often depends on the kernel version and the "
+"GPU driver. Because GPU hardware evolves rapidly, newer kernels and drivers "
+"tend to be more refined, stable, and compatible with recent GPUs. They "
+"usually include more bug fixes and better support for the latest hardware. "
+"Additional, the jit compilation and optimizations in the latest kernels and "
+"drivers are significantly better than in older versions."
+msgstr ""
+"GPU 服务器的稳定性通常取决于内核版本和 GPU 驱动程序。由于 GPU "
+"硬件演化迅速，较新的内核和驱动程序往往更完善、更稳定，并能更好地兼容最近的 "
+"GPU。它们通常包含更多的错误修复，并对最新硬件提供更好的支持。此外，最新内核和驱动程序中的 jit 编译和优化相比旧版本也显著提高。"
+
+#: ../../source/miscellaneous/linux_distribution.md:9
+msgid ""
+"For example, while Ubuntu 20.04 is considered a \"stable\" release, it's now"
+" quite dated for GPU workloads. Even the NVIDIA RTX 3090, which isn’t a "
+"particularly new GPU, was released in 2020. This means the default drivers "
+"provided by Ubuntu 20.04 may not fully support the 3090, potentially leading"
+" to compatibility issues."
+msgstr ""
+"例如，虽然 Ubuntu 20.04 被认为是一个“稳定”的版本，但对于 GPU 来说，它现在已经相当过时了。即使是一款不是特别新的 NVIDIA RTX "
+"3090，也是在 2020 年发布的。这意味着 Ubuntu 20.04 提供的默认驱动可能无法完全支持 "
+"3090，从而可能导致兼容性问题。"
+
+#: ../../source/miscellaneous/linux_distribution.md:11
+msgid ""
+"In most cases, choosing a newer Linux distribution (such as Ubuntu 25.04 "
+"offers better support than 22.04)."
+msgstr "在大多数情况下，选择较新的 Linux 发行版（例如 Ubuntu 25.04 比 22.04 提供更好的支持）。"
+
+#: ../../source/miscellaneous/linux_distribution.md:13
+msgid ""
+"Another important factor to consider is how well a Linux distribution "
+"supports non-open-source (proprietary) software. Some distributions, such as"
+" Fedora, prioritize open-source software and may not include proprietary "
+"drivers by default—for example, NVIDIA drivers. This can require additional "
+"steps to install and configure GPU drivers. Other distributions, like Arch "
+"Linux, Debian, Ubuntu, and NixOS, tend to be more flexible and make it "
+"easier to install proprietary drivers when needed."
+msgstr ""
+"另一个需要考虑的重要因素是某个Linux发行版对非开源（专有）软件的支持程度。一些发行版（如Fedora）优先考虑开源软件，默认情况下可能不包含专有驱动，例如NVIDIA驱动。这可能需要额外步骤来安装和配置GPU驱动。其他发行版，如Arch"
+" Linux、Debian、Ubuntu和NixOS，通常更加灵活，在需要安装专有驱动时会更加容易。"
+
+#: ../../source/miscellaneous/linux_distribution.md:15
+msgid "Installing the GPU Driver"
+msgstr "安装 GPU 驱动"
+
+#: ../../source/miscellaneous/linux_distribution.md:17
+msgid ""
+"It is generally recommended to install the GPU driver provided by your Linux"
+" distribution. These drivers are typically well-tested and integrated with "
+"the kernel."
+msgstr "通常建议安装由您的 Linux 发行版提供的 GPU 驱动程序。这些驱动程序通常经过充分测试并且会兼容您的内核。"
+
+#: ../../source/miscellaneous/linux_distribution.md:20
+msgid ""
+"Unless you are highly experienced with GPU drivers and the Linux kernel, you"
+" should avoid installing drivers directly from the NVIDIA website, as they "
+"may lead to compatibility issues or require additional configuration."
+msgstr ""
+"除非您对 GPU 驱动程序和 Linux 内核非常熟悉，否则应避免直接从 NVIDIA 网站安装驱动程序，因为这可能会导致兼容性问题或需要额外的配置。"
+
 #: ../../source/miscellaneous/other_gpus.md:1
 msgid "Use Non-NVIDIA GPUs"
 msgstr "使用非NVIDIA GPUs"
@@ -9678,16 +9757,19 @@ msgstr ""
 "及其依赖项的简便方法，但手动安装可以提供更多控制。"
 
 #: ../../source/tutorial/tutorial_part2.md:28
+#, fuzzy
 msgid ""
 "**Option 1: Using the One-Click Installation Script (win-install.bat)** EvoX"
-" provides a [quick installation "
-"script](https://evox.readthedocs.io/en/stable/guide/install/install.html#nvidia-"
-"gpu-support-on-windows) for Windows 10/11 (64-bit). The script installs "
-"Miniforge3 (a lightweight Conda), Python, PyTorch (with CUDA), EvoX, and "
-"useful tools like VSCode and Git. To use:"
+" provides a [quick installation script](/_static/win-install.bat) for "
+"Windows 10/11 (64-bit). The script installs Miniforge3 (a lightweight "
+"Conda), Python, PyTorch (with CUDA), EvoX, and useful tools like VSCode and "
+"Git. To use:"
 msgstr ""
-"**选项 1: 使用一键安装脚本 (win-install.bat)**  \n"
-"EvoX 提供了一个[快速安装脚本](https://evox.readthedocs.io/en/stable/guide/install/install.html#nvidia-gpu-support-on-windows)用于 Windows 10/11 (64-bit)。该脚本会安装 Miniforge3 (一个轻量级的 Conda), Python, PyTorch (支持 CUDA), EvoX，以及 VSCode 和 Git 等实用工具。使用方法："
+"**Option 1: Using the One-Click Installation Script (win-install.bat)** EvoX"
+" provides a [quick installation script](/_static/win-install.bat) for "
+"Windows 10/11 (64-bit). The script installs Miniforge3 (a lightweight "
+"Conda), Python, PyTorch (with CUDA), EvoX, and useful tools like VSCode and "
+"Git. To use:"
 
 #: ../../source/tutorial/tutorial_part2.md:31
 msgid ""
@@ -9759,28 +9841,44 @@ msgstr ""
 "windows](https://github.com/woct0rdho/triton-windows)。可选安装，但对于性能优化很有帮助。"
 
 #: ../../source/tutorial/tutorial_part2.md:52
-#: ../../source/tutorial/tutorial_part2.md:80
+#: ../../source/tutorial/tutorial_part2.md:98
 msgid "**Install EvoX**:"
 msgstr "**安装 EvoX**"
 
-#: ../../source/tutorial/tutorial_part2.md:62
+#: ../../source/tutorial/tutorial_part2.md:64
+msgid ""
+"Some packages may require additional system dependencies. If this is the "
+"case, the installer will prompt you with a message like the following:"
+msgstr ""
+"Some packages may require additional system dependencies. If this is the "
+"case, the installer will prompt you with a message like the following:"
+
+#: ../../source/tutorial/tutorial_part2.md:70
+msgid ""
+"When you encounter such messages, follow the provided instructions to "
+"install the necessary dependencies before proceeding."
+msgstr ""
+"When you encounter such messages, follow the provided instructions to "
+"install the necessary dependencies before proceeding."
+
+#: ../../source/tutorial/tutorial_part2.md:74
 msgid "Installation on Linux"
 msgstr "在 Linux 上安装"
 
-#: ../../source/tutorial/tutorial_part2.md:64
+#: ../../source/tutorial/tutorial_part2.md:76
 msgid ""
 "Installing EvoX on Linux (e.g., Ubuntu) is straightforward and mostly "
 "handled via `pip`."
 msgstr "在 Linux（例如 Ubuntu）上安装 EvoX 非常简单，大部分通过 `pip` 处理。"
 
-#: ../../source/tutorial/tutorial_part2.md:66
+#: ../../source/tutorial/tutorial_part2.md:78
 msgid ""
 "**Install System Dependencies**: Make sure basic development tools and "
 "Python 3.10+ are installed. You can use a package manager (apt, yum) or "
 "Anaconda."
 msgstr "**安装系统依赖**：确保已安装基本开发工具和 Python 3.10+。您可以使用包管理器（如 apt、yum）或 Anaconda。"
 
-#: ../../source/tutorial/tutorial_part2.md:68
+#: ../../source/tutorial/tutorial_part2.md:80
 msgid ""
 "**Install GPU Driver** (if using GPU): Use the appropriate package manager "
 "(e.g., `apt`) to install NVIDIA drivers. Verify installation with `nvidia-"
@@ -9789,20 +9887,34 @@ msgstr ""
 "**安装 GPU 驱动**（如果使用 GPU）：使用合适的包管理器（例如 `apt`）安装 NVIDIA 驱动。使用 `nvidia-smi` "
 "验证安装。如果使用 CPU，可跳过此步骤。"
 
-#: ../../source/tutorial/tutorial_part2.md:71
+#: ../../source/tutorial/tutorial_part2.md:83
 msgid ""
 "On WSL, **do not** install NVIDIA drivers inside the Linux subsystem—install"
 " them on the Windows side."
 msgstr "在 WSL 上，**不要**在 Linux 子系统内安装 NVIDIA 驱动——请在 Windows 上安装它们。"
 
-#: ../../source/tutorial/tutorial_part2.md:75
+#: ../../source/tutorial/tutorial_part2.md:87
 msgid ""
 "It's very likely that you only need to install the driver, but do NOT need "
 "to install CUDA or other dependencies. Those libraries are already included "
 "in the PyTorch installation via pip."
 msgstr "很可能你只需要安装驱动程序，而不需要安装CUDA或其他依赖项。这些库已经通过pip包含在PyTorch安装中。"
 
-#: ../../source/tutorial/tutorial_part2.md:78
+#: ../../source/tutorial/tutorial_part2.md:92
+msgid ""
+"The required driver version depends on your hardware. If you have a recent "
+"NVIDIA GPU, using the latest driver version is often the best choice. To "
+"ensure better compatibility and access to the latest drivers, it's generally"
+" a good idea to use a newer Linux distribution (e.g., Ubuntu 25.04 instead "
+"of 22.04)."
+msgstr ""
+"The required driver version depends on your hardware. If you have a recent "
+"NVIDIA GPU, using the latest driver version is often the best choice. To "
+"ensure better compatibility and access to the latest drivers, it's generally"
+" a good idea to use a newer Linux distribution (e.g., Ubuntu 25.04 instead "
+"of 22.04)."
+
+#: ../../source/tutorial/tutorial_part2.md:96
 msgid ""
 "**Install PyTorch**: As on Windows, install based on hardware. Refer to the "
 "[PyTorch official guide](https://pytorch.org)."
@@ -9810,73 +9922,73 @@ msgstr ""
 "**安装 PyTorch**：与在 Windows 上一样，基于硬件进行安装。参考 [PyTorch "
 "官方指南](https://pytorch.org)。"
 
-#: ../../source/tutorial/tutorial_part2.md:86
+#: ../../source/tutorial/tutorial_part2.md:104
 msgid "Or with extras:"
 msgstr "或者包含额外内容："
 
-#: ../../source/tutorial/tutorial_part2.md:92
+#: ../../source/tutorial/tutorial_part2.md:110
 msgid ""
 "This installs visualization modules and neuroevolution dependencies (like "
 "Brax). You can also choose individual extras like `vis` or `neuroevolution`."
 msgstr ""
 "此操作会安装可视化模块和神经演化依赖项（例如 Brax）。您也可以选择单独的附加组件，例如 `vis` 或 `neuroevolution`。"
 
-#: ../../source/tutorial/tutorial_part2.md:94
+#: ../../source/tutorial/tutorial_part2.md:112
 msgid "Container Installation (Docker, Podman)"
 msgstr "容器安装 (Docker, Podman)"
 
-#: ../../source/tutorial/tutorial_part2.md:96
+#: ../../source/tutorial/tutorial_part2.md:114
 msgid ""
 "For AMD GPU users or those seeking environment isolation, Docker is "
 "recommended. For example, using the official PyTorch Docker image with ROCm:"
 msgstr ""
 "对于使用 AMD GPU 的用户或需要环境隔离的用户，推荐使用 Docker。例如，使用官方 PyTorch Docker 镜像与 ROCm:"
 
-#: ../../source/tutorial/tutorial_part2.md:102
+#: ../../source/tutorial/tutorial_part2.md:120
 msgid "Inside the container, install EvoX as usual using `pip`."
 msgstr "在容器内，使用 `pip` 像往常一样安装 EvoX。"
 
-#: ../../source/tutorial/tutorial_part2.md:104
+#: ../../source/tutorial/tutorial_part2.md:122
 msgid "Verifying EvoX Installation"
 msgstr "验证 EvoX 安装"
 
-#: ../../source/tutorial/tutorial_part2.md:106
+#: ../../source/tutorial/tutorial_part2.md:124
 msgid "To verify that EvoX is properly installed:"
 msgstr "要验证 EvoX 是否已正确安装："
 
-#: ../../source/tutorial/tutorial_part2.md:108
+#: ../../source/tutorial/tutorial_part2.md:126
 msgid "**Basic Check**: In terminal or Python shell, run:"
 msgstr "**基本检查**：在终端或 Python shell 中运行："
 
-#: ../../source/tutorial/tutorial_part2.md:116
+#: ../../source/tutorial/tutorial_part2.md:134
 msgid ""
 "This prints PyTorch and system configuration info. If EvoX is imported "
 "without errors, the installation was successful. You can also check the "
 "version:"
 msgstr "这将打印PyTorch和系统配置信息。如果EvoX导入没有报错，则说明安装成功。你也可以检查版本："
 
-#: ../../source/tutorial/tutorial_part2.md:123
+#: ../../source/tutorial/tutorial_part2.md:141
 msgid ""
 "**Optional Settings**: You may tune performance-related settings, such as:"
 msgstr "**可选设置**: 您可以调整与性能相关的设置，例如:"
 
-#: ../../source/tutorial/tutorial_part2.md:125
+#: ../../source/tutorial/tutorial_part2.md:143
 msgid ""
 "Setting environment variables like `OMP_NUM_THREADS` to control CPU thread "
 "count"
 msgstr "设置环境变量如 `OMP_NUM_THREADS` 来控制 CPU 线程数量"
 
-#: ../../source/tutorial/tutorial_part2.md:126
+#: ../../source/tutorial/tutorial_part2.md:144
 msgid "Increasing Docker shared memory with `--shm-size`"
 msgstr "增加 Docker 共享内存大小使用 `--shm-size`"
 
-#: ../../source/tutorial/tutorial_part2.md:127
+#: ../../source/tutorial/tutorial_part2.md:145
 msgid ""
 "Ensuring your IDE (Jupyter, PyCharm, etc.) uses the correct Python "
 "environment"
 msgstr "确保您的IDE（如Jupyter、PyCharm等）使用正确的Python环境"
 
-#: ../../source/tutorial/tutorial_part2.md:129
+#: ../../source/tutorial/tutorial_part2.md:147
 msgid ""
 "Once the setup is complete, you're ready to start optimizing with EvoX."
 msgstr "一旦设置完成，您就可以使用 EvoX 开始优化了。"
@@ -12625,3 +12737,6 @@ msgstr ""
 
 #~ msgid "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
 #~ msgstr "{py:obj}`_NegModule <evox.workflows.std_workflow._NegModule>`"
+
+#~ msgid "Whether to scramble the order of the samples. Defaults to True."
+#~ msgstr "是否打乱样本的顺序。默认为 True。"
