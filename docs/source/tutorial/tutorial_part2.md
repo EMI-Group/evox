@@ -59,6 +59,18 @@ To manually install EvoX:
    pip install "evox[neuroevolution]" # Neuroevolution support
    ```
 
+
+  ````{note}
+  Some packages may require additional system dependencies. If this is the case, the installer will prompt you with a message like the following:
+
+  ```console
+  error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+  ```
+
+  When you encounter such messages, follow the provided instructions to install the necessary dependencies before proceeding.
+  ````
+
+
 ### Installation on Linux
 
 Installing EvoX on Linux (e.g., Ubuntu) is straightforward and mostly handled via `pip`.
@@ -72,7 +84,13 @@ On WSL, **do not** install NVIDIA drivers inside the Linux subsystem—install t
 ```
 
 ```{tip}
-It's very likely that you only need to install the driver, but do NOT need to install CUDA or other dependencies. Those libraries are already included in the PyTorch installation via pip.
+It's very likely that you only need to install the driver, but do NOT need to install CUDA or other dependencies.
+Those libraries are already included in the PyTorch installation via pip.
+```
+
+```{tip}
+The required driver version depends on your hardware. If you have a recent NVIDIA GPU, using the latest driver version is often the best choice.
+To ensure better compatibility and access to the latest drivers, it's generally a good idea to use a newer Linux distribution (e.g., Ubuntu 25.04 instead of 22.04).
 ```
 
 1. **Install PyTorch**: As on Windows, install based on hardware. Refer to the [PyTorch official guide](https://pytorch.org).
@@ -96,7 +114,7 @@ It's very likely that you only need to install the driver, but do NOT need to in
 For AMD GPU users or those seeking environment isolation, Docker is recommended. For example, using the official PyTorch Docker image with ROCm:
 
 ```bash
-docker run -it --gpus all --shm-size=8g pytorch/pytorch:rocm5.4_ubuntu20.04
+docker run -it --gpus all --shm-size=8g rocm/pytorch:latest
 ```
 
 Inside the container, install EvoX as usual using `pip`.

@@ -76,8 +76,15 @@ Linux 系统（如 Ubuntu）下安装 EvoX 相对直接，大部分情况下可�
 ```
 
 ```{tip}
-在 Linux 上，您只需安装驱动即可，通常不需要安装 CUDA 或其他依赖项。这些库已经包含在通过 pip 安装的 PyTorch 中。
+你很可能只需要安装驱动程序，而**不需要**单独安装 CUDA 或其他依赖项。
+这些库已经通过 pip 安装的 PyTorch 包含在内。
 ```
+
+```{tip}
+所需的驱动程序版本取决于你的硬件。如果你使用的是较新的 NVIDIA 显卡，通常推荐安装最新版驱动程序。
+为了获得更好的兼容性以及使用最新驱动程序，通常建议使用较新的 Linux 发行版（例如 Ubuntu 25.04 而不是 22.04）。
+```
+
 
 3. **安装 PyTorch**：同 Windows 类似，先安装 PyTorch 以确保硬件加速正常。可以参考 [PyTorch 官方指南](https://pytorch.org)
 
@@ -95,12 +102,23 @@ Linux 系统（如 Ubuntu）下安装 EvoX 相对直接，大部分情况下可�
 
    这将同时安装可视化模块和 Brax 等神经进化相关依赖 ([EvoX Installation Guide](#EvoX Installation Guide))。您也可以根据需要选择 extras，比如只安装 `vis` 或 `neuroevolution`。
 
+  ````{note}
+  某些软件包可能需要额外的系统依赖项。如果是这种情况，安装程序会提示类似以下的消息：
+
+  ```console
+  error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+  ```
+
+  遇到此类提示时，请按照提供的指引安装所需的系统依赖项后再继续操作。
+  ````
+
+
 #### 使用容器安装 (Docker, Podman)
 
 对于 AMD GPU 用户或希望隔离环境的用户，官方建议使用 Docker 镜像。例如，使用带 ROCm 的 PyTorch 官方Docker 镜像可以避免繁琐的环境配置。执行类似如下的命令运行容器：
 
 ```bash
-docker run -it --gpus all --shm-size=8g pytorch/pytorch:rocm5.4_ubuntu20.04
+docker run -it --gpus all --shm-size=8g rocm/pytorch:latest
 ```
 
 然后在容器内安装 EvoX（同上面的pip步骤）。这种方式可以方便地获取GPU加速支持。
