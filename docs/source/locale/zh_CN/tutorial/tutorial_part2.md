@@ -53,13 +53,23 @@ EvoX 提供了适用于 Windows 10/11 (64位) 的[快速安装脚本](/_static/w
 
 5. **安装 EvoX**：在命令行执行：
 
-   ```bash
-   pip install "evox[default]"
+  ```bash
+  pip install "evox[default]"
 
-   # 此外支持多种extra选项来预装其他组件
-   pip install "evox[vis]" # visualization support
-   pip install "evox[neuroevolution]" # NE support
-   ```
+  # 此外支持多种extra选项来预装其他组件
+  pip install "evox[vis]" # visualization support
+  pip install "evox[neuroevolution]" # NE support
+  ```
+
+  ````{note}
+  某些软件包可能需要额外的系统依赖项。如果是这种情况，安装程序会提示类似以下的消息：
+
+  ```console
+  error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+  ```
+
+  遇到此类提示时，请按照提供的指引安装所需的系统依赖项后再继续操作。
+  ````
 
 
 
@@ -90,27 +100,17 @@ Linux 系统（如 Ubuntu）下安装 EvoX 相对直接，大部分情况下可�
 
 4. **安装 EvoX**：运行
 
-   ```bash
-   pip install evox
-   ```
-
-   如果您计划使用可视化或神经进化等扩展功能，可以一次性安装带所有附加功能的版本，例如：
-
-   ```bash
-   pip install evox[vis,neuroevolution]
-   ```
-
-   这将同时安装可视化模块和 Brax 等神经进化相关依赖 ([EvoX Installation Guide](#EvoX Installation Guide))。您也可以根据需要选择 extras，比如只安装 `vis` 或 `neuroevolution`。
-
-  ````{note}
-  某些软件包可能需要额外的系统依赖项。如果是这种情况，安装程序会提示类似以下的消息：
-
-  ```console
-  error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+  ```bash
+  pip install evox
   ```
 
-  遇到此类提示时，请按照提供的指引安装所需的系统依赖项后再继续操作。
-  ````
+  如果您计划使用可视化或神经进化等扩展功能，可以一次性安装带所有附加功能的版本，例如：
+
+  ```bash
+  pip install evox[vis,neuroevolution]
+  ```
+
+  这将同时安装可视化模块和 Brax 等神经进化相关依赖 ([EvoX Installation Guide](#EvoX Installation Guide))。您也可以根据需要选择 extras，比如只安装 `vis` 或 `neuroevolution`。
 
 
 #### 使用容器安装 (Docker, Podman)
