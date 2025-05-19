@@ -100,7 +100,7 @@ if __name__ == "__main__":
     base_url = sys.argv[1]
     api_key = sys.argv[2]
     tgi = TGIBackend(base_url=base_url, api_key=api_key)
-    po = polib.pofile("docs/source/locale/zh_CN/LC_MESSAGES/docs.po")
+    po = polib.pofile("source/locale/zh_CN/LC_MESSAGES/docs.po")
     try:
         for entry in po:
             if entry.msgstr and not entry.fuzzy:
@@ -130,4 +130,4 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"An error occurred: {e}")
     finally:
-        po.save("docs/source/locale/zh_CN/LC_MESSAGES/docs.po")
+        po.save("source/locale/zh_CN/LC_MESSAGES/docs.po")
