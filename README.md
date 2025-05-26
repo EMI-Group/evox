@@ -331,8 +331,8 @@ monitor.plot() # or monitor.plot().show() if you are using headless mode
 > For comprehensive guidance, please visit our [Documentation](https://evox.readthedocs.io/en/latest/), where you'll find detailed installation steps, tutorials, practical examples, and complete API references.
 
 ## Sister Projects
-- **EvoRL**:GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
-- **EvoGP**:GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
+- **EvoRL**: GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
+- **EvoGP**: GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
 - **EvoMO**: GPU-accelerated library for Evolutionary Multiobjective Optimization (EMO).Check out [here](https://github.com/EMI-Group/evomo).
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
