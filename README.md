@@ -225,7 +225,6 @@ Solve the DTLZ2 problem using the RVEA algorithm:
 ```python
 import torch
 from evox.algorithms import RVEA
-from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
 from evox.workflows import StdWorkflow, EvalMonitor
 
