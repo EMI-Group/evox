@@ -99,7 +99,6 @@ class ODE(Algorithm):
         This method evaluates the fitness of the initial population and then calls the `step` method to perform the first optimization iteration.
         """
         self.fit = self.evaluate(self.pop)
-        self.step()
 
     def step(self):
         """
