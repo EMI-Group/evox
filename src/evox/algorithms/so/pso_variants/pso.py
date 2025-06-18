@@ -112,4 +112,4 @@ class PSO(Algorithm):
         """
         self.fit = self.evaluate(self.pop)
         self.local_best_fit = self.fit
-        self.global_best_fit = torch.min(self.fit)
+        self.global_best_location, self.global_best_fit = min_by([self.pop], [self.fit])
