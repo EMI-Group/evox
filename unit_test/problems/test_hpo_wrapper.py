@@ -20,7 +20,9 @@ class BasicProblem(Problem):
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor, device: torch.device | None = None):
         super().__init__()
-        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        assert lb.ndim == 1 and ub.ndim == 1, (
+            f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        )
         assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
         device = torch.get_default_device() if device is None else device
         self.pop_size = pop_size
@@ -46,19 +48,25 @@ class TestHPOWrapper(unittest.TestCase):
         self.prob = BasicProblem()
         self.monitor = HPOFitnessMonitor()
         self.workflow = StdWorkflow(self.algo, self.prob, monitor=self.monitor)
-        self.hpo_prob = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True)
+        self.hpo_prob = HPOProblemWrapper(
+            iterations=9, num_instances=7, workflow=self.workflow, copy_init_state=True
+        )
 
         self.algo_mo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob_mo = DTLZ1(2, 2)
         self.monitor_mo = HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, self.prob_mo.pf()))
         self.workflow_mo = StdWorkflow(self.algo_mo, self.prob_mo, monitor=self.monitor_mo)
-        self.hpo_prob_mo = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow_mo, copy_init_state=True)
+        self.hpo_prob_mo = HPOProblemWrapper(
+            iterations=9, num_instances=7, workflow=self.workflow_mo, copy_init_state=True
+        )
 
         self.algo_mo2 = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob_mo2 = DTLZ1(2, 2)
         self.monitor_mo2 = HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, self.prob_mo2.pf()))
         self.workflow_mo2 = StdWorkflow(self.algo_mo2, self.prob_mo2, monitor=self.monitor_mo2)
-        self.hpo_prob_mo2 = HPOProblemWrapper(iterations=9, num_instances=7, workflow=self.workflow_mo2, copy_init_state=True)
+        self.hpo_prob_mo2 = HPOProblemWrapper(
+            iterations=9, num_instances=7, workflow=self.workflow_mo2, copy_init_state=True
+        )
 
     def test_get_init_params(self):
         params = self.hpo_prob.get_init_params()

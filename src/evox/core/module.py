@@ -45,7 +45,9 @@ def Parameter(
     )
 
 
-def Mutable(value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> torch.Tensor:
+def Mutable(
+    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
+) -> torch.Tensor:
     """Wraps a value as a mutable tensor.
     This is often used to label a value in an algorithm as a mutable tensor that may changes during iteration(s).
 

@@ -25,4 +25,6 @@ class TestBasic(unittest.TestCase):
                 problem = problem(shift=torch.rand(dimension), affine=torch.rand(dimension, dimension))
                 population = torch.randn(self.pop_size, dimension)
                 fitness = problem.evaluate(population)
-                print(f"The fitness of {problem.__class__.__name__} function with {dimension} dimension is {fitness}")
+                print(
+                    f"The fitness of {problem.__class__.__name__} function with {dimension} dimension is {fitness}"
+                )
