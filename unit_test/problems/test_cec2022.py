@@ -12,6 +12,7 @@ class TestCEC2022(unittest.TestCase):
         self.dimensionality = [2, 10, 20]
         self.pop_size = 100
         torch.manual_seed(42)
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
 
     def test_evaluate(self):
         for i in range(1, 13):

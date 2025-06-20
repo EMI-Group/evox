@@ -7,6 +7,7 @@ from evox.problems.numerical import Ackley, Ellipsoid, Griewank, Rastrigin, Rose
 
 class TestBasic(unittest.TestCase):
     def setUp(self, dimensions: list = [10], pop_size: int = 7):
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.dimensions = dimensions
         self.pop_size = pop_size
         self.problems = [
