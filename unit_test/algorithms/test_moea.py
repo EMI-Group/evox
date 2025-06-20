@@ -1,4 +1,4 @@
-from unittest import TestCase, skip
+from unittest import TestCase, skipIf
 
 import torch
 
@@ -74,7 +74,10 @@ class TestMOVariants(MOTestBase):
         self.run_algorithm(algo)
         self.run_compiled_algorithm(algo)
 
-    @skip("Torch 2.7 bug when running on non-AVX512 CPU: https://github.com/pytorch/pytorch/issues/152172")
+    @skipIf(
+        torch.__version__.startswith("2.7."),
+        "Torch 2.7 bug when running on non-AVX512 CPU: https://github.com/pytorch/pytorch/issues/152172",
+    )
     def test_hype(self):
         algo = HypE(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
         self.run_algorithm(algo)

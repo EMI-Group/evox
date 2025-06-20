@@ -24,7 +24,9 @@ class BasicProblem(Problem):
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()
-        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        assert lb.ndim == 1 and ub.ndim == 1, (
+            f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        )
         assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
         self.pop_size = pop_size
         self.lb = lb

@@ -7,6 +7,7 @@ from evox.problems.numerical import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DT
 
 class TestDTLZ(TestCase):
     def setUp(self):
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         d = 12
         m = 3
         self.pro = [

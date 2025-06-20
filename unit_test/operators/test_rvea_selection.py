@@ -7,6 +7,7 @@ from evox.operators.selection import ref_vec_guided
 
 class TestRefVecGuided(unittest.TestCase):
     def setUp(self):
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.n, self.m, self.nv = 12, 4, 5
         self.x = torch.randn(self.n, 10)
         self.f = torch.randn(self.n, self.m)

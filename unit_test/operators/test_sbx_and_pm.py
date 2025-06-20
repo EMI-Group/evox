@@ -8,6 +8,7 @@ from evox.operators.mutation import polynomial_mutation
 
 class TestOperators(TestCase):
     def setUp(self):
+        torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.n_individuals = 9
         self.n_genes = 10
         self.x = torch.randn(self.n_individuals, self.n_genes)

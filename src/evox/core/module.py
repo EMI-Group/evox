@@ -10,7 +10,7 @@ __all__ = [
 
 
 from functools import wraps
-from typing import Callable, Dict, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Sequence, TypeVar, Union
 
 import torch
 import torch.nn as nn
@@ -45,7 +45,9 @@ def Parameter(
     )
 
 
-def Mutable(value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> torch.Tensor:
+def Mutable(
+    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
+) -> torch.Tensor:
     """Wraps a value as a mutable tensor.
     This is often used to label a value in an algorithm as a mutable tensor that may changes during iteration(s).
 
@@ -84,6 +86,24 @@ class ModuleBase(nn.Module):
         assert False, "`ModuleBase.eval()` shall never be invoked to prevent ambiguity."
 
 
+def _transform_scalar_index(ori_index: Sequence[Any | torch.Tensor] | Any | torch.Tensor):
+    if isinstance(ori_index, Sequence):
+        index = tuple(ori_index)
+    else:
+        index = (ori_index,)
+    any_scalar_tensor = False
+    new_index = []
+    for idx in index:
+        if isinstance(idx, torch.Tensor) and idx.ndim == 0:
+            new_index.append(idx[None])
+            any_scalar_tensor = True
+        else:
+            new_index.append(idx)
+    if not isinstance(ori_index, Sequence):
+        new_index = new_index[0]
+    return new_index, any_scalar_tensor
+
+
 # We still need a fix for the vmap
 # related issue: https://github.com/pytorch/pytorch/issues/124423
 class TransformGetSetItemToIndex(TorchFunctionMode):
@@ -95,15 +115,19 @@ class TransformGetSetItemToIndex(TorchFunctionMode):
     # That is, we convert A[idx] to A[idx[None]][0], A[idx] += 1 to A[idx[None]] += 1.
     # This is a temporary solution until the issue is fixed in PyTorch.
     def __torch_function__(self, func, types, args, kwargs=None):
+        # A[idx]
         if func == torch.Tensor.__getitem__:
             x, index = args
-            if isinstance(index, torch.Tensor) and index.ndim == 0:
-                return func(x, index[None], **(kwargs or {}))[0]
-                # return torch.index_select(x, 0, index)
+            new_index, any_scalar = _transform_scalar_index(index)
+            x = func(x, new_index, **(kwargs or {}))
+            if any_scalar:
+                x = x.squeeze(0)
+            return x
+        # A[idx] = value
         elif func == torch.Tensor.__setitem__:
             x, index, value = args
-            if isinstance(index, torch.Tensor) and index.ndim == 0:
-                return func(x, index[None], value, **(kwargs or {}))
+            new_index, _ = _transform_scalar_index(index)
+            return func(x, new_index, value, **(kwargs or {}))
 
         return func(*args, **(kwargs or {}))
 
