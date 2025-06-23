@@ -10,6 +10,13 @@ from typing import List, Optional
 import torch
 
 from evox.core import Problem
+from evox.problems.numerical.basic import (
+    ackley_func,
+    griewank_func,
+    rastrigin_func,
+    rosenbrock_func,
+    zakharov_func,
+)
 
 
 class CEC2022(Problem):
@@ -141,11 +148,11 @@ class CEC2022(Problem):
     # Problem
     def cec2022_f1(self, x: torch.Tensor) -> torch.Tensor:
         """Zakharov Function"""
-        return self.zakharov_func(self.sr_func_rate(x, 1.0, True, True, self.OShift, self.M)) + 300.0
+        return zakharov_func(self.sr_func_rate(x, 1.0, True, True, self.OShift, self.M)) + 300.0
 
     def cec2022_f2(self, x: torch.Tensor) -> torch.Tensor:
         """Rosenbrock Function"""
-        return self.rosenbrock_func(self.sr_func_rate(x, 2.048e-2, True, True, self.OShift, self.M)) + 400
+        return rosenbrock_func(1 + self.sr_func_rate(x, 2.048e-2, True, True, self.OShift, self.M)) + 400
 
     def cec2022_f3(self, x: torch.Tensor) -> torch.Tensor:
         """Schaffer F7 Function"""
@@ -153,7 +160,7 @@ class CEC2022(Problem):
 
     def cec2022_f4(self, x: torch.Tensor) -> torch.Tensor:
         """Step Rastrigin Function (Noncontinuous Rastrigin's)"""
-        return self.step_rastrigin_func(self.sr_func_rate(x, 5.12e-2, True, True, self.OShift, self.M)) + 800.0
+        return rastrigin_func(self.sr_func_rate(x, 5.12e-2, True, True, self.OShift, self.M)) + 800.0
 
     def cec2022_f5(self, x: torch.Tensor) -> torch.Tensor:
         """Levy Function"""
@@ -167,7 +174,7 @@ class CEC2022(Problem):
 
         fit0 = self.bent_cigar_func(self.sr_func_rate(y[0], 1.0, False, False, self.OShift, self.M))
         fit1 = self.hgbat_func(self.sr_func_rate(y[1], 5.00e-2, False, False, self.OShift, self.M))
-        fit2 = self.rastrigin_func(self.sr_func_rate(y[2], 5.12e-2, False, False, self.OShift, self.M))
+        fit2 = rastrigin_func(self.sr_func_rate(y[2], 5.12e-2, False, False, self.OShift, self.M))
 
         return fit0 + fit1 + fit2 + 1800.0
 
@@ -179,9 +186,9 @@ class CEC2022(Problem):
 
         fit0 = self.hgbat_func(self.sr_func_rate(y[0], 5.00e-2, False, False, self.OShift, self.M))
         fit1 = self.katsuura_func(self.sr_func_rate(y[1], 5.00e-2, False, False, self.OShift, self.M))
-        fit2 = self.ackley_func(self.sr_func_rate(y[2], 1.0, False, False, self.OShift, self.M))
-        fit3 = self.rastrigin_func(self.sr_func_rate(y[3], 5.12e-2, False, False, self.OShift, self.M))
-        fit4 = self.schwefel_func(self.sr_func_rate(y[4], 10.0, False, False, self.OShift, self.M))
+        fit2 = ackley_func(20.0, 0.2, 2 * torch.pi, self.sr_func_rate(y[2], 1.0, False, False, self.OShift, self.M))
+        fit3 = rastrigin_func(self.sr_func_rate(y[3], 5.12e-2, False, False, self.OShift, self.M))
+        fit4 = self.modified_schwefel_func(self.sr_func_rate(y[4], 10.0, False, False, self.OShift, self.M))
         fit5 = self.schaffer_F7_func(self.sr_func_rate(y[5], 1.0, False, False, self.OShift, self.M))
 
         return fit0 + fit1 + fit2 + fit3 + fit4 + fit5 + 2000.0
@@ -195,8 +202,8 @@ class CEC2022(Problem):
         fit0 = self.katsuura_func(self.sr_func_rate(y[0], 5.00e-2, False, False, self.OShift, self.M))
         fit1 = self.happycat_func(self.sr_func_rate(y[1], 5.00e-2, False, False, self.OShift, self.M))
         fit2 = self.grie_rosen_func(self.sr_func_rate(y[2], 5.00e-2, False, False, self.OShift, self.M))
-        fit3 = self.schwefel_func(self.sr_func_rate(y[3], 10.0, False, False, self.OShift, self.M))
-        fit4 = self.ackley_func(self.sr_func_rate(y[4], 1.0, False, False, self.OShift, self.M))
+        fit3 = self.modified_schwefel_func(self.sr_func_rate(y[3], 10.0, False, False, self.OShift, self.M))
+        fit4 = ackley_func(20.0, 0.2, 2 * torch.pi, self.sr_func_rate(y[4], 1.0, False, False, self.OShift, self.M))
 
         return fit0 + fit1 + fit2 + fit3 + fit4 + 2200.0
 
@@ -206,8 +213,8 @@ class CEC2022(Problem):
         delta = [10, 20, 30, 40, 50]
         bias = [0, 200, 300, 100, 400]
         fit = [
-            self.rosenbrock_func(
-                self.sr_func_rate(x, 2.048e-2, True, True, self.OShift[:, 0 * nx : 1 * nx], self.M[:, 0 * nx : 1 * nx])
+            rosenbrock_func(
+                1 + self.sr_func_rate(x, 2.048e-2, True, True, self.OShift[:, 0 * nx : 1 * nx], self.M[:, 0 * nx : 1 * nx])
             )
             * 10000
             / 1e4,
@@ -240,11 +247,11 @@ class CEC2022(Problem):
         delta = [20, 10, 10]
         bias = [0, 200, 100]
         fit = [
-            self.schwefel_func(
+            self.modified_schwefel_func(
                 self.sr_func_rate(x, 10.0, True, False, self.OShift[:, 0 * nx : 1 * nx], self.M[:, 0 * nx : 1 * nx])
             )
             * 1.0,
-            self.rastrigin_func(
+            rastrigin_func(
                 self.sr_func_rate(x, 5.12e-2, True, True, self.OShift[:, 1 * nx : 2 * nx], self.M[:, 1 * nx : 2 * nx])
             )
             * 1.0,
@@ -267,20 +274,18 @@ class CEC2022(Problem):
             )
             * 10000
             / 2e7,
-            self.schwefel_func(
+            self.modified_schwefel_func(
                 self.sr_func_rate(x, 10.0, True, True, self.OShift[:, 1 * nx : 2 * nx], self.M[:, 1 * nx : 2 * nx])
             )
             * 1.0,
-            self.griewank_func(
-                self.sr_func_rate(x, 6.0, True, True, self.OShift[:, 2 * nx : 3 * nx], self.M[:, 2 * nx : 3 * nx])
-            )
+            griewank_func(self.sr_func_rate(x, 6.0, True, True, self.OShift[:, 2 * nx : 3 * nx], self.M[:, 2 * nx : 3 * nx]))
             * 1000
             / 100,
-            self.rosenbrock_func(
-                self.sr_func_rate(x, 2.048e-2, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx])
+            rosenbrock_func(
+                1 + self.sr_func_rate(x, 2.048e-2, True, True, self.OShift[:, 3 * nx : 4 * nx], self.M[:, 3 * nx : 4 * nx])
             )
             * 1.0,
-            self.rastrigin_func(
+            rastrigin_func(
                 self.sr_func_rate(x, 5.12e-2, True, True, self.OShift[:, 4 * nx : 5 * nx], self.M[:, 4 * nx : 5 * nx])
             )
             * 10000
@@ -300,12 +305,12 @@ class CEC2022(Problem):
             )
             * 10000
             / 1000,
-            self.rastrigin_func(
+            rastrigin_func(
                 self.sr_func_rate(x, 5.12e-2, True, True, self.OShift[:, 1 * nx : 2 * nx], self.M[:, 1 * nx : 2 * nx])
             )
             * 10000
             / 1e3,
-            self.schwefel_func(
+            self.modified_schwefel_func(
                 self.sr_func_rate(x, 10.0, True, True, self.OShift[:, 2 * nx : 3 * nx], self.M[:, 2 * nx : 3 * nx])
             )
             * 10000
@@ -331,17 +336,6 @@ class CEC2022(Problem):
         return f + 2700.0
 
     # Basic functions
-    def zakharov_func(self, x: torch.Tensor) -> torch.Tensor:
-        """Problem number = 1."""
-        sum1 = x**2
-        idx = torch.arange(1, x.size(1) + 1, device=x.device)
-        sum2 = torch.sum((0.5 * idx) * x, dim=1)
-        return torch.sum(sum1, dim=1) + sum2**2 + sum2**4
-
-    def step_rastrigin_func(self, x: torch.Tensor) -> torch.Tensor:
-        """Problem number = 4."""
-        return torch.sum(x**2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
-
     def levy_func(self, x: torch.Tensor) -> torch.Tensor:
         """Problem number = 5."""
         w = 1.0 + x / 4.0
@@ -360,9 +354,6 @@ class CEC2022(Problem):
         sum_x = torch.sum(tmp, dim=1)
         return torch.abs(r2**2 - sum_x**2) ** (2 * alpha) + (0.5 * r2 + sum_x) / x.size(1) + 0.5
 
-    def rastrigin_func(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.sum(x**2 - 10.0 * torch.cos(2.0 * torch.pi * x) + 10.0, dim=1)
-
     def katsuura_func(self, x: torch.Tensor) -> torch.Tensor:
         nx = x.size(1)
         tmp1 = 2.0 ** torch.arange(1, 33, device=x.device)
@@ -372,12 +363,7 @@ class CEC2022(Problem):
         f = torch.prod((1 + temp * tmp3.unsqueeze(0)) ** (10.0 / (nx**1.2)), dim=1)
         return (f - 1) * (10.0 / nx / nx)
 
-    def ackley_func(self, x: torch.Tensor) -> torch.Tensor:
-        mean1 = torch.mean(x**2, dim=1)
-        mean2 = torch.mean(torch.cos(2.0 * torch.pi * x), dim=1)
-        return torch.e - 20.0 * torch.exp(-0.2 * torch.sqrt(mean1)) - torch.exp(mean2) + 20.0
-
-    def schwefel_func(self, x: torch.Tensor) -> torch.Tensor:
+    def modified_schwefel_func(self, x: torch.Tensor) -> torch.Tensor:
         nx = x.size(1)
         tmp1 = x + 420.9687462275036
         tmp2 = -tmp1 * tmp1.abs().sqrt().sin()
@@ -412,16 +398,6 @@ class CEC2022(Problem):
         y = torch.cat([x[:, 1:], x[:, 0:1]], dim=1)
         tmp = 100.0 * (x**2 - y) ** 2 + (x - 1.0) ** 2
         return torch.sum((tmp**2) / 4000.0 - torch.cos(tmp) + 1.0, dim=1)
-
-    def griewank_func(self, x: torch.Tensor) -> torch.Tensor:
-        sum_sq = torch.sum(x**2, dim=1)
-        idx = torch.arange(1, x.size(1) + 1, device=x.device)
-        prod_cos = torch.prod(torch.cos(x / torch.sqrt(idx)), dim=1)
-        return 1.0 + sum_sq / 4000.0 - prod_cos
-
-    def rosenbrock_func(self, x: torch.Tensor) -> torch.Tensor:
-        tmp = x + 1
-        return torch.sum(100.0 * (tmp[:, :-1] ** 2 - tmp[:, 1:]) ** 2 + (tmp[:, :-1] - 1.0) ** 2, dim=1)
 
     def discus_func(self, x: torch.Tensor) -> torch.Tensor:
         return (10.0**6) * x[:, 0] ** 2 + torch.sum(x[:, 1:] ** 2, dim=1)
