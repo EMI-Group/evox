@@ -187,7 +187,7 @@ class HPOProblemWrapper(Problem):
 
         :param iterations: The number of iterations to be executed in the optimization process.
         :param num_instances: The number of instances to be executed in parallel in the optimization process, i.e., the population size of the outer algorithm.
-        :param workflow: The workflow to be used in the optimization process. Must be wrapped by `core.jit_class`.
+        :param workflow: The workflow to be used in the optimization process.
         :param num_repeats: The number of times to repeat the evaluation process for each instance. Defaults to 1.
         :param copy_init_state: Whether to copy the initial state of the workflow for each evaluation. Defaults to `True`. If your workflow contains operations that IN-PLACE modify the tensor(s) in initial state, this should be set to `True`. Otherwise, you can set it to `False` to save memory.
         """

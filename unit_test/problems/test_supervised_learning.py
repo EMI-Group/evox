@@ -89,7 +89,9 @@ class TestSupervisedLearningProblem(unittest.TestCase):
                 for inputs, labels in self.train_loader
             ]
         )
-        self.pre_test_loader = tuple([(inputs.to(self.device), labels.to(self.device)) for inputs, labels in self.test_loader])
+        self.pre_test_loader = tuple(
+            [(inputs.to(self.device), labels.to(self.device)) for inputs, labels in self.test_loader]
+        )
 
         self.model = SampleCNN().to(self.device)
         self.adapter = ParamsAndVector(dummy_model=self.model)

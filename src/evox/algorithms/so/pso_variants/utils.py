@@ -18,7 +18,7 @@ def min_by(
     values = torch.cat(values, dim=0)
     keys = torch.cat(keys, dim=0)
     min_index = torch.argmin(keys)
-    return values[min_index[None]][0], keys[min_index[None]][0]
+    return values[min_index], keys[min_index]
 
 
 def random_select_from_mask(mask: torch.Tensor, count: int, dim: int = -1) -> torch.Tensor:
