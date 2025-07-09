@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 REM Check NVIDIA driver version
 set "use_cpu=N"
-set "install_triton=Y"
+set "install_triton=N"
 where nvidia-smi > nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] NVIDIA driver not found. Please install the latest NVIDIA driver first from https://www.nvidia.com/drivers/.
@@ -19,12 +19,13 @@ if %errorlevel% neq 0 (
 
 REM If using GPU, ask if the user want to install triton-windows for torch.compile support
 if /i "!use_cpu!"=="N" (
-    echo Do you want to install triton-windows for torch.compile support? ^(Y/N, default Y^)
+    echo Do you want to install triton-windows for torch.compile support? ^(Y/N, default N^)
     set /p install_triton=">> "
-    if "!install_triton!"=="" set "install_triton=Y"
+    if "!install_triton!"=="" set "install_triton=N"
     if /i "!install_triton!"=="Y" (
         echo [INFO] Will install triton-windows
     ) else (
+        set "install_triton=N"
         echo [INFO] Skip triton-windows installation
     )
 )
@@ -197,7 +198,7 @@ goto :EOF
     if "!USERPATH!"=="" (
         setx PATH "!BINPATH!" >nul
     ) else (
-        echo "!USERPATH!" | find /I "!BINPATH!" >nul
+        echo !USERPATH! | find /I "!BINPATH!" >nul
         if %errorlevel% neq 0 (
             setx PATH "!USERPATH!;!BINPATH!" >nul
         ) else (
