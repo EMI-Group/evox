@@ -5,7 +5,7 @@ REM Check NVIDIA driver version
 set "use_cpu=N"
 set "install_triton=N"
 where nvidia-smi > nul 2>&1
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo [ERROR] NVIDIA driver not found. Please install the latest NVIDIA driver first from https://www.nvidia.com/drivers/.
     echo Do you want install torch cpu version instead? ^(Y/N, default N^)
     set /p use_cpu=">> "
@@ -39,7 +39,7 @@ for /f "tokens=1* delims=," %%A in ('nvidia-smi --query-gpu=driver_version --for
 @REM echo %use_cpu%
 REM check winget is installed
 where winget > nul 2>&1
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo [ERROR] winget is not installed. This usually happens on LTSC and Server OS. Please manually install winget from https://github.com/microsoft/winget-cli, then reopen this script.
     pause
     exit /b 1
@@ -47,7 +47,7 @@ if %errorlevel% neq 0 (
 
 REM Check if VS Code is installed
 where code > nul 2>&1
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo [INFO] VSCode is not found. Downloading Visual Studio Code installer...
     winget install -e --id Microsoft.VisualStudioCode
 ) else (
@@ -56,7 +56,7 @@ if %errorlevel% neq 0 (
 
 REM Checking if Git is installed
 where git > nul 2>&1
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo [INFO] Git is not found. Downloading Git installer...
     winget install -e --id Git.Git
 ) else (
@@ -85,7 +85,7 @@ call conda info
 
 echo [INFO] Creating evox-env environment...
 call conda env list | findstr "evox-env" >nul
-if %ERRORLEVEL%==0 (
+if !errorlevel!==0 (
     echo Environment evox-env already exists. Removing...
     call conda env remove -n evox-env -y
 )
@@ -110,13 +110,13 @@ if /i "!use_cpu!"=="Y" (
         if exist vs_buildtools.exe (
             echo [INFO] Installing MSVC and Windows SDK
             start /wait vs_buildtools.exe --passive --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended
-            if %errorlevel% neq 0 (
+            if !errorlevel! neq 0 (
                 echo [ERROR] Installing MSVC and Windows SDK failed.
                 pause
                 exit /b 1
             )
             call :config_msvc_path
-            if %errorlevel% neq 0 (
+            if !errorlevel! neq 0 (
                 echo [ERROR] Config PATH failed.
                 pause
                 exit /b 1
@@ -127,7 +127,7 @@ if /i "!use_cpu!"=="Y" (
         if exist vcredist.exe (
             echo [INFO] Installing vcredist
             start /wait vcredist.exe /install /quiet /norestart
-            if %errorlevel% neq 0 (
+            if !errorlevel! neq 0 (
                 echo [ERROR] Installing vcredist failed.
                 pause
                 exit /b 1
@@ -174,7 +174,7 @@ goto :EOF
 
     REM 2. select the largest version folder in VC\Tools\MSVC
     set "MSVCDIR="
-    for /f "delims=" %%V in ('dir "%VSROOT%\VC\Tools\MSVC" /b /ad /o-n') do (
+    for /f "delims=" %%V in ('dir "!VSROOT!\VC\Tools\MSVC" /b /ad /o-n') do (
         set "MSVCDIR=%%V"
         goto :got_msvc
     )
@@ -185,10 +185,10 @@ goto :EOF
         exit /b 1
     )
 
-    set "BINPATH=%VSROOT%\VC\Tools\MSVC\%MSVCDIR%\bin\Hostx64\x64"
+    set "BINPATH=!VSROOT!\VC\Tools\MSVC\!MSVCDIR!\bin\Hostx64\x64"
 
     echo [INFO] write to user's PATH env !BINPATH!
-    set "PATH=!BINPATH!;%PATH%"
+    set "PATH=!BINPATH!;!PATH!"
 
     set "USERPATH="
     for /f "skip=2 tokens=2*" %%A in ('
@@ -199,8 +199,8 @@ goto :EOF
         setx PATH "!BINPATH!" >nul
     ) else (
         echo !USERPATH! | find /I "!BINPATH!" >nul
-        if %errorlevel% neq 0 (
-            setx PATH "!USERPATH!;!BINPATH!" >nul
+        if !errorlevel! neq 0 (
+            setx PATH "!BINPATH!;!USERPATH!" >nul
         ) else (
             echo [INFO] Skip. PATH already contains !BINPATH!
         )
