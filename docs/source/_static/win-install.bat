@@ -108,7 +108,12 @@ if /i "!use_cpu!"=="Y" (
         curl -L -o vs_buildtools.exe https://aka.ms/vs/17/release/vs_BuildTools.exe
         if exist vs_buildtools.exe (
             echo [INFO] Installing MSVC and Windows SDK
-            start /wait vs_buildtools.exe --passive --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.NativeDesktop
+            start /wait vs_buildtools.exe --passive --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended
+            if %errorlevel% neq 0 (
+                echo [ERROR] Installing MSVC and Windows SDK failed.
+                pause
+                exit /b 1
+            )
             call :config_msvc_path
         )
         echo [INFO] Downloading vcredist
@@ -116,6 +121,11 @@ if /i "!use_cpu!"=="Y" (
         if exist vcredist.exe (
             echo [INFO] Installing vcredist
             start /wait vcredist.exe /install /quiet /norestart
+            if %errorlevel% neq 0 (
+                echo [ERROR] Installing vcredist failed.
+                pause
+                exit /b 1
+            )
         )
         echo [INFO] Installing triton-windows pip package
         pip install -U "triton-windows~=3.3"
