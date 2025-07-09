@@ -115,6 +115,11 @@ if /i "!use_cpu!"=="Y" (
                 exit /b 1
             )
             call :config_msvc_path
+            if %errorlevel% neq 0 (
+                echo [ERROR] Config PATH failed.
+                pause
+                exit /b 1
+            )
         )
         echo [INFO] Downloading vcredist
         curl -L -o vcredist.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
@@ -181,21 +186,21 @@ goto :EOF
 
     set "BINPATH=%VSROOT%\VC\Tools\MSVC\%MSVCDIR%\bin\Hostx64\x64"
 
-    echo [INFO] write to user's PATH env %BINPATH%
-    set "PATH=%BINPATH%;%PATH%"
+    echo [INFO] write to user's PATH env !BINPATH!
+    set "PATH=!BINPATH!;%PATH%"
 
     set "USERPATH="
     for /f "skip=2 tokens=2*" %%A in ('
         reg query "HKCU\Environment" /v PATH 2^>nul
     ') do set "USERPATH=%%B"
 
-    if "%USERPATH%"=="" (
-        setx PATH "%BINPATH%" >nul
+    if "!USERPATH!"=="" (
+        setx PATH "!BINPATH!" >nul
     ) else (
-        echo "%USERPATH%" | find /I "%BINPATH%" >nul
+        echo "!USERPATH!" | find /I "!BINPATH!" >nul
         if %errorlevel% neq 0 (
-            setx PATH "%USERPATH%;%BINPATH%" >nul
+            setx PATH "!USERPATH!;!BINPATH!" >nul
         ) else (
-            echo [INFO] Skip. PATH already contains %BINPATH%
+            echo [INFO] Skip. PATH already contains !BINPATH!
         )
     )
