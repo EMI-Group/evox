@@ -1,9 +1,10 @@
 import unittest
 
 import torch
-from CEC2022_by_P_N_Suganthan import cec2022_func
 
 from evox.problems.numerical import CEC2022
+
+from .CEC2022_by_P_N_Suganthan import cec2022_func
 
 
 class TestCEC2022(unittest.TestCase):
