@@ -5,11 +5,12 @@ __all__ = [
     "compile",
     "use_state",
     "vmap",
+    "Agent",
     "Algorithm",
     "Problem",
     "Workflow",
     "Monitor",
 ]
 
-from .components import Algorithm, Monitor, Problem, Workflow
+from .components import Agent, Algorithm, Monitor, Problem, Workflow
 from .module import ModuleBase, Mutable, Parameter, compile, use_state, vmap

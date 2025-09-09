@@ -85,6 +85,21 @@ class Workflow(ModuleBase, ABC):
         return self.step()
 
 
+class Agent(ModuleBase, ABC):
+    """The base class for agents,
+    representing an individual entity with its own state (memory) and behavior (act method).
+    The state of the agent is stored in `self`, the act method defines how the agent interacts with its environment."""
+
+    def act(self, *args, **kwargs) -> Any:
+        """The function to act according to the observation.
+
+        :param observation: The observation.
+
+        :return: The action.
+        """
+        pass
+
+
 class Monitor(ModuleBase, ABC):
     """
     The monitor base class.
