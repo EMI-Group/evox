@@ -1,9 +1,56 @@
 import torch
 
-from evox.core import Algorithm, Mutable, Parameter
-from evox.utils import clamp
+from evox.agents import Particle
+from evox.core import Algorithm, Parameter, use_state, vmap
 
-from .utils import min_by
+
+class PSOAgent(Particle):
+    """A particle agent for PSO algorithm.
+    The particle maintains its position, velocity, personal best position, and personal best fitness.
+    """
+
+    def __init__(self, init_position, init_velocity):
+        super().__init__(init_position, init_velocity)
+        self.global_best_pos = init_position
+        self.global_best_fit = torch.tensor(torch.inf)
+
+    def observe_global(self, global_best_pos, global_best_fit):
+        """Update the particle's knowledge of the global best position."""
+        self.global_best_pos = global_best_pos
+        self.global_best_fit = global_best_fit
+
+    def move(self, w, phi_p, phi_g):
+        """Update the particle's velocity and position based on inertia, cognitive, and social components."""
+        dim = self.position.shape[0]
+        rg = torch.rand(dim, device=self.position.device)
+        rp = torch.rand(dim, device=self.position.device)
+        self.velocity = (
+            w * self.velocity
+            + phi_p * rp * (self.best_pos - self.position)
+            + phi_g * rg * (self.global_best_pos - self.position)
+        )
+        self.position = self.position + self.velocity
+
+    def clamp(self, lb, ub):
+        """Clamp the particle's position and velocity within the given bounds.
+        Here we implement the reflective boundary condition (bounce-back).
+        """
+        self.position = torch.where(self.position < lb, 2 * lb - self.position, self.position)
+        self.position = torch.where(self.position > ub, 2 * ub - self.position, self.position)
+        self.velocity = torch.where(self.position < lb, -self.velocity, self.velocity)
+        self.velocity = torch.where(self.position > ub, -self.velocity, self.velocity)
+
+    def get_position(self):
+        return self.position
+
+
+def vmap_agent_run(agents, func, *args):
+    agents = vmap(use_state(func))(agents, *args)
+    return agents
+
+
+def lockstep(agents, func, args, *, in_dims=0, randomness="different"):
+    return vmap(use_state(func), in_dims=in_dims, randomness=randomness)(agents, *args)
 
 
 class PSO(Algorithm):
@@ -59,14 +106,10 @@ class PSO(Algorithm):
         # write to self
         self.lb = lb
         self.ub = ub
-        # mutable
-        self.pop = Mutable(pop)
-        self.velocity = Mutable(velocity)
-        self.fit = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
-        self.local_best_location = Mutable(pop)
-        self.local_best_fit = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
-        self.global_best_location = Mutable(pop[0])
-        self.global_best_fit = Mutable(torch.tensor(torch.inf, device=device))
+        # Initialize population and velocity
+        self.particles = [PSOAgent(p, v) for p, v in zip(pop, velocity)]
+        particle_state = torch.func.stack_module_state(self.particles)
+        self.particle_state = particle_state[0] | particle_state[1]
 
     def step(self):
         """
@@ -86,30 +129,34 @@ class PSO(Algorithm):
         the cognitive component (personal best), and the social component (global
         best). The population positions are then updated using the new velocities.
         """
-        compare = self.local_best_fit > self.fit
-        self.local_best_location = torch.where(compare[:, None], self.pop, self.local_best_location)
-        self.local_best_fit = torch.where(compare, self.fit, self.local_best_fit)
-        self.global_best_location, self.global_best_fit = min_by(
-            [self.global_best_location.unsqueeze(0), self.pop],
-            [self.global_best_fit.unsqueeze(0), self.fit],
+        all_local_best_fit = self.particle_state["best_fit"]
+        all_local_best_pos = self.particle_state["best_pos"]
+        global_best_fit = torch.min(all_local_best_fit)
+        global_best_pos = all_local_best_pos[torch.argmin(all_local_best_fit)]
+        self.particle_state = lockstep(
+            self.particle_state,
+            self.particles[0].observe_global,
+            in_dims=(0, None, None),
+            args=(global_best_pos, global_best_fit),
         )
-        rg = torch.rand(self.pop_size, self.dim, device=self.fit.device)
-        rp = torch.rand(self.pop_size, self.dim, device=self.fit.device)
-        velocity = (
-            self.w * self.velocity
-            + self.phi_p * rp * (self.local_best_location - self.pop)
-            + self.phi_g * rg * (self.global_best_location - self.pop)
+        self.particle_state = lockstep(
+            self.particle_state, self.particles[0].move, in_dims=(0, None, None, None), args=(self.w, self.phi_p, self.phi_g)
         )
-        pop = self.pop + velocity
-        self.pop = clamp(pop, self.lb, self.ub)
-        self.velocity = clamp(velocity, self.lb, self.ub)
-        self.fit = self.evaluate(self.pop)
+        self.particle_state = lockstep(
+            self.particle_state, self.particles[0].clamp, in_dims=(0, None, None), args=(self.lb, self.ub)
+        )
+        _, position = lockstep(self.particle_state, self.particles[0].get_position, ())
+        fit = self.evaluate(position)
+        self.particle_state = lockstep(self.particle_state, self.particles[0].observe_self, in_dims=0, args=(fit,))
 
     def init_step(self):
         """Perform the first step of the PSO optimization.
 
         See `step` for more details.
         """
-        self.fit = self.evaluate(self.pop)
-        self.local_best_fit = self.fit
-        self.global_best_location, self.global_best_fit = min_by([self.pop], [self.fit])
+        _, position = lockstep(self.particle_state, self.particles[0].get_position, ())
+        fit = self.evaluate(position)
+        self.particle_state = lockstep(self.particle_state, self.particles[0].observe_self, in_dims=0, args=(fit,))
+
+    def record_step(self):
+        return self.particles
