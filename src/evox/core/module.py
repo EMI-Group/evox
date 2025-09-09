@@ -173,21 +173,37 @@ class _ReplaceForwardModule(nn.Module):
         return self.new_forward(self._inner_module, *args, **kwargs)
 
 
-def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
-    """Transform a `torch.nn.Module`'s method or an `torch.nn.Module` into a stateful function.
+def use_state(stateful_func: Union[Callable, nn.Module], tie_weights: bool = True, strict: bool = False) -> Callable:
+    """Transform a `torch.nn.Module`'s method or a `torch.nn.Module` into a stateful function.
+
     When using `torch.nn.Module`, the stateful version of the default `forward` method will be created.
     The stateful function will have a signature of `fn(params_and_buffers, *args, **kwargs) -> params_and_buffers | Tuple[params_and_buffers, <original_returns>]]`.
 
+    :param stateful_func: The ``torch.nn.Module`` or a method of a ``torch.nn.Module`` to be transformed.
+    :param tie_weights: If True, then parameters and buffers tied in the original model will be
+                        treated as tied in the reparameterized version. Therefore, if True and
+                        different values are passed for the tied parameters and buffers, it will error.
+                        If False, it will not respect the originally tied parameters and buffers
+                        unless the values passed for both weights are the same. Defaults to True.
+    :param strict: If True, then the parameters and buffers passed in must match the parameters
+                    and buffers in the original module. Therefore, if True and there are any
+                    missing or unexpected keys, it will error. Defaults to False.
+    :return: A new stateful function. It takes the module's state (a dictionary of parameters
+            and buffers) as the first argument, followed by the original arguments. It returns
+            the updated state. If the original function returned a value, it returns a tuple
+            containing the updated state and the original return value.
+
     ## Examples
 
-    ```python
-    from evox import use_state, vmap
-    workflow = ... # define your workflow
-    stateful_step = use_state(workflow.step)
-    vmap_stateful_step = vmap(stateful_step)
-    batch_state = torch.func.stack_module_states([workflow] * 3)
-    new_batch_state = vmap_stateful_step(batch_state)
-    ```
+    .. code-block:: python
+
+        from evox import use_state, vmap
+        workflow = ... # define your workflow
+        stateful_step = use_state(workflow.step)
+        vmap_stateful_step = vmap(stateful_step)
+        batch_state = torch.func.stack_module_states([workflow] * 3)
+        new_batch_state = vmap_stateful_step(batch_state)
+
     """
     if not isinstance(stateful_func, torch.nn.Module):
         module: torch.nn.Module = stateful_func.__self__
@@ -202,7 +218,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
 
     def wrapper(params_and_buffers: Dict[str, torch.Tensor], *args, **kwargs):
         params_and_buffers = {("_inner_module." + k): v for k, v in params_and_buffers.items()}
-        output = torch.func.functional_call(module, params_and_buffers, args, kwargs)
+        output = torch.func.functional_call(module, params_and_buffers, args, kwargs, tie_weights=tie_weights, strict=strict)
         params_and_buffers = {k[len("_inner_module.") :]: v for k, v in params_and_buffers.items()}
         if output is None:
             return params_and_buffers
