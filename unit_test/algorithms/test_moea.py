@@ -62,7 +62,9 @@ class TestMOVariants(MOTestBase):
     def test_nsga3(self):
         algo = NSGA3(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
         self.run_algorithm(algo)
-        self.run_compiled_algorithm(algo)
+        # Inductor Compiler Fails on with torch.randperm + Advanced Indexing
+        # https://github.com/pytorch/pytorch/issues/158457
+        # self.run_compiled_algorithm(algo)
 
     def test_rvea(self):
         algo = RVEA(pop_size=self.pop_size, n_objs=3, lb=self.lb, ub=self.ub)
