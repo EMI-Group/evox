@@ -45,9 +45,7 @@ def Parameter(
     )
 
 
-def Mutable(
-    value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None
-) -> torch.Tensor:
+def Mutable(value: torch.Tensor, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> torch.Tensor:
     """Wraps a value as a mutable tensor.
     This is often used to label a value in an algorithm as a mutable tensor that may changes during iteration(s).
 
@@ -193,9 +191,9 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
     """
     if not isinstance(stateful_func, torch.nn.Module):
         module: torch.nn.Module = stateful_func.__self__
-        assert isinstance(module, torch.nn.Module), (
-            "`stateful_func` must be a `torch.nn.Module` or a method of a `torch.nn.Module`"
-        )
+        assert isinstance(
+            module, torch.nn.Module
+        ), "`stateful_func` must be a `torch.nn.Module` or a method of a `torch.nn.Module`"
         new_forward = stateful_func.__func__
     else:
         module = stateful_func
@@ -204,7 +202,7 @@ def use_state(stateful_func: Union[Callable, nn.Module]) -> Callable:
 
     def wrapper(params_and_buffers: Dict[str, torch.Tensor], *args, **kwargs):
         params_and_buffers = {("_inner_module." + k): v for k, v in params_and_buffers.items()}
-        output = torch.func.functional_call(module, params_and_buffers, *args, **kwargs)
+        output = torch.func.functional_call(module, params_and_buffers, args, kwargs)
         params_and_buffers = {k[len("_inner_module.") :]: v for k, v in params_and_buffers.items()}
         if output is None:
             return params_and_buffers
