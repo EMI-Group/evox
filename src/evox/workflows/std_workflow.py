@@ -8,9 +8,13 @@ import torch
 from evox.core import Algorithm, Monitor, Problem, Workflow
 
 
-class _NegModule(torch.nn.Module):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return -x
+class OptDirectionTransform(torch.nn.Module):
+    def __init__(self, opt_direction):
+        super().__init__()
+        self.opt_direction = opt_direction
+
+    def forward(self, fitness: torch.Tensor) -> torch.Tensor:
+        return fitness * self.opt_direction
 
 
 class StdWorkflow(Workflow):
@@ -49,7 +53,7 @@ class StdWorkflow(Workflow):
         algorithm: Algorithm,
         problem: Problem,
         monitor: Monitor | None = None,
-        opt_direction: str = "min",
+        opt_direction: str | list[str] = "min",
         solution_transform: torch.nn.Module | None = None,
         fitness_transform: torch.nn.Module | None = None,
         device: str | torch.device | int | None = None,
@@ -79,20 +83,29 @@ class StdWorkflow(Workflow):
         ```
         """
         super().__init__()
-        assert opt_direction in [
-            "min",
-            "max",
-        ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
-        self.opt_direction = 1 if opt_direction == "min" else -1
         if device is None:
             device = torch.get_default_device()
+
+        if isinstance(opt_direction, str):
+            assert opt_direction in [
+                "min",
+                "max",
+            ], f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
+            self.opt_direction = torch.tensor(1 if opt_direction == "min" else -1, device=device)
+        elif isinstance(opt_direction, list):
+            assert all(d in ["min", "max"] for d in opt_direction), (
+                f"Expect optimization direction to be `min` or `max`, got {opt_direction}"
+            )
+            self.opt_direction = torch.tensor([1 if d == "min" else -1 for d in opt_direction], device=device)
+
         # transform
         if solution_transform is None:
             solution_transform = torch.nn.Identity()
         if fitness_transform is None:
             fitness_transform = torch.nn.Identity()
-        if self.opt_direction == -1:
-            fitness_transform = torch.nn.Sequential(_NegModule(), fitness_transform)
+
+        fitness_transform = torch.nn.Sequential(OptDirectionTransform(self.opt_direction), fitness_transform)
+
         assert callable(solution_transform), f"Expect solution transform to be callable, got {solution_transform}"
         assert callable(fitness_transform), f"Expect fitness transform to be callable, got {fitness_transform}"
 
@@ -167,7 +180,7 @@ class StdWorkflow(Workflow):
         self.monitor.pre_tell(fitness)
         return fitness
 
-    def _step(self, init: bool=False, final: bool=False):
+    def _step(self, init: bool = False, final: bool = False):
         if init and self._has_init_:
             self.algorithm.init_step()
         elif final and self._has_final_:

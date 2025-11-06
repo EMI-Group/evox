@@ -21,12 +21,22 @@ class BasicProblem(Problem):
         return self._eval_fn(pop)
 
 
+class BasicMOPProblem(Problem):
+    def __init__(self):
+        super().__init__()
+        self._eval_fn = vmap(BasicMOPProblem._single_eval)
+
+    def _single_eval(x: torch.Tensor):
+        return torch.stack([(x**2).sum(), ((x - 2) ** 2).sum()], dim=0)
+
+    def evaluate(self, pop: torch.Tensor):
+        return self._eval_fn(pop)
+
+
 class BasicAlgorithm(Algorithm):
     def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
         super().__init__()
-        assert lb.ndim == 1 and ub.ndim == 1, (
-            f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
-        )
+        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
         assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
         self.pop_size = pop_size
         self.lb = lb
@@ -42,16 +52,42 @@ class BasicAlgorithm(Algorithm):
         self.fit = self.evaluate(pop)
 
 
+class BasicMOPAlgorithm(Algorithm):
+    def __init__(self, pop_size: int, lb: torch.Tensor, ub: torch.Tensor):
+        super().__init__()
+        assert lb.ndim == 1 and ub.ndim == 1, f"Lower and upper bounds shall have ndim of 1, got {lb.ndim} and {ub.ndim}"
+        assert lb.shape == ub.shape, f"Lower and upper bounds shall have same shape, got {lb.ndim} and {ub.ndim}"
+        self.pop_size = pop_size
+        self.lb = lb
+        self.ub = ub
+        self.dim = lb.shape[0]
+        self.pop = Mutable(torch.empty(self.pop_size, lb.shape[0], dtype=lb.dtype, device=lb.device))
+        self.fit = Mutable(torch.empty(self.pop_size, 2, dtype=lb.dtype, device=lb.device))
+
+    def step(self):
+        pop = torch.rand(self.pop_size, self.dim, dtype=self.lb.dtype, device=self.lb.device)
+        pop = pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
+        self.pop = pop
+        self.fit = self.evaluate(pop)
+
+
 class TestStdWorkflow(unittest.TestCase):
     def setUp(self):
         torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
         self.algo = BasicAlgorithm(10, -10 * torch.ones(2), 10 * torch.ones(2))
         self.prob = BasicProblem()
+        self.mo_prob = BasicMOPProblem()
         self.monitor = EvalMonitor()
         self.workflow = StdWorkflow(self.algo, self.prob, monitor=self.monitor)
+        self.mo_workflow = StdWorkflow(self.algo, self.mo_prob, monitor=self.monitor, opt_direction=["min", "max"])
 
     def test_basic_workflow(self):
         compiled_step = torch.compile(self.workflow.step)
+        for _ in range(3):
+            compiled_step()
+
+    def test_basic_multiple_objective_workflow(self):
+        compiled_step = torch.compile(self.mo_workflow.step)
         for _ in range(3):
             compiled_step()
 

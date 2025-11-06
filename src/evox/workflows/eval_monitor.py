@@ -126,7 +126,7 @@ class EvalMonitor(Monitor):
         self.full_fit_history = full_fit_history
         self.full_sol_history = full_sol_history
         self.full_pop_history = full_pop_history
-        self.opt_direction = 1
+        self.opt_direction = torch.tensor(1)
         self.topk = topk
         self.device = device
         self.history_device = history_device
@@ -252,7 +252,8 @@ class EvalMonitor(Monitor):
 
     def get_latest_fitness(self) -> torch.Tensor:
         """Get the fitness values from the latest iteration."""
-        return self.opt_direction * self.latest_fitness
+        opt_dir = self.opt_direction.to(self.device)
+        return opt_dir * self.latest_fitness
 
     def get_latest_solution(self) -> torch.Tensor:
         """Get the solution from the latest iteration."""
@@ -260,7 +261,8 @@ class EvalMonitor(Monitor):
 
     def get_topk_fitness(self) -> torch.Tensor:
         """Get the topk fitness values so far."""
-        return self.opt_direction * self.topk_fitness
+        opt_dir = self.opt_direction.to(self.device)
+        return opt_dir * self.topk_fitness
 
     def get_topk_solutions(self) -> torch.Tensor:
         """Get the topk solutions so far."""
@@ -278,7 +280,9 @@ class EvalMonitor(Monitor):
         """Get the best fitness value so far."""
         if self.multi_obj:
             raise ValueError("Multi-objective optimization does not have a single best fitness. Please use get_pf_fitness")
-        return self.opt_direction * self.topk_fitness[0]
+
+        opt_dir = self.opt_direction.to(self.device)
+        return opt_dir * self.topk_fitness[0]
 
     def get_pf_fitness(self, deduplicate=True) -> torch.Tensor:
         """Get the approximate pareto front fitness values of all the solutions evaluated so far.
@@ -293,7 +297,8 @@ class EvalMonitor(Monitor):
             all_fitness = torch.unique(all_fitness, dim=0)
         rank = non_dominate_rank(all_fitness)
         pf_fit = all_fitness[rank == 0]
-        return pf_fit * self.opt_direction
+        opt_dir = self.opt_direction.to(self.history_device)
+        return pf_fit * opt_dir
 
     def get_pf_solutions(self, deduplicate=True) -> torch.Tensor:
         """Get the approximate pareto front solutions of all the solutions evaluated so far.
@@ -325,11 +330,13 @@ class EvalMonitor(Monitor):
         rank = non_dominate_rank(all_fitness)
         pf_fitness = all_fitness[rank == 0]
         pf_solutions = all_solutions[rank == 0]
-        return pf_solutions, pf_fitness * self.opt_direction
+        opt_dir = self.opt_direction.to(self.history_device)
+        return pf_solutions, pf_fitness * opt_dir
 
     def get_fitness_history(self) -> List[torch.Tensor]:
         """Get the full history of fitness values."""
-        return [self.opt_direction * fit for fit in self.fitness_history]
+        opt_dir = self.opt_direction.to(self.history_device)
+        return [opt_dir * fit for fit in self.fitness_history]
 
     def get_solution_history(self) -> List[torch.Tensor]:
         """Get the full history of solutions."""
