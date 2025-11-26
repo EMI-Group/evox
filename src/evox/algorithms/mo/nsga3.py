@@ -1,4 +1,5 @@
 from typing import Callable, Optional
+from collections import namedtuple
 
 import torch
 
@@ -187,34 +188,45 @@ class NSGA3(Algorithm):
 
         # first selection stage
         rho_level = 0
-        _selected_ref = rho == rho_level
-        selected_ref = torch.where(_selected_ref, row_indices, upper_bound)
-        candi_idx = vmap_select_from_index_by_min(group_id, group_dist, selected_ref)
-        rank[candi_idx[_selected_ref]] = worst_rank - 1
-        rho_last = torch.where(_selected_ref, rho_last - 1, rho_last)
-        rho = torch.where(_selected_ref, rho_level + 1, rho)
+        selected_ref = rho == rho_level
+        candi_idx = vmap_select_from_index_by_min(group_id, group_dist, torch.where(selected_ref, row_indices, upper_bound))
+        rank[candi_idx[selected_ref]] = worst_rank - 1
+        rho_last = torch.where(selected_ref, rho_last - 1, rho_last)
+        rho = torch.where(selected_ref, rho_level + 1, rho)
         rho = torch.where(rho_last == 0, upper_bound, rho)
-        selected_num += torch.sum(_selected_ref)
+        selected_num += torch.sum(selected_ref)
 
         # second selection stage
-        group_id[candi_idx[_selected_ref]] = upper_bound
+        group_id[candi_idx[selected_ref]] = upper_bound
         bool_ref_candidates = row_indices[:, None] == group_id[None, :]
         ref_candidates = vmap_get_table_row(bool_ref_candidates, upper_bound)
         ref_cand_idx = torch.zeros_like(rho)
-        while selected_num < self.pop_size:
+
+        LoopState = namedtuple("LoopState", ["selected_num", "ref_cand_idx", "rho_last", "rho", "selected_ref", "candi_idx"])
+
+        def cond_func(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
+            return selected_num < self.pop_size
+
+        def body_func(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
             rho_level = torch.min(rho)
-            _selected_ref = rho == rho_level
+            selected_ref = rho == rho_level
             candi_idx = ref_candidates[row_indices, ref_cand_idx]
-            rank[candi_idx[_selected_ref]] = worst_rank - 1
-            ref_cand_idx = torch.where(_selected_ref, ref_cand_idx + 1, ref_cand_idx)
-            rho_last = torch.where(_selected_ref, rho_last - 1, rho_last)
-            rho = torch.where(_selected_ref, rho_level + 1, rho)
+            rank[candi_idx[selected_ref]] = worst_rank - 1
+            ref_cand_idx = torch.where(selected_ref, ref_cand_idx + 1, ref_cand_idx)
+            rho_last = torch.where(selected_ref, rho_last - 1, rho_last)
+            rho = torch.where(selected_ref, rho_level + 1, rho)
             rho = torch.where(rho_last == 0, upper_bound, rho)
-            selected_num += torch.sum(_selected_ref)
+            selected_num += torch.sum(selected_ref)
+            return LoopState(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
+
+        loop_state = LoopState(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
+
+        loop_state = torch.while_loop(cond_func, body_func, loop_state)
+        (selected_num, _, _, _, selected_ref, candi_idx) = loop_state
 
         # truncate to pop_size
         dif = selected_num - self.pop_size
-        candi_idx = torch.where(_selected_ref, candi_idx, upper_bound)
+        candi_idx = torch.where(selected_ref, candi_idx, upper_bound)
         sorted_index = torch.sort(candi_idx, stable=False)[0]
         rank[sorted_index[:dif]] = worst_rank
 

@@ -97,7 +97,9 @@ def _transform_scalar_index(ori_index: Sequence[Any | torch.Tensor] | Any | torc
             any_scalar_tensor = True
         else:
             new_index.append(idx)
-    if not isinstance(ori_index, Sequence):
+    if isinstance(ori_index, Sequence):
+        new_index = tuple(new_index)  # Convert to tuple, as required by newer PyTorch versions
+    else:
         new_index = new_index[0]
     return new_index, any_scalar_tensor
 
