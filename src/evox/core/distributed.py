@@ -1,12 +1,9 @@
 import numpy as np
 import jax
-import jax.tree_util as jtu
 
 from jax.sharding import Mesh
 from jax.sharding import PartitionSpec as P
-from jax.sharding import NamedSharding, PositionalSharding
-from jax.experimental import mesh_utils
-from jax.experimental.shard_map import shard_map
+from jax.sharding import NamedSharding
 
 from jax._src.distributed import global_state
 
@@ -39,7 +36,6 @@ class ShardingType(Enum):
             sharding = NamedSharding(mesh, P(POP_AXIS_NAME))
         elif self == ShardingType.REPLICATED:
             sharding = NamedSharding(mesh, P())
-            # sharding = PositionalSharding(devices).replicate()
         else:
             raise ValueError(f"Unknown sharding type: {self}")
 
