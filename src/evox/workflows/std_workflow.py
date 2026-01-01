@@ -382,5 +382,6 @@ class StdWorkflow(Workflow):
 
         sharding = state.get_sharding(devices)
         state = jax.device_put(state, sharding)
+        self.set_frozen_attr("_pmap_axis_name", POP_AXIS_NAME)
 
         return state
