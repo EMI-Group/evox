@@ -25,3 +25,4 @@ tests/test_.py
 tests/log.txt
 .ipynb_checkpoints/
 /*.py
+.venv
