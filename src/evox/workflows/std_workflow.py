@@ -159,17 +159,6 @@ class StdWorkflow(Workflow):
             cands, state = self._ask(state)
 
             if self.multi_device_config:
-                if jax.process_count() > 1:
-                    assert (
-                        cands.shape[0] % jax.process_count() == 0
-                    ), "The population size must be divisible by the number of nodes"
-                    start_idx = (
-                        jax.process_index() * cands.shape[0] // jax.process_count()
-                    )
-                    slice_size = cands.shape[0] // jax.process_count()
-                    cands = jax.lax.dynamic_slice_in_dim(
-                        cands, start_idx, slice_size, axis=0
-                    )
                 # when using multi devices
                 # force the candidates to be sharded along the first axis
                 cands = jax.lax.with_sharding_constraint(
@@ -189,23 +178,6 @@ class StdWorkflow(Workflow):
             fitness, state = self._evaluate(state, transformed_cands)
 
             if self.multi_device_config:
-                if jax.process_count() > 1:
-                    full_fitness_shape = (
-                        jax.process_count() * fitness.shape[0],
-                        *fitness.shape[1:],
-                    )
-                    full_fitness_return_type = jax.ShapeDtypeStruct(
-                        full_fitness_shape,
-                        dtype=fitness.dtype,
-                    )
-                    fitness = jax.experimental.io_callback(
-                        partial(
-                            jax.experimental.multihost_utils.process_allgather,
-                            tiled=True,
-                        ),
-                        full_fitness_return_type,
-                        fitness,
-                    )
                 # when using multi devices
                 # force the fitness to be replicated
                 fitness = jax.lax.with_sharding_constraint(
