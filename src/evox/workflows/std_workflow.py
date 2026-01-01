@@ -125,7 +125,6 @@ class StdWorkflow(Workflow):
     # inner
     _step: Callable[[State], State] = pytree_field(static=True, init=False)
     _registered_hooks: dict = pytree_field(static=True, init=False)
-    _pmap_axis_name: str = pytree_field(static=True, init=False)
     _opt_direction_mask: jnp.array = pytree_field(init=False)
 
     def __post_init__(self):
@@ -272,7 +271,6 @@ class StdWorkflow(Workflow):
                 transformed_cands,
             )
 
-        fitness = all_gather(fitness, self._pmap_axis_name, axis=0, tiled=True)
         fitness = fitness * self._opt_direction_mask
 
         return fitness, state
@@ -382,6 +380,5 @@ class StdWorkflow(Workflow):
 
         sharding = state.get_sharding(devices)
         state = jax.device_put(state, sharding)
-        self.set_frozen_attr("_pmap_axis_name", POP_AXIS_NAME)
 
         return state
