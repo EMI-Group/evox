@@ -477,7 +477,7 @@ class StdWorkflow(Workflow):
         )
 
         # Create a mesh spanning all specified devices
-        mesh = Mesh(np.asarray(devices), axis_names=(POP_AXIS_NAME,))
+        mesh = Mesh(devices, axis_names=(POP_AXIS_NAME,))
 
         # P() means replicate data across all devices in the mesh
         replicated_sharding = NamedSharding(mesh, P())
