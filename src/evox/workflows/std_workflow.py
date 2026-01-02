@@ -227,7 +227,7 @@ class StdWorkflow(Workflow):
 
         def _step_shmap(self, state):
             # 1. Setup the Mesh
-            mesh = Mesh(np.asarray(self.multi_device_config.devices), axis_names=(POP_AXIS_NAME,))
+            mesh = Mesh(self.multi_device_config.devices, axis_names=(POP_AXIS_NAME,))
 
             # 2. Define the shmapped function
             # in_specs: (Algorithm, Problem, WorkflowState)
