@@ -232,21 +232,21 @@ class StdWorkflow(Workflow):
             @partial(
                 shard_map,
                 mesh=mesh,
-                in_specs=P(), # Replicate the entire unified state across all devices
+                in_specs=[None, P()], # Replicate the entire unified state across all devices
                 out_specs=P(), # Return a replicated state to keep all ranks in lockstep
             )
-            def shmap_inner(st):
+            def shmap_inner(self, state):
                 # 1. Hooks and Ask
-                st = self_static._pre_step_hook(st)
-                st = self_static._pre_ask_hook(st)
+                state = self._pre_step_hook(state)
+                state = self._pre_ask_hook(state)
 
                 # Every GPU runs 'ask' on the replicated state (results are identical)
-                if has_init_ask(self_static.algorithm) and st.first_step:
-                    cands, st = use_state(self_static.algorithm.init_ask)(st)
+                if has_init_ask(self.algorithm) and state.first_step:
+                    cands, state = use_state(self.algorithm.init_ask)(state)
                 else:
-                    cands, st = use_state(self_static.algorithm.ask)(st)
+                    cands, state = use_state(self.algorithm.ask)(state)
 
-                st = self_static._post_ask_hook(st, cands)
+                state = self._post_ask_hook(state, cands)
 
                 # 2. Local Sharding Logic
                 num_devices = jax.lax.psum(1, POP_AXIS_NAME)
@@ -260,37 +260,36 @@ class StdWorkflow(Workflow):
 
                 # 3. Local Evaluation
                 transformed_cands = local_cands
-                for transform in self_static.solution_transforms:
+                for transform in self.solution_transforms:
                     transformed_cands = transform(transformed_cands)
 
-                st = self_static._pre_eval_hook(st, transformed_cands)
-                local_fitness, st = use_state(self_static.problem.evaluate)(st, transformed_cands)
-                st = self_static._post_eval_hook(st, local_fitness)
+                state = self._pre_eval_hook(state, transformed_cands)
+                local_fitness, state = use_state(self.problem.evaluate)(state, transformed_cands)
+                state = self._post_eval_hook(state, local_fitness)
 
                 # 4. Explicit Collective Synchronization
                 # This is the single, manual sync point. We gather all local fitnesses.
                 global_fitness = jax.lax.all_gather(local_fitness, POP_AXIS_NAME, axis=0)
 
                 # 5. Replicated Update (Tell)
-                transformed_fitness = global_fitness * self_static._opt_direction_mask
-                for transform in self_static.fitness_transforms:
+                transformed_fitness = global_fitness * self._opt_direction_mask
+                for transform in self.fitness_transforms:
                     transformed_fitness = transform(transformed_fitness)
 
-                st = self_static._pre_tell_hook(st, transformed_fitness)
-                if has_init_tell(self_static.algorithm) and st.first_step:
-                    st = use_state(self_static.algorithm.init_tell)(st, transformed_fitness)
+                state = self._pre_tell_hook(state, transformed_fitness)
+                if has_init_tell(self.algorithm) and state.first_step:
+                    state = use_state(self.algorithm.init_tell)(state, transformed_fitness)
                 else:
-                    st = use_state(self_static.algorithm.tell)(st, transformed_fitness)
-
-                st = self_static._post_tell_hook(st)
+                    state = use_state(self.algorithm.tell)(state, transformed_fitness)
+                state = self._post_tell_hook(state)
 
                 # 6. Update Metadata
-                new_gen = st.generation + 1
-                is_first = False if has_init_ask(self_static.algorithm) else st.first_step
-                st = st.replace(generation=new_gen, first_step=is_first)
+                new_gen = state.generation + 1
+                is_first = False if has_init_ask(self.algorithm) else state.first_step
+                state = state.replace(generation=new_gen, first_step=is_first)
 
-                st = self_static._post_step_hook(st)
-                return st
+                state = self._post_step_hook(state)
+                return state
 
             return shmap_inner(state)
 
