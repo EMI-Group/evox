@@ -124,6 +124,7 @@ class StdWorkflow(Workflow):
         default=None, static=True
     )
     migrate_helper: Optional[Callable] = pytree_field(default=None, static=True)
+    check_vma: bool = pytree_field(default=True, static=True)
 
     # inner
     _step: Callable[[State], State] = pytree_field(static=True, init=False)
@@ -234,6 +235,7 @@ class StdWorkflow(Workflow):
                 mesh=mesh,
                 in_specs=(None, P()), # Replicate the entire unified state across all devices
                 out_specs=P(), # Return a replicated state to keep all ranks in lockstep
+                check_vma=self.check_vma,
             )
             def shmap_inner(self, state):
                 # 1. Hooks and Ask
