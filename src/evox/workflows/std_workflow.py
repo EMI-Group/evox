@@ -229,90 +229,70 @@ class StdWorkflow(Workflow):
             # 1. Setup the Mesh
             mesh = Mesh(self.multi_device_config.devices, axis_names=(POP_AXIS_NAME,))
 
-            # 2. Define the shmapped function
-            # in_specs: (Algorithm, Problem, WorkflowState)
-            # We replicate everything (P()) to keep internal logic simple and synced
             @partial(
                 shard_map,
                 mesh=mesh,
-                in_specs=(P(), P(), P()),
-                out_specs=(P(), P(), P()),
+                in_specs=P(), # Replicate the entire unified state across all devices
+                out_specs=P(), # Return a replicated state to keep all ranks in lockstep
             )
-            def shmap_inner(algo_st, prob_st, flow_st):
-                # --- HOOKS (Local to each device) ---
-                flow_st = self._pre_step_hook(flow_st)
-                flow_st = self._pre_ask_hook(flow_st)
+            def shmap_inner(st):
+                # 1. Hooks and Ask
+                st = self_static._pre_step_hook(st)
+                st = self_static._pre_ask_hook(st)
 
-                # --- ASK ---
-                # Every GPU generates the FULL candidate list (Replicated)
-                if has_init_ask(self.algorithm) and flow_st.first_step:
-                    cands, algo_st = use_state(self.algorithm.init_ask)(algo_st)
+                # Every GPU runs 'ask' on the replicated state (results are identical)
+                if has_init_ask(self_static.algorithm) and st.first_step:
+                    cands, st = use_state(self_static.algorithm.init_ask)(st)
                 else:
-                    cands, algo_st = use_state(self.algorithm.ask)(algo_st)
+                    cands, st = use_state(self_static.algorithm.ask)(st)
 
-                flow_st = self._post_ask_hook(flow_st, cands)
+                st = self_static._post_ask_hook(st, cands)
 
-                # --- LOCAL SHARDING ---
-                # Each GPU identifies its slice of the workload
+                # 2. Local Sharding Logic
                 num_devices = jax.lax.psum(1, POP_AXIS_NAME)
                 device_id = jax.lax.axis_index(POP_AXIS_NAME)
-                total_cands = cands.shape[0]
-                shard_size = total_cands // num_devices
+                shard_size = cands.shape[0] // num_devices
 
-                # Slice candidates along the first dimension
+                # Each GPU identifies its local slice of candidates to evaluate
                 local_cands = jax.lax.dynamic_slice_in_dim(
                     cands, device_id * shard_size, shard_size, axis=0
                 )
 
-                # --- TRANSFORMS (Local) ---
+                # 3. Local Evaluation
                 transformed_cands = local_cands
-                for transform in self.solution_transforms:
+                for transform in self_static.solution_transforms:
                     transformed_cands = transform(transformed_cands)
 
-                # --- EVALUATE (Local) ---
-                flow_st = self._pre_eval_hook(flow_st, transformed_cands)
-                local_fitness, prob_st = use_state(self.problem.evaluate)(prob_st, transformed_cands)
-                flow_st = self._post_eval_hook(flow_st, local_fitness)
+                st = self_static._pre_eval_hook(st, transformed_cands)
+                local_fitness, st = use_state(self_static.problem.evaluate)(st, transformed_cands)
+                st = self_static._post_eval_hook(st, local_fitness)
 
-                # --- COLLECTIVE: ALL GATHER ---
-                # Explicit sync point: combine local fitnesses into the full array
+                # 4. Explicit Collective Synchronization
+                # This is the single, manual sync point. We gather all local fitnesses.
                 global_fitness = jax.lax.all_gather(local_fitness, POP_AXIS_NAME, axis=0)
 
-                # --- TRANSFORM FITNESS (Replicated) ---
-                transformed_fitness = global_fitness * self._opt_direction_mask
-                for transform in self.fitness_transforms:
+                # 5. Replicated Update (Tell)
+                transformed_fitness = global_fitness * self_static._opt_direction_mask
+                for transform in self_static.fitness_transforms:
                     transformed_fitness = transform(transformed_fitness)
 
-                # --- TELL (Replicated) ---
-                flow_st = self._pre_tell_hook(flow_st, transformed_fitness)
-                if has_init_tell(self.algorithm) and flow_st.first_step:
-                    algo_st = use_state(self.algorithm.init_tell)(algo_st, transformed_fitness)
+                st = self_static._pre_tell_hook(st, transformed_fitness)
+                if has_init_tell(self_static.algorithm) and st.first_step:
+                    st = use_state(self_static.algorithm.init_tell)(st, transformed_fitness)
                 else:
-                    algo_st = use_state(self.algorithm.tell)(algo_st, transformed_fitness)
-                flow_st = self._post_tell_hook(flow_st)
+                    st = use_state(self_static.algorithm.tell)(st, transformed_fitness)
 
-                # Update generation counter
-                new_gen = flow_st.generation + 1
-                is_first = False if has_init_ask(self.algorithm) else flow_st.first_step
-                flow_st = flow_st.replace(generation=new_gen, first_step=is_first)
+                st = self_static._post_tell_hook(st)
 
-                flow_st = self._post_step_hook(flow_st)
+                # 6. Update Metadata
+                new_gen = st.generation + 1
+                is_first = False if has_init_ask(self_static.algorithm) else st.first_step
+                st = st.replace(generation=new_gen, first_step=is_first)
 
-                return algo_st, prob_st, flow_st
+                st = self_static._post_step_hook(st)
+                return st
 
-            # Extract sub-states for the shmap
-            algo_state = state.get_child_state("algorithm")
-            prob_state = state.get_child_state("problem")
-            workflow_state = state.get_child_state("workflow")
-
-            # Execute shmap
-            algo_state, prob_state, workflow_state = shmap_inner(algo_state, prob_state, workflow_state)
-
-            # Re-assemble state
-            state = state.replace_child("algorithm", algo_state)
-            state = state.replace_child("problem", prob_state)
-            state = state.replace_child("workflow", workflow_state)
-            return state
+            return shmap_inner(state)
 
         if self.jit_step:
             # the first argument is self, which should be static
