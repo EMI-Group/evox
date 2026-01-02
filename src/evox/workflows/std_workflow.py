@@ -271,7 +271,7 @@ class StdWorkflow(Workflow):
 
                 # 4. Explicit Collective Synchronization
                 # This is the single, manual sync point. We gather all local fitnesses.
-                global_fitness = jax.lax.all_gather(local_fitness, POP_AXIS_NAME, axis=0)
+                global_fitness = jax.lax.all_gather(local_fitness, POP_AXIS_NAME, axis=0, tiled=True)
 
                 # 5. Replicated Update (Tell)
                 transformed_fitness = global_fitness * self._opt_direction_mask
