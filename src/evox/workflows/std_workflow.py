@@ -291,7 +291,7 @@ class StdWorkflow(Workflow):
                 state = self._post_step_hook(state)
                 return state
 
-            return shmap_inner(state)
+            return shmap_inner(self, state)
 
         if self.jit_step:
             # the first argument is self, which should be static
@@ -408,7 +408,7 @@ class StdWorkflow(Workflow):
         if self.multi_device_config:
             state = self._shmap_step(self, state)
         else:
-            state = self._step(state)
+            state = self._step(self, state)
 
         if self.auto_exec_callbacks:
             state = state.execute_callbacks(state)
