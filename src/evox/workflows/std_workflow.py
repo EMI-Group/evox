@@ -9,7 +9,7 @@ import jax.experimental
 import jax.experimental.multihost_utils
 import jax.numpy as jnp
 import jax.tree_util as jtu
-from jax import lax
+from jax import lax, shard_map
 from jax.sharding import Mesh
 from jax.sharding import PartitionSpec as P
 from jax.sharding import NamedSharding
