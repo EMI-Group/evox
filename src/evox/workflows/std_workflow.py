@@ -237,7 +237,6 @@ class StdWorkflow(Workflow):
                 mesh=mesh,
                 in_specs=(P(), P(), P()),
                 out_specs=(P(), P(), P()),
-                check_rep=True # Ensures replicated states don't diverge
             )
             def shmap_inner(algo_st, prob_st, flow_st):
                 # --- HOOKS (Local to each device) ---
