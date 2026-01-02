@@ -232,7 +232,7 @@ class StdWorkflow(Workflow):
             @partial(
                 shard_map,
                 mesh=mesh,
-                in_specs=[None, P()], # Replicate the entire unified state across all devices
+                in_specs=(None, P()), # Replicate the entire unified state across all devices
                 out_specs=P(), # Return a replicated state to keep all ranks in lockstep
             )
             def shmap_inner(self, state):
