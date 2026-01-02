@@ -10,6 +10,9 @@ import jax.experimental.multihost_utils
 import jax.numpy as jnp
 import jax.tree_util as jtu
 from jax import lax
+from jax.sharding import Mesh
+from jax.sharding import PartitionSpec as P
+from jax.sharding import NamedSharding
 
 from evox import (
     Algorithm,
@@ -222,17 +225,109 @@ class StdWorkflow(Workflow):
 
             return state
 
+        def _step_shmap(self, state):
+            # 1. Setup the Mesh
+            mesh = Mesh(np.asarray(self.multi_device_config.devices), axis_names=(POP_AXIS_NAME,))
+
+            # 2. Define the shmapped function
+            # in_specs: (Algorithm, Problem, WorkflowState)
+            # We replicate everything (P()) to keep internal logic simple and synced
+            @partial(
+                shard_map,
+                mesh=mesh,
+                in_specs=(P(), P(), P()),
+                out_specs=(P(), P(), P()),
+                check_rep=True # Ensures replicated states don't diverge
+            )
+            def shmap_inner(algo_st, prob_st, flow_st):
+                # --- HOOKS (Local to each device) ---
+                flow_st = self._pre_step_hook(flow_st)
+                flow_st = self._pre_ask_hook(flow_st)
+
+                # --- ASK ---
+                # Every GPU generates the FULL candidate list (Replicated)
+                if has_init_ask(self.algorithm) and flow_st.first_step:
+                    cands, algo_st = use_state(self.algorithm.init_ask)(algo_st)
+                else:
+                    cands, algo_st = use_state(self.algorithm.ask)(algo_st)
+
+                flow_st = self._post_ask_hook(flow_st, cands)
+
+                # --- LOCAL SHARDING ---
+                # Each GPU identifies its slice of the workload
+                num_devices = jax.lax.psum(1, POP_AXIS_NAME)
+                device_id = jax.lax.axis_index(POP_AXIS_NAME)
+                total_cands = cands.shape[0]
+                shard_size = total_cands // num_devices
+
+                # Slice candidates along the first dimension
+                local_cands = jax.lax.dynamic_slice_in_dim(
+                    cands, device_id * shard_size, shard_size, axis=0
+                )
+
+                # --- TRANSFORMS (Local) ---
+                transformed_cands = local_cands
+                for transform in self.solution_transforms:
+                    transformed_cands = transform(transformed_cands)
+
+                # --- EVALUATE (Local) ---
+                flow_st = self._pre_eval_hook(flow_st, transformed_cands)
+                local_fitness, prob_st = use_state(self.problem.evaluate)(prob_st, transformed_cands)
+                flow_st = self._post_eval_hook(flow_st, local_fitness)
+
+                # --- COLLECTIVE: ALL GATHER ---
+                # Explicit sync point: combine local fitnesses into the full array
+                global_fitness = jax.lax.all_gather(local_fitness, POP_AXIS_NAME, axis=0)
+
+                # --- TRANSFORM FITNESS (Replicated) ---
+                transformed_fitness = global_fitness * self._opt_direction_mask
+                for transform in self.fitness_transforms:
+                    transformed_fitness = transform(transformed_fitness)
+
+                # --- TELL (Replicated) ---
+                flow_st = self._pre_tell_hook(flow_st, transformed_fitness)
+                if has_init_tell(self.algorithm) and flow_st.first_step:
+                    algo_st = use_state(self.algorithm.init_tell)(algo_st, transformed_fitness)
+                else:
+                    algo_st = use_state(self.algorithm.tell)(algo_st, transformed_fitness)
+                flow_st = self._post_tell_hook(flow_st)
+
+                # Update generation counter
+                new_gen = flow_st.generation + 1
+                is_first = False if has_init_ask(self.algorithm) else flow_st.first_step
+                flow_st = flow_st.replace(generation=new_gen, first_step=is_first)
+
+                flow_st = self._post_step_hook(flow_st)
+
+                return algo_st, prob_st, flow_st
+
+            # Extract sub-states for the shmap
+            algo_state = state.get_child_state("algorithm")
+            prob_state = state.get_child_state("problem")
+            workflow_state = state.get_child_state("workflow")
+
+            # Execute shmap
+            algo_state, prob_state, workflow_state = shmap_inner(algo_state, prob_state, workflow_state)
+
+            # Re-assemble state
+            state = state.replace_child("algorithm", algo_state)
+            state = state.replace_child("problem", prob_state)
+            state = state.replace_child("workflow", workflow_state)
+            return state
+
         if self.jit_step:
             # the first argument is self, which should be static
             if dataclasses.is_dataclass(self.algorithm) and dataclasses.is_dataclass(
                 self.problem
             ):
                 _step = jax.jit(_step)
+                _shmap_step = jax.jit(_step_shmap)
             else:
                 _step = jax.jit(_step, static_argnums=(0,))
+                _shmap_step = jax.jit(_step_shmap, static_argnums=(0,))
 
         self.set_frozen_attr("_step", _step)
-        self.set_frozen_attr("_pmap_axis_name", None)
+        self.set_frozen_attr("_shmap_step", _shmap_step)
 
         if self.clear_monitor_history:
             for monitor in self.monitors:
@@ -332,7 +427,10 @@ class StdWorkflow(Workflow):
         if self.auto_exec_callbacks and state._callbacks:
             _leftover_callbacks_warning("step")
 
-        state = self._step(self, state)
+        if self.multi_device_config:
+            state = self._shmap_step(self, state)
+        else:
+            state = self._step(state)
 
         if self.auto_exec_callbacks:
             state = state.execute_callbacks(state)
@@ -378,7 +476,13 @@ class StdWorkflow(Workflow):
             axis_name=POP_AXIS_NAME,
         )
 
-        sharding = state.get_sharding(devices)
-        state = jax.device_put(state, sharding)
+        # Create a mesh spanning all specified devices
+        mesh = Mesh(np.asarray(devices), axis_names=(POP_AXIS_NAME,))
+
+        # P() means replicate data across all devices in the mesh
+        replicated_sharding = NamedSharding(mesh, P())
+
+        # Physically move/replicate the state across all devices
+        state = jax.device_put(state, replicated_sharding)
 
         return state
