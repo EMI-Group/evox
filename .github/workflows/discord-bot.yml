@@ -16,10 +16,10 @@ jobs:
           webhook_url: ${{ secrets.DISCORD_BOT_WEBHOOK }}
           color: "2105893"
           username: "Release Changelog"
-          avatar_url: "https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/main/docs/source/_static/evox_logo.png"
+          avatar_url: "https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/main/docs/source/_static/evox_logo_light.svg"
           content: "||@everyone||"
           footer_title: "Changelog"
-          footer_icon_url: "https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/main/docs/source/_static/evox_logo.png"
+          footer_icon_url: "https://raw.githubusercontent.com/EMI-Group/evox/refs/heads/main/docs/source/_static/evox_logo_light.svg"
           footer_timestamp: true
           max_description: '4096'
           reduce_headings: true

@@ -103,9 +103,9 @@ html_context = {
 }
 html_theme_options = {
     "toctree_maxdepth": 5,
-    "light_logo": "_static/evox_logo_dark.svg",
-    "dark_logo": "_static/evox_logo_light.svg",
-    "og_image_url": "_static/evox_logo.png",
+    "light_logo": "_static/evox_brand_dark.svg",
+    "dark_logo": "_static/evox_brand_light.svg",
+    "og_image_url": "_static/evox_logo_dark.svg",
     "github_url": "https://github.com/EMI-Group/evox",
     "discord_url": "https://discord.gg/Vbtgcpy7G4",
     "nav_links": [
