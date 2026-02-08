@@ -89,7 +89,7 @@ ecosystem_title = "Ecosystem" if readthedocs_lang == "en" else "生态系统"
 
 html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"]
 html_theme = "shibuya"
-html_logo = "_static/evox_logo_light.png"
+html_logo = "_static/evox_logo_dark.svg"
 html_context = {
     "languages": [
         ("English", f"/en/{readthedocs_ver}/%s.html", "en"),
@@ -103,8 +103,8 @@ html_context = {
 }
 html_theme_options = {
     "toctree_maxdepth": 5,
-    "light_logo": "_static/evox_logo_light.png",
-    "dark_logo": "_static/evox_logo_dark.png",
+    "light_logo": "_static/evox_logo_dark.svg",
+    "dark_logo": "_static/evox_logo_light.svg",
     "og_image_url": "_static/evox_logo.png",
     "github_url": "https://github.com/EMI-Group/evox",
     "discord_url": "https://discord.gg/Vbtgcpy7G4",
