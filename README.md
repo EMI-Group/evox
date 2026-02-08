@@ -1,8 +1,8 @@
 <h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/evox_logo_light.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_logo_dark.svg">
-    <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_logo_dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/evox_brand_light.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_brand_dark.svg">
+    <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_brand_dark.svg">
   </picture>
 </h1>
 
