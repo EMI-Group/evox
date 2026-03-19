@@ -23,7 +23,7 @@ class RVEA(Algorithm):
         [2] Z. Liang, T. Jiang, K. Sun, and R. Cheng, "GPU-accelerated Evolutionary Multiobjective Optimization
             Using Tensorized RVEA," in Proceedings of the Genetic and Evolutionary Computation Conference,
             ser. GECCO ’24, 2024, pp. 566–575. Available: https://doi.org/10.1145/3638529.3654223
-"""
+    """
 
     def __init__(
         self,
@@ -69,8 +69,6 @@ class RVEA(Algorithm):
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
 
-        self.rv_adapt_every = Mutable(torch.max(torch.round(1 / self.fr), torch.tensor(1.0)))
-
         self.selection = selection_op
         self.mutation = mutation_op
         self.crossover = crossover_op
@@ -82,21 +80,23 @@ class RVEA(Algorithm):
             self.mutation = polynomial_mutation
         if self.crossover is None:
             self.crossover = simulated_binary
-        sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
 
+        sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
         v = sampling.to(device=device)
 
-        v0 = v
+        self.init_v = v.clone()
         self.pop_size = v.size(0)
-        length = ub - lb
+
+        length = self.ub - self.lb
         population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + lb
+        population = length * population + self.lb
 
         self.pop = Mutable(population)
         self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
-        self.reference_vector = Mutable(v)
-        self.init_v = v0
-        self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
+        self.reference_vector = Mutable(v.clone())
+
+        self.gen = Mutable(torch.tensor(0, dtype=torch.long, device=device))
+        self.rv_adapt_every = Mutable(torch.tensor(1, dtype=torch.long, device=device))
 
     def init_step(self):
         """
@@ -104,7 +104,10 @@ class RVEA(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
-        self.rv_adapt_every = torch.max(torch.round(1 / self.fr), torch.tensor(1.0))
+        rv_adapt_every = torch.round(1.0 / self.fr).to(device=self.device)
+        rv_adapt_every = torch.clamp(rv_adapt_every, min=1)
+        self.rv_adapt_every = rv_adapt_every.to(dtype=torch.long)
+
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -112,14 +115,17 @@ class RVEA(Algorithm):
         min_vals = nanmin(pop_obj, dim=0)[0]
         return self.init_v * (max_vals - min_vals)
 
-    def _no_rv_adaptation(self, pop_obj: torch.Tensor):
-        return self.reference_vector.clone()
-
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
+
         mating_pool = randint(0, num_valid, (self.pop_size,), device=self.pop.device)
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop_size, device=self.device), torch.iinfo(torch.int32).max)
+
+        sorted_indices = torch.where(
+            valid_mask,
+            torch.arange(self.pop_size, device=self.device),
+            torch.iinfo(torch.int32).max,
+        )
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
@@ -128,14 +134,17 @@ class RVEA(Algorithm):
         self.pop = survivor
         self.fit = survivor_fit
 
-        self.reference_vector = torch.cond(
-            self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
-        )
+        adapted_rv = self._rv_adaptation(survivor_fit)
+        keep_rv = self.reference_vector.clone()
+
+        adapt_flag = (self.gen % self.rv_adapt_every) == 0
+        self.reference_vector = torch.where(adapt_flag, adapted_rv, keep_rv)
 
     def step(self):
         """Perform a single optimization step."""
 
-        self.gen = self.gen + torch.tensor(1)
+        self.gen = self.gen + torch.tensor(1, dtype=self.gen.dtype, device=self.device)
+
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)

@@ -56,10 +56,13 @@ class RVEAa(Algorithm):
         self.pop_size = pop_size
         self.n_objs = n_objs
         device = torch.get_default_device() if device is None else device
+
         # check
         assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1
         assert lb.dtype == ub.dtype and lb.device == ub.device
+
         self.dim = lb.size(0)
+
         # write to self
         self.lb = lb.unsqueeze(0).to(device=device)
         self.ub = ub.unsqueeze(0).to(device=device)
@@ -67,8 +70,6 @@ class RVEAa(Algorithm):
         self.alpha = Parameter(alpha)
         self.fr = Parameter(fr)
         self.max_gen = Parameter(max_gen)
-
-        self.rv_adapt_every = Mutable(torch.max(torch.round(1 / self.fr), torch.tensor(1.0)))
 
         self.selection = selection_op
         self.mutation = mutation_op
@@ -80,23 +81,27 @@ class RVEAa(Algorithm):
             self.mutation = polynomial_mutation
         if self.crossover is None:
             self.crossover = simulated_binary
-        sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
 
+        sampling, _ = uniform_sampling(self.pop_size, self.n_objs)
         v = sampling.to(device=device)
 
         v0 = v.clone()
         self.pop_size = v.size(0)
+
         length = self.ub - self.lb
         population = torch.rand(self.pop_size, self.dim, device=device)
         population = length * population + self.lb
+
         v1 = torch.rand(self.pop_size, self.n_objs, device=device)
         v = torch.cat([v, v1], dim=0)
 
         self.pop = Mutable(population)
-        self.fit = Mutable(torch.empty((self.pop_size, self.n_objs), device=device).fill_(torch.inf))
-        self.reference_vector = Mutable(v)
-        self.init_v = v0
-        self.gen = Mutable(torch.tensor(0, dtype=int, device=device))
+        self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
+        self.reference_vector = Mutable(v.clone())
+        self.init_v = v0.clone()
+
+        self.gen = Mutable(torch.tensor(0, dtype=torch.long, device=device))
+        self.rv_adapt_every = Mutable(torch.tensor(1, dtype=torch.long, device=device))
 
     def init_step(self):
         """
@@ -104,7 +109,10 @@ class RVEAa(Algorithm):
 
         Calls the `init_step` of the algorithm if overwritten; otherwise, its `step` method will be invoked.
         """
-        self.rv_adapt_every = torch.max(torch.round(1 / self.fr), torch.tensor(1.0))
+        rv_adapt_every = torch.round(1.0 / self.fr).to(device=self.pop.device)
+        rv_adapt_every = torch.clamp(rv_adapt_every, min=1)
+        self.rv_adapt_every = rv_adapt_every.to(dtype=torch.long)
+
         self.fit = self.evaluate(self.pop)
 
     def _rv_adaptation(self, pop_obj: torch.Tensor):
@@ -118,13 +126,31 @@ class RVEAa(Algorithm):
     def _mating_pool(self):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
+
         mating_pool = randint(0, num_valid, (self.pop_size,), device=self.pop.device)
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop.size(0), device=self.pop.device), torch.iinfo(torch.int32).max)
+
+        sorted_indices = torch.where(
+            valid_mask,
+            torch.arange(self.pop.size(0), device=self.pop.device),
+            torch.iinfo(torch.int32).max,
+        )
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
 
     def _rv_regeneration(self, pop_obj: torch.Tensor, v: torch.Tensor):
+        valid_mask = ~torch.isnan(pop_obj).all(dim=1)
+        valid_obj = pop_obj[valid_mask]
+
+        if valid_obj.size(0) == 0:
+            return v.clone()
+
+        rank = non_dominate_rank(valid_obj)
+        pop_obj = valid_obj[rank == 0]
+
+        if pop_obj.size(0) == 0:
+            return v.clone()
+
         pop_obj = pop_obj - nanmin(pop_obj, dim=0).values
         cosine = F.cosine_similarity(pop_obj.unsqueeze(1), v.unsqueeze(0), dim=-1)
 
@@ -133,29 +159,37 @@ class RVEAa(Algorithm):
         associate = input_tensor.max(dim=1, keepdim=False).indices
         associate = torch.where(input_tensor[:, 0] == -torch.inf, -1, associate)
 
-        invalid = torch.sum((associate.unsqueeze(1) == torch.arange(v.size(0), device=pop_obj.device)), dim=0)
+        invalid = torch.sum(
+            associate.unsqueeze(1) == torch.arange(v.size(0), device=pop_obj.device),
+            dim=0,
+        )
         rand = torch.rand((v.size(0), v.size(1)), device=pop_obj.device) * nanmax(pop_obj, dim=0).values
         new_v = torch.where((invalid == 0).unsqueeze(1), rand, v)
 
         return new_v
 
     def _batch_truncation(self, pop: torch.Tensor, obj: torch.Tensor):
-        n = pop.size(0) // 2
-        cosine = F.cosine_similarity(obj.unsqueeze(1), obj.unsqueeze(0), dim=-1)
-        not_all_nan_rows = ~torch.isnan(cosine).all(dim=1)
-        mask = torch.eye(cosine.size(0), dtype=torch.bool, device=pop.device) & not_all_nan_rows.unsqueeze(1)
-        cosine = torch.where(mask, 0, cosine)
+        valid_mask = ~torch.isnan(obj).all(dim=1)
+        valid_pop = pop[valid_mask]
+        valid_obj = obj[valid_mask]
 
-        sorted_values, _ = torch.sort(-cosine, dim=1)
-        sorted_values = torch.where(torch.isnan(sorted_values[:, 0]), -torch.inf, sorted_values[:, 0])
-        rank = torch.argsort(sorted_values)
+        if valid_obj.size(0) == 0:
+            new_pop = torch.full_like(pop, torch.nan)
+            new_obj = torch.full_like(obj, torch.nan)
+            return new_pop, new_obj
 
-        mask = torch.ones(rank.size(0), dtype=torch.bool, device=pop.device)
-        mask = torch.where(torch.arange(rank.size(0), device=pop.device) < n, torch.tensor(0, dtype=torch.bool, device=pop.device), mask)
-        mask = mask.unsqueeze(1)
+        rank = non_dominate_rank(valid_obj)
+        nd_mask = rank == 0
 
-        new_pop = torch.where(mask, pop, torch.nan)
-        new_obj = torch.where(mask, obj, torch.nan)
+        nd_pop = valid_pop[nd_mask]
+        nd_obj = valid_obj[nd_mask]
+
+        new_pop = torch.full_like(pop, torch.nan)
+        new_obj = torch.full_like(obj, torch.nan)
+
+        keep_n = min(nd_pop.size(0), pop.size(0))
+        new_pop[:keep_n] = nd_pop[:keep_n]
+        new_obj[:keep_n] = nd_obj[:keep_n]
 
         return new_pop, new_obj
 
@@ -164,37 +198,32 @@ class RVEAa(Algorithm):
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
         v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
-        if torch.compiler.is_compiling():
-            v_adapt = torch.cond(
-                self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
-            )
-            self.pop, self.fit = torch.cond(self.gen == self.max_gen, self._batch_truncation, self._no_batch_truncation, (survivor, survivor_fit))
+
+        if (self.gen % self.rv_adapt_every) == 0:
+            v_adapt = self._rv_adaptation(survivor_fit)
         else:
-            if self.gen % self.rv_adapt_every == 0:
-                v_adapt = self._rv_adaptation(survivor_fit)
-            else:
-                v_adapt = self._no_rv_adaptation(survivor_fit)
-            if self.gen == self.max_gen:
-                self.pop, self.fit = self._batch_truncation(survivor, survivor_fit)
-            else:
-                self.pop, self.fit = self._no_batch_truncation(survivor, survivor_fit)
+            v_adapt = self._no_rv_adaptation(survivor_fit)
+
+        if self.gen == self.max_gen:
+            self.pop, self.fit = self._batch_truncation(survivor, survivor_fit)
+        else:
+            self.pop, self.fit = self._no_batch_truncation(survivor, survivor_fit)
+
         self.reference_vector = torch.cat([v_adapt, v_regen], dim=0)
 
     def step(self):
         """Perform a single optimization step."""
 
-        self.gen = self.gen + 1
+        self.gen = self.gen + torch.tensor(1, dtype=self.gen.dtype, device=self.gen.device)
+
         pop = self._mating_pool()
         crossovered = self.crossover(pop)
         offspring = self.mutation(crossovered, self.lb, self.ub)
         offspring = clamp(offspring, self.lb, self.ub)
         off_fit = self.evaluate(offspring)
+
         merge_pop = torch.cat([self.pop, offspring], dim=0)
         merge_fit = torch.cat([self.fit, off_fit], dim=0)
-
-        rank = non_dominate_rank(merge_fit)
-        merge_fit = torch.where(rank.unsqueeze(1) == 0, merge_fit, torch.nan)
-        merge_pop = torch.where(rank.unsqueeze(1) == 0, merge_pop, torch.nan)
 
         survivor, survivor_fit = self.selection(
             merge_pop,
