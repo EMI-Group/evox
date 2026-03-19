@@ -69,7 +69,10 @@ class SHADE(Algorithm):
         device = self.pop.device
         indices = torch.arange(self.pop_size, device=device)
 
-        FCR_ids = torch.randperm(self.pop_size)
+        # FCR_ids = torch.randperm(self.pop_size)
+        # The above code does not support the torch.compile (at least up to Pytorch 2.9.0), see https://github.com/pytorch/pytorch/issues/158457.
+        # Thus, use the following codes:
+        FCR_ids = torch.argsort(torch.rand(self.pop_size, device=device))
         M_F_vect = self.Memory_FCR[0, FCR_ids]
         M_CR_vect = self.Memory_FCR[1, FCR_ids]
 
