@@ -125,8 +125,8 @@ class CMAES(Algorithm):
         y = (population - old_mean) / self.sigma
         update = (
             (1 - self.c_1 - self.c_mu) * C
-            + self.c_1 * (p_c @ p_c.T + (1 - h_sigma) * self.c_c * (2 - self.c_c) * C)
-            + self.c_mu * (y.T * self.weights) @ y
+            + self.c_1 * (p_c.dot(p_c) + (1 - h_sigma) * self.c_c * (2 - self.c_c) * C)
+            + self.c_mu * (y.mT * self.weights) @ y
         )
         return update
 
@@ -161,20 +161,22 @@ class CMAES(Algorithm):
         return B, D, C_invsqrt
 
     def _no_decomposition(self, C: torch.Tensor):
-        return torch.stack([self.B, self.D, self.C_invsqrt], dim=0)
+        return self.B.clone(), self.D.clone(), self.C_invsqrt.clone()
 
     def _decomposition(
         self,
         C: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        C = (C + C.T) / 2
-        D, B = torch.linalg.eigh(C)
+        # symC = (C + C.T) / 2 # This will fail to compile since PyTorch tries to in-place modify C
+        symC = C.clone()
+        symC = (symC + symC.mT) / 2
+        D, B = torch.linalg.eigh(symC)
         D = torch.clamp(D, min=1e-8)
-        C_invsqrt = B @ torch.diag(1.0 / torch.sqrt(D)) @ B.T
+        C_invsqrt = B @ torch.diag(1.0 / torch.sqrt(D)) @ B.mT
         D = torch.diag(D)
         D = torch.sqrt(D)
         D = B @ D
-        return torch.stack([B.T, D, C_invsqrt], dim=0)
+        return B.mT, D, C_invsqrt
 
     def record_step(self):
         return {
