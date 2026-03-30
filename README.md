@@ -42,16 +42,6 @@
 
 <h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
 
----
-
-
-## 🔥 News
-- [2025-05-13] Released **EvoX 1.2.2** - 🚀 EvoX v1.2.2 release is now available, featuring the new Mujoco Playground and an official tutorial! [[Details](https://evox.group/index.php?m=home&c=View&a=index&aid=157)]
-- [2025-05-13] Released **EvoMO 0.2.0**: A GPU-accelerated library for **Evolutionary Multiobjective Optimization**. [[Paper](https://arxiv.org/abs/2503.20286)] [[Code](https://github.com/EMI-Group/evomo)]
-- [2025-02-03] Released **EvoRL**: A GPU-accelerated framework for **Evolutionary Reinforcement Learning**, powered by **JAX** ! [[Paper](https://arxiv.org/abs/2501.15129)] [[Code](https://github.com/EMI-Group/evorl)]
-- [2025-01-30] Released **EvoGP**: A GPU-accelerated framework for **Genetic Programming**, powered by **PyTorch** & **CUDA**! [[Paper](http://arxiv.org/abs/2501.17168)] [[Code](https://github.com/EMI-Group/evogp)]
-- [2025-01-14] Released **EvoX 1.0.0** - now fully compatible with **PyTorch**, with full `torch.compile` support! Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
-
 ## Table of Contents
 
 1. [Overview](#Overview)
