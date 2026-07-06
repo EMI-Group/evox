@@ -10,6 +10,12 @@ This module demonstrates the full Triton kernel integration pattern:
 
 At call time, PyTorch's dispatcher routes CUDA tensors to the Triton kernel
 and all other tensors to the PyTorch fallback automatically.
+
+To extend coverage to additional backends such as Ascend NPU, register the
+device type with :func:`~evox.triton_kernels.register_triton_device_type`
+(e.g. ``register_triton_device_type("npu")``) and pass an explicit
+``triton_device_types=["cuda", "npu"]`` to
+:func:`~evox.triton_kernels.register_triton_op`.
 """
 
 import torch
