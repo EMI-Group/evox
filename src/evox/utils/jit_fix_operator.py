@@ -374,12 +374,8 @@ def randint(
         dtype = dtype or low.dtype
         device = device or low.device
         high = torch.tensor(high, dtype=dtype, device=device)
-    assert low.ndim == 0 and high.ndim == 0, (
-        f"low and high should be scalars, got ndims = {low.ndim} and {high.ndim}"
-    )
-    assert low.device == high.device, (
-        f"low and high should be on the same device, got {low.device} and {high.device}"
-    )
+    assert low.ndim == 0 and high.ndim == 0, f"low and high should be scalars, got ndims = {low.ndim} and {high.ndim}"
+    assert low.device == high.device, f"low and high should be on the same device, got {low.device} and {high.device}"
     assert low.dtype == high.dtype, f"low and high should be on the same dtype, got {low.dtype} and {high.dtype}"
     if dtype is None:
         dtype = low.dtype

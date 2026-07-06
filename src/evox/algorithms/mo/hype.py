@@ -11,7 +11,15 @@ from evox.utils import clamp, lexsort
 
 def cal_hv(fit: torch.Tensor, ref: torch.Tensor, pop_size: int, n_sample: int):
     n, m = fit.size()
-    alpha = torch.cumprod(torch.cat([torch.ones(1, device=fit.device), (pop_size - torch.arange(1, n, device=fit.device)) / (n - torch.arange(1, n, device=fit.device))]), dim=0) / torch.arange(1, n + 1, device=fit.device)
+    alpha = torch.cumprod(
+        torch.cat(
+            [
+                torch.ones(1, device=fit.device),
+                (pop_size - torch.arange(1, n, device=fit.device)) / (n - torch.arange(1, n, device=fit.device)),
+            ]
+        ),
+        dim=0,
+    ) / torch.arange(1, n + 1, device=fit.device)
     alpha = torch.nan_to_num(alpha)
 
     f_min = torch.min(fit, dim=0).values
@@ -102,7 +110,6 @@ class HypE(Algorithm):
 
         self.pop = Mutable(population)
         self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
-
 
     def init_step(self):
         """

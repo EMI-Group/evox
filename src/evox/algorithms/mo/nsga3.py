@@ -1,5 +1,5 @@
-from typing import Callable, Optional
 from collections import namedtuple
+from typing import Callable, Optional
 
 import torch
 

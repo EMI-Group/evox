@@ -88,9 +88,9 @@ class CSO(Algorithm):
         lambda1, lambda2, lambda3 = torch.rand((3, self.pop_size // 2, self.dim), device=device)
 
         student_velocity = (
-            lambda1 * self.velocity[students] # Inertia
-            + lambda2 * (self.pop[teachers] - self.pop[students]) # Learn from teachers
-            + self.phi * lambda3 * (center - self.pop[students]) # converge to the center
+            lambda1 * self.velocity[students]  # Inertia
+            + lambda2 * (self.pop[teachers] - self.pop[students])  # Learn from teachers
+            + self.phi * lambda3 * (center - self.pop[students])  # converge to the center
         )
 
         # Clamp the position and velocity to the bounds

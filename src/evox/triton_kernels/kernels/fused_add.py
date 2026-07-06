@@ -27,7 +27,6 @@ if has_triton():
     import triton
     import triton.language as tl
 
-
     @triton.jit
     def _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, BLOCK_SIZE: tl.constexpr):
         """Triton kernel for element-wise addition."""

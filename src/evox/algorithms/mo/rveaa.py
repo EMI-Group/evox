@@ -119,7 +119,9 @@ class RVEAa(Algorithm):
         valid_mask = ~torch.isnan(self.pop).all(dim=1)
         num_valid = torch.sum(valid_mask, dtype=torch.int32)
         mating_pool = randint(0, num_valid, (self.pop_size,), device=self.pop.device)
-        sorted_indices = torch.where(valid_mask, torch.arange(self.pop.size(0), device=self.pop.device), torch.iinfo(torch.int32).max)
+        sorted_indices = torch.where(
+            valid_mask, torch.arange(self.pop.size(0), device=self.pop.device), torch.iinfo(torch.int32).max
+        )
         sorted_indices = torch.argsort(sorted_indices, stable=True)
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
@@ -151,7 +153,9 @@ class RVEAa(Algorithm):
         rank = torch.argsort(sorted_values)
 
         mask = torch.ones(rank.size(0), dtype=torch.bool, device=pop.device)
-        mask = torch.where(torch.arange(rank.size(0), device=pop.device) < n, torch.tensor(0, dtype=torch.bool, device=pop.device), mask)
+        mask = torch.where(
+            torch.arange(rank.size(0), device=pop.device) < n, torch.tensor(0, dtype=torch.bool, device=pop.device), mask
+        )
         mask = mask.unsqueeze(1)
 
         new_pop = torch.where(mask, pop, torch.nan)
@@ -168,7 +172,9 @@ class RVEAa(Algorithm):
             v_adapt = torch.cond(
                 self.gen % self.rv_adapt_every == 0, self._rv_adaptation, self._no_rv_adaptation, (survivor_fit,)
             )
-            self.pop, self.fit = torch.cond(self.gen == self.max_gen, self._batch_truncation, self._no_batch_truncation, (survivor, survivor_fit))
+            self.pop, self.fit = torch.cond(
+                self.gen == self.max_gen, self._batch_truncation, self._no_batch_truncation, (survivor, survivor_fit)
+            )
         else:
             if self.gen % self.rv_adapt_every == 0:
                 v_adapt = self._rv_adaptation(survivor_fit)

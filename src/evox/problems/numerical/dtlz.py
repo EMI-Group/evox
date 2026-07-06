@@ -186,7 +186,7 @@ class DTLZ4(DTLZ2):
         m = self.m
 
         Xfront = X[:, : m - 1].pow(100)
-        Xrear = X[:, m - 1:].clone()
+        Xrear = X[:, m - 1 :].clone()
         # X[:, : m - 1] = X[:, : m - 1].pow(100)
 
         g = torch.sum((Xrear - 0.5) ** 2, dim=1, keepdim=True)

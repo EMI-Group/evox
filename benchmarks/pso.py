@@ -12,6 +12,7 @@ from evox.workflows import StdWorkflow
 
 def run_pso():
     torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+
     class Sphere(Problem):
         def __init__(self):
             super().__init__()

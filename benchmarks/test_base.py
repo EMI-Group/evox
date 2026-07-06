@@ -43,16 +43,12 @@ def test(
             with open(os.path.join(print_path, "compile_vmap.md"), "w") as ff:
                 state = torch.func.stack_module_state([workflow] * 3)
                 state = state[0] | state[1]
-                ff.write(
-                    torch._dynamo.explain(vmap_state_step)(state).__str__()
-                )
+                ff.write(torch._dynamo.explain(vmap_state_step)(state).__str__())
     # profile
     print("Initial best fitness:", workflow.monitor.topk_fitness)
     compile_step()
     if profiling:
-        with profile(
-            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True
-        ) as prof:
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True) as prof:
             for _ in range(1000):
                 compile_step()
         print(prof.key_averages().table(), flush=True)

@@ -23,7 +23,7 @@ class RVEA(Algorithm):
         [2] Z. Liang, T. Jiang, K. Sun, and R. Cheng, "GPU-accelerated Evolutionary Multiobjective Optimization
             Using Tensorized RVEA," in Proceedings of the Genetic and Evolutionary Computation Conference,
             ser. GECCO ’24, 2024, pp. 566–575. Available: https://doi.org/10.1145/3638529.3654223
-"""
+    """
 
     def __init__(
         self,

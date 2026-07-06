@@ -31,17 +31,13 @@ def _default_vmap_wrap_inputs(info: VmapInfo, in_dims: Tuple[int | None, ...], *
                 x = x.unsqueeze(0)
             else:
                 flat_arg, tree_spec = tree_flatten(x)
-                x = tree_unflatten(
-                    [(a.unsqueeze(0) if isinstance(a, torch.Tensor) else a) for a in flat_arg], tree_spec
-                )
+                x = tree_unflatten([(a.unsqueeze(0) if isinstance(a, torch.Tensor) else a) for a in flat_arg], tree_spec)
         else:
             if isinstance(x, torch.Tensor):
                 x = x.movedim(d, 0)
             else:
                 flat_arg, tree_spec = tree_flatten(x)
-                x = tree_unflatten(
-                    [(a.movedim(d, 0) if isinstance(a, torch.Tensor) else a) for a in flat_arg], tree_spec
-                )
+                x = tree_unflatten([(a.movedim(d, 0) if isinstance(a, torch.Tensor) else a) for a in flat_arg], tree_spec)
         new_args.append(x)
     return tuple(new_args)
 

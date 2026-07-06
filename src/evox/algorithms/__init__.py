@@ -33,7 +33,7 @@ __all__ = [
     "NSGA2",
     "NSGA3",
     "HypE",
-    "RVEAa"
+    "RVEAa",
 ]
 
 from .mo import MOEAD, NSGA2, NSGA3, RVEA, HypE, RVEAa

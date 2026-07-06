@@ -84,6 +84,7 @@ def register_triton_op(
         return x + y
     ```
     """
+
     def decorator(fallback_fn):
         # Step 1: Register the PyTorch fallback as the default op + fake + vmap
         registered = register_vmap_op(
