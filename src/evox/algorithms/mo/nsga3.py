@@ -52,6 +52,24 @@ vmap_get_extreme = vmap(
 )
 
 
+def _masked_assign(target: torch.Tensor, index: torch.Tensor, mask: torch.Tensor, value: torch.Tensor):
+    """Compile-safe replacement for ``target[index[mask]] = value``.
+
+    Boolean (advanced) indexing such as ``target[index[mask]] = value`` lowers to
+    ``aten.nonzero``, a dynamic-shape operator that graph-breaks under
+    ``torch.compile`` / ``torch.while_loop`` (which require ``fullgraph=True``).
+
+    This performs the same assignment without any dynamic-shape op: for masked-in
+    positions it writes ``value``; for masked-out positions it writes the entry
+    already stored at the (clamped) index, which is a no-op. Duplicate indices are
+    safe because the same scalar ``value`` is written.
+    """
+    n = target.shape[0]
+    clamped_idx = index.clamp(min=0, max=n - 1).to(torch.int64)
+    write_value = torch.where(mask, value, target[clamped_idx])
+    return target.index_copy(0, clamped_idx, write_value)
+
+
 class NSGA3(Algorithm):
     """
     An implementation of the tensorized NSGA-III for many-objective optimization problems.
@@ -174,11 +192,14 @@ class NSGA3(Algorithm):
         # Associate each solution with its nearest reference point
         group_dist, group_id = torch.min(distances, dim=1)
         # count the number of individuals for each group id
-        selected_group_id = group_id[rank < worst_rank]
-        rho = torch.bincount(selected_group_id, minlength=ref.shape[0]).to(torch.int32)
+        # NOTE: scatter_add is used instead of ``bincount(group_id[bool_mask], ...)``
+        # because boolean indexing (and ``torch.where(...)``) produces a dynamic-shape
+        # output that graph-breaks under ``torch.compile`` / ``vmap``. ``scatter_add``
+        # keeps a fixed-size (n_ref,) tensor and is fully traceable.
+        ref_count = torch.zeros(ref.shape[0], dtype=torch.int32, device=device)
+        rho = ref_count.scatter_add(0, group_id.to(torch.int64), (rank < worst_rank).to(torch.int32))
         selected_num = torch.sum(rho, dtype=torch.int32)
-        candi_group_id = group_id[rank == worst_rank]
-        rho_last = torch.bincount(candi_group_id, minlength=ref.shape[0]).to(torch.int32)
+        rho_last = ref_count.scatter_add(0, group_id.to(torch.int64), (rank == worst_rank).to(torch.int32))
         upper_bound = torch.tensor(
             merge_pop.shape[0] + merge_pop.shape[1] + merge_fit.shape[1] + 1, dtype=torch.int32, device=device
         )
@@ -190,45 +211,55 @@ class NSGA3(Algorithm):
         rho_level = 0
         selected_ref = rho == rho_level
         candi_idx = vmap_select_from_index_by_min(group_id, group_dist, torch.where(selected_ref, row_indices, upper_bound))
-        rank[candi_idx[selected_ref]] = worst_rank - 1
+        rank = _masked_assign(rank, candi_idx, selected_ref, worst_rank - 1)
         rho_last = torch.where(selected_ref, rho_last - 1, rho_last)
         rho = torch.where(selected_ref, rho_level + 1, rho)
         rho = torch.where(rho_last == 0, upper_bound, rho)
-        selected_num += torch.sum(selected_ref)
+        selected_num = selected_num + torch.sum(selected_ref, dtype=torch.int32)
 
         # second selection stage
-        group_id[candi_idx[selected_ref]] = upper_bound
+        group_id = _masked_assign(group_id, candi_idx, selected_ref, upper_bound)
         bool_ref_candidates = row_indices[:, None] == group_id[None, :]
         ref_candidates = vmap_get_table_row(bool_ref_candidates, upper_bound)
         ref_cand_idx = torch.zeros_like(rho)
 
-        LoopState = namedtuple("LoopState", ["selected_num", "ref_cand_idx", "rho_last", "rho", "selected_ref", "candi_idx"])
+        # NOTE: `rank` is mutated inside the while_loop body, so it must be a
+        # loop-carried variable. The body of torch.while_loop is compiled with
+        # fullgraph=True, so every operation in it (including `rank`) must be
+        # graph-safe and free of dynamic-shape ops (no boolean/advanced indexing).
+        LoopState = namedtuple(
+            "LoopState", ["rank", "selected_num", "ref_cand_idx", "rho_last", "rho", "selected_ref", "candi_idx"]
+        )
 
-        def cond_func(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
+        def cond_func(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
             return selected_num < self.pop_size
 
-        def body_func(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
+        def body_func(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx):
             rho_level = torch.min(rho)
             selected_ref = rho == rho_level
             candi_idx = ref_candidates[row_indices, ref_cand_idx]
-            rank[candi_idx[selected_ref]] = worst_rank - 1
+            rank = _masked_assign(rank, candi_idx, selected_ref, worst_rank - 1)
             ref_cand_idx = torch.where(selected_ref, ref_cand_idx + 1, ref_cand_idx)
             rho_last = torch.where(selected_ref, rho_last - 1, rho_last)
             rho = torch.where(selected_ref, rho_level + 1, rho)
             rho = torch.where(rho_last == 0, upper_bound, rho)
-            selected_num += torch.sum(selected_ref)
-            return LoopState(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
+            selected_num = selected_num + torch.sum(selected_ref, dtype=torch.int32)
+            return LoopState(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
 
-        loop_state = LoopState(selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
+        loop_state = LoopState(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
 
         loop_state = torch.while_loop(cond_func, body_func, loop_state)
-        (selected_num, _, _, _, selected_ref, candi_idx) = loop_state
+        (rank, selected_num, _, _, _, selected_ref, candi_idx) = loop_state
 
         # truncate to pop_size
         dif = selected_num - self.pop_size
         candi_idx = torch.where(selected_ref, candi_idx, upper_bound)
         sorted_index = torch.sort(candi_idx, stable=False)[0]
-        rank[sorted_index[:dif]] = worst_rank
+        # rank[sorted_index[:dif]] = worst_rank  -- compile-safe variant below
+        # (slicing with a tensor index / the subsequent int-index assignment lower to
+        # dynamic-shape ops, so use _masked_assign with a positional mask instead).
+        sel_positions = torch.arange(sorted_index.shape[0], device=device) < dif
+        rank = _masked_assign(rank, sorted_index, sel_positions, worst_rank)
 
         # get final pop and fit
         self.pop = merge_pop[rank < worst_rank]
