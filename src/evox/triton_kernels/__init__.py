@@ -6,5 +6,5 @@ __all__ = [
 ]
 
 from .backend import has_triton, triton_supports_device
-from .op_register import register_triton_op
 from .kernels import fused_add
+from .op_register import register_triton_op

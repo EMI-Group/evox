@@ -38,7 +38,10 @@ def _triton_fused_add(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """Launch the Triton addition kernel."""
     out = torch.empty_like(x)
     n_elements = x.numel()
-    grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+
+    def grid(meta):
+        return (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+
     _add_kernel[grid](x, y, out, n_elements, BLOCK_SIZE=1024)
     return out
 
