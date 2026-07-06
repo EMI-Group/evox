@@ -114,7 +114,15 @@ def register_triton_op(
             else:
                 resolved_types = triton_device_types
             for dt in resolved_types:
-                torch.library.register_kernel(op_name, dt, triton_fn)
+                try:
+                    torch.library.register_kernel(op_name, dt, triton_fn)
+                except RuntimeError:
+                    # The device type is not recognized by this PyTorch build
+                    # (e.g. "npu" without torch-npu installed). Silently skip so
+                    # the module imports cleanly on all platforms; the kernel
+                    # will register when the platform-specific backend is
+                    # available, with the PyTorch fallback used in the meantime.
+                    continue
 
         return registered
 
