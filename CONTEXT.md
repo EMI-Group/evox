@@ -40,6 +40,7 @@ evox/
 | Operators | `src/evox/operators/` | Genetic operators: selection, crossover, mutation, sampling (pure stateless tensor functions) |
 | Workflows | `src/evox/workflows/` | `StdWorkflow` (standard optimization loop) + `EvalMonitor` (fitness/elite tracking) |
 | Metrics | `src/evox/metrics/` | Multi-objective metrics: GD, HV, IGD |
+| Triton kernels | `src/evox/triton_kernels/` | Optional Triton GPU kernels with PyTorch fallback; `register_triton_op` decorator, backend detection |
 | Utilities | `src/evox/utils/` | JIT/vmap-compatible tensor ops, custom op registration, param↔vector conversion, PyTree re-exports |
 | Visualization | `src/evox/vis_tools/` | Plotly-based interactive plots + EvoXVision (.exv) binary serialization |
 | **Extensions** | `src/evox_ext/` | PEP 420 namespace-package plugin system; auto-discovers external algorithms, problems, operators, metrics, utils |
@@ -69,6 +70,9 @@ ModuleBase
 
 ### Extension System
 External packages install into the `evox_ext` namespace package. At `import evox` time, `auto_load_extensions()` discovers and merges them into the corresponding `evox.*` modules (algorithms, problems, operators, metrics, utils).
+
+### Triton Kernel Integration
+Triton provides hand-written GPU kernels for performance-critical operations. The infrastructure is **optional** — Triton is an optional dependency (`pip install evox[triton]`). When available, `register_triton_op` registers both a PyTorch fallback (runs everywhere) and a Triton CUDA kernel. PyTorch's dispatcher auto-routes CUDA → Triton, CPU/other → PyTorch. Without Triton installed, only the PyTorch fallback is used and everything works normally.
 
 ## Constraints
 - **Pure PyTorch**: No NumPy in framework code. All tensors must be PyTorch tensors for GPU compatibility.

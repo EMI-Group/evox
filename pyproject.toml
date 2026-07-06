@@ -69,6 +69,10 @@ default = [
   "pandas >= 2.0.0",
 ]
 
+triton = [
+  "triton >= 3.0.0; platform_system == 'Linux'",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
