@@ -69,7 +69,13 @@ class SHADE(Algorithm):
         device = self.pop.device
         indices = torch.arange(self.pop_size, device=device)
 
-        FCR_ids = torch.randperm(self.pop_size)
+        # Generate a random permutation of memory indices. We use
+        # ``torch.argsort(torch.rand(...))`` instead of ``torch.randperm`` because
+        # the latter, when immediately followed by tensor indexing, matches a
+        # buggy fusion pattern in torch.compile/inductor (the ``randperm_index``
+        # pattern) on PyTorch 2.12+, which crashes the compiled graph. Both forms
+        # yield a uniformly random permutation of the same shape/dtype.
+        FCR_ids = torch.argsort(torch.rand(self.pop_size, device=device))
         M_F_vect = self.Memory_FCR[0, FCR_ids]
         M_CR_vect = self.Memory_FCR[1, FCR_ids]
 
