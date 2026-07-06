@@ -1,8 +1,17 @@
 import unittest
+from unittest import mock
 
 import torch
 
-from evox.triton_kernels import fused_add, has_triton, triton_supports_device
+import evox.triton_kernels.backend as triton_backend
+from evox.triton_kernels import (
+    fused_add,
+    has_triton,
+    register_triton_device_type,
+    register_triton_op,
+    triton_device_types,
+    triton_supports_device,
+)
 
 
 class TestTritonKernels(unittest.TestCase):
@@ -73,6 +82,58 @@ class TestTritonKernels(unittest.TestCase):
             y = torch.randn(100)
             result = fused_add(x, y)
         self.assertEqual(result.shape, x.shape)
+
+    def test_triton_device_types_default(self):
+        # By default, only the "cuda" backend is registered for Triton kernels.
+        types = triton_device_types()
+        self.assertIsInstance(types, frozenset)
+        self.assertIn("cuda", types)
+
+    def test_register_triton_device_type(self):
+        # Registering an extra device type (e.g. Ascend NPU) makes it
+        # supported when Triton is importable. Restore the original set
+        # afterwards so this test does not pollute other tests.
+        original = set(triton_backend._triton_device_types)
+        try:
+            register_triton_device_type("npu")
+            self.assertIn("npu", triton_device_types())
+            with mock.patch.object(triton_backend, "has_triton", return_value=True):
+                self.assertTrue(triton_supports_device("npu"))
+                self.assertFalse(triton_supports_device("cpu"))
+        finally:
+            triton_backend._triton_device_types = original
+
+    def test_register_triton_op_device_types(self):
+        # register_triton_op must accept triton_device_types as a string and
+        # as a list without raising. Uses throwaway ops with unique names.
+        # Note: torch.library.custom_op requires type annotations for schema
+        # inference, so the throwaway functions must be fully annotated.
+        def _fake(x: torch.Tensor) -> torch.Tensor:
+            return torch.empty_like(x)
+
+        def _fallback(x: torch.Tensor) -> torch.Tensor:
+            return x.clone()
+
+        def _triton(x: torch.Tensor) -> torch.Tensor:
+            return x.clone()
+
+        op1 = register_triton_op(
+            name="evox::_test_str_device",
+            fake_fn=_fake,
+            triton_fn=_triton,
+            device_types=["cpu"],
+            triton_device_types="npu",
+        )(_fallback)
+        self.assertIsNotNone(op1)
+
+        op2 = register_triton_op(
+            name="evox::_test_list_device",
+            fake_fn=_fake,
+            triton_fn=_triton,
+            device_types=["cpu"],
+            triton_device_types=["cuda", "npu"],
+        )(_fallback)
+        self.assertIsNotNone(op2)
 
 
 if __name__ == "__main__":
