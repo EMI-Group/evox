@@ -37,6 +37,7 @@ class TestBase(TestCase):
         algo.load_state_dict(state_dict)
 
     def run_compiled_algorithm(self, algo: Algorithm):
+        torch.compiler.reset()
         state_dict = algo.state_dict()
         monitor = EvalMonitor(full_fit_history=False, full_sol_history=False)
         prob = Sphere()
@@ -49,6 +50,7 @@ class TestBase(TestCase):
         algo.load_state_dict(state_dict)
 
     def run_vmap_algorithm(self, algo: Algorithm):
+        torch.compiler.reset()
         prob = Sphere()
         workflow = StdWorkflow(algo, prob)
         params, buffers = torch.func.stack_module_state([workflow] * 3)
