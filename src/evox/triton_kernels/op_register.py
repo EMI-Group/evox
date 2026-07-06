@@ -3,7 +3,8 @@ from typing import Sequence
 import torch
 
 from ..utils.op_register import register_vmap_op
-from .backend import has_triton, triton_device_types as _get_triton_device_types
+from .backend import has_triton
+from .backend import triton_device_types as _get_triton_device_types
 
 
 def register_triton_op(
