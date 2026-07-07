@@ -291,7 +291,7 @@ if has_triton():
         """
         pid_pop = tl.program_id(axis=0)
         pid_out = tl.program_id(axis=1)
-        seed = tl.load(seeds_ptr + pid_pop)
+        seed = tl.load(seeds_ptr + pid_pop).to(tl.int32)
 
         out_start = pid_out * BLOCK_OUT
         out_offs = out_start + tl.arange(0, BLOCK_OUT)
@@ -365,7 +365,7 @@ if has_triton():
 
         acc = tl.zeros([BLOCK_OUT, BLOCK_IN], dtype=tl.float32)
         for i in range(pop_size):
-            seed = tl.load(seeds_ptr + i)
+            seed = tl.load(seeds_ptr + i).to(tl.int32)
             f = tl.load(fitness_ptr + i)
             noise_offs = offset + out_offs[:, None] * in_features + in_offs[None, :]
             noise = _tl_randn_block(seed, noise_offs)
@@ -396,7 +396,7 @@ if has_triton():
 
         acc = tl.zeros([BLOCK_OUT], dtype=tl.float32)
         for i in range(pop_size):
-            seed = tl.load(seeds_ptr + i)
+            seed = tl.load(seeds_ptr + i).to(tl.int32)
             f = tl.load(fitness_ptr + i)
             noise_offs = offset + out_offs
             noise = _tl_randn_block(seed, noise_offs)
