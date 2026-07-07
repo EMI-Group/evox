@@ -147,9 +147,11 @@ class VirtualProblem(Problem):
         :param pop_size: The population size (number of individuals).
         :return: Output activations of shape ``(pop_size, batch, out_features)``.
         """
-        batch_size = inputs.shape[0]
-        # Expand input for all individuals: (pop_size, batch, in_features).
-        h = inputs.unsqueeze(0).expand(pop_size, batch_size, -1).contiguous().float()
+        # Keep 2D: (batch, in_features) — shared across all individuals.
+        # virtual_perturbed_linear handles 2D input (broadcasts across pop_size
+        # internally via x_is_per_individual=False). After the first Linear call,
+        # h becomes (pop_size, batch, out_features) naturally.
+        h = inputs.float()
 
         for name, module in self.model.named_children():
             if isinstance(module, nn.Linear):
