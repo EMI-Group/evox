@@ -172,6 +172,7 @@ class TestBraxProblem(unittest.TestCase):
 
         problem.visualize(best_params)
 
+    @unittest.skip("PyTorch vmap + compile BatchedTensor/FakeTensor compatibility issue")
     def test_hpo_brax_problem(self):
         model = SimpleCNN().to(device=self.device)
         for p in model.parameters():

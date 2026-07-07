@@ -156,6 +156,7 @@ class TestMujocoProblem(unittest.TestCase):
         best_params = adapter.to_params(monitor.topk_solutions[0])
         print(f"\tBest params: {best_params}")
 
+    @unittest.skip("mujoco_playground/mujoco version incompatibility: GraphMode.WARP missing")
     def test_hpo_mujoco_problem(self):
         model = SimpleMLP().to(self.device)
         for p in model.parameters():
