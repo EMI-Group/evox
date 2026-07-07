@@ -96,5 +96,6 @@ All variants import `Algorithm`, `Mutable`, and `Parameter` from `evox.core`:
 | PersistentES | `persistent_es.py` | ES with persistent perturbations across unrolled steps |
 | NoiseReuseES | `noise_reuse_es.py` | ES reusing perturbations across inner iterations |
 | ESMC | `esmc.py` | ES with Monte Carlo estimation and baseline subtraction |
+| VirtualLoRAES | `virtual_lora_es.py` | Virtual-population ES using Philox seeds + LoRA low-rank noise for neuroevolution; passes (center, seeds, sigma) tuple to evaluate |
 | Shared — Adam | `adam_step.py` | Single-tensor Adam optimizer step |
 | Shared — Sorting | `sort_utils.py` | Fitness-based population sorting |
