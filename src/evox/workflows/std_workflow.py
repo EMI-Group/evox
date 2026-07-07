@@ -137,6 +137,7 @@ class StdWorkflow(Workflow):
         # set submodules
         self.algorithm = _SubAlgorithm()
         self.monitor = monitor
+        self._monitor_has_record_auxiliary = "record_auxiliary" in type(monitor).__dict__
         self.problem = problem
         self.solution_transform = solution_transform
         self.fitness_transform = fitness_transform
@@ -188,8 +189,7 @@ class StdWorkflow(Workflow):
         else:
             self.algorithm.step()
 
-        # If the monitor has override the `record_auxiliary` method, it will be called here.
-        if "record_auxiliary" in self.monitor.__class__.__dict__:
+        if self._monitor_has_record_auxiliary:
             self.monitor.record_auxiliary(self.algorithm.record_step())
 
     def init_step(self):
