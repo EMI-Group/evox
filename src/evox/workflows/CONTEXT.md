@@ -34,6 +34,18 @@ Key behaviors:
 - **Distributed**: When `enable_distributed=True`, the population is split across the process group, each rank evaluates its chunk (with forked RNG), and results are gathered via `all_gather`.
 - **Lifecycle**: Respects optional `init_step()` / `final_step()` on the algorithm (detected by comparing method identity to the base `Algorithm` class).
 
+### Virtual Population Path
+
+When an algorithm passes a **non-tensor payload** (a tuple `(center, seeds, sigma)`) instead of a `(pop_size, dim)` tensor through `self.evaluate()`, the workflow detects this and routes to a virtual evaluation path:
+
+- The payload's `center` tensor (reshaped to `(1, dim)`) is passed to the monitor hooks (`post_ask`, `pre_eval`).
+- `solution_transform` is **skipped** — the problem handles flat-to-params conversion internally.
+- Distributed evaluation is **skipped** (not supported for virtual populations).
+- The full tuple payload is passed directly to `problem.evaluate()`.
+- `fitness_transform` is still applied (preserving `opt_direction` handling).
+
+This is used by algorithms (e.g. `VirtualLoRAES`) that do not materialize a full population but instead represent it compactly via a center vector plus perturbation seeds. This path is fully backward-compatible: standard tensor populations are unaffected.
+
 ### `EvalMonitor` — Tracking & Elite Management
 
 `EvalMonitor` extends `evox.core.Monitor`. It hooks around the evaluation step to:
