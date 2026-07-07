@@ -9,7 +9,8 @@ This directory is a flat module (no child subdirectories) exposing three Problem
 - **`brax.py`** → `BraxProblem(Problem)` — Evaluates policies in Google Brax physics simulation environments (e.g., Swimmer, Ant, HalfCheetah). Runs each individual for `num_episodes` episodes per evaluation, aggregates rewards via `reduce_fn` (default `torch.mean`). Supports visualization via `visualize()` (HTML or rgb_array).
 - **`mujoco_playground.py`** → `MujocoProblem(Problem)` — Evaluates policies in MuJoCo Playground (MJX) physics environments (e.g., SwimmerSwimmer6, Go1JoystickFlatTerrain). Near-identical architecture to `BraxProblem`. Supports visualization via `visualize()` (mp4 or gif).
 - **`supervised_learning.py`** → `SupervisedLearningProblem(Problem)` — Evaluates model parameters against a `DataLoader` + loss `criterion`. Supports single-sample and vmapped (batched) evaluation. `n_batch_per_eval` controls batch count; `reduction` ("mean" | "sum") aggregates per-batch losses.
-- **`utils.py`** → Shared utility: `ModelStateForwardResult` (NamedTuple: `init_state`, `state_forward`) and `get_vmap_model_state_forward(model, pop_size, device)` which uses `torch.func.stack_module_state` + `evox.core.vmap` to create vmapped state + forward callables for batched policy evaluation. Used by all three problem types.
+- **`virtual_lora_problem.py`** → `VirtualLoRAProblem(Problem)` — Evaluates a virtual LoRA-perturbed population WITHOUT materializing the full perturbed weights. `evaluate()` receives a tuple `(center_flat, seeds, sigma)` instead of a full population; LoRA low-rank perturbations are applied layer-by-layer during the forward pass via the Philox PRNG + `lora_delta_output`. Supports `nn.Sequential` models with `nn.Linear` layers and common activations (ReLU, Tanh, Sigmoid, GELU, LeakyReLU, ELU, Softmax, Identity). Does NOT support HPO wrapper.
+- **`utils.py`** → Shared utility: `ModelStateForwardResult` (NamedTuple: `init_state`, `state_forward`) and `get_vmap_model_state_forward(model, pop_size, device)` which uses `torch.func.stack_module_state` + `evox.core.vmap` to create vmapped state + forward callables for batched policy evaluation. Used by `brax.py`, `mujoco_playground.py`, and `supervised_learning.py`.
 
 ## Architecture: Torch↔JAX Bridge (Brax & MuJoCo)
 
@@ -49,5 +50,6 @@ All three classes implement `evaluate(self, pop_params: Dict[str, nn.Parameter])
 - `./brax.py` → `BraxProblem` — Google Brax physics simulation evaluation
 - `./mujoco_playground.py` → `MujocoProblem` — MuJoCo Playground (MJX) physics simulation evaluation
 - `./supervised_learning.py` → `SupervisedLearningProblem` — Supervised learning loss-landscape evaluation
+- `./virtual_lora_problem.py` → `VirtualLoRAProblem` — Virtual LoRA-based population evaluation (no full perturbation materialization)
 - `./utils.py` → `ModelStateForwardResult`, `get_vmap_model_state_forward` — Shared vmapped state/forward factory
-- `./__init__.py` → Exports submodule names: `brax`, `mujoco_playground`, `supervised_learning`
+- `./__init__.py` → Exports submodule names: `brax`, `mujoco_playground`, `supervised_learning`, and `VirtualLoRAProblem`
