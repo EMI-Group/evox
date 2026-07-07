@@ -219,14 +219,17 @@ class EvalMonitor(Monitor):
             if self.topk_solutions.ndim <= 1:
                 topk_solutions = self.latest_solution
                 topk_fitness = fitness
-                rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
-                self.topk_fitness = topk_fitness[rank]
-                self.topk_solutions = topk_solutions[rank]
             else:
                 topk_solutions = torch.concatenate([self.topk_solutions, self.latest_solution])
                 topk_fitness = torch.concatenate([self.topk_fitness, fitness])
-                rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
-                self.topk_fitness = topk_fitness[rank]
+            rank = torch.topk(topk_fitness, self.topk, largest=False)[1]
+            self.topk_fitness = topk_fitness[rank]
+            # Update topk solutions only when the number of candidate solutions
+            # matches the number of fitness values. In the virtual-population
+            # path (e.g. VirtualLoRAES), only the center vector is stored as a
+            # solution while per-individual perturbations are not materialized,
+            # so the counts differ and solution indexing is skipped.
+            if topk_solutions.size(0) == topk_fitness.size(0):
                 self.topk_solutions = topk_solutions[rank]
         elif fitness.ndim == 2:
             # multi-objective

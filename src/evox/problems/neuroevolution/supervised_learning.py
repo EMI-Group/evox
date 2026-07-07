@@ -109,7 +109,12 @@ class SupervisedLearningProblem(Problem):
                 losses.append(self._vmap_forward_pass(model_state, data))
         else:
             for _ in range(self.n_batch_per_eval):
-                losses.append(self._vmap_forward_pass(model_state, next(self.data_loader_iter)))
+                try:
+                    data = next(self.data_loader_iter)
+                except StopIteration:
+                    self.data_loader_iter = iter(self.data_loader)
+                    data = next(self.data_loader_iter)
+                losses.append(self._vmap_forward_pass(model_state, data))
         if losses[0].ndim == 1:
             losses = torch.stack(losses, dim=1)
             warnings.warn(
@@ -136,7 +141,12 @@ class SupervisedLearningProblem(Problem):
                 losses.append(self._forward_pass(model_state, data))
         else:
             for _ in range(self.n_batch_per_eval):
-                losses.append(self._forward_pass(model_state, next(self.data_loader_iter)))
+                try:
+                    data = next(self.data_loader_iter)
+                except StopIteration:
+                    self.data_loader_iter = iter(self.data_loader)
+                    data = next(self.data_loader_iter)
+                losses.append(self._forward_pass(model_state, data))
         if losses[0].ndim == 0:
             losses = torch.stack(losses, dim=0)
             warnings.warn(
