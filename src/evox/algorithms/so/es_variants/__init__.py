@@ -11,6 +11,7 @@ __all__ = [
     "GuidedES",
     "ESMC",
     "CMAES",
+    "VirtualES",
     "VirtualLoRAES",
 ]
 
@@ -26,4 +27,4 @@ from .noise_reuse_es import NoiseReuseES
 from .open_es import OpenES
 from .persistent_es import PersistentES
 from .snes import SNES
-from .virtual_lora_es import VirtualLoRAES
+from .virtual_es import VirtualES, VirtualLoRAES
