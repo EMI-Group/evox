@@ -4,32 +4,47 @@ These tests validate the pure-PyTorch fallback path (no CUDA is available in the
 dev environment). On CUDA machines with Triton, the same tests would additionally
 exercise the Triton kernel path.
 
-To avoid triggering the full ``import evox`` chain (which fails on Python 3.13
-due to a pre-existing ``torch.compile`` call in ``evox/operators/selection/non_dominate.py``),
-the kernels modules are imported via a lightweight stub-package loader that does
-not execute ``evox/__init__.py``.
+The symbols are imported via ``evox.triton_kernels`` when possible. As a fallback
+for environments where the full ``import evox`` chain is unavailable (e.g. Python
+3.13, where ``evox/__init__.py`` triggers ``torch.compile`` via
+``evox/operators/selection/non_dominate.py``), a lightweight stub-package loader
+imports just the triton_kernels submodules without executing ``evox/__init__.py``.
 """
 
 import importlib.util
+import os
 import sys
 import types
 import unittest
 
 import torch
 
-_SRC = "src/evox"
 
+def _import_philox():
+    """Import ``philox_uniform`` / ``philox_normal`` robustly.
 
-def _load_kernel_modules():
-    """Import the triton_kernels submodules without running evox/__init__.py.
-
-    The heavy ``evox/__init__.py`` imports ``algorithms`` → ``operators`` →
-    ``non_dominate`` which calls ``torch.compile`` (unsupported on Python 3.13).
-    We therefore build minimal stub package objects so the relative imports
-    inside the triton_kernels package resolve, then load only the modules we need.
+    First attempts the normal ``import evox`` path (the common case on supported
+    Python versions / CI). Only if that fails does it fall back to loading the
+    ``triton_kernels`` submodules directly without running ``evox/__init__.py``,
+    so these tests can still run even when the full package import chain is
+    broken in the current environment. The fallback is never triggered when the
+    normal import works, so it cannot pollute ``sys.modules`` in CI.
     """
+    try:
+        from evox.triton_kernels.kernels.philox import philox_normal, philox_uniform
+
+        return philox_uniform, philox_normal
+    except Exception:
+        pass
+
     if "evox.triton_kernels.kernels.philox" in sys.modules:
-        return
+        from evox.triton_kernels.kernels.philox import philox_normal, philox_uniform
+
+        return philox_uniform, philox_normal
+
+    # Resolve the repository ``src/evox`` directory from this file's location.
+    here = os.path.dirname(os.path.abspath(__file__))
+    src = os.path.normpath(os.path.join(here, "..", "..", "src", "evox"))
 
     def _make_pkg(name, path):
         mod = types.ModuleType(name)
@@ -37,10 +52,10 @@ def _load_kernel_modules():
         sys.modules[name] = mod
         return mod
 
-    _make_pkg("evox", _SRC)
-    _make_pkg("evox.utils", f"{_SRC}/utils")
-    _make_pkg("evox.triton_kernels", f"{_SRC}/triton_kernels")
-    _make_pkg("evox.triton_kernels.kernels", f"{_SRC}/triton_kernels/kernels")
+    _make_pkg("evox", src)
+    _make_pkg("evox.utils", os.path.join(src, "utils"))
+    _make_pkg("evox.triton_kernels", os.path.join(src, "triton_kernels"))
+    _make_pkg("evox.triton_kernels.kernels", os.path.join(src, "triton_kernels", "kernels"))
 
     def _load(name, path):
         spec = importlib.util.spec_from_file_location(name, path)
@@ -49,16 +64,19 @@ def _load_kernel_modules():
         spec.loader.exec_module(mod)
         return mod
 
-    _load("evox.utils.re_export", f"{_SRC}/utils/re_export.py")
-    _load("evox.utils.op_register", f"{_SRC}/utils/op_register.py")
-    _load("evox.triton_kernels.backend", f"{_SRC}/triton_kernels/backend.py")
-    _load("evox.triton_kernels.op_register", f"{_SRC}/triton_kernels/op_register.py")
-    _load("evox.triton_kernels.kernels.fused_add", f"{_SRC}/triton_kernels/kernels/fused_add.py")
-    _load("evox.triton_kernels.kernels.philox", f"{_SRC}/triton_kernels/kernels/philox.py")
+    _load("evox.utils.re_export", os.path.join(src, "utils", "re_export.py"))
+    _load("evox.utils.op_register", os.path.join(src, "utils", "op_register.py"))
+    _load("evox.triton_kernels.backend", os.path.join(src, "triton_kernels", "backend.py"))
+    _load("evox.triton_kernels.op_register", os.path.join(src, "triton_kernels", "op_register.py"))
+    _load("evox.triton_kernels.kernels.fused_add", os.path.join(src, "triton_kernels", "kernels", "fused_add.py"))
+    _load("evox.triton_kernels.kernels.philox", os.path.join(src, "triton_kernels", "kernels", "philox.py"))
+
+    from evox.triton_kernels.kernels.philox import philox_normal, philox_uniform
+
+    return philox_uniform, philox_normal
 
 
-_load_kernel_modules()
-from evox.triton_kernels.kernels.philox import philox_normal, philox_uniform  # noqa: E402
+philox_uniform, philox_normal = _import_philox()
 
 
 class TestPhiloxUniform(unittest.TestCase):
