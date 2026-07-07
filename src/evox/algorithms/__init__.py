@@ -19,6 +19,7 @@ __all__ = [
     "GuidedES",
     "ESMC",
     "CMAES",
+    "VirtualLoRAES",
     # PSO Variants
     "CLPSO",
     "CSO",
@@ -54,6 +55,7 @@ from .so import (
     SLPSOGS,
     SLPSOUS,
     SNES,
+    VirtualLoRAES,
     XNES,
     CoDE,
     GuidedES,
