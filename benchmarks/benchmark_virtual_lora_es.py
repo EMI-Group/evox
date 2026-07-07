@@ -302,17 +302,17 @@ def main():
                 mem_saved = (1 - virtual_mem / naive_mem) * 100
                 print(f"  Memory saved:                {mem_saved:.1f}%")
             else:
-                print(f"  Memory:                      CPU mode — no GPU memory tracking")
+                print("  Memory:                      CPU mode — no GPU memory tracking")
 
             delta = virtual_fit[-1] - naive_fit[-1]
             print(f"  Fitness delta (virtual-naive): {delta:+.6f}  "
                   f"(naive={naive_fit[-1]:.6f}, virtual={virtual_fit[-1]:.6f})")
         elif naive_result and not virtual_result:
-            print(f"  [Comparison skipped — VirtualLoRAES failed]")
+            print("  [Comparison skipped — VirtualLoRAES failed]")
         elif virtual_result and not naive_result:
-            print(f"  [Comparison skipped — Naive OpenES failed]")
+            print("  [Comparison skipped — Naive OpenES failed]")
         else:
-            print(f"  [Comparison skipped — both failed]")
+            print("  [Comparison skipped — both failed]")
 
     print(f"\n{'=' * 80}")
     print("Done.")
