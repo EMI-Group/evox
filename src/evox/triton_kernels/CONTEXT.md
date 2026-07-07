@@ -22,3 +22,6 @@ Optional GPU/accelerator-accelerated operations using Triton. When Triton is ins
 | Area | Path | Description |
 |---|---|---|
 | Kernel implementations | `kernels/` | Individual Triton kernel files, each demonstrating the full registration pattern |
+| Fused element-wise ops | `kernels/fused_add.py` | Example fused addition kernel (reference pattern) |
+| Philox PRNG | `kernels/philox.py` | Philox4x32-10 deterministic PRNG: `philox_uniform` ([0,1) floats), `philox_normal` (Box-Muller standard normal). Triton CUDA kernel + pure-PyTorch fallback |
+| LoRA noise utilities | `kernels/lora_noise.py` | Pure-PyTorch LoRA perturbation helpers built on `philox_normal`: `compute_counter_offsets`, `generate_lora_factors`, `lora_delta_output`, `lora_gradient` |
