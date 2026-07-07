@@ -148,6 +148,20 @@ class StdWorkflow(Workflow):
         return super().get_submodule(target)
 
     def _evaluate(self, population: torch.Tensor) -> torch.Tensor:
+        if not isinstance(population, torch.Tensor):
+            # Virtual population path: payload is a tuple (center, seeds, sigma)
+            # where center is a (dim,) tensor, seeds is a (pop_size,) int64 tensor,
+            # and sigma is a float. The problem handles the virtual evaluation directly.
+            center = population[0]
+            center = center.unsqueeze(0) if center.ndim == 1 else center
+            self.monitor.post_ask(center)
+            self.monitor.pre_eval(center)
+            fitness = self.problem.evaluate(population)
+            self.monitor.post_eval(fitness)
+            fitness = self.fitness_transform(fitness)
+            self.monitor.pre_tell(fitness)
+            return fitness
+
         self.monitor.post_ask(population)
 
         if self.enable_distributed:
