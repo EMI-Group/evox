@@ -160,16 +160,23 @@ if has_triton():
         call_offsets = pid_calls * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
         call_mask = call_offsets < n_calls
 
+        # 32-bit mask. counter_low / counter_high are Python ints that have
+        # already been masked to 32 bits in the launcher, so we cast them to
+        # int64 scalars here and do the add + mask in 64-bit arithmetic to avoid
+        # the ``0xFFFFFFFF`` constant overflowing int32. The result is then cast
+        # back to int32.
+        mask32 = 0xFFFFFFFF
+        cl = tl.full((), counter_low, dtype=tl.int64)
+        ch = tl.full((), counter_high, dtype=tl.int64)
+
         # Counter words. c0 increments per call; c1 is the high counter word.
-        c0 = ((counter_low & 0xFFFFFFFF) + call_offsets) & 0xFFFFFFFF
-        c1 = tl.zeros([BLOCK_SIZE], dtype=tl.int32) + (counter_high & 0xFFFFFFFF)
+        c0 = ((cl + call_offsets.to(tl.int64)) & mask32).to(tl.int32)
+        c1 = tl.zeros([BLOCK_SIZE], dtype=tl.int32) + ch.to(tl.int32)
         c2 = tl.zeros([BLOCK_SIZE], dtype=tl.int32)
         c3 = tl.zeros([BLOCK_SIZE], dtype=tl.int32)
 
         kk0 = tl.zeros([BLOCK_SIZE], dtype=tl.int32) + k0
         kk1 = tl.zeros([BLOCK_SIZE], dtype=tl.int32) + k1
-
-        mask32 = 0xFFFFFFFF
 
         for _ in tl.static_range(_ROUNDS):
             p0 = (c0.to(tl.int64) & mask32) * (PHILOX_M4x32_0 & mask32)
