@@ -1,14 +1,14 @@
-"""Benchmark VirtualLoRAES against a naive OpenES implementation.
+"""Benchmark VirtualES against a naive OpenES implementation.
 
 Compares **per-step wall-clock time** and **peak memory** between:
 
-- **VirtualLoRAES**: stores only a ``(dim,)`` center vector + ``(pop_size,)`` seeds
-  and generates per-individual LoRA-perturbed weights on-demand during the forward
-  pass (O(dim) memory, not O(pop_size * dim)).
+- **VirtualES**: stores only a ``(dim,)`` center vector + ``(pop_size,)`` seeds
+  and generates per-individual Gaussian-noise-perturbed weights on-demand during
+  the forward pass (O(dim) memory, not O(pop_size * dim)).
 - **OpenES** (naive baseline): materialises a full ``(pop_size, dim)`` population.
 
 Both algorithms optimise a *transformer-structured* model (built entirely from
-``nn.Linear`` + ``nn.GELU`` layers so it remains ``VirtualLoRAProblem``-compatible)
+``nn.Linear`` + ``nn.GELU`` layers so it remains ``VirtualProblem``-compatible)
 on a synthetic classification dataset.
 
 The benchmark sweeps population sizes from 16 up to 131 072, recording time/memory
@@ -40,8 +40,8 @@ try:
 except ImportError:
     plt = None
 
-from evox.algorithms import OpenES, VirtualLoRAES
-from evox.problems.neuroevolution import VirtualLoRAProblem
+from evox.algorithms import OpenES, VirtualES
+from evox.problems.neuroevolution import VirtualProblem
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
@@ -52,7 +52,6 @@ from evox.workflows import EvalMonitor, StdWorkflow
 POP_SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
 N_STEPS = 5
 N_WARMUP = 2
-LORA_RANK = 8
 SIGMA = 0.1
 LR = 0.01
 # Transformer config
@@ -76,7 +75,7 @@ def make_transformer_model(
 
     A real transformer with multi-head attention cannot be flattened into a flat
     ``nn.Sequential`` (attention requires cross-token mixing via reshapes / bmm).
-    However, ``VirtualLoRAProblem`` only supports ``nn.Sequential`` whose direct
+    However, ``VirtualProblem`` only supports ``nn.Sequential`` whose direct
     children are ``nn.Linear`` layers and supported activation modules (it iterates
     ``model.named_children()``).
 
@@ -92,7 +91,7 @@ def make_transformer_model(
     - A classification head.
 
     The resulting model has transformer-scale parameter count (~940 K params with
-    the default config) while remaining fully ``VirtualLoRAProblem``-compatible.
+    the default config) while remaining fully ``VirtualProblem``-compatible.
 
     :param d_model: Model / hidden dimension.
     :param n_layers: Number of transformer-structured blocks.
@@ -225,23 +224,22 @@ def benchmark_naive_es(
     return sum(times) / len(times), peak_mem
 
 
-def benchmark_virtual_lora_es(
+def benchmark_virtual_es(
     model: nn.Module,
     data_loader: DataLoader,
     criterion: nn.Module,
     pop_size: int,
-    lora_rank: int,
     sigma: float,
     lr: float,
     n_warmup: int,
     n_steps: int,
     device: torch.device,
 ) -> tuple[float, int]:
-    """Benchmark the VirtualLoRAES approach.
+    """Benchmark the VirtualES approach.
 
-    Sets up ``VirtualLoRAES`` + ``VirtualLoRAProblem`` + ``StdWorkflow`` with **no**
+    Sets up ``VirtualES`` + ``VirtualProblem`` + ``StdWorkflow`` with **no**
     ``solution_transform`` — the virtual-population ``(center, seeds, sigma)`` tuple
-    is passed directly to the problem for on-demand LoRA evaluation.
+    is passed directly to the problem for on-demand Gaussian-noise evaluation.
 
     Memory tracking:
 
@@ -253,7 +251,6 @@ def benchmark_virtual_lora_es(
     :param data_loader: Training data loader.
     :param criterion: Loss criterion (should use ``reduction='none'``).
     :param pop_size: Population size.
-    :param lora_rank: LoRA rank for the low-rank perturbation factorisation.
     :param sigma: Noise standard deviation.
     :param lr: Learning rate.
     :param n_warmup: Number of untimed warmup steps.
@@ -266,9 +263,8 @@ def benchmark_virtual_lora_es(
     param_shapes = [tuple(p.shape) for p in model.parameters()]
     center_init = pv.to_vector(dict(model.named_parameters())).detach().clone()
 
-    algo = VirtualLoRAES(
+    algo = VirtualES(
         param_shapes=param_shapes,
-        lora_rank=lora_rank,
         pop_size=pop_size,
         center_init=center_init,
         learning_rate=lr,
@@ -276,11 +272,10 @@ def benchmark_virtual_lora_es(
         optimizer="adam",
         device=device,
     )
-    prob = VirtualLoRAProblem(
+    prob = VirtualProblem(
         model=model,
         data_loader=data_loader,
         criterion=criterion,
-        lora_rank=lora_rank,
         n_batch_per_eval=1,
         device=device,
         reduction="mean",
@@ -387,7 +382,7 @@ def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
         return
 
     pop_sizes = metadata["pop_sizes"]
-    series = [("naive", "red", "Naive OpenES"), ("virtual", "blue", "VirtualLoRAES")]
+    series = [("naive", "red", "Naive OpenES"), ("virtual", "blue", "VirtualES")]
 
     # --- Time plot ---
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -399,7 +394,7 @@ def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Population Size (log2)")
     ax.set_ylabel("Time per Step (ms, log)")
-    ax.set_title("VirtualLoRAES vs Naive OpenES — Time per Step")
+    ax.set_title("VirtualES vs Naive OpenES — Time per Step")
     ax.legend()
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
     fig.tight_layout()
@@ -421,7 +416,7 @@ def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Population Size (log2)")
     ax.set_ylabel("Peak Memory (GB, log)")
-    ax.set_title("VirtualLoRAES vs Naive OpenES — Peak Memory")
+    ax.set_title("VirtualES vs Naive OpenES — Peak Memory")
     ax.legend()
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
     fig.tight_layout()
@@ -477,7 +472,6 @@ def main():
             },
             "total_params": total_params,
             "n_steps": N_STEPS,
-            "lora_rank": LORA_RANK,
             "sigma": SIGMA,
             "lr": LR,
             "pop_sizes": POP_SIZES,
@@ -517,14 +511,13 @@ def main():
             print(f"  [Naive OpenES]    OOM ({type(e).__name__}): {e}")
             _cleanup(device)
 
-        # --- VirtualLoRAES ---
+        # --- VirtualES ---
         try:
-            virtual_time, virtual_mem = benchmark_virtual_lora_es(
+            virtual_time, virtual_mem = benchmark_virtual_es(
                 model=copy.deepcopy(model),
                 data_loader=data_loader,
                 criterion=criterion,
                 pop_size=pop_size,
-                lora_rank=LORA_RANK,
                 sigma=SIGMA,
                 lr=LR,
                 n_warmup=N_WARMUP,
@@ -536,10 +529,10 @@ def main():
                 "memory": virtual_mem,
                 "status": "ok",
             }
-            print(f"  [VirtualLoRAES]   avg time/step: {virtual_time * 1000:.1f} ms | peak mem: {_fmt_mem(virtual_mem)}")
+            print(f"  [VirtualES]       avg time/step: {virtual_time * 1000:.1f} ms | peak mem: {_fmt_mem(virtual_mem)}")
         except (RuntimeError, MemoryError) as e:
             all_results["results"][pop_key]["virtual"] = {"time_per_step": None, "memory": None, "status": "oom"}
-            print(f"  [VirtualLoRAES]   OOM ({type(e).__name__}): {e}")
+            print(f"  [VirtualES]       OOM ({type(e).__name__}): {e}")
             _cleanup(device)
 
         # Incremental save so partial results survive crashes.
