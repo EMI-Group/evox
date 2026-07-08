@@ -41,24 +41,10 @@ except ImportError:
     plt = None
 
 from evox.algorithms import OpenES, VirtualES
-from evox.core import Problem
-from evox.problems.neuroevolution import VirtualProblem
+from evox.problems.neuroevolution import VectorMetricProblem, VirtualProblem
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
-
-# Optional virtual-metric op. The parallel src-side additions
-# (``virtual_reduce_metric`` op and ``VectorMetricProblem`` problem) may not yet
-# be present in this worktree, so import them with a graceful fallback.
-try:
-    from evox.triton_kernels import virtual_reduce_metric
-except ImportError:
-    virtual_reduce_metric = None
-
-try:
-    from evox.triton_kernels.kernels.virtual_noise import _cpu_normal_noise
-except ImportError:
-    _cpu_normal_noise = None
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -344,47 +330,6 @@ def benchmark_virtual_es(
         peak_mem = peak
 
     return sum(times) / len(times), peak_mem
-
-
-class VectorMetricProblem(Problem):
-    """Flat-vector metric problem: fitness = ``mean(|center + sigma*noise|)`` per individual.
-
-    Isolates the virtual-population mechanism with no model forward. Handles both
-    the virtual tuple payload ``(center, seeds, sigma)`` and the naive materialized
-    population ``(pop_size, n_params)``.
-    """
-
-    def __init__(self, n_params: int, device: torch.device):
-        super().__init__()
-        self.n_params = n_params
-        self.device = device
-
-    def evaluate(self, payload):
-        if isinstance(payload, tuple):
-            # Virtual path: VirtualES passes ``(center, seeds, sigma)`` where
-            # ``center`` is ``(dim,)``, ``seeds`` is ``(pop_size,)`` int64, and
-            # ``sigma`` is a float. The fused op returns ``(pop_size,)`` fitness
-            # without ever materializing the full ``(pop_size, dim)`` population.
-            center, seeds, sigma = payload
-            if virtual_reduce_metric is not None:
-                return virtual_reduce_metric(center, seeds, sigma, self.n_params)
-            # Fallback: generate noise deterministically and compute the metric.
-            #
-            # NOTE: When the fused ``virtual_reduce_metric`` op is unavailable,
-            # this fallback materializes the full ``(pop_size, n_params)`` noise
-            # tensor — acceptable for a smoke test but NOT representative of the
-            # virtual population's memory advantage. The REAL demonstration relies
-            # on the fused op existing.
-            if _cpu_normal_noise is not None:
-                noise = _cpu_normal_noise(seeds, self.n_params, 0)
-            else:
-                # Last-resort fallback (only if neither is available).
-                noise = torch.randn(len(seeds), self.n_params, device=center.device)
-            pop = center.unsqueeze(0) + sigma * noise
-            return pop.abs().mean(-1)
-        else:
-            # Naive path: OpenES materialises a ``(pop_size, n_params)`` population.
-            return payload.abs().mean(-1)
 
 
 def benchmark_naive_metric(
