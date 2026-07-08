@@ -86,3 +86,13 @@ format.line-ending = "lf"
 lint.select = ["F", "E", "W", "I", "NPY"]
 lint.ignore = ["E501"] # Ignore line length error
 lint.per-file-ignores = {"*.ipynb" = ["I001"], "src/evox/__init__.py" = ["I001"], "src/evox_ext/autoload_ext.py" = ["I001"]}
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
+
