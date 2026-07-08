@@ -11,7 +11,7 @@ Both algorithms optimise a *transformer-structured* model (built entirely from
 ``nn.Linear`` + ``nn.GELU`` layers so it remains ``VirtualProblem``-compatible)
 on a synthetic classification dataset.
 
-The benchmark sweeps population sizes from 16 up to 131 072, recording time/memory
+The benchmark sweeps population sizes from 16 up to 16384, recording time/memory
 for each. When a configuration runs out of memory (CUDA OOM or CPU ``MemoryError``)
 it is recorded with ``status: "oom"`` and the sweep continues. Results are saved
 incrementally to JSON so partial data survives crashes, and two plots (time &
@@ -49,19 +49,23 @@ from evox.workflows import EvalMonitor, StdWorkflow
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-POP_SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+POP_SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
 N_STEPS = 5
 N_WARMUP = 2
 SIGMA = 0.1
 LR = 0.01
 # Transformer config
-D_MODEL = 128
-N_LAYERS = 4
-D_FF = 512
-INPUT_DIM = 128
+D_MODEL = 512
+N_LAYERS = 8
+D_FF = 2048
+INPUT_DIM = 512
 N_CLASSES = 10
 N_SAMPLES = 1024
 BATCH_SIZE = 64
+# Vector-metric experiment config: flat-vector length, chosen large (50M) to
+# maximize memory-bandwidth pressure. Larger than the model (~29.7M) since there
+# is no model-forward overhead here — it's pure memory-bandwidth.
+N_PARAMS = 50_000_000
 
 
 def make_transformer_model(
@@ -90,7 +94,7 @@ def make_transformer_model(
         expand/contract pair (as in a standard transformer FFN).
     - A classification head.
 
-    The resulting model has transformer-scale parameter count (~940 K params with
+    The resulting model has transformer-scale parameter count (~29.7M params with
     the default config) while remaining fully ``VirtualProblem``-compatible.
 
     :param d_model: Model / hidden dimension.
@@ -201,6 +205,9 @@ def benchmark_naive_es(
         workflow.step()
 
     if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         torch.cuda.synchronize()
 
@@ -299,6 +306,9 @@ def benchmark_virtual_es(
         workflow.step()
 
     if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         torch.cuda.synchronize()
 
