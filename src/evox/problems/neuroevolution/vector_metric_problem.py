@@ -1,7 +1,5 @@
 __all__ = ["VectorMetricProblem"]
 
-from typing import Tuple
-
 import torch
 
 from evox.core import Problem

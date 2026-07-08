@@ -56,4 +56,4 @@ All three classes implement `evaluate(self, pop_params: Dict[str, nn.Parameter])
 - `./vector_metric_problem.py` → `VectorMetricProblem` — Flat-vector virtual-metric evaluation via fused `virtual_reduce_metric` kernel (virtual `(center, seeds, sigma)` path + naive/materialized 2D-population path)
 - `./virtual_lora_problem.py` → Legacy `VirtualLoRAProblem` — Original LoRA-based implementation (not exported)
 - `./utils.py` → `ModelStateForwardResult`, `get_vmap_model_state_forward` — Shared vmapped state/forward factory
-- `./__init__.py` → Exports submodule names: `brax`, `mujoco_playground`, `supervised_learning`, `VirtualProblem`, and `VirtualLoRAProblem`
+- `./__init__.py` → Exports submodule names: `brax`, `mujoco_playground`, `supervised_learning`, `VirtualProblem`, `VirtualLoRAProblem`, and `VectorMetricProblem`
