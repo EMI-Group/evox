@@ -11,7 +11,7 @@ Both algorithms optimise a *transformer-structured* model (built entirely from
 ``nn.Linear`` + ``nn.GELU`` layers so it remains ``VirtualProblem``-compatible)
 on a synthetic classification dataset.
 
-The benchmark sweeps population sizes from 16 up to 131 072, recording time/memory
+The benchmark sweeps population sizes from 16 up to 16384, recording time/memory
 for each. When a configuration runs out of memory (CUDA OOM or CPU ``MemoryError``)
 it is recorded with ``status: "oom"`` and the sweep continues. Results are saved
 incrementally to JSON so partial data survives crashes, and two plots (time &
@@ -41,27 +41,45 @@ except ImportError:
     plt = None
 
 from evox.algorithms import OpenES, VirtualES
+from evox.core import Problem
 from evox.problems.neuroevolution import VirtualProblem
 from evox.problems.neuroevolution.supervised_learning import SupervisedLearningProblem
 from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 
+# Optional virtual-metric op. The parallel src-side additions
+# (``virtual_reduce_metric`` op and ``VectorMetricProblem`` problem) may not yet
+# be present in this worktree, so import them with a graceful fallback.
+try:
+    from evox.triton_kernels import virtual_reduce_metric
+except ImportError:
+    virtual_reduce_metric = None
+
+try:
+    from evox.triton_kernels.kernels.virtual_noise import _cpu_normal_noise
+except ImportError:
+    _cpu_normal_noise = None
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-POP_SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+POP_SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
 N_STEPS = 5
 N_WARMUP = 2
 SIGMA = 0.1
 LR = 0.01
 # Transformer config
-D_MODEL = 128
-N_LAYERS = 4
-D_FF = 512
-INPUT_DIM = 128
+D_MODEL = 512
+N_LAYERS = 8
+D_FF = 2048
+INPUT_DIM = 512
 N_CLASSES = 10
 N_SAMPLES = 1024
 BATCH_SIZE = 64
+# Vector-metric experiment config: flat-vector length, chosen large (50M) to
+# maximize memory-bandwidth pressure. Larger than the model (~29.7M) since there
+# is no model-forward overhead here — it's pure memory-bandwidth.
+N_PARAMS = 50_000_000
 
 
 def make_transformer_model(
@@ -90,7 +108,7 @@ def make_transformer_model(
         expand/contract pair (as in a standard transformer FFN).
     - A classification head.
 
-    The resulting model has transformer-scale parameter count (~940 K params with
+    The resulting model has transformer-scale parameter count (~29.7M params with
     the default config) while remaining fully ``VirtualProblem``-compatible.
 
     :param d_model: Model / hidden dimension.
@@ -201,6 +219,9 @@ def benchmark_naive_es(
         workflow.step()
 
     if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         torch.cuda.synchronize()
 
@@ -299,6 +320,196 @@ def benchmark_virtual_es(
         workflow.step()
 
     if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
+    times: list[float] = []
+    for _ in range(n_steps):
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        t0 = time.time()
+        workflow.step()
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        times.append(time.time() - t0)
+
+    if device.type == "cuda":
+        peak_mem = torch.cuda.max_memory_allocated()
+    else:
+        _current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        peak_mem = peak
+
+    return sum(times) / len(times), peak_mem
+
+
+class VectorMetricProblem(Problem):
+    """Flat-vector metric problem: fitness = ``mean(|center + sigma*noise|)`` per individual.
+
+    Isolates the virtual-population mechanism with no model forward. Handles both
+    the virtual tuple payload ``(center, seeds, sigma)`` and the naive materialized
+    population ``(pop_size, n_params)``.
+    """
+
+    def __init__(self, n_params: int, device: torch.device):
+        super().__init__()
+        self.n_params = n_params
+        self.device = device
+
+    def evaluate(self, payload):
+        if isinstance(payload, tuple):
+            # Virtual path: VirtualES passes ``(center, seeds, sigma)`` where
+            # ``center`` is ``(dim,)``, ``seeds`` is ``(pop_size,)`` int64, and
+            # ``sigma`` is a float. The fused op returns ``(pop_size,)`` fitness
+            # without ever materializing the full ``(pop_size, dim)`` population.
+            center, seeds, sigma = payload
+            if virtual_reduce_metric is not None:
+                return virtual_reduce_metric(center, seeds, sigma, self.n_params)
+            # Fallback: generate noise deterministically and compute the metric.
+            #
+            # NOTE: When the fused ``virtual_reduce_metric`` op is unavailable,
+            # this fallback materializes the full ``(pop_size, n_params)`` noise
+            # tensor — acceptable for a smoke test but NOT representative of the
+            # virtual population's memory advantage. The REAL demonstration relies
+            # on the fused op existing.
+            if _cpu_normal_noise is not None:
+                noise = _cpu_normal_noise(seeds, self.n_params, 0)
+            else:
+                # Last-resort fallback (only if neither is available).
+                noise = torch.randn(len(seeds), self.n_params, device=center.device)
+            pop = center.unsqueeze(0) + sigma * noise
+            return pop.abs().mean(-1)
+        else:
+            # Naive path: OpenES materialises a ``(pop_size, n_params)`` population.
+            return payload.abs().mean(-1)
+
+
+def benchmark_naive_metric(
+    n_params: int,
+    pop_size: int,
+    sigma: float,
+    lr: float,
+    n_warmup: int,
+    n_steps: int,
+    device: torch.device,
+) -> tuple[float, int]:
+    """Benchmark the naive OpenES approach on a flat-vector metric (no model).
+
+    Uses ``OpenES`` directly on a flat ``n_params`` vector (no
+    ``solution_transform``) with ``mirrored_sampling=True``. The full
+    ``(pop_size, n_params)`` population is materialised each step.
+
+    :return: ``(avg_time_per_step_seconds, peak_memory_bytes)``.
+    """
+    center_init = torch.randn(n_params, device=device)
+
+    algo = OpenES(
+        pop_size=pop_size,
+        center_init=center_init,
+        learning_rate=lr,
+        noise_stdev=sigma,
+        optimizer="adam",
+        mirrored_sampling=True,
+        device=device,
+    )
+    prob = VectorMetricProblem(n_params, device)
+    monitor = EvalMonitor(full_fit_history=True, device=device)
+    workflow = StdWorkflow(
+        algo,
+        prob,
+        monitor,
+        device=device,
+    )
+
+    # CPU memory tracking via tracemalloc is approximate — start before warmup.
+    if device.type == "cpu":
+        tracemalloc.start()
+
+    workflow.init_step()
+    for _ in range(n_warmup):
+        workflow.step()
+
+    if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
+    times: list[float] = []
+    for _ in range(n_steps):
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        t0 = time.time()
+        workflow.step()
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        times.append(time.time() - t0)
+
+    if device.type == "cuda":
+        peak_mem = torch.cuda.max_memory_allocated()
+    else:
+        _current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        peak_mem = peak
+
+    return sum(times) / len(times), peak_mem
+
+
+def benchmark_virtual_metric(
+    n_params: int,
+    pop_size: int,
+    sigma: float,
+    lr: float,
+    n_warmup: int,
+    n_steps: int,
+    device: torch.device,
+) -> tuple[float, int]:
+    """Benchmark the VirtualES approach on a flat-vector metric (no model).
+
+    Uses ``VirtualES`` with a single flat block ``param_shapes=[(n_params,)]`` and
+    no ``solution_transform``. The virtual ``(center, seeds, sigma)`` tuple is
+    passed directly to :class:`VectorMetricProblem`.
+
+    :return: ``(avg_time_per_step_seconds, peak_memory_bytes)``.
+    """
+    center_init = torch.randn(n_params, device=device)
+
+    algo = VirtualES(
+        param_shapes=[(n_params,)],
+        pop_size=pop_size,
+        center_init=center_init,
+        learning_rate=lr,
+        noise_stdev=sigma,
+        optimizer="adam",
+        device=device,
+    )
+    prob = VectorMetricProblem(n_params, device)
+    monitor = EvalMonitor(full_fit_history=True, device=device)
+    # NOTE: No solution_transform — the virtual path passes the (center, seeds,
+    # sigma) tuple directly to the problem without conversion.
+    workflow = StdWorkflow(
+        algo,
+        prob,
+        monitor,
+        device=device,
+    )
+
+    # CPU memory tracking via tracemalloc is approximate — start before warmup.
+    if device.type == "cpu":
+        tracemalloc.start()
+
+    workflow.init_step()
+    for _ in range(n_warmup):
+        workflow.step()
+
+    if device.type == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         torch.cuda.synchronize()
 
@@ -370,19 +581,34 @@ def _successful_prefix(results: dict, key: str, pop_sizes: list[int], value_fn) 
     return xs, ys
 
 
-def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
+def _generate_plots(
+    results: dict,
+    metadata: dict,
+    results_dir: Path,
+    series_spec: list[tuple[str, str, str]] | None = None,
+    title_suffix: str = "VirtualES vs Naive OpenES",
+    filename_suffix: str = "",
+) -> None:
     """Generate and save the time and memory comparison plots.
 
-    :param results: The ``"results"`` sub-dict keyed by population-size string.
-    :param metadata: The benchmark metadata dict (used for ``pop_sizes`` and title).
+    :param results: The results sub-dict keyed by population-size string.
+    :param metadata: The benchmark metadata dict (used for ``pop_sizes``).
     :param results_dir: Directory to write the PNG files into.
+    :param series_spec: Optional ``[(key, color, label), ...]`` overriding the
+        default naive/virtual series. ``key`` indexes into each results entry.
+    :param title_suffix: Title prefix used for both plot titles.
+    :param filename_suffix: Appended to the output filenames (e.g. ``"_metric"``
+        yields ``benchmark_metric_time.png``). Empty string keeps the originals.
     """
     if plt is None:
         print("matplotlib is not installed. Install with: pip install matplotlib. Skipping plot generation.")
         return
 
     pop_sizes = metadata["pop_sizes"]
-    series = [("naive", "red", "Naive OpenES"), ("virtual", "blue", "VirtualES")]
+    if series_spec is None:
+        series = [("naive", "red", "Naive OpenES"), ("virtual", "blue", "VirtualES")]
+    else:
+        series = series_spec
 
     # --- Time plot ---
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -394,11 +620,11 @@ def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Population Size (log2)")
     ax.set_ylabel("Time per Step (ms, log)")
-    ax.set_title("VirtualES vs Naive OpenES — Time per Step")
+    ax.set_title(f"{title_suffix} — Time per Step")
     ax.legend()
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
     fig.tight_layout()
-    time_path = results_dir / "benchmark_time.png"
+    time_path = results_dir / f"benchmark{filename_suffix}_time.png"
     fig.savefig(time_path)
     plt.close(fig)
     print(f"Time plot saved to {time_path}")
@@ -416,20 +642,38 @@ def _generate_plots(results: dict, metadata: dict, results_dir: Path) -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Population Size (log2)")
     ax.set_ylabel("Peak Memory (GB, log)")
-    ax.set_title("VirtualES vs Naive OpenES — Peak Memory")
+    ax.set_title(f"{title_suffix} — Peak Memory")
     ax.legend()
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
     fig.tight_layout()
-    mem_path = results_dir / "benchmark_memory.png"
+    mem_path = results_dir / f"benchmark{filename_suffix}_memory.png"
     fig.savefig(mem_path)
     plt.close(fig)
     print(f"Memory plot saved to {mem_path}")
+
+
+def _generate_vector_metric_plots(results: dict, metadata: dict, results_dir: Path) -> None:
+    """Generate time/memory plots for the flat-vector metric experiment.
+
+    Thin wrapper around :func:`_generate_plots` using the metric-experiment
+    series labels and a ``_metric`` filename suffix.
+    """
+    _generate_plots(
+        results,
+        metadata,
+        results_dir,
+        series_spec=[("naive", "red", "Naive OpenES (metric)"), ("virtual", "blue", "VirtualES (metric)")],
+        title_suffix="VirtualES vs Naive OpenES — Vector Metric",
+        filename_suffix="_metric",
+    )
 
 
 def plot_from_json(json_path: str | Path) -> None:
     """Regenerate the time and memory plots from a saved JSON results file.
 
     This allows re-plotting without re-running the (potentially long) benchmark.
+    Regenerates plots for BOTH the model-based experiment (``results``) and the
+    vector-metric experiment (``vector_metric_results``) when present.
 
     :param json_path: Path to a ``benchmark_results.json`` file produced by
         :func:`main`.
@@ -439,6 +683,8 @@ def plot_from_json(json_path: str | Path) -> None:
         data = json.load(f)
     results_dir = json_path.parent
     _generate_plots(data["results"], data["metadata"], results_dir)
+    if "vector_metric_results" in data:
+        _generate_vector_metric_plots(data["vector_metric_results"], data["metadata"], results_dir)
 
 
 def main():
@@ -471,12 +717,14 @@ def main():
                 "n_classes": N_CLASSES,
             },
             "total_params": total_params,
+            "vector_metric_config": {"n_params": N_PARAMS},
             "n_steps": N_STEPS,
             "sigma": SIGMA,
             "lr": LR,
             "pop_sizes": POP_SIZES,
         },
         "results": {},
+        "vector_metric_results": {},
     }
 
     for pop_size in POP_SIZES:
@@ -541,8 +789,91 @@ def main():
         # Cleanup between population sizes to reduce memory fragmentation.
         _cleanup(device)
 
-    # Generate plots from the completed sweep.
+    # Generate plots from the completed model-based sweep.
     _generate_plots(all_results["results"], all_results["metadata"], results_dir)
+
+    # ======================================================================
+    # Second experiment: flat-vector "virtual metric" comparison.
+    # Treats parameters as a flat vector and computes mean(|center + sigma*noise|)
+    # per individual directly — NO model forward. This isolates the
+    # virtual-population mechanism (pure memory-bandwidth).
+    # ======================================================================
+    print(f"\n{'=' * 80}")
+    print(f"Vector-metric experiment (N_PARAMS={N_PARAMS:,})")
+    print(f"{'=' * 80}")
+
+    for pop_size in POP_SIZES:
+        print(f"\n{'─' * 80}")
+        print(f"Population size: {pop_size}")
+        print(f"{'─' * 80}")
+
+        pop_key = str(pop_size)
+        all_results["vector_metric_results"][pop_key] = {}
+
+        # --- Naive OpenES (metric) ---
+        try:
+            naive_time, naive_mem = benchmark_naive_metric(
+                n_params=N_PARAMS,
+                pop_size=pop_size,
+                sigma=SIGMA,
+                lr=LR,
+                n_warmup=N_WARMUP,
+                n_steps=N_STEPS,
+                device=device,
+            )
+            all_results["vector_metric_results"][pop_key]["naive"] = {
+                "time_per_step": naive_time,
+                "memory": naive_mem,
+                "status": "ok",
+            }
+            print(
+                f"  [Naive metric]    avg time/step: {naive_time * 1000:.1f} ms | peak mem: {_fmt_mem(naive_mem)}"
+            )
+        except (RuntimeError, MemoryError) as e:
+            all_results["vector_metric_results"][pop_key]["naive"] = {
+                "time_per_step": None,
+                "memory": None,
+                "status": "oom",
+            }
+            print(f"  [Naive metric]    OOM ({type(e).__name__}): {e}")
+            _cleanup(device)
+
+        # --- VirtualES (metric) ---
+        try:
+            virtual_time, virtual_mem = benchmark_virtual_metric(
+                n_params=N_PARAMS,
+                pop_size=pop_size,
+                sigma=SIGMA,
+                lr=LR,
+                n_warmup=N_WARMUP,
+                n_steps=N_STEPS,
+                device=device,
+            )
+            all_results["vector_metric_results"][pop_key]["virtual"] = {
+                "time_per_step": virtual_time,
+                "memory": virtual_mem,
+                "status": "ok",
+            }
+            print(
+                f"  [Virtual metric]  avg time/step: {virtual_time * 1000:.1f} ms | peak mem: {_fmt_mem(virtual_mem)}"
+            )
+        except (RuntimeError, MemoryError) as e:
+            all_results["vector_metric_results"][pop_key]["virtual"] = {
+                "time_per_step": None,
+                "memory": None,
+                "status": "oom",
+            }
+            print(f"  [Virtual metric]  OOM ({type(e).__name__}): {e}")
+            _cleanup(device)
+
+        # Incremental save so partial results survive crashes.
+        _save_results(results_path, all_results)
+
+        # Cleanup between population sizes to reduce memory fragmentation.
+        _cleanup(device)
+
+    # Generate plots for the vector-metric experiment.
+    _generate_vector_metric_plots(all_results["vector_metric_results"], all_results["metadata"], results_dir)
 
     print(f"\n{'=' * 80}")
     print(f"Done. Results saved to {results_path}")
