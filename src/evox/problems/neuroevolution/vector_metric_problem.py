@@ -15,7 +15,7 @@ class VectorMetricProblem(Problem):
     ``n_params`` and computes a normalized metric over it directly.
 
     Because the noise is never materialized — the fused kernel
-    :func:`virtual_reduce_metric` applies the Gaussian perturbations on the fly
+    :func:`virtual_reduce_metric` applies the perturbations on the fly
     during the reduction — this problem demonstrates virtual populations at
     huge scales (``pop_size`` up to 16384+).
 
@@ -58,8 +58,8 @@ class VectorMetricProblem(Problem):
 
         - If ``payload`` is a length-3 tuple ``(center_flat, seeds, sigma)``,
           the **virtual path** is taken. The fused
-          :func:`virtual_reduce_metric` kernel applies the Gaussian-noise
-          perturbations on the fly and computes the per-individual metric
+          :func:`virtual_reduce_metric` kernel applies the perturbations on the
+          fly and computes the per-individual metric
           ``mean_k(|center[k] + sigma * noise[i, k]|)`` without ever
           materializing the perturbed population.
         - Otherwise, the **naive / materialized path** is taken. ``payload`` is
