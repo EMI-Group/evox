@@ -53,6 +53,7 @@ All three classes implement `evaluate(self, pop_params: Dict[str, nn.Parameter])
 - `./mujoco_playground.py` → `MujocoProblem` — MuJoCo Playground (MJX) physics simulation evaluation
 - `./supervised_learning.py` → `SupervisedLearningProblem` — Supervised learning loss-landscape evaluation
 - `./virtual_problem.py` → `VirtualProblem` / `VirtualLoRAProblem` — Virtual Gaussian-noise population evaluation via fused `virtual_perturbed_linear` kernel (no full perturbation materialization)
+- `./vector_metric_problem.py` → `VectorMetricProblem` — Flat-vector virtual-metric evaluation via fused `virtual_reduce_metric` kernel (virtual `(center, seeds, sigma)` path + naive/materialized 2D-population path)
 - `./virtual_lora_problem.py` → Legacy `VirtualLoRAProblem` — Original LoRA-based implementation (not exported)
 - `./utils.py` → `ModelStateForwardResult`, `get_vmap_model_state_forward` — Shared vmapped state/forward factory
 - `./__init__.py` → Exports submodule names: `brax`, `mujoco_playground`, `supervised_learning`, `VirtualProblem`, and `VirtualLoRAProblem`
