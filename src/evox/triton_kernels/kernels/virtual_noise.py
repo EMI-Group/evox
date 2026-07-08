@@ -238,24 +238,30 @@ def _virtual_bias_gradient_fake(
 # ---------------------------------------------------------------------------
 
 
-def _tl_randn_block(seed, offsets):
-    """Generate a block of standard-normal noise from ``seed`` at ``offsets``.
-
-    Prefers ``tl.randn`` (direct standard-normal Philox output) when available;
-    otherwise falls back to ``tl.rand`` (uniform) + Box-Muller. Both branches
-    are deterministic given ``(seed, offsets)`` so the forward pass and the
-    gradient regenerate identical noise.
-
-    :meta private: (only meaningful inside the ``if has_triton():`` block)
-    """
-    if _has_randn:
-        return tl.randn(seed, offsets)
-    u1 = tl.rand(seed, offsets)
-    u2 = tl.rand(seed, offsets + 1234567890)
-    return tl.sqrt(-2.0 * tl.log(tl.clamp(u1, 1e-10, 1.0))) * tl.cos(6.283185307179586 * u2)
-
-
 if has_triton():
+
+    # ``_tl_randn_block`` MUST be a ``@triton.jit`` function because it is called
+    # from inside the ``@triton.jit`` kernels below. A plain module-level Python
+    # function reference would trigger a Triton ``NameError`` at compile time
+    # ("Cannot access global variable ... from within @jit'ed function"). The
+    # ``tl.randn`` vs Box-Muller branch is resolved here at definition time (it
+    # cannot live as a Python ``if _has_randn:`` inside a jit body, since that
+    # would re-introduce a non-constexpr module-global reference). Both branches
+    # are deterministic given ``(seed, offsets)`` so the forward pass and the
+    # gradient regenerate identical noise.
+    if _has_randn:
+
+        @triton.jit
+        def _tl_randn_block(seed, offsets):
+            return tl.randn(seed, offsets)
+
+    else:
+
+        @triton.jit
+        def _tl_randn_block(seed, offsets):
+            u1 = tl.rand(seed, offsets)
+            u2 = tl.rand(seed, offsets + 1234567890)
+            return tl.sqrt(-2.0 * tl.log(tl.clamp(u1, 1e-10, 1.0))) * tl.cos(6.283185307179586 * u2)
 
     @triton.jit
     def _virtual_perturbed_linear_kernel(
