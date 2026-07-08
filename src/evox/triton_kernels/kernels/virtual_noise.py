@@ -239,6 +239,20 @@ def _virtual_bias_gradient_fake(
     return torch.empty(*bias_shape, dtype=fitness.dtype, device=fitness.device)
 
 
+def _virtual_reduce_metric_fake(
+    center: torch.Tensor,
+    seeds: torch.Tensor,
+    sigma: float,
+    n_params: int,
+    offset: int,
+) -> torch.Tensor:
+    """Abstract evaluation (torch.compile tracing) for :func:`virtual_reduce_metric`.
+
+    :return: An empty ``(pop_size,)`` float32 tensor on ``center``'s device.
+    """
+    return torch.empty(seeds.shape[0], dtype=torch.float32, device=center.device)
+
+
 # ---------------------------------------------------------------------------
 # Triton kernels + launchers (defined only when Triton is available).
 #
@@ -427,6 +441,59 @@ if has_triton():
 
         tl.store(grad_ptr + out_offs, acc, mask=out_mask)
 
+    @triton.jit
+    def _virtual_reduce_metric_kernel(
+        center_ptr,
+        seeds_ptr,
+        out_ptr,
+        n_params,
+        offset,
+        sigma,
+        BLOCK_PARAM: tl.constexpr,
+    ):
+        """Fused virtual-noise mean-absolute-value reduction kernel.
+
+        Computes, per individual ``i``::
+
+            fitness[i] = mean_k( | center[k] + sigma * noise[i, k] | )
+
+        where ``noise[i, k]`` is generated on-the-fly from ``seeds[i]`` using
+        element index ``offset + k``. The ``(pop_size, n_params)`` noise tensor
+        is NEVER materialized — noise is generated tile-by-tile in registers,
+        fused with the ``center + sigma * noise`` perturbation, ``abs()``-ed and
+        reduced to a single scalar per individual. Grid: ``(pop_size,)`` — one
+        program per individual that loops over ``BLOCK_PARAM`` tiles of the
+        parameter vector. O(pop_size) output memory.
+
+        Uses :func:`_tl_noise_block` (the SAME fast RNG as the linear / gradient
+        kernels) so the noise is consistent with the rest of the module.
+        """
+        pid_pop = tl.program_id(axis=0)
+        seed = tl.load(seeds_ptr + pid_pop).to(tl.int32)
+
+        acc = tl.zeros([], dtype=tl.float32)
+        for kstart in range(0, n_params, BLOCK_PARAM):
+            k_offs = kstart + tl.arange(0, BLOCK_PARAM)
+            k_mask = k_offs < n_params
+
+            # Center tile (shared across all individuals).
+            c_tile = tl.load(center_ptr + k_offs, mask=k_mask, other=0.0)
+
+            # Generate the noise tile in registers (never stored). Element index
+            # for parameter k is offset + k.
+            noise_offs = offset + k_offs
+            noise_tile = _tl_noise_block(seed, noise_offs)
+
+            # Fused perturbation + abs(), accumulate the sum. Out-of-bounds
+            # elements are masked to 0 (via the load ``other=0.0`` and the
+            # reduction mask) so they contribute nothing; we then divide by the
+            # TRUE n_params below, which is correct since masked contributions
+            # are zero.
+            pert = c_tile + sigma * noise_tile
+            acc += tl.sum(tl.where(k_mask, tl.abs(pert), 0.0))
+
+        tl.store(out_ptr + pid_pop, acc / n_params)
+
 
 def _choose_num_stages(device: torch.device, per_stage_bytes: int, max_stages: int = 4) -> int:
     """Pick a software-pipelining depth that fits the device's shared-memory budget.
@@ -614,6 +681,40 @@ def _triton_virtual_bias_gradient(
     return grad
 
 
+def _triton_virtual_reduce_metric(
+    center: torch.Tensor,
+    seeds: torch.Tensor,
+    sigma: float,
+    n_params: int,
+    offset: int,
+) -> torch.Tensor:
+    """Launch the fused Triton virtual-noise mean-abs reduction kernel."""
+    pop_size = seeds.shape[0]
+    out = torch.empty(pop_size, dtype=torch.float32, device=center.device)
+
+    # 1-D parameter tile (power of two for reduction alignment). Cap at 2048 to
+    # keep the per-program tile comfortably within shared memory for any GPU.
+    BLOCK_PARAM = min(max(triton.next_power_of_2(n_params), 16), 2048)
+    # One program per individual; each loops over BLOCK_PARAM tiles.
+    grid = (pop_size,)
+
+    # 1-D elementwise reduction tile; footprint is a single tile per stage.
+    per_stage_bytes = BLOCK_PARAM * 4
+    num_stages = _choose_num_stages(center.device, per_stage_bytes, max_stages=4)
+
+    _virtual_reduce_metric_kernel[grid](
+        center,
+        seeds,
+        out,
+        n_params,
+        offset,
+        float(sigma),
+        BLOCK_PARAM=BLOCK_PARAM,
+        num_stages=num_stages,
+    )
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Public registered ops (PyTorch fallback is the function body).
 # ---------------------------------------------------------------------------
@@ -756,3 +857,47 @@ def virtual_bias_gradient(
     grad = torch.einsum("i,ij->j", fitness.to(torch.float32), b_noise)
     grad = grad / (pop_size * sigma)
     return grad.reshape(bias_shape)
+
+
+@register_triton_op(fake_fn=_virtual_reduce_metric_fake, triton_fn=_triton_virtual_reduce_metric)
+def virtual_reduce_metric(
+    center: torch.Tensor,
+    seeds: torch.Tensor,
+    sigma: float,
+    n_params: int,
+    offset: int,
+) -> torch.Tensor:
+    """Virtual-noise mean-absolute-value reduction metric.
+
+    Computes, per individual ``i``::
+
+        fitness[i] = mean_k( | center[k] + sigma * noise[i, k] | )
+
+    where ``noise[i, k]`` is generated on-the-fly from ``seeds[i]`` using element
+    index ``offset + k`` with the SAME fast centered-uniform RNG as the other
+    kernels in this module.
+
+    On the Triton (CUDA) path the ``(pop_size, n_params)`` noise tensor is NEVER
+    materialized: noise is generated tile-by-tile in registers, fused with the
+    ``center + sigma * noise`` perturbation, ``abs()``-ed and reduced to a single
+    scalar per individual (one program per individual). Output memory is
+    ``O(pop_size)``.
+
+    This CPU fallback (the function body) MAY materialize the noise — performance
+    is not critical on CPU — but uses the same :func:`_cpu_normal_noise` so the
+    noise is internally consistent.
+
+    :param center: 1-D float tensor of length ``n_params`` (the center/mean of the
+        perturbation, e.g. a flattened parameter vector).
+    :param seeds: 1-D int tensor of per-individual seeds, shape ``(pop_size,)``.
+    :param sigma: Perturbation scale (Python float).
+    :param n_params: Number of parameters (length of ``center`` and the reduction
+        dimension). Pass explicitly so it is a trace-time constant on the Triton
+        path; it should equal ``center.numel()``.
+    :param offset: Flat element offset for this block's noise (default 0).
+    :return: ``(pop_size,)`` float32 tensor of per-individual mean-abs values.
+    """
+    # Pure-PyTorch fallback (CPU path): materialize the noise here — performance
+    # is not critical on CPU, but we reuse _cpu_normal_noise for consistency.
+    noise = _cpu_normal_noise(seeds, n_params, offset)
+    return (center[None, :] + sigma * noise).abs().mean(dim=-1)
