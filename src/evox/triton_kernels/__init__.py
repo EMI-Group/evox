@@ -14,6 +14,7 @@ __all__ = [
     "virtual_perturbed_linear",
     "virtual_weight_gradient",
     "virtual_bias_gradient",
+    "virtual_reduce_metric",
     "compute_offsets",
 ]
 
@@ -29,6 +30,7 @@ from .kernels import (
     philox_uniform,
     virtual_bias_gradient,
     virtual_perturbed_linear,
+    virtual_reduce_metric,
     virtual_weight_gradient,
 )
 from .op_register import register_triton_op
