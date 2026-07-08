@@ -118,6 +118,11 @@ class VirtualProblem(Problem):
                         indices["bias"] = self.param_names.index(bias_key)
                 self.linear_param_indices[name] = indices
 
+    # Forward-only fitness evaluation: we never need gradients of the problem,
+    # so disable autograd here. Without this, autograd retains the full
+    # ``(pop_size, batch, features)`` activation graph layer-by-layer, which
+    # inflates and destabilizes peak-memory measurements during benchmarking.
+    @torch.no_grad()
     def _virtual_forward(
         self,
         inputs: torch.Tensor,
