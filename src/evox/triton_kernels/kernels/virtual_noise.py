@@ -303,22 +303,9 @@ if has_triton():
         out_offs = out_start + tl.arange(0, BLOCK_OUT)
         out_mask = out_offs < out_features
 
-        in_offs = tl.arange(0, BLOCK_IN)
-        in_mask = in_offs < in_features
-
-        # Load weight tile (BLOCK_OUT, BLOCK_IN).
-        w_ptrs = weight_ptr + out_offs[:, None] * in_features + in_offs[None, :]
-        w_tile = tl.load(w_ptrs, mask=out_mask[:, None] & in_mask[None, :], other=0.0)
-
-        # Generate noise tile in registers (never stored). Weight element
-        # (j, k) -> noise index offset + j*in + k.
-        noise_offs = offset + out_offs[:, None] * in_features + in_offs[None, :]
-        noise_tile = _tl_randn_block(seed, noise_offs)
-
-        # Perturbed weight tile (kept in registers).
-        w_pert = w_tile + sigma * noise_tile
-
-        # Bias contribution for this output tile.
+        # Bias contribution for this output tile. It is independent of the
+        # inner (reduction) dimension, so it is computed once here. Bias
+        # element ``j`` noise index: ``bias_offset + j``.
         if has_bias:
             b_tile = tl.load(bias_ptr + out_offs, mask=out_mask, other=0.0)
             b_noise_offs = bias_offset + out_offs
@@ -327,18 +314,44 @@ if has_triton():
         else:
             b_pert = tl.zeros([BLOCK_OUT], dtype=tl.float32)
 
-        # Iterate over batch tiles and accumulate Y[b, out_tile] = X[b,:] @ w_pert^T.
+        # Iterate over batch tiles and compute Y[b, out_tile] = X[b,:] @ w_pert^T.
+        # The inner (reduction) dimension is tiled in BLOCK_IN chunks so each
+        # ``tl.dot`` operates on a (BLOCK_BATCH, BLOCK_IN) x (BLOCK_IN, BLOCK_OUT)
+        # tile that fits in shared memory; the full reduction over ``in_features``
+        # is accumulated in ``acc``. The weight noise for element ``(j, k)`` (with
+        # ``k = kstart + local_k``) is still indexed ``offset + j * in + k``, so
+        # the regenerated noise is byte-identical to a single-tile load and to the
+        # weight-gradient kernel (which tiles the inner dim the same way).
         for bstart in range(0, batch, BLOCK_BATCH):
             b_offs = bstart + tl.arange(0, BLOCK_BATCH)
             b_mask = b_offs < batch
-            if x_is_per_individual:
-                x_ptrs = x_ptr + pid_pop * batch * in_features + b_offs[:, None] * in_features + in_offs[None, :]
-            else:
-                x_ptrs = x_ptr + b_offs[:, None] * in_features + in_offs[None, :]
-            x_tile = tl.load(x_ptrs, mask=b_mask[:, None] & in_mask[None, :], other=0.0)
-            # acc: (BLOCK_BATCH, BLOCK_OUT) = X @ w_pert^T
-            acc = tl.dot(x_tile, tl.trans(w_pert))
-            # Add bias tile (broadcast over batch dim).
+            acc = tl.zeros([BLOCK_BATCH, BLOCK_OUT], dtype=tl.float32)
+            for kstart in range(0, in_features, BLOCK_IN):
+                in_offs = kstart + tl.arange(0, BLOCK_IN)
+                in_mask = in_offs < in_features
+
+                # Load weight tile (BLOCK_OUT, BLOCK_IN) for this inner slice.
+                w_ptrs = weight_ptr + out_offs[:, None] * in_features + in_offs[None, :]
+                w_tile = tl.load(w_ptrs, mask=out_mask[:, None] & in_mask[None, :], other=0.0)
+
+                # Generate noise tile in registers (never stored). Weight element
+                # (j, k) -> noise index offset + j*in + k.
+                noise_offs = offset + out_offs[:, None] * in_features + in_offs[None, :]
+                noise_tile = _tl_randn_block(seed, noise_offs)
+
+                # Perturbed weight tile (kept in registers).
+                w_pert = w_tile + sigma * noise_tile
+
+                # Input tile (BLOCK_BATCH, BLOCK_IN) for this inner slice.
+                if x_is_per_individual:
+                    x_ptrs = x_ptr + pid_pop * batch * in_features + b_offs[:, None] * in_features + in_offs[None, :]
+                else:
+                    x_ptrs = x_ptr + b_offs[:, None] * in_features + in_offs[None, :]
+                x_tile = tl.load(x_ptrs, mask=b_mask[:, None] & in_mask[None, :], other=0.0)
+                # acc: (BLOCK_BATCH, BLOCK_OUT) += X_tile @ w_pert^T
+                acc += tl.dot(x_tile, tl.trans(w_pert))
+
+            # Add bias tile (broadcast over batch dim) and store.
             acc = acc + b_pert[None, :]
             out_ptrs = out_ptr + pid_pop * batch * out_features + b_offs[:, None] * out_features + out_offs[None, :]
             tl.store(out_ptrs, acc, mask=b_mask[:, None] & out_mask[None, :])
@@ -411,6 +424,53 @@ if has_triton():
         tl.store(grad_ptr + out_offs, acc, mask=out_mask)
 
 
+def _choose_num_stages(device: torch.device, per_stage_bytes: int, max_stages: int = 4) -> int:
+    """Pick a software-pipelining depth that fits the device's shared-memory budget.
+
+    Triton's default ``num_stages`` (>= 3) can over-allocate shared memory for
+    large ``tl.dot`` tiles (e.g. the worst-case ``(BLOCK_BATCH=128, BLOCK_IN=512,
+    BLOCK_OUT=64)`` forward tile), triggering an ``OutOfResources`` crash on
+    shared-memory-limited GPUs (e.g. sm_86 with a ~99 KB per-block opt-in limit).
+
+    This defensively queries the device's per-block shared-memory budget and
+    clamps the pipeline depth to what fits. The footprint estimate
+    (``per_stage_bytes``) is provided by the caller and is intentionally
+    pessimistic vs Triton's real (MMA-tiled) usage, so the resulting
+    ``num_stages`` is conservative — which is safe (it only avoids OOM).
+
+    :param device: The device the kernel will run on.
+    :param per_stage_bytes: Estimated shared-memory bytes consumed per pipeline
+        stage for the kernel's largest tile (pessimistic).
+    :param max_stages: Upper bound on the returned pipeline depth.
+    :return: An int in ``[1, max_stages]``.
+    """
+    # Defensive shared-memory budget query. Different PyTorch/CUDA versions and
+    # device types expose the limit under different attribute names; some GPUs
+    # (e.g. sm_86) don't report the opt-in limit at all. On ANY failure we fall
+    # back to the conservative default opt-in (48 KB).
+    budget = 48 * 1024
+    try:
+        if device is not None and device.type == "cuda":
+            props = torch.cuda.get_device_properties(device)
+            for attr in (
+                "max_shared_mem_per_block",
+                "shared_memory_per_block_optin",
+                "shared_memory_per_block",
+                "max_shared_mem_per_sm",
+            ):
+                val = getattr(props, attr, None)
+                if isinstance(val, int) and val > 0:
+                    budget = val
+                    break
+    except Exception:
+        budget = 48 * 1024
+
+    if per_stage_bytes <= 0:
+        return max_stages
+    max_fit = budget // per_stage_bytes
+    return min(max_stages, max(1, max_fit))
+
+
 def _triton_virtual_perturbed_linear(
     x: torch.Tensor,
     weight: torch.Tensor,
@@ -430,14 +490,30 @@ def _triton_virtual_perturbed_linear(
 
     # Tile sizes (powers of two for tl.dot alignment requirements).
     BLOCK_OUT = min(max(triton.next_power_of_2(out_features), 16), 64)
-    BLOCK_IN = min(max(triton.next_power_of_2(in_features), 16), 4096)
-    BLOCK_BATCH = min(max(triton.next_power_of_2(batch), 16), 128)
+    # BLOCK_IN is the inner (reduction) tile size: the kernel now tiles the
+    # reduction dimension in BLOCK_IN chunks (see the inner ``for kstart`` loop),
+    # so it can be reduced for shared-memory safety without changing results.
+    # Capping at 128 keeps each ``tl.dot`` tile comfortably within the per-block
+    # opt-in shared-memory limit (~100 KB on sm_86) for all batch tiles.
+    BLOCK_IN = min(max(triton.next_power_of_2(in_features), 16), 128)
+    # Adaptive BLOCK_BATCH: shrink the batch tile when the inner tile is large so
+    # the A-tile (x_tile) fits comfortably in shared memory (avoids
+    # OutOfResources on shared-memory-limited GPUs).
+    batch_cap = 64 if BLOCK_IN >= 128 else 128
+    BLOCK_BATCH = min(max(triton.next_power_of_2(batch), 16), batch_cap)
 
     n_out_tiles = triton.cdiv(out_features, BLOCK_OUT)
     grid = (pop_size, n_out_tiles)
 
     has_bias = bias is not None
     bias_offset = offset + out_features * in_features if has_bias else 0
+
+    # Adaptive software-pipelining depth. The forward tile's worst-case shared
+    # memory (A-tile + B-tile + accumulator) with Triton's default >=3 stages
+    # can exceed the per-block limit on shared-memory-constrained GPUs.
+    # per_stage_bytes is a pessimistic estimate of one stage's footprint.
+    per_stage_bytes = (BLOCK_BATCH * BLOCK_IN + BLOCK_OUT * BLOCK_IN + BLOCK_BATCH * BLOCK_OUT) * 4
+    num_stages = _choose_num_stages(weight.device, per_stage_bytes, max_stages=4)
 
     _virtual_perturbed_linear_kernel[grid](
         x,
@@ -456,6 +532,7 @@ def _triton_virtual_perturbed_linear(
         BLOCK_OUT=BLOCK_OUT,
         BLOCK_IN=BLOCK_IN,
         BLOCK_BATCH=BLOCK_BATCH,
+        num_stages=num_stages,
     )
     return out
 
@@ -478,6 +555,10 @@ def _triton_virtual_weight_gradient(
     n_in_tiles = triton.cdiv(in_features, BLOCK_IN)
     grid = (n_in_tiles, n_out_tiles)
 
+    # Elementwise noise + reduction (no tl.dot): footprint is the single tile.
+    per_stage_bytes = (BLOCK_OUT * BLOCK_IN) * 4
+    num_stages = _choose_num_stages(fitness.device, per_stage_bytes, max_stages=4)
+
     _virtual_weight_gradient_kernel[grid](
         fitness,
         seeds,
@@ -488,6 +569,7 @@ def _triton_virtual_weight_gradient(
         pop_size,
         BLOCK_OUT=BLOCK_OUT,
         BLOCK_IN=BLOCK_IN,
+        num_stages=num_stages,
     )
     # Kernel accumulates sum_i fitness_i * noise_i; normalize by (pop * sigma).
     grad = grad / (pop_size * sigma)
@@ -510,6 +592,10 @@ def _triton_virtual_bias_gradient(
     n_out_tiles = triton.cdiv(out_features, BLOCK_OUT)
     grid = (n_out_tiles,)
 
+    # 1-D elementwise tile; tiny footprint.
+    per_stage_bytes = BLOCK_OUT * 4
+    num_stages = _choose_num_stages(fitness.device, per_stage_bytes, max_stages=4)
+
     _virtual_bias_gradient_kernel[grid](
         fitness,
         seeds,
@@ -518,6 +604,7 @@ def _triton_virtual_bias_gradient(
         offset,
         pop_size,
         BLOCK_OUT=BLOCK_OUT,
+        num_stages=num_stages,
     )
     grad = grad / (pop_size * sigma)
     return grad
