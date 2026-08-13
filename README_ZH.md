@@ -364,5 +364,5 @@ EvoX 遵循 **GNU 通用公共许可证 3.0 (GPL-3.0)** 进行授权。完整的
 
 <!--
 ## Star 历史
-[![Star 历史图表](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
+[![Star 历史图表](https://star-history.dera.page/svg?repos=EMI-Group/evox&type=Date)](https://star-history.dera.page/#EMI-Group/evox&Date)
 -->

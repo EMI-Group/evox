@@ -359,5 +359,5 @@ EvoX is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. For fu
 
 <!--
 ## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=EMI-Group/evox&type=Date)](https://star-history.dera.page/#EMI-Group/evox&Date)
 -->
