@@ -1,3 +1,5 @@
+import os
+
 import torch
 
 from evox.utils import lexsort, register_vmap_op
@@ -102,8 +104,89 @@ def _vmap_iterative_get_ranks_compile(
     return rank
 
 
+def _masked_iterative_get_ranks_compile(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    """Fixed-round masked variant of :func:`_vmap_iterative_get_ranks_compile`.
+
+    Semantically equivalent to the while_loop version (verified bit-exact on
+    chain/random/duplicate/grid/batch inputs): each round applies
+    ``update_dc_and_rank`` and propagates the front with
+    ``pf = where(pf.any(-1, keepdim=True), dc == 0, 0)`` so the loop terminates
+    purely via GPU-side masking. Running a fixed number of rounds equal to the
+    population size upper-bounds the while_loop and removes the per-iteration
+    DtoH scalar readback (``aoti_torch_item_bool``) plus the per-iteration
+    dynamic buffer allocation that dominate the host-side loop overhead under
+    ``torch.compile``.
+
+    Unused rounds are no-ops: once ``pf`` is all-False, ``rank``/``dc`` stop
+    changing. ``dominate_count`` is **not** restored for early rounds, matching
+    the while_loop version which also mutates its carry.
+    """
+def _masked_iterative_get_ranks_compile(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    """Hybrid fixed-rounds + while_loop variant of the non-dominated ranking.
+
+    Semantically equivalent to the while_loop version for any front depth
+    (bit-exact parity verified on chain/random/duplicate/grid/batch inputs):
+    first a fixed, fully-fused block of ``_MASKED_ROUNDS`` mask-propagated
+    rounds with no host synchronization and no per-iteration allocation, then
+    the stock ``torch.while_loop`` finishes the (usually empty) remainder.
+    Since exhausted fronts are no-ops under masking, the handoff state is
+    exactly the intermediate while_loop state at iteration ``_MASKED_ROUNDS``.
+
+    This removes the dominant host-side costs of the pure while_loop: the
+    per-iteration DtoH scalar readback and per-iteration buffer allocation now
+    happen once per call instead of once per front round.
+    """
+
+    def cond_fn(r, cr, dc, pf):
+        return pf.any()
+
+    def body_fn(r, cr, dc, pf):
+        r, dc = update_dc_and_rank(dominate_relation_matrix, dc, pf, r, cr)
+        cr = cr + 1
+        new_pareto_front = dc == 0
+        pf = torch.where(pf.any(dim=-1, keepdim=True), new_pareto_front, pf)
+        return r, cr, dc, pf
+
+    rank = rank.expand_as(dominate_count)
+    pf = pareto_front
+    dc = dominate_count
+    zeros = torch.zeros_like(pf)
+    rounds = _MASKED_ROUNDS if _MASKED_ROUNDS is not None else 0
+    for cr in range(rounds):
+        rank = torch.where(pf, torch.full_like(rank, cr), rank)
+        count_desc = torch.sum(pf.unsqueeze(-1) * dominate_relation_matrix, dim=-2)
+        dc = dc - count_desc - pf.to(dc.dtype)
+        new_pf = dc == 0
+        pf = torch.where(pf.any(dim=-1, keepdim=True), new_pf, zeros)
+    # while_loop handles any remainder (typically zero iterations: one cond
+    # eval + one DtoH). cr starts at `rounds` to keep rank values continuous.
+    rank, *_ = torch.while_loop(
+        cond_fn, body_fn, (rank, torch.tensor(rounds, device=rank.device), dc, pf)
+    )
+    return rank
+
+
 # evox.core.compile is not necessary since no indexing here
 _vmap_iterative_get_ranks_compile = torch.compile(_vmap_iterative_get_ranks_compile, fullgraph=True)
+_masked_iterative_get_ranks_compile = torch.compile(_masked_iterative_get_ranks_compile, fullgraph=True)
+
+# Env switch: EOXV_NONDOM_MASKED=1 opts into the fixed-round masked variant
+# (semantically equivalent, but pays the fixed round count vs the actual front
+# depth, so only wins when rounds is set close to the true depth and the
+# while_loop host overhead dominates). EOXV_NONDOM_ROUNDS caps the rounds.
+_USE_MASKED_RANKS = os.environ.get("EOXV_NONDOM_MASKED", "0") == "1"
+_rounds_env = os.environ.get("EOXV_NONDOM_ROUNDS")
+_MASKED_ROUNDS = int(_rounds_env) if _rounds_env else None
 
 
 def _vmap_iterative_get_ranks(
@@ -115,7 +198,14 @@ def _vmap_iterative_get_ranks(
 ) -> torch.Tensor:
     current_rank = 0
     if compiling:
-        rank = _vmap_iterative_get_ranks_compile(dominate_relation_matrix, dominate_count, rank, pareto_front)
+        if _USE_MASKED_RANKS:
+            rank = _masked_iterative_get_ranks_compile(
+                dominate_relation_matrix, dominate_count, rank, pareto_front
+            )
+        else:
+            rank = _vmap_iterative_get_ranks_compile(
+                dominate_relation_matrix, dominate_count, rank, pareto_front
+            )
     else:
         while pareto_front.any():
             rank, dominate_count = update_dc_and_rank(
