@@ -6,6 +6,7 @@ __all__ = [
 ]
 
 
+import os
 import weakref
 from abc import ABC
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
@@ -14,6 +15,13 @@ import torch
 from torch import nn
 
 from evox.core import Monitor, Mutable, Problem, Workflow, compile, use_state, vmap
+
+# Env switch for the chunked inner loop (direction 3 of the compile pipeline
+# optimization): EOXV_HPO_CHUNK=k compiles a k-step inlined subgraph so Inductor
+# can fuse across inner steps inside _hpo_evaluate_loop. k<=1 keeps the stock
+# per-step loop. Sweet spot measured at k=8 (per-step 1.03 -> 0.64 ms); larger
+# chunks stop helping while compile time grows quadratically (28 steps: 409 s).
+_HPO_CHUNK = int(os.environ.get("EOXV_HPO_CHUNK", "0"))
 
 
 def _vmap_vmap_mean_fit_aggregation(info, in_dims, fit: torch.Tensor) -> Tuple[torch.Tensor, int]:
@@ -120,9 +128,29 @@ class HPOData(NamedTuple):
     compiled_workflow_step: Callable[[Dict[str, torch.Tensor]], Tuple[Dict[str, torch.Tensor]]]  # compiled_workflow_step
     state_keys: List[str]  # state_keys or param_keys
     buffer_keys: Optional[List[str]]  # optional buffer_keys
+    chunked_compiled_step: Optional[Callable[[Dict[str, torch.Tensor]], Tuple[Dict[str, torch.Tensor]]]] = None  # k-step inlined variant
 
 
 __hpo_data__: Dict[int, HPOData] = {}
+
+
+class _ChunkBuildRequest:
+    """Deferred builder registry for the chunked inner step.
+
+    The compiled custom-op impl cannot capture `self` directly (the op is a
+    free function), so the wrapper instance registers a zero-arg callable
+    here; _hpo_evaluate_loop picks it up on first real execution.
+    """
+
+    _registry: Dict[int, Callable[[], Any]] = {}
+
+    def __init__(self, id: int, builder: Callable[[], Any]):
+        self.id = id
+        _ChunkBuildRequest._registry[id] = builder
+
+    @staticmethod
+    def get(id: int) -> Optional[Callable[[], Any]]:
+        return _ChunkBuildRequest._registry.get(id)
 
 
 def _fake_hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
@@ -132,12 +160,40 @@ def _fake_hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_val
 @torch.library.custom_op("evox::_hpo_evaluate_loop", mutates_args=())
 def _hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
     global __hpo_data__
-    workflow_step, compiled_workflow_step, state_keys, buffer_keys = __hpo_data__[id]
+    data = __hpo_data__[id]
+    workflow_step, compiled_workflow_step, state_keys, buffer_keys, chunked_compiled_step = data
+    if chunked_compiled_step is None and compiling and _HPO_CHUNK > 1 and buffer_keys is None:
+        # Lazy build here (not in evaluate): with a warm fx_graph_cache the
+        # outer graph is restored from disk and evaluate's Python body is never
+        # re-traced, so this impl is the only hook that reliably runs.
+        holder = _ChunkBuildRequest.get(id)
+        if holder is not None:
+            chunked_compiled_step = holder()
+            __hpo_data__[id] = data._replace(chunked_compiled_step=chunked_compiled_step)
+
+    def run_chunked(state: Dict[str, torch.Tensor], n_iter: int) -> Dict[str, torch.Tensor]:
+        """Run n_iter steps via the k-step inlined compiled subgraph (plus remainder).
+
+        RNG note: like the per-step compiled loop this path is *not* run-to-run
+        deterministic under vmap(randomness=...) — the stock compiled step has
+        the same property (verified: same input twice differs). Parity must be
+        checked statistically (multi-seed IGD), not bitwise.
+        """
+        k = _HPO_CHUNK
+        for _ in range(n_iter // k):
+            state = chunked_compiled_step(state)
+        for _ in range(n_iter % k):
+            state = compiled_workflow_step(state)
+        return state
+
     if buffer_keys is None:
         state = {k: v.clone() for k, v in zip(state_keys, state_values)}
         if compiling:
-            for _ in range(iterations):
-                state = compiled_workflow_step(state)
+            if chunked_compiled_step is not None:
+                state = run_chunked(state, iterations)
+            else:
+                for _ in range(iterations):
+                    state = compiled_workflow_step(state)
         else:
             for _ in range(iterations):
                 state = workflow_step(state)
@@ -147,8 +203,13 @@ def _hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: 
         params = {k: v.clone() for k, v in zip(param_keys, state_values)}
         buffers = {k: v.clone() for k, v in zip(buffer_keys, state_values[len(param_keys) :])}
         if compiling:
-            for _ in range(iterations):
-                params, buffers = compiled_workflow_step(params, buffers)
+            if chunked_compiled_step is not None:
+                state = run_chunked({**params, **buffers}, iterations)
+                params = {k: state[k] for k in param_keys}
+                buffers = {k: state[k] for k in buffer_keys}
+            else:
+                for _ in range(iterations):
+                    params, buffers = compiled_workflow_step(params, buffers)
         else:
             for _ in range(iterations):
                 params, buffers = workflow_step(params, buffers)
@@ -289,10 +350,44 @@ class HPOProblemWrapper(Problem):
             state_keys=self.state_keys if self.num_repeats == 1 else self.state_keys[0],
             buffer_keys=None if self.num_repeats == 1 else self.state_keys[1],
         )
+        self._chunked_compiled_step_ = None  # built lazily on first real evaluate
         self._id_ = id(self)
-        weakref.finalize(self, __hpo_data__.pop, id(self), None)
+        if _HPO_CHUNK > 1 and self.num_repeats == 1:
+            def _lazy_build():
+                self._build_chunked_step()
+                return self._chunked_compiled_step_
+
+            _ChunkBuildRequest(self._id_, _lazy_build)
+        weakref.finalize(
+            self,
+            lambda rid: (_ChunkBuildRequest._registry.pop(rid, None), __hpo_data__.pop(rid, None))[1],
+            id(self),
+        )
 
         self._stateful_tell_fitness = use_state(monitor.tell_fitness)
+
+    def _build_chunked_step(self):
+        """Compile the k-step inlined variant of the inner step (direction 3).
+
+        Returns None; the compiled callable is stored on
+        ``self._chunked_compiled_step_`` and published into ``__hpo_data__``.
+        Only for num_repeats == 1 flat-state workflows; other configs keep the
+        stock loop. Compilation is expensive (~25 s for k=8) so it is deferred
+        to the first compiled evaluate call and cached in __hpo_data__.
+        """
+        if self.num_repeats != 1 or _HPO_CHUNK <= 1:
+            return
+        if self._chunked_compiled_step_ is not None:
+            return
+
+        def _chunked(state: Dict[str, torch.Tensor]):
+            for _ in range(_HPO_CHUNK):
+                state = self._compiled_workflow_step_(state)
+            return state
+
+        self._chunked_compiled_step_ = compile(_chunked, fullgraph=True)
+        data = __hpo_data__[self._id_]
+        __hpo_data__[self._id_] = data._replace(chunked_compiled_step=self._chunked_compiled_step_)
 
     def evaluate(self, hyper_parameters: Dict[str, nn.Parameter]):
         """
