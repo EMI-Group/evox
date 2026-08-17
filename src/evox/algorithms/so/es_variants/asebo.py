@@ -7,6 +7,111 @@ from evox.core import Algorithm, Mutable, Parameter
 from .adam_step import adam_single_tensor
 
 
+def _eigh_gram_stable(
+    G: torch.Tensor,
+    ridge64: torch.Tensor,
+    g: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    对称 Gram 的特征分解，**与 fullgraph/torch.compile 兼容**：
+
+    - 无 ``try/except``、无 ``.item()`` 分支，避免 Inductor 只融合「单次 CUDA eigh」
+      而丢掉 Python 重试逻辑导致仍调用病态矩阵上的 cuSOLVER。
+    - 在 **CPU float64** 上做 ``eigh``（LAPACK 对病态对称阵通常比 cuSOLVER 更稳），
+      再用 ``to(device)`` 搬回；数学上仍是 ``eigh(G_reg)``，不改变 ASEBO 子空间估计
+      的代数定义，仅换执行后端（数值实现细节）。
+    """
+    device = G.device
+    G = (G + G.transpose(-2, -1)) * 0.5
+    eye = torch.eye(g, device=device, dtype=torch.float64)
+    fro = torch.linalg.matrix_norm(G, ord="fro")
+    eps = torch.finfo(torch.float64).eps
+    # Tikhonov：相对 Frobenius 范数加岭，削弱秩亏与重特征值导致的迭代不收敛
+    lam = (
+        ridge64
+        + fro * torch.sqrt(torch.as_tensor(eps, device=device, dtype=torch.float64))
+        + (fro / max(g, 1)) * 1e-10
+    )
+    Gp = G + lam * eye
+    Gp_cpu = Gp.cpu()
+    evals, Q = torch.linalg.eigh(Gp_cpu)
+    return evals.to(device=device, dtype=torch.float64), Q.to(
+        device=device, dtype=torch.float64
+    )
+
+
+def _svd_asebo_stable(X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    对 ``grad_subspace`` 做数值稳定、**与 ``torch.linalg.svd(..., full_matrices=False)``
+    同形状语义**的分解。
+
+    ``linalg.svd`` / CUDA ``eigh`` 在病态 Gram 上可能不收敛。这里用对称 Gram +
+    ``eigh``；**特征分解在 CPU float64 上完成**（见 ``_eigh_gram_stable``），以便
+    ``fullgraph`` 编译下仍与 Python 重试逻辑一致且数值稳定。
+
+    数学（``k = min(m,n)``）：
+
+    - ``m >= n``：``G = XᵀX + λI``，``eigh(G) → V, σ²``，``S = sqrt(σ²)`` 降序，
+      ``U = X V S⁻¹``，``Vh = Vᵀ``（取前 ``k`` 列）。
+    - ``m < n``：``G = XXᵀ + λI``，得 ``U`` 与 ``S``，``Vh = S⁻¹ Uᵀ X``。
+
+    全程在 **float64** 中计算再 cast 回原 dtype；仅张量运算，便于 ``vmap`` /
+    ``torch.compile``。
+    """
+    dtype, device = X.dtype, X.device
+    m, n = X.shape
+    k = min(m, n)
+    fn = torch.linalg.norm(X)
+    fn = torch.nan_to_num(fn, nan=0.0, posinf=0.0, neginf=0.0)
+    eps_floor = torch.as_tensor(
+        float(torch.finfo(torch.float64).eps) * 1e4, device=device, dtype=dtype
+    )
+    # 略强于旧版岭：高维 meta 下 ``grad_subspace`` 易病态
+    ridge = torch.maximum(
+        eps_floor,
+        torch.maximum(
+            torch.as_tensor(1e-10, device=device, dtype=dtype),
+            fn * 1e-6,
+        ),
+    )
+
+    X64 = X.to(torch.float64)
+    ridge64 = ridge.to(torch.float64)
+    tiny = torch.as_tensor(1e-15, device=device, dtype=torch.float64)
+
+    if m >= n:
+        g = n
+        G = X64.transpose(-2, -1) @ X64
+        G = G + ridge64 * torch.eye(g, device=device, dtype=torch.float64)
+        evals, V = _eigh_gram_stable(G, ridge64, g)
+        evals = torch.clamp(evals, min=0.0)
+        evals = torch.flip(evals, dims=(-1,))
+        V = torch.flip(V, dims=(-1,))
+        s = torch.sqrt(torch.clamp(evals[..., :k], min=0.0))
+        Vn = V[..., :k]
+        s_inv = 1.0 / torch.maximum(s, tiny)
+        U64 = X64 @ Vn * s_inv.unsqueeze(-2)
+        Vh64 = Vn.transpose(-2, -1)
+    else:
+        g = m
+        G = X64 @ X64.transpose(-2, -1)
+        G = G + ridge64 * torch.eye(g, device=device, dtype=torch.float64)
+        evals, U64 = _eigh_gram_stable(G, ridge64, g)
+        evals = torch.clamp(evals, min=0.0)
+        evals = torch.flip(evals, dims=(-1,))
+        U64 = torch.flip(U64, dims=(-1,))
+        s = torch.sqrt(torch.clamp(evals[..., :k], min=0.0))
+        Un = U64[..., :k]
+        s_inv = 1.0 / torch.maximum(s, tiny)
+        Vh64 = (Un.transpose(-2, -1) @ X64) * s_inv.unsqueeze(-1)
+
+    return (
+        U64.to(dtype=dtype),
+        s.to(dtype=dtype),
+        Vh64.to(dtype=dtype),
+    )
+
+
 class ASEBO(Algorithm):
     """The implementation of the ASEBO algorithm.
 
@@ -64,9 +169,10 @@ class ASEBO(Algorithm):
         self.optimizer = optimizer
         self.subspace_dims = subspace_dims
         # setup
-        center_init.to(device=device)
+        center_init = center_init.to(device=device)
         self.center = Mutable(center_init)
-        self.grad_subspace = Mutable(torch.zeros(self.subspace_dims, self.dim, device=device))
+        self.grad_subspace = Mutable(torch.zeros(
+            self.subspace_dims, self.dim, device=device))
         self.UUT = Mutable(torch.zeros(self.dim, self.dim, device=device))
         self.UUT_ort = Mutable(torch.zeros(self.dim, self.dim, device=device))
         self.sigma = Mutable(torch.tensor(sigma, device=device))
@@ -92,7 +198,7 @@ class ASEBO(Algorithm):
 
         X = self.grad_subspace
         X = X - torch.mean(X, dim=0)
-        U, S, Vt = torch.svd(X, some=True)
+        U, S, Vt = _svd_asebo_stable(X)
 
         max_abs_cols = torch.argmax(torch.abs(U), dim=0)
         signs = torch.sign(U[max_abs_cols, :])
@@ -101,13 +207,15 @@ class ASEBO(Algorithm):
 
         U = Vt[: int(self.pop_size / 2)]
         UUT = torch.matmul(U.T, U)
-        U_ort = Vt[int(self.pop_size / 2) :]
+        U_ort = Vt[int(self.pop_size / 2):]
         UUT_ort = torch.matmul(U_ort.T, U_ort)
 
-        UUT = torch.where(self.gen_counter > self.subspace_dims, UUT, torch.zeros(self.dim, self.dim, device=device))
+        UUT = torch.where(self.gen_counter > self.subspace_dims,
+                          UUT, torch.zeros(self.dim, self.dim, device=device))
 
         cov = (
-            self.sigma * (self.alpha / self.dim) * torch.eye(self.dim, device=device)
+            self.sigma * (self.alpha / self.dim) *
+            torch.eye(self.dim, device=device)
             + ((1 - self.alpha) / int(self.pop_size / 2)) * UUT
         )
         chol = torch.linalg.cholesky(cov)
@@ -126,15 +234,17 @@ class ASEBO(Algorithm):
         noise = (population - self.center) / self.sigma
         noise_1 = noise[: int(self.pop_size / 2)]
         fit_1 = fitness[: int(self.pop_size / 2)]
-        fit_2 = fitness[int(self.pop_size / 2) :]
+        fit_2 = fitness[int(self.pop_size / 2):]
         fit_diff_noise = noise_1.T @ (fit_1 - fit_2)
 
         theta_grad = 1.0 / 2.0 * fit_diff_noise
-        alpha = torch.linalg.norm(theta_grad @ UUT_ort) / torch.linalg.norm(theta_grad @ self.UUT)
+        alpha = torch.linalg.norm(theta_grad @ UUT_ort) / \
+            torch.linalg.norm(theta_grad @ self.UUT)
 
         alpha = torch.where(self.gen_counter > self.subspace_dims, alpha, 1.0)
 
-        self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[None, :]])[1:, :]
+        self.grad_subspace = torch.cat(
+            [self.grad_subspace, theta_grad[None, :]])[1:, :]
         theta_grad /= torch.linalg.norm(theta_grad) / self.dim + 1e-8
 
         if self.optimizer is None:

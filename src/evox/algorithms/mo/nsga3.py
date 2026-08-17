@@ -11,9 +11,10 @@ from evox.utils import clamp
 
 
 def _get_table_row_inner(bool_ref_candidate: torch.Tensor, upper_bound: torch.Tensor):
+    # 必须与 upper_bound / bool_ref_candidate 同设备；get_default_device() 常为 cpu，而算法在 cuda 上运行时会报错。
     true_indices = torch.where(
         bool_ref_candidate,
-        torch.arange(bool_ref_candidate.size(0), dtype=torch.int32, device=torch.get_default_device()),
+        torch.arange(bool_ref_candidate.size(0), dtype=torch.int32, device=bool_ref_candidate.device),
         upper_bound,
     )
     true_indices = torch.sort(true_indices, dim=0).values
@@ -124,7 +125,7 @@ class NSGA3(Algorithm):
         self.pop = Mutable(population)
         self.fit = Mutable(torch.full((self.pop_size, self.n_objs), torch.inf, device=device))
         self.rank = Mutable(torch.full((self.pop_size,), torch.inf, device=device))
-        self.ref = uniform_sampling(self.pop_size, self.n_objs)[0]
+        self.ref = uniform_sampling(self.pop_size, self.n_objs)[0].to(device=device)
 
     def init_step(self):
         """

@@ -109,6 +109,7 @@ class PersistentES(Algorithm):
         sigma = torch.maximum(sigma, self.sigma_limit)
 
         self.sigma = sigma
+        self.inner_step_counter = inner_step_counter
         self.pert_accum = pert_accum
 
     def record_step(self):
