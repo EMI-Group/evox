@@ -164,7 +164,10 @@ _masked_iterative_get_ranks_compile = torch.compile(_masked_iterative_get_ranks_
 # while_loop host overhead dominates). EOXV_NONDOM_ROUNDS caps the rounds.
 _USE_MASKED_RANKS = os.environ.get("EOXV_NONDOM_MASKED", "0") == "1"
 _rounds_env = os.environ.get("EOXV_NONDOM_ROUNDS")
-_MASKED_ROUNDS = int(_rounds_env) if _rounds_env else None
+# Clamp negatives: a negative cr seed would silently shift all ranks (front 0
+# gets rank == cr instead of 0), and callers selecting rank == 0 would get an
+# empty set with no error. 0 rounds = pure while_loop (masked switch still on).
+_MASKED_ROUNDS = max(0, int(_rounds_env)) if _rounds_env else None
 
 
 def _vmap_iterative_get_ranks(
