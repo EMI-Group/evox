@@ -110,28 +110,6 @@ def _masked_iterative_get_ranks_compile(
     rank: torch.Tensor,
     pareto_front: torch.Tensor,
 ) -> torch.Tensor:
-    """Fixed-round masked variant of :func:`_vmap_iterative_get_ranks_compile`.
-
-    Semantically equivalent to the while_loop version (verified bit-exact on
-    chain/random/duplicate/grid/batch inputs): each round applies
-    ``update_dc_and_rank`` and propagates the front with
-    ``pf = where(pf.any(-1, keepdim=True), dc == 0, 0)`` so the loop terminates
-    purely via GPU-side masking. Running a fixed number of rounds equal to the
-    population size upper-bounds the while_loop and removes the per-iteration
-    DtoH scalar readback (``aoti_torch_item_bool``) plus the per-iteration
-    dynamic buffer allocation that dominate the host-side loop overhead under
-    ``torch.compile``.
-
-    Unused rounds are no-ops: once ``pf`` is all-False, ``rank``/``dc`` stop
-    changing. ``dominate_count`` is **not** restored for early rounds, matching
-    the while_loop version which also mutates its carry.
-    """
-def _masked_iterative_get_ranks_compile(
-    dominate_relation_matrix: torch.Tensor,
-    dominate_count: torch.Tensor,
-    rank: torch.Tensor,
-    pareto_front: torch.Tensor,
-) -> torch.Tensor:
     """Hybrid fixed-rounds + while_loop variant of the non-dominated ranking.
 
     Semantically equivalent to the while_loop version for any front depth
@@ -157,7 +135,7 @@ def _masked_iterative_get_ranks_compile(
         pf = torch.where(pf.any(dim=-1, keepdim=True), new_pareto_front, pf)
         return r, cr, dc, pf
 
-    rank = rank.expand_as(dominate_count)
+    rank = rank.expand_as(dominate_count).contiguous()  # contiguous to unify carry stride (same as stock version)
     pf = pareto_front
     dc = dominate_count
     zeros = torch.zeros_like(pf)
