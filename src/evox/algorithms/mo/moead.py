@@ -80,6 +80,7 @@ class MOEAD(Algorithm):
             self.crossover = simulated_binary_half
 
         w, _ = uniform_sampling(self.pop_size, self.n_objs)
+        w = w.to(device=device)
 
         self.pop_size = w.size(0)
         self.n_neighbor = int(math.ceil(self.pop_size / 10))
