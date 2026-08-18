@@ -140,17 +140,48 @@ class _ChunkBuildRequest:
     The compiled custom-op impl cannot capture `self` directly (the op is a
     free function), so the wrapper instance registers a zero-arg callable
     here; _hpo_evaluate_loop picks it up on first real execution.
+
+    IMPORTANT: builders must not capture the wrapper instance strongly —
+    that would keep the HPOProblemWrapper (and its compiled graphs / GPU
+    buffers) alive forever via this module-level registry, a self-sustaining
+    leak across multi-task experiment runs. The registry is therefore keyed
+    by object id and stores a weak reference to the instance; entries are
+    dropped when the instance dies.
     """
 
-    _registry: Dict[int, Callable[[], Any]] = {}
-
-    def __init__(self, id: int, builder: Callable[[], Any]):
-        self.id = id
-        _ChunkBuildRequest._registry[id] = builder
+    _registry: Dict[int, "weakref.ref[Any]"] = {}
 
     @staticmethod
-    def get(id: int) -> Optional[Callable[[], Any]]:
-        return _ChunkBuildRequest._registry.get(id)
+    def register(owner: Any) -> None:
+        _ChunkBuildRequest._registry[id(owner)] = weakref.ref(
+            owner, lambda ref, _id=id(owner): _ChunkBuildRequest._registry.pop(_id, None)
+        )
+
+    @staticmethod
+    def pop(id: int) -> None:
+        _ChunkBuildRequest._registry.pop(id, None)
+
+
+def _resolve_chunk_builder(id: int) -> Optional[Callable[[], Any]]:
+    """Look up the chunk builder for the wrapper with the given id.
+
+    Returns a zero-arg callable that builds (if needed) and returns the
+    chunked compiled step, or None if the wrapper is gone or has none.
+    """
+    ref = _ChunkBuildRequest._registry.get(id)
+    if ref is None:
+        return None
+    wrapper = ref()
+    if wrapper is None or getattr(wrapper, "_chunked_compiled_step_", None) is not None:
+        return None
+    method = getattr(wrapper, "_build_chunked_step", None)
+
+    def _builder():
+        if method is not None:
+            method()
+        return wrapper._chunked_compiled_step_
+
+    return _builder
 
 
 def _fake_hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: List[torch.Tensor]) -> List[torch.Tensor]:
@@ -166,7 +197,7 @@ def _hpo_evaluate_loop(compiling: bool, id: int, iterations: int, state_values: 
         # Lazy build here (not in evaluate): with a warm fx_graph_cache the
         # outer graph is restored from disk and evaluate's Python body is never
         # re-traced, so this impl is the only hook that reliably runs.
-        holder = _ChunkBuildRequest.get(id)
+        holder = _resolve_chunk_builder(id)
         if holder is not None:
             chunked_compiled_step = holder()
             __hpo_data__[id] = data._replace(chunked_compiled_step=chunked_compiled_step)
@@ -353,14 +384,10 @@ class HPOProblemWrapper(Problem):
         self._chunked_compiled_step_ = None  # built lazily on first real evaluate
         self._id_ = id(self)
         if _HPO_CHUNK > 1 and self.num_repeats == 1:
-            def _lazy_build():
-                self._build_chunked_step()
-                return self._chunked_compiled_step_
-
-            _ChunkBuildRequest(self._id_, _lazy_build)
+            _ChunkBuildRequest.register(self)
         weakref.finalize(
             self,
-            lambda rid: (_ChunkBuildRequest._registry.pop(rid, None), __hpo_data__.pop(rid, None))[1],
+            lambda rid: (_ChunkBuildRequest.pop(rid), __hpo_data__.pop(rid, None))[1],
             id(self),
         )
 
@@ -380,9 +407,15 @@ class HPOProblemWrapper(Problem):
         if self._chunked_compiled_step_ is not None:
             return
 
+        # Bind the inner step to a local name so the closure below does NOT
+        # capture `self`: the compiled callable is stored in the module-level
+        # __hpo_data__ and Dynamo's cache, and either would otherwise keep
+        # this wrapper (and its GPU buffers) alive forever.
+        inner_step = self._compiled_workflow_step_
+
         def _chunked(state: Dict[str, torch.Tensor]):
             for _ in range(_HPO_CHUNK):
-                state = self._compiled_workflow_step_(state)
+                state = inner_step(state)
             return state
 
         self._chunked_compiled_step_ = compile(_chunked, fullgraph=True)
