@@ -93,7 +93,28 @@ def ref_vec_guided(x: torch.Tensor, f: torch.Tensor, v: torch.Tensor, theta: tor
     apd = torch.where(mask, torch.inf, apd)
 
     next_ind = torch.argmin(apd, dim=0)
-    next_x = torch.where(mask_null.unsqueeze(1), torch.nan, x[next_ind])
-    next_f = torch.where(mask_null.unsqueeze(1), torch.nan, f[next_ind])
+    # Original RVEA (Alg. 2, TEVC'16) skips empty subpopulations, leaving
+    # |P_{t+1}| < N. Tensorized implementations must keep a fixed shape, so
+    # empty vectors were NaN-padded here; downstream NaN-row handling then
+    # collapses the archive on degenerate problems (e.g. clustered objectives
+    # in morobotrol: 197/200 rows NaN at generation 0).
+    # Fallback: for an empty vector, take the solution with the minimum APD
+    # w.r.t. that vector over the WHOLE population. The APD formula itself is
+    # defined for any (solution, vector) pair - association is only a
+    # partitioning heuristic - so candidates are simply widened from the
+    # subspace to the full population, no data-dependent branching.
+    global_apd = apd_fn(
+        torch.arange(0, n, device=f.device)[:, None].expand(n, nv),
+        gamma,
+        angle,
+        obj,
+        theta,
+    )
+    global_apd = torch.where(nan_mask[:, None], torch.inf, global_apd)
+    fill_ind = torch.argmin(global_apd, dim=0)
+    next_ind = torch.where(mask_null, fill_ind, next_ind)
+
+    next_x = x[next_ind]
+    next_f = f[next_ind]
 
     return next_x, next_f
