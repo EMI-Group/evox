@@ -14,8 +14,17 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -
     parent1_dec = x[: n // 2, :]
     parent2_dec = x[n // 2 : n // 2 * 2, :]
 
+    # SBX pairs parents (n//2 pairs -> n offspring). For odd n the classic
+    # tensorized form silently drops the last individual, shrinking the
+    # population by one each generation (91 -> 90 ...), which breaks fixed-
+    # batch evaluators (e.g. BraxProblem's pop_size assertion). Pad by self-
+    # pairing the leftover individual instead of dropping it.
+    if n % 2 == 1:
+        parent1_dec = torch.cat([parent1_dec, x[-1:, :]], dim=0)
+        parent2_dec = torch.cat([parent2_dec, x[-1:, :]], dim=0)
+
     # Uniform distribution for mutation
-    mu = torch.rand(n // 2, m, device=x.device)
+    mu = torch.rand(parent1_dec.size(0), m, device=x.device)
 
     # Beta calculation for SBX
     beta = torch.zeros(mu.size(), device=x.device)
@@ -35,5 +44,9 @@ def simulated_binary(x: torch.Tensor, pro_c: float = 1.0, dis_c: float = 20.0) -
             (parent1_dec + parent2_dec) / 2 - beta * (parent1_dec - parent2_dec) / 2,
         ]
     )
+
+    # Drop the padded pair's extra offspring to restore the original size n
+    if n % 2 == 1:
+        offspring_dec = offspring_dec[:n]
 
     return offspring_dec
