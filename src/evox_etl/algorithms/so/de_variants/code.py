@@ -21,15 +21,14 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
-from evox_etl.algorithms._operator_shims import (
+from evox_etl.algorithms._jit_fix_operator import _take_along_axis, clamp
+from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
     DE_exponential_crossover,
-    clamp,
-    select_rand_pbest,
 )
-from evox_etl.algorithms._shim_selection_basic import _take_along_axis
+from evox_etl.operators.selection import select_rand_pbest
 
 # Strategy codes (4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]
 # base_vec      : 0="rand", 1="best", 2="pbest", 3="current"
