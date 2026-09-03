@@ -10,7 +10,11 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - Each module: frozen config dataclass named after the torch class (`DE`, `JaDE`,
   `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain functions
   `init(config, key) -> State`, `ask(config, state) -> (candidates, state)`,
-  `tell(config, state, fitness) -> state`. `__init__.py` mirrors torch exports.
+  `tell(config, state, fitness) -> state`. `__init__.py` mirrors torch exports
+  (`DE, CoDE, JaDE, ODE, SaDE, SHADE`).
+- `init_ask`/`init_tell` encode torch's `init_step` (evaluate the initial
+  population) on `de.py`, `ode.py`, `jade.py` — the torch counterparts of
+  SHADE/SaDE/CoDE have no init_step, so those modules omit the pair.
 - State leaves are etl tensors ONLY (float32 preferred, int32/int64 indices, key `()`
   int64). `tell` never consumes randomness; `ask` advances `state.key` when it draws.
 - ODE runs a two-phase state machine: one torch ODE step = 2 etl generations
@@ -51,24 +55,12 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
   `etl.build(fn, cfg, spec_tree, backend="numpy")` / `etl.run(exe, cfg, state)` —
   tuple outputs come back as tuples. See `unit_test/etl/algorithms/helpers.py`
   `run_generations` for the full loop.
-
-## Status
-- ALL SIX modules implemented: `de.py` (`DE`), `ode.py` (`ODE`, two-phase state
-  machine — one torch ODE step = 2 etl generations), `jade.py` (`JaDE`),
-  `shade.py` (`SHADE`), `sade.py` (`SaDE`), `code.py` (`CoDE`). `__init__.py`
-  mirrors the torch exports: `DE, CoDE, JaDE, ODE, SaDE, SHADE`.
-- Smoke tests: `../../../../unit_test/etl/algorithms/so/de_variants/` (de, ode
-  green). Parity test: `../../../../unit_test/etl/algorithms/parity/test_de.py`.
-
-## Known issues
-- The DE parity test (torch vs etl, Sphere 40-dim, pop 100, 20 gens, seed 0,
-  margin `etl_best <= torch_best * 1.1 + 1e-3`) FAILS as written: torch best
-  27156.33 vs etl best 43143.73 (threshold 29871.97). Cause is stochastic RNG
-  noise, NOT a port bug — etl RNGs (Threefry/SplitMix/Philox) can never match
-  torch's MT19937 bit-for-bit, and a 60-seed paired sweep showed no systematic
-  bias (mean diff 1601 ± 7727, n.s.; P(etl > torch) ≈ 0.53; P(fail margin) ≈
-  0.37). Pending root-agent decision (different seed / looser margin / extra
-  generations).
+- Parity tests MUST use a unique basename (`test_<name>_parity.py`, not
+  `test_<name>.py`): pytest's prepend import mode collides when the same basename
+  exists in `so/de_variants/` and `parity/` and both are collected in one run.
+- The DE parity test uses the MEDIAN of 3 seeds with the 10% margin: per-seed
+  best fitnesses fluctuate ~0.57-1.92× around torch (different RNG streams), so a
+  single-seed 10% margin fails ~1/3 of the time by chance. Median-of-3 is stable.
 
 ## Routing Table
 | Area | Path |
@@ -76,5 +68,5 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 | DE + ODE (shared mutation/crossover helpers) | `de.py`, `ode.py` |
 | JaDE / SHADE / SaDE / CoDE | `jade.py`, `shade.py`, `sade.py`, `code.py` |
 | Smoke tests (no torch) | `../../../../unit_test/etl/algorithms/so/de_variants/` (sibling — write via bash heredoc) |
-| Parity test (torch allowed) | `../../../../unit_test/etl/algorithms/parity/test_de.py` (sibling) |
+| Parity test (torch allowed) | `../../../../unit_test/etl/algorithms/parity/test_de_parity.py` (sibling) |
 | Operator shims (import from) | `../../_operator_shims.py`, `../../_shim_selection_basic.py` |
