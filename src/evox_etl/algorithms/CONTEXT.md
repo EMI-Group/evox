@@ -73,8 +73,7 @@ from them in new code.
   `axis=`), while `etl.norm`/`etl.min` take `axis=`/`keepdims`.
 - `ref_vec_guided`/`apd_fn` (canonical
   `evox_etl.operators.selection.rvea_selection`): `theta` is a Python float
-  (static arg passed to BOTH `etl.build` and `etl.run`). NOTE the canonical
-  `apd_fn` gathers `norm_obj` with `relu(x)` while torch does `norm_obj[x]`
-  (negative-index wrap) — latent in `ref_vec_guided`, but pinned by
-  `unit_test/etl/algorithms/test_shim_selection_rvea.py`; reported to the root
-  agent as a canonical-operator bug.
+  (static arg passed to BOTH `etl.build` and `etl.run`). `apd_fn` is
+  torch-faithful: `selected_z` gathers with `relu(x)` but the `norm_obj` gather
+  uses the RAW indices (negative indices wrap to the last row, numpy-take
+  semantics — same as torch `norm_obj[x]`).

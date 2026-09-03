@@ -2,11 +2,9 @@
 
 ``ref_vec_guided`` re-exports the canonical
 ``evox_etl.operators.selection.rvea_selection`` version (torch-parity verified).
-``apd_fn`` and ``_cosine_similarity`` keep the torch-faithful implementations:
-the canonical ``apd_fn`` gathers ``norm_obj`` with ``relu(x)`` while torch does
-``norm_obj[x]`` (negative indices wrap to the last row). Latent for
-``ref_vec_guided`` (those entries are masked afterwards) but pinned by the old
-unit test — reported to the root agent as a canonical-operator bug.
+``apd_fn`` and ``_cosine_similarity`` keep local torch-faithful implementations
+(kept only for test pinning; the canonical ``apd_fn`` now matches torch exactly
+— it gathers ``norm_obj`` with the raw indices like ``norm_obj[x]``).
 
 ``unit_test/etl/algorithms/test_shim_selection_rvea.py`` (sibling node, outside
 this worker's write scope) still imports this module. Once the root agent

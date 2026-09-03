@@ -22,7 +22,10 @@ def apd_fn(x, y, z, obj, theta):
     selected_z = _take_along_axis(z, relu_x, 0)
     left = (1 + obj.shape[1] * theta * selected_z) / etl.reshape(y, (1, y.shape[0]))
     norm_obj = etl.norm(obj, axis=1)
-    right = etl.gather(norm_obj, relu_x, axis=0)
+    # torch does norm_obj[x] with the RAW indices (negative indices wrap to the
+    # last row, matching etl.gather's numpy-take semantics) — relu only guards
+    # the selected_z gather above.
+    right = etl.gather(norm_obj, x, axis=0)
     return left * right
 
 
