@@ -1,12 +1,5 @@
 """ETL port of the torch evox ``utils/jit_fix_operator.py`` helpers + shared gather util.
 
-STAGING COPY: the canonical home for this module is
-``src/evox_etl/operators/jit_fix_operator.py`` (the operators node is a sibling
-of this node and outside this worker's write scope). The content below is
-move-ready — once the root agent lands an identical file there, repoint every
-``from evox_etl.algorithms._jit_fix_operator import ...`` to
-``from evox_etl.operators.jit_fix_operator import ...`` and delete this file.
-
 Functional (plain, NOT ``@etl.defn``) ports of the torch helper functions in
 ``src/evox/utils/jit_fix_operator.py`` (read-only reference). The torch
 algorithms call these instead of raw ``torch.clamp``/``torch.maximum``/... for
