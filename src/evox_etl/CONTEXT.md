@@ -52,24 +52,18 @@ torch 2.6.0+cu124 CUDA works, evox+etl editable, pytest). Tests:
 GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 
 ## ETL issues found (escalated to root agent)
-1. **Tracer rejects numpy arrays as static config leaves** — `_is_static_value`
-   (etl/trace/_tree.py) whitelists only None/bool/int/float/complex/str/Enum/
-   dtype/slice/Dim/DimExpr/Device, so a frozen config dataclass with ndarray
-   `lb`/`ub` fields raises `TraceError` when passed to `etl.build`/`etl.run`
-   (contradicts DESIGN.md §4.1). Minimal repro:
-   ```python
-   @dataclass(frozen=True)
-   class C: lb: np.ndarray
-   etl.build(lambda c: c, C(np.zeros(3, np.float32)), backend="numpy")  # TraceError
-   ```
-   Worked around (uniform pattern across the 7 pso_variants configs): config
-   `__post_init__` normalizes lb/ub (and mean/stdev) to float tuples via
-   `object.__setattr__` (constructor still accepts numpy arrays; read dim via
-   `len(config.lb)`). Fix in etl: treat ndarray as an opaque static leaf.
-2. **SymbolicTensor `__getitem__` does not support `None`/newaxis** ("None in
-   the index key is not supported", TraceError). Worked around with
-   `enp.expand_dims`/`enp.reshape` (plain ints/slices are fine).
-3. **`etl.scatter` rejects scalar updates** (ShapeError, rank-0 update vs
-   rank-1 target, despite the docstring implying scalar promotion). Worked
-   around with rank-matching `enp.ones` updates (see pso_variants/utils.py
-   `random_select_from_mask`).
+1. **np.ndarray fields in config dataclasses are rejected by `etl.build`** as static
+   trace values ("neither a TensorSpec nor a static Python value"; static values may
+   be None/bool/int/float/complex/str/Enum/dtype/slice/...). DESIGN.md §4.1 says
+   config `lb`/`ub` become numpy arrays — not possible as-is; workaround used by the
+   de_variants ports: normalize array fields to tuples of plain floats in
+   `__post_init__` (callers still pass np arrays). Either update DESIGN.md or have
+   etl accept ndarray as a static value.
+   Repro: `etl.build(lambda cfg: cfg, MyConfig(lb=np.zeros(3)), backend="numpy")`
+   → `etl.core.errors.TraceError` at `_flatten_specs`.
+2. **`etl.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
+   branches** (`cannot broadcast incompatible dims n and m`; the `(n,)` is aligned
+   as `(1, n)`). numpy/torch broadcast `(n,)` → `(n, 1)` against `(n, m)` fine.
+   Workaround: always `enp.expand_dims(cond, 1)` first (scalar conds broadcast OK).
+   Repro: `etl.build(lambda x: etl.select(etl.sum(x, axes=1) < 0.5, 0.0, x),
+   TensorSpec((3, 4), float32))` → ShapeError.
