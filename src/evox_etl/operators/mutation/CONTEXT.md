@@ -22,7 +22,10 @@ pow→power, logical and→logical_and).
 - No `etl.full/zeros/ones/empty` inside traces (concrete eager tensors raise in graph
   ops) — use select-chains with scalar `0.0` for the where-else branch.
 - `etl.run(exe, key, x, lb, ub, pro_m, dis_m)` — static scalar args (pro_m, dis_m)
-  must be re-passed to `etl.run` (they are part of the run signature).
+  must be re-passed to `etl.run` (they are part of the run signature), and the graph
+  SPECIALIZES on their values at build time: re-passing a different scalar (e.g.
+  pro_m=0.0 on a graph built with 1.0) raises `etl.core.TraceError` — build a
+  separate executable per distinct static value.
 - Key spec for `etl.build`: `etl.core.TensorSpec((), "int64")`.
   (`TensorSpec.from_tensor` does NOT exist in current etl.)
 - `etl.random.key(seed)` returns an eager int64 scalar Tensor (creatable outside
