@@ -20,6 +20,17 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   arrays baked as graph constants (`etl.ops.constant(etl.core.tensor(np.asarray(
   cfg.lb, dtype=np.float32)))`); optional ops are plain function refs, `None` =
   algorithm default, resolved inside functions.
+- `tell(config, state, fitness)` needs the offspring for the pop/fit merge, so
+  `ask` stores its batch in an extra state field (e.g. `offspring`, set by ask,
+  consumed by tell) — the candidates-in-state pattern of the DE ports. NOTE:
+  np.ndarray config leaves make the config unpassable to `etl.build` directly
+  (TraceError: not a static value) — callers partialize the config.
+- RVEA/RVEAa: after the first tell `pop` GROWS to (2*n_v, dim) (the survivor
+  tensor keeps one row per reference vector, NaN rows included), while
+  `reference_vector` stays (2*n_v, m) and the mating pool always draws the
+  FIXED Das-Dennis count `n_v = reference_vector.shape[0] // 2` (torch
+  `self.pop_size`) — never derive n_v from `pop.shape[0]`; the torch
+  `_mating_pool` `arange`/sorted_indices however spans `pop.shape[0]` rows.
 - Bounds for the mutation shim: `boundary = enp.stack([lb, ub], axis=0)` —
   shim `polynomial_mutation(key, x, boundary, pro_m, dis_m)` (torch takes lb/ub
   separately).
@@ -32,6 +43,27 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   NSGA2/NSGA3/HypE keep the user pop_size.
 
 ## ETL gotchas (verified — do not re-investigate)
+- **Config np.ndarray fields (lb/ub) CANNOT cross the `etl.build`/`etl.run`
+  boundary**: the tracer treats numpy arrays inside config pytrees as tensor
+  leaves and rejects them (not TensorSpec, not a static Python value).
+  WORKAROUND for verify/smoke scripts (host-side only, library code stays
+  per contract): close over the config and route the module functions
+  through thin wrappers that ignore the harness-passed config arg. This is
+  an etl gap for the §4.4 StdWorkflow too — ESCALATED to the root agent
+  (fix belongs in etl, e.g. a static-config marker).
+- MOEAD tell's while_loop: cond/body take the carry as ONE tuple arg;
+  closure-capture of outer block args (`state.w`, `state.next_parents`,
+  `fitness`) inside cond/body regions is legal (verified etl test
+  `test_iteration_count_and_accumulated_values`). Carry `i` must stay int32
+  (`etl.cast(i + 1, etl.int32)` — python-int promotion). 0-d `enp.zeros((),
+  dtype="int32")` is a valid loop init leaf.
+- `etl.gather(x, idx_1d, axis=0)` accepts 1-D indices (numpy take:
+  out = idx.shape + x.shape[1:]) — row pick via `gather(x, expand_dims(i, 0),
+  axis=0)[0]` works. `etl.scatter(x, indices, updates, axis=0)` expects
+  updates shape = x.shape[:axis] + indices.shape + x.shape[axis+1:] —
+  (n_neighbor,) indices + (n_neighbor, dim) updates on a (n_w, dim) x ✓.
+- MOEAD sequential overwrites: the same row can be updated by several i's
+  in one tell (last-i-wins) — torch does the same; do not "deduplicate".
 - `etl.sum/mean` take `axes=`; `etl.min(x, axes=..)` values only (argmin
   separate); `etl.topk(x, k, axis, largest=False)` → `(values, indices)`;
   `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(..., stable=
