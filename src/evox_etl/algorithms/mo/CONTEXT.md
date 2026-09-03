@@ -20,6 +20,17 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   arrays baked as graph constants (`etl.ops.constant(etl.core.tensor(np.asarray(
   cfg.lb, dtype=np.float32)))`); optional ops are plain function refs, `None` =
   algorithm default, resolved inside functions.
+- `tell(config, state, fitness)` needs the offspring for the pop/fit merge, so
+  `ask` stores its batch in an extra state field (e.g. `offspring`, set by ask,
+  consumed by tell) — the candidates-in-state pattern of the DE ports. NOTE:
+  np.ndarray config leaves make the config unpassable to `etl.build` directly
+  (TraceError: not a static value) — callers partialize the config.
+- RVEA/RVEAa: after the first tell `pop` GROWS to (2*n_v, dim) (the survivor
+  tensor keeps one row per reference vector, NaN rows included), while
+  `reference_vector` stays (2*n_v, m) and the mating pool always draws the
+  FIXED Das-Dennis count `n_v = reference_vector.shape[0] // 2` (torch
+  `self.pop_size`) — never derive n_v from `pop.shape[0]`; the torch
+  `_mating_pool` `arange`/sorted_indices however spans `pop.shape[0]` rows.
 - Bounds for the mutation shim: `boundary = enp.stack([lb, ub], axis=0)` —
   shim `polynomial_mutation(key, x, boundary, pro_m, dis_m)` (torch takes lb/ub
   separately).
