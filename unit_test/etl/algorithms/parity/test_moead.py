@@ -32,7 +32,7 @@ import numpy as np
 import evox
 from evox_etl.algorithms.mo import moead
 
-from parity_common import (
+from unit_test.etl.algorithms.parity.parity_common import (
     DIM,
     MOEAD_ABS_TOL,
     N_GENS,

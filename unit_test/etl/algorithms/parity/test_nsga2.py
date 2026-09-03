@@ -20,7 +20,7 @@ import evox
 from evox_etl.algorithms.mo import nsga2
 from unit_test.etl.algorithms.helpers import DTLZ1Config, run_generations
 
-from parity_common import ABS_TOL, DIM, N_GENS, N_OBJ, POP_SIZE, REL_MARGIN, SEED, torch_reference
+from unit_test.etl.algorithms.parity.parity_common import ABS_TOL, DIM, N_GENS, N_OBJ, POP_SIZE, REL_MARGIN, SEED, torch_reference
 
 
 def test_nsga2_dtlz1_parity():
