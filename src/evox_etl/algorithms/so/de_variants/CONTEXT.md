@@ -52,6 +52,17 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
   tuple outputs come back as tuples. See `unit_test/etl/algorithms/helpers.py`
   `run_generations` for the full loop.
 
+## Status
+- `de.py` — IMPLEMENTED: `DE`/`DEState` + `init`/`ask`/`tell` + shared helpers
+  `_de_trial(config, state, subkey)` and `_bounds(config)` (ode.py imports both).
+- `ode.py` — IMPLEMENTED: `ODE`/`ODEState` + `init`/`ask`/`tell` as a two-phase
+  state machine (phase 0 = DE trial + opposition computation; phase 1 = pending
+  opposition + opposition selection). One torch ODE step = 2 etl generations;
+  generation counts double. Smoke tests:
+  `../../../../unit_test/etl/algorithms/so/de_variants/test_de.py` and
+  `test_ode.py` (both green).
+- Remaining: `jade.py`, `shade.py`, `sade.py`, `code.py`.
+
 ## Routing Table
 | Area | Path |
 |---|---|
