@@ -82,3 +82,30 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 8. Cosmetic: the etl numpy backend leaks a `RuntimeWarning: invalid value
    encountered in divide` for the intentional inf-beta draws (SBX/SHADE/SaDE NaN
    paths) — torch-identical semantics, no change made.
+
+### Additional findings (core/operators/problems teams)
+9. **Inconsistent axis arg naming**: reductions take `axes=` but topk/argmin/gather/
+   `enp.sum/min` take `axis=`. Check the op signature before using.
+10. `etl.tree_unflatten(leaves, treespec)` argument order is REVERSED vs JAX.
+11. Top-level `etl.zeros/ones/full/empty` are EAGER concrete creators (raise inside
+    traces); in-graph constants: `etl.ops.constant(etl.core.tensor(np.asarray(...)))`
+    — `constant()` rejects raw ndarray; `x * 0.0` for zero-init; no `*_like` ops;
+    `enp.floor` missing.
+12. Dtype promotion differs from torch: int32+int→int64, int32*float→float64,
+    float32**int64→float64 — explicit `etl.cast` needed.
+13. `TensorSpec.from_tensor` does NOT exist (flat `(shape, dtype)` only);
+    `Executable` has no `.run` (use `etl.run(exe, *args)`); `etl.evaluate` rejects
+    static args (use `etl.build`); scalar tensor inputs must be 0-d ndarrays, not
+    numpy scalars. Statics are path-specialized per distinct value — a different
+    static value at run raises TraceError (build a new exe per value).
+14. `etl.gather` is numpy-take semantics (not torch gather); take_along_axis needs a
+    flatten trick; `!=` on symbolic tensors needs `etl.not_equal`; `etl.squeeze`
+    missing at top level; slice op cannot express full-axis `:` over dynamic dims
+    (`etl.gather(x, arange, axis=1)` workaround); reductions directly over a
+    trace-input leaf can fail (multiply by 1.0 first); `enp.expand_dims/reshape`
+    cannot carry dynamic dims (unroll static loops).
+15. **etl xla adapter GPU client-exhaustion bug** (fresh PJRT client per compile/load
+    → process SIGABRT; real jax_cuda12 plugin) — FIXED on etl task branch
+    `evogit-agent-T1-A19` (commit 838739c, shared refcounted client), NOT yet on etl
+    master. xla-cuda benchmarks must run against that branch (venv re-point) + cuDNN
+    ≥9.8 via LD_LIBRARY_PATH (plugin compiled vs cuDNN 9.8.0; venv ships 9.1.0).
