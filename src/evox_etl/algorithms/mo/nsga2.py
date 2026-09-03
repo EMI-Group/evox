@@ -20,11 +20,11 @@ import numpy as np
 import etl
 import etl.numpy as enp
 import etl.random as random
-from evox_etl.algorithms._operator_shims import (
-    clamp,
+from evox_etl.algorithms._jit_fix_operator import clamp
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.selection import (
     nd_environmental_selection,
-    polynomial_mutation,
-    simulated_binary,
     tournament_selection_multifit,
 )
 
@@ -127,7 +127,6 @@ def init_tell(config: NSGA2Config, state: NSGA2State, fitness: etl.SymbolicTenso
 def ask(config: NSGA2Config, state: NSGA2State):
     """Generate pop_size offspring: tournament -> SBX -> polynomial mutation."""
     lb, ub = _bounds(config)
-    boundary = enp.stack([lb, ub], axis=0)
     key, k_sel, k_cross, k_mut = random.split_n(state.key, 4)
     mating_pool = tournament_selection_multifit(
         k_sel,
@@ -135,7 +134,7 @@ def ask(config: NSGA2Config, state: NSGA2State):
         [etl.negate(state.dis), etl.cast(state.rank, F32)],
     )
     crossovered = simulated_binary(k_cross, etl.gather(state.pop, mating_pool, axis=0))
-    offspring = polynomial_mutation(k_mut, crossovered, boundary, pro_m=1, dis_m=20)
+    offspring = polynomial_mutation(k_mut, crossovered, lb, ub, pro_m=1, dis_m=20)
     offspring = clamp(offspring, lb, ub)
     return offspring, replace(state, offspring=offspring, key=key)
 

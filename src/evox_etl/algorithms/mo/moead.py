@@ -20,14 +20,10 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
-from evox_etl.algorithms._operator_shims import (
-    clamp,
-    minimum,
-    polynomial_mutation,
-    simulated_binary_half,
-    uniform_sampling,
-)
-from evox_etl.algorithms._shim_selection_basic import _take_along_axis
+from evox_etl.algorithms._jit_fix_operator import _take_along_axis, clamp, minimum
+from evox_etl.operators.crossover import simulated_binary_half
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
 
 
 @dataclass(frozen=True)
@@ -176,8 +172,7 @@ def ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
 
     mutation = polynomial_mutation if config.mutation_op is None else config.mutation_op
     lb, ub = _bounds(config)
-    boundary = enp.stack([lb, ub], axis=0)
-    offspring = mutation(k_mut, crossovered, boundary)
+    offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
 
     return offspring, replace(

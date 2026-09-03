@@ -26,9 +26,17 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   unregistered configs fail with TraceError because etl v1 rejects ndarray
   pytree leaves (neither TensorSpec nor static value). ESCALATED to the root
   agent as an etl gap (a static-config marker would be cleaner).
-- Bounds for the mutation shim: `boundary = enp.stack([lb, ub], axis=0)` —
-  shim `polynomial_mutation(key, x, boundary, pro_m, dis_m)` (torch takes lb/ub
-  separately).
+- Operators are imported from the canonical torch-parity-verified modules:
+  selection (`nd_environmental_selection`, `non_dominate_rank`,
+  `tournament_selection[_multifit]`, `ref_vec_guided`) from
+  `evox_etl.operators.selection`; `simulated_binary[_half]` from
+  `evox_etl.operators.crossover`; `polynomial_mutation` from
+  `evox_etl.operators.mutation` (canonical signature `(key, x, lb, ub,
+  pro_m=1.0, dis_m=20.0)` — lb/ub passed directly, no boundary stack);
+  `uniform_sampling` from `evox_etl.operators.sampling`; and `clamp`,
+  `minimum`, `lexsort`, `nanmax`, `nanmin`, `randint`, `_take_along_axis`
+  from `evox_etl.algorithms._jit_fix_operator` (staging copy of the torch
+  `utils/jit_fix_operator` helpers).
 - RNG: `key, subkey = random.split(state.key)` (returns TWO keys); several draws
   → `random.split_n(key, n)`; advanced `key` stored back. Ask/tell deterministic
   given state.
@@ -62,7 +70,7 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
   one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
 - `etl.gather` = numpy `take`: row-local gathers → `_take_along_axis` from
-  `evox_etl.algorithms._shim_selection_basic`; `etl.scatter` = put_along_axis
+  `evox_etl.algorithms._jit_fix_operator`; `etl.scatter` = put_along_axis
   replacement (no scatter-add — torch NSGA3 `scatter_add` → one-hot sum).
 - No `&`/`!=`/`%` overloads → `enp.logical_and`, `etl.not_equal`,
   `etl.remainder`. `enp.zeros/enp.full` (not `etl.zeros`); Python-int tensor

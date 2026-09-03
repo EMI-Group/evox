@@ -25,17 +25,11 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._operator_shims import (
-    clamp,
-    nanmax,
-    nanmin,
-    non_dominate_rank,
-    polynomial_mutation,
-    randint,
-    ref_vec_guided,
-    simulated_binary,
-    uniform_sampling,
-)
+from evox_etl.algorithms._jit_fix_operator import clamp, nanmax, nanmin, randint
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
+from evox_etl.operators.selection import non_dominate_rank, ref_vec_guided
 
 Tensor = etl.SymbolicTensor
 
@@ -95,13 +89,11 @@ class RVEAaState:
     key: Tensor
 
 
-def _bounds(config: RVEAaConfig) -> Tuple[Tensor, Tensor, Tensor]:
-    """Bake the lb/ub config arrays as (dim,) float32 graph constants plus the
-    (2, dim) boundary stack expected by the polynomial-mutation shim."""
+def _bounds(config: RVEAaConfig) -> Tuple[Tensor, Tensor]:
+    """Bake the lb/ub config arrays as (dim,) float32 graph constants."""
     lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
     ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    boundary = enp.stack([lb, ub], axis=0)
-    return lb, ub, boundary
+    return lb, ub
 
 
 def init(config: RVEAaConfig, key: Tensor) -> RVEAaState:
@@ -111,7 +103,7 @@ def init(config: RVEAaConfig, key: Tensor) -> RVEAaState:
     key, k_pop, k_v1 = random.split_n(key, 3)
     dim = config.lb.shape[0]
     n_objs = config.n_objs
-    lb, ub, _ = _bounds(config)
+    lb, ub = _bounds(config)
 
     v, n_v = uniform_sampling(config.pop_size, n_objs)
     population = random.uniform(k_pop, (n_v, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
@@ -149,7 +141,7 @@ def ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
     mating pool over the non-all-NaN rows, SBX, polynomial mutation, clamp."""
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
     gen = etl.cast(state.gen + 1, etl.int32)
-    lb, ub, boundary = _bounds(config)
+    lb, ub = _bounds(config)
     pop = state.pop
     pop_rows = pop.shape[0]
     # Fixed effective pop size (Das-Dennis count, torch self.pop_size): pop
@@ -174,7 +166,7 @@ def ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
     mated = etl.gather(pool, mating_pool, axis=0)
 
     crossovered = simulated_binary(k_cross, mated)
-    offspring = polynomial_mutation(k_mut, crossovered, boundary)
+    offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     return offspring, replace(state, gen=gen, offspring=offspring, key=key)
 

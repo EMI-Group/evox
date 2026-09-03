@@ -22,16 +22,11 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._operator_shims import (
-    clamp,
-    nanmax,
-    nanmin,
-    polynomial_mutation,
-    randint,
-    ref_vec_guided,
-    simulated_binary,
-    uniform_sampling,
-)
+from evox_etl.algorithms._jit_fix_operator import clamp, nanmax, nanmin, randint
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
+from evox_etl.operators.selection import ref_vec_guided
 
 Tensor = etl.SymbolicTensor
 
@@ -147,12 +142,11 @@ def ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
 
     lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
     ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    boundary = enp.stack([lb, ub], axis=0)
 
     crossover_fn = config.crossover_op if config.crossover_op is not None else simulated_binary
     crossovered = crossover_fn(k_cross, mated)
     mutation_fn = config.mutation_op if config.mutation_op is not None else polynomial_mutation
-    offspring = mutation_fn(k_mut, crossovered, boundary)
+    offspring = mutation_fn(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     return offspring, replace(state, key=key, gen=gen, offspring=offspring)
 

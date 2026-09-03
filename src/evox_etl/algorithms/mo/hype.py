@@ -20,14 +20,10 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
-from evox_etl.algorithms._operator_shims import (
-    clamp,
-    lexsort,
-    non_dominate_rank,
-    polynomial_mutation,
-    simulated_binary,
-    tournament_selection,
-)
+from evox_etl.algorithms._jit_fix_operator import clamp, lexsort
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.selection import non_dominate_rank, tournament_selection
 
 
 @dataclass(frozen=True)
@@ -184,7 +180,6 @@ def init_tell(
 def ask(config: HypEConfig, state: HypEState):
     """Produce the offspring batch (torch ``step`` lines 125-130)."""
     lb, ub = _bounds(config)
-    boundary = enp.stack([lb, ub], axis=0)
 
     key, k_hv, k_sel, k_cross, k_mut = random.split_n(state.key, 5)
 
@@ -193,7 +188,7 @@ def ask(config: HypEConfig, state: HypEState):
     mating_pool = tournament_selection(k_sel, config.pop_size, -hv)
     parents = etl.gather(state.pop, mating_pool, axis=0)
     crossovered = simulated_binary(k_cross, parents)
-    offspring = polynomial_mutation(k_mut, crossovered, boundary)
+    offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
 
     return offspring, replace(state, offspring=offspring, key=key)

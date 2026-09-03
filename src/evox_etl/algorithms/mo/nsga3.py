@@ -20,15 +20,14 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
-from evox_etl.algorithms._operator_shims import (
-    clamp,
+from evox_etl.algorithms._jit_fix_operator import _take_along_axis, clamp
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
+from evox_etl.operators.selection import (
     non_dominate_rank,
-    polynomial_mutation,
-    simulated_binary,
     tournament_selection_multifit,
-    uniform_sampling,
 )
-from evox_etl.algorithms._shim_selection_basic import _take_along_axis
 
 
 @dataclasses.dataclass(frozen=True)
@@ -163,8 +162,7 @@ def ask(config: NSGA3Config, state: NSGA3State):
 
     lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
     ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    boundary = etl.stack([lb, ub], axis=0)
-    offspring = mutation(k_mut, crossovered, boundary)
+    offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     return offspring, dataclasses.replace(state, off=offspring, key=key)
 
