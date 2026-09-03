@@ -52,9 +52,30 @@ class RVEAConfig:
     crossover_op: Optional[Callable] = None
 
 
+def _config_flatten(config: RVEAConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: RVEAConfig, _children) -> RVEAConfig:
+    return config
+
+
+# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
+# TensorSpecs nor static Python values), so the config (which holds lb/ub as
+# ndarrays) is registered as a childless pytree node carrying the whole
+# config as its context — it then passes through etl.build/etl.run untouched.
+etl.register_pytree_node(RVEAConfig, _config_flatten, _config_unflatten)
+
+
 @dataclass(frozen=True)
 class RVEAState:
-    """Frozen RVEA state; every leaf is an ETL tensor (no Python scalars)."""
+    """Frozen RVEA state; every leaf is an ETL tensor (no Python scalars).
+
+    ``offspring`` carries the latest candidate batch from `ask` into `tell`
+    (the workflow passes only fitness back); it always has shape
+    (pop.shape[0], dim) so the state pytree never changes.
+    """
 
     pop: Tensor
     fit: Tensor
@@ -62,6 +83,7 @@ class RVEAState:
     init_v: Tensor
     gen: Tensor
     rv_adapt_every: Tensor
+    offspring: Tensor
     key: Tensor
 
 
@@ -73,6 +95,7 @@ def init(config: RVEAConfig, key: Tensor) -> RVEAState:
     ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
     population = random.uniform(key, (n_v, dim), 0.0, 1.0, etl.float32) * (ub - lb) + lb
     fit = enp.full((n_v, config.n_objs), float("inf"))
+    offspring = enp.zeros((n_v, dim), dtype="float32")
     gen = enp.zeros((), dtype="int32")
     rv_adapt_every = enp.full(
         (), float(max(round(1.0 / config.fr), 1.0)), dtype="float32"
@@ -84,6 +107,7 @@ def init(config: RVEAConfig, key: Tensor) -> RVEAState:
         init_v=v,
         gen=gen,
         rv_adapt_every=rv_adapt_every,
+        offspring=offspring,
         key=key,
     )
 
@@ -130,12 +154,12 @@ def ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
     mutation_fn = config.mutation_op if config.mutation_op is not None else polynomial_mutation
     offspring = mutation_fn(k_mut, crossovered, boundary)
     offspring = clamp(offspring, lb, ub)
-    return offspring, replace(state, key=key, gen=gen)
+    return offspring, replace(state, key=key, gen=gen, offspring=offspring)
 
 
-def tell(config: RVEAConfig, state: RVEAState, offspring: Tensor, fitness: Tensor) -> RVEAState:
+def tell(config: RVEAConfig, state: RVEAState, fitness: Tensor) -> RVEAState:
     """Merge parents + offspring, RVEA-select n_v survivors, adapt reference vectors."""
-    merge_pop = etl.concatenate([state.pop, offspring], axis=0)
+    merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
     merge_fit = etl.concatenate([state.fit, fitness], axis=0)
 
     theta = (etl.cast(state.gen, etl.float32) / config.max_gen) ** config.alpha
