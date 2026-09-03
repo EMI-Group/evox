@@ -22,13 +22,7 @@ these until the real modules land.
   crowding_distance, nd_environmental_selection.
 - `_shim_selection_rvea.py` — apd_fn, ref_vec_guided (+ local clamp_float/
   maximum/nanmin).
-- `_staged_unit_test_shim_selection_nd.py` — verified pytest suite (5 tests,
-  green on the etl numpy backend, checked bit-for-bit against torch) STAGED
-  here because the sibling tests node (`../unit_test/etl/`) was outside the
-  shim agent's write scope. `git mv` it to
-  `unit_test/etl/algorithms/test_shim_selection_nd.py`.
-- `test_shim_selection_rvea.py` — same situation; move to
-  `unit_test/etl/algorithms/test_shim_selection_rvea.py` when writable.
+All shim self-tests live in `../../unit_test/etl/algorithms/test_shim_*.py`.
 
 ## Routing Table
 | Area | Path |
@@ -63,11 +57,10 @@ these until the real modules land.
 - Both `list` and `tuple` pytrees work as `etl.build` specs and `etl.run` inputs.
 - Static ints (n_round, tournament_size, pop_size, top_p_num) are read from
   tensor `.shape` at trace time — fine on the numpy backend.
-- Self-test for the selection shims lives at
-  `../../unit_test/etl/algorithms/test_shim_selection_basic.py` (to be created by
-  the unit_test node agent): seed 1026 is pinned because with-replacement draws
-  only guarantee every full-size tournament row contains the argmin candidate for
-  that seed (verified: w_full all 5, w_multi all 1).
+- Selection-shim self-test (`../../unit_test/etl/algorithms/test_shim_selection_basic.py`)
+  pins seed 1026 because with-replacement draws only guarantee every full-size
+  tournament row contains the argmin candidate for that seed (verified: w_full
+  all 5, w_multi all 1).
 - `etl.while_loop` passes the carry pytree as ONE argument (unpack inside
   cond/body); loop-carried dtypes must match exactly (python-int promotion →
   wrap in `etl.cast`).
