@@ -76,3 +76,15 @@ The functional foundation of evox_etl: duck-typed protocol documentation (Algori
 - Reference for workflow behavior: `../../evox/workflows/std_workflow.py` (torch,
   read-only sibling). ETL same-device loop pattern validated in etl tests
   (`tests/backends/test_iree_same_device_loop.py` in the foreign repo).
+- MODULE CONVENTION GOTCHA: the workflow resolves functions via
+  `type(config).__module__`, so algorithm/problem/monitor configs used together
+  MUST live in DISTINCT modules — two configs defined in the same module (e.g.
+  both inline in `__main__` or in one test file) collide on function names like
+  `init`. Tests must define toy components in separate module files.
+- TEST SEMANTICS: monitor `fit_history` entries are per-generation latest-fitness
+  VECTORS (torch EvalMonitor semantics — NOT monotone). Assert convergence via the
+  monitor's running best (topk_fitness / get_best_fitness) or the algorithm's
+  internal best field — those are monotone. With opt_direction="max": internal
+  (minimized) fitness decreases while get_best_fitness (un-negated) increases.
+- `global_best_fitness`-style fields are often shape (1,) — use
+  `float(np.asarray(t.numpy()).reshape(-1)[0])` in tests, not `float(t.numpy())`.
