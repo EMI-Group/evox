@@ -1,3 +1,10 @@
+"""Tests for the canonical mutation/sampling operators.
+
+Converted from the deprecated ``evox_etl.algorithms._shim_mutation_sampling``
+compat stub: ``polynomial_mutation`` now uses the canonical
+``polynomial_mutation(key, x, lb, ub, pro_m=1.0, dis_m=20.0)`` signature with
+separate lower/upper bound tensors instead of the old stacked ``boundary``.
+"""
 import sys
 from pathlib import Path
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
@@ -9,11 +16,14 @@ import numpy as np
 import etl
 from etl import core
 
-from evox_etl.algorithms._shim_mutation_sampling import polynomial_mutation, uniform_sampling
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
 
 
-def _exercise(key, x, boundary):
-    pm = polynomial_mutation(key, x, boundary)
+def _exercise(key, x, lb, ub):
+    # pro_m/dis_m stay at the python defaults baked at trace time (per etl
+    # conventions they are NOT passed to etl.build/etl.run).
+    pm = polynomial_mutation(key, x, lb, ub)
     w, n_samples = uniform_sampling(20, 3)
     return pm, w, n_samples
 
@@ -39,7 +49,7 @@ def das_dennis_reference(n, m):
     return np.maximum(w, 1e-6)
 
 
-class TestShimMutationSampling:
+class TestMutationSamplingOperators:
     def run(self):
         key = np.array(7, dtype=np.int64)
         x = np.array([[0.5, -1.5, 3.0, 0.2],
@@ -48,25 +58,29 @@ class TestShimMutationSampling:
                       [1.0, -0.5, 0.5, -1.0],
                       [-2.0, 2.0, 1.5, 0.75],
                       [0.25, 0.5, -0.25, -0.75]], dtype=np.float32)
-        boundary = np.array([-1.0, 1.0], dtype=np.float32)
+        # canonical signature: separate lb/ub tensors (0-d scalars broadcast
+        # against x like the old stacked boundary [-1, 1]).
+        lb = np.array(-1.0, dtype=np.float32)
+        ub = np.array(1.0, dtype=np.float32)
         exe = etl.build(
             _exercise,
             core.TensorSpec(shape=(), dtype=np.dtype("int64")),
             core.TensorSpec(shape=(6, 4), dtype=np.dtype("float32")),
-            core.TensorSpec(shape=(2,), dtype=np.dtype("float32")),
+            core.TensorSpec(shape=(), dtype=np.dtype("float32")),
+            core.TensorSpec(shape=(), dtype=np.dtype("float32")),
             backend="numpy",
         )
-        outs = etl.run(exe, key, x, boundary)
-        return x, boundary, [o.numpy() for o in outs[:2]], outs[2]
+        outs = etl.run(exe, key, x, lb, ub)
+        return x, lb, ub, [o.numpy() for o in outs[:2]], outs[2]
 
     def test_polynomial_mutation(self):
-        x, boundary, (pm, _w), _ = self.run()
+        x, lb, ub, (pm, _w), _ = self.run()
         assert pm.shape == x.shape and pm.dtype == np.float32
         assert np.isfinite(pm).all()
-        assert np.all(pm >= boundary[0] - 1e-6) and np.all(pm <= boundary[1] + 1e-6)
+        assert np.all(pm >= lb - 1e-6) and np.all(pm <= ub + 1e-6)
 
     def test_uniform_sampling(self):
-        _x, _b, (_pm, w), n_samples = self.run()
+        _x, _lb, _ub, (_pm, w), n_samples = self.run()
         ref = das_dennis_reference(20, 3)
         assert isinstance(n_samples, int)
         assert n_samples == ref.shape[0]
@@ -75,6 +89,6 @@ class TestShimMutationSampling:
         np.testing.assert_allclose(w.sum(axis=1), np.ones(n_samples), rtol=1e-5, atol=1e-5)
 
     def test_determinism(self):
-        x, boundary, (pm1, w1), _ = self.run()
-        pm2, w2 = self.run()[2]
+        x, _lb, _ub, (pm1, w1), _ = self.run()
+        pm2, w2 = self.run()[3]
         assert np.array_equal(pm1, pm2) and np.array_equal(w1, w2)
