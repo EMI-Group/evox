@@ -20,12 +20,15 @@ these until the real modules land.
   select_rand_pbest + `_take_along_axis` helper.
 - `_shim_selection_nd.py` — dominate_relation, non_dominate_rank,
   crowding_distance, nd_environmental_selection.
-- `_shim_selection_rvea.py` — apd_fn, ref_vec_guided.
+- `_shim_selection_rvea.py` — apd_fn, ref_vec_guided (+ local clamp_float/
+  maximum/nanmin).
 - `_staged_unit_test_shim_selection_nd.py` — verified pytest suite (5 tests,
   green on the etl numpy backend, checked bit-for-bit against torch) STAGED
   here because the sibling tests node (`../unit_test/etl/`) was outside the
   shim agent's write scope. `git mv` it to
   `unit_test/etl/algorithms/test_shim_selection_nd.py`.
+- `test_shim_selection_rvea.py` — same situation; move to
+  `unit_test/etl/algorithms/test_shim_selection_rvea.py` when writable.
 
 ## Routing Table
 | Area | Path |
@@ -41,6 +44,8 @@ these until the real modules land.
 - `etl.gather(x, idx, axis)` is numpy `take` semantics (index array applied to
   every row), NOT torch `gather`/`take_along_axis`. For row-local selection use
   `_take_along_axis` from `_shim_selection_basic.py` (flatten-trick, 2-D).
+  etl.gather indexes along one axis only (out = indices.shape + x.shape[axis+1:]);
+  torch-style `torch.gather(z, 0, idx)` needs a flattened-index gather + reshape.
 - etl has NO `unbind` / `expand_dims` / `squeeze` / `take_along_axis` — use
   `__getitem__` slices/ints (trace fine) and `enp.reshape` / `enp.expand_dims`
   instead.
@@ -75,3 +80,5 @@ these until the real modules land.
 - `etl.zeros`/`etl.full` return CONCRETE tensors in traces (illegal operands) —
   use `enp.zeros`/`enp.full` (symbolic); `etl.sum/mean` take `axes=` (not
   `axis=`), while `etl.norm`/`etl.min` take `axis=`/`keepdims`.
+- `_shim_selection_rvea.py`: `theta` is a Python float (static arg passed to
+  BOTH `etl.build` and `etl.run`).
