@@ -7,7 +7,7 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
 
 ## API Surface
 - `basic.py`: 10 configs (`ShiftAffineNumericalProblem`, `Ackley(a=20.0, b=0.2, c=2π)`, `Griewank`, `Rastrigin`, `Rosenbrock`, `Schwefel`, `Sphere`, `Ellipsoid`, `Zakharov`, `Levy` — shift/affine numpy-array fields) + 9 `*_func`s (torch signatures) + module-level `evaluate` dispatching statically on config type. NO boundary handling (raw math — matches torch).
-- `dtlz.py`: `DTLZ1(d=7)/DTLZ2..6(d=12)/DTLZ7(d=21)` configs (m=3, ref_num=1000) + `evaluate`/`pf` dispatchers → per-variant `evaluate_dtlzN`/`pf_dtlzN` (DTLZ3/DTLZ4 share `pf_dtlz2`, mirroring torch inheritance) + private `_uniform_sampling` (Das-Dennis) / `_grid_sampling` mirroring torch `operators/sampling/{uniform,gird}.py` (operators milestone must dedupe them).
+- `dtlz.py`: `DTLZ1(d=7)/DTLZ2..6(d=12)/DTLZ7(d=21)` configs (m=3, ref_num=1000) + `evaluate`/`pf` dispatchers → per-variant `evaluate_dtlzN`/`pf_dtlzN` (DTLZ3/DTLZ4 share `pf_dtlz2`, mirroring torch inheritance). Sampling (Das-Dennis uniform + grid) uses the canonical `evox_etl.operators.sampling` `uniform_sampling`/`grid_sampling` — note they return `(tensor, n_samples)` tuples, call sites unpack `[0]`.
 - `cec2022.py`: `CEC2022(problem_number, dimension)` config + `evaluate` + all internal math as plain functions (`cec2022_f1..f12`, `shift/rotate/cut/sr_func_rate/cf_cal`, basic funcs). Imports 5 basic funcs from `basic`.
 - `__init__.py`: re-exports all classes, funcs, `CEC2022`, `DTLZ1-7`, `ProblemState`, and the three modules.
 

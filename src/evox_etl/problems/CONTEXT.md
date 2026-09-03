@@ -23,9 +23,10 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
   package level). The `(fitness, problem_state)` signature is kept for
   uniformity with stateful problems.
 - **DTLZ reference fronts**: DTLZ1-7 expose `pf(config)` functions (plain
-  functions meant to be traced) used by metrics/tests. They use private local
-  `_uniform_sampling`/`_grid_sampling` helpers inside dtlz.py (the operators
-  milestone will dedupe these into `operators/`).
+  functions meant to be traced) used by metrics/tests. Sampling comes from the
+  canonical `evox_etl.operators.sampling` operators (`uniform_sampling`/
+  `grid_sampling`, which return `(points, n_samples)` tuples — dtlz unpacks
+  `[0]`). Verified bit-identical to the former private mirrors.
 - **No boundary handling in basic problems**: raw math only, exactly like torch
   evox (constraining is the algorithm's responsibility there).
 - Package `__init__` re-exports the torch `evox.problems.numerical` export

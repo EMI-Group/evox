@@ -237,6 +237,9 @@ class StdWorkflow:
         """Infer (pop_size, dim) from the algorithm state, falling back to config fields."""
         alg_state = state.algorithm_state
         population = getattr(alg_state, "population", None)
+        if population is None:
+            # PSO-style states store the population as `pop` (no `or` on tensors).
+            population = getattr(alg_state, "pop", None)
         shape = getattr(population, "shape", None)
         if shape is not None and len(shape) >= 2:
             return int(shape[0]), int(shape[1])
@@ -258,6 +261,9 @@ class StdWorkflow:
             changes["n_obj"] = len(self._opt_direction)
         if "multi_obj" in field_names and getattr(cfg, "multi_obj", None) is None:
             changes["multi_obj"] = len(self._opt_direction) > 1
+        if "opt_direction" in field_names:
+            # the workflow's direction is authoritative (monitor un-negates with it)
+            changes["opt_direction"] = self._opt_direction
         if not changes:
             return cfg
         return dataclasses.replace(cfg, **changes)
