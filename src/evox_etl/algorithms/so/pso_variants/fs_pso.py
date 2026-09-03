@@ -15,7 +15,7 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
-from evox_etl.algorithms._operator_shims import clamp
+from evox_etl.algorithms._jit_fix_operator import clamp
 
 from .utils import min_by
 

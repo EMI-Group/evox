@@ -69,4 +69,4 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 | JaDE / SHADE / SaDE / CoDE | `jade.py`, `shade.py`, `sade.py`, `code.py` |
 | Smoke tests (no torch) | `../../../../unit_test/etl/algorithms/so/de_variants/` (sibling — write via bash heredoc) |
 | Parity test (torch allowed) | `../../../../unit_test/etl/algorithms/parity/test_de_parity.py` (sibling) |
-| Operator shims (import from) | `../../_operator_shims.py`, `../../_shim_selection_basic.py` |
+| Canonical operators (import from) | `../../operators/crossover`, `../../operators/selection`, `../../_jit_fix_operator.py` |

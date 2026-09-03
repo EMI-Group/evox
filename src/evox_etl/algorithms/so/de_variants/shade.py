@@ -19,9 +19,9 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._operator_shims import clamp
-from evox_etl.algorithms._shim_crossover import DE_binary_crossover, DE_differential_sum
-from evox_etl.algorithms._shim_selection_basic import select_rand_pbest
+from evox_etl.algorithms._jit_fix_operator import clamp
+from evox_etl.operators.crossover import DE_binary_crossover, DE_differential_sum
+from evox_etl.operators.selection import select_rand_pbest
 
 Tensor = etl.SymbolicTensor
 
