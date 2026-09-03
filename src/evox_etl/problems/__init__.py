@@ -16,6 +16,7 @@ __all__ = [
     "basic",
     "cec2022",
     "dtlz",
+    "ShiftAffineNumericalProblem",
     "Ackley",
     "Griewank",
     "Rastrigin",
@@ -45,8 +46,9 @@ __all__ = [
     "ProblemState",
 ]
 
-from . import basic, cec2022, dtlz, numerical
-from .basic import (
+from . import numerical
+from .numerical import basic, cec2022, dtlz
+from .numerical.basic import (
     Ackley,
     Ellipsoid,
     Griewank,
@@ -54,6 +56,7 @@ from .basic import (
     Rastrigin,
     Rosenbrock,
     Schwefel,
+    ShiftAffineNumericalProblem,
     Sphere,
     Zakharov,
     ackley_func,
@@ -66,6 +69,6 @@ from .basic import (
     sphere_func,
     zakharov_func,
 )
-from .cec2022 import CEC2022
-from .dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
+from .numerical.cec2022 import CEC2022
+from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
