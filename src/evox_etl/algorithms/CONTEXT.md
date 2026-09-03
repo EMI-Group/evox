@@ -5,29 +5,30 @@ Port of all 34 torch evox algorithms (read-only reference in `../../../evox/
 algorithms/`) to `init/ask/tell` plain functions + frozen config dataclasses.
 See `../../DESIGN.md` §4-5.
 
-## Shared shims (module-level files in this directory)
-Temporary local fallbacks for operator/util functions while `evox_etl.operators`
-and `evox_etl.utils` are being built in parallel. Algorithm ports import from
-these until the real modules land.
+## Canonical operator imports
+- Algorithms import crossover, sampling, selection, and mutation operators from
+  `evox_etl.operators.*` (canonical, torch-parity-verified modules).
+- The jit-fix utils (clamp family, lexsort, nanmin/nanmax, randint,
+  `_take_along_axis`) are imported from `evox_etl.algorithms._jit_fix_operator` —
+  a STAGING copy whose canonical home is `src/evox_etl/operators/jit_fix_operator.py`
+  (blocked by spatial scope; once the root agent lands it, repoint the imports
+  and delete `_jit_fix_operator.py`).
 
-- `_shim_utils.py` — torch util ports: clamp, clamp_float, clamp_int, maximum,
-  minimum (+int variants), lexsort, nanmin, nanmax, randint (keyed).
-- `_shim_crossover.py` — simulated_binary, simulated_binary_half,
-  DE_differential_sum, DE_binary_crossover, DE_exponential_crossover,
-  DE_arithmetic_recombination (key-first RNG).
-- `_shim_mutation_sampling.py` — polynomial_mutation, uniform_sampling.
-- `_shim_selection_basic.py` — tournament_selection, tournament_selection_multifit,
-  select_rand_pbest + `_take_along_axis` helper.
-- `_shim_selection_nd.py` — dominate_relation, non_dominate_rank,
-  crowding_distance, nd_environmental_selection.
-- `_shim_selection_rvea.py` — apd_fn, ref_vec_guided (+ local clamp_float/
-  maximum/nanmin).
-All shim self-tests live in `../../unit_test/etl/algorithms/test_shim_*.py`.
+## Deprecated compat stubs
+The six `_shim_*.py` module-level files in this directory are thin test-compat
+re-exports/wrappers kept ONLY because `unit_test/etl/algorithms/test_shim_*.py`
+(sibling node) still imports them. They re-export the canonical operators (with
+minor compat shims: an int32 index cast in `_shim_crossover.py`, the old
+boundary signature in `_shim_mutation_sampling.py`, the key-split draw-stream
+convention in `_shim_selection_basic.py`, and torch-faithful `apd_fn`/
+`_cosine_similarity` in `_shim_selection_rvea.py`). Pending root-agent
+conversion of those tests, after which the stubs must be deleted. Do NOT import
+from them in new code.
 
 ## Routing Table
 | Area | Path |
 |---|---|
-| Selection shims (tournament + pbest, plain functions) | `_shim_selection_basic.py` |
+| Jit-fix utils staging module (clamp, lexsort, nanmin/nanmax, randint, `_take_along_axis`) | `_jit_fix_operator.py` |
 | DE variants (code, de, jade, ode, sade, shade) | `so/de_variants/` |
 | ES variants (adam_step, ars, asebo, cma_es, des, esmc, guided_es, nes, noise_reuse_es, open_es, persistent_es, snes, sort_utils) | `so/es_variants/` |
 | ~~virtual_lora_es~~ — **SKIP: not portable** (needs torch Philox `philox_normal(seeds, n, counter)` counter-stream PRNG, LoRA factor utilities, and a tuple-payload `evaluate` protocol hard-coded in torch `StdWorkflow`; etl.random is key/split-only and the binding spec is tensor-only `(n, dim)`) | — |
@@ -38,7 +39,7 @@ All shim self-tests live in `../../unit_test/etl/algorithms/test_shim_*.py`.
 ## Notes for agents (verified against etl — do not re-investigate)
 - `etl.gather(x, idx, axis)` is numpy `take` semantics (index array applied to
   every row), NOT torch `gather`/`take_along_axis`. For row-local selection use
-  `_take_along_axis` from `_shim_selection_basic.py` (flatten-trick, 2-D).
+  `_take_along_axis` from `_jit_fix_operator.py` (flatten-trick, 2-D).
   etl.gather indexes along one axis only (out = indices.shape + x.shape[axis+1:]);
   torch-style `torch.gather(z, 0, idx)` needs a flattened-index gather + reshape.
 - etl has NO `unbind` / `expand_dims` / `squeeze` / `take_along_axis` — use
@@ -57,10 +58,6 @@ All shim self-tests live in `../../unit_test/etl/algorithms/test_shim_*.py`.
 - Both `list` and `tuple` pytrees work as `etl.build` specs and `etl.run` inputs.
 - Static ints (n_round, tournament_size, pop_size, top_p_num) are read from
   tensor `.shape` at trace time — fine on the numpy backend.
-- Selection-shim self-test (`../../unit_test/etl/algorithms/test_shim_selection_basic.py`)
-  pins seed 1026 because with-replacement draws only guarantee every full-size
-  tournament row contains the argmin candidate for that seed (verified: w_full
-  all 5, w_multi all 1).
 - `etl.while_loop` passes the carry pytree as ONE argument (unpack inside
   cond/body); loop-carried dtypes must match exactly (python-int promotion →
   wrap in `etl.cast`).
@@ -74,5 +71,10 @@ All shim self-tests live in `../../unit_test/etl/algorithms/test_shim_*.py`.
 - `etl.zeros`/`etl.full` return CONCRETE tensors in traces (illegal operands) —
   use `enp.zeros`/`enp.full` (symbolic); `etl.sum/mean` take `axes=` (not
   `axis=`), while `etl.norm`/`etl.min` take `axis=`/`keepdims`.
-- `_shim_selection_rvea.py`: `theta` is a Python float (static arg passed to
-  BOTH `etl.build` and `etl.run`).
+- `ref_vec_guided`/`apd_fn` (canonical
+  `evox_etl.operators.selection.rvea_selection`): `theta` is a Python float
+  (static arg passed to BOTH `etl.build` and `etl.run`). NOTE the canonical
+  `apd_fn` gathers `norm_obj` with `relu(x)` while torch does `norm_obj[x]`
+  (negative-index wrap) — latent in `ref_vec_guided`, but pinned by
+  `unit_test/etl/algorithms/test_shim_selection_rvea.py`; reported to the root
+  agent as a canonical-operator bug.
