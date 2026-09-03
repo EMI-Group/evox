@@ -55,6 +55,10 @@ These were verified empirically — do not re-investigate, do not fight them:
    roll/diag/tril/triu/eye/linspace`, comparisons/logical, `cast`, `eigh/solve/norm`,
    `cond`, `while_loop`, `scan(f, init, xs, length=STATIC)`, `vmap` (axis 0 only).
    NO `einsum`. NO eager `jnp.ndarray.at[]` — use `scatter`.
+   Naming gotchas: concatenation is `etl.concatenate` (NOT concat); no `squeeze` at
+   top level; no `where`/`any`/`all`/`amax`/`amin`/`meshgrid`/`take`/`lexsort`/
+   `repeat`/`moveaxis`/`atan2`; no scatter-add. See CONTEXT.md "ETL issues found"
+   for the full consolidated list of gotchas + workarounds.
 6. **Compiler backends** (used for speed/GPU):
    - `"numpy"` (default interpreter — always works, CPU reference),
    - `"iree"` (llvm-cpu and cuda; cuda validated end-to-end for PSO/DE/OpenES/Sphere/
@@ -169,11 +173,12 @@ evaluate(config, problem_state, pop) -> (fitness, problem_state)   # pop: (n, di
 # Known torch signatures (from src/evox/operators/):
 #   simulated_binary(x, pro_c, dis_c)                -> simulated_binary(key, x, pro_c, dis_c)
 #   simulated_binary_half(x, pro_c, dis_c)           -> + key first
-#   DE_differential_sum(diff_padding_num, num_diff_vects, index, population, F, replace) -> + key
+#   DE_differential_sum(diff_padding_num, num_diff_vects, index, population, F=None,
+#                       replace=False)               -> + key first (F=None reproduces torch default)
 #   DE_binary_crossover(mutation_vector, current_vector, CR)         -> + key
 #   DE_exponential_crossover(mutation_vector, current_vector, CR)    -> + key
 #   DE_arithmetic_recombination(mutation_vector, current_vector, K)  -> unchanged (no rng)
-#   polynomial_mutation(x, boundary, pro_m, dis_m)   -> + key
+#   polynomial_mutation(x, lb, ub, pro_m, dis_m)     -> polynomial_mutation(key, x, lb, ub, pro_m, dis_m)
 #   latin_hypercube_sampling_standard(n, d, smooth)  -> + key, NO device arg
 #   latin_hypercube_sampling(n, lb, ub, smooth)      -> + key
 #   uniform_sampling(n, m)                           -> unchanged (Das-Dennis, deterministic)
