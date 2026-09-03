@@ -53,17 +53,32 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 
 ## ETL issues found (escalated to root agent)
 1. **np.ndarray fields in config dataclasses are rejected by `etl.build`** as static
-   trace values ("neither a TensorSpec nor a static Python value"; static values may
-   be None/bool/int/float/complex/str/Enum/dtype/slice/...). DESIGN.md §4.1 says
-   config `lb`/`ub` become numpy arrays — not possible as-is; workaround used by the
-   de_variants ports: normalize array fields to tuples of plain floats in
-   `__post_init__` (callers still pass np arrays). Either update DESIGN.md or have
-   etl accept ndarray as a static value.
+   trace values ("neither a TensorSpec nor a static Python value"). DESIGN.md §4.1
+   says config `lb`/`ub` become numpy arrays — not possible as-is. Two workarounds
+   in use: (a) normalize array fields to tuples of plain floats in `__post_init__`
+   (de_variants/pso_variants/es_variants), (b) `etl.register_pytree_node(ConfigCls,
+   zero-child-flatten, identity-unflatten)` per config module (mo — see nsga2.py).
+   Either update DESIGN.md or make etl accept ndarray as a static value.
    Repro: `etl.build(lambda cfg: cfg, MyConfig(lb=np.zeros(3)), backend="numpy")`
    → `etl.core.errors.TraceError` at `_flatten_specs`.
 2. **`etl.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
-   branches** (`cannot broadcast incompatible dims n and m`; the `(n,)` is aligned
-   as `(1, n)`). numpy/torch broadcast `(n,)` → `(n, 1)` against `(n, m)` fine.
-   Workaround: always `enp.expand_dims(cond, 1)` first (scalar conds broadcast OK).
+   branches** (`cannot broadcast incompatible dims n and m`). numpy/torch broadcast
+   `(n,)` → `(n, 1)` against `(n, m)` fine. Workaround: always
+   `enp.expand_dims(cond, 1)` first (scalar conds broadcast OK).
    Repro: `etl.build(lambda x: etl.select(etl.sum(x, axes=1) < 0.5, 0.0, x),
    TensorSpec((3, 4), float32))` → ShapeError.
+3. **`SymbolicTensor.__getitem__` rejects `None`/newaxis indices** — use
+   `enp.expand_dims`/`enp.reshape` (pso_variants).
+4. **`etl.scatter` rejects scalar (rank-0) updates** despite the docstring —
+   rank-matching workaround (pso_variants).
+5. **`etl.dot` requires rank ≥ 2** — vector·matrix products need expand_dims
+   tricks (es_variants; documented in its CONTEXT.md).
+6. Minor es_variants discoveries (documented in its CONTEXT.md): `etl.transpose`
+   axes must be a tuple; `etl.clamp` needs both bounds; `(k,n)*(k,)` does not
+   align over k (use expand_dims); `etl.svd` returns reduced (U,S,Vh) matching
+   torch svd(some=True).
+7. **No scatter-add** (etl `scatter` is replacement-only put_along_axis) —
+   worked around with one-hot segment sums (mo/nsga3); a composition note, not a bug.
+8. Cosmetic: the etl numpy backend leaks a `RuntimeWarning: invalid value
+   encountered in divide` for the intentional inf-beta draws (SBX/SHADE/SaDE NaN
+   paths) — torch-identical semantics, no change made.
