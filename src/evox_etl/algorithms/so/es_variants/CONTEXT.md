@@ -25,3 +25,5 @@ Plain-function (`init`/`ask`/`tell`) ports of the torch evox ES-family algorithm
   float/scalar-tensor mixes stay float32.
 - Tests: `unit_test/etl/algorithms/so/es_variants/test_*.py` — smoke tests drive
   init/ask/tell through `helpers.run_generations` (no torch).
+- Parity tests vs the torch reference (CMAES, OpenES; torch imports allowed):
+  `unit_test/etl/algorithms/parity/test_{cma_es,open_es}.py`.
