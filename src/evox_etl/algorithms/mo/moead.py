@@ -188,13 +188,14 @@ def ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
 def tell(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
     """Update z and the neighbor subpopulations (torch ``step`` 1:1).
 
-    The per-i update loop runs as one traced ``etl.while_loop``; z is first
-    lowered by the batch min (elementwise minima commute, same as torch's
-    per-i ``minimum`` calls).
+    The per-i update loop runs as one traced ``etl.while_loop``; ``z`` is a
+    loop carry lowered per-i BEFORE the g comparisons, exactly like torch's
+    ``self.z = minimum(self.z, off_fit)`` (a pre-loop batch min would
+    contaminate the g_old/g_new decisions with future offspring minima).
     """
     n_w = state.next_parents.shape[0]
     n_neighbor = state.next_parents.shape[1]
-    z = minimum(state.z, etl.min(fitness, axes=0))
+    z = state.z
 
     def cond(carry: Tuple[Any, Any, Any, Any]) -> Any:
         i, pop, fit, z = carry
