@@ -128,7 +128,14 @@ that config.
 - Fitness dtype float32. Minimization semantics internally everywhere (mirror torch
   evox): the workflow applies `opt_direction` to convert maximization problems.
 
-### 4.3 Functions (all `@etl.defn` unless stated)
+### 4.3 Functions (plain Python functions — NOT `@etl.defn`)
+
+VERIFIED etl contract: `etl.trace`/`etl.build` accept plain callables; a `Defn`
+object RAISES when called (even during another trace), so defn-wrapping would
+break composition. Therefore **all algorithm/problem/monitor/operator functions
+are PLAIN functions** (a bare call outside a trace raises etl's "No active
+trace" TraceError — that is fine and expected). The workflow traces them
+explicitly.
 
 ```python
 # algorithms/<...>/<name>.py  — module-level functions + config dataclass
@@ -143,16 +150,33 @@ init_tell(config, state, fitness) -> state
 evaluate(config, problem_state, pop) -> (fitness, problem_state)   # pop: (n, dim)
 # numerical problems are stateless but keep the signature for uniformity.
 
-# operators/<...>.py — pure functions, no defn decorator needed (called inside traces)
+# operators/<...>.py — pure functions (called inside traces)
 operator_fn(config, key, x, ...) -> tensor       # hyperparams via config dataclass
 
 # metrics/<...>.py
-igd(objs, pf, p=1.0) -> scalar tensor            # etc. — plain @etl.defn functions
+igd(objs, pf, p=1.0) -> scalar tensor            # etc. — plain functions
 ```
 
-**Calling convention inside algorithms**: `ask = functools.partial(nsga2.ask, config)`
-style partialization is done by the workflow / user, NOT by algorithms themselves.
-Algorithms may freely call operators and `etl`/`enp`/`etl.random` functions.
+**Static config args — no partialization needed (VERIFIED):** `etl.trace`/
+`etl.build` treat each positional arg as one pytree: `TensorSpec` leaves become
+tensor inputs, everything else (config dataclasses, ints, floats, strings)
+becomes a STATIC value passed as-is into the function (static Python control
+flow over them specializes the graph). So:
+
+```python
+exe = etl.build(algo_mod.ask, algo_config, state_spec_tree, backend=..., device=...)
+state = exe.run(state)   # run() accepts/returns full pytrees
+```
+
+**Module convention (how the workflow finds the functions):** the `init`/`ask`/
+`tell` (and `init_ask`/`init_tell`) functions live in the SAME module as their
+config dataclass. The workflow resolves them via
+`importlib.import_module(type(config).__module__)`. Same for problems
+(`evaluate`) and monitors (`monitor_update`).
+
+**Constants:** bake constant tensors inside functions with `etl.ops.constant`
+(numpy array arg) — closure-captured CONCRETE tensors fail at trace time.
+Python scalars in expressions are fine (constant broadcast).
 
 **Key management convention** (JAX-evoX style): every `init/ask/tell` that needs
 randomness splits the key FROM THE STATE: `key, subkey = random.split(state.key)`,
@@ -174,17 +198,19 @@ wf.fit(fitness=..., generations=...)  # mirror torch API if cheap
 
 Implementation sketch (binding):
 ```python
-step = _compose_step(algorithm, problem, monitor, opt_direction)  # module-level @etl.defn
-init_fn = functools.partial(algorithm_mod.init, algorithm_config)
-state = etl.evaluate(init_fn, key)                    # once, backend-clean
+step = _compose_step(...)      # module-level PLAIN function (see §4.3)
+init_fn = algorithm_module.init
+init_key_spec = etl.core.TensorSpec.from_tensor(key)
+init_exe = etl.build(init_fn, algorithm_config, init_key_spec)   # cpu, numpy backend
+state = init_exe.run(key)                                        # once
+state = tree_map(lambda t: t.to(device), state)                  # if device is cuda
 specs = etl.tree_map(etl.core.TensorSpec.from_tensor, state)
-exe = etl.build(functools.partial(step, ...), *specs, backend=backend, **opts)
-exe = etl.load(exe, backend=backend, device=device)   # device=None -> cpu
-# per generation:
-state = exe.run(*etl.tree_flatten(state))  # or direct pytree args if supported
-#    -> re-pack pytree; if etl.run accepts pytrees directly, use that
+exe = etl.build(step, algorithm_config, problem_config, monitor_config, specs,
+                backend=backend, device=device, **opts)          # compile ONCE
+# per generation (same-device loop, pytrees in/out):
+state = exe.run(state)
 # host-side monitor history: after each step, copy out monitor state leaves
-#    via leaf.to(Device("cpu")).numpy() and append to Python lists.
+#    via leaf.to(etl.core.Device("cpu")).numpy() and append to Python lists.
 ```
 
 The composed step (inside one graph): ask (or init_ask on gen==0) → evaluate →
