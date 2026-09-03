@@ -9,10 +9,9 @@ See `../../DESIGN.md` §4-5.
 - Algorithms import crossover, sampling, selection, and mutation operators from
   `evox_etl.operators.*` (canonical, torch-parity-verified modules).
 - The jit-fix utils (clamp family, lexsort, nanmin/nanmax, randint,
-  `_take_along_axis`) are imported from `evox_etl.algorithms._jit_fix_operator` —
-  a STAGING copy whose canonical home is `src/evox_etl/operators/jit_fix_operator.py`
-  (blocked by spatial scope; once the root agent lands it, repoint the imports
-  and delete `_jit_fix_operator.py`).
+  `_take_along_axis`) are imported from
+  `evox_etl.operators.jit_fix_operator` (canonical home — a port of the torch
+  `evox/utils/jit_fix_operator.py` helpers).
 
 ## Deprecated compat stubs
 The six `_shim_*.py` module-level files in this directory are thin test-compat
@@ -28,7 +27,6 @@ from them in new code.
 ## Routing Table
 | Area | Path |
 |---|---|
-| Jit-fix utils staging module (clamp, lexsort, nanmin/nanmax, randint, `_take_along_axis`) | `_jit_fix_operator.py` |
 | DE variants (code, de, jade, ode, sade, shade) | `so/de_variants/` |
 | ES variants (adam_step, ars, asebo, cma_es, des, esmc, guided_es, nes, noise_reuse_es, open_es, persistent_es, snes, sort_utils) | `so/es_variants/` |
 | ~~virtual_lora_es~~ — **SKIP: not portable** (needs torch Philox `philox_normal(seeds, n, counter)` counter-stream PRNG, LoRA factor utilities, and a tuple-payload `evaluate` protocol hard-coded in torch `StdWorkflow`; etl.random is key/split-only and the binding spec is tensor-only `(n, dim)`) | — |
@@ -39,7 +37,7 @@ from them in new code.
 ## Notes for agents (verified against etl — do not re-investigate)
 - `etl.gather(x, idx, axis)` is numpy `take` semantics (index array applied to
   every row), NOT torch `gather`/`take_along_axis`. For row-local selection use
-  `_take_along_axis` from `_jit_fix_operator.py` (flatten-trick, 2-D).
+  `_take_along_axis` from `evox_etl.operators.jit_fix_operator` (flatten-trick, 2-D).
   etl.gather indexes along one axis only (out = indices.shape + x.shape[axis+1:]);
   torch-style `torch.gather(z, 0, idx)` needs a flattened-index gather + reshape.
 - etl has NO `unbind` / `expand_dims` / `squeeze` / `take_along_axis` — use
