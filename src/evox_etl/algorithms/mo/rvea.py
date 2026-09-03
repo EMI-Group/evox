@@ -22,7 +22,7 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._jit_fix_operator import clamp, nanmax, nanmin, randint
+from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling

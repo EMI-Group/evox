@@ -25,7 +25,7 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._jit_fix_operator import _take_along_axis, clamp
+from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
