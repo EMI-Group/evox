@@ -35,10 +35,58 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
 ## Notes for Agents
 - cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/`
   — numpy allowed ONLY for loading that data; bake it as constant tensors (closure).
+- **Test suite** (131 tests, GREEN on the numpy backend) lives at `tests/` inside
+  this node (pure-etl + torch parity under `tests/parity/`). Canonical home is
+  the sibling `../../../unit_test/etl/problems/` — this node has no write access
+  to siblings, so the parent must relocate the files (they are relocate-ready:
+  self-contained, conftest shim inserts repo root + src into sys.path) and run
+  the gate `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
+  unit_test/etl/problems -q`. Run locally with `... -m pytest
+  src/evox_etl/problems/tests -q`.
+- **.gitignore gotcha**: the repo-root `.gitignore` has a bare `tests` entry
+  that matches `src/evox_etl/problems/tests/` — new files there must be added
+  with `git add -f` until the parent adds a negation pattern (the suite files
+  are already force-added/tracked).
+
+## ETL issues found (escalated to root — also needs adding to ../CONTEXT.md)
+Hit while porting the numerical problems; all worked around in this node (see
+`numerical/CONTEXT.md` "Verified etl facts" for the workaround patterns):
+1. **Slice op can't express full-axis `:` over a dynamic dim** — `x[:, a:b]` /
+   `x[:, :]` fail at trace/lower when the batch dim is symbolic. Repro:
+   `etl.build(lambda x: x[:, 1:], TensorSpec((None, 4), np.float32))` → lower
+   error. Workaround: `etl.gather(x, const_int32_arange, axis=1)`.
+2. **Reductions directly over a trace-input leaf fail** — `enp.sum(x, axis=1)`
+   where x is the function's input leaf raises a shape mismatch (IR Dim-vs-None
+   inconsistency). Repro: `etl.build(lambda x: etl.sum(x, axis=1),
+   TensorSpec((2, 3), np.float32))`. Workaround: apply an elementwise op first
+   (`x * 1.0`).
+3. **`enp.expand_dims`/`enp.reshape` can't carry dynamic (None) dims** — they
+   reject None entries and Dim entries fail at lowering. Workaround: unroll
+   static Python loops (see `katsuura_func` in cec2022.py).
+4. **`!=` is not overloaded on symbolic tensors** (`x != 0` raises TraceError;
+   only `== < > <= >=` work). Use `etl.not_equal`.
+5. **No `*_like` ops** (`zeros_like`/`ones_like`/`full_like` absent in
+   etl.numpy) — zero-init via `x * 0.0`.
+6. **`enp.floor` missing** (top-level `etl.floor` exists); similarly top-level
+   `etl.zeros`/`etl.ones` are CONCRETE creators and must not be used inside
+   traces (`enp.zeros`/`enp.ones` are the traced versions) — easy to mix up.
+7. **`float32 ** int64` promotes to float64** — cast exponents to float32
+   explicitly.
+8. **Numpy arrays inside config dataclasses are rejected by `etl.build` as
+   trace inputs** — workaround: register such configs as zero-child pytree
+   nodes (`etl.register_pytree_node`), see basic.py.
+9. **`etl.gather` + `enp.expand_dims` interaction is confusing** (see
+   cec2022.py comments); `etl.gather` accepts int32 indices, np.take semantics.
+10. **`TensorSpec` API quirks**: no `from_tensor` method; shape must be a flat
+    tuple; built `Executable` has no `.run` method (use top-level
+    `etl.run(exe, *args)` with ALL positional args, static ones included).
+    `etl.evaluate` rejects static args entirely (configs must go through
+    `etl.build`).
 
 ## Routing Table
 | Area | Path | Notes |
 |---|---|---|
 | Numerical problems (basic, dtlz, cec2022, state) | `numerical/` | single subpackage; owns `ProblemState` |
-| Tests | `../../../unit_test/etl/problems/` | sibling — mirrors this package |
+| Test suite (relocate-ready) | `tests/` | in-node copy; canonical home is the sibling unit_test dir — parent relocates |
+| Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — write access requires parent |
 | Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |
