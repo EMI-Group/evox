@@ -28,7 +28,8 @@ def simulated_binary_half(key, x, pro_c: float = 1.0, dis_c: float = 20.0):
     beta = etl.select(mu > 0.5, etl.power(2.0 - 2 * mu, -1.0 / (dis_c + 1.0)), beta)
 
     # Random binary for mutation direction
-    beta = beta * (1 - random.randint(k2, (n2, m), 0, 2, "int32") * 2)
+    sign = 1.0 - etl.cast(random.randint(k2, (n2, m), 0, 2, "int32"), "float32") * 2.0
+    beta = beta * sign
 
     # Apply crossover probability to mutate
     beta = etl.select(random.uniform(k3, (n2, m), dtype="float32") < 0.5, 1.0, beta)
