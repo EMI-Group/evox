@@ -59,17 +59,7 @@ torch — CONTEXT issue #12). `any`/`all` do not exist in etl: composed as
   + `parity/test_parity.py` (torch parity; the only torch-importing file).
   Run: `python -m pytest src/evox_etl/metrics/tests -q` (53 tests).
 
-## ETL issues found (to be merged into ../CONTEXT.md by the parent)
-1. `etl.run` returns concrete `etl.core.tensor.Tensor` objects, NOT ndarrays —
-   `np.asarray(result)` yields an object-dtype 0-d array; use `result.numpy()`.
-2. Static positional args must be passed to `etl.build` AND re-passed (by
-   value) to `etl.run`; parameters omitted at build (Python defaults) are
-   baked into the executable and must NOT be passed at run (else "run-time
-   input structure does not match the traced signature").
-3. Positive finds (no workarounds needed): `etl.random.uniform` DOES accept
-   tensor `low`/`high` bounds (broadcast); `etl.random.split_n(key, n)`
-   returns a TUPLE of n keys (not a tensor) — ideal for static per-cube
-   loops; `etl.norm(x)` with default `axis=None, ord=2` = L2 norm of a
-   vector; float32 tensor `**` Python-float exponent stays float32 (no
-   issue-#12 promotion); boolean reductions compose `any` → `etl.max(…,
-   axes=…)`, `all` → `etl.min(…, axes=…)` (etl has no any/all ops).
+## ETL issues found
+Consolidated in `../CONTEXT.md` "ETL issues found" (#16-18: `etl.run` returns
+concrete Tensors — use `.numpy()`; static build/run arg-structure matching;
+positive finds re uniform/split_n/norm/gather/any-all).

@@ -37,8 +37,8 @@ StdWorkflow loop.
 | Algorithms SO | `algorithms/so/` | de_variants, es_variants, pso_variants |
 | Algorithms MO | `algorithms/mo/` | nsga2, nsga3, moead, rvea, rveaa, hype |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
-| Metrics | `metrics/` | igd, gd, hv |
-| Workflow + EvalMonitor | `workflows/` | std_workflow, eval_monitor |
+| Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
+| Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
 | Utilities | `utils/` | functional helpers |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
@@ -109,3 +109,19 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
     `evogit-agent-T1-A19` (commit 838739c, shared refcounted client), NOT yet on etl
     master. xla-cuda benchmarks must run against that branch (venv re-point) + cuDNN
     ≥9.8 via LD_LIBRARY_PATH (plugin compiled vs cuDNN 9.8.0; venv ships 9.1.0).
+16. **`etl.run` returns concrete `etl.core.tensor.Tensor` objects, NOT ndarrays** —
+    `np.asarray(result)` yields an object-dtype 0-d array; always use
+    `result.numpy()`. Host-side code reading step results must call `.numpy()`
+    (and `.to(etl.core.Device("cpu"))` first if running on a non-cpu device).
+17. **Static args at `etl.build` vs `etl.run` must match exactly**: positional
+    statics passed to `etl.build` must be RE-passed (by value) to `etl.run`;
+    parameters omitted at build (Python defaults) are baked into the executable and
+    must NOT be passed at run (else "run-time input structure does not match the
+    traced signature" TraceError).
+18. Positive finds (no workaround needed): `etl.random.uniform` accepts tensor
+    low/high bounds; `etl.random.split_n(key, n)` returns a tuple of n keys;
+    `etl.norm(x)` defaults to L2 over all axes (`axis=None, ord=2`) and takes the
+    singular `axis=` kwarg like topk/argmin/gather (issue 9); `etl.gather` accepts
+    0-d scalar indices and squeezes (the pso `(1,)`-reshape workaround is
+    unnecessary); float32 ** Python-float exponent stays float32; etl has no
+    any/all ops — compose via `etl.max`/`etl.min` over bool axes.
