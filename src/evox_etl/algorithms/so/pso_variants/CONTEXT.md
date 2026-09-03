@@ -48,7 +48,7 @@ mirroring the torch `__all__`.
   high, dtype=etl.int32)`; `random.uniform/normal(key, shape, ..., etl.float32)`.
 - `etl.select(cond, a, 0)` broadcasts python scalars; int32/int64 1-D indices
   work with `etl.gather(x, idx, axis=0)` (numpy-take semantics).
-- `enp.zeros((n,), etl.float32)` and `enp.full((), float("inf"),
+- `enp.zeros((n,), dtype=etl.float32)` and `enp.full((), float("inf"),
   dtype=etl.float32)` work inside traces.
 - Draws are in torch order, one subkey each: rg, rp, tournament1, tournament2,
   offset, mutation_prob (then store the advanced key back in the state).
