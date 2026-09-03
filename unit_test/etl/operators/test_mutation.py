@@ -60,9 +60,11 @@ def test_pm_clamps_out_of_bounds_input():
 
 def test_pm_pro_m_zero_is_identity_inside_bounds():
     # pro_m=0 → no site is mutated → output is exactly the clamped input
+    # (identical to the input when the input is already within [lb, ub])
+    x_in = np.clip(X, LB, UB)
     exe = build(polynomial_mutation, KEY_SPEC, X_SPEC, BOUND_SPEC, BOUND_SPEC, 0.0, 20.0)
-    out = to_numpy(etl.run(exe, make_key(0), X, LB, UB, 0.0, 20.0))
-    np.testing.assert_array_equal(out, X)
+    out = to_numpy(etl.run(exe, make_key(0), x_in, LB, UB, 0.0, 20.0))
+    np.testing.assert_array_equal(out, x_in)
 
 
 def test_pm_determinism_and_divergence():
