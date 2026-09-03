@@ -17,10 +17,9 @@ Notes for agents:
   DTLZ formula slices ``X`` on the feature axis (``X[:, m - 1:]``).
   ``StdWorkflow`` builds specs from concrete tensors, so this holds in
   practice; use static specs in tests.
-- ``_uniform_sampling`` / ``_grid_sampling`` are PRIVATE local mirrors of
-  torch ``operators/sampling/uniform.py`` / ``gird.py`` (same math, minus
-  device and the ``(tensor, n_samples)`` tuple) — the operators milestone
-  will move/dedupe them.
+- Sampling uses the canonical ``evox_etl.operators.sampling`` operators
+  (``uniform_sampling`` / ``grid_sampling``) — they return a
+  ``(tensor, n_samples)`` tuple, so call sites unpack ``[0]``.
 """
 
 __all__ = [
@@ -35,13 +34,14 @@ __all__ = [
     "pf",
 ]
 
-import itertools
 from dataclasses import dataclass
-from math import ceil, comb, pi
+from math import pi
 from typing import Any
 
 import etl
 import etl.numpy as enp
+
+from evox_etl.operators.sampling import grid_sampling, uniform_sampling
 
 
 @dataclass(frozen=True)
@@ -110,82 +110,10 @@ class DTLZ7:
 DTLZConfig = DTLZ1 | DTLZ2 | DTLZ3 | DTLZ4 | DTLZ5 | DTLZ6 | DTLZ7
 
 
-def _uniform_sampling(n: int, m: int) -> etl.SymbolicTensor:
-    """Das-Dennis uniform sampling; local 1:1 mirror of torch
-    ``operators/sampling/uniform.py`` (operators milestone will dedupe)."""
-    h1 = 1
-    while comb(h1 + m, m - 1) <= n:
-        h1 += 1
-
-    c = comb(h1 + m - 1, m - 1)
-    combos = list(itertools.combinations(range(1, h1 + m), m - 1))
-    w = (
-        etl.constant(etl.core.tensor(combos, dtype=etl.int64))
-        - etl.tile(etl.constant(etl.core.tensor(range(m - 1), dtype=etl.int64)), (c, 1))
-        - 1
-    )
-    w = (
-        enp.concatenate([w, enp.zeros((c, 1), dtype=etl.int64) + h1], axis=1)
-        - enp.concatenate([enp.zeros((c, 1), dtype=etl.int64), w], axis=1)
-    )
-    w = etl.cast(w, etl.float32) / h1
-
-    if h1 < m:
-        h2 = 0
-        while comb(h1 + m - 1, m - 1) + comb(h2 + m, m - 1) <= n:
-            h2 += 1
-        if h2 > 0:
-            c2 = comb(h2 + m - 1, m - 1)
-            combos2 = list(itertools.combinations(range(1, h2 + m), m - 1))
-            w2 = (
-                etl.constant(etl.core.tensor(combos2, dtype=etl.int64))
-                - etl.tile(
-                    etl.constant(etl.core.tensor(range(m - 1), dtype=etl.int64)),
-                    (c2, 1),
-                )
-                - 1
-            )
-            w2 = (
-                enp.concatenate([w2, enp.zeros((c2, 1), dtype=etl.int64) + h2], axis=1)
-                - enp.concatenate([enp.zeros((c2, 1), dtype=etl.int64), w2], axis=1)
-            )
-            w2 = etl.cast(w2, etl.float32) / h2
-
-            w = enp.concatenate([w, w2 / 2.0 + 1.0 / (2.0 * m)], axis=0)
-
-    w = enp.maximum(w, 1e-6)
-    return w
-
-
-def _grid_sampling(n: int, m: int) -> etl.SymbolicTensor:
-    """Grid sampling; local 1:1 mirror of torch ``operators/sampling/gird.py``
-    (operators milestone will dedupe)."""
-    num_points = int(ceil(n ** (1 / m)))
-
-    # torch: gap = torch.linspace(0, 1, num_points). etl.linspace is the 1:1
-    # op translation; its backend kernels may differ from torch's linspace
-    # kernel by ~1 float32 ulp on some entries (irrelevant: DTLZ7 pf parity
-    # holds to ~1e-8).
-    gap = etl.linspace(0.0, 1.0, num_points, dtype=etl.float32)
-
-    # torch: torch.meshgrid(*grid_axes, indexing="ij") then stack along -1
-    # and reshape(-1, m) — broadcast each axis along its own dim instead.
-    shape = (num_points,) * m
-    axes = []
-    for k in range(m):
-        shp = [1] * m
-        shp[k] = num_points
-        axes.append(enp.broadcast_to(enp.reshape(gap, tuple(shp)), shape))
-    w = enp.reshape(etl.stack(axes, axis=-1), (-1, m))
-
-    w = etl.flip(w, axes=[1])
-    return w
-
-
 def _sample(config: DTLZConfig) -> etl.SymbolicTensor:
     """Base DTLZ sample — torch ``DTLZ.__init__``:
     ``uniform_sampling(ref_num * m, m)``."""
-    return _uniform_sampling(config.ref_num * config.m, config.m)
+    return uniform_sampling(config.ref_num * config.m, config.m)[0]
 
 
 def evaluate_dtlz1(
@@ -522,7 +450,7 @@ def pf_dtlz7(config: DTLZ7) -> etl.SymbolicTensor:
         interval[3] - interval[2] + interval[1] - interval[0]
     )
 
-    x = _grid_sampling(config.ref_num * config.m, m - 1)
+    x = grid_sampling(config.ref_num * config.m, m - 1)[0]
 
     mask_less_equal_median = x <= median
     mask_greater_median = x > median
