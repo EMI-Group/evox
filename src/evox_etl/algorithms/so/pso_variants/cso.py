@@ -7,11 +7,12 @@ mode, so these functions only run inside an active trace via
 ``etl.build``/``etl.run``.
 
 Config note: ``CSO`` holds numpy boundary arrays, which etl rejects as trace
-inputs (numpy arrays are neither TensorSpecs nor static values).  The class is
-therefore registered as a zero-child pytree node — the whole config lives in
-the tree context and is baked into the graph as constants at compile time
-(``etl.run`` validates only its type, not its value, so callers re-passing the
-config object is harmless).
+inputs (numpy arrays are neither TensorSpecs nor static values).
+``__post_init__`` therefore normalizes ``lb``/``ub`` (and ``mean``/``stdev``
+when given) to float tuples — legal static pytree leaves — which are baked
+into the graph as constants at compile time (``etl.build``/``etl.run`` then
+validate the config by value, so callers re-passing the config object is
+harmless).
 """
 
 from dataclasses import dataclass, replace
@@ -39,10 +40,24 @@ class CSO:
     mean: np.ndarray | None = None
     stdev: np.ndarray | None = None
 
-
-# Register the numpy-holding config as an opaque pytree leaf (see module
-# docstring): flatten -> no children, unflatten -> the object itself.
-etl.register_pytree_node(CSO, lambda c: ((), c), lambda c, _children: c)
+    def __post_init__(self) -> None:
+        # etl static trace arguments reject numpy arrays/scalars (TraceError);
+        # store the bounds (and optional sampling params) as float tuples so
+        # this frozen config is a legal static pytree. The constructor API
+        # (numpy arrays in) is unchanged.
+        lb = np.asarray(self.lb)
+        ub = np.asarray(self.ub)
+        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
+        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
+        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
+        if self.mean is not None:
+            object.__setattr__(
+                self, "mean", tuple(float(v) for v in np.asarray(self.mean))
+            )
+        if self.stdev is not None:
+            object.__setattr__(
+                self, "stdev", tuple(float(v) for v in np.asarray(self.stdev))
+            )
 
 
 @dataclass(frozen=True)
@@ -64,7 +79,7 @@ def _bake(arr: np.ndarray) -> Tensor:
 def init(config: CSO, key: Tensor) -> CSOState:
     """Draw the initial population, velocity and placeholder leaves."""
     pop_size = config.pop_size
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     lb = _bake(config.lb)
     ub = _bake(config.ub)
     length = ub - lb
@@ -114,7 +129,7 @@ def init_tell(config: CSO, state: CSOState, fitness: Tensor) -> CSOState:
 def ask(config: CSO, state: CSOState) -> Tuple[Tensor, CSOState]:
     """Pair particles at random and update the losers (students) CSO-style."""
     pop_size = config.pop_size
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     half = pop_size // 2
     lb = _bake(config.lb)
     ub = _bake(config.ub)

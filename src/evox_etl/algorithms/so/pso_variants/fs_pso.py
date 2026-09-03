@@ -6,7 +6,7 @@ runs inside an active trace). 1:1 port of the read-only torch reference in
 trace time to bake lb/ub/mean/stdev constants.
 """
 
-from dataclasses import dataclass, fields, replace
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -43,6 +43,25 @@ class FSPSO:
     stdev: np.ndarray | None = None
     mutate_rate: float = 0.01  # mutation ratio
 
+    def __post_init__(self) -> None:
+        # etl static trace arguments reject numpy arrays/scalars (TraceError);
+        # store the bounds (and optional sampling params) as float tuples so
+        # this frozen config is a legal static pytree. The constructor API
+        # (numpy arrays in) is unchanged.
+        lb = np.asarray(self.lb)
+        ub = np.asarray(self.ub)
+        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
+        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
+        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
+        if self.mean is not None:
+            object.__setattr__(
+                self, "mean", tuple(float(v) for v in np.asarray(self.mean))
+            )
+        if self.stdev is not None:
+            object.__setattr__(
+                self, "stdev", tuple(float(v) for v in np.asarray(self.stdev))
+            )
+
 
 @dataclass(frozen=True)
 class FSPSOState:
@@ -58,49 +77,10 @@ class FSPSOState:
     key: Tensor
 
 
-def _flatten_fs_pso_config(config: FSPSO) -> tuple[list, tuple]:
-    """Flatten the config's numpy-array fields into Python-float leaves.
-
-    etl's trace-input model rejects numpy arrays as static values
-    (``_is_static_value``), so the FSPSO config is registered below as a
-    custom pytree node whose numpy leaves become scalar floats — the only way
-    to pass the config as a ``etl.build``/``etl.run`` argument. The unflatten
-    rebuilds the arrays.
-    """
-    leaves: list = []
-    arrays: list = []
-    for field in fields(FSPSO):
-        value = getattr(config, field.name)
-        if isinstance(value, np.ndarray):
-            arrays.append((field.name, tuple(value.shape), value.dtype.str))
-            leaves.extend(float(x) for x in value.ravel())
-        else:
-            leaves.append(value)
-    return leaves, tuple(arrays)
-
-
-def _unflatten_fs_pso_config(ctx: tuple, leaves: list) -> FSPSO:
-    """Rebuild an FSPSO config from scalar leaves (inverse of ``_flatten_fs_pso_config``)."""
-    it = iter(leaves)
-    shape_map = {name: (shape, dtype_str) for name, shape, dtype_str in ctx}
-    kwargs: dict = {}
-    for field in fields(FSPSO):
-        if field.name in shape_map:
-            shape, dtype_str = shape_map[field.name]
-            values = [next(it) for _ in range(int(np.prod(shape)))]
-            kwargs[field.name] = np.asarray(values, dtype=np.dtype(dtype_str)).reshape(shape)
-        else:
-            kwargs[field.name] = next(it)
-    return FSPSO(**kwargs)
-
-
-etl.register_pytree_node(FSPSO, _flatten_fs_pso_config, _unflatten_fs_pso_config)
-
-
 def init(config: FSPSO, key: Tensor) -> FSPSOState:
     """Draw the initial population, velocity and best-trackers."""
     pop_size = config.pop_size
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     lb, ub = _bake_bounds(config)
     length = ub - lb
     key, subkey1, subkey2 = random.split_n(key, 3)
@@ -151,7 +131,7 @@ def ask(config: FSPSO, state: FSPSOState) -> tuple[Tensor, FSPSOState]:
     """Propose a new population: elite velocity update plus mutated offspring."""
     pop_size = config.pop_size
     half = pop_size // 2
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     lb, ub = _bake_bounds(config)
 
     # ----------------Enhancement----------------

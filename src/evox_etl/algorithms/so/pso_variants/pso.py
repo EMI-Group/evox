@@ -40,8 +40,15 @@ class PSO:
     phi_p: float = 2.5
     phi_g: float = 0.8
 
-    def __post_init__(self):
-        assert self.lb.shape == self.ub.shape and self.lb.ndim == 1 and self.ub.ndim == 1
+    def __post_init__(self) -> None:
+        # etl static trace arguments reject numpy arrays/scalars (TraceError);
+        # store the bounds as float tuples so this frozen config is a legal
+        # static pytree. The constructor API (numpy arrays in) is unchanged.
+        lb = np.asarray(self.lb)
+        ub = np.asarray(self.ub)
+        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
+        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
+        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
 
 
 @dataclass(frozen=True)
@@ -56,38 +63,6 @@ class PSOState:
     global_best_location: Tensor
     global_best_fit: Tensor
     key: Tensor
-
-
-def _register_config_pytree() -> None:
-    """Register ``PSO`` as a pytree node exposing only static-whitelisted leaves.
-
-    etl's tracer flattens config dataclasses at the build/run boundary and
-    REJECTS numpy-array leaves (ndarray is not a static value in etl v1), so a
-    config holding ``lb``/``ub`` numpy arrays cannot be passed to
-    ``etl.build``/``etl.run`` as-is.  Registering the config type makes the
-    tracer flatten it through this custom flatten_fn instead: the bound arrays
-    surface as plain float leaves (accepted static values), while the original
-    immutable config rides in the context and is handed back by the
-    unflatten_fn — the traced functions still receive the real ``PSO`` object.
-    """
-    def _flatten(cfg: PSO) -> Tuple[Tuple, PSO]:
-        children = (
-            cfg.pop_size,
-            cfg.w,
-            cfg.phi_p,
-            cfg.phi_g,
-            *tuple(float(v) for v in np.asarray(cfg.lb, dtype=np.float32)),
-            *tuple(float(v) for v in np.asarray(cfg.ub, dtype=np.float32)),
-        )
-        return children, cfg
-
-    def _unflatten(ctx: PSO, _children: Tuple) -> PSO:
-        return ctx
-
-    etl.core.register_pytree_node(PSO, _flatten, _unflatten)
-
-
-_register_config_pytree()
 
 
 def _bounds(config: PSO) -> Tuple[Tensor, Tensor]:
@@ -106,7 +81,7 @@ def init(config: PSO, key: Tensor) -> PSOState:
     key, subkey = random.split(key)
     lb, ub = _bounds(config)
     length = ub - lb
-    pop_size, dim = config.pop_size, config.lb.shape[0]
+    pop_size, dim = config.pop_size, len(config.lb)
     subkey_pop, subkey_vel = random.split(subkey)
     pop = (
         length * random.uniform(subkey_pop, (pop_size, dim), 0.0, 1.0, etl.float32)
@@ -154,7 +129,7 @@ def init_tell(config: PSO, state: PSOState, fitness: Tensor) -> PSOState:
 def ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
     """One PSO step up to evaluation (torch ``step`` before ``evaluate``)."""
     lb, ub = _bounds(config)
-    pop_size, dim = config.pop_size, config.lb.shape[0]
+    pop_size, dim = config.pop_size, len(config.lb)
 
     compare = state.local_best_fit > state.fit
     local_best_location = etl.select(

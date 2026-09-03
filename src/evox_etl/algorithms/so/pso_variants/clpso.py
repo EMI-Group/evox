@@ -7,10 +7,10 @@ mode, so these functions only run inside an active trace via
 ``etl.build``/``etl.run``.
 
 Config note: ``CLPSO`` holds numpy boundary arrays, which etl rejects as
-trace inputs (numpy arrays are neither TensorSpecs nor static values).  The
-class is therefore registered as a zero-child pytree node — the whole config
-lives in the tree context and is baked into the graph as constants at compile
-time (``etl.run`` validates only its type, not its value, so callers
+trace inputs (numpy arrays are neither TensorSpecs nor static values).
+``__post_init__`` therefore normalizes ``lb``/``ub`` to float tuples — legal
+static pytree leaves — which are baked into the graph as constants at compile
+time (``etl.build``/``etl.run`` then validate the config by value, so callers
 re-passing the config object is harmless).
 """
 
@@ -41,10 +41,15 @@ class CLPSO:
     const_coefficient: float = 1.5
     learning_probability: float = 0.05
 
-
-# Register the numpy-holding config as an opaque pytree leaf (see module
-# docstring): flatten -> no children, unflatten -> the object itself.
-etl.register_pytree_node(CLPSO, lambda c: ((), c), lambda c, _children: c)
+    def __post_init__(self) -> None:
+        # etl static trace arguments reject numpy arrays/scalars (TraceError);
+        # store the bounds as float tuples so this frozen config is a legal
+        # static pytree. The constructor API (numpy arrays in) is unchanged.
+        lb = np.asarray(self.lb)
+        ub = np.asarray(self.ub)
+        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
+        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
+        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
 
 
 @dataclass(frozen=True)
@@ -69,7 +74,7 @@ def _bake(arr: np.ndarray) -> Tensor:
 def init(config: CLPSO, key: Tensor) -> CLPSOState:
     """Draw the initial population, velocity and best-tracking placeholders."""
     pop_size = config.pop_size
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     lb = _bake(config.lb)
     ub = _bake(config.ub)
     length = ub - lb
@@ -115,7 +120,7 @@ def init_tell(config: CLPSO, state: CLPSOState, fitness: Tensor) -> CLPSOState:
 def ask(config: CLPSO, state: CLPSOState) -> Tuple[Tensor, CLPSOState]:
     """Comprehensive-learning velocity/position update; returns the new pop."""
     pop_size = config.pop_size
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     lb = _bake(config.lb)
     ub = _bake(config.ub)
 
