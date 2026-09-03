@@ -60,6 +60,22 @@ class NSGA3Config:
     data_type: Optional[Any] = None
 
 
+def _config_flatten(config: NSGA3Config):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: NSGA3Config, _children) -> NSGA3Config:
+    return config
+
+
+# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
+# TensorSpecs nor static Python values), so the config (which holds lb/ub as
+# ndarrays) is registered as a childless pytree node carrying the whole
+# config as its context — it then passes through etl.build/etl.run untouched.
+etl.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
+
+
 @dataclasses.dataclass(frozen=True)
 class NSGA3State:
     """NSGA-III mutable state: tensor leaves only.

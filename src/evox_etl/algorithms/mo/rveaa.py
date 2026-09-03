@@ -60,6 +60,22 @@ class RVEAaConfig:
         assert self.lb.dtype == self.ub.dtype
 
 
+def _config_flatten(config: RVEAaConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: RVEAaConfig, _children) -> RVEAaConfig:
+    return config
+
+
+# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
+# TensorSpecs nor static Python values), so the config (which holds lb/ub as
+# ndarrays) is registered as a childless pytree node carrying the whole
+# config as its context — it then passes through etl.build/etl.run untouched.
+etl.register_pytree_node(RVEAaConfig, _config_flatten, _config_unflatten)
+
+
 @dataclass(frozen=True, eq=False)
 class RVEAaState:
     """Tensors mirroring the torch RVEAa Mutable attributes plus the RNG key.

@@ -47,6 +47,22 @@ class MOEADConfig:
     crossover_op: Optional[Callable] = None
 
 
+def _config_flatten(config: MOEADConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: MOEADConfig, _children) -> MOEADConfig:
+    return config
+
+
+# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
+# TensorSpecs nor static Python values), so the config (which holds lb/ub as
+# ndarrays) is registered as a childless pytree node carrying the whole
+# config as its context — it then passes through etl.build/etl.run untouched.
+etl.register_pytree_node(MOEADConfig, _config_flatten, _config_unflatten)
+
+
 @dataclass(frozen=True)
 class MOEADState:
     """MOEA/D search state; every leaf is an ETL tensor."""

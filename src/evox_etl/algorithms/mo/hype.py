@@ -35,9 +35,10 @@ class HypEConfig:
     """Config for HypE, mirroring the torch ``HypE.__init__`` signature (minus device).
 
     ``lb``/``ub`` are 1-D boundary values; any ``np.asarray``-compatible
-    sequence works. When the config is passed through ``etl.build`` as a
-    static argument, they must be static Python containers (list/tuple of
-    Python floats) — etl v1's trace flattener rejects ndarray static leaves.
+    sequence works. The config is registered below as a childless pytree
+    node, so it travels through ``etl.build``/``etl.run`` as one opaque
+    static node (etl v1's trace flattener would otherwise reject the
+    ndarray leaves).
     """
 
     pop_size: int
@@ -48,6 +49,22 @@ class HypEConfig:
     selection_op: Optional[Callable] = None
     mutation_op: Optional[Callable] = None
     crossover_op: Optional[Callable] = None
+
+
+def _config_flatten(config: HypEConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: HypEConfig, _children) -> HypEConfig:
+    return config
+
+
+# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
+# TensorSpecs nor static Python values), so the config (which holds lb/ub as
+# ndarrays) is registered as a childless pytree node carrying the whole
+# config as its context — it then passes through etl.build/etl.run untouched.
+etl.register_pytree_node(HypEConfig, _config_flatten, _config_unflatten)
 
 
 @dataclass(frozen=True)
