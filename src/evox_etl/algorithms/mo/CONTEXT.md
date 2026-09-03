@@ -8,29 +8,24 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
 `../../DESIGN.md` §4.3). Bindings: `../../DESIGN.md` §4-5.
 
 ## Contract (all six algorithms)
-- `init(config, key) -> state`; `init_ask(config, state) -> (candidates, state)`
-  returns the FULL population (gen 0 evaluates the whole pop — verified for all
-  six torch classes, HypE included, whose init_step also derives `ref` from the
-  initial fitness); `init_tell(config, state, fitness) -> state`; `ask` produces
-  the offspring batch — torch semantics: FULL `pop_size` offspring per gen for
-  NSGA2/NSGA3/RVEA/RVEAa/HypE (selection runs pop_size rounds, SBX returns both
-  children per pair) and one offspring per weight vector for MOEAD (pop_size =
-  Das-Dennis count there). `tell(config, state, fitness) -> state`.
+- `init(config, key) -> state`; `init_ask` returns the FULL population (gen 0
+  evaluates the whole pop — verified for all six torch classes, HypE included,
+  whose init_step also derives `ref = 1.2 * max(fitness)`); `init_tell(config,
+  state, fitness) -> state`; `ask` produces the offspring batch; `tell(config,
+  state, fitness) -> state` merges `state.pop` + the ask batch (carried in a
+  state field — `offspring` / `off` / `next_generation` — since the binding
+  tell signature has no candidates arg) and runs the environmental selection.
 - Config fields mirror torch `__init__` exactly minus `device`; `lb`/`ub` numpy
   arrays baked as graph constants (`etl.ops.constant(etl.core.tensor(np.asarray(
   cfg.lb, dtype=np.float32)))`); optional ops are plain function refs, `None` =
   algorithm default, resolved inside functions.
-- `tell(config, state, fitness)` needs the offspring for the pop/fit merge, so
-  `ask` stores its batch in an extra state field (e.g. `offspring`, set by ask,
-  consumed by tell) — the candidates-in-state pattern of the DE ports. NOTE:
-  np.ndarray config leaves make the config unpassable to `etl.build` directly
-  (TraceError: not a static value) — callers partialize the config.
-- RVEA/RVEAa: after the first tell `pop` GROWS to (2*n_v, dim) (the survivor
-  tensor keeps one row per reference vector, NaN rows included), while
-  `reference_vector` stays (2*n_v, m) and the mating pool always draws the
-  FIXED Das-Dennis count `n_v = reference_vector.shape[0] // 2` (torch
-  `self.pop_size`) — never derive n_v from `pop.shape[0]`; the torch
-  `_mating_pool` `arange`/sorted_indices however spans `pop.shape[0]` rows.
+- **Config registration (REQUIRED)**: every config class is registered as a
+  childless pytree node (`etl.register_pytree_node(<Name>Config,
+  _config_flatten, _config_unflatten)`, see nsga2.py) so `etl.build(fn,
+  config, ...)` + `etl.run(exe, config, ...)` positional passing works —
+  unregistered configs fail with TraceError because etl v1 rejects ndarray
+  pytree leaves (neither TensorSpec nor static value). ESCALATED to the root
+  agent as an etl gap (a static-config marker would be cleaner).
 - Bounds for the mutation shim: `boundary = enp.stack([lb, ub], axis=0)` —
   shim `polynomial_mutation(key, x, boundary, pro_m, dis_m)` (torch takes lb/ub
   separately).
@@ -38,37 +33,29 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   → `random.split_n(key, n)`; advanced `key` stored back. Ask/tell deterministic
   given state.
 - Effective pop_size: MOEAD/RVEA/RVEAa overwrite torch `self.pop_size` with the
-  Das-Dennis count from `uniform_sampling(pop_size, n_objs)` (returns
-  `(points, n_samples)` — the static int is usable at trace time for shapes).
-  NSGA2/NSGA3/HypE keep the user pop_size.
+  Das-Dennis count `n_v` from `uniform_sampling(pop_size, n_objs)` (returns
+  `(points, n_samples)` — the static int drives shapes). NSGA2/NSGA3/HypE keep
+  the user pop_size. SBX quirk preserved: offspring batch = 2*(n_v//2) rows
+  (torch `x[n//2 : n//2*2]`), e.g. 14 for n_v=15.
+- RVEA: pop stays (n_v, dim); RVEAa: after the first tell pop GROWS to
+  (2*n_v, dim) (one survivor row per reference vector, NaN rows possible for
+  unmatched vectors). Both: mating pool always draws the FIXED n_v, and the
+  torch `_mating_pool` arange/sorted_indices spans `pop.shape[0]` rows — never
+  derive n_v from `pop.shape[0]`.
 
 ## ETL gotchas (verified — do not re-investigate)
-- **Config np.ndarray fields (lb/ub) CANNOT cross the `etl.build`/`etl.run`
-  boundary**: the tracer treats numpy arrays inside config pytrees as tensor
-  leaves and rejects them (not TensorSpec, not a static Python value).
-  WORKAROUND for verify/smoke scripts (host-side only, library code stays
-  per contract): close over the config and route the module functions
-  through thin wrappers that ignore the harness-passed config arg. This is
-  an etl gap for the §4.4 StdWorkflow too — ESCALATED to the root agent
-  (fix belongs in etl, e.g. a static-config marker).
-- MOEAD tell's while_loop: cond/body take the carry as ONE tuple arg;
-  closure-capture of outer block args (`state.w`, `state.next_parents`,
-  `fitness`) inside cond/body regions is legal (verified etl test
-  `test_iteration_count_and_accumulated_values`). Carry `i` must stay int32
-  (`etl.cast(i + 1, etl.int32)` — python-int promotion). 0-d `enp.zeros((),
-  dtype="int32")` is a valid loop init leaf.
-- `etl.gather(x, idx_1d, axis=0)` accepts 1-D indices (numpy take:
-  out = idx.shape + x.shape[1:]) — row pick via `gather(x, expand_dims(i, 0),
-  axis=0)[0]` works. `etl.scatter(x, indices, updates, axis=0)` expects
-  updates shape = x.shape[:axis] + indices.shape + x.shape[axis+1:] —
-  (n_neighbor,) indices + (n_neighbor, dim) updates on a (n_w, dim) x ✓.
-- MOEAD sequential overwrites: the same row can be updated by several i's
-  in one tell (last-i-wins) — torch does the same; do not "deduplicate".
+- MOEAD tell's while_loop: z is a loop carry updated PER-i BEFORE the PBI
+  comparisons (torch order — do NOT pre-lower z with the batch min, that
+  contaminates the comparisons). cond/body take the carry as ONE tuple arg;
+  closure-capture of outer args (`state.w`, `state.next_parents`, `fitness`)
+  is legal. Carry `i` must stay int32 (`etl.cast(i + 1, etl.int32)`).
+  MOEAD sequential overwrites: the same row can be updated by several i's in
+  one tell (last-i-wins) — torch does the same; do not "deduplicate".
 - `etl.sum/mean` take `axes=`; `etl.min(x, axes=..)` values only (argmin
   separate); `etl.topk(x, k, axis, largest=False)` → `(values, indices)`;
-  `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(..., stable=
-  True)` → int64 indices. `random.permutation(key, n, dtype=int32)`.
-- `etl.cond(pred, true_fn, false_fn, *operands)` — use it for the NSGA3
+  `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(...,
+  stable=True)` → int64 indices. `random.permutation(key, n, dtype=int32)`.
+- `etl.cond(pred, true_fn, false_fn, *operands)` — NSGA3 uses it for the
   hyperplane solve (numpy `linalg.solve` RAISES on singular matrices; never
   compute it unconditionally).
 - No boolean/advanced indexing with dynamic masks (no dynamic shapes): select
@@ -85,6 +72,16 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   dtypes must be identical across iterations.
 - No `etl.cdist` → MOEAD neighbors via
   `sqrt(maximum(d2, 0))`, `d2 = w2[:, None] + w2[None, :] - 2*dot(w, w.T)`.
+
+## Tests
+- Smoke: `unit_test/etl/algorithms/mo/test_<name>.py` (etl-only, `__init__.py`
+  present so pytest collects uniquely-qualified names vs the parity dir).
+- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_nsga2.py`,
+  `test_nsga3.py`, `test_moead.py` + shared `parity_common.py` (also a package).
+- Gate: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
+  unit_test/etl/algorithms/mo unit_test/etl/algorithms/parity/test_nsga2.py
+  unit_test/etl/algorithms/parity/test_nsga3.py
+  unit_test/etl/algorithms/parity/test_moead.py -q` — green.
 
 ## Routing Table
 | Area | Path |
