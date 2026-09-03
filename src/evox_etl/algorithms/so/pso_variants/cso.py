@@ -24,7 +24,7 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.algorithms._operator_shims import clamp
+from evox_etl.algorithms._jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
 

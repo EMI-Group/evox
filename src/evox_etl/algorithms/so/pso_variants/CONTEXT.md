@@ -24,7 +24,7 @@ mirroring the torch `__all__`.
 - `utils.py` — `min_by` (concat axis 0, `etl.argmin(keys, axis=0)`, gather
   with reshaped (1,) index, reshape back to `x.shape[1:]`) and
   `random_select_from_mask` (noise + argsort + scatter-ones, key-first RNG).
-- Clamp comes from `evox_etl.algorithms._operator_shims` (`clamp`,
+- Clamp comes from `evox_etl.algorithms._jit_fix_operator` (`clamp`,
   `clamp_float`, `clamp_int`), bounds are baked as (1, dim) float32 constants
   via `etl.ops.constant(core.tensor(np.asarray(...)[None, :]))` inside each
   function needing them (numpy only for constant baking).
@@ -64,4 +64,4 @@ mirroring the torch `__all__`.
 | Tests | `../../../../unit_test/etl/algorithms/so/pso_variants/` (sibling tree) |
 | Parity tests | `../../../../unit_test/etl/algorithms/parity/` (sibling tree) |
 | Torch reference (READ-ONLY) | `../../../../evox/algorithms/so/pso_variants/` |
-| Operator/util shims | `../../_operator_shims.py` |
+| Operator/util helpers | `../../_jit_fix_operator.py` |
