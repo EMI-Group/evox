@@ -1,36 +1,61 @@
-# evox_etl/algorithms/so/pso_variants — PSO-family algorithms (functional)
+# evox_etl/algorithms/so/pso_variants — functional PSO variants
 
 ## Intent
-Plain-function ports of the torch pso_variants algorithms (read-only reference
-in `../../../../evox/algorithms/so/pso_variants/`) to init/ask/tell functions +
-frozen config/state dataclasses. See `../../DESIGN.md` §4-5 and the
-`cso.py`/`clpso.py` modules for the established pattern.
+Ports of the torch evox PSO variants (read-only reference in
+`../../../../evox/algorithms/so/pso_variants/`) to `init/ask/tell` plain functions +
+frozen config/state dataclasses per `../../../DESIGN.md` §4-5.
 
-## Files
-- `cso.py` — CSO port (+ `CSO`, `CSOState`).
-- `clpso.py` — CLPSO port (+ `CLPSO`, `CLPSOState`).
-- `utils.py` — `min_by` (etl port of the torch pso_variants `utils.py`).
-- Tests: `../../../../unit_test/etl/algorithms/so/pso_variants/` (sibling of
-  `src/`, driven through `unit_test/etl/algorithms/helpers.py::run_generations`).
+## Status
+- `dms_pso_el.py` — DONE (first algorithm port in evox_etl). Smoke test:
+  `unit_test/etl/algorithms/so/pso_variants/test_dms_pso_el.py` (3 scenarios, green).
+  Update math verified BIT-EXACT against the torch reference formulas for all three
+  update paths (identical inputs + injected draws), including the quirks below.
+- Remaining PSO variants (clpso, cso, dms_pso_el done, fs_pso, pso, sl_pso_gs,
+  sl_pso_us, utils) — TODO, follow the dms_pso_el.py template.
 
 ## Notes for agents (verified against etl — do not re-investigate)
-- Configs holding numpy arrays (lb/ub/mean/stdev) CANNOT cross the etl trace
-  boundary: numpy arrays are neither TensorSpecs nor static values, and
-  dataclasses flatten to their fields. Register each numpy-holding config
-  class as a zero-child pytree node:
-  `etl.register_pytree_node(Cfg, lambda c: ((), c), lambda c, _children: c)`
-  (see `cso.py`). The config then lives in the tree context and is baked as
-  graph constants via `etl.ops.constant(etl.core.tensor(np.asarray(...)[None, :]))`;
-  `etl.run` validates only its type, so re-passing it per run is harmless.
-  State dataclasses must NOT be registered (they carry tensor leaves).
-- etl `__getitem__` supports ints/slices but NOT `None`/newaxis/ellipsis
-  ("None in the index key is not supported"). Use `enp.reshape(x, (n, 1))`
-  for `[:, None]` and `enp.reshape(x, (1, d))` for `[None, :]`.
-- etl has no `index_select`/`squeeze` — `min_by` uses gather with a reshaped
-  (1,) argmin index and reshapes back.
-- Key discipline: split the state key once per draw in torch draw order;
-  store the last advanced key back into the state (JAX-evoX style).
-- `etl.gather(x, idx, axis=0)` is numpy-take semantics (1-D idx == x[idx]);
-  `etl.scatter(x, indices, updates, axis=0)` is replacement-only and accepts
-  1-D int64 indices. `etl.min/mean/sum` take `axes=`, `etl.argmin` takes
-  `axis=`.
+- **Config dataclasses CANNOT carry `np.ndarray` fields** through `etl.build`/
+  `etl.run`: the tracer flattens user dataclasses as pytrees and rejects ndarray
+  leaves (only TensorSpec or static Python scalars are legal trace inputs).
+  Workaround used by DMSPSOEL: `__post_init__` normalizes `lb`/`ub` to
+  `tuple(float, ...)` (accepting ndarray at construction); functions convert back
+  with `np.asarray(config.lb, dtype=np.float32)`. Escalated to the root agent —
+  see "ETL issues found" in `src/evox_etl/CONTEXT.md` (update there when writable).
+- etl getitem supports ONLY static ints and slices — `x[:, None]` raises
+  TraceError; use `enp.expand_dims(x, axis=1)`. Integer indexing mid-axis
+  (`d[:, 0, :]`) and negative-free slices are fine.
+- Data-dependent Python `if`s become `etl.cond(pred, true_fn, false_fn, *operands)`
+  with `functools.partial` branches closing over the static config. Both branches
+  are TRACED at compile time (draws inside them are graph ops on the symbolic key,
+  executed at runtime only for the taken branch); branch outputs must be the same
+  pytree with tensor leaves only. Frozen dataclasses work as cond operands/results
+  (`dataclasses.replace` to update).
+- RNG: split the key inside whichever branch executes; one `random.split` subkey
+  per draw, torch draw order preserved, advanced key stored in the returned state
+  (`key, key_a = random.split(state.key); key, key_b = random.split(key); ...`).
+  `random.permutation(key, n, dtype=etl.int64)` takes a static int `n`.
+- Reductions: `etl.sum/min/mean` take `axes=`; `etl.argmin/argmax` take `axis=`.
+  `etl.argsort(x, axis=0, stable=True)` returns int64. `etl.remainder` promotes
+  int32→int64 — use `etl.cast` when the leaf dtype must stay int32
+  (e.g. iteration counter); python-float comparisons with int32 scalars
+  (`iteration < 0.9 * max_iteration`) work on the numpy backend.
+- `enp.full((), 0, dtype=etl.int32)` (0-d) works; `enp.zeros`/`enp.full` are
+  symbolic (unlike etl.zeros/full which are concrete); `enp.zeros_like` does NOT
+  exist.
+- `etl.gather(x, idx, axis)` is numpy-take semantics (torch `x[idx]`).
+- `init_tell` increments the iteration counter AFTER storing fitness (torch
+  `init_step`); `ask` increments after the strategy switch (torch `step`).
+- DMSPSOEL quirks ported 1:1: `_regroup` computes `regional_best_index` from the
+  PRE-regroup dynamic-swarm fit (`state.fit[:dynamic_size]` — fit itself is never
+  regrouped); the torch `sort_index[:dynamic_size]` assignment is dead code and
+  omitted; strategy 2 leaves `local_best_*`/`regional_best_index` untouched.
+- Import clamp from `evox_etl.algorithms._operator_shims`.
+- Package has NO `__init__.py` (namespace package) — import as
+  `evox_etl.algorithms.so.pso_variants.dms_pso_el`.
+
+## Routing Table
+| Area | Path |
+|---|---|
+| Torch reference (READ-ONLY) | `../../../../evox/algorithms/so/pso_variants/` |
+| Tests | `../../../../unit_test/etl/algorithms/so/pso_variants/` |
+| Shared operator shims | `../_operator_shims.py` |
