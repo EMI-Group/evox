@@ -106,11 +106,19 @@ src/evox_etl/
 
 Every algorithm/problem/monitor config is a frozen dataclass (use
 `@dataclasses.dataclass(frozen=True)`) with the SAME field names and defaults as the
-torch evox class `__init__` signature (read `src/evox/...` for the reference). Fields
-hold plain Python values (floats, ints, strings, tuples). Optional sub-configs (e.g.
-NSGA2's `selection_op`, `mutation_op`, `crossover_op`) become fields holding the
-corresponding operator config dataclass; algorithms call the operator function with
-that config.
+torch evox class `__init__` signature (read `src/evox/...` for the reference), with
+these adjustments:
+- Drop the `device: torch.device | None = None` parameter.
+- `lb`/`ub` (boundary tensors in torch) become **numpy arrays** in the config.
+  Inside functions, bake them ONCE as graph constants:
+  `lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))`
+  (closure-captured concrete tensors fail at trace time; constants are fine).
+  `dim = config.lb.shape[0]` stays a Python int (static).
+- Optional operator fields (`selection_op: Optional[Callable]`, `mutation_op`,
+  `crossover_op`) become **plain function references** (first-class functions —
+  the operators are already pure functions, see §4.3); `None` means "algorithm
+  default" exactly like torch.
+- Everything else holds plain Python values (floats, ints, strings, tuples).
 
 ### 4.2 State
 
@@ -151,7 +159,31 @@ evaluate(config, problem_state, pop) -> (fitness, problem_state)   # pop: (n, di
 # numerical problems are stateless but keep the signature for uniformity.
 
 # operators/<...>.py — pure functions (called inside traces)
-operator_fn(config, key, x, ...) -> tensor       # hyperparams via config dataclass
+# RULE (binding): keep the torch function name, argument names and order EXACTLY
+# (torch operators are already pure functions in src/evox/operators/).
+# - Functions that use randomness in torch (torch.rand/randint) gain `key` as
+#   the FIRST parameter (use etl.random).
+# - Drop the `device: torch.device` parameter (etl has no device arg).
+# - `torch.Tensor` -> etl tensors; translate ops 1:1 (torch.where->etl.select,
+#   torch.argsort->etl.argsort, torch.gather->etl.gather, clamp->clamp, etc.)
+# Known torch signatures (from src/evox/operators/):
+#   simulated_binary(x, pro_c, dis_c)                -> simulated_binary(key, x, pro_c, dis_c)
+#   simulated_binary_half(x, pro_c, dis_c)           -> + key first
+#   DE_differential_sum(diff_padding_num, num_diff_vects, index, population, F, replace) -> + key
+#   DE_binary_crossover(mutation_vector, current_vector, CR)         -> + key
+#   DE_exponential_crossover(mutation_vector, current_vector, CR)    -> + key
+#   DE_arithmetic_recombination(mutation_vector, current_vector, K)  -> unchanged (no rng)
+#   polynomial_mutation(x, boundary, pro_m, dis_m)   -> + key
+#   latin_hypercube_sampling_standard(n, d, smooth)  -> + key, NO device arg
+#   latin_hypercube_sampling(n, lb, ub, smooth)      -> + key
+#   uniform_sampling(n, m)                           -> unchanged (Das-Dennis, deterministic)
+#   grid_sampling(n, m)                              -> unchanged
+#   tournament_selection(n_round, fitness, tournament_size=2)        -> + key first
+#   tournament_selection_multifit(n_round, fitnesses, tournament_size=2) -> + key first
+#   select_rand_pbest(percent, population, fitness)  -> + key first
+#   dominate_relation(x, y) / non_dominate_rank(x) / crowding_distance(costs, mask) /
+#   nd_environmental_selection(x, f, topk) / apd_fn(...) / ref_vec_guided(x, f, v, theta)
+#                                                   -> unchanged (no rng)
 
 # metrics/<...>.py
 igd(objs, pf, p=1.0) -> scalar tensor            # etc. — plain functions
