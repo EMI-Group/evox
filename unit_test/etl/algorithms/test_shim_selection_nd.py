@@ -1,12 +1,12 @@
-"""STAGED pytest self-test for ``evox_etl.algorithms._shim_selection_nd``.
+"""Tests for the canonical non-dominated selection operators (no torch).
 
-RELOCATION NOTE: this file belongs at
-``unit_test/etl/algorithms/test_shim_selection_nd.py`` (the sibling tests
-node). It is staged here because that node is outside this worker's write
-scope — the unit_test/etl worker (or root agent) should `git mv` it there,
-rename it to ``test_shim_selection_nd.py``, and run pytest. Content is
-verified: all 5 tests pass on the etl numpy backend, and outputs were
-checked bit-for-bit against the torch reference implementation.
+Converted from loading the deprecated
+``src/evox_etl/algorithms/_shim_selection_nd.py`` compat stub by path (a pure
+re-export of the canonical module); now imports the canonical
+``evox_etl.operators.selection`` operators directly. ``dominate_relation`` is
+not exported at package level (mirrors torch), so it is imported from the
+``non_dominate`` submodule. Outputs were checked bit-for-bit against the torch
+reference implementation.
 
 Tests use ETL only — no torch import.
 """
@@ -17,16 +17,16 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
-import importlib.util
-
 import numpy as np
 import etl
 from etl import core
 
-_SHIM_PATH = ROOT / "src" / "evox_etl" / "algorithms" / "_shim_selection_nd.py"
-_loader = importlib.util.spec_from_file_location("shim_selection_nd", _SHIM_PATH)
-shim = importlib.util.module_from_spec(_loader)
-_loader.loader.exec_module(shim)
+from evox_etl.operators.selection import (
+    crowding_distance,
+    nd_environmental_selection,
+    non_dominate_rank,
+)
+from evox_etl.operators.selection.non_dominate import dominate_relation
 
 # Known 2-objective set; hand-computed non-domination ranks are [0, 0, 0, 0, 1, 2].
 F = np.array([[1, 4], [2, 3], [3, 2], [4, 1], [2, 4], [3, 5]], dtype=np.float32)
@@ -47,7 +47,7 @@ def build_run(fn, args, inputs):
 
 
 def test_dominate_relation():
-    drm = build_run(shim.dominate_relation, [spec((6, 2)), spec((6, 2))], iter([F, F]))
+    drm = build_run(dominate_relation, [spec((6, 2)), spec((6, 2))], iter([F, F]))
     expected = np.array(
         [
             [0, 0, 0, 0, 1, 1],
@@ -63,7 +63,7 @@ def test_dominate_relation():
 
 
 def test_non_dominate_rank():
-    rank = build_run(shim.non_dominate_rank, [spec((6, 2))], iter([F]))
+    rank = build_run(non_dominate_rank, [spec((6, 2))], iter([F]))
     np.testing.assert_array_equal(
         np.asarray(rank.numpy()), np.array([0, 0, 0, 0, 1, 2], dtype=np.int32)
     )
@@ -73,7 +73,7 @@ def test_crowding_distance_masked():
     mask = np.array([True, True, True, True, False, False])
     cd = np.asarray(
         build_run(
-            shim.crowding_distance,
+            crowding_distance,
             [spec((6, 2)), spec((6,), "bool")],
             iter([F, mask]),
         ).numpy(),
@@ -90,7 +90,7 @@ def test_crowding_distance_masked():
 
 def test_crowding_distance_no_mask():
     cd = np.asarray(
-        build_run(shim.crowding_distance, [spec((6, 2)), None], iter([F])).numpy(),
+        build_run(crowding_distance, [spec((6, 2)), None], iter([F])).numpy(),
         dtype=np.float64,
     )
     assert np.isposinf(cd[0]) and np.isposinf(cd[3]) and np.isposinf(cd[5])
@@ -101,7 +101,7 @@ def test_crowding_distance_no_mask():
 
 def test_nd_environmental_selection():
     out = build_run(
-        shim.nd_environmental_selection,
+        nd_environmental_selection,
         [spec((6, 2)), spec((6, 2)), 3],
         iter([X, F]),
     )
