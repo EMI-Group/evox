@@ -52,4 +52,24 @@ torch 2.6.0+cu124 CUDA works, evox+etl editable, pytest). Tests:
 GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 
 ## ETL issues found (escalated to root agent)
-(none yet)
+1. **Tracer rejects numpy arrays as static config leaves** — `_is_static_value`
+   (etl/trace/_tree.py) whitelists only None/bool/int/float/complex/str/Enum/
+   dtype/slice/Dim/DimExpr/Device, so a frozen config dataclass with ndarray
+   `lb`/`ub` fields raises `TraceError` when passed to `etl.build`/`etl.run`
+   (contradicts DESIGN.md §4.1). Minimal repro:
+   ```python
+   @dataclass(frozen=True)
+   class C: lb: np.ndarray
+   etl.build(lambda c: c, C(np.zeros(3, np.float32)), backend="numpy")  # TraceError
+   ```
+   Worked around (uniform pattern across the 7 pso_variants configs): config
+   `__post_init__` normalizes lb/ub (and mean/stdev) to float tuples via
+   `object.__setattr__` (constructor still accepts numpy arrays; read dim via
+   `len(config.lb)`). Fix in etl: treat ndarray as an opaque static leaf.
+2. **SymbolicTensor `__getitem__` does not support `None`/newaxis** ("None in
+   the index key is not supported", TraceError). Worked around with
+   `enp.expand_dims`/`enp.reshape` (plain ints/slices are fine).
+3. **`etl.scatter` rejects scalar updates** (ShapeError, rank-0 update vs
+   rank-1 target, despite the docstring implying scalar promotion). Worked
+   around with rank-matching `enp.ones` updates (see pso_variants/utils.py
+   `random_select_from_mask`).
