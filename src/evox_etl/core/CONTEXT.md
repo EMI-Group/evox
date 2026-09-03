@@ -60,6 +60,10 @@ The functional foundation of evox_etl: duck-typed protocol documentation (Algori
   float stays f32). Cast generation counters explicitly to np.int32.
 - `etl.ops.constant` (and every op) fails OUTSIDE a trace (TraceError); constant()
   rejects raw ndarray — wrap via `etl.core.tensor(...)` first, inside the trace.
+- Top-level `etl.zeros`/`etl.ones`/`etl.full` are EAGER constructors returning
+  CONCRETE `Tensor`s — NOT usable inside traces (graph outputs must be
+  `SymbolicTensor`s). For in-graph constants always use
+  `etl.ops.constant(etl.core.tensor(np.asarray(...)))`.
 - `TensorSpec(shape_tuple, np_dtype)`; build via
   `etl.tree_map(lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype), state)`
   (no TensorSpec.from_tensor). Empty dataclasses (e.g. `EmptyState`) flow through
