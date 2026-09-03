@@ -23,10 +23,10 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
   a single ask/tell pair impossible for the second evaluate.
 
 ## Constraints
-- Import every operator/util function from `evox_etl.algorithms._operator_shims`
-  (clamp, DE_* crossovers, select_rand_pbest, ...) and `_take_along_axis` from
-  `evox_etl.algorithms._shim_selection_basic` — NOT from `evox_etl.operators`
-  (parallel task, may not exist yet).
+- Import crossover/sampling/selection operators from `evox_etl.operators`
+  (canonical, torch-parity-verified) and the jit-fix utils (clamp, clamp_float,
+  `_take_along_axis`, ...) from `evox_etl.algorithms._jit_fix_operator` — NOT
+  from the deprecated `evox_etl.algorithms._shim_*` test-compat stubs.
 - No torch/numpy in graph code (numpy only for baking constants via
   `etl.ops.constant(etl.core.tensor(np.asarray(...)))`).
 - Files < ~400 lines; static Python loops/config branches allowed in traces.

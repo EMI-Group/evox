@@ -1,35 +1,23 @@
-"""Functional port of the torch RVEA selection operators (rvea_selection.py).
+"""DEPRECATED test-compat stub — canonical RVEA selection + torch-faithful apd_fn.
 
-1:1 mirror of ``src/evox/operators/selection/rvea_selection.py`` (read-only
-reference) as PLAIN functions traced via ``etl.build``/``etl.run``.
+``ref_vec_guided`` re-exports the canonical
+``evox_etl.operators.selection.rvea_selection`` version (torch-parity verified).
+``apd_fn`` and ``_cosine_similarity`` keep the torch-faithful implementations:
+the canonical ``apd_fn`` gathers ``norm_obj`` with ``relu(x)`` while torch does
+``norm_obj[x]`` (negative indices wrap to the last row). Latent for
+``ref_vec_guided`` (those entries are masked afterwards) but pinned by the old
+unit test — reported to the root agent as a canonical-operator bug.
 
-Local private copies of the ``clamp_float``/``maximum``/``nanmin`` shims
-(``evox_etl.algorithms._shim_utils``) are inlined until that module lands.
+``unit_test/etl/algorithms/test_shim_selection_rvea.py`` (sibling node, outside
+this worker's write scope) still imports this module. Once the root agent
+converts that test, DELETE this file.
 """
+import etl
 from typing import Tuple
 
-import etl
+from evox_etl.operators.selection.rvea_selection import ref_vec_guided
 
-
-def _clamp_float(a: etl.SymbolicTensor, lb: float, ub: float) -> etl.SymbolicTensor:
-    """Clamp `a` elementwise to [lb, ub] (torch evox clamp_float, relu-based)."""
-    return a + etl.relu(lb - a) - etl.relu(a - ub)
-
-
-def _maximum(a: etl.SymbolicTensor, b: float) -> etl.SymbolicTensor:
-    """Elementwise maximum of `a` and scalar `b` (torch evox maximum, relu-based)."""
-    return a + etl.relu(b - a)
-
-
-def _nanmin(
-    t: etl.SymbolicTensor, dim: int = -1, keepdim: bool = False
-) -> Tuple[etl.SymbolicTensor, etl.SymbolicTensor]:
-    """Min of `t` along `dim` ignoring NaN; returns (values, indices)."""
-    clean = etl.select(etl.isnan(t), float("inf"), t)
-    return (
-        etl.min(clean, axes=dim, keepdims=keepdim),
-        etl.argmin(clean, axis=dim, keepdims=keepdim),
-    )
+# --- torch-faithful private helpers (copied from the old shim, do not "fix") ---
 
 
 def _cosine_similarity(a: etl.SymbolicTensor, b: etl.SymbolicTensor) -> etl.SymbolicTensor:
@@ -58,62 +46,4 @@ def apd_fn(
     return left * right
 
 
-def ref_vec_guided(
-    x: etl.SymbolicTensor,
-    f: etl.SymbolicTensor,
-    v: etl.SymbolicTensor,
-    theta: float,
-) -> Tuple[etl.SymbolicTensor, etl.SymbolicTensor]:
-    """Select one solution per reference vector by minimal APD (RVEA selection)."""
-    n = f.shape[0]
-    nv = v.shape[0]
-    m = f.shape[1]
-
-    obj = f - _nanmin(f, dim=0, keepdim=True)[0]
-    obj = _maximum(obj, 1e-32)
-
-    cosine = _cosine_similarity(
-        etl.reshape(v, (nv, 1, m)), etl.reshape(v, (1, nv, m))
-    )
-    cosine = etl.select(etl.eye(nv, dtype=etl.bool_), 0.0, cosine)
-    cosine = _clamp_float(cosine, 0.0, 1.0)
-    gamma = etl.min(etl.acos(cosine), axes=1)
-
-    angle = etl.acos(
-        _clamp_float(
-            _cosine_similarity(etl.reshape(obj, (n, 1, m)), etl.reshape(v, (1, nv, m))),
-            0.0,
-            1.0,
-        )
-    )
-
-    nan_mask = etl.sum(etl.isnan(obj), axes=1) > 0
-    associate = etl.argmin(angle, axis=1)
-    associate = etl.select(nan_mask, associate * 0 - 1, associate)
-    associate = etl.reshape(associate, (n, 1))
-    partition = etl.reshape(etl.arange(n), (n, 1))
-    index_matrix = etl.reshape(etl.arange(nv), (1, nv))
-    partition = (
-        etl.equal(associate, index_matrix) * partition
-        + etl.not_equal(associate, index_matrix) * -1
-    )
-
-    mask = etl.not_equal(associate, index_matrix)
-    mask_null = etl.sum(mask, axes=0) == n
-
-    apd = apd_fn(partition, gamma, angle, obj, theta)
-    apd = etl.select(mask, float("inf"), apd)
-
-    next_ind = etl.argmin(apd, axis=0)
-    next_x = etl.select(
-        etl.reshape(mask_null, (nv, 1)),
-        float("nan"),
-        etl.gather(x, next_ind, axis=0),
-    )
-    next_f = etl.select(
-        etl.reshape(mask_null, (nv, 1)),
-        float("nan"),
-        etl.gather(f, next_ind, axis=0),
-    )
-
-    return next_x, next_f
+__all__ = ["apd_fn", "ref_vec_guided"]
