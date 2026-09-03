@@ -11,7 +11,9 @@ torch ODE step becomes TWO etl generations via a phase state machine:
   like torch), then switches to phase 1.
 - phase 1: `ask` returns the pending opposition; `tell` performs the
   opposition selection and switches back to phase 0.
-The generation count therefore doubles relative to torch. Other deviations as
+The generation count therefore doubles relative to torch. `init_ask`/
+`init_tell` encode torch's `init_step` (initial-population evaluation before
+the first generation). Other deviations as
 in `de.py`: key-based RNG (ask advances the key even in phase 1, since both
 branches execute) and tuple normalization of array-like config fields.
 """
@@ -33,7 +35,7 @@ from evox_etl.algorithms.so.de_variants.de import (
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["ODE", "ODEState", "init", "ask", "tell"]
+__all__ = ["ODE", "ODEState", "init", "init_ask", "init_tell", "ask", "tell"]
 
 
 @dataclass(frozen=True)
@@ -98,6 +100,23 @@ def init(config: ODE, key: Tensor) -> ODEState:
     fit = enp.full((pop_size,), float("inf"), dtype="float32")
     phase = enp.full((), 0, dtype="int32")
     return ODEState(pop=pop, fit=fit, opposition=pop, phase=phase, trial_vectors=pop, key=key)
+
+
+def init_ask(config: ODE, state: ODEState) -> Tuple[Tensor, ODEState]:
+    """Return the initial population for the workflow's first evaluation."""
+    return state.pop, state
+
+
+def init_tell(config: ODE, state: ODEState, fitness: Tensor) -> ODEState:
+    """Record the fitness of the initial population (torch init_step)."""
+    return ODEState(
+        pop=state.pop,
+        fit=fitness,
+        opposition=state.opposition,
+        phase=state.phase,
+        trial_vectors=state.trial_vectors,
+        key=state.key,
+    )
 
 
 def ask(config: ODE, state: ODEState) -> Tuple[Tensor, ODEState]:

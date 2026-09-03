@@ -6,6 +6,8 @@ torch reference), following the ``DESIGN.md`` §4-5 binding: ``init``/``ask``/
 ``self.evaluate`` call (``ask`` produces the trial population and stores it in
 ``trial_vectors`` together with the per-individual ``F_vec``/``CR_vec`` needed by
 the adaptation; ``tell`` performs selection + F_u/CR_u adaptation).
+``init_ask``/``init_tell`` encode torch's ``init_step`` (initial-population
+evaluation before the first generation).
 
 Deviations from torch (mathematically equivalent):
 - The RNG key is stored in the state and advanced at every draw (etl RNG is
@@ -115,6 +117,25 @@ def init(config: JaDE, key: Tensor) -> JaDEState:
         F_vec=F_vec,
         CR_vec=CR_vec,
         key=key,
+    )
+
+
+def init_ask(config: JaDE, state: JaDEState) -> Tuple[Tensor, JaDEState]:
+    """Return the initial population for the workflow's first evaluation."""
+    return state.pop, state
+
+
+def init_tell(config: JaDE, state: JaDEState, fitness: Tensor) -> JaDEState:
+    """Record the fitness of the initial population (torch init_step)."""
+    return JaDEState(
+        pop=state.pop,
+        fit=fitness,
+        F_u=state.F_u,
+        CR_u=state.CR_u,
+        trial_vectors=state.trial_vectors,
+        F_vec=state.F_vec,
+        CR_vec=state.CR_vec,
+        key=state.key,
     )
 
 

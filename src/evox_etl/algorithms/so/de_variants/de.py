@@ -4,6 +4,8 @@ Port source: `src/evox/algorithms/so/de_variants/de.py` (READ-ONLY reference,
 semantics 1:1). Torch's `step` calls `self.evaluate` in the middle of the
 method, so the functional split point is there: `ask` runs the mutation +
 crossover half (via `_de_trial`) and `tell` runs the selection half.
+`init_ask`/`init_tell` encode torch's `init_step` (initial-population
+evaluation before the first generation).
 
 Deviations from torch:
 - RNG: torch's global `torch.rand`/`torch.randint` draws are key-based
@@ -27,7 +29,7 @@ from evox_etl.algorithms._operator_shims import clamp
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["DE", "DEState", "init", "ask", "tell"]
+__all__ = ["DE", "DEState", "init", "init_ask", "init_tell", "ask", "tell"]
 
 
 def _to_float_tuple(value) -> Tuple[float, ...]:
@@ -167,6 +169,16 @@ def init(config: DE, key: Tensor) -> DEState:
         pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((pop_size,), float("inf"), dtype="float32")
     return DEState(pop=pop, fit=fit, trial_vectors=pop, key=key)
+
+
+def init_ask(config: DE, state: DEState) -> Tuple[Tensor, DEState]:
+    """Return the initial population for the workflow's first evaluation."""
+    return state.pop, state
+
+
+def init_tell(config: DE, state: DEState, fitness: Tensor) -> DEState:
+    """Record the fitness of the initial population (torch init_step)."""
+    return DEState(pop=state.pop, fit=fitness, trial_vectors=state.trial_vectors, key=state.key)
 
 
 def ask(config: DE, state: DEState) -> Tuple[Tensor, DEState]:
