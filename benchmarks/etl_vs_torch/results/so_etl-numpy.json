@@ -159,17 +159,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.13134658336639404,
+    "compile_time_s": 0.15379765629768372,
     "warmup_steps": 2,
-    "run_time_s": 0.12802140414714813,
-    "ms_per_step": 1.2802140414714813,
+    "run_time_s": 0.13087833672761917,
+    "ms_per_step": 1.3087833672761917,
     "metric": {
-      "best_fitness": 2.7571407379411994e-09
+      "best_fitness": 1.3037320112374573e-09
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9976987362055735,
+      "rel_err": 0.9936824690327859,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -184,17 +184,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.13498208671808243,
+    "compile_time_s": 0.13601763173937798,
     "warmup_steps": 2,
-    "run_time_s": 0.1379270777106285,
-    "ms_per_step": 1.379270777106285,
+    "run_time_s": 0.13465379178524017,
+    "ms_per_step": 1.3465379178524017,
     "metric": {
-      "best_fitness": 5.381126403808594
+      "best_fitness": 1.8786163330078125
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 1.5345515308322553,
+      "rel_err": 0.9280769581279925,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -209,19 +209,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.14506493881344795,
+    "compile_time_s": 0.14228102564811707,
     "warmup_steps": 2,
-    "run_time_s": 0.13966870307922363,
-    "ms_per_step": 1.3966870307922363,
+    "run_time_s": 0.15034179762005806,
+    "ms_per_step": 1.5034179762005806,
     "metric": {
-      "best_fitness": 20.35232162475586
+      "best_fitness": 20.559524536132812
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 6507.373284537969,
+      "rel_err": 5670.724283083399,
       "ok": false,
-      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -465,17 +465,20 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.1629035621881485,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.15260148793458939,
+    "ms_per_step": 3.0520297586917877,
+    "metric": {
+      "best_fitness": 5763.1083984375
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
     }
   },
   {
@@ -488,17 +491,20 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.14309002459049225,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.14546414092183113,
+    "ms_per_step": 2.9092828184366226,
+    "metric": {
+      "best_fitness": 6179.45947265625
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
     }
   },
   {
@@ -511,17 +517,20 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.1485954187810421,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.1561153419315815,
+    "ms_per_step": 3.12230683863163,
+    "metric": {
+      "best_fitness": 21.255481719970703
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
     }
   },
   {
@@ -768,17 +777,20 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.3204380087554455,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.4609660170972347,
+    "ms_per_step": 46.09660170972347,
+    "metric": {
+      "best_fitness": 212331.140625
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
     }
   },
   {
@@ -791,17 +803,20 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.29524778574705124,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.6712288483977318,
+    "ms_per_step": 67.12288483977318,
+    "metric": {
+      "best_fitness": 213251.09375
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
     }
   },
   {
@@ -814,17 +829,20 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.3046609088778496,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 0.6113538704812527,
+    "ms_per_step": 61.13538704812527,
+    "metric": {
+      "best_fitness": 21.308059692382812
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
     "parity": {
       "vs": "torch-cpu",
       "ok": null,
-      "skip": "backend error"
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
     }
   },
   {
