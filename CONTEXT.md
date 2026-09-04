@@ -37,7 +37,8 @@ evox/
 
 | Area | Path | Description |
 |---|---|---|
-| **Main package** | `src/evox/` | Core framework: algorithms, problems, operators, workflows, metrics, utils, visualization |
+| **Main package** | `src/evox/` | Core framework: algorithms, problems, operators, workflows, metrics, utils, visualization (torch OOP variant — frozen reference) |
+| **Functional ETL rewrite** | `src/evox_etl/` | Functional redesign of EvoX core on the ETL tensor library: 33/34 algorithms, all operators, numerical problems, metrics, utils, StdWorkflow/EvalMonitor (see `REFACTOR_REPORT.md`) |
 | Core abstractions | `src/evox/core/` | `ModuleBase`, `Parameter`, `Mutable`, `compile`, `vmap`, `use_state` + component ABCs (`Algorithm`, `Problem`, `Workflow`, `Agent`, `Monitor`) |
 | Algorithms | `src/evox/algorithms/` | 50+ EA implementations: SO (DE/ES/PSO families) + MO (NSGA2, NSGA3, RVEA, MOEAD, HypE, RVEAa) |
 | Problems | `src/evox/problems/` | Benchmark problems: numerical (CEC2022, DTLZ, basic), neuroevolution (Brax, MuJoCo, supervised learning), HPO wrapper |
@@ -49,7 +50,9 @@ evox/
 | Visualization | `src/evox/vis_tools/` | Plotly-based interactive plots + EvoXVision (.exv) binary serialization |
 | **Extensions** | `src/evox_ext/` | PEP 420 namespace-package plugin system; auto-discovers external algorithms, problems, operators, metrics, utils |
 | **Tests** | `unit_test/` | `unittest`-based; mirrors `src/evox/` structure; tests eager, `torch.compile`, and `vmap` modes |
+| **etl tests** | `unit_test/etl/` | pytest-based; mirrors `src/evox_etl/`; 363 tests across algorithms/operators/problems/metrics (run suites separately) |
 | **Benchmarks** | `benchmarks/` | PSO benchmark (eager vs compile vs max-autotune), `switch` micro-benchmark, reusable `test_base.py` |
+| **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 6 backends (torch-cpu/cuda, etl-numpy/iree-llvm-cpu/iree-cuda/xla-cuda) × SO/MO suites × 3 scales; results JSONs + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
 | **Documentation** | `docs/` | Sphinx + shibuya theme; autodoc2 API docs; MyST Markdown tutorials; bilingual (gettext .po + manual ZH translations) |
 | **CI/CD** | `.github/workflows/` | Python package build/test, PyPI publish, Ruff lint check, Discord bot notifications |
 
