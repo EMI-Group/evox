@@ -28,7 +28,12 @@ O(n²) whole-history domination matrix OOM-kills the process at 1000-pop ×
 point-for-point at small scale). The 2026-09-05 re-run refreshed all 9
 CMA-ES SO cells on all six backends after the `p_c` quirk fix (etl-side
 scalar-dot-product replication); the CMAES/Ackley/100x10 plateau stall is
-resolved on all four etl backends (see BENCHMARK_RESULTS.md).
+resolved on all four etl backends (see BENCHMARK_RESULTS.md). The
+2026-09-05 NSGA3 re-run refreshed the 4 NSGA3 MO cells on all four etl
+backends after the `matrix_rank`/`solve` → eigh export fix: etl-numpy
+(bit-identical hv/igd, refreshed timings) and etl-xla-cuda (4/4 cells now
+run) succeed; both iree backends now pass export and crash in the known
+iree-compile segfault (see below).
 
 ## JSON schema
 
@@ -49,7 +54,7 @@ The file is a JSON array with one object per case:
 | `metric` | object | SO: `{"best_fitness": f}` (monitor elite, minimized). MO: `{"hv": f, "igd": f, "n_pf_points": n}` |
 | `parity` | object | vs the `results/{suite}_torch-cpu.json` baseline; `{vs, rel_err, ok}` (+`rel_err_hv`/`rel_err_igd` for MO). Absent for the torch-cpu baseline itself, or when no baseline file exists yet. `ok = rel_err <= 0.10` |
 | `error` | str | `"<Type>: <msg>"` when the case failed (the runner continues) |
-| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; capped etl-numpy SO records note the gens cap; failed iree MO cells carry per-cell notes naming the precise failure (`iree-compile segfault (SIGSEGV, error -11)` / `matrix_rank` v1 export rejection / runtime `ref is null`) |
+| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; capped etl-numpy SO records note the gens cap; failed iree MO cells carry per-cell notes naming the precise failure (`iree-compile segfault (SIGSEGV, error -11)` / runtime `ref is null`; post-fix NSGA3 iree cells note that export now passes and the compiler segfaults) |
 
 ## Config (shared by all backends)
 
@@ -134,22 +139,30 @@ following cells were re-run and merged into the committed JSONs (see
   CMAES/Ackley/100x10 stall resolved (new etl bests ≈ 0.00055–0.0037);
   parity verdicts re-derived with `retag_parity.py`; torch-cpu baseline
   re-run first (fitness bit-identical, timing refreshed).
+- **MO NSGA3 re-run (2026-09-05):** all 4 NSGA3 cells re-run on etl-numpy,
+  etl-xla-cuda, etl-iree-llvm-cpu, etl-iree-cuda after the matrix_rank/solve
+  → eigh fix. numpy: 4/4 ok (hv/igd bit-identical to pre-fix records — the
+  replacement is numerically equivalent on the numpy backend; timings
+  refreshed). xla-cuda: 4/4 ok (previously 4 export errors) — DTLZ2 parity
+  ok (rel 0.009/0.071), DTLZ1 not-ok RNG scatter (rel 16.636/0.528).
+  iree-llvm-cpu / iree-cuda: export now passes; all 4 cells crash in the
+  iree-compile segfault — verified NOT to be an NSGA3 regression (identical
+  to NSGA2/MOEAD; do not attempt to fix iree). Merged with
+  retag_parity.py --partial + --set-note per the committed conventions.
 
 Known issues recorded in the JSONs after the re-run:
 
-1. **NSGA3 `matrix_rank` export rejection — 12 cells** (4 each on
-   iree-llvm-cpu / iree-cuda / xla-cuda): the stablehlo v1 exporter rejects
-   `matrix_rank` at `src/evox_etl/algorithms/mo/nsga3.py:216`. This was
-   previously masked by the cumprod error; decomposing that op (e.g. an
-   eigh-based full-rank check) should unblock NSGA3 on all compiled backends.
-2. **iree-compile segfault on NSGA2/MOEAD MO programs — 15 cells**
-   (iree-cuda 8, iree-llvm-cpu 7): `Error code: -11`, stack dump inside
+1. **iree-compile segfault on all MO programs — 23 cells** (iree-cuda 12,
+   iree-llvm-cpu 11): `Error code: -11`, stack dump inside
    `libIREECompiler.so` (deep recursion). The stablehlo v1 export succeeds;
-   the compiler itself crashes. Not retryable.
-3. **MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu** passes export AND compile but
+   the compiler itself crashes. Not retryable. NSGA3 reached this crash only
+   after the `matrix_rank`/`solve` → eigh fix (2ae931e4); the unmodified
+   NSGA2/MOEAD tell triggers it identically — an upstream iree while-loop
+   compiler bug.
+2. **MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu** passes export AND compile but
    fails at runtime: `ref is null ... hal.buffer_view.create`
    (INVALID_ARGUMENT).
-4. Large-scale CMA-ES Ackley cells (1000x50/10000x100) remain unconverged on
+3. Large-scale CMA-ES Ackley cells (1000x50/10000x100) remain unconverged on
    torch-cuda (≈20.6/20.4) and scatter on the etl compiled backends (rel
    0.44–1.89) — RNG-stream variance on unconverged runs; the 100x10 stall
    itself is resolved by the `p_c` quirk fix.
