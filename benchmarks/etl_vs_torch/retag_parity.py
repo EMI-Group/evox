@@ -122,7 +122,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cap-note", default=None, help="text appended to capped records' note")
     ap.add_argument(
         "--note-override", action="append", default=[],
-        help="CASE_ID=TEXT to replace a not-ok note (repeatable)",
+        help="CASE_ID=TEXT to replace a not-ok parity note (repeatable)",
+    )
+    ap.add_argument(
+        "--set-note", action="append", default=[],
+        help="CASE_ID=TEXT to overwrite the record-level note (repeatable)",
     )
     ap.add_argument("--apply", action="store_true", help="write the file back (default: dry run)")
     args = ap.parse_args(argv)
@@ -151,6 +155,10 @@ def main(argv: list[str] | None = None) -> int:
     for ov in args.note_override:
         cid, _, text = ov.partition("=")
         overrides[cid] = text
+    set_notes = {}
+    for ov in args.set_note:
+        cid, _, text = ov.partition("=")
+        set_notes[cid] = text
 
     baseline_path = RESULTS_DIR / f"{args.suite}_torch-cpu.json"
     baseline = load(baseline_path) if baseline_path.is_file() else []
@@ -160,6 +168,8 @@ def main(argv: list[str] | None = None) -> int:
     for rec in committed:
         if rec["case_id"] not in touched:
             continue
+        if rec["case_id"] in set_notes:
+            rec["note"] = set_notes[rec["case_id"]]
         if args.cap_note and (rec.get("gens") or 100) != 100 and not rec.get("error"):
             note = rec.get("note") or ""
             if args.cap_note not in note:
