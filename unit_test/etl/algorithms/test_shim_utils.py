@@ -1,8 +1,7 @@
 """Tests for the jit-fix utility helpers (``clamp``/``lexsort``/``nanmin``/...).
 
-Converted from the deprecated ``evox_etl.algorithms._shim_utils`` compat stub
-(a pure re-export of the staging module ``evox_etl.algorithms._jit_fix_operator``);
-now imports the staging module directly.
+Converted from the deprecated ``evox_etl.algorithms._shim_utils`` compat stub;
+now imports the canonical ``evox_etl.operators.jit_fix_operator`` module.
 """
 import sys
 from pathlib import Path
@@ -12,10 +11,7 @@ import numpy as np
 import etl
 from etl import core
 
-# TODO: repoint this import to `evox_etl.operators.jit_fix_operator` once the
-# staging module has been moved there (parallel task; the
-# `src/evox_etl/operators/jit_fix_operator.py` move has not landed yet).
-from evox_etl.algorithms._jit_fix_operator import (
+from evox_etl.operators.jit_fix_operator import (
     clamp, clamp_float, clamp_int, lexsort, maximum, maximum_int,
     minimum, minimum_int, nanmax, nanmin, randint,
 )

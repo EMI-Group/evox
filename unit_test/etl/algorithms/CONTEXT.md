@@ -38,9 +38,8 @@ import torch live in `unit_test/etl/parity/`.
     `ref_vec_guided`), so the shim-only helper test was replaced by
     `test_ref_vec_guided_nonorthogonal_vectors` (45deg reference vectors,
     checked against the hand-verified numpy reference).
-  - `test_shim_utils.py` → `evox_etl.algorithms._jit_fix_operator` (staging)
-    with a `# TODO:` comment to repoint to `evox_etl.operators.jit_fix_operator`
-    once that move lands.
+  - `test_shim_utils.py` → `evox_etl.operators.jit_fix_operator` (canonical
+    home for the jit-fix utils, which torch keeps in `evox/utils/`).
 
 ## Constraints
 - ETL has no eager mode: all ops inside functions traced via
