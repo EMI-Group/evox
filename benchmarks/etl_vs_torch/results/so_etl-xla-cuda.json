@@ -459,17 +459,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.8906533308327198,
+    "compile_time_s": 1.8665745742619038,
     "warmup_steps": 2,
-    "run_time_s": 1.0178768746554852,
-    "ms_per_step": 10.178768746554852,
+    "run_time_s": 0.9936670772731304,
+    "ms_per_step": 9.936670772731304,
     "metric": {
-      "best_fitness": 1.2803825777396582e-09
+      "best_fitness": 1.0501425506959094e-08
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9937956140410528,
+      "rel_err": 0.9491129463200524,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -484,17 +484,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.8244565539062023,
+    "compile_time_s": 1.7898146286606789,
     "warmup_steps": 2,
-    "run_time_s": 8.79246962070465,
-    "ms_per_step": 87.92469620704651,
+    "run_time_s": 8.807349923998117,
+    "ms_per_step": 88.07349923998117,
     "metric": {
-      "best_fitness": 35.7719841003418
+      "best_fitness": 88.07389831542969
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.46646088067135705,
+      "rel_err": 0.31362213544665574,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -509,17 +509,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.7028783224523067,
+    "compile_time_s": 3.473511077463627,
     "warmup_steps": 2,
-    "run_time_s": 40.55481579527259,
-    "ms_per_step": 405.5481579527259,
+    "run_time_s": 40.45785639062524,
+    "ms_per_step": 404.5785639062524,
     "metric": {
-      "best_fitness": 200.1180419921875
+      "best_fitness": 348.4915771484375
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.31945502585045704,
+      "rel_err": 0.1851214863029472,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -534,19 +534,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.7695364765822887,
+    "compile_time_s": 0.805004458874464,
     "warmup_steps": 2,
-    "run_time_s": 1.0148857906460762,
-    "ms_per_step": 10.148857906460762,
+    "run_time_s": 0.9166580550372601,
+    "ms_per_step": 9.1665805503726,
     "metric": {
-      "best_fitness": 0.022216796875
+      "best_fitness": 27.28374481201172
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9991494273823628,
-      "ok": false,
-      "note": "RNG-stream variance on unconverged run"
+      "rel_err": 0.04456130081528788,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -559,17 +559,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.9236270859837532,
+    "compile_time_s": 1.0060538202524185,
     "warmup_steps": 2,
-    "run_time_s": 8.847533691674471,
-    "ms_per_step": 88.47533691674471,
+    "run_time_s": 8.847882740199566,
+    "ms_per_step": 88.47882740199566,
     "metric": {
-      "best_fitness": 429.9291687011719
+      "best_fitness": 540.1051635742188
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.12204531463775997,
+      "rel_err": 0.10294414398739049,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -584,17 +584,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.5662531964480877,
+    "compile_time_s": 1.5800765380263329,
     "warmup_steps": 2,
-    "run_time_s": 39.993944738060236,
-    "ms_per_step": 399.93944738060236,
+    "run_time_s": 39.93139673396945,
+    "ms_per_step": 399.3139673396945,
     "metric": {
-      "best_fitness": 1162.929443359375
+      "best_fitness": 1323.205078125
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.07798965405442025,
+      "rel_err": 0.049082365921287584,
       "ok": true,
       "note": null
     }
@@ -609,19 +609,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.7616126947104931,
+    "compile_time_s": 0.7351479679346085,
     "warmup_steps": 2,
-    "run_time_s": 0.8958508409559727,
-    "ms_per_step": 8.958508409559727,
+    "run_time_s": 0.9521722421050072,
+    "ms_per_step": 9.521722421050072,
     "metric": {
-      "best_fitness": 20.58550262451172
+      "best_fitness": 0.000545501708984375
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 5677.890818205736,
+      "rel_err": 0.8495132859773744,
       "ok": false,
-      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -634,17 +634,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.7903382927179337,
+    "compile_time_s": 0.8107069730758667,
     "warmup_steps": 2,
-    "run_time_s": 8.779130395501852,
-    "ms_per_step": 87.79130395501852,
+    "run_time_s": 8.744364336133003,
+    "ms_per_step": 87.44364336133003,
     "metric": {
-      "best_fitness": 21.10730743408203
+      "best_fitness": 18.567916870117188
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 1.8846425342857829,
+      "rel_err": 1.5375952353892464,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -659,17 +659,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.463746152818203,
+    "compile_time_s": 1.3857236690819263,
     "warmup_steps": 2,
-    "run_time_s": 40.0133584626019,
-    "ms_per_step": 400.133584626019,
+    "run_time_s": 39.71872176602483,
+    "ms_per_step": 397.1872176602483,
     "metric": {
-      "best_fitness": 21.28570556640625
+      "best_fitness": 14.62281608581543
     },
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.7867446462735233,
+      "rel_err": 0.22745465369998735,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
