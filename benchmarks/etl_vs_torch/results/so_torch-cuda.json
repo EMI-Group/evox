@@ -1,0 +1,680 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10626978427171707,
+    "ms_per_step": 1.0626978427171707,
+    "metric": {
+      "best_fitness": 9.31256050051843e-09
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.1084701158106327,
+    "ms_per_step": 1.084701158106327,
+    "metric": {
+      "best_fitness": 13.463113784790039
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10847775265574455,
+    "ms_per_step": 1.0847775265574455,
+    "metric": {
+      "best_fitness": 1892.84912109375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.11561029404401779,
+    "ms_per_step": 1.156102940440178,
+    "metric": {
+      "best_fitness": 5.0478668212890625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.11429388076066971,
+    "ms_per_step": 1.142938807606697,
+    "metric": {
+      "best_fitness": 330.6071472167969
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.1135118417441845,
+    "ms_per_step": 1.135118417441845,
+    "metric": {
+      "best_fitness": 3362.2705078125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.11975378915667534,
+    "ms_per_step": 1.1975378915667534,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.12050634995102882,
+    "ms_per_step": 1.2050634995102882,
+    "metric": {
+      "best_fitness": 20.052574157714844
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "torch-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.12585781514644623,
+    "ms_per_step": 1.2585781514644623,
+    "metric": {
+      "best_fitness": 20.1231689453125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.08846195042133331,
+    "ms_per_step": 0.8846195042133331,
+    "metric": {
+      "best_fitness": 0.1859542429447174
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.0899953730404377,
+    "ms_per_step": 0.899953730404377,
+    "metric": {
+      "best_fitness": 25619.103515625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.08735877647995949,
+    "ms_per_step": 0.8735877647995949,
+    "metric": {
+      "best_fitness": 109077.2734375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.09456837549805641,
+    "ms_per_step": 0.9456837549805641,
+    "metric": {
+      "best_fitness": 56.89690399169922
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.09706748649477959,
+    "ms_per_step": 0.9706748649477959,
+    "metric": {
+      "best_fitness": 27489.048828125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10099919885396957,
+    "ms_per_step": 1.0099919885396957,
+    "metric": {
+      "best_fitness": 118943.03125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10044088214635849,
+    "ms_per_step": 1.004408821463585,
+    "metric": {
+      "best_fitness": 19.417137145996094
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10276967659592628,
+    "ms_per_step": 1.0276967659592628,
+    "metric": {
+      "best_fitness": 20.25882339477539
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "torch-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.10016211122274399,
+    "ms_per_step": 1.0016211122274399,
+    "metric": {
+      "best_fitness": 20.665035247802734
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 5.880285050719976,
+    "ms_per_step": 58.802850507199764,
+    "metric": {
+      "best_fitness": 8.185871251953358e-07
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 6.199038192629814,
+    "ms_per_step": 61.99038192629814,
+    "metric": {
+      "best_fitness": 16.318344116210938
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 6.4399056397378445,
+    "ms_per_step": 64.39905639737844,
+    "metric": {
+      "best_fitness": 0.0018224716186523438
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "torch-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06223239749670029,
+    "ms_per_step": 0.6223239749670029,
+    "metric": {
+      "best_fitness": 92.91456604003906
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06802444159984589,
+    "ms_per_step": 0.6802444159984589,
+    "metric": {
+      "best_fitness": 1750.8997802734375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06264543905854225,
+    "ms_per_step": 0.6264543905854225,
+    "metric": {
+      "best_fitness": 4068.2587890625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06924290955066681,
+    "ms_per_step": 0.6924290955066681,
+    "metric": {
+      "best_fitness": 201.40390014648438
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07841670140624046,
+    "ms_per_step": 0.7841670140624046,
+    "metric": {
+      "best_fitness": 2213.937255859375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07006256654858589,
+    "ms_per_step": 0.7006256654858589,
+    "metric": {
+      "best_fitness": 5094.6865234375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07365697994828224,
+    "ms_per_step": 0.7365697994828224,
+    "metric": {
+      "best_fitness": 20.504966735839844
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.08360517397522926,
+    "ms_per_step": 0.8360517397522926,
+    "metric": {
+      "best_fitness": 21.214698791503906
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "torch-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07540365681052208,
+    "ms_per_step": 0.7540365681052208,
+    "metric": {
+      "best_fitness": 21.310134887695312
+    },
+    "note": "eager"
+  }
+]

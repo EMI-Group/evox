@@ -1,7 +1,7 @@
 [
   {
     "case_id": "PSO/Sphere/100x10",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Sphere",
     "pop_size": 100,
@@ -9,18 +9,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.392279613763094,
     "warmup_steps": 2,
-    "run_time_s": 0.06769873946905136,
-    "ms_per_step": 0.6769873946905136,
+    "run_time_s": 0.13044678792357445,
+    "ms_per_step": 1.3044678792357445,
     "metric": {
-      "best_fitness": 1.5382372708927505e-08
+      "best_fitness": 3.054133657087732e-08
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "PSO/Rastrigin/100x10",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Rastrigin",
     "pop_size": 100,
@@ -28,18 +28,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.4700787924230099,
     "warmup_steps": 2,
-    "run_time_s": 0.06996725499629974,
-    "ms_per_step": 0.6996725499629974,
+    "run_time_s": 0.2300771325826645,
+    "ms_per_step": 2.300771325826645,
     "metric": {
-      "best_fitness": 8.087936401367188
+      "best_fitness": 5.5195159912109375
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "PSO/Ackley/100x10",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Ackley",
     "pop_size": 100,
@@ -47,246 +47,246 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.3427982293069363,
     "warmup_steps": 2,
-    "run_time_s": 0.07587206736207008,
-    "ms_per_step": 0.7587206736207008,
-    "metric": {
-      "best_fitness": 20.006866455078125
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "DE/Sphere/100x10",
-    "backend": "torch-cpu",
-    "algo": "DE",
-    "problem": "Sphere",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.05298488587141037,
-    "ms_per_step": 0.5298488587141037,
-    "metric": {
-      "best_fitness": 0.25882092118263245
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "DE/Rastrigin/100x10",
-    "backend": "torch-cpu",
-    "algo": "DE",
-    "problem": "Rastrigin",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.05680928751826286,
-    "ms_per_step": 0.5680928751826286,
-    "metric": {
-      "best_fitness": 47.473487854003906
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "DE/Ackley/100x10",
-    "backend": "torch-cpu",
-    "algo": "DE",
-    "problem": "Ackley",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.06172545254230499,
-    "ms_per_step": 0.6172545254230499,
-    "metric": {
-      "best_fitness": 19.995990753173828
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "CMAES/Sphere/100x10",
-    "backend": "torch-cpu",
-    "algo": "CMAES",
-    "problem": "Sphere",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 5.814439374953508,
-    "ms_per_step": 58.144393749535084,
-    "metric": {
-      "best_fitness": 1.1980985163972946e-06
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "CMAES/Rastrigin/100x10",
-    "backend": "torch-cpu",
-    "algo": "CMAES",
-    "problem": "Rastrigin",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 5.7800694815814495,
-    "ms_per_step": 57.800694815814495,
-    "metric": {
-      "best_fitness": 2.12310791015625
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "CMAES/Ackley/100x10",
-    "backend": "torch-cpu",
-    "algo": "CMAES",
-    "problem": "Ackley",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 6.302060320973396,
-    "ms_per_step": 63.02060320973396,
-    "metric": {
-      "best_fitness": 0.0031270980834960938
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "OpenES/Sphere/100x10",
-    "backend": "torch-cpu",
-    "algo": "OpenES",
-    "problem": "Sphere",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.041030481457710266,
-    "ms_per_step": 0.41030481457710266,
-    "metric": {
-      "best_fitness": 172.76321411132812
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "OpenES/Rastrigin/100x10",
-    "backend": "torch-cpu",
-    "algo": "OpenES",
-    "problem": "Rastrigin",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.04486211761832237,
-    "ms_per_step": 0.4486211761832237,
-    "metric": {
-      "best_fitness": 252.0795440673828
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "OpenES/Ackley/100x10",
-    "backend": "torch-cpu",
-    "algo": "OpenES",
-    "problem": "Ackley",
-    "pop_size": 100,
-    "dim": 10,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.04904654249548912,
-    "ms_per_step": 0.4904654249548912,
-    "metric": {
-      "best_fitness": 20.659896850585938
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "PSO/Sphere/1000x50",
-    "backend": "torch-cpu",
-    "algo": "PSO",
-    "problem": "Sphere",
-    "pop_size": 1000,
-    "dim": 50,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.2558278664946556,
-    "ms_per_step": 2.558278664946556,
-    "metric": {
-      "best_fitness": 30.769338607788086
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "PSO/Rastrigin/1000x50",
-    "backend": "torch-cpu",
-    "algo": "PSO",
-    "problem": "Rastrigin",
-    "pop_size": 1000,
-    "dim": 50,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.2646121345460415,
-    "ms_per_step": 2.646121345460415,
-    "metric": {
-      "best_fitness": 391.46075439453125
-    },
-    "note": "eager"
-  },
-  {
-    "case_id": "PSO/Ackley/1000x50",
-    "backend": "torch-cpu",
-    "algo": "PSO",
-    "problem": "Ackley",
-    "pop_size": 1000,
-    "dim": 50,
-    "n_obj": 1,
-    "gens": 100,
-    "seed": 42,
-    "compile_time_s": 0.0,
-    "warmup_steps": 2,
-    "run_time_s": 0.26928530633449554,
-    "ms_per_step": 2.6928530633449554,
+    "run_time_s": 0.27084876596927643,
+    "ms_per_step": 2.7084876596927643,
     "metric": {
       "best_fitness": 20.0
     },
-    "note": "eager"
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.7299334183335304,
+    "warmup_steps": 2,
+    "run_time_s": 0.12407736480236053,
+    "ms_per_step": 1.2407736480236053,
+    "metric": {
+      "best_fitness": 0.6074879169464111
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.6745074838399887,
+    "warmup_steps": 2,
+    "run_time_s": 0.12641339749097824,
+    "ms_per_step": 1.2641339749097824,
+    "metric": {
+      "best_fitness": 56.38290023803711
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.6838716641068459,
+    "warmup_steps": 2,
+    "run_time_s": 0.2009255774319172,
+    "ms_per_step": 2.009255774319172,
+    "metric": {
+      "best_fitness": 18.954586029052734
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 3.11406546831131,
+    "warmup_steps": 2,
+    "run_time_s": 2.4840021543204784,
+    "ms_per_step": 24.840021543204784,
+    "metric": {
+      "best_fitness": 2.7267321733859262e-09
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.8222426995635033,
+    "warmup_steps": 2,
+    "run_time_s": 1.928096055984497,
+    "ms_per_step": 19.28096055984497,
+    "metric": {
+      "best_fitness": 20.86407470703125
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 3.397623226046562,
+    "warmup_steps": 2,
+    "run_time_s": 1.8920831233263016,
+    "ms_per_step": 18.920831233263016,
+    "metric": {
+      "best_fitness": 20.50030517578125
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2283228635787964,
+    "warmup_steps": 2,
+    "run_time_s": 0.0972641371190548,
+    "ms_per_step": 0.9726413711905479,
+    "metric": {
+      "best_fitness": 132.08493041992188
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3336931876838207,
+    "warmup_steps": 2,
+    "run_time_s": 0.10106142610311508,
+    "ms_per_step": 1.0106142610311508,
+    "metric": {
+      "best_fitness": 221.2354736328125
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3694592639803886,
+    "warmup_steps": 2,
+    "run_time_s": 0.08136073499917984,
+    "ms_per_step": 0.8136073499917984,
+    "metric": {
+      "best_fitness": 20.69388198852539
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.366231545805931,
+    "warmup_steps": 2,
+    "run_time_s": 1.239049069583416,
+    "ms_per_step": 12.39049069583416,
+    "metric": {
+      "best_fitness": 31.938453674316406
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2217033132910728,
+    "warmup_steps": 2,
+    "run_time_s": 1.0305278152227402,
+    "ms_per_step": 10.305278152227402,
+    "metric": {
+      "best_fitness": 365.9289245605469
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3170099183917046,
+    "warmup_steps": 2,
+    "run_time_s": 0.9819271713495255,
+    "ms_per_step": 9.819271713495255,
+    "metric": {
+      "best_fitness": 20.561412811279297
+    },
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Sphere/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Sphere",
     "pop_size": 1000,
@@ -294,18 +294,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.208761241286993,
     "warmup_steps": 2,
-    "run_time_s": 0.22229589521884918,
-    "ms_per_step": 2.222958952188492,
+    "run_time_s": 0.979402631521225,
+    "ms_per_step": 9.79402631521225,
     "metric": {
-      "best_fitness": 17976.03515625
+      "best_fitness": 23839.615234375
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Rastrigin/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Rastrigin",
     "pop_size": 1000,
@@ -313,18 +313,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.285881120711565,
     "warmup_steps": 2,
-    "run_time_s": 0.26078783348202705,
-    "ms_per_step": 2.6078783348202705,
+    "run_time_s": 0.9965618140995502,
+    "ms_per_step": 9.965618140995502,
     "metric": {
-      "best_fitness": 22441.84375
+      "best_fitness": 27923.310546875
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Ackley/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Ackley",
     "pop_size": 1000,
@@ -332,18 +332,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.3691402859985828,
     "warmup_steps": 2,
-    "run_time_s": 0.2419266700744629,
-    "ms_per_step": 2.419266700744629,
+    "run_time_s": 1.2692521326243877,
+    "ms_per_step": 12.692521326243877,
     "metric": {
-      "best_fitness": 20.281044006347656
+      "best_fitness": 20.14360809326172
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "CMAES/Sphere/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Sphere",
     "pop_size": 1000,
@@ -351,18 +351,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 6.239583365619183,
-    "ms_per_step": 62.395833656191826,
-    "metric": {
-      "best_fitness": 104550.8828125
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "CMAES/Rastrigin/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Rastrigin",
     "pop_size": 1000,
@@ -370,18 +369,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 6.335468869656324,
-    "ms_per_step": 63.354688696563244,
-    "metric": {
-      "best_fitness": 105008.640625
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "CMAES/Ackley/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Ackley",
     "pop_size": 1000,
@@ -389,18 +387,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 6.400826405733824,
-    "ms_per_step": 64.00826405733824,
-    "metric": {
-      "best_fitness": 21.259868621826172
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "OpenES/Sphere/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Sphere",
     "pop_size": 1000,
@@ -408,18 +405,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.8460279367864132,
     "warmup_steps": 2,
-    "run_time_s": 0.08695411309599876,
-    "ms_per_step": 0.8695411309599876,
+    "run_time_s": 1.0153885670006275,
+    "ms_per_step": 10.153885670006275,
     "metric": {
-      "best_fitness": 1813.582275390625
+      "best_fitness": 1887.1129150390625
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "OpenES/Rastrigin/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Rastrigin",
     "pop_size": 1000,
@@ -427,18 +424,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.5526661947369576,
     "warmup_steps": 2,
-    "run_time_s": 0.09688619896769524,
-    "ms_per_step": 0.9688619896769524,
+    "run_time_s": 1.0534414984285831,
+    "ms_per_step": 10.534414984285831,
     "metric": {
-      "best_fitness": 2270.506591796875
+      "best_fitness": 2370.28271484375
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "OpenES/Ackley/1000x50",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Ackley",
     "pop_size": 1000,
@@ -446,18 +443,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.5603261217474937,
     "warmup_steps": 2,
-    "run_time_s": 0.10052221268415451,
-    "ms_per_step": 1.005222126841545,
+    "run_time_s": 1.1983390860259533,
+    "ms_per_step": 11.983390860259533,
     "metric": {
-      "best_fitness": 21.256454467773438
+      "best_fitness": 21.242355346679688
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "PSO/Sphere/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Sphere",
     "pop_size": 10000,
@@ -465,18 +462,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.3808840550482273,
     "warmup_steps": 2,
-    "run_time_s": 2.744937412440777,
-    "ms_per_step": 27.44937412440777,
+    "run_time_s": 39.91526314243674,
+    "ms_per_step": 399.1526314243674,
     "metric": {
-      "best_fitness": 2548.349365234375
+      "best_fitness": 2691.3330078125
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "PSO/Rastrigin/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Rastrigin",
     "pop_size": 10000,
@@ -484,18 +481,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.183348711580038,
     "warmup_steps": 2,
-    "run_time_s": 3.6214364245533943,
-    "ms_per_step": 36.21436424553394,
+    "run_time_s": 56.13773247227073,
+    "ms_per_step": 561.3773247227073,
     "metric": {
-      "best_fitness": 3845.6142578125
+      "best_fitness": 4118.875
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "PSO/Ackley/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "PSO",
     "problem": "Ackley",
     "pop_size": 10000,
@@ -503,18 +500,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.4138269796967506,
     "warmup_steps": 2,
-    "run_time_s": 2.6654209941625595,
-    "ms_per_step": 26.654209941625595,
+    "run_time_s": 70.72635747119784,
+    "ms_per_step": 707.2635747119784,
     "metric": {
-      "best_fitness": 20.08148956298828
+      "best_fitness": 20.020355224609375
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Sphere/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Sphere",
     "pop_size": 10000,
@@ -522,18 +519,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.553215455263853,
     "warmup_steps": 2,
-    "run_time_s": 1.6767327450215816,
-    "ms_per_step": 16.767327450215816,
+    "run_time_s": 50.599645521491766,
+    "ms_per_step": 505.99645521491766,
     "metric": {
-      "best_fitness": 97176.921875
+      "best_fitness": 104824.4296875
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Rastrigin/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Rastrigin",
     "pop_size": 10000,
@@ -541,18 +538,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.3202111199498177,
     "warmup_steps": 2,
-    "run_time_s": 2.0081765353679657,
-    "ms_per_step": 20.081765353679657,
+    "run_time_s": 55.43825665488839,
+    "ms_per_step": 554.3825665488839,
     "metric": {
-      "best_fitness": 107997.40625
+      "best_fitness": 108335.4765625
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "DE/Ackley/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "DE",
     "problem": "Ackley",
     "pop_size": 10000,
@@ -560,18 +557,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.4423724077641964,
     "warmup_steps": 2,
-    "run_time_s": 1.7703397199511528,
-    "ms_per_step": 17.703397199511528,
+    "run_time_s": 58.54606423154473,
+    "ms_per_step": 585.4606423154473,
     "metric": {
-      "best_fitness": 20.605655670166016
+      "best_fitness": 20.55666732788086
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "CMAES/Sphere/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Sphere",
     "pop_size": 10000,
@@ -579,18 +576,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 8.560353834182024,
-    "ms_per_step": 85.60353834182024,
-    "metric": {
-      "best_fitness": 217761.625
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "CMAES/Rastrigin/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Rastrigin",
     "pop_size": 10000,
@@ -598,18 +594,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 8.47693008556962,
-    "ms_per_step": 84.7693008556962,
-    "metric": {
-      "best_fitness": 218666.21875
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "CMAES/Ackley/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "CMAES",
     "problem": "Ackley",
     "pop_size": 10000,
@@ -617,18 +612,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": null,
     "warmup_steps": 2,
-    "run_time_s": 9.162579003721476,
-    "ms_per_step": 91.62579003721476,
-    "metric": {
-      "best_fitness": 21.425159454345703
-    },
-    "note": "eager"
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
   },
   {
     "case_id": "OpenES/Sphere/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Sphere",
     "pop_size": 10000,
@@ -636,18 +630,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 0.9034828171133995,
     "warmup_steps": 2,
-    "run_time_s": 0.8586846105754375,
-    "ms_per_step": 8.586846105754375,
+    "run_time_s": 48.17133806273341,
+    "ms_per_step": 481.7133806273341,
     "metric": {
-      "best_fitness": 4218.86328125
+      "best_fitness": 4112.3671875
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "OpenES/Rastrigin/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Rastrigin",
     "pop_size": 10000,
@@ -655,18 +649,18 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.1550182737410069,
     "warmup_steps": 2,
-    "run_time_s": 0.8236674144864082,
-    "ms_per_step": 8.236674144864082,
+    "run_time_s": 44.320776168257,
+    "ms_per_step": 443.20776168257,
     "metric": {
-      "best_fitness": 5162.52587890625
+      "best_fitness": 5109.79931640625
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   },
   {
     "case_id": "OpenES/Ackley/10000x100",
-    "backend": "torch-cpu",
+    "backend": "etl-iree-llvm-cpu",
     "algo": "OpenES",
     "problem": "Ackley",
     "pop_size": 10000,
@@ -674,13 +668,13 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.0,
+    "compile_time_s": 1.003052644431591,
     "warmup_steps": 2,
-    "run_time_s": 1.0434742085635662,
-    "ms_per_step": 10.434742085635662,
+    "run_time_s": 47.993862863630056,
+    "ms_per_step": 479.93862863630056,
     "metric": {
-      "best_fitness": 21.29828643798828
+      "best_fitness": 21.322124481201172
     },
-    "note": "eager"
+    "note": "compiled (iree)"
   }
 ]

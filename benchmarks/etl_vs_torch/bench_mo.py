@@ -47,6 +47,48 @@ def _mo_metrics(pf: Any, problem: str, n_obj: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _torch_pf_fitness(monitor: Any) -> np.ndarray:
+    """Memory-safe replacement for ``monitor.get_pf_fitness()`` (torch path).
+
+    The framework's ``get_pf_fitness`` runs ``non_dominate_rank`` over the
+    whole evaluation history, which materializes ``(n, n, m)`` domination
+    matrices (O(n**2) memory). At 1000-pop x 100 gens (n ~ 100k+) that needs
+    ~280 GB and gets the process OOM-killed (cpu and cuda alike). The Pareto
+    front of the union equals the Pareto front of the union of the
+    per-generation fronts (any dominated point is dominated by a
+    non-dominated point of the same generation), so this computes
+    per-generation fronts (n <= pop <= ~2000, O(n**2) fine), deduplicates the
+    union, and filters it incrementally in numpy (O(history x |pf|) time,
+    O(|pf|) memory). Same semantics as ``get_pf_fitness(deduplicate=True)``
+    under opt_direction "min".
+    """
+    from evox.operators.selection import non_dominate_rank
+
+    fronts = []
+    for fit in monitor.fitness_history:
+        fit = fit.detach().cpu()
+        rank = non_dominate_rank(fit)
+        fronts.append(fit[rank == 0].numpy())
+    if not fronts:
+        return np.empty((0, 0))
+    all_front = np.unique(np.concatenate(fronts, axis=0), axis=0)
+    # incremental Pareto filter (minimization: a dominates b iff a <= b
+    # elementwise and a < b in at least one objective)
+    pf = np.empty((0, all_front.shape[1]), dtype=all_front.dtype)
+    for row in all_front:
+        if pf.shape[0] == 0:
+            pf = row[None, :]
+            continue
+        dominated_by_pf = np.any(
+            np.all(pf <= row, axis=1) & np.any(pf < row, axis=1)
+        )
+        if dominated_by_pf:
+            continue
+        keep = ~(np.all(row <= pf, axis=1) & np.any(row < pf, axis=1))
+        pf = np.vstack([pf[keep], row])
+    return pf
+
+
 def run_torch_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
     import torch
     from evox.algorithms import MOEAD, NSGA2, NSGA3
@@ -56,30 +98,52 @@ def run_torch_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
     device = "cpu" if backend == "torch-cpu" else "cuda"
     torch.manual_seed(case.seed)
 
-    lb = torch.full((case.dim,), bench_common.MO_LB, dtype=torch.float32)
-    ub = torch.full((case.dim,), bench_common.MO_UB, dtype=torch.float32)
-    algo_cls = {"NSGA2": NSGA2, "NSGA3": NSGA3, "MOEAD": MOEAD}[case.algo]
-    algo = algo_cls(case.pop_size, case.n_obj, lb, ub, device=device)
-    problem = {"DTLZ1": DTLZ1, "DTLZ2": DTLZ2}[case.problem](d=case.dim, m=case.n_obj)
-    monitor = EvalMonitor(multi_obj=True, full_fit_history=True)
-    workflow = StdWorkflow(
-        algorithm=algo,
-        problem=problem,
-        monitor=monitor,
-        opt_direction=["min"] * case.n_obj,
-        device=device,
-    )
-    workflow.init_step()
-    bench_common.run_steps(workflow.step, bench_common.WARMUP_STEPS)
+    # The torch MO algorithms allocate several tensors without an explicit
+    # device: the population init in NSGA2/NSGA3/MOEAD uses the raw lb/ub
+    # constructor arguments (not the device-moved copies), NSGA3's
+    # vmap_get_table_row indexes with torch.arange on
+    # torch.get_default_device(), and uniform_sampling builds the reference
+    # points / weight vectors on the default device. Run the whole case with
+    # the default device set to the target device (and lb/ub created on it)
+    # so every implicit allocation lands on the same device. The torch-cpu
+    # path is unaffected (its default device is cpu anyway).
+    prev_default = torch.get_default_device()
+    torch.set_default_device(device)
+    try:
+        lb = torch.full(
+            (case.dim,), bench_common.MO_LB, dtype=torch.float32, device=device
+        )
+        ub = torch.full(
+            (case.dim,), bench_common.MO_UB, dtype=torch.float32, device=device
+        )
+        algo_cls = {"NSGA2": NSGA2, "NSGA3": NSGA3, "MOEAD": MOEAD}[case.algo]
+        algo = algo_cls(case.pop_size, case.n_obj, lb, ub, device=device)
+        problem = {"DTLZ1": DTLZ1, "DTLZ2": DTLZ2}[case.problem](
+            d=case.dim, m=case.n_obj
+        )
+        monitor = EvalMonitor(multi_obj=True, full_fit_history=True)
+        workflow = StdWorkflow(
+            algorithm=algo,
+            problem=problem,
+            monitor=monitor,
+            opt_direction=["min"] * case.n_obj,
+            device=device,
+        )
+        workflow.init_step()
+        bench_common.run_steps(workflow.step, bench_common.WARMUP_STEPS)
 
-    sync = torch.cuda.synchronize if device == "cuda" else (lambda: None)
-    sync()  # drain warmup kernels before the timed window
-    t0 = time.perf_counter()
-    bench_common.run_steps(workflow.step, case.gens)
-    sync()  # include queued kernel execution in the timed window
-    run_time = time.perf_counter() - t0
+        sync = torch.cuda.synchronize if device == "cuda" else (lambda: None)
+        sync()  # drain warmup kernels before the timed window
+        t0 = time.perf_counter()
+        bench_common.run_steps(workflow.step, case.gens)
+        sync()  # include queued kernel execution in the timed window
+        run_time = time.perf_counter() - t0
 
-    pf = monitor.get_pf_fitness().cpu().numpy()
+        # whole-history Pareto front; _torch_pf_fitness avoids the O(n**2)
+        # domination matrix that get_pf_fitness would materialize
+        pf = _torch_pf_fitness(monitor)
+    finally:
+        torch.set_default_device(prev_default)
     rec = bench_common.base_record(case, backend, n_obj=case.n_obj)
     rec.update(
         compile_time_s=0.0,

@@ -1,0 +1,680 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4954547807574272,
+    "warmup_steps": 2,
+    "run_time_s": 0.14208881929516792,
+    "ms_per_step": 1.4208881929516792,
+    "metric": {
+      "best_fitness": 3.054133657087732e-08
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.6774880327284336,
+    "warmup_steps": 2,
+    "run_time_s": 3.569253582507372,
+    "ms_per_step": 35.69253582507372,
+    "metric": {
+      "best_fitness": 31.938453674316406
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 5.018700007349253,
+    "warmup_steps": 2,
+    "run_time_s": 347.4768519587815,
+    "ms_per_step": 3474.768519587815,
+    "metric": {
+      "best_fitness": 2691.3330078125
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.312025349587202,
+    "warmup_steps": 2,
+    "run_time_s": 0.14915134385228157,
+    "ms_per_step": 1.4915134385228157,
+    "metric": {
+      "best_fitness": 5.5195159912109375
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4200607053935528,
+    "warmup_steps": 2,
+    "run_time_s": 3.5840093046426773,
+    "ms_per_step": 35.84009304642677,
+    "metric": {
+      "best_fitness": 365.9289245605469
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 8.228848583996296,
+    "warmup_steps": 2,
+    "run_time_s": 348.0970565825701,
+    "ms_per_step": 3480.9705658257008,
+    "metric": {
+      "best_fitness": 4118.875
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4221960194408894,
+    "warmup_steps": 2,
+    "run_time_s": 0.1559610441327095,
+    "ms_per_step": 1.559610441327095,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4171994924545288,
+    "warmup_steps": 2,
+    "run_time_s": 3.587707731872797,
+    "ms_per_step": 35.87707731872797,
+    "metric": {
+      "best_fitness": 20.561412811279297
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 17.734178997576237,
+    "warmup_steps": 2,
+    "run_time_s": 347.83492828160524,
+    "ms_per_step": 3478.3492828160524,
+    "metric": {
+      "best_fitness": 20.020355224609375
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2589471526443958,
+    "warmup_steps": 2,
+    "run_time_s": 0.11295227333903313,
+    "ms_per_step": 1.1295227333903313,
+    "metric": {
+      "best_fitness": 0.6074879169464111
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.258761964738369,
+    "warmup_steps": 2,
+    "run_time_s": 3.5699018388986588,
+    "ms_per_step": 35.69901838898659,
+    "metric": {
+      "best_fitness": 23839.615234375
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 9.401267446577549,
+    "warmup_steps": 2,
+    "run_time_s": 348.06219455972314,
+    "ms_per_step": 3480.6219455972314,
+    "metric": {
+      "best_fitness": 104824.4296875
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4036615416407585,
+    "warmup_steps": 2,
+    "run_time_s": 0.12870262190699577,
+    "ms_per_step": 1.2870262190699577,
+    "metric": {
+      "best_fitness": 56.38290023803711
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2400481030344963,
+    "warmup_steps": 2,
+    "run_time_s": 3.5613488666713238,
+    "ms_per_step": 35.61348866671324,
+    "metric": {
+      "best_fitness": 27923.310546875
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 20.57533261924982,
+    "warmup_steps": 2,
+    "run_time_s": 348.3038510642946,
+    "ms_per_step": 3483.0385106429458,
+    "metric": {
+      "best_fitness": 108335.4765625
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3970963098108768,
+    "warmup_steps": 2,
+    "run_time_s": 0.12441985309123993,
+    "ms_per_step": 1.2441985309123993,
+    "metric": {
+      "best_fitness": 18.954586029052734
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.457935642451048,
+    "warmup_steps": 2,
+    "run_time_s": 3.5462129898369312,
+    "ms_per_step": 35.46212989836931,
+    "metric": {
+      "best_fitness": 20.14360809326172
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 3.251005847007036,
+    "warmup_steps": 2,
+    "run_time_s": 349.60323499143124,
+    "ms_per_step": 3496.0323499143124,
+    "metric": {
+      "best_fitness": 20.55666732788086
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.9231927283108234,
+    "warmup_steps": 2,
+    "run_time_s": 4.0310699082911015,
+    "ms_per_step": 40.310699082911015,
+    "metric": {
+      "best_fitness": 2.7473749941719916e-09
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.867622870951891,
+    "warmup_steps": 2,
+    "run_time_s": 4.069137282669544,
+    "ms_per_step": 40.69137282669544,
+    "metric": {
+      "best_fitness": 17.19702911376953
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.8693484365940094,
+    "warmup_steps": 2,
+    "run_time_s": 4.292358476668596,
+    "ms_per_step": 42.92358476668596,
+    "metric": {
+      "best_fitness": 20.43309783935547
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.5507937371730804,
+    "warmup_steps": 2,
+    "run_time_s": 0.14566760882735252,
+    "ms_per_step": 1.4566760882735252,
+    "metric": {
+      "best_fitness": 132.08497619628906
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4525758884847164,
+    "warmup_steps": 2,
+    "run_time_s": 3.5485692396759987,
+    "ms_per_step": 35.48569239675999,
+    "metric": {
+      "best_fitness": 1887.1131591796875
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.876848068088293,
+    "warmup_steps": 2,
+    "run_time_s": 348.17260312289,
+    "ms_per_step": 3481.7260312289,
+    "metric": {
+      "best_fitness": 4112.36865234375
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.5307380072772503,
+    "warmup_steps": 2,
+    "run_time_s": 0.11516254395246506,
+    "ms_per_step": 1.1516254395246506,
+    "metric": {
+      "best_fitness": 221.23562622070312
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3620360009372234,
+    "warmup_steps": 2,
+    "run_time_s": 3.5203377716243267,
+    "ms_per_step": 35.20337771624327,
+    "metric": {
+      "best_fitness": 2370.2822265625
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2091101482510567,
+    "warmup_steps": 2,
+    "run_time_s": 347.9648703113198,
+    "ms_per_step": 3479.6487031131983,
+    "metric": {
+      "best_fitness": 5109.79931640625
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.5501951649785042,
+    "warmup_steps": 2,
+    "run_time_s": 0.12527760490775108,
+    "ms_per_step": 1.2527760490775108,
+    "metric": {
+      "best_fitness": 20.69388198852539
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.660481832921505,
+    "warmup_steps": 2,
+    "run_time_s": 3.559425253421068,
+    "ms_per_step": 35.59425253421068,
+    "metric": {
+      "best_fitness": 21.242359161376953
+    },
+    "note": "compiled (iree)"
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2800325229763985,
+    "warmup_steps": 2,
+    "run_time_s": 350.43465193361044,
+    "ms_per_step": 3504.3465193361044,
+    "metric": {
+      "best_fitness": 21.322124481201172
+    },
+    "note": "compiled (iree)"
+  }
+]

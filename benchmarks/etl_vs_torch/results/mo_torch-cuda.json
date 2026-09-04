@@ -1,0 +1,254 @@
+[
+  {
+    "case_id": "NSGA2/DTLZ1/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.5126207508146763,
+    "ms_per_step": 5.126207508146763,
+    "metric": {
+      "hv": 7.68504,
+      "igd": 0.5478836415857056,
+      "n_pf_points": 261
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA2/DTLZ1/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.7646485082805157,
+    "ms_per_step": 7.646485082805157,
+    "metric": {
+      "hv": 3616.1835845953774,
+      "igd": 23.102379083633423,
+      "n_pf_points": 97
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.4291261285543442,
+    "ms_per_step": 4.291261285543442,
+    "metric": {
+      "hv": 7.45848,
+      "igd": 0.02458968655869368,
+      "n_pf_points": 2629
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.5489041656255722,
+    "ms_per_step": 5.489041656255722,
+    "metric": {
+      "hv": 7.46368,
+      "igd": 0.016238339377975277,
+      "n_pf_points": 12833
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 62.301373306661844,
+    "ms_per_step": 623.0137330666184,
+    "metric": {
+      "hv": 6.45552,
+      "igd": 1.1514238986147327,
+      "n_pf_points": 216
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 86.33338418230414,
+    "ms_per_step": 863.3338418230414,
+    "metric": {
+      "hv": 19618.153082466208,
+      "igd": 44.19660425186157,
+      "n_pf_points": 113
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 62.546163246035576,
+    "ms_per_step": 625.4616324603558,
+    "metric": {
+      "hv": 7.4632,
+      "igd": 0.025349736293012286,
+      "n_pf_points": 2513
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 71.91346832737327,
+    "ms_per_step": 719.1346832737327,
+    "metric": {
+      "hv": 7.46736,
+      "igd": 0.014781488062731739,
+      "n_pf_points": 11929
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 27.310583163052797,
+    "ms_per_step": 273.105831630528,
+    "metric": {
+      "hv": 30.972902119147243,
+      "igd": 2.7266502380371094,
+      "n_pf_points": 114
+    },
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 350.51386408135295,
+    "ms_per_step": 3505.1386408135295,
+    "metric": {
+      "hv": 3546.420272717428,
+      "igd": 15.03314983844757,
+      "n_pf_points": 378
+    },
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/100x3x10",
+    "backend": "torch-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 27.950938660651445,
+    "ms_per_step": 279.50938660651445,
+    "metric": {
+      "hv": 7.45608,
+      "igd": 0.031166097494372935,
+      "n_pf_points": 1978
+    },
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/1000x3x30",
+    "backend": "torch-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 362.0603369511664,
+    "ms_per_step": 3620.603369511664,
+    "metric": {
+      "hv": 7.46248,
+      "igd": 0.01766228528978325,
+      "n_pf_points": 10275
+    },
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  }
+]
