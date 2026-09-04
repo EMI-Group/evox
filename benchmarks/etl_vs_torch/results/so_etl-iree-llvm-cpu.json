@@ -159,17 +159,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.8384514190256596,
+    "compile_time_s": 2.791763123124838,
     "warmup_steps": 2,
-    "run_time_s": 2.7715901732444763,
-    "ms_per_step": 27.715901732444763,
+    "run_time_s": 3.0030823349952698,
+    "ms_per_step": 30.030823349952698,
     "metric": {
-      "best_fitness": 1.2788502479210706e-09
+      "best_fitness": 9.269202294603929e-09
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9938030392948606,
+      "rel_err": 0.9550839650842422,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -184,17 +184,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.622305426746607,
+    "compile_time_s": 2.6977031975984573,
     "warmup_steps": 2,
-    "run_time_s": 2.4428637735545635,
-    "ms_per_step": 24.428637735545635,
+    "run_time_s": 2.903004463762045,
+    "ms_per_step": 29.03004463762045,
     "metric": {
-      "best_fitness": 1.01446533203125
+      "best_fitness": 7.5704803466796875
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.961161078357834,
+      "rel_err": 0.7101632912486827,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -209,19 +209,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.7801116332411766,
+    "compile_time_s": 2.6648742742836475,
     "warmup_steps": 2,
-    "run_time_s": 2.9061715602874756,
-    "ms_per_step": 29.061715602874756,
+    "run_time_s": 2.364802110940218,
+    "ms_per_step": 23.64802110940218,
     "metric": {
-      "best_fitness": 20.580921173095703
+      "best_fitness": 0.0036516189575195312
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 5676.626940278874,
-      "ok": false,
-      "note": "RNG-stream variance on unconverged run"
+      "rel_err": 0.007366482504604052,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -459,17 +459,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.0415088534355164,
+    "compile_time_s": 2.8749205954372883,
     "warmup_steps": 2,
-    "run_time_s": 127.3258086591959,
-    "ms_per_step": 1273.258086591959,
+    "run_time_s": 153.73954638838768,
+    "ms_per_step": 1537.3954638838768,
     "metric": {
-      "best_fitness": 35.75709915161133
+      "best_fitness": 88.4118423461914
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.4666828896718819,
+      "rel_err": 0.3186625704431941,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -484,19 +484,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.8920715153217316,
+    "compile_time_s": 2.586823310703039,
     "warmup_steps": 2,
-    "run_time_s": 128.34186285734177,
-    "ms_per_step": 1283.4186285734177,
+    "run_time_s": 156.8552213087678,
+    "ms_per_step": 1568.552213087678,
     "metric": {
-      "best_fitness": 428.93194580078125
+      "best_fitness": 522.8428344726562
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.12408173500996554,
-      "ok": false,
-      "note": "RNG-stream variance on unconverged run"
+      "rel_err": 0.06769288908703779,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -509,17 +509,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.0031019784510136,
+    "compile_time_s": 2.750743303447962,
     "warmup_steps": 2,
-    "run_time_s": 134.00864842906594,
-    "ms_per_step": 1340.0864842906594,
+    "run_time_s": 154.96214003115892,
+    "ms_per_step": 1549.6214003115892,
     "metric": {
-      "best_fitness": 21.131744384765625
+      "best_fitness": 21.126934051513672
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 1.8879822244651334,
+      "rel_err": 1.8873248174535566,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -759,17 +759,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.098013263195753,
+    "compile_time_s": 2.998046200722456,
     "warmup_steps": 2,
-    "run_time_s": 2288.268555920571,
-    "ms_per_step": 22882.68555920571,
+    "run_time_s": 2190.0833016112447,
+    "ms_per_step": 21900.833016112447,
     "metric": {
-      "best_fitness": 201.46726989746094
+      "best_fitness": 350.5571594238281
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.3148666825867747,
+      "rel_err": 0.19214594857639053,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -784,17 +784,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.894337296485901,
+    "compile_time_s": 2.8905384726822376,
     "warmup_steps": 2,
-    "run_time_s": 2192.151988580823,
-    "ms_per_step": 21921.51988580823,
+    "run_time_s": 2191.3982515335083,
+    "ms_per_step": 21913.982515335083,
     "metric": {
-      "best_fitness": 1164.2821044921875
+      "best_fitness": 1325.1055908203125
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.07691721791813251,
+      "rel_err": 0.05058915756517026,
       "ok": true,
       "note": null
     }
@@ -809,17 +809,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.9991114512085915,
+    "compile_time_s": 2.9407717809081078,
     "warmup_steps": 2,
-    "run_time_s": 2189.362295463681,
-    "ms_per_step": 21893.622954636812,
+    "run_time_s": 2189.99331946671,
+    "ms_per_step": 21899.9331946671,
     "metric": {
-      "best_fitness": 21.218177795410156
+      "best_fitness": 17.174118041992188
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.781076293729341,
+      "rel_err": 0.44161363926917574,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }

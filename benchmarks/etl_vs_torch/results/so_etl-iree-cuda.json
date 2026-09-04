@@ -459,17 +459,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.8891817815601826,
+    "compile_time_s": 2.974592659622431,
     "warmup_steps": 2,
-    "run_time_s": 4.328532136976719,
-    "ms_per_step": 43.28532136976719,
+    "run_time_s": 4.0968926548957825,
+    "ms_per_step": 40.968926548957825,
     "metric": {
-      "best_fitness": 1.3284248145950528e-09
+      "best_fitness": 9.582066695656977e-09
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9935628144193114,
+      "rel_err": 0.9535679092344549,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -484,17 +484,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.2415162697434425,
+    "compile_time_s": 3.136543497443199,
     "warmup_steps": 2,
-    "run_time_s": 111.65188182145357,
-    "ms_per_step": 1116.5188182145357,
+    "run_time_s": 134.62181137129664,
+    "ms_per_step": 1346.2181137129664,
     "metric": {
-      "best_fitness": 35.735023498535156
+      "best_fitness": 88.17547607421875
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.46701214802299335,
+      "rel_err": 0.31513716765218486,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -509,17 +509,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 4.012897286564112,
+    "compile_time_s": 2.9589777775108814,
     "warmup_steps": 2,
-    "run_time_s": 979.524545058608,
-    "ms_per_step": 9795.24545058608,
+    "run_time_s": 875.0918285362422,
+    "ms_per_step": 8750.918285362422,
     "metric": {
-      "best_fitness": 200.25270080566406
+      "best_fitness": 348.4949951171875
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.3189970892355266,
+      "rel_err": 0.18513310984988707,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -534,19 +534,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.120030663907528,
+    "compile_time_s": 2.64775076135993,
     "warmup_steps": 2,
-    "run_time_s": 3.9883000031113625,
-    "ms_per_step": 39.883000031113625,
+    "run_time_s": 4.48227346688509,
+    "ms_per_step": 44.8227346688509,
     "metric": {
-      "best_fitness": 1.1018524169921875
+      "best_fitness": 27.848365783691406
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9578154537828283,
-      "ok": false,
-      "note": "RNG-stream variance on unconverged run"
+      "rel_err": 0.06617787950377033,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -559,17 +559,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.3060167506337166,
+    "compile_time_s": 2.816337089985609,
     "warmup_steps": 2,
-    "run_time_s": 135.4490550160408,
-    "ms_per_step": 1354.490550160408,
+    "run_time_s": 121.69116562232375,
+    "ms_per_step": 1216.9116562232375,
     "metric": {
-      "best_fitness": 447.32861328125
+      "best_fitness": 527.9216918945312
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.08651405738920152,
+      "rel_err": 0.07806438047314851,
       "ok": true,
       "note": null
     }
@@ -584,17 +584,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 4.06854647770524,
+    "compile_time_s": 3.2178884111344814,
     "warmup_steps": 2,
-    "run_time_s": 947.7029753476381,
-    "ms_per_step": 9477.029753476381,
+    "run_time_s": 955.3223771676421,
+    "ms_per_step": 9553.223771676421,
     "metric": {
-      "best_fitness": 1163.663818359375
+      "best_fitness": 1325.67236328125
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.0774074163686602,
+      "rel_err": 0.05103851420994817,
       "ok": true,
       "note": null
     }
@@ -609,17 +609,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.9353187084198,
+    "compile_time_s": 3.007742591202259,
     "warmup_steps": 2,
-    "run_time_s": 4.2944984547793865,
-    "ms_per_step": 42.944984547793865,
+    "run_time_s": 4.105995897203684,
+    "ms_per_step": 41.05995897203684,
     "metric": {
-      "best_fitness": 20.526309967041016
+      "best_fitness": 0.0014085769653320312
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 5661.561431202315,
+      "rel_err": 0.6114180478821363,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -634,17 +634,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.1748763360083103,
+    "compile_time_s": 3.236313324421644,
     "warmup_steps": 2,
-    "run_time_s": 142.46298080682755,
-    "ms_per_step": 1424.6298080682755,
+    "run_time_s": 129.89209569990635,
+    "ms_per_step": 1298.9209569990635,
     "metric": {
-      "best_fitness": 21.168994903564453
+      "best_fitness": 10.847675323486328
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 1.8930730884366225,
+      "rel_err": 0.4825039022137047,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -659,17 +659,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 4.206584144383669,
+    "compile_time_s": 3.6425615921616554,
     "warmup_steps": 2,
-    "run_time_s": 960.3715663403273,
-    "ms_per_step": 9603.715663403273,
+    "run_time_s": 915.444942548871,
+    "ms_per_step": 9154.44942548871,
     "metric": {
-      "best_fitness": 21.339736938476562
+      "best_fitness": 20.589855194091797
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.7912800968122081,
+      "rel_err": 0.7283342297871414,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }

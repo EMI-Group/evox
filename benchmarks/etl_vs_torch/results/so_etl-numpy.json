@@ -159,17 +159,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.15379765629768372,
+    "compile_time_s": 0.15467359498143196,
     "warmup_steps": 2,
-    "run_time_s": 0.13087833672761917,
-    "ms_per_step": 1.3087833672761917,
+    "run_time_s": 0.13122915104031563,
+    "ms_per_step": 1.3122915104031563,
     "metric": {
-      "best_fitness": 1.3037320112374573e-09
+      "best_fitness": 9.77203029606244e-09
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9936824690327859,
+      "rel_err": 0.9526473972597079,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -184,17 +184,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.13601763173937798,
+    "compile_time_s": 0.13577091321349144,
     "warmup_steps": 2,
-    "run_time_s": 0.13465379178524017,
-    "ms_per_step": 1.3465379178524017,
+    "run_time_s": 0.1346159651875496,
+    "ms_per_step": 1.346159651875496,
     "metric": {
-      "best_fitness": 1.8786163330078125
+      "best_fitness": 21.306961059570312
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9280769581279925,
+      "rel_err": 0.18426055095607632,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -209,17 +209,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.14228102564811707,
+    "compile_time_s": 0.14091310650110245,
     "warmup_steps": 2,
-    "run_time_s": 0.15034179762005806,
-    "ms_per_step": 1.5034179762005806,
+    "run_time_s": 0.149566899985075,
+    "ms_per_step": 1.49566899985075,
     "metric": {
-      "best_fitness": 20.559524536132812
+      "best_fitness": 0.0006532669067382812
     },
     "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 5670.724283083399,
+      "rel_err": 0.8197842672980794,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -465,12 +465,12 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": 0.1629035621881485,
+    "compile_time_s": 0.18015004694461823,
     "warmup_steps": 2,
-    "run_time_s": 0.15260148793458939,
-    "ms_per_step": 3.0520297586917877,
+    "run_time_s": 0.17011769488453865,
+    "ms_per_step": 3.402353897690773,
     "metric": {
-      "best_fitness": 5763.1083984375
+      "best_fitness": 11092.04296875
     },
     "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
@@ -491,12 +491,12 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": 0.14309002459049225,
+    "compile_time_s": 0.15329696983098984,
     "warmup_steps": 2,
-    "run_time_s": 0.14546414092183113,
-    "ms_per_step": 2.9092828184366226,
+    "run_time_s": 0.1733284555375576,
+    "ms_per_step": 3.466569110751152,
     "metric": {
-      "best_fitness": 6179.45947265625
+      "best_fitness": 11633.4287109375
     },
     "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
@@ -517,12 +517,12 @@
     "n_obj": 1,
     "gens": 50,
     "seed": 42,
-    "compile_time_s": 0.1485954187810421,
+    "compile_time_s": 0.1825050190091133,
     "warmup_steps": 2,
-    "run_time_s": 0.1561153419315815,
-    "ms_per_step": 3.12230683863163,
+    "run_time_s": 0.19102860242128372,
+    "ms_per_step": 3.8205720484256744,
     "metric": {
-      "best_fitness": 21.255481719970703
+      "best_fitness": 20.301918029785156
     },
     "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
     "parity": {
@@ -777,10 +777,10 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": 0.3204380087554455,
+    "compile_time_s": 0.3180680349469185,
     "warmup_steps": 2,
-    "run_time_s": 0.4609660170972347,
-    "ms_per_step": 46.09660170972347,
+    "run_time_s": 0.5356678366661072,
+    "ms_per_step": 53.56678366661072,
     "metric": {
       "best_fitness": 212331.140625
     },
@@ -803,10 +803,10 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": 0.29524778574705124,
+    "compile_time_s": 0.3300050273537636,
     "warmup_steps": 2,
-    "run_time_s": 0.6712288483977318,
-    "ms_per_step": 67.12288483977318,
+    "run_time_s": 0.5743090808391571,
+    "ms_per_step": 57.43090808391571,
     "metric": {
       "best_fitness": 213251.09375
     },
@@ -829,12 +829,12 @@
     "n_obj": 1,
     "gens": 10,
     "seed": 42,
-    "compile_time_s": 0.3046609088778496,
+    "compile_time_s": 0.28550655394792557,
     "warmup_steps": 2,
-    "run_time_s": 0.6113538704812527,
-    "ms_per_step": 61.13538704812527,
+    "run_time_s": 0.4872939735651016,
+    "ms_per_step": 48.72939735651016,
     "metric": {
-      "best_fitness": 21.308059692382812
+      "best_fitness": 21.3394775390625
     },
     "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
     "parity": {
