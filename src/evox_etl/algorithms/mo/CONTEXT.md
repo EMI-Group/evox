@@ -64,8 +64,9 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(...,
   stable=True)` → int64 indices. `random.permutation(key, n, dtype=int32)`.
 - `etl.cond(pred, true_fn, false_fn, *operands)` — NSGA3 uses it for the
-  hyperplane solve (numpy `linalg.solve` RAISES on singular matrices; never
-  compute it unconditionally).
+  hyperplane branch: the full-rank guard keeps the solve off deficient
+  `extreme` matrices (numpy `linalg.solve` would RAISE there; never compute
+  it unconditionally).
 - No boolean/advanced indexing with dynamic masks (no dynamic shapes): select
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
   one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
