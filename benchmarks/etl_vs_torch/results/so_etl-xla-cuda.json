@@ -1,0 +1,830 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.7416769415140152,
+    "warmup_steps": 2,
+    "run_time_s": 0.5365938693284988,
+    "ms_per_step": 5.365938693284988,
+    "metric": {
+      "best_fitness": 3.054133657087732e-08
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9854763077709052,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.0272557139396667,
+    "warmup_steps": 2,
+    "run_time_s": 0.572998657822609,
+    "ms_per_step": 5.7299865782260895,
+    "metric": {
+      "best_fitness": 31.93844985961914
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.037995982517971275,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 4.392396792769432,
+    "warmup_steps": 2,
+    "run_time_s": 1.7000011429190636,
+    "ms_per_step": 17.000011429190636,
+    "metric": {
+      "best_fitness": 2691.3330078125
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05610833605814272,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.617964368313551,
+    "warmup_steps": 2,
+    "run_time_s": 0.5111767202615738,
+    "ms_per_step": 5.111767202615738,
+    "metric": {
+      "best_fitness": 5.5195159912109375
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31756189498746346,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7522605955600739,
+    "warmup_steps": 2,
+    "run_time_s": 0.5738252960145473,
+    "ms_per_step": 5.7382529601454735,
+    "metric": {
+      "best_fitness": 365.9289245605469
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.06522193999619252,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.8446725644171238,
+    "warmup_steps": 2,
+    "run_time_s": 1.5204625986516476,
+    "ms_per_step": 15.204625986516476,
+    "metric": {
+      "best_fitness": 4118.87548828125
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07105788884405403,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6291118711233139,
+    "warmup_steps": 2,
+    "run_time_s": 0.508088730275631,
+    "ms_per_step": 5.0808873027563095,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.66926584020257,
+    "warmup_steps": 2,
+    "run_time_s": 0.5290816761553288,
+    "ms_per_step": 5.2908167615532875,
+    "metric": {
+      "best_fitness": 20.56141471862793
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028070735931396484,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3510727286338806,
+    "warmup_steps": 2,
+    "run_time_s": 1.8164637945592403,
+    "ms_per_step": 18.164637945592403,
+    "metric": {
+      "best_fitness": 20.020353317260742
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0030444079128581097,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.5321123190224171,
+    "warmup_steps": 2,
+    "run_time_s": 0.3271361403167248,
+    "ms_per_step": 3.2713614031672478,
+    "metric": {
+      "best_fitness": 0.6074879169464111
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.3471360590581776,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6745585016906261,
+    "warmup_steps": 2,
+    "run_time_s": 0.43599461764097214,
+    "ms_per_step": 4.359946176409721,
+    "metric": {
+      "best_fitness": 23839.6171875
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.32618883865563203,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3389597684144974,
+    "warmup_steps": 2,
+    "run_time_s": 1.1175821647047997,
+    "ms_per_step": 11.175821647047997,
+    "metric": {
+      "best_fitness": 104824.4140625
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07869658803699374,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.526012472808361,
+    "warmup_steps": 2,
+    "run_time_s": 0.3914497122168541,
+    "ms_per_step": 3.914497122168541,
+    "metric": {
+      "best_fitness": 56.38290786743164
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18767148604768705,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.636000569909811,
+    "warmup_steps": 2,
+    "run_time_s": 0.460150059312582,
+    "ms_per_step": 4.60150059312582,
+    "metric": {
+      "best_fitness": 27923.30859375
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.24425198325115333,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3905531503260136,
+    "warmup_steps": 2,
+    "run_time_s": 1.1598366647958755,
+    "ms_per_step": 11.598366647958755,
+    "metric": {
+      "best_fitness": 108335.453125
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0031301388314592046,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6241828389465809,
+    "warmup_steps": 2,
+    "run_time_s": 0.4214857220649719,
+    "ms_per_step": 4.214857220649719,
+    "metric": {
+      "best_fitness": 19.825923919677734
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.008505046616362342,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6786791011691093,
+    "warmup_steps": 2,
+    "run_time_s": 0.3638167008757591,
+    "ms_per_step": 3.6381670087575912,
+    "metric": {
+      "best_fitness": 20.075363159179688
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.010141531525871833,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.875787425786257,
+    "warmup_steps": 2,
+    "run_time_s": 1.1600611433386803,
+    "ms_per_step": 11.600611433386803,
+    "metric": {
+      "best_fitness": 20.643863677978516
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0018542485822384978,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2155270427465439,
+    "warmup_steps": 2,
+    "run_time_s": 0.7799614928662777,
+    "ms_per_step": 7.799614928662777,
+    "metric": {
+      "best_fitness": 2.6093009974914594e-09
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9978221315177506,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6523427255451679,
+    "warmup_steps": 2,
+    "run_time_s": 0.9424854405224323,
+    "ms_per_step": 9.424854405224323,
+    "metric": {
+      "best_fitness": 2.0618667602539062
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028845048152939486,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6710191480815411,
+    "warmup_steps": 2,
+    "run_time_s": 0.9428124316036701,
+    "ms_per_step": 9.428124316036701,
+    "metric": {
+      "best_fitness": 20.592191696166992
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 6584.080207380299,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.43961068987846375,
+    "warmup_steps": 2,
+    "run_time_s": 0.4780253544449806,
+    "ms_per_step": 4.780253544449806,
+    "metric": {
+      "best_fitness": 132.08486938476562
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.23545721197540057,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.5816970616579056,
+    "warmup_steps": 2,
+    "run_time_s": 0.371011920273304,
+    "ms_per_step": 3.71011920273304,
+    "metric": {
+      "best_fitness": 1887.11279296875
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04054435168224577,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2957273311913013,
+    "warmup_steps": 2,
+    "run_time_s": 0.8234425932168961,
+    "ms_per_step": 8.23442593216896,
+    "metric": {
+      "best_fitness": 4112.3671875
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.02524284070149968,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.44827059283852577,
+    "warmup_steps": 2,
+    "run_time_s": 0.4816892594099045,
+    "ms_per_step": 4.816892594099045,
+    "metric": {
+      "best_fitness": 221.23594665527344
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12235660583337395,
+      "ok": false
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.5263247527182102,
+    "warmup_steps": 2,
+    "run_time_s": 0.3836313374340534,
+    "ms_per_step": 3.836313374340534,
+    "metric": {
+      "best_fitness": 2370.281494140625
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04394389459349172,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.345409233123064,
+    "warmup_steps": 2,
+    "run_time_s": 0.9324835166335106,
+    "ms_per_step": 9.324835166335106,
+    "metric": {
+      "best_fitness": 5109.79736328125
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.01021370485336361,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.511030837893486,
+    "warmup_steps": 2,
+    "run_time_s": 0.47047317773103714,
+    "ms_per_step": 4.704731777310371,
+    "metric": {
+      "best_fitness": 20.693883895874023
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0016450733289659202,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.4108075425028801,
+    "warmup_steps": 2,
+    "run_time_s": 0.37724974006414413,
+    "ms_per_step": 3.7724974006414413,
+    "metric": {
+      "best_fitness": 21.242355346679688
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0006632865850288178,
+      "ok": true
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "etl-xla-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.04685702547431,
+    "warmup_steps": 2,
+    "run_time_s": 0.9340081997215748,
+    "ms_per_step": 9.340081997215748,
+    "metric": {
+      "best_fitness": 21.322126388549805
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0011193365546536065,
+      "ok": true
+    }
+  }
+]

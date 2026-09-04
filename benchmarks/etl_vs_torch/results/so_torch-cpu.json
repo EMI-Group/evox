@@ -1,0 +1,686 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07390668615698814,
+    "ms_per_step": 0.7390668615698814,
+    "metric": {
+      "best_fitness": 1.5382372708927505e-08
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.3111569434404373,
+    "ms_per_step": 3.111569434404373,
+    "metric": {
+      "best_fitness": 30.769338607788086
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 2.5983610823750496,
+    "ms_per_step": 25.983610823750496,
+    "metric": {
+      "best_fitness": 2548.349365234375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.08181799948215485,
+    "ms_per_step": 0.8181799948215485,
+    "metric": {
+      "best_fitness": 8.087936401367188
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.2213272824883461,
+    "ms_per_step": 2.213272824883461,
+    "metric": {
+      "best_fitness": 391.46075439453125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 2.262985896319151,
+    "ms_per_step": 22.62985896319151,
+    "metric": {
+      "best_fitness": 3845.6142578125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.08069105446338654,
+    "ms_per_step": 0.8069105446338654,
+    "metric": {
+      "best_fitness": 20.006866455078125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.20596858859062195,
+    "ms_per_step": 2.0596858859062195,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "torch-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 2.2921877913177013,
+    "ms_per_step": 22.921877913177013,
+    "metric": {
+      "best_fitness": 20.08148956298828
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.054697975516319275,
+    "ms_per_step": 0.5469797551631927,
+    "metric": {
+      "best_fitness": 0.25882092118263245
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.19738803058862686,
+    "ms_per_step": 1.9738803058862686,
+    "metric": {
+      "best_fitness": 17976.03515625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.4858007729053497,
+    "ms_per_step": 14.858007729053497,
+    "metric": {
+      "best_fitness": 97176.921875
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.05912484601140022,
+    "ms_per_step": 0.5912484601140022,
+    "metric": {
+      "best_fitness": 47.473487854003906
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.19092414900660515,
+    "ms_per_step": 1.9092414900660515,
+    "metric": {
+      "best_fitness": 22441.84375
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.7203350886702538,
+    "ms_per_step": 17.203350886702538,
+    "metric": {
+      "best_fitness": 107997.40625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06452953442931175,
+    "ms_per_step": 0.6452953442931175,
+    "metric": {
+      "best_fitness": 19.995990753173828
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.1921195201575756,
+    "ms_per_step": 1.921195201575756,
+    "metric": {
+      "best_fitness": 20.281044006347656
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "torch-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.6893134899437428,
+    "ms_per_step": 16.893134899437428,
+    "metric": {
+      "best_fitness": 20.605655670166016
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 9.86046452075243,
+    "ms_per_step": 98.6046452075243,
+    "metric": {
+      "best_fitness": 1.1980985163972946e-06
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 13.62867521494627,
+    "ms_per_step": 136.2867521494627,
+    "metric": {
+      "best_fitness": 104550.8828125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 19.579355716705322,
+    "ms_per_step": 195.79355716705322,
+    "metric": {
+      "best_fitness": 217761.625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 18.818343680351973,
+    "ms_per_step": 188.18343680351973,
+    "metric": {
+      "best_fitness": 2.12310791015625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 20.50481765717268,
+    "ms_per_step": 205.0481765717268,
+    "metric": {
+      "best_fitness": 105008.640625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 20.825113382190466,
+    "ms_per_step": 208.25113382190466,
+    "metric": {
+      "best_fitness": 218666.21875
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 17.135667961090803,
+    "ms_per_step": 171.35667961090803,
+    "metric": {
+      "best_fitness": 0.0031270980834960938
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 14.621384385973215,
+    "ms_per_step": 146.21384385973215,
+    "metric": {
+      "best_fitness": 21.259868621826172
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "torch-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 18.822128877043724,
+    "ms_per_step": 188.22128877043724,
+    "metric": {
+      "best_fitness": 21.425159454345703
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.04091775044798851,
+    "ms_per_step": 0.4091775044798851,
+    "metric": {
+      "best_fitness": 172.76321411132812
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.07910728082060814,
+    "ms_per_step": 0.7910728082060814,
+    "metric": {
+      "best_fitness": 1813.582275390625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 5.422787204384804,
+    "ms_per_step": 54.22787204384804,
+    "metric": {
+      "best_fitness": 4218.86328125
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.046332333236932755,
+    "ms_per_step": 0.46332333236932755,
+    "metric": {
+      "best_fitness": 252.0795440673828
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.1738984398543835,
+    "ms_per_step": 11.738984398543835,
+    "metric": {
+      "best_fitness": 2270.506591796875
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.5064094997942448,
+    "ms_per_step": 15.064094997942448,
+    "metric": {
+      "best_fitness": 5162.52587890625
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.050346989184617996,
+    "ms_per_step": 0.50346989184618,
+    "metric": {
+      "best_fitness": 20.659896850585938
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.16525248810648918,
+    "ms_per_step": 1.6525248810648918,
+    "metric": {
+      "best_fitness": 21.256454467773438
+    },
+    "note": "eager"
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "torch-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 1.3350186459720135,
+    "ms_per_step": 13.350186459720135,
+    "metric": {
+      "best_fitness": 21.29828643798828
+    },
+    "note": "eager"
+  }
+]

@@ -95,4 +95,35 @@ never trajectory-identical — `parity.ok` compares converged fitness/hv/igd
 within a 10% relative tolerance, matching `unit_test/etl/algorithms/parity/`.
 At very few generations (e.g. the 3-gen smoke runs) the relative error is
 naturally large (`ok=false`); the tolerance is meaningful for full 100-gen
-runs.
+runs. The relative-error metric also false-alarms when both sides converge
+to ~0 (e.g. `PSO/Sphere/100x10`, `CMAES/Sphere/100x10`).
+
+## Committed full-matrix run (etl-xla-cuda, GPU 3, 2026-09-04)
+
+`so_etl-xla-cuda.json` (36 records) + `mo_etl-xla-cuda.json` (12 records) are
+the full 100-gen matrix for the etl-xla-cuda backend; `so_torch-cpu.json` is
+the parity baseline generated alongside (run artifacts are committed for
+this run by task directive — see `results/` history for details). Known
+issues recorded in the JSONs:
+
+1. **MO: 12/12 `BackendError`** — the stablehlo v1 exporter (used by the xla
+   adapter) defers the `cumprod` (and `flip`) ops used by
+   `src/evox_etl/problems/numerical/dtlz.py`; every MO case fails at compile
+   time. The numpy backend runs the same cases fine, and both etl checkouts
+   (`/mnt/local-ssd/bchuang/etl`, `/mnt/local-ssd/bchuang/etl-xla-fixed`)
+   defer identically. Unblocking requires decomposing those ops in the etl
+   exporter or rewriting dtlz.py's evaluate formulas with v1-safe ops
+   (static trace-time loops over `multiply`/`concatenate` — `m` is static),
+   then re-running the MO groups.
+2. **CMA-ES pop ≫ dim: 6/6 `ValueError: math domain error`** — the classic
+   Hansen parametrization gives `c_c > 2` at (pop=1000, dim=50) and
+   (pop=10000, dim=100), so `sqrt(c_c·(2−c_c)·mu_eff)` goes negative and the
+   etl port raises at trace time. The torch implementation uses the same
+   formulas and silently corrupts (NaN) instead — same root cause, both
+   sides. Deterministic; not retryable.
+3. **`CMAES/Ackley/100x10` parity fails (rel ≈ 6584)** — torch-cpu converges
+   (best ≈ 0.003, all 7 seeds tested); the etl CMA-ES port stalls on
+   Ackley's flat plateau (best ≈ 20.35–20.6 on etl-numpy AND etl-xla-cuda;
+   sigma random-walks ~20–31, mean never descends; etl-numpy converges only
+   1/7 seeds). Not xla-specific — the port's dynamics diverge from torch's
+   on near-flat landscapes and need attention in `src/evox_etl`.
