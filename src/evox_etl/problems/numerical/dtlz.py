@@ -116,6 +116,41 @@ def _sample(config: DTLZConfig) -> etl.SymbolicTensor:
     return uniform_sampling(config.ref_num * config.m, config.m)[0]
 
 
+def _reverse_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+    """Axis-1 reversal without ``etl.flip`` (rejected by the compiled
+    backends' StableHLO exporter): gather with descending static indices
+    (``etl.gather`` has numpy ``take`` semantics). Requires a static ``k``
+    (DTLZ shapes are fully static)."""
+    k = x.shape[1]
+    return etl.gather(x, enp.arange(k - 1, -1, -1, dtype=etl.int32), axis=1)
+
+
+def _flip_cumprod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+    """``flip(cumprod(concat([ones, x], axis=1)), 1)`` without ``etl.flip`` /
+    ``etl.cumprod`` (both rejected by the compiled backends' StableHLO
+    exporter). For a row ``[x0, ..., x_{k-1}]`` this yields the suffix
+    products ``[prod(x0..x_{k-1}), ..., x0, 1]``: a prefix product scan
+    (static Python loop — ``k`` is static) reversed along axis 1, with the
+    trailing one appended. The prefix scan is sequential float multiply,
+    so it is bit-identical to numpy/torch ``cumprod``.
+
+    Requires a static ``k`` (DTLZ shapes are fully static)."""
+    y = _reverse_axis1(_prefix_prod_axis1(x))
+    ones = enp.ones((x.shape[0], 1), dtype=x.dtype)
+    return enp.concatenate([y, ones], axis=1)
+
+
+def _prefix_prod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+    """Prefix product along axis 1 via a static Python loop (``k`` static):
+    column ``i`` holds ``x[:, 0] * ... * x[:, i]``."""
+    acc = enp.ones((x.shape[0], 1), dtype=x.dtype)
+    cols = []
+    for i in range(x.shape[1]):
+        acc = acc * x[:, i : i + 1]
+        cols.append(acc)
+    return enp.concatenate(cols, axis=1)
+
+
 def evaluate_dtlz1(
     config: DTLZ1, problem_state: Any, X: etl.SymbolicTensor
 ) -> tuple[etl.SymbolicTensor, Any]:
@@ -133,17 +168,11 @@ def evaluate_dtlz1(
             keepdims=True,
         )
     )
-    flip_cumprod = etl.flip(
-        etl.cumprod(
-            enp.concatenate([enp.ones((n, 1), dtype=X.dtype), X[:, : m - 1]], axis=1),
-            axis=1,
-        ),
-        axes=[1],
-    )
+    flip_cumprod = _flip_cumprod_axis1(X[:, : m - 1])
     rest_part = enp.concatenate(
         [
             enp.ones((n, 1), dtype=X.dtype),
-            1 - etl.flip(X[:, : m - 1], axes=[1]),
+            1 - _reverse_axis1(X[:, : m - 1]),
         ],
         axis=1,
     )
@@ -160,23 +189,11 @@ def evaluate_dtlz2(
     g = enp.sum((X[:, m - 1 :] - 0.5) ** 2, axis=1, keepdims=True)
     f = (
         (1 + g)
-        * etl.flip(
-            etl.cumprod(
-                enp.concatenate(
-                    [
-                        enp.ones((X.shape[0], 1), dtype=X.dtype),
-                        enp.maximum(enp.cos(X[:, : m - 1] * pi / 2), 0.0),
-                    ],
-                    axis=1,
-                ),
-                axis=1,
-            ),
-            axes=[1],
-        )
+        * _flip_cumprod_axis1(enp.maximum(enp.cos(X[:, : m - 1] * pi / 2), 0.0))
         * enp.concatenate(
             [
                 enp.ones((X.shape[0], 1), dtype=X.dtype),
-                enp.sin(etl.flip(X[:, : m - 1], axes=[1]) * pi / 2),
+                enp.sin(_reverse_axis1(X[:, : m - 1]) * pi / 2),
             ],
             axis=1,
         )
@@ -203,23 +220,11 @@ def evaluate_dtlz3(
     )
     f = (
         (1 + g)
-        * etl.flip(
-            etl.cumprod(
-                enp.concatenate(
-                    [
-                        enp.ones((n, 1), dtype=X.dtype),
-                        enp.maximum(enp.cos(X[:, : m - 1] * pi / 2), 0.0),
-                    ],
-                    axis=1,
-                ),
-                axis=1,
-            ),
-            axes=[1],
-        )
+        * _flip_cumprod_axis1(enp.maximum(enp.cos(X[:, : m - 1] * pi / 2), 0.0))
         * enp.concatenate(
             [
                 enp.ones((n, 1), dtype=X.dtype),
-                enp.sin(etl.flip(X[:, : m - 1], axes=[1]) * pi / 2),
+                enp.sin(_reverse_axis1(X[:, : m - 1]) * pi / 2),
             ],
             axis=1,
         )
@@ -241,23 +246,11 @@ def evaluate_dtlz4(
 
     f = (
         (1 + g)
-        * etl.flip(
-            etl.cumprod(
-                enp.concatenate(
-                    [
-                        enp.ones((g.shape[0], 1), dtype=X.dtype),
-                        enp.maximum(enp.cos(Xfront * pi / 2), 0.0),
-                    ],
-                    axis=1,
-                ),
-                axis=1,
-            ),
-            axes=[1],
-        )
+        * _flip_cumprod_axis1(enp.maximum(enp.cos(Xfront * pi / 2), 0.0))
         * enp.concatenate(
             [
                 enp.ones((g.shape[0], 1), dtype=X.dtype),
-                enp.sin(etl.flip(Xfront, axes=[1]) * pi / 2),
+                enp.sin(_reverse_axis1(Xfront) * pi / 2),
             ],
             axis=1,
         )
@@ -283,23 +276,11 @@ def evaluate_dtlz5(
 
     f = (
         (1 + g)
-        * etl.flip(
-            etl.cumprod(
-                enp.concatenate(
-                    [
-                        enp.ones((g.shape[0], 1), dtype=X.dtype),
-                        enp.maximum(enp.cos(Xfront * pi / 2), 0.0),
-                    ],
-                    axis=1,
-                ),
-                axis=1,
-            ),
-            axes=[1],
-        )
+        * _flip_cumprod_axis1(enp.maximum(enp.cos(Xfront * pi / 2), 0.0))
         * enp.concatenate(
             [
                 enp.ones((g.shape[0], 1), dtype=X.dtype),
-                enp.sin(etl.flip(Xfront, axes=[1]) * pi / 2),
+                enp.sin(_reverse_axis1(Xfront) * pi / 2),
             ],
             axis=1,
         )
@@ -322,23 +303,11 @@ def evaluate_dtlz6(
 
     f = (
         etl.tile(1 + g, (1, m))
-        * etl.flip(
-            etl.cumprod(
-                enp.concatenate(
-                    [
-                        enp.ones((X.shape[0], 1), dtype=X.dtype),
-                        enp.maximum(enp.cos(Xfront * pi / 2), 0.0),
-                    ],
-                    axis=1,
-                ),
-                axis=1,
-            ),
-            axes=[1],
-        )
+        * _flip_cumprod_axis1(enp.maximum(enp.cos(Xfront * pi / 2), 0.0))
         * enp.concatenate(
             [
                 enp.ones((X.shape[0], 1), dtype=X.dtype),
-                enp.sin(etl.flip(Xfront, axes=[1]) * pi / 2),
+                enp.sin(_reverse_axis1(Xfront) * pi / 2),
             ],
             axis=1,
         )
