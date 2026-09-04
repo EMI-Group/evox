@@ -120,7 +120,9 @@ def _derive(config: CMAESConfig) -> _CMAESParams:
     chi_n = math.sqrt(dim) * (1 - 1 / (4 * dim) + 1 / (21 * dim**2))
     c_sigma = (mu_eff + 2) / (dim + mu_eff + 5)
     d_sigma = 1 + 2 * max(math.sqrt((mu_eff - 1) / (dim + 1)) - 1, 0) + c_sigma
-    c_c = (mu_eff + 2) / (dim + 4 + 2 * mu_eff / dim)
+    # Hansen-canonical formula (the mu_eff+2 variant drives c_c above 2 for
+    # large pop_size, making c_c * (2 - c_c) negative and sqrt(...) NaN).
+    c_c = (4 + mu_eff / dim) / (dim + 4 + 2 * mu_eff / dim)
     c_1 = 2 / ((dim + 1.3) ** 2 + mu_eff)
     c_mu = min(
         1 - c_1, 2 * (mu_eff - 2 + 1 / mu_eff) / ((float(dim) + 2) ** 2 + mu_eff)
