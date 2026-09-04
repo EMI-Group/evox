@@ -20,7 +20,7 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
-from evox_etl.algorithms._jit_fix_operator import _take_along_axis, clamp, minimum
+from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp, minimum
 from evox_etl.operators.crossover import simulated_binary_half
 from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling

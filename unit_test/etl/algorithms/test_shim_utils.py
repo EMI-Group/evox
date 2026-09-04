@@ -1,3 +1,9 @@
+"""Tests for the jit-fix utility helpers (``clamp``/``lexsort``/``nanmin``/...).
+
+Converted from the deprecated ``evox_etl.algorithms._shim_utils`` compat stub
+(a pure re-export of the staging module ``evox_etl.algorithms._jit_fix_operator``);
+now imports the staging module directly.
+"""
 import sys
 from pathlib import Path
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
@@ -6,7 +12,10 @@ import numpy as np
 import etl
 from etl import core
 
-from evox_etl.algorithms._shim_utils import (
+# TODO: repoint this import to `evox_etl.operators.jit_fix_operator` once the
+# staging module has been moved there (parallel task; the
+# `src/evox_etl/operators/jit_fix_operator.py` move has not landed yet).
+from evox_etl.algorithms._jit_fix_operator import (
     clamp, clamp_float, clamp_int, lexsort, maximum, maximum_int,
     minimum, minimum_int, nanmax, nanmin, randint,
 )
@@ -40,7 +49,7 @@ WITH_NAN = np.array([[1.0, 2.0, np.nan, 0.5],
                      [0.5, np.nan, 3.0, 1.0]], dtype=np.float32)
 
 
-def test_shim_utils():
+def test_jit_fix_utils():
     exe = etl.build(
         _exercise,
         core.TensorSpec(shape=(), dtype=np.dtype("int64")),

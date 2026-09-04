@@ -1,8 +1,14 @@
-"""Tests for the functional RVEA selection shim (no torch).
+"""Tests for the canonical RVEA selection operators (no torch).
 
-NOTE: temporary location — this file belongs in `unit_test/etl/algorithms/`
-(sibling node, not writable from the algorithms worker). The `parents[3]`
-sys.path shim resolves to the repo root from both locations.
+Converted from the deprecated ``evox_etl.algorithms._shim_selection_rvea``
+compat stub (which kept torch-faithful ``apd_fn``/``_cosine_similarity``
+implementations); now imports the canonical ``ref_vec_guided`` and ``apd_fn``
+directly. NOTE: the canonical ``apd_fn`` gathers ``norm_obj`` with ``relu(x)``
+where torch does ``norm_obj[x]`` (negative indices wrap to the last row) — a
+known latent divergence. The ``apd_fn`` test therefore uses non-negative
+partition indices where both semantics agree; ``_cosine_similarity`` no longer
+exists canonically (its math is inlined in ``ref_vec_guided`` and covered by
+the hand-verified reference below).
 """
 import sys
 from pathlib import Path
@@ -13,7 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 import etl
 import numpy as np
 
-from evox_etl.algorithms import _shim_selection_rvea as shim
+from evox_etl.operators.selection import ref_vec_guided
+from evox_etl.operators.selection.rvea_selection import apd_fn
 
 
 def _trace(fn, specs, static_args):
@@ -55,17 +62,23 @@ def _np_ref_ref_vec_guided(x, f, v, theta):
 
 
 def test_apd_fn_exact_values():
-    """apd_fn on tiny known tensors equals hand-computed values."""
+    """apd_fn on tiny known tensors equals hand-computed values.
+
+    ``x`` is chosen non-negative: the canonical ``apd_fn`` gathers ``norm_obj``
+    with ``relu(x)`` while torch does ``norm_obj[x]`` (negative indices wrap to
+    the last row). On this input ``relu(x) == x`` so the two agree; negative
+    entries would hit the known latent divergence.
+    """
     n, nv, m = 2, 2, 2
-    x = np.array([[0, -1], [1, 1]], dtype=np.int64)
+    x = np.array([[0, 0], [1, 1]], dtype=np.int64)
     y = np.array([1.0, 2.0], dtype=np.float32)
     z = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     obj = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     theta = 1.0
 
-    # Hand math: selected_z[i, j] = z[relu(x[i, j]), j]; left = (1 + m*theta*sel)/y[j];
-    # right = |obj|_x[i, j] (numpy wraps -1 to the last row, like torch).
-    selected_z = z[np.maximum(x, 0), np.arange(nv)]
+    # Hand math: selected_z[i, j] = z[relu(x[i, j]), j] = z[x[i, j], j] (x >= 0);
+    # left = (1 + m*theta*sel)/y[j]; right = |obj|_x[i, j].
+    selected_z = z[x, np.arange(nv)]
     left = (1 + m * theta * selected_z) / y[None, :]
     norm_obj = np.linalg.norm(obj, axis=1)
     expected = left * norm_obj[x]
@@ -73,7 +86,7 @@ def test_apd_fn_exact_values():
     assert np.isclose(expected[0, 0], 1.2 * np.sqrt(5.0))
 
     exe = _trace(
-        shim.apd_fn,
+        apd_fn,
         [
             etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("int64")),
             etl.core.TensorSpec(shape=y.shape, dtype=np.dtype("float32")),
@@ -95,7 +108,7 @@ def test_ref_vec_guided_known_selection():
     theta = 1.0
 
     exe = _trace(
-        shim.ref_vec_guided,
+        ref_vec_guided,
         [
             etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
             etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
@@ -121,6 +134,38 @@ def test_ref_vec_guided_known_selection():
     np.testing.assert_allclose(got_f.numpy(), ref_f, rtol=1e-5, atol=1e-6)
 
 
+def test_ref_vec_guided_nonorthogonal_vectors():
+    """ref_vec_guided with non-orthogonal reference vectors (exercises the
+    canonical inlined cosine-similarity computation, which replaced the old
+    shim-only ``_cosine_similarity`` helper) agrees with the hand-math reference."""
+    n, d, m, nv = 4, 2, 2, 2
+    x = np.array([[10.0, 20.0], [1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    f = np.array([[2.0, 1.0], [1.5, 0.5], [0.5, 2.0], [1.0, 1.0]], dtype=np.float32)
+    # vector 1 sits at 45deg from vector 0 (v[0] . v[1] / |v0||v1| = 1/sqrt(2))
+    v = np.array(
+        [[1.0, 0.0], [1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]], dtype=np.float32
+    )
+    theta = 1.0
+
+    exe = _trace(
+        ref_vec_guided,
+        [
+            etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
+            etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
+            etl.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
+        ],
+        [theta],
+    )
+    got_x, got_f = etl.run(exe, x, f, v, theta)
+    assert got_x.shape == (nv, d)
+    assert got_f.shape == (nv, m)
+    assert np.isfinite(got_x.numpy()).all()
+    assert np.isfinite(got_f.numpy()).all()
+    ref_x, ref_f = _np_ref_ref_vec_guided(x, f, v, theta)
+    np.testing.assert_allclose(got_x.numpy(), ref_x, rtol=1e-5, atol=1e-6)
+    np.testing.assert_allclose(got_f.numpy(), ref_f, rtol=1e-5, atol=1e-6)
+
+
 def test_ref_vec_guided_nan_solution_never_selected():
     """A solution with NaN fitness is never selected; outputs stay finite."""
     n, d, m, nv = 4, 2, 2, 2
@@ -131,7 +176,7 @@ def test_ref_vec_guided_nan_solution_never_selected():
     theta = 1.0
 
     exe = _trace(
-        shim.ref_vec_guided,
+        ref_vec_guided,
         [
             etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
             etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
@@ -149,35 +194,3 @@ def test_ref_vec_guided_nan_solution_never_selected():
     ref_x, ref_f = _np_ref_ref_vec_guided(x, f, v, theta)
     np.testing.assert_allclose(got_x.numpy(), ref_x, rtol=1e-5, atol=1e-6)
     np.testing.assert_allclose(got_f.numpy(), ref_f, rtol=1e-5, atol=1e-6)
-
-
-def test_cosine_similarity_replacement():
-    """Row-normalized-dot cosine: 0 for orthonormal pairs, 1/sqrt(2) at 45deg."""
-    v = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
-    a = v.reshape(2, 1, 2)  # (nv, 1, m) as passed by ref_vec_guided
-    b = v.reshape(1, 2, 2)  # (1, nv, m)
-    exe = etl.build(
-        shim._cosine_similarity,
-        etl.core.TensorSpec(shape=a.shape, dtype=np.dtype("float32")),
-        etl.core.TensorSpec(shape=b.shape, dtype=np.dtype("float32")),
-        backend="numpy",
-    )
-    got = etl.run(exe, a, b)
-    np.testing.assert_allclose(got.numpy(), np.eye(2), rtol=1e-5, atol=1e-6)
-
-    w = np.array(
-        [[1.0, 0.0], [1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]], dtype=np.float32
-    )
-    exe_w = etl.build(
-        shim._cosine_similarity,
-        etl.core.TensorSpec(shape=w.reshape(2, 1, 2).shape, dtype=np.dtype("float32")),
-        etl.core.TensorSpec(shape=w.reshape(1, 2, 2).shape, dtype=np.dtype("float32")),
-        backend="numpy",
-    )
-    got_w = etl.run(exe_w, w.reshape(2, 1, 2), w.reshape(1, 2, 2))
-    np.testing.assert_allclose(
-        got_w.numpy(),
-        np.array([[1.0, 1.0 / np.sqrt(2.0)], [1.0 / np.sqrt(2.0), 1.0]]),
-        rtol=1e-5,
-        atol=1e-6,
-    )

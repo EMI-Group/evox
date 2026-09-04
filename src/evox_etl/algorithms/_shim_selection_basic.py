@@ -13,7 +13,7 @@ from evox_etl.operators.selection import (
     tournament_selection_multifit as _canonical_tsm,
 )
 
-from ._jit_fix_operator import _take_along_axis  # noqa: F401  (kept for old importers)
+from ..operators.jit_fix_operator import _take_along_axis  # noqa: F401  (kept for old importers)
 
 
 def tournament_selection(key, n_round, fitness, tournament_size=2):

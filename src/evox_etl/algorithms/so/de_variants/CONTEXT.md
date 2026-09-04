@@ -25,7 +25,7 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 ## Constraints
 - Import crossover/sampling/selection operators from `evox_etl.operators`
   (canonical, torch-parity-verified) and the jit-fix utils (clamp, clamp_float,
-  `_take_along_axis`, ...) from `evox_etl.algorithms._jit_fix_operator` — NOT
+  `_take_along_axis`, ...) from `evox_etl.operators.jit_fix_operator` — NOT
   from the deprecated `evox_etl.algorithms._shim_*` test-compat stubs.
 - No torch/numpy in graph code (numpy only for baking constants via
   `etl.ops.constant(etl.core.tensor(np.asarray(...)))`).
@@ -69,4 +69,4 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 | JaDE / SHADE / SaDE / CoDE | `jade.py`, `shade.py`, `sade.py`, `code.py` |
 | Smoke tests (no torch) | `../../../../unit_test/etl/algorithms/so/de_variants/` (sibling — write via bash heredoc) |
 | Parity test (torch allowed) | `../../../../unit_test/etl/algorithms/parity/test_de_parity.py` (sibling) |
-| Canonical operators (import from) | `../../operators/crossover`, `../../operators/selection`, `../../_jit_fix_operator.py` |
+| Canonical operators (import from) | `../../../operators/crossover`, `../../../operators/selection`, `../../../operators/jit_fix_operator.py` |

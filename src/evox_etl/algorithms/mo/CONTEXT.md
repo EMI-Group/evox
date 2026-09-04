@@ -35,7 +35,7 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   pro_m=1.0, dis_m=20.0)` — lb/ub passed directly, no boundary stack);
   `uniform_sampling` from `evox_etl.operators.sampling`; and `clamp`,
   `minimum`, `lexsort`, `nanmax`, `nanmin`, `randint`, `_take_along_axis`
-  from `evox_etl.algorithms._jit_fix_operator` (staging copy of the torch
+  from `evox_etl.operators.jit_fix_operator` (canonical port of the torch
   `utils/jit_fix_operator` helpers).
 - RNG: `key, subkey = random.split(state.key)` (returns TWO keys); several draws
   → `random.split_n(key, n)`; advanced `key` stored back. Ask/tell deterministic
@@ -70,7 +70,7 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
   one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
 - `etl.gather` = numpy `take`: row-local gathers → `_take_along_axis` from
-  `evox_etl.algorithms._jit_fix_operator`; `etl.scatter` = put_along_axis
+  `evox_etl.operators.jit_fix_operator`; `etl.scatter` = put_along_axis
   replacement (no scatter-add — torch NSGA3 `scatter_add` → one-hot sum).
 - No `&`/`!=`/`%` overloads → `enp.logical_and`, `etl.not_equal`,
   `etl.remainder`. `enp.zeros/enp.full` (not `etl.zeros`); Python-int tensor

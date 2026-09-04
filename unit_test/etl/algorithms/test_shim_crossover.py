@@ -1,3 +1,10 @@
+"""Tests for the canonical crossover operators in ``evox_etl.operators.crossover``.
+
+Converted from the deprecated ``evox_etl.algorithms._shim_crossover`` compat
+stub (which re-exported the canonical operators and pinned the sampled index of
+``DE_differential_sum`` to int32). Now imports the canonical operators directly
+and asserts the canonical dtypes.
+"""
 import sys
 from pathlib import Path
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
@@ -6,7 +13,7 @@ import numpy as np
 import etl
 from etl import core
 
-from evox_etl.algorithms._shim_crossover import (
+from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
@@ -33,7 +40,7 @@ def _exercise(key, x, num_diff_vects, index, population, mutation, current, CR, 
     return out_sbx, out_half, ds_r, first_r, ds_nr, first_nr, ds_f, out_bin, out_exp, out_arith
 
 
-class TestShimCrossover:
+class TestCrossoverOperators:
     @classmethod
     def setup_class(cls):
         specs = [
@@ -86,7 +93,11 @@ class TestShimCrossover:
             assert ds.shape == (POP, DIM) and ds.dtype == np.float32
             assert np.isfinite(ds).all()
         assert first_r.shape == (POP,) and first_r.dtype == np.int32
-        assert first_nr.shape == (POP,) and first_nr.dtype == np.int32
+        # canonical: with replace=False the fix-up `etl.select(rand_indices == index,
+        # pop_size - 1, rand_indices)` promotes the int32 draws to int64 via the
+        # python-int scalar (torch promotes the same way) — the old shim cast this
+        # back to int32; the canonical operator does not.
+        assert first_nr.shape == (POP,) and first_nr.dtype == np.int64
         assert (first_r >= 0).all() and (first_r < POP).all()
         assert (first_nr != 3).all()
         assert np.array_equal(ds_f, ds_nr * np.float32(0.8))
