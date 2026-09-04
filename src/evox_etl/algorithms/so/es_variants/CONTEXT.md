@@ -40,6 +40,17 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
 (no jump-ahead counter streams) and evox_etl's contract is tensor-only
 `(n, dim)` populations. Full analysis: see `src/evox_etl/algorithms/CONTEXT.md`.
 
+## Known Issues
+- `asebo.py:117` uses `etl.svd` (full reduced SVD: U, S, Vh), which etl's
+  stablehlo-v1 exporter DEFERS (`BackendError` on compiled backends
+  iree/xla). Runs fine on the etl-numpy backend (unit tests green) but would
+  fail to export like the NSGA3 `matrix_rank`/`solve` blocker did. The NSGA3
+  fix pattern (eigh-based equivalents, see `src/evox_etl/algorithms/mo/nsga3.py`)
+  is the reference if asebo is ever benchmarked on compiled backends;
+  reconstructing a full two-factor SVD (U and Vh) via eigh is possible but was
+  deliberately NOT attempted here because it's unstable for rank-deficient
+  inputs and asebo is not currently in the benchmark suite.
+
 ## Notes for agents (verified — do not re-investigate)
 - All functions are PLAIN (no `@etl.defn`); traced via `etl.build`/`etl.run`.
 - Known torch bugs NOT replicated: XNES/SeparableNES use `self.dim` before it
