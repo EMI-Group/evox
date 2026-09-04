@@ -202,10 +202,41 @@ def tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSG
     ex_idx = etl.argmin(etl.max(t, axes=2), axis=1)  # (n_objs,)
     extreme = etl.gather(norm_fit, ex_idx, axis=0)  # (n_objs, n_objs)
 
-    # Hyperplane intercepts. numpy linalg.solve RAISES on singular matrices,
-    # so the solve must live behind etl.cond and never run unconditionally.
+    # Full-rank test (torch ``torch.linalg.matrix_rank(extreme) == n_objs``).
+    # ``etl.matrix_rank``/``etl.svd`` are deferred by the stablehlo-v1
+    # exporter (BackendError), so the rank is recomputed from the exportable
+    # ``eigh``: the singular values of ``extreme`` are sqrt(eigvalsh(AᵀA)),
+    # and rank = count(s > tol) with numpy/torch's default cutoff
+    # tol = s_max * n * eps32. AᵀA is accumulated in float64 so the eigh
+    # noise floor (~1e-8 * s_max) sits far below the cutoff (~1e-7 * s_max):
+    # the test then agrees with SVD-based matrix_rank except for a razor-thin
+    # band around the cutoff itself.
+    extreme64 = etl.cast(extreme, "float64")
+    gram = etl.dot(etl.transpose(extreme64, axes=(1, 0)), extreme64)
+    evals, _ = etl.eigh(gram)  # ascending eigenvalues, >= 0 (AᵀA is PSD)
+    sing = etl.sqrt(enp.maximum(evals, 0.0))
+    tol = etl.max(sing, axes=None) * n_objs * float(np.finfo(np.float32).eps)
+    full_rank = etl.sum(etl.cast(sing > tol, etl.int32), axes=None) == n_objs
+
+    # Hyperplane intercepts. The full-rank guard above keeps the solve safe
+    # for deficient ``extreme`` matrices (numpy linalg.solve would RAISE on
+    # them); inside the guarded branch the solve runs on a full-rank matrix.
     def _hyperplane(extreme, norm_fit, in_mask, n_objs):
-        return 1.0 / etl.solve(extreme, enp.full((n_objs,), 1.0, dtype="float32"))
+        # torch: hyperplane = solve(extreme, ones); intercepts = 1/hyperplane.
+        # ``etl.solve`` is deferred by the stablehlo exporter too, so the
+        # system is solved via the normal equations (AᵀA)⁻¹Aᵀ·b with an
+        # eigh-based inverse — float64 keeps it near the numpy LU solve's
+        # accuracy for the well-conditioned matrices that pass the guard.
+        a64 = etl.cast(extreme, "float64")
+        b64 = enp.full((n_objs, 1), 1.0, dtype="float64")
+        gram = etl.dot(etl.transpose(a64, axes=(1, 0)), a64)
+        evals, evecs = etl.eigh(gram)
+        c = etl.dot(etl.transpose(a64, axes=(1, 0)), b64)  # (n_objs, 1)
+        y = etl.dot(etl.transpose(evecs, axes=(1, 0)), c) / enp.reshape(
+            evals, (n_objs, 1)
+        )
+        hyperplane = enp.reshape(etl.dot(evecs, y), (n_objs,))
+        return etl.cast(1.0 / hyperplane, "float32")
 
     def _fallback(extreme, norm_fit, in_mask, n_objs):
         return etl.max(
@@ -213,7 +244,7 @@ def tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSG
         )
 
     intercepts = etl.cond(
-        etl.matrix_rank(extreme) == n_objs,
+        full_rank,
         _hyperplane,
         _fallback,
         extreme,

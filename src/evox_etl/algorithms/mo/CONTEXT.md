@@ -50,6 +50,15 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   unmatched vectors). Both: mating pool always draws the FIXED n_v, and the
   torch `_mating_pool` arange/sorted_indices spans `pop.shape[0]` rows — never
   derive n_v from `pop.shape[0]`.
+- NSGA3 tell's linalg is decomposed into exporter-safe ops (the stablehlo-v1
+  exporter DEFERS `matrix_rank`/`svd`/`solve` → BackendError — escalated to
+  the root agent): the torch `matrix_rank(extreme) == n_objs` guard becomes
+  rank = count(sqrt(eigvalsh(AᵀA)) > s_max·n·eps32) with AᵀA accumulated in
+  float64 (noise floor ~1e-8·s_max « cutoff ~1e-7·s_max; verified ≡
+  `etl.matrix_rank` on 14k random/singular/near-singular matrices), and the
+  torch `solve(extreme, ones)` hyperplane becomes the eigh-based normal
+  equations (AᵀA)⁻¹Aᵀ·1 in float64 (≤1.2e-7 rel vs the numpy LU solve even
+  at cond 1e5). Both build+run on iree-llvm-cpu and xla-cuda.
 
 ## ETL gotchas (verified — do not re-investigate)
 - MOEAD tell's while_loop: z is a loop carry updated PER-i BEFORE the PBI
@@ -64,8 +73,9 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(...,
   stable=True)` → int64 indices. `random.permutation(key, n, dtype=int32)`.
 - `etl.cond(pred, true_fn, false_fn, *operands)` — NSGA3 uses it for the
-  hyperplane solve (numpy `linalg.solve` RAISES on singular matrices; never
-  compute it unconditionally).
+  hyperplane branch: the full-rank guard keeps the solve off deficient
+  `extreme` matrices (numpy `linalg.solve` would RAISE there; never compute
+  it unconditionally).
 - No boolean/advanced indexing with dynamic masks (no dynamic shapes): select
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
   one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
