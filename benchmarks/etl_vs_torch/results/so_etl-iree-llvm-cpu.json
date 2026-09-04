@@ -159,17 +159,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.11406546831131,
+    "compile_time_s": 2.8384514190256596,
     "warmup_steps": 2,
-    "run_time_s": 2.4840021543204784,
-    "ms_per_step": 24.840021543204784,
+    "run_time_s": 2.7715901732444763,
+    "ms_per_step": 27.715901732444763,
     "metric": {
-      "best_fitness": 2.7267321733859262e-09
+      "best_fitness": 1.2788502479210706e-09
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9977241168935045,
+      "rel_err": 0.9938030392948606,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -184,17 +184,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.8222426995635033,
+    "compile_time_s": 2.622305426746607,
     "warmup_steps": 2,
-    "run_time_s": 1.928096055984497,
-    "ms_per_step": 19.28096055984497,
+    "run_time_s": 2.4428637735545635,
+    "ms_per_step": 24.428637735545635,
     "metric": {
-      "best_fitness": 20.86407470703125
+      "best_fitness": 1.01446533203125
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 8.82713813425327,
+      "rel_err": 0.961161078357834,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -209,19 +209,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.397623226046562,
+    "compile_time_s": 2.7801116332411766,
     "warmup_steps": 2,
-    "run_time_s": 1.8920831233263016,
-    "ms_per_step": 18.920831233263016,
+    "run_time_s": 2.9061715602874756,
+    "ms_per_step": 29.061715602874756,
     "metric": {
-      "best_fitness": 20.50030517578125
+      "best_fitness": 20.580921173095703
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 6554.696248856359,
+      "rel_err": 5676.626940278874,
       "ok": false,
-      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -459,17 +459,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.0415088534355164,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 127.3258086591959,
+    "ms_per_step": 1273.258086591959,
+    "metric": {
+      "best_fitness": 35.75709915161133
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.4666828896718819,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -482,17 +484,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 2.8920715153217316,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 128.34186285734177,
+    "ms_per_step": 1283.4186285734177,
+    "metric": {
+      "best_fitness": 428.93194580078125
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.12408173500996554,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -505,17 +509,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.0031019784510136,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 134.00864842906594,
+    "ms_per_step": 1340.0864842906594,
+    "metric": {
+      "best_fitness": 21.131744384765625
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 1.8879822244651334,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -753,17 +759,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.098013263195753,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 2288.268555920571,
+    "ms_per_step": 22882.68555920571,
+    "metric": {
+      "best_fitness": 201.46726989746094
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.3148666825867747,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -776,17 +784,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 2.894337296485901,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 2192.151988580823,
+    "ms_per_step": 21921.51988580823,
+    "metric": {
+      "best_fitness": 1164.2821044921875
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.07691721791813251,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -799,17 +809,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 2.9991114512085915,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "ValueError: math domain error",
+    "run_time_s": 2189.362295463681,
+    "ms_per_step": 21893.622954636812,
+    "metric": {
+      "best_fitness": 21.218177795410156
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.781076293729341,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
