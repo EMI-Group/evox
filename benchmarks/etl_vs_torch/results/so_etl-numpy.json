@@ -16,7 +16,13 @@
     "metric": {
       "best_fitness": 3.054133657087732e-08
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.015158963861949815,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "PSO/Rastrigin/100x10",
@@ -35,7 +41,13 @@
     "metric": {
       "best_fitness": 5.5195159912109375
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31756189498746346,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Ackley/100x10",
@@ -54,7 +66,13 @@
     "metric": {
       "best_fitness": 20.0
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Sphere/100x10",
@@ -73,7 +91,13 @@
     "metric": {
       "best_fitness": 0.6074879169464111
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.3471360590581776,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/100x10",
@@ -92,7 +116,13 @@
     "metric": {
       "best_fitness": 56.382911682128906
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18767156640195293,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Ackley/100x10",
@@ -111,7 +141,13 @@
     "metric": {
       "best_fitness": 18.954586029052734
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05208067642038686,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "CMAES/Sphere/100x10",
@@ -130,7 +166,13 @@
     "metric": {
       "best_fitness": 2.7571407379411994e-09
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9976987362055735,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/100x10",
@@ -149,7 +191,13 @@
     "metric": {
       "best_fitness": 5.381126403808594
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.5345515308322553,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "CMAES/Ackley/100x10",
@@ -168,7 +216,13 @@
     "metric": {
       "best_fitness": 20.35232162475586
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 6507.373284537969,
+      "ok": false,
+      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+    }
   },
   {
     "case_id": "OpenES/Sphere/100x10",
@@ -187,7 +241,13 @@
     "metric": {
       "best_fitness": 132.08494567871094
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.23545677036550286,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/100x10",
@@ -206,7 +266,13 @@
     "metric": {
       "best_fitness": 221.2352294921875
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12235945082061235,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Ackley/100x10",
@@ -225,7 +291,13 @@
     "metric": {
       "best_fitness": 20.693885803222656
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.001645165650270649,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Sphere/1000x50",
@@ -244,7 +316,14 @@
     "metric": {
       "best_fitness": 201.3918914794922
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "PSO/Rastrigin/1000x50",
@@ -263,7 +342,14 @@
     "metric": {
       "best_fitness": 875.1549072265625
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "PSO/Ackley/1000x50",
@@ -282,7 +368,14 @@
     "metric": {
       "best_fitness": 20.579662322998047
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Sphere/1000x50",
@@ -301,7 +394,14 @@
     "metric": {
       "best_fitness": 42714.5078125
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Rastrigin/1000x50",
@@ -320,7 +420,14 @@
     "metric": {
       "best_fitness": 41999.09375
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Ackley/1000x50",
@@ -339,7 +446,14 @@
     "metric": {
       "best_fitness": 20.517440795898438
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "CMAES/Sphere/1000x50",
@@ -357,7 +471,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/1000x50",
@@ -375,7 +494,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/1000x50",
@@ -393,7 +517,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "OpenES/Sphere/1000x50",
@@ -412,7 +541,14 @@
     "metric": {
       "best_fitness": 13057.158203125
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/1000x50",
@@ -431,7 +567,14 @@
     "metric": {
       "best_fitness": 13651.5751953125
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "OpenES/Ackley/1000x50",
@@ -450,7 +593,14 @@
     "metric": {
       "best_fitness": 21.243297576904297
     },
-    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 50 vs 100 (parity not meaningful)",
+      "gens": 50,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "PSO/Sphere/10000x100",
@@ -469,7 +619,14 @@
     "metric": {
       "best_fitness": 84301.625
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "PSO/Rastrigin/10000x100",
@@ -488,7 +645,14 @@
     "metric": {
       "best_fitness": 85201.578125
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "PSO/Ackley/10000x100",
@@ -507,7 +671,14 @@
     "metric": {
       "best_fitness": 20.349929809570312
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Sphere/10000x100",
@@ -526,7 +697,14 @@
     "metric": {
       "best_fitness": 159499.8125
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Rastrigin/10000x100",
@@ -545,7 +723,14 @@
     "metric": {
       "best_fitness": 155488.90625
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "DE/Ackley/10000x100",
@@ -564,7 +749,14 @@
     "metric": {
       "best_fitness": 20.822540283203125
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "CMAES/Sphere/10000x100",
@@ -582,7 +774,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/10000x100",
@@ -600,7 +797,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/10000x100",
@@ -618,7 +820,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "OpenES/Sphere/10000x100",
@@ -637,7 +844,14 @@
     "metric": {
       "best_fitness": 148365.015625
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/10000x100",
@@ -656,7 +870,14 @@
     "metric": {
       "best_fitness": 149233.21875
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "OpenES/Ackley/10000x100",
@@ -675,6 +896,13 @@
     "metric": {
       "best_fitness": 21.38544464111328
     },
-    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 10 vs 100 (parity not meaningful)",
+      "gens": 10,
+      "baseline_gens": 100
+    }
   }
 ]

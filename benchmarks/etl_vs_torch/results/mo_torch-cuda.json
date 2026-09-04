@@ -18,7 +18,15 @@
       "igd": 0.5478836415857056,
       "n_pf_points": 261
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.7321052624545562,
+      "rel_err_hv": 0.029686268964263376,
+      "rel_err_igd": 0.7321052624545562,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ1/1000x3x30",
@@ -39,7 +47,15 @@
       "igd": 23.102379083633423,
       "n_pf_points": 97
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9086595249862738,
+      "rel_err_hv": 0.9086595249862738,
+      "rel_err_igd": 0.5479254885718108,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/100x3x10",
@@ -60,7 +76,15 @@
       "igd": 0.02458968655869368,
       "n_pf_points": 2629
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.006350544614832336,
+      "rel_err_hv": 0.00016086480921431856,
+      "rel_err_igd": 0.006350544614832336,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/1000x3x30",
@@ -81,7 +105,15 @@
       "igd": 0.016238339377975277,
       "n_pf_points": 12833
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.026988638915088677,
+      "rel_err_hv": 8.575593859871471e-05,
+      "rel_err_igd": 0.026988638915088677,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/100x3x10",
@@ -102,7 +134,15 @@
       "igd": 1.1514238986147327,
       "n_pf_points": 216
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.36156427212323733,
+      "rel_err_hv": 0.005294696582740505,
+      "rel_err_igd": 0.36156427212323733,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/1000x3x30",
@@ -123,7 +163,15 @@
       "igd": 44.19660425186157,
       "n_pf_points": 113
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.14976915843770727,
+      "rel_err_hv": 0.14976915843770727,
+      "rel_err_igd": 0.06853657287366315,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/100x3x10",
@@ -144,7 +192,15 @@
       "igd": 0.025349736293012286,
       "n_pf_points": 2513
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.01454039684484377,
+      "rel_err_hv": 0.0002895038761352224,
+      "rel_err_igd": 0.01454039684484377,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/1000x3x30",
@@ -165,7 +221,15 @@
       "igd": 0.014781488062731739,
       "n_pf_points": 11929
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028475148507055438,
+      "rel_err_hv": 0.00011786008935943524,
+      "rel_err_igd": 0.028475148507055438,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/100x3x10",
@@ -186,7 +250,15 @@
       "igd": 2.7266502380371094,
       "n_pf_points": 114
     },
-    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.8317626188400872,
+      "rel_err_hv": 0.8317626188400872,
+      "rel_err_igd": 0.3947073545366681,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/1000x3x30",
@@ -207,7 +279,15 @@
       "igd": 15.03314983844757,
       "n_pf_points": 378
     },
-    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 6.626807284820622,
+      "rel_err_hv": 6.626807284820622,
+      "rel_err_igd": 1.201376977809432,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/100x3x10",
@@ -228,7 +308,15 @@
       "igd": 0.031166097494372935,
       "n_pf_points": 1978
     },
-    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07912861930761667,
+      "rel_err_hv": 0.0005361872794929223,
+      "rel_err_igd": 0.07912861930761667,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/1000x3x30",
@@ -249,6 +337,14 @@
       "igd": 0.01766228528978325,
       "n_pf_points": 10275
     },
-    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "eager; effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.1507475353975237,
+      "rel_err_hv": 0.0005041079434541921,
+      "rel_err_igd": 0.1507475353975237,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   }
 ]

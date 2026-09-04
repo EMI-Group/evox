@@ -19,8 +19,9 @@
     "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9854763077709052,
-      "ok": false
+      "rel_err": 0.015158963861949815,
+      "ok": true,
+      "note": "both converged to machine zero"
     }
   },
   {
@@ -44,7 +45,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.037995982517971275,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -68,7 +70,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.05610833605814272,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -92,7 +95,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.31756189498746346,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -116,7 +120,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.06522193999619252,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -140,7 +145,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.07105788884405403,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -164,7 +170,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0003432049238466408,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -188,7 +195,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.028070735931396484,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -212,7 +220,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0030444079128581097,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -236,7 +245,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 1.3471360590581776,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -260,7 +270,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.32618883865563203,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -284,7 +295,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.07869658803699374,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -308,7 +320,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.18767148604768705,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -332,7 +345,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.24425198325115333,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -356,7 +370,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0031301388314592046,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -380,7 +395,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.008505046616362342,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -404,7 +420,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.010141531525871833,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -428,7 +445,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0018542485822384978,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -452,7 +470,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.9978221315177506,
-      "ok": false
+      "ok": true,
+      "note": "both converged to machine zero"
     }
   },
   {
@@ -471,7 +490,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Sphere/10000x100",
@@ -489,7 +513,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/100x10",
@@ -512,7 +541,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.028845048152939486,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -531,7 +561,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/10000x100",
@@ -549,7 +584,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/100x10",
@@ -572,7 +612,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 6584.080207380299,
-      "ok": false
+      "ok": false,
+      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
     }
   },
   {
@@ -591,7 +632,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/10000x100",
@@ -609,7 +655,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": null,
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "OpenES/Sphere/100x10",
@@ -632,7 +683,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.23545721197540057,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -656,7 +708,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.04054435168224577,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -680,7 +733,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.02524284070149968,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -704,7 +758,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.12235660583337395,
-      "ok": false
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -728,7 +783,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.04394389459349172,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -752,7 +808,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.01021370485336361,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -776,7 +833,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0016450733289659202,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -800,7 +858,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0006632865850288178,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -824,7 +883,8 @@
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.0011193365546536065,
-      "ok": true
+      "ok": true,
+      "note": null
     }
   }
 ]

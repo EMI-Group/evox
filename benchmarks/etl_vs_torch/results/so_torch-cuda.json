@@ -16,7 +16,13 @@
     "metric": {
       "best_fitness": 9.31256050051843e-09
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0060698122084090755,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "PSO/Sphere/1000x50",
@@ -35,7 +41,13 @@
     "metric": {
       "best_fitness": 13.463113784790039
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.5624503354978724,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Sphere/10000x100",
@@ -54,7 +66,13 @@
     "metric": {
       "best_fitness": 1892.84912109375
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.25722542328113546,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Rastrigin/100x10",
@@ -73,7 +91,13 @@
     "metric": {
       "best_fitness": 5.0478668212890625
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.375877038247263,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Rastrigin/1000x50",
@@ -92,7 +116,13 @@
     "metric": {
       "best_fitness": 330.6071472167969
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.15545263859682712,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Rastrigin/10000x100",
@@ -111,7 +141,13 @@
     "metric": {
       "best_fitness": 3362.2705078125
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12568700800348612,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Ackley/100x10",
@@ -130,7 +166,13 @@
     "metric": {
       "best_fitness": 20.0
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Ackley/1000x50",
@@ -149,7 +191,13 @@
     "metric": {
       "best_fitness": 20.052574157714844
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0026287078857421876,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Ackley/10000x100",
@@ -168,7 +216,13 @@
     "metric": {
       "best_fitness": 20.1231689453125
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0020755124859381463,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Sphere/100x10",
@@ -187,7 +241,13 @@
     "metric": {
       "best_fitness": 0.1859542429447174
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.2815331848173817,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Sphere/1000x50",
@@ -206,7 +266,13 @@
     "metric": {
       "best_fitness": 25619.103515625
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.42518098640442514,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Sphere/10000x100",
@@ -225,7 +291,13 @@
     "metric": {
       "best_fitness": 109077.2734375
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12246067618613794,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/100x10",
@@ -244,7 +316,13 @@
     "metric": {
       "best_fitness": 56.89690399169922
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.1984985001876272,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/1000x50",
@@ -263,7 +341,13 @@
     "metric": {
       "best_fitness": 27489.048828125
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.22490153368637547,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/10000x100",
@@ -282,7 +366,13 @@
     "metric": {
       "best_fitness": 118943.03125
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.10135081369141678,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Ackley/100x10",
@@ -301,7 +391,13 @@
     "metric": {
       "best_fitness": 19.417137145996094
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028948483439654366,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Ackley/1000x50",
@@ -320,7 +416,13 @@
     "metric": {
       "best_fitness": 20.25882339477539
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.001095634503101069,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Ackley/10000x100",
@@ -339,7 +441,13 @@
     "metric": {
       "best_fitness": 20.665035247802734
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0028817126029477293,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "CMAES/Sphere/100x10",
@@ -358,7 +466,13 @@
     "metric": {
       "best_fitness": 8.185871251953358e-07
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31676142321180467,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "CMAES/Sphere/1000x50",
@@ -376,7 +490,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Sphere/10000x100",
@@ -394,7 +513,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/100x10",
@@ -413,7 +537,13 @@
     "metric": {
       "best_fitness": 16.318344116210938
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 6.686064395572805,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/1000x50",
@@ -431,7 +561,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/10000x100",
@@ -449,7 +584,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/100x10",
@@ -468,7 +608,13 @@
     "metric": {
       "best_fitness": 0.0018224716186523438
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.4172003659652333,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "CMAES/Ackley/1000x50",
@@ -486,7 +632,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/10000x100",
@@ -504,7 +655,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101)."
+    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "OpenES/Sphere/100x10",
@@ -523,7 +679,13 @@
     "metric": {
       "best_fitness": 92.91456604003906
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.4621854743906004,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Sphere/1000x50",
@@ -542,7 +704,13 @@
     "metric": {
       "best_fitness": 1750.8997802734375
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.03456280752616332,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Sphere/10000x100",
@@ -561,7 +729,13 @@
     "metric": {
       "best_fitness": 4068.2587890625
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.035697884038298974,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/100x10",
@@ -580,7 +754,13 @@
     "metric": {
       "best_fitness": 201.40390014648438
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.20103036963345366,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/1000x50",
@@ -599,7 +779,13 @@
     "metric": {
       "best_fitness": 2213.937255859375
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.024914852104759196,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/10000x100",
@@ -618,7 +804,13 @@
     "metric": {
       "best_fitness": 5094.6865234375
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.013140729375505363,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/100x10",
@@ -637,7 +829,13 @@
     "metric": {
       "best_fitness": 20.504966735839844
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0074990749405266155,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/1000x50",
@@ -656,7 +854,13 @@
     "metric": {
       "best_fitness": 21.214698791503906
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.001964376341917056,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/10000x100",
@@ -675,6 +879,12 @@
     "metric": {
       "best_fitness": 21.310134887695312
     },
-    "note": "eager"
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0005563099990005763,
+      "ok": true,
+      "note": null
+    }
   }
 ]

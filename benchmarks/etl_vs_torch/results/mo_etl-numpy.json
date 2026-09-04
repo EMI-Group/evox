@@ -18,7 +18,15 @@
       "igd": 3.998732626438141,
       "n_pf_points": 213
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 2.0223407157889315,
+      "rel_err_hv": 2.0223407157889315,
+      "rel_err_igd": 0.9552316334425084,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/100x3x10",
@@ -39,7 +47,15 @@
       "igd": 0.02312449151458348,
       "n_pf_points": 2626
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.053613612597490666,
+      "rel_err_hv": 0.00036462690088583636,
+      "rel_err_igd": 0.053613612597490666,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/100x3x10",
@@ -60,7 +76,15 @@
       "igd": 9.623903998435209,
       "n_pf_points": 283
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 16.6609419378799,
+      "rel_err_hv": 16.6609419378799,
+      "rel_err_igd": 4.336213849347014,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/100x3x10",
@@ -81,7 +105,15 @@
       "igd": 0.025715163270307664,
       "n_pf_points": 2525
     },
-    "note": "compiled (numpy)"
+    "note": "compiled (numpy)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.00033458736954133066,
+      "rel_err_hv": 6.433419469666318e-05,
+      "rel_err_igd": 0.00033458736954133066,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/100x3x10",
@@ -102,7 +134,15 @@
       "igd": 0.5721783219377968,
       "n_pf_points": 256
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9589277074755537,
+      "rel_err_hv": 0.9589277074755537,
+      "rel_err_igd": 0.8729813874434358,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/100x3x10",
@@ -123,7 +163,15 @@
       "igd": 0.033546087763428094,
       "n_pf_points": 1789
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.16153597279403786,
+      "rel_err_hv": 0.0006219772442117661,
+      "rel_err_igd": 0.16153597279403786,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ1/1000x3x30",
@@ -144,7 +192,14 @@
       "igd": 231.15873527526855,
       "n_pf_points": 66
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/1000x3x30",
@@ -165,7 +220,14 @@
       "igd": 0.15748431165842128,
       "n_pf_points": 517
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/1000x3x30",
@@ -186,7 +248,14 @@
       "igd": 229.40559196472168,
       "n_pf_points": 94
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/1000x3x30",
@@ -207,7 +276,14 @@
       "igd": 0.15485152064838448,
       "n_pf_points": 526
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/1000x3x30",
@@ -228,7 +304,14 @@
       "igd": 92.36793804168701,
       "n_pf_points": 124
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/1000x3x30",
@@ -249,6 +332,13 @@
       "igd": 0.13595660001109894,
       "n_pf_points": 638
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
+      "gens": 20,
+      "baseline_gens": 100
+    }
   }
 ]

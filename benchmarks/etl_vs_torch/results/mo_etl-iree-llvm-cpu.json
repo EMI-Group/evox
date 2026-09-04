@@ -15,7 +15,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/100x3x10",
@@ -33,7 +38,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/100x3x10",
@@ -51,7 +61,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/100x3x10",
@@ -69,7 +84,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/100x3x10",
@@ -87,7 +107,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/100x3x10",
@@ -105,7 +130,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ1/1000x3x30",
@@ -123,7 +153,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA2/DTLZ2/1000x3x30",
@@ -141,7 +176,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ1/1000x3x30",
@@ -159,7 +199,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "NSGA3/DTLZ2/1000x3x30",
@@ -177,7 +222,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ1/1000x3x30",
@@ -195,7 +245,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:137 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "MOEAD/DTLZ2/1000x3x30",
@@ -213,6 +268,11 @@
     "ms_per_step": null,
     "metric": null,
     "note": "documented: iree-cuda while-loop shape issue",
-    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter"
+    "error": "BackendError: stablehlo export: op 'cumprod' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A108/src/evox_etl/problems/numerical/dtlz.py:164 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   }
 ]

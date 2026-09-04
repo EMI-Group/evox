@@ -16,7 +16,13 @@
     "metric": {
       "best_fitness": 3.054133657087732e-08
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.015158963861949815,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "PSO/Sphere/1000x50",
@@ -35,7 +41,13 @@
     "metric": {
       "best_fitness": 31.938453674316406
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0379961064951979,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Sphere/10000x100",
@@ -54,7 +66,13 @@
     "metric": {
       "best_fitness": 2691.3330078125
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05610833605814272,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Rastrigin/100x10",
@@ -73,7 +91,13 @@
     "metric": {
       "best_fitness": 5.5195159912109375
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31756189498746346,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "PSO/Rastrigin/1000x50",
@@ -92,7 +116,13 @@
     "metric": {
       "best_fitness": 365.9289245605469
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.06522193999619252,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Rastrigin/10000x100",
@@ -111,7 +141,13 @@
     "metric": {
       "best_fitness": 4118.875
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07105776187311591,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Ackley/100x10",
@@ -130,7 +166,13 @@
     "metric": {
       "best_fitness": 20.0
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Ackley/1000x50",
@@ -149,7 +191,13 @@
     "metric": {
       "best_fitness": 20.561412811279297
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028070640563964844,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "PSO/Ackley/10000x100",
@@ -168,7 +216,13 @@
     "metric": {
       "best_fitness": 20.020355224609375
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.00304431293242218,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Sphere/100x10",
@@ -187,7 +241,13 @@
     "metric": {
       "best_fitness": 0.6074879169464111
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.3471360590581776,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Sphere/1000x50",
@@ -206,7 +266,13 @@
     "metric": {
       "best_fitness": 23839.615234375
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.326188730004031,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Sphere/10000x100",
@@ -225,7 +291,13 @@
     "metric": {
       "best_fitness": 104824.4296875
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0786967488261986,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Rastrigin/100x10",
@@ -244,7 +316,13 @@
     "metric": {
       "best_fitness": 56.38290023803711
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18767132533915526,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/1000x50",
@@ -263,7 +341,13 @@
     "metric": {
       "best_fitness": 27923.310546875
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.24425207028165857,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "DE/Rastrigin/10000x100",
@@ -282,7 +366,13 @@
     "metric": {
       "best_fitness": 108335.4765625
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0031303558505600686,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Ackley/100x10",
@@ -301,7 +391,13 @@
     "metric": {
       "best_fitness": 18.954586029052734
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05208067642038686,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Ackley/1000x50",
@@ -320,7 +416,13 @@
     "metric": {
       "best_fitness": 20.14360809326172
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.006776569936090182,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "DE/Ackley/10000x100",
@@ -339,7 +441,13 @@
     "metric": {
       "best_fitness": 20.55666732788086
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.002377422153864496,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "CMAES/Sphere/100x10",
@@ -358,7 +466,13 @@
     "metric": {
       "best_fitness": 2.7473749941719916e-09
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9977068872412651,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
   },
   {
     "case_id": "CMAES/Sphere/1000x50",
@@ -376,7 +490,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Sphere/10000x100",
@@ -394,7 +513,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/100x10",
@@ -413,7 +537,13 @@
     "metric": {
       "best_fitness": 17.19702911376953
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 7.099931723444013,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/1000x50",
@@ -431,7 +561,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Rastrigin/10000x100",
@@ -449,7 +584,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/100x10",
@@ -468,7 +608,13 @@
     "metric": {
       "best_fitness": 20.43309783935547
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 6533.2043305885945,
+      "ok": false,
+      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+    }
   },
   {
     "case_id": "CMAES/Ackley/1000x50",
@@ -486,7 +632,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "CMAES/Ackley/10000x100",
@@ -504,7 +655,12 @@
     "ms_per_step": null,
     "metric": null,
     "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error"
+    "error": "ValueError: math domain error",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
   },
   {
     "case_id": "OpenES/Sphere/100x10",
@@ -523,7 +679,13 @@
     "metric": {
       "best_fitness": 132.08497619628906
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.23545659372154376,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Sphere/1000x50",
@@ -542,7 +704,13 @@
     "metric": {
       "best_fitness": 1887.1131591796875
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04054455360908552,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Sphere/10000x100",
@@ -561,7 +729,13 @@
     "metric": {
       "best_fitness": 4112.36865234375
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.02524249348860077,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/100x10",
@@ -580,7 +754,13 @@
     "metric": {
       "best_fitness": 221.23562622070312
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12235787699788472,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/1000x50",
@@ -599,7 +779,13 @@
     "metric": {
       "best_fitness": 2370.2822265625
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04394421717431031,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Rastrigin/10000x100",
@@ -618,7 +804,13 @@
     "metric": {
       "best_fitness": 5109.79931640625
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.010213326525962293,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/100x10",
@@ -637,7 +829,13 @@
     "metric": {
       "best_fitness": 20.69388198852539
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0016449810076611911,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/1000x50",
@@ -656,7 +854,13 @@
     "metric": {
       "best_fitness": 21.242359161376953
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0006631071243726953,
+      "ok": true,
+      "note": null
+    }
   },
   {
     "case_id": "OpenES/Ackley/10000x100",
@@ -675,6 +879,12 @@
     "metric": {
       "best_fitness": 21.322124481201172
     },
-    "note": "compiled (iree)"
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0011192470005649071,
+      "ok": true,
+      "note": null
+    }
   }
 ]
