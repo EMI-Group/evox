@@ -125,8 +125,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 5.753404248505831,
-    "ms_per_step": 57.53404248505831,
+    "run_time_s": 5.909156370908022,
+    "ms_per_step": 59.09156370908022,
     "metric": {
       "best_fitness": 2.063673321117676e-07
     },
@@ -144,8 +144,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 12.437529783695936,
-    "ms_per_step": 124.37529783695936,
+    "run_time_s": 12.308154784142971,
+    "ms_per_step": 123.08154784142971,
     "metric": {
       "best_fitness": 26.11981201171875
     },
@@ -163,8 +163,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 13.404102213680744,
-    "ms_per_step": 134.04102213680744,
+    "run_time_s": 13.237396847456694,
+    "ms_per_step": 132.37396847456694,
     "metric": {
       "best_fitness": 0.0036249160766601562
     },
@@ -353,8 +353,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 13.276504915207624,
-    "ms_per_step": 132.76504915207624,
+    "run_time_s": 13.008845690637827,
+    "ms_per_step": 130.08845690637827,
     "metric": {
       "best_fitness": 67.04660034179688
     },
@@ -372,8 +372,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 13.962921485304832,
-    "ms_per_step": 139.62921485304832,
+    "run_time_s": 13.617744754999876,
+    "ms_per_step": 136.17744754999876,
     "metric": {
       "best_fitness": 489.69403076171875
     },
@@ -391,8 +391,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 14.259296543896198,
-    "ms_per_step": 142.59296543896198,
+    "run_time_s": 14.170937560498714,
+    "ms_per_step": 141.70937560498714,
     "metric": {
       "best_fitness": 7.317131042480469
     },
@@ -581,8 +581,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 16.009464409202337,
-    "ms_per_step": 160.09464409202337,
+    "run_time_s": 15.796252124011517,
+    "ms_per_step": 157.96252124011517,
     "metric": {
       "best_fitness": 294.0555725097656
     },
@@ -600,8 +600,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 16.63010485470295,
-    "ms_per_step": 166.3010485470295,
+    "run_time_s": 16.378433115780354,
+    "ms_per_step": 163.78433115780354,
     "metric": {
       "best_fitness": 1261.297607421875
     },
@@ -619,8 +619,8 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 16.761044047772884,
-    "ms_per_step": 167.61044047772884,
+    "run_time_s": 16.502207349985838,
+    "ms_per_step": 165.02207349985838,
     "metric": {
       "best_fitness": 11.913121223449707
     },
