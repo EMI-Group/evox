@@ -78,8 +78,9 @@ subsets and smoke runs — never write smoke outputs into `results/`.
 - **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 94 ok /
   62 not-ok / 24 skip (etl-numpy gens caps); MO 10 ok / 22 not-ok / 28 skip
   (backend errors). etl compiled backends are bit/last-ulp identical to
-  each other; not-ok cells are the documented CMAES-Ackley divergence plus
-  RNG-stream scatter on unconverged runs (see `BENCHMARK_RESULTS.md`).
+  each other; not-ok cells are RNG-stream scatter on unconverged runs
+  (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley 1000x50/
+  10000x100 — see `BENCHMARK_RESULTS.md`).
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## Notes for agents
