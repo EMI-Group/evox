@@ -57,33 +57,23 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
   `etl.ops.constant(etl.core.tensor(np.asarray(config.center_init, dtype=np.float32)))`
   — numpy import is sanctioned for this + np.dtype only.
 
-## Known Issues
+## Design Decisions
 
-### CMA-ES rank-one term diverges from the torch reference (Ackley stall)
-`cma_es.py` `tell()` line ~241 computes the rank-one covariance term as the
-canonical outer product `rank_one = expand_dims(p_c,1) * expand_dims(p_c,0)`.
-The torch reference (`src/evox/algorithms/so/es_variants/cma_es.py:128`) writes
-`p_c @ p_c.T` where `p_c` is **1-D**, so torch evaluates a scalar dot product
-`‖p_c‖²` (deprecation-warned `.T` no-op on 1-D) that broadcasts additively into
-**every element** of `C`: effectively
-`C += c_1 * ‖p_c‖² * ones(dim, dim)` — an isotropic C inflation, NOT a rank-one
-update. The port "fixed" this to the mathematically intended outer product,
-which diverges from the reference: without the isotropic inflation, C/sigma
-decay on flat plateaus and the algorithm stalls. Concretely,
-`CMAES/Ackley/100x10` (mean_init=50, sigma=25, seed 42, 100 gens) stalls at
-best ≈ 20.56 on all etl backends (bit-identical — deterministic divergence,
-not RNG) while torch-cpu reaches 0.0036. Verified: with identical injected
-noise, etl matches torch to ~1e-6 through step 1 and converges to ≈0.003 with
-the scalar-broadcast C update; with the etl's own key 42 the same update gives
-best ≈ 0.00065 (fixes the stall).
-**Fix (parity contract is exact torch mirroring):** replace the rank-one term
-with the torch-faithful scalar — `pc_norm_sq = etl.sum(p_c * p_c)` (0-d;
-`etl.dot` needs rank ≥ 2) and use `p.c_1 * (pc_norm_sq + (1 - h_sigma) *
-p.c_c * (2 - p.c_c) * state.C)` in the C update (0-d + matrix broadcasts on
-the numpy backend; verify on iree/xla). Do NOT "fix" the torch side to the
-outer product — parity means matching torch's actual behavior.
-Note: even with identical noise, later steps diverge chaotically (float32
-reduction order) — parity is qualitative (both converge to ≈0), not bitwise.
+### CMA-ES deliberately replicates torch's scalar-dot-product `p_c @ p_c.T` quirk
+The torch reference (`src/evox/algorithms/so/es_variants/cma_es.py:128`)
+computes `p_c @ p_c.T` with **1-D** `p_c`: torch's deprecated `.T` is a no-op
+on 1-D tensors, so this is a scalar dot product `‖p_c‖²` that broadcasts
+additively into **every element** of `C` — an isotropic `c_1`-scaled C
+inflation, NOT the canonical rank-one outer product. `cma_es.py` `tell()`
+mirrors this exactly (`pc_norm_sq = etl.sum(p_c * p_c)`; 0-d, since
+`etl.dot` needs rank ≥ 2) instead of the mathematically "correct" outer
+product, because the parity contract is exact mirroring of torch's actual
+behavior (the outer product stalls on plateaus: `CMAES/Ackley/100x10`,
+mean_init=50, sigma=25, pop 100, key 42, 100 gens, stalls at best ≈ 20.56
+while the scalar form converges to ≈ 0.0007). Verified on the numpy and
+iree backends. Note: even with identical injected noise, later steps diverge
+chaotically (float32 reduction order) — parity is qualitative (both converge
+to ≈ 0), not bitwise.
 
 ## Tests
 - Smoke (no torch): `unit_test/etl/algorithms/so/es_variants/test_*.py` — drive
