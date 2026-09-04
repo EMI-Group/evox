@@ -461,15 +461,15 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 5.880285050719976,
-    "ms_per_step": 58.802850507199764,
+    "run_time_s": 5.784906081855297,
+    "ms_per_step": 57.84906081855297,
     "metric": {
-      "best_fitness": 8.185871251953358e-07
+      "best_fitness": 6.427759302596314e-08
     },
     "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.31676142321180467,
+      "rel_err": 0.6885282550866593,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -484,17 +484,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "run_time_s": 11.861518364399672,
+    "ms_per_step": 118.61518364399672,
+    "metric": {
+      "best_fitness": 68.77139282226562
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.025725278711760627,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -507,17 +509,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "run_time_s": 12.122233886271715,
+    "ms_per_step": 121.22233886271715,
+    "metric": {
+      "best_fitness": 218.176513671875
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.25804326097364017,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -532,15 +536,15 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 6.199038192629814,
-    "ms_per_step": 61.99038192629814,
+    "run_time_s": 11.974848624318838,
+    "ms_per_step": 119.74848624318838,
     "metric": {
-      "best_fitness": 16.318344116210938
+      "best_fitness": 5.054756164550781
     },
     "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 6.686064395572805,
+      "rel_err": 0.8064780802295611,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -555,17 +559,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "run_time_s": 12.54306210577488,
+    "ms_per_step": 125.4306210577488,
+    "metric": {
+      "best_fitness": 530.210205078125
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.08273773370972762,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -578,17 +584,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "run_time_s": 12.938755847513676,
+    "ms_per_step": 129.38755847513676,
+    "metric": {
+      "best_fitness": 1188.8935546875
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.05740441614122361,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -603,15 +611,15 @@
     "seed": 42,
     "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": 6.4399056397378445,
-    "ms_per_step": 64.39905639737844,
+    "run_time_s": 12.402316644787788,
+    "ms_per_step": 124.02316644787788,
     "metric": {
-      "best_fitness": 0.0018224716186523438
+      "best_fitness": 0.007918357849121094
     },
     "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.4172003659652333,
+      "rel_err": 1.18442515127598,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -626,17 +634,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 51).",
+    "run_time_s": 12.584148839116096,
+    "ms_per_step": 125.84148839116096,
+    "metric": {
+      "best_fitness": 20.634029388427734
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 1.819961712949302,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -649,17 +659,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 0.0,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN",
-    "error": "_LinAlgError: linalg.eigh: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated eigenvalues (error code: 101).",
+    "run_time_s": 12.898256447166204,
+    "ms_per_step": 128.98256447166204,
+    "metric": {
+      "best_fitness": 20.37767791748047
+    },
+    "note": "eager",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.710523844697323,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
