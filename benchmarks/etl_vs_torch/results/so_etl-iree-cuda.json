@@ -459,17 +459,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.9231927283108234,
+    "compile_time_s": 2.8891817815601826,
     "warmup_steps": 2,
-    "run_time_s": 4.0310699082911015,
-    "ms_per_step": 40.310699082911015,
+    "run_time_s": 4.328532136976719,
+    "ms_per_step": 43.28532136976719,
     "metric": {
-      "best_fitness": 2.7473749941719916e-09
+      "best_fitness": 1.3284248145950528e-09
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.9977068872412651,
+      "rel_err": 0.9935628144193114,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -484,17 +484,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.2415162697434425,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 111.65188182145357,
+    "ms_per_step": 1116.5188182145357,
+    "metric": {
+      "best_fitness": 35.735023498535156
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.46701214802299335,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -507,17 +509,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 4.012897286564112,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 979.524545058608,
+    "ms_per_step": 9795.24545058608,
+    "metric": {
+      "best_fitness": 200.25270080566406
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.3189970892355266,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -530,17 +534,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.867622870951891,
+    "compile_time_s": 3.120030663907528,
     "warmup_steps": 2,
-    "run_time_s": 4.069137282669544,
-    "ms_per_step": 40.69137282669544,
+    "run_time_s": 3.9883000031113625,
+    "ms_per_step": 39.883000031113625,
     "metric": {
-      "best_fitness": 17.19702911376953
+      "best_fitness": 1.1018524169921875
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 7.099931723444013,
+      "rel_err": 0.9578154537828283,
       "ok": false,
       "note": "RNG-stream variance on unconverged run"
     }
@@ -555,17 +559,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.3060167506337166,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 135.4490550160408,
+    "ms_per_step": 1354.490550160408,
+    "metric": {
+      "best_fitness": 447.32861328125
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.08651405738920152,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -578,17 +584,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 4.06854647770524,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 947.7029753476381,
+    "ms_per_step": 9477.029753476381,
+    "metric": {
+      "best_fitness": 1163.663818359375
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.0774074163686602,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -601,19 +609,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.8693484365940094,
+    "compile_time_s": 2.9353187084198,
     "warmup_steps": 2,
-    "run_time_s": 4.292358476668596,
-    "ms_per_step": 42.92358476668596,
+    "run_time_s": 4.2944984547793865,
+    "ms_per_step": 42.944984547793865,
     "metric": {
-      "best_fitness": 20.43309783935547
+      "best_fitness": 20.526309967041016
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 6533.2043305885945,
+      "rel_err": 5661.561431202315,
       "ok": false,
-      "note": "documented divergence: etl CMA-ES stalls on Ackley's zero-gradient plateau; torch escapes (RNG-stream difference)"
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -626,17 +634,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.1748763360083103,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 142.46298080682755,
+    "ms_per_step": 1424.6298080682755,
+    "metric": {
+      "best_fitness": 21.168994903564453
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 1.8930730884366225,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -649,17 +659,19 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 4.206584144383669,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": "porting divergence vs torch: host-side math.sqrt domain error in the etl CMA-ES tell (c_c>2 at pop_size>=1000, mu_eff~255/3750); torch computes the same term in-graph (torch.sqrt -> NaN state, gen-0 best recorded); backend-independent (reproduced on etl-numpy, not an iree-cuda limit)",
-    "error": "ValueError: math domain error",
+    "run_time_s": 960.3715663403273,
+    "ms_per_step": 9603.715663403273,
+    "metric": {
+      "best_fitness": 21.339736938476562
+    },
+    "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.7912800968122081,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
