@@ -14,10 +14,14 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework built o
 
 ```
 evox/
-├── src/evox/           ← Main Python package (the framework)
+├── src/evox/           ← Main Python package (the framework, frozen torch reference)
+├── src/evox_etl/       ← Functional ETL rewrite (new package; the functional successor)
 ├── src/evox_ext/       ← Extension/plugin autoloading (PEP 420 namespace)
 ├── unit_test/          ← Unit test suite (mirrors src/evox/)
+├── unit_test/etl/      ← etl-variant test suite (algorithms/operators/problems/metrics, 363 tests)
 ├── benchmarks/         ← Performance benchmark scripts
+├── benchmarks/etl_vs_torch/  ← torch vs etl comparison harness + BENCHMARK_RESULTS.md + style_comparison.md
+├── REFACTOR_REPORT.md  ← Final report of the EvoX→ETL functional refactoring
 ├── docs/               ← Sphinx documentation (ReadTheDocs, bilingual EN/ZH)
 ├── .github/            ← CI/CD workflows + PR template
 ├── pyproject.toml      ← Build config, deps, tool.ruff linting
