@@ -15,16 +15,17 @@ results/{suite}_{backend}.json
 A `--out <path>` override is also supported (used by smoke tests, which
 never touch this directory).
 
-Committed so far: `so_torch-cuda.json` / `mo_torch-cuda.json` (full matrix,
-GPU 0, 100 gens, seed 42). The 6 large-scale CMA-ES torch-cuda cases
-(1000x50 and 10000x100) are error records — see the `note` field and
-`benchmarks/etl_vs_torch/CONTEXT.md` for the root cause (evox CMA-ES `c_c`
-formula bug → NaN covariance; cusolver raises, CPU LAPACK silently
-propagates the NaN, so the torch-cpu baseline is wrong there too).
-Torch-side MO Pareto fronts are extracted per-generation (not via
-`EvalMonitor.get_pf_fitness`, whose O(n²) domination matrix gets the process
-OOM-killed at 1000-pop scale); the two methods are mathematically identical
-(verified point-for-point at small scale).
+Committed so far: all 12 files (36 SO + 12 MO records each, 288 total).
+The post-fix re-run (2026-09-04) refreshed every CMA-ES SO cell on all six
+backends and the MO suite on the four etl backends after two upstream fixes
+(CMA-ES `c_c` Hansen-canonical formula in torch AND etl; DTLZ
+`cumprod`/`flip` replaced with exportable ops). The large-scale CMA-ES cells
+now execute everywhere (no more cusolver/`ValueError`/silent-NaN records).
+Pareto fronts are extracted per-generation on both torch and etl paths
+(`_torch_pf_fitness` / `_etl_pf_fitness` in `bench_mo.py`) — `EvalMonitor.get_pf_fitness`'s
+O(n²) whole-history domination matrix OOM-kills the process at 1000-pop ×
+100-gen scale; the two methods are mathematically identical (verified
+point-for-point at small scale).
 
 ## JSON schema
 
@@ -45,7 +46,7 @@ The file is a JSON array with one object per case:
 | `metric` | object | SO: `{"best_fitness": f}` (monitor elite, minimized). MO: `{"hv": f, "igd": f, "n_pf_points": n}` |
 | `parity` | object | vs the `results/{suite}_torch-cpu.json` baseline; `{vs, rel_err, ok}` (+`rel_err_hv`/`rel_err_igd` for MO). Absent for the torch-cpu baseline itself, or when no baseline file exists yet. `ok = rel_err <= 0.10` |
 | `error` | str | `"<Type>: <msg>"` when the case failed (the runner continues) |
-| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; iree MO failures carry `"documented: iree-cuda while-loop shape issue"`; large-scale torch CMA-ES failures carry `"documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN"` |
+| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; capped etl-numpy SO records note the gens cap; failed iree MO cells carry per-cell notes naming the precise failure (`iree-compile segfault (SIGSEGV, error -11)` / `matrix_rank` v1 export rejection / runtime `ref is null`) |
 
 ## Config (shared by all backends)
 
@@ -109,32 +110,39 @@ naturally large (`ok=false`); the tolerance is meaningful for full 100-gen
 runs. The relative-error metric also false-alarms when both sides converge
 to ~0 (e.g. `PSO/Sphere/100x10`, `CMAES/Sphere/100x10`).
 
-## Committed full-matrix run (etl-xla-cuda, GPU 3, 2026-09-04)
+## Committed post-fix re-run (2026-09-04)
 
-`so_etl-xla-cuda.json` (36 records) + `mo_etl-xla-cuda.json` (12 records) are
-the full 100-gen matrix for the etl-xla-cuda backend; `so_torch-cpu.json` is
-the parity baseline generated alongside (run artifacts are committed for
-this run by task directive — see `results/` history for details). Known
-issues recorded in the JSONs:
+After the two upstream fixes (CMA-ES `c_c` Hansen-canonical formula in torch
+AND etl; DTLZ `cumprod`/`flip` → exportable gather/reduce_prod), the
+following cells were re-run and merged into the committed JSONs (see
+`retag_parity.py` for the merge + verdict conventions):
 
-1. **MO: 12/12 `BackendError`** — the stablehlo v1 exporter (used by the xla
-   adapter) defers the `cumprod` (and `flip`) ops used by
-   `src/evox_etl/problems/numerical/dtlz.py`; every MO case fails at compile
-   time. The numpy backend runs the same cases fine, and both etl checkouts
-   (`/mnt/local-ssd/bchuang/etl`, `/mnt/local-ssd/bchuang/etl-xla-fixed`)
-   defer identically. Unblocking requires decomposing those ops in the etl
-   exporter or rewriting dtlz.py's evaluate formulas with v1-safe ops
-   (static trace-time loops over `multiply`/`concatenate` — `m` is static),
-   then re-running the MO groups.
-2. **CMA-ES pop ≫ dim: 6/6 `ValueError: math domain error`** — the classic
-   Hansen parametrization gives `c_c > 2` at (pop=1000, dim=50) and
-   (pop=10000, dim=100), so `sqrt(c_c·(2−c_c)·mu_eff)` goes negative and the
-   etl port raises at trace time. The torch implementation uses the same
-   formulas and silently corrupts (NaN) instead — same root cause, both
-   sides. Deterministic; not retryable.
-3. **`CMAES/Ackley/100x10` parity fails (rel ≈ 6584)** — torch-cpu converges
-   (best ≈ 0.003, all 7 seeds tested); the etl CMA-ES port stalls on
-   Ackley's flat plateau (best ≈ 20.35–20.6 on etl-numpy AND etl-xla-cuda;
-   sigma random-walks ~20–31, mean never descends; etl-numpy converges only
-   1/7 seeds). Not xla-specific — the port's dynamics diverge from torch's
-   on near-flat landscapes and need attention in `src/evox_etl`.
+- **SO CMA-ES: all 9 cells on all 6 backends** (100 gens; etl-numpy keeps
+  its interpreter caps: 50 gens at 1000x50, 10 gens at 10000x100). All
+  previous error/NaN records are replaced with real metrics; the torch-cpu
+  baseline was re-run first so parity verdicts reference it.
+- **MO: all 12 cells on etl-numpy (now full 100 gens — the O(n²)
+  whole-history ranking was replaced by per-generation extraction, removing
+  the previous 20-gen cap), etl-iree-llvm-cpu, etl-iree-cuda,
+  etl-xla-cuda.** xla-cuda runs NSGA2+MOEAD end-to-end (8/12 cells);
+  the remaining cells fail with the NEW blockers below.
+
+Known issues recorded in the JSONs after the re-run:
+
+1. **NSGA3 `matrix_rank` export rejection — 12 cells** (4 each on
+   iree-llvm-cpu / iree-cuda / xla-cuda): the stablehlo v1 exporter rejects
+   `matrix_rank` at `src/evox_etl/algorithms/mo/nsga3.py:216`. This was
+   previously masked by the cumprod error; decomposing that op (e.g. an
+   eigh-based full-rank check) should unblock NSGA3 on all compiled backends.
+2. **iree-compile segfault on NSGA2/MOEAD MO programs — 15 cells**
+   (iree-cuda 8, iree-llvm-cpu 7): `Error code: -11`, stack dump inside
+   `libIREECompiler.so` (deep recursion). The stablehlo v1 export succeeds;
+   the compiler itself crashes. Not retryable.
+3. **MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu** passes export AND compile but
+   fails at runtime: `ref is null ... hal.buffer_view.create`
+   (INVALID_ARGUMENT).
+4. **CMAES/Ackley/100x10 stall persists** on all four etl backends
+   (best ≈ 20.5–20.6 vs torch-cpu 0.0036; rel_err ≈ 5.7e3). The `c_c` fix
+   addressed the large-pop NaN regime, not this stall. torch-cuda's Ackley
+   1000x50/10000x100 cells also stall (≈20.6/20.4 vs torch-cpu 7.3/11.9) —
+   RNG-stream variance on unconverged runs.

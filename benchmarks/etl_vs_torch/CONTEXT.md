@@ -47,39 +47,54 @@ etl-xla-cuda additionally LD_PRELOADs cuDNN 9.8 and re-execs the process
 subsets and smoke runs — never write smoke outputs into `results/`.
 
 ## Current results status
-- **Numbers exist for:** SO on all six backends (torch-cpu, torch-cuda,
-  etl-numpy, etl-iree-llvm-cpu, etl-iree-cuda, etl-xla-cuda — 36 cases each);
-  MO on torch-cpu, torch-cuda, etl-numpy (12 cases each).
-- **etl-numpy caps:** SO 1000x50 → 50 gens, 10000x100 → 10 gens, MO
-  1000x3x30 → 20 gens (interpreter too slow / O(n²) whole-history PF
-  ranking). Capped records keep metrics; parity is skipped.
-- **etl-GPU MO is BLOCKED** (12/12 `BackendError` per compiled backend):
-  stablehlo v1 exporter rejects `cumprod`/`flip` in
-  `src/evox_etl/problems/numerical/dtlz.py`; no compile option exists.
-- **CMA-ES `c_c > 2` framework bug** at pop ≥ 1000, dim ≥ 50 (Hansen
-  parametrization → NaN covariance): 6 error records per etl backend,
-  6 cusolver errors on torch-cuda, and 6 silently-NaN torch-cpu records.
-- **CMAES/Ackley/100x10 divergence:** etl CMA-ES stalls on Ackley's
-  zero-gradient plateau (≈20.4) vs torch ≈0.003; rel_err ≈ 6.5–6.6e3 on all
-  four etl backends.
-- **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule)**: SO 84 ok /
-  48 not-ok / 48 skip; MO 7 ok / 11 not-ok / 42 skip. etl compiled backends
-  are bit/last-ulp identical to each other; not-ok cases are the documented
-  CMAES-Ackley divergence plus RNG-stream scatter on unconverged runs.
+- **Numbers exist for:** SO on all six backends (36 cases each, no errors);
+  MO full on torch-cpu, torch-cuda, etl-numpy (12 cases each, 100 gens);
+  xla-cuda 8/12 (4 NSGA3 cells blocked); iree-llvm-cpu / iree-cuda 12/12
+  error records.
+- **etl-numpy caps:** SO 1000x50 → 50 gens, 10000x100 → 10 gens
+  (interpreter too slow). The MO cap is removed: Pareto fronts are now
+  extracted per-generation in `bench_mo.py` (`_etl_pf_fitness`, mirroring
+  `_torch_pf_fitness`), replacing the O(n²) whole-history ranking that made
+  100 gens infeasible — verified point-for-point identical.
+- **etl-GPU MO blockers:** the DTLZ `cumprod`/`flip` v1-export issue is
+  FIXED. Remaining: (1) NSGA3 `matrix_rank` export rejection at
+  `src/evox_etl/algorithms/mo/nsga3.py:216` (12 cells: 4 per compiled
+  backend — previously masked by the cumprod error); (2) iree-compile
+  segfault (`Error code: -11`, stack in `libIREECompiler.so`) on NSGA2/MOEAD
+  MO programs (15 cells: 8 iree-cuda + 7 iree-llvm-cpu); (3)
+  MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu dies at runtime (`ref is null`,
+  `hal.buffer_view.create`).
+- **CMA-ES `c_c` framework bug is FIXED** in both torch and etl (Hansen
+  canonical formula); all 9 CMA-ES SO cells on all 6 backends were re-run.
+- **CMAES/Ackley/100x10 divergence persists:** etl stalls on the Ackley
+  plateau (best ≈ 20.5–20.6, rel_err ≈ 5.7e3 vs torch-cpu 0.0036) on all
+  four etl backends; the c_c fix did not address it. torch-cuda Ackley
+  1000x50/10000x100 also stall (RNG variance).
+- **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 90 ok /
+  66 not-ok / 24 skip (etl-numpy gens caps); MO 10 ok / 22 not-ok / 28 skip
+  (backend errors). etl compiled backends are bit/last-ulp identical to
+  each other; not-ok cells are the documented CMAES-Ackley divergence plus
+  RNG-stream scatter on unconverged runs (see `BENCHMARK_RESULTS.md`).
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## Notes for agents
 - Result JSON schema and field semantics are documented in
   `results/README.md` — read it before touching the JSONs.
+- **The runners OVERWRITE `results/{suite}_{backend}.json` with only the
+  cases they run.** Partial re-runs must use `--out <tmp>` and then merge
+  with `retag_parity.py --partial <tmp> [--cap-note "..."] [--set-note
+  CASE=TEXT] [--note-override CASE=TEXT] --apply`, which merges by `case_id`
+  and re-derives parity verdicts per the committed conventions (machine-zero
+  rule, skip reasons, RNG-variance notes). Never hand-edit verdicts —
+  recompute with the script.
 - `parity` blocks compare each non-torch-cpu record against the torch-cpu
   record with the same `case_id`; `ok` is `true`/`false`/`null` (null only
   for skips: backend error, baseline error, or gens cap). Near-zero pairs
   (both ≤ 1e-4) are ok by rule; the full semantics are stated in
-  `BENCHMARK_RESULTS.md` §Parity verdicts. Do not hand-edit verdicts —
-  recompute them with those rules instead.
+  `BENCHMARK_RESULTS.md` §Parity verdicts.
 - Never ship wrong numbers: every cell in `BENCHMARK_RESULTS.md` must trace
-  back to a `results/*.json` record; error/NaN/capped records must be
-  marked (`err`, `NaN (silent)`, `@Ng`) instead of shown as plain values.
+  back to a `results/*.json` record; error/capped records must be marked
+  (`err`, `@Ng`) instead of shown as plain values.
 - Known harness quirks (torch MO default-device workaround, per-generation
   PF filter instead of `EvalMonitor.get_pf_fitness`, xla `device=None`
   staging, MOEAD pop_size overwritten by Das-Dennis count, NSGA3
