@@ -19,6 +19,7 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
 - `enp.expand_dims`/`reshape` cannot carry dynamic dims → unroll static Python loops where needed (see `katsuura_func`).
 - `!=` not overloaded on symbolic tensors → `etl.not_equal`. `enp.floor` missing → top-level `etl.floor`. Top-level `etl.zeros/ones` are CONCRETE creators → use `enp.zeros/ones` inside traces. `float32 ** int64` promotes to float64 → cast exponents to float32. `etl.dot` needs rank ≥ 2 → `etl.matmul` (numpy semantics). `etl.gather` accepts int32 indices.
 - Constants: `etl.constant(etl.tensor(np.asarray(..., dtype=np.float32)))` baked INSIDE evaluate (never closure-captured concrete tensors). When a shift is None, add a zero constant instead (static Python branch).
+- **`etl.flip` / `etl.cumprod` are REJECTED by the compiled backends' StableHLO exporter** (BackendError on iree-llvm-cpu/iree-cuda/xla-cuda). dtlz.py replaces them with `_reverse_axis1` (descending-static-index `etl.gather`, numpy take semantics) and `_flip_cumprod_axis1` (static-Python-loop prefix product scan + `_reverse_axis1` + trailing ones) — bit-identical to the flip/cumprod constructions. Do not reintroduce `flip`/`cumprod`.
 
 ## Data location
 cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/` (torch source tree); loaded as numpy with `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"` (memoized module-level cache). numpy allowed ONLY for that loading; never in graph code.
