@@ -115,10 +115,10 @@ count (pop_size is overwritten on both sides).
 |---|---|---|---|---|---|---|
 | torch-cpu | 7.92/2.045 / 4.2 | 7.46/0.02443 / 2.995 | 6.422/1.804 / 407.5 | 7.461/0.02572 / 420.3 | 184.1/4.505 / 97.02 | 7.46/0.02888 / 99.17 |
 | torch-cuda | 7.685/0.5479 / 5.126 | 7.458/0.02459 / 4.291 | 6.456/1.151 / 623 | 7.463/0.02535 / 625.5 | 30.97/2.727 / 273.1 | 7.456/0.03117 / 279.5 |
-| etl-numpy | 23.94/3.999 / 7.668 | 7.462/0.02312 / 6.413 | 113.4/9.624 / 10.99 | 7.461/0.02572 / 8.249 | 7.562/0.5722 / 61.36 | 7.455/0.03355 / 60.34 |
+| etl-numpy | 23.94/3.999 / 7.668 | 7.462/0.02312 / 6.413 | 113.4/9.624 / 11.21 | 7.461/0.02572 / 8.514 | 7.562/0.5722 / 61.36 | 7.455/0.03355 / 60.34 |
 | etl-iree-llvm-cpu | err | err | err | err | err | err |
 | etl-iree-cuda | err | err | err | err | err | err |
-| etl-xla-cuda | 10.52/1.847 / 4.784 | 7.459/0.02465 / 4.146 | err | err | 7.562/0.5722 / 6.432 | 7.455/0.03355 / 6.458 |
+| etl-xla-cuda | 10.52/1.847 / 4.784 | 7.459/0.02465 / 4.146 | 113.3/9.927 / 4.771 | 7.462/0.02549 / 3.899 | 7.562/0.5722 / 6.432 | 7.455/0.03355 / 6.458 |
 
 ### 1000 × 3 × 30
 
@@ -126,10 +126,10 @@ count (pop_size is overwritten on both sides).
 |---|---|---|---|---|---|---|
 | torch-cpu | 3.959e+04/51.1 / 83.07 | 7.463/0.01669 / 45.22 | 1.706e+04/41.36 / 417.9 | 7.466/0.01521 / 387.1 | 465/6.829 / 1033 | 7.459/0.0208 / 1028 |
 | torch-cuda | 3616/23.1 / 7.646 | 7.464/0.01624 / 5.489 | 1.962e+04/44.2 / 863.3 | 7.467/0.01478 / 719.1 | 3546/15.03 / 3505 | 7.462/0.01766 / 3621 |
-| etl-numpy | 8241/32.67 / 289.7 | 7.462/0.01756 / 231.7 | 5269/30.06 / 341.8 | 7.463/0.01795 / 282.1 | 1.023e+04/4.718 / 692.9 | 7.454/0.02432 / 688.6 |
+| etl-numpy | 8241/32.67 / 289.7 | 7.462/0.01756 / 231.7 | 5269/30.06 / 321.3 | 7.463/0.01795 / 260.2 | 1.023e+04/4.718 / 692.9 | 7.454/0.02432 / 688.6 |
 | etl-iree-llvm-cpu | err | err | err | err | err | err |
 | etl-iree-cuda | err | err | err | err | err | err |
-| etl-xla-cuda | 9039/34.23 / 4.654 | 7.462/0.01713 / 5.268 | err | err | 7360/4.716 / 27.15 | 7.454/0.0244 / 26.92 |
+| etl-xla-cuda | 9039/34.23 / 4.654 | 7.462/0.01713 / 5.268 | 8048/33.65 / 5.355 | 7.465/0.01629 / 5.010 | 7360/4.716 / 27.15 | 7.454/0.0244 / 26.92 |
 
 ### MO compile time and speedup
 
@@ -137,21 +137,23 @@ count (pop_size is overwritten on both sides).
 |---|---|
 | torch-cpu / torch-cuda | 0.0 s (eager) |
 | etl-numpy | 0.346 – 0.582 s |
-| etl-xla-cuda | 1.045 – 3.057 s (8 successful cases) |
+| etl-xla-cuda | 1.045 – 3.057 s (all 12 cases) |
 | etl-iree-llvm-cpu / etl-iree-cuda | — (no case compiles; see *Caps & limits*) |
 
 | backend | vs torch-cpu |
 |---|---|
 | torch-cuda | 0.65× (0.28× – 10.9×) |
 | etl-numpy | 1.49× (0.20× – 51.0×) |
-| etl-xla-cuda | 15.4× (0.72× – 38.2×; NSGA2+MOEAD only — NSGA3 does not compile) |
+| etl-xla-cuda | 28.0× (0.72× – 107.8×; all 12 cases) |
 | etl-iree-llvm-cpu / etl-iree-cuda | — (all err) |
 
 etl-numpy's 51× outlier is NSGA3/DTLZ2 100x3x10 (8.2 vs 420 ms/step) —
-torch NSGA3's CPU path is python-loop-bound. etl-xla-cuda's 15.4× median
-reflects compiled NSGA2/MOEAD (~4–27 ms/step) vs torch's python-bound
-NSGA3/MOEAD CPU paths (99–1033 ms/step); torch-cuda stays bimodal (NSGA2
-5.5–7.6 ms/step fast; NSGA3 623–863, MOEAD 273–3621 ms/step slow).
+torch NSGA3's CPU path is python-loop-bound. etl-xla-cuda's 28.0× median
+reflects compiled NSGA2/NSGA3/MOEAD (3.9–27.2 ms/step) vs torch's
+python-bound NSGA3/MOEAD CPU paths (99–1033 ms/step); the largest speedups
+are NSGA3's 77–108× (torch-cpu NSGA3 runs at 387–420 ms/step, xla-cuda at
+3.9–5.4 ms/step). torch-cuda stays bimodal (NSGA2 5.5–7.6 ms/step fast;
+NSGA3 623–863, MOEAD 273–3621 ms/step slow).
 
 ## Caps & limits
 
@@ -170,19 +172,23 @@ NSGA3/MOEAD CPU paths (99–1033 ms/step); torch-cuda stays bimodal (NSGA2
   (the torch-cpu baseline was re-run and updated).
 - **DTLZ `cumprod`/`flip` export issue — FIXED.** `src/evox_etl/problems/numerical/dtlz.py`
   now uses exportable gather/reduce_prod constructions; the MO suite
-  compiles on xla-cuda (NSGA2+MOEAD run end-to-end). Two NEW blockers
+  compiles on xla-cuda (NSGA2+MOEAD run end-to-end). Two blockers
   remain, recorded with exact errors in the JSONs:
-  1. **NSGA3 `matrix_rank` export rejection (12/12 NSGA3 cells, all three
-     compiled backends):** `BackendError: stablehlo export: op 'matrix_rank'
-     at src/evox_etl/algorithms/mo/nsga3.py:216 is not supported in v1 —
-     decompose it into supported ops or use a future compiler adapter`
-     (xla-cuda 4, iree-llvm-cpu 4, iree-cuda 4 cells). Previously masked by
-     the cumprod error.
-  2. **iree-compile segfault on NSGA2/MOEAD MO programs (15/24 iree cells):**
+  1. **NSGA3 `matrix_rank`/`solve` export rejection — FIXED.**
+     `src/evox_etl/algorithms/mo/nsga3.py` now uses eigh-based equivalents
+     (full-rank guard via sqrt(eigvalsh(AᵀA)) accumulated in float64;
+     hyperplane solve via normal equations). NSGA3 now runs end-to-end on
+     etl-numpy (hv/igd bit-identical to the pre-fix records) and
+     etl-xla-cuda (all 4 cells: 3.9–5.4 ms/step; DTLZ2 parity ok at rel
+     0.009/0.071).
+  2. **iree-compile segfault on all MO programs (23/24 iree cells):**
      `BackendError: iree-compile failed to compile ... Error code: -11` with
-     a stack dump inside `libIREECompiler.so` (iree-cuda 8 cells, NSGA2+MOEAD;
-     iree-llvm-cpu 7 cells). The export succeeds; the compiler itself
-     crashes (deep recursion in the stack trace).
+     a stack dump inside `libIREECompiler.so` (iree-cuda 12 cells;
+     iree-llvm-cpu 11 cells). The export succeeds; the compiler itself
+     crashes (deep recursion in the stack trace). NSGA3 was previously
+     stopped at export; post-fix it passes export and crashes in the same
+     compiler bug — an upstream iree while-loop compiler issue (the
+     unmodified NSGA2/MOEAD tell triggers it identically). Not retryable.
   3. **MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu** is the only iree MO cell that
      passes export AND compile but dies at runtime: `ValueError: ... ref is
      null ... hal.buffer_view.create` (INVALID_ARGUMENT).
@@ -223,10 +229,10 @@ Counts over all 240 non-baseline records:
 | suite | ok | not-ok | skip | skipped because |
 |---|---|---|---|---|
 | SO | 94 | 62 | 24 | 24 etl-numpy gens caps |
-| MO | 10 | 22 | 28 | 28 backend errors (12 iree-llvm + 12 iree-cuda + 4 xla NSGA3) |
-| **total** | **104** | **84** | **52** | 28 backend errors + 24 gens caps |
+| MO | 12 | 24 | 24 | 24 backend errors (12 iree-llvm-cpu + 12 iree-cuda) |
+| **total** | **106** | **86** | **48** | 24 backend errors + 24 gens caps |
 
-Parity-evaluable (ok + not-ok): **188**.
+Parity-evaluable (ok + not-ok): **192**.
 
 **SO not-ok (62)** — all notes are `RNG-stream variance on unconverged run`
 unless stated:
@@ -252,7 +258,7 @@ unless stated:
   CMAES/Rastrigin/100x10 0.806 · CMAES/Ackley 1.184 / 1.820 / 0.711 ·
   OpenES/Sphere/100x10 0.462 · OpenES/Rastrigin/100x10 0.201
 
-**MO not-ok (22)** — all `RNG-stream variance on unconverged run`:
+**MO not-ok (24)** — all `RNG-stream variance on unconverged run`:
 
 - vs etl-numpy (9): NSGA2/DTLZ1 2.022 / 0.792 · NSGA3/DTLZ1/100x3x10 16.661 ·
   MOEAD/DTLZ1/100x3x10 0.959 · MOEAD/DTLZ2/100x3x10 0.162 ·
@@ -260,8 +266,8 @@ unless stated:
   MOEAD/DTLZ1/1000x3x30 21.006 · MOEAD/DTLZ2/1000x3x30 0.169
 - vs torch-cuda (7): NSGA2/DTLZ1 0.732 / 0.909 · NSGA3/DTLZ1 0.362 / 0.150 ·
   MOEAD/DTLZ1 0.832 / 6.627 · MOEAD/DTLZ2/1000x3x30 0.151
-- vs etl-xla-cuda (6): NSGA2/DTLZ1 0.329 / 0.772 · MOEAD/DTLZ1 0.959 / 14.828 ·
-  MOEAD/DTLZ2 0.162 / 0.173
+- vs etl-xla-cuda (8): NSGA2/DTLZ1 0.329 / 0.772 · NSGA3/DTLZ1 16.636 / 0.528 ·
+  MOEAD/DTLZ1 0.959 / 14.828 · MOEAD/DTLZ2 0.162 / 0.173
 
 **Overall verdict:** the three compiled etl backends are still numerically
 identical to each other (iree-llvm-cpu ≡ iree-cuda ≡ xla-cuda at bit or
@@ -278,7 +284,12 @@ runs — large-scale Ackley 1000x50/10000x100 (torch-cuda and the etl
 compiled backends), small-scale 100x10 DE/OpenES/Rastrigin, and DTLZ1 MO at
 100 gens (torch's MT19937 vs etl's keyed PRNGs, not a correctness gap) —
 plus DTLZ1's 1000x3x30 scale where both sides are far from the front at 100
-gens (MOEAD/DTLZ1 rel 14.8–21.0).
+gens (MOEAD/DTLZ1 rel 14.8–21.0). On the MO side, NSGA3 is unblocked
+post-fix: etl-xla-cuda now runs the full 12-cell MO matrix (NSGA3 3.9–5.4
+ms/step; DTLZ2 parity ok at rel 0.009/0.071; DTLZ1 remains RNG-stream
+scatter on unconverged runs, matching etl-numpy). iree stays fully blocked
+by the upstream iree-compile segfault (23/24 MO cells; the remaining
+iree-llvm-cpu cell dies at runtime with the `ref is null` INVALID_ARGUMENT).
 
 ## Key numbers
 
@@ -288,10 +299,11 @@ gens (MOEAD/DTLZ1 rel 14.8–21.0).
 - **etl-xla-cuda SO: 3.6–18.2 ms/step** (median ~5.3) + **0.41–4.39 s
   compile** — except CMA-ES, which is 9.2–9.9 ms/step at 100x10 but 87–405
   ms/step at 1000x50/10000x100 (eigh-dominated).
-- **etl-xla-cuda MO now RUNS (NSGA2/MOEAD):** NSGA2 4.1–5.3 ms/step,
-  MOEAD 6.4–27.2 ms/step, compile 1.0–3.1 s — median 15.4× faster than
-  torch-cpu. NSGA3 remains blocked (`matrix_rank` export).
-- **etl-numpy MO is a full 100-gen matrix** (cap removed): 6.4–11.0 ms/step
+- **etl-xla-cuda MO is a full 12-case matrix:** NSGA2 4.1–5.3 ms/step,
+  NSGA3 3.9–5.4 ms/step, MOEAD 6.4–27.2 ms/step, compile 1.0–3.1 s —
+  median 28.0× faster than torch-cpu (NSGA3 alone 77–108×: torch's CPU
+  NSGA3 path is python-loop-bound).
+- **etl-numpy MO is a full 100-gen matrix** (cap removed): 6.4–11.2 ms/step
   at 100x3x10, 232–693 ms/step at 1000x3x30.
 - **etl-iree-llvm-cpu 10000x100: 399–707 ms/step for PSO/DE/OpenES**, but
   CMA-ES now dominates at 21.9 s/step (compile 0.90–3.00 s).

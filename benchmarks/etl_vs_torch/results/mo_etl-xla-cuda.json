@@ -125,17 +125,23 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 3.013654552400112,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "BackendError: stablehlo export: op 'matrix_rank' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A124/src/evox_etl/algorithms/mo/nsga3.py:216 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "run_time_s": 0.47711482644081116,
+    "ms_per_step": 4.771148264408112,
+    "metric": {
+      "hv": 113.25284235804304,
+      "igd": 9.92748243872748,
+      "n_pf_points": 190
+    },
+    "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 16.63645404172891,
+      "rel_err_hv": 16.63645404172891,
+      "rel_err_igd": 4.5045404949280785,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -148,17 +154,23 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 2.8508196882903576,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "BackendError: stablehlo export: op 'matrix_rank' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A124/src/evox_etl/algorithms/mo/nsga3.py:216 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "run_time_s": 0.5355061814188957,
+    "ms_per_step": 5.355061814188957,
+    "metric": {
+      "hv": 8048.246789962989,
+      "igd": 33.654535949842234,
+      "n_pf_points": 73
+    },
+    "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.5283130935059741,
+      "rel_err_hv": 0.5283130935059741,
+      "rel_err_igd": 0.18633788468073942,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -171,17 +183,23 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 1.714265450835228,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "BackendError: stablehlo export: op 'matrix_rank' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A124/src/evox_etl/algorithms/mo/nsga3.py:216 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "run_time_s": 0.38986649736762047,
+    "ms_per_step": 3.8986649736762047,
+    "metric": {
+      "hv": 7.4624,
+      "igd": 0.025488399258809656,
+      "n_pf_points": 2527
+    },
+    "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.009149936381369024,
+      "rel_err_hv": 0.0001822802183073711,
+      "rel_err_igd": 0.009149936381369024,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -194,17 +212,23 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": null,
+    "compile_time_s": 1.7532754577696323,
     "warmup_steps": 2,
-    "run_time_s": null,
-    "ms_per_step": null,
-    "metric": null,
-    "note": null,
-    "error": "BackendError: stablehlo export: op 'matrix_rank' at /mnt/local-ssd/bchuang/evox/.genesis/workers/worker_T1_A124/src/evox_etl/algorithms/mo/nsga3.py:216 is not supported in v1 \u2014 decompose it into supported ops or use a future compiler adapter",
+    "run_time_s": 0.500982653349638,
+    "ms_per_step": 5.00982653349638,
+    "metric": {
+      "hv": 7.46504,
+      "igd": 0.016294142062912128,
+      "n_pf_points": 10097
+    },
+    "note": "compiled (xla)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "backend error"
+      "rel_err": 0.07094521747021618,
+      "rel_err_hv": 0.00019286196440620798,
+      "rel_err_igd": 0.07094521747021618,
+      "ok": true,
+      "note": null
     }
   },
   {

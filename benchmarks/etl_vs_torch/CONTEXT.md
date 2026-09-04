@@ -48,20 +48,22 @@ subsets and smoke runs — never write smoke outputs into `results/`.
 
 ## Current results status
 - **Numbers exist for:** SO on all six backends (36 cases each, no errors);
-  MO full on torch-cpu, torch-cuda, etl-numpy (12 cases each, 100 gens);
-  xla-cuda 8/12 (4 NSGA3 cells blocked); iree-llvm-cpu / iree-cuda 12/12
-  error records.
+  MO full on torch-cpu, torch-cuda, etl-numpy, and etl-xla-cuda (12 cases
+  each, 100 gens — xla-cuda became a full matrix after the NSGA3 fix);
+  iree-llvm-cpu / iree-cuda 12/12 error records.
 - **etl-numpy caps:** SO 1000x50 → 50 gens, 10000x100 → 10 gens
   (interpreter too slow). The MO cap is removed: Pareto fronts are now
   extracted per-generation in `bench_mo.py` (`_etl_pf_fitness`, mirroring
   `_torch_pf_fitness`), replacing the O(n²) whole-history ranking that made
   100 gens infeasible — verified point-for-point identical.
-- **etl-GPU MO blockers:** the DTLZ `cumprod`/`flip` v1-export issue is
-  FIXED. Remaining: (1) NSGA3 `matrix_rank` export rejection at
-  `src/evox_etl/algorithms/mo/nsga3.py:216` (12 cells: 4 per compiled
-  backend — previously masked by the cumprod error); (2) iree-compile
-  segfault (`Error code: -11`, stack in `libIREECompiler.so`) on NSGA2/MOEAD
-  MO programs (15 cells: 8 iree-cuda + 7 iree-llvm-cpu); (3)
+- **etl-GPU MO blockers:** the DTLZ `cumprod`/`flip` v1-export issue and the
+  NSGA3 `matrix_rank`/`solve` export rejection are both FIXED (nsga3.py now
+  uses eigh-based full-rank guard + normal-equations solve). Remaining: (1)
+  iree-compile segfault (`Error code: -11`, stack in `libIREECompiler.so`) on
+  ALL MO programs — 23 cells: iree-cuda 12/12, iree-llvm-cpu 11/12 (NSGA3
+  now reaches the compiler post-fix and crashes identically to NSGA2/MOEAD —
+  an upstream iree while-loop compiler bug, proven by the unmodified
+  NSGA2/MOEAD trigger; do not attempt to fix iree); (2)
   MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu dies at runtime (`ref is null`,
   `hal.buffer_view.create`).
 - **CMA-ES `c_c` framework bug is FIXED** in both torch and etl (Hansen
@@ -76,11 +78,12 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   ≈20.6/20.4; etl compiled backends rel 0.44–1.89) — RNG-stream variance,
   not a stall.
 - **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 94 ok /
-  62 not-ok / 24 skip (etl-numpy gens caps); MO 10 ok / 22 not-ok / 28 skip
+  62 not-ok / 24 skip (etl-numpy gens caps); MO 12 ok / 24 not-ok / 24 skip
   (backend errors). etl compiled backends are bit/last-ulp identical to
   each other; not-ok cells are RNG-stream scatter on unconverged runs
   (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley 1000x50/
-  10000x100 — see `BENCHMARK_RESULTS.md`).
+  10000x100, MO DTLZ1 incl. xla-cuda NSGA3 rel 16.636/0.528 — see
+  `BENCHMARK_RESULTS.md`).
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## Notes for agents
