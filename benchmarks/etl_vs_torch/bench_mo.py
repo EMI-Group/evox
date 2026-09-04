@@ -161,6 +161,47 @@ def run_torch_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _etl_pf_fitness(monitor: Any) -> np.ndarray:
+    """Memory-safe replacement for the etl monitor's ``get_pf_fitness()``.
+
+    The etl ``EvalMonitor.get_pf_fitness`` ranks the WHOLE evaluation
+    history with the O(n**2) domination matrix (``non_dominate_rank``
+    materializes (n, n, m) broadcast intermediates); at 1000-pop x 100 gens
+    (n ~ 100k+) each intermediate needs ~120 GB and the process is
+    OOM-killed — the same limitation documented for the torch
+    ``get_pf_fitness`` (see ``_torch_pf_fitness``). The Pareto front of the
+    union equals the Pareto front of the union of the per-generation fronts,
+    so this ranks each generation separately (n <= pop <= ~2000, O(n**2)
+    fine) with the monitor's own rank operator, then deduplicates the union
+    and filters it incrementally in numpy — same semantics as
+    ``get_pf_fitness(deduplicate=True)`` under opt_direction "min"
+    (``get_fitness_history`` undoes the opt-direction scaling exactly like
+    ``get_pf_fitness`` does).
+    """
+    fronts = []
+    for fit in monitor.get_fitness_history():
+        rank = monitor._non_dominate_rank(np.asarray(fit, dtype=np.float32))
+        fronts.append(np.asarray(fit)[rank == 0])
+    if not fronts:
+        return np.empty((0, 0))
+    all_front = np.unique(np.concatenate(fronts, axis=0), axis=0)
+    # incremental Pareto filter (minimization: a dominates b iff a <= b
+    # elementwise and a < b in at least one objective)
+    pf = np.empty((0, all_front.shape[1]), dtype=all_front.dtype)
+    for row in all_front:
+        if pf.shape[0] == 0:
+            pf = row[None, :]
+            continue
+        dominated_by_pf = np.any(
+            np.all(pf <= row, axis=1) & np.any(pf < row, axis=1)
+        )
+        if dominated_by_pf:
+            continue
+        keep = ~(np.all(row <= pf, axis=1) & np.any(row < pf, axis=1))
+        pf = np.vstack([pf[keep], row])
+    return pf
+
+
 def run_etl_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
     from evox_etl import EvalMonitorConfig, StdWorkflow
     from evox_etl.algorithms.mo import MOEADConfig, NSGA2Config, NSGA3Config
@@ -201,7 +242,7 @@ def run_etl_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
         state = workflow.step(state)
     run_time = time.perf_counter() - t0
 
-    pf = workflow.monitor.get_pf_fitness()  # numpy (host-side wrapper)
+    pf = _etl_pf_fitness(workflow.monitor)  # per-generation filter (see docstring)
     rec = bench_common.base_record(case, backend, n_obj=case.n_obj)
     rec.update(
         compile_time_s=compile_time,
