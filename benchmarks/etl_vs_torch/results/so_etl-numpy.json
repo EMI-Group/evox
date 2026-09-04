@@ -1,0 +1,680 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.1353839635848999,
+    "warmup_steps": 2,
+    "run_time_s": 0.0829780288040638,
+    "ms_per_step": 0.829780288040638,
+    "metric": {
+      "best_fitness": 3.054133657087732e-08
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.12413539364933968,
+    "warmup_steps": 2,
+    "run_time_s": 0.09023724123835564,
+    "ms_per_step": 0.9023724123835564,
+    "metric": {
+      "best_fitness": 5.5195159912109375
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.13827334716916084,
+    "warmup_steps": 2,
+    "run_time_s": 0.09533870220184326,
+    "ms_per_step": 0.9533870220184326,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.11133238673210144,
+    "warmup_steps": 2,
+    "run_time_s": 0.09725083038210869,
+    "ms_per_step": 0.9725083038210869,
+    "metric": {
+      "best_fitness": 0.6074879169464111
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.11235992982983589,
+    "warmup_steps": 2,
+    "run_time_s": 0.10382241010665894,
+    "ms_per_step": 1.0382241010665894,
+    "metric": {
+      "best_fitness": 56.382911682128906
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.12460937350988388,
+    "warmup_steps": 2,
+    "run_time_s": 0.10829528421163559,
+    "ms_per_step": 1.082952842116356,
+    "metric": {
+      "best_fitness": 18.954586029052734
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.13134658336639404,
+    "warmup_steps": 2,
+    "run_time_s": 0.12802140414714813,
+    "ms_per_step": 1.2802140414714813,
+    "metric": {
+      "best_fitness": 2.7571407379411994e-09
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.13498208671808243,
+    "warmup_steps": 2,
+    "run_time_s": 0.1379270777106285,
+    "ms_per_step": 1.379270777106285,
+    "metric": {
+      "best_fitness": 5.381126403808594
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.14506493881344795,
+    "warmup_steps": 2,
+    "run_time_s": 0.13966870307922363,
+    "ms_per_step": 1.3966870307922363,
+    "metric": {
+      "best_fitness": 20.35232162475586
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.04439372569322586,
+    "warmup_steps": 2,
+    "run_time_s": 0.0490739680826664,
+    "ms_per_step": 0.49073968082666397,
+    "metric": {
+      "best_fitness": 132.08494567871094
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.049552738666534424,
+    "warmup_steps": 2,
+    "run_time_s": 0.05613762140274048,
+    "ms_per_step": 0.5613762140274048,
+    "metric": {
+      "best_fitness": 221.2352294921875
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.05531518533825874,
+    "warmup_steps": 2,
+    "run_time_s": 0.06163836270570755,
+    "ms_per_step": 0.6163836270570755,
+    "metric": {
+      "best_fitness": 20.693885803222656
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.14029822498559952,
+    "warmup_steps": 2,
+    "run_time_s": 0.1082797460258007,
+    "ms_per_step": 2.165594920516014,
+    "metric": {
+      "best_fitness": 201.3918914794922
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.12792564183473587,
+    "warmup_steps": 2,
+    "run_time_s": 0.13583849743008614,
+    "ms_per_step": 2.7167699486017227,
+    "metric": {
+      "best_fitness": 875.1549072265625
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.14346062764525414,
+    "warmup_steps": 2,
+    "run_time_s": 0.1369512788951397,
+    "ms_per_step": 2.739025577902794,
+    "metric": {
+      "best_fitness": 20.579662322998047
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.10912307351827621,
+    "warmup_steps": 2,
+    "run_time_s": 0.0956423357129097,
+    "ms_per_step": 1.912846714258194,
+    "metric": {
+      "best_fitness": 42714.5078125
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.1131974570453167,
+    "warmup_steps": 2,
+    "run_time_s": 0.09520344063639641,
+    "ms_per_step": 1.9040688127279282,
+    "metric": {
+      "best_fitness": 41999.09375
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.12637490779161453,
+    "warmup_steps": 2,
+    "run_time_s": 0.09914354607462883,
+    "ms_per_step": 1.9828709214925766,
+    "metric": {
+      "best_fitness": 20.517440795898438
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 50 (numpy CPU interpreter too slow); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.055765923112630844,
+    "warmup_steps": 2,
+    "run_time_s": 0.04927918687462807,
+    "ms_per_step": 0.9855837374925613,
+    "metric": {
+      "best_fitness": 13057.158203125
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.05621318146586418,
+    "warmup_steps": 2,
+    "run_time_s": 0.05553591623902321,
+    "ms_per_step": 1.1107183247804642,
+    "metric": {
+      "best_fitness": 13651.5751953125
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 50,
+    "seed": 42,
+    "compile_time_s": 0.06230649724602699,
+    "warmup_steps": 2,
+    "run_time_s": 0.06008465960621834,
+    "ms_per_step": 1.2016931921243668,
+    "metric": {
+      "best_fitness": 21.243297576904297
+    },
+    "note": "compiled (numpy); gens capped to 50 (numpy CPU interpreter too slow)"
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.3823510631918907,
+    "warmup_steps": 2,
+    "run_time_s": 0.7399392798542976,
+    "ms_per_step": 73.99392798542976,
+    "metric": {
+      "best_fitness": 84301.625
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.22229179739952087,
+    "warmup_steps": 2,
+    "run_time_s": 0.665589265525341,
+    "ms_per_step": 66.5589265525341,
+    "metric": {
+      "best_fitness": 85201.578125
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "etl-numpy",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.2294924631714821,
+    "warmup_steps": 2,
+    "run_time_s": 0.6444686688482761,
+    "ms_per_step": 64.44686688482761,
+    "metric": {
+      "best_fitness": 20.349929809570312
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.3086215481162071,
+    "warmup_steps": 2,
+    "run_time_s": 0.42126941680908203,
+    "ms_per_step": 42.1269416809082,
+    "metric": {
+      "best_fitness": 159499.8125
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.27637284249067307,
+    "warmup_steps": 2,
+    "run_time_s": 0.3856937550008297,
+    "ms_per_step": 38.56937550008297,
+    "metric": {
+      "best_fitness": 155488.90625
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "etl-numpy",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.20676195994019508,
+    "warmup_steps": 2,
+    "run_time_s": 0.42409468814730644,
+    "ms_per_step": 42.409468814730644,
+    "metric": {
+      "best_fitness": 20.822540283203125
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "etl-numpy",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": "gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop); framework bug: CMA-ES c_c>2 at pop>=1000 -> math domain error in sqrt(c_c*(2-c_c)*mu_eff) (torch silently NaNs here)",
+    "error": "ValueError: math domain error"
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.2080141194164753,
+    "warmup_steps": 2,
+    "run_time_s": 0.2678678035736084,
+    "ms_per_step": 26.78678035736084,
+    "metric": {
+      "best_fitness": 148365.015625
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.18875447660684586,
+    "warmup_steps": 2,
+    "run_time_s": 0.2535972334444523,
+    "ms_per_step": 25.35972334444523,
+    "metric": {
+      "best_fitness": 149233.21875
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "etl-numpy",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 10,
+    "seed": 42,
+    "compile_time_s": 0.24026984348893166,
+    "warmup_steps": 2,
+    "run_time_s": 0.2231219932436943,
+    "ms_per_step": 22.31219932436943,
+    "metric": {
+      "best_fitness": 21.38544464111328
+    },
+    "note": "compiled (numpy); gens capped to 10 (numpy CPU interpreter too slow at 1e6 pop)"
+  }
+]

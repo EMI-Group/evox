@@ -1,0 +1,254 @@
+[
+  {
+    "case_id": "NSGA2/DTLZ1/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6832396984100342,
+    "warmup_steps": 2,
+    "run_time_s": 0.970523614436388,
+    "ms_per_step": 9.70523614436388,
+    "metric": {
+      "hv": 23.93742204356286,
+      "igd": 3.998732626438141,
+      "n_pf_points": 213
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7344828881323338,
+    "warmup_steps": 2,
+    "run_time_s": 0.9200485348701477,
+    "ms_per_step": 9.200485348701477,
+    "metric": {
+      "hv": 7.4624,
+      "igd": 0.02312449151458348,
+      "n_pf_points": 2626
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.5621025450527668,
+    "warmup_steps": 2,
+    "run_time_s": 1.0862744562327862,
+    "ms_per_step": 10.862744562327862,
+    "metric": {
+      "hv": 113.41009187293454,
+      "igd": 9.623903998435209,
+      "n_pf_points": 283
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.545120220631361,
+    "warmup_steps": 2,
+    "run_time_s": 0.8232842460274696,
+    "ms_per_step": 8.232842460274696,
+    "metric": {
+      "hv": 7.46056,
+      "igd": 0.025715163270307664,
+      "n_pf_points": 2525
+    },
+    "note": "compiled (numpy)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.3262180723249912,
+    "warmup_steps": 2,
+    "run_time_s": 6.015284985303879,
+    "ms_per_step": 60.15284985303879,
+    "metric": {
+      "hv": 7.5615067673900525,
+      "igd": 0.5721783219377968,
+      "n_pf_points": 256
+    },
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/100x3x10",
+    "backend": "etl-numpy",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.3170577920973301,
+    "warmup_steps": 2,
+    "run_time_s": 5.9514474011957645,
+    "ms_per_step": 59.514474011957645,
+    "metric": {
+      "hv": 7.45544,
+      "igd": 0.033546087763428094,
+      "n_pf_points": 1789
+    },
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)"
+  },
+  {
+    "case_id": "NSGA2/DTLZ1/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.5405849181115627,
+    "warmup_steps": 2,
+    "run_time_s": 6.188640762120485,
+    "ms_per_step": 309.43203810602427,
+    "metric": {
+      "hv": 3690217.841657034,
+      "igd": 231.15873527526855,
+      "n_pf_points": 66
+    },
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.529658529907465,
+    "warmup_steps": 2,
+    "run_time_s": 9.03925634175539,
+    "ms_per_step": 451.9628170877695,
+    "metric": {
+      "hv": 7.27808,
+      "igd": 0.15748431165842128,
+      "n_pf_points": 517
+    },
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.5890733152627945,
+    "warmup_steps": 2,
+    "run_time_s": 15.094751723110676,
+    "ms_per_step": 754.7375861555338,
+    "metric": {
+      "hv": 4081556.426412986,
+      "igd": 229.40559196472168,
+      "n_pf_points": 94
+    },
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.629900760948658,
+    "warmup_steps": 2,
+    "run_time_s": 6.716195110231638,
+    "ms_per_step": 335.8097555115819,
+    "metric": {
+      "hv": 7.27968,
+      "igd": 0.15485152064838448,
+      "n_pf_points": 526
+    },
+    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.43292053416371346,
+    "warmup_steps": 2,
+    "run_time_s": 15.120298489928246,
+    "ms_per_step": 756.0149244964123,
+    "metric": {
+      "hv": 1766236.145810134,
+      "igd": 92.36793804168701,
+      "n_pf_points": 124
+    },
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/1000x3x30",
+    "backend": "etl-numpy",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 20,
+    "seed": 42,
+    "compile_time_s": 0.43022871017456055,
+    "warmup_steps": 2,
+    "run_time_s": 14.813393421471119,
+    "ms_per_step": 740.669671073556,
+    "metric": {
+      "hv": 7.28704,
+      "igd": 0.13595660001109894,
+      "n_pf_points": 638
+    },
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)"
+  }
+]
