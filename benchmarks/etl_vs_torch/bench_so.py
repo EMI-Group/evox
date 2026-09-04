@@ -193,7 +193,15 @@ def run_one(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
             return run_torch_case(case, backend)
         return run_etl_case(case, backend)
     except BaseException as exc:  # noqa: BLE001 — record and continue
-        return bench_common.error_record(case, backend, n_obj=1, exc=exc)
+        note = None
+        if case.algo == "CMAES" and type(exc).__name__ == "_LinAlgError":
+            note = (
+                "documented: evox CMA-ES c_c formula bug (torch.sqrt of a "
+                "negative value -> NaN covariance) at large mu_eff/dim "
+                "(pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently "
+                "propagates the NaN"
+            )
+        return bench_common.error_record(case, backend, n_obj=1, exc=exc, note=note)
 
 
 def main(argv: list[str] | None = None) -> int:

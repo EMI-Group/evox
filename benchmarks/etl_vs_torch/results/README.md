@@ -15,6 +15,17 @@ results/{suite}_{backend}.json
 A `--out <path>` override is also supported (used by smoke tests, which
 never touch this directory).
 
+Committed so far: `so_torch-cuda.json` / `mo_torch-cuda.json` (full matrix,
+GPU 0, 100 gens, seed 42). The 6 large-scale CMA-ES torch-cuda cases
+(1000x50 and 10000x100) are error records — see the `note` field and
+`benchmarks/etl_vs_torch/CONTEXT.md` for the root cause (evox CMA-ES `c_c`
+formula bug → NaN covariance; cusolver raises, CPU LAPACK silently
+propagates the NaN, so the torch-cpu baseline is wrong there too).
+Torch-side MO Pareto fronts are extracted per-generation (not via
+`EvalMonitor.get_pf_fitness`, whose O(n²) domination matrix gets the process
+OOM-killed at 1000-pop scale); the two methods are mathematically identical
+(verified point-for-point at small scale).
+
 ## JSON schema
 
 The file is a JSON array with one object per case:
@@ -34,7 +45,7 @@ The file is a JSON array with one object per case:
 | `metric` | object | SO: `{"best_fitness": f}` (monitor elite, minimized). MO: `{"hv": f, "igd": f, "n_pf_points": n}` |
 | `parity` | object | vs the `results/{suite}_torch-cpu.json` baseline; `{vs, rel_err, ok}` (+`rel_err_hv`/`rel_err_igd` for MO). Absent for the torch-cpu baseline itself, or when no baseline file exists yet. `ok = rel_err <= 0.10` |
 | `error` | str | `"<Type>: <msg>"` when the case failed (the runner continues) |
-| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; iree MO failures carry `"documented: iree-cuda while-loop shape issue"` |
+| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; iree MO failures carry `"documented: iree-cuda while-loop shape issue"`; large-scale torch CMA-ES failures carry `"documented: evox CMA-ES c_c formula bug (torch.sqrt of a negative value -> NaN covariance) at large mu_eff/dim (pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently propagates the NaN"` |
 
 ## Config (shared by all backends)
 
