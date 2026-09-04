@@ -13,17 +13,6 @@ See `../../DESIGN.md` §4-5.
   `evox_etl.operators.jit_fix_operator` (canonical home — a port of the torch
   `evox/utils/jit_fix_operator.py` helpers).
 
-## Deprecated compat stubs
-The six `_shim_*.py` module-level files in this directory are thin test-compat
-re-exports/wrappers kept ONLY because `unit_test/etl/algorithms/test_shim_*.py`
-(sibling node) still imports them. They re-export the canonical operators (with
-minor compat shims: an int32 index cast in `_shim_crossover.py`, the old
-boundary signature in `_shim_mutation_sampling.py`, the key-split draw-stream
-convention in `_shim_selection_basic.py`, and torch-faithful `apd_fn`/
-`_cosine_similarity` in `_shim_selection_rvea.py`). Pending root-agent
-conversion of those tests, after which the stubs must be deleted. Do NOT import
-from them in new code.
-
 ## Routing Table
 | Area | Path |
 |---|---|
