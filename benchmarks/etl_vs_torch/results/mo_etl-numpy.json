@@ -9,10 +9,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.573795173317194,
+    "compile_time_s": 0.5526781231164932,
     "warmup_steps": 2,
-    "run_time_s": 0.7901079282164574,
-    "ms_per_step": 7.901079282164574,
+    "run_time_s": 0.7668495699763298,
+    "ms_per_step": 7.668495699763298,
     "metric": {
       "hv": 23.93742204356286,
       "igd": 3.998732626438141,
@@ -38,10 +38,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.5683308020234108,
+    "compile_time_s": 0.5345460772514343,
     "warmup_steps": 2,
-    "run_time_s": 0.6448139101266861,
-    "ms_per_step": 6.448139101266861,
+    "run_time_s": 0.6413400620222092,
+    "ms_per_step": 6.413400620222092,
     "metric": {
       "hv": 7.4624,
       "igd": 0.02312449151458348,
@@ -67,10 +67,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.5919192545115948,
+    "compile_time_s": 0.5778173804283142,
     "warmup_steps": 2,
-    "run_time_s": 1.110512487590313,
-    "ms_per_step": 11.10512487590313,
+    "run_time_s": 1.099334254860878,
+    "ms_per_step": 10.99334254860878,
     "metric": {
       "hv": 113.41009187293454,
       "igd": 9.623903998435209,
@@ -96,10 +96,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.6347473002970219,
+    "compile_time_s": 0.568436399102211,
     "warmup_steps": 2,
-    "run_time_s": 0.9106112755835056,
-    "ms_per_step": 9.106112755835056,
+    "run_time_s": 0.8248501941561699,
+    "ms_per_step": 8.248501941561699,
     "metric": {
       "hv": 7.46056,
       "igd": 0.025715163270307664,
@@ -125,10 +125,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.35385969653725624,
+    "compile_time_s": 0.36578652635216713,
     "warmup_steps": 2,
-    "run_time_s": 6.607629653066397,
-    "ms_per_step": 66.07629653066397,
+    "run_time_s": 6.1355940997600555,
+    "ms_per_step": 61.355940997600555,
     "metric": {
       "hv": 7.5615067673900525,
       "igd": 0.5721783219377968,
@@ -154,10 +154,10 @@
     "n_obj": 3,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.38290928304195404,
+    "compile_time_s": 0.3459273837506771,
     "warmup_steps": 2,
-    "run_time_s": 6.442227818071842,
-    "ms_per_step": 64.42227818071842,
+    "run_time_s": 6.033588297665119,
+    "ms_per_step": 60.33588297665119,
     "metric": {
       "hv": 7.45544,
       "igd": 0.033546087763428094,
@@ -181,24 +181,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.5576523914933205,
+    "compile_time_s": 0.550029743462801,
     "warmup_steps": 2,
-    "run_time_s": 6.350887149572372,
-    "ms_per_step": 317.5443574786186,
+    "run_time_s": 28.971952825784683,
+    "ms_per_step": 289.71952825784683,
     "metric": {
-      "hv": 3690217.841657034,
-      "igd": 231.15873527526855,
-      "n_pf_points": 66
+      "hv": 8240.89321641,
+      "igd": 32.66849613189697,
+      "n_pf_points": 81
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 0.7918448874855704,
+      "rel_err_hv": 0.7918448874855704,
+      "rel_err_igd": 0.36073274642161723,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -209,24 +210,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.5544762089848518,
+    "compile_time_s": 0.5289976634085178,
     "warmup_steps": 2,
-    "run_time_s": 6.5610939636826515,
-    "ms_per_step": 328.0546981841326,
+    "run_time_s": 23.174855548888445,
+    "ms_per_step": 231.74855548888445,
     "metric": {
-      "hv": 7.27808,
-      "igd": 0.15748431165842128,
-      "n_pf_points": 517
+      "hv": 7.46152,
+      "igd": 0.01756355235428089,
+      "n_pf_points": 11711
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 0.052418944076521895,
+      "rel_err_hv": 0.00020367035417205158,
+      "rel_err_igd": 0.052418944076521895,
+      "ok": true,
+      "note": null
     }
   },
   {
@@ -237,24 +239,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.6147727817296982,
+    "compile_time_s": 0.5816980451345444,
     "warmup_steps": 2,
-    "run_time_s": 6.722985323518515,
-    "ms_per_step": 336.14926617592573,
+    "run_time_s": 34.17501376569271,
+    "ms_per_step": 341.7501376569271,
     "metric": {
-      "hv": 4081556.426412986,
-      "igd": 229.40559196472168,
-      "n_pf_points": 94
+      "hv": 5268.884409143543,
+      "igd": 30.059624671936035,
+      "n_pf_points": 74
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 0.6912043265468815,
+      "rel_err_hv": 0.6912043265468815,
+      "rel_err_igd": 0.2732516700654384,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -265,24 +268,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.621515866369009,
+    "compile_time_s": 0.575516514480114,
     "warmup_steps": 2,
-    "run_time_s": 6.691503807902336,
-    "ms_per_step": 334.5751903951168,
+    "run_time_s": 28.21240332722664,
+    "ms_per_step": 282.1240332722664,
     "metric": {
-      "hv": 7.27968,
-      "igd": 0.15485152064838448,
-      "n_pf_points": 526
+      "hv": 7.46288,
+      "igd": 0.017946228642919185,
+      "n_pf_points": 9324
     },
-    "note": "compiled (numpy); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 0.17952989869332014,
+      "rel_err_hv": 0.0004821549110155794,
+      "rel_err_igd": 0.17952989869332014,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -293,24 +297,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.46614494174718857,
+    "compile_time_s": 0.4090816080570221,
     "warmup_steps": 2,
-    "run_time_s": 14.30585253611207,
-    "ms_per_step": 715.2926268056035,
+    "run_time_s": 69.28767714649439,
+    "ms_per_step": 692.8767714649439,
     "metric": {
-      "hv": 1766236.145810134,
-      "igd": 92.36793804168701,
-      "n_pf_points": 124
+      "hv": 10232.709252510109,
+      "igd": 4.718329726439565,
+      "n_pf_points": 352
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 21.006106290018316,
+      "rel_err_hv": 21.006106290018316,
+      "rel_err_igd": 0.3090721142861601,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   },
   {
@@ -321,24 +326,25 @@
     "pop_size": 1000,
     "dim": 30,
     "n_obj": 3,
-    "gens": 20,
+    "gens": 100,
     "seed": 42,
-    "compile_time_s": 0.4513203278183937,
+    "compile_time_s": 0.398710910230875,
     "warmup_steps": 2,
-    "run_time_s": 14.169924318790436,
-    "ms_per_step": 708.4962159395218,
+    "run_time_s": 68.85523032024503,
+    "ms_per_step": 688.5523032024503,
     "metric": {
-      "hv": 7.28704,
-      "igd": 0.13595660001109894,
-      "n_pf_points": 638
+      "hv": 7.45392,
+      "igd": 0.02432063784734024,
+      "n_pf_points": 6840
     },
-    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides); gens capped to 20 (O(n^2) whole-history PF ranking on the numpy interpreter; 50 infeasible)",
+    "note": "compiled (numpy); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
     "parity": {
       "vs": "torch-cpu",
-      "ok": null,
-      "skip": "gens capped: 20 vs 100 (parity not meaningful)",
-      "gens": 20,
-      "baseline_gens": 100
+      "rel_err": 0.16940482466929005,
+      "rel_err_hv": 0.0006435420554732543,
+      "rel_err_igd": 0.16940482466929005,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
     }
   }
 ]
