@@ -25,7 +25,10 @@ Pareto fronts are extracted per-generation on both torch and etl paths
 (`_torch_pf_fitness` / `_etl_pf_fitness` in `bench_mo.py`) — `EvalMonitor.get_pf_fitness`'s
 O(n²) whole-history domination matrix OOM-kills the process at 1000-pop ×
 100-gen scale; the two methods are mathematically identical (verified
-point-for-point at small scale).
+point-for-point at small scale). The 2026-09-05 re-run refreshed all 9
+CMA-ES SO cells on all six backends after the `p_c` quirk fix (etl-side
+scalar-dot-product replication); the CMAES/Ackley/100x10 plateau stall is
+resolved on all four etl backends (see BENCHMARK_RESULTS.md).
 
 ## JSON schema
 
@@ -126,6 +129,11 @@ following cells were re-run and merged into the committed JSONs (see
   the previous 20-gen cap), etl-iree-llvm-cpu, etl-iree-cuda,
   etl-xla-cuda.** xla-cuda runs NSGA2+MOEAD end-to-end (8/12 cells);
   the remaining cells fail with the NEW blockers below.
+- **SO CMA-ES 2026-09-05 re-run:** all 9 CMA-ES SO cells re-run on all 6
+  backends after the `p_c` quirk fix; 0 error records; the
+  CMAES/Ackley/100x10 stall resolved (new etl bests ≈ 0.00055–0.0037);
+  parity verdicts re-derived with `retag_parity.py`; torch-cpu baseline
+  re-run first (fitness bit-identical, timing refreshed).
 
 Known issues recorded in the JSONs after the re-run:
 
@@ -141,8 +149,7 @@ Known issues recorded in the JSONs after the re-run:
 3. **MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu** passes export AND compile but
    fails at runtime: `ref is null ... hal.buffer_view.create`
    (INVALID_ARGUMENT).
-4. **CMAES/Ackley/100x10 stall persists** on all four etl backends
-   (best ≈ 20.5–20.6 vs torch-cpu 0.0036; rel_err ≈ 5.7e3). The `c_c` fix
-   addressed the large-pop NaN regime, not this stall. torch-cuda's Ackley
-   1000x50/10000x100 cells also stall (≈20.6/20.4 vs torch-cpu 7.3/11.9) —
-   RNG-stream variance on unconverged runs.
+4. Large-scale CMA-ES Ackley cells (1000x50/10000x100) remain unconverged on
+   torch-cuda (≈20.6/20.4) and scatter on the etl compiled backends (rel
+   0.44–1.89) — RNG-stream variance on unconverged runs; the 100x10 stall
+   itself is resolved by the `p_c` quirk fix.

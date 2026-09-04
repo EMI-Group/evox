@@ -196,10 +196,8 @@ def run_one(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
         note = None
         if case.algo == "CMAES" and type(exc).__name__ == "_LinAlgError":
             note = (
-                "documented: evox CMA-ES c_c formula bug (torch.sqrt of a "
-                "negative value -> NaN covariance) at large mu_eff/dim "
-                "(pop>=1000, dim>=50); cusolver raises, CPU LAPACK silently "
-                "propagates the NaN"
+                "CMA-ES linear-algebra failure "
+                "(e.g. non-PSD covariance eigendecomposition)"
             )
         return bench_common.error_record(case, backend, n_obj=1, exc=exc, note=note)
 

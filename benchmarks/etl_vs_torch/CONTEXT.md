@@ -66,12 +66,17 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   `hal.buffer_view.create`).
 - **CMA-ES `c_c` framework bug is FIXED** in both torch and etl (Hansen
   canonical formula); all 9 CMA-ES SO cells on all 6 backends were re-run.
-- **CMAES/Ackley/100x10 divergence persists:** etl stalls on the Ackley
-  plateau (best ≈ 20.5–20.6, rel_err ≈ 5.7e3 vs torch-cpu 0.0036) on all
-  four etl backends; the c_c fix did not address it. torch-cuda Ackley
-  1000x50/10000x100 also stall (RNG variance).
-- **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 90 ok /
-  66 not-ok / 24 skip (etl-numpy gens caps); MO 10 ok / 22 not-ok / 28 skip
+- **CMAES/Ackley/100x10 now converges on all four etl backends** (best
+  0.00055–0.0037, matching torch-cpu 0.0036; iree-llvm-cpu parity ok at rel
+  0.007). This required replicating torch's 1-D `p_c @ p_c.T`
+  scalar-dot-product quirk (isotropic c_1 inflation) instead of the
+  canonical rank-one outer product — see
+  `src/evox_etl/algorithms/so/es_variants/`. Large-scale Ackley cells
+  (1000x50/10000x100) still scatter on unconverged runs (torch-cuda
+  ≈20.6/20.4; etl compiled backends rel 0.44–1.89) — RNG-stream variance,
+  not a stall.
+- **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 94 ok /
+  62 not-ok / 24 skip (etl-numpy gens caps); MO 10 ok / 22 not-ok / 28 skip
   (backend errors). etl compiled backends are bit/last-ulp identical to
   each other; not-ok cells are the documented CMAES-Ackley divergence plus
   RNG-stream scatter on unconverged runs (see `BENCHMARK_RESULTS.md`).
