@@ -12,41 +12,42 @@ Deviations from torch:
   (`etl.random`), one split per draw in torch's draw order; keys live in the
   state and advance there. `tell` never draws randomness.
 - Array-like config fields (`lb`/`ub`/`mean`/`stdev` and a tuple
-  `differential_weight`) are normalized to tuples of plain Python floats in
-  `__post_init__`, because `etl.build` rejects numpy arrays as static args.
+  `differential_weight`) are normalized to flat tuples of plain Python floats
+  by the `make_de` constructor; the config dataclass itself stores only plain
+  static leaves.
 """
 
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple, Union
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    bake_float32_constant,
+    normalize_bounds,
+    require_between,
+    require_choice,
+    require_ge,
+    to_float_tuple,
+)
 from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["DE", "DEState", "init", "init_ask", "init_tell", "ask", "tell"]
-
-
-def _to_float_tuple(value) -> Tuple[float, ...]:
-    """Normalize an array-like value to a tuple of plain Python floats."""
-    if hasattr(value, "tolist"):
-        value = value.tolist()
-    return tuple(float(v) for v in value)
-
-
-def _constant_1d(values) -> Tensor:
-    """Bake a 1-D float32 numpy array as a graph constant."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(values, dtype=np.float32)))
+__all__ = ["DE", "DEState", "init", "init_ask", "init_tell", "ask", "tell", "make_de"]
 
 
 @dataclass(frozen=True)
 class DE:
-    """Differential Evolution (DE) config, mirroring torch `DE.__init__` (device dropped)."""
+    """Differential Evolution (DE) config, mirroring torch `DE.__init__` (device dropped).
+
+    Dumb frozen dataclass — construct via `make_de`, which validates and
+    normalizes array-like fields to flat float tuples before construction.
+    """
 
     pop_size: int
     lb: Union[Tuple[float, ...], Any]
@@ -58,25 +59,60 @@ class DE:
     mean: Optional[Any] = None
     stdev: Optional[Any] = None
 
-    def __post_init__(self) -> None:
-        assert self.pop_size >= 4
-        assert 0 < self.cross_probability <= 1
-        assert 1 <= self.num_difference_vectors < self.pop_size // 2
-        assert self.base_vector in ["rand", "best"]
-        assert len(self.lb) == len(self.ub)
-        if self.num_difference_vectors == 1:
-            assert isinstance(self.differential_weight, float)
-        else:
-            assert not isinstance(self.differential_weight, float)
-            assert len(self.differential_weight) == self.num_difference_vectors
-        object.__setattr__(self, "lb", _to_float_tuple(self.lb))
-        object.__setattr__(self, "ub", _to_float_tuple(self.ub))
-        if self.mean is not None:
-            object.__setattr__(self, "mean", _to_float_tuple(self.mean))
-        if self.stdev is not None:
-            object.__setattr__(self, "stdev", _to_float_tuple(self.stdev))
-        if not isinstance(self.differential_weight, float):
-            object.__setattr__(self, "differential_weight", _to_float_tuple(self.differential_weight))
+
+def make_de(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    base_vector: str = "rand",
+    num_difference_vectors: int = 1,
+    differential_weight: float | tuple = 0.5,
+    cross_probability: float = 0.9,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+) -> DE:
+    """Build a :class:`DE` config, validating hyperparameters and normalizing array-like fields.
+
+    Same validation semantics as torch ``DE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 4)
+    require_between("cross_probability", cross_probability, 0, 1, low_inclusive=False)
+    require_between(
+        "num_difference_vectors", num_difference_vectors, 1, pop_size // 2, high_inclusive=False
+    )
+    require_choice("base_vector", base_vector, ["rand", "best"])
+    lb, ub = normalize_bounds(lb, ub)
+    if num_difference_vectors == 1:
+        # np.float64 subclasses float, so require the exact Python type: numpy
+        # scalars are not valid graph operands and must be rejected.
+        if type(differential_weight) is not float:
+            raise ValueError(
+                "differential_weight must be a float when num_difference_vectors == 1, "
+                f"got {differential_weight!r}"
+            )
+    else:
+        if type(differential_weight) is float:
+            raise ValueError(
+                "differential_weight must be a sequence (not a float) when "
+                f"num_difference_vectors > 1, got {differential_weight!r}"
+            )
+        differential_weight = to_float_tuple(differential_weight)
+        if len(differential_weight) != num_difference_vectors:
+            raise ValueError(
+                "differential_weight must have length num_difference_vectors "
+                f"({num_difference_vectors}), got length {len(differential_weight)}"
+            )
+    return DE(
+        pop_size=pop_size,
+        lb=lb,
+        ub=ub,
+        base_vector=base_vector,
+        num_difference_vectors=num_difference_vectors,
+        differential_weight=differential_weight,
+        cross_probability=cross_probability,
+        mean=to_float_tuple(mean) if mean is not None else None,
+        stdev=to_float_tuple(stdev) if stdev is not None else None,
+    )
 
 
 @dataclass(frozen=True)
@@ -87,13 +123,6 @@ class DEState:
     fit: Tensor
     trial_vectors: Tensor
     key: Tensor
-
-
-def _bounds(config: DE) -> Tuple[Tensor, Tensor]:
-    """Bake the (1, dim) lower/upper bound constants (torch's `lb[None, :]`)."""
-    lb = enp.reshape(_constant_1d(config.lb), (1, -1))
-    ub = enp.reshape(_constant_1d(config.ub), (1, -1))
-    return lb, ub
 
 
 def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tensor]:
@@ -138,7 +167,7 @@ def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tenso
     if isinstance(config.differential_weight, float):
         new_pop = base + config.differential_weight * difference_vector
     else:
-        f_const = _constant_1d(config.differential_weight)
+        f_const = bake_float32_constant(config.differential_weight)
         new_pop = base + f_const * difference_vector
 
     # Crossover: take a dim from the mutant with prob CR, plus one forced dim.
@@ -150,7 +179,7 @@ def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tenso
     new_pop = etl.select(mask, new_pop, pop)
 
     # Ensure the trial population is within bounds.
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     new_pop = clamp(new_pop, lb, ub)
     return new_pop, subkey
 
@@ -159,10 +188,10 @@ def init(config: DE, key: Tensor) -> DEState:
     """Draw the initial population (normal around `mean`/`stdev`, else uniform in bounds)."""
     key, subkey = random.split(key)
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     if config.mean is not None and config.stdev is not None:
-        mean_c = _constant_1d(config.mean)
-        stdev_c = _constant_1d(config.stdev)
+        mean_c = bake_float32_constant(config.mean)
+        stdev_c = bake_float32_constant(config.stdev)
         pop = mean_c + stdev_c * random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32")
         pop = clamp(pop, lb, ub)
     else:

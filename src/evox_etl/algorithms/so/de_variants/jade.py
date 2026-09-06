@@ -13,20 +13,26 @@ Deviations from torch (mathematically equivalent):
 - The RNG key is stored in the state and advanced at every draw (etl RNG is
   stateless); each ``torch.randn``/``torch.rand``/``torch.randint`` draw gets its
   own ``random.split`` subkey, in the same draw order with the same distribution.
-- ``lb``/``ub``/``mean``/``stdev`` config fields are normalized to tuples of
-  plain Python floats (``etl.build`` rejects np.ndarray static args) and baked as
-  graph constants inside each function.
+- ``lb``/``ub``/``mean``/``stdev`` config fields are normalized to flat tuples of
+  plain Python floats by the ``make_jade`` constructor and baked as graph
+  constants inside each function.
 """
 
 from dataclasses import dataclass
 from typing import Any, Tuple
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    bake_float32_constant,
+    normalize_bounds,
+    require_ge,
+    to_float_tuple,
+)
 from evox_etl.operators.jit_fix_operator import clamp, clamp_float
 from evox_etl.operators.selection import select_rand_pbest
 
@@ -35,7 +41,11 @@ Tensor = etl.SymbolicTensor
 
 @dataclass(frozen=True)
 class JaDE:
-    """JaDE configuration (mirrors the torch ``JaDE.__init__`` signature)."""
+    """JaDE configuration (mirrors the torch ``JaDE.__init__`` signature).
+
+    Dumb frozen dataclass — construct via ``make_jade``, which validates and
+    normalizes array-like fields to flat float tuples before construction.
+    """
 
     pop_size: int
     lb: Any  # lower bounds, (dim,) array-like; stored as a tuple of Python floats
@@ -45,15 +55,31 @@ class JaDE:
     stdev: Any = None  # optional normal-init stdev; stored as a tuple of Python floats
     c: float = 0.1
 
-    def __post_init__(self) -> None:
-        assert self.pop_size >= 4
-        assert len(self.lb) == len(self.ub)
-        object.__setattr__(self, "lb", tuple(float(v) for v in self.lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in self.ub))
-        if self.mean is not None:
-            object.__setattr__(self, "mean", tuple(float(v) for v in self.mean))
-        if self.stdev is not None:
-            object.__setattr__(self, "stdev", tuple(float(v) for v in self.stdev))
+
+def make_jade(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    num_difference_vectors: int = 1,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+    c: float = 0.1,
+) -> JaDE:
+    """Build a JaDE config, validating hyperparameters and normalizing array-like fields.
+
+    Same validation semantics as torch ``JaDE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 4)
+    lb, ub = normalize_bounds(lb, ub)
+    return JaDE(
+        pop_size=pop_size,
+        lb=lb,
+        ub=ub,
+        num_difference_vectors=num_difference_vectors,
+        mean=to_float_tuple(mean) if mean is not None else None,
+        stdev=to_float_tuple(stdev) if stdev is not None else None,
+        c=c,
+    )
 
 
 @dataclass(frozen=True)
@@ -70,32 +96,15 @@ class JaDEState:
     key: Tensor  # () int64 rng key
 
 
-def _bake_bounds(config: JaDE) -> Tuple[Tensor, Tensor]:
-    """Bake the (1, dim) lb/ub graph constants from the config tuples."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    return enp.reshape(lb, (1, -1)), enp.reshape(ub, (1, -1))
-
-
 def init(config: JaDE, key: Tensor) -> JaDEState:
     """Create the initial state: uniform/normal population, inf fitness, F_u=CR_u=0.5."""
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bake_bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     key, k_pop = random.split(key)
 
     if config.mean is not None and config.stdev is not None:
-        mean = enp.reshape(
-            etl.ops.constant(
-                etl.core.tensor(np.asarray(config.mean, dtype=np.float32))
-            ),
-            (1, -1),
-        )
-        stdev = enp.reshape(
-            etl.ops.constant(
-                etl.core.tensor(np.asarray(config.stdev, dtype=np.float32))
-            ),
-            (1, -1),
-        )
+        mean = bake_float32_constant(config.mean, shape=(1, -1))
+        stdev = bake_float32_constant(config.stdev, shape=(1, -1))
         population = mean + stdev * random.normal(
             k_pop, (pop_size, dim), 0.0, 1.0, "float32"
         )
@@ -144,7 +153,7 @@ def ask(config: JaDE, state: JaDEState) -> Tuple[Tensor, JaDEState]:
     """Mutation + crossover: draw F/CR, build trial vectors; keep them for tell."""
     pop, fit, F_u, CR_u = state.pop, state.fit, state.F_u, state.CR_u
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bake_bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
 
     # 1) Generate current F_vec and CR_vec with adaptive perturbation
     key, k_f = random.split(state.key)
