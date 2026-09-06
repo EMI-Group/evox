@@ -52,15 +52,22 @@ torch 2.6.0+cu124 CUDA works, evox+etl editable, pytest). Tests:
 GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 
 ## ETL issues found (escalated to root agent)
-1. **np.ndarray fields in config dataclasses are rejected by `etl.build`** as static
-   trace values ("neither a TensorSpec nor a static Python value"). DESIGN.md §4.1
-   says config `lb`/`ub` become numpy arrays — not possible as-is. Two workarounds
-   in use: (a) normalize array fields to tuples of plain floats in `__post_init__`
-   (de_variants/pso_variants/es_variants), (b) `etl.register_pytree_node(ConfigCls,
-   zero-child-flatten, identity-unflatten)` per config module (mo — see nsga2.py).
-   Either update DESIGN.md or make etl accept ndarray as a static value.
-   Repro: `etl.build(lambda cfg: cfg, MyConfig(lb=np.zeros(3)), backend="numpy")`
-   → `etl.core.errors.TraceError` at `_flatten_specs`.
+1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
+   by the installed etl** (master @f2f50a7, incl. commit b8062a9 "accept np.ndarray
+   as static trace values" — empirically verified via runtime probes, numpy
+   backend). The old rejection and its workarounds are obsolete: the tuple-
+   normalizing `__post_init__`s (de/pso/es variants) and the zero-child
+   `etl.register_pytree_node` registrations (mo/*, problems/numerical/basic.py)
+   are no longer needed to satisfy etl. Remaining constraints: (a) non-None
+   callable fields are STILL rejected as static leaves anywhere in the pytree, so
+   zero-child registration remains required only for configs carrying op functions
+   (mo/nsga3, moead, rvea); (b) zero-child registration makes the config an opaque
+   node — `etl.run` performs NO by-value static revalidation, while plain-leaf
+   tuple/ndarray fields raise TraceError on a drifted value; (c) plain-float-tuple
+   lb/ub storage stays preferable for frozen-dataclass `__eq__`/`__hash__`
+   (frozen=True + ndarray is broken/unhashable). Stale "ndarray rejected" comments
+   remain in mo/*.py, basic.py:314-318 and SO module docstrings — the planned
+   `__post_init__`-removal refactor should delete them (see audit section below).
 2. **`etl.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
    branches** (`cannot broadcast incompatible dims n and m`). numpy/torch broadcast
    `(n,)` → `(n, 1)` against `(n, m)` fine. Workaround: always
@@ -125,3 +132,16 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
     0-d scalar indices and squeezes (the pso `(1,)`-reshape workaround is
     unnecessary); float32 ** Python-float exponent stays float32; etl has no
     any/all ops — compose via `etl.max`/`etl.min` over bool axes.
+
+## Config-constructor design audit (refactor input)
+A read-only design audit of config-dataclass construction — all 37 `__post_init__`
+defs, the zero-child `register_pytree_node` hack, construction call-site
+inventories, and the functional-constructor refactor proposal — is recorded per
+subtree in child CONTEXT.md files: `algorithms/so/de_variants` (notes),
+`algorithms/so/es_variants` ("Config __post_init__ audit" section),
+`algorithms/so/pso_variants` ("Config call-site audit" section), `algorithms/mo`
+("Audit — config registration hack, __post_init__, construction sites" section),
+`problems/numerical` ("Config design audit" section).
+Read the relevant child file before refactoring any config dataclass; the audit
+was read-only, so the source files still carry the audited constructors and the
+migration mapping lives in those CONTEXT.md sections.
