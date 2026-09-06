@@ -17,7 +17,7 @@ from evox_etl.algorithms.so.pso_variants.cso import CSO
 
 
 def _base_cfg() -> CSO:
-    return CSO(
+    return cso.make_cso(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),
@@ -33,7 +33,7 @@ def test_cso_smoke():
 
 
 def test_cso_mean_stdev_init():
-    cfg = CSO(
+    cfg = cso.make_cso(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),

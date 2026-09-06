@@ -10,7 +10,7 @@ import evox_etl.algorithms.so.es_variants.noise_reuse_es as noise_reuse_es
 
 def test_noise_reuse_es_sphere():
     dim = 10
-    cfg = noise_reuse_es.NoiseReuseESConfig(
+    cfg = noise_reuse_es.make_noise_reuse_es(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         sigma=0.5,
@@ -26,7 +26,7 @@ def test_noise_reuse_es_sphere():
 
 def test_noise_reuse_es_sphere_adam():
     dim = 10
-    cfg = noise_reuse_es.NoiseReuseESConfig(
+    cfg = noise_reuse_es.make_noise_reuse_es(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         optimizer="adam",

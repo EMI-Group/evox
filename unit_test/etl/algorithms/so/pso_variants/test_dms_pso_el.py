@@ -30,7 +30,7 @@ def _make_config(**kwargs):
     kwargs.setdefault("dynamic_sub_swarm_size", DSS)
     kwargs.setdefault("dynamic_sub_swarms_num", DSSN)
     kwargs.setdefault("following_sub_swarm_size", FSS)
-    return dms_pso_el.DMSPSOEL(lb=LB, ub=UB, **kwargs)
+    return dms_pso_el.make_dms_pso_el(lb=LB, ub=UB, **kwargs)
 
 
 def _assert_common(state):

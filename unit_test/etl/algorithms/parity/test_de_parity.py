@@ -22,7 +22,6 @@ from evox.algorithms import DE as TorchDE
 from evox.problems.numerical import basic
 from evox.workflows import EvalMonitor, StdWorkflow
 import evox_etl.algorithms.so.de_variants.de as de_mod
-from evox_etl.algorithms.so.de_variants import DE
 from unit_test.etl.algorithms.helpers import SphereConfig, run_generations
 
 POP, DIM, GENS = 100, 40, 20
@@ -42,7 +41,7 @@ def _torch_best(seed: int) -> float:
 
 
 def _etl_best(seed: int) -> float:
-    cfg = DE(pop_size=POP, lb=np.full(DIM, -100.0), ub=np.full(DIM, 100.0))
+    cfg = de_mod.make_de(pop_size=POP, lb=np.full(DIM, -100.0), ub=np.full(DIM, 100.0))
     state = run_generations(de_mod, cfg, SphereConfig(DIM), GENS, seed=seed)
     return float(np.min(state.fit.numpy()))
 

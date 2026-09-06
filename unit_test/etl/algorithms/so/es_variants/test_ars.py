@@ -9,7 +9,7 @@ import evox_etl.algorithms.so.es_variants.ars as ars
 
 def _cfg(optimizer=None):
     dim = 10
-    return dim, ars.ARSConfig(
+    return dim, ars.make_ars(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         elite_ratio=0.5,
