@@ -8,9 +8,9 @@ Port notes:
 - Stateless etl RNG: the key is stored in the state and advanced in ``ask``
   with ONE ``random.split`` per torch random draw, in torch's draw order.
   ``tell`` never draws randomness.
-- ``lb``/``ub`` config fields are normalized to tuples of plain Python floats
-  (np.ndarray fields are rejected by ``etl.build``); they are baked as graph
-  constants inside the functions.
+- ``lb``/``ub`` config fields are normalized to flat tuples of plain Python
+  floats by the ``make_sade`` constructor; they are baked as graph constants
+  inside the functions.
 - torch's per-i scatter-add loop updating success/failure memory is replaced by
   its exact vectorized equivalent: roll + zero row 0, then write the
   per-strategy success/failure counts of this generation into row 0.
@@ -25,6 +25,12 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    normalize_bounds,
+    require_ge,
+)
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
@@ -43,7 +49,11 @@ STRATEGY_POOL = ((0, 0, 1, 0), (0, 1, 2, 0), (0, 0, 2, 0), (0, 0, 1, 2))
 
 @dataclass(frozen=True)
 class SaDE:
-    """Config mirroring torch ``SaDE.__init__`` (device dropped)."""
+    """Config mirroring torch ``SaDE.__init__`` (device dropped).
+
+    Dumb frozen dataclass — construct via ``make_sade``, which validates and
+    normalizes the bounds to flat float tuples before construction.
+    """
 
     pop_size: int
     lb: Any
@@ -51,11 +61,17 @@ class SaDE:
     diff_padding_num: int = 9
     LP: int = 50
 
-    def __post_init__(self):
-        assert self.pop_size >= 9
-        assert len(self.lb) == len(self.ub)
-        object.__setattr__(self, "lb", tuple(float(v) for v in self.lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in self.ub))
+
+def make_sade(
+    pop_size: int, lb: ArrayLike, ub: ArrayLike, diff_padding_num: int = 9, LP: int = 50
+) -> SaDE:
+    """Build a :class:`SaDE` config, validating hyperparameters and normalizing bounds.
+
+    Same validation semantics as torch ``SaDE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 9)
+    lb, ub = normalize_bounds(lb, ub)
+    return SaDE(pop_size=pop_size, lb=lb, ub=ub, diff_padding_num=diff_padding_num, LP=LP)
 
 
 @dataclass(frozen=True)
@@ -76,19 +92,12 @@ class SaDEState:
     key: Tensor
 
 
-def _bake_lb_ub(config: SaDE) -> tuple[Tensor, Tensor]:
-    """Bake the normalized lb/ub tuples as (1, dim) float32 graph constants."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    return enp.reshape(lb, (1, -1)), enp.reshape(ub, (1, -1))
-
-
 def init(config: SaDE, key: Tensor) -> SaDEState:
     """Draw the initial state: randn-scaled population (torch quirk — no
     uniform, no clamp), inf fitness, zeroed counters and NaN CR memory."""
     key, subkey = random.split(key)
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bake_lb_ub(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
 
     gen_iter = enp.full((), 0, dtype="int64")
     best_index = enp.full((), 0, dtype="int64")
@@ -122,7 +131,7 @@ def ask(config: SaDE, state: SaDEState) -> tuple[Tensor, SaDEState]:
     adaptive strategy probabilities, per-individual F/CR, DE mutation and
     crossover."""
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bake_lb_ub(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     strategy_pool = etl.ops.constant(
         etl.core.tensor(np.asarray(STRATEGY_POOL, dtype=np.int32))
     )

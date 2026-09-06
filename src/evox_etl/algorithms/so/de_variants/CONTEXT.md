@@ -10,8 +10,10 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - Each module: frozen config dataclass named after the torch class (`DE`, `JaDE`,
   `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain functions
   `init(config, key) -> State`, `ask(config, state) -> (candidates, state)`,
-  `tell(config, state, fitness) -> state`. `__init__.py` mirrors torch exports
-  (`DE, CoDE, JaDE, ODE, SaDE, SHADE`).
+  `tell(config, state, fitness) -> state`.
+- Each config module also defines a `make_*` constructor in the SAME module
+  (`make_de`, `make_jade`, `make_shade`, `make_sade`, `make_ode`, `make_code`);
+  `__init__.py` exports the classes and all 6 `make_*`.
 - `init_ask`/`init_tell` encode torch's `init_step` (evaluate the initial
   population) on `de.py`, `ode.py`, `jade.py` — the torch counterparts of
   SHADE/SaDE/CoDE have no init_step, so those modules omit the pair.
@@ -31,10 +33,21 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - Files < ~400 lines; static Python loops/config branches allowed in traces.
 
 ## Notes for agents (verified — do not re-investigate)
-- **np.ndarray config fields are REJECTED by `etl.build`** ("neither a TensorSpec nor
-  a static Python value"). Normalize `lb`/`ub`/`mean`/`stdev`/`differential_weight`/
-  `param_pool` to tuples of plain Python floats via `object.__setattr__` in
-  `__post_init__` (callers may pass np arrays; stored values are tuples).
+- **Configs are dumb frozen dataclasses** (no `__post_init__`, no normalization,
+  no validation) storing ONLY Python scalars + flat float tuples (`lb`/`ub`/
+  `mean`/`stdev`/`differential_weight`).
+- Construct configs via the module-level `make_*` constructor (normalizes
+  arrays→plain float tuples and validates with ValueError naming the param);
+  direct construction with already-normalized statics stays legal.
+  Installed etl accepts np.ndarray static values, so raw-array fields trace
+  fine, but `make_*` is the sanctioned entry point (policy: `DESIGN.md` §4.1).
+  CoDE `param_pool` stores a nested tuple of (F, CR) pairs (natural (3, 2)
+  shape — flattened storage would break `ask`'s gather over param_ids).
+- Normalization/baking helpers are consolidated in
+  `evox_etl/algorithms/_config_utils.py` (`to_float_tuple` dtype-preserving,
+  `normalize_bounds`, `require_ge`/`require_between`/`require_choice`,
+  `bake_float32_constant`, `bake_bounds(..., as_row=True)`); this family no
+  longer defines local `_to_float_tuple`/`_bounds`/`_bake*` helpers.
 - **`etl.select` does NOT numpy-broadcast** a `(n,)` condition against `(n, m)`
   operands (ShapeError). Always `enp.expand_dims(cond, 1)` first. Scalar conds
   broadcast fine. Python float + float32 → float32 OK; Python int + int32 → int64
@@ -44,8 +57,10 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - RNG: `key, subkey = random.split(state.key)` at function entry; one split per
   random op, in torch's draw order; store the advanced `key` back in the state.
   `random.multinomial(key, probs, n)` returns int32.
-- Bounds baked ONCE per function as `(1, dim)` constants via `etl.ops.constant`;
-  `dim = len(config.lb)` stays a static Python int.
+- Bounds baked per function via `bake_bounds(lb, ub, as_row=True)` (shared
+  helper — `(1, dim)` float32 constants) or `bake_float32_constant(x, shape=(1, -1))`
+  for a single bound; `dim = len(config.lb)` stays a static Python int (works for
+  both tuple and ndarray fields).
 - SHADE/SaDE/CoDE init populations use **`randn` scaled by bounds** (torch quirk —
   no uniform, no clamp) — do not assert in-bounds on their initial pops.
 - `etl.median(x, axis=0)` matches torch's NaN propagation; `etl.roll(x, shift, axis)`;
@@ -60,17 +75,22 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - The DE parity test uses the MEDIAN of 3 seeds with the 10% margin: per-seed
   best fitnesses fluctuate ~0.57-1.92× around torch (different RNG streams), so a
   single-seed 10% margin fails ~1/3 of the time by chance. Median-of-3 is stable.
-- **ode.py imports de.py private helpers** (`_de_trial`, `_bounds`, `_constant_1d`,
-  `_to_float_tuple`, ode.py:29-34) — de.py internals are part of ODE's API; any
-  de.py refactor (e.g. moving __post_init__ normalization into a builder) must
-  keep ode.py compiling or update the import.
-- All six config classes are constructed KEYWORD-ONLY with `lb`/`ub` as
-  np.ndarray at every in-repo call site (smoke tests test_{de,ode,jade,shade,
-  sade,code}.py, parity test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115);
-  `pop_size`/`lb`/`ub` are required (no defaults), so default-construction is
-  impossible. Tests only exercise default hyperparameters — the tuple
-  `differential_weight` (ndv>1), `mean`/`stdev` init, and non-default
-  `param_pool` normalization paths have NO test coverage.
+- **ode.py imports `_de_trial` from de.py** (algorithm logic — stays; the
+  mutation/crossover helper is part of ODE's API) and the shared baking helpers
+  from `algorithms/_config_utils.py`; keep ode.py compiling when touching either.
+- Legacy direct-dataclass-construction sites (family smoke tests, parity
+  test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115) still pass raw
+  np.ndarray `lb`/`ub` and still trace (bakers accept ArrayLike; etl accepts
+  ndarray statics); they should migrate to `make_*` (parallel migration round).
+  Tests only exercise default hyperparameters — the tuple `differential_weight`
+  (ndv>1), `mean`/`stdev` init, and non-default `param_pool` paths have NO test
+  coverage.
+- KNOWN ISSUE (pre-existing, NOT introduced by the make_* refactor): DE/ODE with
+  `num_difference_vectors > 1` + tuple `differential_weight` constructs and
+  validates fine but FAILS at trace time in `_de_trial` (`base + f_const *
+  difference_vector`, ShapeError — cannot broadcast ndv against dim): the (ndv,)
+  weight constant never multiplies per-individual difference vectors. Reproduced
+  identically on the pre-refactor HEAD.
 
 ## Routing Table
 | Area | Path |

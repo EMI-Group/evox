@@ -8,12 +8,11 @@ Semantics mirror the torch evox PSO algorithm 1:1 (see DESIGN.md §4-5).
 from dataclasses import dataclass
 from typing import Tuple
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 
 from .utils import min_by
@@ -34,21 +33,25 @@ class PSO:
     """
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     w: float = 0.6
     phi_p: float = 2.5
     phi_g: float = 0.8
 
-    def __post_init__(self) -> None:
-        # etl static trace arguments reject numpy arrays/scalars (TraceError);
-        # store the bounds as float tuples so this frozen config is a legal
-        # static pytree. The constructor API (numpy arrays in) is unchanged.
-        lb = np.asarray(self.lb)
-        ub = np.asarray(self.ub)
-        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
-        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
+
+def make_pso(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    w: float = 0.6,
+    phi_p: float = 2.5,
+    phi_g: float = 0.8,
+) -> PSO:
+    """Construct a PSO config, normalizing array-like bounds to flat float
+    tuples (raises ValueError on non-1-D or shape-mismatched bounds)."""
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    return PSO(pop_size=pop_size, lb=lb_t, ub=ub_t, w=w, phi_p=phi_p, phi_g=phi_g)
 
 
 @dataclass(frozen=True)
@@ -67,13 +70,7 @@ class PSOState:
 
 def _bounds(config: PSO) -> Tuple[Tensor, Tensor]:
     """Bake the (1, dim) lower/upper bound constants from the config arrays."""
-    lb = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.lb, dtype=np.float32)[None, :])
-    )
-    ub = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.ub, dtype=np.float32)[None, :])
-    )
-    return lb, ub
+    return bake_bounds(config.lb, config.ub, as_row=True)
 
 
 def init(config: PSO, key: Tensor) -> PSOState:

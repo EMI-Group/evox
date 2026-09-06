@@ -17,6 +17,14 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_choice,
+    require_gt,
+    to_float_tuple,
+)
+
 from .adam_step import adam_single_tensor
 
 F32 = np.dtype("float32")
@@ -24,10 +32,15 @@ F32 = np.dtype("float32")
 
 @dataclass(frozen=True)
 class ASEBOConfig:
-    """Hyperparameters of the ASEBO algorithm (mirrors the torch ``__init__``)."""
+    """Hyperparameters of the ASEBO algorithm (mirrors the torch ``__init__``).
+
+    Dumb frozen config storing plain static leaves: `center_init` arrives as a
+    flat float32 tuple, normalized by `make_asebo`, which also derives
+    `subspace_dims` from it eagerly when not given.
+    """
 
     pop_size: int
-    center_init: np.ndarray
+    center_init: tuple[float, ...]
     optimizer: Literal["adam"] | None = None
     lr: float = 0.05
     lr_decay: float = 1.0
@@ -37,19 +50,42 @@ class ASEBOConfig:
     sigma_limit: float = 0.01
     subspace_dims: int | None = None
 
-    def __post_init__(self):
-        assert self.pop_size > 1, f"pop_size must be > 1, got {self.pop_size}"
-        assert self.optimizer in (None, "adam"), (
-            f"unsupported optimizer {self.optimizer!r}; only None or 'adam'"
-        )
-        if isinstance(self.center_init, np.ndarray):
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=np.float32).tolist()),
-            )
-        if self.subspace_dims is None:
-            object.__setattr__(self, "subspace_dims", len(self.center_init))
+
+def make_asebo(
+    pop_size: int,
+    center_init: ArrayLike,
+    optimizer: Literal["adam"] | None = None,
+    lr: float = 0.05,
+    lr_decay: float = 1.0,
+    lr_limit: float = 0.001,
+    sigma: float = 0.03,
+    sigma_decay: float = 1.0,
+    sigma_limit: float = 0.01,
+    subspace_dims: int | None = None,
+) -> ASEBOConfig:
+    """Build an `ASEBOConfig`, normalizing `center_init` and validating fields.
+
+    `subspace_dims` defaults to ``len(center_init)`` when not given (derived
+    eagerly here so ``cfg.subspace_dims`` is always concrete).  `lr_decay` and
+    `lr_limit` are kept for API parity but unused (as in torch).
+    """
+    require_gt("pop_size", pop_size, 1)
+    require_choice("optimizer", optimizer, (None, "adam"))
+    center_init = to_float_tuple(center_init, dtype=np.float32)
+    if subspace_dims is None:
+        subspace_dims = len(center_init)
+    return ASEBOConfig(
+        pop_size=pop_size,
+        center_init=center_init,
+        optimizer=optimizer,
+        lr=lr,
+        lr_decay=lr_decay,
+        lr_limit=lr_limit,
+        sigma=sigma,
+        sigma_decay=sigma_decay,
+        sigma_limit=sigma_limit,
+        subspace_dims=subspace_dims,
+    )
 
 
 @dataclass(frozen=True)
@@ -73,9 +109,7 @@ class ASEBOState:
 def init(config: ASEBOConfig, key: SymbolicTensor) -> ASEBOState:
     """Create the initial state; ``center`` is baked as a graph constant."""
     dim = len(config.center_init)
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=F32))
-    )
+    center = bake_float32_constant(config.center_init)
     grad_subspace = enp.zeros((config.subspace_dims, dim), dtype=F32)
     UUT = enp.zeros((dim, dim), dtype=F32)
     UUT_ort = enp.zeros((dim, dim), dtype=F32)

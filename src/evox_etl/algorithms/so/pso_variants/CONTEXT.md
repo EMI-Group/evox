@@ -9,47 +9,43 @@ All 7 variants are ported: `pso`, `cso`, `clpso`, `dms_pso_el`, `sl_pso_gs`,
 mirroring the torch `__all__`.
 
 ## API Surface
-- Every algorithm module exposes its config dataclass (constructor API takes
-  numpy lb/ub — and mean/stdev for `CSO`/`FSPSO` — exactly like torch), a
-  `*State` dataclass, and `init/init_ask/init_tell/ask/tell` plain functions.
-- **Config construction pattern (all 7 configs)**: each frozen config's
-  `__post_init__` normalizes `lb`/`ub` to tuples of Python floats
-  (`object.__setattr__` after `np.asarray`), because etl's tracer rejects
-  ndarray leaves as static values; normalized configs pass
-  `etl.build`/`etl.run` unchanged — no pytree registration (mo/ configs solve
-  the same etl restriction by keeping ndarrays with zero-child pytree
-  registration, see `../mo/nsga2.py`). The normalize body is copy-pasted in
-  pso/clpso/sl_pso_gs/sl_pso_us (identical), cso/fs_pso additionally normalize
-  `mean`/`stdev` (unvalidated) when not None, and dms_pso_el only normalizes
-  via `.ravel()` with NO ndim/shape validation (silently flattens 2-D input).
-  `pso/clpso/cso/fs_pso/sl_pso_gs/sl_pso_us` assert ndim==1 and lb/ub shape
-  match (ported from the torch constructors' asserts, dtype-equality check
-  dropped); asserts raise bare `AssertionError` and vanish under `python -O`.
-  Type annotations keep `np.ndarray` (`DMSPSOEL`: `Union[np.ndarray,
-  tuple[float, ...]]`) although stored fields are tuples — annotations
-  describe the constructor API, not the storage. Read `dim` via
-  `len(config.lb)` (tuples have no `.shape`); `np.asarray(config.lb,
-  dtype=np.float32)` still works for constant baking.
+- Every algorithm module exposes a frozen config dataclass, a `*State`
+  dataclass, `init/init_ask/init_tell/ask/tell` plain functions, and a
+  module-level `make_*` functional constructor (`make_pso`, `make_cso`,
+  `make_clpso`, `make_dms_pso_el`, `make_sl_pso_gs`, `make_sl_pso_us`,
+  `make_fs_pso`), all exported from the package `__init__.py`.
+- The array-like API (numpy lb/ub — and optional mean/stdev for `CSO`/
+  `FSPSO` — exactly like torch) lives on the `make_*` constructors; the
+  config dataclasses themselves store only plain static leaves (see below).
+- **Config construction pattern (all 7 configs)**: configs are dumb frozen
+  dataclasses with `lb`/`ub` (and cso/fs_pso `mean`/`stdev`) stored as flat
+  float tuples (`tuple[float, ...]`) — plain static pytree leaves that pass
+  `etl.build`/`etl.run` unchanged, no pytree registration (mo/ configs keep
+  ndarrays with zero-child pytree registration, see `../mo/nsga2.py`).
+  `__post_init__` normalizers were deleted; `make_*` is now the single place
+  that normalizes array-like input and validates (see "Config-constructor
+  notes" below). Direct dataclass construction with already-normalized
+  statics remains legal (it bypasses `make_*` validation).
 - `utils.py` — `min_by` (concat axis 0, `etl.argmin(keys, axis=0)`, gather
   with reshaped (1,) index, reshape back to `x.shape[1:]`) and
   `random_select_from_mask` (noise + argsort + scatter-ones, key-first RNG).
 - Clamp comes from `evox_etl.operators.jit_fix_operator` (`clamp`,
-  `clamp_float`, `clamp_int`), bounds are baked as (1, dim) float32 constants
-  via `etl.ops.constant(core.tensor(np.asarray(...)[None, :]))` inside each
-  function needing them (numpy only for constant baking).
+  `clamp_float`, `clamp_int`). Bound/stats constants are baked as (1, dim)
+  float32 rows via the shared helpers `bake_bounds(lb, ub, as_row=True)` /
+  `bake_float32_constant(values, shape=(1, -1))` from `../../_config_utils.py`;
+  the module-local `_bounds`/`_bake`/`_bake_bounds` privates delegate to them,
+  and numpy imports remain only in cso/fs_pso/dms_pso_el.
 - Tests: `../../../../unit_test/etl/algorithms/so/pso_variants/` (7 etl-only
   smoke tests) + `../../../../unit_test/etl/algorithms/parity/
   test_pso_parity.py` (torch-vs-etl PSO parity on Sphere); all green.
 
 ## Verified ETL facts (do not re-investigate)
-- **numpy arrays are NOT legal static trace inputs**: etl's `_is_static_value`
-  accepts only None/bool/int/float/complex/str/Enum/dtype/slice/Dim/DimExpr/
-  Device. Passing a config with numpy lb/ub to `etl.build`/`etl.run` raises
-  TraceError. Solution: normalize array fields to float tuples in
-  `__post_init__` (see above) — no `etl.register_pytree_node` needed.
-  (Root-cause note: the DESIGN.md §4.3 "no partialization needed" claim only
-  holds for scalar-leaf configs; the helpers' `run_generations` could
-  alternatively closure-capture configs via `functools.partial`.)
+- np.ndarray config fields ARE accepted as static trace values by the
+  installed etl (see `../../CONTEXT.md` "ETL issues found" #1) — direct
+  ndarray config construction still graphs, but it bypasses `make_*`
+  normalization/validation. Plain float-tuple storage stays the norm
+  (frozen `__eq__`/`__hash__` on tuples, static-legal leaves, normalized
+  once by `make_*`).
 - Newaxis indexing (`x[None, :]`) raises TraceError — use `enp.expand_dims`.
 - `etl.min(x, axes=0)` on (n,) returns a scalar; `etl.argmin(x, axis=0)`
   returns an int64 scalar.
@@ -64,35 +60,39 @@ mirroring the torch `__all__`.
 - torch `step` concatenates 2*half rows, so odd `pop_size` shrinks to
   2*(pop_size//2) after the first step — ported as-is (torch parity).
 
-## Config call-site audit (for the planned `__post_init__` → builder-function refactor)
-- ALL external constructions are keyword-based, with `lb`/`ub` passed as
-  np.float32 arrays (`np.full`): the 7 smoke tests in
-  `unit_test/etl/algorithms/so/pso_variants/`, parity
-  `test_pso_parity.py:49`, and `benchmarks/etl_vs_torch/bench_so.py:113`
-  (PSO imported via the `evox_etl.algorithms.so` re-export).
-- No positional construction, no default-config construction (all 7 configs
-  require `lb`/`ub`; 6 also require `pop_size`), no
-  `dataclasses.replace`/`asdict` on these configs anywhere, and no negative
-  validation tests — the `__post_init__` asserts are relied on only for early
-  failure, never asserted against.
+## Config-constructor notes (current state)
+- `__post_init__` normalizers were removed in the config-constructor refactor:
+  all 7 configs are dumb frozen dataclasses storing flat float tuples, and
+  the module-level `make_*` constructors are the single place that normalizes
+  array-like input and validates. Policy is binding in `../../../DESIGN.md`
+  §4.1; normalization/baking helpers are consolidated in
+  `evox_etl.algorithms._config_utils` (`normalize_bounds`, `to_float_tuple`,
+  `bake_bounds`, `bake_float32_constant`).
+- `make_*` validation raises `ValueError` with clear messages (no bare
+  asserts): lb/ub must be 1-D and length-matching; cso/fs_pso optional
+  mean/stdev are validated when given (1-D, length == dim); dms_pso_el
+  bounds must be 1-D (the old silent `.ravel()` was removed — torch requires
+  1-D too). Numerics are unchanged for valid inputs.
 - Configs reach etl by two routes: unit tests pass the config as a STATIC arg
   to both `etl.build` and `etl.run` (`unit_test/etl/algorithms/helpers.py`
-  `run_generations`, re-validated by value each run — config leaves must stay
-  static-legal float tuples), while `core/workflow.py` `StdWorkflow`
-  closure-captures configs inside the traced body (never a build/run arg).
-- Only `test_cso.py`/`test_fs_pso.py` pass `mean`/`stdev` (np.float32
-  arrays); only `test_dms_pso_el.py` passes extra hyperparameter kwargs.
-- Inside the seven modules all config-field reads are representation-agnostic
-  (`len(config.lb)` for dim; `np.asarray(config.lb, dtype=np.float32)` for
-  baking) — nothing reads `.shape`/indexes config.lb, so tuple-vs-ndarray
-  storage only matters at the etl static boundary.
+  `run_generations`, re-validated by value each run), while
+  `core/workflow.py` `StdWorkflow` closure-captures configs inside the traced
+  body (never a build/run arg).
+- Existing unit tests still direct-construct configs with np.ndarray kwargs
+  (graph-valid on installed etl, but they bypass `make_*` validation);
+  migrating them to `make_*` is a separate test-migration wave — do NOT edit
+  `../unit_test/etl` from here.
+- Field-read sites tolerate both tuple configs and legacy ndarray direct
+  constructions: use `len(config.lb)` for dim (prefer over `.shape[0]`);
+  `np.asarray(config.lb, dtype=np.float32)` still works for host-side baking.
 
 ## Routing Table
 | Area | Path |
 |---|---|
-| Package init (`__all__` + submodule imports) | `__init__.py` |
+| Package init (`__all__` + submodule imports incl. `make_*`) | `__init__.py` |
 | PSO variants (all 7) | `pso.py`, `cso.py`, `clpso.py`, `dms_pso_el.py`, `sl_pso_gs.py`, `sl_pso_us.py`, `fs_pso.py` |
 | Shared helpers (min_by, random_select_from_mask) | `utils.py` |
+| Config helpers (normalize_bounds, to_float_tuple, bake_bounds, bake_float32_constant) | `../../_config_utils.py` (parent module — shared by all algorithm families) |
 | Tests | `../../../../unit_test/etl/algorithms/so/pso_variants/` (sibling tree) |
 | Parity tests | `../../../../unit_test/etl/algorithms/parity/` (sibling tree) |
 | Torch reference (READ-ONLY) | `../../../../evox/algorithms/so/pso_variants/` |

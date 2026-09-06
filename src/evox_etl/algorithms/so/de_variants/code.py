@@ -8,8 +8,8 @@ trial batch and ``tell`` applies the per-individual strategy selection plus
 the population update. RNG is key-based (``etl.random``): ``ask`` splits the
 state key per random op in torch's draw order and stores the advanced key;
 ``tell`` never draws randomness. Config ``lb``/``ub``/``param_pool`` are
-normalized to tuples of plain Python floats in ``__post_init__`` (etl.build
-rejects numpy arrays as static config values).
+normalized to tuples of plain Python floats by the ``make_code`` constructor
+(``param_pool`` stays a tuple of (F, CR) pairs).
 """
 
 from dataclasses import dataclass
@@ -21,6 +21,7 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_float32_constant, to_float_tuple
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
@@ -52,6 +53,9 @@ class CoDE:
     :param param_pool: Control parameter pairs (F, CR) tried per strategy.
     :param replace: Kept for API parity only — torch CoDE never passes it to
         ``DE_differential_sum`` in ``step``, so it is unused here too.
+
+    Dumb frozen dataclass — construct via ``make_code``, which normalizes the
+    array-like fields (torch CoDE performs no validation) before construction.
     """
 
     pop_size: int
@@ -65,17 +69,28 @@ class CoDE:
     )
     replace: bool = False
 
-    def __post_init__(self) -> None:
-        # torch CoDE has NO asserts — mirror that (no validation here).
-        # Normalize array-like config fields to tuples of plain Python floats:
-        # etl.build rejects np.ndarray static config values.
-        object.__setattr__(self, "lb", tuple(float(v) for v in self.lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in self.ub))
-        object.__setattr__(
-            self,
-            "param_pool",
-            tuple(tuple(float(v) for v in pair) for pair in self.param_pool),
-        )
+
+def make_code(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    diff_padding_num: int = 5,
+    param_pool: ArrayLike = ((1.0, 0.1), (1.0, 0.9), (0.8, 0.2)),
+    replace: bool = False,
+) -> CoDE:
+    """Build a :class:`CoDE` config, normalizing array-like fields to plain float tuples.
+
+    Torch CoDE has no validation — mirrors that; ``param_pool`` is stored as a
+    tuple of (F, CR) pairs (its natural (3, 2) shape is kept).
+    """
+    return CoDE(
+        pop_size=pop_size,
+        lb=to_float_tuple(lb),
+        ub=to_float_tuple(ub),
+        diff_padding_num=diff_padding_num,
+        param_pool=tuple(to_float_tuple(pair) for pair in param_pool),
+        replace=replace,
+    )
 
 
 @dataclass(frozen=True)
@@ -93,18 +108,13 @@ class CoDEState:
     key: SymbolicTensor  # () int64
 
 
-def _bake(array, dtype: str = "float32") -> SymbolicTensor:
-    """Bake a numpy array as a constant graph operand of the given dtype."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(array, dtype=dtype)))
-
-
 def init(config: CoDE, key: SymbolicTensor) -> CoDEState:
     """Create the initial state: torch randn population (no clamp, 1:1 port),
     +inf fitness, best_index 0 and an empty trial-vector batch."""
     pop_size = config.pop_size
     dim = len(config.lb)
-    lb = enp.reshape(_bake(config.lb), (1, -1))
-    ub = enp.reshape(_bake(config.ub), (1, -1))
+    lb = bake_float32_constant(config.lb, shape=(1, -1))
+    ub = bake_float32_constant(config.ub, shape=(1, -1))
 
     key, subkey = random.split(key)
     pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
@@ -125,9 +135,9 @@ def ask(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, CoDEState]:
     per strategy per individual) and return it with the advanced state."""
     pop_size = config.pop_size
     dim = len(config.lb)
-    lb = enp.reshape(_bake(config.lb), (1, -1))
-    ub = enp.reshape(_bake(config.ub), (1, -1))
-    param_pool_c = _bake(config.param_pool)  # (3, 2) float32
+    lb = bake_float32_constant(config.lb, shape=(1, -1))
+    ub = bake_float32_constant(config.ub, shape=(1, -1))
+    param_pool_c = bake_float32_constant(config.param_pool)  # (3, 2) float32
     indices = enp.arange(pop_size, dtype="int32")
 
     key, k_params = random.split(state.key)

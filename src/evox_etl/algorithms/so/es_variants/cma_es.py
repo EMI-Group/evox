@@ -17,6 +17,12 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from ..._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_gt,
+    to_float_tuple,
+)
 from .sort_utils import sort_by_key
 
 Tensor = etl.SymbolicTensor
@@ -26,30 +32,40 @@ Tensor = etl.SymbolicTensor
 class CMAESConfig:
     """CMA-ES hyperparameters, mirroring torch `CMAES.__init__` minus `device`.
 
-    Array-like fields (`mean_init`, `weights`) accept numpy arrays or tuples
-    and are normalized to flat float32 tuples in `__post_init__`.
+    Array-like fields (`mean_init`, `weights`) are stored as flat float32
+    tuples; pass numpy arrays or tuples through `make_cma_es`, which
+    normalizes them.
     """
 
-    mean_init: "np.ndarray | tuple[float, ...]"
+    mean_init: tuple[float, ...]
     sigma: float
     pop_size: Optional[int] = None
-    weights: "Optional[np.ndarray | tuple[float, ...]]" = None
+    weights: Optional[tuple[float, ...]] = None
 
-    def __post_init__(self) -> None:
-        assert self.sigma > 0, "sigma must be greater than 0."
-        if self.pop_size is not None:
-            assert self.pop_size > 0, "pop_size must be greater than 0."
-        object.__setattr__(
-            self,
-            "mean_init",
-            tuple(np.asarray(self.mean_init, dtype=np.float32).tolist()),
-        )
-        if self.weights is not None:
-            object.__setattr__(
-                self,
-                "weights",
-                tuple(np.asarray(self.weights, dtype=np.float32).tolist()),
-            )
+
+def make_cma_es(
+    mean_init: ArrayLike,
+    sigma: float,
+    pop_size: Optional[int] = None,
+    weights: Optional[ArrayLike] = None,
+) -> CMAESConfig:
+    """Construct a :class:`CMAESConfig`, normalizing and validating the inputs.
+
+    Array-like fields are converted to flat float32 tuples (see
+    `_config_utils.to_float_tuple`); invalid hyperparameters raise ValueError.
+    `pop_size` is stored as given — the default (``4 + floor(3 * ln(dim))``)
+    stays deferred to the trace-time `_derive` (configs do not derive it
+    eagerly).
+    """
+    require_gt("sigma", sigma, 0)
+    if pop_size is not None:
+        require_gt("pop_size", pop_size, 0)
+    mean_init = to_float_tuple(mean_init, dtype=np.float32)
+    if weights is not None:
+        weights = to_float_tuple(weights, dtype=np.float32)
+    return CMAESConfig(
+        mean_init=mean_init, sigma=sigma, pop_size=pop_size, weights=weights
+    )
 
 
 @dataclass(frozen=True)
@@ -160,9 +176,7 @@ def init(config: CMAESConfig, key: Tensor) -> CMAESState:
     """Create the initial CMA-ES state (draws nothing — key stored as-is)."""
     p = _derive(config)
     f32 = np.dtype("float32")
-    mean_c = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.mean_init, dtype=np.float32))
-    )
+    mean_c = bake_float32_constant(config.mean_init)
     mean = enp.expand_dims(mean_c, axis=0)  # (1, dim)
     sigma = enp.full((), config.sigma, dtype=f32)
     eye = etl.eye(p.dim)
@@ -172,9 +186,7 @@ def init(config: CMAESConfig, key: Tensor) -> CMAESState:
         )
         weights = enp.expand_dims(w / etl.sum(w), axis=0)  # (1, mu)
     else:
-        w_c = etl.ops.constant(
-            etl.core.tensor(np.asarray(config.weights, dtype=np.float32))
-        )
+        w_c = bake_float32_constant(config.weights)
         weights = etl.reshape(w_c, (1, p.mu))
     return CMAESState(
         iteration=enp.full((), 0, dtype=np.dtype("int32")),

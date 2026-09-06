@@ -6,19 +6,23 @@ trial vectors, ``tell`` does selection + memory update from the fitnesses.
 RNG is key-based (``etl.random``): the key is advanced in the state, one
 ``random.split`` per random op in torch's exact draw order; ``tell`` never
 draws randomness. Bounds are baked once per function as (1, dim) constants;
-``lb``/``ub`` config fields are normalized to tuples of plain Python floats
-(``etl.build`` rejects np.ndarray static values).
+``lb``/``ub`` config fields are normalized to flat tuples of plain Python
+floats by the ``make_shade`` constructor.
 """
 
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    normalize_bounds,
+    require_ge,
+)
 from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.crossover import DE_binary_crossover, DE_differential_sum
 from evox_etl.operators.selection import select_rand_pbest
@@ -29,6 +33,9 @@ Tensor = etl.SymbolicTensor
 @dataclass(frozen=True)
 class SHADE:
     """SHADE hyperparameters (mirrors torch ``SHADE.__init__``, device dropped).
+
+    Dumb frozen dataclass — construct via ``make_shade``, which validates and
+    normalizes the bounds to flat float tuples before construction.
 
     :param pop_size: Population size (>= 9).
     :param lb: Lower bounds of the search space (1-D array/tuple).
@@ -41,12 +48,15 @@ class SHADE:
     ub: Any
     diff_padding_num: int = 9
 
-    def __post_init__(self):
-        assert self.pop_size >= 9
-        assert len(self.lb) == len(self.ub)
-        # etl.build rejects np.ndarray static fields — store plain float tuples.
-        object.__setattr__(self, "lb", tuple(float(v) for v in self.lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in self.ub))
+
+def make_shade(pop_size: int, lb: ArrayLike, ub: ArrayLike, diff_padding_num: int = 9) -> SHADE:
+    """Build a :class:`SHADE` config, validating hyperparameters and normalizing bounds.
+
+    Same validation semantics as torch ``SHADE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 9)
+    lb, ub = normalize_bounds(lb, ub)
+    return SHADE(pop_size=pop_size, lb=lb, ub=ub, diff_padding_num=diff_padding_num)
 
 
 @dataclass(frozen=True)
@@ -63,18 +73,11 @@ class SHADEState:
     key: Tensor
 
 
-def _bounds(bound: tuple, dim: int) -> Tensor:
-    """Bake a (1, dim) float32 constant from the config bound tuple."""
-    return enp.reshape(
-        etl.ops.constant(etl.core.tensor(np.asarray(bound, dtype=np.float32))), (1, -1)
-    )
-
-
 def init(config: SHADE, key: Tensor) -> SHADEState:
     """Initialize the population (torch uses randn scaled by bounds — no clamp)."""
     pop_size, dim = config.pop_size, len(config.lb)
-    lb = _bounds(config.lb, dim)
-    ub = _bounds(config.ub, dim)
+    lb = bake_float32_constant(config.lb, shape=(1, -1))
+    ub = bake_float32_constant(config.ub, shape=(1, -1))
     key, subkey = random.split(key)
     pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     return SHADEState(
@@ -91,9 +94,9 @@ def init(config: SHADE, key: Tensor) -> SHADEState:
 
 def ask(config: SHADE, state: SHADEState) -> tuple[Tensor, SHADEState]:
     """Generate trial vectors (torch ``step`` up to ``self.evaluate``)."""
-    pop_size, dim = config.pop_size, len(config.lb)
-    lb = _bounds(config.lb, dim)
-    ub = _bounds(config.ub, dim)
+    pop_size = config.pop_size
+    lb = bake_float32_constant(config.lb, shape=(1, -1))
+    ub = bake_float32_constant(config.ub, shape=(1, -1))
 
     # (1) Random permutation of memory indices (argsort-of-rand, torch-exact).
     key, k_fcr = random.split(state.key)
