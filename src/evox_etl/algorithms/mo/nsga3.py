@@ -20,6 +20,7 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
@@ -36,8 +37,10 @@ class NSGA3Config:
 
     :param pop_size: The size of the population.
     :param n_objs: The number of objective functions.
-    :param lb: The lower bounds for the decision variables (1D numpy array).
-    :param ub: The upper bounds for the decision variables (1D numpy array).
+    :param lb: The lower bounds for the decision variables (flat tuple of
+        floats; accepted from any array-like via ``make_nsga3``).
+    :param ub: The upper bounds for the decision variables (flat tuple of
+        floats; accepted from any array-like via ``make_nsga3``).
     :param selection_op: The selection operation (optional; defaults to
         ``tournament_selection_multifit``).
     :param mutation_op: The mutation operation (optional; defaults to
@@ -51,8 +54,8 @@ class NSGA3Config:
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     selection_op: Optional[Callable] = None
     mutation_op: Optional[Callable] = None
     crossover_op: Optional[Callable] = None
@@ -68,11 +71,50 @@ def _config_unflatten(config: NSGA3Config, _children) -> NSGA3Config:
     return config
 
 
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
+# The config carries optional callable op fields (selection_op/mutation_op/
+# crossover_op). Functions are not static pytree values (etl raises TraceError
+# at a non-None callable leaf), so the config is registered as a childless
+# pytree node and travels as one opaque static node through etl.build/etl.run.
+# (ndarray leaves would now be accepted statically, but a non-None callable
+# field anywhere in the pytree is not.)
 etl.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
+
+
+def make_nsga3(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
+    data_type: Optional[Any] = None,
+) -> NSGA3Config:
+    """Construct an ``NSGA3Config`` from array-like bounds.
+
+    ``lb``/``ub`` are accepted as any 1-D array-like and stored as flat float
+    tuples; ``None`` op fields mean the algorithm default (see the config
+    docstring). Raises ValueError when an op field is not callable or the
+    bounds are not 1-D / shape-mismatched.
+    """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
+    lb, ub = normalize_bounds(lb, ub)
+    return NSGA3Config(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb,
+        ub=ub,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+        data_type=data_type,
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -112,9 +154,8 @@ def _masked_hit(n: int, idx: SymbolicTensor, mask: SymbolicTensor) -> SymbolicTe
 
 def init(config: NSGA3Config, key: SymbolicTensor) -> NSGA3State:
     """Draw the initial population (uniform within [lb, ub], or bool > 0.5)."""
-    dim = config.lb.shape[0]
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
+    dim = len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub)
     k_pop, key = random.split(key)
     if config.data_type is bool:
         pop = random.uniform(k_pop, (config.pop_size, dim), 0.0, 1.0, "float32") > 0.5
@@ -160,8 +201,7 @@ def ask(config: NSGA3Config, state: NSGA3State):
     mating_pool = selection(k_sel, config.pop_size, [etl.cast(state.rank, "float32")])
     crossovered = crossover(k_cross, etl.gather(state.pop, mating_pool, axis=0))
 
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
+    lb, ub = bake_bounds(config.lb, config.ub)
     offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     return offspring, dataclasses.replace(state, off=offspring, key=key)
@@ -176,7 +216,7 @@ def tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSG
     """
     pop_size = config.pop_size
     n_objs = config.n_objs
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     n = 2 * pop_size
 
     key, k_shuf, k_ref = random.split_n(state.key, 3)
