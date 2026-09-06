@@ -19,13 +19,17 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   arrays baked as graph constants (`etl.ops.constant(etl.core.tensor(np.asarray(
   cfg.lb, dtype=np.float32)))`); optional ops are plain function refs, `None` =
   algorithm default, resolved inside functions.
-- **Config registration (REQUIRED)**: every config class is registered as a
-  childless pytree node (`etl.register_pytree_node(<Name>Config,
-  _config_flatten, _config_unflatten)`, see nsga2.py) so `etl.build(fn,
-  config, ...)` + `etl.run(exe, config, ...)` positional passing works —
-  unregistered configs fail with TraceError because etl v1 rejects ndarray
-  pytree leaves (neither TensorSpec nor static value). ESCALATED to the root
-  agent as an etl gap (a static-config marker would be cleaner).
+- **Config registration**: every config class is registered as a childless
+  pytree node (`etl.register_pytree_node(<Name>Config, _config_flatten,
+  _config_unflatten)`, see nsga2.py) so `etl.build(fn, config, ...)` +
+  `etl.run(exe, config, ...)` positional passing works. WHY it exists today:
+  (a) the original reason — etl v1 rejecting ndarray pytree leaves — is
+  OBSOLETE on the installed etl (master @f2f50a7, incl. b8062a9 "accept
+  np.ndarray as static trace values"); (b) it is still REQUIRED whenever an
+  op field is a non-None callable (functions are NOT static values —
+  `_flatten_specs` raises TraceError at the callable leaf); (c) it makes the
+  config an opaque static node, so `etl.run` never re-validates config
+  values (see audit section below).
 - Operators are imported from the canonical torch-parity-verified modules:
   selection (`nd_environmental_selection`, `non_dominate_rank`,
   `tournament_selection[_multifit]`, `ref_vec_guided`) from
