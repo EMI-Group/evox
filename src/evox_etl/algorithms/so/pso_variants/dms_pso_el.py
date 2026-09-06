@@ -17,6 +17,7 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
@@ -26,10 +27,10 @@ Tensor = etl.SymbolicTensor
 class DMSPSOEL:
     """Config of the DMSPSOEL algorithm (torch ``__init__`` minus ``device``).
 
-    ``lb``/``ub`` accept numpy arrays (or any array-like of floats) but are
-    stored as tuples of Python floats: the config flows through
-    ``etl.build``/``etl.run`` as a static pytree and etl's tracer rejects
-    numpy-array leaves, while tuples of Python floats are static values.
+    ``lb``/``ub`` are stored as flat tuples of Python floats — plain static
+    leaves per DESIGN.md §4.1 (frozen ``__eq__``/``__hash__`` and etl's
+    by-value static revalidation). ``make_dms_pso_el`` is the array-accepting
+    constructor; direct construction takes already-normalized tuples.
     """
 
     lb: Union[np.ndarray, tuple[float, ...]]
@@ -45,11 +46,42 @@ class DMSPSOEL:
     rbest_coefficient: float = 1.0  # c_rbest
     gbest_coefficient: float = 1.0  # c_gbest
 
-    def __post_init__(self) -> None:
-        for name in ("lb", "ub"):
-            object.__setattr__(
-                self, name, tuple(float(v) for v in np.asarray(getattr(self, name)).ravel())
-            )
+
+def make_dms_pso_el(
+    lb: ArrayLike,
+    ub: ArrayLike,
+    dynamic_sub_swarm_size: int = 10,
+    dynamic_sub_swarms_num: int = 5,
+    following_sub_swarm_size: int = 10,
+    regrouped_iteration_num: int = 50,
+    max_iteration: int = 100,
+    inertia_weight: float = 0.7,
+    pbest_coefficient: float = 1.5,
+    lbest_coefficient: float = 1.5,
+    rbest_coefficient: float = 1.0,
+    gbest_coefficient: float = 1.0,
+) -> DMSPSOEL:
+    """Construct a DMSPSOEL config from array-like bounds (torch signature minus device).
+
+    Normalizes ``lb``/``ub`` to flat tuples of Python floats (the config stores
+    plain static leaves per DESIGN.md §4.1). Raises ValueError when a bound is
+    not 1-D or the two bounds have mismatched shapes (torch requires 1-D).
+    """
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    return DMSPSOEL(
+        lb=lb_t,
+        ub=ub_t,
+        dynamic_sub_swarm_size=dynamic_sub_swarm_size,
+        dynamic_sub_swarms_num=dynamic_sub_swarms_num,
+        following_sub_swarm_size=following_sub_swarm_size,
+        regrouped_iteration_num=regrouped_iteration_num,
+        max_iteration=max_iteration,
+        inertia_weight=inertia_weight,
+        pbest_coefficient=pbest_coefficient,
+        lbest_coefficient=lbest_coefficient,
+        rbest_coefficient=rbest_coefficient,
+        gbest_coefficient=gbest_coefficient,
+    )
 
 
 @dataclass(frozen=True)
@@ -72,9 +104,7 @@ class DMSPSOELState:
 
 def _bounds(config: DMSPSOEL) -> tuple[Tensor, Tensor]:
     """Bake the (1, dim) float32 bound constants once per use (torch `lb[None, :]`)."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)[None, :]))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)[None, :]))
-    return lb, ub
+    return bake_bounds(config.lb, config.ub, as_row=True)
 
 
 def _static_sizes(config: DMSPSOEL) -> tuple[int, int, int, int]:
