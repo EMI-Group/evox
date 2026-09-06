@@ -64,6 +64,29 @@ mirroring the torch `__all__`.
 - torch `step` concatenates 2*half rows, so odd `pop_size` shrinks to
   2*(pop_size//2) after the first step — ported as-is (torch parity).
 
+## Config call-site audit (for the planned `__post_init__` → builder-function refactor)
+- ALL external constructions are keyword-based, with `lb`/`ub` passed as
+  np.float32 arrays (`np.full`): the 7 smoke tests in
+  `unit_test/etl/algorithms/so/pso_variants/`, parity
+  `test_pso_parity.py:49`, and `benchmarks/etl_vs_torch/bench_so.py:113`
+  (PSO imported via the `evox_etl.algorithms.so` re-export).
+- No positional construction, no default-config construction (all 7 configs
+  require `lb`/`ub`; 6 also require `pop_size`), no
+  `dataclasses.replace`/`asdict` on these configs anywhere, and no negative
+  validation tests — the `__post_init__` asserts are relied on only for early
+  failure, never asserted against.
+- Configs reach etl by two routes: unit tests pass the config as a STATIC arg
+  to both `etl.build` and `etl.run` (`unit_test/etl/algorithms/helpers.py`
+  `run_generations`, re-validated by value each run — config leaves must stay
+  static-legal float tuples), while `core/workflow.py` `StdWorkflow`
+  closure-captures configs inside the traced body (never a build/run arg).
+- Only `test_cso.py`/`test_fs_pso.py` pass `mean`/`stdev` (np.float32
+  arrays); only `test_dms_pso_el.py` passes extra hyperparameter kwargs.
+- Inside the seven modules all config-field reads are representation-agnostic
+  (`len(config.lb)` for dim; `np.asarray(config.lb, dtype=np.float32)` for
+  baking) — nothing reads `.shape`/indexes config.lb, so tuple-vs-ndarray
+  storage only matters at the etl static boundary.
+
 ## Routing Table
 | Area | Path |
 |---|---|
