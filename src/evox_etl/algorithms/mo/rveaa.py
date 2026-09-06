@@ -17,14 +17,13 @@ Port notes:
 """
 
 from dataclasses import dataclass, replace
-from typing import Any, Optional, Tuple
-
-import numpy as np
+from typing import Tuple
 
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
@@ -34,40 +33,54 @@ from evox_etl.operators.selection import non_dominate_rank, ref_vec_guided
 Tensor = etl.SymbolicTensor
 
 
-@dataclass(frozen=True, eq=False)
+@dataclass(frozen=True)
 class RVEAaConfig:
-    """Config mirroring torch ``RVEAa.__init__`` (``device`` dropped)."""
+    """Config mirroring torch ``RVEAa.__init__`` (``device`` dropped).
+
+    Signature parity: the torch RVEAa constructor accepts optional
+    ``selection_op``/``mutation_op``/``crossover_op``, but the evox_etl
+    functional variant hard-codes the operators (non_dominate_rank /
+    ref_vec_guided / simulated_binary / polynomial_mutation path) — they are
+    not config fields here. ``lb``/``ub`` are stored as flat float tuples of
+    length ``dim`` (see `make_rveaa` for the array-accepting constructor).
+    """
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     alpha: float = 2.0
     fr: float = 0.1
     max_gen: int = 100
-    selection_op: Optional[Any] = None
-    mutation_op: Optional[Any] = None
-    crossover_op: Optional[Any] = None
-
-    def __post_init__(self):
-        assert self.lb.shape == self.ub.shape and self.lb.ndim == 1 and self.ub.ndim == 1
-        assert self.lb.dtype == self.ub.dtype
 
 
-def _config_flatten(config: RVEAaConfig):
-    """Zero-child flattening: the config travels as one opaque static node."""
-    return [], config
+def make_rveaa(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    alpha: float = 2.0,
+    fr: float = 0.1,
+    max_gen: int = 100,
+) -> RVEAaConfig:
+    """Construct an RVEAaConfig with ``lb``/``ub`` normalized to flat float tuples.
 
-
-def _config_unflatten(config: RVEAaConfig, _children) -> RVEAaConfig:
-    return config
-
-
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
-etl.register_pytree_node(RVEAaConfig, _config_flatten, _config_unflatten)
+    Raises ValueError (not the old AssertionError) when a bound is not 1-D or
+    the two shapes differ. The old ``__post_init__`` dtype-equality check is
+    gone: with tuple storage per-side dtype is vacuous — each bound is
+    dtype-preservingly rounded to plain floats and re-cast to float32 at bake
+    time anyway.
+    """
+    lb, ub = normalize_bounds(lb, ub)
+    return RVEAaConfig(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb,
+        ub=ub,
+        alpha=alpha,
+        fr=fr,
+        max_gen=max_gen,
+    )
 
 
 @dataclass(frozen=True, eq=False)
@@ -89,21 +102,14 @@ class RVEAaState:
     key: Tensor
 
 
-def _bounds(config: RVEAaConfig) -> Tuple[Tensor, Tensor]:
-    """Bake the lb/ub config arrays as (dim,) float32 graph constants."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    return lb, ub
-
-
 def init(config: RVEAaConfig, key: Tensor) -> RVEAaState:
     """Draw the initial state (torch ``RVEAa.__init__``): uniform population,
     inf fitness, and the 2*n_v reference vectors (Das-Dennis half + random
     half) with the Das-Dennis points kept as ``init_v``."""
     key, k_pop, k_v1 = random.split_n(key, 3)
-    dim = config.lb.shape[0]
+    dim = len(config.lb)
     n_objs = config.n_objs
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
 
     v, n_v = uniform_sampling(config.pop_size, n_objs)
     population = random.uniform(k_pop, (n_v, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
@@ -141,7 +147,7 @@ def ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
     mating pool over the non-all-NaN rows, SBX, polynomial mutation, clamp."""
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
     gen = etl.cast(state.gen + 1, etl.int32)
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
     pop = state.pop
     pop_rows = pop.shape[0]
     # Fixed effective pop size (Das-Dennis count, torch self.pop_size): pop
