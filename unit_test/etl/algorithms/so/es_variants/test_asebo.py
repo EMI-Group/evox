@@ -10,7 +10,7 @@ import evox_etl.algorithms.so.es_variants.asebo as asebo
 
 def _cfg(optimizer):
     dim = 10
-    return asebo.ASEBOConfig(
+    return asebo.make_asebo(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         optimizer=optimizer,

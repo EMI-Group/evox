@@ -9,7 +9,7 @@ import evox_etl.algorithms.so.es_variants.open_es as open_es
 
 def _cfg(optimizer=None):
     dim = 10
-    return dim, open_es.OpenESConfig(
+    return dim, open_es.make_open_es(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         learning_rate=0.01,

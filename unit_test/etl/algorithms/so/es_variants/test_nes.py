@@ -14,7 +14,7 @@ import evox_etl.algorithms.so.es_variants.nes as nes
 
 def test_xnes_sphere():
     dim = 10
-    cfg = nes.XNESConfig(
+    cfg = nes.make_xnes(
         pop_size=8,
         init_mean=np.full((dim,), 5.0, np.float32),
         init_covar=np.eye(dim, dtype=np.float32),
@@ -27,7 +27,7 @@ def test_xnes_sphere():
 
 def test_separable_nes_sphere():
     dim = 10
-    cfg = nes.SeparableNESConfig(
+    cfg = nes.make_separable_nes(
         pop_size=8,
         init_mean=np.full((dim,), 5.0, np.float32),
         init_std=np.full((dim,), 1.0, np.float32),

@@ -10,7 +10,7 @@ import evox_etl.algorithms.so.es_variants.guided_es as guided_es
 
 def test_guided_es_sphere():
     dim = 10
-    cfg = guided_es.GuidedESConfig(
+    cfg = guided_es.make_guided_es(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         sigma=0.5,
@@ -24,7 +24,7 @@ def test_guided_es_sphere():
 
 def test_guided_es_sphere_adam():
     dim = 10
-    cfg = guided_es.GuidedESConfig(
+    cfg = guided_es.make_guided_es(
         pop_size=8,
         center_init=np.full((dim,), 5.0, np.float32),
         optimizer="adam",

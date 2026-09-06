@@ -10,7 +10,7 @@ import evox_etl.algorithms.so.es_variants.esmc as esmc
 
 def _cfg(optimizer):
     dim = 10
-    return esmc.ESMCConfig(
+    return esmc.make_esmc(
         pop_size=9,
         center_init=np.full((dim,), 5.0, np.float32),
         optimizer=optimizer,
