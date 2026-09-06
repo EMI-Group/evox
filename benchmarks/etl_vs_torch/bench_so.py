@@ -99,28 +99,26 @@ def run_torch_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
 
 def run_etl_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
     from evox_etl import EvalMonitorConfig, StdWorkflow
-    from evox_etl.algorithms.so import (
-        CMAES as CMAESConfig,
-        DE,
-        OpenES as OpenESConfig,
-        PSO,
-    )
+    from evox_etl.algorithms.so.de_variants.de import make_de
+    from evox_etl.algorithms.so.es_variants.cma_es import make_cma_es
+    from evox_etl.algorithms.so.es_variants.open_es import make_open_es
+    from evox_etl.algorithms.so.pso_variants.pso import make_pso
     from evox_etl.problems.numerical import Ackley, Rastrigin, Sphere
 
     lb = np.full(case.dim, bench_common.SO_LB, np.float32)
     ub = np.full(case.dim, bench_common.SO_UB, np.float32)
     if case.algo == "PSO":
-        algo_cfg = PSO(pop_size=case.pop_size, lb=lb, ub=ub)
+        algo_cfg = make_pso(pop_size=case.pop_size, lb=lb, ub=ub)
     elif case.algo == "DE":
-        algo_cfg = DE(pop_size=case.pop_size, lb=lb, ub=ub)
+        algo_cfg = make_de(pop_size=case.pop_size, lb=lb, ub=ub)
     elif case.algo == "CMAES":
-        algo_cfg = CMAESConfig(
+        algo_cfg = make_cma_es(
             mean_init=np.full(case.dim, bench_common.SO_ES_CENTER, np.float32),
             sigma=bench_common.CMAES_SIGMA,
             pop_size=case.pop_size,
         )
     else:  # OpenES
-        algo_cfg = OpenESConfig(
+        algo_cfg = make_open_es(
             pop_size=case.pop_size,
             center_init=np.full(case.dim, bench_common.SO_ES_CENTER, np.float32),
             learning_rate=bench_common.OPENES_LR,

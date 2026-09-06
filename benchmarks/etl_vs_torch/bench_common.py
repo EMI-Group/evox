@@ -143,12 +143,11 @@ def etl_backend_spec(backend: str) -> tuple[str, str | None]:
     string. ``CUDA_VISIBLE_DEVICES`` is set before import, so the in-process
     cuda device id is always 0.
 
-    Note on etl-xla-cuda: the current xla adapter labels every executable as
-    cpu-target and rejects non-cpu devices at load ("the xla adapter supports
-    only CPU devices"); the CUDA PJRT plugin has no CPU platform, so
-    execution still lands on the visible GPU (host-staged buffers). The
-    device spec is therefore None and the GPU is selected purely via
-    CUDA_VISIBLE_DEVICES.
+    etl-xla-cuda: the xla adapter supports device-resident CUDA executables
+    (etl master f2f50a7+), so like etl-iree-cuda it requests ``"cuda:0"``.
+    A ``None`` device would build a CPU-kind executable that host-stages
+    every input on every ``etl.run`` call (the source of the old ~15 ms/step
+    xla numbers at 10000x100 vs ~0.9-1.3 ms/step device-resident).
     """
     if backend == "etl-numpy":
         return "numpy", None
@@ -157,7 +156,7 @@ def etl_backend_spec(backend: str) -> tuple[str, str | None]:
     if backend == "etl-iree-cuda":
         return "iree", "cuda:0"
     if backend == "etl-xla-cuda":
-        return "xla", None
+        return "xla", "cuda:0"
     raise ValueError(f"not an etl backend: {backend!r}")
 
 
