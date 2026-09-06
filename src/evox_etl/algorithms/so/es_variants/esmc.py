@@ -16,6 +16,14 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_choice,
+    require_gt,
+    to_float_tuple,
+)
+
 from .adam_step import adam_single_tensor
 
 F32 = np.dtype("float32")
@@ -23,29 +31,45 @@ F32 = np.dtype("float32")
 
 @dataclass(frozen=True)
 class ESMCConfig:
-    """Hyperparameters of the ESMC algorithm (mirrors the torch ``__init__``)."""
+    """Hyperparameters of the ESMC algorithm (mirrors the torch ``__init__``).
+
+    Dumb frozen config storing plain static leaves: `center_init` arrives as a
+    flat float32 tuple, normalized by `make_esmc` (static config — baked into
+    the graph as a constant at init).
+    """
 
     pop_size: int
-    center_init: np.ndarray
+    center_init: tuple[float, ...]
     optimizer: Literal["adam"] | None = None
     sigma_decay: float = 1.0
     sigma_limit: float = 0.01
     lr: float = 0.05
     sigma: float = 0.03
 
-    def __post_init__(self):
-        assert self.pop_size > 1 and self.pop_size % 2 == 1, (
-            f"pop_size must be an odd integer > 1 (mirrored sampling), got {self.pop_size}"
-        )
-        assert self.optimizer in (None, "adam"), (
-            f"unsupported optimizer {self.optimizer!r}; only None or 'adam'"
-        )
-        if isinstance(self.center_init, np.ndarray):
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=np.float32).tolist()),
-            )
+
+def make_esmc(
+    pop_size: int,
+    center_init: ArrayLike,
+    optimizer: Literal["adam"] | None = None,
+    sigma_decay: float = 1.0,
+    sigma_limit: float = 0.01,
+    lr: float = 0.05,
+    sigma: float = 0.03,
+) -> ESMCConfig:
+    """Build an `ESMCConfig`, normalizing `center_init` and validating fields."""
+    require_gt("pop_size", pop_size, 1)
+    if pop_size % 2 != 1:
+        raise ValueError(f"pop_size must be odd (mirrored sampling), got {pop_size!r}")
+    require_choice("optimizer", optimizer, (None, "adam"))
+    return ESMCConfig(
+        pop_size=pop_size,
+        center_init=to_float_tuple(center_init, dtype=np.float32),
+        optimizer=optimizer,
+        sigma_decay=sigma_decay,
+        sigma_limit=sigma_limit,
+        lr=lr,
+        sigma=sigma,
+    )
 
 
 @dataclass(frozen=True)
@@ -64,9 +88,7 @@ class ESMCState:
 def init(config: ESMCConfig, key: SymbolicTensor) -> ESMCState:
     """Create the initial state; ``center`` is baked as a graph constant."""
     dim = len(config.center_init)
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=F32))
-    )
+    center = bake_float32_constant(config.center_init)
     sigma = enp.full((dim,), config.sigma, dtype=F32)
     z = enp.zeros((config.pop_size, dim), dtype=F32)
     exp_avg = enp.zeros((dim,), dtype=F32)
