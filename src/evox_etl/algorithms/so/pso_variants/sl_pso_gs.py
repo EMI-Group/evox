@@ -5,8 +5,6 @@ demonstrator choice (SLPSOGS). Ported 1:1 from the torch reference
 ``src/evox/algorithms/so/pso_variants/sl_pso_gs.py``.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -36,8 +34,8 @@ class SLPSOGS:
     """Config of the SLPSOGS algorithm (mirrors the torch ``__init__`` minus device)."""
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     social_influence_factor: float = 0.2  # epsilon
     demonstrator_choice_factor: float = 0.7  # theta
 

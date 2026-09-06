@@ -39,13 +39,13 @@ class FSPSO:
     """The Feature Selection PSO algorithm."""
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     inertia_weight: float = 0.6  # w
     cognitive_coefficient: float = 2.5  # c
     social_coefficient: float = 0.8  # s
-    mean: np.ndarray | None = None
-    stdev: np.ndarray | None = None
+    mean: tuple[float, ...] | None = None
+    stdev: tuple[float, ...] | None = None
     mutate_rate: float = 0.01  # mutation ratio
 
 

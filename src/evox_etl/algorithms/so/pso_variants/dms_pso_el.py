@@ -9,7 +9,7 @@ torch Python `if`s become `etl.cond`).
 
 from dataclasses import dataclass, replace
 from functools import partial
-from typing import Any, Tuple, Union
+from typing import Any, Tuple
 
 import numpy as np
 
@@ -33,8 +33,8 @@ class DMSPSOEL:
     constructor; direct construction takes already-normalized tuples.
     """
 
-    lb: Union[np.ndarray, tuple[float, ...]]
-    ub: Union[np.ndarray, tuple[float, ...]]
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     dynamic_sub_swarm_size: int = 10  # one of the dynamic sub-swarms size
     dynamic_sub_swarms_num: int = 5  # number of dynamic sub-swarms
     following_sub_swarm_size: int = 10  # following sub-swarm size

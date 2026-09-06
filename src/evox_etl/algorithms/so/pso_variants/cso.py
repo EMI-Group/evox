@@ -35,11 +35,11 @@ class CSO:
     """CSO hyperparameters (torch ``CSO.__init__`` minus ``device``)."""
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     phi: float = 0.0
-    mean: np.ndarray | None = None
-    stdev: np.ndarray | None = None
+    mean: tuple[float, ...] | None = None
+    stdev: tuple[float, ...] | None = None
 
 
 def _check_stat(name: str, value: ArrayLike, dim: int) -> tuple[float, ...]:
