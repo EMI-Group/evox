@@ -10,8 +10,10 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - Each module: frozen config dataclass named after the torch class (`DE`, `JaDE`,
   `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain functions
   `init(config, key) -> State`, `ask(config, state) -> (candidates, state)`,
-  `tell(config, state, fitness) -> state`. `__init__.py` mirrors torch exports
-  (`DE, CoDE, JaDE, ODE, SaDE, SHADE`).
+  `tell(config, state, fitness) -> state`.
+- Each config module also defines a `make_*` constructor in the SAME module
+  (`make_de`, `make_jade`, `make_shade`, `make_sade`, `make_ode`, `make_code`);
+  `__init__.py` exports the classes and all 6 `make_*`.
 - `init_ask`/`init_tell` encode torch's `init_step` (evaluate the initial
   population) on `de.py`, `ode.py`, `jade.py` — the torch counterparts of
   SHADE/SaDE/CoDE have no init_step, so those modules omit the pair.
