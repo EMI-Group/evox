@@ -46,7 +46,7 @@ from unit_test.etl.algorithms.parity.parity_common import (
 
 
 def test_moead_dtlz1_parity():
-    cfg = moead.MOEADConfig(
+    cfg = moead.make_moead(
         pop_size=POP_SIZE,
         n_objs=N_OBJ,
         lb=np.zeros(DIM, np.float32),

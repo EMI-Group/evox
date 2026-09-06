@@ -35,7 +35,7 @@ N_OFFSPRING = 2 * (N_EFF // 2)
 
 def make_config():
     """RVEA config: 3 objectives, decision space [0, 1]^7."""
-    return rvea.RVEAConfig(
+    return rvea.make_rvea(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),

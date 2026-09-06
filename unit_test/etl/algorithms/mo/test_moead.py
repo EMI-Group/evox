@@ -32,7 +32,7 @@ N_EFF = 15
 
 def make_config():
     """MOEAD config: 3 objectives, decision space [0, 1]^7."""
-    return moead.MOEADConfig(
+    return moead.make_moead(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),
