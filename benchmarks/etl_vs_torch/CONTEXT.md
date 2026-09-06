@@ -84,6 +84,10 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley 1000x50/
   10000x100, MO DTLZ1 incl. xla-cuda NSGA3 rel 16.636/0.528 — see
   `BENCHMARK_RESULTS.md`).
+- **Committed `so_etl-iree-cuda.json` big-scale values are NOT reproducible
+  on healthy GPUs** (medians 35.70 / 3482 ms/step @1000x50 / @10000x100 vs
+  0.6-3.1 ms/step measured on healthy A6000s for the same code) — environment
+  artifact, not algorithm performance; see the perf-path known issues below.
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## Notes for agents
