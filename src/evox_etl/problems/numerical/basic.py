@@ -299,33 +299,3 @@ def evaluate(
     pop = _shift_affine(config, pop)
     fitness = _true_evaluate(config, pop)
     return fitness, problem_state
-
-
-def _config_flatten(config: object) -> tuple[tuple, object]:
-    """Flatten a problem config as an opaque pytree leaf (the config is its context)."""
-    return (), config
-
-
-def _config_unflatten(context: object, children: tuple) -> object:
-    """Rebuild a problem config from its context (the original config object)."""
-    return context
-
-
-# Problem configs hold numpy arrays (shift/affine), which are not valid etl
-# trace inputs by themselves.  Registering the config classes as zero-child
-# pytree nodes lets ``etl.build(evaluate, config, ...)`` pass the whole config
-# through as opaque static data (the traced function sees the config object
-# and bakes its arrays as graph constants).
-for _config_type in (
-    ShiftAffineNumericalProblem,
-    Ackley,
-    Griewank,
-    Rastrigin,
-    Rosenbrock,
-    Schwefel,
-    Sphere,
-    Ellipsoid,
-    Zakharov,
-    Levy,
-):
-    etl.register_pytree_node(_config_type, _config_flatten, _config_unflatten)
