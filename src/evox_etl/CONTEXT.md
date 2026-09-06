@@ -132,3 +132,16 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
     0-d scalar indices and squeezes (the pso `(1,)`-reshape workaround is
     unnecessary); float32 ** Python-float exponent stays float32; etl has no
     any/all ops — compose via `etl.max`/`etl.min` over bool axes.
+
+## Config-constructor design audit (refactor input)
+A read-only design audit of config-dataclass construction — all 37 `__post_init__`
+defs, the zero-child `register_pytree_node` hack, construction call-site
+inventories, and the functional-constructor refactor proposal — is recorded per
+subtree in child CONTEXT.md files: `algorithms/so/de_variants` (notes),
+`algorithms/so/es_variants` ("Config __post_init__ audit" section),
+`algorithms/so/pso_variants` ("Config call-site audit" section), `algorithms/mo`
+("Audit — config registration hack, __post_init__, construction sites" section),
+`problems/numerical` ("Config design audit" section).
+Read the relevant child file before refactoring any config dataclass; the audit
+was read-only, so the source files still carry the audited constructors and the
+migration mapping lives in those CONTEXT.md sections.
