@@ -2,8 +2,8 @@
 
 Plain functions only (no ``@etl.defn`` — ETL has no eager mode; everything
 runs inside an active trace). 1:1 port of the read-only torch reference in
-``src/evox/algorithms/so/pso_variants/fs_pso.py``. numpy is used only at
-trace time to bake lb/ub/mean/stdev constants.
+``src/evox/algorithms/so/pso_variants/fs_pso.py``. numpy is used at trace
+time to bake constants and on the host in the config constructor.
 """
 
 from dataclasses import dataclass, replace
@@ -15,6 +15,13 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    bake_float32_constant,
+    normalize_bounds,
+    to_float_tuple,
+)
 from evox_etl.operators.jit_fix_operator import clamp
 
 from .utils import min_by
@@ -24,9 +31,7 @@ Tensor = core.Tensor
 
 def _bake_bounds(config: "FSPSO") -> tuple[Tensor, Tensor]:
     """Bake lb/ub config arrays as (1, dim) float32 graph constants (torch ``lb[None, :]``)."""
-    lb = etl.ops.constant(core.tensor(np.asarray(config.lb, dtype=np.float32)[None, :]))
-    ub = etl.ops.constant(core.tensor(np.asarray(config.ub, dtype=np.float32)[None, :]))
-    return lb, ub
+    return bake_bounds(config.lb, config.ub, as_row=True)
 
 
 @dataclass(frozen=True)
@@ -43,24 +48,49 @@ class FSPSO:
     stdev: np.ndarray | None = None
     mutate_rate: float = 0.01  # mutation ratio
 
-    def __post_init__(self) -> None:
-        # etl static trace arguments reject numpy arrays/scalars (TraceError);
-        # store the bounds (and optional sampling params) as float tuples so
-        # this frozen config is a legal static pytree. The constructor API
-        # (numpy arrays in) is unchanged.
-        lb = np.asarray(self.lb)
-        ub = np.asarray(self.ub)
-        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
-        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
-        if self.mean is not None:
-            object.__setattr__(
-                self, "mean", tuple(float(v) for v in np.asarray(self.mean))
-            )
-        if self.stdev is not None:
-            object.__setattr__(
-                self, "stdev", tuple(float(v) for v in np.asarray(self.stdev))
-            )
+
+def _check_stat(name: str, value: ArrayLike, dim: int) -> tuple[float, ...]:
+    """Validate an optional mean/stdev: 1-D, length dim; flatten to a float tuple."""
+    arr = np.asarray(value)
+    if arr.ndim != 1:
+        raise ValueError(
+            f"{name} must be 1-D with length {dim} (matching lb), got shape {arr.shape}"
+        )
+    result = to_float_tuple(arr)
+    if len(result) != dim:
+        raise ValueError(
+            f"{name} must have length {dim} (matching lb), got {len(result)}"
+        )
+    return result
+
+
+def make_fs_pso(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    inertia_weight: float = 0.6,
+    cognitive_coefficient: float = 2.5,
+    social_coefficient: float = 0.8,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+    mutate_rate: float = 0.01,
+) -> FSPSO:
+    """Normalize array-like bounds/stat params to flat float tuples; ValueError on invalid bounds or stat length."""
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    dim = len(lb_t)
+    mean_t = None if mean is None else _check_stat("mean", mean, dim)
+    stdev_t = None if stdev is None else _check_stat("stdev", stdev, dim)
+    return FSPSO(
+        pop_size=pop_size,
+        lb=lb_t,
+        ub=ub_t,
+        inertia_weight=inertia_weight,
+        cognitive_coefficient=cognitive_coefficient,
+        social_coefficient=social_coefficient,
+        mean=mean_t,
+        stdev=stdev_t,
+        mutate_rate=mutate_rate,
+    )
 
 
 @dataclass(frozen=True)
@@ -85,12 +115,8 @@ def init(config: FSPSO, key: Tensor) -> FSPSOState:
     length = ub - lb
     key, subkey1, subkey2 = random.split_n(key, 3)
     if config.mean is not None and config.stdev is not None:
-        mean_c = etl.ops.constant(
-            core.tensor(np.asarray(config.mean, dtype=np.float32)[None, :])
-        )
-        stdev_c = etl.ops.constant(
-            core.tensor(np.asarray(config.stdev, dtype=np.float32)[None, :])
-        )
+        mean_c = bake_float32_constant(config.mean, shape=(1, -1))
+        stdev_c = bake_float32_constant(config.stdev, shape=(1, -1))
         pop = clamp(
             mean_c + stdev_c * random.normal(subkey1, (pop_size, dim), 0.0, 1.0, etl.float32),
             lb,

@@ -6,13 +6,8 @@ decomposition at tag v0.9.0, with torch semantics winning).  ETL has no eager
 mode, so these functions only run inside an active trace via
 ``etl.build``/``etl.run``.
 
-Config note: ``CSO`` holds numpy boundary arrays, which etl rejects as trace
-inputs (numpy arrays are neither TensorSpecs nor static values).
-``__post_init__`` therefore normalizes ``lb``/``ub`` (and ``mean``/``stdev``
-when given) to float tuples — legal static pytree leaves — which are baked
-into the graph as constants at compile time (``etl.build``/``etl.run`` then
-validate the config by value, so callers re-passing the config object is
-harmless).
+The config stores flat float tuples; ``make_cso`` normalizes array-like bounds
+and optional sampling stats (DESIGN.md §4.1).
 """
 
 from dataclasses import dataclass, replace
@@ -24,6 +19,12 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    normalize_bounds,
+    to_float_tuple,
+)
 from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
@@ -40,24 +41,36 @@ class CSO:
     mean: np.ndarray | None = None
     stdev: np.ndarray | None = None
 
-    def __post_init__(self) -> None:
-        # etl static trace arguments reject numpy arrays/scalars (TraceError);
-        # store the bounds (and optional sampling params) as float tuples so
-        # this frozen config is a legal static pytree. The constructor API
-        # (numpy arrays in) is unchanged.
-        lb = np.asarray(self.lb)
-        ub = np.asarray(self.ub)
-        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
-        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
-        if self.mean is not None:
-            object.__setattr__(
-                self, "mean", tuple(float(v) for v in np.asarray(self.mean))
-            )
-        if self.stdev is not None:
-            object.__setattr__(
-                self, "stdev", tuple(float(v) for v in np.asarray(self.stdev))
-            )
+
+def _check_stat(name: str, value: ArrayLike, dim: int) -> tuple[float, ...]:
+    """Validate an optional mean/stdev: 1-D, length dim; flatten to a float tuple."""
+    arr = np.asarray(value)
+    if arr.ndim != 1:
+        raise ValueError(
+            f"{name} must be 1-D with length {dim} (matching lb), got shape {arr.shape}"
+        )
+    result = to_float_tuple(arr)
+    if len(result) != dim:
+        raise ValueError(
+            f"{name} must have length {dim} (matching lb), got {len(result)}"
+        )
+    return result
+
+
+def make_cso(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    phi: float = 0.0,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+) -> CSO:
+    """Normalize array-like bounds/stat params to flat float tuples; ValueError on invalid bounds or stat length."""
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    dim = len(lb_t)
+    mean_t = None if mean is None else _check_stat("mean", mean, dim)
+    stdev_t = None if stdev is None else _check_stat("stdev", stdev, dim)
+    return CSO(pop_size=pop_size, lb=lb_t, ub=ub_t, phi=phi, mean=mean_t, stdev=stdev_t)
 
 
 @dataclass(frozen=True)
@@ -71,9 +84,9 @@ class CSOState:
     key: Tensor
 
 
-def _bake(arr: np.ndarray) -> Tensor:
-    """Bake a config numpy array into a (1, dim) float32 graph constant."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(arr, dtype=np.float32)[None, :]))
+def _bake(arr: ArrayLike) -> Tensor:
+    """Bake a config array-like into a (1, dim) float32 graph constant."""
+    return bake_float32_constant(arr, shape=(1, -1))
 
 
 def init(config: CSO, key: Tensor) -> CSOState:
