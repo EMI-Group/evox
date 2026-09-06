@@ -18,6 +18,13 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from ..._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_choice,
+    require_gt,
+    to_float_tuple,
+)
 from .adam_step import adam_single_tensor
 
 Tensor = etl.SymbolicTensor
@@ -29,8 +36,8 @@ F32 = np.dtype("float32")
 class OpenESConfig:
     """Frozen hyperparameters (torch `OpenES.__init__` minus `device`).
 
-    ``center_init`` may be passed as an ``np.ndarray``; it is normalized to a
-    flat tuple of float32 values (hashable static config arg).
+    ``center_init`` is stored as a flat tuple of float32 values; array-like
+    input is normalized by `make_open_es`.
     """
 
     pop_size: int
@@ -40,21 +47,38 @@ class OpenESConfig:
     optimizer: Literal["adam"] | None = None
     mirrored_sampling: bool = True
 
-    def __post_init__(self) -> None:
-        assert self.noise_stdev > 0, "noise_stdev must be greater than 0."
-        assert self.learning_rate > 0, "learning_rate must be greater than 0."
-        assert self.pop_size > 0, "pop_size must be greater than 0."
-        if self.mirrored_sampling:
-            assert self.pop_size % 2 == 0, (
-                "When mirrored_sampling is True, pop_size must be a multiple of 2."
-            )
-        assert self.optimizer in [None, "adam"], "optimizer must be None or 'adam'."
-        if isinstance(self.center_init, np.ndarray):
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=np.float32).tolist()),
-            )
+
+def make_open_es(
+    pop_size: int,
+    center_init: ArrayLike,
+    learning_rate: float,
+    noise_stdev: float,
+    optimizer: Literal["adam"] | None = None,
+    mirrored_sampling: bool = True,
+) -> OpenESConfig:
+    """Construct an :class:`OpenESConfig`, normalizing and validating the inputs.
+
+    ``center_init`` is converted to a flat float32 tuple (see
+    `_config_utils.to_float_tuple`); invalid hyperparameters raise ValueError.
+    """
+    require_gt("noise_stdev", noise_stdev, 0)
+    require_gt("learning_rate", learning_rate, 0)
+    require_gt("pop_size", pop_size, 0)
+    if mirrored_sampling and pop_size % 2 != 0:
+        raise ValueError(
+            "When mirrored_sampling is True, pop_size must be a multiple of 2, "
+            f"got {pop_size}"
+        )
+    require_choice("optimizer", optimizer, (None, "adam"))
+    center_init = to_float_tuple(center_init, dtype=np.float32)
+    return OpenESConfig(
+        pop_size=pop_size,
+        center_init=center_init,
+        learning_rate=learning_rate,
+        noise_stdev=noise_stdev,
+        optimizer=optimizer,
+        mirrored_sampling=mirrored_sampling,
+    )
 
 
 @dataclass(frozen=True)
@@ -72,9 +96,7 @@ class OpenESState:
 def init(config: OpenESConfig, key: Tensor) -> OpenESState:
     """Create the initial state; no randomness is drawn (key passed through)."""
     dim = len(config.center_init)
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=np.float32))
-    )
+    center = bake_float32_constant(config.center_init)
     noise = enp.zeros((config.pop_size, dim), dtype=F32)
     exp_avg = enp.zeros((dim,), dtype=F32)
     exp_avg_sq = enp.zeros((dim,), dtype=F32)
