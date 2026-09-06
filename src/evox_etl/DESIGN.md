@@ -162,8 +162,9 @@ revalidation at `etl.run` (an opaque registered node is NOT revalidated).
 `cec2022.py`):** these KEEP their validation-only `__post_init__` methods as the
 sanctioned direct-construction public API — no ndarray→tuple normalization there
 (`shift`/`affine` are stored as passed, validated only), and their clear
-`ValueError` messages are asserted by the unit tests. The `make_*` pattern does
-not apply to them.
+`AssertionError` messages (bare asserts with message strings) are asserted by
+the unit tests — the messages are frozen, so do NOT convert them to
+`ValueError`. The `make_*` pattern does not apply to them.
 
 ### 4.2 State
 
