@@ -84,17 +84,52 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley 1000x50/
   10000x100, MO DTLZ1 incl. xla-cuda NSGA3 rel 16.636/0.528 — see
   `BENCHMARK_RESULTS.md`).
+- **etl-xla-cuda is device-resident and measured at torch-cuda speed
+  (2026-09-07, idle A6000 #6, seed 42, 100 gens, compile excluded):**
+  PSO/Sphere 1000x50 0.896, 10000x100 0.988/1.045 ms/step; DE/Rastrigin
+  1000x50 0.799, 10000x100 0.776/0.843 ms/step — 1.16-1.45× faster than
+  torch-cuda (1.036-1.217 ms/step, same-day), convergence identical to the
+  committed records. This required both landed fixes: the harness mapping
+  (`bench_common.etl_backend_spec` → `("xla", "cuda:0")`) and the workflow
+  backend activation before device placement (commit 1a6fef1c,
+  `workflow.py:229-244`). The committed xla SO cells (5.73/17.0 ms/step)
+  are host-staging-bound artifacts of the old `("xla", None)` mapping —
+  stale, see the caveat note in `BENCHMARK_RESULTS.md`.
 - **Committed `so_etl-iree-cuda.json` big-scale values are NOT reproducible
   on healthy GPUs** (medians 35.70 / 3482 ms/step @1000x50 / @10000x100 vs
   0.6-3.1 ms/step measured on healthy A6000s for the same code) — environment
   artifact, not algorithm performance; see the perf-path known issues below.
+  iree big-scale re-runs remain blocked by the 3.9.0 segfault below.
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
-## Known issues — GPU performance path (measurement-verified, current state)
-- **`etl-xla-cuda` runs a device-resident executable:** `bench_common.etl_backend_spec` maps it to `("xla", "cuda:0")` (etl HEAD f2f50a7 supports device-resident `Device("cuda", N)` executables). A `None` device would make the workflow CPU-kind (`workflow.py:45-48`) and the xla adapter would host-stage EVERY input every step (`.numpy()` + `buffer_from_host` per call, `xla.py:639/660-669`) and round-trip outputs — measured PSO/Sphere on a healthy GPU: 6.23 / 15.32 ms/step @1000x50 / @10000x100, which reproduces the committed 5.73 / 17.0 (those old results are host-staging-bound, not device speed).
-- **`device="cuda:0"` alone does NOT fix it — backend-blind placement bug:** `Tensor.to(cuda)` dispatches through a process-global, last-wins "cuda" transfer-provider slot (lazy **iree** thunk registered by `etl/backends/__init__.py:54-92`; the xla adapter overwrites it on activation at `xla.py:955-959`). The workflow places state at `workflow.py:229-230` BEFORE `_build_step_exe` (232-233) activates the consuming backend, so with `backend="xla", device="cuda:0"` in a fresh process the state is placed by iree (`IreeDevicePayload`) and the first step raises `DeviceError` (`xla.py:660-662, 722-742` — device-resident runs never stage host/foreign inputs). Pre-activating xla (`etl.backends.registry.get("xla")`) before `wf.init` makes the device-resident path work: measured 1.31 / 0.91 ms/step @1000x50 / @10000x100 with identical convergence — parity with torch-cuda (1.16-1.19). Fix directions (NOT implemented): in `evox_etl`, activate/place via the workflow's own backend, or build the step exe before placing state; in etl core, make device placement backend-scoped instead of a global last-wins slot.
-- **iree 3.9.0 CUDA segfaults on the harness path:** `workflow.step` with `self._state = state` retention (`workflow.py:312`) deterministically crashes at step 1 on a healthy GPU (bisected to that assignment; without it the identical loop runs 6+ steps). Raw `etl.run` chaining is unaffected. Re-running iree-cuda requires iree ≥ 3.11.0 and/or a retention-free measurement loop.
-- **Per-step host copies are NOT the bottleneck once device-resident:** history D2H readback (`.to(cpu).numpy()` of `latest_fitness`, `workflow.py:402-405`; `full_sol/pop_history` default off, `eval_monitor.py:52-54`) ≈ 0.09 ms/step; same-device `tree_map .to` no-op (`workflow.py:306-307`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
+## GPU performance path — issues and fixes (measurement-verified, current state)
+- **The old etl-xla-cuda slowness was the harness mapping + placement bug,
+  now FIXED:** `bench_common.etl_backend_spec` maps etl-xla-cuda to
+  `("xla", "cuda:0")` (commit 8202692f; etl HEAD f2f50a7 supports
+  device-resident `Device("cuda", N)` executables), and `StdWorkflow` now
+  activates the workflow's own backend adapter before placing state on
+  device (`workflow.py:229-244`, commit 1a6fef1c) — replacing the manual
+  pre-activation (`etl.backends.get("xla")` before `wf.init`) that was
+  previously required because `Tensor.to(cuda)` dispatches through a
+  process-global, last-wins device-transfer slot (lazy iree thunk from
+  `etl/backends/__init__.py`; the xla adapter overwrites it on activation).
+- **Old committed xla SO numbers are host-staging-bound:** a `("xla", None)`
+  device makes the workflow CPU-kind (`workflow.py:45-48`) and the xla
+  adapter host-stages EVERY input every step (`.numpy()` + `buffer_from_host`
+  per call) — measured PSO/Sphere on a healthy GPU: 6.23 / 15.32 ms/step
+  @1000x50 / @10000x100, reproducing the committed 5.73 / 17.0. Post-fix
+  device-resident measurements (2026-09-07, idle A6000): 0.90 / 0.99-1.05
+  ms/step @1000x50 / @10000x100 PSO/Sphere and 0.80 / 0.78-0.84 DE/Rastrigin,
+  i.e. 1.16-1.45× faster than torch-cuda — see the caveat note in
+  `BENCHMARK_RESULTS.md`.
+- **iree 3.9.0 CUDA segfaults on the harness path:** earlier bisect traced a
+  deterministic step-1 crash on a healthy GPU to `workflow.step` retaining
+  `self._state = state` (now `workflow.py:323`); raw `etl.run` chaining was
+  unaffected. A 2026-09-07 smoke at 100x10 × 5 gens completed cleanly, so
+  the trigger appears scale/condition-dependent — do not run iree-cuda
+  benchmark cells with iree 3.9.0; re-running requires iree ≥ 3.11.0
+  and/or a retention-free measurement loop.
+- **Per-step host copies are NOT the bottleneck once device-resident:** history D2H readback (`.to(cpu).numpy()` of `latest_fitness`, `workflow.py:413-416`; `full_sol/pop_history` default off, `eval_monitor.py:52-54`) ≈ 0.09 ms/step; same-device `tree_map .to` no-op (`workflow.py:317-318`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
 - **Timing fairness:** the etl path times without an explicit device sync (`bench_so.py:147-156`; the torch path syncs at 76-81), but iree/xla `run` invokes are host-blocking, so steps cannot overlap — per-step timing is fair; the 2 warmup steps (`bench_common.WARMUP_STEPS`) exercise the same `step()` path and absorb first-call costs.
 
 ## Notes for agents

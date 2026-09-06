@@ -5,6 +5,39 @@ Comparison of the torch OOP `evox` (`src/evox/`) against the functional
 multi-objective), small → large scale. All numbers below are read from the
 committed `results/*.json` (12 files, one per suite×backend).
 
+## Measurement caveats (2026-09-07)
+
+- The committed etl-xla-cuda SO ms/step figures were produced by an old
+  harness mapping bug: `bench_common.etl_backend_spec` returned
+  `("xla", None)`, which builds a CPU-kind executable that host-stages every
+  input on every step.
+- The committed xla figures (5.73 / 17.0 ms/step at 1000x50 / 10000x100)
+  were reproduced exactly with host staging on a healthy GPU, while the same
+  code device-resident runs at ~0.9-1.0 ms/step, so they are obsolete as
+  GPU-performance evidence.
+- The committed etl-iree-cuda SO numbers (35.70 / 3482 ms/step at 1000x50 /
+  10000x100) are stale-environment artifacts recorded during a broken-GPU
+  era; healthy re-measurements of the same code are 0.6-3.1 ms/step.
+- The harness mapping is fixed in `bench_common.py`
+  (`etl_backend_spec("etl-xla-cuda")` now returns `("xla", "cuda:0")`), and
+  `StdWorkflow._finish_init` now activates the workflow's backend adapter
+  before placing state on device (commit 1a6fef1c), so device-resident xla
+  runs no longer need manual adapter pre-activation.
+- Fresh measurements below (2026-09-07, idle RTX A6000 #6, seed 42, 2 warmup
+  steps + 100 timed gens, compile time excluded; scratch records written to
+  `$TMPDIR` only — no committed `results/*.json` was modified; convergence
+  reproduces the committed best-fitness values exactly on both backends):
+
+| case | torch-cuda ms/step | etl-xla-cuda ms/step | xla/torch ratio |
+|---|---|---|---|
+| PSO/Sphere/1000x50 | 1.150 | 0.896 | 0.78× |
+| PSO/Sphere/10000x100 | 1.217 | 0.988 / 1.045 (2 samples) | 0.81-0.86× |
+| DE/Rastrigin/1000x50 | 1.036 | 0.799 | 0.77× |
+| DE/Rastrigin/10000x100 | 1.127 | 0.776 / 0.843 (2 samples) | 0.69-0.75× |
+
+- etl-xla-cuda is therefore 1.16-1.45× faster than torch-cuda per step on
+  these cells, at identical convergence to the committed records.
+
 ## Setup
 
 - **Machine:** 8× NVIDIA RTX A6000 48 GB, 128 logical CPUs.
