@@ -13,13 +13,13 @@ returned by `random.split`).
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Optional
 
 import numpy as np
 
 import etl
 import etl.numpy as enp
 import etl.random as random
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
@@ -34,6 +34,7 @@ I32 = np.dtype("int32")
 __all__ = [
     "NSGA2Config",
     "NSGA2State",
+    "make_nsga2",
     "init",
     "init_ask",
     "init_tell",
@@ -46,34 +47,31 @@ __all__ = [
 class NSGA2Config:
     """NSGA2 hyperparameters (mirrors the torch ``__init__`` minus device).
 
-    The optional op fields are kept for signature parity; the torch defaults
-    (tournament_selection_multifit, simulated_binary, polynomial_mutation)
-    are always used, matching the torch behavior when they are None.
+    Signature-parity note: the torch class constructor accepts optional
+    crossover/mutation/selection ops, but those op fields are NOT config fields
+    here — the functional variant hard-codes the operators
+    (tournament_selection_multifit, simulated_binary, polynomial_mutation),
+    matching the torch defaults used when they are None.
     """
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
-    selection_op: Optional[object] = None
-    mutation_op: Optional[object] = None
-    crossover_op: Optional[object] = None
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
 
 
-def _config_flatten(config: NSGA2Config):
-    """Zero-child flattening: the config travels as one opaque static node."""
-    return [], config
+def make_nsga2(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+) -> NSGA2Config:
+    """Construct an NSGA2Config from array-like bounds (stored as flat float tuples).
 
-
-def _config_unflatten(config: NSGA2Config, _children) -> NSGA2Config:
-    return config
-
-
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
-etl.register_pytree_node(NSGA2Config, _config_flatten, _config_unflatten)
+    Raises ValueError when lb/ub are not 1-D or their shapes differ.
+    """
+    lb, ub = normalize_bounds(lb, ub)
+    return NSGA2Config(pop_size=pop_size, n_objs=n_objs, lb=lb, ub=ub)
 
 
 @dataclass(frozen=True)
@@ -93,17 +91,10 @@ class NSGA2State:
     key: etl.SymbolicTensor
 
 
-def _bounds(config: NSGA2Config):
-    """Bake lb/ub numpy arrays as graph constants (float32)."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=F32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=F32)))
-    return lb, ub
-
-
 def init(config: NSGA2Config, key: etl.SymbolicTensor) -> NSGA2State:
     """Draw the initial population uniformly in [lb, ub]; unfit until init_tell."""
-    lb, ub = _bounds(config)
-    dim = config.lb.shape[0]
+    lb, ub = bake_bounds(config.lb, config.ub)
+    dim = len(config.lb)
     key, subkey = random.split(key)
     pop = random.uniform(subkey, (config.pop_size, dim), 0.0, 1.0, "float32")
     pop = (ub - lb) * pop + lb
@@ -126,7 +117,7 @@ def init_tell(config: NSGA2Config, state: NSGA2State, fitness: etl.SymbolicTenso
 
 def ask(config: NSGA2Config, state: NSGA2State):
     """Generate pop_size offspring: tournament -> SBX -> polynomial mutation."""
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
     key, k_sel, k_cross, k_mut = random.split_n(state.key, 4)
     mating_pool = tournament_selection_multifit(
         k_sel,
