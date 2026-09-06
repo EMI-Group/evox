@@ -13,13 +13,11 @@ import math
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Optional, Tuple
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
-from etl import core
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp, minimum
 from evox_etl.operators.crossover import simulated_binary_half
 from evox_etl.operators.mutation import polynomial_mutation
@@ -30,14 +28,16 @@ from evox_etl.operators.sampling import uniform_sampling
 class MOEADConfig:
     """MOEA/D hyperparameters (mirrors torch ``MOEAD.__init__`` minus device).
 
-    ``selection_op`` is accepted for signature parity with the torch class
-    but is never used by the algorithm (torch ignores it too).
+    ``lb``/``ub`` are flat float tuples (construct from array-like input via
+    ``make_moead``). ``selection_op`` is accepted for signature parity with
+    the torch class but is never used by the algorithm (torch ignores it too);
+    for ``mutation_op``/``crossover_op``, ``None`` means the algorithm default.
     """
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     selection_op: Optional[Callable] = None
     mutation_op: Optional[Callable] = None
     crossover_op: Optional[Callable] = None
@@ -52,11 +52,47 @@ def _config_unflatten(config: MOEADConfig, _children) -> MOEADConfig:
     return config
 
 
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
+# The registration is REQUIRED: the config carries optional callable op
+# fields, and functions are not valid static pytree leaves — so the config is
+# registered as a childless node and passes through etl.build/etl.run as one
+# opaque static value.
 etl.register_pytree_node(MOEADConfig, _config_flatten, _config_unflatten)
+
+
+def make_moead(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
+) -> MOEADConfig:
+    """Construct a ``MOEADConfig`` from array-like bounds and optional operators.
+
+    ``lb``/``ub`` are validated and normalized to flat float tuples — the
+    config's static-leaf storage convention. ``None`` for ``mutation_op`` /
+    ``crossover_op`` means the algorithm default; ``selection_op`` is accepted
+    for torch signature parity and ignored by the algorithm (torch ignores it
+    too).
+    """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
+    lb, ub = normalize_bounds(lb, ub)
+    return MOEADConfig(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb,
+        ub=ub,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+    )
 
 
 @dataclass(frozen=True)
@@ -85,13 +121,6 @@ def pbi(f: Any, w: Any, z: Any) -> Any:
     return d1 + 5.0 * d2
 
 
-def _bounds(config: MOEADConfig) -> Tuple[Any, Any]:
-    """Bake the (dim,) lower/upper bound arrays as graph constants."""
-    lb = etl.ops.constant(core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    return lb, ub
-
-
 def init(config: MOEADConfig, key: Any) -> MOEADState:
     """Draw the initial MOEA/D state (torch ``MOEAD.__init__`` 1:1).
 
@@ -101,8 +130,8 @@ def init(config: MOEADConfig, key: Any) -> MOEADState:
     """
     w, n_w = uniform_sampling(config.pop_size, config.n_objs)
     n_neighbor = int(math.ceil(n_w / 10))
-    dim = config.lb.shape[0]
-    lb, ub = _bounds(config)
+    dim = len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub)
 
     population = random.uniform(key, (n_w, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((n_w, config.n_objs), float("inf"), dtype="float32")
@@ -171,7 +200,7 @@ def ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
     crossovered = crossover(k_cross, x_pairs)
 
     mutation = polynomial_mutation if config.mutation_op is None else config.mutation_op
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
     offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
 
