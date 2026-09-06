@@ -2,9 +2,9 @@
 
 ## Intent
 Shared scaffolding + tests for the functional evox_etl algorithm port
-(`src/evox_etl/algorithms/`).  No torch imports here — parity tests that import torch live in
-`unit_test/etl/algorithms/parity/` (7 test files + `parity_common.py`, see its
-CONTEXT.md for the full inventory).
+(`src/evox_etl/algorithms/`).  No torch imports here — parity tests that import
+torch live in `unit_test/etl/algorithms/parity/` (7 test files +
+`parity_common.py`, see its CONTEXT.md for the full inventory).
 
 - `conftest.py` — sys.path shim making the repo root + `src/` importable.
 - `helpers.py` — toy problems (Sphere/Rosenbrock/Ackley/DTLZ1) + generic
