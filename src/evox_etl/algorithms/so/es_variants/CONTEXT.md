@@ -59,7 +59,13 @@ fitness, updated in tell) is an evox_etl addition — torch has no such field.
   imports it (des → snes dependency mirrors the algorithm lineage).
 - Direct `Config(...)` construction bypasses normalization/validation — only
   valid for already-normalized values (in-flight unit-test migration moves
-  construction sites to make_*).
+  construction sites to make_*). For XNES/SeparableNES/ASEBO direct
+  construction also leaves the eager derived fields (`pop_size`,
+  `learning_rate_*`, `subspace_dims`) as None → trace-time
+  TypeError/TraceError ("unsupported operand type NoneType",
+  "dynamic-length shapes (None, …)"): the affected unit tests
+  (test_nes.py, test_asebo.py) must migrate to make_xnes/make_separable_nes/
+  make_asebo (or pass explicit values).
 
 ## Skipped
 `virtual_lora_es.py` is NOT ported: it needs the torch Philox counter-stream
