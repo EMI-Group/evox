@@ -75,17 +75,22 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - The DE parity test uses the MEDIAN of 3 seeds with the 10% margin: per-seed
   best fitnesses fluctuate ~0.57-1.92× around torch (different RNG streams), so a
   single-seed 10% margin fails ~1/3 of the time by chance. Median-of-3 is stable.
-- **ode.py imports de.py private helpers** (`_de_trial`, `_bounds`, `_constant_1d`,
-  `_to_float_tuple`, ode.py:29-34) — de.py internals are part of ODE's API; any
-  de.py refactor (e.g. moving __post_init__ normalization into a builder) must
-  keep ode.py compiling or update the import.
-- All six config classes are constructed KEYWORD-ONLY with `lb`/`ub` as
-  np.ndarray at every in-repo call site (smoke tests test_{de,ode,jade,shade,
-  sade,code}.py, parity test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115);
-  `pop_size`/`lb`/`ub` are required (no defaults), so default-construction is
-  impossible. Tests only exercise default hyperparameters — the tuple
-  `differential_weight` (ndv>1), `mean`/`stdev` init, and non-default
-  `param_pool` normalization paths have NO test coverage.
+- **ode.py imports `_de_trial` from de.py** (algorithm logic — stays; the
+  mutation/crossover helper is part of ODE's API) and the shared baking helpers
+  from `algorithms/_config_utils.py`; keep ode.py compiling when touching either.
+- Legacy direct-dataclass-construction sites (family smoke tests, parity
+  test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115) still pass raw
+  np.ndarray `lb`/`ub` and still trace (bakers accept ArrayLike; etl accepts
+  ndarray statics); they should migrate to `make_*` (parallel migration round).
+  Tests only exercise default hyperparameters — the tuple `differential_weight`
+  (ndv>1), `mean`/`stdev` init, and non-default `param_pool` paths have NO test
+  coverage.
+- KNOWN ISSUE (pre-existing, NOT introduced by the make_* refactor): DE/ODE with
+  `num_difference_vectors > 1` + tuple `differential_weight` constructs and
+  validates fine but FAILS at trace time in `_de_trial` (`base + f_const *
+  difference_vector`, ShapeError — cannot broadcast ndv against dim): the (ndv,)
+  weight constant never multiplies per-individual difference vectors. Reproduced
+  identically on the pre-refactor HEAD.
 
 ## Routing Table
 | Area | Path |
