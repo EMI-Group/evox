@@ -6,23 +6,22 @@ decomposition at tag v0.9.0, with torch semantics winning).  ETL has no eager
 mode, so these functions only run inside an active trace via
 ``etl.build``/``etl.run``.
 
-Config note: ``CLPSO`` holds numpy boundary arrays, which etl rejects as
-trace inputs (numpy arrays are neither TensorSpecs nor static values).
-``__post_init__`` therefore normalizes ``lb``/``ub`` to float tuples — legal
-static pytree leaves — which are baked into the graph as constants at compile
-time (``etl.build``/``etl.run`` then validate the config by value, so callers
-re-passing the config object is harmless).
+Config note: ``CLPSO`` stores ``lb``/``ub`` as flat float tuples (plain static
+pytree leaves); ``make_clpso`` normalizes array-like bounds (see DESIGN.md §4.1).
 """
 
 from dataclasses import dataclass, replace
 from typing import Tuple
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    normalize_bounds,
+)
 from evox_etl.operators.jit_fix_operator import clamp
 
 from .utils import min_by
@@ -35,21 +34,32 @@ class CLPSO:
     """CLPSO hyperparameters (torch ``CLPSO.__init__`` minus ``device``)."""
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     inertia_weight: float = 0.5
     const_coefficient: float = 1.5
     learning_probability: float = 0.05
 
-    def __post_init__(self) -> None:
-        # etl static trace arguments reject numpy arrays/scalars (TraceError);
-        # store the bounds as float tuples so this frozen config is a legal
-        # static pytree. The constructor API (numpy arrays in) is unchanged.
-        lb = np.asarray(self.lb)
-        ub = np.asarray(self.ub)
-        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
-        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
+
+def make_clpso(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    inertia_weight: float = 0.5,
+    const_coefficient: float = 1.5,
+    learning_probability: float = 0.05,
+) -> CLPSO:
+    """Construct a CLPSO config, normalizing array-like bounds to flat float
+    tuples (raises ValueError on non-1-D or shape-mismatched bounds)."""
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    return CLPSO(
+        pop_size=pop_size,
+        lb=lb_t,
+        ub=ub_t,
+        inertia_weight=inertia_weight,
+        const_coefficient=const_coefficient,
+        learning_probability=learning_probability,
+    )
 
 
 @dataclass(frozen=True)
@@ -66,9 +76,9 @@ class CLPSOState:
     key: Tensor
 
 
-def _bake(arr: np.ndarray) -> Tensor:
-    """Bake a config numpy array into a (1, dim) float32 graph constant."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(arr, dtype=np.float32)[None, :]))
+def _bake(arr: ArrayLike) -> Tensor:
+    """Bake a config bound into a (1, dim) float32 graph constant."""
+    return bake_float32_constant(arr, shape=(1, -1))
 
 
 def init(config: CLPSO, key: Tensor) -> CLPSOState:
