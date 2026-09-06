@@ -227,6 +227,17 @@ class StdWorkflow:
             self.monitor_state = state.monitor_state
             self._setup_monitor_wrapper()
         if self._device.kind != "cpu":
+            # Activate this workflow's backend BEFORE placing state on the
+            # device: `Tensor.to` dispatches through the process-global,
+            # last-wins device-transfer provider registry, where
+            # `etl.backends` installs a lazy iree "cuda" thunk at import
+            # time. `etl.backends.get(self.backend)` activates the workflow's
+            # own adapter, which overwrites that slot with its direct
+            # upload_tensor (idempotent; numpy/cpu unaffected) — without it,
+            # state would be placed with an IreeDevicePayload even when the
+            # step graph consumes a different backend (e.g. xla), and the
+            # first run would reject the foreign payload with a DeviceError.
+            etl.backends.get(self.backend)
             state = etl.tree_map(lambda t: t.to(self._device), state)
         self._state = state
         if self._step_exe is None:
