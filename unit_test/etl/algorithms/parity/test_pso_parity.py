@@ -16,7 +16,6 @@ from evox.problems.numerical import Sphere
 from evox.workflows import EvalMonitor, StdWorkflow
 
 import evox_etl.algorithms.so.pso_variants.pso as pso_mod
-from evox_etl.algorithms.so.pso_variants.pso import PSO
 from helpers import SphereConfig, run_generations
 
 
@@ -46,7 +45,7 @@ def test_pso_parity_with_torch():
     torch_best = float(monitor.get_topk_fitness()[0])
 
     # etl port: gens + 1 generations = init eval + gens steps (matches torch).
-    cfg = PSO(
+    cfg = pso_mod.make_pso(
         pop_size=pop_size,
         lb=np.full(dim, -10.0, np.float32),
         ub=np.full(dim, 10.0, np.float32),

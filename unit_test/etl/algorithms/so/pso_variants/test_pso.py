@@ -11,13 +11,12 @@ sys.path.insert(0, str(_ROOT / "unit_test" / "etl" / "algorithms"))
 import numpy as np
 
 import evox_etl.algorithms.so.pso_variants.pso as pso_mod
-from evox_etl.algorithms.so.pso_variants.pso import PSO
 from helpers import SphereConfig, run_generations
 
 
 def test_pso_smoke():
     """Run 3 generations of PSO on Sphere and check state shapes/finiteness."""
-    cfg = PSO(
+    cfg = pso_mod.make_pso(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),

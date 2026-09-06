@@ -17,7 +17,7 @@ from evox_etl.algorithms.so.pso_variants.clpso import CLPSO
 
 
 def _base_cfg() -> CLPSO:
-    return CLPSO(
+    return clpso.make_clpso(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),
