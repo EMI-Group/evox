@@ -19,6 +19,13 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
+from ..._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_between,
+    require_gt,
+    to_float_tuple,
+)
 from .adam_step import adam_single_tensor
 
 Tensor = etl.SymbolicTensor
@@ -30,8 +37,8 @@ F32 = np.dtype("float32")
 class ARSConfig:
     """Frozen hyperparameters (torch `ARS.__init__` minus `device`).
 
-    ``center_init`` may be passed as an ``np.ndarray``; it is normalized to a
-    flat tuple of float32 values (hashable static config arg).
+    ``center_init`` is stored as a flat tuple of float32 values; array-like
+    input is normalized by `make_ars`.
     """
 
     pop_size: int
@@ -41,15 +48,31 @@ class ARSConfig:
     sigma: float = 0.03
     optimizer: Literal["adam"] | None = None
 
-    def __post_init__(self) -> None:
-        assert self.pop_size > 1
-        assert 0 <= self.elite_ratio <= 1
-        if isinstance(self.center_init, np.ndarray):
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=np.float32).tolist()),
-            )
+
+def make_ars(
+    pop_size: int,
+    center_init: ArrayLike,
+    elite_ratio: float = 0.1,
+    lr: float = 0.05,
+    sigma: float = 0.03,
+    optimizer: Literal["adam"] | None = None,
+) -> ARSConfig:
+    """Construct an :class:`ARSConfig`, normalizing and validating the inputs.
+
+    ``center_init`` is converted to a flat float32 tuple (see
+    `_config_utils.to_float_tuple`); invalid hyperparameters raise ValueError.
+    """
+    require_gt("pop_size", pop_size, 1)
+    require_between("elite_ratio", elite_ratio, 0, 1)
+    center_init = to_float_tuple(center_init, dtype=np.float32)
+    return ARSConfig(
+        pop_size=pop_size,
+        center_init=center_init,
+        elite_ratio=elite_ratio,
+        lr=lr,
+        sigma=sigma,
+        optimizer=optimizer,
+    )
 
 
 @dataclass(frozen=True)
@@ -67,9 +90,7 @@ class ARSState:
 def init(config: ARSConfig, key: Tensor) -> ARSState:
     """Create the initial state; no randomness is drawn (key passed through)."""
     dim = len(config.center_init)
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=np.float32))
-    )
+    center = bake_float32_constant(config.center_init)
     noise = enp.zeros((config.pop_size, dim), dtype=F32)
     exp_avg = enp.zeros((dim,), dtype=F32)
     exp_avg_sq = enp.zeros((dim,), dtype=F32)

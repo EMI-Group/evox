@@ -9,13 +9,20 @@ Reference: Guided evolutionary strategies (https://arxiv.org/abs/1806.10230)
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 import numpy as np
 
 import etl
 import etl.numpy as enp
 import etl.random as random
+
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_gt,
+    to_float_tuple,
+)
 
 from .adam_step import adam_single_tensor
 
@@ -26,12 +33,13 @@ Tensor = etl.SymbolicTensor
 class GuidedESConfig:
     """GuidedES hyperparameters (same names/defaults as the torch evox __init__).
 
-    `center_init` may be passed as a numpy array; it is normalized to a flat
-    tuple of float32 values (static config — baked into the graph).
+    Dumb frozen config storing plain static leaves: `center_init` arrives as a
+    flat float32 tuple, normalized by `make_guided_es` (static config — baked
+    into the graph as a constant at init).
     """
 
     pop_size: int
-    center_init: Union[np.ndarray, tuple]
+    center_init: tuple[float, ...]
     subspace_dims: Optional[int] = None
     optimizer: Optional[Literal["adam"]] = None
     sigma: float = 0.03
@@ -39,14 +47,35 @@ class GuidedESConfig:
     sigma_decay: float = 1.0
     sigma_limit: float = 0.01
 
-    def __post_init__(self) -> None:
-        assert self.pop_size > 1 and self.pop_size % 2 == 0
-        if isinstance(self.center_init, np.ndarray):
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=np.float32).tolist()),
-            )
+
+def make_guided_es(
+    pop_size: int,
+    center_init: ArrayLike,
+    subspace_dims: Optional[int] = None,
+    optimizer: Optional[Literal["adam"]] = None,
+    sigma: float = 0.03,
+    lr: float = 60,
+    sigma_decay: float = 1.0,
+    sigma_limit: float = 0.01,
+) -> GuidedESConfig:
+    """Build a `GuidedESConfig`, normalizing `center_init` and validating fields.
+
+    `subspace_dims` is NOT derived here (it defaults to `dim` at trace time in
+    init/ask when left None, mirroring the torch reference).
+    """
+    require_gt("pop_size", pop_size, 1)
+    if pop_size % 2 != 0:
+        raise ValueError(f"pop_size must be even (mirrored sampling), got {pop_size!r}")
+    return GuidedESConfig(
+        pop_size=pop_size,
+        center_init=to_float_tuple(center_init, dtype=np.float32),
+        subspace_dims=subspace_dims,
+        optimizer=optimizer,
+        sigma=sigma,
+        lr=lr,
+        sigma_decay=sigma_decay,
+        sigma_limit=sigma_limit,
+    )
 
 
 @dataclass(frozen=True)
@@ -70,7 +99,7 @@ def init(config: GuidedESConfig, key: Tensor) -> GuidedESState:
     pop_size = config.pop_size
     subspace_dims = dim if config.subspace_dims is None else config.subspace_dims
     f32 = np.dtype("float32")
-    center = etl.ops.constant(etl.core.tensor(np.asarray(config.center_init, dtype=f32)))
+    center = bake_float32_constant(config.center_init)
     alpha = enp.full((), 0.5, dtype=f32)
     sigma = enp.full((), config.sigma, dtype=f32)
     key, subkey = random.split(key)

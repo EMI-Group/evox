@@ -11,15 +11,13 @@ is carried in the ``offspring`` state leaf (replaced by the next ``ask``).
 """
 
 from dataclasses import dataclass, replace
-from typing import Callable, Optional
-
-import numpy as np
 
 import etl
 import etl.numpy as enp
 import etl.random as random
 from etl import core
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, lexsort
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
@@ -30,37 +28,37 @@ from evox_etl.operators.selection import non_dominate_rank, tournament_selection
 class HypEConfig:
     """Config for HypE, mirroring the torch ``HypE.__init__`` signature (minus device).
 
-    ``lb``/``ub`` are 1-D boundary values; any ``np.asarray``-compatible
-    sequence works. The config is registered below as a childless pytree
-    node, so it travels through ``etl.build``/``etl.run`` as one opaque
-    static node (etl v1's trace flattener would otherwise reject the
-    ndarray leaves).
+    ``lb``/``ub`` are the per-dimension boundary values, accepted from any
+    array-like input (list, tuple, or numpy array) and stored as flat tuples
+    of plain Python floats so the config stays a plain static-leaf pytree
+    (build it via :func:`make_hype`).
+
+    Signature parity: the torch ``HypE.__init__`` accepts optional selection,
+    mutation, and crossover operators, but the evox_etl functional variant
+    hard-codes the operators (non_dominate_rank, tournament_selection,
+    simulated_binary, polynomial_mutation) — they are not config fields here.
     """
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     n_sample: int = 10000
-    selection_op: Optional[Callable] = None
-    mutation_op: Optional[Callable] = None
-    crossover_op: Optional[Callable] = None
 
 
-def _config_flatten(config: HypEConfig):
-    """Zero-child flattening: the config travels as one opaque static node."""
-    return [], config
+def make_hype(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    n_sample: int = 10000,
+) -> HypEConfig:
+    """Build a ``HypEConfig``, normalizing ``lb``/``ub`` to flat float tuples.
 
-
-def _config_unflatten(config: HypEConfig, _children) -> HypEConfig:
-    return config
-
-
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
-etl.register_pytree_node(HypEConfig, _config_flatten, _config_unflatten)
+    Raises ValueError when a bound is not 1-D or ``lb``/``ub`` shapes differ.
+    """
+    lb, ub = normalize_bounds(lb, ub)
+    return HypEConfig(pop_size=pop_size, n_objs=n_objs, lb=lb, ub=ub, n_sample=n_sample)
 
 
 @dataclass(frozen=True)
@@ -76,13 +74,6 @@ class HypEState:
     ref: core.SymbolicTensor
     offspring: core.SymbolicTensor
     key: core.Tensor
-
-
-def _bounds(config: HypEConfig):
-    """Bake the boundary arrays as graph constants; returns ``(lb, ub)``."""
-    lb = etl.ops.constant(core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(core.tensor(np.asarray(config.ub, dtype=np.float32)))
-    return lb, ub
 
 
 def cal_hv(
@@ -145,7 +136,7 @@ def cal_hv(
 
 def init(config: HypEConfig, key: core.Tensor) -> HypEState:
     """Draw the initial population and return the initial state."""
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
     dim = len(config.lb)
     key, k_pop = random.split(key)
     population = (
@@ -179,7 +170,7 @@ def init_tell(
 
 def ask(config: HypEConfig, state: HypEState):
     """Produce the offspring batch (torch ``step`` lines 125-130)."""
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub)
 
     key, k_hv, k_sel, k_cross, k_mut = random.split_n(state.key, 5)
 

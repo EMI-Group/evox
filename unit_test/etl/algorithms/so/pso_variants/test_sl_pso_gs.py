@@ -17,7 +17,7 @@ from evox_etl.algorithms.so.pso_variants import sl_pso_gs
 
 def test_sl_pso_gs_smoke():
     """3 generations on 20-D Sphere: correct shapes and finite fitnesses."""
-    cfg = sl_pso_gs.SLPSOGS(
+    cfg = sl_pso_gs.make_sl_pso_gs(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),

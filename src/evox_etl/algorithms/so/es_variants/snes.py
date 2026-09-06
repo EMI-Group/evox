@@ -20,6 +20,8 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
+from evox_etl.algorithms._config_utils import ArrayLike, require_choice, require_gt, to_float_tuple
+
 Tensor = core.Tensor
 
 F32 = np.dtype("float32")
@@ -27,25 +29,50 @@ F32 = np.dtype("float32")
 
 @dataclass(frozen=True)
 class SNESConfig:
-    """SNES hyperparameters — torch `SNES.__init__` minus `device`."""
+    """SNES hyperparameters — torch `SNES.__init__` minus `device`.
+
+    Dumb frozen config storing plain static leaves: `center_init` is a flat
+    float32 tuple. Array inputs are normalized and validated in `make_snes`.
+    """
 
     pop_size: int
-    center_init: np.ndarray
+    center_init: tuple[float, ...]
     sigma: float = 1.0
     lrate_mean: float = 1.0
     temperature: float = 12.5
     weight_type: Literal["recomb", "temp"] = "temp"
 
-    def __post_init__(self) -> None:
-        assert self.pop_size > 1
-        assert self.weight_type in ("recomb", "temp")
-        if isinstance(self.center_init, np.ndarray):
-            # Array leaves are illegal inside static args — store a flat tuple.
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=F32).tolist()),
-            )
+
+def make_snes(
+    pop_size: int,
+    center_init: ArrayLike,
+    sigma: float = 1.0,
+    lrate_mean: float = 1.0,
+    temperature: float = 12.5,
+    weight_type: Literal["recomb", "temp"] = "temp",
+) -> SNESConfig:
+    """Build an `SNESConfig`, normalizing array inputs and validating parameters.
+
+    :param pop_size: Population size; must be > 1.
+    :param center_init: Initial center of the population (1-D array-like),
+        normalized to a flat float32 tuple.
+    :param sigma: Standard deviation of the noise. Defaults to 1.0.
+    :param lrate_mean: Learning rate for the mean. Defaults to 1.0.
+    :param temperature: Temperature of the softmax in computing weights.
+        Defaults to 12.5.
+    :param weight_type: Weighting scheme: "temp" (temperature softmax) or
+        "recomb" (recombination weights). Defaults to "temp".
+    """
+    require_gt("pop_size", pop_size, 1)
+    require_choice("weight_type", weight_type, ("recomb", "temp"))
+    return SNESConfig(
+        pop_size=pop_size,
+        center_init=to_float_tuple(center_init, dtype=np.float32),
+        sigma=sigma,
+        lrate_mean=lrate_mean,
+        temperature=temperature,
+        weight_type=weight_type,
+    )
 
 
 @dataclass(frozen=True)
@@ -61,7 +88,11 @@ class SNESState:
 
 
 def _softmax(x: Tensor) -> Tensor:
-    """1-D softmax (etl has no softmax op)."""
+    """1-D softmax (etl has no softmax op).
+
+    Shared helper — also imported by des.py (its temperature-softmax weighting
+    is the same formula as SNES's "temp" scheme).
+    """
     m = etl.max(x)
     e = etl.exp(x - m)
     return e / etl.sum(e)

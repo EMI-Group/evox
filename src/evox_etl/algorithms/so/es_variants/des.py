@@ -18,6 +18,10 @@ import etl.numpy as enp
 import etl.random as random
 from etl import core
 
+from evox_etl.algorithms._config_utils import ArrayLike, require_gt, to_float_tuple
+
+from .snes import _softmax  # shared 1-D softmax, consolidated in snes.py
+
 Tensor = core.Tensor
 
 F32 = np.dtype("float32")
@@ -25,22 +29,39 @@ F32 = np.dtype("float32")
 
 @dataclass(frozen=True)
 class DESConfig:
-    """DES hyperparameters — torch `DES.__init__` minus `device`."""
+    """DES hyperparameters — torch `DES.__init__` minus `device`.
+
+    Dumb frozen config storing plain static leaves: `center_init` is a flat
+    float32 tuple. Array inputs are normalized and validated in `make_des`.
+    """
 
     pop_size: int
-    center_init: np.ndarray
+    center_init: tuple[float, ...]
     temperature: float = 12.5
     sigma_init: float = 0.1
 
-    def __post_init__(self) -> None:
-        assert self.pop_size > 1
-        if isinstance(self.center_init, np.ndarray):
-            # Array leaves are illegal inside static args — store a flat tuple.
-            object.__setattr__(
-                self,
-                "center_init",
-                tuple(np.asarray(self.center_init, dtype=F32).tolist()),
-            )
+
+def make_des(
+    pop_size: int,
+    center_init: ArrayLike,
+    temperature: float = 12.5,
+    sigma_init: float = 0.1,
+) -> DESConfig:
+    """Build a `DESConfig`, normalizing array inputs and validating parameters.
+
+    :param pop_size: Population size; must be > 1.
+    :param center_init: Initial center of the population (1-D array-like),
+        normalized to a flat float32 tuple.
+    :param temperature: Temperature parameter for the softmax. Defaults to 12.5.
+    :param sigma_init: Initial standard deviation of the noise. Defaults to 0.1.
+    """
+    require_gt("pop_size", pop_size, 1)
+    return DESConfig(
+        pop_size=pop_size,
+        center_init=to_float_tuple(center_init, dtype=np.float32),
+        temperature=temperature,
+        sigma_init=sigma_init,
+    )
 
 
 @dataclass(frozen=True)
@@ -52,13 +73,6 @@ class DESState:
     noise: Tensor  # (pop_size, dim) — last sampled noise
     best_fitness: Tensor  # scalar f32
     key: Tensor  # RNG key
-
-
-def _softmax(x: Tensor) -> Tensor:
-    """1-D softmax (etl has no softmax op)."""
-    m = etl.max(x)
-    e = etl.exp(x - m)
-    return e / etl.sum(e)
 
 
 def init(config: DESConfig, key: Tensor) -> DESState:

@@ -8,12 +8,11 @@ demonstrator choice (SLPSOUS). Ported 1:1 from the torch reference
 from dataclasses import dataclass, replace
 from typing import Any
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, clamp_int
 
 from .utils import min_by
@@ -21,6 +20,7 @@ from .utils import min_by
 __all__ = [
     "SLPSOUS",
     "SLPSOUSState",
+    "make_sl_pso_us",
     "init",
     "init_ask",
     "init_tell",
@@ -34,20 +34,33 @@ class SLPSOUS:
     """Config of the SLPSOUS algorithm (mirrors the torch ``__init__`` minus device)."""
 
     pop_size: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     social_influence_factor: float = 0.2  # epsilon
     demonstrator_choice_factor: float = 0.7  # theta
 
-    def __post_init__(self) -> None:
-        # etl static trace arguments reject numpy arrays/scalars (TraceError);
-        # store the bounds as float tuples so this frozen config is a legal
-        # static pytree. The constructor API (numpy arrays in) is unchanged.
-        lb = np.asarray(self.lb)
-        ub = np.asarray(self.ub)
-        assert lb.ndim == 1 and ub.ndim == 1 and lb.shape == ub.shape
-        object.__setattr__(self, "lb", tuple(float(v) for v in lb))
-        object.__setattr__(self, "ub", tuple(float(v) for v in ub))
+
+def make_sl_pso_us(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    social_influence_factor: float = 0.2,
+    demonstrator_choice_factor: float = 0.7,
+) -> SLPSOUS:
+    """Construct an SLPSOUS config from array-like bounds (torch signature minus device).
+
+    Normalizes ``lb``/``ub`` to flat tuples of Python floats (the config stores
+    plain static leaves per DESIGN.md §4.1). Raises ValueError when a bound is
+    not 1-D or the two bounds have mismatched shapes (torch requires 1-D).
+    """
+    lb_t, ub_t = normalize_bounds(lb, ub)
+    return SLPSOUS(
+        pop_size=pop_size,
+        lb=lb_t,
+        ub=ub_t,
+        social_influence_factor=social_influence_factor,
+        demonstrator_choice_factor=demonstrator_choice_factor,
+    )
 
 
 @dataclass(frozen=True)
@@ -64,9 +77,7 @@ class SLPSOUSState:
 
 def _bake_bounds(config: SLPSOUS) -> tuple[Any, Any]:
     """Bake the (1, dim) lower/upper bound row vectors as graph constants."""
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)[None, :]))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)[None, :]))
-    return lb, ub
+    return bake_bounds(config.lb, config.ub, as_row=True)
 
 
 def init(config: SLPSOUS, key: Any) -> SLPSOUSState:

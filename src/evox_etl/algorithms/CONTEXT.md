@@ -21,9 +21,11 @@ See `../../DESIGN.md` §4-5.
 | ~~virtual_lora_es~~ — **SKIP: not portable** (needs torch Philox `philox_normal(seeds, n, counter)` counter-stream PRNG, LoRA factor utilities, and a tuple-payload `evaluate` protocol hard-coded in torch `StdWorkflow`; etl.random is key/split-only and the binding spec is tensor-only `(n, dim)`) | — |
 | PSO variants (clpso, cso, dms_pso_el, fs_pso, pso, sl_pso_gs, sl_pso_us, utils) | `so/pso_variants/` |
 | MO algorithms (nsga2, nsga3, moead, rvea, rveaa, hype) | `mo/` |
+| Shared config-constructor helpers (`to_float_tuple`, `normalize_bounds`, `require_gt`/`require_ge`/`require_between`/`require_choice`, `bake_float32_constant`, `bake_bounds`) | `_config_utils.py` |
 | Tests | `../../unit_test/etl/` | sibling — mirrors this package |
 
 ## Notes for agents (verified against etl — do not re-investigate)
+- All algorithm configs have module-level `make_*` constructors (policy in `../DESIGN.md` §4.1), exported through `so/__init__.py` and `algorithms/__init__.py`.
 - `etl.gather(x, idx, axis)` is numpy `take` semantics (index array applied to
   every row), NOT torch `gather`/`take_along_axis`. For row-local selection use
   `_take_along_axis` from `evox_etl.operators.jit_fix_operator` (flatten-trick, 2-D).

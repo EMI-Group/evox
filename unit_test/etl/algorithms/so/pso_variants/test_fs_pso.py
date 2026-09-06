@@ -14,7 +14,7 @@ from unit_test.etl.algorithms.helpers import SphereConfig, run_generations
 
 def test_fs_pso_smoke():
     """3 generations on 20-d Sphere: shapes stay (pop_size, dim), fitness finite."""
-    cfg = algo_mod.FSPSO(
+    cfg = algo_mod.make_fs_pso(
         pop_size=100,
         lb=np.full(20, -10.0, np.float32),
         ub=np.full(20, 10.0, np.float32),

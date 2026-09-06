@@ -27,12 +27,14 @@ import etl.numpy as enp
 import etl.random as random
 from etl.core import SymbolicTensor
 
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_float32_constant,
+    require_gt,
+    to_float_tuple,
+)
+
 F32 = np.dtype("float32")
-
-
-def _constant_1d(values: Any) -> SymbolicTensor:
-    """Bake a flat config field as an f32 graph constant."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(values, dtype=F32)))
 
 
 def _default_recombination_weights(pop_size: int) -> SymbolicTensor:
@@ -49,52 +51,80 @@ def _default_recombination_weights(pop_size: int) -> SymbolicTensor:
 class XNESConfig:
     """xNES hyperparameters (mirrors the torch ``XNES.__init__`` minus ``device``).
 
-    Array fields are normalized to flat tuples of f32 Python floats in
-    ``__post_init__`` (ndarray leaves are rejected as static etl.build args).
+    Dumb config: array fields are f32-rounded tuples of Python floats
+    (``init_covar`` nested, one row-tuple per covariance row).  Use
+    ``make_xnes`` for ndarray input, validation and eager derivation of the
+    ``pop_size`` / learning-rate defaults from ``init_mean``'s dimension.
     """
 
-    init_mean: Any
-    init_covar: Any
+    init_mean: tuple[float, ...]
+    init_covar: tuple[tuple[float, ...], ...]
     pop_size: int | None = None
-    recombination_weights: Any | None = None
+    recombination_weights: tuple[float, ...] | None = None
     learning_rate_mean: float | None = None
     learning_rate_var: float | None = None
     learning_rate_B: float | None = None
     covar_as_cholesky: bool = False
 
-    def __post_init__(self) -> None:
-        # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
-        dim = np.asarray(self.init_mean).shape[0]
-        if self.pop_size is None:
-            object.__setattr__(self, "pop_size", 4 + math.floor(3 * math.log(dim)))
-        assert self.pop_size > 0
-        if self.learning_rate_mean is None:
-            object.__setattr__(self, "learning_rate_mean", 1)
-        if self.learning_rate_var is None:
-            object.__setattr__(
-                self,
-                "learning_rate_var",
-                (9 + 3 * math.log(dim)) / 5 / math.pow(dim, 1.5),
+
+def _to_float_matrix(values: Any) -> tuple[tuple[float, ...], ...]:
+    """Normalize a 2-D array-like to a tuple of f32-rounded float rows.
+
+    ``init_covar`` is stored nested (one row-tuple per covariance row); the
+    flat ``to_float_tuple`` cannot express that structure.
+    """
+    return tuple(tuple(row) for row in np.asarray(values, dtype=np.float32).tolist())
+
+
+def make_xnes(
+    init_mean: ArrayLike,
+    init_covar: ArrayLike,
+    pop_size: int | None = None,
+    recombination_weights: ArrayLike | None = None,
+    learning_rate_mean: float | None = None,
+    learning_rate_var: float | None = None,
+    learning_rate_B: float | None = None,
+    covar_as_cholesky: bool = False,
+) -> XNESConfig:
+    """Construct an :class:`XNESConfig`, deriving defaults and validating input.
+
+    Array arguments are normalized ONCE to f32-rounded tuples of Python
+    floats; ``pop_size`` and the learning rates default from
+    ``dim = len(init_mean)`` (mirroring the torch/etl derivation).  Raises
+    ValueError on invalid input.
+    """
+    # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
+    dim = np.asarray(init_mean).shape[0]
+    if pop_size is None:
+        pop_size = 4 + math.floor(3 * math.log(dim))
+    require_gt("pop_size", pop_size, 0)
+    if learning_rate_mean is None:
+        learning_rate_mean = 1
+    if learning_rate_var is None:
+        learning_rate_var = (9 + 3 * math.log(dim)) / 5 / math.pow(dim, 1.5)
+    if learning_rate_B is None:
+        learning_rate_B = learning_rate_var
+    require_gt("learning_rate_mean", learning_rate_mean, 0)
+    require_gt("learning_rate_var", learning_rate_var, 0)
+    require_gt("learning_rate_B", learning_rate_B, 0)
+    if recombination_weights is not None:
+        recombination_weights = to_float_tuple(recombination_weights, dtype=np.float32)
+        w = np.asarray(recombination_weights)
+        if not (w[1:] <= w[:-1]).all():
+            raise ValueError(
+                "recombination_weights must be in descending order, got "
+                f"{recombination_weights!r}"
             )
-        if self.learning_rate_B is None:
-            object.__setattr__(self, "learning_rate_B", self.learning_rate_var)
-        assert (
-            self.learning_rate_mean > 0
-            and self.learning_rate_var > 0
-            and self.learning_rate_B > 0
-        )
-        if self.recombination_weights is not None:
-            w = np.asarray(self.recombination_weights)
-            assert (w[1:] <= w[:-1]).all(), (
-                "recombination_weights must be in descending order"
-            )
-            object.__setattr__(self, "recombination_weights", tuple(w.astype(F32).tolist()))
-        object.__setattr__(self, "init_mean", tuple(np.asarray(self.init_mean, dtype=F32).tolist()))
-        object.__setattr__(
-            self,
-            "init_covar",
-            tuple(tuple(row) for row in np.asarray(self.init_covar, dtype=F32).tolist()),
-        )
+    return XNESConfig(
+        init_mean=to_float_tuple(init_mean, dtype=np.float32),
+        init_covar=_to_float_matrix(init_covar),
+        pop_size=pop_size,
+        recombination_weights=recombination_weights,
+        learning_rate_mean=learning_rate_mean,
+        learning_rate_var=learning_rate_var,
+        learning_rate_B=learning_rate_B,
+        covar_as_cholesky=covar_as_cholesky,
+    )
 
 
 @dataclass(frozen=True)
@@ -114,7 +144,7 @@ def _xn_init(config: XNESConfig, key: SymbolicTensor) -> XNESState:
     """Initial state: mean, sigma (geometric mean of the covar diagonal) and B."""
     dim = len(config.init_mean)
     pop_size = config.pop_size
-    mean = _constant_1d(config.init_mean)
+    mean = bake_float32_constant(config.init_mean)
     covar = etl.ops.constant(
         etl.core.tensor(np.asarray(config.init_covar, dtype=F32))
     )
@@ -123,7 +153,7 @@ def _xn_init(config: XNESConfig, key: SymbolicTensor) -> XNESState:
     if config.recombination_weights is None:
         weights = _default_recombination_weights(pop_size)
     else:
-        weights = _constant_1d(config.recombination_weights)
+        weights = bake_float32_constant(config.recombination_weights)
     sigma = enp.power(etl.prod(etl.diagonal(covar)), 1.0 / dim)
     B = covar / sigma
     return XNESState(
@@ -188,37 +218,67 @@ def _xn_tell(config: XNESConfig, state: XNESState, fitness: SymbolicTensor) -> X
 
 @dataclass(frozen=True)
 class SeparableNESConfig:
-    """SeparableNES hyperparameters (mirrors the torch ``__init__`` minus ``device``)."""
+    """SeparableNES hyperparameters (mirrors the torch ``__init__`` minus ``device``).
 
-    init_mean: Any
-    init_std: Any
+    Dumb config: array fields are f32-rounded tuples of Python floats; use
+    ``make_separable_nes`` for ndarray input, validation and eager derivation
+    of the ``pop_size`` / learning-rate defaults from ``init_mean``'s
+    dimension.
+    """
+
+    init_mean: tuple[float, ...]
+    init_std: tuple[float, ...]
     pop_size: int | None = None
-    recombination_weights: Any | None = None
+    recombination_weights: tuple[float, ...] | None = None
     learning_rate_mean: float | None = None
     learning_rate_var: float | None = None
 
-    def __post_init__(self) -> None:
-        # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
-        dim = np.asarray(self.init_mean).shape[0]
-        assert np.asarray(self.init_std).shape == (dim,)
-        if self.pop_size is None:
-            object.__setattr__(self, "pop_size", 4 + math.floor(3 * math.log(dim)))
-        assert self.pop_size > 0
-        if self.learning_rate_mean is None:
-            object.__setattr__(self, "learning_rate_mean", 1)
-        if self.learning_rate_var is None:
-            object.__setattr__(
-                self,
-                "learning_rate_var",
-                (3 + math.log(dim)) / 5 / math.sqrt(dim),
+
+def make_separable_nes(
+    init_mean: ArrayLike,
+    init_std: ArrayLike,
+    pop_size: int | None = None,
+    recombination_weights: ArrayLike | None = None,
+    learning_rate_mean: float | None = None,
+    learning_rate_var: float | None = None,
+) -> SeparableNESConfig:
+    """Construct a :class:`SeparableNESConfig`, deriving defaults and validating.
+
+    Array arguments are normalized ONCE to f32-rounded tuples of Python
+    floats; ``pop_size`` and the learning rates default from
+    ``dim = len(init_mean)`` (mirroring the torch/etl derivation).  Raises
+    ValueError on invalid input.
+    """
+    # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
+    dim = np.asarray(init_mean).shape[0]
+    init_std_arr = np.asarray(init_std)
+    if init_std_arr.shape != (dim,):
+        raise ValueError(f"init_std must have shape ({dim},), got {init_std_arr.shape}")
+    if pop_size is None:
+        pop_size = 4 + math.floor(3 * math.log(dim))
+    require_gt("pop_size", pop_size, 0)
+    if learning_rate_mean is None:
+        learning_rate_mean = 1
+    if learning_rate_var is None:
+        learning_rate_var = (3 + math.log(dim)) / 5 / math.sqrt(dim)
+    require_gt("learning_rate_mean", learning_rate_mean, 0)
+    require_gt("learning_rate_var", learning_rate_var, 0)
+    if recombination_weights is not None:
+        weights_arr = np.asarray(recombination_weights)
+        if weights_arr.shape != (pop_size,):
+            raise ValueError(
+                f"recombination_weights must have shape ({pop_size},), got "
+                f"{weights_arr.shape}"
             )
-        assert self.learning_rate_mean > 0 and self.learning_rate_var > 0
-        if self.recombination_weights is not None:
-            w = np.asarray(self.recombination_weights)
-            assert w.shape == (self.pop_size,)
-            object.__setattr__(self, "recombination_weights", tuple(w.astype(F32).tolist()))
-        object.__setattr__(self, "init_mean", tuple(np.asarray(self.init_mean, dtype=F32).tolist()))
-        object.__setattr__(self, "init_std", tuple(np.asarray(self.init_std, dtype=F32).tolist()))
+        recombination_weights = to_float_tuple(recombination_weights, dtype=np.float32)
+    return SeparableNESConfig(
+        init_mean=to_float_tuple(init_mean, dtype=np.float32),
+        init_std=to_float_tuple(init_std, dtype=np.float32),
+        pop_size=pop_size,
+        recombination_weights=recombination_weights,
+        learning_rate_mean=learning_rate_mean,
+        learning_rate_var=learning_rate_var,
+    )
 
 
 @dataclass(frozen=True)
@@ -237,12 +297,12 @@ def _sn_init(config: SeparableNESConfig, key: SymbolicTensor) -> SeparableNESSta
     """Initial state: mean and per-dimension step sizes from init_std."""
     dim = len(config.init_mean)
     pop_size = config.pop_size
-    mean = _constant_1d(config.init_mean)
-    sigma = _constant_1d(config.init_std)
+    mean = bake_float32_constant(config.init_mean)
+    sigma = bake_float32_constant(config.init_std)
     if config.recombination_weights is None:
         weight = _default_recombination_weights(pop_size)
     else:
-        weight = _constant_1d(config.recombination_weights)
+        weight = bake_float32_constant(config.recombination_weights)
     return SeparableNESState(
         mean=mean,
         sigma=sigma,

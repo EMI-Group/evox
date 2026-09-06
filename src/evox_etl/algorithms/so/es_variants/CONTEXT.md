@@ -4,9 +4,9 @@
 Plain-function (`init`/`ask`/`tell`) ports of the torch evox ES-family algorithms
 (read-only reference: `src/evox/algorithms/so/es_variants/`). Binding spec:
 `../../../../DESIGN.md` (§4-5). Each module exposes a frozen `XConfig` dataclass
-(torch `__init__` signature minus `device`; array args as f32 tuples after
-`__post_init__` normalization — etl.build REJECTS ndarray static leaves), a
-frozen `XState` dataclass (tensor leaves only: torch Mutable names + ask→tell
+(dumb: plain static leaves only, array fields stored as f32 tuples — construct
+via the module-level `make_X` constructor, which normalizes and validates once),
+a frozen `XState` dataclass (tensor leaves only: torch Mutable names + ask→tell
 intermediates + `best_fitness` f32 scalar + `key` last), and plain
 `init(config, key)` / `ask(config, state) -> (population, state)` /
 `tell(config, state, fitness)` functions. `best_fitness` (min over all evaluated
@@ -20,7 +20,7 @@ fitness, updated in tell) is an evox_etl addition — torch has no such field.
 | `cma_es.py` | CMAESConfig/State — full CMA-ES, conditional eigh decomposition via `etl.cond` |
 | `open_es.py` | OpenESConfig/State — mirrored sampling, SGD/adam |
 | `ars.py` | ARSConfig/State — elite ratio, unbiased std (ddof=1) |
-| `snes.py` | SNESConfig/State — weight_type "temp"/"recomb" |
+| `snes.py` | SNESConfig/State — weight_type "temp"/"recomb"; `_softmax` shared with des.py |
 | `des.py` | DESConfig/State — ranks softmax weighting |
 | `nes.py` | XNESConfig + SeparableNESConfig/States — `init/ask/tell` dispatch on config type via isinstance |
 | `guided_es.py` | GuidedESConfig/State — QR surrogate-gradient subspace |
@@ -29,49 +29,43 @@ fitness, updated in tell) is an evox_etl addition — torch has no such field.
 | `esmc.py` | ESMCConfig/State — baseline member; pop_size must be ODD |
 | `asebo.py` | ASEBOConfig/State — SVD active subspaces; lr_decay/lr_limit config-only (unused in torch too) |
 
-`__init__.py` exports the 12 configs (VirtualLoRAES intentionally skipped).
+`__init__.py` exports the 12 configs + their 12 `make_*` constructors
+(VirtualLoRAES intentionally skipped).
 
-## Config `__post_init__` audit (input for the planned __post_init__-removal refactor)
-- All 12 config dataclasses here define `__post_init__` (11 files; nes.py has TWO —
-  `XNESConfig` at nes.py:65 and `SeparableNESConfig` at nes.py:200, each normalizing its
-  own array fields and deriving its own dim-based pop_size/lr defaults). No config in
-  this node lacks one and no State dataclass has one. Every body is IDEMPOTENT
-  (conditional `isinstance(np.ndarray)` guards, or tuple re-normalization is a fixed
-  point) — relevant because `dataclasses.replace` re-invokes `__post_init__`.
-- Purposes: (1) Config()-time `assert` validation — ars.py:44 (pop>1, elite_ratio),
-  asebo.py:40 (pop>1, optimizer whitelist), cma_es.py:38 (sigma>0, pop_size>0),
-  des.py:35 (pop>1), esmc.py:36 (pop odd>1, optimizer), guided_es.py:42 (pop even>1),
-  noise_reuse_es.py:44 (pop>1), open_es.py:43 (stdev/lr/pop/mirrored-even/optimizer),
-  persistent_es.py:45 (pop even>1), snes.py:39 (pop>1, weight_type), nes.py:65/200
-  (positivity, recomb-weights descending order / init_std + recomb shape); (2) normalize
-  np.ndarray array fields to flat f32 tuples — CONDITIONAL on isinstance for
-  ars/as/des/esmc/guided_es/noise_reuse_es/open_es/persistent_es/snes, UNCONDITIONAL
-  (re-rounds tuple input to f32 too) for cma_es (mean_init, weights) and both nes
-  configs; (3) eagerly DERIVE defaults — XNES/SeparableNES pop_size = 4+⌊3·ln dim⌋ +
-  learning-rate defaults from dim, ASEBO subspace_dims = len(center_init).
-- Derivation-policy split: eager at Config()-time (nes, asebo) vs deferred to trace time
-  (cma_es `_derive()` recomputes the pop_size default + 9 scalars per init/ask/tell;
-  guided_es re-derives subspace_dims inline at init:71 and ask:99). core/workflow.py
-  `_discover_pop_size` (line 247) relies on nes' eager pop_size fill for monitor
-  auto-completion; cma_es' None pop_size is already handled by bench_so.py:132-135.
-- Every in-repo construction site passes KEYWORD np.ndarray args (np.full/np.eye/rng
-  arrays): the 12 smoke-test files, parity test_cma_es.py:54 + test_open_es.py:64,
-  benchmarks/etl_vs_torch/bench_so.py:117/123. No positional or no-arg constructions
-  exist (all configs have ≥2 required fields) and docs/README construct none.
-- Type-annotation drift: ars/open_es declare `center_init: tuple[float, ...]` though all
-  callers pass np.ndarray; asebo/des/esmc/snes declare `np.ndarray` though post-init
-  storage is a tuple; guided_es/noise_reuse_es/persistent_es/cma_es declare honest
-  unions; nes declares `Any`. Field names/order mirror the torch `__init__` exactly in
-  all 12 configs (center_init vs mean_init vs init_mean is torch's own drift).
-- Normalization is documented in the class docstring of ars/open_es/guided_es/
-  noise_reuse_es/persistent_es/cma_es/XNESConfig, but SILENT for asebo, esmc, des, snes
-  and SeparableNESConfig (des/snes carry only an inline code comment).
-- Duplication to factor: the `object.__setattr__` + `tuple(np.asarray(x, dtype=F32)
-  .tolist())` idiom appears 15+ times; the `etl.ops.constant(...)` center-bake block is
-  duplicated in 10 init()s (only nes factored `_constant_1d`); `_softmax` is
-  verbatim-duplicated (des.py:57, snes.py:63); the exp_avg/exp_avg_sq/best_fitness=inf/
-  zero-noise init block repeats in ~10 init()s. No mutable-default args, module-level
-  closures, or state-hiding classes anywhere in the node.
+## Config construction (make_* constructors)
+- All 12 configs are dumb frozen dataclasses with NO `__post_init__` (11 files;
+  nes.py holds XNESConfig + SeparableNESConfig). Array fields store flat tuples of
+  f32-rounded Python floats; nes.py `init_covar` stays a nested tuple-of-tuples
+  (small local `_to_float_matrix` — the flat helper cannot express nesting).
+- 12 module-level constructors live in the same module as their config and are
+  exported from `es_variants/__init__.py`: make_cma_es (cma_es.py), make_open_es,
+  make_ars, make_snes (snes.py), make_des (des.py), make_xnes +
+  make_separable_nes (nes.py), make_guided_es, make_noise_reuse_es,
+  make_persistent_es, make_esmc, make_asebo. Param names/defaults = the torch
+  `__init__` kwargs (minus device).
+- Shared host-side helpers live in `../_config_utils.py` (`to_float_tuple`,
+  `bake_float32_constant`, `require_gt/ge/between/choice`); validation raises
+  ValueError naming the parameter (never bare asserts). make_* rounds ALL array
+  inputs — tuple AND ndarray — to f32 uniformly (package decision; float64/tuple
+  input no longer passes through unrounded).
+- Eager derived defaults computed inside make_* (so `getattr(cfg, ...)` works):
+  make_xnes/make_separable_nes fill pop_size = 4+⌊3·ln dim⌋ and the lr defaults
+  from dim; make_asebo fills subspace_dims = len(center_init) when None.
+  NOT hoisted (still trace-time): cma_es pop_size default (`_derive()` in
+  init/ask/tell) and guided_es subspace_dims (derived inline in init/ask) —
+  cma_es' cfg.pop_size None is handled by bench_so.py:132-135; core/workflow.py
+  `_discover_pop_size` relies on the nes make_* eager fill.
+- `_softmax` is byte-identical in des.py/snes.py; single home is snes.py, des.py
+  imports it (des → snes dependency mirrors the algorithm lineage).
+- Direct `Config(...)` construction bypasses normalization/validation — only
+  valid for already-normalized values (in-flight unit-test migration moves
+  construction sites to make_*). For XNES/SeparableNES/ASEBO direct
+  construction also leaves the eager derived fields (`pop_size`,
+  `learning_rate_*`, `subspace_dims`) as None → trace-time
+  TypeError/TraceError ("unsupported operand type NoneType",
+  "dynamic-length shapes (None, …)"): the affected unit tests
+  (test_nes.py, test_asebo.py) must migrate to make_xnes/make_separable_nes/
+  make_asebo (or pass explicit values).
 
 ## Skipped
 `virtual_lora_es.py` is NOT ported: it needs the torch Philox counter-stream
@@ -106,9 +100,11 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
 - `etl.eye(n)` is already float32; svd/eigh preserve f32; `etl.clamp` requires
   BOTH bounds (use etl.maximum for one-sided clamps); use `math.*` never `np.*`
   for Python scalars at trace time (numpy scalars are illegal operands).
-- Config array baking inside functions:
-  `etl.ops.constant(etl.core.tensor(np.asarray(config.center_init, dtype=np.float32)))`
-  — numpy import is sanctioned for this + np.dtype only.
+- Config array baking inside traced functions uses
+  `bake_float32_constant` from `../_config_utils.py` (canonical); a few inline
+  `etl.ops.constant(etl.core.tensor(np.asarray(x, dtype=np.float32)))` blocks
+  remain (snes/des center, nes init_covar) — byte-identical, leave as-is unless
+  touching the file anyway. Numpy import is sanctioned for this + np.dtype only.
 
 ## Design Decisions
 

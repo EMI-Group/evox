@@ -7,14 +7,14 @@ torch OOP design (`src/evox/`, kept untouched as reference) with plain functiona
 frozen config dataclasses, namedtuple/dataclass tensor states, `@etl.defn` pure
 functions, separate `init(config, key) -> state` functions, and a compile-once
 StdWorkflow loop.
-
 **Binding spec: `DESIGN.md` in this directory — read it fully before writing any code.**
 
 ## API Surface
 - `evox_etl.core`: `Algorithm`/`Problem`/`Monitor` protocols (duck-typed), `StdWorkflow`,
   `WorkflowState`, state helpers.
 - `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
-  rveaa, hype) — each module = config dataclass + `init/ask/tell` defn functions.
+  rveaa, hype) — each module = config dataclass + `make_*` constructor +
+  `init/ask/tell` defn functions.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
 - `evox_etl.problems.numerical`: basic, dtlz, cec2022.
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
@@ -23,9 +23,11 @@ StdWorkflow loop.
 
 ## Constraints
 - NO eager tensor ops — everything inside `@etl.defn`/traces (ETL has no eager mode).
-- Config fields are Python scalars partialized away at compile time; state leaves are
-  tensors ONLY. Minimization semantics internally (workflow applies opt_direction).
-- No torch/numpy in framework code (numpy allowed only to load cec2022 input data).
+- Config fields are plain static leaves (Python scalars + flat float tuples)
+  partialized away at compile time; state leaves are tensors ONLY. Minimization
+  semantics internally (workflow applies opt_direction).
+- No torch/numpy in framework code (numpy allowed only to load cec2022 input data and
+  for host-side make_* preprocessing).
 - Etl issues found while implementing: record under "ETL issues found" below and
   escalate to the root agent (do NOT edit the etl repo from here).
 
@@ -36,6 +38,7 @@ StdWorkflow loop.
 | Operators (pure functions) | `operators/` | sampling/selection/crossover/mutation |
 | Algorithms SO | `algorithms/so/` | de_variants, es_variants, pso_variants |
 | Algorithms MO | `algorithms/mo/` | nsga2, nsga3, moead, rvea, rveaa, hype |
+| Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
 | Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
 | Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
@@ -55,19 +58,21 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
    by the installed etl** (master @f2f50a7, incl. commit b8062a9 "accept np.ndarray
    as static trace values" — empirically verified via runtime probes, numpy
-   backend). The old rejection and its workarounds are obsolete: the tuple-
-   normalizing `__post_init__`s (de/pso/es variants) and the zero-child
-   `etl.register_pytree_node` registrations (mo/*, problems/numerical/basic.py)
-   are no longer needed to satisfy etl. Remaining constraints: (a) non-None
+   backend). Config construction follows DESIGN.md §4.1: algorithm configs are
+   dumb frozen dataclasses storing plain static leaves (Python scalars + flat
+   float tuples); array acceptance, normalization, and ValueError validation
+   live in module-level `make_*` constructors (shared helpers in
+   `algorithms/_config_utils.py`). Remaining constraints: (a) non-None
    callable fields are STILL rejected as static leaves anywhere in the pytree, so
-   zero-child registration remains required only for configs carrying op functions
-   (mo/nsga3, moead, rvea); (b) zero-child registration makes the config an opaque
-   node — `etl.run` performs NO by-value static revalidation, while plain-leaf
-   tuple/ndarray fields raise TraceError on a drifted value; (c) plain-float-tuple
-   lb/ub storage stays preferable for frozen-dataclass `__eq__`/`__hash__`
-   (frozen=True + ndarray is broken/unhashable). Stale "ndarray rejected" comments
-   remain in mo/*.py, basic.py:314-318 and SO module docstrings — the planned
-   `__post_init__`-removal refactor should delete them (see audit section below).
+   zero-child registration is reserved for callable-bearing configs only
+   (mo/nsga3, moead, rvea — keep it there); (b) zero-child registration makes the
+   config an opaque node — `etl.run` performs NO by-value static revalidation,
+   while plain-leaf tuple/ndarray fields raise TraceError on a drifted value;
+   (c) plain-float-tuple lb/ub storage is the package convention for frozen-
+   dataclass `__eq__`/`__hash__` (frozen=True + ndarray is broken/unhashable).
+   Numerical problems are the carve-out: basic.py/cec2022.py keep validation-only
+   `__post_init__`s (AssertionError with message, frozen because `../unit_test/etl`
+   asserts them — do NOT convert to ValueError).
 2. **`etl.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
    branches** (`cannot broadcast incompatible dims n and m`). numpy/torch broadcast
    `(n,)` → `(n, 1)` against `(n, m)` fine. Workaround: always
@@ -89,7 +94,6 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
 8. Cosmetic: the etl numpy backend leaks a `RuntimeWarning: invalid value
    encountered in divide` for the intentional inf-beta draws (SBX/SHADE/SaDE NaN
    paths) — torch-identical semantics, no change made.
-
 ### Additional findings (core/operators/problems teams)
 9. **Inconsistent axis arg naming**: reductions take `axes=` but topk/argmin/gather/
    `enp.sum/min` take `axis=`. Check the op signature before using.
@@ -112,10 +116,10 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
     trace-input leaf can fail (multiply by 1.0 first); `enp.expand_dims/reshape`
     cannot carry dynamic dims (unroll static loops).
 15. **etl xla adapter GPU client-exhaustion bug** (fresh PJRT client per compile/load
-    → process SIGABRT; real jax_cuda12 plugin) — FIXED on etl task branch
-    `evogit-agent-T1-A19` (commit 838739c, shared refcounted client), NOT yet on etl
-    master. xla-cuda benchmarks must run against that branch (venv re-point) + cuDNN
-    ≥9.8 via LD_LIBRARY_PATH (plugin compiled vs cuDNN 9.8.0; venv ships 9.1.0).
+    → process SIGABRT; real jax_cuda12 plugin) — FIXED and merged into etl master
+    (commit 838739c, shared refcounted client; the venv needs no task branch).
+    xla-cuda runs still need cuDNN ≥9.8 via LD_LIBRARY_PATH (plugin compiled vs
+    cuDNN 9.8.0; venv ships 9.1.0).
 16. **`etl.run` returns concrete `etl.core.tensor.Tensor` objects, NOT ndarrays** —
     `np.asarray(result)` yields an object-dtype 0-d array; always use
     `result.numpy()`. Host-side code reading step results must call `.numpy()`
@@ -133,15 +137,24 @@ GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
     unnecessary); float32 ** Python-float exponent stays float32; etl has no
     any/all ops — compose via `etl.max`/`etl.min` over bool axes.
 
-## Config-constructor design audit (refactor input)
-A read-only design audit of config-dataclass construction — all 37 `__post_init__`
-defs, the zero-child `register_pytree_node` hack, construction call-site
-inventories, and the functional-constructor refactor proposal — is recorded per
-subtree in child CONTEXT.md files: `algorithms/so/de_variants` (notes),
-`algorithms/so/es_variants` ("Config __post_init__ audit" section),
-`algorithms/so/pso_variants` ("Config call-site audit" section), `algorithms/mo`
-("Audit — config registration hack, __post_init__, construction sites" section),
-`problems/numerical` ("Config design audit" section).
-Read the relevant child file before refactoring any config dataclass; the audit
-was read-only, so the source files still carry the audited constructors and the
-migration mapping lives in those CONTEXT.md sections.
+## Config construction (current state)
+The `__post_init__`-removal / functional-constructor refactor is COMPLETE for
+algorithms: every algorithm config in `algorithms/` is a dumb frozen dataclass
+storing only plain static leaves (Python scalars + flat float tuples); a
+module-level `make_<algorithm>` constructor in the SAME module as the config
+(StdWorkflow resolves the module via `type(config).__module__`) does all
+normalization (ndarray→flat tuple via `algorithms/_config_utils.py`), ValueError
+validation (no bare asserts), and eager derived defaults (XNES/SeparableNES
+pop_size/lr, ASEBO subspace_dims — `_discover_pop_size` reads `cfg.pop_size`).
+The old read-only design audit (37 `__post_init__` defs, the zero-child
+`register_pytree_node` hack, call-site inventories) is superseded — preserved in
+git history. Current-state notes per subtree live in the child CONTEXT.md files
+(algorithms/so/de_variants, es_variants, pso_variants, algorithms/mo,
+problems/numerical); binding policy in DESIGN.md §4.1.
+Exports: `make_*` at each family `__init__`, `algorithms/so/__init__.py`, and
+`algorithms/__init__.py` (torch-style bare-name aliases unchanged).
+Carve-out: numerical problems (basic.py, cec2022.py) keep their validation-only
+`__post_init__`s — direct dataclass construction is their sanctioned public API.
+Unit-test construction sites at `../unit_test/etl` migrate to `make_*` in a
+parallel wave (direct construction still works for pre-normalized values but
+bypasses make_* validation).

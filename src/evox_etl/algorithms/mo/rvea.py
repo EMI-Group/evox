@@ -16,12 +16,11 @@ trace (ETL has no eager mode). Ported 1:1 from the torch reference.
 from dataclasses import dataclass, replace
 from typing import Callable, Optional, Tuple
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
 import etl.random as random
 
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
@@ -37,8 +36,8 @@ class RVEAConfig:
 
     pop_size: int
     n_objs: int
-    lb: np.ndarray
-    ub: np.ndarray
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
     alpha: float = 2.0
     fr: float = 0.1
     max_gen: int = 100
@@ -56,11 +55,51 @@ def _config_unflatten(config: RVEAConfig, _children) -> RVEAConfig:
     return config
 
 
-# ETL v1 rejects numpy arrays as static pytree leaves (they are neither
-# TensorSpecs nor static Python values), so the config (which holds lb/ub as
-# ndarrays) is registered as a childless pytree node carrying the whole
-# config as its context — it then passes through etl.build/etl.run untouched.
+# This registration is REQUIRED: the config carries optional callable op
+# fields (selection_op/mutation_op/crossover_op), and functions are not valid
+# static pytree leaves — so the config travels as one opaque childless node
+# through etl.build/etl.run untouched.
 etl.register_pytree_node(RVEAConfig, _config_flatten, _config_unflatten)
+
+
+def make_rvea(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    alpha: float = 2.0,
+    fr: float = 0.1,
+    max_gen: int = 100,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
+) -> RVEAConfig:
+    """Construct an :class:`RVEAConfig` from array-like bounds and optional custom ops.
+
+    Bounds are normalized to flat tuples of plain Python floats (the config's
+    static representation for etl); a ``None`` op field means the algorithm
+    default (simulated_binary, polynomial_mutation, ref_vec_guided).
+    """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
+    lb_tuple, ub_tuple = normalize_bounds(lb, ub)
+    return RVEAConfig(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb_tuple,
+        ub=ub_tuple,
+        alpha=alpha,
+        fr=fr,
+        max_gen=max_gen,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+    )
 
 
 @dataclass(frozen=True)
@@ -85,9 +124,8 @@ class RVEAState:
 def init(config: RVEAConfig, key: Tensor) -> RVEAState:
     """Create the initial state: Das-Dennis reference vectors + uniform population."""
     v, n_v = uniform_sampling(config.pop_size, config.n_objs)
-    dim = config.lb.shape[0]
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
+    dim = len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub)
     population = random.uniform(key, (n_v, dim), 0.0, 1.0, etl.float32) * (ub - lb) + lb
     fit = enp.full((n_v, config.n_objs), float("inf"))
     offspring = enp.zeros((n_v, dim), dtype="float32")
@@ -140,8 +178,7 @@ def ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
     pool = etl.gather(pop, sorted_indices, axis=0)
     mated = etl.gather(pool, mating_pool, axis=0)
 
-    lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))
-    ub = etl.ops.constant(etl.core.tensor(np.asarray(config.ub, dtype=np.float32)))
+    lb, ub = bake_bounds(config.lb, config.ub)
 
     crossover_fn = config.crossover_op if config.crossover_op is not None else simulated_binary
     crossovered = crossover_fn(k_cross, mated)

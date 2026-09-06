@@ -73,12 +73,14 @@ Hit while porting the numerical problems; all worked around in this node (see
    traces (`enp.zeros`/`enp.ones` are the traced versions) — easy to mix up.
 7. **`float32 ** int64` promotes to float64** — cast exponents to float32
    explicitly.
-8. **Numpy arrays inside config dataclasses are NOT rejected by `etl.build`
-   on the installed etl master** (ndarray is a valid static trace leaf) — the
-   zero-child pytree registration used in basic.py is a stale workaround that
-   only bypasses the run-time static-value equality check (mismatched configs
-   at `etl.run` pass silently instead of raising TraceError). See
-   `numerical/CONTEXT.md` "Config design audit".
+8. **Numpy arrays inside config dataclasses are legal static trace leaves on
+   the installed etl master** (ndarray accepted by `etl.build`) — basic.py
+   configs use no pytree registration: as plain-leaf pytrees they keep etl's
+   by-value static revalidation, so a drifted config at `etl.run` raises
+   TraceError. See `numerical/CONTEXT.md` "Config design (current state)".
+   The `make_*` constructor policy does not apply to numerical problems
+   (DESIGN.md §4.1 carve-out: they keep their validation-only
+   `__post_init__`s).
 9. **`etl.gather` + `enp.expand_dims` interaction is confusing** (see
    cec2022.py comments); `etl.gather` accepts int32 indices, np.take semantics.
 10. **`TensorSpec` API quirks**: no `from_tensor` method; shape must be a flat

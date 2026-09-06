@@ -7,7 +7,7 @@ import evox_etl.algorithms.so.es_variants.snes as snes
 
 def test_snes_temp_sphere():
     dim = 10
-    cfg = snes.SNESConfig(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma=1.0, weight_type="temp")
+    cfg = snes.make_snes(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma=1.0, weight_type="temp")
     state = run_generations(snes, cfg, SphereConfig(dim), 3, seed=0)
     best = state.best_fitness.numpy()
     assert np.isfinite(best) and best < dim * 25
@@ -17,7 +17,7 @@ def test_snes_temp_sphere():
 
 def test_snes_recomb_sphere():
     dim = 10
-    cfg = snes.SNESConfig(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma=1.0, weight_type="recomb")
+    cfg = snes.make_snes(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma=1.0, weight_type="recomb")
     state = run_generations(snes, cfg, SphereConfig(dim), 3, seed=0)
     best = state.best_fitness.numpy()
     assert np.isfinite(best) and best < dim * 25

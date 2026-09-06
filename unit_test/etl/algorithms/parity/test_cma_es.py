@@ -51,7 +51,7 @@ def _torch_best_fitness(seed: int) -> tuple[float, int]:
 @pytest.mark.parametrize("seed", [0, 1])
 def test_cma_es_parity(seed: int):
     torch_best, n_gens = _torch_best_fitness(seed)
-    config = etl_cma.CMAESConfig(mean_init=CENTER, sigma=SIGMA)
+    config = etl_cma.make_cma_es(mean_init=CENTER, sigma=SIGMA)
     state = run_generations(etl_cma, config, SphereConfig(DIM), n_gens, seed=seed)
     etl_best = float(state.best_fitness.numpy())
 

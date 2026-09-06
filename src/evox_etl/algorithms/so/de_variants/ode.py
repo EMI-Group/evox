@@ -15,7 +15,8 @@ The generation count therefore doubles relative to torch. `init_ask`/
 `init_tell` encode torch's `init_step` (initial-population evaluation before
 the first generation). Other deviations as
 in `de.py`: key-based RNG (ask advances the key even in phase 1, since both
-branches execute) and tuple normalization of array-like config fields.
+branches execute) and array-like config fields normalized to flat float tuples
+by the `make_ode` constructor.
 """
 
 from dataclasses import dataclass
@@ -25,22 +26,31 @@ import etl
 import etl.numpy as enp
 import etl.random as random
 
-from evox_etl.operators.jit_fix_operator import clamp
-from evox_etl.algorithms.so.de_variants.de import (
-    _bounds,
-    _constant_1d,
-    _de_trial,
-    _to_float_tuple,
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    bake_float32_constant,
+    normalize_bounds,
+    require_between,
+    require_choice,
+    require_ge,
+    to_float_tuple,
 )
+from evox_etl.algorithms.so.de_variants.de import _de_trial
+from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["ODE", "ODEState", "init", "init_ask", "init_tell", "ask", "tell"]
+__all__ = ["ODE", "ODEState", "init", "init_ask", "init_tell", "ask", "tell", "make_ode"]
 
 
 @dataclass(frozen=True)
 class ODE:
-    """Opposition-based DE (ODE) config, mirroring torch `ODE.__init__` (device dropped)."""
+    """Opposition-based DE (ODE) config, mirroring torch `ODE.__init__` (device dropped).
+
+    Dumb frozen dataclass — construct via `make_ode`, which validates and
+    normalizes array-like fields to flat float tuples before construction.
+    """
 
     pop_size: int
     lb: Union[Tuple[float, ...], Any]
@@ -52,25 +62,60 @@ class ODE:
     mean: Optional[Any] = None
     stdev: Optional[Any] = None
 
-    def __post_init__(self) -> None:
-        assert self.pop_size >= 4
-        assert 0 < self.cross_probability <= 1
-        assert 1 <= self.num_difference_vectors < self.pop_size // 2
-        assert self.base_vector in ["rand", "best"]
-        assert len(self.lb) == len(self.ub)
-        if self.num_difference_vectors == 1:
-            assert isinstance(self.differential_weight, float)
-        else:
-            assert not isinstance(self.differential_weight, float)
-            assert len(self.differential_weight) == self.num_difference_vectors
-        object.__setattr__(self, "lb", _to_float_tuple(self.lb))
-        object.__setattr__(self, "ub", _to_float_tuple(self.ub))
-        if self.mean is not None:
-            object.__setattr__(self, "mean", _to_float_tuple(self.mean))
-        if self.stdev is not None:
-            object.__setattr__(self, "stdev", _to_float_tuple(self.stdev))
-        if not isinstance(self.differential_weight, float):
-            object.__setattr__(self, "differential_weight", _to_float_tuple(self.differential_weight))
+
+def make_ode(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    base_vector: str = "rand",
+    num_difference_vectors: int = 1,
+    differential_weight: float | tuple = 0.5,
+    cross_probability: float = 0.9,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+) -> ODE:
+    """Build an :class:`ODE` config, validating hyperparameters and normalizing array-like fields.
+
+    Same validation semantics as torch ``ODE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 4)
+    require_between("cross_probability", cross_probability, 0, 1, low_inclusive=False)
+    require_between(
+        "num_difference_vectors", num_difference_vectors, 1, pop_size // 2, high_inclusive=False
+    )
+    require_choice("base_vector", base_vector, ["rand", "best"])
+    lb, ub = normalize_bounds(lb, ub)
+    if num_difference_vectors == 1:
+        # np.float64 subclasses float, so require the exact Python type: numpy
+        # scalars are not valid graph operands and must be rejected.
+        if type(differential_weight) is not float:
+            raise ValueError(
+                "differential_weight must be a float when num_difference_vectors == 1, "
+                f"got {differential_weight!r}"
+            )
+    else:
+        if type(differential_weight) is float:
+            raise ValueError(
+                "differential_weight must be a sequence (not a float) when "
+                f"num_difference_vectors > 1, got {differential_weight!r}"
+            )
+        differential_weight = to_float_tuple(differential_weight)
+        if len(differential_weight) != num_difference_vectors:
+            raise ValueError(
+                "differential_weight must have length num_difference_vectors "
+                f"({num_difference_vectors}), got length {len(differential_weight)}"
+            )
+    return ODE(
+        pop_size=pop_size,
+        lb=lb,
+        ub=ub,
+        base_vector=base_vector,
+        num_difference_vectors=num_difference_vectors,
+        differential_weight=differential_weight,
+        cross_probability=cross_probability,
+        mean=to_float_tuple(mean) if mean is not None else None,
+        stdev=to_float_tuple(stdev) if stdev is not None else None,
+    )
 
 
 @dataclass(frozen=True)
@@ -89,10 +134,10 @@ def init(config: ODE, key: Tensor) -> ODEState:
     """Draw the initial population (normal around `mean`/`stdev`, else uniform in bounds)."""
     key, subkey = random.split(key)
     pop_size, dim = config.pop_size, len(config.lb)
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     if config.mean is not None and config.stdev is not None:
-        mean_c = _constant_1d(config.mean)
-        stdev_c = _constant_1d(config.stdev)
+        mean_c = bake_float32_constant(config.mean)
+        stdev_c = bake_float32_constant(config.stdev)
         pop = mean_c + stdev_c * random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32")
         pop = clamp(pop, lb, ub)
     else:
@@ -144,7 +189,7 @@ def tell(config: ODE, state: ODEState, fitness: Tensor) -> ODEState:
     compare_de = fitness < state.fit
     pop0 = etl.select(enp.expand_dims(compare_de, 1), state.trial_vectors, state.pop)
     fit0 = etl.select(compare_de, fitness, state.fit)
-    lb, ub = _bounds(config)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     opposition0 = lb + ub - pop0
     phase0 = enp.full((), 1, dtype="int32")
 

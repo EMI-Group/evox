@@ -40,6 +40,10 @@ Suite-separate runs remain useful for per-suite numbers and faster failure isola
   sade/shade, ars/asebo/des/esmc/guided_es/nes/noise_reuse_es/persistent_es/
   snes, rvea/rveaa/hype (parity exists for de, pso, cma_es, open_es, nsga2,
   nsga3, moead — see `algorithms/parity/CONTEXT.md`).
+- Algorithm tests construct configs via functional `make_*` constructors
+  (`de_mod.make_de(...)`, `nsga2.make_nsga2(...)`, resolved at call time via
+  module aliases — no direct `XConfig`/alias dataclass construction remains in
+  `algorithms/`; problems tests keep direct dataclass construction by design).
 
 ## Packaging notes
 - Every suite dir and its `parity/` subdir has an empty `__init__.py` so pytest

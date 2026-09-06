@@ -67,7 +67,7 @@ These were verified empirically — do not re-investigate, do not fight them:
      maps `Device("cuda", N)` → N+1; NEVER use opt_level O2/O3 on cuda for eigh or
      NSGA2-tell graphs — default opt level is fine),
    - `"xla"` (PJRT plugin; CUDA via `jax_plugins/xla_cuda12/xla_cuda_plugin.so` in the
-     shared venv — two adapter fixes pending in the etl repo, see §11),
+     shared venv — the xla adapter fixes are merged into etl master, see §9),
    - `"tvm"` (llvm cpu; no control flow — unsuitable for NSGA-family loops).
    Capabilities differ per backend; anything unsupported raises a loud
    `etl.core.BackendError`/`TransformError` (never silent fallback).
@@ -108,21 +108,63 @@ src/evox_etl/
 
 ### 4.1 Config dataclasses
 
-Every algorithm/problem/monitor config is a frozen dataclass (use
+Every algorithm/problem/monitor config is a **dumb frozen dataclass** (use
 `@dataclasses.dataclass(frozen=True)`) with the SAME field names and defaults as the
 torch evox class `__init__` signature (read `src/evox/...` for the reference), with
 these adjustments:
 - Drop the `device: torch.device | None = None` parameter.
-- `lb`/`ub` (boundary tensors in torch) become **numpy arrays** in the config.
-  Inside functions, bake them ONCE as graph constants:
+- Configs are dumb: no `__post_init__`, no normalization, no validation logic
+  (the numerical-problem carve-out below is the only exception). They store ONLY
+  plain static leaves — Python scalars (floats, ints, strings, `None`) and **flat
+  `float` tuples**. Tuple storage is the package convention for array-like values:
+  frozen `__eq__`/`__hash__` work on tuples (ndarray fields are unhashable), and
+  `etl.run` performs strict by-value static revalidation on plain-leaf pytrees, so
+  a drifted config value raises a TraceError instead of silently corrupting the
+  run.
+- `lb`/`ub` (boundary tensors in torch) therefore become **flat `float` tuples**
+  of length `dim` in the config. Inside functions, bake them ONCE as graph
+  constants:
   `lb = etl.ops.constant(etl.core.tensor(np.asarray(config.lb, dtype=np.float32)))`
   (closure-captured concrete tensors fail at trace time; constants are fine).
-  `dim = config.lb.shape[0]` stays a Python int (static).
+  `dim = len(config.lb)` stays a Python int (static).
 - Optional operator fields (`selection_op: Optional[Callable]`, `mutation_op`,
   `crossover_op`) become **plain function references** (first-class functions —
   the operators are already pure functions, see §4.3); `None` means "algorithm
   default" exactly like torch.
-- Everything else holds plain Python values (floats, ints, strings, tuples).
+
+**Construction policy — `make_<algorithm>` constructors (binding):** for every
+algorithm config, the array-accepting entry point is a module-level functional
+constructor `make_<algorithm>` defined in the SAME module as its config dataclass —
+the workflow resolves the algorithm module via
+`importlib.import_module(type(config).__module__)` and must find the constructor
+there, next to `init`/`ask`/`tell`. The constructor is where ALL normalization and
+validation happens; the config dataclass itself stays dumb:
+- ndarray arguments are converted to flat `float32` tuples (never stored as
+  ndarrays);
+- invalid input raises `ValueError` with a clear message (no bare asserts);
+- defaults that must appear as fields are derived EAGERLY at construction — e.g.
+  XNES/SeparableNES `pop_size` and learning rate from `dim`, ASEBO `subspace_dims`
+  from `center_init` (`core/workflow.py` `_discover_pop_size` reads `cfg.pop_size`,
+  so such fields must be filled in, not left `None`).
+Direct dataclass construction with already-normalized plain statics remains
+possible; array arguments go through `make_<algorithm>` only.
+
+**ndarray statics and pytree registration:** ndarray values ARE legal static
+leaves on the current etl master (commit b8062a9 "accept np.ndarray as static
+trace values"), so the old rejection and its workarounds are obsolete — with ONE
+exception: non-`None` callable fields are still rejected as static leaves anywhere
+in the pytree. Zero-child `etl.register_pytree_node` registration is therefore
+reserved for configs carrying callable op fields — `mo/nsga3`, `moead`, `rvea`
+only. Every other config is a plain pytree and gets etl's by-value static
+revalidation at `etl.run` (an opaque registered node is NOT revalidated).
+
+**Carve-out — numerical problems (`problems/numerical/basic.py`,
+`cec2022.py`):** these KEEP their validation-only `__post_init__` methods as the
+sanctioned direct-construction public API — no ndarray→tuple normalization there
+(`shift`/`affine` are stored as passed, validated only), and their clear
+`AssertionError` messages (bare asserts with message strings) are asserted by
+the unit tests — the messages are frozen, so do NOT convert them to
+`ValueError`. The `make_*` pattern does not apply to them.
 
 ### 4.2 State
 
@@ -329,14 +371,20 @@ Shared venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (python3.11, torch
 available for etl-xla, pytest). ALWAYS use this interpreter for tests/benchmarks.
 GPUs: 3× RTX A6000. Scan `nvidia-smi` for the most-free GPU before GPU runs.
 
-## 9. ETL repo fixes (pending/parallel)
+## 9. ETL repo fixes (merged into etl master)
 
-Two known xla-adapter fixes are being applied to the foreign etl repo in parallel
-(GetPjRtApi symbol-casing fallback + serialized CompileOptionsProto handling) plus
-GPU re-validation of RNG bit-exactness. evox_etl code must NOT depend on those fixes —
-it only needs the etl API already on main. If you hit an etl bug/missing feature
-while implementing, record it in `src/evox_etl/CONTEXT.md` under "ETL issues found"
-(don't try to fix etl yourself — escalate to the root agent).
+The xla-related etl fixes below are ALL merged into etl master (@f2f50a7) — the
+shared venv's etl install needs no task branch:
+- xla adapter GPU client-exhaustion fix (fresh PJRT client per compile/load →
+  process SIGABRT; now a shared refcounted client — etl commit 838739c, formerly
+  only on task branch `evogit-agent-T1-A19`);
+- `GetPjRtApi` symbol-casing fallback + serialized `CompileOptionsProto` handling
+  (etl commit 71d721e);
+- the xla rank-0 staging fixes.
+evox_etl code must NOT depend on any of these fixes — it only needs the etl API
+already on master. If you hit an etl bug/missing feature while implementing,
+record it in `src/evox_etl/CONTEXT.md` under "ETL issues found" (don't try to fix
+etl yourself — escalate to the root agent).
 
 ## 10. Style rules
 

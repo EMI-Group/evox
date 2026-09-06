@@ -7,7 +7,7 @@ import evox_etl.algorithms.so.es_variants.des as des
 
 def test_des_sphere():
     dim = 10
-    cfg = des.DESConfig(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma_init=0.5)
+    cfg = des.make_des(pop_size=8, center_init=np.full((dim,), 5.0, np.float32), sigma_init=0.5)
     state = run_generations(des, cfg, SphereConfig(dim), 3, seed=0)
     best = state.best_fitness.numpy()
     assert np.isfinite(best) and best < dim * 25

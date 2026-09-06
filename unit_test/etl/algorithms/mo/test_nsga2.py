@@ -29,7 +29,7 @@ POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 
 def make_config():
     """NSGA2 config: 3 objectives, decision space [0, 1]^7."""
-    return nsga2.NSGA2Config(
+    return nsga2.make_nsga2(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),

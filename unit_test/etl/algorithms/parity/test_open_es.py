@@ -61,7 +61,7 @@ def _torch_best_fitness(seed: int, optimizer: str | None) -> tuple[float, int]:
 @pytest.mark.parametrize("optimizer", [None, "adam"])
 def test_open_es_parity(seed: int, optimizer: str | None):
     torch_best, n_gens = _torch_best_fitness(seed, optimizer)
-    config = etl_open.OpenESConfig(
+    config = etl_open.make_open_es(
         pop_size=POP_SIZE,
         center_init=CENTER,
         learning_rate=LEARNING_RATE,

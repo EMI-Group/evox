@@ -10,7 +10,7 @@ import evox_etl.algorithms.so.es_variants.cma_es as cma_es
 
 def test_cma_es_sphere():
     dim = 10
-    cfg = cma_es.CMAESConfig(mean_init=np.full((dim,), 5.0, np.float32), sigma=2.0)
+    cfg = cma_es.make_cma_es(mean_init=np.full((dim,), 5.0, np.float32), sigma=2.0)
     state = run_generations(cma_es, cfg, SphereConfig(dim), 3, seed=0)
     best = state.best_fitness.numpy()
     assert np.isfinite(best) and best < dim * 25

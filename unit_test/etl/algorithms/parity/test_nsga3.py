@@ -24,7 +24,7 @@ from unit_test.etl.algorithms.parity.parity_common import ABS_TOL, DIM, N_GENS, 
 
 
 def test_nsga3_dtlz1_parity():
-    cfg = nsga3.NSGA3Config(
+    cfg = nsga3.make_nsga3(
         pop_size=POP_SIZE,
         n_objs=N_OBJ,
         lb=np.zeros(DIM, np.float32),

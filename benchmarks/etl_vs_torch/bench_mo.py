@@ -204,15 +204,17 @@ def _etl_pf_fitness(monitor: Any) -> np.ndarray:
 
 def run_etl_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
     from evox_etl import EvalMonitorConfig, StdWorkflow
-    from evox_etl.algorithms.mo import MOEADConfig, NSGA2Config, NSGA3Config
+    from evox_etl.algorithms.mo.moead import make_moead
+    from evox_etl.algorithms.mo.nsga2 import make_nsga2
+    from evox_etl.algorithms.mo.nsga3 import make_nsga3
     from evox_etl.problems.numerical import DTLZ1, DTLZ2
 
     lb = np.full(case.dim, bench_common.MO_LB, np.float32)
     ub = np.full(case.dim, bench_common.MO_UB, np.float32)
-    cfg_cls = {"NSGA2": NSGA2Config, "NSGA3": NSGA3Config, "MOEAD": MOEADConfig}[
+    make_cfg = {"NSGA2": make_nsga2, "NSGA3": make_nsga3, "MOEAD": make_moead}[
         case.algo
     ]
-    algo_cfg = cfg_cls(pop_size=case.pop_size, n_objs=case.n_obj, lb=lb, ub=ub)
+    algo_cfg = make_cfg(pop_size=case.pop_size, n_objs=case.n_obj, lb=lb, ub=ub)
     problem_cfg = {"DTLZ1": DTLZ1, "DTLZ2": DTLZ2}[case.problem](
         d=case.dim, m=case.n_obj
     )

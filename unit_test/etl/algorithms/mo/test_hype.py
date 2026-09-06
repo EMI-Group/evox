@@ -29,7 +29,7 @@ POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 
 def make_config():
     """HypE config: 3 objectives, decision space [0, 1]^7."""
-    return hype.HypEConfig(
+    return hype.make_hype(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),
