@@ -12,15 +12,24 @@ mirroring the torch `__all__`.
 - Every algorithm module exposes its config dataclass (constructor API takes
   numpy lb/ub — and mean/stdev for `CSO`/`FSPSO` — exactly like torch), a
   `*State` dataclass, and `init/init_ask/init_tell/ask/tell` plain functions.
-- **Config pattern (uniform across all 7)**: each frozen config's
-  `__post_init__` validates `lb`/`ub` on `np.asarray` copies (ndim==1, shapes
-  match) and then normalizes them to float tuples via `object.__setattr__`
-  (plus `mean`/`stdev` when not None for `CSO`/`FSPSO`). etl's tracer accepts
-  tuple-of-float leaves as static values, so configs pass
-  `etl.build`/`etl.run` unchanged — no pytree registration. Type annotations
-  stay `np.ndarray` / `np.ndarray | None`. Read `dim` via `len(config.lb)`
-  (tuples have no `.shape`); `np.asarray(config.lb, dtype=np.float32)` still
-  works for constant baking.
+- **Config construction pattern (all 7 configs)**: each frozen config's
+  `__post_init__` normalizes `lb`/`ub` to tuples of Python floats
+  (`object.__setattr__` after `np.asarray`), because etl's tracer rejects
+  ndarray leaves as static values; normalized configs pass
+  `etl.build`/`etl.run` unchanged — no pytree registration (mo/ configs solve
+  the same etl restriction by keeping ndarrays with zero-child pytree
+  registration, see `../mo/nsga2.py`). The normalize body is copy-pasted in
+  pso/clpso/sl_pso_gs/sl_pso_us (identical), cso/fs_pso additionally normalize
+  `mean`/`stdev` (unvalidated) when not None, and dms_pso_el only normalizes
+  via `.ravel()` with NO ndim/shape validation (silently flattens 2-D input).
+  `pso/clpso/cso/fs_pso/sl_pso_gs/sl_pso_us` assert ndim==1 and lb/ub shape
+  match (ported from the torch constructors' asserts, dtype-equality check
+  dropped); asserts raise bare `AssertionError` and vanish under `python -O`.
+  Type annotations keep `np.ndarray` (`DMSPSOEL`: `Union[np.ndarray,
+  tuple[float, ...]]`) although stored fields are tuples — annotations
+  describe the constructor API, not the storage. Read `dim` via
+  `len(config.lb)` (tuples have no `.shape`); `np.asarray(config.lb,
+  dtype=np.float32)` still works for constant baking.
 - `utils.py` — `min_by` (concat axis 0, `etl.argmin(keys, axis=0)`, gather
   with reshaped (1,) index, reshape back to `x.shape[1:]`) and
   `random_select_from_mask` (noise + argsort + scatter-ones, key-first RNG).
