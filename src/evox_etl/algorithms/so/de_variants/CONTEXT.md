@@ -33,10 +33,21 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - Files < ~400 lines; static Python loops/config branches allowed in traces.
 
 ## Notes for agents (verified — do not re-investigate)
-- **np.ndarray config fields are REJECTED by `etl.build`** ("neither a TensorSpec nor
-  a static Python value"). Normalize `lb`/`ub`/`mean`/`stdev`/`differential_weight`/
-  `param_pool` to tuples of plain Python floats via `object.__setattr__` in
-  `__post_init__` (callers may pass np arrays; stored values are tuples).
+- **Configs are dumb frozen dataclasses** (no `__post_init__`, no normalization,
+  no validation) storing ONLY Python scalars + flat float tuples (`lb`/`ub`/
+  `mean`/`stdev`/`differential_weight`).
+- Construct configs via the module-level `make_*` constructor (normalizes
+  arrays→plain float tuples and validates with ValueError naming the param);
+  direct construction with already-normalized statics stays legal.
+  Installed etl accepts np.ndarray static values, so raw-array fields trace
+  fine, but `make_*` is the sanctioned entry point (policy: `DESIGN.md` §4.1).
+  CoDE `param_pool` stores a nested tuple of (F, CR) pairs (natural (3, 2)
+  shape — flattened storage would break `ask`'s gather over param_ids).
+- Normalization/baking helpers are consolidated in
+  `evox_etl/algorithms/_config_utils.py` (`to_float_tuple` dtype-preserving,
+  `normalize_bounds`, `require_ge`/`require_between`/`require_choice`,
+  `bake_float32_constant`, `bake_bounds(..., as_row=True)`); this family no
+  longer defines local `_to_float_tuple`/`_bounds`/`_bake*` helpers.
 - **`etl.select` does NOT numpy-broadcast** a `(n,)` condition against `(n, m)`
   operands (ShapeError). Always `enp.expand_dims(cond, 1)` first. Scalar conds
   broadcast fine. Python float + float32 → float32 OK; Python int + int32 → int64
