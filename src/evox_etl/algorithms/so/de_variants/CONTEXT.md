@@ -57,8 +57,10 @@ so/de_variants/`), one module per torch file: `de.py`, `jade.py`, `shade.py`, `s
 - RNG: `key, subkey = random.split(state.key)` at function entry; one split per
   random op, in torch's draw order; store the advanced `key` back in the state.
   `random.multinomial(key, probs, n)` returns int32.
-- Bounds baked ONCE per function as `(1, dim)` constants via `etl.ops.constant`;
-  `dim = len(config.lb)` stays a static Python int.
+- Bounds baked per function via `bake_bounds(lb, ub, as_row=True)` (shared
+  helper — `(1, dim)` float32 constants) or `bake_float32_constant(x, shape=(1, -1))`
+  for a single bound; `dim = len(config.lb)` stays a static Python int (works for
+  both tuple and ndarray fields).
 - SHADE/SaDE/CoDE init populations use **`randn` scaled by bounds** (torch quirk —
   no uniform, no clamp) — do not assert in-bounds on their initial pops.
 - `etl.median(x, axis=0)` matches torch's NaN propagation; `etl.roll(x, shift, axis)`;
