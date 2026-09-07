@@ -54,7 +54,7 @@ The file is a JSON array with one object per case:
 | `metric` | object | SO: `{"best_fitness": f}` (monitor elite, minimized). MO: `{"hv": f, "igd": f, "n_pf_points": n}` |
 | `parity` | object | vs the `results/{suite}_torch-cpu.json` baseline; `{vs, rel_err, ok}` (+`rel_err_hv`/`rel_err_igd` for MO). Absent for the torch-cpu baseline itself, or when no baseline file exists yet. `ok = rel_err <= 0.10` |
 | `error` | str | `"<Type>: <msg>"` when the case failed (the runner continues) |
-| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; capped etl-numpy SO records note the gens cap; failed iree MO cells carry per-cell notes naming the precise failure (`iree-compile segfault (SIGSEGV, error -11)` / runtime `ref is null`; post-fix NSGA3 iree cells note that export now passes and the compiler segfaults) |
+| `note` | str | `"eager"` / `"compiled (<etl backend>)"`; MOEAD cases note that the effective population is the Das-Dennis count; capped etl-numpy SO records note the gens cap; failed iree MO cells carry per-cell notes naming the precise failure (`iree-compile segfault (SIGSEGV, error -11)` / runtime `ref is null`; post-fix NSGA3 iree cells note that export now passes and the compiler segfaults). Record-level notes may also carry slow-path/lowering annotations (free text; does not affect parity verdicts) |
 
 ## Config (shared by all backends)
 

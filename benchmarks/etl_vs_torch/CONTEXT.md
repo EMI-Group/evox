@@ -77,6 +77,15 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   (1000x50/10000x100) still scatter on unconverged runs (torch-cuda
   ≈20.6/20.4; etl compiled backends rel 0.44–1.89) — RNG-stream variance,
   not a stall.
+- **CMAES slow path on iree is characterized, not a defect:** per-step
+  covariance `etl.eigh` lowers to an iree cyclic-Jacobi while-loop
+  composition (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0),
+  O(n^4). Probes: standalone iree-cuda eigh 39.0 / 1317 / 5778 ms @ dims
+  10/50/100 vs 0.087 ms no-eigh control; llvm-cpu dim-100 23676 ms vs 0.157;
+  real-harness iree-cuda gens=10 matched (39.5 / 1036.6 / 5779.3 ms/step);
+  xla-cuda native eigh 387.3 ms/step (15-18× faster). All iree CMAES cells
+  carry a JSON note; upstream doc:
+  `/mnt/local-ssd/bchuang/etl/etl/backends/stablehlo/CONTEXT.md`.
 - **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 94 ok /
   62 not-ok / 24 skip (etl-numpy gens caps); MO 12 ok / 24 not-ok / 24 skip
   (backend errors). etl compiled backends are bit/last-ulp identical to
@@ -95,11 +104,13 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   `workflow.py:229-244`). The committed xla SO cells (5.73/17.0 ms/step)
   are host-staging-bound artifacts of the old `("xla", None)` mapping —
   stale, see the caveat note in `BENCHMARK_RESULTS.md`.
-- **Committed `so_etl-iree-cuda.json` big-scale values are NOT reproducible
-  on healthy GPUs** (medians 35.70 / 3482 ms/step @1000x50 / @10000x100 vs
-  0.6-3.1 ms/step measured on healthy A6000s for the same code) — environment
-  artifact, not algorithm performance; see the perf-path known issues below.
-  iree big-scale re-runs remain blocked by the 3.9.0 segfault below.
+- **Both iree SO JSONs are fully refreshed under iree 3.11.0 on healthy
+  hardware** (36/36 records each: `so_etl-iree-cuda.json` commit 2770e1fc on
+  GPU 0, `so_etl-iree-llvm-cpu.json` commit ba895503 under the fixed etl).
+  The old broken-GPU-era big-scale values (35.70 / 3482 ms/step @1000x50 /
+  @10000x100) are gone — git history preserves them. The refreshed CMAES
+  cells are the slow-path exception (per-step eigh lowering, see the CMAES
+  slow-path bullet above), explicitly noted in the JSONs.
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## GPU performance path — issues and fixes (measurement-verified, current state)
@@ -122,13 +133,13 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   ms/step @1000x50 / @10000x100 PSO/Sphere and 0.80 / 0.78-0.84 DE/Rastrigin,
   i.e. 1.16-1.45× faster than torch-cuda — see the caveat note in
   `BENCHMARK_RESULTS.md`.
-- **iree 3.9.0 CUDA segfaults on the harness path:** earlier bisect traced a
-  deterministic step-1 crash on a healthy GPU to `workflow.step` retaining
-  `self._state = state` (now `workflow.py:323`); raw `etl.run` chaining was
-  unaffected. A 2026-09-07 smoke at 100x10 × 5 gens completed cleanly, so
-  the trigger appears scale/condition-dependent — do not run iree-cuda
-  benchmark cells with iree 3.9.0; re-running requires iree ≥ 3.11.0
-  and/or a retention-free measurement loop.
+- **iree 3.9.0 CUDA segfault is gone under iree ≥ 3.11.0:** the earlier
+  deterministic step-1 crash on the harness path (bisected to `workflow.step`
+  retaining `self._state = state`, now `workflow.py:323`) no longer occurs —
+  etl crash repro passed 4/4 and both full iree SO suites ran clean on
+  3.11.0. The remaining iree blocker is only the MO while-loop compile bug
+  (see Current results status; out of scope — xla remains the MO compiled
+  backend).
 - **Per-step host copies are NOT the bottleneck once device-resident:** history D2H readback (`.to(cpu).numpy()` of `latest_fitness`, `workflow.py:413-416`; `full_sol/pop_history` default off, `eval_monitor.py:52-54`) ≈ 0.09 ms/step; same-device `tree_map .to` no-op (`workflow.py:317-318`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
 - **Timing fairness:** the etl path times without an explicit device sync (`bench_so.py:147-156`; the torch path syncs at 76-81), but iree/xla `run` invokes are host-blocking, so steps cannot overlap — per-step timing is fair; the 2 warmup steps (`bench_common.WARMUP_STEPS`) exercise the same `step()` path and absorb first-call costs.
 
