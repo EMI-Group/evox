@@ -9,17 +9,17 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4954547807574272,
+    "compile_time_s": 1.3720945231616497,
     "warmup_steps": 2,
-    "run_time_s": 0.14208881929516792,
-    "ms_per_step": 1.4208881929516792,
+    "run_time_s": 0.07114611938595772,
+    "ms_per_step": 0.7114611938595772,
     "metric": {
       "best_fitness": 3.054133657087732e-08
     },
     "note": "compiled (iree)",
     "parity": {
       "vs": "torch-cpu",
-      "rel_err": 0.015158963861949815,
+      "rel_err": 0.9854763077709052,
       "ok": true,
       "note": "both converged to machine zero"
     }
@@ -34,10 +34,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.6774880327284336,
+    "compile_time_s": 1.1384645998477936,
     "warmup_steps": 2,
-    "run_time_s": 3.569253582507372,
-    "ms_per_step": 35.69253582507372,
+    "run_time_s": 0.08862301334738731,
+    "ms_per_step": 0.8862301334738731,
     "metric": {
       "best_fitness": 31.938453674316406
     },
@@ -59,10 +59,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 5.018700007349253,
+    "compile_time_s": 1.2216415368020535,
     "warmup_steps": 2,
-    "run_time_s": 347.4768519587815,
-    "ms_per_step": 3474.768519587815,
+    "run_time_s": 0.34863102063536644,
+    "ms_per_step": 3.4863102063536644,
     "metric": {
       "best_fitness": 2691.3330078125
     },
@@ -84,10 +84,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.312025349587202,
+    "compile_time_s": 1.1783269569277763,
     "warmup_steps": 2,
-    "run_time_s": 0.14915134385228157,
-    "ms_per_step": 1.4915134385228157,
+    "run_time_s": 0.09160278365015984,
+    "ms_per_step": 0.9160278365015984,
     "metric": {
       "best_fitness": 5.5195159912109375
     },
@@ -109,10 +109,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4200607053935528,
+    "compile_time_s": 1.1410869732499123,
     "warmup_steps": 2,
-    "run_time_s": 3.5840093046426773,
-    "ms_per_step": 35.84009304642677,
+    "run_time_s": 0.0895620808005333,
+    "ms_per_step": 0.895620808005333,
     "metric": {
       "best_fitness": 365.9289245605469
     },
@@ -134,10 +134,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 8.228848583996296,
+    "compile_time_s": 1.2359332703053951,
     "warmup_steps": 2,
-    "run_time_s": 348.0970565825701,
-    "ms_per_step": 3480.9705658257008,
+    "run_time_s": 0.35313646867871284,
+    "ms_per_step": 3.5313646867871284,
     "metric": {
       "best_fitness": 4118.875
     },
@@ -159,10 +159,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4221960194408894,
+    "compile_time_s": 1.2168770618736744,
     "warmup_steps": 2,
-    "run_time_s": 0.1559610441327095,
-    "ms_per_step": 1.559610441327095,
+    "run_time_s": 0.09244590252637863,
+    "ms_per_step": 0.9244590252637863,
     "metric": {
       "best_fitness": 20.0
     },
@@ -184,10 +184,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4171994924545288,
+    "compile_time_s": 1.1971175707876682,
     "warmup_steps": 2,
-    "run_time_s": 3.587707731872797,
-    "ms_per_step": 35.87707731872797,
+    "run_time_s": 0.11155638098716736,
+    "ms_per_step": 1.1155638098716736,
     "metric": {
       "best_fitness": 20.561412811279297
     },
@@ -209,10 +209,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 17.734178997576237,
+    "compile_time_s": 1.325032152235508,
     "warmup_steps": 2,
-    "run_time_s": 347.83492828160524,
-    "ms_per_step": 3478.3492828160524,
+    "run_time_s": 0.353132501244545,
+    "ms_per_step": 3.53132501244545,
     "metric": {
       "best_fitness": 20.020355224609375
     },
@@ -234,10 +234,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.2589471526443958,
+    "compile_time_s": 1.1197304800152779,
     "warmup_steps": 2,
-    "run_time_s": 0.11295227333903313,
-    "ms_per_step": 1.1295227333903313,
+    "run_time_s": 0.0963982567191124,
+    "ms_per_step": 0.963982567191124,
     "metric": {
       "best_fitness": 0.6074879169464111
     },
@@ -259,10 +259,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.258761964738369,
+    "compile_time_s": 1.12505616620183,
     "warmup_steps": 2,
-    "run_time_s": 3.5699018388986588,
-    "ms_per_step": 35.69901838898659,
+    "run_time_s": 0.08110228180885315,
+    "ms_per_step": 0.8110228180885315,
     "metric": {
       "best_fitness": 23839.615234375
     },
@@ -284,10 +284,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 9.401267446577549,
+    "compile_time_s": 1.3112759850919247,
     "warmup_steps": 2,
-    "run_time_s": 348.06219455972314,
-    "ms_per_step": 3480.6219455972314,
+    "run_time_s": 0.2131069377064705,
+    "ms_per_step": 2.131069377064705,
     "metric": {
       "best_fitness": 104824.4296875
     },
@@ -309,10 +309,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4036615416407585,
+    "compile_time_s": 1.146921083331108,
     "warmup_steps": 2,
-    "run_time_s": 0.12870262190699577,
-    "ms_per_step": 1.2870262190699577,
+    "run_time_s": 0.05290847644209862,
+    "ms_per_step": 0.5290847644209862,
     "metric": {
       "best_fitness": 56.38290023803711
     },
@@ -334,10 +334,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.2400481030344963,
+    "compile_time_s": 1.1391077227890491,
     "warmup_steps": 2,
-    "run_time_s": 3.5613488666713238,
-    "ms_per_step": 35.61348866671324,
+    "run_time_s": 0.07117820158600807,
+    "ms_per_step": 0.7117820158600807,
     "metric": {
       "best_fitness": 27923.310546875
     },
@@ -359,10 +359,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 20.57533261924982,
+    "compile_time_s": 1.3371226489543915,
     "warmup_steps": 2,
-    "run_time_s": 348.3038510642946,
-    "ms_per_step": 3483.0385106429458,
+    "run_time_s": 0.17779261991381645,
+    "ms_per_step": 1.7779261991381645,
     "metric": {
       "best_fitness": 108335.4765625
     },
@@ -384,10 +384,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.3970963098108768,
+    "compile_time_s": 1.1919938623905182,
     "warmup_steps": 2,
-    "run_time_s": 0.12441985309123993,
-    "ms_per_step": 1.2441985309123993,
+    "run_time_s": 0.05544745922088623,
+    "ms_per_step": 0.5544745922088623,
     "metric": {
       "best_fitness": 18.954586029052734
     },
@@ -409,10 +409,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.457935642451048,
+    "compile_time_s": 1.1727877147495747,
     "warmup_steps": 2,
-    "run_time_s": 3.5462129898369312,
-    "ms_per_step": 35.46212989836931,
+    "run_time_s": 0.05871270224452019,
+    "ms_per_step": 0.5871270224452019,
     "metric": {
       "best_fitness": 20.14360809326172
     },
@@ -434,10 +434,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.251005847007036,
+    "compile_time_s": 1.3601739071309566,
     "warmup_steps": 2,
-    "run_time_s": 349.60323499143124,
-    "ms_per_step": 3496.0323499143124,
+    "run_time_s": 0.17616893723607063,
+    "ms_per_step": 1.7616893723607063,
     "metric": {
       "best_fitness": 20.55666732788086
     },
@@ -459,10 +459,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.974592659622431,
+    "compile_time_s": 2.555700469762087,
     "warmup_steps": 2,
-    "run_time_s": 4.0968926548957825,
-    "ms_per_step": 40.968926548957825,
+    "run_time_s": 4.191213469952345,
+    "ms_per_step": 41.91213469952345,
     "metric": {
       "best_fitness": 9.582066695656977e-09
     },
@@ -484,10 +484,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.136543497443199,
+    "compile_time_s": 2.6031327694654465,
     "warmup_steps": 2,
-    "run_time_s": 134.62181137129664,
-    "ms_per_step": 1346.2181137129664,
+    "run_time_s": 148.09823159873486,
+    "ms_per_step": 1480.9823159873486,
     "metric": {
       "best_fitness": 88.17547607421875
     },
@@ -509,10 +509,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.9589777775108814,
+    "compile_time_s": 2.682166274636984,
     "warmup_steps": 2,
-    "run_time_s": 875.0918285362422,
-    "ms_per_step": 8750.918285362422,
+    "run_time_s": 690.245419934392,
+    "ms_per_step": 6902.45419934392,
     "metric": {
       "best_fitness": 348.4949951171875
     },
@@ -534,10 +534,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.64775076135993,
+    "compile_time_s": 2.311077192425728,
     "warmup_steps": 2,
-    "run_time_s": 4.48227346688509,
-    "ms_per_step": 44.8227346688509,
+    "run_time_s": 4.650004342198372,
+    "ms_per_step": 46.50004342198372,
     "metric": {
       "best_fitness": 27.848365783691406
     },
@@ -559,10 +559,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 2.816337089985609,
+    "compile_time_s": 2.7169756405055523,
     "warmup_steps": 2,
-    "run_time_s": 121.69116562232375,
-    "ms_per_step": 1216.9116562232375,
+    "run_time_s": 148.91048804670572,
+    "ms_per_step": 1489.1048804670572,
     "metric": {
       "best_fitness": 527.9216918945312
     },
@@ -584,10 +584,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.2178884111344814,
+    "compile_time_s": 2.7236884459853172,
     "warmup_steps": 2,
-    "run_time_s": 955.3223771676421,
-    "ms_per_step": 9553.223771676421,
+    "run_time_s": 727.4632238522172,
+    "ms_per_step": 7274.632238522172,
     "metric": {
       "best_fitness": 1325.67236328125
     },
@@ -609,10 +609,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.007742591202259,
+    "compile_time_s": 2.329045109450817,
     "warmup_steps": 2,
-    "run_time_s": 4.105995897203684,
-    "ms_per_step": 41.05995897203684,
+    "run_time_s": 4.496332377195358,
+    "ms_per_step": 44.96332377195358,
     "metric": {
       "best_fitness": 0.0014085769653320312
     },
@@ -634,10 +634,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.236313324421644,
+    "compile_time_s": 2.7827142365276814,
     "warmup_steps": 2,
-    "run_time_s": 129.89209569990635,
-    "ms_per_step": 1298.9209569990635,
+    "run_time_s": 153.65918001532555,
+    "ms_per_step": 1536.5918001532555,
     "metric": {
       "best_fitness": 10.847675323486328
     },
@@ -659,10 +659,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 3.6425615921616554,
+    "compile_time_s": 2.796746078878641,
     "warmup_steps": 2,
-    "run_time_s": 915.444942548871,
-    "ms_per_step": 9154.44942548871,
+    "run_time_s": 739.9885250367224,
+    "ms_per_step": 7399.885250367224,
     "metric": {
       "best_fitness": 20.589855194091797
     },
@@ -684,10 +684,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.5507937371730804,
+    "compile_time_s": 1.2042677588760853,
     "warmup_steps": 2,
-    "run_time_s": 0.14566760882735252,
-    "ms_per_step": 1.4566760882735252,
+    "run_time_s": 0.07364044338464737,
+    "ms_per_step": 0.7364044338464737,
     "metric": {
       "best_fitness": 132.08497619628906
     },
@@ -709,10 +709,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.4525758884847164,
+    "compile_time_s": 1.2394674457609653,
     "warmup_steps": 2,
-    "run_time_s": 3.5485692396759987,
-    "ms_per_step": 35.48569239675999,
+    "run_time_s": 0.06327222660183907,
+    "ms_per_step": 0.6327222660183907,
     "metric": {
       "best_fitness": 1887.1131591796875
     },
@@ -734,10 +734,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.876848068088293,
+    "compile_time_s": 0.8508213050663471,
     "warmup_steps": 2,
-    "run_time_s": 348.17260312289,
-    "ms_per_step": 3481.7260312289,
+    "run_time_s": 0.2088896706700325,
+    "ms_per_step": 2.088896706700325,
     "metric": {
       "best_fitness": 4112.36865234375
     },
@@ -759,10 +759,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.5307380072772503,
+    "compile_time_s": 1.2667172737419605,
     "warmup_steps": 2,
-    "run_time_s": 0.11516254395246506,
-    "ms_per_step": 1.1516254395246506,
+    "run_time_s": 0.07645727694034576,
+    "ms_per_step": 0.7645727694034576,
     "metric": {
       "best_fitness": 221.23562622070312
     },
@@ -784,10 +784,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.3620360009372234,
+    "compile_time_s": 1.1911663189530373,
     "warmup_steps": 2,
-    "run_time_s": 3.5203377716243267,
-    "ms_per_step": 35.20337771624327,
+    "run_time_s": 0.07609859108924866,
+    "ms_per_step": 0.7609859108924866,
     "metric": {
       "best_fitness": 2370.2822265625
     },
@@ -809,10 +809,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.2091101482510567,
+    "compile_time_s": 0.9146773964166641,
     "warmup_steps": 2,
-    "run_time_s": 347.9648703113198,
-    "ms_per_step": 3479.6487031131983,
+    "run_time_s": 0.22302324697375298,
+    "ms_per_step": 2.2302324697375298,
     "metric": {
       "best_fitness": 5109.79931640625
     },
@@ -834,10 +834,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.5501951649785042,
+    "compile_time_s": 1.240110520273447,
     "warmup_steps": 2,
-    "run_time_s": 0.12527760490775108,
-    "ms_per_step": 1.2527760490775108,
+    "run_time_s": 0.08201268315315247,
+    "ms_per_step": 0.8201268315315247,
     "metric": {
       "best_fitness": 20.69388198852539
     },
@@ -859,10 +859,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.660481832921505,
+    "compile_time_s": 1.3737096153199673,
     "warmup_steps": 2,
-    "run_time_s": 3.559425253421068,
-    "ms_per_step": 35.59425253421068,
+    "run_time_s": 0.09365451335906982,
+    "ms_per_step": 0.9365451335906982,
     "metric": {
       "best_fitness": 21.242359161376953
     },
@@ -884,10 +884,10 @@
     "n_obj": 1,
     "gens": 100,
     "seed": 42,
-    "compile_time_s": 1.2800325229763985,
+    "compile_time_s": 0.9184090904891491,
     "warmup_steps": 2,
-    "run_time_s": 350.43465193361044,
-    "ms_per_step": 3504.3465193361044,
+    "run_time_s": 0.21387680247426033,
+    "ms_per_step": 2.1387680247426033,
     "metric": {
       "best_fitness": 21.322124481201172
     },
