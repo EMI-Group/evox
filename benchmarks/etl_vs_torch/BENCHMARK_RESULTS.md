@@ -15,9 +15,13 @@ committed `results/*.json` (12 files, one per suite×backend).
   were reproduced exactly with host staging on a healthy GPU, while the same
   code device-resident runs at ~0.9-1.0 ms/step, so they are obsolete as
   GPU-performance evidence.
-- The committed etl-iree-cuda SO numbers (35.70 / 3482 ms/step at 1000x50 /
-  10000x100) are stale-environment artifacts recorded during a broken-GPU
-  era; healthy re-measurements of the same code are 0.6-3.1 ms/step.
+- The old committed etl-iree-cuda SO numbers (35.70 / 3482 ms/step at
+  1000x50 / 10000x100) were broken-GPU-era artifacts; both iree SO files
+  (`so_etl-iree-cuda.json`, `so_etl-iree-llvm-cpu.json`) have since been
+  fully refreshed (36/36 records each) under iree 3.11.0 on healthy
+  hardware, and git history preserves the old artifacts. The refreshed
+  CMAES cells are slow for the known lowering reason in *CMAES slow path*
+  below — not an environment artifact.
 - The harness mapping is fixed in `bench_common.py`
   (`etl_backend_spec("etl-xla-cuda")` now returns `("xla", "cuda:0")`), and
   `StdWorkflow._finish_init` now activates the workflow's backend adapter
@@ -78,8 +82,8 @@ last SO error cells — see *Caps & limits*).
 | torch-cpu | 1.538e-08 / 0.677 | 8.088 / 0.6997 | 20.01 / 0.7587 | 0.2588 / 0.5298 | 47.47 / 0.5681 | 20 / 0.6173 | 2.064e-07 / 59.09 | 26.12 / 123.1 | 0.003625 / 132.4 | 172.8 / 0.4103 | 252.1 / 0.4486 | 20.66 / 0.4905 |
 | torch-cuda | 9.313e-09 / 1.063 | 5.048 / 1.156 | 20 / 1.198 | 0.186 / 0.8846 | 56.9 / 0.9457 | 19.42 / 1.004 | 6.428e-08 / 58.55 | 5.055 / 119 | 0.007918 / 124.2 | 92.91 / 0.6223 | 201.4 / 0.6924 | 20.5 / 0.7366 |
 | etl-numpy | 3.054e-08 / 0.8298 | 5.52 / 0.9024 | 20 / 0.9534 | 0.6075 / 0.9725 | 56.38 / 1.038 | 18.95 / 1.083 | 9.772e-09 / 1.312 | 21.31 / 1.346 | 0.0006533 / 1.496 | 132.1 / 0.4907 | 221.2 / 0.5614 | 20.69 / 0.6164 |
-| etl-iree-llvm-cpu | 3.054e-08 / 1.304 | 5.52 / 2.301 | 20 / 2.708 | 0.6075 / 1.241 | 56.38 / 1.264 | 18.95 / 2.009 | 9.269e-09 / 30.03 | 7.57 / 29.03 | 0.003652 / 23.65 | 132.1 / 0.9726 | 221.2 / 1.011 | 20.69 / 0.8136 |
-| etl-iree-cuda | 3.054e-08 / 1.421 | 5.52 / 1.492 | 20 / 1.56 | 0.6075 / 1.13 | 56.38 / 1.287 | 18.95 / 1.244 | 9.582e-09 / 40.97 | 27.85 / 44.82 | 0.001409 / 41.06 | 132.1 / 1.457 | 221.2 / 1.152 | 20.69 / 1.253 |
+| etl-iree-llvm-cpu | 3.054e-08 / 0.5004 | 5.52 / 0.6652 | 20 / 0.8077 | 0.6075 / 0.4589 | 56.38 / 0.7068 | 18.95 / 0.5174 | 9.269e-09 / 21.98 | 7.57 / 24.76 | 0.003652 / 24.62 | 132.1 / 0.6767 | 221.2 / 0.6438 | 20.69 / 0.7569 |
+| etl-iree-cuda | 3.054e-08 / 0.7115 | 5.52 / 0.916 | 20 / 0.9245 | 0.6075 / 0.964 | 56.38 / 0.5291 | 18.95 / 0.5545 | 9.582e-09 / 41.91 | 27.85 / 46.5 | 0.001409 / 44.96 | 132.1 / 0.7364 | 221.2 / 0.7646 | 20.69 / 0.8201 |
 | etl-xla-cuda | 3.054e-08 / 5.366 | 5.52 / 5.112 | 20 / 5.081 | 0.6075 / 3.271 | 56.38 / 3.914 | 19.83 / 4.215 | 1.05e-08 / 9.937 | 27.28 / 9.167 | 0.0005455 / 9.522 | 132.1 / 4.78 | 221.2 / 4.817 | 20.69 / 4.705 |
 
 ### 1000 × 50
@@ -89,8 +93,8 @@ last SO error cells — see *Caps & limits*).
 | torch-cpu | 30.77 / 2.558 | 391.5 / 2.646 | 20 / 2.693 | 1.798e+04 / 2.223 | 2.244e+04 / 2.608 | 20.28 / 2.419 | 67.05 / 130.1 | 489.7 / 136.2 | 7.317 / 141.7 | 1814 / 0.8695 | 2271 / 0.9689 | 21.26 / 1.005 |
 | torch-cuda | 13.46 / 1.085 | 330.6 / 1.143 | 20.05 / 1.205 | 2.562e+04 / 0.9 | 2.749e+04 / 0.9707 | 20.26 / 1.028 | 68.77 / 120.3 | 530.2 / 124.2 | 20.63 / 125.9 | 1751 / 0.6802 | 2214 / 0.7842 | 21.21 / 0.8361 |
 | etl-numpy | 201.4@50g / 2.166 | 875.2@50g / 2.717 | 20.58@50g / 2.739 | 4.271e+04@50g / 1.913 | 4.2e+04@50g / 1.904 | 20.52@50g / 1.983 | 1.109e+04@50g / 3.402 | 1.163e+04@50g / 3.467 | 20.3@50g / 3.821 | 1.306e+04@50g / 0.9856 | 1.365e+04@50g / 1.111 | 21.24@50g / 1.202 |
-| etl-iree-llvm-cpu | 31.94 / 12.39 | 365.9 / 10.31 | 20.56 / 9.819 | 2.384e+04 / 9.794 | 2.792e+04 / 9.966 | 20.14 / 12.69 | 88.41 / 1537 | 522.8 / 1569 | 21.13 / 1550 | 1887 / 10.15 | 2370 / 10.53 | 21.24 / 11.98 |
-| etl-iree-cuda | 31.94 / 35.69 | 365.9 / 35.84 | 20.56 / 35.88 | 2.384e+04 / 35.7 | 2.792e+04 / 35.61 | 20.14 / 35.46 | 88.18 / 1346 | 527.9 / 1217 | 10.85 / 1299 | 1887 / 35.49 | 2370 / 35.2 | 21.24 / 35.59 |
+| etl-iree-llvm-cpu | 31.94 / 1.281 | 365.9 / 1.342 | 20.56 / 1.283 | 2.384e+04 / 1.059 | 2.792e+04 / 1.01 | 20.14 / 1.361 | 88.41 / 1257 | 522.8 / 1223 | 21.13 / 1324 | 1887 / 1.259 | 2370 / 1.484 | 21.24 / 1.541 |
+| etl-iree-cuda | 31.94 / 0.8862 | 365.9 / 0.8956 | 20.56 / 1.116 | 2.384e+04 / 0.811 | 2.792e+04 / 0.7118 | 20.14 / 0.5871 | 88.18 / 1481 | 527.9 / 1489 | 10.85 / 1537 | 1887 / 0.6327 | 2370 / 0.761 | 21.24 / 0.9365 |
 | etl-xla-cuda | 31.94 / 5.73 | 365.9 / 5.738 | 20.56 / 5.291 | 2.384e+04 / 4.36 | 2.792e+04 / 4.602 | 20.08 / 3.638 | 88.07 / 88.07 | 540.1 / 88.48 | 18.57 / 87.44 | 1887 / 3.71 | 2370 / 3.836 | 21.24 / 3.772 |
 
 ### 10000 × 100
@@ -100,8 +104,8 @@ last SO error cells — see *Caps & limits*).
 | torch-cpu | 2548 / 27.45 | 3846 / 36.21 | 20.08 / 26.65 | 9.718e+04 / 16.77 | 1.08e+05 / 20.08 | 20.61 / 17.7 | 294.1 / 158 | 1261 / 163.8 | 11.91 / 165 | 4219 / 8.587 | 5163 / 8.237 | 21.3 / 10.43 |
 | torch-cuda | 1893 / 1.085 | 3362 / 1.135 | 20.12 / 1.259 | 1.091e+05 / 0.8736 | 1.189e+05 / 1.01 | 20.67 / 1.002 | 218.2 / 122.8 | 1189 / 127.2 | 20.38 / 128.9 | 4068 / 0.6265 | 5095 / 0.7006 | 21.31 / 0.754 |
 | etl-numpy | 8.43e+04@10g / 73.99 | 8.52e+04@10g / 66.56 | 20.35@10g / 64.45 | 1.595e+05@10g / 42.13 | 1.555e+05@10g / 38.57 | 20.82@10g / 42.41 | 2.123e+05@10g / 53.57 | 2.133e+05@10g / 57.43 | 21.34@10g / 48.73 | 1.484e+05@10g / 26.79 | 1.492e+05@10g / 25.36 | 21.39@10g / 22.31 |
-| etl-iree-llvm-cpu | 2691 / 399.2 | 4119 / 561.4 | 20.02 / 707.3 | 1.048e+05 / 506 | 1.083e+05 / 554.4 | 20.56 / 585.5 | 350.6 / 2.19e+04 | 1325 / 2.191e+04 | 17.17 / 2.19e+04 | 4112 / 481.7 | 5110 / 443.2 | 21.32 / 479.9 |
-| etl-iree-cuda | 2691 / 3475 | 4119 / 3481 | 20.02 / 3478 | 1.048e+05 / 3481 | 1.083e+05 / 3483 | 20.56 / 3496 | 348.5 / 8751 | 1326 / 9553 | 20.59 / 9154 | 4112 / 3482 | 5110 / 3480 | 21.32 / 3504 |
+| etl-iree-llvm-cpu | 2691 / 15.39 | 4119 / 15.6 | 20.02 / 19.08 | 1.048e+05 / 15.49 | 1.083e+05 / 18.79 | 20.56 / 27.54 | 350.6 / 2.225e+04 | 1325 / 2.227e+04 | 17.17 / 2.23e+04 | 4112 / 18.74 | 5110 / 21.29 | 21.32 / 20.38 |
+| etl-iree-cuda | 2691 / 3.486 | 4119 / 3.531 | 20.02 / 3.531 | 1.048e+05 / 2.131 | 1.083e+05 / 1.778 | 20.56 / 1.762 | 348.5 / 6902 | 1326 / 7275 | 20.59 / 7400 | 4112 / 2.089 | 5110 / 2.23 | 21.32 / 2.139 |
 | etl-xla-cuda | 2691 / 17 | 4119 / 15.2 | 20.02 / 18.16 | 1.048e+05 / 11.18 | 1.083e+05 / 11.6 | 20.64 / 11.6 | 348.5 / 404.6 | 1323 / 399.3 | 14.62 / 397.2 | 4112 / 8.234 | 5110 / 9.325 | 21.32 / 9.34 |
 
 ### SO compile time and speedup
@@ -113,8 +117,8 @@ etl backend — no SO compile failures remain):
 |---|---|
 | torch-cpu / torch-cuda | 0.0 s (eager) |
 | etl-numpy | 0.044 – 0.382 s |
-| etl-iree-llvm-cpu | 0.904 – 3.00 s |
-| etl-iree-cuda | 1.209 – 20.575 s |
+| etl-iree-llvm-cpu | 0.881 – 2.945 s |
+| etl-iree-cuda | 0.851 – 2.797 s |
 | etl-xla-cuda | 0.411 – 4.392 s |
 
 ms/step ratio, case-matched, median (min – max); **>1 = faster than the baseline**:
@@ -123,18 +127,49 @@ ms/step ratio, case-matched, median (min – max); **>1 = faster than the baseli
 |---|---|---|
 | torch-cuda | 1.28× (0.60× – 31.9×) | — |
 | etl-numpy | 0.84× (0.32× – 91.4×) | — |
-| etl-iree-llvm-cpu | 0.14× (0.007× – 5.6×) | — |
-| etl-iree-cuda | 0.073× (0.002× – 3.2×) | 0.030× (0.0002× – 3.0×) |
+| etl-iree-llvm-cpu | 0.996× (0.0071× – 5.38×) | — |
+| etl-iree-cuda | 1.39× (0.022× – 11.3×) | 0.90× (0.017× – 2.76×) |
 | etl-xla-cuda | 0.51× (0.086× – 13.9×) | 0.21× (0.064× – 13×) |
 
-The large "etl wins" outliers (91×, 14×) are CMA-ES 100x10, where torch's
-CPU path is exceptionally slow (~59–132 ms/step vs 1.3–10 ms/step). The "torch
-wins" floor is now set by the re-run CMA-ES cells: large-scale CMA-ES on
-iree-llvm-cpu is ~1.5–2.2 s/step and on iree-cuda ~8.8–9.6 s/step (both
-slower than torch's 0.12–0.17 s/step CPU path), so the iree medians dropped
-vs the pre-fix run where those cells were error records. At 10000x100 torch
-still wins decisively on both CPU and GPU except xla-cuda's 15–17 ms/step
-PSO/DE/OpenES.
+The large "etl wins" outliers are CMA-ES 100x10 — torch's 100x10 CMA-ES CPU
+path is slow (~59–132 ms/step vs 1.3–1.5 on etl-numpy, 9.2–9.9 on xla-cuda,
+22–25 on iree-llvm-cpu, 42–47 on iree-cuda) — plus torch-cuda's 31.9×
+PSO/Rastrigin/10000x100 and iree-cuda's 11.3× DE/Rastrigin/10000x100. The
+"torch wins" floor is set by large-scale CMA-ES on iree: its per-step
+covariance `etl.eigh` lowers to an O(n^4) cyclic-Jacobi while-loop (see
+*CMAES slow path* below), so iree-llvm-cpu runs CMA-ES 10000x100 at
+22.2–22.3 s/step and iree-cuda at 6.9–7.4 s/step vs torch-cpu's 0.16 s/step.
+That floor drags the all-cell medians down (iree-cuda 1.39×, iree-llvm-cpu
+0.996× vs torch-cpu); excluding CMA-ES the medians rise to 2.74× (iree-cuda)
+and 1.07× (iree-llvm-cpu), max 11.3×. At 10000x100 iree-cuda beats torch-cpu
+on every non-CMA-ES cell (1.76–3.53 vs 8.2–36.2 ms/step, 3.7–11.3×);
+iree-llvm-cpu wins on PSO (1.4–2.3×) and DE/Sphere+Rastrigin (≈1.1×) but
+loses on DE/Ackley (0.64×) and OpenES (0.39–0.51×). torch-cuda remains the
+fastest GPU path at that scale (0.63–1.26 ms/step), with xla-cuda next at
+8.2–18.2 ms/step.
+
+## CMAES slow path (iree)
+
+All nine CMAES cells in each of `so_etl-iree-llvm-cpu.json` and
+`so_etl-iree-cuda.json` carry a record-level note: per-step covariance
+`etl.eigh` (pop_dim × pop_dim) lowers to an iree cyclic-Jacobi while-loop
+composition — stablehlo 1.0 / iree 3.11.0 ship no native `stablehlo.eigh`
+(only cholesky survives) — and that composition is O(n^4) in pop_dim. The
+cells ran healthy (no error records); the note documents the slowness and
+does not change their parity verdicts.
+
+Measured on healthy hardware with iree 3.11.0:
+
+- Standalone `etl.eigh` on iree-cuda: 39.0 / 1317 / 5778 ms at dims
+  10 / 50 / 100, while the no-eigh control runs at 0.087 ms/step. On
+  iree-llvm-cpu the dim-100 eigh takes 23676 ms (control 0.157 ms/step).
+- Real-harness iree-cuda (gens=10) matches the standalone cost: 39.5 /
+  1036.6 / 5779.3 ms/step at the same dims.
+- xla-cuda runs the same cases at 387.3 ms/step (native eigh) — 15–18×
+  faster.
+- Verdict: an iree lowering property — not an evox_etl graph defect, not a
+  host round-trip, and not a measurement artifact.
+- Upstream documentation: `/mnt/local-ssd/bchuang/etl/etl/backends/stablehlo/CONTEXT.md`.
 
 ## Multi-objective (MO) — NSGA2 / NSGA3 / MOEAD × DTLZ1 / DTLZ2
 
@@ -338,17 +373,18 @@ iree-llvm-cpu cell dies at runtime with the `ref is null` INVALID_ARGUMENT).
   NSGA3 path is python-loop-bound).
 - **etl-numpy MO is a full 100-gen matrix** (cap removed): 6.4–11.2 ms/step
   at 100x3x10, 232–693 ms/step at 1000x3x30.
-- **etl-iree-llvm-cpu 10000x100: 399–707 ms/step for PSO/DE/OpenES**, but
-  CMA-ES now dominates at 21.9 s/step (compile 0.90–3.00 s).
-- **etl-iree-cuda 10000x100: ~3.48–3.50 s/step** for PSO/DE/OpenES and
-  ~8.8–9.6 s/step for CMA-ES — the slowest non-interpreter backend at
-  scale.
+- **etl-iree-llvm-cpu 10000x100: 15.4–27.5 ms/step for PSO/DE/OpenES**, but
+  CMA-ES dominates at 22.25–22.30 s/step (compile 0.88–2.95 s).
+- **etl-iree-cuda 10000x100: 1.76–3.53 ms/step for PSO/DE/OpenES** (3.7–11.3×
+  faster than torch-cpu) and 6.90–7.40 s/step for CMA-ES — the O(n^4) iree
+  eigh lowering (see *CMAES slow path*).
 - **torch-cpu CMA-ES:** 59–132 ms/step at 100x10 → 130–165 ms/step at
   1000x50/10000x100 (real runs now — the pre-fix records were NaN-frozen).
 - **torch-cuda MO is bimodal:** NSGA2 4.3–7.6 ms/step (fast) vs NSGA3
   623–863 ms/step and MOEAD 273–3621 ms/step (python-loop/table bound).
 - **Compile cost:** etl-numpy 0.04–0.58 s (cheapest); xla 0.41–4.39 s;
-  iree-llvm 0.90–3.00 s; iree-cuda up to 20.6 s. torch pays nothing (eager).
+  iree-llvm-cpu 0.88–2.95 s; iree-cuda 0.85–2.80 s. torch pays nothing
+  (eager).
 
 ## Reproduction
 
