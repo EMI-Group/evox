@@ -466,7 +466,7 @@
     "metric": {
       "best_fitness": 9.269202294603929e-09
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.9550839650842422,
@@ -491,7 +491,7 @@
     "metric": {
       "best_fitness": 88.4118423461914
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.3186625704431941,
@@ -516,7 +516,7 @@
     "metric": {
       "best_fitness": 350.5571594238281
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.19214594857639053,
@@ -541,7 +541,7 @@
     "metric": {
       "best_fitness": 7.5704803466796875
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.7101632912486827,
@@ -566,7 +566,7 @@
     "metric": {
       "best_fitness": 522.8428344726562
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.06769288908703779,
@@ -591,7 +591,7 @@
     "metric": {
       "best_fitness": 1325.1055908203125
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.05058915756517026,
@@ -616,7 +616,7 @@
     "metric": {
       "best_fitness": 0.0036516189575195312
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.007366482504604052,
@@ -641,7 +641,7 @@
     "metric": {
       "best_fitness": 21.126934051513672
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 1.8873248174535566,
@@ -666,7 +666,7 @@
     "metric": {
       "best_fitness": 17.174118041992188
     },
-    "note": "compiled (iree)",
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
     "parity": {
       "vs": "torch-cpu",
       "rel_err": 0.44161363926917574,
