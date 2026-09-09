@@ -245,12 +245,13 @@ class NSGA3(Algorithm):
             rho = torch.where(_selected_ref, rho_level + 1, rho)
             rho = torch.where(rho_last == 0, upper_bound, rho)
             selected_num = selected_num + torch.sum(_selected_ref, dtype=torch.int32)
-            return LoopState(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
+            return LoopState(rank, selected_num, ref_cand_idx, rho_last, rho, _selected_ref, candi_idx)
 
         loop_state = LoopState(rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx)
 
         loop_state = torch.while_loop(cond_func, body_func, loop_state)
-        (rank, selected_num, _, _, _, _selected_ref, candi_idx) = loop_state
+        (rank, selected_num, _, _, _, selected_ref, candi_idx) = loop_state
+        _selected_ref = selected_ref
 
         # truncate to pop_size
         dif = selected_num - self.pop_size
