@@ -4,7 +4,7 @@
 Integration tests for neuroevolution problems under `evox.problems.neuroevolution`. These tests exercise full neuroevolution pipelines (problem construction, forward/evaluate with LoRA-perturbed populations, fitness correctness) using lightweight inline MLP fixtures and deterministic `DataLoader`s.
 
 ## API Surface
-- `test_virtual_lora_problem.py` — Tests for `VirtualLoRAProblem` (shape, sigma=0 center-loss correctness, determinism, seed-dependence, multi-layer forward, 1D/2D perturbation).
+- `test_virtual_lora_problem.py` — Skipped tests for `VirtualLoRAProblem` (shape, sigma=0 center-loss correctness, determinism, seed-dependence, multi-layer forward, 1D/2D perturbation); revive when the VirtualProblem/VirtualLoRA feature matures.
 
 ## Conventions
 - Uses `unittest.TestCase`.
