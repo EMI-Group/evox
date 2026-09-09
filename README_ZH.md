@@ -44,6 +44,7 @@
 ---
 
 ## 🔥 新闻
+- [2026-09-09] 发布 **EvoX 1.4.0** - 🚀 维护版本更新，包含多项修复与改进！ [[发布说明](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
 - [2025-05-13] 发布 **EvoX 1.2.2** - 🚀 EvoX v1.2.2 发布，新增 Mujoco Playground 及官方教程！ [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
 - [2025-02-03] 发布 **EvoRL**：基于 **JAX** 的 GPU 加速 **进化强化学习** 框架！[[论文](https://arxiv.org/abs/2501.15129)] [[代码](https://github.com/EMI-Group/evorl)]
 - [2025-01-30] 发布 **EvoGP**：基于 **PyTorch** & **CUDA** 的 GPU 加速 **遗传编程** 框架！[[论文](http://arxiv.org/abs/2501.17168)] [[代码](https://github.com/EMI-Group/evogp)]

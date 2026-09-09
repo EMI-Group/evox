@@ -44,6 +44,8 @@
 
 ---
 
+## 🔥 News
+- [2026-09-09] Released **EvoX 1.4.0** - 🚀 A maintenance release with various fixes and improvements! [[Release Notes](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
 
 ## Table of Contents
 
