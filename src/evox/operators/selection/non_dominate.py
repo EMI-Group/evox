@@ -104,6 +104,42 @@ def _vmap_iterative_get_ranks_compile(
     return rank
 
 
+def _pure_masked_iterative_get_ranks_compile(
+    dominate_relation_matrix: torch.Tensor,
+    dominate_count: torch.Tensor,
+    rank: torch.Tensor,
+    pareto_front: torch.Tensor,
+) -> torch.Tensor:
+    """Pure masked (fixed-rounds, no while_loop) non-dominated ranking.
+
+    Identical to the hybrid variant's fixed-rounds block, but with **no
+    while_loop remainder**: CUDA Graph capturable (zero host readback, zero
+    data-dependent control flow). This is what unlocks capturing the whole
+    outer step in a CUDA graph (direction 4): replay measured ~4.2x over the
+    D1+D2+D3 combination on MAF7 m=3 100-instance runs.
+
+    WARNING — correctness bound: ranks saturate after ``rounds`` fronts.
+    If the true front depth exceeds ``rounds``, deeper individuals keep
+    their last computed rank instead of the true one, **silently**. Only
+    use when rounds >= the maximum expected front depth (for population
+    size n the mathematical upper bound is rounds >= n, which is always
+    correct; workloads typically need ~n/10). The hybrid variant
+    (EOXV_NONDOM_MASKED=1 without PURE) is safe for any depth and should
+    remain the default choice.
+    """
+    rank = rank.expand_as(dominate_count).contiguous()  # contiguous to unify carry stride (same as stock version)
+    pf = pareto_front
+    dc = dominate_count
+    zeros = torch.zeros_like(pf)
+    for cr in range(_MASKED_ROUNDS or 0):
+        rank = torch.where(pf, torch.full_like(rank, cr), rank)
+        count_desc = torch.sum(pf.unsqueeze(-1) * dominate_relation_matrix, dim=-2)
+        dc = dc - count_desc - pf.to(dc.dtype)
+        new_pf = dc == 0
+        pf = torch.where(pf.any(dim=-1, keepdim=True), new_pf, zeros)
+    return rank
+
+
 def _masked_iterative_get_ranks_compile(
     dominate_relation_matrix: torch.Tensor,
     dominate_count: torch.Tensor,
@@ -157,6 +193,7 @@ def _masked_iterative_get_ranks_compile(
 # evox.core.compile is not necessary since no indexing here
 _vmap_iterative_get_ranks_compile = torch.compile(_vmap_iterative_get_ranks_compile, fullgraph=True)
 _masked_iterative_get_ranks_compile = torch.compile(_masked_iterative_get_ranks_compile, fullgraph=True)
+_pure_masked_iterative_get_ranks_compile = torch.compile(_pure_masked_iterative_get_ranks_compile, fullgraph=True)
 
 # Env switch: EOXV_NONDOM_MASKED=1 opts into the fixed-round masked variant
 # (semantically equivalent, but pays the fixed round count vs the actual front
@@ -167,7 +204,27 @@ _rounds_env = os.environ.get("EOXV_NONDOM_ROUNDS")
 # Clamp negatives: a negative cr seed would silently shift all ranks (front 0
 # gets rank == cr instead of 0), and callers selecting rank == 0 would get an
 # empty set with no error. 0 rounds = pure while_loop (masked switch still on).
-_MASKED_ROUNDS = max(0, int(_rounds_env)) if _rounds_env else None
+# Raise a clear error on non-integer values (e.g. "9.5") at import time.
+try:
+    _MASKED_ROUNDS = max(0, int(_rounds_env)) if _rounds_env else None
+except ValueError as e:
+    raise ValueError(
+        f"EOXV_NONDOM_ROUNDS must be a non-negative integer, got {_rounds_env!r}"
+    ) from e
+# EOXV_NONDOM_PURE=1: drop the while_loop remainder entirely (CUDA Graph
+# capturable, direction 4). UNSAFE if front depth > EOXV_NONDOM_ROUNDS —
+# ranks saturate silently. See _pure_masked_iterative_get_ranks_compile.
+_USE_PURE_MASKED_RANKS = _USE_MASKED_RANKS and os.environ.get("EOXV_NONDOM_PURE", "0") == "1"
+if _USE_PURE_MASKED_RANKS and not _MASKED_ROUNDS:
+    # With rounds unset (None) or 0, the pure variant degenerates to
+    # `return rank.contiguous()` — an identity. That (a) silently reports
+    # all-zero ranks (every point on "front 0") and (b) trips custom-op
+    # aliasing checks at runtime. Fail loudly at import instead.
+    raise ValueError(
+        "EOXV_NONDOM_PURE=1 requires EOXV_NONDOM_ROUNDS >= 1 "
+        "(the pure variant runs exactly that many fixed rounds; without it "
+        "the rank output degenerates to all-zero silently)"
+    )
 
 
 def _vmap_iterative_get_ranks(
@@ -180,9 +237,14 @@ def _vmap_iterative_get_ranks(
     current_rank = 0
     if compiling:
         if _USE_MASKED_RANKS:
-            rank = _masked_iterative_get_ranks_compile(
-                dominate_relation_matrix, dominate_count, rank, pareto_front
-            )
+            if _USE_PURE_MASKED_RANKS:
+                rank = _pure_masked_iterative_get_ranks_compile(
+                    dominate_relation_matrix, dominate_count, rank, pareto_front
+                )
+            else:
+                rank = _masked_iterative_get_ranks_compile(
+                    dominate_relation_matrix, dominate_count, rank, pareto_front
+                )
         else:
             rank = _vmap_iterative_get_ranks_compile(
                 dominate_relation_matrix, dominate_count, rank, pareto_front
@@ -234,7 +296,12 @@ def _iterative_get_ranks(
     compiling: bool,
 ) -> torch.Tensor:
     if compiling:
-        rank = _iterative_get_ranks_compile(dominate_relation_matrix, dominate_count, rank, pareto_front)
+        if _USE_MASKED_RANKS and _USE_PURE_MASKED_RANKS:
+            rank = _pure_masked_iterative_get_ranks_compile(
+                dominate_relation_matrix, dominate_count, rank, pareto_front
+            )
+        else:
+            rank = _iterative_get_ranks_compile(dominate_relation_matrix, dominate_count, rank, pareto_front)
     else:
         current_rank = 0
         while pareto_front.any():

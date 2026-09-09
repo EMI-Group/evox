@@ -1,6 +1,7 @@
 __all__ = ["StdWorkflow"]
 
 
+import os
 from typing import Any
 
 import torch
@@ -11,6 +12,56 @@ from evox.core import Algorithm, Monitor, Problem, Workflow
 class _NegModule(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return -x
+
+
+# Cache dynamically created _SubAlgorithm classes by base class (R1 recompile
+# fix). Stock StdWorkflow builds a NEW local class per instance; when a workflow
+# dies the class is deallocated and Dynamo invalidates every cache line guarded
+# on its type ("Cache line invalidated because type(...) got deallocated"),
+# forcing a full ~23 s re-trace for the next workflow — the dominant cost of
+# batch (multi-seed) experiments. Reusing one class per base type keeps the
+# guards stable. The cached class closes over no instance state (it only
+# copies __dict__ in __init__ and calls self._evaluate), so reuse is safe and
+# does not leak instances. EOXV_STABLE_SUBCLASS=1 enables; default off.
+_subclass_cache: dict = {}
+_STABLE_SUBCLASS = os.environ.get("EOXV_STABLE_SUBCLASS", "0") == "1"
+
+
+def _make_sub_algorithm(base: type, outer: "StdWorkflow", src_algorithm) -> type:
+    if not _STABLE_SUBCLASS:
+        # stock path: exact original behavior (closure holds a strong ref)
+        class _SubAlgorithm(base):
+            def __init__(self_algo, wf: "StdWorkflow", src):
+                super(Algorithm, self_algo).__init__()
+                self_algo.__dict__.update(src.__dict__)
+
+            def evaluate(self_algo, pop: torch.Tensor) -> torch.Tensor:
+                return outer._evaluate(pop)
+
+        return _SubAlgorithm
+
+    cls = _subclass_cache.get(base)
+    if cls is None:
+        # cached path: the class must not close over any workflow instance —
+        # it lives for the whole process, so capturing `outer` would leak
+        # every workflow that ever used it. The owning workflow is reached
+        # via a per-instance weakref set in __init__ (plain attribute,
+        # invisible to nn.Module state traversal).
+        import weakref as _weakref
+
+        class _SubAlgorithm(base):
+            def __init__(self_algo, wf: "StdWorkflow", src):
+                super(Algorithm, self_algo).__init__()
+                self_algo.__dict__.update(src.__dict__)
+                self_algo.__outer_wf__ = _weakref.ref(wf)
+
+            def evaluate(self_algo, pop: torch.Tensor) -> torch.Tensor:
+                wf = self_algo.__outer_wf__()
+                return wf._evaluate(pop)
+
+        cls = _SubAlgorithm
+        _subclass_cache[base] = cls
+    return cls
 
 
 class StdWorkflow(Workflow):
@@ -113,16 +164,8 @@ class StdWorkflow(Workflow):
         self._has_init_ = type(algorithm).init_step != Algorithm.init_step
         self._has_final_ = type(algorithm).final_step != Algorithm.final_step
 
-        class _SubAlgorithm(type(algorithm)):
-            def __init__(self_algo):
-                super(Algorithm, self_algo).__init__()
-                self_algo.__dict__.update(algorithm.__dict__)
-
-            def evaluate(self_algo, pop: torch.Tensor) -> torch.Tensor:
-                return self._evaluate(pop)
-
         # set submodules
-        self.algorithm = _SubAlgorithm()
+        self.algorithm = _make_sub_algorithm(type(algorithm), self, algorithm)(self, algorithm)
         self.monitor = monitor
         self.problem = problem
         self.solution_transform = solution_transform
