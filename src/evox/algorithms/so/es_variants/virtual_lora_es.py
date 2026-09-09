@@ -77,9 +77,7 @@ class VirtualLoRAES(Algorithm):
         )
         # setup
         self.center = Mutable(center_init)
-        self.seeds = Mutable(
-            torch.randint(0, 2**31, (pop_size,), device=device, dtype=torch.int64)
-        )
+        self.seeds = Mutable(torch.randint(0, 2**31, (pop_size,), device=device, dtype=torch.int64))
         # TODO: use submodule instead of string for optimizer in the future
         if optimizer == "adam":
             self.exp_avg = Mutable(torch.zeros_like(self.center))
