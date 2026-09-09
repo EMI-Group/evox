@@ -32,5 +32,20 @@ __all__ = [
 ]
 
 from .de_variants import DE, ODE, SHADE, CoDE, JaDE, SaDE
-from .es_variants import ARS, ASEBO, CMAES, DES, ESMC, SNES, VirtualES, VirtualLoRAES, XNES, GuidedES, NoiseReuseES, OpenES, PersistentES, SeparableNES
+from .es_variants import (
+    ARS,
+    ASEBO,
+    CMAES,
+    DES,
+    ESMC,
+    SNES,
+    XNES,
+    GuidedES,
+    NoiseReuseES,
+    OpenES,
+    PersistentES,
+    SeparableNES,
+    VirtualES,
+    VirtualLoRAES,
+)
 from .pso_variants import CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS

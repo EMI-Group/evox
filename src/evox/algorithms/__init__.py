@@ -56,8 +56,6 @@ from .so import (
     SLPSOGS,
     SLPSOUS,
     SNES,
-    VirtualES,
-    VirtualLoRAES,
     XNES,
     CoDE,
     GuidedES,
@@ -67,4 +65,6 @@ from .so import (
     PersistentES,
     SaDE,
     SeparableNES,
+    VirtualES,
+    VirtualLoRAES,
 )
