@@ -8,7 +8,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework built o
 - **All-in-one**: Single- and multi-objective optimization, meta-learning, hyperparameter optimization (HPO), and neuroevolution.
 - **Easy-to-use**: PyTorch-native, hierarchical component model (`Algorithm` → `Problem` → `Workflow`), one-click install.
 
-**Project metadata:** GPL-3.0-or-later, Python ≥3.10, PyTorch ≥2.6.0. Version 1.3.0 (current `pyproject.toml`).
+**Project metadata:** GPL-3.0-or-later, Python ≥3.10, PyTorch ≥2.6.0. Version 1.4.0 (current `pyproject.toml`).
 
 ## Repository Structure
 
@@ -83,7 +83,7 @@ Triton provides hand-written GPU kernels for performance-critical operations. Th
 
 ## Release Process
 
-Version is single-sourced in `pyproject.toml` under `[project] version` (currently 1.3.0); there is no `__version__` defined in the package code.
+Version is single-sourced in `pyproject.toml` under `[project] version` (currently 1.4.0); there is no `__version__` defined in the package code.
 A release consists of: a commit bumping the version (message style `Bump version to vX.Y.Z`), a git tag `vX.Y.Z` on that commit, and a published GitHub Release.
 `.github/workflows/python-publish.yml` triggers on the GitHub `release` (published) event, builds with `python -m build`, and publishes to PyPI via trusted publishing (OIDC, no repo token).
 Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing/mismatched entry there.
