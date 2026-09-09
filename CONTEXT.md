@@ -80,3 +80,15 @@ Triton provides hand-written GPU kernels for performance-critical operations. Th
 - **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
 - **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
 - **Bilingual docs**: Documentation supports English and Simplified Chinese via ReadTheDocs language switching.
+
+## Release Process
+
+Version is single-sourced in `pyproject.toml` under `[project] version` (currently 1.3.0); there is no `__version__` defined in the package code.
+A release consists of: a commit bumping the version (message style `Bump version to vX.Y.Z`), a git tag `vX.Y.Z` on that commit, and a published GitHub Release.
+`.github/workflows/python-publish.yml` triggers on the GitHub `release` (published) event, builds with `python -m build`, and publishes to PyPI via trusted publishing (OIDC, no repo token).
+Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing/mismatched entry there.
+Past release bumps also update the news entries in `README.md` and `README_ZH.md` (which link to an announcement post on evox.group) and the version mention in this file's project metadata above.
+
+## Known Issues
+
+`docs/source/tutorial/tutorial_part2.md` references `evox.__version__`, but the attribute is not defined anywhere in `src/evox/` — it raises AttributeError at runtime (doc bug only).
