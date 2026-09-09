@@ -305,7 +305,7 @@ class EvalMonitor(Monitor):
 
     def get_pf_solutions(self, deduplicate=True) -> torch.Tensor:
         """Get the approximate pareto front solutions of all the solutions evaluated so far.
-        Requires enabling both `full_sol_history` and `full_sol_history`.
+        Requires enabling both `full_sol_history` and `full_fit_history`.
         If `deduplicate` is set to True, the duplicated solutions will be removed."""
         if not self.multi_obj:
             raise ValueError("get_pf_solutions is only available for multi-objective optimization.")
@@ -314,12 +314,12 @@ class EvalMonitor(Monitor):
 
     def get_pf(self, deduplicate=True) -> Tuple[torch.Tensor, torch.Tensor]:
         """Get the approximate pareto front solutions and fitness values of all the solutions evaluated so far.
-        Requires enabling both `full_sol_history` and `full_sol_history`.
+        Requires enabling both `full_sol_history` and `full_fit_history`.
         If `deduplicate` is set to True, the duplicated solutions will be removed."""
         if not self.multi_obj:
             raise ValueError("get_pf is only available for multi-objective optimization.")
         if not self.full_fit_history or not self.full_sol_history:
-            warnings.warn("`get_pf` requires enabling both `full_sol_history` and `full_sol_history`.")
+            warnings.warn("`get_pf` requires enabling both `full_sol_history` and `full_fit_history`.")
         all_solutions = self.get_solution_history()
         all_solutions = torch.cat(all_solutions, dim=0)
         all_fitness = self.fitness_history
