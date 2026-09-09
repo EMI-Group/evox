@@ -13,5 +13,6 @@ Integration tests for neuroevolution problems under `evox.problems.neuroevolutio
 - Tests run with `PYTHONPATH=./src` to override the venv's stale editable install.
 
 ## Constraints
+- `TestVirtualLoRAProblem` is class-level `@unittest.skip`ped because the tests target the superseded legacy LoRA API (`lora_rank`), which the current experimental `VirtualLoRAProblem = VirtualProblem` alias no longer exposes.
 - No external dataset/model downloads in these tests — fixtures are synthetic tensors.
 - Determinism tests account for the problem's internal `data_loader_iter` advancing between `evaluate` calls (use `n_batch_per_eval=-1` to iterate the full dataset each call).
