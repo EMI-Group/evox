@@ -138,76 +138,86 @@ class RVEAa(Algorithm):
         pop = self.pop[sorted_indices[mating_pool]]
         return pop
 
-    def _rv_regeneration(self, pop_obj: torch.Tensor, v: torch.Tensor):
+    def _rv_regeneration(
+        self, pop_obj: torch.Tensor, v: torch.Tensor, rank: torch.Tensor
+    ):
+        """Reference-vector regeneration, compile-safe rewrite (no dynamic shapes).
+
+        Semantics identical to the original: aux reference vectors with no
+        associated non-dominated solution are replaced by random vectors scaled
+        to the ND-front extent; the rest are kept. All fixed-shape ops
+        (``torch.where`` / one-hot scatter), boolean/advanced indexing removed —
+        mirrors the verified vmap-safe rewrite in MetaRVEA's InnerRVEAa.
+        ``rank`` is passed in (computed once in ``_update_pop_and_rv``) instead
+        of being recomputed on a variable-length subset here.
+        """
         valid_mask = ~torch.isnan(pop_obj).all(dim=1)
-        valid_obj = pop_obj[valid_mask]
+        nd_mask = (rank == 0) & valid_mask
+        nd_obj = torch.where(nd_mask.unsqueeze(1), pop_obj, torch.nan)
 
-        if valid_obj.size(0) == 0:
-            return v.clone()
+        min_vals = nanmin(nd_obj, dim=0).values
+        max_vals = nanmax(nd_obj, dim=0).values
+        nd_shifted = nd_obj - min_vals
 
-        rank = non_dominate_rank(valid_obj)
-        pop_obj = valid_obj[rank == 0]
-
-        if pop_obj.size(0) == 0:
-            return v.clone()
-
-        pop_obj = pop_obj - nanmin(pop_obj, dim=0).values
-        cosine = F.cosine_similarity(pop_obj.unsqueeze(1), v.unsqueeze(0), dim=-1)
-
-        mask = torch.isnan(cosine)
-        input_tensor = torch.where(mask, -torch.inf, cosine)
-        associate = input_tensor.max(dim=1, keepdim=False).indices
-        associate = torch.where(input_tensor[:, 0] == -torch.inf, -1, associate)
-
-        invalid = torch.sum(
-            associate.unsqueeze(1) == torch.arange(v.size(0), device=pop_obj.device),
-            dim=0,
+        cosine = F.cosine_similarity(
+            nd_shifted.unsqueeze(1), v.unsqueeze(0), dim=-1
         )
-        rand = torch.rand((v.size(0), v.size(1)), device=pop_obj.device) * nanmax(pop_obj, dim=0).values
-        new_v = torch.where((invalid == 0).unsqueeze(1), rand, v)
+        cosine = torch.where(torch.isnan(cosine), -torch.inf, cosine)
+        associate = cosine.max(dim=1).indices
 
-        return new_v
+        assoc_onehot = (
+            associate.unsqueeze(1)
+            == torch.arange(v.size(0), device=pop_obj.device).unsqueeze(0)
+        ).float()
+        assoc_onehot = assoc_onehot * nd_mask.float().unsqueeze(1)
+        counts = assoc_onehot.sum(dim=0)
 
-    def _batch_truncation(self, pop: torch.Tensor, obj: torch.Tensor):
+        scale = (max_vals - min_vals).clamp(min=1e-6).unsqueeze(0)
+        rand = torch.rand_like(v) * scale
+        return torch.where((counts == 0).unsqueeze(1), rand, v)
+
+    def _batch_truncation(
+        self,
+        pop: torch.Tensor,
+        obj: torch.Tensor,
+        rank: torch.Tensor,
+    ):
+        """Final-generation ND truncation, compile-safe rewrite.
+
+        Semantics identical to the original: keep only rank-0 (non-dominated)
+        rows and NaN-pad the rest. Implemented with fixed-shape ops instead of
+        boolean indexing, mirroring InnerRVEAa's verified rewrite. ``rank`` is
+        passed in (computed once in ``_update_pop_and_rv``).
+        """
         valid_mask = ~torch.isnan(obj).all(dim=1)
-        valid_pop = pop[valid_mask]
-        valid_obj = obj[valid_mask]
-
-        if valid_obj.size(0) == 0:
-            new_pop = torch.full_like(pop, torch.nan)
-            new_obj = torch.full_like(obj, torch.nan)
-            return new_pop, new_obj
-
-        rank = non_dominate_rank(valid_obj)
-        nd_mask = rank == 0
-
-        nd_pop = valid_pop[nd_mask]
-        nd_obj = valid_obj[nd_mask]
-
-        new_pop = torch.full_like(pop, torch.nan)
-        new_obj = torch.full_like(obj, torch.nan)
-
-        keep_n = min(nd_pop.size(0), pop.size(0))
-        new_pop[:keep_n] = nd_pop[:keep_n]
-        new_obj[:keep_n] = nd_obj[:keep_n]
-
+        nd_mask = (rank == 0) & valid_mask
+        new_pop = torch.where(nd_mask.unsqueeze(1), pop, torch.nan)
+        new_obj = torch.where(nd_mask.unsqueeze(1), obj, torch.nan)
         return new_pop, new_obj
 
     def _no_batch_truncation(self, pop: torch.Tensor, obj: torch.Tensor):
         return pop.clone(), obj.clone()
 
     def _update_pop_and_rv(self, survivor: torch.Tensor, survivor_fit: torch.Tensor):
-        v_regen = self._rv_regeneration(survivor_fit, self.reference_vector[self.pop_size :])
+        v_aux = self.reference_vector[self.pop_size :]
+        # rank 计算一次复用：原实现 _rv_regeneration/_batch_truncation 各自对
+        # 同一输入重算（valid 行 NaN→inf 逐元素映射，两者逐位等价）
+        obj_safe = torch.where(torch.isnan(survivor_fit), torch.inf, survivor_fit)
+        rank = non_dominate_rank(obj_safe)
+        v_regen = self._rv_regeneration(survivor_fit, v_aux, rank)
 
-        if (self.gen % self.rv_adapt_every) == 0:
-            v_adapt = self._rv_adaptation(survivor_fit)
-        else:
-            v_adapt = self._no_rv_adaptation(survivor_fit)
+        # torch.where 替代 Python if（数据依赖分支在 fullgraph 下 graph-break）
+        do_adapt = (self.gen % self.rv_adapt_every) == 0
+        v_adapt_on = self._rv_adaptation(survivor_fit)
+        v_adapt_off = self._no_rv_adaptation(survivor_fit)
+        v_adapt = torch.where(do_adapt, v_adapt_on, v_adapt_off)
 
-        if self.gen == self.max_gen:
-            self.pop, self.fit = self._batch_truncation(survivor, survivor_fit)
-        else:
-            self.pop, self.fit = self._no_batch_truncation(survivor, survivor_fit)
+        # 两分支都算 + where 选择；末代 ND 截断与非末代直通
+        trunc_pop, trunc_obj = self._batch_truncation(survivor, survivor_fit, rank)
+        no_pop, no_obj = self._no_batch_truncation(survivor, survivor_fit)
+        is_final = self.gen == self.max_gen
+        self.pop = torch.where(is_final, trunc_pop, no_pop)
+        self.fit = torch.where(is_final, trunc_obj, no_obj)
 
         self.reference_vector = torch.cat([v_adapt, v_regen], dim=0)
 
