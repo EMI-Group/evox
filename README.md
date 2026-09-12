@@ -59,7 +59,7 @@
 
 ## Overview
 
-EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch**.  With a user-friendly programming model, it offers a comprehensive suite of **50+ Evolutionary Algorithms (EAs)** and a wide range of **100+ Benchmark Problems/Environments**. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/index.html) / [文档](https://evox.readthedocs.io/zh_CN/latest/index.html).
+EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch**.  With a user-friendly programming model, it offers a comprehensive suite of **140+ Evolutionary Algorithms (EAs)** and **240+ Benchmark Problems/Environments** across the EvoX ecosystem — **30+ algorithms** and **30+ benchmark problems/environments** built into this package, plus its sister libraries. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/index.html) / [文档](https://evox.readthedocs.io/zh_CN/latest/index.html).
 
 > [!NOTE]
 > Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
@@ -74,7 +74,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 - Integrates **distributed workflows** that scale seamlessly across multiple nodes or devices.
 
 #### 🌐 All-in-One Solution
-- Includes **50+ algorithms** for a wide range of use cases, fully supporting **single- and multi-objective optimization**.
+- Includes **30+ algorithms** for a wide range of use cases, fully supporting **single- and multi-objective optimization**, with **140+ algorithms** available across the EvoX ecosystem.
 - Provides a **hierarchical architecture** for complex tasks such as **meta learning**, **hyperparameter optimization**, and **neuroevolution**.
 
 #### 🛠️ Easy-to-Use Design
@@ -85,7 +85,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework compati
 ### 📊 Versatile Benchmarking
 
 #### 📚 Extensive Benchmark Suites
-- Features **100+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges.
+- Features **30+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges, with **240+ benchmark problems/environments** across the EvoX ecosystem.
 
 #### 🎮 Support for Physics Engines
 - Integrates seamlessly with physics engines like **Brax** and other popular frameworks for reinforcement learning.
@@ -332,6 +332,8 @@ monitor.plot() # or monitor.plot().show() if you are using headless mode
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
 - **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).
+
+Together with EvoX, these projects form an ecosystem providing **140+ algorithms** and **240+ benchmark problems/environments**.
 
 Stay tuned - more exciting developments are on the way!  ✨
 
