@@ -37,7 +37,7 @@ algorithms/
 | Area | Path | Description |
 |---|---|---|
 | SO — DE variants | `so/de_variants/` | DE, SHADE, CoDE, SaDE, ODE, JaDE |
-| SO — ES variants | `so/es_variants/` | OpenES, XNES, SeparableNES, DES, SNES, ARS, ASEBO, PersistentES, NoiseReuseES, GuidedES, ESMC, CMAES |
+| SO — ES variants | `so/es_variants/` | OpenES, XNES, SeparableNES, DES, SNES, ARS, ASEBO, PersistentES, NoiseReuseES, GuidedES, ESMC, CMAES, VirtualES, VirtualLoRAES (alias — see note) |
 | SO — PSO variants | `so/pso_variants/` | CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS |
 | MO — all algorithms | `mo/` | RVEA, RVEAa, MOEAD, NSGA2, NSGA3, HypE |
 
