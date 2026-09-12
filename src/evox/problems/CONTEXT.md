@@ -22,7 +22,9 @@ Excluded from the count: `ShiftAffineNumericalProblem` and `DTLZ` (abstract base
 Alias (not counted separately): `VirtualLoRAProblem = VirtualProblem` in `neuroevolution/virtual_problem.py`, re-exported by `neuroevolution/__init__.py`.
 `BraxProblem` / `MujocoProblem` are single wrapper classes over the external Brax and MuJoCo-Playground registries (which list dozens of environments); the environments are not shipped in `src/`, so they count as 1 class each here.
 Reproduce: `rg -n "^class " src/evox/problems` (29 class definitions total, of which the 22 above are user-facing Problem classes).
-The README / README_ZH "100+ Benchmark Problems/Environments" claim is NOT supported by this node alone — it must rely on externally installed extension suites (ZDT / MaF / LSMOP / EvoXBench are absent from `src/`) and/or on counting each (problem × objective-count × dimension) configuration and each Brax/MuJoCo environment separately.
+The published claims are **30+** benchmark problems/environments built into EvoX and **240+** across the EvoX ecosystem (README.md, README_ZH.md, and the docs site).
+This node contributes the 22 user-facing Problem classes (≈33 distinct benchmark functions) inventoried above.
+The remaining numerical suites (ZDT / MaF / LSMOP) and EvoXBench live in sibling EMI-Group libraries (e.g. EvoMO), not in `src/`.
 
 ## Constraints
 - All problem classes MUST inherit from `evox.core.Problem` and implement `evaluate(self, pop: torch.Tensor) -> torch.Tensor`.
