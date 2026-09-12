@@ -66,6 +66,12 @@ Three scripts at `docs/` (one level up from this directory) manage the `.po` fil
 - **The `.po` file is tracked in git** and is maintained as part of the documentation source (not a build artifact)
 - **Translation is also managed via Weblate** — the `Language-Team` header in `docs.po` references `https://hosted.weblate.org/projects/evox/evox/zh_Hans/`
 
+## Notes for Agents
+
+- The `tutorial/tutorial_part*.md` files use **CRLF** line endings (`index.md` is LF).
+  When `rg`/`grep` matches a line in a CRLF file, the printed line keeps a trailing `\r`, which can make it render blank or be dropped from terminal output — it then looks like the pattern is absent even though it matched.
+  Pipe search output through `tr -d '\r'` (or use `rg -a`) when searching these files.
+
 ## Routing Table
 
 This is a leaf node with no further subdirectories requiring context extraction.
