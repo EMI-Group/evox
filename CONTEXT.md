@@ -1,7 +1,7 @@
 # EvoX — Distributed GPU-accelerated Evolutionary Computation Framework
 
 ## Intent
-EvoX is a distributed GPU-accelerated evolutionary computation framework built on top of PyTorch. It provides a comprehensive suite of 50+ evolutionary algorithms and 100+ benchmark problems/environments, with a programming model designed for scalability across CPUs and GPUs.
+EvoX is a distributed GPU-accelerated evolutionary computation framework built on top of PyTorch. It ships 33 algorithm classes (32 distinct exported classes — `VirtualLoRAES` is an alias of `VirtualES`) and 22 user-facing `Problem` classes (~33 distinct benchmark functions/instances), with a programming model designed for scalability across CPUs and GPUs.
 
 **Core goals:**
 - **High performance**: GPU acceleration via PyTorch tensorization, `torch.compile`, and `vmap` vectorization, achieving 100x+ speedups over CPU baselines.
@@ -35,7 +35,7 @@ evox/
 |---|---|---|
 | **Main package** | `src/evox/` | Core framework: algorithms, problems, operators, workflows, metrics, utils, visualization |
 | Core abstractions | `src/evox/core/` | `ModuleBase`, `Parameter`, `Mutable`, `compile`, `vmap`, `use_state` + component ABCs (`Algorithm`, `Problem`, `Workflow`, `Agent`, `Monitor`) |
-| Algorithms | `src/evox/algorithms/` | 50+ EA implementations: SO (DE/ES/PSO families) + MO (NSGA2, NSGA3, RVEA, MOEAD, HypE, RVEAa) |
+| Algorithms | `src/evox/algorithms/` | 33 EA classes (32 distinct — `VirtualLoRAES` aliases `VirtualES`): SO 27 (DE 6, ES 14, PSO 7) + MO 6 (NSGA2, NSGA3, RVEA, MoEAD, HypE, RVEAa) |
 | Problems | `src/evox/problems/` | Benchmark problems: numerical (CEC2022, DTLZ, basic), neuroevolution (Brax, MuJoCo, supervised learning), HPO wrapper |
 | Operators | `src/evox/operators/` | Genetic operators: selection, crossover, mutation, sampling (pure stateless tensor functions) |
 | Workflows | `src/evox/workflows/` | `StdWorkflow` (standard optimization loop) + `EvalMonitor` (fitness/elite tracking) |
@@ -80,7 +80,7 @@ Triton provides hand-written GPU kernels for performance-critical operations. Th
 - **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
 - **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
 - **Bilingual docs**: Documentation supports English and Simplified Chinese via ReadTheDocs language switching.
-- **Count claims kept in sync**: The "50+ algorithms" / "100+ benchmark problems" counts are stated in this file, `README.md`, and `README_ZH.md` (EN + ZH); any change must be applied to all three.
+- **Count claims kept in sync**: The ecosystem "140+ algorithms" / "240+ benchmark problems" counts and the built-in "30+ algorithms" / "30+ benchmark problems" counts are stated in this file, `README.md`, and `README_ZH.md` (EN + ZH); any change must be applied to all three.
 - **Descriptions vs counts**: `pyproject.toml` `[project] description` is just `"evox"` and carries no count claims — do not look there for them.
 
 ## Release Process
@@ -95,6 +95,7 @@ Past release bumps also update the news entries in `README.md` and `README_ZH.md
 
 EvoX is one of ~13 sibling libraries published under https://github.com/EMI-Group/ .
 These are SEPARATE repos (not part of this source tree) and are the upstream homes of the `evox_ext` plugin family.
+Together with EvoX, these libraries form an ecosystem of 140+ algorithms and 240+ benchmark problems/environments.
 - **evomo** — PyTorch GPU-accelerated evolutionary multi-objective optimization (EMO). 57 tensorized MOEAs + 131 numerical/constrained benchmark problems (ZDT/DTLZ/WFG/MAF/LSMOP + CTP/MW/DOC/SDC/LSCM/LIRCMOP/DASCMOP/FCP) + MoRobtrol multi-objective robot-control suite.
 - **evorl** — JAX fully GPU-accelerated Evolutionary RL framework (RL/EA/ERL/PBT/multi-agent algorithms; wraps Brax/MuJoCo-Playground/gymnax/Jumanji/JaxMARL/EnvPool/Gymnasium).
 - **evogp** — PyTorch + custom CUDA kernels for Tree-based Genetic Programming (symbolic regression, classification, transformation, Brax/MuJoCo control).
