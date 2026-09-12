@@ -96,6 +96,15 @@ All variants import `Algorithm`, `Mutable`, and `Parameter` from `evox.core`:
 | PersistentES | `persistent_es.py` | ES with persistent perturbations across unrolled steps |
 | NoiseReuseES | `noise_reuse_es.py` | ES reusing perturbations across inner iterations |
 | ESMC | `esmc.py` | ES with Monte Carlo estimation and baseline subtraction |
-| VirtualLoRAES | `virtual_lora_es.py` | Virtual-population ES using Philox seeds + LoRA low-rank noise for neuroevolution; passes (center, seeds, sigma) tuple to evaluate |
+| VirtualES | `virtual_es.py` | Virtual-population ES (Philox seeds + fused virtual-noise kernel, O(dim) memory) for neuroevolution; passes (center, seeds, sigma) tuple to evaluate |
+| VirtualLoRAES | `virtual_lora_es.py` | Real distinct class: virtual-population ES using LoRA low-rank noise for 2D weights; passes (center, seeds, sigma) tuple to evaluate |
 | Shared — Adam | `adam_step.py` | Single-tensor Adam optimizer step |
 | Shared — Sorting | `sort_utils.py` | Fitness-based population sorting |
+
+## Known Issues
+**`VirtualLoRAES` public export is shadowed by an alias to `VirtualES`.**
+`virtual_es.py` ends with `VirtualLoRAES = VirtualES` (a "backward-compatible alias"), and `es_variants/__init__.py` does `from .virtual_es import VirtualES, VirtualLoRAES`.
+As a result the public `evox.algorithms.VirtualLoRAES` (and `evox.algorithms.so.es_variants.VirtualLoRAES`) IS the `VirtualES` class, NOT the genuine LoRA implementation in `virtual_lora_es.py`.
+The real LoRA class is reachable only via the direct module path `evox.algorithms.so.es_variants.virtual_lora_es.VirtualLoRAES`.
+Consequence: `evox.algorithms.VirtualLoRAES is evox.algorithms.VirtualES` → `True`; the LoRA algorithm is effectively not exported through the package API.
+So this subpackage defines 14 algorithm classes but exports only 13 distinct classes (14 exported names, one of which is an alias).
