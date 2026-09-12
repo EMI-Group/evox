@@ -35,6 +35,7 @@ EvoX is a distributed GPU-accelerated framework for scalable evolutionary comput
   - Cater to all your needs with both [Single-objective and Multi-objective](#algorithms) optimization capabilities.
   - Dive into a comprehensive library of [Benchmark Problems](#problems), ensuring robust testing and evaluation.
   - Explore the frontier of AI with extensive tools for [Neuroevolution](#neuroevolution) tasks.
+  - Scale up with the broader **EvoX ecosystem**, whose 13 GPU-accelerated EC libraries together provide **140+ algorithms** and **240+ benchmark problems/environments**.
 
 - 🛠️ **Designed for Simplicity**:
   - Embrace the elegance of **Functional Programming**, simplifying complex algorithmic compositions.
