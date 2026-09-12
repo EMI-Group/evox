@@ -18,7 +18,7 @@ This is the top-level Python package for the EvoX framework. `import evox` gives
 ### Submodule Access (accessible as `evox.<module>`)
 | Module | What it contains |
 |---|---|
-| `evox.algorithms` | 50+ EA implementations (SO: DE/ES/PSO families; MO: NSGA2, NSGA3, RVEA, MOEAD, HypE, RVEAa) |
+| `evox.algorithms` | 33 EA classes (32 distinct) — SO: DE/ES/PSO families; MO: NSGA2, NSGA3, RVEA, RVEAa, MOEAD, HypE |
 | `evox.problems` | Benchmark problems: numerical, neuroevolution, HPO wrapper |
 | `evox.operators` | Genetic operators: selection, crossover, mutation, sampling |
 | `evox.workflows` | `StdWorkflow` + `EvalMonitor` |
