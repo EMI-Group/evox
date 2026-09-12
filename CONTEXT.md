@@ -80,6 +80,8 @@ Triton provides hand-written GPU kernels for performance-critical operations. Th
 - **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
 - **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
 - **Bilingual docs**: Documentation supports English and Simplified Chinese via ReadTheDocs language switching.
+- **Count claims kept in sync**: The "50+ algorithms" / "100+ benchmark problems" counts are stated in this file, `README.md`, and `README_ZH.md` (EN + ZH); any change must be applied to all three.
+- **Descriptions vs counts**: `pyproject.toml` `[project] description` is just `"evox"` and carries no count claims — do not look there for them.
 
 ## Release Process
 
