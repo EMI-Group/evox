@@ -89,6 +89,20 @@ A release consists of: a commit bumping the version (message style `Bump version
 Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing/mismatched entry there.
 Past release bumps also update the news entries in `README.md` and `README_ZH.md` (which link to an announcement post on evox.group) and the version mention in this file's project metadata above.
 
+## Related Projects (EMI-Group ecosystem)
+
+EvoX is one of ~13 sibling libraries published under https://github.com/EMI-Group/ .
+These are SEPARATE repos (not part of this source tree) and are the upstream homes of the `evox_ext` plugin family.
+- **evomo** — PyTorch GPU-accelerated evolutionary multi-objective optimization (EMO). 57 tensorized MOEAs + 131 numerical/constrained benchmark problems (ZDT/DTLZ/WFG/MAF/LSMOP + CTP/MW/DOC/SDC/LSCM/LIRCMOP/DASCMOP/FCP) + MoRobtrol multi-objective robot-control suite.
+- **evorl** — JAX fully GPU-accelerated Evolutionary RL framework (RL/EA/ERL/PBT/multi-agent algorithms; wraps Brax/MuJoCo-Playground/gymnax/Jumanji/JaxMARL/EnvPool/Gymnasium).
+- **evogp** — PyTorch + custom CUDA kernels for Tree-based Genetic Programming (symbolic regression, classification, transformation, Brax/MuJoCo control).
+- **tensorneat** — JAX tensorized NEAT / HyperNEAT.
+- **tensoraco** — JAX tensorized Ant Colony Optimization for TSP (bundles the TSPLIB).
+- **evoxbench** — NAS-as-multi-objective-optimization benchmark platform (NAS-Bench-101/201, NATS, DARTS, MobileNetV3, ResNet50, Transformer, MoSegNAS); no GPU/PyTorch needed.
+- **tensorrvea**, **metade**, **istratde**, **evogo**, **autopso**, **evonas**, **evococo** — additional tensorized EC libraries/frameworks (RVEA, DE meta-framework, DE variant, data-driven black-box opt, automated PSO, NAS, automatic tensorization).
+- Research/paper repos (single-algorithm code, not general libraries): GMOEA, RelativeNAS, DenseNAS, nsganetv2, fr-nas, gpbt-pl, Incremental-Optimization, GMPB, BLVG.
+- Non-EC repos in the org (unrelated to EvoX): FaPN, PDVC, SoloGAN, mixer-snn, spikefpn, snn-temporal-fusion, spikingedn, SFLM, mesa, genesis, evox-portal (website).
+
 ## Known Issues
 
 `docs/source/tutorial/tutorial_part2.md` references `evox.__version__`, but the attribute is not defined anywhere in `src/evox/` — it raises AttributeError at runtime (doc bug only).
