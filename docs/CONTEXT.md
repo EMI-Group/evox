@@ -39,6 +39,11 @@ The documentation build system exposes these entry points:
 - The `.po` file at `source/locale/zh_CN/LC_MESSAGES/docs.po` requires post-processing after machine translation: run `fix_output.py` to remove duplicate-anchor entries, and `fix_notebook_translation.py` to reconcile notebook vs. regular page translations
 - Notebook execution is disabled at build time (`nb_execution_mode = "off"`, `nbsphinx_execute = "never"`) — notebooks must be pre-executed before committing
 - The source tree root points to `../../src` (the `src/` directory at the repo root) for autodoc imports
+- **Algorithm / benchmark-problem count claims** — keep EN and zh_CN numbers identical, and keep every `.po` `msgid` exactly equal to its English source sentence (gettext contract):
+  - EvoX core (`src/evox/`): **30+ algorithms**, **30+ benchmark problems/environments**.
+  - EvoX ecosystem (EvoX + 13 related GPU-accelerated EC libraries under the EMI-Group org): **140+ algorithms**, **240+ benchmark problems/environments**.
+  - Stated on `source/index.md` (ecosystem figures), `source/tutorial/tutorial_part1.md` (core + ecosystem), and their zh_CN counterparts (the `.po` `msgstr`s and the manually translated `source/locale/zh_CN/tutorial/tutorial_part1.md`).
+  - Do NOT conflate these with the unrelated "over 100x speedup" performance claim.
 
 ## Routing Table
 
