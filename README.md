@@ -328,12 +328,13 @@ monitor.plot() # or monitor.plot().show() if you are using headless mode
 ## Sister Projects
 - **EvoRL**: GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
 - **EvoGP**: GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
-- **EvoMO**: GPU-accelerated library for Evolutionary Multiobjective Optimization (EMO).Check out [here](https://github.com/EMI-Group/evomo).
+- **EvoMO**: GPU-accelerated library for Evolutionary Multiobjective Optimization (EMO). Check out [here](https://github.com/EMI-Group/evomo).
 - **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
+- **TensorRVEA**: Tensorized Reference Vector Guided Evolutionary Algorithm (RVEA) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorrvea).
 - **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
 - **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).
 
-Together with EvoX, these projects form an ecosystem providing **140+ algorithms** and **240+ benchmark problems/environments**.
+Together with EvoX, these and the other EvoX-related libraries published by the [EMI-Group](https://github.com/EMI-Group) form an ecosystem providing **140+ algorithms** and **240+ benchmark problems/environments**.
 
 Stay tuned - more exciting developments are on the way!  ✨
 

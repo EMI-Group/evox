@@ -332,12 +332,13 @@ monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
 
 - **EvoRL**: 基于 GPU 加速的进化强化学习框架。查看详情：点击这里。
 - **EvoGP**: 基于 GPU 加速的遗传编程框架。查看详情：点击这里。
+- **EvoMO**: 基于 GPU 加速的进化多目标优化（EMO）库。查看详情：点击这里。
 - **TensorNEAT**: 用于 GPU 加速的张量化 NEAT（NeuroEvolution of Augmenting Topologies）框架。查看详情：点击这里。
 - **TensorRVEA**: 用于 GPU 加速的张量化参考向量引导进化算法（RVEA）框架。查看详情：点击这里。
 - **TensorACO**: 用于 GPU 加速的张量化蚁群优化算法（ACO）框架。查看详情：点击这里。
 - **EvoXBench**: 一个用于解决各种优化问题（如神经架构搜索 NAS）的真实世界基准测试平台。该平台无需 GPU/PyTorch/TensorFlow 运行，并支持多种编程环境。查看详情：点击这里。
 
-EvoX 与这些项目共同构成了一个提供 **140+ 种算法** 和 **240+ 基准问题/环境** 的生态。
+EvoX 与这些项目以及其他由 [EMI-Group](https://github.com/EMI-Group) 发布的 EvoX 相关库共同构成了一个提供 **140+ 种算法** 和 **240+ 基准问题/环境** 的生态。
 
 敬请期待——更多精彩内容即将推出！✨
 
