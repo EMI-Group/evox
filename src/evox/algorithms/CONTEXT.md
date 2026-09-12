@@ -37,7 +37,7 @@ algorithms/
 | Area | Path | Description |
 |---|---|---|
 | SO — DE variants | `so/de_variants/` | DE, SHADE, CoDE, SaDE, ODE, JaDE |
-| SO — ES variants | `so/es_variants/` | OpenES, XNES, SeparableNES, DES, SNES, ARS, ASEBO, PersistentES, NoiseReuseES, GuidedES, ESMC, CMAES |
+| SO — ES variants | `so/es_variants/` | OpenES, XNES, SeparableNES, DES, SNES, ARS, ASEBO, PersistentES, NoiseReuseES, GuidedES, ESMC, CMAES, VirtualES, VirtualLoRAES (alias — see note) |
 | SO — PSO variants | `so/pso_variants/` | CLPSO, CSO, DMSPSOEL, FSPSO, PSO, SLPSOGS, SLPSOUS |
 | MO — all algorithms | `mo/` | RVEA, RVEAa, MOEAD, NSGA2, NSGA3, HypE |
 
@@ -84,6 +84,15 @@ All MO algorithms produce Pareto-front approximations with multiple objectives. 
 - `RVEAa` — Adaptive RVEA (auto-adjusts reference vectors during search)
 - `MOEAD` — MOEA based on Decomposition (scalarizes objectives via weight vectors)
 - `HypE` — Hypervolume Estimation algorithm (uses Monte Carlo hypervolume approximation)
+
+## Algorithm Counts (current)
+Derived from the `__all__` export lists and `rg -n "^class " src/evox/algorithms` (both currently yield 33):
+- **Single-objective (`so/`)**: 27 — DE variants 6, ES variants 14, PSO variants 7.
+- **Multi-objective (`mo/`)**: 6.
+- The ES variant `VirtualLoRAES` is exported as an **alias of `VirtualES`** (`virtual_es.py`: `VirtualLoRAES = VirtualES`), so the number of *distinct* classes reachable via `evox.algorithms.<Name>` is **32** (SO 26, MO 6).
+- A genuine, distinct `VirtualLoRAES` (LoRA) implementation exists in `so/es_variants/virtual_lora_es.py` but is shadowed by the alias and is reachable only via its direct module path — so 33 distinct algorithm classes physically exist but only 32 are distinct through the package API.
+- No abstract base or helper/mixin classes are defined under `algorithms/`; the only non-algorithm symbols are standalone helper functions (e.g. `min_by`, `sort_by_key`, `adam_single_tensor`, `pbi`, `cal_hv`).
+- README.md / README_ZH.md claim "50+ Evolutionary Algorithms"; the core package ships ~32–33 distinct algorithm classes when every variant is counted separately. External packages can add more via the `evox_ext` extension namespace, but those are not part of this repository.
 
 ## Constraints
 - All algorithms are **pure PyTorch** — no NumPy, no CPU-bound loops.

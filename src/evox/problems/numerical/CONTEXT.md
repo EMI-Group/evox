@@ -18,7 +18,7 @@ Three families are provided:
 | `cec2022` | `CEC2022` — the 12 CEC 2022 single-objective problems |
 | `cec2022_input_data/` | ~54 pre-computed `.txt` data files (rotation matrices `M_*.txt`, shift vectors `shift_data_*.txt`, shuffle indices `shuffle_data_*.txt`) |
 
-### Concrete Problem classes (re-exported at package level)
+### Concrete Problem classes (defined in this package)
 | Class | Parent | Type | Minima |
 |---|---|---|---|
 | `Ackley` | `ShiftAffineNumericalProblem` | Single-objective | x = [0, …, 0] |
@@ -33,8 +33,12 @@ Three families are provided:
 | `DTLZ1`–`DTLZ7` | `DTLZ` | Multi-objective | Pareto front via `pf()` |
 | `CEC2022` | `Problem` | Single-objective | 12 functions, shifted/rotated |
 
-### Pure functions (importable directly, no shift/affine wrapping)
+Re-export nuance: `numerical/__init__.py` re-exports only 7 of the 9 basic classes (`Ackley, Griewank, Rastrigin, Rosenbrock, Schwefel, Sphere, Ellipsoid`).
+`Zakharov` and `Levy` are declared in `basic.__all__` but are NOT re-imported by `numerical/__init__.py`, so they are reachable only via `evox.problems.numerical.basic.Zakharov` / `.Levy`.
+
+### Pure functions (no shift/affine wrapping)
 `ackley_func`, `griewank_func`, `rastrigin_func`, `rosenbrock_func`, `schwefel_func`, `sphere_func`, `ellipsoid_func`, `zakharov_func`, `levy_func`
+`zakharov_func` and `levy_func` are likewise reachable only via `basic`, not re-exported at the `numerical` level.
 
 ## Class Hierarchy & Design
 
