@@ -105,6 +105,9 @@ Together with EvoX, these libraries form an ecosystem of 140+ algorithms and 240
 - **tensorrvea**, **metade**, **istratde**, **evogo**, **autopso**, **evonas**, **evococo** — additional tensorized EC libraries/frameworks (RVEA, DE meta-framework, DE variant, data-driven black-box opt, automated PSO, NAS, automatic tensorization).
 - Research/paper repos (single-algorithm code, not general libraries): GMOEA, RelativeNAS, DenseNAS, nsganetv2, fr-nas, gpbt-pl, Incremental-Optimization, GMPB, BLVG.
 - Non-EC repos in the org (unrelated to EvoX): FaPN, PDVC, SoloGAN, mixer-snn, spikefpn, snn-temporal-fusion, spikingedn, SFLM, mesa, genesis, evox-portal (website).
+The official website https://evox.group/ is built from the SEPARATE repo `EMI-Group/evox-portal` (Astro).
+Its algorithm/problem count claims live in `src/i18n/locales/*.json` (`features.allinone.item1`, `runtime.hero.desc`) and in `src/content/tutorials/introduction/en.md` — editing counts in THIS repository does not update the website, they must be synced separately.
+Pages under `src/content/releases/*` are historical release announcements and intentionally keep the numbers of the release they describe.
 
 ## Known Issues
 
