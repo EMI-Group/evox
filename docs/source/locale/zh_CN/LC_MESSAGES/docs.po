@@ -8840,23 +8840,30 @@ msgid ""
 "[Neuroevolution](#neuroevolution) tasks."
 msgstr "探索人工智能前沿领域，利用丰富的工具进行[神经演化](#neuroevolution)任务。"
 
-#: ../../source/index.md:39
+#: ../../source/index.md:38
+msgid ""
+"Scale up with the broader **EvoX ecosystem**—EvoX plus 13 related GPU-"
+"accelerated EC libraries—providing **140+ algorithms** and **240+ benchmark "
+"problems/environments**."
+msgstr "借助更广泛的 **EvoX 生态**——由 EvoX 与 13 个相关的 GPU 加速演化计算库组成——提供 **140+ 个算法**以及 **240+ 个基准问题/环境**。"
+
+#: ../../source/index.md:40
 msgid "🛠️ **Designed for Simplicity**:"
 msgstr "🛠️ **简易性设计**:"
 
-#: ../../source/index.md:40
+#: ../../source/index.md:41
 msgid ""
 "Embrace the elegance of **Functional Programming**, simplifying complex "
 "algorithmic compositions."
 msgstr "拥抱优雅的**函数式编程**，化繁为简，轻松构建复杂算法。"
 
-#: ../../source/index.md:41
+#: ../../source/index.md:42
 msgid ""
 "Benefit from **Hierarchical State Management**, ensuring modular and clean "
 "programming."
 msgstr "得益于**层次化状态管理**，体验模块化和清爽的编程体验。"
 
-#: ../../source/index.md:50
+#: ../../source/index.md:51
 #, fuzzy
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
@@ -8879,7 +8886,7 @@ msgstr ""
 "0-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0 0 17.29 "
 "8Z\"></path></svg> Tutorials"
 
-#: ../../source/index.md:56
+#: ../../source/index.md:57
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-desktop-download\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -8908,7 +8915,7 @@ msgstr ""
 "1.266-.564 2.445-1.223 "
 "3.5h5.52c-.66-1.055-1.098-2.234-1.223-3.5Z\"></path></svg> 安装教程"
 
-#: ../../source/index.md:62
+#: ../../source/index.md:63
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-mortar-board\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -8948,7 +8955,7 @@ msgstr ""
 "1.5.228s1.201-.123 1.5-.228V16.78c0-.669-.218-1.103-.483-1.368A1.433 1.433 0"
 " 0 0 5 15Z\"></path></svg> 开发者教程"
 
-#: ../../source/index.md:72
+#: ../../source/index.md:73
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -8965,7 +8972,7 @@ msgstr ""
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 算法"
 
-#: ../../source/index.md:78
+#: ../../source/index.md:79
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
@@ -8982,7 +8989,7 @@ msgstr ""
 "1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1"
 " 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z\"></path></svg> 问题"
 
-#: ../../source/index.md:85
+#: ../../source/index.md:86
 msgid ""
 "<svg version=\"1.1\" width=\"1.5em\" height=\"1.5em\" class=\"sd-octicon sd-"
 "octicon-list-unordered\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path "
