@@ -92,7 +92,9 @@ Derived from the `__all__` export lists and `rg -n "^class " src/evox/algorithms
 - The ES variant `VirtualLoRAES` is exported as an **alias of `VirtualES`** (`virtual_es.py`: `VirtualLoRAES = VirtualES`), so the number of *distinct* classes reachable via `evox.algorithms.<Name>` is **32** (SO 26, MO 6).
 - A genuine, distinct `VirtualLoRAES` (LoRA) implementation exists in `so/es_variants/virtual_lora_es.py` but is shadowed by the alias and is reachable only via its direct module path — so 33 distinct algorithm classes physically exist but only 32 are distinct through the package API.
 - No abstract base or helper/mixin classes are defined under `algorithms/`; the only non-algorithm symbols are standalone helper functions (e.g. `min_by`, `sort_by_key`, `adam_single_tensor`, `pbi`, `cal_hv`).
-- README.md / README_ZH.md claim "50+ Evolutionary Algorithms"; the core package ships ~32–33 distinct algorithm classes when every variant is counted separately. External packages can add more via the `evox_ext` extension namespace, but those are not part of this repository.
+- README.md, README_ZH.md, and the docs site state "30+ algorithms" built into EvoX and "140+ algorithms" across the EvoX ecosystem (EvoX plus ~13 sibling EMI-Group GPU-accelerated EC libraries).
+- This package ships 33 algorithm classes, 32 distinct through the package API (see the points above).
+- External `evox_ext` packages can add more, but they are not part of this repository.
 
 ## Constraints
 - All algorithms are **pure PyTorch** — no NumPy, no CPU-bound loops.
