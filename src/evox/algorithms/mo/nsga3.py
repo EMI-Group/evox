@@ -169,10 +169,36 @@ class NSGA3(Algorithm):
         merge_fit = merge_fit[shuffled_idx]
         rank = non_dominate_rank(merge_fit)
         worst_rank = torch.topk(rank, self.pop_size + 1, largest=False)[0][-1]
-        candi_idx = torch.where(rank <= worst_rank)[0]
-        merge_pop = merge_pop[candi_idx]
-        merge_fit = merge_fit[candi_idx]
-        rank = rank[candi_idx]
+        # Compile-safe candidate filtering (no dynamic-shape boolean indexing):
+        # pad every candidate slot to a fixed width (2*pop_size) so the tensors
+        # keep a static shape under fullgraph. Slots beyond the last candidate
+        # are masked out via a clamped dummy index (row 0) + zero mask.
+        n_cand = torch.sum(rank <= worst_rank).to(torch.int64)
+        candi_idx = torch.sort(
+            torch.where(
+                rank <= worst_rank,
+                torch.arange(rank.shape[0], device=rank.device, dtype=rank.dtype),
+                torch.full_like(rank, rank.shape[0]),  # unreachable index
+            ),
+            dim=0,
+        ).values[: 2 * self.pop_size]
+        candi_mask = torch.arange(2 * self.pop_size, device=rank.device) < n_cand
+        # Pad slots duplicate the LAST real candidate row (not row 0): the
+        # original dynamic-width code clamps sentinel indices down to
+        # n_cand - 1 inside _masked_assign, and that "mis-write" to the last
+        # candidate row is part of the original behavior (bug-for-bug compat).
+        # gather keeps the index a tensor value (no dynamic indexing).
+        last_cand = torch.gather(candi_idx, 0, (n_cand - 1).clamp(min=0).reshape(1)).squeeze(0)
+        safe_idx = torch.where(candi_mask, candi_idx, last_cand.expand_as(candi_idx))
+        merge_pop = merge_pop[safe_idx]
+        merge_fit = merge_fit[safe_idx]
+        rank = rank[safe_idx]
+        # Sentinel for pad rows (duplicates of the last candidate): a rank that
+        # is neither < worst_rank nor == worst_rank, so every downstream count
+        # (rho, rho_last, selected_num) excludes pad rows — matching the
+        # variable-length semantics of the original boolean filter. Only the
+        # clamped-index side effect above is preserved for compat.
+        rank = torch.where(candi_mask, rank, worst_rank + 1)
         device = self.pop.device
         # Normalize
         ideal_point = torch.min(merge_fit, dim=0)[0]
@@ -180,11 +206,17 @@ class NSGA3(Algorithm):
         weight = torch.eye(self.n_objs, device=device) + 1e-6
         ex_idx = vmap_get_extreme(norm_fit, weight)
         extreme = norm_fit[ex_idx]
-        if torch.linalg.matrix_rank(extreme) == self.n_objs:
-            hyperplane = torch.linalg.solve(extreme, torch.ones(self.n_objs, device=device))
-            intercepts = 1.0 / hyperplane
-        else:
-            intercepts = torch.max(norm_fit, dim=0).values
+        # Compile-safe hyperplane branch (no data-dependent Python if):
+        # compute both branches and select with torch.where. Singular extreme
+        # matrices would poison torch.linalg.solve with NaNs, so substitute an
+        # identity matrix (making the solve trivially well-defined) when rank
+        # is deficient; the result is then discarded by the where anyway.
+        full_rank = torch.linalg.matrix_rank(extreme) == self.n_objs
+        extreme_safe = torch.where(full_rank, extreme, weight)
+        hyperplane = torch.linalg.solve(extreme_safe, torch.ones(self.n_objs, device=device))
+        intercepts_solve = 1.0 / hyperplane
+        intercepts_max = torch.max(norm_fit, dim=0).values
+        intercepts = torch.where(full_rank, intercepts_solve, intercepts_max)
         norm_fit = norm_fit / intercepts.unsqueeze(0)
         shuffled_idx = torch.randperm(self.ref.shape[0])
         ref = self.ref[shuffled_idx]
@@ -264,9 +296,23 @@ class NSGA3(Algorithm):
         rank = _masked_assign(rank, sorted_index, sel_positions, worst_rank)
 
         # get final pop and fit
-        self.pop = merge_pop[rank < worst_rank]
-        self.fit = merge_fit[rank < worst_rank]
-        self.rank = rank[rank < worst_rank]
+        # Compile-safe final selection (no boolean indexing): kept rows are
+        # rank < worst_rank; the niching loop + truncation guarantee exactly
+        # pop_size kept rows. Gather them in ascending order into a fixed
+        # (pop_size,) width; the unreachable pad index sorts last and clamps
+        # to the final row (never read — pop_size slots all hold kept rows).
+        keep = rank < worst_rank
+        keep_idx = torch.sort(
+            torch.where(
+                keep,
+                torch.arange(rank.shape[0], device=rank.device, dtype=rank.dtype),
+                torch.full_like(rank, rank.shape[0]),  # unreachable, sorts last
+            ),
+            dim=0,
+        ).values.clamp(max=rank.shape[0] - 1)[: self.pop_size]
+        self.pop = merge_pop[keep_idx]
+        self.fit = merge_fit[keep_idx]
+        self.rank = rank[keep_idx]
 
     def _get_extreme(self, norm_fit: torch.Tensor, w: torch.Tensor):
         return torch.argmin(torch.max(norm_fit / w.unsqueeze(0), dim=1).values)
