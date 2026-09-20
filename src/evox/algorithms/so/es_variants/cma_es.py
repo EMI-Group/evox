@@ -125,7 +125,7 @@ class CMAES(Algorithm):
         y = (population - old_mean) / self.sigma
         update = (
             (1 - self.c_1 - self.c_mu) * C
-            + self.c_1 * (p_c @ p_c.T + (1 - h_sigma) * self.c_c * (2 - self.c_c) * C)
+            + self.c_1 * (torch.outer(p_c, p_c) + (1 - h_sigma) * self.c_c * (2 - self.c_c) * C)
             + self.c_mu * (y.T * self.weights) @ y
         )
         return update

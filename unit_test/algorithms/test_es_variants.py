@@ -184,3 +184,33 @@ class TestESVariants(TestBase):
             sigma=5,
         )
         self.run_all(algo)
+
+    def test_cmaes_covariance_rank_one(self):
+        algo = CMAES(mean_init=torch.zeros(3), sigma=1, pop_size=4)
+        C = torch.eye(3)
+        p_c = torch.tensor([1.0, 2.0, -1.0])
+        old_mean = torch.zeros(1, 3)
+        population = old_mean.expand(algo.mu, -1)
+        h_sigma = torch.tensor(1.0)
+
+        rank_one = torch.tensor([[1.0, 2.0, -1.0], [2.0, 4.0, -2.0], [-1.0, -2.0, 1.0]])
+        expected = (1 - algo.c_1 - algo.c_mu) * C + algo.c_1 * rank_one
+        actual = algo._update_covariance_matrix(C, p_c, population, old_mean, h_sigma)
+
+        torch.testing.assert_close(actual, expected)
+        torch.testing.assert_close(actual, actual.T)
+
+    def test_cmaes_covariance_rank_one_compiled_vmap(self):
+        algo = CMAES(mean_init=torch.zeros(3), sigma=1, pop_size=4)
+        C = torch.eye(3)
+        paths = torch.tensor([[1.0, 2.0, -1.0], [-2.0, 1.0, 3.0]])
+        old_mean = torch.zeros(1, 3)
+        population = old_mean.expand(algo.mu, -1)
+        h_sigma = torch.tensor(1.0)
+
+        expected = (1 - algo.c_1 - algo.c_mu) * C + algo.c_1 * paths.unsqueeze(-1) * paths.unsqueeze(-2)
+        update = torch.vmap(algo._update_covariance_matrix, in_dims=(None, 0, None, None, None))
+        torch.testing.assert_close(update(C, paths, population, old_mean, h_sigma), expected)
+        actual = torch.compile(update, fullgraph=True)(C, paths, population, old_mean, h_sigma)
+
+        torch.testing.assert_close(actual, expected)
