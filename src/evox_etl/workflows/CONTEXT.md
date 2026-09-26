@@ -40,6 +40,26 @@ See `../DESIGN.md`.
     (values, int64 indices) tuple), row-gather solutions via
     `etl.gather(concat_sol, indices, axis=0)` (numpy-take semantics); rank-2
     (MO) → only latest_solution/latest_fitness.
+  - SHAPE POLICY (torch EvalMonitor parity — monitor handles ANY leading dim):
+    `monitor_update` stores the FULL incoming batch as-is, so
+    `latest_solution`/`latest_fitness` take the shape of whatever batch the
+    algorithm's step last passed to `evaluate`, NOT necessarily
+    `(pop_size, ...)`. Torch `post_ask`/`pre_tell` store the raw batch the
+    same way (no slicing to pop_size). CoDE evaluates `(3*pop_size, dim)` per
+    generation; CSO evaluates `pop_size // 2` after its init_step. The SO
+    top-k pools the elite with the ENTIRE evaluated batch (for CoDE the
+    best-of-3n trials can win), and history entries are the full per-gen
+    batches (CoDE `(3n,)` fitness; CSO `(n,)` at gen 0 then `(n/2,)`). The
+    `(pop_size, dim)` zeros / `(topk,)` +inf buffers from `init` are gen-0
+    placeholders only — every leaf is overwritten on the first
+    `monitor_update` (etl states must be full-size tensors from init, unlike
+    torch's `Mutable(torch.empty(0))` which needs no pre-allocation).
+    CONSEQUENCE: monitor-state leaf shapes may CHANGE between generations, so
+    a compiled step graph is valid for exactly one state-shape signature —
+    `StdWorkflow` keys its per-variant exe cache by
+    `(variant, leaf-shape/dtype signature)` and re-traces on drift (fix for
+    the CoDE/CSO gen-2 ShapeError; see `../core/workflow.py`
+    `_state_signature`).
   - Wrapper `EvalMonitor(config=..., state=...)` — workflow constructs it and
     reassigns `.state` after every step. All accessors return numpy (concrete
     etl leaves via `t.to(etl.core.Device("cpu")).numpy()`); stored fitness is
@@ -67,3 +87,11 @@ See `../DESIGN.md`.
   NSGA2+DTLZ2(m=3)+`["min"]*3` after 3 steps gives `get_pf_fitness()` (k, 3).
   Note: `get_pf*` with history flags off warns then fails on empty history
   (torch-parity: `torch.cat([])` fails the same way).
+- Validation of the shape policy (throwaway drivers, numpy backend):
+  CoDE(20,[-5,5]^4)+Sphere+min, 20 gens → best ≈ 9.9e-3, `fit_history` entries
+  all `(60,)`, `sol_history` `(60, 4)` (full 3n batch, torch parity),
+  `get_topk_fitness()[0] == get_best_fitness()`; CSO(20)+Sphere, 30 gens →
+  best ≈ 5.2 (slow but converging), history `(20,)` then `(10,)` per gen;
+  CSO + opt_direction="max" → `get_best_fitness()` ≈ 80.9 (>0, un-negated);
+  NSGA2+DTLZ2 pf_fitness `(k, 3)` finite; PSO(40)×50 gens unchanged (best
+  3.23e-07, deterministic under equal seeds).
