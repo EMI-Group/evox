@@ -1,12 +1,15 @@
 """Functional ETL port of the torch NSGA-III (``src/evox/algorithms/mo/nsga3.py``).
 
 Plain functions only (no ``@etl.defn`` — DESIGN.md §4.3; ETL has no eager mode):
-``init`` / ``init_ask`` / ``init_tell`` / ``ask`` / ``tell`` plus the frozen
-``NSGA3Config`` / ``NSGA3State`` dataclasses. Call them only inside an active
-trace (``etl.build`` / ``etl.evaluate``). The math is ported 1:1 from the torch
-reference (read-only); the torch dynamic-shape boolean indexings in ``step`` are
-replaced by fixed-shape mask tricks (``etl.select`` + one-hot ``reduce_max``
-hits), and ``scatter_add`` becomes a one-hot sum.
+``init`` / ``init_step`` / ``step`` plus the frozen ``NSGA3Config`` /
+``NSGA3State`` dataclasses. ``step`` owns one whole generation (tournament
+selection → SBX → polynomial mutation → ``evaluate`` → environmental
+selection); call the functions only inside an active trace
+(``etl.build`` / ``etl.evaluate``). The math is ported 1:1 from the torch
+reference (read-only); the torch dynamic-shape boolean indexings in the
+environmental selection are replaced by fixed-shape mask tricks
+(``etl.select`` + one-hot ``reduce_max`` hits), and ``scatter_add`` becomes
+a one-hot sum.
 """
 from __future__ import annotations
 
@@ -121,9 +124,10 @@ def make_nsga3(
 class NSGA3State:
     """NSGA-III mutable state: tensor leaves only.
 
-    ``off`` carries the offspring produced by the latest ``ask`` so that
-    ``tell(config, state, fitness)`` (DESIGN.md §4.3) can merge the parents
-    and offspring without receiving the candidates as an extra argument.
+    ``off`` carries the offspring produced by the generation stage of
+    ``step`` into its environmental-selection stage (both share one call;
+    the tell side of the step protocol passes only fitness back, so the
+    candidates travel through the intermediate state).
     """
 
     pop: SymbolicTensor  # (pop_size, dim) float32
@@ -169,21 +173,25 @@ def init(config: NSGA3Config, key: SymbolicTensor) -> NSGA3State:
     return NSGA3State(pop=pop, fit=fit, rank=rank, ref=ref, off=off, key=key)
 
 
-def init_ask(config: NSGA3Config, state: NSGA3State):
-    """Return the full initial population for evaluation (no RNG)."""
-    return state.pop, state
-
-
-def init_tell(
-    config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor
+def init_step(
+    config: NSGA3Config, state: NSGA3State, evaluate: Callable
 ) -> NSGA3State:
-    """Record the initial fitness and non-domination rank."""
+    """First generation: evaluate the FULL initial population (no RNG) and
+    record its fitness and non-domination rank."""
+    fitness = evaluate(state.pop)
     rank = non_dominate_rank(fitness)
     return dataclasses.replace(state, fit=fitness, rank=rank)
 
 
-def ask(config: NSGA3Config, state: NSGA3State):
-    """Produce the offspring batch: tournament selection + SBX + PM + clamp."""
+def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3State:
+    """Run ONE full generation: tournament selection + SBX + PM + clamp,
+    ``evaluate`` the offspring batch, then environmental selection
+    (torch ``step`` lines 157-267, ported 1:1).
+
+    The torch version filters ``rank <= worst_rank`` with dynamic boolean
+    indexing; here the full (n, ...) tensors are kept and excluded rows are
+    masked via ``etl.select`` instead.
+    """
     if config.selection_op is None:
         selection = tournament_selection_multifit
     else:
@@ -204,10 +212,13 @@ def ask(config: NSGA3Config, state: NSGA3State):
     lb, ub = bake_bounds(config.lb, config.ub)
     offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
-    return offspring, dataclasses.replace(state, off=offspring, key=key)
+    intermediate = dataclasses.replace(state, off=offspring, key=key)
+
+    fitness = evaluate(offspring)
+    return _tell(config, intermediate, fitness)
 
 
-def tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSGA3State:
+def _tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSGA3State:
     """Environmental selection (torch ``step`` lines 164-267, ported 1:1).
 
     The torch version filters ``rank <= worst_rank`` with dynamic boolean
