@@ -1,0 +1,902 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3720945231616497,
+    "warmup_steps": 2,
+    "run_time_s": 0.07114611938595772,
+    "ms_per_step": 0.7114611938595772,
+    "metric": {
+      "best_fitness": 3.054133657087732e-08
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9854763077709052,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1384645998477936,
+    "warmup_steps": 2,
+    "run_time_s": 0.08862301334738731,
+    "ms_per_step": 0.8862301334738731,
+    "metric": {
+      "best_fitness": 31.938453674316406
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0379961064951979,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2216415368020535,
+    "warmup_steps": 2,
+    "run_time_s": 0.34863102063536644,
+    "ms_per_step": 3.4863102063536644,
+    "metric": {
+      "best_fitness": 2691.3330078125
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05610833605814272,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1783269569277763,
+    "warmup_steps": 2,
+    "run_time_s": 0.09160278365015984,
+    "ms_per_step": 0.9160278365015984,
+    "metric": {
+      "best_fitness": 5.5195159912109375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31756189498746346,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1410869732499123,
+    "warmup_steps": 2,
+    "run_time_s": 0.0895620808005333,
+    "ms_per_step": 0.895620808005333,
+    "metric": {
+      "best_fitness": 365.9289245605469
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.06522193999619252,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2359332703053951,
+    "warmup_steps": 2,
+    "run_time_s": 0.35313646867871284,
+    "ms_per_step": 3.5313646867871284,
+    "metric": {
+      "best_fitness": 4118.875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07105776187311591,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2168770618736744,
+    "warmup_steps": 2,
+    "run_time_s": 0.09244590252637863,
+    "ms_per_step": 0.9244590252637863,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1971175707876682,
+    "warmup_steps": 2,
+    "run_time_s": 0.11155638098716736,
+    "ms_per_step": 1.1155638098716736,
+    "metric": {
+      "best_fitness": 20.561412811279297
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028070640563964844,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.325032152235508,
+    "warmup_steps": 2,
+    "run_time_s": 0.353132501244545,
+    "ms_per_step": 3.53132501244545,
+    "metric": {
+      "best_fitness": 20.020355224609375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.00304431293242218,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1197304800152779,
+    "warmup_steps": 2,
+    "run_time_s": 0.0963982567191124,
+    "ms_per_step": 0.963982567191124,
+    "metric": {
+      "best_fitness": 0.6074879169464111
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.3471360590581776,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.12505616620183,
+    "warmup_steps": 2,
+    "run_time_s": 0.08110228180885315,
+    "ms_per_step": 0.8110228180885315,
+    "metric": {
+      "best_fitness": 23839.615234375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.326188730004031,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3112759850919247,
+    "warmup_steps": 2,
+    "run_time_s": 0.2131069377064705,
+    "ms_per_step": 2.131069377064705,
+    "metric": {
+      "best_fitness": 104824.4296875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0786967488261986,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.146921083331108,
+    "warmup_steps": 2,
+    "run_time_s": 0.05290847644209862,
+    "ms_per_step": 0.5290847644209862,
+    "metric": {
+      "best_fitness": 56.38290023803711
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18767132533915526,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1391077227890491,
+    "warmup_steps": 2,
+    "run_time_s": 0.07117820158600807,
+    "ms_per_step": 0.7117820158600807,
+    "metric": {
+      "best_fitness": 27923.310546875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.24425207028165857,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3371226489543915,
+    "warmup_steps": 2,
+    "run_time_s": 0.17779261991381645,
+    "ms_per_step": 1.7779261991381645,
+    "metric": {
+      "best_fitness": 108335.4765625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0031303558505600686,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1919938623905182,
+    "warmup_steps": 2,
+    "run_time_s": 0.05544745922088623,
+    "ms_per_step": 0.5544745922088623,
+    "metric": {
+      "best_fitness": 18.954586029052734
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05208067642038686,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1727877147495747,
+    "warmup_steps": 2,
+    "run_time_s": 0.05871270224452019,
+    "ms_per_step": 0.5871270224452019,
+    "metric": {
+      "best_fitness": 20.14360809326172
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.006776569936090182,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3601739071309566,
+    "warmup_steps": 2,
+    "run_time_s": 0.17616893723607063,
+    "ms_per_step": 1.7616893723607063,
+    "metric": {
+      "best_fitness": 20.55666732788086
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.002377422153864496,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.555700469762087,
+    "warmup_steps": 2,
+    "run_time_s": 4.191213469952345,
+    "ms_per_step": 41.91213469952345,
+    "metric": {
+      "best_fitness": 9.582066695656977e-09
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9535679092344549,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.6031327694654465,
+    "warmup_steps": 2,
+    "run_time_s": 148.09823159873486,
+    "ms_per_step": 1480.9823159873486,
+    "metric": {
+      "best_fitness": 88.17547607421875
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.31513716765218486,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.682166274636984,
+    "warmup_steps": 2,
+    "run_time_s": 690.245419934392,
+    "ms_per_step": 6902.45419934392,
+    "metric": {
+      "best_fitness": 348.4949951171875
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18513310984988707,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.311077192425728,
+    "warmup_steps": 2,
+    "run_time_s": 4.650004342198372,
+    "ms_per_step": 46.50004342198372,
+    "metric": {
+      "best_fitness": 27.848365783691406
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.06617787950377033,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.7169756405055523,
+    "warmup_steps": 2,
+    "run_time_s": 148.91048804670572,
+    "ms_per_step": 1489.1048804670572,
+    "metric": {
+      "best_fitness": 527.9216918945312
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07806438047314851,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.7236884459853172,
+    "warmup_steps": 2,
+    "run_time_s": 727.4632238522172,
+    "ms_per_step": 7274.632238522172,
+    "metric": {
+      "best_fitness": 1325.67236328125
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05103851420994817,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.329045109450817,
+    "warmup_steps": 2,
+    "run_time_s": 4.496332377195358,
+    "ms_per_step": 44.96332377195358,
+    "metric": {
+      "best_fitness": 0.0014085769653320312
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.6114180478821363,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.7827142365276814,
+    "warmup_steps": 2,
+    "run_time_s": 153.65918001532555,
+    "ms_per_step": 1536.5918001532555,
+    "metric": {
+      "best_fitness": 10.847675323486328
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.4825039022137047,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.796746078878641,
+    "warmup_steps": 2,
+    "run_time_s": 739.9885250367224,
+    "ms_per_step": 7399.885250367224,
+    "metric": {
+      "best_fitness": 20.589855194091797
+    },
+    "note": "compiled (iree); slow path: per-step covariance etl.eigh lowers to an iree cyclic-Jacobi while-loop (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0), O(n^4) \u2014 measured on healthy GPU/CPU with iree 3.11.0, record valid. See BENCHMARK_RESULTS.md \"CMAES slow path\" section.",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.7283342297871414,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2042677588760853,
+    "warmup_steps": 2,
+    "run_time_s": 0.07364044338464737,
+    "ms_per_step": 0.7364044338464737,
+    "metric": {
+      "best_fitness": 132.08497619628906
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.23545659372154376,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2394674457609653,
+    "warmup_steps": 2,
+    "run_time_s": 0.06327222660183907,
+    "ms_per_step": 0.6327222660183907,
+    "metric": {
+      "best_fitness": 1887.1131591796875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04054455360908552,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8508213050663471,
+    "warmup_steps": 2,
+    "run_time_s": 0.2088896706700325,
+    "ms_per_step": 2.088896706700325,
+    "metric": {
+      "best_fitness": 4112.36865234375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.02524249348860077,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2667172737419605,
+    "warmup_steps": 2,
+    "run_time_s": 0.07645727694034576,
+    "ms_per_step": 0.7645727694034576,
+    "metric": {
+      "best_fitness": 221.23562622070312
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12235787699788472,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1911663189530373,
+    "warmup_steps": 2,
+    "run_time_s": 0.07609859108924866,
+    "ms_per_step": 0.7609859108924866,
+    "metric": {
+      "best_fitness": 2370.2822265625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04394421717431031,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.9146773964166641,
+    "warmup_steps": 2,
+    "run_time_s": 0.22302324697375298,
+    "ms_per_step": 2.2302324697375298,
+    "metric": {
+      "best_fitness": 5109.79931640625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.010213326525962293,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.240110520273447,
+    "warmup_steps": 2,
+    "run_time_s": 0.08201268315315247,
+    "ms_per_step": 0.8201268315315247,
+    "metric": {
+      "best_fitness": 20.69388198852539
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0016449810076611911,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3737096153199673,
+    "warmup_steps": 2,
+    "run_time_s": 0.09365451335906982,
+    "ms_per_step": 0.9365451335906982,
+    "metric": {
+      "best_fitness": 21.242359161376953
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0006631071243726953,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "etl-iree-cuda",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.9184090904891491,
+    "warmup_steps": 2,
+    "run_time_s": 0.21387680247426033,
+    "ms_per_step": 2.1387680247426033,
+    "metric": {
+      "best_fitness": 21.322124481201172
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0011192470005649071,
+      "ok": true,
+      "note": null
+    }
+  }
+]

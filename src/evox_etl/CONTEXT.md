@@ -1,0 +1,165 @@
+# evox_etl — Functional EvoX on ETL
+
+## Intent
+A functional rewrite of the EvoX framework on the ETL tensor library (`etl`, foreign
+repo `/mnt/local-ssd/bchuang/etl`, installed editable in the shared venv). Replaces the
+torch OOP design (`src/evox/`, kept untouched as reference) with plain functional code:
+frozen config dataclasses, namedtuple/dataclass tensor states, plain module-level
+functions (no `@etl.defn` — see DESIGN.md §4.3) in the step protocol
+(`init(config, key) -> state`, `step(config, state, evaluate) -> state`), and a
+compile-once StdWorkflow loop.
+**Binding spec: `DESIGN.md` in this directory — read it fully before writing any code.**
+
+## API Surface
+- `evox_etl.core`: `Algorithm`/`Problem`/`Monitor` protocols (duck-typed), `StdWorkflow`,
+  `WorkflowState`, state helpers.
+- `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
+  rveaa, hype) — each module = config dataclass + `make_*` constructor +
+  `init`/`init_step`/`step` plain functions (step protocol, see
+  `core/algorithm.py`).
+- `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
+- `evox_etl.problems.numerical`: basic, dtlz, cec2022.
+- `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
+- `evox_etl.utils`: tree helpers, min_by, dominate_relation, pairwise distances,
+  parse_opt_direction, rank.
+
+## Constraints
+- NO eager tensor ops — everything inside `@etl.defn`/traces (ETL has no eager mode).
+- Config fields are plain static leaves (Python scalars + flat float tuples)
+  partialized away at compile time; state leaves are tensors ONLY. Minimization
+  semantics internally (workflow applies opt_direction).
+- No torch/numpy in framework code (numpy allowed only to load cec2022 input data and
+  for host-side make_* preprocessing).
+- Etl issues found while implementing: record under "ETL issues found" below and
+  escalate to the root agent (do NOT edit the etl repo from here).
+
+## Routing Table
+| Area | Path | Notes |
+|---|---|---|
+| Core (protocols, workflow, monitor, state) | `core/` | Foundation — implement FIRST |
+| Operators (pure functions) | `operators/` | sampling/selection/crossover/mutation |
+| Algorithms SO | `algorithms/so/` | de_variants, es_variants, pso_variants |
+| Algorithms MO | `algorithms/mo/` | nsga2, nsga3, moead, rvea, rveaa, hype |
+| Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
+| Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
+| Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
+| Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
+| Utilities | `utils/` | functional helpers |
+| Tests | `../unit_test/etl/` | sibling — mirrors this package |
+| Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
+| Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
+| ETL library | (foreign repo `/mnt/local-ssd/bchuang/etl`) | read via the venv install; fixes only by root agent |
+
+## Environment
+No pre-provisioned venv on this machine — provision one with `uv venv` +
+`uv pip install <etl-source-copy> numpy pytest "torch>=2.6.0"` (etl is the
+foreign repo `/home/bill/Source/etl`; its checkout is read-only, so install
+from a copied tree; torch-cpu wheel index suffices — no GPU here). Tests:
+`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~3.5 min,
+384 tests incl. `src/evox_etl/workflows/tests`). `evox_etl` is a PEP 420
+namespace package — drivers need `PYTHONPATH=src`.
+
+## ETL issues found (escalated to root agent)
+1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
+   by the installed etl** (master @f2f50a7, incl. commit b8062a9 "accept np.ndarray
+   as static trace values" — empirically verified via runtime probes, numpy
+   backend). Config construction follows DESIGN.md §4.1: algorithm configs are
+   dumb frozen dataclasses storing plain static leaves (Python scalars + flat
+   float tuples); array acceptance, normalization, and ValueError validation
+   live in module-level `make_*` constructors (shared helpers in
+   `algorithms/_config_utils.py`). Remaining constraints: (a) non-None
+   callable fields are STILL rejected as static leaves anywhere in the pytree, so
+   zero-child registration is reserved for callable-bearing configs only
+   (mo/nsga3, moead, rvea — keep it there); (b) zero-child registration makes the
+   config an opaque node — `etl.run` performs NO by-value static revalidation,
+   while plain-leaf tuple/ndarray fields raise TraceError on a drifted value;
+   (c) plain-float-tuple lb/ub storage is the package convention for frozen-
+   dataclass `__eq__`/`__hash__` (frozen=True + ndarray is broken/unhashable).
+   Numerical problems are the carve-out: basic.py/cec2022.py keep validation-only
+   `__post_init__`s (AssertionError with message, frozen because `../unit_test/etl`
+   asserts them — do NOT convert to ValueError).
+2. **`etl.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
+   branches** (`cannot broadcast incompatible dims n and m`). numpy/torch broadcast
+   `(n,)` → `(n, 1)` against `(n, m)` fine. Workaround: always
+   `enp.expand_dims(cond, 1)` first (scalar conds broadcast OK).
+   Repro: `etl.build(lambda x: etl.select(etl.sum(x, axes=1) < 0.5, 0.0, x),
+   TensorSpec((3, 4), float32))` → ShapeError.
+3. **`SymbolicTensor.__getitem__` rejects `None`/newaxis indices** — use
+   `enp.expand_dims`/`enp.reshape` (pso_variants).
+4. **`etl.scatter` rejects scalar (rank-0) updates** despite the docstring —
+   rank-matching workaround (pso_variants).
+5. **`etl.dot` requires rank ≥ 2** — vector·matrix products need expand_dims
+   tricks (es_variants; documented in its CONTEXT.md).
+6. Minor es_variants discoveries (documented in its CONTEXT.md): `etl.transpose`
+   axes must be a tuple; `etl.clamp` needs both bounds; `(k,n)*(k,)` does not
+   align over k (use expand_dims); `etl.svd` returns reduced (U,S,Vh) matching
+   torch svd(some=True).
+7. **No scatter-add** (etl `scatter` is replacement-only put_along_axis) —
+   worked around with one-hot segment sums (mo/nsga3); a composition note, not a bug.
+8. Cosmetic: the etl numpy backend leaks a `RuntimeWarning: invalid value
+   encountered in divide` for the intentional inf-beta draws (SBX/SHADE/SaDE NaN
+   paths) — torch-identical semantics, no change made.
+### Additional findings (core/operators/problems teams)
+9. **Inconsistent axis arg naming**: reductions take `axes=` but topk/argmin/gather/
+   `enp.sum/min` take `axis=`. Check the op signature before using.
+10. `etl.tree_unflatten(leaves, treespec)` argument order is REVERSED vs JAX.
+11. Top-level `etl.zeros/ones/full/empty` are EAGER concrete creators (raise inside
+    traces); in-graph constants: `etl.ops.constant(etl.core.tensor(np.asarray(...)))`
+    — `constant()` rejects raw ndarray; `x * 0.0` for zero-init; no `*_like` ops;
+    `enp.floor` missing.
+12. Dtype promotion differs from torch: int32+int→int64, int32*float→float64,
+    float32**int64→float64 — explicit `etl.cast` needed.
+13. `TensorSpec.from_tensor` does NOT exist (flat `(shape, dtype)` only);
+    `Executable` has no `.run` (use `etl.run(exe, *args)`); `etl.evaluate` rejects
+    static args (use `etl.build`); scalar tensor inputs must be 0-d ndarrays, not
+    numpy scalars. Statics are path-specialized per distinct value — a different
+    static value at run raises TraceError (build a new exe per value).
+14. `etl.gather` is numpy-take semantics (not torch gather); take_along_axis needs a
+    flatten trick; `!=` on symbolic tensors needs `etl.not_equal`; `etl.squeeze`
+    missing at top level; slice op cannot express full-axis `:` over dynamic dims
+    (`etl.gather(x, arange, axis=1)` workaround); reductions directly over a
+    trace-input leaf can fail (multiply by 1.0 first); `enp.expand_dims/reshape`
+    cannot carry dynamic dims (unroll static loops).
+15. **etl xla adapter GPU client-exhaustion bug** (fresh PJRT client per compile/load
+    → process SIGABRT; real jax_cuda12 plugin) — FIXED and merged into etl master
+    (commit 838739c, shared refcounted client; the venv needs no task branch).
+    xla-cuda runs still need cuDNN ≥9.8 via LD_LIBRARY_PATH (plugin compiled vs
+    cuDNN 9.8.0; venv ships 9.1.0).
+16. **`etl.run` returns concrete `etl.core.tensor.Tensor` objects, NOT ndarrays** —
+    `np.asarray(result)` yields an object-dtype 0-d array; always use
+    `result.numpy()`. Host-side code reading step results must call `.numpy()`
+    (and `.to(etl.core.Device("cpu"))` first if running on a non-cpu device).
+17. **Static args at `etl.build` vs `etl.run` must match exactly**: positional
+    statics passed to `etl.build` must be RE-passed (by value) to `etl.run`;
+    parameters omitted at build (Python defaults) are baked into the executable and
+    must NOT be passed at run (else "run-time input structure does not match the
+    traced signature" TraceError).
+18. Positive finds (no workaround needed): `etl.random.uniform` accepts tensor
+    low/high bounds; `etl.random.split_n(key, n)` returns a tuple of n keys;
+    `etl.norm(x)` defaults to L2 over all axes (`axis=None, ord=2`) and takes the
+    singular `axis=` kwarg like topk/argmin/gather (issue 9); `etl.gather` accepts
+    0-d scalar indices and squeezes (the pso `(1,)`-reshape workaround is
+    unnecessary); float32 ** Python-float exponent stays float32; etl has no
+    any/all ops — compose via `etl.max`/`etl.min` over bool axes.
+
+## Config construction (current state)
+The `__post_init__`-removal / functional-constructor refactor is COMPLETE for
+algorithms: every algorithm config in `algorithms/` is a dumb frozen dataclass
+storing only plain static leaves (Python scalars + flat float tuples); a
+module-level `make_<algorithm>` constructor in the SAME module as the config
+(StdWorkflow resolves the module via `type(config).__module__`) does all
+normalization (ndarray→flat tuple via `algorithms/_config_utils.py`), ValueError
+validation (no bare asserts), and eager derived defaults (XNES/SeparableNES
+pop_size/lr, ASEBO subspace_dims — `_discover_pop_size` reads `cfg.pop_size`).
+The old read-only design audit (37 `__post_init__` defs, the zero-child
+`register_pytree_node` hack, call-site inventories) is superseded — preserved in
+git history. Current-state notes per subtree live in the child CONTEXT.md files
+(algorithms/so/de_variants, es_variants, pso_variants, algorithms/mo,
+problems/numerical); binding policy in DESIGN.md §4.1.
+Exports: `make_*` at each family `__init__`, `algorithms/so/__init__.py`, and
+`algorithms/__init__.py` (torch-style bare-name aliases unchanged).
+Carve-out: numerical problems (basic.py, cec2022.py) keep their validation-only
+`__post_init__`s — direct dataclass construction is their sanctioned public API.
+Unit-test construction sites at `../unit_test/etl` migrate to `make_*` in a
+parallel wave (direct construction still works for pre-normalized values but
+bypasses make_* validation).

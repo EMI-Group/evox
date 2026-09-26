@@ -64,7 +64,7 @@ class CMAES(Algorithm):
         self.d_sigma = Parameter(d_sigma, device=device)
 
         # covariance matrix adaptation
-        c_c = (mu_eff + 2) / (self.dim + 4 + 2 * mu_eff / self.dim)
+        c_c = (4 + mu_eff / self.dim) / (self.dim + 4 + 2 * mu_eff / self.dim)
         self.c_c = Parameter(c_c, device=device)
         c_1 = 2 / ((self.dim + 1.3) ** 2 + self.mu_eff)
         self.c_1 = Parameter(c_1, device=device)

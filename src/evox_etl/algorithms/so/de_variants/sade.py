@@ -1,0 +1,336 @@
+"""Functional port of torch evox SaDE
+(``src/evox/algorithms/so/de_variants/sade.py``, read-only reference).
+
+Port notes:
+- ``step`` owns ONE full generation (torch ``SaDE.step``): adaptive strategy
+  selection, per-individual F/CR, DE mutation and crossover, evaluation
+  through the opaque ``evaluate`` closure, then selection and the
+  success/failure/CR memory updates.
+- Stateless etl RNG: the key is stored in the state and advanced with ONE
+  ``random.split`` per torch random draw, in torch's draw order. The
+  selection/memory half draws no randomness.
+- ``lb``/``ub`` config fields are normalized to flat tuples of plain Python
+  floats by the ``make_sade`` constructor; they are baked as graph constants
+  inside the functions.
+- torch's per-i scatter-add loop updating success/failure memory is replaced by
+  its exact vectorized equivalent: roll + zero row 0, then write the
+  per-strategy success/failure counts of this generation into row 0.
+"""
+
+from dataclasses import dataclass
+from typing import Any, Callable
+
+import numpy as np
+
+import etl
+import etl.numpy as enp
+import etl.random as random
+
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    normalize_bounds,
+    require_ge,
+)
+from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
+from evox_etl.operators.crossover import (
+    DE_arithmetic_recombination,
+    DE_binary_crossover,
+    DE_differential_sum,
+    DE_exponential_crossover,
+)
+from evox_etl.operators.selection import select_rand_pbest
+
+Tensor = etl.SymbolicTensor
+
+# Strategy codes (4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]
+# base_vec: 0="rand", 1="best", 2="pbest", 3="current"; cross: 0=bin, 1=exp, 2=arith
+STRATEGY_POOL = ((0, 0, 1, 0), (0, 1, 2, 0), (0, 0, 2, 0), (0, 0, 1, 2))
+
+
+@dataclass(frozen=True)
+class SaDE:
+    """Config mirroring torch ``SaDE.__init__`` (device dropped).
+
+    Dumb frozen dataclass — construct via ``make_sade``, which validates and
+    normalizes the bounds to flat float tuples before construction.
+    """
+
+    pop_size: int
+    lb: Any
+    ub: Any
+    diff_padding_num: int = 9
+    LP: int = 50
+
+
+def make_sade(
+    pop_size: int, lb: ArrayLike, ub: ArrayLike, diff_padding_num: int = 9, LP: int = 50
+) -> SaDE:
+    """Build a :class:`SaDE` config, validating hyperparameters and normalizing bounds.
+
+    Same validation semantics as torch ``SaDE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 9)
+    lb, ub = normalize_bounds(lb, ub)
+    return SaDE(pop_size=pop_size, lb=lb, ub=ub, diff_padding_num=diff_padding_num, LP=LP)
+
+
+@dataclass(frozen=True)
+class SaDEState:
+    """Tensors mirroring the torch SaDE Mutable attributes plus the RNG key.
+
+    ``trial_vectors``/``strategy_ids``/``CRs_vec`` record the last generation's
+    candidates and their per-individual parameters (observable state); the
+    memory updates consume them within the same ``step`` call.
+    """
+
+    gen_iter: Tensor
+    best_index: Tensor
+    Memory_FCR: Tensor
+    pop: Tensor
+    fit: Tensor
+    success_memory: Tensor
+    failure_memory: Tensor
+    CR_memory: Tensor
+    trial_vectors: Tensor
+    strategy_ids: Tensor
+    CRs_vec: Tensor
+    key: Tensor
+
+
+def init(config: SaDE, key: Tensor) -> SaDEState:
+    """Draw the initial state: randn-scaled population (torch quirk — no
+    uniform, no clamp), inf fitness, zeroed counters and NaN CR memory."""
+    key, subkey = random.split(key)
+    pop_size, dim = config.pop_size, len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
+
+    gen_iter = enp.full((), 0, dtype="int64")
+    best_index = enp.full((), 0, dtype="int64")
+    Memory_FCR = enp.full((2, 100), 0.5, dtype="float32")
+    pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
+    fit = enp.full((pop_size,), float("inf"), dtype="float32")
+    success_memory = enp.zeros((config.LP, 4), dtype="int32")
+    failure_memory = enp.zeros((config.LP, 4), dtype="int32")
+    CR_memory = enp.full((config.LP, 4), float("nan"), dtype="float32")
+    strategy_ids = enp.zeros((pop_size,), dtype="int32")
+    CRs_vec = enp.zeros((pop_size,), dtype="float32")
+
+    return SaDEState(
+        gen_iter=gen_iter,
+        best_index=best_index,
+        Memory_FCR=Memory_FCR,
+        pop=pop,
+        fit=fit,
+        success_memory=success_memory,
+        failure_memory=failure_memory,
+        CR_memory=CR_memory,
+        trial_vectors=pop,
+        strategy_ids=strategy_ids,
+        CRs_vec=CRs_vec,
+        key=key,
+    )
+
+
+def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -> SaDEState:
+    """Run ONE full SaDE generation (torch ``SaDE.step``): adaptive strategy
+    probabilities, per-individual F/CR, DE mutation and crossover, evaluation
+    of the trial vectors, selection, then success/failure/CR memory updates."""
+    pop_size, dim = config.pop_size, len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
+    strategy_pool = etl.ops.constant(
+        etl.core.tensor(np.asarray(STRATEGY_POOL, dtype=np.int32))
+    )
+
+    # One split per torch random draw, in torch's draw order.
+    key = state.key
+    key, k_mult = random.split(key)  # strategy_ids multinomial
+    key, k_cr = random.split(key)  # CRs_vec randn
+    key, k_cr_rep = random.split(key)  # CRs_vec_repair randn
+    key, k_f = random.split(key)  # differential_weight randn
+    key, k_diff = random.split(key)  # DE_differential_sum randint
+    key, k_pbest = random.split(key)  # select_rand_pbest randint
+    key, k_bin = random.split(key)  # binary crossover (mask + rind)
+    key, k_exp = random.split(key)  # exponential crossover (nn + ll)
+
+    success_sum = etl.cast(etl.sum(state.success_memory, axes=0), "float32")
+    failure_sum = etl.cast(etl.sum(state.failure_memory, axes=0), "float32")
+    S_mat = success_sum / (success_sum + failure_sum) + 0.01
+    strategy_p_update = S_mat / etl.sum(S_mat, axes=0)
+    strategy_p_init = enp.full((4,), 0.25, dtype="float32")
+    strategy_p = etl.select(
+        state.gen_iter >= config.LP, strategy_p_update, strategy_p_init
+    )
+
+    CRM_init = enp.full((4,), 0.5, dtype="float32")
+    # etl.median promotes float32 -> float64; torch stays float32, so cast back
+    # (compile-once step graphs require dtypes to be stable across generations).
+    CRM_update = etl.cast(etl.median(state.CR_memory, axis=0), "float32")
+    CRM = etl.select(state.gen_iter > config.LP, CRM_update, CRM_init)
+
+    strategy_ids = random.multinomial(k_mult, strategy_p, pop_size)
+
+    CRs_vec = random.normal(k_cr, (pop_size, 4), 0.0, 1.0, "float32") * 0.1 + CRM
+    CRs_vec_repair = (
+        random.normal(k_cr_rep, (pop_size, 4), 0.0, 1.0, "float32") * 0.1 + CRM
+    )
+    mask = etl.logical_or(CRs_vec < 0, CRs_vec > 1)
+    CRs_vec = etl.select(mask, CRs_vec_repair, CRs_vec)
+
+    differential_weight = random.normal(k_f, (pop_size,), 0.0, 1.0, "float32") * 0.3 + 0.5
+    cross_probability = enp.reshape(
+        _take_along_axis(CRs_vec, enp.expand_dims(strategy_ids, 1), axis=1),
+        (pop_size,),
+    )
+
+    strategy_code = etl.gather(strategy_pool, strategy_ids, axis=0)
+    base_vec_prim_type = strategy_code[:, 0]
+    base_vec_sec_type = strategy_code[:, 1]
+    num_diff_vectors = strategy_code[:, 2]
+    cross_strategy = strategy_code[:, 3]
+
+    difference_sum, rand_vec_idx = DE_differential_sum(
+        k_diff,
+        config.diff_padding_num,
+        num_diff_vectors,
+        enp.arange(pop_size, dtype="int32"),
+        state.pop,
+    )
+
+    rand_vec = etl.gather(state.pop, rand_vec_idx, axis=0)
+    best_vec = etl.tile(
+        enp.expand_dims(etl.gather(state.pop, state.best_index, axis=0), 0),
+        (pop_size, 1),
+    )
+    pbest_vec = select_rand_pbest(k_pbest, 0.05, state.pop, state.fit)
+    current_vec = state.pop
+    vector_merge = etl.stack([rand_vec, best_vec, pbest_vec, current_vec], axis=0)
+
+    base_vector_prim = enp.zeros((pop_size, dim), dtype="float32")
+    base_vector_sec = enp.zeros((pop_size, dim), dtype="float32")
+    for i in range(4):
+        base_vector_prim = etl.select(
+            enp.expand_dims(base_vec_prim_type == i, 1),
+            vector_merge[i],
+            base_vector_prim,
+        )
+        base_vector_sec = etl.select(
+            enp.expand_dims(base_vec_sec_type == i, 1),
+            vector_merge[i],
+            base_vector_sec,
+        )
+
+    base_vector = base_vector_prim + enp.expand_dims(differential_weight, 1) * (
+        base_vector_sec - base_vector_prim
+    )
+    mutation_vector = base_vector + difference_sum * enp.expand_dims(
+        differential_weight, 1
+    )
+
+    # torch evaluates all torch.where args eagerly, so all three crossovers run
+    # (and draw randomness) unconditionally — same subkey order here.
+    trial_bin = DE_binary_crossover(k_bin, mutation_vector, current_vec, cross_probability)
+    trial_exp = DE_exponential_crossover(k_exp, mutation_vector, current_vec, cross_probability)
+    trial_arith = DE_arithmetic_recombination(mutation_vector, current_vec, cross_probability)
+
+    trial_vectors = enp.zeros((pop_size, dim), dtype="float32")
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 0, 1), trial_bin, trial_vectors
+    )
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 1, 1), trial_exp, trial_vectors
+    )
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 2, 1), trial_arith, trial_vectors
+    )
+    trial_vectors = clamp(trial_vectors, lb, ub)
+
+    # ---- evaluation + selection + memory updates (torch step after evaluate)
+    fitness = evaluate(trial_vectors)
+
+    LP = config.LP
+
+    gen_iter = state.gen_iter + 1
+    compare = fitness <= state.fit
+    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
+    fit = etl.select(compare, fitness, state.fit)
+    best_index = etl.argmin(fit)
+
+    # torch: roll, zero row 0, then per-i scatter-ADD 1 at (0, strategy_ids[i])
+    # when compare[i]. Exact vectorized equivalent: after roll+zero, row 0 holds
+    # the per-strategy success counts of this generation.
+    row0_mask = enp.expand_dims(enp.arange(LP, dtype="int32") == 0, 1)
+    onehot = enp.expand_dims(strategy_ids, 1) == enp.expand_dims(
+        enp.arange(4, dtype="int32"), 0
+    )
+
+    success_rolled = etl.roll(state.success_memory, 1, axis=0)
+    success_rolled = etl.select(
+        row0_mask, enp.zeros((LP, 4), dtype="int32"), success_rolled
+    )
+    # int32 * bool one-hot promotes to int64 in etl; torch stays int32 — cast
+    # back so the memory dtype is stable across generations.
+    success_counts = etl.cast(
+        etl.sum(enp.expand_dims(etl.cast(compare, "int32"), 1) * onehot, axes=0),
+        "int32",
+    )
+    success_memory = etl.select(
+        row0_mask, enp.expand_dims(success_counts, 0), success_rolled
+    )
+
+    failure_rolled = etl.roll(state.failure_memory, 1, axis=0)
+    failure_rolled = etl.select(
+        row0_mask, enp.zeros((LP, 4), dtype="int32"), failure_rolled
+    )
+    failure_counts = etl.cast(
+        etl.sum(
+            enp.expand_dims(
+                enp.ones((pop_size,), dtype="int32") - etl.cast(compare, "int32"), 1
+            )
+            * onehot,
+            axes=0,
+        ),
+        "int32",
+    )
+    failure_memory = etl.select(
+        row0_mask, enp.expand_dims(failure_counts, 0), failure_rolled
+    )
+
+    CRs_vec_out = enp.reshape(
+        _take_along_axis(CRs_vec, enp.expand_dims(strategy_ids, 1), axis=1),
+        (pop_size,),
+    )
+
+    # torch per-i CR-memory loop, ported 1:1 as a static Python loop.
+    CR_memory = state.CR_memory
+    for i in range(pop_size):
+        str_idx = strategy_ids[i]
+        CR_memory_t = etl.transpose(CR_memory, axes=(1, 0))  # (4, LP)
+        CR_mk = enp.reshape(
+            etl.gather(CR_memory_t, enp.reshape(str_idx, (1,)), axis=0), (LP,)
+        )
+        CR_mk_up = etl.roll(CR_mk, 1, axis=0)
+        CR_mk_up = etl.select(
+            enp.arange(LP, dtype="int32") == 0,
+            enp.expand_dims(CRs_vec_out[i], 0),
+            CR_mk_up,
+        )
+        row_mask = enp.expand_dims(enp.arange(4, dtype="int32") == str_idx, 1)
+        CR_memory_up = etl.select(row_mask, enp.expand_dims(CR_mk_up, 0), CR_memory_t)
+        CR_memory_up = etl.transpose(CR_memory_up, axes=(1, 0))
+        CR_memory = etl.select(compare[i], CR_memory_up, CR_memory)
+
+    return SaDEState(
+        gen_iter=gen_iter,
+        best_index=best_index,
+        Memory_FCR=state.Memory_FCR,
+        pop=pop,
+        fit=fit,
+        success_memory=success_memory,
+        failure_memory=failure_memory,
+        CR_memory=CR_memory,
+        trial_vectors=trial_vectors,
+        strategy_ids=strategy_ids,
+        CRs_vec=CRs_vec_out,
+        key=key,
+    )

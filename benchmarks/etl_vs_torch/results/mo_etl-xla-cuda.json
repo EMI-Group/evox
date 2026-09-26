@@ -1,0 +1,350 @@
+[
+  {
+    "case_id": "NSGA2/DTLZ1/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 3.056523632258177,
+    "warmup_steps": 2,
+    "run_time_s": 0.47836168482899666,
+    "ms_per_step": 4.783616848289967,
+    "metric": {
+      "hv": 10.522812254824027,
+      "igd": 1.8474841177769041,
+      "n_pf_points": 91
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.3286110703349461,
+      "rel_err_hv": 0.3286110703349461,
+      "rel_err_igd": 0.09664893184477877,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "NSGA2/DTLZ1/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.518340591341257,
+    "warmup_steps": 2,
+    "run_time_s": 0.46538037806749344,
+    "ms_per_step": 4.653803780674934,
+    "metric": {
+      "hv": 9038.700879103491,
+      "igd": 34.22626286683868,
+      "n_pf_points": 69
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.7716932195253366,
+      "rel_err_hv": 0.7716932195253366,
+      "rel_err_igd": 0.3302498843289958,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.5744801424443722,
+    "warmup_steps": 2,
+    "run_time_s": 0.41464778408408165,
+    "ms_per_step": 4.1464778408408165,
+    "metric": {
+      "hv": 7.45912,
+      "igd": 0.024645475879791722,
+      "n_pf_points": 2625
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.008633762562189855,
+      "rel_err_hv": 7.507024429992008e-05,
+      "rel_err_igd": 0.008633762562189855,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "NSGA2/DTLZ2/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA2",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.815170630812645,
+    "warmup_steps": 2,
+    "run_time_s": 0.5267823562026024,
+    "ms_per_step": 5.267823562026024,
+    "metric": {
+      "hv": 7.46248,
+      "igd": 0.01713067997307192,
+      "n_pf_points": 12078
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.02648096267261791,
+      "rel_err_hv": 7.503644627392e-05,
+      "rel_err_igd": 0.02648096267261791,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 3.013654552400112,
+    "warmup_steps": 2,
+    "run_time_s": 0.47711482644081116,
+    "ms_per_step": 4.771148264408112,
+    "metric": {
+      "hv": 113.25284235804304,
+      "igd": 9.92748243872748,
+      "n_pf_points": 190
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 16.63645404172891,
+      "rel_err_hv": 16.63645404172891,
+      "rel_err_igd": 4.5045404949280785,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "NSGA3/DTLZ1/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 2.8508196882903576,
+    "warmup_steps": 2,
+    "run_time_s": 0.5355061814188957,
+    "ms_per_step": 5.355061814188957,
+    "metric": {
+      "hv": 8048.246789962989,
+      "igd": 33.654535949842234,
+      "n_pf_points": 73
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.5283130935059741,
+      "rel_err_hv": 0.5283130935059741,
+      "rel_err_igd": 0.18633788468073942,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.714265450835228,
+    "warmup_steps": 2,
+    "run_time_s": 0.38986649736762047,
+    "ms_per_step": 3.8986649736762047,
+    "metric": {
+      "hv": 7.4624,
+      "igd": 0.025488399258809656,
+      "n_pf_points": 2527
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.009149936381369024,
+      "rel_err_hv": 0.0001822802183073711,
+      "rel_err_igd": 0.009149936381369024,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "NSGA3/DTLZ2/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "NSGA3",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.7532754577696323,
+    "warmup_steps": 2,
+    "run_time_s": 0.500982653349638,
+    "ms_per_step": 5.00982653349638,
+    "metric": {
+      "hv": 7.46504,
+      "igd": 0.016294142062912128,
+      "n_pf_points": 10097
+    },
+    "note": "compiled (xla)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07094521747021618,
+      "rel_err_hv": 0.00019286196440620798,
+      "rel_err_igd": 0.07094521747021618,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.1540237702429295,
+    "warmup_steps": 2,
+    "run_time_s": 0.6431997232139111,
+    "ms_per_step": 6.431997232139111,
+    "metric": {
+      "hv": 7.561506491797939,
+      "igd": 0.5721909485168282,
+      "n_pf_points": 256
+    },
+    "note": "compiled (xla); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.958927708972504,
+      "rel_err_hv": 0.958927708972504,
+      "rel_err_igd": 0.8729785844526751,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "MOEAD/DTLZ1/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ1",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.2197308279573917,
+    "warmup_steps": 2,
+    "run_time_s": 2.7152365781366825,
+    "ms_per_step": 27.152365781366825,
+    "metric": {
+      "hv": 7360.037639861787,
+      "igd": 4.716012351784504,
+      "n_pf_points": 341
+    },
+    "note": "compiled (xla); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 14.82823928683437,
+      "rel_err_hv": 14.82823928683437,
+      "rel_err_igd": 0.30941145868633124,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/100x3x10",
+    "backend": "etl-xla-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.058455441147089,
+    "warmup_steps": 2,
+    "run_time_s": 0.6457887180149555,
+    "ms_per_step": 6.457887180149555,
+    "metric": {
+      "hv": 7.45544,
+      "igd": 0.033546092682783066,
+      "n_pf_points": 1788
+    },
+    "note": "compiled (xla); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.16153614312709735,
+      "rel_err_hv": 0.0006219772442117661,
+      "rel_err_igd": 0.16153614312709735,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "MOEAD/DTLZ2/1000x3x30",
+    "backend": "etl-xla-cuda",
+    "algo": "MOEAD",
+    "problem": "DTLZ2",
+    "pop_size": 1000,
+    "dim": 30,
+    "n_obj": 3,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.0445346869528294,
+    "warmup_steps": 2,
+    "run_time_s": 2.6920318752527237,
+    "ms_per_step": 26.920318752527237,
+    "metric": {
+      "hv": 7.45384,
+      "igd": 0.024403076956641505,
+      "n_pf_points": 6805
+    },
+    "note": "compiled (xla); effective population is the Das-Dennis count (uniform_sampling overwrites the requested pop_size on both sides)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.17336872943048373,
+      "rel_err_hv": 0.00065426775639788,
+      "rel_err_igd": 0.17336872943048373,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  }
+]

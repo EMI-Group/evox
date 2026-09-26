@@ -1,0 +1,249 @@
+"""Functional ETL port of the torch evox ``JaDE`` (adaptive DE) algorithm.
+
+Plain-function port of ``src/evox/algorithms/so/de_variants/jade.py`` (read-only
+torch reference), following the ``DESIGN.md`` §4-5 binding: ``init``/``step``
+replace the OOP class; ``step`` owns one full generation — it draws the
+per-individual ``F_vec``/``CR_vec``, builds the trial population, evaluates it
+through the opaque ``evaluate`` closure, then performs selection and the
+F_u/CR_u adaptation from the successes. ``init_step`` encodes torch's
+``init_step`` (initial-population evaluation before the first generation).
+
+Deviations from torch (mathematically equivalent):
+- The RNG key is stored in the state and advanced at every draw (etl RNG is
+  stateless); each ``torch.randn``/``torch.rand``/``torch.randint`` draw gets its
+  own ``random.split`` subkey, in the same draw order with the same distribution.
+- ``lb``/``ub``/``mean``/``stdev`` config fields are normalized to flat tuples of
+  plain Python floats by the ``make_jade`` constructor and baked as graph
+  constants inside each function.
+"""
+
+from dataclasses import dataclass
+from typing import Any, Callable
+
+import etl
+import etl.numpy as enp
+import etl.random as random
+
+from evox_etl.algorithms._config_utils import (
+    ArrayLike,
+    bake_bounds,
+    bake_float32_constant,
+    normalize_bounds,
+    require_ge,
+    to_float_tuple,
+)
+from evox_etl.operators.jit_fix_operator import clamp, clamp_float
+from evox_etl.operators.selection import select_rand_pbest
+
+Tensor = etl.SymbolicTensor
+
+
+@dataclass(frozen=True)
+class JaDE:
+    """JaDE configuration (mirrors the torch ``JaDE.__init__`` signature).
+
+    Dumb frozen dataclass — construct via ``make_jade``, which validates and
+    normalizes array-like fields to flat float tuples before construction.
+    """
+
+    pop_size: int
+    lb: Any  # lower bounds, (dim,) array-like; stored as a tuple of Python floats
+    ub: Any  # upper bounds, (dim,) array-like; stored as a tuple of Python floats
+    num_difference_vectors: int = 1
+    mean: Any = None  # optional normal-init mean; stored as a tuple of Python floats
+    stdev: Any = None  # optional normal-init stdev; stored as a tuple of Python floats
+    c: float = 0.1
+
+
+def make_jade(
+    pop_size: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    num_difference_vectors: int = 1,
+    mean: ArrayLike | None = None,
+    stdev: ArrayLike | None = None,
+    c: float = 0.1,
+) -> JaDE:
+    """Build a JaDE config, validating hyperparameters and normalizing array-like fields.
+
+    Same validation semantics as torch ``JaDE.__init__``'s asserts, raised as ValueError.
+    """
+    require_ge("pop_size", pop_size, 4)
+    lb, ub = normalize_bounds(lb, ub)
+    return JaDE(
+        pop_size=pop_size,
+        lb=lb,
+        ub=ub,
+        num_difference_vectors=num_difference_vectors,
+        mean=to_float_tuple(mean) if mean is not None else None,
+        stdev=to_float_tuple(stdev) if stdev is not None else None,
+        c=c,
+    )
+
+
+@dataclass(frozen=True)
+class JaDEState:
+    """JaDE algorithm state (all leaves are etl tensors).
+
+    ``trial_vectors``/``F_vec``/``CR_vec`` record the last generation's
+    candidates and their per-individual parameters (observable state); the
+    adaptation consumes them within the same ``step`` call.
+    """
+
+    pop: Tensor  # (pop_size, dim) float32
+    fit: Tensor  # (pop_size,) float32
+    F_u: Tensor  # (pop_size,) float32 adaptive mutation factors
+    CR_u: Tensor  # (pop_size,) float32 adaptive crossover rates
+    trial_vectors: Tensor  # (pop_size, dim) float32 candidates pending evaluation
+    F_vec: Tensor  # (pop_size,) float32 per-individual F from the generation phase (adaptation input)
+    CR_vec: Tensor  # (pop_size,) float32 per-individual CR from the generation phase (adaptation input)
+    key: Tensor  # () int64 rng key
+
+
+def init(config: JaDE, key: Tensor) -> JaDEState:
+    """Create the initial state: uniform/normal population, inf fitness, F_u=CR_u=0.5."""
+    pop_size, dim = config.pop_size, len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
+    key, k_pop = random.split(key)
+
+    if config.mean is not None and config.stdev is not None:
+        mean = bake_float32_constant(config.mean, shape=(1, -1))
+        stdev = bake_float32_constant(config.stdev, shape=(1, -1))
+        population = mean + stdev * random.normal(
+            k_pop, (pop_size, dim), 0.0, 1.0, "float32"
+        )
+        population = clamp(population, lb, ub)
+    else:
+        population = random.uniform(k_pop, (pop_size, dim), 0.0, 1.0, "float32")
+        population = population * (ub - lb) + lb
+
+    F_u = enp.full((pop_size,), 0.5, dtype="float32")
+    CR_u = enp.full((pop_size,), 0.5, dtype="float32")
+    fit = enp.full((pop_size,), float("inf"), dtype="float32")
+    F_vec = enp.zeros((pop_size,), dtype="float32")
+    CR_vec = enp.zeros((pop_size,), dtype="float32")
+    return JaDEState(
+        pop=population,
+        fit=fit,
+        F_u=F_u,
+        CR_u=CR_u,
+        trial_vectors=population,
+        F_vec=F_vec,
+        CR_vec=CR_vec,
+        key=key,
+    )
+
+
+def init_step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -> JaDEState:
+    """Initial-generation step (torch ``init_step``): evaluate the initial
+    population and record its fitness; no generation is performed yet."""
+    fitness = evaluate(state.pop)
+    return JaDEState(
+        pop=state.pop,
+        fit=fitness,
+        F_u=state.F_u,
+        CR_u=state.CR_u,
+        trial_vectors=state.trial_vectors,
+        F_vec=state.F_vec,
+        CR_vec=state.CR_vec,
+        key=state.key,
+    )
+
+
+def step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -> JaDEState:
+    """Run ONE full JaDE generation (torch ``step``): mutation + crossover,
+    evaluation of the trial population, selection, then F_u/CR_u adaptation.
+
+    Sub-steps (mirroring torch ``JaDE.step``):
+    1. Draw the per-individual ``F_vec``/``CR_vec`` with adaptive perturbation.
+    2. Mutation: difference vectors + pbest base vectors.
+    3. Crossover: binomial with a guaranteed mutated dimension, clamped into
+       the bounds.
+    4. Selection: ``fitness = evaluate(trials)``, keep the better individuals.
+    5. Adaptation: update ``F_u``/``CR_u`` from the Lehmer mean / mean of the
+       successful F/CR values.
+    """
+    pop, fit, F_u, CR_u = state.pop, state.fit, state.F_u, state.CR_u
+    pop_size, dim = config.pop_size, len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
+
+    # 1) Generate current F_vec and CR_vec with adaptive perturbation
+    key, k_f = random.split(state.key)
+    F_vec = clamp_float(
+        random.normal(k_f, (pop_size,), 0.0, 1.0, "float32") * 0.1 + F_u, 0.0, 1.0
+    )
+    key, k_cr = random.split(key)
+    CR_vec = clamp_float(
+        random.normal(k_cr, (pop_size,), 0.0, 1.0, "float32") * 0.1 + CR_u, 0.0, 1.0
+    )
+
+    # 2) Mutation: difference vectors + pbest base vectors
+    num_vec = config.num_difference_vectors * 2 + 1
+    random_choices = []
+    for _ in range(num_vec):
+        key, k_choice = random.split(key)
+        random_choices.append(random.randint(k_choice, (pop_size,), 0, pop_size, "int32"))
+
+    difference_vectors = etl.sum(
+        etl.stack(
+            [
+                etl.gather(pop, random_choices[i], axis=0)
+                - etl.gather(pop, random_choices[i + 1], axis=0)
+                for i in range(1, num_vec - 1, 2)
+            ],
+            axis=0,
+        ),
+        axes=0,
+    )
+
+    key, k_pbest = random.split(key)
+    pbest_vectors = select_rand_pbest(k_pbest, 0.05, pop, fit)
+    F_vec_2D = enp.expand_dims(F_vec, 1)
+    base_vectors = pop + F_vec_2D * (pbest_vectors - pop)
+    mutation_vectors = base_vectors + difference_vectors * F_vec_2D
+
+    # 3) Crossover: binomial with guaranteed one mutated dimension per individual
+    key, k_cross = random.split(key)
+    cross_prob = random.uniform(k_cross, (pop_size, dim), 0.0, 1.0, "float32")
+    key, k_dim = random.split(key)
+    random_dim = random.randint(k_dim, (pop_size, 1), 0, dim, "int32")
+    mask = etl.logical_or(
+        cross_prob < enp.expand_dims(CR_vec, 1),
+        enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == random_dim,
+    )
+    trial_vectors = etl.select(mask, mutation_vectors, pop)
+    trial_vectors = clamp(trial_vectors, lb, ub)
+
+    # 4) Selection over the trial vectors.
+    fitness = evaluate(trial_vectors)
+    compare = fitness < fit
+    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, pop)
+    fit = etl.select(compare, fitness, fit)
+
+    # 5) F_u/CR_u adaptation from the successes.
+    compare_float = etl.cast(compare, "float32")
+    sum_F2 = etl.sum(F_vec**2 * compare_float, axes=0)
+    sum_F = etl.sum(F_vec * compare_float, axes=0)
+    sum_CR = etl.sum(CR_vec * compare_float, axes=0)
+    count = etl.sum(compare_float, axes=0)
+
+    mean_F_success = etl.select(count > 0, sum_F2 / (sum_F + 1e-9), 0.0)
+    mean_CR_success = etl.select(count > 0, sum_CR / (count + 1e-9), 0.0)
+
+    updated_F_u = (1 - config.c) * F_u + config.c * mean_F_success
+    updated_CR_u = (1 - config.c) * CR_u + config.c * mean_CR_success
+
+    count_mask = count > 0.0
+    F_u = etl.select(count_mask, updated_F_u, F_u)
+    CR_u = etl.select(count_mask, updated_CR_u, CR_u)
+
+    return JaDEState(
+        pop=pop,
+        fit=fit,
+        F_u=F_u,
+        CR_u=CR_u,
+        trial_vectors=trial_vectors,
+        F_vec=F_vec,
+        CR_vec=CR_vec,
+        key=key,
+    )

@@ -1,0 +1,220 @@
+"""Functional ETL port of the torch evox RVEA algorithm (src/evox/algorithms/mo/rvea.py).
+
+Reference Vector Guided Evolutionary Algorithm [1, 2] as plain `init/init_step/
+step` functions over frozen `RVEAConfig`/`RVEAState` dataclasses (DESIGN.md
+§4-5 and the step protocol of `evox_etl.core.algorithm`). No `@etl.defn`
+wrappers — call these only inside an active trace (ETL has no eager mode).
+Ported 1:1 from the torch reference: `step` owns ONE whole generation
+(offspring generation → `evaluate` → RVEA selection + reference-vector
+adaptation); `init_step` evaluates the full initial population.
+
+:references:
+    [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided
+        evolutionary algorithm for many-objective optimization," IEEE TEVC, vol. 20,
+        no. 5, pp. 773-791, 2016.
+    [2] Z. Liang, T. Jiang, K. Sun, and R. Cheng, "GPU-accelerated Evolutionary
+        Multiobjective Optimization Using Tensorized RVEA," GECCO '24, pp. 566-575.
+"""
+
+from dataclasses import dataclass, replace
+from typing import Callable, Optional
+
+import etl
+import etl.numpy as enp
+import etl.random as random
+
+from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
+from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.sampling import uniform_sampling
+from evox_etl.operators.selection import ref_vec_guided
+
+Tensor = etl.SymbolicTensor
+
+
+@dataclass(frozen=True)
+class RVEAConfig:
+    """Frozen RVEA hyperparameters (mirrors torch ``RVEA.__init__`` minus device)."""
+
+    pop_size: int
+    n_objs: int
+    lb: tuple[float, ...]
+    ub: tuple[float, ...]
+    alpha: float = 2.0
+    fr: float = 0.1
+    max_gen: int = 100
+    selection_op: Optional[Callable] = None
+    mutation_op: Optional[Callable] = None
+    crossover_op: Optional[Callable] = None
+
+
+def _config_flatten(config: RVEAConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: RVEAConfig, _children) -> RVEAConfig:
+    return config
+
+
+# This registration is REQUIRED: the config carries optional callable op
+# fields (selection_op/mutation_op/crossover_op), and functions are not valid
+# static pytree leaves — so the config travels as one opaque childless node
+# through etl.build/etl.run untouched.
+etl.register_pytree_node(RVEAConfig, _config_flatten, _config_unflatten)
+
+
+def make_rvea(
+    pop_size: int,
+    n_objs: int,
+    lb: ArrayLike,
+    ub: ArrayLike,
+    alpha: float = 2.0,
+    fr: float = 0.1,
+    max_gen: int = 100,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
+) -> RVEAConfig:
+    """Construct an :class:`RVEAConfig` from array-like bounds and optional custom ops.
+
+    Bounds are normalized to flat tuples of plain Python floats (the config's
+    static representation for etl); a ``None`` op field means the algorithm
+    default (simulated_binary, polynomial_mutation, ref_vec_guided).
+    """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
+    lb_tuple, ub_tuple = normalize_bounds(lb, ub)
+    return RVEAConfig(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb_tuple,
+        ub=ub_tuple,
+        alpha=alpha,
+        fr=fr,
+        max_gen=max_gen,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+    )
+
+
+@dataclass(frozen=True)
+class RVEAState:
+    """Frozen RVEA state; every leaf is an ETL tensor (no Python scalars).
+
+    ``offspring`` carries the latest candidate batch from the offspring phase
+    of `step` into its selection phase (the fused body is one trace); it always
+    has shape (pop.shape[0], dim) so the state pytree never changes.
+    """
+
+    pop: Tensor
+    fit: Tensor
+    reference_vector: Tensor
+    init_v: Tensor
+    gen: Tensor
+    rv_adapt_every: Tensor
+    offspring: Tensor
+    key: Tensor
+
+
+def init(config: RVEAConfig, key: Tensor) -> RVEAState:
+    """Create the initial state: Das-Dennis reference vectors + uniform population."""
+    v, n_v = uniform_sampling(config.pop_size, config.n_objs)
+    dim = len(config.lb)
+    lb, ub = bake_bounds(config.lb, config.ub)
+    population = random.uniform(key, (n_v, dim), 0.0, 1.0, etl.float32) * (ub - lb) + lb
+    fit = enp.full((n_v, config.n_objs), float("inf"))
+    offspring = enp.zeros((n_v, dim), dtype="float32")
+    gen = enp.zeros((), dtype="int32")
+    rv_adapt_every = enp.full(
+        (), float(max(round(1.0 / config.fr), 1.0)), dtype="float32"
+    )
+    return RVEAState(
+        pop=population,
+        fit=fit,
+        reference_vector=v,
+        init_v=v,
+        gen=gen,
+        rv_adapt_every=rv_adapt_every,
+        offspring=offspring,
+        key=key,
+    )
+
+
+def init_step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tensor]) -> RVEAState:
+    """Generation 0 (fused torch ``init_step``): evaluate the FULL initial
+    population and record its fitness (no offspring generation yet)."""
+    fitness = evaluate(state.pop)
+    return replace(state, fit=fitness)
+
+
+def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tensor]) -> RVEAState:
+    """Run ONE full RVEA generation (fused torch ``step``).
+
+    Phase 1 (offspring generation): mating pool -> SBX -> polynomial mutation,
+    storing the offspring batch and the advanced key/generation in an
+    intermediate state. Phase 2: ``fitness = evaluate(offspring)`` through the
+    workflow-owned opaque closure. Phase 3 (selection): merge parents +
+    offspring, RVEA-select n_v survivors, adapt the reference vectors.
+    """
+    key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
+    gen = etl.cast(state.gen + 1, etl.int32)
+
+    pop = state.pop
+    n_v = pop.shape[0]
+
+    # Mating pool (torch `_mating_pool`): candidates are rows that are not all-NaN.
+    valid_mask = enp.logical_not(etl.ops.reduce_max(etl.isnan(pop), axes=1))
+    num_valid = etl.cast(etl.sum(etl.cast(valid_mask, etl.int32)), etl.int32)
+    mating_pool = randint(k_mate, 0, num_valid, (n_v,), dtype=etl.int32)
+    sorted_indices = etl.argsort(
+        etl.cast(
+            etl.select(valid_mask, enp.arange(n_v, dtype="int32"), 2147483647),
+            etl.int32,
+        ),
+        axis=0,
+        stable=True,
+    )
+    pool = etl.gather(pop, sorted_indices, axis=0)
+    mated = etl.gather(pool, mating_pool, axis=0)
+
+    lb, ub = bake_bounds(config.lb, config.ub)
+
+    crossover_fn = config.crossover_op if config.crossover_op is not None else simulated_binary
+    crossovered = crossover_fn(k_cross, mated)
+    mutation_fn = config.mutation_op if config.mutation_op is not None else polynomial_mutation
+    offspring = mutation_fn(k_mut, crossovered, lb, ub)
+    offspring = clamp(offspring, lb, ub)
+    state = replace(state, key=key, gen=gen, offspring=offspring)
+
+    fitness = evaluate(offspring)
+
+    merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
+    merge_fit = etl.concatenate([state.fit, fitness], axis=0)
+
+    theta = (etl.cast(state.gen, etl.float32) / config.max_gen) ** config.alpha
+
+    selection_fn = config.selection_op if config.selection_op is not None else ref_vec_guided
+    survivor, survivor_fit = selection_fn(
+        merge_pop, merge_fit, state.reference_vector, theta
+    )
+
+    # Reference-vector adaptation (torch `torch.cond`): both branches are cheap
+    # and pure, so compute both and select (adapt every `rv_adapt_every` gens).
+    max_vals = nanmax(survivor_fit, dim=0)[0]
+    min_vals = nanmin(survivor_fit, dim=0)[0]
+    adapted = state.init_v * (max_vals - min_vals)
+    kept = state.reference_vector
+    new_v = etl.select(
+        etl.remainder(state.gen, etl.cast(state.rv_adapt_every, etl.int32)) == 0,
+        adapted,
+        kept,
+    )
+    return replace(state, pop=survivor, fit=survivor_fit, reference_vector=new_v)

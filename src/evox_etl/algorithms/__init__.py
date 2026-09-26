@@ -1,0 +1,154 @@
+"""Functional port of all torch evox algorithms (evox_etl).
+
+Mirrors torch evox.algorithms exports: frozen config dataclasses per algorithm
+under the torch class names (ES configs are aliased from their ``*Config``
+names). All algorithms follow the binding functional contract (the STEP
+protocol, see ``core/algorithm.py``): ``init(config, key) -> State`` and
+``step(config, state, evaluate) -> State`` owning ONE full generation
+(candidate generation, ``fitness = evaluate(candidates)`` through the opaque
+workflow closure, state update), plus OPTIONAL ``init_step``/``final_step``
+first/last-generation variants. See ``src/evox_etl/DESIGN.md`` §4-5.
+"""
+from .mo import (
+    HypEConfig,
+    MOEADConfig,
+    NSGA2Config,
+    NSGA3Config,
+    RVEAConfig,
+    RVEAaConfig,
+    make_hype,
+    make_moead,
+    make_nsga2,
+    make_nsga3,
+    make_rvea,
+    make_rveaa,
+)
+from .so import (
+    ARS,
+    ASEBO,
+    CLPSO,
+    CMAES,
+    CSO,
+    DE,
+    DES,
+    DMSPSOEL,
+    ESMC,
+    FSPSO,
+    GuidedES,
+    JaDE,
+    NoiseReuseES,
+    ODE,
+    OpenES,
+    PSO,
+    PersistentES,
+    SHADE,
+    SLPSOGS,
+    SLPSOUS,
+    SNES,
+    SeparableNES,
+    XNES,
+    CoDE,
+    SaDE,
+    make_code,
+    make_de,
+    make_jade,
+    make_ode,
+    make_sade,
+    make_shade,
+    make_open_es,
+    make_xnes,
+    make_separable_nes,
+    make_des,
+    make_snes,
+    make_ars,
+    make_asebo,
+    make_persistent_es,
+    make_noise_reuse_es,
+    make_guided_es,
+    make_esmc,
+    make_cma_es,
+    make_clpso,
+    make_cso,
+    make_dms_pso_el,
+    make_fs_pso,
+    make_pso,
+    make_sl_pso_gs,
+    make_sl_pso_us,
+)
+
+# torch-style bare-name aliases for the MO family configs
+NSGA2 = NSGA2Config
+NSGA3 = NSGA3Config
+MOEAD = MOEADConfig
+RVEA = RVEAConfig
+RVEAa = RVEAaConfig
+HypE = HypEConfig
+
+__all__ = [
+    # DE Variants
+    "DE",
+    "SHADE",
+    "CoDE",
+    "SaDE",
+    "ODE",
+    "JaDE",
+    "make_code",
+    "make_de",
+    "make_jade",
+    "make_ode",
+    "make_sade",
+    "make_shade",
+    # ES Variants
+    "OpenES",
+    "XNES",
+    "SeparableNES",
+    "DES",
+    "SNES",
+    "ARS",
+    "ASEBO",
+    "PersistentES",
+    "NoiseReuseES",
+    "GuidedES",
+    "ESMC",
+    "CMAES",
+    "make_open_es",
+    "make_xnes",
+    "make_separable_nes",
+    "make_des",
+    "make_snes",
+    "make_ars",
+    "make_asebo",
+    "make_persistent_es",
+    "make_noise_reuse_es",
+    "make_guided_es",
+    "make_esmc",
+    "make_cma_es",
+    # PSO Variants
+    "CLPSO",
+    "CSO",
+    "DMSPSOEL",
+    "FSPSO",
+    "PSO",
+    "SLPSOGS",
+    "SLPSOUS",
+    "make_clpso",
+    "make_cso",
+    "make_dms_pso_el",
+    "make_fs_pso",
+    "make_pso",
+    "make_sl_pso_gs",
+    "make_sl_pso_us",
+    # MOEAs
+    "RVEA",
+    "MOEAD",
+    "NSGA2",
+    "NSGA3",
+    "HypE",
+    "RVEAa",
+    "make_hype",
+    "make_moead",
+    "make_nsga2",
+    "make_nsga3",
+    "make_rvea",
+    "make_rveaa",
+]
