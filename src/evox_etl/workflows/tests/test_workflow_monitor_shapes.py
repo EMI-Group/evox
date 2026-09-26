@@ -27,25 +27,16 @@ from evox_etl.workflows import EvalMonitorConfig, StdWorkflow
 
 LB, UB = [-5.0] * 4, [5.0] * 4
 
-# The four end-to-end drift tests below exercise the workflow-level half of the
-# fix: StdWorkflow must key its per-variant exe cache by the state's leaf-shape
-# signature and re-trace on drift (evox_etl/core/workflow.py `_state_signature`).
-# That file is outside this node's write scope and the change is pending the
-# parent agent landing it; until then these tests die with etl's ShapeError at
-# generation 2. non-strict xfail → they turn into XPASS the moment the core fix
-# lands (no edit needed here). The monitor semantics themselves are pinned
-# torch-identically by test_eval_monitor.py, which is green without the fix.
-_CORE_FIX_PENDING = pytest.mark.xfail(
-    reason=(
-        "needs StdWorkflow exe-cache keyed by state-shape signature "
-        "(evox_etl/core/workflow.py, out of this node's write scope); "
-        "monitor-side shape policy is already correct"
-    ),
-    strict=False,
-)
+# The four end-to-end drift tests below pin the workflow-level half of the
+# policy: StdWorkflow keys its step-exe cache by (resolved variant, state
+# signature) and lazily re-traces when tensor-leaf shapes/dtypes drift
+# (evox_etl/core/workflow.py `_state_signature`), so algorithms may evaluate
+# candidate batches whose leading dim differs from ``pop_size`` — CoDE hands
+# the monitor (3n, dim) batches, CSO (n/2, dim) after its init_step — while
+# EvalMonitor stores each batch as-is. The monitor semantics themselves are
+# pinned torch-identically by test_eval_monitor.py.
 
 
-@_CORE_FIX_PENDING
 def test_code_runs_with_wide_monitor_batches():
     """CoDE's (3*pop_size, dim) evaluate batches must not crash the workflow
     (the pre-fix failure: ShapeError at generation 2)."""
@@ -62,7 +53,6 @@ def test_code_runs_with_wide_monitor_batches():
     assert mon.get_best_fitness() >= 0.0  # Sphere is non-negative
 
 
-@_CORE_FIX_PENDING
 def test_code_converges_and_records_full_batches():
     pop = 12
     wf = StdWorkflow(
@@ -83,7 +73,6 @@ def test_code_converges_and_records_full_batches():
     assert mon.get_best_solution().shape == (4,)
 
 
-@_CORE_FIX_PENDING
 def test_cso_runs_with_narrow_monitor_batches():
     """CSO evaluates pop_size // 2 candidates per generation after its
     init_step — the monitor batches shrink from (pop,) to (pop//2,)."""
@@ -103,7 +92,6 @@ def test_cso_runs_with_narrow_monitor_batches():
     assert np.isfinite(best) and best >= 0.0
 
 
-@_CORE_FIX_PENDING
 def test_cso_max_direction_un_negates():
     wf = StdWorkflow(
         make_cso(pop_size=16, lb=LB, ub=UB),

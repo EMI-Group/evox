@@ -8,7 +8,7 @@ by pure chance, so the test compares the MEDIAN best fitness over 3 seeds with
 the same 10% margin — convergence must match within 10% in expectation.
 
 Note the torch side evaluates the initial population in init_step (21 evals for
-20 generations); the etl side mirrors this via init_ask/init_tell.
+20 generations); the etl side mirrors this via init_step.
 """
 import sys
 from pathlib import Path

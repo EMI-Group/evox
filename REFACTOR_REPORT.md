@@ -6,7 +6,7 @@ pure functions, separate `init`), benchmark torch vs etl on CPU/GPU from small
 to large scale, compare code style, and report anything unportable.
 
 **Result:** A complete functional redesign lives in `src/evox_etl/` (package
-`evox_etl`) beside the frozen torch reference `src/evox/`. 363 unit tests green
+`evox_etl`) beside the frozen torch reference `src/evox/`. 369 unit tests green
 across 4 suites; 240 benchmark records across 6 backends at 3 scales; two real
 bugs (one torch-side, one port-side) found and fixed; three ETL-repo bugs fixed
 upstream (etl commit `5ab645be`). The old JAX-era (pre-1.0) design informed the
@@ -17,13 +17,13 @@ function layout, but the module arrangement follows the current torch layout.
 | Area | Contents | Status |
 |---|---|---|
 | Core | `evox_etl.core`: module protocols, state helpers, functional `std_workflow` (compile-once `etl.build` step loop), `WorkflowState`, `EvalMonitorConfig` | ✅ |
-| Algorithms | 33/34 SO+MO algorithms as pure `init`/`ask`/`tell` (+`init_ask`/`init_tell`) functions over frozen config/state dataclasses: DE/ES/PSO families, OpenES, CMA-ES, NSGA2/NSGA3/RVEA/MOEAD/HypE, SADE/SHADE, ASGA/RWGA, SparseL1, MOEAD, HypE… | ✅ 33/34 |
+| Algorithms | 33/34 SO+MO algorithms as pure step-protocol functions over frozen config/state dataclasses — `init(config, key) -> state` plus `step(config, state, evaluate)` (optional `init_step`/`final_step` variants; `evaluate` is an opaque closure the workflow injects): DE/ES/PSO families, OpenES, CMA-ES, NSGA2/NSGA3/RVEA/MOEAD/HypE, SADE/SHADE, ASGA/RWGA, SparseL1, MOEAD, HypE… | ✅ 33/34 |
 | Operators | all 15 operators (selection/crossover/mutation/sampling + `jit_fix_operator` utils) — torch-exact (parity ≤1e-6) | ✅ |
 | Problems | numerical: `basic` (10 fns), `dtlz` (DTLZ1-7 + pf), `cec2022` (all 12) | ✅ |
 | Metrics | GD, IGD(+), HV (host-side numpy implementations) | ✅ |
 | Utils | `parse_opt_direction`, `min_by`, rank/rank-based fitness, pairwise dists, `evox_etl.key`/`random` | ✅ |
 | Workflows | functional `StdWorkflow` + `EvalMonitor` (SO top-k elites, host-side PF) | ✅ |
-| Tests | `unit_test/etl/`: algorithms 97, operators 82, problems 131, metrics 53 — **363 green** | ✅ |
+| Tests | `unit_test/etl/`: algorithms 103, operators 82, problems 131, metrics 53 — **369 green** | ✅ |
 | Benchmarks | `benchmarks/etl_vs_torch/`: 6 backends × 2 suites × 3 scales, results JSONs, `BENCHMARK_RESULTS.md`, `style_comparison.md` | ✅ |
 
 **Skipped (external-library-bound, reported per objective):**
@@ -38,8 +38,10 @@ function layout, but the module arrangement follows the current torch layout.
 
 ## 2. Design
 
-- **Plain functions, not OOP**: each algorithm is `init(config, key) -> state`,
-  `ask`, `tell`; frozen config dataclasses (`PSO`, `CMAESConfig`…) and
+- **Plain functions, not OOP**: each algorithm is `init(config, key) -> state`
+  plus `step(config, state, evaluate)` (with optional `init_step`/`final_step`
+  variants; `evaluate` is an opaque closure the workflow injects); frozen
+  config dataclasses (`PSO`, `CMAESConfig`…) and
   frozen state dataclasses; the workflow is the ONLY place that traces/builds
   (`etl.build`), resolving component functions by module convention.
 - **Separate init** bridges torch's OOP initialization: all device/dtype/state
@@ -156,7 +158,7 @@ xla-cuda runs them at 88–406 ms/step vs torch-cpu 133–168 ms/step.
 ## 7. Verdict
 
 The functional etl rewrite of EvoX is complete and validated: 33/34 algorithms,
-all operators, numerical problems, metrics, workflows — 363 green tests,
+all operators, numerical problems, metrics, workflows — 369 green tests,
 bit-identical etl-backend fitnesses, MO at up to 108× torch-cpu speed on
 xla-cuda, and a codebase that expresses the same algorithms in ~half the
 machinery (no Parameter/Mutable, no nn.Module state mutation). The gaps are

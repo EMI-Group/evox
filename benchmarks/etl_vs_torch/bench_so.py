@@ -146,6 +146,10 @@ def run_etl_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
     state = workflow.init(seed=case.seed)
     compile_time = time.perf_counter() - t0  # graph build + backend compile
 
+    # Generation 0 goes through the explicit first-generation call (mirrors
+    # the torch path's ``workflow.init_step()``); the remaining generations
+    # use step(). Warmup then timing structure is unchanged.
+    state = workflow.init_step(state)
     for _ in range(bench_common.WARMUP_STEPS):
         state = workflow.step(state)
     t0 = time.perf_counter()

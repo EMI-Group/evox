@@ -215,10 +215,10 @@ def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3Sta
     intermediate = dataclasses.replace(state, off=offspring, key=key)
 
     fitness = evaluate(offspring)
-    return _tell(config, intermediate, fitness)
+    return _select(config, intermediate, fitness)
 
 
-def _tell(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSGA3State:
+def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSGA3State:
     """Environmental selection (torch ``step`` lines 164-267, ported 1:1).
 
     The torch version filters ``rank <= worst_rank`` with dynamic boolean

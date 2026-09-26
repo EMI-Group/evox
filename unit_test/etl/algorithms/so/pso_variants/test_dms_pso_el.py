@@ -1,9 +1,8 @@
 """Smoke tests for the functional ETL port of DMS-PSO-EL (no torch).
 
-Driven through ``run_generations`` from the sibling helpers module: the gen-0
-loop iteration uses ``init_ask``/``init_tell`` (the init generation — torch
-``init_step`` increments the counter there), later iterations use ``ask``/
-``tell`` (each ask-increment counts one generation).
+Driven through ``run_generations`` from the sibling helpers module: generation 0
+uses ``init_step`` (the init generation — torch ``init_step`` increments the
+counter there), later generations use ``step`` (each one counts a generation).
 """
 
 import sys
@@ -55,12 +54,12 @@ def test_default_regroup_identity_path():
         seed=0,
     )
     _assert_common(state)
-    # gen0 = init generation (init_tell: 0 -> 1); gens 1-2 ask-increment -> 3.
+    # gen0 = init generation (init_step: 0 -> 1); gens 1-2 step-increment -> 3.
     assert int(np.asarray(state.iteration.numpy())) == 3
 
 
 def test_regroup_every_step():
-    """regrouped_iteration_num=1 forces _regroup inside every strategy-1 ask."""
+    """regrouped_iteration_num=1 forces _regroup inside every strategy-1 step."""
     state = run_generations(
         dms_pso_el,
         _make_config(regrouped_iteration_num=1),
@@ -69,12 +68,12 @@ def test_regroup_every_step():
         seed=0,
     )
     _assert_common(state)
-    # gen0 = init generation (0 -> 1); gen1 regroup-ask (1 -> 2).
+    # gen0 = init generation (0 -> 1); gen1 regroup-step (1 -> 2).
     assert int(np.asarray(state.iteration.numpy())) == 2
 
 
 def test_strategy2_path():
-    """max_iteration=3: the ask with iteration 3 >= 0.9*3 runs strategy 2,
+    """max_iteration=3: the step with iteration 3 >= 0.9*3 runs strategy 2,
     which is the only path that updates global_best_fit (init is +inf)."""
     state = run_generations(
         dms_pso_el,

@@ -5,7 +5,7 @@ Setting (both sides, equivalent): dim=7, n_obj=3, pop_size=100, seed=42,
 
 - torch side: ``StdWorkflow`` + ``EvalMonitor``; best = per-objective
   minimum over the whole-history Pareto front.
-- etl side: the functional init/ask/tell port driven by
+- etl side: the functional step-protocol port driven by
   ``helpers.run_generations`` on the numpy backend; best = per-objective
   minimum of the final population (NSGA-II is elitist — the final
   population retains the front — so final-pop min == history min).

@@ -300,7 +300,9 @@ init_exe = etl.build(init_body, TensorSpec((), np.int64))       # cpu, numpy bac
 state = etl.run(init_exe, key)                                   # once
 state = tree_map(lambda t: t.to(device), state)                  # if device is cuda
 specs = etl.tree_map(lambda t: TensorSpec(t.shape, t.dtype), state)
-exe = etl.build(step_fn, specs, backend=backend, device=device, **opts)  # per variant, ONCE
+exe = etl.build(step_fn, specs, backend=backend, device=device, **opts)
+                                  # per (variant, state signature), lazily;
+                                  # re-traced when tensor-leaf shapes/dtypes drift
 # per generation (same-device loop, pytrees in/out):
 state = etl.run(exe, state)
 # host-side monitor history: after each step, copy out monitor state leaves
@@ -317,8 +319,10 @@ problem state) → opt-direction scaling (min semantics) → fitness_transform �
 monitor update (threading the monitor state; the monitor sees the RAW candidates
 and the TRANSFORMED fitness), then the workflow bumps the generation counter.
 The FIRST/LAST-generation dispatch (`init_step`/`final_step` vs `step`) is a
-HOST-SIDE decision — the workflow builds one executable per step variant
-lazily and picks the right one per generation; there is no in-graph
+HOST-SIDE decision — the workflow builds one executable per
+(variant, state-signature) lazily (re-tracing when tensor-leaf shapes/dtypes
+drift, e.g. CoDE's `(3n, dim)` or CSO's `(n/2, dim)` monitor batches) and
+picks the right one per generation; there is no in-graph
 `etl.cond(generation == 0)` branch. Every quantity stays in-graph;
 Python-level history recording happens in the workflow loop AFTER each run.
 

@@ -18,7 +18,7 @@ evox/
 ├── src/evox_etl/       ← Functional ETL rewrite (new package; the functional successor)
 ├── src/evox_ext/       ← Extension/plugin autoloading (PEP 420 namespace)
 ├── unit_test/          ← Unit test suite (mirrors src/evox/)
-├── unit_test/etl/      ← etl-variant test suite (algorithms/operators/problems/metrics, 363 tests)
+├── unit_test/etl/      ← etl-variant test suite (algorithms/operators/problems/metrics, 369 tests)
 ├── benchmarks/         ← Performance benchmark scripts
 ├── benchmarks/etl_vs_torch/  ← torch vs etl comparison harness + BENCHMARK_RESULTS.md + style_comparison.md
 ├── REFACTOR_REPORT.md  ← Final report of the EvoX→ETL functional refactoring
@@ -50,7 +50,7 @@ evox/
 | Visualization | `src/evox/vis_tools/` | Plotly-based interactive plots + EvoXVision (.exv) binary serialization |
 | **Extensions** | `src/evox_ext/` | PEP 420 namespace-package plugin system; auto-discovers external algorithms, problems, operators, metrics, utils |
 | **Tests** | `unit_test/` | `unittest`-based; mirrors `src/evox/` structure; tests eager, `torch.compile`, and `vmap` modes |
-| **etl tests** | `unit_test/etl/` | pytest-based; mirrors `src/evox_etl/`; 363 tests across algorithms/operators/problems/metrics (run suites separately) |
+| **etl tests** | `unit_test/etl/` | pytest-based; mirrors `src/evox_etl/`; 369 tests across algorithms/operators/problems/metrics (run suites separately) |
 | **Benchmarks** | `benchmarks/` | PSO benchmark (eager vs compile vs max-autotune), `switch` micro-benchmark, reusable `test_base.py` |
 | **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 6 backends (torch-cpu/cuda, etl-numpy/iree-llvm-cpu/iree-cuda/xla-cuda) × SO/MO suites × 3 scales; results JSONs + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
 | **Documentation** | `docs/` | Sphinx + shibuya theme; autodoc2 API docs; MyST Markdown tutorials; bilingual (gettext .po + manual ZH translations) |

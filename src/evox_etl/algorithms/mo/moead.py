@@ -211,10 +211,10 @@ def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADSta
     )
 
     fitness = evaluate(offspring)
-    return _tell(config, intermediate, fitness)
+    return _update(config, intermediate, fitness)
 
 
-def _tell(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
+def _update(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
     """Update z and the neighbor subpopulations (torch ``step`` 1:1)."""
     n_w = state.next_parents.shape[0]
     n_neighbor = state.next_parents.shape[1]
