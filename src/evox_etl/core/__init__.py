@@ -5,6 +5,7 @@ from .algorithm import (
     AlgorithmConfig,
     AlgorithmState,
     Candidates,
+    Evaluate,
     Fitness,
     KeyArray,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "AlgorithmConfig",
     "AlgorithmState",
     "Candidates",
+    "Evaluate",
     "Fitness",
     "KeyArray",
     "Monitor",

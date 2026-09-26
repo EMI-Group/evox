@@ -2,10 +2,11 @@
 
 ## Intent
 The functional foundation of evox_etl: duck-typed protocol documentation (Algorithm:
-`init/ask/tell` (+ optional `init_ask`/`init_tell`); Problem: `evaluate` (+ optional
-`init`); Monitor: `monitor_update` (+ optional `init`)), state helpers
-(`replace`/`get_nested`/`set_nested` + etl tree re-exports), and `StdWorkflow`
-(compose+compile-once+run loop). See `../DESIGN.md` §4 — the binding spec.
+STEP protocol — `init`/`step` + optional `init_step`/`final_step`, with a workflow-injected
+`evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor: `monitor_update`
+(+ optional `init`)), state helpers (`replace`/`get_nested`/`set_nested` + etl tree
+re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
+`../DESIGN.md` §4 — the binding spec.
 
 ## API Surface
 - `state.py`: `replace(obj, **changes)` (dataclasses.replace, with a namedtuple
@@ -13,40 +14,78 @@ The functional foundation of evox_etl: duck-typed protocol documentation (Algori
   (path = "a.b.c" or tuple of names), re-exports `tree_map/tree_leaves/
   tree_flatten/tree_unflatten` from etl.
 - `algorithm.py` / `problem.py` / `monitor.py`: documentation-only `typing.Protocol`
-  classes + type aliases (`AlgorithmState = Any`, ...). NO base classes required;
-  functions are PLAIN module-level functions (NOT `@etl.defn`) living in the SAME
-  module as their config dataclass; the workflow resolves them via
-  `importlib.import_module(type(config).__module__)`.
+  classes + type aliases (`AlgorithmState = Any`, ..., `Evaluate = Callable[[Candidates],
+  Fitness]`). NO base classes required; functions are PLAIN module-level functions
+  (NOT `@etl.defn`) living in the SAME module as their config dataclass; the workflow
+  resolves them via `importlib.import_module(type(config).__module__)`.
 - `workflow.py`: `EmptyState`, `WorkflowState(algorithm_state, problem_state,
   monitor_state, generation [0-d int32], key [0-d int64])` (both frozen dataclasses)
   and `StdWorkflow` (plain class).
 - `StdWorkflow(algorithm, problem, monitor=None, opt_direction="min",
   solution_transform=None, fitness_transform=None, num_generations=None,
-  backend="numpy", device=None, compile_options=None)`.
-  Methods: `init(seed=42) -> WorkflowState` (builds init/step graphs once),
-  `step(state=None) -> WorkflowState` (one `etl.run` of the compiled step exe +
-  host-side monitor history recording), `run(generations=None, seed=42)`,
+  backend="numpy", device=None, compile_options=None)`. The algorithm module MUST
+  define a callable `step(config, state, evaluate)` (TypeError at construction
+  otherwise); `init_step`/`final_step` are optional. Methods: `init(seed=42) ->
+  WorkflowState` (builds init graph + the `step` variant graph once),
+  `init_step(state=None)` / `step(state=None)` / `final_step(state=None)` (public
+  step API; each runs ONE generation, records monitor history, updates
+  `self._state`, returns the new state), `run(generations=None, seed=42)`,
   `fit(fitness=None, generations=None, seed=42)` (needs a monitor wrapper with
   `get_best_fitness`). Internals: `opt_direction` property (tuple of ±1),
   `monitor` (host wrapper), `monitor_config` (completed cfg), `monitor_state`,
-  `_step_exe`/`_init_exe` (cached executables).
+  `_step_exes` (dict variant→exe, lazily built), `_init_exe`/`_mon_init_exe`.
+
+## The step protocol (BINDING for algorithm modules)
+- `init(config, key) -> state` — unchanged from the pre-1.0 protocol.
+- `step(config, state, evaluate) -> state` — REQUIRED. Owns ONE full generation:
+  produce candidates (old ask-body), get fitness via `fitness = evaluate(candidates)`
+  (may call multiple times with different candidate sets), update state (old
+  tell-body), return state. The workflow handles the generation counter and the key
+  passthrough — the returned state's `key` management is the algorithm's own concern
+  (split-from-state convention unchanged).
+- `init_step(config, state, evaluate) -> state` — OPTIONAL first-generation variant.
+  Absent → the workflow's `init_step()` calls the module's `step`.
+- `final_step(config, state, evaluate) -> state` — OPTIONAL last-generation variant.
+  Absent → `final_step()` calls `step`.
+- `ask`/`tell`/`init_ask`/`init_tell` are DELETED from the protocol.
+- `evaluate(candidates) -> fitness` is a traced closure created by the WORKFLOW
+  inside the step graph. Pipeline per call: solution_transform → `problem.evaluate`
+  (threads problem state) → opt-direction scaling (min semantics, baked f32
+  constant, scalar () or (m,)) → fitness_transform → `monitor_update` (threads
+  monitor state; receives RAW candidates + TRANSFORMED fitness — the torch
+  post_ask/pre_tell semantics). Algorithms treat it as fully opaque: pass whatever
+  tensor/pytree the candidates are, get transformed fitness back; do NOT store or
+  re-thread it. The workflow keeps the problem/monitor state of the LAST evaluate
+  call (torch's stateful Problem semantics, reified).
+- Dispatch is HOST-SIDE: `StdWorkflow.__init__` records `_has_init_step`/
+  `_has_final_step` = whether the module defines callables; `init_step()`/`
+  final_step()` resolve to the module function if present else `step`. There is NO
+  in-graph `generation == 0` branch anymore.
+- One compiled exe per RESOLVED variant (`_step_exes: dict[str, Executable]`),
+  built lazily from the current state's TensorSpec tree; the `step` variant is
+  pre-built in `init()`. A step-only algorithm therefore reuses a single exe.
+- `run(generations=N)`: `init` + `init_step` + (N−2) plain steps + (final_step if
+  module defines it else step) — i.e. the LAST generation uses final_step; `N == 1`
+  runs only init_step; total generations including init_step == N. `fit` uses the
+  same loop (plus the generation-0 `fit_history` append when `fitness` is given)
+  and returns `monitor.get_best_fitness()`.
 
 ## Constraints
-- Everything runs on the default "numpy" backend, CPU only (no GPU in this dir's
-  scope); use `/mnt/local-ssd/bchuang/evox/.venv/bin/python` for any run.
+- Everything runs on the configured backend/device; the default is the "numpy"
+  backend on cpu; use the documented venv for any run.
 - NO eager etl ops — all etl ops only inside traces (workflow builds exes via
   `etl.build` and runs via `etl.run(exe, *args)`; `exe.run` does NOT exist).
-- Step graph built ONCE: configs captured via CLOSURES (config dataclasses with
-  callables/numpy arrays FAIL positional passing); the only graph inputs are state
-  pytrees (+ key for init). Config fields = Python scalars/plain values.
+- Step graphs built ONCE per variant: configs captured via CLOSURES (config
+  dataclasses with callables/numpy arrays FAIL positional passing); the only graph
+  inputs are state pytrees (+ key for init). Config fields = Python scalars/plain
+  values.
 - No torch imports; numpy allowed ONLY for baking constant arrays into graphs
   (`etl.ops.constant(etl.core.tensor(np.asarray(...)))` — inside the trace).
 - State leaves are tensors ONLY; shapes must be static across runs (no
-  dynamically-sized buffers in the compiled step graph — allocate full-size and
+  dynamically-sized buffers in the compiled step graphs — allocate full-size and
   track elites by value).
-- Minimization semantics internally; workflow applies opt_direction (baked f32
-  constant, scalar () or (m,)) BEFORE fitness_transform; monitor gets RAW
-  candidates + TRANSFORMED fitness.
+- Minimization semantics internally; workflow applies opt_direction BEFORE
+  fitness_transform; monitor gets RAW candidates + TRANSFORMED fitness.
 
 ## Notes for Agents (verified ETL gotchas)
 - `etl.sum`/`mean`/reductions take `axes=`, but `topk`/`argmin`/`gather` take
@@ -71,11 +110,10 @@ The functional foundation of evox_etl: duck-typed protocol documentation (Algori
 - `dataclasses.replace` does NOT work on namedtuples (py3.11) — use `state.replace`.
 - Eager (outside trace) is fine: `etl.random.key(seed)`, `t.shape`/`t.dtype`/
   `t.numpy()`, `t.to(etl.core.Device("cpu"))`, `etl.core.tensor(np_array)`.
-- `etl.cond(pred, true_fn, false_fn, *operands)` works with 0-d bool pred and
-  dataclass pytree operands (used for the generation-0 branch).
-- Reference for workflow behavior: `../../evox/workflows/std_workflow.py` (torch,
-  read-only sibling). ETL same-device loop pattern validated in etl tests
-  (`tests/backends/test_iree_same_device_loop.py` in the foreign repo).
+- NONLOCAL CLOSURES INSIDE TRACES WORK (validated): a traced step body can define
+  `evaluate` with `nonlocal prob_state, mon_state` rebinding across multiple calls —
+  this is exactly how the workflow threads problem/monitor state inside one
+  generation. etl traces plain Python closures, not just pure expressions.
 - MODULE CONVENTION GOTCHA: the workflow resolves functions via
   `type(config).__module__`, so algorithm/problem/monitor configs used together
   MUST live in DISTINCT modules — two configs defined in the same module (e.g.
@@ -86,5 +124,11 @@ The functional foundation of evox_etl: duck-typed protocol documentation (Algori
   monitor's running best (topk_fitness / get_best_fitness) or the algorithm's
   internal best field — those are monotone. With opt_direction="max": internal
   (minimized) fitness decreases while get_best_fitness (un-negated) increases.
+  NOTE: the monitor config's `*_history` LISTS ACCUMULATE across `run()` calls on
+  the same workflow instance (pre-existing EvalMonitor semantics).
 - `global_best_fitness`-style fields are often shape (1,) — use
   `float(np.asarray(t.numpy()).reshape(-1)[0])` in tests, not `float(t.numpy())`.
+- Reference for workflow behavior: `../../evox/workflows/std_workflow.py` and
+  `../../evox/core/components.py` (torch, read-only siblings). ETL same-device loop
+  pattern validated in etl tests (`tests/backends/test_iree_same_device_loop.py`
+  in the foreign repo).

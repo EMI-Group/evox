@@ -1,4 +1,4 @@
-"""StdWorkflow: composes algorithm/problem/monitor functions into one compiled step graph."""
+"""StdWorkflow: composes algorithm/problem/monitor functions into one compiled step graph per variant."""
 
 from __future__ import annotations
 
@@ -94,15 +94,23 @@ class StdWorkflow:
     """The standard optimization workflow (functional).
 
     Composes the plain functions of an algorithm, a problem and (optionally) a
-    monitor module into a single compiled step graph and runs it in a
-    same-device loop.
+    monitor module into one compiled step graph per step VARIANT (``init_step``/
+    ``step``/``final_step``) and runs them in a same-device loop.
+
+    The algorithm module owns ONE full generation per call: its ``step``-family
+    function generates candidates and obtains their fitness through the opaque
+    ``evaluate`` closure the workflow creates (solution_transform → problem →
+    opt-direction scaling → fitness_transform → monitor update). Whether the
+    generation-0 / last-generation variants are used is decided HOST-SIDE.
 
     Usage:
     ```
     wf = StdWorkflow(PSO(...), Sphere(), monitor=EvalMonitorConfig(), opt_direction="min")
     state = wf.init(seed=42)
-    for _ in range(20):
+    state = wf.init_step(state)   # falls back to step() when the module has no init_step
+    for _ in range(19):
         state = wf.step(state)
+    state = wf.final_step(state)  # falls back to step() when the module has no final_step
     ```
     """
 
@@ -121,7 +129,9 @@ class StdWorkflow:
     ):
         """Initialize the workflow with static arguments.
 
-        :param algorithm: Config dataclass of the algorithm.
+        :param algorithm: Config dataclass of the algorithm. Its module must define
+            ``step(config, state, evaluate)`` (optionally ``init_step``/
+            ``final_step``); see ``evox_etl.core.algorithm``.
         :param problem: Config dataclass of the problem.
         :param monitor: Config dataclass of the monitor, or None. Defaults to None.
         :param opt_direction: "min"/"max" (or a list of them for multi-objective). Defaults to "min".
@@ -159,11 +169,16 @@ class StdWorkflow:
         self._prob_mod = _module_of(problem)
         self._mon_mod = _module_of(monitor) if monitor is not None else None
 
-        # generation-0 branch: used only if BOTH init_ask and init_tell exist
-        self._use_init_branch = (
-            getattr(self._algo_mod, "init_ask", None) is not None
-            and getattr(self._algo_mod, "init_tell", None) is not None
-        )
+        # Step protocol: the module MUST define step(config, state, evaluate);
+        # init_step/final_step are optional first/last-generation variants that
+        # the workflow dispatches to HOST-SIDE (no in-graph generation branch).
+        if not callable(getattr(self._algo_mod, "step", None)):
+            raise TypeError(
+                f"algorithm module {self._algo_mod.__name__!r} must define a callable "
+                f"step(config, state, evaluate) function (step protocol)"
+            )
+        self._has_init_step = callable(getattr(self._algo_mod, "init_step", None))
+        self._has_final_step = callable(getattr(self._algo_mod, "final_step", None))
 
         self.monitor = None  # host-side convenience wrapper (if the module provides one)
         self.monitor_config: Any = None  # completed monitor config
@@ -171,7 +186,7 @@ class StdWorkflow:
         self._state: WorkflowState | None = None
         self._init_exe = None
         self._mon_init_exe = None
-        self._step_exe = None
+        self._step_exes: dict[str, Any] = {}  # one lazily built exe per step variant
 
     @property
     def opt_direction(self) -> tuple[int, ...]:
@@ -240,8 +255,8 @@ class StdWorkflow:
             etl.backends.get(self.backend)
             state = etl.tree_map(lambda t: t.to(self._device), state)
         self._state = state
-        if self._step_exe is None:
-            self._step_exe = self._build_step_exe(state)
+        if "step" not in self._step_exes:
+            self._step_exes["step"] = self._build_step_exe("step", state)
         return state
 
     def _discover_pop_size(self, state: WorkflowState) -> tuple[int | None, int | None]:
@@ -308,90 +323,105 @@ class StdWorkflow:
 
     # ------------------------------------------------------------------ step
 
+    def init_step(self, state: WorkflowState | None = None) -> WorkflowState:
+        """Perform the first optimization step: the module's ``init_step`` if
+        defined, else its ``step``."""
+        return self._run_variant("init_step", state)
+
     def step(self, state: WorkflowState | None = None) -> WorkflowState:
         """Perform a single optimization step (one compiled graph run)."""
+        return self._run_variant("step", state)
+
+    def final_step(self, state: WorkflowState | None = None) -> WorkflowState:
+        """Perform the last optimization step: the module's ``final_step`` if
+        defined, else its ``step``."""
+        return self._run_variant("final_step", state)
+
+    def _resolve_variant(self, variant: str) -> str:
+        """Map a public step variant to the algorithm function actually used."""
+        if variant == "step":
+            return "step"
+        if variant == "init_step" and self._has_init_step:
+            return "init_step"
+        if variant == "final_step" and self._has_final_step:
+            return "final_step"
+        return "step"
+
+    def _run_variant(self, variant: str, state: WorkflowState | None) -> WorkflowState:
+        """Resolve the state, build/fetch the variant exe, run it and record history."""
         if state is None:
             state = self._state
         if state is None:
             raise RuntimeError("Workflow is not initialized: call init() first.")
         if self._device.kind != "cpu":
             state = etl.tree_map(lambda t: t.to(self._device), state)
-        if self._step_exe is None:
-            self._step_exe = self._build_step_exe(state)
-        state = etl.run(self._step_exe, state)
+        resolved = self._resolve_variant(variant)
+        exe = self._step_exes.get(resolved)
+        if exe is None:
+            exe = self._build_step_exe(resolved, state)
+            self._step_exes[resolved] = exe
+        state = etl.run(exe, state)
         self._record_history(state)
         self._state = state
         return state
 
-    def _build_step_exe(self, state: WorkflowState) -> Any:
-        """Build the step graph ONCE from tensor specs of the current state."""
+    def _build_step_exe(self, resolved: str, state: WorkflowState) -> Any:
+        """Build one variant's step graph ONCE from tensor specs of the current state."""
         specs = etl.tree_map(
             lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype),
             state,
         )
-        step_fn = self._make_step_fn()
+        step_fn = self._make_step_fn(resolved)
         options = {k: v for k, v in self._compile_options.items() if k not in ("backend", "device")}
         return etl.build(step_fn, specs, backend=self.backend, device=self._device, **options)
 
-    def _make_step_fn(self) -> Callable[[WorkflowState], WorkflowState]:
-        """Compose the full step: ask -> evaluate -> transform -> tell -> monitor, gen+1."""
-        algo_mod, algo_cfg = self._algo_mod, self.algorithm
+    def _make_step_fn(self, resolved: str) -> Callable[[WorkflowState], WorkflowState]:
+        """Compose one full generation for one algorithm function:
+
+        ``fn(algo_cfg, alg_state, evaluate)`` where the workflow-owned ``evaluate``
+        closure applies solution_transform → problem evaluate → opt-direction
+        scaling (min semantics) → fitness_transform → monitor update, threading
+        the problem/monitor state across (possibly several) calls. Generation +1.
+        """
+        algo_cfg = self.algorithm
         prob_mod, prob_cfg = self._prob_mod, self.problem
         mon_mod, mon_cfg = self._mon_mod, self.monitor_config
-        ask = algo_mod.ask
-        tell = algo_mod.tell
-        init_ask = getattr(algo_mod, "init_ask", None)
-        init_tell = getattr(algo_mod, "init_tell", None)
-        evaluate = prob_mod.evaluate
+        fn = getattr(self._algo_mod, resolved)
+        evaluate_problem = prob_mod.evaluate
         mon_update = getattr(mon_mod, "monitor_update", None) if mon_mod is not None else None
         solution_transform = self.solution_transform
         fitness_transform = self.fitness_transform
         opt_dir = self._opt_direction
-        use_init_branch = self._use_init_branch
 
         def step_fn(state: WorkflowState) -> WorkflowState:
             opt_dir_const = _opt_direction_constant(opt_dir)
+            prob_state = state.problem_state
+            mon_state = state.monitor_state
 
-            def run_generation(st: WorkflowState, first: bool) -> WorkflowState:
-                if first:
-                    candidates, alg_state = init_ask(algo_cfg, st.algorithm_state)
-                else:
-                    candidates, alg_state = ask(algo_cfg, st.algorithm_state)
-                # monitor sees RAW candidates (post_ask semantics)
+            def evaluate(candidates: Any) -> Any:
+                nonlocal prob_state, mon_state
                 if solution_transform is not None:
                     x = solution_transform(candidates)
                 else:
                     x = candidates
-                fitness, prob_state = evaluate(prob_cfg, st.problem_state, x)
+                fitness, prob_state = evaluate_problem(prob_cfg, prob_state, x)
                 fitness = opt_dir_const * fitness
                 if fitness_transform is not None:
                     fitness = fitness_transform(fitness)
-                # monitor sees TRANSFORMED fitness (pre_tell semantics)
+                # monitor sees RAW candidates (post_ask semantics) and
+                # TRANSFORMED fitness (pre_tell semantics)
                 if mon_update is not None:
-                    mon_state = mon_update(mon_cfg, st.monitor_state, candidates, fitness)
-                else:
-                    mon_state = st.monitor_state
-                if first:
-                    alg_state = init_tell(algo_cfg, alg_state, fitness)
-                else:
-                    alg_state = tell(algo_cfg, alg_state, fitness)
-                return WorkflowState(
-                    algorithm_state=alg_state,
-                    problem_state=prob_state,
-                    monitor_state=mon_state,
-                    generation=etl.cast(st.generation + 1, np.int32),
-                    key=st.key,
-                )
+                    mon_state = mon_update(mon_cfg, mon_state, candidates, fitness)
+                return fitness
 
-            def first_branch(st: WorkflowState) -> WorkflowState:
-                return run_generation(st, True)
-
-            def regular_branch(st: WorkflowState) -> WorkflowState:
-                return run_generation(st, False)
-
-            if use_init_branch:
-                return etl.cond(state.generation == 0, first_branch, regular_branch, state)
-            return regular_branch(state)
+            alg_state = fn(algo_cfg, state.algorithm_state, evaluate)
+            return WorkflowState(
+                algorithm_state=alg_state,
+                problem_state=prob_state,
+                monitor_state=mon_state,
+                generation=etl.cast(state.generation + 1, np.int32),
+                key=state.key,
+            )
 
         return step_fn
 
@@ -428,8 +458,12 @@ class StdWorkflow:
     def run(self, generations: int | None = None, seed: int = 42) -> WorkflowState:
         """Initialize and run the optimization loop for `generations` generations.
 
-        If `generations` is None, `self.num_generations` is used; if both are
-        None, a ValueError is raised.
+        The loop performs `init_step` followed by (generations - 1) further
+        steps, where the LAST of those is a `final_step` if the algorithm
+        module defines one (otherwise a plain `step`); `generations == 1`
+        performs only the init_step. Total generations INCLUDING the init_step
+        equals `generations`. If `generations` is None, `self.num_generations`
+        is used; if both are None, a ValueError is raised.
         """
         generations = self._resolve_generations(generations, "run")
         state = self.init(seed=seed)
@@ -465,7 +499,17 @@ class StdWorkflow:
         return generations
 
     def _run_loop(self, state: WorkflowState, generations: int) -> WorkflowState:
-        """Run `generations` compiled steps in a same-device loop."""
-        for _ in range(generations):
+        """Run `generations` generation-owning steps in a same-device loop.
+
+        Dispatch mirrors the torch workflow: the first generation uses
+        `init_step` (falling back to `step`), the last one `final_step`
+        (falling back to `step`), everything in between plain `step`.
+        """
+        if generations <= 0:
+            return state
+        state = self.init_step(state)
+        for _ in range(generations - 2):
             state = self.step(state)
+        if generations >= 2:
+            state = self.final_step(state)
         return state
