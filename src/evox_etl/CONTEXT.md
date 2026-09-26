@@ -51,10 +51,13 @@ compile-once StdWorkflow loop.
 | ETL library | (foreign repo `/mnt/local-ssd/bchuang/etl`) | read via the venv install; fixes only by root agent |
 
 ## Environment
-Shared venv interpreter: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (python3.11,
-torch 2.6.0+cu124 CUDA works, evox+etl editable, pytest). Tests:
-`/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl -q`.
-GPUs: 3× RTX A6000 (scan `nvidia-smi` for the most-free GPU before GPU runs).
+No pre-provisioned venv on this machine — provision one with `uv venv` +
+`uv pip install <etl-source-copy> numpy pytest "torch>=2.6.0"` (etl is the
+foreign repo `/home/bill/Source/etl`; its checkout is read-only, so install
+from a copied tree; torch-cpu wheel index suffices — no GPU here). Tests:
+`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~3.5 min,
+384 tests incl. `src/evox_etl/workflows/tests`). `evox_etl` is a PEP 420
+namespace package — drivers need `PYTHONPATH=src`.
 
 ## ETL issues found (escalated to root agent)
 1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
