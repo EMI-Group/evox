@@ -1,16 +1,19 @@
-"""Functional ETL port of the torch evox OpenES algorithm.
+"""Functional ETL port of the torch evox OpenES algorithm (step protocol).
 
 Plain (non-`@etl.defn`) functions: they may only be called inside an active
 trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
 mode.  Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/open_es.py` exactly.
+`src/evox/algorithms/so/es_variants/open_es.py` exactly: `step` owns the WHOLE
+generation (sample → `evaluate(candidates)` → gradient update), with the
+workflow-injected `evaluate` closure standing in for torch's
+`self.evaluate(pop)`.
 
 OpenES is described in "Evolution Strategies as a Scalable Alternative to
 Reinforcement Learning" (https://arxiv.org/abs/1703.03864).
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -86,7 +89,7 @@ class OpenESState:
     """Algorithm state: tensor leaves only."""
 
     center: Tensor  # (dim,) current search center
-    noise: Tensor  # (pop_size, dim) noise sampled by the last ask
+    noise: Tensor  # (pop_size, dim) noise sampled by the last step
     exp_avg: Tensor  # (dim,) Adam first moment (always carried)
     exp_avg_sq: Tensor  # (dim,) Adam second moment (always carried)
     best_fitness: Tensor  # () best fitness seen so far
@@ -111,8 +114,16 @@ def init(config: OpenESConfig, key: Tensor) -> OpenESState:
     )
 
 
-def ask(config: OpenESConfig, state: OpenESState) -> tuple[Tensor, OpenESState]:
-    """Sample the population around the center (mirrored or plain Gaussian noise)."""
+def step(
+    config: OpenESConfig, state: OpenESState, evaluate: Callable[[Tensor], Tensor]
+) -> OpenESState:
+    """Run ONE full generation: sample the population around the center
+    (mirrored or plain Gaussian noise), evaluate it, and update the center
+    from the fitness via the ES gradient estimate.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     key, subkey = random.split(state.key)
     if config.mirrored_sampling:
@@ -121,11 +132,10 @@ def ask(config: OpenESConfig, state: OpenESState) -> tuple[Tensor, OpenESState]:
     else:
         noise = random.normal(subkey, (config.pop_size, dim), dtype=F32)
     population = enp.expand_dims(state.center, axis=0) + config.noise_stdev * noise
-    return population, replace(state, noise=noise, key=key)
+    state = replace(state, noise=noise, key=key)
 
+    fitness = evaluate(population)
 
-def tell(config: OpenESConfig, state: OpenESState, fitness: Tensor) -> OpenESState:
-    """Update the center from the fitness via the ES gradient estimate."""
     grad = (
         etl.dot(enp.expand_dims(fitness, axis=0), state.noise)[0]
         / config.pop_size

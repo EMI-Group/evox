@@ -1,16 +1,16 @@
 """Functional port of the torch evox Differential Evolution (DE) algorithm.
 
 Port source: `src/evox/algorithms/so/de_variants/de.py` (READ-ONLY reference,
-semantics 1:1). Torch's `step` calls `self.evaluate` in the middle of the
-method, so the functional split point is there: `ask` runs the mutation +
-crossover half (via `_de_trial`) and `tell` runs the selection half.
-`init_ask`/`init_tell` encode torch's `init_step` (initial-population
-evaluation before the first generation).
+semantics 1:1). One ``step`` call = one torch ``step``: it runs the whole
+generation (mutation + crossover → ``evaluate`` → selection) around the
+opaque ``evaluate`` closure. ``init_step`` encodes torch's ``init_step``
+(evaluate the initial population); torch DE's ``init_step`` performs no
+further generation, so neither does this one.
 
 Deviations from torch:
 - RNG: torch's global `torch.rand`/`torch.randint` draws are key-based
   (`etl.random`), one split per draw in torch's draw order; keys live in the
-  state and advance there. `tell` never draws randomness.
+  state and advance there. The selection half draws no randomness.
 - Array-like config fields (`lb`/`ub`/`mean`/`stdev` and a tuple
   `differential_weight`) are normalized to flat tuples of plain Python floats
   by the `make_de` constructor; the config dataclass itself stores only plain
@@ -18,7 +18,7 @@ Deviations from torch:
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 import etl
 import etl.numpy as enp
@@ -38,7 +38,7 @@ from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["DE", "DEState", "init", "init_ask", "init_tell", "ask", "tell", "make_de"]
+__all__ = ["DE", "DEState", "init", "init_step", "step", "make_de"]
 
 
 @dataclass(frozen=True)
@@ -126,7 +126,7 @@ class DEState:
 
 
 def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tensor]:
-    """Port of torch `DE.step`'s mutation + crossover half (up to `evaluate`).
+    """Port of torch ``DE.step``'s mutation + crossover stage (up to ``evaluate``).
 
     Draws linearly from `subkey` in torch's order: `num_vec` randint index
     draws (torch draws all `num_vec` even in best mode), then the crossover
@@ -200,26 +200,29 @@ def init(config: DE, key: Tensor) -> DEState:
     return DEState(pop=pop, fit=fit, trial_vectors=pop, key=key)
 
 
-def init_ask(config: DE, state: DEState) -> Tuple[Tensor, DEState]:
-    """Return the initial population for the workflow's first evaluation."""
-    return state.pop, state
-
-
-def init_tell(config: DE, state: DEState, fitness: Tensor) -> DEState:
-    """Record the fitness of the initial population (torch init_step)."""
+def init_step(config: DE, state: DEState, evaluate: Callable[[Tensor], Tensor]) -> DEState:
+    """Initial-generation step (torch ``init_step``): evaluate the initial
+    population and record its fitness; no generation is performed yet."""
+    fitness = evaluate(state.pop)
     return DEState(pop=state.pop, fit=fitness, trial_vectors=state.trial_vectors, key=state.key)
 
 
-def ask(config: DE, state: DEState) -> Tuple[Tensor, DEState]:
-    """Produce DE trial vectors (mutation + crossover) for evaluation."""
+def step(config: DE, state: DEState, evaluate: Callable[[Tensor], Tensor]) -> DEState:
+    """Run ONE full DE generation (torch ``step``): mutation, crossover,
+    evaluation of the trial vectors, then greedy selection.
+
+    Sub-steps (mirroring torch ``DE.step``):
+    1. Mutation: mutant vectors from the configured base-vector strategy
+       ("best"/"rand") and ``num_difference_vectors`` difference-vector pairs.
+    2. Crossover: binomial crossover with the forced-dimension guarantee,
+       clamped into the bounds.
+    3. Selection: ``fitness = evaluate(trial_vectors)``, then keep the better
+       of each individual vs its trial vector.
+    """
     key, subkey = random.split(state.key)
     trial, _ = _de_trial(config, state, subkey)
-    return trial, DEState(pop=state.pop, fit=state.fit, trial_vectors=trial, key=key)
-
-
-def tell(config: DE, state: DEState, fitness: Tensor) -> DEState:
-    """Keep the better of each individual vs its trial vector (torch's selection half)."""
+    fitness = evaluate(trial)
     compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), state.trial_vectors, state.pop)
+    pop = etl.select(enp.expand_dims(compare, 1), trial, state.pop)
     fit = etl.select(compare, fitness, state.fit)
-    return DEState(pop=pop, fit=fit, trial_vectors=state.trial_vectors, key=state.key)
+    return DEState(pop=pop, fit=fit, trial_vectors=trial, key=key)

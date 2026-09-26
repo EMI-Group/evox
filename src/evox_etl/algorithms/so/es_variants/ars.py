@@ -1,9 +1,12 @@
-"""Functional ETL port of the torch evox ARS algorithm.
+"""Functional ETL port of the torch evox ARS algorithm (step protocol).
 
 Plain (non-`@etl.defn`) functions: they may only be called inside an active
 trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
 mode.  Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/ars.py` exactly.
+`src/evox/algorithms/so/es_variants/ars.py` exactly: `step` owns the WHOLE
+generation (mirrored sampling → `evaluate(candidates)` → elite rank update),
+with the workflow-injected `evaluate` closure standing in for torch's
+`self.evaluate(population)`.
 
 ARS is described in "Simple random search provides a competitive approach to
 reinforcement learning" (https://arxiv.org/abs/1803.07055); this
@@ -11,7 +14,7 @@ implementation follows the evosax version like the torch reference.
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -80,7 +83,7 @@ class ARSState:
     """Algorithm state: tensor leaves only."""
 
     center: Tensor  # (dim,) current search center
-    noise: Tensor  # (pop_size, dim) mirrored noise sampled by the last ask
+    noise: Tensor  # (pop_size, dim) mirrored noise sampled by the last step
     exp_avg: Tensor  # (dim,) Adam first moment (always carried)
     exp_avg_sq: Tensor  # (dim,) Adam second moment (always carried)
     best_fitness: Tensor  # () best fitness seen so far
@@ -105,20 +108,26 @@ def init(config: ARSConfig, key: Tensor) -> ARSState:
     )
 
 
-def ask(config: ARSConfig, state: ARSState) -> tuple[Tensor, ARSState]:
-    """Sample the mirrored population ``center +- sigma * z``."""
+def step(
+    config: ARSConfig, state: ARSState, evaluate: Callable[[Tensor], Tensor]
+) -> ARSState:
+    """Run ONE full generation: sample the mirrored population
+    ``center +- sigma * z``, evaluate it, rank the mirrored pairs, keep the
+    elite ones, and step the center.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     key, subkey = random.split(state.key)
     half = config.pop_size // 2
     z_plus = random.normal(subkey, (half, dim), dtype=F32)
     noise = etl.concatenate([z_plus, -1.0 * z_plus], axis=0)
     population = state.center + config.sigma * noise
-    return population, replace(state, noise=noise, key=key)
+    state = replace(state, noise=noise, key=key)
 
+    fitness = evaluate(population)
 
-def tell(config: ARSConfig, state: ARSState, fitness: Tensor) -> ARSState:
-    """Rank mirrored pairs, keep the elite ones, and step the center."""
-    half = config.pop_size // 2
     elite_pop_size = max(1, int(half * config.elite_ratio))
     fit_1 = fitness[:half]
     fit_2 = fitness[half:]

@@ -1,14 +1,16 @@
-"""Functional ETL port of the torch evox ASEBO algorithm (plain functions).
+"""Functional ETL port of the torch evox ASEBO algorithm (step protocol).
 
 Reference (read-only): ``src/evox/algorithms/so/es_variants/asebo.py``
 (Adaptive ES-Active Subspaces for Blackbox Optimization).  ETL has no eager
-mode, so ``init``/``ask``/``tell`` are plain functions traced via
-``etl.build``/``etl.run``; the torch ``step`` is split at ``self.evaluate``.
-``lr_decay``/``lr_limit`` are kept for API parity but unused (as in torch).
+mode, so ``init``/``step`` are plain functions traced via ``etl.build``/
+``etl.run``; ``step`` owns the WHOLE generation — the torch ``step`` body with
+its internal ``self.evaluate`` call fused in via the workflow-injected
+``evaluate`` closure.  ``lr_decay``/``lr_limit`` are kept for API parity but
+unused (as in torch).
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -136,10 +138,18 @@ def init(config: ASEBOConfig, key: SymbolicTensor) -> ASEBOState:
     )
 
 
-def ask(
-    config: ASEBOConfig, state: ASEBOState
-) -> tuple[SymbolicTensor, ASEBOState]:
-    """Sample the mirrored population from the active-subspace covariance."""
+def step(
+    config: ASEBOConfig,
+    state: ASEBOState,
+    evaluate: Callable[[SymbolicTensor], SymbolicTensor],
+) -> ASEBOState:
+    """Run ONE full generation: project onto the active subspace (SVD of the
+    gradient history), sample the mirrored population, evaluate it, and update
+    center, alpha and sigma from the mirrored fitness pairs.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     half = config.pop_size // 2
     sub = config.subspace_dims
@@ -178,17 +188,12 @@ def ask(
     z = etl.concatenate([z_plus, -1.0 * z_plus], axis=0)
     population = state.center + z
     gen_counter = state.gen_counter + 1.0
-    return population, replace(
+    state = replace(
         state, z=z, UUT=UUT, UUT_ort=UUT_ort, gen_counter=gen_counter, key=key
     )
 
+    fitness = evaluate(population)
 
-def tell(
-    config: ASEBOConfig, state: ASEBOState, fitness: SymbolicTensor
-) -> ASEBOState:
-    """Update center, alpha and sigma from the mirrored fitness pairs."""
-    dim = len(config.center_init)
-    half = config.pop_size // 2
     noise_1 = state.z[:half] / state.sigma
     fit_diff_noise = etl.dot(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1

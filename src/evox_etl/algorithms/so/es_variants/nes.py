@@ -1,11 +1,14 @@
-"""Functional ETL port of the torch evox xNES / SeparableNES algorithms.
+"""Functional ETL port of the torch evox xNES / SeparableNES algorithms (step
+protocol).
 
-Plain-function (non-``@etl.defn``) ``init``/``ask``/``tell`` split of the torch
+Plain-function (non-``@etl.defn``) ``init``/``step`` ports of the torch
 classes in ``src/evox/algorithms/so/es_variants/nes.py`` (read-only reference).
 ETL has no eager mode: every op runs inside functions invoked via
-``etl.build``/``etl.run``.  The shared module-level ``init``/``ask``/``tell``
-dispatch on the (static) config type, so ``run_generations`` can drive either
-algorithm through one module.
+``etl.build``/``etl.run``.  ``step`` owns the WHOLE generation (sample →
+``evaluate(candidates)`` → natural-gradient update), with the workflow-injected
+``evaluate`` closure standing in for torch's ``self.evaluate(population)``.
+The shared module-level ``init``/``step`` dispatch on the (static) config
+type, so a driver can run either algorithm through one module.
 
 Deviation from torch: the torch ``__init__`` default pop_size computes
 ``4 + math.floor(3 * math.log(self.dim))`` while ``self.dim`` is still
@@ -18,7 +21,7 @@ References:
 
 import math
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -167,14 +170,24 @@ def _xn_init(config: XNESConfig, key: SymbolicTensor) -> XNESState:
     )
 
 
-def _xn_ask(config: XNESConfig, state: XNESState) -> tuple[SymbolicTensor, XNESState]:
-    """Sample the population around the mean with the current covariance factor B."""
+def _xn_step(
+    config: XNESConfig,
+    state: XNESState,
+    evaluate: Callable[[SymbolicTensor], SymbolicTensor],
+) -> XNESState:
+    """Run ONE full xNES generation: sample the population around the mean
+    with the current covariance factor B, evaluate it, and take the
+    natural-gradient update of mean, sigma and B from the ranked samples.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     pop_size = config.pop_size
     dim = len(config.init_mean)
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
     population = state.mean + state.sigma * etl.dot(noise, etl.transpose(state.B, (1, 0)))
-    return population, XNESState(
+    state = XNESState(
         mean=state.mean,
         sigma=state.sigma,
         B=state.B,
@@ -184,10 +197,8 @@ def _xn_ask(config: XNESConfig, state: XNESState) -> tuple[SymbolicTensor, XNESS
         key=key,
     )
 
+    fitness = evaluate(population)
 
-def _xn_tell(config: XNESConfig, state: XNESState, fitness: SymbolicTensor) -> XNESState:
-    """Natural-gradient update of mean, sigma and B from the ranked samples."""
-    dim = len(config.init_mean)
     order = etl.argsort(fitness)
     noise = etl.gather(state.noise, order, axis=0)
     weights = state.recombination_weights
@@ -313,16 +324,24 @@ def _sn_init(config: SeparableNESConfig, key: SymbolicTensor) -> SeparableNESSta
     )
 
 
-def _sn_ask(
-    config: SeparableNESConfig, state: SeparableNESState
-) -> tuple[SymbolicTensor, SeparableNESState]:
-    """Sample the population with per-dimension (separable) step sizes."""
+def _sn_step(
+    config: SeparableNESConfig,
+    state: SeparableNESState,
+    evaluate: Callable[[SymbolicTensor], SymbolicTensor],
+) -> SeparableNESState:
+    """Run ONE full SeparableNES generation: sample the population with
+    per-dimension (separable) step sizes, evaluate it, and take the
+    natural-gradient update of the mean and per-dimension step sizes.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     pop_size = config.pop_size
     dim = len(config.init_mean)
     key, subkey = random.split(state.key)
     zero_mean_pop = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
     population = state.mean + zero_mean_pop * state.sigma
-    return population, SeparableNESState(
+    state = SeparableNESState(
         mean=state.mean,
         sigma=state.sigma,
         weight=state.weight,
@@ -331,12 +350,8 @@ def _sn_ask(
         key=key,
     )
 
+    fitness = evaluate(population)
 
-def _sn_tell(
-    config: SeparableNESConfig, state: SeparableNESState, fitness: SymbolicTensor
-) -> SeparableNESState:
-    """Natural-gradient update of the mean and per-dimension step sizes."""
-    dim = len(config.init_mean)
     order = etl.argsort(fitness)
     zero_mean_pop = etl.gather(state.zero_mean_pop, order, axis=0)
     weight = etl.tile(enp.expand_dims(state.weight, axis=1), (1, dim))
@@ -364,19 +379,12 @@ def init(config: Any, key: SymbolicTensor) -> Any:
     raise TypeError(f"Unknown NES config type: {type(config)!r}")
 
 
-def ask(config: Any, state: Any) -> tuple[SymbolicTensor, Any]:
-    """Dispatch ``ask`` on the (static) config type."""
+def step(
+    config: Any, state: Any, evaluate: Callable[[Any], Any]
+) -> Any:
+    """Dispatch ``step`` on the (static) config type."""
     if isinstance(config, XNESConfig):
-        return _xn_ask(config, state)
+        return _xn_step(config, state, evaluate)
     if isinstance(config, SeparableNESConfig):
-        return _sn_ask(config, state)
-    raise TypeError(f"Unknown NES config type: {type(config)!r}")
-
-
-def tell(config: Any, state: Any, fitness: SymbolicTensor) -> Any:
-    """Dispatch ``tell`` on the (static) config type."""
-    if isinstance(config, XNESConfig):
-        return _xn_tell(config, state, fitness)
-    if isinstance(config, SeparableNESConfig):
-        return _sn_tell(config, state, fitness)
+        return _sn_step(config, state, evaluate)
     raise TypeError(f"Unknown NES config type: {type(config)!r}")
