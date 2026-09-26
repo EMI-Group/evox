@@ -26,14 +26,17 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   backend="numpy", device=None, compile_options=None)`. The algorithm module MUST
   define a callable `step(config, state, evaluate)` (TypeError at construction
   otherwise); `init_step`/`final_step` are optional. Methods: `init(seed=42) ->
-  WorkflowState` (builds init graph + the `step` variant graph once),
-  `init_step(state=None)` / `step(state=None)` / `final_step(state=None)` (public
-  step API; each runs ONE generation, records monitor history, updates
-  `self._state`, returns the new state), `run(generations=None, seed=42)`,
-  `fit(fitness=None, generations=None, seed=42)` (needs a monitor wrapper with
-  `get_best_fitness`). Internals: `opt_direction` property (tuple of ±1),
+  WorkflowState` (builds init graph + pre-builds the `step` variant graph for the
+  initial signature), `init_step(state=None)` / `step(state=None)` /
+  `final_step(state=None)` (public step API; each runs ONE generation, records
+  monitor history, updates `self._state`, returns the new state), `run(generations=
+  None, seed=42)`, `fit(fitness=None, generations=None, seed=42)` (needs a monitor
+  wrapper with `get_best_fitness`). Internals: `opt_direction` property (tuple of ±1),
   `monitor` (host wrapper), `monitor_config` (completed cfg), `monitor_state`,
-  `_step_exes` (dict variant→exe, lazily built), `_init_exe`/`_mon_init_exe`.
+  `_step_exes` (dict `(resolved variant, state signature)` → exe, lazily built),
+  `_state_signature(state)` (staticmethod: ordered `(shape, dtype)` tuple of all
+  tensor leaves — the `_spec_key` idiom from
+  `unit_test/etl/algorithms/helpers.py`), `_init_exe`/`_mon_init_exe`.
 
 ## The step protocol (BINDING for algorithm modules)
 - `init(config, key) -> state` — unchanged from the pre-1.0 protocol.
@@ -61,9 +64,18 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `_has_final_step` = whether the module defines callables; `init_step()`/`
   final_step()` resolve to the module function if present else `step`. There is NO
   in-graph `generation == 0` branch anymore.
-- One compiled exe per RESOLVED variant (`_step_exes: dict[str, Executable]`),
-  built lazily from the current state's TensorSpec tree; the `step` variant is
-  pre-built in `init()`. A step-only algorithm therefore reuses a single exe.
+- One compiled exe per (RESOLVED variant, STATE SIGNATURE)
+  (`_step_exes: dict[tuple[str, tuple], Executable]`), built lazily from the
+  CURRENT state's TensorSpec tree on a cache miss; the `step` variant is
+  pre-built in `init()` for the initial signature. A step-only algorithm with a
+  stable state therefore reuses a single exe, but state leaves legitimately
+  RESIZE between generations (CoDE hands the monitor `(3·pop_size, dim)`
+  candidate batches vs `(pop_size, dim)` init placeholders; CSO stores
+  `(pop_size/2, dim)` after its init_step), so a drifted signature triggers a
+  fresh trace keyed under the new signature — no ShapeError at generation 2.
+  EXTRA exes are only built for signatures that actually occur; the signature
+  stabilizes after the first drift (per algorithm/problem shapes, one retrace
+  per variant).
 - `run(generations=N)`: `init` + `init_step` + (N−2) plain steps + (final_step if
   module defines it else step) — i.e. the LAST generation uses final_step; `N == 1`
   runs only init_step; total generations including init_step == N. `fit` uses the
