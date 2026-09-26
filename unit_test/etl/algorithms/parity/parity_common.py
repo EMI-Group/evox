@@ -6,8 +6,10 @@ seed=42, 20 offspring generations, on DTLZ1 (optimum = 0 per objective).
 - Torch side: the reference algorithm class driven through
   ``StdWorkflow`` + ``EvalMonitor``; the monitor's ``get_pf_fitness`` pools
   the Pareto front over the WHOLE history of evaluated fitness.
-- ETL side: the functional init/ask/tell port driven through
-  ``etl.build``/``etl.run`` on the numpy backend.
+- ETL side: the functional step-protocol port (``init`` / optional
+  ``init_step`` / ``step``, see ``evox_etl.core.algorithm``) driven through
+  ``etl.build``/``etl.run`` on the numpy backend, with the evaluated batch
+  recorded by the traced ``evaluate`` closure.
 
 The two sides draw different RNG streams (torch global RNG vs etl keyed
 RNG), so parity is asserted on CONVERGENCE (per-objective best value seen,
@@ -21,6 +23,7 @@ import numpy as np
 import torch
 
 import etl
+import etl.numpy as enp
 from unit_test.etl.algorithms.helpers import DTLZ1Config, ToyProblemState, toy_evaluate
 
 warnings.filterwarnings("ignore")
@@ -70,10 +73,20 @@ def _spec_tree(pytree):
 
 
 def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
-    """Drive an etl init/ask/tell module for ``n_gens`` generations,
-    accumulating the elementwise minimum over EVERY evaluated fitness
-    (initial population + all offspring) — the exact counterpart of the
-    torch monitor's whole-history Pareto-front minimum.
+    """Drive an etl step-protocol module for ``n_gens + 1`` generations
+    (generation 0 via ``init_step`` when the module defines it, then
+    ``step``), accumulating the elementwise minimum over EVERY evaluated
+    fitness — the exact counterpart of the torch monitor's whole-history
+    Pareto-front minimum.
+
+    The per-generation traced function returns ``(new_state, batch_min)``
+    where ``batch_min`` is the running per-objective minimum over every
+    fitness batch the algorithm obtained from the ``evaluate`` closure,
+    accumulated INSIDE the same trace (all current MO ports call
+    ``evaluate`` exactly once per generation, but the fold handles multiple
+    calls too); the cross-generation history min is folded host-side.
+    Skipping the exe cache: builds are cheap and every gen has the same
+    shapes here.
 
     Returns ``(final_state, history_min)`` where ``history_min`` is a numpy
     array of shape (n_obj,).
@@ -84,31 +97,34 @@ def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
     )
     state = etl.run(init_exe, algo_cfg, np.asarray(seed, dtype=np.int64))
 
+    has_init_step = callable(getattr(algo_mod, "init_step", None))
+
+    def _generation_fn(step_fn, algo_cfg):
+        def generation_fn(state):
+            box = {}
+
+            def evaluate(candidates):
+                fitness, _ = toy_evaluate(prob_cfg, ToyProblemState(), candidates)
+                batch_min = etl.min(fitness, axes=0)
+                box["min"] = (
+                    batch_min if "min" not in box else enp.minimum(box["min"], batch_min)
+                )
+                return fitness
+
+            new_state = step_fn(algo_cfg, state, evaluate)
+            return new_state, box["min"]
+
+        return generation_fn
+
     hist_min = None
     for gen in range(n_gens + 1):
-        if (
-            gen == 0
-            and callable(getattr(algo_mod, "init_ask", None))
-            and callable(getattr(algo_mod, "init_tell", None))
-        ):
-            ask_fn, tell_fn = algo_mod.init_ask, algo_mod.init_tell
-        else:
-            ask_fn, tell_fn = algo_mod.ask, algo_mod.tell
-
-        ask_exe = etl.build(ask_fn, algo_cfg, _spec_tree(state), backend="numpy")
-        candidates, state = etl.run(ask_exe, algo_cfg, state)
-
-        eval_exe = etl.build(
-            toy_evaluate, prob_cfg, ToyProblemState(), _spec(candidates), backend="numpy"
+        step_fn = algo_mod.init_step if (gen == 0 and has_init_step) else algo_mod.step
+        gen_exe = etl.build(
+            _generation_fn(step_fn, algo_cfg), _spec_tree(state), backend="numpy"
         )
-        fitness, _ = etl.run(eval_exe, prob_cfg, ToyProblemState(), candidates)
-        batch_min = np.asarray(fitness.numpy()).min(axis=0)
+        state, batch_min = etl.run(gen_exe, state)
+        batch_min = np.asarray(batch_min.numpy())
         hist_min = batch_min if hist_min is None else np.minimum(hist_min, batch_min)
-
-        tell_exe = etl.build(
-            tell_fn, algo_cfg, _spec_tree(state), _spec(fitness), backend="numpy"
-        )
-        state = etl.run(tell_exe, algo_cfg, state, fitness)
 
     return state, hist_min
 

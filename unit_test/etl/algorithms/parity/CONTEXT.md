@@ -14,7 +14,7 @@ other suites' `parity/` dirs.
 | File | What it compares (Sphere unless noted) |
 |---|---|
 | `conftest.py` | sys.path shim so `import helpers` resolves to `unit_test/etl/algorithms/helpers.py` |
-| `parity_common.py` | shared MO harness: DTLZ1 d=7/m=3/pop=100/seed=42/20 gens; `torch_reference()` (torch StdWorkflow+EvalMonitor, whole-history PF min) + `etl_run_with_history()` (elementwise min over EVERY evaluated fitness); REL_MARGIN=1.1, ABS_TOL=0.05, MOEAD_ABS_TOL=0.20 |
+| `parity_common.py` | shared MO harness: DTLZ1 d=7/m=3/pop=100/seed=42/20 gens; `torch_reference()` (torch StdWorkflow+EvalMonitor, whole-history PF min) + `etl_run_with_history()` (step-protocol driver; the traced `evaluate` closure folds the per-objective min of every evaluated fitness batch inside the same trace); REL_MARGIN=1.1, ABS_TOL=0.05, MOEAD_ABS_TOL=0.20 |
 | `test_de_parity.py` | etl DE vs torch DE, Sphere dim 40, pop 100, 20 gens — MEDIAN best over seeds 0/1/2 within 1.1x + 1e-3 (single-seed 10% margins fail ~1/3 of runs by chance; 60-seed sweep mean ratio ~1.03, no systematic bias) |
 | `test_pso_parity.py` | etl PSO vs torch PSO, Sphere dim 40, pop 100, 100 gens — etl_best <= torch_best*1.5 + 1e-3 (fewer gens sit in a high-variance regime; at 100 gens both converge to single digits) |
 | `test_cma_es.py` | CMAES (sigma=5.0, pop_size auto=15), 80 gens, seeds 0/1 — etl_best <= torch_best*1.1 + 1e-3; torch side must also beat 0.5*initial-center fitness (~342) |
@@ -33,8 +33,9 @@ convergence on Sphere/DTLZ1 via `helpers.run_generations` (numpy backend).
 - Neither torch algorithm overrides `init_step`, so `StdWorkflow.init_step()`
   falls back to a plain `step()`: 1 init_step + (N_GENS - 1) steps == N_GENS
   generations. Tests assert `len(monitor.fitness_history) == N_GENS` and align
-  the etl side's n_gens to that count (etl: gens+1 generations = init eval +
-  gens steps).
+  the etl side's n_gens to that count (etl: gens+1 generations = init_step's
+  full-pop evaluation + gens steps — the etl MO ports DO define init_step,
+  and `etl_run_with_history` dispatches to it at gen 0).
 - Assertion: `etl_best <= torch_best * 1.1 + 1e-3` where `torch_best =
   float(EvalMonitor.get_best_fitness())` and `etl_best =
   float(state.best_fitness.numpy())`.

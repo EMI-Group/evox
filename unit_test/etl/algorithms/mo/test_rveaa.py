@@ -1,8 +1,9 @@
 """Smoke test for the functional RVEAa port (``evox_etl.algorithms.mo.rveaa``).
 
-ETL-only, no torch. Checks the gen-0 contract (``init_ask`` evaluates the FULL
-initial population, later ``ask`` draws the offspring batch), a 3-generation
-DTLZ1 run via ``helpers.run_generations``, and seed determinism.
+ETL-only, no torch. Checks the step-protocol gen-0 contract (``init_step``
+evaluates the FULL initial population, later ``step`` calls evaluate the
+offspring batch they generate), a 3-generation DTLZ1 run via
+``helpers.run_generations``, and seed determinism.
 """
 
 import pathlib
@@ -19,6 +20,7 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 import numpy as np
 
 import etl
+import etl.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import rveaa
@@ -28,8 +30,9 @@ POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 # Effective population: uniform_sampling overwrites pop_size=20 with the
 # Das-Dennis count for 3 objectives (15) — same as the torch reference.
 N_EFF = 15
-# Ask draws an (N_EFF, dim) mating pool, then SBX pairs rows n//2 and returns
-# 2*(n//2) children -> (14, 7). Same quirk as the torch RVEAa.
+# step's offspring phase draws an (N_EFF, dim) mating pool, then SBX pairs
+# rows n//2 and returns 2*(n//2) children -> (14, 7). Same quirk as the
+# torch RVEAa.
 N_OFFSPRING = 2 * (N_EFF // 2)
 
 
@@ -48,43 +51,59 @@ def _leaf_spec(t):
     return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
-def _spec_of(a):
-    """TensorSpec for a tensor leaf, or a spec pytree for a state dataclass."""
-    return _leaf_spec(a) if hasattr(a, "numpy") else etl.tree_map(_leaf_spec, a)
+def _spec_tree(pytree):
+    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
+    return etl.tree_map(_leaf_spec, pytree)
 
 
-def _run(fn, cfg, *args):
-    """Build ``fn(cfg, *args)`` with TensorSpec mirrors and run it once."""
-    exe = etl.build(fn, cfg, *[_spec_of(a) for a in args], backend="numpy")
-    return etl.run(exe, cfg, *args)
+def _trace_step(step_fn, cfg, state):
+    """Trace one step-family call ``step_fn(cfg, state, evaluate)`` with an
+    ``evaluate`` closure that evaluates DTLZ1 AND records the candidate batch
+    it received, returning ``(state, batch)`` — the batch is a graph output
+    computed inside the same trace, so the record is exact (no host-side
+    approximation)."""
+    prob_cfg = DTLZ1Config(DIM, N_OBJS)
+    seen = []
+    box = {}
+
+    def generation_fn(state):
+        def evaluate(candidates):
+            seen.append(tuple(candidates.shape))
+            box["batch"] = candidates
+            fitness, _ = helpers.toy_evaluate(prob_cfg, helpers.ToyProblemState(), candidates)
+            return fitness
+
+        return step_fn(cfg, state, evaluate), box["batch"]
+
+    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
+    return etl.run(exe, state), seen
 
 
-def _evaluate(candidates):
-    """One DTLZ1 evaluation of a candidate batch (toy problems are stateless)."""
-    cfg = DTLZ1Config(DIM, N_OBJS)
-    exe = etl.build(
-        helpers.toy_evaluate, cfg, helpers.ToyProblemState(),
-        _leaf_spec(candidates), backend="numpy",
-    )
-    fitness, _ = etl.run(exe, cfg, helpers.ToyProblemState(), candidates)
-    return fitness
-
-
-def test_init_ask_full_population_and_ask_offspring_shape():
+def test_init_step_full_population_and_step_offspring_shape():
     cfg = make_config()
     key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
     init_exe = etl.build(rveaa.init, cfg, key_spec, backend="numpy")
     state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    assert tuple(state.pop.shape) == (N_EFF, DIM)
 
-    # Gen 0 evaluates the FULL initial population (N_EFF rows — the Das-Dennis
-    # count), not an offspring batch.
-    candidates, state = _run(rveaa.init_ask, cfg, state)
-    assert tuple(candidates.shape) == tuple(state.pop.shape) == (N_EFF, DIM)
+    # Gen 0 (init_step) evaluates the FULL initial population (N_EFF rows —
+    # the Das-Dennis count), not an offspring batch: one evaluate call on the
+    # pop itself, whose fitness becomes state.fit verbatim.
+    pop_before = state.pop
+    (state, batch), seen = _trace_step(rveaa.init_step, cfg, state)
+    assert seen == [(N_EFF, DIM)]
+    assert np.array_equal(np.asarray(batch.numpy()), np.asarray(pop_before.numpy()))
+    assert np.all(np.isfinite(np.asarray(state.fit.numpy())))
 
-    # Record the gen-0 fitness, then the first regular ask draws the offspring.
-    state = _run(rveaa.init_tell, cfg, state, _evaluate(candidates))
-    offspring, _ = _run(rveaa.ask, cfg, state)
-    assert tuple(offspring.shape) == (N_OFFSPRING, DIM)
+    # After the first step the pop GROWS to one survivor row per reference
+    # vector: 2*N_EFF rows (reference_vector is (2*N_EFF, N_OBJS) throughout).
+    (state, batch), seen = _trace_step(rveaa.step, cfg, state)
+    assert seen == [(N_OFFSPRING, DIM)]
+    assert tuple(batch.shape) == (N_OFFSPRING, DIM)
+    assert tuple(state.pop.shape) == (2 * N_EFF, DIM)
+    # Fused-step contract: the evaluated batch IS the offspring stored in the
+    # state by the generation stage of this same call.
+    assert np.array_equal(np.asarray(batch.numpy()), np.asarray(state.offspring.numpy()))
 
 
 def test_full_run_shapes_and_sanity():
@@ -92,7 +111,7 @@ def test_full_run_shapes_and_sanity():
     state = run_generations(rveaa, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
     pop = np.asarray(state.pop.numpy())
     fit = np.asarray(state.fit.numpy())
-    # After the first tell, pop GROWS to one survivor row per reference vector:
+    # After the first step, pop GROWS to one survivor row per reference vector:
     # 2*N_EFF rows (reference_vector is (2*N_EFF, N_OBJS) throughout).
     assert pop.shape == (2 * N_EFF, DIM)
     assert fit.shape == (2 * N_EFF, N_OBJS)

@@ -1,8 +1,9 @@
 """Smoke test for the functional HypE port (``evox_etl.algorithms.mo.hype``).
 
-ETL-only, no torch. Checks the gen-0 contract (``init_ask`` evaluates the FULL
-initial population, later ``ask`` draws the offspring batch), a 3-generation
-DTLZ1 run via ``helpers.run_generations``, and seed determinism.
+ETL-only, no torch. Checks the step-protocol gen-0 contract (``init_step``
+evaluates the FULL initial population, later ``step`` calls evaluate the
+offspring batch they generate), a 3-generation DTLZ1 run via
+``helpers.run_generations``, and seed determinism.
 """
 
 import pathlib
@@ -19,6 +20,7 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 import numpy as np
 
 import etl
+import etl.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import hype
@@ -42,42 +44,66 @@ def _leaf_spec(t):
     return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
-def _spec_of(a):
-    """TensorSpec for a tensor leaf, or a spec pytree for a state dataclass."""
-    return _leaf_spec(a) if hasattr(a, "numpy") else etl.tree_map(_leaf_spec, a)
+def _spec_tree(pytree):
+    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
+    return etl.tree_map(_leaf_spec, pytree)
 
 
-def _run(fn, cfg, *args):
-    """Build ``fn(cfg, *args)`` with TensorSpec mirrors and run it once."""
-    exe = etl.build(fn, cfg, *[_spec_of(a) for a in args], backend="numpy")
-    return etl.run(exe, cfg, *args)
+def _trace_step(step_fn, cfg, state):
+    """Trace one step-family call ``step_fn(cfg, state, evaluate)`` with an
+    ``evaluate`` closure that evaluates DTLZ1 AND records the candidate batch
+    it received, returning ``(state, batch)`` — the batch is a graph output
+    computed inside the same trace, so the record is exact (no host-side
+    approximation)."""
+    prob_cfg = DTLZ1Config(DIM, N_OBJS)
+    seen = []
+    box = {}
+
+    def generation_fn(state):
+        def evaluate(candidates):
+            seen.append(tuple(candidates.shape))
+            box["batch"] = candidates
+            fitness, _ = helpers.toy_evaluate(prob_cfg, helpers.ToyProblemState(), candidates)
+            return fitness
+
+        return step_fn(cfg, state, evaluate), box["batch"]
+
+    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
+    return etl.run(exe, state), seen
 
 
-def _evaluate(candidates):
-    """One DTLZ1 evaluation of a candidate batch (toy problems are stateless)."""
-    cfg = DTLZ1Config(DIM, N_OBJS)
-    exe = etl.build(
-        helpers.toy_evaluate, cfg, helpers.ToyProblemState(),
-        _leaf_spec(candidates), backend="numpy",
-    )
-    fitness, _ = etl.run(exe, cfg, helpers.ToyProblemState(), candidates)
-    return fitness
-
-
-def test_init_ask_full_population_and_ask_offspring_shape():
+def test_init_step_full_population_and_step_offspring_shape():
     cfg = make_config()
     key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
     init_exe = etl.build(hype.init, cfg, key_spec, backend="numpy")
     state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    assert tuple(state.pop.shape) == (POP_SIZE, DIM)
 
-    # Gen 0 evaluates the FULL initial population, not an offspring batch.
-    candidates, state = _run(hype.init_ask, cfg, state)
-    assert tuple(candidates.shape) == tuple(state.pop.shape) == (POP_SIZE, DIM)
+    # Gen 0 (init_step) evaluates the FULL initial population (no RNG draw):
+    # exactly one evaluate call, on the pop itself, and ref is derived from
+    # that fitness as 1.2 * max over ALL its entries (torch init_step 1:1).
+    pop_before = state.pop
+    (state, batch), seen = _trace_step(hype.init_step, cfg, state)
+    assert seen == [(POP_SIZE, DIM)]
+    assert np.array_equal(np.asarray(batch.numpy()), np.asarray(pop_before.numpy()))
+    assert np.all(np.isfinite(np.asarray(state.fit.numpy())))
+    assert np.allclose(
+        np.asarray(state.ref.numpy()),
+        np.full(N_OBJS, 1.2 * float(np.max(np.asarray(state.fit.numpy()))), np.float32),
+        rtol=1e-6,
+    )
 
-    # Record the gen-0 fitness, then the first regular ask draws the offspring.
-    state = _run(hype.init_tell, cfg, state, _evaluate(candidates))
-    offspring, _ = _run(hype.ask, cfg, state)
-    assert tuple(offspring.shape) == (POP_SIZE, DIM)
+    # The first regular step generates its own offspring batch and evaluates
+    # THAT batch (not the parents): one evaluate call on (POP_SIZE, DIM)
+    # candidates that differ from the parents.
+    pop_before = state.pop
+    (state, batch), seen = _trace_step(hype.step, cfg, state)
+    assert seen == [(POP_SIZE, DIM)]
+    assert tuple(batch.shape) == (POP_SIZE, DIM)
+    assert not np.array_equal(np.asarray(batch.numpy()), np.asarray(pop_before.numpy()))
+    # Fused-step contract: the evaluated batch IS the offspring stored in the
+    # state by the generation stage of this same call.
+    assert np.array_equal(np.asarray(batch.numpy()), np.asarray(state.offspring.numpy()))
 
 
 def test_full_run_shapes_and_sanity():
