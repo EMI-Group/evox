@@ -3,10 +3,11 @@
 Plain functions (no ``@etl.defn`` — ETL has no eager mode; call them only
 inside an active trace via ``etl.build``/``etl.run``). 1:1 port of
 ``src/evox/algorithms/mo/moead.py`` (read-only torch reference): same math,
-same draw order, key-first RNG (operator shims). The torch ``step``'s
-sequential per-individual update loop is traced with ``etl.while_loop``;
-the per-generation parents/crossover/mutation batch is computed up-front
-(the batched pairing is equivalent to the per-i torch calls).
+same draw order, key-first RNG (operator shims). One ``step`` call owns the
+whole generation: the per-individual offspring batch is drawn up-front (the
+batched pairing is equivalent to the torch per-i calls), evaluated through
+the opaque ``evaluate`` closure, and the sequential per-individual update
+loop runs as one traced ``etl.while_loop``.
 """
 
 import math
@@ -159,22 +160,24 @@ def init(config: MOEADConfig, key: Any) -> MOEADState:
     )
 
 
-def init_ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
-    """Generation 0 evaluates the whole population (no RNG draw)."""
-    return state.pop, state
-
-
-def init_tell(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
-    """Record the initial fitness and ideal point (torch ``init_step``)."""
+def init_step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADState:
+    """First generation (torch ``init_step``): evaluate the whole population
+    and record its fitness and the ideal point (no RNG draw)."""
+    fitness = evaluate(state.pop)
     return replace(state, fit=fitness, z=etl.min(fitness, axes=0))
 
 
-def ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
-    """Produce one offspring per weight vector (torch ``step`` sampling).
+def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADState:
+    """Run ONE full MOEA/D generation (torch ``step`` 1:1, fused).
 
     Draws per-row permutations of the neighbor lists, pairs rows i and i+n_w
     for crossover (equivalent to the torch per-i single-pair call), mutates
-    and clamps. Returns the offspring batch (n_w, dim).
+    and clamps — producing one offspring per weight vector — then evaluates
+    the offspring batch via ``evaluate`` and runs the sequential per-i
+    update loop as one traced ``etl.while_loop``; ``z`` is a loop carry
+    lowered per-i BEFORE the g comparisons, exactly like torch's
+    ``self.z = minimum(self.z, off_fit)`` (a pre-loop batch min would
+    contaminate the g_old/g_new decisions with future offspring minima).
     """
     key, k_perm, k_cross, k_mut = random.split_n(state.key, 4)
     n_w, n_neighbor = state.next_parents.shape
@@ -203,20 +206,16 @@ def ask(config: MOEADConfig, state: MOEADState) -> Tuple[Any, MOEADState]:
     lb, ub = bake_bounds(config.lb, config.ub)
     offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
-
-    return offspring, replace(
+    intermediate = replace(
         state, key=key, next_generation=offspring, next_parents=next_parents
     )
 
+    fitness = evaluate(offspring)
+    return _tell(config, intermediate, fitness)
 
-def tell(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
-    """Update z and the neighbor subpopulations (torch ``step`` 1:1).
 
-    The per-i update loop runs as one traced ``etl.while_loop``; ``z`` is a
-    loop carry lowered per-i BEFORE the g comparisons, exactly like torch's
-    ``self.z = minimum(self.z, off_fit)`` (a pre-loop batch min would
-    contaminate the g_old/g_new decisions with future offspring minima).
-    """
+def _tell(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
+    """Update z and the neighbor subpopulations (torch ``step`` 1:1)."""
     n_w = state.next_parents.shape[0]
     n_neighbor = state.next_parents.shape[1]
     z = state.z
