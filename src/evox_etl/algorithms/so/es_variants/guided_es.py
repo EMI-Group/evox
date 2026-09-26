@@ -65,7 +65,7 @@ def make_guided_es(
     """Build a `GuidedESConfig`, normalizing `center_init` and validating fields.
 
     `subspace_dims` is NOT derived here (it defaults to `dim` at trace time in
-    init/ask when left None, mirroring the torch reference).
+    init/step when left None, mirroring the torch reference).
     """
     require_gt("pop_size", pop_size, 1)
     if pop_size % 2 != 0:

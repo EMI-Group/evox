@@ -158,10 +158,10 @@ def init_step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor],
 def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tensor]) -> RVEAState:
     """Run ONE full RVEA generation (fused torch ``step``).
 
-    Phase 1 (old ``ask`` body): mating pool -> SBX -> polynomial mutation,
+    Phase 1 (offspring generation): mating pool -> SBX -> polynomial mutation,
     storing the offspring batch and the advanced key/generation in an
     intermediate state. Phase 2: ``fitness = evaluate(offspring)`` through the
-    workflow-owned opaque closure. Phase 3 (old ``tell`` body): merge parents +
+    workflow-owned opaque closure. Phase 3 (selection): merge parents +
     offspring, RVEA-select n_v survivors, adapt the reference vectors.
     """
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)

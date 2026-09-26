@@ -13,10 +13,13 @@ name `etl`), replacing the torch OOP design with plain functional code:
   strings, etc.). Never mutated, never traced.
 - **State**: `namedtuple` / frozen `dataclass` **pytrees whose leaves are ETL tensors
   only** (no Python scalars inside state).
-- **Logic**: pure functions decorated with `@etl.defn` — `init`, `ask`, `tell`,
-  `evaluate`, etc. No classes with `forward`, no `nn.Module`, no `Parameter`/`Mutable`.
+- **Logic**: plain module-level functions (NOT `@etl.defn` — see §4.3) in the
+  step protocol: `init`, `step`, `init_step`/`final_step`, `evaluate`, etc. No
+  classes with `forward`, no `nn.Module`, no `Parameter`/`Mutable`.
 - **Init is a separate function** (`init(config, key) -> state`) instead of a
-  constructor that hides state creation.
+  constructor that hides state creation. A step function owns the WHOLE
+  generation: generate candidates → `fitness = evaluate(candidates)` → update
+  the state (mirroring torch `Algorithm.step`).
 
 The existing torch-based `evox` package (v1.3.0, in `src/evox/`) stays untouched and
 serves as the reference implementation for parity tests and benchmarks.
@@ -29,12 +32,12 @@ These were verified empirically — do not re-investigate, do not fight them:
    inside an active trace (a function decorated `@etl.defn` called by `etl.trace`/
    `etl.build`/`etl.evaluate`/`etl.cond`/`etl.while_loop`/`etl.scan`). Calling an op
    outside a trace raises `etl.core.TraceError`.
-   => `init` is ALSO a `@etl.defn` function, executed once through the pipeline
-   (`etl.evaluate` or an executable run).
+   => `init` is ALSO traced, executed once through the pipeline
+   (`etl.build` + `etl.run`).
 2. **Graph inputs are tensors (and pytrees of tensors).** Python scalars CANNOT be
    graph inputs. Hyperparameters therefore live in the config dataclass and are
-   **partialized away** at compile time:
-   `functools.partial(module.ask, config)` — closures are fine during tracing.
+   passed as STATIC arguments of the traced functions (§4.3: `etl.build` treats
+   every non-spec arg as a static pytree) — closures are fine during tracing.
    Scalars used in tensor expressions (e.g. `self.w * velocity`) become Python-float
    * tensor constant broadcasts — supported, but on compiler backends a mixed-dtype
    constant broadcast can fail; prefer explicit `etl.cast(constant, tensor.dtype)`
@@ -65,7 +68,7 @@ These were verified empirically — do not re-investigate, do not fight them:
      DTLZ1-shaped graphs; use DEFAULT compile options: `while_init_rewrite` ON +
      `sort_emission` auto→count; cuda device ids are 1-based internally but the adapter
      maps `Device("cuda", N)` → N+1; NEVER use opt_level O2/O3 on cuda for eigh or
-     NSGA2-tell graphs — default opt level is fine),
+     NSGA2-selection graphs — default opt level is fine),
    - `"xla"` (PJRT plugin; CUDA via `jax_plugins/xla_cuda12/xla_cuda_plugin.so` in the
      shared venv — the xla adapter fixes are merged into etl master, see §9),
    - `"tvm"` (llvm cpu; no control flow — unsuitable for NSGA-family loops).
@@ -89,7 +92,7 @@ src/evox_etl/
 ├── core/
 │   ├── algorithm.py       # Algorithm protocol + type aliases (docstrings; no base class required)
 │   ├── problem.py         # Problem protocol
-│   ├── workflow.py        # StdWorkflow: composes init/ask/tell/evaluate, compiles step
+│   ├── workflow.py        # StdWorkflow: composes init/step/evaluate, compiles per step variant
 │   ├── monitor.py         # Monitor protocol
 │   └── state.py           # State helpers: e.g. replace(), get/set nested (pytree utils)
 ├── algorithms/
@@ -137,7 +140,7 @@ algorithm config, the array-accepting entry point is a module-level functional
 constructor `make_<algorithm>` defined in the SAME module as its config dataclass —
 the workflow resolves the algorithm module via
 `importlib.import_module(type(config).__module__)` and must find the constructor
-there, next to `init`/`ask`/`tell`. The constructor is where ALL normalization and
+there, next to `init`/`step`. The constructor is where ALL normalization and
 validation happens; the config dataclass itself stays dumb:
 - ndarray arguments are converted to flat `float32` tuples (never stored as
   ndarrays);
@@ -193,12 +196,20 @@ explicitly.
 
 ```python
 # algorithms/<...>/<name>.py  — module-level functions + config dataclass
-init(config, key) -> State                       # draw initial state
-ask(config, state) -> (candidates, new_state)    # candidates: (n, dim) float32
-tell(config, state, fitness) -> new_state        # fitness: (n,) or (n, n_obj) float32
-# optional, when first-generation batch differs in size (NSGA-style):
-init_ask(config, state) -> (candidates, state)
-init_tell(config, state, fitness) -> state
+init(config, key) -> State                          # draw initial state
+step(config, state, evaluate) -> State              # REQUIRED: one full generation
+# optional, when the first/last generation differs (NSGA-style full-population
+# evaluation; the workflow falls back to `step` when absent):
+init_step(config, state, evaluate) -> State
+final_step(config, state, evaluate) -> State
+#
+# `step` owns the WHOLE generation: generate the candidate batch, obtain its
+# fitness via `fitness = evaluate(candidates)` (may call it several times with
+# different candidate sets), then update the state and return it. Candidates
+# are (n, dim) float32; fitness is (n,) or (n, n_obj) float32 (min semantics).
+# `evaluate` is a traced closure created by the workflow (§4.4); treat it as
+# OPAQUE — do not store it in the state or re-thread it through returns; the
+# workflow owns the problem/monitor state and the generation counter.
 
 # problems/<...>.py
 evaluate(config, problem_state, pop) -> (fitness, problem_state)   # pop: (n, dim)
@@ -243,23 +254,27 @@ becomes a STATIC value passed as-is into the function (static Python control
 flow over them specializes the graph). So:
 
 ```python
-exe = etl.build(algo_mod.ask, algo_config, state_spec_tree, backend=..., device=...)
-state = exe.run(state)   # run() accepts/returns full pytrees
+exe = etl.build(module.step, algo_config, state_spec_tree, backend=..., device=...)
+state = etl.run(exe, algo_config, state)   # run() accepts/returns full pytrees
 ```
 
-**Module convention (how the workflow finds the functions):** the `init`/`ask`/
-`tell` (and `init_ask`/`init_tell`) functions live in the SAME module as their
-config dataclass. The workflow resolves them via
-`importlib.import_module(type(config).__module__)`. Same for problems
+**Module convention (how the workflow finds the functions):** the `init`/
+`step` (and optional `init_step`/`final_step`) functions live in the SAME
+module as their config dataclass. The workflow resolves them via
+`importlib.import_module(type(config).__module__)` (a module defining
+`step` but no `init_step`/`final_step` falls back to `step` for the
+first/last generation). Same for problems
 (`evaluate`) and monitors (`monitor_update`).
 
 **Constants:** bake constant tensors inside functions with `etl.ops.constant`
 (numpy array arg) — closure-captured CONCRETE tensors fail at trace time.
 Python scalars in expressions are fine (constant broadcast).
 
-**Key management convention** (JAX-evoX style): every `init/ask/tell` that needs
-randomness splits the key FROM THE STATE: `key, subkey = random.split(state.key)`,
-uses subkeys, and stores `key` back. Ask/tell must be deterministic given the state.
+**Key management convention** (JAX-evoX style): every `init`/`step` (and
+variant) that needs randomness splits the key FROM THE STATE:
+`key, subkey = random.split(state.key)`,
+uses subkeys, and stores `key` back. Step functions must be deterministic
+given the state (draw all randomness before the `evaluate` call).
 
 ### 4.4 StdWorkflow (`core/workflow.py`, `workflows/std_workflow.py`)
 
@@ -270,31 +285,41 @@ device, compile options. Public methods:
 ```python
 wf = StdWorkflow(algorithm=..., problem=..., monitor=..., opt_direction="min", ...)
 wf.init(seed=42)                      # builds init graph, runs once -> initial state
-wf.step(state)                        # one step (compiled executable run)
-wf.run(generations, seed=42) -> state # loop; collects monitor history
+wf.init_step(state)                   # first generation (falls back to step)
+wf.step(state)                        # one generation (compiled executable run)
+wf.final_step(state)                  # last generation (falls back to step)
+wf.run(generations, seed=42) -> state # init + loop; collects monitor history
 wf.fit(fitness=..., generations=...)  # mirror torch API if cheap
 ```
 
 Implementation sketch (binding):
 ```python
-step = _compose_step(...)      # module-level PLAIN function (see §4.3)
-init_fn = algorithm_module.init
-init_key_spec = etl.core.TensorSpec.from_tensor(key)
-init_exe = etl.build(init_fn, algorithm_config, init_key_spec)   # cpu, numpy backend
-state = init_exe.run(key)                                        # once
+step_fn = _make_step_fn(variant)  # composes fn(algo_cfg, alg_state, evaluate);
+                                  # builds the opaque evaluate closure (below)
+init_exe = etl.build(init_body, TensorSpec((), np.int64))       # cpu, numpy backend
+state = etl.run(init_exe, key)                                   # once
 state = tree_map(lambda t: t.to(device), state)                  # if device is cuda
-specs = etl.tree_map(etl.core.TensorSpec.from_tensor, state)
-exe = etl.build(step, algorithm_config, problem_config, monitor_config, specs,
-                backend=backend, device=device, **opts)          # compile ONCE
+specs = etl.tree_map(lambda t: TensorSpec(t.shape, t.dtype), state)
+exe = etl.build(step_fn, specs, backend=backend, device=device, **opts)  # per variant, ONCE
 # per generation (same-device loop, pytrees in/out):
-state = exe.run(state)
+state = etl.run(exe, state)
 # host-side monitor history: after each step, copy out monitor state leaves
 #    via leaf.to(etl.core.Device("cpu")).numpy() and append to Python lists.
 ```
 
-The composed step (inside one graph): ask (or init_ask on gen==0) → evaluate →
-opt-direction transform → tell (or init_tell) → monitor update → generation+1.
-Use `etl.cond` for the first-generation branch. Every quantity stays in-graph;
+The composed step (inside one graph): the algorithm's step-family function runs
+the whole generation, calling the workflow-owned opaque closure
+```
+evaluate(candidates) -> fitness
+```
+which applies, in order: solution_transform → `problem.evaluate` (threading the
+problem state) → opt-direction scaling (min semantics) → fitness_transform →
+monitor update (threading the monitor state; the monitor sees the RAW candidates
+and the TRANSFORMED fitness), then the workflow bumps the generation counter.
+The FIRST/LAST-generation dispatch (`init_step`/`final_step` vs `step`) is a
+HOST-SIDE decision — the workflow builds one executable per step variant
+lazily and picks the right one per generation; there is no in-graph
+`etl.cond(generation == 0)` branch. Every quantity stays in-graph;
 Python-level history recording happens in the workflow loop AFTER each run.
 
 ### 4.5 Monitor (`core/monitor.py`, `workflows/eval_monitor.py`)

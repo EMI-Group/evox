@@ -95,8 +95,8 @@ class JaDEState:
     F_u: Tensor  # (pop_size,) float32 adaptive mutation factors
     CR_u: Tensor  # (pop_size,) float32 adaptive crossover rates
     trial_vectors: Tensor  # (pop_size, dim) float32 candidates pending evaluation
-    F_vec: Tensor  # (pop_size,) float32 per-individual F from ask (tell adaptation)
-    CR_vec: Tensor  # (pop_size,) float32 per-individual CR from ask (tell adaptation)
+    F_vec: Tensor  # (pop_size,) float32 per-individual F from the generation phase (adaptation input)
+    CR_vec: Tensor  # (pop_size,) float32 per-individual CR from the generation phase (adaptation input)
     key: Tensor  # () int64 rng key
 
 
