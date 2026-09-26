@@ -94,8 +94,9 @@ class StdWorkflow:
     """The standard optimization workflow (functional).
 
     Composes the plain functions of an algorithm, a problem and (optionally) a
-    monitor module into one compiled step graph per step VARIANT (``init_step``/
-    ``step``/``final_step``) and runs them in a same-device loop.
+    monitor module into one compiled step graph per step VARIANT
+    (``init_step``/``step``/``final_step``) AND per state-shape signature, and
+    runs them in a same-device loop.
 
     The algorithm module owns ONE full generation per call: its ``step``-family
     function generates candidates and obtains their fitness through the opaque
@@ -186,7 +187,24 @@ class StdWorkflow:
         self._state: WorkflowState | None = None
         self._init_exe = None
         self._mon_init_exe = None
-        self._step_exes: dict[str, Any] = {}  # one lazily built exe per step variant
+        # Lazily built step exes, keyed by (resolved variant, state signature):
+        # a step graph is valid for exactly one leaf-shape/dtype signature, and
+        # algorithm/monitor state leaves legitimately RESIZE between generations
+        # (CoDE evaluates 3*pop_size trials per generation, CSO pop_size//2
+        # after its init_step), so a drifted state triggers a fresh trace.
+        self._step_exes: dict[tuple[str, tuple], Any] = {}
+
+    @staticmethod
+    def _state_signature(state: Any) -> tuple:
+        """Ordered (shape, dtype) identity of every tensor leaf of a state pytree.
+
+        Same idiom as ``unit_test/etl/algorithms/helpers.py::_spec_key``: the
+        pytree leaf order is deterministic, so this tuple uniquely identifies
+        the shape contract a compiled step graph was traced for.
+        """
+        return tuple(
+            (tuple(leaf.shape), str(leaf.dtype)) for leaf in etl.tree_leaves(state)
+        )
 
     @property
     def opt_direction(self) -> tuple[int, ...]:
@@ -255,8 +273,9 @@ class StdWorkflow:
             etl.backends.get(self.backend)
             state = etl.tree_map(lambda t: t.to(self._device), state)
         self._state = state
-        if "step" not in self._step_exes:
-            self._step_exes["step"] = self._build_step_exe("step", state)
+        signature = self._state_signature(state)
+        if ("step", signature) not in self._step_exes:
+            self._step_exes[("step", signature)] = self._build_step_exe("step", state)
         return state
 
     def _discover_pop_size(self, state: WorkflowState) -> tuple[int | None, int | None]:
@@ -348,7 +367,13 @@ class StdWorkflow:
         return "step"
 
     def _run_variant(self, variant: str, state: WorkflowState | None) -> WorkflowState:
-        """Resolve the state, build/fetch the variant exe, run it and record history."""
+        """Resolve the state, build/fetch the variant exe, run it and record history.
+
+        The exe cache is keyed by ``(resolved variant, state signature)``: on a
+        signature the cached graph was NOT traced for (monitor/algorithm state
+        leaves resized between generations), a fresh exe is traced from the
+        CURRENT state's spec tree and cached under the new key.
+        """
         if state is None:
             state = self._state
         if state is None:
@@ -356,17 +381,22 @@ class StdWorkflow:
         if self._device.kind != "cpu":
             state = etl.tree_map(lambda t: t.to(self._device), state)
         resolved = self._resolve_variant(variant)
-        exe = self._step_exes.get(resolved)
+        cache_key = (resolved, self._state_signature(state))
+        exe = self._step_exes.get(cache_key)
         if exe is None:
             exe = self._build_step_exe(resolved, state)
-            self._step_exes[resolved] = exe
+            self._step_exes[cache_key] = exe
         state = etl.run(exe, state)
         self._record_history(state)
         self._state = state
         return state
 
     def _build_step_exe(self, resolved: str, state: WorkflowState) -> Any:
-        """Build one variant's step graph ONCE from tensor specs of the current state."""
+        """Trace one variant's step graph from the tensor specs of the GIVEN state.
+
+        Called on a cache miss for ``(resolved variant, state signature)``; the
+        resulting exe is valid only for states with that same leaf signature.
+        """
         specs = etl.tree_map(
             lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype),
             state,
