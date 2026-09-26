@@ -1,12 +1,15 @@
 """Functional ETL port of the torch Feature-Selection PSO algorithm.
 
-Plain functions only (no ``@etl.defn`` — ETL has no eager mode; everything
-runs inside an active trace). 1:1 port of the read-only torch reference in
-``src/evox/algorithms/so/pso_variants/fs_pso.py``. numpy is used at trace
-time to bake constants and on the host in the config constructor.
+Step-protocol port of the read-only torch reference in
+``src/evox/algorithms/so/pso_variants/fs_pso.py``: ``init``/``init_step``/
+``step`` plain functions (no ``@etl.defn``), each step-family function owning
+one full generation (candidate generation → ``evaluate`` → state update).
+numpy is used at trace time to bake constants and on the host in the config
+constructor.
 """
 
 from dataclasses import dataclass, replace
+from typing import Any
 
 import numpy as np
 
@@ -138,13 +141,14 @@ def init(config: FSPSO, key: Tensor) -> FSPSOState:
     )
 
 
-def init_ask(config: FSPSO, state: FSPSOState) -> tuple[Tensor, FSPSOState]:
-    """Return the initial population for evaluation."""
-    return state.pop, state
+def init_step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
+    """Perform the first step of the FSPSO optimization.
 
-
-def init_tell(config: FSPSO, state: FSPSOState, fitness: Tensor) -> FSPSOState:
-    """Record the initial fitness (global best location is NOT updated — torch parity)."""
+    Evaluates the initial population via ``evaluate`` and seeds the local
+    best fitness and the global best fitness from it (the global best
+    LOCATION is not updated — torch parity).  See `step` for more details.
+    """
+    fitness = evaluate(state.pop)
     return replace(
         state,
         fit=fitness,
@@ -153,8 +157,16 @@ def init_tell(config: FSPSO, state: FSPSOState, fitness: Tensor) -> FSPSOState:
     )
 
 
-def ask(config: FSPSO, state: FSPSOState) -> tuple[Tensor, FSPSOState]:
-    """Propose a new population: elite velocity update plus mutated offspring."""
+def step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
+    """Perform a normal optimization step using FSPSO.
+
+    Elite half: sorts the population by fitness, updates the elites' local
+    and global bests, applies the inertia/cognitive/social velocity update,
+    and breeds an offspring half by tournament-selecting elites and mutating
+    them; the new population concatenates both halves.  The proposed
+    population is evaluated with ``evaluate`` and its fitness recorded,
+    completing one full generation.
+    """
     pop_size = config.pop_size
     half = pop_size // 2
     dim = len(config.lb)
@@ -219,7 +231,7 @@ def ask(config: FSPSO, state: FSPSOState) -> tuple[Tensor, FSPSOState]:
     )
     local_best_fit = etl.concatenate([local_best_fit, offspring_local_best_fit], axis=0)
 
-    new_state = FSPSOState(
+    intermediate = FSPSOState(
         pop=pop,
         fit=state.fit,
         velocity=velocity,
@@ -229,9 +241,5 @@ def ask(config: FSPSO, state: FSPSOState) -> tuple[Tensor, FSPSOState]:
         global_best_fit=global_best_fit,
         key=key,
     )
-    return pop, new_state
-
-
-def tell(config: FSPSO, state: FSPSOState, fitness: Tensor) -> FSPSOState:
-    """Record the evaluated fitness of the proposed population."""
-    return replace(state, fit=fitness)
+    fitness = evaluate(pop)
+    return replace(intermediate, fit=fitness)

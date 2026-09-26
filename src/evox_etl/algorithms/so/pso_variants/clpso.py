@@ -1,17 +1,17 @@
 """Functional ETL port of the torch evox CLPSO algorithm.
 
-Plain-function port of ``src/evox/algorithms/so/pso_variants/clpso.py``
-(read-only torch reference; the ask/tell split follows the old JAX evox
-decomposition at tag v0.9.0, with torch semantics winning).  ETL has no eager
-mode, so these functions only run inside an active trace via
-``etl.build``/``etl.run``.
+Step-protocol port of ``src/evox/algorithms/so/pso_variants/clpso.py``
+(read-only torch reference): ``init``/``init_step``/``step`` plain functions,
+each step-family function owning one full generation (candidate generation →
+``evaluate`` → state update).  ETL has no eager mode, so these functions only
+run inside an active trace via ``etl.build``/``etl.run``.
 
 Config note: ``CLPSO`` stores ``lb``/``ub`` as flat float tuples (plain static
 pytree leaves); ``make_clpso`` normalizes array-like bounds (see DESIGN.md §4.1).
 """
 
 from dataclasses import dataclass, replace
-from typing import Tuple
+from typing import Any
 
 import etl
 import etl.numpy as enp
@@ -111,13 +111,14 @@ def init(config: CLPSO, key: Tensor) -> CLPSOState:
     )
 
 
-def init_ask(config: CLPSO, state: CLPSOState) -> Tuple[Tensor, CLPSOState]:
-    """First-generation candidates: the whole population."""
-    return state.pop, state
+def init_step(config: CLPSO, state: CLPSOState, evaluate: Any) -> CLPSOState:
+    """Perform the first step of the CLPSO optimization.
 
-
-def init_tell(config: CLPSO, state: CLPSOState, fitness: Tensor) -> CLPSOState:
-    """Store the first-generation fitness and initialize the best trackers."""
+    Evaluates the initial population via ``evaluate`` and seeds the personal
+    best fitness and the global best fitness from it (the global best
+    LOCATION is not updated — torch parity).  See `step` for more details.
+    """
+    fitness = evaluate(state.pop)
     return replace(
         state,
         fit=fitness,
@@ -127,8 +128,18 @@ def init_tell(config: CLPSO, state: CLPSOState, fitness: Tensor) -> CLPSOState:
     )
 
 
-def ask(config: CLPSO, state: CLPSOState) -> Tuple[Tensor, CLPSOState]:
-    """Comprehensive-learning velocity/position update; returns the new pop."""
+def step(config: CLPSO, state: CLPSOState, evaluate: Any) -> CLPSOState:
+    """Perform a single optimization step using CLPSO.
+
+    Comprehensive-learning update: draws the learning pair indices and the
+    cross-learning probability, updates the personal best (current fitness vs
+    recorded) and the global best via ``min_by``, chooses each particle's
+    exemplar (comprehensively-learned personal best or its own), and adjusts
+    the velocity and positions based on inertia and the exemplar pull,
+    clamping both within the bounds.  The proposed population is evaluated
+    with ``evaluate`` and its fitness recorded, completing one full
+    generation.
+    """
     pop_size = config.pop_size
     dim = len(config.lb)
     lb = _bake(config.lb)
@@ -178,7 +189,7 @@ def ask(config: CLPSO, state: CLPSOState) -> Tuple[Tensor, CLPSOState]:
     velocity = clamp(velocity, lb, ub)
     pop = clamp(state.pop + velocity, lb, ub)
 
-    return pop, replace(
+    intermediate = replace(
         state,
         pop=pop,
         velocity=velocity,
@@ -188,8 +199,5 @@ def ask(config: CLPSO, state: CLPSOState) -> Tuple[Tensor, CLPSOState]:
         global_best_fit=global_best_fit,
         key=key,
     )
-
-
-def tell(config: CLPSO, state: CLPSOState, fitness: Tensor) -> CLPSOState:
-    """Store the evaluated population fitness."""
-    return replace(state, fit=fitness)
+    fitness = evaluate(pop)
+    return replace(intermediate, fit=fitness)

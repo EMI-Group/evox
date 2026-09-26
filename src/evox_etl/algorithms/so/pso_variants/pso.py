@@ -1,12 +1,13 @@
 """Functional ETL port of ``src/evox/algorithms/so/pso_variants/pso.py``.
 
-Plain (non-defn) functions — ``init``/``init_ask``/``init_tell``/``ask``/
-``tell`` — plus the frozen ``PSO`` config and ``PSOState`` state dataclasses.
-Semantics mirror the torch evox PSO algorithm 1:1 (see DESIGN.md §4-5).
+Plain (non-defn) functions — ``init``/``init_step``/``step`` — plus the frozen
+``PSO`` config and ``PSOState`` state dataclasses.  ``step``/``init_step`` own
+one full generation each (candidate generation → ``evaluate`` → state update),
+mirroring the torch evox PSO ``step``/``init_step`` 1:1 (see DESIGN.md §4-5).
 """
 
-from dataclasses import dataclass
-from typing import Tuple
+from dataclasses import dataclass, replace
+from typing import Any
 
 import etl
 import etl.numpy as enp
@@ -68,7 +69,7 @@ class PSOState:
     key: Tensor
 
 
-def _bounds(config: PSO) -> Tuple[Tensor, Tensor]:
+def _bounds(config: PSO) -> tuple[Tensor, Tensor]:
     """Bake the (1, dim) lower/upper bound constants from the config arrays."""
     return bake_bounds(config.lb, config.ub, as_row=True)
 
@@ -103,13 +104,13 @@ def init(config: PSO, key: Tensor) -> PSOState:
     )
 
 
-def init_ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
-    """First-generation ask: expose the initial population (nothing changes)."""
-    return state.pop, state
+def init_step(config: PSO, state: PSOState, evaluate: Any) -> PSOState:
+    """Perform the first step of the PSO optimization.
 
-
-def init_tell(config: PSO, state: PSOState, fitness: Tensor) -> PSOState:
-    """First-generation tell (torch ``init_step``): record fitness and bests."""
+    Evaluates the initial population via ``evaluate`` and seeds the local and
+    global best trackers from it.  See `step` for more details.
+    """
+    fitness = evaluate(state.pop)
     global_best_location, global_best_fit = min_by([state.pop], [fitness])
     return PSOState(
         pop=state.pop,
@@ -123,8 +124,16 @@ def init_tell(config: PSO, state: PSOState, fitness: Tensor) -> PSOState:
     )
 
 
-def ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
-    """One PSO step up to evaluation (torch ``step`` before ``evaluate``)."""
+def step(config: PSO, state: PSOState, evaluate: Any) -> PSOState:
+    """Perform a normal optimization step using PSO.
+
+    This function updates the local best positions and fitness values if the
+    current fitness beats the recorded ones, determines the global best via
+    ``min_by``, and then adjusts the velocity and positions of the particles
+    based on inertia, cognitive, and social components, clamping both within
+    the specified bounds.  The proposed population is evaluated with
+    ``evaluate`` and its fitness is recorded, completing one full generation.
+    """
     lb, ub = _bounds(config)
     pop_size, dim = config.pop_size, len(config.lb)
 
@@ -148,7 +157,7 @@ def ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
     )
     pop = clamp(state.pop + velocity, lb, ub)
     velocity = clamp(velocity, lb, ub)
-    return pop, PSOState(
+    intermediate = PSOState(
         pop=pop,
         velocity=velocity,
         fit=state.fit,
@@ -158,17 +167,5 @@ def ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
         global_best_fit=global_best_fit,
         key=key,
     )
-
-
-def tell(config: PSO, state: PSOState, fitness: Tensor) -> PSOState:
-    """Record the evaluated fitness (torch ``step`` after ``evaluate``)."""
-    return PSOState(
-        pop=state.pop,
-        velocity=state.velocity,
-        fit=fitness,
-        local_best_location=state.local_best_location,
-        local_best_fit=state.local_best_fit,
-        global_best_location=state.global_best_location,
-        global_best_fit=state.global_best_fit,
-        key=state.key,
-    )
+    fitness = evaluate(pop)
+    return replace(intermediate, fit=fitness)

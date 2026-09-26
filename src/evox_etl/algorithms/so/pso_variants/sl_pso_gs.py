@@ -1,8 +1,10 @@
 """Functional ETL port of the torch SLPSOGS algorithm.
 
 Social Learning Particle Swarm Optimization with Gaussian Sampling for
-demonstrator choice (SLPSOGS). Ported 1:1 from the torch reference
-``src/evox/algorithms/so/pso_variants/sl_pso_gs.py``.
+demonstrator choice (SLPSOGS). Step-protocol port of the torch reference
+``src/evox/algorithms/so/pso_variants/sl_pso_gs.py``: ``init``/``init_step``/
+``step`` plain functions, each owning one full generation (candidate
+generation → ``evaluate`` → state update).
 """
 
 from dataclasses import dataclass, replace
@@ -22,10 +24,8 @@ __all__ = [
     "SLPSOGSState",
     "make_sl_pso_gs",
     "init",
-    "init_ask",
-    "init_tell",
-    "ask",
-    "tell",
+    "init_step",
+    "step",
 ]
 
 
@@ -102,18 +102,27 @@ def init(config: SLPSOGS, key: Any) -> SLPSOGSState:
     )
 
 
-def init_ask(config: SLPSOGS, state: SLPSOGSState) -> tuple[Any, SLPSOGSState]:
-    """Return the initial population for evaluation."""
-    return state.pop, state
+def init_step(config: SLPSOGS, state: SLPSOGSState, evaluate: Any) -> SLPSOGSState:
+    """Perform the first step of the SLPSOGS optimization.
 
-
-def init_tell(config: SLPSOGS, state: SLPSOGSState, fitness: Any) -> SLPSOGSState:
-    """Record the initial fitness; update the global best fit (torch init_step 1:1)."""
+    Evaluates the initial population via ``evaluate``, records its fitness
+    and updates the global best fitness (location untouched — torch parity).
+    See `step` for more details.
+    """
+    fitness = evaluate(state.pop)
     return replace(state, fit=fitness, global_best_fit=etl.min(fitness, axes=0))
 
 
-def ask(config: SLPSOGS, state: SLPSOGSState) -> tuple[Any, SLPSOGSState]:
-    """One SLPSOGS step up to the evaluate point; returns (pop, new_state)."""
+def step(config: SLPSOGS, state: SLPSOGSState, evaluate: Any) -> SLPSOGSState:
+    """Perform a normal optimization step using SLPSOGS.
+
+    Updates the global best via ``min_by``, then each individual learns from
+    a demonstrator chosen by Gaussian sampling over the worst-to-best ranked
+    population and from the population mean (weighted by the social
+    influence factor), with velocity and positions clamped within the
+    bounds.  The proposed population is evaluated with ``evaluate`` and its
+    fitness recorded, completing one full generation.
+    """
     dim = len(config.lb)
     lb, ub = _bake_bounds(config)
     global_best_location, global_best_fit = min_by(
@@ -155,7 +164,7 @@ def ask(config: SLPSOGS, state: SLPSOGSState) -> tuple[Any, SLPSOGSState]:
     )
     pop = clamp(state.pop + velocity, lb, ub)
     velocity = clamp(velocity, lb, ub)
-    return pop, replace(
+    intermediate = replace(
         state,
         pop=pop,
         velocity=velocity,
@@ -163,8 +172,5 @@ def ask(config: SLPSOGS, state: SLPSOGSState) -> tuple[Any, SLPSOGSState]:
         global_best_fit=global_best_fit,
         key=key,
     )
-
-
-def tell(config: SLPSOGS, state: SLPSOGSState, fitness: Any) -> SLPSOGSState:
-    """Record the fitness of the current population."""
-    return replace(state, fit=fitness)
+    fitness = evaluate(pop)
+    return replace(intermediate, fit=fitness)

@@ -1,17 +1,17 @@
 """Functional ETL port of the torch evox CSO algorithm.
 
-Plain-function port of ``src/evox/algorithms/so/pso_variants/cso.py``
-(read-only torch reference; the ask/tell split follows the old JAX evox
-decomposition at tag v0.9.0, with torch semantics winning).  ETL has no eager
-mode, so these functions only run inside an active trace via
-``etl.build``/``etl.run``.
+Step-protocol port of ``src/evox/algorithms/so/pso_variants/cso.py``
+(read-only torch reference): ``init``/``init_step``/``step`` plain functions,
+each step-family function owning one full generation (candidate generation →
+``evaluate`` → state update).  ETL has no eager mode, so these functions only
+run inside an active trace via ``etl.build``/``etl.run``.
 
 The config stores flat float tuples; ``make_cso`` normalizes array-like bounds
 and optional sampling stats (DESIGN.md §4.1).
 """
 
 from dataclasses import dataclass, replace
-from typing import Tuple
+from typing import Any
 
 import numpy as np
 
@@ -75,7 +75,7 @@ def make_cso(
 
 @dataclass(frozen=True)
 class CSOState:
-    """CSO mutable state; ``students`` records the rows updated by the last ask."""
+    """CSO mutable state; ``students`` records the rows updated by the last step."""
 
     pop: Tensor
     velocity: Tensor
@@ -129,18 +129,26 @@ def init(config: CSO, key: Tensor) -> CSOState:
     )
 
 
-def init_ask(config: CSO, state: CSOState) -> Tuple[Tensor, CSOState]:
-    """First-generation candidates: the whole population."""
-    return state.pop, state
+def init_step(config: CSO, state: CSOState, evaluate: Any) -> CSOState:
+    """Perform the first step of the CSO optimization.
+
+    Evaluates the initial population via ``evaluate`` and records its
+    fitness.  See `step` for more details.
+    """
+    return replace(state, fit=evaluate(state.pop))
 
 
-def init_tell(config: CSO, state: CSOState, fitness: Tensor) -> CSOState:
-    """Store the first-generation fitness."""
-    return replace(state, fit=fitness)
+def step(config: CSO, state: CSOState, evaluate: Any) -> CSOState:
+    """Perform a single optimization step using CSO.
 
-
-def ask(config: CSO, state: CSOState) -> Tuple[Tensor, CSOState]:
-    """Pair particles at random and update the losers (students) CSO-style."""
+    This function pairs the particles at random, compares their fitness to
+    assign teachers and students, and moves each student towards its teacher
+    and (weighted by ``phi``) the population center, clamping velocity and
+    position within the bounds.  Only the students' rows of the population
+    and fitness are updated: the candidates are evaluated with ``evaluate``
+    and scattered back onto the students' fitness rows, completing one full
+    generation.
+    """
     pop_size = config.pop_size
     dim = len(config.lb)
     half = pop_size // 2
@@ -172,9 +180,11 @@ def ask(config: CSO, state: CSOState) -> Tuple[Tensor, CSOState]:
     candidates = clamp(pop_students + student_velocity, lb, ub)
     new_pop = etl.scatter(state.pop, students, candidates, axis=0)
 
-    return candidates, replace(state, pop=new_pop, students=students, key=key)
-
-
-def tell(config: CSO, state: CSOState, fitness: Tensor) -> CSOState:
-    """Scatter the evaluated candidates' fitness onto the students' rows."""
-    return replace(state, fit=etl.scatter(state.fit, state.students, fitness, axis=0))
+    fitness = evaluate(candidates)
+    return replace(
+        state,
+        pop=new_pop,
+        fit=etl.scatter(state.fit, students, fitness, axis=0),
+        students=students,
+        key=key,
+    )

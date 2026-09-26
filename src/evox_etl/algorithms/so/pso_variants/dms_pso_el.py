@@ -1,15 +1,17 @@
 """Functional ETL port of the torch DMS-PSO-EL algorithm.
 
-Reference (READ-ONLY, semantics ported 1:1 including quirks):
-`src/evox/algorithms/so/pso_variants/dms_pso_el.py`.  Dynamic sub-swarms
-regroup every `regrouped_iteration_num` steps and switch to a global-best
-strategy once `iteration >= 0.9 * max_iteration` (data-dependent, so the
-torch Python `if`s become `etl.cond`).
+Step-protocol port of the read-only reference
+``src/evox/algorithms/so/pso_variants/dms_pso_el.py``: ``init``/
+``init_step``/``step`` plain functions, each step-family function owning one
+full generation (candidate generation → ``evaluate`` → state update).
+Dynamic sub-swarms regroup every `regrouped_iteration_num` steps and switch
+to a global-best strategy once `iteration >= 0.9 * max_iteration`
+(data-dependent, so the torch Python `if`s become `etl.cond`).
 """
 
 from dataclasses import dataclass, replace
 from functools import partial
-from typing import Any, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -142,22 +144,27 @@ def init(config: DMSPSOEL, key: Tensor) -> DMSPSOELState:
     )
 
 
-def init_ask(config: DMSPSOEL, state: DMSPSOELState) -> tuple[Tensor, DMSPSOELState]:
-    """Generation-0 ask: the initial population is evaluated as-is."""
-    return state.pop, state
+def init_step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOELState:
+    """Perform the first step of the DMSPSOEL optimization.
 
-
-def init_tell(config: DMSPSOEL, state: DMSPSOELState, fitness: Tensor) -> DMSPSOELState:
-    """Generation-0 tell (torch ``init_step``): store fitness, then count the generation."""
+    Evaluates the initial population via ``evaluate``, records its fitness
+    and counts the generation.  See `step` for more details.
+    """
+    fitness = evaluate(state.pop)
     return replace(state, fit=fitness, iteration=etl.cast(state.iteration + 1, etl.int32))
 
 
-def ask(config: DMSPSOEL, state: DMSPSOELState) -> tuple[Tensor, DMSPSOELState]:
-    """Propose the next population (torch ``step`` split at the evaluate call).
+def step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOELState:
+    """Perform a single step of the DMSPSOEL algorithm.
 
-    Strategy 1 while ``iteration < 0.9 * max_iteration``, strategy 2 afterwards;
-    the iteration counter advances after the update (torch increments before
-    the evaluate call, which is the workflow's job here).
+    Strategy 1 while ``iteration < 0.9 * max_iteration`` (possible regroup of
+    the dynamic sub-swarms, then pbest/lbest/rbest-guided velocity updates
+    for the dynamic and following sub-swarms), strategy 2 afterwards
+    (pbest/gbest-guided velocity update).  The proposed population is then
+    evaluated with ``evaluate``, its fitness recorded, and the iteration
+    counter advanced (torch increments around the evaluate call; the fused
+    order — update, evaluate, record, count — yields the identical net
+    effect), completing one full generation.
     """
     state = etl.cond(
         state.iteration < 0.9 * config.max_iteration,
@@ -165,13 +172,12 @@ def ask(config: DMSPSOEL, state: DMSPSOELState) -> tuple[Tensor, DMSPSOELState]:
         partial(_strategy2, config),
         state,
     )
-    state = replace(state, iteration=etl.cast(state.iteration + 1, etl.int32))
-    return state.pop, state
-
-
-def tell(config: DMSPSOEL, state: DMSPSOELState, fitness: Tensor) -> DMSPSOELState:
-    """Store the fitness of the proposed population (torch ``step`` evaluate write)."""
-    return replace(state, fit=fitness)
+    fitness = evaluate(state.pop)
+    return replace(
+        state,
+        fit=fitness,
+        iteration=etl.cast(state.iteration + 1, etl.int32),
+    )
 
 
 def _strategy1(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
