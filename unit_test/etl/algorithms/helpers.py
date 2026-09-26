@@ -1,12 +1,17 @@
-"""Toy benchmark problems and a generic init/ask/tell smoke-test driver for the
-ETL-based functional algorithms under test (no torch).
+"""Toy benchmark problems and a generic step-protocol smoke-test driver for
+the ETL-based functional algorithms under test (no torch).
 
 ETL host-side contract used throughout (verified empirically — do not
 re-investigate):
 
 * ``etl.build(fn, *specs)`` accepts plain callables; non-tensor arguments
   (config dataclasses, the empty ``ToyProblemState``) are recorded as STATIC
-  values and are legal build arguments.
+  values and are legal build arguments.  Static signature args must be
+  re-passed identically at every ``etl.run`` (validated by value); values
+  that never change between generations may equivalently be baked into the
+  traced function as closure constants (that is how the driver injects the
+  algorithm/problem configs and the ``evaluate`` closure — see
+  ``_make_generation_fn``).
 * ``etl.run(exe, *args)`` requires ALL arguments of the traced signature at
   every run — including the static ones (they are validated by value at the
   run boundary).  So config/state dataclasses are re-passed on each run.
@@ -20,10 +25,9 @@ re-investigate):
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
-
 import etl
 import etl.numpy as enp
+import numpy as np
 
 __all__ = [
     "AckleyConfig",
@@ -152,6 +156,27 @@ def _spec_key(*values: Any) -> tuple:
     return tuple((tuple(leaf.shape), str(leaf.dtype)) for leaf in leaves)
 
 
+def _make_generation_fn(step_fn: Any, algo_cfg: Any, prob_cfg: Any) -> Any:
+    """Wrap one algorithm step-family function into a single-argument
+    ``(state) -> state`` generation function.
+
+    The ``evaluate`` closure the algorithm receives is constructed INSIDE the
+    traced body, closing over the static problem config (and the fresh
+    ``ToyProblemState``): the toy problems are stateless, so the problem state
+    is recreated per ``evaluate`` call.  The algorithm/problem configs are
+    baked as closure constants (static, never re-passed at run time), so the
+    built graph's only signature input is the algorithm state pytree.
+    """
+    def generation_fn(state: Any) -> Any:
+        def evaluate(candidates: Any) -> Any:
+            fitness, _ = toy_evaluate(prob_cfg, ToyProblemState(), candidates)
+            return fitness
+
+        return step_fn(algo_cfg, state, evaluate)
+
+    return generation_fn
+
+
 def run_generations(
     algo_mod: Any,
     algo_cfg: Any,
@@ -159,19 +184,21 @@ def run_generations(
     n_gens: int,
     seed: int = 0,
 ) -> Any:
-    """Drive a functional init/ask/tell algorithm module for ``n_gens``
+    """Drive a functional step-protocol algorithm module for ``n_gens``
     generations on a toy problem; return the final algorithm state.
 
-    ``algo_mod`` must expose plain functions ``init(config, key) -> state``,
-    ``ask(config, state) -> (candidates, state)`` and
-    ``tell(config, state, fitness) -> state``.  When BOTH ``init_ask`` and
-    ``init_tell`` are present they are used for generation 0 instead (NSGA
-    style).
+    ``algo_mod`` must expose plain functions ``init(config, key) -> state``
+    and ``step(config, state, evaluate) -> state``.  Dispatch mirrors
+    ``evox_etl.core.workflow.StdWorkflow._run_loop``: generation 0 uses the
+    module's ``init_step(config, state, evaluate)`` when it defines one, the
+    LAST generation its ``final_step(config, state, evaluate)`` when defined,
+    every generation in between (and any missing variant) plain ``step``.
+    With ``n_gens == 1`` only the init_step dispatch applies.
 
     All executables use the ``"numpy"`` backend; each distinct
-    (function, tensor-shape) combination is built once and cached, so shapes
-    changing between generations (e.g. NSGA-style first generation) only cost
-    an extra build.
+    (step function, tensor-shape) combination is built once and cached, so
+    shapes changing between generations (e.g. NSGA-style first generation)
+    only cost an extra build.
     """
     init_exe = etl.build(
         algo_mod.init,
@@ -190,40 +217,22 @@ def run_generations(
             exe_cache[key] = exe
         return exe
 
+    has_init_step = callable(getattr(algo_mod, "init_step", None))
+    has_final_step = callable(getattr(algo_mod, "final_step", None))
+
     for gen in range(n_gens):
-        if (
-            gen == 0
-            and callable(getattr(algo_mod, "init_ask", None))
-            and callable(getattr(algo_mod, "init_tell", None))
-        ):
-            ask_fn, tell_fn = algo_mod.init_ask, algo_mod.init_tell
+        if gen == 0 and has_init_step:
+            step_fn = algo_mod.init_step
+        elif gen == n_gens - 1 and has_final_step:
+            step_fn = algo_mod.final_step
         else:
-            ask_fn, tell_fn = algo_mod.ask, algo_mod.tell
+            step_fn = algo_mod.step
 
-        ask_exe = build_cached(
-            (id(ask_fn), _spec_key(state)),
-            ask_fn,
-            algo_cfg,
+        gen_exe = build_cached(
+            (id(step_fn), _spec_key(state)),
+            _make_generation_fn(step_fn, algo_cfg, prob_cfg),
             _spec_tree(state),
         )
-        candidates, state = etl.run(ask_exe, algo_cfg, state)
-
-        eval_exe = build_cached(
-            (id(toy_evaluate), _spec_key(candidates)),
-            toy_evaluate,
-            prob_cfg,
-            ToyProblemState(),
-            _leaf_spec(candidates),
-        )
-        fitness, _ = etl.run(eval_exe, prob_cfg, ToyProblemState(), candidates)
-
-        tell_exe = build_cached(
-            (id(tell_fn), _spec_key(state, fitness)),
-            tell_fn,
-            algo_cfg,
-            _spec_tree(state),
-            _leaf_spec(fitness),
-        )
-        state = etl.run(tell_exe, algo_cfg, state, fitness)
+        state = etl.run(gen_exe, state)
 
     return state
