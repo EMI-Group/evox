@@ -1,16 +1,30 @@
-# evox_etl/algorithms/so/es_variants — functional ES-family ports
+# evox_etl/algorithms/so/es_variants — functional ES-family ports (step protocol)
 
 ## Intent
-Plain-function (`init`/`ask`/`tell`) ports of the torch evox ES-family algorithms
-(read-only reference: `src/evox/algorithms/so/es_variants/`). Binding spec:
-`../../../../DESIGN.md` (§4-5). Each module exposes a frozen `XConfig` dataclass
-(dumb: plain static leaves only, array fields stored as f32 tuples — construct
-via the module-level `make_X` constructor, which normalizes and validates once),
-a frozen `XState` dataclass (tensor leaves only: torch Mutable names + ask→tell
-intermediates + `best_fitness` f32 scalar + `key` last), and plain
-`init(config, key)` / `ask(config, state) -> (population, state)` /
-`tell(config, state, fitness)` functions. `best_fitness` (min over all evaluated
-fitness, updated in tell) is an evox_etl addition — torch has no such field.
+Plain-function ports of the torch evox ES-family algorithms (read-only
+reference: `src/evox/algorithms/so/es_variants/`) to the post-1.0 STEP
+protocol. Binding spec: `../../../../DESIGN.md` (§4-5) +
+`evox_etl.core.algorithm` (the protocol doc). Each module exposes a frozen
+`XConfig` dataclass (dumb: plain static leaves only, array fields stored as
+f32 tuples — construct via the module-level `make_X` constructor, which
+normalizes and validates once), a frozen `XState` dataclass (tensor leaves
+only: torch Mutable names + sampling intermediates + `best_fitness` f32
+scalar + `key` last), and plain `init(config, key) -> state` /
+`step(config, state, evaluate) -> state` functions. `step` owns the WHOLE
+generation: sample the candidates and stash the sampling intermediates into
+the state (`replace(...)`), then `fitness = evaluate(candidates)`
+(workflow-injected traced closure: solution_transform → problem evaluate →
+opt-direction scaling → fitness_transform; minimization semantics; treated as
+opaque, never stored), then update the distribution from
+(intermediates, fitness) and return the new state — mirroring torch
+`Algorithm.step` exactly.
+`best_fitness` (min over all evaluated fitness, updated in step) is an
+evox_etl addition — torch has no such field.
+
+**No ES module defines `init_step`/`final_step`** — the torch reference has
+no algorithm-level overrides in this family (all use the base class
+fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
+`step` everywhere here.
 
 ## Files
 | File | Contents |
@@ -22,7 +36,7 @@ fitness, updated in tell) is an evox_etl addition — torch has no such field.
 | `ars.py` | ARSConfig/State — elite ratio, unbiased std (ddof=1) |
 | `snes.py` | SNESConfig/State — weight_type "temp"/"recomb"; `_softmax` shared with des.py |
 | `des.py` | DESConfig/State — ranks softmax weighting |
-| `nes.py` | XNESConfig + SeparableNESConfig/States — `init/ask/tell` dispatch on config type via isinstance |
+| `nes.py` | XNESConfig + SeparableNESConfig/States — `init`/`step` dispatch on config type via isinstance |
 | `guided_es.py` | GuidedESConfig/State — QR surrogate-gradient subspace |
 | `noise_reuse_es.py` | NoiseReuseESConfig/State — perturbation reuse, T/K counter |
 | `persistent_es.py` | PersistentESConfig/State — perturbation accumulation + reset |
@@ -52,20 +66,18 @@ fitness, updated in tell) is an evox_etl addition — torch has no such field.
   make_xnes/make_separable_nes fill pop_size = 4+⌊3·ln dim⌋ and the lr defaults
   from dim; make_asebo fills subspace_dims = len(center_init) when None.
   NOT hoisted (still trace-time): cma_es pop_size default (`_derive()` in
-  init/ask/tell) and guided_es subspace_dims (derived inline in init/ask) —
+  init/step) and guided_es subspace_dims (derived inline in init/step) —
   cma_es' cfg.pop_size None is handled by bench_so.py:132-135; core/workflow.py
   `_discover_pop_size` relies on the nes make_* eager fill.
 - `_softmax` is byte-identical in des.py/snes.py; single home is snes.py, des.py
   imports it (des → snes dependency mirrors the algorithm lineage).
 - Direct `Config(...)` construction bypasses normalization/validation — only
-  valid for already-normalized values (in-flight unit-test migration moves
-  construction sites to make_*). For XNES/SeparableNES/ASEBO direct
+  valid for already-normalized values. For XNES/SeparableNES/ASEBO direct
   construction also leaves the eager derived fields (`pop_size`,
   `learning_rate_*`, `subspace_dims`) as None → trace-time
   TypeError/TraceError ("unsupported operand type NoneType",
-  "dynamic-length shapes (None, …)"): the affected unit tests
-  (test_nes.py, test_asebo.py) must migrate to make_xnes/make_separable_nes/
-  make_asebo (or pass explicit values).
+  "dynamic-length shapes (None, …)"): construct via make_xnes/
+  make_separable_nes/make_asebo (or pass explicit values).
 
 ## Skipped
 `virtual_lora_es.py` is NOT ported: it needs the torch Philox counter-stream
@@ -77,7 +89,7 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
 `(n, dim)` populations. Full analysis: see `src/evox_etl/algorithms/CONTEXT.md`.
 
 ## Known Issues
-- `asebo.py:117` uses `etl.svd` (full reduced SVD: U, S, Vh), which etl's
+- `asebo.py` `step` uses `etl.svd` (full reduced SVD: U, S, Vh), which etl's
   stablehlo-v1 exporter DEFERS (`BackendError` on compiled backends
   iree/xla). Runs fine on the etl-numpy backend (unit tests green) but would
   fail to export like the NSGA3 `matrix_rank`/`solve` blocker did. The NSGA3
@@ -86,9 +98,22 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
   reconstructing a full two-factor SVD (U and Vh) via eigh is possible but was
   deliberately NOT attempted here because it's unstable for rank-deficient
   inputs and asebo is not currently in the benchmark suite.
+- Long-run f32 SVD instability (numpy backend): ASEBO on Sphere diverges with
+  `LinAlgError('SVD did not converge')` around generation ~12 for aggressive
+  configs (e.g. lr=1.0, sigma=0.5, pop=8, dim=10) — the gradient-subspace
+  history feeds NaNs into the SVD after the center blows past f32 range.
+  Identical in the old ask/tell code (NOT a step-protocol regression);
+  short runs (≤10 gens) stay finite. Similarly `open_es` with
+  `mirrored_sampling=False` + a large lr can overflow to NaN best-fitness —
+  also pre-existing (verify any such report against the ask/tell baseline
+  in git history before debugging the step port).
 
 ## Notes for agents (verified — do not re-investigate)
 - All functions are PLAIN (no `@etl.defn`); traced via `etl.build`/`etl.run`.
+- The step conversion is BITWISE-identical to the old ask/tell pair on the
+  numpy backend (validated per module: every final-state leaf matched
+  exactly over 10–20 generations) — the fused op sequence is unchanged, so
+  parity debugging starts from "identical by construction".
 - Known torch bugs NOT replicated: XNES/SeparableNES use `self.dim` before it
   exists when pop_size=None (torch nes.py lines 42-43, 154) — ports use the
   local `dim` (commented in nes.py).
@@ -113,7 +138,7 @@ The torch reference (`src/evox/algorithms/so/es_variants/cma_es.py:128`)
 computes `p_c @ p_c.T` with **1-D** `p_c`: torch's deprecated `.T` is a no-op
 on 1-D tensors, so this is a scalar dot product `‖p_c‖²` that broadcasts
 additively into **every element** of `C` — an isotropic `c_1`-scaled C
-inflation, NOT the canonical rank-one outer product. `cma_es.py` `tell()`
+inflation, NOT the canonical rank-one outer product. `cma_es.py` `step()`
 mirrors this exactly (`pc_norm_sq = etl.sum(p_c * p_c)`; 0-d, since
 `etl.dot` needs rank ≥ 2) instead of the mathematically "correct" outer
 product, because the parity contract is exact mirroring of torch's actual
@@ -125,14 +150,14 @@ chaotically (float32 reduction order) — parity is qualitative (both converge
 to ≈ 0), not bitwise.
 
 ## Tests
-- Smoke (no torch): `unit_test/etl/algorithms/so/es_variants/test_*.py` — drive
-  init/ask/tell via `helpers.run_generations` on Sphere; local conftest.py shims
-  `import helpers`.
-- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_cma_es.py` and
+- Smoke (no torch): `unit_test/etl/algorithms/so/es_variants/test_*.py` —
+  NOTE: these still drive the pre-1.0 ask/tell helpers and are rewritten in a
+  LATER wave; until then they are red against this package (expected).- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_cma_es.py` and
   `test_open_es.py` — torch StdWorkflow+EvalMonitor vs etl; margin
   etl_best ≤ torch_best*1.1 + 1e-3; tuning rationale in
   `unit_test/etl/algorithms/parity/CONTEXT.md`.
 - Gate: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
-  unit_test/etl/algorithms/so/es_variants
   unit_test/etl/algorithms/parity/test_cma_es.py
   unit_test/etl/algorithms/parity/test_open_es.py -q`
+  NOTE: the two parity tests also go through the ask/tell-era driver helpers
+  and are part of the same LATER test-wave rewrite.

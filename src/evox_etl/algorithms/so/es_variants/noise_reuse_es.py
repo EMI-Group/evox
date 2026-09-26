@@ -1,16 +1,20 @@
-"""Functional ETL port of the torch evox NoiseReuseES algorithm.
+"""Functional ETL port of the torch evox NoiseReuseES algorithm (step
+protocol).
 
 Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.evaluate`), since ETL has no
-eager mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/noise_reuse_es.py` exactly.
+trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+mode. Semantics mirror the torch original in
+`src/evox/algorithms/so/es_variants/noise_reuse_es.py` exactly: `step` owns
+the WHOLE generation (perturbation sampling/reuse → `evaluate(candidates)` →
+gradient update), with the workflow-injected `evaluate` closure standing in
+for torch's `self.evaluate(population)`.
 
 Reference: Noise-Reuse in Online Evolution Strategies
 (https://arxiv.org/pdf/2304.12180.pdf)
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 
 import numpy as np
 
@@ -113,9 +117,18 @@ def init(config: NoiseReuseESConfig, key: Tensor) -> NoiseReuseESState:
     )
 
 
-def ask(config: NoiseReuseESConfig, state: NoiseReuseESState) -> tuple[Tensor, NoiseReuseESState]:
-    """Sample a mirrored population, reusing the previous perturbations when the
-    inner-problem counter has not wrapped around."""
+def step(
+    config: NoiseReuseESConfig,
+    state: NoiseReuseESState,
+    evaluate: Callable[[Tensor], Tensor],
+) -> NoiseReuseESState:
+    """Run ONE full generation: sample a mirrored population (reusing the
+    previous perturbations when the inner-problem counter has not wrapped
+    around), evaluate it, and update center, inner-step counter and sigma.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     half = config.pop_size // 2
     f32 = np.dtype("float32")
@@ -127,11 +140,9 @@ def ask(config: NoiseReuseESConfig, state: NoiseReuseESState) -> tuple[Tensor, N
     )
     population = state.center + unroll_pert
     state = replace(state, unroll_pert=unroll_pert, key=key)
-    return population, state
 
+    fitness = evaluate(population)
 
-def tell(config: NoiseReuseESConfig, state: NoiseReuseESState, fitness: Tensor) -> NoiseReuseESState:
-    """Update center, inner-step counter and sigma from the evaluated population."""
     theta_grad = etl.mean(
         state.unroll_pert * enp.expand_dims(fitness, axis=1) / (state.sigma * state.sigma),
         axes=0,

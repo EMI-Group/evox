@@ -1,13 +1,15 @@
-"""Functional ETL port of the torch evox ESMC algorithm (plain functions).
+"""Functional ETL port of the torch evox ESMC algorithm (step protocol).
 
 Reference (read-only): ``src/evox/algorithms/so/es_variants/esmc.py`` (the DES
-algorithm from Learn2Hop).  ETL has no eager mode, so ``init``/``ask``/``tell``
-are plain functions traced via ``etl.build``/``etl.run``; the torch ``step`` is
-split at ``self.evaluate``.  ``pop_size`` must be odd (mirrored sampling).
+algorithm from Learn2Hop).  ETL has no eager mode, so ``init``/``step`` are
+plain functions traced via ``etl.build``/``etl.run``; ``step`` owns the WHOLE
+generation — the torch ``step`` body with its internal ``self.evaluate`` call
+fused in via the workflow-injected ``evaluate`` closure.  ``pop_size`` must be
+odd (mirrored sampling).
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -97,8 +99,18 @@ def init(config: ESMCConfig, key: SymbolicTensor) -> ESMCState:
     return ESMCState(center, sigma, z, exp_avg, exp_avg_sq, best_fitness, key)
 
 
-def ask(config: ESMCConfig, state: ESMCState) -> tuple[SymbolicTensor, ESMCState]:
-    """Sample the mirrored population [0; z_plus; -z_plus] around the center."""
+def step(
+    config: ESMCConfig,
+    state: ESMCState,
+    evaluate: Callable[[SymbolicTensor], SymbolicTensor],
+) -> ESMCState:
+    """Run ONE full generation: sample the mirrored population
+    ``[0; z_plus; -z_plus]`` around the center, evaluate it, and update the
+    center (SGD or adam) and decay sigma from the mirrored pairs.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     key, subkey = random.split(state.key)
     z_plus = random.normal(
@@ -108,13 +120,10 @@ def ask(config: ESMCConfig, state: ESMCState) -> tuple[SymbolicTensor, ESMCState
         [enp.zeros((1, dim), dtype=F32), z_plus, -1.0 * z_plus], axis=0
     )
     population = state.center + z * enp.reshape(state.sigma, (1, dim))
-    return population, replace(state, z=z, key=key)
+    state = replace(state, z=z, key=key)
 
+    fitness = evaluate(population)
 
-def tell(
-    config: ESMCConfig, state: ESMCState, fitness: SymbolicTensor
-) -> ESMCState:
-    """Update the center (SGD or adam) and decay sigma from the mirrored pairs."""
     half = (config.pop_size - 1) // 2
     bline = fitness[0]
     noise_1 = state.z[1 : half + 1]

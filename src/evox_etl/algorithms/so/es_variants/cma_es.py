@@ -1,15 +1,19 @@
-"""Functional ETL port of the torch evox `cma_es.py` algorithm (CMA-ES).
+"""Functional ETL port of the torch evox `cma_es.py` algorithm (CMA-ES, step
+protocol).
 
-Plain (non-`@etl.defn`) functions: `init`, `ask`, `tell`. They may only be
+Plain (non-`@etl.defn`) functions: `init`, `step`. They may only be
 called inside an active trace (a function passed to `etl.build`/
-`etl.evaluate`), since ETL has no eager mode. Semantics mirror the torch
+`etl.run`), since ETL has no eager mode. Semantics mirror the torch
 original in `src/evox/algorithms/so/es_variants/cma_es.py` exactly; the
-`CMAESConfig` fields match its `__init__` signature minus `device`.
+`CMAESConfig` fields match its `__init__` signature minus `device`. `step`
+owns the WHOLE generation (sample → `evaluate(candidates)` → mean/covariance/
+step-size update), with the workflow-injected `evaluate` closure standing in
+for torch's `self.evaluate(population)`.
 """
 
 import math
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -82,7 +86,7 @@ class CMAESState:
     mean: Tensor  # (1, dim)
     sigma: Tensor  # scalar step size
     weights: Tensor  # (1, mu) recombination weights
-    y: Tensor  # (pop_size, dim) sampled noise of the latest ask
+    y: Tensor  # (pop_size, dim) sampled noise of the latest step
     best_fitness: Tensor  # scalar, best fitness seen so far
     key: Tensor  # int64 scalar RNG key
 
@@ -205,8 +209,18 @@ def init(config: CMAESConfig, key: Tensor) -> CMAESState:
     )
 
 
-def ask(config: CMAESConfig, state: CMAESState) -> tuple[Tensor, CMAESState]:
-    """Sample the population and increment the iteration counter."""
+def step(
+    config: CMAESConfig,
+    state: CMAESState,
+    evaluate: Callable[[Tensor], Tensor],
+) -> CMAESState:
+    """Run ONE full generation: sample the population (incrementing the
+    iteration counter), evaluate it, and update mean, covariance matrix and
+    step size.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     p = _derive(config)
     f32 = np.dtype("float32")
     iteration = etl.cast(state.iteration + 1, np.dtype("int32"))
@@ -215,15 +229,12 @@ def ask(config: CMAESConfig, state: CMAESState) -> tuple[Tensor, CMAESState]:
     y = etl.dot(noise, state.D)
     y = etl.dot(y, state.B)
     population = state.mean + state.sigma * y
-    return population, replace(state, iteration=iteration, y=y, key=key)
+    state = replace(state, iteration=iteration, y=y, key=key)
 
+    fitness = evaluate(population)
 
-def tell(config: CMAESConfig, state: CMAESState, fitness: Tensor) -> CMAESState:
-    """Update mean, covariance matrix and step size from the evaluated population."""
-    p = _derive(config)
-    f32 = np.dtype("float32")
-    # ask stored the sampled noise in state.y; mean/sigma are still the
-    # pre-update values, so this reconstructs the population ask returned.
+    # the sampled noise was stored in state.y; mean/sigma are still the
+    # pre-update values, so this reconstructs the population evaluated above.
     population = state.mean + state.sigma * state.y
     fitness, population = sort_by_key(fitness, population)
     population_selected = population[: p.mu]

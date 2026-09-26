@@ -1,15 +1,19 @@
-"""Functional ETL port of the torch evox GuidedES algorithm.
+"""Functional ETL port of the torch evox GuidedES algorithm (step protocol).
 
 Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.evaluate`), since ETL has no
-eager mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/guided_es.py` exactly.
+trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+mode. Semantics mirror the torch original in
+`src/evox/algorithms/so/es_variants/guided_es.py` exactly: `step` owns the
+WHOLE generation (mirrored sampling in the guided subspace →
+`evaluate(candidates)` → center/subspace/sigma update), with the
+workflow-injected `evaluate` closure standing in for torch's
+`self.evaluate(population)`.
 
 Reference: Guided evolutionary strategies (https://arxiv.org/abs/1806.10230)
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 
 import numpy as np
 
@@ -121,8 +125,18 @@ def init(config: GuidedESConfig, key: Tensor) -> GuidedESState:
     )
 
 
-def ask(config: GuidedESConfig, state: GuidedESState) -> tuple[Tensor, GuidedESState]:
-    """Sample a mirrored population around the current center."""
+def step(
+    config: GuidedESConfig,
+    state: GuidedESState,
+    evaluate: Callable[[Tensor], Tensor],
+) -> GuidedESState:
+    """Run ONE full generation: sample a mirrored population around the
+    current center in the guided (surrogate-gradient) subspace, evaluate it,
+    and update center, grad_subspace and sigma.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     pop_size = config.pop_size
     subspace_dims = dim if config.subspace_dims is None else config.subspace_dims
@@ -140,13 +154,9 @@ def ask(config: GuidedESConfig, state: GuidedESState) -> tuple[Tensor, GuidedESS
     z = etl.concatenate([z_plus, -z_plus], axis=0)
     population = state.center + z
     state = replace(state, z=z, key=key)
-    return population, state
 
+    fitness = evaluate(population)
 
-def tell(config: GuidedESConfig, state: GuidedESState, fitness: Tensor) -> GuidedESState:
-    """Update center, grad_subspace and sigma from the evaluated population."""
-    pop_size = config.pop_size
-    half = pop_size // 2
     noise = state.z / state.sigma
     noise_1 = noise[:half]
     fit_diff = fitness[:half] - fitness[half:]

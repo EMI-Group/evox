@@ -1,8 +1,11 @@
-"""Functional ETL port of the torch evox SNES algorithm.
+"""Functional ETL port of the torch evox SNES algorithm (step protocol).
 
-Plain functions (`init`/`ask`/`tell`) + frozen config/state dataclasses, per
+Plain functions (`init`/`step`) + frozen config/state dataclasses, per
 `src/evox_etl/DESIGN.md`. Torch reference (read-only):
-`src/evox/algorithms/so/es_variants/snes.py`.
+`src/evox/algorithms/so/es_variants/snes.py`. `step` owns the WHOLE generation
+(sample → `evaluate(candidates)` → natural-gradient update), with the
+workflow-injected `evaluate` closure standing in for torch's
+`self.evaluate(population)`.
 
 ETL has no eager mode — these functions may only be called inside an active
 trace (`etl.build`/`etl.run`). numpy is used only at trace time to bake the
@@ -11,7 +14,7 @@ initial center as a graph constant.
 
 import math
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -82,7 +85,7 @@ class SNESState:
     center: Tensor  # (dim,)
     sigma: Tensor  # (dim,)
     weights: Tensor  # (pop_size, dim)
-    noise: Tensor  # (pop_size, dim) — last sampled noise
+    noise: Tensor  # (pop_size, dim) — noise sampled by the last step
     best_fitness: Tensor  # scalar f32
     key: Tensor  # RNG key
 
@@ -125,18 +128,24 @@ def init(config: SNESConfig, key: Tensor) -> SNESState:
     return SNESState(center, sigma, weights, noise, best_fitness, key)
 
 
-def ask(config: SNESConfig, state: SNESState) -> tuple[Tensor, SNESState]:
-    """Sample a population of `pop_size` candidates from the current Gaussian."""
+def step(
+    config: SNESConfig, state: SNESState, evaluate: Callable[[Tensor], Tensor]
+) -> SNESState:
+    """Run ONE full generation: sample a population of `pop_size` candidates
+    from the current Gaussian, evaluate it, and update center/sigma from the
+    ranked fitness (natural gradient step).
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     pop_size, dim = config.pop_size, len(config.center_init)
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
     population = state.center + noise * etl.reshape(state.sigma, (1, dim))
-    return population, replace(state, noise=noise, key=key)
+    state = replace(state, noise=noise, key=key)
 
+    fitness = evaluate(population)
 
-def tell(config: SNESConfig, state: SNESState, fitness: Tensor) -> SNESState:
-    """Update center/sigma from the ranked fitness (natural gradient step)."""
-    dim = len(config.center_init)
     lrate_sigma = (3 + math.log(dim)) / (5 * math.sqrt(dim))
 
     order = etl.argsort(fitness)

@@ -1,8 +1,10 @@
-"""Functional ETL port of the torch evox DES algorithm.
+"""Functional ETL port of the torch evox DES algorithm (step protocol).
 
-Plain functions (`init`/`ask`/`tell`) + frozen config/state dataclasses, per
+Plain functions (`init`/`step`) + frozen config/state dataclasses, per
 `src/evox_etl/DESIGN.md`. Torch reference (read-only):
-`src/evox/algorithms/so/es_variants/des.py`.
+`src/evox/algorithms/so/es_variants/des.py`. `step` owns the WHOLE generation
+(sample → `evaluate(candidates)` → ranked update), with the workflow-injected
+`evaluate` closure standing in for torch's `self.evaluate(population)`.
 
 ETL has no eager mode — these functions may only be called inside an active
 trace (`etl.build`/`etl.run`). numpy is used only at trace time to bake the
@@ -10,6 +12,7 @@ initial center as a graph constant.
 """
 
 from dataclasses import dataclass, replace
+from typing import Callable
 
 import numpy as np
 
@@ -70,7 +73,7 @@ class DESState:
 
     center: Tensor  # (dim,)
     sigma: Tensor  # (dim,)
-    noise: Tensor  # (pop_size, dim) — last sampled noise
+    noise: Tensor  # (pop_size, dim) — noise sampled by the last step
     best_fitness: Tensor  # scalar f32
     key: Tensor  # RNG key
 
@@ -88,18 +91,23 @@ def init(config: DESConfig, key: Tensor) -> DESState:
     return DESState(center, sigma, noise, best_fitness, key)
 
 
-def ask(config: DESConfig, state: DESState) -> tuple[Tensor, DESState]:
-    """Sample a population of `pop_size` candidates from the current Gaussian."""
+def step(
+    config: DESConfig, state: DESState, evaluate: Callable[[Tensor], Tensor]
+) -> DESState:
+    """Run ONE full generation: sample a population of `pop_size` candidates
+    from the current Gaussian, evaluate it, and update center/sigma from the
+    ranked population (DES update rule).
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     pop_size, dim = config.pop_size, len(config.center_init)
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
     population = state.center + noise * state.sigma
-    return population, replace(state, noise=noise, key=key)
+    state = replace(state, noise=noise, key=key)
 
-
-def tell(config: DESConfig, state: DESState, fitness: Tensor) -> DESState:
-    """Update center/sigma from the ranked population (DES update rule)."""
-    pop_size, dim = config.pop_size, len(config.center_init)
+    fitness = evaluate(population)
 
     population = state.center + state.noise * state.sigma
     order = etl.argsort(fitness)

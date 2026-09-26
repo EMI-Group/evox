@@ -2,10 +2,14 @@
 
 Mirrors the torch `__init__.py` exports (config dataclasses instead of
 classes), plus a `make_*` functional constructor alongside each config.
+Every module exposes the step protocol: plain `init(config, key) -> state`
+and `step(config, state, evaluate) -> state` functions owning ONE full
+generation each (sample → evaluate → update), with optional
+`init_step`/`final_step` variants the workflow dispatches host-side.
 VirtualLoRAES is intentionally NOT ported: it depends on torch-only
 machinery (the triton_kernels Philox counter PRNG, LoRA factor/gradient
 utilities) and a `(center, seeds, sigma)` tuple evaluate protocol that
-evox_etl's tensor-only init/ask/tell contract does not support. See
+evox_etl's tensor-only `(n, dim)` candidate contract does not support. See
 `src/evox_etl/algorithms/CONTEXT.md` for the precise reasons.
 """
 

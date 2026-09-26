@@ -1,9 +1,14 @@
-"""Functional ETL port of the torch evox PersistentES algorithm.
+"""Functional ETL port of the torch evox PersistentES algorithm (step
+protocol).
 
 Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.evaluate`), since ETL has no
-eager mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/persistent_es.py` exactly.
+trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+mode. Semantics mirror the torch original in
+`src/evox/algorithms/so/es_variants/persistent_es.py` exactly: `step` owns the
+WHOLE generation (mirrored perturbation sampling + accumulation →
+`evaluate(candidates)` → persistent gradient update), with the
+workflow-injected `evaluate` closure standing in for torch's
+`self.evaluate(population)`.
 
 Reference: Unbiased Gradient Estimation in Unrolled Computation Graphs with
 Persistent Evolution Strategies
@@ -11,7 +16,7 @@ Persistent Evolution Strategies
 """
 
 from dataclasses import dataclass, replace
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 
 import numpy as np
 
@@ -116,9 +121,19 @@ def init(config: PersistentESConfig, key: Tensor) -> PersistentESState:
     )
 
 
-def ask(config: PersistentESConfig, state: PersistentESState) -> tuple[Tensor, PersistentESState]:
-    """Sample a mirrored population; accumulate the perturbations for the
-    persistent gradient estimate."""
+def step(
+    config: PersistentESConfig,
+    state: PersistentESState,
+    evaluate: Callable[[Tensor], Tensor],
+) -> PersistentESState:
+    """Run ONE full generation: sample a mirrored population and accumulate
+    the perturbations for the persistent gradient estimate, evaluate it, and
+    update the center; the accumulator is reset when the inner problem wraps
+    around.
+
+    ``evaluate`` is the workflow-injected traced closure (opaque; minimization
+    semantics).
+    """
     dim = len(config.center_init)
     half = config.pop_size // 2
     f32 = np.dtype("float32")
@@ -128,15 +143,9 @@ def ask(config: PersistentESConfig, state: PersistentESState) -> tuple[Tensor, P
     pert_accum = state.pert_accum + perts
     population = state.center + perts
     state = replace(state, pert_accum=pert_accum, key=key)
-    return population, state
 
+    fitness = evaluate(population)
 
-def tell(config: PersistentESConfig, state: PersistentESState, fitness: Tensor) -> PersistentESState:
-    """Update center from the persistent gradient estimate; reset the
-    accumulator when the inner problem wraps around."""
-    dim = len(config.center_init)
-    pop_size = config.pop_size
-    f32 = np.dtype("float32")
     theta_grad = etl.mean(
         state.pert_accum * enp.expand_dims(fitness, axis=1) / (state.sigma * state.sigma),
         axes=0,
@@ -157,7 +166,7 @@ def tell(config: PersistentESConfig, state: PersistentESState, fitness: Tensor) 
     inner_step_counter = state.inner_step_counter + config.K
     reset = inner_step_counter >= config.T
     inner_step_counter = etl.select(reset, 0, inner_step_counter)
-    pert_accum = etl.select(reset, enp.zeros((pop_size, dim), dtype=f32), state.pert_accum)
+    pert_accum = etl.select(reset, enp.zeros((config.pop_size, dim), dtype=f32), state.pert_accum)
     sigma = etl.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
     best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
     return replace(
