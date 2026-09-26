@@ -148,10 +148,10 @@ def step(
 ) -> RVEAaState:
     """Run ONE full RVEAa generation (fused torch ``RVEAa.step``).
 
-    Phase 1 (old ``ask`` body): mating pool over the non-all-NaN rows, SBX,
+    Phase 1 (offspring generation): mating pool over the non-all-NaN rows, SBX,
     polynomial mutation, clamp — offspring stored in the intermediate state.
     Phase 2: ``fitness = evaluate(offspring)`` through the workflow-owned
-    opaque closure. Phase 3 (old ``tell`` body): merge, non-dominated rank,
+    opaque closure. Phase 3 (selection): merge, non-dominated rank,
     ref-vector-guided survivors, then reference-vector regeneration +
     adaptation and final batch truncation.
     """

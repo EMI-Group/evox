@@ -12,7 +12,8 @@ protocol doc `../../core/algorithm.py`.
   `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain
   functions `init(config, key) -> state` and
   `step(config, state, evaluate) -> state` owning ONE full generation
-  (old ask-body → `fitness = evaluate(candidates)` → old tell-body, fused).
+  (candidate generation → `fitness = evaluate(candidates)` → state update,
+  fused into one trace).
 - Each config module also defines a `make_*` constructor in the SAME module
   (`make_de`, `make_jade`, `make_shade`, `make_sade`, `make_ode`, `make_code`);
   `__init__.py` exports the classes and all 6 `make_*`.
@@ -21,7 +22,8 @@ protocol doc `../../core/algorithm.py`.
   population). The torch SHADE/SaDE/CoDE have no init_step, so those modules
   define none and the workflow falls back to `step` for generation 0.
 - No `final_step` anywhere (the torch reference defines no algorithm-level
-  overrides). `ask`/`tell`/`init_ask`/`init_tell` are GONE.
+  overrides). Only `init`/`init_step`/`step` exist — the pre-1.0 two-phase
+  candidate/fitness protocol is gone.
 - State leaves are etl tensors ONLY (float32 preferred, int32/int64 indices, key `()`
   int64) and their dtypes/shapes must be STABLE across generations (compile-once
   step graphs — no per-run dtype drift, see the SaDE cast notes below).
@@ -75,8 +77,7 @@ protocol doc `../../core/algorithm.py`.
   float32→float64; `int32 * bool` also promotes to int64 — cast back explicitly
   (SaDE does; see the casts around `CRM_update`/`success_counts`/
   `failure_counts` there). Compile-once step graphs REQUIRE stable state
-  dtypes; the old ask/tell harness masked this by rebuilding exes per
-  generation.
+  dtypes across generations.
 - `etl.roll(x, shift, axis)`; `etl.nansum(x, axes=0)`; `etl.argsort(x, axis=0,
   stable=True)` (int64 indices).
 - Verified host pattern (dataclass config as static arg + dataclass state pytree):

@@ -169,7 +169,7 @@ def bake_float32_constant(
     ``shape=(1, -1)``), sl_pso_gs.py/sl_pso_us.py/fs_pso.py ``_bake_bounds``,
     nes.py ``_constant_1d`` and the mo/*.py ``_bounds`` helpers.
 
-    Called from inside traced ``init``/``ask``/``tell`` functions exactly like
+    Called from inside traced ``init``/``step`` functions exactly like
     today's module-local bakers.  ``shape`` applies a numpy ``reshape`` before
     ``etl.ops.constant``: ``(1, -1)`` reproduces the SO ``(1, dim)`` bound
     rows, ``None`` keeps the natural shape (code.py's (3, 2) ``param_pool``,

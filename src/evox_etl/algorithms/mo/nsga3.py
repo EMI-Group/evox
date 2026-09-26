@@ -126,7 +126,7 @@ class NSGA3State:
 
     ``off`` carries the offspring produced by the generation stage of
     ``step`` into its environmental-selection stage (both share one call;
-    the tell side of the step protocol passes only fitness back, so the
+    ``evaluate`` passes only fitness back, so the
     candidates travel through the intermediate state).
     """
 

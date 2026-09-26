@@ -4,9 +4,10 @@
 A functional rewrite of the EvoX framework on the ETL tensor library (`etl`, foreign
 repo `/mnt/local-ssd/bchuang/etl`, installed editable in the shared venv). Replaces the
 torch OOP design (`src/evox/`, kept untouched as reference) with plain functional code:
-frozen config dataclasses, namedtuple/dataclass tensor states, `@etl.defn` pure
-functions, separate `init(config, key) -> state` functions, and a compile-once
-StdWorkflow loop.
+frozen config dataclasses, namedtuple/dataclass tensor states, plain module-level
+functions (no `@etl.defn` — see DESIGN.md §4.3) in the step protocol
+(`init(config, key) -> state`, `step(config, state, evaluate) -> state`), and a
+compile-once StdWorkflow loop.
 **Binding spec: `DESIGN.md` in this directory — read it fully before writing any code.**
 
 ## API Surface
@@ -14,7 +15,8 @@ StdWorkflow loop.
   `WorkflowState`, state helpers.
 - `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
   rveaa, hype) — each module = config dataclass + `make_*` constructor +
-  `init/ask/tell` defn functions.
+  `init`/`init_step`/`step` plain functions (step protocol, see
+  `core/algorithm.py`).
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
 - `evox_etl.problems.numerical`: basic, dtlz, cec2022.
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.

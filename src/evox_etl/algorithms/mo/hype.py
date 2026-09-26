@@ -87,8 +87,9 @@ def cal_hv(
 ) -> core.SymbolicTensor:
     """Monte-Carlo hypervolume contribution per solution (torch ``cal_hv`` + key).
 
-    ``pop_size`` is a Python int (ask) or a scalar tensor (tell); ``fit`` is
-    (n, m), ``ref`` (m,). Returns the estimated contribution (n,).
+    ``pop_size`` is a Python int in the first call and a scalar tensor in the
+    merged call; ``fit`` is (n, m), ``ref`` (m,). Returns the estimated
+    contribution (n,).
     """
     n, m = fit.shape
     alpha_num = etl.cumprod(
@@ -167,11 +168,11 @@ def init_step(config: HypEConfig, state: HypEState, evaluate):
 def step(config: HypEConfig, state: HypEState, evaluate):
     """Run ONE full HypE generation (fused torch ``step``).
 
-    Phase 1 (old ``ask`` body, torch ``step`` lines 125-130): hypervolume-
+    Phase 1 (offspring generation, torch ``step`` lines 125-130): hypervolume-
     contribution tournament selection → SBX → polynomial mutation → clamp,
     offspring stored in the intermediate state. Phase 2:
     ``fitness = evaluate(offspring)`` through the workflow-owned opaque
-    closure. Phase 3 (old ``tell`` body, torch ``step`` lines 132-146): merge
+    closure. Phase 3 (selection, torch ``step`` lines 132-146): merge
     parents and offspring, truncate by non-domination rank + hypervolume.
     """
     lb, ub = bake_bounds(config.lb, config.ub)

@@ -102,18 +102,19 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
   `LinAlgError('SVD did not converge')` around generation ~12 for aggressive
   configs (e.g. lr=1.0, sigma=0.5, pop=8, dim=10) — the gradient-subspace
   history feeds NaNs into the SVD after the center blows past f32 range.
-  Identical in the old ask/tell code (NOT a step-protocol regression);
+  Identical in the pre-conversion code (NOT a step-protocol regression);
   short runs (≤10 gens) stay finite. Similarly `open_es` with
   `mirrored_sampling=False` + a large lr can overflow to NaN best-fitness —
-  also pre-existing (verify any such report against the ask/tell baseline
-  in git history before debugging the step port).
+  also pre-existing (verify any such report against the pre-conversion
+  baseline in git history before debugging the step port).
 
 ## Notes for agents (verified — do not re-investigate)
 - All functions are PLAIN (no `@etl.defn`); traced via `etl.build`/`etl.run`.
-- The step conversion is BITWISE-identical to the old ask/tell pair on the
-  numpy backend (validated per module: every final-state leaf matched
-  exactly over 10–20 generations) — the fused op sequence is unchanged, so
-  parity debugging starts from "identical by construction".
+- The step functions are BITWISE-identical to the pre-conversion
+  two-phase protocol on the numpy backend (validated per module: every
+  final-state leaf matched exactly over 10–20 generations) — the fused op
+  sequence is unchanged, so parity debugging starts from "identical by
+  construction".
 - Known torch bugs NOT replicated: XNES/SeparableNES use `self.dim` before it
   exists when pop_size=None (torch nes.py lines 42-43, 154) — ports use the
   local `dim` (commented in nes.py).
@@ -151,13 +152,15 @@ to ≈ 0), not bitwise.
 
 ## Tests
 - Smoke (no torch): `unit_test/etl/algorithms/so/es_variants/test_*.py` —
-  NOTE: these still drive the pre-1.0 ask/tell helpers and are rewritten in a
-  LATER wave; until then they are red against this package (expected).- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_cma_es.py` and
+  NOTE: these still drive the pre-1.0 driver helpers in
+  `unit_test/etl/algorithms/helpers.py` and are rewritten in a
+  LATER wave; until then they are red against this package (expected).
+- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_cma_es.py` and
   `test_open_es.py` — torch StdWorkflow+EvalMonitor vs etl; margin
   etl_best ≤ torch_best*1.1 + 1e-3; tuning rationale in
   `unit_test/etl/algorithms/parity/CONTEXT.md`.
 - Gate: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
   unit_test/etl/algorithms/parity/test_cma_es.py
   unit_test/etl/algorithms/parity/test_open_es.py -q`
-  NOTE: the two parity tests also go through the ask/tell-era driver helpers
+  NOTE: the two parity tests also go through the pre-1.0 driver helpers
   and are part of the same LATER test-wave rewrite.

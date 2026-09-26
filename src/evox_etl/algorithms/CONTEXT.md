@@ -2,8 +2,10 @@
 
 ## Intent
 Port of all 34 torch evox algorithms (read-only reference in `../../../evox/
-algorithms/`) to `init/ask/tell` plain functions + frozen config dataclasses.
-See `../../DESIGN.md` §4-5.
+algorithms/`) to the step protocol: `init`/`init_step`/`step`/`final_step`
+plain functions (`step(config, state, evaluate) -> state` owns one full
+generation) + frozen config dataclasses. See `../../DESIGN.md` §4-5 and
+`../core/algorithm.py` (the protocol doc).
 
 ## Canonical operator imports
 - Algorithms import crossover, sampling, selection, and mutation operators from

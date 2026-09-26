@@ -1,8 +1,12 @@
 """Functional MO algorithms — evox_etl ports of ``torch evox.algorithms.mo``.
 
 Each module mirrors one torch algorithm class as a frozen config dataclass +
-frozen state dataclass + plain ``init``/``init_ask``/``init_tell``/``ask``/
-``tell`` functions (see ``DESIGN.md`` §4-5 and the per-module docstrings).
+frozen state dataclass + plain ``init``/``init_step``/``step`` functions (the
+STEP protocol of ``evox_etl.core.algorithm``; no ``final_step`` in this
+family). ``step(config, state, evaluate)`` owns ONE full generation: generate
+the offspring batch, ``fitness = evaluate(offspring)`` through the workflow's
+opaque closure, then merge and run the environmental selection. See
+``DESIGN.md`` §4-5 and the per-module docstrings.
 
 Configs are constructed via the module-level ``make_*`` constructors
 (``make_nsga2`` ... ``make_hype``), which normalize array-like bounds to flat

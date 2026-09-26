@@ -1,11 +1,59 @@
-# evox_etl/algorithms/mo — functional ports of the torch MO algorithms
+# evox_etl/algorithms/mo — functional ports of the torch MO algorithms (step protocol)
 
 ## Intent
 Plain-function ports of `src/evox/algorithms/mo/` (torch, READ-ONLY reference):
 nsga2, nsga3, moead, rvea, rveaa, hype. Each module = frozen config dataclass
 (`<Name>Config`), frozen state dataclass (`<Name>State`, tensor leaves only),
-and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
-`../../DESIGN.md` §4.3). Bindings: `../../DESIGN.md` §4-5.
+and plain `init`/`init_step`/`step` functions following the step protocol of
+`../../core/algorithm.py` (NO `@etl.defn`, see `../../DESIGN.md` §4.3; no
+module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
+
+## API Surface (all six modules)
+- `init(config, key) -> state` draws the initial population and derived
+  tensors (reference vectors, ideal point buffers, generation counter).
+- `init_step(config, state, evaluate) -> state` — generation 0 evaluates the
+  FULL initial population (verified against all six torch classes, HypE
+  included, whose init_step also derives `ref = 1.2 * max(fitness)`); moead's
+  additionally seeds the ideal point `z = min(fitness, axes=0)`; nsga2's runs
+  the environmental selection over the initial population.
+- `step(config, state, evaluate) -> state` owns ONE full generation, fused
+  into a single trace:
+  1. offspring phase (torch's candidate generation): mating pool →
+     crossover → mutation → clamp; the offspring batch and the advanced
+     key/generation are written into an INTERMEDIATE state via
+     `replace(...)` (field names `offspring` / `off` / `next_generation`)
+     because the selection phase needs the candidates but `evaluate` only
+     returns fitness;
+  2. `fitness = evaluate(offspring)` through the workflow-owned opaque
+     closure (solution_transform → problem → opt-direction scaling →
+     fitness_transform → monitor update; minimization semantics; never
+     stored or re-threaded);
+  3. selection phase: merge parents + offspring and run the environmental
+     selection (split into a module-private helper in nsga3/moead — a plain
+     function split, not a protocol function).
+- The workflow dispatches `init_step`/`step` HOST-SIDE (no in-graph
+  generation branch); every module traces via `etl.build`/`etl.run`.
+- Config fields mirror torch `__init__` exactly minus `device`; `lb`/`ub`
+  tuples baked as (dim,) float32 graph constants
+  (`bake_bounds` → `etl.ops.constant(etl.core.tensor(np.asarray(...,
+  np.float32)))`); optional ops are plain function refs, `None` = algorithm
+  default, resolved inside functions (see the config-construction section
+  for the registration/op-field split between the six modules).
+- Operators are imported from the canonical torch-parity-verified modules:
+  selection (`nd_environmental_selection`, `non_dominate_rank`,
+  `tournament_selection[_multifit]`, `ref_vec_guided`) from
+  `evox_etl.operators.selection`; `simulated_binary[_half]` from
+  `evox_etl.operators.crossover`; `polynomial_mutation` from
+  `evox_etl.operators.mutation` (canonical signature `(key, x, lb, ub,
+  pro_m=1.0, dis_m=20.0)` — lb/ub passed directly, no boundary stack);
+  `uniform_sampling` from `evox_etl.operators.sampling`; and `clamp`,
+  `minimum`, `lexsort`, `nanmax`, `nanmin`, `randint`, `_take_along_axis`
+  from `evox_etl.operators.jit_fix_operator` (canonical port of the torch
+  `utils/jit_fix_operator` helpers).
+- RNG: `key, subkey = random.split(state.key)` (returns TWO keys); several draws
+  → `random.split_n(key, n)`; advanced `key` stored back. `init_step`/`step`
+  are deterministic given the state (all randomness is drawn before the
+  `evaluate` call).
 
 ## Config construction (current state — post make_* refactor, T2-A44)
 - Public construction goes through module-level `make_*` constructors
@@ -56,62 +104,69 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   statics) but is not the sanctioned API — unit-test files are being
   migrated to `make_*` by a parallel test-migration round.
 
-## Contract (all six algorithms)
-- `init(config, key) -> state`; `init_ask` returns the FULL population (gen 0
-  evaluates the whole pop — verified for all six torch classes, HypE included,
-  whose init_step also derives `ref = 1.2 * max(fitness)`); `init_tell(config,
-  state, fitness) -> state`; `ask` produces the offspring batch; `tell(config,
-  state, fitness) -> state` merges `state.pop` + the ask batch (carried in a
-  state field — `offspring` / `off` / `next_generation` — since the binding
-  tell signature has no candidates arg) and runs the environmental selection.
-- Config fields mirror torch `__init__` exactly minus `device`; `lb`/`ub`
-  tuples baked as (dim,) float32 graph constants
-  (`bake_bounds` → `etl.ops.constant(etl.core.tensor(np.asarray(...,
-  np.float32)))`); optional ops are plain function refs, `None` = algorithm
-  default, resolved inside functions (see the config-construction section
-  for the registration/op-field split between the six modules).
-- Operators are imported from the canonical torch-parity-verified modules:
-  selection (`nd_environmental_selection`, `non_dominate_rank`,
-  `tournament_selection[_multifit]`, `ref_vec_guided`) from
-  `evox_etl.operators.selection`; `simulated_binary[_half]` from
-  `evox_etl.operators.crossover`; `polynomial_mutation` from
-  `evox_etl.operators.mutation` (canonical signature `(key, x, lb, ub,
-  pro_m=1.0, dis_m=20.0)` — lb/ub passed directly, no boundary stack);
-  `uniform_sampling` from `evox_etl.operators.sampling`; and `clamp`,
-  `minimum`, `lexsort`, `nanmax`, `nanmin`, `randint`, `_take_along_axis`
-  from `evox_etl.operators.jit_fix_operator` (canonical port of the torch
-  `utils/jit_fix_operator` helpers).
-- RNG: `key, subkey = random.split(state.key)` (returns TWO keys); several draws
-  → `random.split_n(key, n)`; advanced `key` stored back. Ask/tell deterministic
-  given state.
+## Per-module state shapes and quirks
 - Effective pop_size: MOEAD/RVEA/RVEAa overwrite torch `self.pop_size` with the
   Das-Dennis count `n_v` from `uniform_sampling(pop_size, n_objs)` (returns
   `(points, n_samples)` — the static int drives shapes). NSGA2/NSGA3/HypE keep
-  the user pop_size. SBX quirk preserved: offspring batch = 2*(n_v//2) rows
+  the user pop_size. SBX quirk preserved: offspring batch = 2*(n//2) rows
   (torch `x[n//2 : n//2*2]`), e.g. 14 for n_v=15.
-- RVEA: pop stays (n_v, dim); RVEAa: after the first tell pop GROWS to
-  (2*n_v, dim) (one survivor row per reference vector, NaN rows possible for
-  unmatched vectors). Both: mating pool always draws the FIXED n_v, and the
-  torch `_mating_pool` arange/sorted_indices spans `pop.shape[0]` rows — never
+- RVEA: `pop` stays (n_v, dim) forever. RVEAa: after the first generation
+  `pop` GROWS to (2*n_v, dim) — `ref_vec_guided` returns one row per
+  reference vector (2*n_v after RV regeneration) and unmatched vectors
+  produce NaN rows — until the final `gen == max_gen` generation, where the
+  batch truncation keeps only the second half (rows ≥ n_v) and the remaining
+  rows become NaN. Both: the mating pool always draws the FIXED n_v, and the
+  torch `_mating_pool` valid-prefix trick spans `pop.shape[0]` rows — never
   derive n_v from `pop.shape[0]`.
-- NSGA3 tell's linalg is decomposed into exporter-safe ops (the stablehlo-v1
-  exporter DEFERS `matrix_rank`/`svd`/`solve` → BackendError — escalated to
-  the root agent): the torch `matrix_rank(extreme) == n_objs` guard becomes
+- HypE keeps the torch algorithm split as module functions:
+  `cal_hv(key, fit, ref, pop_size, n_sample)` (Monte-Carlo hypervolume
+  contribution; `pop_size` is a Python int in the first call and a scalar
+  tensor in the merged call) and the merged-batch truncation by
+  `lexsort([-dis, rank])[:pop_size]`.
+
+## Known Issues
+- **NSGA3 with odd `pop_size` raises ShapeError at trace time** (`gather:
+  index 2*pop_size is out of bounds for axis 0 with size 2*pop_size`):
+  `simulated_binary` pairs `n//2` parents, so an odd offspring batch is
+  2*pop_size−1 rows, while the merge/selection logic assumes exactly
+  2*pop_size (the Das-Dennis `ref` also has n_v ≠ pop_size rows when
+  `pop_size` is not a Das-Dennis count). PRE-EXISTING — reproduces
+  identically in the pre-conversion code and matches the torch
+  reference's own assumption; use even pop_size values.
+- **RVEAa NaN survivor rows**: after the first generation `pop`/`fit` contain
+  all-NaN rows (one per unmatched reference vector). These are torch
+  semantics (`ref_vec_guided` writes NaN for null niches), not a port bug:
+  the mating pool sorts NaN rows to the back with an int32-max sentinel, and
+  `nanmin`/`nanmax` skip them. Consumers must tolerate NaN rows (the
+  EvalMonitor is one such consumer that does not — see the escalation note).
+- **HypE's `cal_hv`/`init_step`/`step` have un-annotated parameters/returns**
+  (`def init_step(config: HypEConfig, state: HypEState, evaluate):` — no
+  return annotation, `evaluate` and parts of `cal_hv` untyped), unlike the
+  other five modules. Cosmetic only; left as-is to keep the diff minimal.
+- **MOEAD's ideal point `z` makes it metric-hostile**: `z` is a loop carry
+  updated per-i BEFORE the PBI comparisons (torch order — do NOT pre-lower z
+  with the batch min, that contaminates the comparisons), and the returned
+  `z` reflects only the minima seen inside the LAST `step` call's sequential
+  update, not a global running min of all evaluated fitness. Metrics that
+  need the true ideal point should compute it from the monitor history
+  (min over `fit`) rather than reading `state.z`.
+- **NSGA3's linalg is exporter-constrained**: the stablehlo-v1 exporter
+  DEFERS `matrix_rank`/`svd`/`solve` → BackendError (escalated to the root
+  agent). The torch `matrix_rank(extreme) == n_objs` guard is therefore
   rank = count(sqrt(eigvalsh(AᵀA)) > s_max·n·eps32) with AᵀA accumulated in
   float64 (noise floor ~1e-8·s_max « cutoff ~1e-7·s_max; verified ≡
   `etl.matrix_rank` on 14k random/singular/near-singular matrices), and the
-  torch `solve(extreme, ones)` hyperplane becomes the eigh-based normal
-  equations (AᵀA)⁻¹Aᵀ·1 in float64 (≤1.2e-7 rel vs the numpy LU solve even
-  at cond 1e5). Both build+run on iree-llvm-cpu and xla-cuda.
+  torch `solve(extreme, ones)` hyperplane is the eigh-based normal equations
+  (AᵀA)⁻¹Aᵀ·1 in float64 (≤1.2e-7 rel vs the numpy LU solve even at cond
+  1e5). Both build+run on iree-llvm-cpu and xla-cuda.
 
 ## ETL gotchas (verified — do not re-investigate)
-- MOEAD tell's while_loop: z is a loop carry updated PER-i BEFORE the PBI
-  comparisons (torch order — do NOT pre-lower z with the batch min, that
-  contaminates the comparisons). cond/body take the carry as ONE tuple arg;
-  closure-capture of outer args (`state.w`, `state.next_parents`, `fitness`)
-  is legal. Carry `i` must stay int32 (`etl.cast(i + 1, etl.int32)`).
-  MOEAD sequential overwrites: the same row can be updated by several i's in
-  one tell (last-i-wins) — torch does the same; do not "deduplicate".
+- MOEAD's update loop is one traced `etl.while_loop`: cond/body take the
+  carry as ONE tuple arg; closure-capture of outer args (`state.w`,
+  `state.next_parents`, `fitness`) is legal. Carry `i` must stay int32
+  (`etl.cast(i + 1, etl.int32)`).
+- MOEAD sequential overwrites: the same row can be updated by several i's in
+  one generation (last-i-wins) — torch does the same; do not "deduplicate".
 - `etl.sum/mean` take `axes=`; `etl.min(x, axes=..)` values only (argmin
   separate); `etl.topk(x, k, axis, largest=False)` → `(values, indices)`;
   `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(...,
@@ -166,3 +221,6 @@ and `init/init_ask/init_tell/ask/tell` plain functions (NO `@etl.defn` — see
   (T2-A44); root agent should condense that bullet once the SO rounds and
   problems/numerical land. DESIGN.md §4.1 was refreshed upstream (make_*
   policy) and now matches this node's state.
+- The EvalMonitor's fixed `(pop_size, dim)` buffers cannot absorb RVEAa's
+  (2*n_v, dim) population or its NaN rows (same core-side constraint the
+  CoDE family hit); needs a core/workflows-side monitor contract decision.

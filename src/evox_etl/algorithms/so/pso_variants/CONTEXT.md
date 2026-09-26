@@ -21,9 +21,9 @@ mirroring the torch `__all__`.
   (their torch counterparts have `init_step`): evaluate the initial
   population and seed the best-trackers. No module defines `final_step`
   (torch has no PSO-level override; the workflow falls back to `step`).
-- Step fusion: `step` = old ask body (candidate generation, RNG draws,
+- Step fusion: `step` = candidate generation (RNG draws,
   best-tracker updates via `replace(...)`) → `fitness = evaluate(pop)` →
-  old tell body (state update). `evaluate(candidates) -> fitness` is the
+  state update, all inside one trace. `evaluate(candidates) -> fitness` is the
   workflow-injected opaque traced closure (solution_transform → problem →
   opt-direction scaling → fitness_transform → monitor update; minimization
   semantics). It is never stored in the state or re-threaded.
@@ -48,17 +48,17 @@ mirroring the torch `__all__`.
   `bake_float32_constant(values, shape=(1, -1))` from `../../_config_utils.py`;
   the module-local `_bounds`/`_bake`/`_bake_bounds` privates delegate to them,
   and numpy imports remain only in cso/fs_pso/dms_pso_el.
-- Tests: `../../../../unit_test/etl/algorithms/so/pso_variants/` (still
-  driving the OLD ask/tell protocol via `helpers.run_generations` — they are
-  rewritten in a later wave; until then they fail against these modules) +
-  `../../../../unit_test/etl/algorithms/parity/test_pso_parity.py`.
+- Tests: `../../../../unit_test/etl/algorithms/so/pso_variants/` (the
+  shared `helpers.run_generations` driver predates the step protocol and is
+  rewritten in a later wave; until then these tests fail against these
+  modules) + `../../../../unit_test/etl/algorithms/parity/test_pso_parity.py`.
 
 ## Step-protocol semantics per variant
-- `pso`/`clpso`/`fs_pso`/`sl_pso_gs`/`sl_pso_us`: the fused `step` performs
-  the whole old ask body, calls `evaluate(pop)` once on the proposed
-  population, then applies the old tell body (`fit=fitness`; cso scatters
+- `pso`/`clpso`/`fs_pso`/`sl_pso_gs`/`sl_pso_us`: the fused `step` generates
+  the proposed population, calls `evaluate(pop)` once on it, then applies
+  the state update (`fit=fitness`; cso scatters
   onto student rows; dms also counts the generation). All randomness is
-  drawn BEFORE `evaluate` (old asks never needed RNG in tell), so `step` is
+  drawn BEFORE `evaluate`, so `step` is
   deterministic given the state.
 - `cso` evaluates only the STUDENT rows (candidates of shape
   `(pop_size // 2, dim)`) and scatters fitness onto the students' rows; the
@@ -69,7 +69,7 @@ mirroring the torch `__all__`.
   (`iteration % regrouped_iteration_num`) run inside `step`, and the counter
   advances AFTER the evaluate/record write (torch increments before its
   evaluate; the fused order yields the identical net state sequence —
-  verified bit-identical against the old ask/tell chain).
+  verified bit-identical against the pre-conversion baseline).
 - The generation-0 candidate/record pair fuses into `init_step` =
   evaluate-the-initial-population + the first-generation record body,
   matching each torch `init_step` 1:1 (note the torch quirks preserved:

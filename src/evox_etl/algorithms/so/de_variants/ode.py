@@ -115,8 +115,8 @@ def make_ode(
 class ODEState:
     """ODE state: population, fitness, the trial vectors of the last step, key.
 
-    (The old ask/tell-era `opposition`/`phase` fields are gone — the fused
-    ``step`` evaluates the opposition population within the same generation.)
+    (There is no `opposition`/`phase` state: the fused ``step`` evaluates the
+    opposition population within the same generation.)
     """
 
     pop: Tensor

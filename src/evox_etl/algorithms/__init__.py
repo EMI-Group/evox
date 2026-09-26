@@ -2,11 +2,12 @@
 
 Mirrors torch evox.algorithms exports: frozen config dataclasses per algorithm
 under the torch class names (ES configs are aliased from their ``*Config``
-names). All algorithms follow the binding functional contract: ``init(config,
-key) -> State``, ``ask(config, state) -> (candidates, new_state)``, ``tell(
-config, state, fitness) -> new_state`` (plus ``init_ask``/``init_tell`` for
-algorithms with a full-population first generation). See
-``src/evox_etl/DESIGN.md`` §4-5.
+names). All algorithms follow the binding functional contract (the STEP
+protocol, see ``core/algorithm.py``): ``init(config, key) -> State`` and
+``step(config, state, evaluate) -> State`` owning ONE full generation
+(candidate generation, ``fitness = evaluate(candidates)`` through the opaque
+workflow closure, state update), plus OPTIONAL ``init_step``/``final_step``
+first/last-generation variants. See ``src/evox_etl/DESIGN.md`` §4-5.
 """
 from .mo import (
     HypEConfig,
