@@ -1,13 +1,12 @@
 """Functional ETL port of the torch evox ``JaDE`` (adaptive DE) algorithm.
 
 Plain-function port of ``src/evox/algorithms/so/de_variants/jade.py`` (read-only
-torch reference), following the ``DESIGN.md`` §4-5 binding: ``init``/``ask``/
-``tell`` replace the OOP class, the torch ``step`` is split at its
-``self.evaluate`` call (``ask`` produces the trial population and stores it in
-``trial_vectors`` together with the per-individual ``F_vec``/``CR_vec`` needed by
-the adaptation; ``tell`` performs selection + F_u/CR_u adaptation).
-``init_ask``/``init_tell`` encode torch's ``init_step`` (initial-population
-evaluation before the first generation).
+torch reference), following the ``DESIGN.md`` §4-5 binding: ``init``/``step``
+replace the OOP class; ``step`` owns one full generation — it draws the
+per-individual ``F_vec``/``CR_vec``, builds the trial population, evaluates it
+through the opaque ``evaluate`` closure, then performs selection and the
+F_u/CR_u adaptation from the successes. ``init_step`` encodes torch's
+``init_step`` (initial-population evaluation before the first generation).
 
 Deviations from torch (mathematically equivalent):
 - The RNG key is stored in the state and advanced at every draw (etl RNG is
@@ -19,7 +18,7 @@ Deviations from torch (mathematically equivalent):
 """
 
 from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any, Callable
 
 import etl
 import etl.numpy as enp
@@ -84,7 +83,12 @@ def make_jade(
 
 @dataclass(frozen=True)
 class JaDEState:
-    """JaDE algorithm state (all leaves are etl tensors)."""
+    """JaDE algorithm state (all leaves are etl tensors).
+
+    ``trial_vectors``/``F_vec``/``CR_vec`` record the last generation's
+    candidates and their per-individual parameters (observable state); the
+    adaptation consumes them within the same ``step`` call.
+    """
 
     pop: Tensor  # (pop_size, dim) float32
     fit: Tensor  # (pop_size,) float32
@@ -130,13 +134,10 @@ def init(config: JaDE, key: Tensor) -> JaDEState:
     )
 
 
-def init_ask(config: JaDE, state: JaDEState) -> Tuple[Tensor, JaDEState]:
-    """Return the initial population for the workflow's first evaluation."""
-    return state.pop, state
-
-
-def init_tell(config: JaDE, state: JaDEState, fitness: Tensor) -> JaDEState:
-    """Record the fitness of the initial population (torch init_step)."""
+def init_step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -> JaDEState:
+    """Initial-generation step (torch ``init_step``): evaluate the initial
+    population and record its fitness; no generation is performed yet."""
+    fitness = evaluate(state.pop)
     return JaDEState(
         pop=state.pop,
         fit=fitness,
@@ -149,8 +150,19 @@ def init_tell(config: JaDE, state: JaDEState, fitness: Tensor) -> JaDEState:
     )
 
 
-def ask(config: JaDE, state: JaDEState) -> Tuple[Tensor, JaDEState]:
-    """Mutation + crossover: draw F/CR, build trial vectors; keep them for tell."""
+def step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -> JaDEState:
+    """Run ONE full JaDE generation (torch ``step``): mutation + crossover,
+    evaluation of the trial population, selection, then F_u/CR_u adaptation.
+
+    Sub-steps (mirroring torch ``JaDE.step``):
+    1. Draw the per-individual ``F_vec``/``CR_vec`` with adaptive perturbation.
+    2. Mutation: difference vectors + pbest base vectors.
+    3. Crossover: binomial with a guaranteed mutated dimension, clamped into
+       the bounds.
+    4. Selection: ``fitness = evaluate(trials)``, keep the better individuals.
+    5. Adaptation: update ``F_u``/``CR_u`` from the Lehmer mean / mean of the
+       successful F/CR values.
+    """
     pop, fit, F_u, CR_u = state.pop, state.fit, state.F_u, state.CR_u
     pop_size, dim = config.pop_size, len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
@@ -199,30 +211,17 @@ def ask(config: JaDE, state: JaDEState) -> Tuple[Tensor, JaDEState]:
         cross_prob < enp.expand_dims(CR_vec, 1),
         enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == random_dim,
     )
-    new_population = etl.select(mask, mutation_vectors, pop)
-    new_population = clamp(new_population, lb, ub)
+    trial_vectors = etl.select(mask, mutation_vectors, pop)
+    trial_vectors = clamp(trial_vectors, lb, ub)
 
-    new_state = JaDEState(
-        pop=pop,
-        fit=fit,
-        F_u=F_u,
-        CR_u=CR_u,
-        trial_vectors=new_population,
-        F_vec=F_vec,
-        CR_vec=CR_vec,
-        key=key,
-    )
-    return new_population, new_state
+    # 4) Selection over the trial vectors.
+    fitness = evaluate(trial_vectors)
+    compare = fitness < fit
+    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, pop)
+    fit = etl.select(compare, fitness, fit)
 
-
-def tell(config: JaDE, state: JaDEState, fitness: Tensor) -> JaDEState:
-    """Selection over trial vectors, then F_u/CR_u adaptation from successes."""
-    compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), state.trial_vectors, state.pop)
-    fit = etl.select(compare, fitness, state.fit)
-
+    # 5) F_u/CR_u adaptation from the successes.
     compare_float = etl.cast(compare, "float32")
-    F_vec, CR_vec = state.F_vec, state.CR_vec
     sum_F2 = etl.sum(F_vec**2 * compare_float, axes=0)
     sum_F = etl.sum(F_vec * compare_float, axes=0)
     sum_CR = etl.sum(CR_vec * compare_float, axes=0)
@@ -231,20 +230,20 @@ def tell(config: JaDE, state: JaDEState, fitness: Tensor) -> JaDEState:
     mean_F_success = etl.select(count > 0, sum_F2 / (sum_F + 1e-9), 0.0)
     mean_CR_success = etl.select(count > 0, sum_CR / (count + 1e-9), 0.0)
 
-    updated_F_u = (1 - config.c) * state.F_u + config.c * mean_F_success
-    updated_CR_u = (1 - config.c) * state.CR_u + config.c * mean_CR_success
+    updated_F_u = (1 - config.c) * F_u + config.c * mean_F_success
+    updated_CR_u = (1 - config.c) * CR_u + config.c * mean_CR_success
 
     count_mask = count > 0.0
-    F_u = etl.select(count_mask, updated_F_u, state.F_u)
-    CR_u = etl.select(count_mask, updated_CR_u, state.CR_u)
+    F_u = etl.select(count_mask, updated_F_u, F_u)
+    CR_u = etl.select(count_mask, updated_CR_u, CR_u)
 
     return JaDEState(
         pop=pop,
         fit=fit,
         F_u=F_u,
         CR_u=CR_u,
-        trial_vectors=state.trial_vectors,
+        trial_vectors=trial_vectors,
         F_vec=F_vec,
         CR_vec=CR_vec,
-        key=state.key,
+        key=key,
     )

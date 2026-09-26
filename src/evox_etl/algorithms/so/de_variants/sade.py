@@ -2,12 +2,13 @@
 (``src/evox/algorithms/so/de_variants/sade.py``, read-only reference).
 
 Port notes:
-- The torch OOP ``step()`` is split at its ``self.evaluate(trial_vector)`` call:
-  everything before the evaluate lives in ``ask`` (returns the trial vectors),
-  everything after lives in ``tell`` (selection + memory updates).
-- Stateless etl RNG: the key is stored in the state and advanced in ``ask``
-  with ONE ``random.split`` per torch random draw, in torch's draw order.
-  ``tell`` never draws randomness.
+- ``step`` owns ONE full generation (torch ``SaDE.step``): adaptive strategy
+  selection, per-individual F/CR, DE mutation and crossover, evaluation
+  through the opaque ``evaluate`` closure, then selection and the
+  success/failure/CR memory updates.
+- Stateless etl RNG: the key is stored in the state and advanced with ONE
+  ``random.split`` per torch random draw, in torch's draw order. The
+  selection/memory half draws no randomness.
 - ``lb``/``ub`` config fields are normalized to flat tuples of plain Python
   floats by the ``make_sade`` constructor; they are baked as graph constants
   inside the functions.
@@ -17,7 +18,7 @@ Port notes:
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -76,7 +77,12 @@ def make_sade(
 
 @dataclass(frozen=True)
 class SaDEState:
-    """Tensors mirroring the torch SaDE Mutable attributes plus the RNG key."""
+    """Tensors mirroring the torch SaDE Mutable attributes plus the RNG key.
+
+    ``trial_vectors``/``strategy_ids``/``CRs_vec`` record the last generation's
+    candidates and their per-individual parameters (observable state); the
+    memory updates consume them within the same ``step`` call.
+    """
 
     gen_iter: Tensor
     best_index: Tensor
@@ -126,10 +132,10 @@ def init(config: SaDE, key: Tensor) -> SaDEState:
     )
 
 
-def ask(config: SaDE, state: SaDEState) -> tuple[Tensor, SaDEState]:
-    """Generate trial vectors (torch ``SaDE.step`` up to ``self.evaluate``):
-    adaptive strategy probabilities, per-individual F/CR, DE mutation and
-    crossover."""
+def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -> SaDEState:
+    """Run ONE full SaDE generation (torch ``SaDE.step``): adaptive strategy
+    probabilities, per-individual F/CR, DE mutation and crossover, evaluation
+    of the trial vectors, selection, then success/failure/CR memory updates."""
     pop_size, dim = config.pop_size, len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     strategy_pool = etl.ops.constant(
@@ -157,7 +163,9 @@ def ask(config: SaDE, state: SaDEState) -> tuple[Tensor, SaDEState]:
     )
 
     CRM_init = enp.full((4,), 0.5, dtype="float32")
-    CRM_update = etl.median(state.CR_memory, axis=0)
+    # etl.median promotes float32 -> float64; torch stays float32, so cast back
+    # (compile-once step graphs require dtypes to be stable across generations).
+    CRM_update = etl.cast(etl.median(state.CR_memory, axis=0), "float32")
     CRM = etl.select(state.gen_iter > config.LP, CRM_update, CRM_init)
 
     strategy_ids = random.multinomial(k_mult, strategy_p, pop_size)
@@ -225,48 +233,26 @@ def ask(config: SaDE, state: SaDEState) -> tuple[Tensor, SaDEState]:
     trial_exp = DE_exponential_crossover(k_exp, mutation_vector, current_vec, cross_probability)
     trial_arith = DE_arithmetic_recombination(mutation_vector, current_vec, cross_probability)
 
-    trial_vector = enp.zeros((pop_size, dim), dtype="float32")
-    trial_vector = etl.select(
-        enp.expand_dims(cross_strategy == 0, 1), trial_bin, trial_vector
+    trial_vectors = enp.zeros((pop_size, dim), dtype="float32")
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 0, 1), trial_bin, trial_vectors
     )
-    trial_vector = etl.select(
-        enp.expand_dims(cross_strategy == 1, 1), trial_exp, trial_vector
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 1, 1), trial_exp, trial_vectors
     )
-    trial_vector = etl.select(
-        enp.expand_dims(cross_strategy == 2, 1), trial_arith, trial_vector
+    trial_vectors = etl.select(
+        enp.expand_dims(cross_strategy == 2, 1), trial_arith, trial_vectors
     )
-    trial_vector = clamp(trial_vector, lb, ub)
+    trial_vectors = clamp(trial_vectors, lb, ub)
 
-    CRs_vec_out = enp.reshape(
-        _take_along_axis(CRs_vec, enp.expand_dims(strategy_ids, 1), axis=1),
-        (pop_size,),
-    )
+    # ---- evaluation + selection + memory updates (torch step after evaluate)
+    fitness = evaluate(trial_vectors)
 
-    return trial_vector, SaDEState(
-        gen_iter=state.gen_iter,
-        best_index=state.best_index,
-        Memory_FCR=state.Memory_FCR,
-        pop=state.pop,
-        fit=state.fit,
-        success_memory=state.success_memory,
-        failure_memory=state.failure_memory,
-        CR_memory=state.CR_memory,
-        trial_vectors=trial_vector,
-        strategy_ids=strategy_ids,
-        CRs_vec=CRs_vec_out,
-        key=key,
-    )
-
-
-def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
-    """Apply selection to the trial vectors and update the success/failure/CR
-    memories (torch ``SaDE.step`` after ``self.evaluate``)."""
-    pop_size = config.pop_size
     LP = config.LP
 
     gen_iter = state.gen_iter + 1
     compare = fitness <= state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), state.trial_vectors, state.pop)
+    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
     fit = etl.select(compare, fitness, state.fit)
     best_index = etl.argmin(fit)
 
@@ -274,7 +260,7 @@ def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
     # when compare[i]. Exact vectorized equivalent: after roll+zero, row 0 holds
     # the per-strategy success counts of this generation.
     row0_mask = enp.expand_dims(enp.arange(LP, dtype="int32") == 0, 1)
-    onehot = enp.expand_dims(state.strategy_ids, 1) == enp.expand_dims(
+    onehot = enp.expand_dims(strategy_ids, 1) == enp.expand_dims(
         enp.arange(4, dtype="int32"), 0
     )
 
@@ -282,8 +268,11 @@ def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
     success_rolled = etl.select(
         row0_mask, enp.zeros((LP, 4), dtype="int32"), success_rolled
     )
-    success_counts = etl.sum(
-        enp.expand_dims(etl.cast(compare, "int32"), 1) * onehot, axes=0
+    # int32 * bool one-hot promotes to int64 in etl; torch stays int32 — cast
+    # back so the memory dtype is stable across generations.
+    success_counts = etl.cast(
+        etl.sum(enp.expand_dims(etl.cast(compare, "int32"), 1) * onehot, axes=0),
+        "int32",
     )
     success_memory = etl.select(
         row0_mask, enp.expand_dims(success_counts, 0), success_rolled
@@ -293,21 +282,29 @@ def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
     failure_rolled = etl.select(
         row0_mask, enp.zeros((LP, 4), dtype="int32"), failure_rolled
     )
-    failure_counts = etl.sum(
-        enp.expand_dims(
-            enp.ones((pop_size,), dtype="int32") - etl.cast(compare, "int32"), 1
-        )
-        * onehot,
-        axes=0,
+    failure_counts = etl.cast(
+        etl.sum(
+            enp.expand_dims(
+                enp.ones((pop_size,), dtype="int32") - etl.cast(compare, "int32"), 1
+            )
+            * onehot,
+            axes=0,
+        ),
+        "int32",
     )
     failure_memory = etl.select(
         row0_mask, enp.expand_dims(failure_counts, 0), failure_rolled
     )
 
+    CRs_vec_out = enp.reshape(
+        _take_along_axis(CRs_vec, enp.expand_dims(strategy_ids, 1), axis=1),
+        (pop_size,),
+    )
+
     # torch per-i CR-memory loop, ported 1:1 as a static Python loop.
     CR_memory = state.CR_memory
     for i in range(pop_size):
-        str_idx = state.strategy_ids[i]
+        str_idx = strategy_ids[i]
         CR_memory_t = etl.transpose(CR_memory, axes=(1, 0))  # (4, LP)
         CR_mk = enp.reshape(
             etl.gather(CR_memory_t, enp.reshape(str_idx, (1,)), axis=0), (LP,)
@@ -315,7 +312,7 @@ def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
         CR_mk_up = etl.roll(CR_mk, 1, axis=0)
         CR_mk_up = etl.select(
             enp.arange(LP, dtype="int32") == 0,
-            enp.expand_dims(state.CRs_vec[i], 0),
+            enp.expand_dims(CRs_vec_out[i], 0),
             CR_mk_up,
         )
         row_mask = enp.expand_dims(enp.arange(4, dtype="int32") == str_idx, 1)
@@ -332,8 +329,8 @@ def tell(config: SaDE, state: SaDEState, fitness: Tensor) -> SaDEState:
         success_memory=success_memory,
         failure_memory=failure_memory,
         CR_memory=CR_memory,
-        trial_vectors=state.trial_vectors,
-        strategy_ids=state.strategy_ids,
-        CRs_vec=state.CRs_vec,
-        key=state.key,
+        trial_vectors=trial_vectors,
+        strategy_ids=strategy_ids,
+        CRs_vec=CRs_vec_out,
+        key=key,
     )

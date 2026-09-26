@@ -3,24 +3,17 @@
 Port source: `src/evox/algorithms/so/de_variants/ode.py` (READ-ONLY reference,
 math 1:1 per phase). Torch's `ODE.step` runs TWO evaluations: the DE trial
 vectors and then, after the first selection, the opposition population
-`lb + ub - pop`. The functional one-evaluate-per-generation contract
-(`ask` -> evaluate -> `tell`) cannot fit two evaluates into one step, so one
-torch ODE step becomes TWO etl generations via a phase state machine:
-- phase 0: `ask` returns the DE trial vectors; `tell` performs the DE
-  selection and computes the opposition `lb + ub - pop` (post-selection `pop`,
-  like torch), then switches to phase 1.
-- phase 1: `ask` returns the pending opposition; `tell` performs the
-  opposition selection and switches back to phase 0.
-The generation count therefore doubles relative to torch. `init_ask`/
-`init_tell` encode torch's `init_step` (initial-population evaluation before
-the first generation). Other deviations as
-in `de.py`: key-based RNG (ask advances the key even in phase 1, since both
-branches execute) and array-like config fields normalized to flat float tuples
-by the `make_ode` constructor.
+`lb + ub - pop`. The fused `step` owns the whole generation and may call the
+opaque `evaluate` closure several times, so both evaluations now fit in ONE
+etl step — no phase state machine, generation count matches torch exactly.
+`init_step` encodes torch's `init_step` (evaluate the initial population).
+Other deviations as in `de.py`: key-based RNG (the DE-mutation draws happen
+once per step, in torch's draw order) and array-like config fields normalized
+to flat float tuples by the `make_ode` constructor.
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 import etl
 import etl.numpy as enp
@@ -41,7 +34,7 @@ from evox_etl.operators.jit_fix_operator import clamp
 
 Tensor = etl.SymbolicTensor
 
-__all__ = ["ODE", "ODEState", "init", "init_ask", "init_tell", "ask", "tell", "make_ode"]
+__all__ = ["ODE", "ODEState", "init", "init_step", "step", "make_ode"]
 
 
 @dataclass(frozen=True)
@@ -120,12 +113,14 @@ def make_ode(
 
 @dataclass(frozen=True)
 class ODEState:
-    """ODE state: population, fitness, pending opposition, phase, trial vectors, key."""
+    """ODE state: population, fitness, the trial vectors of the last step, key.
+
+    (The old ask/tell-era `opposition`/`phase` fields are gone — the fused
+    ``step`` evaluates the opposition population within the same generation.)
+    """
 
     pop: Tensor
     fit: Tensor
-    opposition: Tensor
-    phase: Tensor
     trial_vectors: Tensor
     key: Tensor
 
@@ -143,73 +138,43 @@ def init(config: ODE, key: Tensor) -> ODEState:
     else:
         pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((pop_size,), float("inf"), dtype="float32")
-    phase = enp.full((), 0, dtype="int32")
-    return ODEState(pop=pop, fit=fit, opposition=pop, phase=phase, trial_vectors=pop, key=key)
+    return ODEState(pop=pop, fit=fit, trial_vectors=pop, key=key)
 
 
-def init_ask(config: ODE, state: ODEState) -> Tuple[Tensor, ODEState]:
-    """Return the initial population for the workflow's first evaluation."""
-    return state.pop, state
+def init_step(config: ODE, state: ODEState, evaluate: Callable[[Tensor], Tensor]) -> ODEState:
+    """Initial-generation step (torch ``init_step``): evaluate the initial
+    population and record its fitness; no generation is performed yet."""
+    fitness = evaluate(state.pop)
+    return ODEState(pop=state.pop, fit=fitness, trial_vectors=state.trial_vectors, key=state.key)
 
 
-def init_tell(config: ODE, state: ODEState, fitness: Tensor) -> ODEState:
-    """Record the fitness of the initial population (torch init_step)."""
-    return ODEState(
-        pop=state.pop,
-        fit=fitness,
-        opposition=state.opposition,
-        phase=state.phase,
-        trial_vectors=state.trial_vectors,
-        key=state.key,
-    )
+def step(config: ODE, state: ODEState, evaluate: Callable[[Tensor], Tensor]) -> ODEState:
+    """Run ONE full ODE generation (torch ``step``), i.e. a DE generation
+    followed by the opposition-based jump:
 
-
-def ask(config: ODE, state: ODEState) -> Tuple[Tensor, ODEState]:
-    """Phase 0: DE trial vectors; phase 1: the pending opposition population.
-
-    Both branches execute (pure), so the key advances by the trial draws even
-    in phase 1; the returned phase is unchanged.
+    1. Mutation + crossover + clamping (``_de_trial``) → trial vectors.
+    2. DE selection: evaluate the trials, keep the better of each individual
+       vs its trial.
+    3. Opposition-Based Mechanism: build ``opposition = lb + ub - pop`` from
+       the POST-selection population (torch order).
+    4. Opposition-Based Selection: evaluate the opposites and replace each
+       individual whose opposite is better.
     """
     key, subkey = random.split(state.key)
     trial, _ = _de_trial(config, state, subkey)
-    candidates = etl.select(state.phase == 0, trial, state.opposition)
-    return candidates, ODEState(
-        pop=state.pop,
-        fit=state.fit,
-        opposition=state.opposition,
-        phase=state.phase,
-        trial_vectors=trial,
-        key=key,
-    )
 
+    # DE selection on the trial vectors.
+    fitness = evaluate(trial)
+    compare = fitness < state.fit
+    pop = etl.select(enp.expand_dims(compare, 1), trial, state.pop)
+    fit = etl.select(compare, fitness, state.fit)
 
-def tell(config: ODE, state: ODEState, fitness: Tensor) -> ODEState:
-    """Phase 0: DE selection + compute opposition; phase 1: opposition selection."""
-    # Phase 0 branch: DE selection on the trial vectors, then opposition.
-    compare_de = fitness < state.fit
-    pop0 = etl.select(enp.expand_dims(compare_de, 1), state.trial_vectors, state.pop)
-    fit0 = etl.select(compare_de, fitness, state.fit)
+    # Opposition-Based Population from the post-selection pop, then selection.
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
-    opposition0 = lb + ub - pop0
-    phase0 = enp.full((), 1, dtype="int32")
+    opposition = lb + ub - pop
+    opposition_fitness = evaluate(opposition)
+    compare_opposition = opposition_fitness < fit
+    pop = etl.select(enp.expand_dims(compare_opposition, 1), opposition, pop)
+    fit = etl.select(compare_opposition, opposition_fitness, fit)
 
-    # Phase 1 branch: opposition-based selection.
-    compare_opp = fitness < state.fit
-    pop1 = etl.select(enp.expand_dims(compare_opp, 1), state.opposition, state.pop)
-    fit1 = etl.select(compare_opp, fitness, state.fit)
-    phase1 = enp.full((), 0, dtype="int32")
-
-    # Pick the branch fields by phase; the key is unchanged (tell draws nothing).
-    phase_cond = state.phase == 0
-    pop = etl.select(phase_cond, pop0, pop1)
-    fit = etl.select(phase_cond, fit0, fit1)
-    opposition = etl.select(phase_cond, opposition0, state.opposition)
-    phase = etl.select(phase_cond, phase0, phase1)
-    return ODEState(
-        pop=pop,
-        fit=fit,
-        opposition=opposition,
-        phase=phase,
-        trial_vectors=state.trial_vectors,
-        key=state.key,
-    )
+    return ODEState(pop=pop, fit=fit, trial_vectors=trial, key=key)

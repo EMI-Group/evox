@@ -1,17 +1,18 @@
 """Functional ETL port of the torch evox SHADE algorithm.
 
 Port source: ``src/evox/algorithms/so/de_variants/shade.py`` (1:1 semantics).
-The torch ``step`` is split at its ``self.evaluate`` call: ``ask`` produces the
-trial vectors, ``tell`` does selection + memory update from the fitnesses.
-RNG is key-based (``etl.random``): the key is advanced in the state, one
-``random.split`` per random op in torch's exact draw order; ``tell`` never
-draws randomness. Bounds are baked once per function as (1, dim) constants;
-``lb``/``ub`` config fields are normalized to flat tuples of plain Python
-floats by the ``make_shade`` constructor.
+``step`` owns ONE full generation: it draws F/CR from the success-history
+memory, builds the trial vectors, evaluates them through the opaque
+``evaluate`` closure, then performs the selection and the memory update from
+the fitnesses. RNG is key-based (``etl.random``): the key is advanced in the
+state, one ``random.split`` per random op in torch's exact draw order; the
+selection/memory half draws no randomness. Bounds are baked once per function
+as (1, dim) constants; ``lb``/``ub`` config fields are normalized to flat
+tuples of plain Python floats by the ``make_shade`` constructor.
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import etl
 import etl.numpy as enp
@@ -61,7 +62,12 @@ def make_shade(pop_size: int, lb: ArrayLike, ub: ArrayLike, diff_padding_num: in
 
 @dataclass(frozen=True)
 class SHADEState:
-    """SHADE algorithm state; every leaf is an etl tensor."""
+    """SHADE algorithm state; every leaf is an etl tensor.
+
+    ``trial_vectors``/``F_vect``/``CR_vect`` record the last generation's
+    candidates and their per-individual parameters (observable state); the
+    memory update consumes them within the same ``step`` call.
+    """
 
     best_index: Tensor
     Memory_FCR: Tensor
@@ -92,8 +98,10 @@ def init(config: SHADE, key: Tensor) -> SHADEState:
     )
 
 
-def ask(config: SHADE, state: SHADEState) -> tuple[Tensor, SHADEState]:
-    """Generate trial vectors (torch ``step`` up to ``self.evaluate``)."""
+def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor]) -> SHADEState:
+    """Run ONE full SHADE generation (torch ``step``): trial-vector generation,
+    evaluation, selection, then success-history memory update. No randomness
+    is drawn after the candidate generation."""
     pop_size = config.pop_size
     lb = bake_float32_constant(config.lb, shape=(1, -1))
     ub = bake_float32_constant(config.ub, shape=(1, -1))
@@ -139,28 +147,13 @@ def ask(config: SHADE, state: SHADEState) -> tuple[Tensor, SHADEState]:
 
     # (7)-(8) Binary crossover and clamp into bounds.
     key, k_bin = random.split(key)
-    trial_vector = DE_binary_crossover(k_bin, mutation_vector, current_vect, CR_vect)
-    trial_vector = clamp(trial_vector, lb, ub)
+    trial_vectors = DE_binary_crossover(k_bin, mutation_vector, current_vect, CR_vect)
+    trial_vectors = clamp(trial_vectors, lb, ub)
 
-    return trial_vector, SHADEState(
-        best_index=state.best_index,
-        Memory_FCR=state.Memory_FCR,
-        pop=state.pop,
-        fit=state.fit,
-        trial_vectors=trial_vector,
-        F_vect=F_vect,
-        CR_vect=CR_vect,
-        key=key,
-    )
-
-
-def tell(config: SHADE, state: SHADEState, fitness: Tensor) -> SHADEState:
-    """Select trials into the population and update the success-history memory
-    (torch ``step`` after ``self.evaluate``). No randomness is drawn."""
-    pop_size = config.pop_size
-
+    # (9) Selection over the trial vectors.
+    fitness = evaluate(trial_vectors)
     compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), state.trial_vectors, state.pop)
+    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
     fit = etl.select(compare, fitness, state.fit)
     best_index = etl.argmin(fit)
 
@@ -171,8 +164,6 @@ def tell(config: SHADE, state: SHADEState, fitness: Tensor) -> SHADEState:
     S_CR = enp.full((pop_size,), float("nan"), dtype="float32")
     S_delta = enp.full((pop_size,), float("nan"), dtype="float32")
 
-    F_vect = state.F_vect
-    CR_vect = state.CR_vect
     for i in range(pop_size):  # get_success_delta
         is_success = etl.cast(compare[i], "float32")
         F = F_vect[i]
@@ -224,8 +215,8 @@ def tell(config: SHADE, state: SHADEState, fitness: Tensor) -> SHADEState:
         Memory_FCR=Memory_FCR,
         pop=pop,
         fit=fit,
-        trial_vectors=state.trial_vectors,
+        trial_vectors=trial_vectors,
         F_vect=F_vect,
         CR_vect=CR_vect,
-        key=state.key,
+        key=key,
     )

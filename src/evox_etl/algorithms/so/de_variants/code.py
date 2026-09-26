@@ -1,18 +1,20 @@
 """Functional ETL port of the torch evox CoDE algorithm (composite DE).
 
 Port source: ``src/evox/algorithms/so/de_variants/code.py`` (READ-ONLY torch
-reference, ported 1:1). Torch's single ``step`` evaluates the stacked batch of
-``3 * pop_size`` trial vectors in one ``self.evaluate`` call; here that splits
-at the evaluate boundary: ``ask`` builds the clamped ``(3 * pop_size, dim)``
-trial batch and ``tell`` applies the per-individual strategy selection plus
-the population update. RNG is key-based (``etl.random``): ``ask`` splits the
-state key per random op in torch's draw order and stores the advanced key;
-``tell`` never draws randomness. Config ``lb``/``ub``/``param_pool`` are
-normalized to tuples of plain Python floats by the ``make_code`` constructor
-(``param_pool`` stays a tuple of (F, CR) pairs).
+reference, ported 1:1). ``step`` owns ONE full generation: it builds the
+clamped ``(3 * pop_size, dim)`` batch of trial vectors (one per strategy per
+individual), evaluates the whole stacked batch through a SINGLE opaque
+``evaluate`` call (like torch), then applies the per-individual
+best-of-three-strategy selection plus the population update. RNG is
+key-based (``etl.random``): ``step`` splits the state key per random op in
+torch's draw order and stores the advanced key; the selection half draws no
+randomness. Config ``lb``/``ub``/``param_pool`` are normalized to tuples of
+plain Python floats by the ``make_code`` constructor (``param_pool`` stays a
+tuple of (F, CR) pairs).
 """
 
 from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 
@@ -97,8 +99,8 @@ def make_code(
 class CoDEState:
     """CoDE algorithm state (leaves are etl tensors only).
 
-    ``trial_vectors`` holds the ``(3 * pop_size, dim)`` stacked candidates
-    pending evaluation (written by ``ask``, read by ``tell``).
+    ``trial_vectors`` holds the ``(3 * pop_size, dim)`` stacked candidates of
+    the last generation (written and re-read within the same ``step`` call).
     """
 
     best_index: SymbolicTensor  # () int64
@@ -130,9 +132,9 @@ def init(config: CoDE, key: SymbolicTensor) -> CoDEState:
     )
 
 
-def ask(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, CoDEState]:
+def _generate_trials(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, SymbolicTensor]:
     """Build the clamped ``(3 * pop_size, dim)`` trial batch (one trial vector
-    per strategy per individual) and return it with the advanced state."""
+    per strategy per individual); returns the batch and the advanced key."""
     pop_size = config.pop_size
     dim = len(config.lb)
     lb = bake_float32_constant(config.lb, shape=(1, -1))
@@ -195,22 +197,25 @@ def ask(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, CoDEState]:
         trials.append(trial_vec)
 
     trial_vectors = etl.stack(trials, axis=0)  # (3, pop_size, dim)
-    trial_vectors = clamp(
-        enp.reshape(trial_vectors, (3 * pop_size, dim)), lb, ub
-    )
-    state = CoDEState(
-        best_index=state.best_index,
-        pop=state.pop,
-        fit=state.fit,
-        trial_vectors=trial_vectors,
-        key=key,
-    )
-    return trial_vectors, state
+    trial_vectors = clamp(enp.reshape(trial_vectors, (3 * pop_size, dim)), lb, ub)
+    return trial_vectors, key
 
 
-def tell(config: CoDE, state: CoDEState, fitness: SymbolicTensor) -> CoDEState:
-    """Select the best of the three trial strategies per individual and update
-    the population/fitness with torch's ``<=`` replacement rule (key unchanged)."""
+def step(
+    config: CoDE,
+    state: CoDEState,
+    evaluate: Callable[[SymbolicTensor], SymbolicTensor],
+) -> CoDEState:
+    """Run ONE full CoDE generation (torch ``step``).
+
+    Builds the clamped ``(3 * pop_size, dim)`` trial batch (one trial vector
+    per strategy per individual), evaluates the whole batch in one
+    ``evaluate`` call, then selects the best of the three strategies per
+    individual and updates the population/fitness with torch's ``<=``
+    replacement rule."""
+    trial_vectors, key = _generate_trials(config, state)
+    fitness = evaluate(trial_vectors)
+
     pop_size = config.pop_size
     indices = enp.reshape(enp.arange(3 * pop_size, dtype="int32"), (3, pop_size))
     trans_fit = etl.gather(fitness, indices, axis=0)  # (3, pop_size)
@@ -220,9 +225,7 @@ def tell(config: CoDE, state: CoDEState, fitness: SymbolicTensor) -> CoDEState:
         (pop_size,),
     )
     trial_fitness_select = etl.gather(fitness, min_indices_global, axis=0)
-    trial_vectors_select = etl.gather(
-        state.trial_vectors, min_indices_global, axis=0
-    )
+    trial_vectors_select = etl.gather(trial_vectors, min_indices_global, axis=0)
     compare = trial_fitness_select <= state.fit
     pop = etl.select(enp.expand_dims(compare, 1), trial_vectors_select, state.pop)
     fit = etl.select(compare, trial_fitness_select, state.fit)
@@ -231,6 +234,6 @@ def tell(config: CoDE, state: CoDEState, fitness: SymbolicTensor) -> CoDEState:
         best_index=best_index,
         pop=pop,
         fit=fit,
-        trial_vectors=state.trial_vectors,
-        key=state.key,
+        trial_vectors=trial_vectors,
+        key=key,
     )
