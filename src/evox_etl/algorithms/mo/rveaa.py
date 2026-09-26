@@ -1,14 +1,16 @@
 """Functional port of the torch RVEAa algorithm (``src/evox/algorithms/mo/rveaa.py``).
 
-Plain functions only (no ``@etl.defn``, per DESIGN.md §4.3) — the workflow traces
-``init``/``init_ask``/``init_tell``/``ask``/``tell`` via ``etl.build``/``etl.run``.
+Plain functions only (no ``@etl.defn``, per DESIGN.md §4.3) following the step
+protocol of ``evox_etl.core.algorithm``: the workflow traces ``init``/
+``init_step``/``step`` via ``etl.build``/``etl.run``.
 
 Port notes:
-- The torch OOP ``step()`` is split at its ``self.evaluate(offspring)`` call:
-  ``ask`` returns the offspring batch, ``tell`` runs the RVEAa selection.
-  ``tell(config, state, fitness)`` needs the offspring for the population merge,
-  so ``ask`` stores it in the state (``state.offspring``) — the same
-  candidates-in-state pattern used by the DE ports.
+- The torch OOP ``step()`` is one fused function here: the offspring phase
+  (mating pool -> SBX -> polynomial mutation), ``fitness = evaluate(offspring)``
+  through the workflow-owned opaque closure, then the RVEAa selection. The
+  selection phase needs the offspring for the population merge, so the
+  offspring phase stores it in the intermediate state (``state.offspring``) —
+  the same candidates-in-state pattern used by the DE ports.
 - torch's eager-if / ``torch.cond`` dual paths of ``_update_pop_and_rv`` become
   ONE ``etl.select``-based path (both branches are pure and cheap).
 - The effective population size is the Das-Dennis count ``n_v`` from
@@ -17,7 +19,7 @@ Port notes:
 """
 
 from dataclasses import dataclass, replace
-from typing import Tuple
+from typing import Callable
 
 import etl
 import etl.numpy as enp
@@ -87,9 +89,9 @@ def make_rveaa(
 class RVEAaState:
     """Tensors mirroring the torch RVEAa Mutable attributes plus the RNG key.
 
-    ``offspring`` carries the last ``ask`` batch so ``tell(config, state,
-    fitness)`` can merge it with the population (torch ``step`` keeps it as a
-    local variable between the evaluate call and the merge).
+    ``offspring`` carries the offspring batch from the generation phase of
+    ``step`` into its selection phase (torch ``step`` keeps it as a local
+    variable between the evaluate call and the merge).
     """
 
     pop: Tensor
@@ -132,27 +134,35 @@ def init(config: RVEAaConfig, key: Tensor) -> RVEAaState:
     )
 
 
-def init_ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
-    """Generation 0 evaluates the whole initial population (no new draws)."""
-    return state.pop, state
-
-
-def init_tell(config: RVEAaConfig, state: RVEAaState, fitness: Tensor) -> RVEAaState:
-    """Store the initial fitness (torch ``init_step``: ``fit = evaluate(pop)``)."""
+def init_step(
+    config: RVEAaConfig, state: RVEAaState, evaluate: Callable[[Tensor], Tensor]
+) -> RVEAaState:
+    """Generation 0 (fused torch ``init_step``): evaluate the whole initial
+    population and store its fitness (no new draws)."""
+    fitness = evaluate(state.pop)
     return replace(state, fit=fitness)
 
 
-def ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
-    """Produce the offspring batch (torch ``RVEAa.step`` up to the evaluate):
-    mating pool over the non-all-NaN rows, SBX, polynomial mutation, clamp."""
+def step(
+    config: RVEAaConfig, state: RVEAaState, evaluate: Callable[[Tensor], Tensor]
+) -> RVEAaState:
+    """Run ONE full RVEAa generation (fused torch ``RVEAa.step``).
+
+    Phase 1 (old ``ask`` body): mating pool over the non-all-NaN rows, SBX,
+    polynomial mutation, clamp — offspring stored in the intermediate state.
+    Phase 2: ``fitness = evaluate(offspring)`` through the workflow-owned
+    opaque closure. Phase 3 (old ``tell`` body): merge, non-dominated rank,
+    ref-vector-guided survivors, then reference-vector regeneration +
+    adaptation and final batch truncation.
+    """
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
     gen = etl.cast(state.gen + 1, etl.int32)
     lb, ub = bake_bounds(config.lb, config.ub)
     pop = state.pop
     pop_rows = pop.shape[0]
     # Fixed effective pop size (Das-Dennis count, torch self.pop_size): pop
-    # grows to 2*n_v rows after the first tell, but the mating pool always
-    # draws n_v candidates.
+    # grows to 2*n_v rows after the first generation, but the mating pool
+    # always draws n_v candidates.
     n_v = state.reference_vector.shape[0] // 2
 
     # torch _mating_pool: valid rows sort to the front (NaN rows get the int32
@@ -174,13 +184,10 @@ def ask(config: RVEAaConfig, state: RVEAaState) -> Tuple[Tensor, RVEAaState]:
     crossovered = simulated_binary(k_cross, mated)
     offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
-    return offspring, replace(state, gen=gen, offspring=offspring, key=key)
+    state = replace(state, gen=gen, offspring=offspring, key=key)
 
+    fitness = evaluate(offspring)
 
-def tell(config: RVEAaConfig, state: RVEAaState, fitness: Tensor) -> RVEAaState:
-    """RVEAa selection (torch ``RVEAa.step`` after the evaluate): merge,
-    non-dominated rank, ref-vector-guided survivors, then reference-vector
-    regeneration + adaptation and final batch truncation."""
     pop, fit = state.pop, state.fit
     gen = state.gen
     n_objs = config.n_objs

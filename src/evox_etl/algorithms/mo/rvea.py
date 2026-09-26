@@ -1,9 +1,12 @@
 """Functional ETL port of the torch evox RVEA algorithm (src/evox/algorithms/mo/rvea.py).
 
-Reference Vector Guided Evolutionary Algorithm [1, 2] as plain `init/init_ask/
-init_tell/ask/tell` functions over frozen `RVEAConfig`/`RVEAState` dataclasses
-(DESIGN.md §4-5). No `@etl.defn` wrappers — call these only inside an active
-trace (ETL has no eager mode). Ported 1:1 from the torch reference.
+Reference Vector Guided Evolutionary Algorithm [1, 2] as plain `init/init_step/
+step` functions over frozen `RVEAConfig`/`RVEAState` dataclasses (DESIGN.md
+§4-5 and the step protocol of `evox_etl.core.algorithm`). No `@etl.defn`
+wrappers — call these only inside an active trace (ETL has no eager mode).
+Ported 1:1 from the torch reference: `step` owns ONE whole generation
+(offspring generation → `evaluate` → RVEA selection + reference-vector
+adaptation); `init_step` evaluates the full initial population.
 
 :references:
     [1] R. Cheng, Y. Jin, M. Olhofer, and B. Sendhoff, "A reference vector guided
@@ -14,7 +17,7 @@ trace (ETL has no eager mode). Ported 1:1 from the torch reference.
 """
 
 from dataclasses import dataclass, replace
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 import etl
 import etl.numpy as enp
@@ -106,9 +109,9 @@ def make_rvea(
 class RVEAState:
     """Frozen RVEA state; every leaf is an ETL tensor (no Python scalars).
 
-    ``offspring`` carries the latest candidate batch from `ask` into `tell`
-    (the workflow passes only fitness back); it always has shape
-    (pop.shape[0], dim) so the state pytree never changes.
+    ``offspring`` carries the latest candidate batch from the offspring phase
+    of `step` into its selection phase (the fused body is one trace); it always
+    has shape (pop.shape[0], dim) so the state pytree never changes.
     """
 
     pop: Tensor
@@ -145,18 +148,22 @@ def init(config: RVEAConfig, key: Tensor) -> RVEAState:
     )
 
 
-def init_ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
-    """Return the full initial population (gen 0 evaluates the whole pop)."""
-    return state.pop, state
-
-
-def init_tell(config: RVEAConfig, state: RVEAState, fitness: Tensor) -> RVEAState:
-    """Store the gen-0 fitness."""
+def init_step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tensor]) -> RVEAState:
+    """Generation 0 (fused torch ``init_step``): evaluate the FULL initial
+    population and record its fitness (no offspring generation yet)."""
+    fitness = evaluate(state.pop)
     return replace(state, fit=fitness)
 
 
-def ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
-    """Produce one offspring batch: mating pool -> SBX -> polynomial mutation."""
+def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tensor]) -> RVEAState:
+    """Run ONE full RVEA generation (fused torch ``step``).
+
+    Phase 1 (old ``ask`` body): mating pool -> SBX -> polynomial mutation,
+    storing the offspring batch and the advanced key/generation in an
+    intermediate state. Phase 2: ``fitness = evaluate(offspring)`` through the
+    workflow-owned opaque closure. Phase 3 (old ``tell`` body): merge parents +
+    offspring, RVEA-select n_v survivors, adapt the reference vectors.
+    """
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
     gen = etl.cast(state.gen + 1, etl.int32)
 
@@ -185,11 +192,10 @@ def ask(config: RVEAConfig, state: RVEAState) -> Tuple[Tensor, RVEAState]:
     mutation_fn = config.mutation_op if config.mutation_op is not None else polynomial_mutation
     offspring = mutation_fn(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
-    return offspring, replace(state, key=key, gen=gen, offspring=offspring)
+    state = replace(state, key=key, gen=gen, offspring=offspring)
 
+    fitness = evaluate(offspring)
 
-def tell(config: RVEAConfig, state: RVEAState, fitness: Tensor) -> RVEAState:
-    """Merge parents + offspring, RVEA-select n_v survivors, adapt reference vectors."""
     merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
     merge_fit = etl.concatenate([state.fit, fitness], axis=0)
 

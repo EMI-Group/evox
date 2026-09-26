@@ -1,13 +1,14 @@
 """Functional ETL port of the torch evox HypE algorithm (plain functions).
 
 1:1 port of the read-only torch reference ``src/evox/algorithms/mo/hype.py``
-split into ``init/init_ask/init_tell/ask/tell`` plain functions (no
-``@etl.defn`` — ETL has no eager mode, see DESIGN.md §4.3). The torch class
-does everything inside ``step()``; here ``ask`` is the first half (selection
-→ crossover → mutation → clamp) and ``tell`` the second half (merge → rank →
-hypervolume truncation). Since the workflow contract passes only
-``(config, state, fitness)`` to ``tell``, the offspring produced by ``ask``
-is carried in the ``offspring`` state leaf (replaced by the next ``ask``).
+as plain ``init/init_step/step`` functions following the step protocol of
+``evox_etl.core.algorithm`` (no ``@etl.defn`` — ETL has no eager mode, see
+DESIGN.md §4.3). The torch class does everything inside ``step()``; here the
+fused ``step`` is selection → crossover → mutation → clamp →
+``fitness = evaluate(offspring)`` → merge → rank → hypervolume truncation.
+Because ``evaluate`` is an opaque closure that only returns fitness, the
+offspring batch is carried in the ``offspring`` state leaf between the two
+phases of the same trace (replaced by the next generation).
 """
 
 from dataclasses import dataclass, replace
@@ -65,8 +66,9 @@ def make_hype(
 class HypEState:
     """Frozen state of HypE; all leaves are ETL tensors.
 
-    ``offspring`` holds the ask-produced offspring between ``ask`` and
-    ``tell`` (the workflow only forwards ``fitness`` to ``tell``).
+    ``offspring`` holds the offspring batch between the generation phase and
+    the selection phase of the same fused ``step`` trace (the opaque
+    ``evaluate`` closure only returns fitness).
     """
 
     pop: core.SymbolicTensor
@@ -152,24 +154,26 @@ def init(config: HypEConfig, key: core.Tensor) -> HypEState:
     )
 
 
-def init_ask(config: HypEConfig, state: HypEState):
-    """Return the FULL population for the generation-0 evaluation (no RNG)."""
-    return state.pop, state
-
-
-def init_tell(
-    config: HypEConfig, state: HypEState, fitness: core.SymbolicTensor
-) -> HypEState:
-    """Record the initial fitness and derive ``ref = 1.2 * max(fitness)``."""
-    fit = fitness
+def init_step(config: HypEConfig, state: HypEState, evaluate):
+    """Generation 0 (fused torch ``init_step``): evaluate the FULL population
+    and derive ``ref = 1.2 * max(fitness)``."""
+    fitness = evaluate(state.pop)
     ref = enp.full((config.n_objs,), 1.2, dtype="float32") * etl.max(
         fitness, axes=None
     )
-    return replace(state, fit=fit, ref=ref)
+    return replace(state, fit=fitness, ref=ref)
 
 
-def ask(config: HypEConfig, state: HypEState):
-    """Produce the offspring batch (torch ``step`` lines 125-130)."""
+def step(config: HypEConfig, state: HypEState, evaluate):
+    """Run ONE full HypE generation (fused torch ``step``).
+
+    Phase 1 (old ``ask`` body, torch ``step`` lines 125-130): hypervolume-
+    contribution tournament selection → SBX → polynomial mutation → clamp,
+    offspring stored in the intermediate state. Phase 2:
+    ``fitness = evaluate(offspring)`` through the workflow-owned opaque
+    closure. Phase 3 (old ``tell`` body, torch ``step`` lines 132-146): merge
+    parents and offspring, truncate by non-domination rank + hypervolume.
+    """
     lb, ub = bake_bounds(config.lb, config.ub)
 
     key, k_hv, k_sel, k_cross, k_mut = random.split_n(state.key, 5)
@@ -181,15 +185,10 @@ def ask(config: HypEConfig, state: HypEState):
     crossovered = simulated_binary(k_cross, parents)
     offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
+    state = replace(state, offspring=offspring, key=key)
 
-    return offspring, replace(state, offspring=offspring, key=key)
+    fitness = evaluate(offspring)
 
-
-def tell(
-    config: HypEConfig, state: HypEState, fitness: core.SymbolicTensor
-) -> HypEState:
-    """Merge parents and offspring, truncate by non-domination rank + hypervolume
-    (torch ``step`` lines 132-146)."""
     merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
     merge_fit = etl.concatenate([state.fit, fitness], axis=0)
 
