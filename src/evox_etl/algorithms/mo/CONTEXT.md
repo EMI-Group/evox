@@ -101,6 +101,9 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   - `make_rvea(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAConfig`
   - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100) -> RVEAaConfig`
   - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000) -> HypEConfig`
+- `make_*` signatures (drives the test-migration round; all raise ValueError
+  on malformed bounds; the four callable-bearing ones — nsga2/nsga3/moead/
+  rvea — also raise ValueError on a non-callable non-None op field):
 - Direct `*Config(...)` dataclass construction with ndarray lb/ub still runs
   (field annotations are unenforced and the installed etl accepts ndarray
   statics) but is not the sanctioned API — unit-test files are being
