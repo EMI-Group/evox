@@ -180,6 +180,8 @@ class StdWorkflow:
             )
         self._has_init_step = callable(getattr(self._algo_mod, "init_step", None))
         self._has_final_step = callable(getattr(self._algo_mod, "final_step", None))
+        # Optional per-generation auxiliary-history hook (host-side, NOT in-graph).
+        self._has_record_step = callable(getattr(self._algo_mod, "record_step", None))
 
         self.monitor = None  # host-side convenience wrapper (if the module provides one)
         self.monitor_config: Any = None  # completed monitor config
@@ -462,6 +464,25 @@ class StdWorkflow:
         cfg = self.monitor_config
         if cfg is None:
             return
+        # Auxiliary-history channel (host-side, plain Python, NOT traced): if the
+        # algorithm module defines an optional `record_step` hook and the monitor
+        # module an optional `record_auxiliary` hook, produce one dict of concrete
+        # tensors for this generation and hand it to the monitor. Runs whenever a
+        # monitor is configured — even if the monitor config defines none of the
+        # fit/sol/pop history fields — so it is never skipped by the early return
+        # below.
+        if (
+            self._mon_mod is not None
+            and callable(getattr(self._mon_mod, "record_auxiliary", None))
+            and self._has_record_step
+        ):
+            candidate = getattr(state.monitor_state, "latest_solution", None)
+            fitness = getattr(state.monitor_state, "latest_fitness", None)
+            aux = self._algo_mod.record_step(
+                self.algorithm, state.algorithm_state, candidate, fitness
+            )
+            if aux is not None:
+                self._mon_mod.record_auxiliary(cfg, aux)
         field_names = {f.name for f in dataclasses.fields(cfg)}
         has_history = any(
             name in field_names for name in ("fit_history", "sol_history", "pop_history")
@@ -478,7 +499,14 @@ class StdWorkflow:
             latest_solution = getattr(mon_state, "latest_solution", None)
             if latest_solution is not None:
                 getattr(cfg, "sol_history").append(latest_solution.to(cpu).numpy())
-        if "pop_history" in field_names and getattr(cfg, "full_pop_history", False):
+        # Legacy pop_history fallback: only used when the algorithm has NO
+        # `record_step` hook. When it does, the monitor derives `pop_history`
+        # from `aux_history["pop"]`, so appending here would double-record.
+        if (
+            "pop_history" in field_names
+            and getattr(cfg, "full_pop_history", False)
+            and not self._has_record_step
+        ):
             latest_solution = getattr(mon_state, "latest_solution", None)
             if latest_solution is not None:
                 getattr(cfg, "pop_history").append(latest_solution.to(cpu).numpy())

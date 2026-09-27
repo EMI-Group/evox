@@ -2,9 +2,10 @@
 
 ## Intent
 The functional foundation of evox_etl: duck-typed protocol documentation (Algorithm:
-STEP protocol — `init`/`step` + optional `init_step`/`final_step`, with a workflow-injected
-`evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor: `monitor_update`
-(+ optional `init`)), state helpers (`replace`/`get_nested`/`set_nested` + etl tree
+STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step`, with a
+workflow-injected `evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor:
+`monitor_update` (+ optional `init`/`record_auxiliary`)), state helpers
+(`replace`/`get_nested`/`set_nested` + etl tree
 re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 `../DESIGN.md` §4 — the binding spec.
 
@@ -18,6 +19,12 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   Fitness]`). NO base classes required; functions are PLAIN module-level functions
   (NOT `@etl.defn`) living in the SAME module as their config dataclass; the workflow
   resolves them via `importlib.import_module(type(config).__module__)`.
+- Optional auxiliary-history hooks (documented in the Protocols, detected generically
+  via `getattr`, absent from all current algorithm/monitor modules): algorithm
+  `record_step(config, state, candidate, fitness) -> dict[str, tensor]` and monitor
+  `record_auxiliary(config, aux) -> None` — both PLAIN module-level HOST-SIDE functions
+  (NOT `@etl.defn`, never called inside a trace; no `__all__` entry, they are Protocol
+  methods).
 - `workflow.py`: `EmptyState`, `WorkflowState(algorithm_state, problem_state,
   monitor_state, generation [0-d int32], key [0-d int64])` (both frozen dataclasses)
   and `StdWorkflow` (plain class).
@@ -33,6 +40,8 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   None, seed=42)`, `fit(fitness=None, generations=None, seed=42)` (needs a monitor
   wrapper with `get_best_fitness`). Internals: `opt_direction` property (tuple of ±1),
   `monitor` (host wrapper), `monitor_config` (completed cfg), `monitor_state`,
+  `_has_init_step`/`_has_final_step`/`_has_record_step` (host-side callable-presence
+  flags, resolved once in `__init__` via `getattr`),
   `_step_exes` (dict `(resolved variant, state signature)` → exe, lazily built),
   `_state_signature(state)` (staticmethod: ordered `(shape, dtype)` tuple of all
   tensor leaves — the `_spec_key` idiom from
@@ -81,6 +90,28 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   runs only init_step; total generations including init_step == N. `fit` uses the
   same loop (plus the generation-0 `fit_history` append when `fitness` is given)
   and returns `monitor.get_best_fitness()`.
+
+## Auxiliary-history channel (HOST-SIDE, optional)
+- The algorithm module MAY define `record_step(config, state, candidate, fitness) ->
+  dict[str, etl_tensor]` (see `algorithm.py`); the monitor module MAY define
+  `record_auxiliary(config, aux: dict) -> None` (see `monitor.py`).
+- Both are PLAIN module-level host-side functions in the same module as their config
+  (NOT `@etl.defn`); both are detected generically via `getattr`, never required.
+- Flow, once per generation, HOST-SIDE after each `_run_variant` (`_record_history`
+  calls it, so it is NOT part of any traced graph): `record_step(config, post_step_state,
+  candidate, fitness)` → `record_auxiliary(monitor_config, aux)` → the monitor stores
+  it as host-side aux history (EvalMonitor: `config.aux_history`).
+- `candidate`/`fitness` are the CONCRETE etl tensors `state.monitor_state.latest_solution`
+  / `.latest_fitness` (or None if the monitor state lacks them); `state` is the
+  POST-step algorithm state; a None return from `record_step` skips `record_auxiliary`.
+- The aux block runs whenever `self.monitor_config is not None`, BEFORE the
+  fit/sol/pop `has_history` early-return, so a monitor config with none of those
+  field names still receives aux history.
+- `pop_history` fallback rule: the legacy `latest_solution` append into
+  `config.pop_history` happens ONLY when `_has_record_step` is False; when a
+  `record_step` hook exists the monitor derives `pop_history` from `aux_history["pop"]`,
+  so the workflow does not double-record. `fit_history`/`sol_history` appends are
+  unaffected (still gated on their `full_*_history` flags).
 
 ## Constraints
 - Everything runs on the configured backend/device; the default is the "numpy"

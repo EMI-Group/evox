@@ -91,3 +91,30 @@ class Algorithm(Protocol):
         workflow calls ``step`` for the last generation.
         """
         ...
+
+    def record_step(
+        self,
+        config: AlgorithmConfig,
+        state: AlgorithmState,
+        candidate: Candidates,
+        fitness: Fitness,
+    ) -> dict[str, Any]:
+        """Optional: build this generation's auxiliary-info dict for the monitor.
+
+        OPTIONAL — most algorithm modules do NOT define it. When present it is a
+        PLAIN module-level host-side function (NOT ``@etl.defn``) living in the
+        SAME module as the config, called by ``StdWorkflow`` HOST-SIDE (outside
+        any traced graph) after each generation on CONCRETE etl tensors:
+
+        - ``config`` is the algorithm config dataclass,
+        - ``state`` is the POST-step algorithm state returned for that generation,
+        - ``candidate`` / ``fitness`` are the LAST evaluated raw candidate batch
+          and transformed fitness (``latest_solution`` / ``latest_fitness`` read
+          off the monitor state), or ``None`` when unavailable.
+
+        Returns a dict of concrete etl tensors (e.g. ``{"pop": ..., "fit": ...}``)
+        describing that generation, which the workflow forwards to the monitor's
+        optional ``record_auxiliary(config, aux)`` hook. Returning ``None`` skips
+        the monitor call.
+        """
+        ...
