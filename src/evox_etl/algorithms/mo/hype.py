@@ -12,6 +12,7 @@ phases of the same trace (replaced by the next generation).
 """
 
 from dataclasses import dataclass, replace
+from typing import Callable, Optional
 
 import etl
 import etl.numpy as enp
@@ -31,13 +32,20 @@ class HypEConfig:
 
     ``lb``/``ub`` are the per-dimension boundary values, accepted from any
     array-like input (list, tuple, or numpy array) and stored as flat tuples
-    of plain Python floats so the config stays a plain static-leaf pytree
-    (build it via :func:`make_hype`).
+    of plain Python floats (build it via :func:`make_hype`; the config is
+    registered as an opaque childless pytree node because of the optional
+    callable op fields below).
 
     Signature parity: the torch ``HypE.__init__`` accepts optional selection,
-    mutation, and crossover operators, but the evox_etl functional variant
-    hard-codes the operators (non_dominate_rank, tournament_selection,
-    simulated_binary, polynomial_mutation) — they are not config fields here.
+    mutation, and crossover operators. ``mutation_op``/``crossover_op`` are
+    honored here; ``None`` means the torch default (``polynomial_mutation`` /
+    ``simulated_binary``). A custom ``crossover_op`` is called as
+    ``crossover_op(key, x)`` and a custom ``mutation_op`` as
+    ``mutation_op(key, x, lb, ub)`` (the etl operators take an explicit RNG key
+    and baked (dim,) float32 bounds). ``selection_op`` is deliberately NOT
+    exposed: the torch reference accepts it but immediately overwrites
+    ``self.selection`` with ``tournament_selection``, so it is inert there too
+    and this port keeps the hard-coded ``tournament_selection``.
     """
 
     pop_size: int
@@ -45,6 +53,24 @@ class HypEConfig:
     lb: tuple[float, ...]
     ub: tuple[float, ...]
     n_sample: int = 10000
+    mutation_op: Optional[Callable] = None
+    crossover_op: Optional[Callable] = None
+
+
+def _config_flatten(config: HypEConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: HypEConfig, _children) -> HypEConfig:
+    return config
+
+
+# The config carries optional callable op fields (mutation_op/crossover_op):
+# functions are not static pytree values (etl raises TraceError at a non-None
+# callable leaf), so the config is registered as a childless pytree node and
+# travels as one opaque static node through etl.build/etl.run.
+etl.register_pytree_node(HypEConfig, _config_flatten, _config_unflatten)
 
 
 def make_hype(
@@ -53,13 +79,29 @@ def make_hype(
     lb: ArrayLike,
     ub: ArrayLike,
     n_sample: int = 10000,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
 ) -> HypEConfig:
     """Build a ``HypEConfig``, normalizing ``lb``/``ub`` to flat float tuples.
 
-    Raises ValueError when a bound is not 1-D or ``lb``/``ub`` shapes differ.
+    ``None`` op fields mean the torch defaults (``polynomial_mutation`` /
+    ``simulated_binary``); a non-None field must be callable. Raises ValueError
+    when a bound is not 1-D, ``lb``/``ub`` shapes differ, or an op field is not
+    None and not callable.
     """
+    for name, op in (("mutation_op", mutation_op), ("crossover_op", crossover_op)):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
     lb, ub = normalize_bounds(lb, ub)
-    return HypEConfig(pop_size=pop_size, n_objs=n_objs, lb=lb, ub=ub, n_sample=n_sample)
+    return HypEConfig(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb,
+        ub=ub,
+        n_sample=n_sample,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+    )
 
 
 @dataclass(frozen=True)
@@ -169,11 +211,13 @@ def step(config: HypEConfig, state: HypEState, evaluate):
     """Run ONE full HypE generation (fused torch ``step``).
 
     Phase 1 (offspring generation, torch ``step`` lines 125-130): hypervolume-
-    contribution tournament selection → SBX → polynomial mutation → clamp,
-    offspring stored in the intermediate state. Phase 2:
-    ``fitness = evaluate(offspring)`` through the workflow-owned opaque
-    closure. Phase 3 (selection, torch ``step`` lines 132-146): merge
-    parents and offspring, truncate by non-domination rank + hypervolume.
+    contribution tournament selection → crossover (``simulated_binary`` unless
+    ``config.crossover_op``) → mutation (``polynomial_mutation`` unless
+    ``config.mutation_op``) → clamp, offspring stored in the intermediate
+    state. Phase 2: ``fitness = evaluate(offspring)`` through the
+    workflow-owned opaque closure. Phase 3 (selection, torch ``step`` lines
+    132-146): merge parents and offspring, truncate by non-domination rank +
+    hypervolume.
     """
     lb, ub = bake_bounds(config.lb, config.ub)
 
@@ -183,8 +227,14 @@ def step(config: HypEConfig, state: HypEState, evaluate):
     # torch selects on -hv: highest hypervolume contribution wins the tournament
     mating_pool = tournament_selection(k_sel, config.pop_size, -hv)
     parents = etl.gather(state.pop, mating_pool, axis=0)
-    crossovered = simulated_binary(k_cross, parents)
-    offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
+    crossover_fn = (
+        config.crossover_op if config.crossover_op is not None else simulated_binary
+    )
+    crossovered = crossover_fn(k_cross, parents)
+    mutation_fn = (
+        config.mutation_op if config.mutation_op is not None else polynomial_mutation
+    )
+    offspring = mutation_fn(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     state = replace(state, offspring=offspring, key=key)
 
