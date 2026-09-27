@@ -100,7 +100,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   - `make_nsga3(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None, data_type: Optional[Any] = None) -> NSGA3Config`
   - `make_moead(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> MOEADConfig`
   - `make_rvea(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAConfig`
-  - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100) -> RVEAaConfig`
+  - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAaConfig`
   - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000) -> HypEConfig`
 - Direct `*Config(...)` dataclass construction with ndarray lb/ub still runs
   (field annotations are unenforced and the installed etl accepts ndarray
