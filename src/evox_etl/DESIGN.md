@@ -334,8 +334,13 @@ is a `@etl.defn`. Host-side history lists (solution_history, fitness_history) li
 the monitor CONFIG object (plain Python lists) and are appended by the workflow
 (post-step host copy). `EvalMonitor` must support both single- and multi-objective
 (use `topk`/argsort for SO elite; non-dominated rank for MO Pareto front) and expose
-`get_best_solution`/`get_best_fitness`/`plot` (plot can raise NotImplementedError if
-plotly is absent — report).
+`get_best_solution`/`get_best_fitness`/`plot`.
+`plot(problem_pf=None, source="eval", **kwargs)` is implemented via the ported host-side
+`evox_etl.vis_tools` (returns a plotly `Figure`; warns + returns `None` when plotly is
+unavailable or no history was recorded — torch parity).
+Algorithms MAY expose an optional host-side `record_step(config, state, candidate,
+fitness) -> dict` hook; the workflow appends its dict to the monitor's `aux_history`
+(gated on `full_pop_history`), and `plot(source="pop")` reads `aux_history["fit"]`.
 
 ## 5. Porting rules for algorithms
 
