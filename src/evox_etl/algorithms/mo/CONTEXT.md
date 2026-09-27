@@ -101,19 +101,18 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   torch `data_type == torch.bool` boolean population (uniform > 0.5);
   `torch.bool` itself is NOT accepted (the etl module never imports torch) —
   callers must pass the builtin `bool`.
-- `make_*` signatures (drives the test-migration round; all raise ValueError
-  on malformed bounds; the four callable-bearing ones (nsga3/moead/rvea/rveaa)
-  also raise ValueError on a non-callable non-None op field):
-  - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike) -> NSGA2Config`
+- `make_*` signatures (all raise ValueError on malformed bounds and on a
+  non-callable non-None op field):
+  - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> NSGA2Config`
   - `make_nsga3(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None, data_type: Optional[Any] = None) -> NSGA3Config`
   - `make_moead(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> MOEADConfig`
   - `make_rvea(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAConfig`
   - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAaConfig`
-  - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000) -> HypEConfig`
+  - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> HypEConfig`
 - Direct `*Config(...)` dataclass construction with ndarray lb/ub still runs
   (field annotations are unenforced and the installed etl accepts ndarray
-  statics) but is not the sanctioned API — unit-test files are being
-  migrated to `make_*` by a parallel test-migration round.
+  statics) but is not the sanctioned API; nsga3's `init` re-validates
+  `data_type` so direct construction still fails loudly on a bad value.
 
 ## Per-module state shapes and quirks
 - Effective pop_size: MOEAD/RVEA/RVEAa overwrite torch `self.pop_size` with the
