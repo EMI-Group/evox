@@ -24,7 +24,7 @@ running everything through `etl.build` + `etl.run` on the numpy backend.
 
 ## Run
 ```
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/metrics -q
+<venv>/bin/python -m pytest unit_test/etl/metrics -q
 ```
 53 tests, ~10s (parity imports torch). Runs from the repository root.
 

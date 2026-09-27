@@ -59,7 +59,7 @@ Top-level `__init__.py` mirrors torch exactly:
 | Crossover | `crossover/` | differential_evolution.py, sbx.py, sbx_half.py |
 | Mutation | `mutation/` | pm_mutation.py |
 | Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (switch, clamp family, clip, maximum/minimum(+`_int`/`_float`), lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
-| Tests (sibling) | `../unit_test/etl/operators/` | pending — root agent owns; see Test Strategy |
+| Tests (sibling) | `../unit_test/etl/operators/` | 104 tests (random-op property + torch parity) — root agent owns; see Test Strategy |
 
 ## Notes for Agents (cross-cutting etl gotchas)
 Detailed per-module gotchas live in each subdir's CONTEXT.md. Cross-cutting:
@@ -99,10 +99,10 @@ Detailed per-module gotchas live in each subdir's CONTEXT.md. Cross-cutting:
   faithful torch parity; use `equal_nan=True` in comparisons.
 
 ## Test Strategy
-Verified by consolidated scripts (30 checks, numpy backend): 9 deterministic
-parity checks vs torch (1e-6) + 16 random-op property checks + both validation-gate
-scripts (non_dominate_rank on (32,3), simulated_binary on (64,10) inside etl
-graphs). The permanent unit-test suite goes under `../unit_test/etl/operators/`
-(sibling — outside this node's write scope; full spec handed to the root agent):
-parity tests importing torch live in `parity/` only; random-op tests need no torch.
+The permanent suite is the sibling `../unit_test/etl/operators/` (104 tests,
+numpy backend): random-op property tests need no torch (`test_crossover.py`,
+`test_mutation.py`, `test_sampling.py`, `test_selection.py`,
+`test_jit_fix_operator.py`), while `parity/` holds the exact parity tests vs
+torch `evox` (1e-6 — torch imports live in `parity/` only, including
+`test_parity_jit_fix_operator.py` for the jit-fix helpers).
 Gate: `pytest unit_test/etl/operators -q` green.

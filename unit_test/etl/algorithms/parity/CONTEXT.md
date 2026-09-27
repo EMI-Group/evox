@@ -87,4 +87,4 @@ convergence gap above.
   needed on any torch version where `torch.cond` rejects this branch.
 
 ## Run (deterministic)
-  `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/algorithms/parity -q`
+  `<venv>/bin/python -m pytest unit_test/etl/algorithms/parity -q`

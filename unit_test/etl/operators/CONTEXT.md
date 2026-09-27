@@ -12,7 +12,7 @@ operators on ETL). Two kinds:
    backend="numpy")` + `etl.run(exe, *args)` on one side and `torch.tensor`
    inputs on the other, compared at 1e-6 (bool/int outputs exactly).
 
-Run: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/operators -q`
+Run: `<venv>/bin/python -m pytest unit_test/etl/operators -q`
 (also collected by the `unit_test/etl` suite run).
 
 ## Structure

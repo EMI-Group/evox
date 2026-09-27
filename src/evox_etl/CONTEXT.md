@@ -2,7 +2,8 @@
 
 ## Intent
 A functional rewrite of the EvoX framework on the ETL tensor library (`etl`, foreign
-repo `/mnt/local-ssd/bchuang/etl`, installed editable in the shared venv). Replaces the
+repo `/home/bill/Source/etl`, installed from a copied tree into a locally built
+test venv — see "Environment" below). Replaces the
 torch OOP design (`src/evox/`, kept untouched as reference) with plain functional code:
 frozen config dataclasses, namedtuple/dataclass tensor states, plain module-level
 functions (no `@etl.defn` — see DESIGN.md §4.3) in the step protocol
@@ -64,15 +65,20 @@ compile-once StdWorkflow loop.
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
-| ETL library | (foreign repo `/mnt/local-ssd/bchuang/etl`) | read via the venv install; fixes only by root agent |
+| ETL library | (foreign repo `/home/bill/Source/etl`) | read via the test-venv install; fixes only by root agent |
 
 ## Environment
-No pre-provisioned venv on this machine — provision one with `uv venv` +
+No pre-provisioned ETL venv — build one locally with `uv venv` +
 `uv pip install <etl-source-copy> numpy pytest "torch>=2.6.0"` (etl is the
 foreign repo `/home/bill/Source/etl`; its checkout is read-only, so install
-from a copied tree; torch-cpu wheel index suffices — no GPU here). Tests:
-`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~5 min,
-497 tests; the workflows/vis_tools suites live under `../unit_test/etl/`).
+from a copied tree; torch-cpu wheel index suffices — no GPU here). The primary
+`/home/bill/Source/evox/.venv` is read-only and lacks etl/pytest, so run the
+gate from the locally built test venv with
+`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
+(that primary venv supplies plotly/torch). Canonical ETL suite: the sibling
+`../unit_test/etl/` (mirrors this package) —
+`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~6 min,
+618 tests; per-suite counts in `../unit_test/etl/CONTEXT.md`).
 `evox_etl` and `evox_etl_ext` are PEP 420 namespace packages — drivers need
 `PYTHONPATH=src`.
 

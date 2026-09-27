@@ -37,7 +37,7 @@ and the host-side HPO wrapper — running everything through `etl.build` +
 
 ## Run
 ```
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/problems -q
+<venv>/bin/python -m pytest unit_test/etl/problems -q
 ```
 192 tests, ~100s (parity imports torch). Runs from the repository root.
 
