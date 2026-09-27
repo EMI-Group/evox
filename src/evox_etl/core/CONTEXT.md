@@ -72,7 +72,8 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   inside the step graph. Pipeline per call: solution_transform → `problem.evaluate`
   (threads problem state) → opt-direction scaling (min semantics, baked f32
   constant, scalar () or (m,)) → fitness_transform → `monitor_update` (threads
-  monitor state; receives RAW candidates + TRANSFORMED fitness — the torch
+  monitor state; receives `monitor_candidate(candidates)` — identity unless the
+  algorithm module defines the hook — + TRANSFORMED fitness — the torch
   post_ask/pre_tell semantics). Algorithms treat it as fully opaque: pass whatever
   tensor/pytree the candidates are, get transformed fitness back; do NOT store or
   re-thread it. The workflow keeps the problem/monitor state of the LAST evaluate
