@@ -50,12 +50,11 @@ class NSGA3Config:
         ``polynomial_mutation``).
     :param crossover_op: The crossover operation (optional; defaults to
         ``simulated_binary``).
-    :param data_type: The data type for the decision variables. Accepts
-        exactly ``None`` (float32 population, the default) or the builtin
-        ``bool`` type (the initial population is drawn as a uniform > 0.5
-        boolean tensor). Anything else — notably ``torch.bool``, which the
-        etl port cannot import — raises ValueError (see
-        ``_normalize_data_type``).
+    :param data_type: The data type for the decision variables: exactly ``None``
+        (float32 population, the default) or the builtin ``bool`` type (the
+        initial population is drawn as a uniform > 0.5 boolean tensor). Anything
+        else — notably ``torch.bool``, unimportable in the etl port — raises
+        ValueError (see ``_normalize_data_type``).
     """
 
     pop_size: int
@@ -87,13 +86,12 @@ etl.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
 
 
 def _normalize_data_type(data_type: Optional[Any]) -> Optional[type]:
-    """Validate ``data_type``; return ``bool`` or ``None`` (float32).
+    """Validate ``data_type``: return ``bool`` or ``None`` (float32).
 
     Only ``None`` (float32 population, the default) and the builtin ``bool``
-    type (bool population) are accepted. Everything else raises ValueError —
-    in particular ``torch.bool`` is NOT supported (the etl module never
-    imports torch); callers that want a boolean population must pass the
-    builtin ``bool`` instead.
+    type (bool population) are accepted; anything else — notably ``torch.bool``,
+    which the etl port cannot import — raises ValueError. Callers wanting a
+    boolean population must pass the builtin ``bool``.
     """
     if data_type is None or data_type is bool:
         return data_type
@@ -182,9 +180,8 @@ def _masked_hit(n: int, idx: SymbolicTensor, mask: SymbolicTensor) -> SymbolicTe
 def init(config: NSGA3Config, key: SymbolicTensor) -> NSGA3State:
     """Draw the initial population (uniform within [lb, ub], or bool > 0.5).
 
-    ``config.data_type`` is re-validated here so direct dataclass
-    construction (bypassing ``make_nsga3``) fails loudly instead of silently
-    degrading to the float path.
+    ``config.data_type`` is re-validated so direct dataclass construction
+    (bypassing ``make_nsga3``) fails loudly instead of degrading to floats.
     """
     data_type = _normalize_data_type(config.data_type)
     dim = len(config.lb)
@@ -248,29 +245,20 @@ def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3Sta
 
 
 def _final_survivors(
-    merge_pop: SymbolicTensor,
-    merge_fit: SymbolicTensor,
-    rank: SymbolicTensor,
-    worst_rank: int,
-    pop_size: int,
+    merge_pop: SymbolicTensor, merge_fit: SymbolicTensor, rank: SymbolicTensor, worst_rank: int, pop_size: int
 ) -> tuple[SymbolicTensor, SymbolicTensor, SymbolicTensor]:
     """Keep the ``pop_size`` rows with ``rank < worst_rank`` (final stage).
 
-    The survivors are ordered by POSITION in the shuffled merge arrays,
-    matching torch's boolean-mask selection ``merge_pop[rank < worst_rank]``
-    (the old behavior sorted them by ascending rank). After the truncation
-    stage exactly ``pop_size`` rows satisfy the mask, so a stable positional
-    argsort with the masked-out rows pushed to a sentinel suffices — shapes
-    stay static (no dynamic-shape boolean indexing).
+    Survivors are ordered by POSITION in the shuffled merge arrays, matching
+    torch's boolean-mask selection ``merge_pop[rank < worst_rank]`` (the old
+    behavior sorted them by ascending rank). The truncation stage guarantees
+    exactly ``pop_size`` rows satisfy the mask, so a stable positional argsort
+    with the rest pushed to a sentinel keeps the shapes static.
     """
     n = rank.shape[0]
-    upper_bound = n + 1  # sentinel > any valid position index
     surv_mask = rank < worst_rank
     order = etl.argsort(
-        etl.cast(
-            etl.select(surv_mask, enp.arange(n, dtype="int32"), upper_bound),
-            etl.int32,
-        ),
+        etl.cast(etl.select(surv_mask, enp.arange(n, dtype="int32"), n + 1), etl.int32),
         axis=0,
         stable=True,
     )[:pop_size]
@@ -516,7 +504,5 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     # as torch's boolean indexing). `_final_survivors` preserves the shuffled
     # merge order — torch `merge_pop[rank < worst_rank]` — instead of sorting
     # by ascending rank.
-    pop, fit, rank = _final_survivors(
-        merge_pop, merge_fit, rank, worst_rank, pop_size
-    )
+    pop, fit, rank = _final_survivors(merge_pop, merge_fit, rank, worst_rank, pop_size)
     return dataclasses.replace(state, pop=pop, fit=fit, rank=rank, key=key)
