@@ -75,30 +75,39 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - Bounds baking: module-local `_bounds` defs are deleted; every module bakes
   via `lb, ub = bake_bounds(config.lb, config.ub)` (natural (dim,) float32
   graph constants); `dim = len(config.lb)`.
-- Op fields: nsga3/moead/rvea KEEP `Optional[Callable]` op fields (genuinely
-  read — nsga3 all three + `data_type: Optional[Any] = None`; moead
+- Op fields: nsga3/moead/rvea/hype KEEP `Optional[Callable]` op fields
+  (genuinely read — nsga3 all three + `data_type: Optional[Any] = None`; moead
   `mutation_op`/`crossover_op`, `selection_op` accepted-and-ignored because
   torch ignores it too; rvea all three + `alpha=2.0`, `fr=0.1`,
-  `max_gen=100`) and KEEP zero-child `etl.register_pytree_node`
-  registration — REQUIRED there because non-None callables are NOT static
-  values anywhere in the pytree (TraceError at the callable leaf).
-  Registration makes the config an opaque static node: `etl.run` performs NO
-  by-value revalidation.
-- nsga2/rveaa/hype DELETED their never-read `selection_op`/`mutation_op`/
+  `max_gen=100`; hype `mutation_op`/`crossover_op`) and KEEP zero-child
+  `etl.register_pytree_node` registration — REQUIRED there because non-None
+  callables are NOT static values anywhere in the pytree (TraceError at the
+  callable leaf). Registration makes the config an opaque static node:
+  `etl.run` performs NO by-value revalidation.
+- HypE op injection: torch `HypE.__init__` accepts
+  `selection_op`/`mutation_op`/`crossover_op`, but FORCES
+  `self.selection = tournament_selection` (selection_op is inert there) while
+  honoring `self.mutation`/`self.crossover` in `step()`. The port mirrors
+  that: `HypEConfig.mutation_op`/`crossover_op` = `None` means the torch
+  default (`polynomial_mutation` / `simulated_binary`), custom signatures
+  `crossover_op(key, x)` / `mutation_op(key, x, lb, ub)`; `selection_op` is
+  deliberately NOT exposed (hard-coded `tournament_selection`, as upstream).
+  With both None the RNG draw order and numeric output are unchanged.
+- nsga2/rveaa DELETED their never-read `selection_op`/`mutation_op`/
   `crossover_op` fields AND their registration; class docstrings note the
   torch signature-parity intent (the torch classes DO honor custom ops; the
   etl functional variants hard-code tournament_selection_multifit /
   simulated_binary[_half] / polynomial_mutation). These configs are now
   plain static-leaf pytrees, revalidated by value at `etl.run`.
 - `make_*` signatures (drives the test-migration round; all raise ValueError
-  on malformed bounds; the three callable-bearing ones also raise ValueError
+  on malformed bounds; the four callable-bearing ones also raise ValueError
   on a non-callable non-None op field):
   - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike) -> NSGA2Config`
   - `make_nsga3(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None, data_type: Optional[Any] = None) -> NSGA3Config`
   - `make_moead(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> MOEADConfig`
   - `make_rvea(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAConfig`
   - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100) -> RVEAaConfig`
-  - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000) -> HypEConfig`
+  - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> HypEConfig`
 - Direct `*Config(...)` dataclass construction with ndarray lb/ub still runs
   (field annotations are unenforced and the installed etl accepts ndarray
   statics) but is not the sanctioned API — unit-test files are being
