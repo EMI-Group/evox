@@ -61,9 +61,8 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   `make_hype` — same module as each config; exported from `mo/__init__.py`
   alongside the `*Config` names). Configs are DUMB frozen dataclasses: NO
   `__post_init__` anywhere in mo/*.py, tuple-stored bounds, working
-  `__eq__`/`__hash__` (RVEAaConfig was `eq=False` in the ndarray era, now
-  plain `@dataclass(frozen=True)`; RVEAaState keeps `eq=False` — tensor
-  fields).
+  `__eq__`/`__hash__` (RVEAAState keeps `eq=False` — tensor fields; the configs
+  are plain `@dataclass(frozen=True)`).
 - Bounds: `lb`/`ub` are stored as flat tuples of plain Python floats.
   Constructors accept any 1-D array-like (`ArrayLike`, `normalize_bounds`,
   `bake_bounds`, `bake_float32_constant` live in
