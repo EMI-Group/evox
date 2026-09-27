@@ -162,3 +162,19 @@ def step(
         exp_avg_sq=exp_avg_sq,
         best_fitness=best_fitness,
     )
+
+
+def record_step(
+    config: OpenESConfig,
+    state: OpenESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Host-side auxiliary-info hook, mirroring torch ``OpenES.record_step``.
+
+    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    HOST-SIDE after each generation on concrete tensors; it returns this
+    generation's search ``center``. ``candidate``/``fitness`` are
+    accepted-but-unused, exactly like the torch reference which ignores them.
+    """
+    return {"center": state.center}

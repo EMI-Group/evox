@@ -3,8 +3,10 @@
 ## Intent
 Shared scaffolding + tests for the functional evox_etl algorithm port
 (`src/evox_etl/algorithms/`).  No torch imports here — parity tests that import
-torch live in `unit_test/etl/algorithms/parity/` (7 test files +
-`parity_common.py`, see its CONTEXT.md for the full inventory).
+torch live in `unit_test/etl/algorithms/parity/` (8 test files +
+`parity_common.py`, see its CONTEXT.md for the full inventory).  The virtual-ES /
+VirtualLoRA-ES smoke tests and the virtual end-to-end (real neuroevolution
+problem) convergence tests live under `so/es_variants/`.
 
 - `conftest.py` — sys.path shim making the repo root + `src/` importable.
 - `helpers.py` — toy problems (Sphere/Rosenbrock/Ackley/DTLZ1) + the generic

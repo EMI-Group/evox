@@ -24,6 +24,11 @@ evox_etl addition — torch has no such field.
 no algorithm-level overrides in this family (all use the base class
 fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
 `step` everywhere here.
+**Every ES module defines the optional `record_step(config, state, candidate,
+fitness)` aux-history hook** — a PLAIN, module-level, host-side function (NOT
+`@etl.defn`) mirroring the torch method of the same name; the returned dict of
+already-carried ETL tensors feeds `EvalMonitor.aux_history` (see "Aux-history
+hook" below).
 
 ## Files
 | File | Contents |
@@ -45,7 +50,6 @@ fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
 | `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; torch-parity `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` aliases |
 | `virtual_lora_es.py` | VirtualLoRAESConfig/State + make_virtual_lora_es — DISTINCT low-rank variant (extra `lora_rank`, `B @ A` perturbations for ≥2-D blocks) |
 | `_virtual_common.py` | Shared virtual-family helpers: `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` |
-| `tests/` | in-node torch-parity suite (see Tests) |
 
 `__init__.py` exports the 14 configs + their 14 `make_*` constructors, plus the
 torch-style bare aliases `VirtualES` / `VirtualLoRAES` (both = `VirtualESConfig`,
@@ -113,18 +117,40 @@ Box-Muller generator whose cumulative per-block offsets make
 - `dim` is an evox_etl addition filled eagerly by `make_*` (`sum(prod(shape))`)
   for `_discover_pop_size`/monitor completion; `init`/`step` recompute it with
   `param_dim`.
-- No `init_step`/`final_step`/`record_step` (torch VirtualES has none; the
-  workflow falls back to `step`). Both virtual modules DO define the optional
-  `monitor_candidate(payload) -> (pop_size, dim)` hook (the workflow's monitor
-  bridge), which broadcasts the `(dim,)` center to the `(pop_size, dim)` candidate
-  the `EvalMonitorConfig` concatenates with its elite buffer; it is only called
-  when a monitor is configured, so the monitor-less hot path stays O(dim).
+- No `init_step`/`final_step` (the workflow falls back to `step`). Both virtual
+  modules DO define the optional `monitor_candidate(payload) -> (pop_size, dim)`
+  hook (the workflow's monitor bridge), which broadcasts the `(dim,)` center to
+  the `(pop_size, dim)` candidate the `EvalMonitorConfig` concatenates with its
+  elite buffer; it is only called when a monitor is configured, so the
+  monitor-less hot path stays O(dim). They also define `record_step` (returns
+  `{"center": state.center}`; see "Aux-history hook").
+
+## Aux-history hook (`record_step`)
+Every module here defines the OPTIONAL plain, module-level, host-side
+`record_step(config, state, candidate, fitness) -> dict[str, etl_tensor]` hook
+(contract: `evox_etl.core.algorithm`; consumed host-side by
+`evox_etl.core.workflow._record_history`). It receives the POST-step algorithm
+state plus the monitor's `latest_solution`/`latest_fitness` (or `None`) and
+returns ETL tensors ALREADY carried in the state — no tracing, no torch, no
+Python scalars. It mirrors the torch method of the same name exactly:
+- `{"center": state.center}` — ars.py, open_es.py, virtual_es.py,
+  virtual_lora_es.py
+- `{"center": state.center, "sigma": state.sigma}` — des.py, esmc.py,
+  guided_es.py (alpha deliberately NOT recorded — torch omits it),
+  noise_reuse_es.py, persistent_es.py, snes.py
+- `{"center": state.center, "sigma": state.sigma, "alpha": state.alpha}` —
+  asebo.py
+- `{"mean": state.mean, "sigma": state.sigma}` — cma_es.py
+- nes.py — one module-level hook that dispatches on the config type via
+  isinstance (mirroring its `init`/`step`): XNES → `{"mean","sigma","B"}`,
+  SeparableNES → `{"mean","sigma"}`.
+The workflow only calls it (and the monitor only stores it) when a monitor is
+configured AND `EvalMonitorConfig.full_pop_history` is True.
 
 ## Routing Table
 | Area | Path |
 |---|---|
-| In-node parity tests (torch allowed) | `tests/` — `tests/parity/test_parity.py` is the only torch-importing file; `tests/conftest.py` is the sys.path shim |
-| Smoke tests, this family (no torch) | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
+| Family tests — smoke (no torch) + relocated torch-parity | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
 | Convergence-parity tests vs torch | `unit_test/etl/algorithms/parity/` (sibling — read-only here, escalate writes to the parent agent) |
 | Shared test driver / toy problems | `unit_test/etl/algorithms/helpers.py` (sibling — read-only) |
 | Torch reference for every module here | `src/evox/algorithms/so/es_variants/` (read-only, never modify) |
@@ -183,7 +209,7 @@ the reference source, not this file's history.
   zero (rank ≤ sub−1), so the smallest singular value ≈ 0 and the `argmax`/signs
   land on float32 ties — numpy's and torch's pipelines can disagree by 0.2-1.0 in
   `UUT_ort` on identical ops. Parity of that block is therefore asserted on a
-  well-posed constructed X in `tests/parity/test_parity.py`; note the block is
+  well-posed constructed X in the sibling parity test; note the block is
   also INERT for `gen_counter <= subspace_dims` (alpha is forced to 1.0 and UUT is
   masked to zero, so `cov` is isotropic and the sampled population, fitness and
   center are independent of the SVD block).
@@ -234,20 +260,24 @@ the reference source, not this file's history.
 Environment (no pre-provisioned venv): `uv venv` + `uv pip install <etl-source-copy>
 pytest numpy`, then `PYTHONPATH="src:<torch-site-packages>"` (torch comes from the
 shared evox venv; no GPU here).
-- **In-node parity (torch allowed, numpy backend)**: `tests/parity/test_parity.py` —
-  the ONLY torch-importing file in this node; `tests/conftest.py` is the
-  relocation-ready repo-root/`src` sys.path shim (pattern:
-  `../../workflows/tests/conftest.py`; force-add the files — `tests/` is
-  `.gitignore`d, as for the sibling `metrics/tests/`). It injects IDENTICAL noise on
-  both sides (monkeypatch `torch.randn` + `etl.random.normal` → an in-graph
-  `etl.ops.constant`) to make torch and etl trajectories comparable, and covers:
-  ASEBO (state parity + the subspace block vs the reference ops, on a well-posed X)
-  with discriminating-power guards (~1.2 / ~0.8), ARS odd `pop_size=5, elite_ratio=0.9`
-  (torch elite count 2 vs the old integer-division 1, Δcenter 1.8e-2) and CMA-ES
-  2-step state parity (ΔC 6e-8; the pre-fix scalar form shifts C by 0.12).
-  Run: `python -m pytest src/evox_etl/algorithms/so/es_variants/tests -q` (3 tests).
-- **Sibling smoke (no torch)**: `unit_test/etl/algorithms/so/es_variants/test_*.py`
-  — 22 tests, green; driven by `unit_test/etl/algorithms/helpers.py`.
+- **Family suite**: `unit_test/etl/algorithms/so/es_variants/` — the no-torch
+  smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`) plus
+  the relocated torch-parity file (the only torch-importing file in that node;
+  its `conftest.py` is the repo-root/`src` sys.path shim — the pattern is the
+  sibling `unit_test/etl/workflows/conftest.py`). The parity file injects
+  IDENTICAL noise on both sides (monkeypatch `torch.randn` +
+  `etl.random.normal` → an in-graph `etl.ops.constant`) to make torch and etl
+  trajectories comparable, and covers: ASEBO (state parity + the subspace block
+  vs the reference ops, on a well-posed X) with discriminating-power guards
+  (~1.2 / ~0.8), ARS odd `pop_size=5, elite_ratio=0.9` (torch elite count 2 vs the
+  old integer-division 1, Δcenter 1.8e-2) and CMA-ES 2-step state parity
+  (ΔC 6e-8; the pre-fix scalar form shifts C by 0.12). Also
+  `test_record_step_aux.py` drives `cma_es`/`des` through `StdWorkflow` +
+  `EvalMonitorConfig(full_pop_history=True)` and pins the `record_step` →
+  `aux_history` aux channel (keys, one entry/generation, shapes, final-state
+  match). Note: these ES states expose neither `population`/`pop` nor a `dim`
+  config field, so `dim` (and `pop_size` for `cma_es`'s `None` default) must be
+  passed EXPLICITLY to `EvalMonitorConfig`.
 - **Sibling parity (torch)**: `unit_test/etl/algorithms/parity/test_cma_es.py`
   (+ `test_open_es.py`), the sole red tests of the etl suite here. `test_cma_es.py`
   fails BOTH parametrizations for an ENVIRONMENT reason on the TORCH side, not a
@@ -266,5 +296,5 @@ shared evox venv; no GPU here).
   `assert int(alg.decomp_per_iter) == 1`, which is mathematically identical and
   drives both parametrizations green (torch 5.06529 / 5.64848 vs etl 3.96482 /
   2.59804, seeds 0 / 1). The same monkeypatch pattern is already used in
-  `tests/parity/test_parity.py`; the full write-up lives in
+  the sibling es_variants parity file; the full write-up lives in
   `unit_test/etl/algorithms/parity/CONTEXT.md` (Known Issues).

@@ -1,10 +1,10 @@
-# unit_test/etl/problems — tests for the evox_etl numerical problems
+# unit_test/etl/problems — tests for the evox_etl problems
 
 ## Intent
-Pytest suite for the functional `evox_etl` numerical problems (`basic`, `dtlz`,
-`cec2022`), running everything through `etl.build` + `etl.run` on the numpy
-backend. Relocated from `src/evox_etl/problems/tests/` (the old location is
-kept in sync by another agent until deletion).
+Pytest suite for the functional `evox_etl` problems — the numerical problems
+(`basic`, `dtlz`, `cec2022`), the neuroevolution virtual Gaussian-noise problem,
+and the host-side HPO wrapper — running everything through `etl.build` +
+`etl.run` on the numpy backend.
 
 ## Structure
 - `test_basic.py` — pure-etl tests (NO torch) for the basic problems: shapes/
@@ -14,6 +14,14 @@ kept in sync by another agent until deletion).
   custom configs, `pf` reference fronts (row counts + value ranges).
 - `test_cec2022.py` — pure-etl tests for CEC2022: all valid (function, dim)
   pairs stay finite, config assertions, error paths, f1 shift point.
+- `test_virtual_problem.py` — pure-etl tests for the neuroevolution virtual
+  (training-free) Gaussian-noise problem: config normalization/validation, the
+  perturbation paths (`lora_rank` full-noise vs low-rank), the evaluate/init-step
+  contract, and convergence driven through `StdWorkflow`.
+- `test_hpo_wrapper.py` — pure-etl tests for the host-side HPO wrapper:
+  `evaluate` runs the inner `StdWorkflow` with the substituted hyperparameters
+  (exact parity against a manually built workflow), the repeat/aggregation
+  policy, multi-objective inner problems, monitor edge cases, and `random_search`.
 - `parity/test_parity.py` — the ONLY file allowed to import torch; compares
   `evox_etl` results against the torch `evox` reference on seeded populations.
 
@@ -31,7 +39,7 @@ kept in sync by another agent until deletion).
 ```
 /mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/problems -q
 ```
-131 tests, ~60s (parity imports torch). Runs from the repository root.
+192 tests, ~100s (parity imports torch). Runs from the repository root.
 
 ## Constraints
 - Never modify `src/evox_etl/` from here — if a test exposes a package bug,

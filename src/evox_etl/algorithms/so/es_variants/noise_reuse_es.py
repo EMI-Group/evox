@@ -176,3 +176,20 @@ def step(
         sigma=sigma,
         best_fitness=best_fitness,
     )
+
+
+def record_step(
+    config: NoiseReuseESConfig,
+    state: NoiseReuseESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Host-side auxiliary-info hook for the monitor (mirrors torch
+    `NoiseReuseES.record_step`).
+
+    PLAIN module-level function (NOT ``@etl.defn``): `StdWorkflow` calls it
+    HOST-SIDE on CONCRETE etl tensors of the POST-step state, outside any traced
+    graph. `candidate`/`fitness` are accepted-but-ignored, as in torch. Returns
+    the distribution summary the monitor's `record_auxiliary` stores.
+    """
+    return {"center": state.center, "sigma": state.sigma}

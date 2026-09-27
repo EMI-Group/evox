@@ -4,30 +4,37 @@
 pytest suite mirroring `src/evox_etl/` (functional EvoX on ETL). Seven sub-suites:
 1. `algorithms/` — algorithm smoke/parity tests + converted operator-shim tests
    (canonical `evox_etl.operators.*` imports; etl-only, no torch except `parity/`).
+   Includes the virtual-ES / VirtualLoRA-ES smoke tests and the virtual
+   end-to-end convergence tests under `so/es_variants/`; `parity/` also holds the
+   ES-variant ASEBO/ARS/CMA-ES STATE-level parity file (`test_parity.py`).
 2. `operators/` — operator property tests (random ops, no torch) + `parity/`
    (exact parity vs torch `evox` within 1e-6; torch imports ONLY there).
-3. `problems/` — numerical problem tests + `parity/` (relocated from
-   `src/evox_etl/problems/tests/`; that source dir still exists).
-4. `metrics/` — metric tests + `parity/` (relocated from `src/evox_etl/metrics/tests/`).
-5. `vis_tools/` — Plotly figure builders + the EvoXVision `.exv` binary format
-   (relocated from `src/evox_etl/vis_tools/tests/`). Numpy/plotly only, no torch.
+3. `problems/` — numerical problem tests + the neuroevolution virtual-problem
+   suite (`test_virtual_problem.py`) + the host-side HPO-wrapper suite
+   (`test_hpo_wrapper.py`) + `parity/`.
+4. `metrics/` — metric tests + `parity/`.
+5. `vis_tools/` — Plotly figure builders + the EvoXVision `.exv` binary format.
+   Numpy/plotly only, no torch.
 6. `workflows/` — `evox_etl.workflows` (EvalMonitor semantics + StdWorkflow
-   monitor/history behavior; relocated from `src/evox_etl/workflows/tests/`).
-7. `ext/` — `evox_etl_ext.autoload_ext` extension discovery/merge/idempotency.
+   monitor/history behavior).
+7. `ext/` — `evox_etl_ext.autoload_ext` extension discovery/merge/idempotency
+   plus the root-export + guarded-autoload tests (`test_autoload.py`).
 
-## Gate (counts verified: 497 = 125 + 104 + 131 + 53 + 42 + 38 + 4, zero failures/errors/skips)
+## Gate (counts verified: 613 = 178 + 104 + 192 + 53 + 42 + 38 + 6, zero failures/errors/skips)
 ```
-<venv>/bin/python -m pytest unit_test/etl/algorithms -q  # 125, ~5 min (torch-parity runs dominate)
-<venv>/bin/python -m pytest unit_test/etl/operators -q   # 104, ~16 s
-<venv>/bin/python -m pytest unit_test/etl/problems -q    # 131, ~70 s
-<venv>/bin/python -m pytest unit_test/etl/metrics -q     # 53, ~11 s
-<venv>/bin/python -m pytest unit_test/etl/vis_tools -q   # 42, ~10 s
+<venv>/bin/python -m pytest unit_test/etl/algorithms -q  # 178, ~3.5 min (torch-parity runs dominate)
+<venv>/bin/python -m pytest unit_test/etl/operators -q   # 104, ~15 s
+<venv>/bin/python -m pytest unit_test/etl/problems -q    # 192, ~100 s
+<venv>/bin/python -m pytest unit_test/etl/metrics -q     # 53, ~8 s
+<venv>/bin/python -m pytest unit_test/etl/vis_tools -q   # 42, ~1 s
 <venv>/bin/python -m pytest unit_test/etl/workflows -q   # 38, ~14 s
-<venv>/bin/python -m pytest unit_test/etl/ext -q         # 4, <1 s
+<venv>/bin/python -m pytest unit_test/etl/ext -q         # 6, <1 s
 ```
-Every `parity/` dir (and the `mo/`/`so/` subdirs) carries an `__init__.py`, so
-the combined run `pytest unit_test/etl -q` also collects all 497 tests with no
-basename collisions and passes green (verified ~5 min).
+Every `parity/` dir — plus `algorithms/mo/` and `algorithms/so/es_variants/` —
+carries an `__init__.py`, so the combined run `pytest unit_test/etl -q` collects
+all 613 tests with no basename collisions (the four `parity/test_parity.py` files
+import as `parity.*`, `metrics.parity.*`, `problems.parity.*`,
+`operators.parity.*`) and passes green (verified ~6 min).
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
 
 ## Environment
@@ -49,8 +56,8 @@ the plotly-missing branches still run.
 - The only skip mechanism in the tree is `skipif`-guarding of Plotly figure
   assertions (plotly present in the primary venv, so the gate run reports 0 skips);
   there are no `pytest.mark.skip`/`xfail` markers. Known-not-ported code (e.g.
-  `virtual_lora_es`, asebo's iree/xla `etl.svd` blocker) simply has no module/test
-  to exercise it — see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
+  asebo's iree/xla `etl.svd` blocker) simply has no module/test to exercise it —
+  see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
 - `evox_etl`'s own `StdWorkflow`/`EvalMonitor` (`src/evox_etl/core/workflow.py`,
   `workflows/`) ARE covered here by the `workflows/` suite (EvalMonitor shape
   policy + auxiliary-history channel + `EvalMonitor.plot`, driven directly
@@ -58,23 +65,29 @@ the plotly-missing branches still run.
   Algorithm tests still drive raw init/step via `helpers.run_generations`, and
   parity tests drive the TORCH StdWorkflow.
 - Algorithms with etl-only smoke coverage and no torch parity: code/jade/ode/
-  sade/shade, ars/asebo/des/esmc/guided_es/nes/noise_reuse_es/persistent_es/
-  snes, rvea/rveaa/hype (parity exists for de, pso, cma_es, open_es, nsga2,
-  nsga3, moead — see `algorithms/parity/CONTEXT.md`).
+  sade/shade, des/esmc/guided_es/nes/noise_reuse_es/persistent_es/snes,
+  rvea/rveaa/hype. Convergence parity exists for de, pso, cma_es, open_es,
+  nsga2, nsga3, moead; ars/asebo/cma_es additionally have STATE-level parity
+  under injected identical noise — see `algorithms/parity/CONTEXT.md`.
 - Algorithm tests construct configs via functional `make_*` constructors
   (`de_mod.make_de(...)`, `nsga2.make_nsga2(...)`, resolved at call time via
   module aliases — no direct `XConfig`/alias dataclass construction remains in
   `algorithms/`; problems tests keep direct dataclass construction by design).
 
 ## Packaging notes
-- `algorithms/`, `operators/`, `problems/`, `metrics/` and their `parity/` (and
-  the `mo/`/`so/`) subdirs carry an empty `__init__.py` so pytest treats them as
-  distinct packages — keep them if adding new parity dirs.
-  `vis_tools/` and `ext/` also carry `__init__.py` (no helper must stay top-level).
-- `workflows/` deliberately has NO `__init__.py`: StdWorkflow resolves each
-  component's plain functions via `type(config).__module__` + `importlib`, so the
-  `aux_toy_*.py` siblings must be imported as TOP-LEVEL modules. New helper/toy
-  modules there need distinctive basenames.
+- `operators/`, `problems/`, `metrics/`, `vis_tools/`, `ext/` and every `parity/`
+  subdir carry an `__init__.py`, as do `algorithms/mo/`, `algorithms/parity/` and
+  `algorithms/so/es_variants/`; pytest then imports those test modules with their
+  package prefix (`parity.test_parity`, `es_variants.test_virtual_es`, …), which is
+  what keeps same-basename files (e.g. the four `parity/test_parity.py`) from
+  colliding. Keep the markers when adding new parity/package dirs.
+- `algorithms/`, `algorithms/so/`, `algorithms/so/de_variants/`,
+  `algorithms/so/pso_variants/` and `workflows/` deliberately have NO `__init__.py`,
+  so their test modules import as TOP-LEVEL names — new files there need
+  distinctive basenames.
+- `workflows/` in particular must stay flat: StdWorkflow resolves each component's
+  plain functions via `type(config).__module__` + `importlib`, so the `aux_toy_*.py`
+  siblings have to remain top-level modules.
 - Repo-root `conftest.py` shims sys.path (repo root + `src/`); each `parity/` and
   the problems/metrics/vis_tools/workflows suites also carry idempotent
   relocate-ready conftest shims.

@@ -37,7 +37,7 @@ DIM = 8 * 4 + 8 + 1 * 8 + 1
 
 #: Pop size / step size / noise scale chosen to sit comfortably inside the stable
 #: converging regime of the VirtualES gradient estimate (see the noise-budget note
-#: in ``es_variants/tests/test_virtual_es.py``).
+#: in ``es_variants/test_virtual_es.py``).
 POP_SIZE = 256
 LEARNING_RATE = 0.1
 NOISE_STDEV = 0.1

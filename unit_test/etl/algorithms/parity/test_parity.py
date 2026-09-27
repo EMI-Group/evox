@@ -1,15 +1,14 @@
 """Parity tests: functional evox_etl ES-variant step protocol vs torch evox.
 
 This is the only torch-importing file in this suite; mirrors
-``src/evox_etl/metrics/tests/parity/test_parity.py``.
+``unit_test/etl/metrics/parity/test_parity.py``.
 
 The driver below is deliberately self-contained: it drives a functional
 step-protocol module (``init(config, key)`` / ``step(config, state,
-evaluate)``) through ``etl.build`` / ``etl.run`` on the ``numpy`` backend, so
-this package suite never depends on the sibling ``unit_test/etl`` tree (that
-tree is read only as the reference for the ``etl.build``/``etl.run`` contract:
-scalar graph inputs are 0-d int64 arrays, state pytrees are passed as specs,
-and ``etl.run`` returns concrete tensors that must be read with ``.numpy()``).
+evaluate)``) through ``etl.build`` / ``etl.run`` on the ``numpy`` backend; the
+``etl.build``/``etl.run`` contract is used only as the reference (scalar graph
+inputs are 0-d int64 arrays, state pytrees are passed as specs, and ``etl.run``
+returns concrete tensors that must be read with ``.numpy()``).
 
 Noise injection is what makes the two sides comparable at all: the etl port
 and the torch reference otherwise draw from different RNG streams.  Both are
