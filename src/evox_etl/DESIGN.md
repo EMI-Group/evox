@@ -399,7 +399,11 @@ fitness) -> dict` hook; the workflow appends its dict to the monitor's `aux_hist
   backend golden).
 - **Cross-backend parity**: for each algorithm, run 3 generations with the numpy
   backend and (where applicable) assert outputs match within 1e-5/bit-exact.
-- Run via the shared venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl -x -q`.
+- Run from a locally built writable test venv (build it as described in
+  `src/evox_etl/CONTEXT.md` "Environment"): `PYTHONPATH=src:<primary .venv
+  site-packages> <test-venv>/bin/python -m pytest unit_test/etl -x -q` (numpy
+  backend). The primary `/home/bill/Source/evox/.venv` is read-only and lacks
+  `etl`/`pytest`.
 - IMPORTANT: test files must not import torch (etl-only tests). Parity tests that
   import both evox and evox_etl live in `unit_test/etl/parity/` and MAY import torch.
 
@@ -417,15 +421,19 @@ fitness) -> dict` hook; the workflow appends its dict to the monitor's `aux_hist
 
 ## 8. Environment
 
-Shared venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (python3.11, torch
-2.6.0+cu124 with working CUDA, evox + etl editable installs, jax-cuda12-pjrt plugin
-available for etl-xla, pytest). ALWAYS use this interpreter for tests/benchmarks.
-GPUs: 3× RTX A6000. Scan `nvidia-smi` for the most-free GPU before GPU runs.
+No pre-provisioned ETL venv. Build a writable test venv locally with `uv venv` +
+`uv pip install <etl-source-copy> numpy pytest "torch>=2.6.0"` (etl is installed
+from a copied tree; torch-cpu wheels suffice — no GPU here) and run tests from it:
+`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
+(that primary venv supplies plotly/torch). The primary
+`/home/bill/Source/evox/.venv` is read-only and lacks `etl`/`pytest`. ALWAYS use
+the locally built test venv for tests/benchmarks.
+GPUs: on a GPU host, scan `nvidia-smi` for the most-free GPU before GPU runs.
 
 ## 9. ETL repo fixes (merged into etl master)
 
 The xla-related etl fixes below are ALL merged into etl master (@f2f50a7) — the
-shared venv's etl install needs no task branch:
+test venv's etl install needs no task branch:
 - xla adapter GPU client-exhaustion fix (fresh PJRT client per compile/load →
   process SIGABRT; now a shared refcounted client — etl commit 838739c, formerly
   only on task branch `evogit-agent-T1-A19`);

@@ -49,9 +49,9 @@ current torch layout.
   `src/evox_etl/problems/neuroevolution/`).
 - torch `StdWorkflow` distributed multi-rank evaluation (`enable_distributed` /
   `group`) — no etl analogue; the etl workflow is single-device.
-- torch core `ModuleBase`/`Parameter`/`Mutable`/`compile`/`vmap`/`use_state` —
-  superseded by the functional design (frozen config dataclasses + tensor state +
-  plain functions; `DESIGN.md` §4).
+- torch core `ModuleBase`/`Parameter`/`Mutable`/`compile`/`vmap`/`use_state` and
+  the `Agent`/`Workflow` ABCs — superseded by the functional design (frozen config
+  dataclasses + tensor state + plain functions; `DESIGN.md` §4).
 
 ## 2. Design
 
