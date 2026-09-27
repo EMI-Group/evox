@@ -55,7 +55,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   are deterministic given the state (all randomness is drawn before the
   `evaluate` call).
 
-## Config construction (current state — post make_* refactor, T2-A44)
+## Config construction (current state)
 - Public construction goes through module-level `make_*` constructors
   (`make_nsga2`, `make_nsga3`, `make_moead`, `make_rvea`, `make_rveaa`,
   `make_hype` — same module as each config; exported from `mo/__init__.py`
