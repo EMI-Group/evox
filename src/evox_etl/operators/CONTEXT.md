@@ -58,7 +58,7 @@ Top-level `__init__.py` mirrors torch exactly:
 | Selection | `selection/` | non_dominate.py (dominate_relation, non_dominate_rank, crowding_distance, nd_environmental_selection), tournament_selection.py, find_pbest.py, rvea_selection.py |
 | Crossover | `crossover/` | differential_evolution.py, sbx.py, sbx_half.py |
 | Mutation | `mutation/` | pm_mutation.py |
-| Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (clamp family, maximum/minimum, lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
+| Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (switch, clamp family, clip, maximum/minimum(+`_int`/`_float`), lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
 | Tests (sibling) | `../unit_test/etl/operators/` | pending — root agent owns; see Test Strategy |
 
 ## Notes for Agents (cross-cutting etl gotchas)
