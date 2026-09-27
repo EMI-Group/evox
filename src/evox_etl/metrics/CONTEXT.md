@@ -54,10 +54,10 @@ torch — CONTEXT issue #12). `any`/`all` do not exist in etl: composed as
 ## See Also
 - `../../evox/metrics/` — READ-ONLY torch reference.
 - `../DESIGN.md` §4.3 (plain functions), §6 (testing).
-- `tests/` — pytest suite (relocation-ready conftest, see
-  `problems/tests/` precedent): `test_metrics.py` (numpy references, no torch)
-  + `parity/test_parity.py` (torch parity; the only torch-importing file).
-  Run: `python -m pytest src/evox_etl/metrics/tests -q` (53 tests).
+- `../../unit_test/etl/metrics/` — pytest suite (canonical mirror):
+  `test_metrics.py` (numpy references, no torch) + `parity/test_parity.py`
+  (torch parity; the only torch-importing file).
+  Run: `python -m pytest unit_test/etl/metrics -q` (53 tests).
 
 ## ETL issues found
 Consolidated in `../CONTEXT.md` "ETL issues found" (#16-18: `etl.run` returns

@@ -107,18 +107,17 @@ non-int `lora_rank`.
    (`x / 2.0`). Minor/cosmetic (host constants, not state).
 
 ## Test suite
-`../tests/test_virtual_problem.py` — relocated to the shared problems test dir,
-using the existing `../tests/conftest.py` repo-root marker shim. 51 tests, all
-green on the numpy backend (the full problems suite is 182 tests: 131 numerical
-+ 51 here). The problems gate also collects `../tests/parity/`, which imports
-`torch`, so a torch (CPU) wheel must be installed alongside etl/pytest/numpy:
+`../../../unit_test/etl/problems/test_virtual_problem.py` (canonical mirror
+location — sibling, write access requires parent). 51 tests, all green on the
+numpy backend. The problems gate also collects `parity/`, which imports `torch`,
+so a torch (CPU) wheel must be installed alongside etl/pytest/numpy:
 
     BASE=$TMPDIR/etl_run
     uv venv --python 3.13 $BASE/venv
     uv pip install --python $BASE/venv/bin/python $BASE/etl_src pytest numpy
     uv pip install --python $BASE/venv/bin/python torch \
         --index-url https://download.pytorch.org/whl/cpu
-    PYTHONPATH="src" $BASE/venv/bin/python -m pytest src/evox_etl/problems/tests -q
+    PYTHONPATH="src" $BASE/venv/bin/python -m pytest unit_test/etl/problems -q
 
 Coverage: `make_virtual_problem` validation (param_shapes/layer_specs mismatch,
 bad lora_rank/reduction/loss, malformed specs, chain/length mismatches), alias +
@@ -128,15 +127,11 @@ no-bias-layer and cross-entropy configs) and determinism. The reference re-deriv
 the splitmix64 noise itself (own offsets/forward/loss). Measured worst absolute
 difference vs the reference: **0.0** (asserted tolerance 1e-5).
 
-**.gitignore gotcha**: the repo-root `.gitignore` has a bare `tests` entry
-(`.gitignore:168`) that matches `tests/` here — new files there must be added with
-`git add -f`.
-
 ## Routing Table
 | Area | Path | Notes |
 |---|---|---|
 | Virtual problem (config + make_* + evaluate) | `virtual_problem.py` | single module |
-| Test suite | `../tests/test_virtual_problem.py` | relocated to the shared problems test dir (`.gitignore`d → `git add -f`); gate = sibling `../../unit_test/etl/problems/` |
+| Test suite | `../../../unit_test/etl/problems/test_virtual_problem.py` | sibling — write access requires parent |
 | Shared noise contract | `../../algorithms/so/es_variants/virtual_noise.py` | sibling subtree — READ-ONLY, do NOT modify |
 | Shared `ProblemState` | `../numerical/state.py` | sibling — READ-ONLY |
 | Reference (torch) impl | `../../../../evox/problems/neuroevolution/` | READ-ONLY, never modify |

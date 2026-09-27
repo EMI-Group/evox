@@ -28,8 +28,9 @@ problems (brax, mujoco_playground, supervised_learning).
   `(fitness, problem_state)` signature is kept for uniformity with stateful
   problems.
 - **DTLZ reference fronts**: DTLZ1-7 expose `pf(config)` functions (plain
-  functions meant to be traced) used by metrics/tests. Sampling comes from the
-  canonical `evox_etl.operators.sampling` operators (`uniform_sampling`/
+  functions meant to be traced) used by the metric/problem parity tests. Sampling
+  comes from the canonical `evox_etl.operators.sampling` operators
+  (`uniform_sampling`/
   `grid_sampling`, which return `(points, n_samples)` tuples — dtlz unpacks
   `[0]`). Verified bit-identical to the former private mirrors.
 - **No boundary handling in basic problems**: raw math only, exactly like torch
@@ -50,19 +51,10 @@ problems (brax, mujoco_playground, supervised_learning).
 ## Notes for Agents
 - cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/`
   — numpy allowed ONLY for loading that data; bake it as constant tensors (closure).
-- **Test suite** (131 numerical tests + the 51 relocated neuroevolution
-  virtual-problem tests, GREEN on the numpy backend) lives at `tests/` inside
-  this node (pure-etl + torch parity under `tests/parity/`). Canonical home is
-  the sibling `../../../unit_test/etl/problems/` — this node has no write access
-  to siblings, so the parent must relocate the files (they are relocate-ready:
-  self-contained, conftest shim inserts repo root + src into sys.path) and run
-  the gate `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
-  unit_test/etl/problems -q`. Run locally with `... -m pytest
-  src/evox_etl/problems/tests -q`.
-- **.gitignore gotcha**: the repo-root `.gitignore` has a bare `tests` entry
-  that matches `src/evox_etl/problems/tests/` — new files there must be added
-  with `git add -f` until the parent adds a negation pattern (the suite files
-  are already force-added/tracked).
+- **Test suite** (numerical + neuroevolution virtual-problem; pure-etl + torch
+  parity): canonical home is the sibling `../../../unit_test/etl/problems/`
+  (write access requires parent). Gate: `<venv>/bin/python -m pytest
+  unit_test/etl/problems -q`.
 
 ## ETL issues found (escalated to root — also needs adding to ../CONTEXT.md)
 Hit while porting the numerical problems; all worked around in this node (see
@@ -115,6 +107,5 @@ Hit while porting the numerical problems; all worked around in this node (see
 | Numerical problems (basic, dtlz, cec2022, state) | `numerical/` | single subpackage; owns `ProblemState` |
 | Neuroevolution (virtual Gaussian-noise problem) | `neuroevolution/` | payload protocol `(center_flat, seeds, sigma)`; shared `ProblemState`; see `neuroevolution/CONTEXT.md` |
 | HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`) + `random_search`; plain host Python, no traced nested workflow |
-| Test suite (relocate-ready) | `tests/` | in-node copy; canonical home is the sibling unit_test dir — parent relocates |
-| Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — write access requires parent |
+| Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — numerical + virtual-problem tests; write access requires parent |
 | Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |

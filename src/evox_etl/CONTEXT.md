@@ -56,11 +56,11 @@ compile-once StdWorkflow loop.
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
 | Neuroevolution problems | `problems/neuroevolution/` | VirtualProblem/VirtualLoRAProblem (virtual Gaussian-noise payload); see `problems/neuroevolution/CONTEXT.md` |
 | HPO wrapper (host-side) | `problems/hpo_wrapper.py` | HPOProblemWrapper/HPSlot/random_search (NOT a `Problem`); numpy host-side only |
-| Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
+| Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; tests at `../unit_test/etl/metrics/` |
 | Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor; tests at `../unit_test/etl/workflows/` |
 | Visualization | `vis_tools/` | Plotly figure builders + EvoXVision `.exv` serialization; tests at `../unit_test/etl/vis_tools/` |
 | Utilities | `utils/` | functional helpers |
-| End-to-end tests | `tests/` | real-algorithm convergence tests; `.gitignore`d, stage with `git add -f` |
+| End-to-end tests (e2e + autoload) | `../unit_test/etl/` | real-algorithm convergence + autoload-guard tests (mirror) |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
