@@ -41,10 +41,16 @@ fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
 | `persistent_es.py` | PersistentESConfig/State — perturbation accumulation + reset |
 | `esmc.py` | ESMCConfig/State — baseline member; pop_size must be ODD |
 | `asebo.py` | ASEBOConfig/State — SVD active subspaces; lr_decay/lr_limit config-only (unused in torch too) |
+| `virtual_noise.py` | SHARED deterministic generator (do not modify): `compute_offsets`, `compute_counter_offsets`, `virtual_normal`, `lora_factors` |
+| `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; torch-parity `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` aliases |
+| `virtual_lora_es.py` | VirtualLoRAESConfig/State + make_virtual_lora_es — DISTINCT low-rank variant (extra `lora_rank`, `B @ A` perturbations for ≥2-D blocks) |
+| `_virtual_common.py` | Shared virtual-family helpers: `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` |
 | `tests/` | in-node torch-parity suite (see Tests) |
 
-`__init__.py` exports the 12 configs + their 12 `make_*` constructors
-(VirtualLoRAES intentionally skipped).
+`__init__.py` exports the 14 configs + their 14 `make_*` constructors, plus the
+torch-style bare aliases `VirtualES` / `VirtualLoRAES` (both = `VirtualESConfig`,
+mirroring torch's shadowing of the distinct low-rank class; the low-rank config is
+`VirtualLoRAESConfig`).
 
 ## Config construction (make_* constructors)
 - All 12 configs are dumb frozen dataclasses with NO `__post_init__` (11 files;
@@ -79,14 +85,33 @@ fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
   "dynamic-length shapes (None, …)"): construct via make_xnes/
   make_separable_nes/make_asebo (or pass explicit values).
 
-## Skipped
-`virtual_lora_es.py` is NOT ported: it needs the torch Philox counter-stream
-PRNG (`evox.triton_kernels.kernels.philox`), LoRA factor/gradient utilities
-(`lora_noise.py`, uses torch.einsum), and a `(center, seeds, sigma)` tuple
-evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
-`VirtualLoRAProblem` (nn.Sequential + DataLoader). etl.random is key/split-only
-(no jump-ahead counter streams) and evox_etl's contract is tensor-only
-`(n, dim)` populations. Full analysis: see `src/evox_etl/algorithms/CONTEXT.md`.
+## Virtual (training-free) ES family — PORTED
+`virtual_es.py` / `virtual_lora_es.py` implement the torch virtual-population ES
+family: the state carries only a `(dim,)` center plus `(pop_size,)` int64 seeds,
+and the full-parameter Gaussian perturbations are REGENERATED deterministically
+from those seeds by the shared `virtual_noise.py` generator (O(dim) memory
+instead of O(pop*dim)). Torch parity reached WITHOUT the Philox counter PRNG
+(etl.random is key/split-only): `virtual_noise` is an in-graph splitmix64 +
+Box-Muller generator whose cumulative per-block offsets make
+`virtual_normal(seeds, 0, dim)` identical to concatenating per-block calls.
+- `step` resamples seeds, then calls the opaque workflow-injected
+  `evaluate((center, seeds, sigma))` payload (sigma = the PYTHON float
+  `config.noise_stdev`, static), then rebuilds the SAME noise and forms the
+  fitness-weighted ES gradient `sum_i f_i * noise_i / (pop * sigma)`.
+- `virtual_lora_es` uses `lora_factors` instead: ≥2-D `(d,k)` blocks get
+  `delta = B @ A` (`A (rank,k)`, `B (d,rank)`, batched `etl.dot`), 1-D blocks keep
+  flat full Gaussian noise; parts are raveled row-major and concatenated.
+- `_virtual_common.py` holds the SHARED config/seed/update logic:
+  `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` (plain SGD
+  or Adam via `adam_single_tensor(..., 0.9, 0.999, lr)` + `best_fitness`), so no
+  update logic is duplicated between the two modules.
+- `exp_avg`/`exp_avg_sq` are ALWAYS carried at `(dim,)` f32 zeros; when
+  `optimizer is None` they are passed through unchanged (no zero-size tensors).
+- `dim` is an evox_etl addition filled eagerly by `make_*` (`sum(prod(shape))`)
+  for `_discover_pop_size`/monitor completion; `init`/`step` recompute it with
+  `param_dim`.
+- No `init_step`/`final_step`/`record_step` (torch VirtualES has none; the
+  workflow falls back to `step`).
 
 ## Routing Table
 | Area | Path |
