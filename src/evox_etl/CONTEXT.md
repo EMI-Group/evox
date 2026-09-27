@@ -56,9 +56,10 @@ No pre-provisioned venv on this machine — provision one with `uv venv` +
 `uv pip install <etl-source-copy> numpy pytest "torch>=2.6.0"` (etl is the
 foreign repo `/home/bill/Source/etl`; its checkout is read-only, so install
 from a copied tree; torch-cpu wheel index suffices — no GPU here). Tests:
-`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~3.5 min,
-384 tests incl. `src/evox_etl/workflows/tests`). `evox_etl` is a PEP 420
-namespace package — drivers need `PYTHONPATH=src`.
+`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~5 min,
+497 tests; the workflows/vis_tools suites live under `../unit_test/etl/`).
+`evox_etl` and `evox_etl_ext` are PEP 420 namespace packages — drivers need
+`PYTHONPATH=src`.
 
 ## ETL issues found (escalated to root agent)
 1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
