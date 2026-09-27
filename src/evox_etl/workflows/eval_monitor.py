@@ -179,6 +179,26 @@ def record_auxiliary(config: EvalMonitorConfig, aux: dict) -> None:
         config.aux_history.setdefault(key, []).append(arr)
 
 
+# Byte-identical to the torch `EvalMonitor.plot` warning (torch parity).
+_NO_VIS_TOOL_WARNING = 'No visualization tool available, return None. Hint: pip install "evox[vis]"'
+
+
+def _vis_plot_module() -> Any:
+    """The ``evox_etl.vis_tools.plot`` module, or None when plotting is unavailable.
+
+    Plotly is an OPTIONAL dependency and ``evox_etl.vis_tools`` imports fine
+    without it (its ``plot`` submodule only sets ``go = None``), so availability
+    must be probed through both the import AND that module's ``go`` re-export.
+    """
+    try:
+        import evox_etl.vis_tools.plot as vis_plot
+    except ImportError:  # pragma: no cover - the package itself is always present
+        return None
+    if getattr(vis_plot, "go", None) is None:
+        return None
+    return vis_plot
+
+
 class EvalMonitor:
     """Host-side evaluation monitor wrapper (workflow creates it as ``Monitor(config=..., state=...)``).
 
@@ -368,23 +388,58 @@ class EvalMonitor:
 
     # --------------------------------------------------------------- plot
 
-    def plot(self, problem_pf: Any = None, source: str = "eval", **kwargs: Any) -> None:
-        """Plot the fitness history (requires plotly; plotting itself is not implemented).
+    def plot(self, problem_pf: Any = None, source: str = "eval", **kwargs: Any) -> Any:
+        """Plot the fitness history (or the algorithm's auxiliary "fit" channel).
 
-        :param problem_pf: The problem's Pareto front to overlay. Defaults to None.
-        :param source: Data source, "eval" or "pop". Defaults to "eval".
-        :param kwargs: Extra plot options (unused for now).
+        Host-side, torch-parity port of ``EvalMonitor.plot``: dispatches to the
+        ``evox_etl.vis_tools`` figure builders (Plotly is an OPTIONAL dependency)
+        by the number of objectives. Returns None — with a warning — when there is
+        nothing to plot or when the visualization tool is unavailable.
+
+        :param problem_pf: The problem's Pareto front to overlay (multi-objective
+            only). Defaults to None.
+        :param source: Which fitness to plot. ``"eval"`` (default) plots the
+            problem-evaluation side, opt-direction un-negated via
+            :meth:`get_fitness_history`; ``"pop"`` plots the RAW
+            ``aux_history["fit"]`` channel the algorithm reported (NOT
+            un-negated). Any other value raises ValueError.
+        :param kwargs: Extra plot options forwarded to the ``vis_tools`` builder
+            (e.g. ``animation=False`` for the 1-D figure).
+        :return: A ``plotly.graph_objects.Figure``, or None when nothing can be
+            plotted.
         """
-        try:
-            import plotly  # noqa: F401
-        except ImportError:
-            raise NotImplementedError(
-                "plot requires plotly; install it to plot monitor history"
-            ) from None
-        if not self.config.fit_history:
+        if not self.fitness_history and not self.aux_history:
             warnings.warn("No fitness history recorded, return None")
             return None
-        raise NotImplementedError("plot: interactive plotting is not implemented yet in evox_etl")
+
+        vis_plot = _vis_plot_module()
+        if vis_plot is None:
+            warnings.warn(_NO_VIS_TOOL_WARNING)
+            return None
+
+        if source == "pop":
+            fitness_history = self.aux_history["fit"]
+        elif source == "eval":
+            fitness_history = self.get_fitness_history()
+        else:
+            raise ValueError(f"Invalid source argument: {source}, expect 'eval' or 'pop'.")
+
+        fitness_history = [np.asarray(f) for f in fitness_history]
+
+        if fitness_history[0].ndim == 1:
+            n_objs = 1
+        else:
+            n_objs = self.fitness_history[0].shape[1]
+
+        if n_objs == 1:
+            return vis_plot.plot_obj_space_1d(fitness_history, **kwargs)
+        elif n_objs == 2:
+            return vis_plot.plot_obj_space_2d(fitness_history, problem_pf, **kwargs)
+        elif n_objs == 3:
+            return vis_plot.plot_obj_space_3d(fitness_history, problem_pf, **kwargs)
+        else:
+            warnings.warn("Not supported yet.")
+            return None
 
 
 # The workflow resolves the wrapper class as ``Monitor`` in this module.

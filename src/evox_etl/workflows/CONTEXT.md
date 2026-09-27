@@ -91,9 +91,22 @@ See `../DESIGN.md`.
     own `pop_history` recording still appends to `config.pop_history`.
     `record_auxiliary(self, aux)` delegates to the module-level
     `record_auxiliary(self.config, aux)`.
-    `plot()` raises NotImplementedError (with the plotly-install message) when
-    plotly is missing, otherwise NotImplementedError for the plotting itself;
-    warns + returns None when no history is recorded.
+    `plot(problem_pf=None, source="eval", **kwargs)` is a plain host-side port of
+    the torch method returning a `plotly.graph_objects.Figure` (NO torch imports).
+    Warns + returns None when nothing was recorded
+    (`not self.fitness_history and not self.aux_history` →
+    `"No fitness history recorded, return None"`) or when the visualization tool
+    is unavailable (`_vis_plot_module()` probe: `evox_etl.vis_tools` imports fine
+    WITHOUT plotly, so availability is `evox_etl.vis_tools.plot.go is not None` →
+    torch's byte-identical `'No visualization tool available, return None. Hint:
+    pip install "evox[vis]"'`). Source dispatch: `"pop"` → the RAW
+    `self.aux_history["fit"]` channel (NOT un-negated, torch parity), `"eval"` →
+    `self.get_fitness_history()` (un-negated), else ValueError. History entries
+    are `np.asarray`-ed, `n_objs` is `1` when `fitness_history[0].ndim == 1` else
+    `self.fitness_history[0].shape[1]`, and the figure comes from
+    `vis_tools.plot_obj_space_{1d,2d,3d}` (`**kwargs` forwarded; 2d/3d receive
+    `problem_pf` positionally); ≥4 objectives warn `"Not supported yet."` +
+    return None.
 - Workflow tweaks in `../core/workflow.py`: `_discover_pop_size` falls back to
   the `pop` state attribute when `population` is absent (PSO/NSGA2 states);
   `_complete_monitor_config` fills `opt_direction` from the workflow.

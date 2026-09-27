@@ -23,6 +23,13 @@ test file is written to be moved to `unit_test/etl/workflows/` verbatim.
   `EvalMonitor.pop_history` preferring `aux_history["pop"]`, the
   `full_pop_history` gate, and the no-hook legacy back-compat path. Also
   unit-tests the module-level `record_auxiliary` gate/accumulation.
+- `test_plot.py` — end-to-end tests for the implemented `EvalMonitor.plot`
+  (Plotly figures): SO 1-D (PSO+Sphere, `animation` kwarg forwarding, "eval"
+  source un-negating `opt_direction="max"`), MO 2-D/3-D (NSGA2+DTLZ2 with and
+  without `problem_pf`), the POP source via the toy aux `"fit"` channel (raw,
+  NOT un-negated), the warn+None paths (no history, Plotly absent by
+  monkeypatching `evox_etl.vis_tools.plot.go = None`, ≥4 objectives) and the
+  invalid-`source` ValueError. Figure assertions are `skipif`-guarded on plotly.
 - Toy components for `test_aux_history.py`, one config per module (the workflow
   resolves each component's plain functions via `type(config).__module__`):
   `aux_toy_algorithm.py` (WITH `record_step`), `aux_toy_algorithm_no_hook.py`
@@ -37,4 +44,5 @@ test file is written to be moved to `unit_test/etl/workflows/` verbatim.
 - The directory is gitignored (`.gitignore:168 "tests"`); new files must be
   `git add -f`'d to be tracked, like the pre-existing ones.
 - Run: `PYTHONPATH=src:<site-packages> <venv>/bin/python -m pytest
-  src/evox_etl/workflows/tests -q` (24 tests: 9 aux-history + 15 pre-existing).
+  src/evox_etl/workflows/tests -q` (38 tests: 9 aux-history + 15 pre-existing +
+  14 `test_plot.py`; ~14 s with plotly available).
