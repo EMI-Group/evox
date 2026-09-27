@@ -106,16 +106,18 @@ non-int `lora_rank`.
    (`x / 2.0`). Minor/cosmetic (host constants, not state).
 
 ## Test suite
-`tests/` (in-node, relocate-ready; canonical home after relocation is the sibling
-`unit_test/etl/...`). `tests/conftest.py` is the same repo-root marker shim as
-`../tests/conftest.py` (finds the `pyproject.toml` ancestor, so it survives
-relocation). 51 tests, all green on the numpy backend:
+`../tests/test_virtual_problem.py` — relocated to the shared problems test dir,
+using the existing `../tests/conftest.py` repo-root marker shim. 51 tests, all
+green on the numpy backend (the full problems suite is 182 tests: 131 numerical
++ 51 here). The problems gate also collects `../tests/parity/`, which imports
+`torch`, so a torch (CPU) wheel must be installed alongside etl/pytest/numpy:
 
     BASE=$TMPDIR/etl_run
     uv venv --python 3.13 $BASE/venv
     uv pip install --python $BASE/venv/bin/python $BASE/etl_src pytest numpy
-    PYTHONPATH="src" $BASE/venv/bin/python -m pytest \
-        src/evox_etl/problems/neuroevolution/tests -q
+    uv pip install --python $BASE/venv/bin/python torch \
+        --index-url https://download.pytorch.org/whl/cpu
+    PYTHONPATH="src" $BASE/venv/bin/python -m pytest src/evox_etl/problems/tests -q
 
 Coverage: `make_virtual_problem` validation (param_shapes/layer_specs mismatch,
 bad lora_rank/reduction/loss, malformed specs, chain/length mismatches), alias +
