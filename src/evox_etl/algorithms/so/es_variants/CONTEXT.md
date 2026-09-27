@@ -41,21 +41,30 @@ fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
 | `persistent_es.py` | PersistentESConfig/State — perturbation accumulation + reset |
 | `esmc.py` | ESMCConfig/State — baseline member; pop_size must be ODD |
 | `asebo.py` | ASEBOConfig/State — SVD active subspaces; lr_decay/lr_limit config-only (unused in torch too) |
+| `virtual_noise.py` | SHARED deterministic generator (do not modify): `compute_offsets`, `compute_counter_offsets`, `virtual_normal`, `lora_factors` |
+| `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; torch-parity `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` aliases |
+| `virtual_lora_es.py` | VirtualLoRAESConfig/State + make_virtual_lora_es — DISTINCT low-rank variant (extra `lora_rank`, `B @ A` perturbations for ≥2-D blocks) |
+| `_virtual_common.py` | Shared virtual-family helpers: `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` |
 | `tests/` | in-node torch-parity suite (see Tests) |
 
-`__init__.py` exports the 12 configs + their 12 `make_*` constructors
-(VirtualLoRAES intentionally skipped).
+`__init__.py` exports the 14 configs + their 14 `make_*` constructors, plus the
+torch-style bare aliases `VirtualES` / `VirtualLoRAES` (both = `VirtualESConfig`,
+mirroring torch's shadowing of the distinct low-rank class; the low-rank config is
+`VirtualLoRAESConfig`).
 
 ## Config construction (make_* constructors)
-- All 12 configs are dumb frozen dataclasses with NO `__post_init__` (11 files;
-  nes.py holds XNESConfig + SeparableNESConfig). Array fields store flat tuples of
-  f32-rounded Python floats; nes.py `init_covar` stays a nested tuple-of-tuples
-  (small local `_to_float_matrix` — the flat helper cannot express nesting).
-- 12 module-level constructors live in the same module as their config and are
+- All 14 configs are dumb frozen dataclasses with NO `__post_init__` (13 files;
+  nes.py holds XNESConfig + SeparableNESConfig, virtual_es.py/virtual_lora_es.py
+  the virtual family). Array fields store flat tuples of f32-rounded Python floats
+  (`param_shapes` is a tuple of int tuples); nes.py `init_covar` stays a nested
+  tuple-of-tuples (small local `_to_float_matrix` — the flat helper cannot express
+  nesting).
+- 14 module-level constructors live in the same module as their config and are
   exported from `es_variants/__init__.py`: make_cma_es (cma_es.py), make_open_es,
   make_ars, make_snes (snes.py), make_des (des.py), make_xnes +
   make_separable_nes (nes.py), make_guided_es, make_noise_reuse_es,
-  make_persistent_es, make_esmc, make_asebo. Param names/defaults = the torch
+  make_persistent_es, make_esmc, make_asebo, make_virtual_es (virtual_es.py),
+  make_virtual_lora_es (virtual_lora_es.py). Param names/defaults = the torch
   `__init__` kwargs (minus device).
 - Shared host-side helpers live in `../_config_utils.py` (`to_float_tuple`,
   `bake_float32_constant`, `require_gt/ge/between/choice`); validation raises
@@ -79,14 +88,37 @@ fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
   "dynamic-length shapes (None, …)"): construct via make_xnes/
   make_separable_nes/make_asebo (or pass explicit values).
 
-## Skipped
-`virtual_lora_es.py` is NOT ported: it needs the torch Philox counter-stream
-PRNG (`evox.triton_kernels.kernels.philox`), LoRA factor/gradient utilities
-(`lora_noise.py`, uses torch.einsum), and a `(center, seeds, sigma)` tuple
-evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
-`VirtualLoRAProblem` (nn.Sequential + DataLoader). etl.random is key/split-only
-(no jump-ahead counter streams) and evox_etl's contract is tensor-only
-`(n, dim)` populations. Full analysis: see `src/evox_etl/algorithms/CONTEXT.md`.
+## Virtual (training-free) ES family — PORTED
+`virtual_es.py` / `virtual_lora_es.py` implement the torch virtual-population ES
+family: the state carries only a `(dim,)` center plus `(pop_size,)` int64 seeds,
+and the full-parameter Gaussian perturbations are REGENERATED deterministically
+from those seeds by the shared `virtual_noise.py` generator (O(dim) memory
+instead of O(pop*dim)). Torch parity reached WITHOUT the Philox counter PRNG
+(etl.random is key/split-only): `virtual_noise` is an in-graph splitmix64 +
+Box-Muller generator whose cumulative per-block offsets make
+`virtual_normal(seeds, 0, dim)` identical to concatenating per-block calls.
+- `step` resamples seeds, then calls the opaque workflow-injected
+  `evaluate((center, seeds, sigma))` payload (sigma = the PYTHON float
+  `config.noise_stdev`, static), then rebuilds the SAME noise and forms the
+  fitness-weighted ES gradient `sum_i f_i * noise_i / (pop * sigma)`.
+- `virtual_lora_es` uses `lora_factors` instead: ≥2-D `(d,k)` blocks get
+  `delta = B @ A` (`A (rank,k)`, `B (d,rank)`, batched `etl.dot`), 1-D blocks keep
+  flat full Gaussian noise; parts are raveled row-major and concatenated.
+- `_virtual_common.py` holds the SHARED config/seed/update logic:
+  `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` (plain SGD
+  or Adam via `adam_single_tensor(..., 0.9, 0.999, lr)` + `best_fitness`), so no
+  update logic is duplicated between the two modules.
+- `exp_avg`/`exp_avg_sq` are ALWAYS carried at `(dim,)` f32 zeros; when
+  `optimizer is None` they are passed through unchanged (no zero-size tensors).
+- `dim` is an evox_etl addition filled eagerly by `make_*` (`sum(prod(shape))`)
+  for `_discover_pop_size`/monitor completion; `init`/`step` recompute it with
+  `param_dim`.
+- No `init_step`/`final_step`/`record_step` (torch VirtualES has none; the
+  workflow falls back to `step`). Both virtual modules DO define the optional
+  `monitor_candidate(payload) -> (pop_size, dim)` hook (the workflow's monitor
+  bridge), which broadcasts the `(dim,)` center to the `(pop_size, dim)` candidate
+  the `EvalMonitorConfig` concatenates with its elite buffer; it is only called
+  when a monitor is configured, so the monitor-less hot path stays O(dim).
 
 ## Routing Table
 | Area | Path |
@@ -185,6 +217,10 @@ the reference source, not this file's history.
   transposes etl's Vh back to `torch.svd`'s V (Design Decisions 1); every other
   module here consumes Vh directly (matching `torch.linalg.svd`).
 - `etl.qr` returns `(Q, R)` reduced, Q first. `etl.cond` supports pytree outputs.
+- `etl.dot` requires rank ≥ 2 BUT also supports BATCHED 3-D matmul: `etl.dot(B
+  (pop,d,rank), A (pop,rank,k)) -> (pop,d,k)` works (numpy backend; used by
+  `virtual_lora_es.py` for the per-individual `B @ A` delta — no broadcast+sum
+  workaround needed).
 - `etl.eye(n)` is already float32; svd/eigh preserve f32; `etl.clamp` requires
   BOTH bounds (use etl.maximum for one-sided clamps); use `math.*` never `np.*`
   for Python scalars at trace time (numpy scalars are illegal operands).

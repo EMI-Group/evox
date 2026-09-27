@@ -97,10 +97,14 @@ src/evox_etl/
 │   └── state.py           # State helpers: e.g. replace(), get/set nested (pytree utils)
 ├── algorithms/
 │   ├── so/de_variants/  es_variants/  pso_variants/      # same files as torch evox
+│   │   └── es_variants/virtual_{noise,es,lora_es}.py +   # deterministic splitmix64
+│   │       _virtual_common.py                            #   noise + virtual-pop ES
 │   └── mo/                                              # nsga2, nsga3, moead, rvea, rveaa, hype
 ├── operators/             # pure functions, same file names as torch evox
 │   ├── sampling/    selection/    crossover/    mutation/
 ├── problems/numerical/    # basic.py, dtlz.py, cec2022.py
+├── problems/neuroevolution/  # virtual_problem.py (VirtualProblem/VirtualLoRAProblem)
+├── problems/hpo_wrapper.py   # host-side HPO (HPOProblemWrapper + random_search)
 ├── metrics/               # gd.py, hv.py, igd.py
 ├── workflows/             # std_workflow.py, eval_monitor.py
 └── utils/                 # tree helpers, min_by, dominate_relation, pairwise_*_dist,
@@ -325,6 +329,19 @@ drift, e.g. CoDE's `(3n, dim)` or CSO's `(n/2, dim)` monitor batches) and
 picks the right one per generation; there is no in-graph
 `etl.cond(generation == 0)` branch. Every quantity stays in-graph;
 Python-level history recording happens in the workflow loop AFTER each run.
+
+**Non-tensor candidate payloads (virtual ES family).** The opaque `evaluate`
+closure accepts a NON-tensor candidate PAYLOAD in addition to the `(n, dim)`
+tensor path: the virtual-population ES family
+(`algorithms/so/es_variants/virtual_es.py`, `virtual_lora_es.py`) calls
+`evaluate((center, seeds, sigma))` — `center` `(dim,)` f32, `seeds` `(pop,)`
+int64, `sigma` a static Python float — and the problem
+(`problems/neuroevolution/virtual_problem.py`) unpacks that payload to
+regenerate each individual's noise on demand. The 2-D `(n, dim)` tensor path is
+UNCHANGED; the payload flows through the same pipeline (the static `sigma` leaf
+is specialized by value like any other static, §4.3) and the problem returns
+`(pop,)` fitness with minimization semantics. `solution_transform`/
+`fitness_transform` are applied by the closure exactly as for the tensor path.
 
 ### 4.5 Monitor (`core/monitor.py`, `workflows/eval_monitor.py`)
 

@@ -13,12 +13,24 @@ compile-once StdWorkflow loop.
 ## API Surface
 - `evox_etl.core`: `Algorithm`/`Problem`/`Monitor` protocols (duck-typed), `StdWorkflow`,
   `WorkflowState`, state helpers.
-- `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
+- `evox_etl.algorithms`: SO (de/es/pso variants, incl. the training-free `virtual_es`/
+  `virtual_lora_es` family) + MO (nsga2, nsga3, moead, rvea,
   rveaa, hype) — each module = config dataclass + `make_*` constructor +
   `init`/`init_step`/`step` plain functions (step protocol, see
-  `core/algorithm.py`).
+  `core/algorithm.py`). Public surface mirrors torch: `VirtualES`/`VirtualLoRAES`
+  are the bare torch names (both alias the VirtualES config), the distinct low-rank
+  config is `VirtualLoRAESConfig`. The virtual-population ES family adds
+  `virtual_es.py` (`VirtualES`/`VirtualLoRAES` + `make_virtual_es`),
+  `virtual_lora_es.py` (`VirtualLoRAESConfig` + `make_virtual_lora_es`) and the
+  shared deterministic-noise module `virtual_noise.py`.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
 - `evox_etl.problems.numerical`: basic, dtlz, cec2022.
+- `evox_etl.problems.neuroevolution`: `VirtualProblem`/`VirtualLoRAProblem`
+  (unified behind `lora_rank`) + `make_virtual_problem` + `evaluate`
+  (payload protocol `(center_flat, seeds, sigma)`).
+- `evox_etl.problems.hpo_wrapper`: HOST-side HPO (`HPOProblemWrapper`, `HPSlot`,
+  HPO monitor configs, `random_search`) — re-exported from `evox_etl.problems`
+  (NOT an `evox_etl` `Problem`).
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
 - `evox_etl.utils`: tree helpers, min_by, dominate_relation, pairwise distances,
   parse_opt_direction, rank.
@@ -38,14 +50,17 @@ compile-once StdWorkflow loop.
 |---|---|---|
 | Core (protocols, workflow, monitor, state) | `core/` | Foundation — implement FIRST |
 | Operators (pure functions) | `operators/` | sampling/selection/crossover/mutation |
-| Algorithms SO | `algorithms/so/` | de_variants, es_variants, pso_variants |
+| Algorithms SO | `algorithms/so/` | de_variants, es_variants (incl. `virtual_es.py`/`virtual_lora_es.py`/`virtual_noise.py`), pso_variants |
 | Algorithms MO | `algorithms/mo/` | nsga2, nsga3, moead, rvea, rveaa, hype |
 | Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
+| Neuroevolution problems | `problems/neuroevolution/` | VirtualProblem/VirtualLoRAProblem (virtual Gaussian-noise payload); see `problems/neuroevolution/CONTEXT.md` |
+| HPO wrapper (host-side) | `problems/hpo_wrapper.py` | HPOProblemWrapper/HPSlot/random_search (NOT a `Problem`); numpy host-side only |
 | Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
 | Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor; tests at `../unit_test/etl/workflows/` |
 | Visualization | `vis_tools/` | Plotly figure builders + EvoXVision `.exv` serialization; tests at `../unit_test/etl/vis_tools/` |
 | Utilities | `utils/` | functional helpers |
+| End-to-end tests | `tests/` | real-algorithm convergence tests; `.gitignore`d, stage with `git add -f` |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
@@ -143,6 +158,13 @@ from a copied tree; torch-cpu wheel index suffices — no GPU here). Tests:
     0-d scalar indices and squeezes (the pso `(1,)`-reshape workaround is
     unnecessary); float32 ** Python-float exponent stays float32; etl has no
     any/all ops — compose via `etl.max`/`etl.min` over bool axes.
+19. **etl operators REJECT numpy scalars/arrays as operands** — `x / np.float32(2.0)`
+    raises `TypeError: numpy scalars/arrays are not Python scalars` (etl operands
+    must be SymbolicTensor or Python `bool`/`int`/`float`/`complex`). Pass a plain
+    Python float and never mix a numpy value with a symbolic tensor inside a trace
+    (hit by the virtual ES + virtual-problem host constants).
+20. Positive find (no workaround needed): batched 3-D `etl.dot((pop, d, r),
+    (pop, r, k))` works — used by the LoRA-mode gradient in `virtual_lora_es.py`.
 
 ## Config construction (current state)
 The `__post_init__`-removal / functional-constructor refactor is COMPLETE for
@@ -165,3 +187,24 @@ Carve-out: numerical problems (basic.py, cec2022.py) keep their validation-only
 Unit-test construction sites at `../unit_test/etl` migrate to `make_*` in a
 parallel wave (direct construction still works for pre-normalized values but
 bypasses make_* validation).
+
+## Not portable from torch evox
+Deliberately NOT ported, with the concrete reason (parallels live in the child
+CONTEXT.md files / `problems/hpo_wrapper.py`, not here):
+- torch `triton_kernels` — torch-dispatcher registration + hand-written Triton
+  CUDA kernels have no etl analogue; the virtual-population noise is instead
+  regenerated in-graph by `algorithms/so/es_variants/virtual_noise.py`
+  (deterministic splitmix64 + Box-Muller).
+- `problems/neuroevolution/{brax,mujoco_playground,supervised_learning,utils}.py`
+  — bound to JAX/Brax/MuJoCo environments and to `torch.nn` + `DataLoader`; only
+  the virtual Gaussian-noise problem is ported (see
+  `problems/neuroevolution/CONTEXT.md`).
+- `StdWorkflow` distributed multi-rank eval (`enable_distributed` / `group`) — no
+  etl analogue; the etl workflow is single-device.
+- torch core `ModuleBase`/`Parameter`/`Mutable`/`compile`/`vmap`/`use_state` —
+  superseded by the functional design (config dataclasses + tensor state + plain
+  functions; DESIGN.md §4).
+- the HPO wrapper's in-graph nested-workflow path — ETL has no eager mode and
+  cannot nest `etl.run` inside a trace, so HPO is a host-side redesign in
+  `problems/hpo_wrapper.py` where `HPOProblemWrapper` is NOT an `evox_etl`
+  `Problem` (see that module's docstring for the precise limitations).

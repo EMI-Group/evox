@@ -7,8 +7,12 @@ Levy...), dtlz.py (DTLZ1-7 + helpers), cec2022.py (with shipped input data). Pla
 functions in etl style — no classes, no OOP; the workflow traces them (per
 `../DESIGN.md` §4.3, functions are NOT `@etl.defn`-wrapped).
 
-NOT ported (external-library dependent — reported to root): neuroevolution problems
-(brax, mujoco_playground, supervised_learning, virtual_lora), hpo_wrapper.
+Beyond numerical, the neuroevolution virtual Gaussian-noise ES problem is ported
+in `neuroevolution/` (unifying the torch `VirtualProblem`/`VirtualLoRAProblem`
+behind `lora_rank`; details in `neuroevolution/CONTEXT.md`), and the HPO wrapper
+is ported as a HOST-SIDE redesign in `hpo_wrapper.py` (see below). NOT ported
+(external-library dependent — reported to root): the remaining neuroevolution
+problems (brax, mujoco_playground, supervised_learning).
 
 ## API Surface
 - **Uniform problem signature**: `evaluate(config, problem_state, pop) ->
@@ -18,10 +22,11 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
 - **Configs** are frozen dataclasses mirroring the torch class `__init__`
   signatures; boundary/shift/affine tensor fields become numpy arrays in the
   config (baked once as graph constants inside functions, per DESIGN §4.1).
-- **Statelessness**: numerical problems are stateless and all share the empty
-  frozen `ProblemState` (defined in `numerical/state.py`, re-exported at
-  package level). The `(fitness, problem_state)` signature is kept for
-  uniformity with stateful problems.
+- **Statelessness**: numerical problems and the `neuroevolution` virtual problem
+  are stateless and all share the empty frozen `ProblemState` (defined in
+  `numerical/state.py`, re-exported at package level). The
+  `(fitness, problem_state)` signature is kept for uniformity with stateful
+  problems.
 - **DTLZ reference fronts**: DTLZ1-7 expose `pf(config)` functions (plain
   functions meant to be traced) used by metrics/tests. Sampling comes from the
   canonical `evox_etl.operators.sampling` operators (`uniform_sampling`/
@@ -31,12 +36,22 @@ NOT ported (external-library dependent — reported to root): neuroevolution pro
   evox (constraining is the algorithm's responsibility there).
 - Package `__init__` re-exports the torch `evox.problems.numerical` export
   surface plus `Zakharov`, `Levy`, `zakharov_func`, `levy_func` (torch basic.py
-  has them but doesn't re-export) and `ProblemState`.
+  has them but doesn't re-export) and `ProblemState`; it also re-exports the
+  `neuroevolution` subpackage and its `VirtualProblem`/`VirtualLoRAProblem`
+  aliases (the generic `evaluate`/`make_virtual_problem` are intentionally NOT
+  hoisted to package level — name clash with the numerical `evaluate`).
+- **HPO wrapper** (`hpo_wrapper.py`) is a HOST-SIDE functional HPO redesign
+  (`HPOProblemWrapper`, `HPOProblemConfig`, `HPOFitnessMonitor`/`HPOMonitor`,
+  `HPSlot`, `random_search`) — NOT an `evox_etl` `Problem`, so it cannot be the
+  outer problem of a `StdWorkflow`; it builds/runs a fresh inner `StdWorkflow`
+  per candidate in plain host Python (ETL has no eager mode and cannot nest
+  `etl.run` in a trace). See the module docstring for the precise limitations.
 
 ## Notes for Agents
 - cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/`
   — numpy allowed ONLY for loading that data; bake it as constant tensors (closure).
-- **Test suite** (131 tests, GREEN on the numpy backend) lives at `tests/` inside
+- **Test suite** (131 numerical tests + the 51 relocated neuroevolution
+  virtual-problem tests, GREEN on the numpy backend) lives at `tests/` inside
   this node (pure-etl + torch parity under `tests/parity/`). Canonical home is
   the sibling `../../../unit_test/etl/problems/` — this node has no write access
   to siblings, so the parent must relocate the files (they are relocate-ready:
@@ -88,11 +103,18 @@ Hit while porting the numerical problems; all worked around in this node (see
     `etl.run(exe, *args)` with ALL positional args, static ones included).
     `etl.evaluate` rejects static args entirely (configs must go through
     `etl.build`).
+11. **etl operators reject numpy scalars as operands** — `x / np.float32(2.0)`
+    raises `TypeError: ... numpy scalars/arrays are not Python scalars` (etl
+    only accepts SymbolicTensor or Python `bool`/`int`/`float`/`complex` as
+    operands). Repro: `etl.build(lambda x: x / np.float32(2.0),
+    TensorSpec((4,), np.float32))`. Workaround: pass a Python float (`x / 2.0`).
 
 ## Routing Table
 | Area | Path | Notes |
 |---|---|---|
 | Numerical problems (basic, dtlz, cec2022, state) | `numerical/` | single subpackage; owns `ProblemState` |
+| Neuroevolution (virtual Gaussian-noise problem) | `neuroevolution/` | payload protocol `(center_flat, seeds, sigma)`; shared `ProblemState`; see `neuroevolution/CONTEXT.md` |
+| HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`) + `random_search`; plain host Python, no traced nested workflow |
 | Test suite (relocate-ready) | `tests/` | in-node copy; canonical home is the sibling unit_test dir — parent relocates |
 | Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — write access requires parent |
 | Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |

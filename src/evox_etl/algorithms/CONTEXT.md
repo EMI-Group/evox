@@ -20,7 +20,7 @@ generation) + frozen config dataclasses. See `../../DESIGN.md` §4-5 and
 |---|---|
 | DE variants (code, de, jade, ode, sade, shade) | `so/de_variants/` |
 | ES variants (adam_step, ars, asebo, cma_es, des, esmc, guided_es, nes, noise_reuse_es, open_es, persistent_es, snes, sort_utils) | `so/es_variants/` |
-| ~~virtual_lora_es~~ — **SKIP: not portable** (needs torch Philox `philox_normal(seeds, n, counter)` counter-stream PRNG, LoRA factor utilities, and a tuple-payload `evaluate` protocol hard-coded in torch `StdWorkflow`; etl.random is key/split-only and the binding spec is tensor-only `(n, dim)`) | — |
+| Virtual ES family (virtual_es, virtual_lora_es, virtual_noise, _virtual_common) | `so/es_variants/` | O(dim) center+seeds virtual-population ES: `VirtualES`/`VirtualLoRAES` + `make_virtual_es` (virtual_es.py), the DISTINCT low-rank `VirtualLoRAESConfig` + `make_virtual_lora_es` (virtual_lora_es.py), and the shared deterministic noise generator (virtual_noise.py) |
 | PSO variants (clpso, cso, dms_pso_el, fs_pso, pso, sl_pso_gs, sl_pso_us, utils) | `so/pso_variants/` |
 | MO algorithms (nsga2, nsga3, moead, rvea, rveaa, hype) | `mo/` |
 | Shared config-constructor helpers (`to_float_tuple`, `normalize_bounds`, `require_gt`/`require_ge`/`require_between`/`require_choice`, `bake_float32_constant`, `bake_bounds`) | `_config_utils.py` |

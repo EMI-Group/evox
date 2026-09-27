@@ -1,4 +1,4 @@
-"""Numerical benchmark problems in functional style (etl).
+"""Benchmark problems in functional style (etl).
 
 Port of ``src/evox/problems/numerical/`` (torch evox, read-only reference) onto
 the ETL tensor library. Problems are plain functions (traced by the workflow)
@@ -8,11 +8,18 @@ problems share the empty frozen :class:`ProblemState`.
 
 Export surface mirrors torch evox's ``evox.problems.numerical`` plus
 ``Zakharov``/``Levy`` (and their plain ``*_func`` helpers, present in torch
-basic.py but not re-exported there) and :class:`ProblemState`.
+basic.py but not re-exported there) and :class:`ProblemState`. The
+:mod:`~evox_etl.problems.neuroevolution` subpackage (virtual Gaussian-noise ES
+problem) is exported here too, exposing its :class:`VirtualProblem` /
+:class:`VirtualLoRAProblem` aliases. The host-side hyperparameter-optimization
+wrapper lives in :mod:`~evox_etl.problems.hpo_wrapper`, also re-exported here
+(:class:`HPOProblemWrapper`, :class:`HPSlot`, the HPO monitor configs and
+:func:`random_search`).
 """
 
 __all__ = [
     "numerical",
+    "neuroevolution",
     "basic",
     "cec2022",
     "dtlz",
@@ -44,9 +51,21 @@ __all__ = [
     "zakharov_func",
     "levy_func",
     "ProblemState",
+    "VirtualProblem",
+    "VirtualLoRAProblem",
+    "hpo_wrapper",
+    "HPSlot",
+    "HPOFitnessMonitorConfig",
+    "HPOMonitor",
+    "HPOFitnessMonitor",
+    "HPOProblemConfig",
+    "HPOProblemWrapper",
+    "random_search",
 ]
 
 from . import numerical
+from . import neuroevolution
+from . import hpo_wrapper
 from .numerical import basic, cec2022, dtlz
 from .numerical.basic import (
     Ackley,
@@ -72,3 +91,13 @@ from .numerical.basic import (
 from .numerical.cec2022 import CEC2022
 from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
+from .neuroevolution import VirtualLoRAProblem, VirtualProblem
+from .hpo_wrapper import (
+    HPOFitnessMonitor,
+    HPOFitnessMonitorConfig,
+    HPOMonitor,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)
