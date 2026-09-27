@@ -213,16 +213,22 @@ shared evox venv; no GPU here).
 - **Sibling smoke (no torch)**: `unit_test/etl/algorithms/so/es_variants/test_*.py`
   — 22 tests, green; driven by `unit_test/etl/algorithms/helpers.py`.
 - **Sibling parity (torch)**: `unit_test/etl/algorithms/parity/test_cma_es.py`
-  (+ `test_open_es.py`). `test_cma_es.py` FAILS on both parametrizations for an
-  ENVIRONMENT reason, not a port defect: `CMAES.step` → `_conditional_decomposition`
-  calls `torch.cond(...)`, which under torch 2.12.1 raises
-  `UncapturedHigherOrderOpError` while capturing `_no_decomposition` (it touches
-  `self.B.T`) — the torch side dies at `workflow.init_step()` before any etl code
-  runs. The etl side is already correct and now converges BETTER than torch (Design
-  Decisions 3). Fixing that sibling file needs: since `decomp_per_iter == 1` for its
-  configs (`iteration % 1 == 0` is always true, so `_decomposition` is always the
-  taken branch), monkeypatch `CMAES._conditional_decomposition` to
+  (+ `test_open_es.py`), the sole red tests of the etl suite here. `test_cma_es.py`
+  fails BOTH parametrizations for an ENVIRONMENT reason on the TORCH side, not a
+  port defect, and this node cannot edit that sibling file (write scope — escalate
+  to the parent agent): `CMAES.step` → `_conditional_decomposition` calls
+  `torch.cond(...)`, which under torch 2.12.1 raises `UncapturedHigherOrderOpError`
+  while capturing the **`_decomposition`** branch — its first line
+  `C = (C + C.T) / 2` takes a transposed VIEW of the cond operand, dynamo lifts that
+  view as a second graph input aliasing the operand, and HOP tracing rejects
+  input-to-input aliasing (a later clone inside the branch does NOT help). The torch
+  side dies at `workflow.init_step()` before any etl code runs. The etl side is
+  correct and converges BETTER than torch (Design Decisions 3). Fix: on this file's
+  configs `decomp_per_iter == 1`, so `_decomposition` is always the taken branch —
+  monkeypatch `CMAES._conditional_decomposition` to
   `lambda self, iteration, C: self._decomposition(C)`, guarded by
-  `assert int(alg.decomp_per_iter) == 1` — mathematically identical. This node cannot
-  edit that sibling file (write scope); the same pattern is already used in
-  `tests/parity/test_parity.py`.
+  `assert int(alg.decomp_per_iter) == 1`, which is mathematically identical and
+  drives both parametrizations green (torch 5.06529 / 5.64848 vs etl 3.96482 /
+  2.59804, seeds 0 / 1). The same monkeypatch pattern is already used in
+  `tests/parity/test_parity.py`; the full write-up lives in
+  `unit_test/etl/algorithms/parity/CONTEXT.md` (Known Issues).
