@@ -8,11 +8,12 @@ ES problem that evaluates a population of perturbed networks WITHOUT receiving a
 regenerates each individual's weight/bias noise on demand from its seed.
 `virtual_problem.py` is a frozen config dataclass + plain module-level
 `make_virtual_problem` + plain module-level `evaluate(config, problem_state,
-payload)` (NO `@etl.defn` — DESIGN §4.3). The torch `VirtualProblem` and
-`VirtualLoRAProblem` classes are unified here behind the `lora_rank` config field;
-the other torch neuroevolution problems (brax, mujoco_playground,
-supervised_learning, virtual_lora) are NOT ported (external-library dependent —
-reported to root, see `../CONTEXT.md`).
+payload)` (NO `@etl.defn` — DESIGN §4.3). The torch `VirtualProblem` class and the
+distinct `virtual_lora_problem.py` low-rank forward are unified here behind the
+`lora_rank` config field (torch's public `VirtualLoRAProblem` export is itself an
+alias of `VirtualProblem`); the other torch neuroevolution problems (brax,
+mujoco_playground, supervised_learning) are NOT ported (external-library
+dependent — reported to root, see `../CONTEXT.md`).
 
 ## API Surface
 - `VirtualProblemConfig` (`= VirtualProblem`, `= VirtualLoRAProblem`): frozen,

@@ -9,9 +9,10 @@ functions in etl style — no classes, no OOP; the workflow traces them (per
 
 Beyond numerical, the neuroevolution virtual Gaussian-noise ES problem is ported
 in `neuroevolution/` (unifying the torch `VirtualProblem`/`VirtualLoRAProblem`
-behind `lora_rank`). NOT ported (external-library dependent — reported to root):
-the remaining neuroevolution problems (brax, mujoco_playground,
-supervised_learning), hpo_wrapper.
+behind `lora_rank`; details in `neuroevolution/CONTEXT.md`), and the HPO wrapper
+is ported as a HOST-SIDE redesign in `hpo_wrapper.py` (see below). NOT ported
+(external-library dependent — reported to root): the remaining neuroevolution
+problems (brax, mujoco_playground, supervised_learning).
 
 ## API Surface
 - **Uniform problem signature**: `evaluate(config, problem_state, pop) ->
@@ -39,6 +40,12 @@ supervised_learning), hpo_wrapper.
   `neuroevolution` subpackage and its `VirtualProblem`/`VirtualLoRAProblem`
   aliases (the generic `evaluate`/`make_virtual_problem` are intentionally NOT
   hoisted to package level — name clash with the numerical `evaluate`).
+- **HPO wrapper** (`hpo_wrapper.py`) is a HOST-SIDE functional HPO redesign
+  (`HPOProblemWrapper`, `HPOProblemConfig`, `HPOFitnessMonitor`/`HPOMonitor`,
+  `HPSlot`, `random_search`) — NOT an `evox_etl` `Problem`, so it cannot be the
+  outer problem of a `StdWorkflow`; it builds/runs a fresh inner `StdWorkflow`
+  per candidate in plain host Python (ETL has no eager mode and cannot nest
+  `etl.run` in a trace). See the module docstring for the precise limitations.
 
 ## Notes for Agents
 - cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/`
@@ -107,6 +114,7 @@ Hit while porting the numerical problems; all worked around in this node (see
 |---|---|---|
 | Numerical problems (basic, dtlz, cec2022, state) | `numerical/` | single subpackage; owns `ProblemState` |
 | Neuroevolution (virtual Gaussian-noise problem) | `neuroevolution/` | payload protocol `(center_flat, seeds, sigma)`; shared `ProblemState`; see `neuroevolution/CONTEXT.md` |
+| HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`) + `random_search`; plain host Python, no traced nested workflow |
 | Test suite (relocate-ready) | `tests/` | in-node copy; canonical home is the sibling unit_test dir — parent relocates |
 | Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — write access requires parent |
 | Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |

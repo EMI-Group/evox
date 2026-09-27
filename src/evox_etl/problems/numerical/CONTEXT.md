@@ -3,7 +3,7 @@
 ## Intent
 Functional-ETL port of the torch evox numerical problems (`../../../evox/problems/numerical/`, read-only reference), math mirrored 1:1. Each problem is a frozen config dataclass + plain module-level `evaluate(config, problem_state, pop) -> (fitness, problem_state)` (PLAIN functions, NO `@etl.defn` — DESIGN §4.3). DTLZ adds `pf(config)` reference-Pareto-front functions. Numerical problems are stateless: they share the empty frozen `ProblemState` (`state.py`); the uniform signature is kept anyway.
 
-NOT ported (external-library dependent — reported to root): neuroevolution problems (brax, mujoco_playground, supervised_learning, virtual_lora), hpo_wrapper.
+NOT ported (external-library dependent — reported to root): the brax, mujoco_playground and supervised_learning neuroevolution problems. The virtual Gaussian-noise problem (`../neuroevolution/`) and the host-side `hpo_wrapper` ARE ported — see `../CONTEXT.md`.
 
 ## API Surface
 - `basic.py`: 10 configs (`ShiftAffineNumericalProblem`, `Ackley(a=20.0, b=0.2, c=2π)`, `Griewank`, `Rastrigin`, `Rosenbrock`, `Schwefel`, `Sphere`, `Ellipsoid`, `Zakharov`, `Levy` — shift/affine numpy-array fields) + 9 `*_func`s (torch signatures) + module-level `evaluate` dispatching statically on config type. NO boundary handling (raw math — matches torch).
