@@ -57,5 +57,38 @@ suite outside this directory — see "See also".
   80-200 gens); the whole `unit_test/etl/algorithms` suite measured ~9.5 min on
   a heavily loaded host (idle is faster).
 
+## Known Issues
+- `test_cma_es.py::test_cma_es_parity[0]` and `[1]` FAIL on this machine for an
+  ENVIRONMENTAL reason on the TORCH side — not an etl port defect. `CMAES.step`
+  → `_conditional_decomposition` (`src/evox/algorithms/so/es_variants/cma_es.py`
+  ~line 152) calls `torch.cond(...)`; under the installed torch 2.12.1
+  (+cu130, Python 3.13) that raises
+  `torch._dynamo.exc.UncapturedHigherOrderOpError` — "Encountered aliasing during
+  higher order op tracing ... Input-to-input aliasing detected at nodes
+  `l_args_3_0_` and `getattr_1`" — while capturing the `_decomposition` branch,
+  whose first line `C = (C + C.T) / 2` takes a transposed VIEW of the cond
+  operand; dynamo lifts that view as a second graph input aliasing the operand
+  and HOP tracing rejects input-to-input aliasing (cloning later inside the
+  branch does NOT help — the alias is on the branch inputs). The torch side dies
+  at `workflow.init_step()`, before any etl code runs.
+  Repro: `python -m pytest unit_test/etl/algorithms/parity/test_cma_es.py -q`
+  → 2 failed; whole directory → 2 failed, 9 passed.
+- A remedy touches ONLY the torch-side instantiation, never the etl port: on this
+  file's configs `decomp_per_iter == 1`, so `iteration % 1 == 0` is always true
+  and `_decomposition` is always the taken branch, so monkeypatching
+  `CMAES._conditional_decomposition = lambda self, iteration, C: self._decomposition(C)`
+  (guarded by `assert int(alg.decomp_per_iter) == 1`; same pattern as
+  `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py`) is
+  mathematically identical and drives both parametrizations green: torch best
+  5.06529 / 5.64848 vs etl best 3.96482 / 2.59804 for seeds 0 / 1, n_gens 80.
+  The file's own tunings (sigma=5.0, dim 40, N_GENS=80, `torch_best <
+  0.5*INITIAL_FITNESS`) hold either way; the etl side is correct (true
+  `torch.outer(p_c, p_c)` rank-one update) and converges better than torch.
+
+## See also (outside this directory — read-only from here)
+| Area | Path | Description |
+|---|---|---|
+| ES-variant STATE parity vs torch | `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py` | 3 tests: ASEBO (state parity + subspace block on a constructed well-posed X), ARS odd `pop_size=5, elite_ratio=0.9`, CMA-ES 2-step state parity — identical noise injected on both sides. Run `python -m pytest src/evox_etl/algorithms/so/es_variants/tests -q`. STATE-level equality, complementary to this directory's convergence-level checks; `tests/` is gitignored there (force-add). |
+
 ## Run (deterministic)
   `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/algorithms/parity -q`
