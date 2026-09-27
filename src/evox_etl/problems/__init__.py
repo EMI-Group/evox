@@ -1,4 +1,4 @@
-"""Numerical benchmark problems in functional style (etl).
+"""Benchmark problems in functional style (etl).
 
 Port of ``src/evox/problems/numerical/`` (torch evox, read-only reference) onto
 the ETL tensor library. Problems are plain functions (traced by the workflow)
