@@ -129,6 +129,12 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   contribution; `pop_size` is a Python int in the first call and a scalar
   tensor in the merged call) and the merged-batch truncation by
   `lexsort([-dis, rank])[:pop_size]`.
+- NSGA3's environmental selection ends in module-level
+  `_final_survivors(merge_pop, merge_fit, rank, worst_rank, pop_size)`: it
+  keeps the `pop_size` rows with `rank < worst_rank` ordered by POSITION in
+  the shuffled merge arrays, matching torch's mask selection
+  `merge_pop[rank < worst_rank]` (an ascending-rank sort would give the same
+  SET in a different order).
 
 ## Known Issues
 - **NSGA3 with odd `pop_size` raises ShapeError at trace time** (`gather:
