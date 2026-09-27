@@ -11,7 +11,10 @@ Export surface mirrors torch evox's ``evox.problems.numerical`` plus
 basic.py but not re-exported there) and :class:`ProblemState`. The
 :mod:`~evox_etl.problems.neuroevolution` subpackage (virtual Gaussian-noise ES
 problem) is exported here too, exposing its :class:`VirtualProblem` /
-:class:`VirtualLoRAProblem` aliases.
+:class:`VirtualLoRAProblem` aliases. The host-side hyperparameter-optimization
+wrapper lives in :mod:`~evox_etl.problems.hpo_wrapper`, also re-exported here
+(:class:`HPOProblemWrapper`, :class:`HPSlot`, the HPO monitor configs and
+:func:`random_search`).
 """
 
 __all__ = [
@@ -50,9 +53,19 @@ __all__ = [
     "ProblemState",
     "VirtualProblem",
     "VirtualLoRAProblem",
+    "hpo_wrapper",
+    "HPSlot",
+    "HPOFitnessMonitorConfig",
+    "HPOMonitor",
+    "HPOFitnessMonitor",
+    "HPOProblemConfig",
+    "HPOProblemWrapper",
+    "random_search",
 ]
 
 from . import numerical
+from . import neuroevolution
+from . import hpo_wrapper
 from .numerical import basic, cec2022, dtlz
 from .numerical.basic import (
     Ackley,
@@ -78,5 +91,13 @@ from .numerical.basic import (
 from .numerical.cec2022 import CEC2022
 from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
-from . import neuroevolution
 from .neuroevolution import VirtualLoRAProblem, VirtualProblem
+from .hpo_wrapper import (
+    HPOFitnessMonitor,
+    HPOFitnessMonitorConfig,
+    HPOMonitor,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)

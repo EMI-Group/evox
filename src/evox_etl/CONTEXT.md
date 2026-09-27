@@ -13,11 +13,14 @@ compile-once StdWorkflow loop.
 ## API Surface
 - `evox_etl.core`: `Algorithm`/`Problem`/`Monitor` protocols (duck-typed), `StdWorkflow`,
   `WorkflowState`, state helpers.
-- `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
+- `evox_etl.algorithms`: SO (de/es/pso variants, incl. the training-free `virtual_es`/
+  `virtual_lora_es` family) + MO (nsga2, nsga3, moead, rvea,
   rveaa, hype) — each module = config dataclass + `make_*` constructor +
   `init`/`init_step`/`step` plain functions (step protocol, see
-  `core/algorithm.py`). The virtual-population ES family adds `virtual_es.py`
-  (`VirtualES`/`VirtualLoRAES` + `make_virtual_es`), the distinct low-rank
+  `core/algorithm.py`). Public surface mirrors torch: `VirtualES`/`VirtualLoRAES`
+  are the bare torch names (both alias the VirtualES config), the distinct low-rank
+  config is `VirtualLoRAESConfig`. The virtual-population ES family adds
+  `virtual_es.py` (`VirtualES`/`VirtualLoRAES` + `make_virtual_es`),
   `virtual_lora_es.py` (`VirtualLoRAESConfig` + `make_virtual_lora_es`) and the
   shared deterministic-noise module `virtual_noise.py`.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
@@ -25,9 +28,9 @@ compile-once StdWorkflow loop.
 - `evox_etl.problems.neuroevolution`: `VirtualProblem`/`VirtualLoRAProblem`
   (unified behind `lora_rank`) + `make_virtual_problem` + `evaluate`
   (payload protocol `(center_flat, seeds, sigma)`).
-- `evox_etl.problems.hpo_wrapper`: host-side HPO — `HPOProblemWrapper` +
-  `HPOProblemConfig` + `HPOFitnessMonitor`/`HPOMonitor` + `HPSlot` +
-  `random_search` (NOT an `evox_etl` `Problem`).
+- `evox_etl.problems.hpo_wrapper`: HOST-side HPO (`HPOProblemWrapper`, `HPSlot`,
+  HPO monitor configs, `random_search`) — re-exported from `evox_etl.problems`
+  (NOT an `evox_etl` `Problem`).
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
 - `evox_etl.utils`: tree helpers, min_by, dominate_relation, pairwise distances,
   parse_opt_direction, rank.
@@ -52,10 +55,11 @@ compile-once StdWorkflow loop.
 | Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
 | Neuroevolution problems | `problems/neuroevolution/` | VirtualProblem/VirtualLoRAProblem (virtual Gaussian-noise payload); see `problems/neuroevolution/CONTEXT.md` |
-| HPO wrapper (host-side) | `problems/hpo_wrapper.py` | HPOProblemWrapper (NOT a `Problem`) + random_search; plain host Python |
+| HPO wrapper (host-side) | `problems/hpo_wrapper.py` | HPOProblemWrapper/HPSlot/random_search (NOT a `Problem`); numpy host-side only |
 | Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
 | Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
 | Utilities | `utils/` | functional helpers |
+| End-to-end tests | `tests/` | real-algorithm convergence tests; `.gitignore`d, stage with `git add -f` |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |

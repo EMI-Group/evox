@@ -165,3 +165,16 @@ def step(
     flat_grad = etl.concatenate(parts, axis=0)
 
     return update_center(config, state, flat_grad, fitness, seeds, key)
+
+
+def monitor_candidate(payload: tuple[Tensor, Tensor, float]) -> Tensor:
+    """Map the ``(center, seeds, sigma)`` evaluate payload onto the monitor candidate.
+
+    Same hook as :func:`evox_etl.algorithms.so.es_variants.virtual_es.monitor_candidate`:
+    the :class:`~evox_etl.workflows.EvalMonitorConfig` needs a ``(pop_size, dim)``
+    tensor, but the low-rank algorithm only owns a ``(dim,)`` center, so the
+    center is broadcast to ``(pop_size, dim)``. Only invoked when a monitor is
+    configured.
+    """
+    center, seeds, _ = payload
+    return enp.broadcast_to(center, (int(seeds.shape[0]), int(center.shape[0])))

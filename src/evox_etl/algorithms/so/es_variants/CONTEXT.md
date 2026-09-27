@@ -114,7 +114,11 @@ Box-Muller generator whose cumulative per-block offsets make
   for `_discover_pop_size`/monitor completion; `init`/`step` recompute it with
   `param_dim`.
 - No `init_step`/`final_step`/`record_step` (torch VirtualES has none; the
-  workflow falls back to `step`).
+  workflow falls back to `step`). Both virtual modules DO define the optional
+  `monitor_candidate(payload) -> (pop_size, dim)` hook (the workflow's monitor
+  bridge), which broadcasts the `(dim,)` center to the `(pop_size, dim)` candidate
+  the `EvalMonitorConfig` concatenates with its elite buffer; it is only called
+  when a monitor is configured, so the monitor-less hot path stays O(dim).
 
 ## Routing Table
 | Area | Path |

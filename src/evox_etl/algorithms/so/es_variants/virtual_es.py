@@ -153,6 +153,22 @@ def step(
     return update_center(config, state, flat_grad, fitness, seeds, key)
 
 
+def monitor_candidate(payload: tuple[Tensor, Tensor, float]) -> Tensor:
+    """Map the ``(center, seeds, sigma)`` evaluate payload onto the monitor candidate.
+
+    The :class:`~evox_etl.workflows.EvalMonitorConfig` (SO path) concatenates the
+    candidate with its ``(topk, dim)`` elite buffer, so it needs a ``(pop_size,
+    dim)`` tensor. VirtualES never materialises that population — the only
+    solution it owns is the ``(dim,)`` center — so the monitor is fed the center
+    broadcast to ``(pop_size, dim)`` (every row is the same center, while the
+    per-individual fitness still comes from the perturbed draws). This hook is
+    only invoked when a monitor is configured, so the monitor-less path stays
+    O(dim).
+    """
+    center, seeds, _ = payload
+    return enp.broadcast_to(center, (int(seeds.shape[0]), int(center.shape[0])))
+
+
 # Torch parity: `virtual_es.py:122` ends with the alias `VirtualLoRAES = VirtualES`.
 # The evox_etl algorithm handle IS its config dataclass, so `VirtualES` here is
 # the VirtualES config; the DISTINCT low-rank port lives in `virtual_lora_es.py`

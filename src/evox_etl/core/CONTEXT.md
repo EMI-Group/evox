@@ -2,7 +2,8 @@
 
 ## Intent
 The functional foundation of evox_etl: duck-typed protocol documentation (Algorithm:
-STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step`, with a
+STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step`/
+`monitor_candidate`, with a
 workflow-injected `evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor:
 `monitor_update` (+ optional `init`/`record_auxiliary`)), state helpers
 (`replace`/`get_nested`/`set_nested` + etl tree
@@ -25,6 +26,13 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `record_auxiliary(config, aux) -> None` — both PLAIN module-level HOST-SIDE functions
   (NOT `@etl.defn`, never called inside a trace; no `__all__` entry, they are Protocol
   methods).
+- Optional monitor-candidate hook (also detected via `getattr`, called INSIDE the
+  trace): algorithm `monitor_candidate(candidates) -> tensor`. Default = identity,
+  so a `(pop_size, dim)` tensor candidate reaches `monitor_update` unchanged; it
+  exists for algorithms that hand `evaluate` a non-tensor payload (the virtual
+  ES family passes a `(center, seeds, sigma)` tuple — its hook broadcasts the
+  `(dim,)` center to the `(pop_size, dim)` the monitor concatenates). Only invoked
+  when a monitor is configured.
 - `workflow.py`: `EmptyState`, `WorkflowState(algorithm_state, problem_state,
   monitor_state, generation [0-d int32], key [0-d int64])` (both frozen dataclasses)
   and `StdWorkflow` (plain class).
@@ -64,7 +72,8 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   inside the step graph. Pipeline per call: solution_transform → `problem.evaluate`
   (threads problem state) → opt-direction scaling (min semantics, baked f32
   constant, scalar () or (m,)) → fitness_transform → `monitor_update` (threads
-  monitor state; receives RAW candidates + TRANSFORMED fitness — the torch
+  monitor state; receives `monitor_candidate(candidates)` — identity unless the
+  algorithm module defines the hook — + TRANSFORMED fitness — the torch
   post_ask/pre_tell semantics). Algorithms treat it as fully opaque: pass whatever
   tensor/pytree the candidates are, get transformed fitness back; do NOT store or
   re-thread it. The workflow keeps the problem/monitor state of the LAST evaluate
