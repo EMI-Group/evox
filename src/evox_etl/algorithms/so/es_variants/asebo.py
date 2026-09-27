@@ -247,3 +247,25 @@ def step(
         exp_avg_sq=exp_avg_sq,
         best_fitness=best_fitness,
     )
+
+
+def record_step(
+    config: ASEBOConfig,
+    state: ASEBOState,
+    candidate: SymbolicTensor | None,
+    fitness: SymbolicTensor | None,
+) -> dict[str, SymbolicTensor]:
+    """Host-side auxiliary-history hook (mirrors torch ``ASEBO.record_step``).
+
+    Runs OUTSIDE any traced graph on the CONCRETE post-step state; ``candidate``
+    and ``fitness`` are accepted for signature parity with the other algorithms
+    and ignored (torch ignores them too).  Returns the current search
+    distribution as ``{"center": state.center, "sigma": state.sigma, "alpha":
+    state.alpha}``, which the workflow forwards to the monitor's
+    ``record_auxiliary`` hook.
+    """
+    return {
+        "center": state.center,
+        "sigma": state.sigma,
+        "alpha": state.alpha,
+    }

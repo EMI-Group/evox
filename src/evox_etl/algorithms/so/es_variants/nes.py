@@ -388,3 +388,28 @@ def step(
     if isinstance(config, SeparableNESConfig):
         return _sn_step(config, state, evaluate)
     raise TypeError(f"Unknown NES config type: {type(config)!r}")
+
+
+def record_step(
+    config: Any, state: Any, candidate: Any, fitness: Any
+) -> dict[str, Any]:
+    """Dispatch the host-side auxiliary-history hook on the (static) config type.
+
+    Runs OUTSIDE any traced graph on the CONCRETE post-step state and mirrors
+    the torch per-class ``record_step`` methods (this module hosts both
+    algorithms, so a single function dispatches with ``isinstance``, exactly as
+    ``init``/``step`` do above).  ``candidate``/``fitness`` are accepted for
+    signature parity with the other algorithms and ignored (torch ignores them
+    too).
+
+    - xNES -> ``{"mean": state.mean, "sigma": state.sigma, "B": state.B}``
+    - SeparableNES -> ``{"mean": state.mean, "sigma": state.sigma}``
+
+    The returned dict is forwarded by the workflow to the monitor's
+    ``record_auxiliary`` hook.
+    """
+    if isinstance(config, XNESConfig):
+        return {"mean": state.mean, "sigma": state.sigma, "B": state.B}
+    if isinstance(config, SeparableNESConfig):
+        return {"mean": state.mean, "sigma": state.sigma}
+    raise TypeError(f"Unknown NES config type: {type(config)!r}")
