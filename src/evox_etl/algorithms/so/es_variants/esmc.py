@@ -155,3 +155,18 @@ def step(
         exp_avg_sq=exp_avg_sq,
         best_fitness=best_fitness,
     )
+
+
+def record_step(
+    config: ESMCConfig,
+    state: ESMCState,
+    candidate: SymbolicTensor | None,
+    fitness: SymbolicTensor | None,
+) -> dict[str, SymbolicTensor]:
+    """Return the auxiliary-info dict recorded after this generation.
+
+    PLAIN host-side hook (NOT traced) mirroring torch ``ESMC.record_step``:
+    exposes the POST-step ``center`` and ``sigma`` carried in the state.
+    ``candidate``/``fitness`` are accepted but unused, as in the reference.
+    """
+    return {"center": state.center, "sigma": state.sigma}

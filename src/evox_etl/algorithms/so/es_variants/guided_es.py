@@ -189,3 +189,19 @@ def step(
         sigma=sigma,
         best_fitness=best_fitness,
     )
+
+
+def record_step(
+    config: GuidedESConfig,
+    state: GuidedESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Return the auxiliary-info dict recorded after this generation.
+
+    PLAIN host-side hook (NOT traced) mirroring torch ``GuidedES.record_step``:
+    exposes the POST-step ``center`` and ``sigma`` carried in the state. The
+    torch reference does NOT record ``alpha``, so it is omitted here too.
+    ``candidate``/``fitness`` are accepted but unused, as in the reference.
+    """
+    return {"center": state.center, "sigma": state.sigma}

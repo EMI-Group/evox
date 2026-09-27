@@ -157,3 +157,18 @@ def step(
     sigma = state.sigma * etl.exp(lrate_sigma / 2 * grad_sigma)
     best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
     return replace(state, center=center, sigma=sigma, best_fitness=best_fitness)
+
+
+def record_step(
+    config: SNESConfig,
+    state: SNESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Return the auxiliary-info dict recorded after this generation.
+
+    PLAIN host-side hook (NOT traced) mirroring torch ``SNES.record_step``:
+    exposes the POST-step ``center`` and ``sigma`` carried in the state.
+    ``candidate``/``fitness`` are accepted but unused, as in the reference.
+    """
+    return {"center": state.center, "sigma": state.sigma}

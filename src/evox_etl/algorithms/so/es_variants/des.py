@@ -126,3 +126,18 @@ def step(
     sigma = state.sigma + 0.1 * (weight_sigma - state.sigma)
     best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
     return replace(state, center=center, sigma=sigma, best_fitness=best_fitness)
+
+
+def record_step(
+    config: DESConfig,
+    state: DESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Return the auxiliary-info dict recorded after this generation.
+
+    PLAIN host-side hook (NOT traced) mirroring torch ``DES.record_step``:
+    exposes the POST-step ``center`` and ``sigma`` carried in the state.
+    ``candidate``/``fitness`` are accepted but unused, as in the reference.
+    """
+    return {"center": state.center, "sigma": state.sigma}
