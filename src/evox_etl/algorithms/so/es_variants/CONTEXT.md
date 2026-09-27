@@ -53,15 +53,18 @@ mirroring torch's shadowing of the distinct low-rank class; the low-rank config 
 `VirtualLoRAESConfig`).
 
 ## Config construction (make_* constructors)
-- All 12 configs are dumb frozen dataclasses with NO `__post_init__` (11 files;
-  nes.py holds XNESConfig + SeparableNESConfig). Array fields store flat tuples of
-  f32-rounded Python floats; nes.py `init_covar` stays a nested tuple-of-tuples
-  (small local `_to_float_matrix` — the flat helper cannot express nesting).
-- 12 module-level constructors live in the same module as their config and are
+- All 14 configs are dumb frozen dataclasses with NO `__post_init__` (13 files;
+  nes.py holds XNESConfig + SeparableNESConfig, virtual_es.py/virtual_lora_es.py
+  the virtual family). Array fields store flat tuples of f32-rounded Python floats
+  (`param_shapes` is a tuple of int tuples); nes.py `init_covar` stays a nested
+  tuple-of-tuples (small local `_to_float_matrix` — the flat helper cannot express
+  nesting).
+- 14 module-level constructors live in the same module as their config and are
   exported from `es_variants/__init__.py`: make_cma_es (cma_es.py), make_open_es,
   make_ars, make_snes (snes.py), make_des (des.py), make_xnes +
   make_separable_nes (nes.py), make_guided_es, make_noise_reuse_es,
-  make_persistent_es, make_esmc, make_asebo. Param names/defaults = the torch
+  make_persistent_es, make_esmc, make_asebo, make_virtual_es (virtual_es.py),
+  make_virtual_lora_es (virtual_lora_es.py). Param names/defaults = the torch
   `__init__` kwargs (minus device).
 - Shared host-side helpers live in `../_config_utils.py` (`to_float_tuple`,
   `bake_float32_constant`, `require_gt/ge/between/choice`); validation raises
