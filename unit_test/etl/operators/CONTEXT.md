@@ -22,9 +22,11 @@ Run: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/opera
 | `test_selection.py` | tournament_selection, tournament_selection_multifit, select_rand_pbest (keyed random only) |
 | `test_crossover.py` | DE_differential_sum, DE_binary_crossover, DE_exponential_crossover, simulated_binary, simulated_binary_half |
 | `test_mutation.py` | polynomial_mutation |
+| `test_jit_fix_operator.py` | switch, clip, maximum_float, minimum_float (property tests: the trace-only jit-fix helpers) |
 | `parity/test_parity_sampling.py` | uniform_sampling (incl. h2 branch), grid_sampling |
 | `parity/test_parity_selection.py` | dominate_relation, non_dominate_rank, crowding_distance, nd_environmental_selection, apd_fn, ref_vec_guided |
 | `parity/test_parity_crossover.py` | DE_arithmetic_recombination (K scalar/(pop,)/(pop,1)) |
+| `parity/test_parity_jit_fix_operator.py` | switch (2/3/4 values), clip, maximum_float, minimum_float (vs torch, 1e-6) |
 | `parity/conftest.py` | idempotent sys.path shim (repo root found via pyproject.toml marker) |
 
 `__init__.py` in both `operators/` and `operators/parity/` makes each a

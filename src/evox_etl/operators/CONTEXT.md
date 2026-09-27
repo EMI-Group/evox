@@ -14,8 +14,9 @@ Porting rule (binding, see `../../DESIGN.md` §4.3):
 
 One exception to the "torch operators package" scope: `jit_fix_operator.py`
 lives here too. It ports the torch `evox/utils/jit_fix_operator.py` helpers
-(clamp/clamp_float/clamp_int, maximum/minimum(+`_int`), lexsort, nanmin/nanmax,
-key-first randint, `_take_along_axis`) that torch keeps under `evox/utils/` —
+(switch, clamp/clamp_float/clamp_int, clip, maximum/minimum(+`_int`/`_float`),
+lexsort, nanmin/nanmax, key-first randint, `_take_along_axis`) that torch keeps
+under `evox/utils/` —
 the torch algorithms call these instead of raw torch ops for JIT-operator-fusion
 safety, so the etl algorithm ports need them as well, and this package is their
 canonical operator-utility home. Like everything else here it is plain Python
@@ -57,7 +58,7 @@ Top-level `__init__.py` mirrors torch exactly:
 | Selection | `selection/` | non_dominate.py (dominate_relation, non_dominate_rank, crowding_distance, nd_environmental_selection), tournament_selection.py, find_pbest.py, rvea_selection.py |
 | Crossover | `crossover/` | differential_evolution.py, sbx.py, sbx_half.py |
 | Mutation | `mutation/` | pm_mutation.py |
-| Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (clamp family, maximum/minimum, lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
+| Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (switch, clamp family, clip, maximum/minimum(+`_int`/`_float`), lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
 | Tests (sibling) | `../unit_test/etl/operators/` | pending — root agent owns; see Test Strategy |
 
 ## Notes for Agents (cross-cutting etl gotchas)

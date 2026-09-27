@@ -17,7 +17,7 @@ other suites' `parity/` dirs.
 | `parity_common.py` | shared MO harness: DTLZ1 d=7/m=3/pop=100/seed=42/20 gens; `torch_reference()` (torch StdWorkflow+EvalMonitor, whole-history PF min) + `etl_run_with_history()` (step-protocol driver; the traced `evaluate` closure folds the per-objective min of every evaluated fitness batch inside the same trace); REL_MARGIN=1.1, ABS_TOL=0.05, MOEAD_ABS_TOL=0.20 |
 | `test_de_parity.py` | etl DE vs torch DE, Sphere dim 40, pop 100, 20 gens — MEDIAN best over seeds 0/1/2 within 1.1x + 1e-3 (single-seed 10% margins fail ~1/3 of runs by chance; 60-seed sweep mean ratio ~1.03, no systematic bias) |
 | `test_pso_parity.py` | etl PSO vs torch PSO, Sphere dim 40, pop 100, 100 gens — etl_best <= torch_best*1.5 + 1e-3 (fewer gens sit in a high-variance regime; at 100 gens both converge to single digits) |
-| `test_cma_es.py` | CMAES (sigma=5.0, pop_size auto=15), 80 gens, seeds 0/1 — etl_best <= torch_best*1.1 + 1e-3; torch side must also beat 0.5*initial-center fitness (~342) |
+| `test_cma_es.py` | CMAES (sigma=5.0, pop_size auto=15), 80 gens, seeds 0/1 — etl_best <= torch_best*1.1 + 1e-3; torch side must also beat 0.5*initial-center fitness (~342); torch side monkeypatches `CMAES._conditional_decomposition` (see Known Issues) |
 | `test_open_es.py` | OpenES (pop_size=64, lr=0.01, stdev=2.0, mirrored_sampling), 200 gens, optimizer None and "adam", seeds 0/1 |
 | `test_nsga2.py` | NSGA2 vs torch on DTLZ1 (parity_common setting) — final-pop min == history min (NSGA-II is elitist) |
 | `test_nsga3.py` | NSGA3 vs torch on DTLZ1 (same reasoning) |
@@ -58,32 +58,31 @@ suite outside this directory — see "See also".
   a heavily loaded host (idle is faster).
 
 ## Known Issues
-- `test_cma_es.py::test_cma_es_parity[0]` and `[1]` FAIL on this machine for an
-  ENVIRONMENTAL reason on the TORCH side — not an etl port defect. `CMAES.step`
-  → `_conditional_decomposition` (`src/evox/algorithms/so/es_variants/cma_es.py`
-  ~line 152) calls `torch.cond(...)`; under the installed torch 2.12.1
-  (+cu130, Python 3.13) that raises
-  `torch._dynamo.exc.UncapturedHigherOrderOpError` — "Encountered aliasing during
-  higher order op tracing ... Input-to-input aliasing detected at nodes
-  `l_args_3_0_` and `getattr_1`" — while capturing the `_decomposition` branch,
-  whose first line `C = (C + C.T) / 2` takes a transposed VIEW of the cond
-  operand; dynamo lifts that view as a second graph input aliasing the operand
-  and HOP tracing rejects input-to-input aliasing (cloning later inside the
-  branch does NOT help — the alias is on the branch inputs). The torch side dies
-  at `workflow.init_step()`, before any etl code runs.
-  Repro: `python -m pytest unit_test/etl/algorithms/parity/test_cma_es.py -q`
-  → 2 failed; whole directory → 2 failed, 9 passed.
-- A remedy touches ONLY the torch-side instantiation, never the etl port: on this
-  file's configs `decomp_per_iter == 1`, so `iteration % 1 == 0` is always true
-  and `_decomposition` is always the taken branch, so monkeypatching
-  `CMAES._conditional_decomposition = lambda self, iteration, C: self._decomposition(C)`
-  (guarded by `assert int(alg.decomp_per_iter) == 1`; same pattern as
-  `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py`) is
-  mathematically identical and drives both parametrizations green: torch best
-  5.06529 / 5.64848 vs etl best 3.96482 / 2.59804 for seeds 0 / 1, n_gens 80.
-  The file's own tunings (sigma=5.0, dim 40, N_GENS=80, `torch_best <
-  0.5*INITIAL_FITNESS`) hold either way; the etl side is correct (true
-  `torch.outer(p_c, p_c)` rank-one update) and converges better than torch.
+- `test_cma_es.py` monkeypatches the TORCH `CMAES._conditional_decomposition`
+  to `lambda self, iteration, C: self._decomposition(C)`, guarded by
+  `assert int(algorithm.decomp_per_iter) == 1` (same pattern as
+  `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py`).
+  The workaround exists because of an ENVIRONMENT / torch-version limitation of
+  `torch.cond`, NOT an etl port defect: under the installed torch 2.12.1
+  (+cu130, Python 3.13) `CMAES.step` → `_conditional_decomposition`
+  (`src/evox/algorithms/so/es_variants/cma_es.py` ~line 152) calls
+  `torch.cond(...)`, which raises `torch._dynamo.exc.UncapturedHigherOrderOpError`
+  — "Encountered aliasing during higher order op tracing ... Input-to-input
+  aliasing detected at nodes `l_args_3_0_` and `getattr_1`" — while capturing
+  the `_decomposition` branch, whose first line `C = (C + C.T) / 2` takes a
+  transposed VIEW of the cond operand; dynamo lifts that view as a second graph
+  input aliasing the operand and HOP tracing rejects input-to-input aliasing
+  (cloning later inside the branch does NOT help — the alias is on the branch
+  inputs). Without the monkeypatch the torch side dies at `workflow.init_step()`,
+  before any etl code runs.
+- The monkeypatch is mathematically identical for this file's configs:
+  `decomp_per_iter == 1` ⇒ `iteration % 1 == 0` is always true ⇒ `_decomposition`
+  is always the taken branch. It touches ONLY the torch-side instantiation, never
+  the etl port. With it both parametrizations pass (torch best 5.06529 / 5.64848
+  vs etl best 3.96482 / 2.59804 for seeds 0 / 1, n_gens 80), confirming the etl
+  side is correct (true `torch.outer(p_c, p_c)` rank-one update) and converges
+  better than torch. The underlying env limitation remains — the workaround is
+  needed on any torch version where `torch.cond` rejects this branch.
 
 ## See also (outside this directory — read-only from here)
 | Area | Path | Description |
