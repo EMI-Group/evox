@@ -13,12 +13,18 @@ compile-once StdWorkflow loop.
 ## API Surface
 - `evox_etl.core`: `Algorithm`/`Problem`/`Monitor` protocols (duck-typed), `StdWorkflow`,
   `WorkflowState`, state helpers.
-- `evox_etl.algorithms`: SO (de/es/pso variants) + MO (nsga2, nsga3, moead, rvea,
+- `evox_etl.algorithms`: SO (de/es/pso variants, incl. the training-free `virtual_es`/
+  `virtual_lora_es` family) + MO (nsga2, nsga3, moead, rvea,
   rveaa, hype) — each module = config dataclass + `make_*` constructor +
   `init`/`init_step`/`step` plain functions (step protocol, see
-  `core/algorithm.py`).
+  `core/algorithm.py`). Public surface mirrors torch: `VirtualES`/`VirtualLoRAES`
+  are the bare torch names (both alias the VirtualES config), the distinct low-rank
+  config is `VirtualLoRAESConfig`.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
-- `evox_etl.problems.numerical`: basic, dtlz, cec2022.
+- `evox_etl.problems.numerical`: basic, dtlz, cec2022. `evox_etl.problems.neuroevolution`:
+  the virtual Gaussian-noise problem (`VirtualProblem`/`VirtualLoRAProblem`).
+  `evox_etl.problems.hpo_wrapper`: HOST-side HPO (`HPOProblemWrapper`, `HPSlot`, HPO
+  monitor configs, `random_search`) — re-exported from `evox_etl.problems`.
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
 - `evox_etl.utils`: tree helpers, min_by, dominate_relation, pairwise distances,
   parse_opt_direction, rank.
