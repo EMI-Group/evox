@@ -3,7 +3,8 @@
 ETL-only, no torch. Checks the step-protocol gen-0 contract (``init_step``
 evaluates the FULL initial population, later ``step`` calls evaluate the
 offspring batch they generate), a 3-generation DTLZ1 run via
-``helpers.run_generations``, and seed determinism.
+``helpers.run_generations``, seed determinism, and custom-operator injection
+(``selection_op``/``mutation_op``/``crossover_op`` of ``make_rveaa``).
 """
 
 import pathlib
@@ -18,12 +19,16 @@ sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
 import numpy as np
+import pytest
 
 import etl
 import etl.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import rveaa
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
+from evox_etl.operators.selection import ref_vec_guided
 from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
@@ -36,13 +41,18 @@ N_EFF = 15
 N_OFFSPRING = 2 * (N_EFF // 2)
 
 
-def make_config():
-    """RVEAa config: 3 objectives, decision space [0, 1]^7."""
+def make_config(**op_kwargs):
+    """RVEAa config: 3 objectives, decision space [0, 1]^7.
+
+    ``op_kwargs`` forwards the optional ``selection_op``/``mutation_op``/
+    ``crossover_op`` custom operators to ``make_rveaa``.
+    """
     return rveaa.make_rveaa(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),
         ub=np.ones(DIM, dtype=np.float32),
+        **op_kwargs,
     )
 
 
@@ -79,12 +89,34 @@ def _trace_step(step_fn, cfg, state):
     return etl.run(exe, state), seen
 
 
-def test_init_step_full_population_and_step_offspring_shape():
-    cfg = make_config()
+def _init_state(cfg, seed=SEED):
+    """Build+run ``rveaa.init`` for ``cfg``; return the initial state."""
     key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
     init_exe = etl.build(rveaa.init, cfg, key_spec, backend="numpy")
-    state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
-    assert tuple(state.pop.shape) == (N_EFF, DIM)
+    return etl.run(init_exe, cfg, np.asarray(seed, dtype=np.int64))
+
+
+def _run_one_step(cfg, seed=SEED):
+    """Init then trace/run ONE ``rveaa.step`` (generation 1); return the state."""
+    state = _init_state(cfg, seed)
+    (state, _), _ = _trace_step(rveaa.step, cfg, state)
+    return state
+
+
+def _shifted_selection(x, f, v, theta):
+    """Contract-valid custom selection: default survivors shifted by 0.5.
+
+    ``ref_vec_guided`` returns one row per reference vector (NaN for empty
+    niches), so the shift preserves shape and NaN positions while changing the
+    survivors that flow into ``state.pop``.
+    """
+    survivor, survivor_fit = ref_vec_guided(x, f, v, theta)
+    return survivor + 0.5, survivor_fit
+
+
+def test_init_step_full_population_and_step_offspring_shape():
+    cfg = make_config()
+    state = _init_state(cfg)
 
     # Gen 0 (init_step) evaluates the FULL initial population (N_EFF rows —
     # the Das-Dennis count), not an offspring batch: one evaluate call on the
@@ -133,3 +165,88 @@ def test_full_run_deterministic():
         np.asarray(s1.pop.numpy()), np.asarray(s2.pop.numpy()),
         rtol=0.0, atol=0.0, equal_nan=True,
     )
+
+
+def test_custom_ops_are_invoked():
+    """A user-supplied op is actually called (not silently ignored).
+
+    The custom ops are plain Python functions executed during ``etl.build``
+    tracing; they record each call and delegate to the ETL defaults.
+    """
+    calls = {"selection": 0, "crossover": 0, "mutation": 0}
+
+    def my_selection(x, f, v, theta):
+        calls["selection"] += 1
+        return ref_vec_guided(x, f, v, theta)
+
+    def my_crossover(key, x):
+        calls["crossover"] += 1
+        return simulated_binary(key, x)
+
+    def my_mutation(key, x, lb, ub):
+        calls["mutation"] += 1
+        return polynomial_mutation(key, x, lb, ub)
+
+    cfg = make_config(
+        selection_op=my_selection,
+        crossover_op=my_crossover,
+        mutation_op=my_mutation,
+    )
+    _run_one_step(cfg)
+    assert calls["selection"] >= 1
+    assert calls["crossover"] >= 1
+    assert calls["mutation"] >= 1
+
+
+def test_default_and_explicit_none_are_identical():
+    """Explicit ``None`` op fields reproduce the no-custom-op default exactly."""
+    default = _run_one_step(make_config())
+    explicit_none = _run_one_step(
+        make_config(selection_op=None, mutation_op=None, crossover_op=None)
+    )
+    assert np.array_equal(
+        np.asarray(default.offspring.numpy()),
+        np.asarray(explicit_none.offspring.numpy()),
+    )
+
+
+def test_identity_mutation_changes_offspring():
+    """An identity mutation_op returns the SBX output verbatim, so the offspring
+    batch must differ from the default polynomial-mutation one (same seed)."""
+    default = _run_one_step(make_config())
+    identity = _run_one_step(make_config(mutation_op=lambda key, x, lb, ub: x))
+    assert not np.array_equal(
+        np.asarray(default.offspring.numpy()),
+        np.asarray(identity.offspring.numpy()),
+    )
+
+
+def test_identity_crossover_changes_offspring():
+    """An identity crossover_op skips SBX, changing the offspring batch."""
+    default = _run_one_step(make_config())
+    identity = _run_one_step(make_config(crossover_op=lambda key, x: x))
+    assert not np.array_equal(
+        np.asarray(default.offspring.numpy()),
+        np.asarray(identity.offspring.numpy()),
+    )
+
+
+def test_custom_selection_changes_population():
+    """A custom selection_op changes the survivors stored in ``state.pop``."""
+    default = _run_one_step(make_config())
+    custom = _run_one_step(make_config(selection_op=_shifted_selection))
+    d_pop = np.asarray(default.pop.numpy())
+    c_pop = np.asarray(custom.pop.numpy())
+    assert d_pop.shape == c_pop.shape
+    # equal_nan: RVEAa keeps NaN survivor rows for unmatched reference vectors.
+    assert not np.array_equal(d_pop, c_pop, equal_nan=True)
+
+
+def test_make_rveaa_rejects_non_callable_op():
+    """make_rveaa raises ValueError for a non-None, non-callable op field."""
+    with pytest.raises(ValueError):
+        make_config(selection_op=1)
+    with pytest.raises(ValueError):
+        make_config(crossover_op="not-callable")
+    with pytest.raises(ValueError):
+        make_config(mutation_op=object())
