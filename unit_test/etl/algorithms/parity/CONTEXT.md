@@ -23,11 +23,15 @@ other suites' `parity/` dirs.
 | `test_nsga3.py` | NSGA3 vs torch on DTLZ1 (same reasoning) |
 | `test_moead.py` | MOEA/D vs torch on DTLZ1 — NON-elitist, so etl side pools min over all evaluated fitness vs torch history-PF min; needs MOEAD_ABS_TOL=0.20 (seed 42 f3 axis 0.197 vs torch 0.0; cross-seed sweep 1/7/123/999: etl at-or-better on 4/5 seeds) |
 
-Coverage gap: NO torch-parity tests for code/jade/ode/sade/shade, the ES
-family beyond cma_es/open_es (ars, asebo, des, esmc, guided_es, nes,
-noise_reuse_es, persistent_es, snes), or MO rvea/rveaa/hype — those have
-etl-only smoke tests (`so/*/test_*.py`, `mo/test_*.py`) that assert
-convergence on Sphere/DTLZ1 via `helpers.run_generations` (numpy backend).
+Coverage gap (convergence level, in this directory): NO torch-parity tests for
+code/jade/ode/sade/shade, for the ES family beyond cma_es/open_es (ars, asebo,
+des, esmc, guided_es, nes, noise_reuse_es, persistent_es, snes), or for MO
+rvea/rveaa/hype — those have etl-only smoke tests (`so/*/test_*.py`,
+`mo/test_*.py`) that assert convergence on Sphere/DTLZ1 via
+`helpers.run_generations` (numpy backend).
+Three ES variants DO have torch parity at a different level (STATE equality
+under injected identical noise, not convergence) in the es_variants node's own
+suite outside this directory — see "See also".
 
 ## Design notes (verified — do not re-investigate)
 - Neither torch algorithm overrides `init_step`, so `StdWorkflow.init_step()`
