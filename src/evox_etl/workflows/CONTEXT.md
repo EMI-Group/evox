@@ -3,7 +3,7 @@
 ## Intent
 `workflows/` — `std_workflow.py` (StdWorkflow re-export, implementation in
 `../core/workflow.py`) and `eval_monitor.py` (EvalMonitor: best-so-far tracking,
-host-side history + Pareto front).
+host-side history + Pareto front, algorithm auxiliary-tensor channel).
 `metrics/` — igd.py, gd.py, hv.py (pure defn functions; mirror torch evox math in
 `../../evox/metrics/`, read-only).
 `utils/` — tree helpers, min_by, dominate_relation, pairwise_*_dist, cos_dist,
@@ -22,7 +22,9 @@ See `../DESIGN.md`.
   them via `type(config).__module__`):
   - `EvalMonitorConfig` frozen dataclass: `multi_obj, full_fit_history,
     full_sol_history, full_pop_history, topk, pop_size, dim, n_obj,
-    opt_direction, fit_history, sol_history, pop_history` (lists host-side).
+    opt_direction, fit_history, sol_history, pop_history` (lists host-side) plus
+    `aux_history` (dict host-side, LAST field so the order is back-compatible).
+    `aux_history` maps `str` key -> `list[np.ndarray]` (one entry per generation).
     The workflow completes `pop_size`/`dim` (from algorithm state
     `population`/`pop` or config), `n_obj`/`multi_obj` (from a list
     opt_direction), and always overwrites `opt_direction` with its own
@@ -60,6 +62,14 @@ See `../DESIGN.md`.
     `(variant, leaf-shape/dtype signature)` and re-traces on drift (fix for
     the CoDE/CSO gen-2 ShapeError; see `../core/workflow.py`
     `_state_signature`).
+  - `record_auxiliary(config, aux)` — module-level PLAIN (non-defn) HOST-side
+    function, same module as the config. Gated on `config.full_pop_history`
+    (returns immediately when off, torch parity). For each `(key, value)` in the
+    `aux` dict, the value is a CONCRETE etl tensor converted to numpy via
+    `.to(etl.core.Device("cpu")).numpy()` (the `EvalMonitor._to_numpy` idiom) and
+    appended to `config.aux_history.setdefault(key, [])` (list created on first
+    use). Source of the algorithm auxiliary-tensor channel; the workflow feeds it
+    each generation.
   - Wrapper `EvalMonitor(config=..., state=...)` — workflow constructs it and
     reassigns `.state` after every step. All accessors return numpy (concrete
     etl leaves via `t.to(etl.core.Device("cpu")).numpy()`); stored fitness is
@@ -74,7 +84,13 @@ See `../DESIGN.md`.
     `etl.build(non_dominate_rank, TensorSpec(shape, np.float32), backend="numpy",
     device=Device("cpu"))` + `etl.run(exe, etl.core.tensor(arr))`, cached per
     input shape. `fitness_history`/`fit_history`, `solution_history`/
-    `sol_history`, `pop_history` properties alias the config lists.
+    `sol_history` properties alias the config lists. `aux_history` /
+    `auxiliary_history` (alias) return `config.aux_history`. `pop_history`
+    returns `config.aux_history["pop"]` when that key is present, else falls back
+    to the legacy `config.pop_history` list (backwards compat); the workflow's
+    own `pop_history` recording still appends to `config.pop_history`.
+    `record_auxiliary(self, aux)` delegates to the module-level
+    `record_auxiliary(self.config, aux)`.
     `plot()` raises NotImplementedError (with the plotly-install message) when
     plotly is missing, otherwise NotImplementedError for the plotting itself;
     warns + returns None when no history is recorded.
@@ -95,3 +111,11 @@ See `../DESIGN.md`.
   CSO + opt_direction="max" → `get_best_fitness()` ≈ 80.9 (>0, un-negated);
   NSGA2+DTLZ2 pf_fitness `(k, 3)` finite; PSO(40)×50 gens unchanged (best
   3.23e-07, deterministic under equal seeds).
+- Validation of the aux channel (throwaway driver, numpy backend): with
+  `full_pop_history=True` three `record_auxiliary(cfg, {"center","pop","fit"})`
+  calls give `cfg.aux_history` keys with 3 numpy entries each of the source
+  shapes (`(2,)`, `(4, 2)`, `(4,)`); wrapper `aux_history`/`auxiliary_history`
+  are `cfg.aux_history` and `pop_history` is `aux_history["pop"]`; with
+  `full_pop_history=False` nothing is recorded; without a `"pop"` aux key
+  `pop_history` returns `cfg.pop_history`; fresh config defaults are an empty
+  dict / empty list.

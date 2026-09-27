@@ -46,6 +46,11 @@ class EvalMonitorConfig:
     :param dim: Solution dimension (filled by the workflow). Defaults to None.
     :param n_obj: Number of objectives (filled by the workflow). Defaults to None.
     :param opt_direction: Tuple of 1/-1 ints; stored fitness is scaled by it (filled by the workflow). Defaults to (1,).
+    :param fit_history: Per-generation fitness values (filled host-side). Defaults to an empty list.
+    :param sol_history: Per-generation solutions (filled host-side). Defaults to an empty list.
+    :param pop_history: Per-generation populations (filled host-side). Defaults to an empty list.
+    :param aux_history: Algorithm auxiliary tensors, keyed by name, mapped to a list of
+        numpy arrays per generation (filled host-side by ``record_auxiliary``). Defaults to an empty dict.
     """
 
     multi_obj: bool | None = None
@@ -60,6 +65,7 @@ class EvalMonitorConfig:
     fit_history: list = field(default_factory=list)
     sol_history: list = field(default_factory=list)
     pop_history: list = field(default_factory=list)
+    aux_history: dict = field(default_factory=dict)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,6 +162,21 @@ def monitor_update(
         )
     # multi-objective: history/pareto front are derived host-side
     return MOEvalMonitorState(latest_solution=candidate, latest_fitness=fitness)
+
+
+def record_auxiliary(config: EvalMonitorConfig, aux: dict) -> None:
+    """Host-side: record one generation of auxiliary tensors.
+
+    Gated on ``config.full_pop_history`` (torch parity). Each value is a CONCRETE
+    etl tensor, converted to numpy via ``.to(etl.core.Device('cpu')).numpy()``
+    (mirroring the ``EvalMonitor._to_numpy`` idiom) and appended to
+    ``config.aux_history[key]``.
+    """
+    if not config.full_pop_history:
+        return
+    for key, value in aux.items():
+        arr = np.asarray(value.to(etl.core.Device("cpu")).numpy())
+        config.aux_history.setdefault(key, []).append(arr)
 
 
 class EvalMonitor:
@@ -295,6 +316,14 @@ class EvalMonitor:
         """Get the full history of solutions."""
         return self.solution_history
 
+    def record_auxiliary(self, aux: dict) -> None:
+        """Record one generation of algorithm auxiliary tensors (host-side).
+
+        Delegates to the module-level :func:`record_auxiliary`; gated on
+        ``full_pop_history``.
+        """
+        record_auxiliary(self.config, aux)
+
     @property
     def fitness_history(self) -> list[np.ndarray]:
         """Alias of ``fit_history`` (torch parity)."""
@@ -317,8 +346,25 @@ class EvalMonitor:
 
     @property
     def pop_history(self) -> list[np.ndarray]:
-        """The recorded per-generation populations."""
+        """The recorded per-generation populations.
+
+        Prefers the auxiliary ``"pop"`` channel when present (``record_auxiliary``
+        with a ``"pop"`` key), otherwise falls back to the legacy
+        ``config.pop_history`` list.
+        """
+        if "pop" in self.config.aux_history:
+            return self.config.aux_history["pop"]
         return self.config.pop_history
+
+    @property
+    def aux_history(self) -> dict:
+        """Algorithm auxiliary tensors, keyed by name, mapped to per-generation numpy arrays."""
+        return self.config.aux_history
+
+    @property
+    def auxiliary_history(self) -> dict:
+        """Alias of ``aux_history`` (torch parity)."""
+        return self.config.aux_history
 
     # --------------------------------------------------------------- plot
 
