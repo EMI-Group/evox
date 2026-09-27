@@ -99,6 +99,12 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   etl functional variants hard-code tournament_selection_multifit /
   simulated_binary[_half] / polynomial_mutation). These configs are now
   plain static-leaf pytrees, revalidated by value at `etl.run`.
+- `make_nsga3` also raises ValueError when `data_type` is neither `None` nor
+  the builtin `bool` type (`_normalize_data_type`, re-called in `init` so
+  direct dataclass construction fails loudly too). `data_type=bool` draws the
+  torch `data_type == torch.bool` boolean population (uniform > 0.5);
+  `torch.bool` itself is NOT accepted (the etl module never imports torch) —
+  callers must pass the builtin `bool`.
 - `make_*` signatures (drives the test-migration round; all raise ValueError
   on malformed bounds; the four callable-bearing ones also raise ValueError
   on a non-callable non-None op field):
@@ -132,6 +138,12 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   contribution; `pop_size` is a Python int in the first call and a scalar
   tensor in the merged call) and the merged-batch truncation by
   `lexsort([-dis, rank])[:pop_size]`.
+- NSGA3's environmental selection ends in module-level
+  `_final_survivors(merge_pop, merge_fit, rank, worst_rank, pop_size)`: it
+  keeps the `pop_size` rows with `rank < worst_rank` ordered by POSITION in
+  the shuffled merge arrays, matching torch's mask selection
+  `merge_pop[rank < worst_rank]` (an ascending-rank sort would give the same
+  SET in a different order).
 
 ## Known Issues
 - **NSGA3 with odd `pop_size` raises ShapeError at trace time** (`gather:
