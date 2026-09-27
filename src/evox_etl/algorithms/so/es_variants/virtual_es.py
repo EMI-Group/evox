@@ -176,3 +176,19 @@ def monitor_candidate(payload: tuple[Tensor, Tensor, float]) -> Tensor:
 # torch-style bare name `VirtualLoRAES`).
 VirtualES = VirtualESConfig
 VirtualLoRAES = VirtualES
+
+
+def record_step(
+    config: VirtualESConfig,
+    state: VirtualESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Host-side auxiliary-info hook, mirroring torch ``VirtualES.record_step``.
+
+    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    HOST-SIDE after each generation on concrete tensors; it returns this
+    generation's search ``center``. ``candidate``/``fitness`` are
+    accepted-but-unused, exactly like the torch reference which ignores them.
+    """
+    return {"center": state.center}
