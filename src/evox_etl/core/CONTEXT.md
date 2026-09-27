@@ -2,7 +2,8 @@
 
 ## Intent
 The functional foundation of evox_etl: duck-typed protocol documentation (Algorithm:
-STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step`, with a
+STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step`/
+`monitor_candidate`, with a
 workflow-injected `evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor:
 `monitor_update` (+ optional `init`/`record_auxiliary`)), state helpers
 (`replace`/`get_nested`/`set_nested` + etl tree
