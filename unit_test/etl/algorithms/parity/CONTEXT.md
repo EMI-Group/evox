@@ -6,9 +6,9 @@ evox reference (`src/evox`, read-only) on the same deterministic problem,
 hyperparameters and seeds.
 Torch imports ARE allowed in this directory — the only torch-importing tests
 under `unit_test/etl/algorithms/`.
-The dir carries `__init__.py`, so pytest collects it as the `algorithms.parity`
-package with no basename collisions against `so/`/`mo/` smoke tests or the
-other suites' `parity/` dirs.
+The dir carries `__init__.py`, so pytest collects it as the `parity` package
+(the parent `algorithms/` has no `__init__.py`), with no basename collisions
+against the `so/`/`mo/` smoke tests or the other suites' `parity/` dirs.
 
 ## Files
 | File | What it compares (Sphere unless noted) |
