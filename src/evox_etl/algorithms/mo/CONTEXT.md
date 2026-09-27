@@ -208,15 +208,19 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 
 ## Tests
 - Smoke: `unit_test/etl/algorithms/mo/test_<name>.py` (etl-only, `__init__.py`
-  present so pytest collects uniquely-qualified names vs the parity dir).
+  present so pytest collects uniquely-qualified names vs the parity dir). Each
+  uses `make_*` and adds custom-op tests: a recording wrapper proves each
+  user-supplied op is invoked during `step`; identity/constant ops prove the op
+  changes the output; explicit `None` proves the default is reproduced exactly.
+  nsga3 additionally covers the `data_type` contract and the `_final_survivors`
+  merge-order parity.
 - Parity (torch allowed): `unit_test/etl/algorithms/parity/test_nsga2.py`,
   `test_nsga3.py`, `test_moead.py` + shared `parity_common.py` (also a package).
-- Gate: `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest
-  unit_test/etl/algorithms/mo unit_test/etl/algorithms/parity/test_nsga2.py
+- Gate (numpy backend; see `../../CONTEXT.md` "Environment" for venv setup):
+  `<venv>/bin/python -m pytest unit_test/etl/algorithms/mo
+  unit_test/etl/algorithms/parity/test_nsga2.py
   unit_test/etl/algorithms/parity/test_nsga3.py
-  unit_test/etl/algorithms/parity/test_moead.py -q` — green.
-- Test files construct configs directly today (ndarray bounds still work at
-  runtime); a parallel test-migration round owns switching them to `make_*`.
+  unit_test/etl/algorithms/parity/test_moead.py -q` — green (41 mo + 3 parity).
 
 ## Routing Table
 | Area | Path |
