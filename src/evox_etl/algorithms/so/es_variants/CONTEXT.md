@@ -213,6 +213,10 @@ the reference source, not this file's history.
   transposes etl's Vh back to `torch.svd`'s V (Design Decisions 1); every other
   module here consumes Vh directly (matching `torch.linalg.svd`).
 - `etl.qr` returns `(Q, R)` reduced, Q first. `etl.cond` supports pytree outputs.
+- `etl.dot` requires rank ≥ 2 BUT also supports BATCHED 3-D matmul: `etl.dot(B
+  (pop,d,rank), A (pop,rank,k)) -> (pop,d,k)` works (numpy backend; used by
+  `virtual_lora_es.py` for the per-individual `B @ A` delta — no broadcast+sum
+  workaround needed).
 - `etl.eye(n)` is already float32; svd/eigh preserve f32; `etl.clamp` requires
   BOTH bounds (use etl.maximum for one-sided clamps); use `math.*` never `np.*`
   for Python scalars at trace time (numpy scalars are illegal operands).
