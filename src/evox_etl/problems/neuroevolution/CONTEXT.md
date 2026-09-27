@@ -135,7 +135,7 @@ difference vs the reference: **0.0** (asserted tolerance 1e-5).
 | Area | Path | Notes |
 |---|---|---|
 | Virtual problem (config + make_* + evaluate) | `virtual_problem.py` | single module |
-| Test suite (relocate-ready) | `tests/` | in-node copy; canonical home is the sibling unit_test dir — parent relocates |
+| Test suite | `../tests/test_virtual_problem.py` | relocated to the shared problems test dir (`.gitignore`d → `git add -f`); gate = sibling `../../unit_test/etl/problems/` |
 | Shared noise contract | `../../algorithms/so/es_variants/virtual_noise.py` | sibling subtree — READ-ONLY, do NOT modify |
 | Shared `ProblemState` | `../numerical/state.py` | sibling — READ-ONLY |
 | Reference (torch) impl | `../../../../evox/problems/neuroevolution/` | READ-ONLY, never modify |
