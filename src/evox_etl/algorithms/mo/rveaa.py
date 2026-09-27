@@ -19,7 +19,7 @@ Port notes:
 """
 
 from dataclasses import dataclass, replace
-from typing import Callable
+from typing import Callable, Optional
 
 import etl
 import etl.numpy as enp
@@ -39,12 +39,14 @@ Tensor = etl.SymbolicTensor
 class RVEAaConfig:
     """Config mirroring torch ``RVEAa.__init__`` (``device`` dropped).
 
-    Signature parity: the torch RVEAa constructor accepts optional
-    ``selection_op``/``mutation_op``/``crossover_op``, but the evox_etl
-    functional variant hard-codes the operators (non_dominate_rank /
-    ref_vec_guided / simulated_binary / polynomial_mutation path) — they are
-    not config fields here. ``lb``/``ub`` are stored as flat float tuples of
-    length ``dim`` (see `make_rveaa` for the array-accepting constructor).
+    Signature parity: the torch RVEAa constructor's optional
+    ``selection_op``/``mutation_op``/``crossover_op`` are honored here too.
+    A ``None`` op field means the torch default (``ref_vec_guided`` /
+    ``simulated_binary`` / ``polynomial_mutation``). Custom signatures:
+    ``selection_op(x, f, v, theta)`` (no key), ``crossover_op(key, x)`` and
+    ``mutation_op(key, x, lb, ub)``. ``lb``/``ub`` are stored as flat float
+    tuples of length ``dim`` (see `make_rveaa` for the array-accepting
+    constructor).
     """
 
     pop_size: int
@@ -54,6 +56,25 @@ class RVEAaConfig:
     alpha: float = 2.0
     fr: float = 0.1
     max_gen: int = 100
+    selection_op: Optional[Callable] = None
+    mutation_op: Optional[Callable] = None
+    crossover_op: Optional[Callable] = None
+
+
+def _config_flatten(config: RVEAaConfig):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: RVEAaConfig, _children) -> RVEAaConfig:
+    return config
+
+
+# This registration is REQUIRED: the config carries optional callable op
+# fields (selection_op/mutation_op/crossover_op), and functions are not valid
+# static pytree leaves — so the config travels as one opaque childless node
+# through etl.build/etl.run untouched.
+etl.register_pytree_node(RVEAaConfig, _config_flatten, _config_unflatten)
 
 
 def make_rveaa(
@@ -64,15 +85,27 @@ def make_rveaa(
     alpha: float = 2.0,
     fr: float = 0.1,
     max_gen: int = 100,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
 ) -> RVEAaConfig:
     """Construct an RVEAaConfig with ``lb``/``ub`` normalized to flat float tuples.
 
     Raises ValueError (not the old AssertionError) when a bound is not 1-D or
-    the two shapes differ. The old ``__post_init__`` dtype-equality check is
-    gone: with tuple storage per-side dtype is vacuous — each bound is
-    dtype-preservingly rounded to plain floats and re-cast to float32 at bake
-    time anyway.
+    the two shapes differ, or when an op field is not callable (and not None).
+    The old ``__post_init__`` dtype-equality check is gone: with tuple storage
+    per-side dtype is vacuous — each bound is dtype-preservingly rounded to
+    plain floats and re-cast to float32 at bake time anyway. A ``None`` op field
+    means the algorithm default (``ref_vec_guided`` / ``simulated_binary`` /
+    ``polynomial_mutation``).
     """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
     lb, ub = normalize_bounds(lb, ub)
     return RVEAaConfig(
         pop_size=pop_size,
@@ -82,6 +115,9 @@ def make_rveaa(
         alpha=alpha,
         fr=fr,
         max_gen=max_gen,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
     )
 
 
@@ -181,8 +217,14 @@ def step(
     pool = etl.gather(pop, sorted_indices, axis=0)
     mated = etl.gather(pool, mating_pool, axis=0)
 
-    crossovered = simulated_binary(k_cross, mated)
-    offspring = polynomial_mutation(k_mut, crossovered, lb, ub)
+    crossover_fn = (
+        config.crossover_op if config.crossover_op is not None else simulated_binary
+    )
+    crossovered = crossover_fn(k_cross, mated)
+    mutation_fn = (
+        config.mutation_op if config.mutation_op is not None else polynomial_mutation
+    )
+    offspring = mutation_fn(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     state = replace(state, gen=gen, offspring=offspring, key=key)
 
@@ -203,7 +245,10 @@ def step(
     merge_pop = etl.select(enp.expand_dims(rank, 1) == 0, merge_pop, float("nan"))
 
     theta = (etl.cast(gen, etl.float32) / config.max_gen) ** config.alpha
-    survivor, survivor_fit = ref_vec_guided(
+    selection_fn = (
+        config.selection_op if config.selection_op is not None else ref_vec_guided
+    )
+    survivor, survivor_fit = selection_fn(
         merge_pop, merge_fit, state.reference_vector, theta
     )
 
