@@ -26,6 +26,13 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `record_auxiliary(config, aux) -> None` — both PLAIN module-level HOST-SIDE functions
   (NOT `@etl.defn`, never called inside a trace; no `__all__` entry, they are Protocol
   methods).
+- Optional monitor-candidate hook (also detected via `getattr`, called INSIDE the
+  trace): algorithm `monitor_candidate(candidates) -> tensor`. Default = identity,
+  so a `(pop_size, dim)` tensor candidate reaches `monitor_update` unchanged; it
+  exists for algorithms that hand `evaluate` a non-tensor payload (the virtual
+  ES family passes a `(center, seeds, sigma)` tuple — its hook broadcasts the
+  `(dim,)` center to the `(pop_size, dim)` the monitor concatenates). Only invoked
+  when a monitor is configured.
 - `workflow.py`: `EmptyState`, `WorkflowState(algorithm_state, problem_state,
   monitor_state, generation [0-d int32], key [0-d int64])` (both frozen dataclasses)
   and `StdWorkflow` (plain class).
