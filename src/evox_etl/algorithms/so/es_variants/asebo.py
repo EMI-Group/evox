@@ -159,6 +159,11 @@ def step(
     # Active subspace via SVD of the gradient history.
     X = state.grad_subspace - etl.mean(state.grad_subspace, axes=0)
     U, _S, Vh = etl.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
+    # The reference calls the deprecated `torch.svd(X, some=True)`, whose THIRD
+    # output is V (shape (dim, k), named `Vt` there), not Vh; etl.svd follows the
+    # numpy/`torch.linalg.svd` convention, so transpose to match the reference.
+    # NOTE: the transpose must happen BEFORE the sign multiply.
+    Vt = etl.transpose(Vh, (1, 0))  # (dim, k) == V, the reference's `Vt`
     max_abs_cols = etl.argmax(etl.abs(U), axis=0)  # (k,) int64
     # torch writes `signs = torch.sign(U[max_abs_cols, :])` — advanced indexing on
     # dim 0 selects k ROWS, so `signs` is a (k, k) sign MATRIX (row i = sign of row
@@ -166,11 +171,11 @@ def step(
     # numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`.
     signs = etl.sign(etl.gather(U, max_abs_cols, axis=0))  # (k, k)
     U = U * signs
-    Vh = Vh * signs
+    Vt = Vt * signs
 
-    U2 = Vh[:half]
+    U2 = Vt[:half]  # rows of V, exactly as the reference does
     UUT = etl.dot(etl.transpose(U2), U2)
-    U_ort = Vh[half:]
+    U_ort = Vt[half:]
     UUT_ort = etl.dot(etl.transpose(U_ort), U_ort)
     UUT = etl.select(
         state.gen_counter > sub, UUT, enp.zeros((dim, dim), dtype=F32)
