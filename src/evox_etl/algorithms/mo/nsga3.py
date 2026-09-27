@@ -50,9 +50,12 @@ class NSGA3Config:
         ``polynomial_mutation``).
     :param crossover_op: The crossover operation (optional; defaults to
         ``simulated_binary``).
-    :param data_type: The data type for the decision variables (optional).
-        Defaults to float32; ``bool`` draws the initial population as a
-        uniform > 0.5 boolean tensor.
+    :param data_type: The data type for the decision variables. Accepts
+        exactly ``None`` (float32 population, the default) or the builtin
+        ``bool`` type (the initial population is drawn as a uniform > 0.5
+        boolean tensor). Anything else — notably ``torch.bool``, which the
+        etl port cannot import — raises ValueError (see
+        ``_normalize_data_type``).
     """
 
     pop_size: int
@@ -83,6 +86,24 @@ def _config_unflatten(config: NSGA3Config, _children) -> NSGA3Config:
 etl.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
 
 
+def _normalize_data_type(data_type: Optional[Any]) -> Optional[type]:
+    """Validate ``data_type``; return ``bool`` or ``None`` (float32).
+
+    Only ``None`` (float32 population, the default) and the builtin ``bool``
+    type (bool population) are accepted. Everything else raises ValueError —
+    in particular ``torch.bool`` is NOT supported (the etl module never
+    imports torch); callers that want a boolean population must pass the
+    builtin ``bool`` instead.
+    """
+    if data_type is None or data_type is bool:
+        return data_type
+    raise ValueError(
+        f"data_type must be None (float32) or the builtin bool, got "
+        f"{data_type!r}. torch.bool is not supported in the etl port — pass "
+        f"the builtin bool instead."
+    )
+
+
 def make_nsga3(
     pop_size: int,
     n_objs: int,
@@ -97,8 +118,9 @@ def make_nsga3(
 
     ``lb``/``ub`` are accepted as any 1-D array-like and stored as flat float
     tuples; ``None`` op fields mean the algorithm default (see the config
-    docstring). Raises ValueError when an op field is not callable or the
-    bounds are not 1-D / shape-mismatched.
+    docstring). Raises ValueError when an op field is not callable, the
+    bounds are not 1-D / shape-mismatched, or ``data_type`` is neither
+    ``None`` nor the builtin ``bool``.
     """
     for name, op in (
         ("selection_op", selection_op),
@@ -107,6 +129,7 @@ def make_nsga3(
     ):
         if op is not None and not callable(op):
             raise ValueError(f"{name} must be callable or None, got {op!r}")
+    data_type = _normalize_data_type(data_type)
     lb, ub = normalize_bounds(lb, ub)
     return NSGA3Config(
         pop_size=pop_size,
@@ -157,11 +180,17 @@ def _masked_hit(n: int, idx: SymbolicTensor, mask: SymbolicTensor) -> SymbolicTe
 
 
 def init(config: NSGA3Config, key: SymbolicTensor) -> NSGA3State:
-    """Draw the initial population (uniform within [lb, ub], or bool > 0.5)."""
+    """Draw the initial population (uniform within [lb, ub], or bool > 0.5).
+
+    ``config.data_type`` is re-validated here so direct dataclass
+    construction (bypassing ``make_nsga3``) fails loudly instead of silently
+    degrading to the float path.
+    """
+    data_type = _normalize_data_type(config.data_type)
     dim = len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub)
     k_pop, key = random.split(key)
-    if config.data_type is bool:
+    if data_type is bool:
         pop = random.uniform(k_pop, (config.pop_size, dim), 0.0, 1.0, "float32") > 0.5
     else:
         pop = random.uniform(k_pop, (config.pop_size, dim), 0.0, 1.0, "float32")
@@ -216,6 +245,39 @@ def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3Sta
 
     fitness = evaluate(offspring)
     return _select(config, intermediate, fitness)
+
+
+def _final_survivors(
+    merge_pop: SymbolicTensor,
+    merge_fit: SymbolicTensor,
+    rank: SymbolicTensor,
+    worst_rank: int,
+    pop_size: int,
+) -> tuple[SymbolicTensor, SymbolicTensor, SymbolicTensor]:
+    """Keep the ``pop_size`` rows with ``rank < worst_rank`` (final stage).
+
+    The survivors are ordered by POSITION in the shuffled merge arrays,
+    matching torch's boolean-mask selection ``merge_pop[rank < worst_rank]``
+    (the old behavior sorted them by ascending rank). After the truncation
+    stage exactly ``pop_size`` rows satisfy the mask, so a stable positional
+    argsort with the masked-out rows pushed to a sentinel suffices — shapes
+    stay static (no dynamic-shape boolean indexing).
+    """
+    n = rank.shape[0]
+    upper_bound = n + 1  # sentinel > any valid position index
+    surv_mask = rank < worst_rank
+    order = etl.argsort(
+        etl.cast(
+            etl.select(surv_mask, enp.arange(n, dtype="int32"), upper_bound),
+            etl.int32,
+        ),
+        axis=0,
+        stable=True,
+    )[:pop_size]
+    pop = etl.gather(merge_pop, order, axis=0)
+    fit = etl.gather(merge_fit, order, axis=0)
+    rank = etl.gather(rank, order, axis=0)
+    return pop, fit, rank
 
 
 def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> NSGA3State:
@@ -451,14 +513,10 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     rank = etl.cast(etl.select(hit, worst_rank, rank), etl.int32)
 
     # Final survivors: exactly pop_size rows have rank < worst_rank (same set
-    # as torch's boolean indexing; static-shape argsort keeps the shapes fixed).
-    surv_mask = rank < worst_rank
-    order = etl.argsort(
-        etl.cast(etl.select(surv_mask, rank, upper_bound), etl.int32),
-        axis=0,
-        stable=True,
-    )[:pop_size]
-    pop = etl.gather(merge_pop, order, axis=0)
-    fit = etl.gather(merge_fit, order, axis=0)
-    rank = etl.gather(rank, order, axis=0)
+    # as torch's boolean indexing). `_final_survivors` preserves the shuffled
+    # merge order — torch `merge_pop[rank < worst_rank]` — instead of sorting
+    # by ascending rank.
+    pop, fit, rank = _final_survivors(
+        merge_pop, merge_fit, rank, worst_rank, pop_size
+    )
     return dataclasses.replace(state, pop=pop, fit=fit, rank=rank, key=key)
