@@ -75,19 +75,22 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - Bounds baking: module-local `_bounds` defs are deleted; every module bakes
   via `lb, ub = bake_bounds(config.lb, config.ub)` (natural (dim,) float32
   graph constants); `dim = len(config.lb)`.
-- Op fields: nsga3/moead/rvea KEEP `Optional[Callable]` op fields (genuinely
-  read — nsga3 all three + `data_type: Optional[Any] = None`; moead
+- Op fields: nsga3/moead/rvea/rveaa KEEP `Optional[Callable]` op fields
+  (genuinely read — nsga3 all three + `data_type: Optional[Any] = None`; moead
   `mutation_op`/`crossover_op`, `selection_op` accepted-and-ignored because
-  torch ignores it too; rvea all three + `alpha=2.0`, `fr=0.1`,
+  torch ignores it too; rvea/rveaa all three + `alpha=2.0`, `fr=0.1`,
   `max_gen=100`) and KEEP zero-child `etl.register_pytree_node`
   registration — REQUIRED there because non-None callables are NOT static
   values anywhere in the pytree (TraceError at the callable leaf).
   Registration makes the config an opaque static node: `etl.run` performs NO
-  by-value revalidation.
-- nsga2/rveaa/hype DELETED their never-read `selection_op`/`mutation_op`/
-  `crossover_op` fields AND their registration; class docstrings note the
-  torch signature-parity intent (the torch classes DO honor custom ops; the
-  etl functional variants hard-code tournament_selection_multifit /
+  by-value revalidation. rveaa resolves/uses its three ops in `step` exactly
+  like rvea (selection signature `(x, f, v, theta)`, NO key; crossover
+  `(key, x)`; mutation `(key, x, lb, ub)`); all-None is byte-identical to the
+  pre-injection behavior (same RNG draw order).
+- nsga2/hype DELETED their never-read `selection_op`/`mutation_op`/
+  `crossover_op` fields AND their registration; their class docstrings note the
+  torch signature-parity intent (the torch classes DO honor custom ops; these
+  two etl functional variants hard-code tournament_selection_multifit /
   simulated_binary[_half] / polynomial_mutation). These configs are now
   plain static-leaf pytrees, revalidated by value at `etl.run`.
 - `make_*` signatures (drives the test-migration round; all raise ValueError
