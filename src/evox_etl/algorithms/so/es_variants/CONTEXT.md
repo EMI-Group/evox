@@ -121,7 +121,13 @@ evaluate protocol hard-coded into torch `StdWorkflow._evaluate` +
 - `etl.transpose(x, axes)` requires axes as a TUPLE (a list raises TypeError).
 - Broadcast gotcha: `(k, n) * signs(k,)` does NOT align over the k axis — use
   `enp.expand_dims(signs, axis=1)`; `(m, k) * signs(k,)` aligns fine.
-- `etl.svd` returns reduced `(U, S, Vh)`, Vh (k, n) — matches torch.svd(some=True).
+- `etl.svd` returns reduced `(U, S, Vh)`, Vh (k, n) — the numpy/`torch.linalg.svd`
+  convention.  NOT `torch.svd(some=True)`: the deprecated `torch.svd` third output
+  is **V** (n, k), the TRANSPOSE (its docstring: `input = U diag(S) V^H`; verified
+  on torch 2.12.1 with a (4,6) input → third output (6,4)).  The two conventions
+  coincide in shape — but not in value — whenever the matrix is square (as in
+  `asebo.py`, where `subspace_dims == dim`), so a square-only comparison hides the
+  difference (`|V - Vh| ≈ 1.0` for random 10x10).  `asebo.py` consumes etl's `Vh`.
 - `etl.qr` returns `(Q, R)` reduced, Q first. `etl.cond` supports pytree outputs.
 - `etl.eye(n)` is already float32; svd/eigh preserve f32; `etl.clamp` requires
   BOTH bounds (use etl.maximum for one-sided clamps); use `math.*` never `np.*`
