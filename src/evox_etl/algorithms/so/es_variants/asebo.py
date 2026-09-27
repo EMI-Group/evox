@@ -159,19 +159,23 @@ def step(
     # Active subspace via SVD of the gradient history.
     X = state.grad_subspace - etl.mean(state.grad_subspace, axes=0)
     U, _S, Vh = etl.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
-    k = min(sub, dim)
-    max_abs_cols = etl.argmax(etl.abs(U), axis=0)
-    offset_idx = max_abs_cols + etl.cast(
-        enp.arange(k, dtype=np.dtype("int64")), np.dtype("int64")
-    ) * sub
-    row_collected = etl.gather(enp.reshape(U, (-1,)), offset_idx, axis=0)
-    signs = etl.sign(row_collected)
+    # The reference calls the deprecated `torch.svd(X, some=True)`, whose THIRD
+    # output is V (shape (dim, k), named `Vt` there), not Vh; etl.svd follows the
+    # numpy/`torch.linalg.svd` convention, so transpose to match the reference.
+    # NOTE: the transpose must happen BEFORE the sign multiply.
+    Vt = etl.transpose(Vh, (1, 0))  # (dim, k) == V, the reference's `Vt`
+    max_abs_cols = etl.argmax(etl.abs(U), axis=0)  # (k,) int64
+    # torch writes `signs = torch.sign(U[max_abs_cols, :])` — advanced indexing on
+    # dim 0 selects k ROWS, so `signs` is a (k, k) sign MATRIX (row i = sign of row
+    # max_abs_cols[i] of U), NOT a length-k vector.  `etl.gather(x, idx, axis=0)` is
+    # numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`.
+    signs = etl.sign(etl.gather(U, max_abs_cols, axis=0))  # (k, k)
     U = U * signs
-    Vh = Vh * enp.expand_dims(signs, axis=1)
+    Vt = Vt * signs
 
-    U2 = Vh[:half]
+    U2 = Vt[:half]  # rows of V, exactly as the reference does
     UUT = etl.dot(etl.transpose(U2), U2)
-    U_ort = Vh[half:]
+    U_ort = Vt[half:]
     UUT_ort = etl.dot(etl.transpose(U_ort), U_ort)
     UUT = etl.select(
         state.gen_counter > sub, UUT, enp.zeros((dim, dim), dtype=F32)
@@ -199,6 +203,17 @@ def step(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1
     )[0]
     theta_grad = 0.5 * fit_diff_noise
+    # alpha's denominator is `state.UUT`, the MASKED UUT stored above: the mask
+    # uses the PRE-increment counter while alpha's own mask uses the
+    # POST-increment one — exactly as the torch reference does (`where` on its
+    # local UUT before `gen_counter` is bumped, `where` on alpha after).  So in
+    # the generation where `gen_counter` first exceeds `subspace_dims` the
+    # denominator is the all-zero matrix and alpha = inf, reproducing torch,
+    # which divides by its never-refreshed all-zero `self.UUT`.  torch then
+    # raises LinAlgError in `cholesky` at generation `subspace_dims + 2`; numpy's
+    # cholesky NaN-propagates instead and the port surfaces it one generation
+    # later as an `etl.svd` non-convergence error.  Runs beyond `subspace_dims`
+    # generations are unsupported on both sides (see this directory's CONTEXT.md).
     alpha = etl.norm(
         etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
     ) / etl.norm(etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])

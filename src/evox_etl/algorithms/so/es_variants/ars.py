@@ -128,7 +128,10 @@ def step(
 
     fitness = evaluate(population)
 
-    elite_pop_size = max(1, int(half * config.elite_ratio))
+    # torch uses FLOAT division here (`pop_size / 2`): identical to the integer
+    # `half` for even pop_size, but differs for odd (pop_size=5, elite_ratio=0.9
+    # gives 2 in torch vs 1 with integer division).
+    elite_pop_size = max(1, int(config.pop_size / 2 * config.elite_ratio))
     fit_1 = fitness[:half]
     fit_2 = fitness[half:]
     elite_idx = etl.argsort(etl.minimum(fit_1, fit_2))[:elite_pop_size]

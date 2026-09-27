@@ -15,7 +15,7 @@ returned by `random.split`).
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -48,17 +48,36 @@ __all__ = [
 class NSGA2Config:
     """NSGA2 hyperparameters (mirrors the torch ``__init__`` minus device).
 
-    Signature-parity note: the torch class constructor accepts optional
-    crossover/mutation/selection ops, but those op fields are NOT config fields
-    here — the functional variant hard-codes the operators
-    (tournament_selection_multifit, simulated_binary, polynomial_mutation),
-    matching the torch defaults used when they are None.
+    The optional op fields mirror the torch class: ``None`` means the torch
+    default (``tournament_selection_multifit`` / ``simulated_binary`` /
+    ``polynomial_mutation``). A custom op must match the etl keyed signature of
+    the default it replaces — ``selection_op(key, n_parents, fitness)``,
+    ``crossover_op(key, x)``, ``mutation_op(key, x, lb, ub)``.
     """
 
     pop_size: int
     n_objs: int
     lb: tuple[float, ...]
     ub: tuple[float, ...]
+    selection_op: Optional[Callable] = None
+    mutation_op: Optional[Callable] = None
+    crossover_op: Optional[Callable] = None
+
+
+def _config_flatten(config: NSGA2Config):
+    """Zero-child flattening: the config travels as one opaque static node."""
+    return [], config
+
+
+def _config_unflatten(config: NSGA2Config, _children) -> NSGA2Config:
+    return config
+
+
+# This registration is REQUIRED: the config carries optional callable op fields
+# (selection_op/mutation_op/crossover_op), and functions are not valid static
+# pytree leaves — so the config travels as one opaque childless node through
+# etl.build/etl.run untouched.
+etl.register_pytree_node(NSGA2Config, _config_flatten, _config_unflatten)
 
 
 def make_nsga2(
@@ -66,13 +85,34 @@ def make_nsga2(
     n_objs: int,
     lb: ArrayLike,
     ub: ArrayLike,
+    selection_op: Optional[Callable] = None,
+    mutation_op: Optional[Callable] = None,
+    crossover_op: Optional[Callable] = None,
 ) -> NSGA2Config:
-    """Construct an NSGA2Config from array-like bounds (stored as flat float tuples).
+    """Construct an NSGA2Config from array-like bounds and optional custom ops.
 
-    Raises ValueError when lb/ub are not 1-D or their shapes differ.
+    Bounds are normalized to flat tuples of plain Python floats; a ``None`` op
+    field means the torch default (tournament_selection_multifit,
+    simulated_binary, polynomial_mutation). Raises ValueError when lb/ub are not
+    1-D, their shapes differ, or an op field is neither None nor callable.
     """
+    for name, op in (
+        ("selection_op", selection_op),
+        ("mutation_op", mutation_op),
+        ("crossover_op", crossover_op),
+    ):
+        if op is not None and not callable(op):
+            raise ValueError(f"{name} must be callable or None, got {op!r}")
     lb, ub = normalize_bounds(lb, ub)
-    return NSGA2Config(pop_size=pop_size, n_objs=n_objs, lb=lb, ub=ub)
+    return NSGA2Config(
+        pop_size=pop_size,
+        n_objs=n_objs,
+        lb=lb,
+        ub=ub,
+        selection_op=selection_op,
+        mutation_op=mutation_op,
+        crossover_op=crossover_op,
+    )
 
 
 @dataclass(frozen=True)
@@ -120,14 +160,17 @@ def step(config: NSGA2Config, state: NSGA2State, evaluate: Callable) -> NSGA2Sta
     ``evaluate`` the offspring -> merge parents + offspring (2*pop_size) and
     select pop_size survivors via non-dominated rank + crowding distance."""
     lb, ub = bake_bounds(config.lb, config.ub)
+    selection = config.selection_op or tournament_selection_multifit
+    crossover = config.crossover_op or simulated_binary
+    mutation = config.mutation_op or polynomial_mutation
     key, k_sel, k_cross, k_mut = random.split_n(state.key, 4)
-    mating_pool = tournament_selection_multifit(
+    mating_pool = selection(
         k_sel,
         config.pop_size,
         [etl.negate(state.dis), etl.cast(state.rank, F32)],
     )
-    crossovered = simulated_binary(k_cross, etl.gather(state.pop, mating_pool, axis=0))
-    offspring = polynomial_mutation(k_mut, crossovered, lb, ub, pro_m=1, dis_m=20)
+    crossovered = crossover(k_cross, etl.gather(state.pop, mating_pool, axis=0))
+    offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     intermediate = replace(state, offspring=offspring, key=key)
 

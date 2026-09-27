@@ -261,14 +261,13 @@ def step(
     ) * delta_mean / state.sigma
 
     y_sel = (population_selected - old_mean) / state.sigma
-    # torch parity: `p_c @ p_c.T` on 1-D p_c is a SCALAR dot product in torch
-    # (1-D .T is a no-op), broadcasting additively into every element of C —
-    # an isotropic c_1-scaled inflation, NOT the canonical rank-one outer
-    # product. See "Design Decisions" in this directory's CONTEXT.md.
-    pc_norm_sq = etl.sum(p_c * p_c)  # 0-d; etl.dot needs rank >= 2
+    # Rank-one covariance update: the torch reference uses `torch.outer(p_c, p_c)`
+    # (a true outer product), so the port must too — `etl.dot` needs rank >= 2,
+    # hence the two `expand_dims` (dim,1) @ (1,dim) -> (dim,dim).
+    pc_outer = etl.dot(enp.expand_dims(p_c, axis=1), enp.expand_dims(p_c, axis=0))
     C_new = (
         (1 - p.c_1 - p.c_mu) * state.C
-        + p.c_1 * (pc_norm_sq + (1 - h_sigma) * p.c_c * (2 - p.c_c) * state.C)
+        + p.c_1 * (pc_outer + (1 - h_sigma) * p.c_c * (2 - p.c_c) * state.C)
         + p.c_mu * etl.dot(etl.transpose(y_sel, (1, 0)) * state.weights, y_sel)
     )
     sigma_new = state.sigma * etl.exp(

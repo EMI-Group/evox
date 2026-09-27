@@ -3,7 +3,9 @@
 ETL-only, no torch. Checks the step-protocol gen-0 contract (``init_step``
 evaluates the FULL initial population, later ``step`` calls evaluate the
 offspring batch they generate), a 3-generation DTLZ1 run via
-``helpers.run_generations``, and seed determinism.
+``helpers.run_generations``, seed determinism, the ``data_type`` contract
+(only ``None``/builtin ``bool`` accepted), and the survivor-ordering parity
+of the final selection stage.
 """
 
 import pathlib
@@ -18,6 +20,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
 import numpy as np
+import pytest
 
 import etl
 import etl.numpy as enp
@@ -120,3 +123,83 @@ def test_full_run_deterministic():
     s1 = run_generations(nsga3, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
     s2 = run_generations(nsga3, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
     assert np.array_equal(np.asarray(s1.pop.numpy()), np.asarray(s2.pop.numpy()))
+
+
+# ---------------------------------------------------------------------------
+# data_type contract + survivor-ordering parity (torch divergence fixes)
+# ---------------------------------------------------------------------------
+
+
+def _run_init(cfg):
+    """Trace ``nsga3.init`` for ``cfg`` and run it with a fixed seed."""
+    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = etl.build(nsga3.init, cfg, key_spec, backend="numpy")
+    return etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+
+
+def test_data_type_bool_draws_boolean_population():
+    """``data_type=bool`` takes the torch ``data_type == torch.bool`` branch
+    (uniform > 0.5 boolean population); ``None`` (the default) stays float32."""
+    cfg_bool = nsga3.make_nsga3(
+        pop_size=POP_SIZE, n_objs=N_OBJS,
+        lb=np.zeros(DIM, dtype=np.float32), ub=np.ones(DIM, dtype=np.float32),
+        data_type=bool,
+    )
+    state = _run_init(cfg_bool)
+    assert state.pop.shape == (POP_SIZE, DIM)
+    assert np.dtype(state.pop.dtype) == np.dtype(bool)
+    assert set(np.unique(np.asarray(state.pop.numpy())).tolist()) <= {False, True}
+
+    state_float = _run_init(make_config())  # data_type=None
+    assert np.dtype(state_float.pop.dtype) == np.dtype("float32")
+
+
+@pytest.mark.parametrize("bad", ["bool", "float32", int, np.bool_, True])
+def test_data_type_rejects_unsupported_values(bad):
+    """Only ``None`` and the builtin ``bool`` type are accepted. In particular
+    ``torch.bool`` (a dtype object, hence rejected) must not silently degrade."""
+    with pytest.raises(ValueError, match="data_type"):
+        nsga3.make_nsga3(
+            pop_size=POP_SIZE, n_objs=N_OBJS,
+            lb=np.zeros(DIM, dtype=np.float32), ub=np.ones(DIM, dtype=np.float32),
+            data_type=bad,
+        )
+
+
+def test_direct_config_construction_validates_data_type():
+    """Direct ``NSGA3Config`` construction bypasses ``make_nsga3``; ``init``
+    must still fail loudly instead of silently degrading to the float path."""
+    cfg = nsga3.NSGA3Config(
+        pop_size=POP_SIZE, n_objs=N_OBJS, lb=(0.0,) * DIM, ub=(1.0,) * DIM,
+        data_type="bool",
+    )
+    with pytest.raises(ValueError, match="data_type"):
+        nsga3.init(cfg, None)
+
+
+def test_final_survivors_preserve_merge_order():
+    """The final selection stage orders survivors by POSITION in the merged
+    arrays — torch's ``merge_pop[rank < worst_rank]`` mask order — NOT by
+    ascending rank (the old port sorted by rank)."""
+    n, k, m = 5, 3, 2
+    merge_pop = np.arange(n * k, dtype=np.float32).reshape(n, k)
+    merge_fit = (np.arange(n * m, dtype=np.float32).reshape(n, m) + 1.0) * 10.0
+    # worst_rank = 2 -> survivors are positions 0, 1, 3 (in merge order).
+    rank = np.asarray([1, 0, 2, 0, 5], dtype=np.int32)
+
+    specs = (
+        etl.core.TensorSpec(shape=(n, k), dtype=np.dtype("float32")),
+        etl.core.TensorSpec(shape=(n, m), dtype=np.dtype("float32")),
+        etl.core.TensorSpec(shape=(n,), dtype=np.dtype("int32")),
+    )
+    exe = etl.build(
+        lambda mp, mf, rk: nsga3._final_survivors(mp, mf, rk, 2, 3),
+        *specs, backend="numpy",
+    )
+    pop, fit, out_rank = etl.run(exe, merge_pop, merge_fit, rank)
+
+    survivors = np.asarray([0, 1, 3], dtype=np.int64)
+    # [1, 0, 0] is the merge-order ranking; the old sort would give [0, 0, 1].
+    assert np.array_equal(out_rank.numpy(), np.asarray([1, 0, 0], dtype=np.int32))
+    assert np.array_equal(pop.numpy(), merge_pop[survivors])
+    assert np.array_equal(fit.numpy(), merge_fit[survivors])
