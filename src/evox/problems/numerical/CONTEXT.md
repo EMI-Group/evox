@@ -80,6 +80,13 @@ Implements the full CEC 2022 single-objective test suite (12 problems). On const
   - **Composition** (F9–F12): Weighted combination of multiple sub-functions via `cf_cal`.
 - Contains private helper functions (`shift`, `rotate`, `sr_func_rate`, `cut`, `cf_cal`) and raw function implementations (`bent_cigar_func`, `hgbat_func`, `katsuura_func`, `modified_schwefel_func`, `schaffer_F7_func`, `escaffer6_func`, `happycat_func`, `grie_rosen_func`, `discus_func`, `ellips_func`, `levy_func`).
 
+## Notes for Agents
+- These Problem classes carry **no** `dim`/`n_dim`, `bounds` (`lb`/`ub`), `opt_direction`, `num_objectives`, or `_optimum`/`_optimal` attributes. `evox.core.Problem` defines none either.
+  - `basic.py` classes expose only `shift`/`affine` (may be `None`) plus per-function constants (e.g. `Ackley.a/.b/.c`).
+  - `DTLZ` classes expose `d` (decision vars), `m` (objectives), `ref_num`, `sample` (reference points), `device`.
+  - `CEC2022` exposes `nx` (dimension, = 2|10|20), `func_num` (1..12), `OShift`, `M`, `SS`.
+  - Input dimensionality is inferred from the population tensor at `evaluate` time (`pop.size(1)`), not from a stored attribute; search-space bounds / objective direction are supplied by the caller (workflow), not the problem.
+
 ## Constraints
 - All Problem classes MUST inherit from `evox.core.Problem` (transitively via the base classes here).
 - All functions implement `evaluate(pop) -> Tensor` where pop has shape `(population_size, dimension)`.
