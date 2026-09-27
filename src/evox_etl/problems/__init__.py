@@ -1,4 +1,4 @@
-"""Numerical benchmark problems in functional style (etl).
+"""Benchmark problems in functional style (etl).
 
 Port of ``src/evox/problems/numerical/`` (torch evox, read-only reference) onto
 the ETL tensor library. Problems are plain functions (traced by the workflow)
@@ -8,11 +8,15 @@ problems share the empty frozen :class:`ProblemState`.
 
 Export surface mirrors torch evox's ``evox.problems.numerical`` plus
 ``Zakharov``/``Levy`` (and their plain ``*_func`` helpers, present in torch
-basic.py but not re-exported there) and :class:`ProblemState`.
+basic.py but not re-exported there) and :class:`ProblemState`. The
+:mod:`~evox_etl.problems.neuroevolution` subpackage (virtual Gaussian-noise ES
+problem) is exported here too, exposing its :class:`VirtualProblem` /
+:class:`VirtualLoRAProblem` aliases.
 """
 
 __all__ = [
     "numerical",
+    "neuroevolution",
     "basic",
     "cec2022",
     "dtlz",
@@ -44,6 +48,8 @@ __all__ = [
     "zakharov_func",
     "levy_func",
     "ProblemState",
+    "VirtualProblem",
+    "VirtualLoRAProblem",
 ]
 
 from . import numerical
@@ -72,3 +78,5 @@ from .numerical.basic import (
 from .numerical.cec2022 import CEC2022
 from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
+from . import neuroevolution
+from .neuroevolution import VirtualLoRAProblem, VirtualProblem
