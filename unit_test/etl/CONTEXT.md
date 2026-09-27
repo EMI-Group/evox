@@ -1,41 +1,62 @@
 # unit_test/etl — tests for the functional evox_etl package
 
 ## Intent
-pytest suite mirroring `src/evox_etl/` (functional EvoX on ETL). Four sub-suites:
+pytest suite mirroring `src/evox_etl/` (functional EvoX on ETL). Seven sub-suites:
 1. `algorithms/` — algorithm smoke/parity tests + converted operator-shim tests
-   (canonical `evox_etl.operators.*` imports; etl-only, no torch).
+   (canonical `evox_etl.operators.*` imports; etl-only, no torch except `parity/`).
 2. `operators/` — operator property tests (random ops, no torch) + `parity/`
    (exact parity vs torch `evox` within 1e-6; torch imports ONLY there).
 3. `problems/` — numerical problem tests + `parity/` (relocated from
-   `src/evox_etl/problems/tests/`; source copy pending deletion by another agent).
+   `src/evox_etl/problems/tests/`; that source dir still exists).
 4. `metrics/` — metric tests + `parity/` (relocated from `src/evox_etl/metrics/tests/`).
+5. `vis_tools/` — Plotly figure builders + the EvoXVision `.exv` binary format
+   (relocated from `src/evox_etl/vis_tools/tests/`). Numpy/plotly only, no torch.
+6. `workflows/` — `evox_etl.workflows` (EvalMonitor semantics + StdWorkflow
+   monitor/history behavior; relocated from `src/evox_etl/workflows/tests/`).
+7. `ext/` — `evox_etl_ext.autoload_ext` extension discovery/merge/idempotency.
 
-## Gate (counts verified: 363 = 97 + 82 + 131 + 53, zero failures/errors/skips)
+## Gate (counts verified: 497 = 125 + 104 + 131 + 53 + 42 + 38 + 4, zero failures/errors/skips)
 ```
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/algorithms -q  # 97, ~9.5 min (torch-parity runs dominate)
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/operators -q   # 82, ~20 s
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/problems -q    # 131, ~70 s
-/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/metrics -q     # 53, ~11 s
+<venv>/bin/python -m pytest unit_test/etl/algorithms -q  # 125, ~5 min (torch-parity runs dominate)
+<venv>/bin/python -m pytest unit_test/etl/operators -q   # 104, ~16 s
+<venv>/bin/python -m pytest unit_test/etl/problems -q    # 131, ~70 s
+<venv>/bin/python -m pytest unit_test/etl/metrics -q     # 53, ~11 s
+<venv>/bin/python -m pytest unit_test/etl/vis_tools -q   # 42, ~10 s
+<venv>/bin/python -m pytest unit_test/etl/workflows -q   # 38, ~14 s
+<venv>/bin/python -m pytest unit_test/etl/ext -q         # 4, <1 s
 ```
 Every `parity/` dir (and the `mo/`/`so/` subdirs) carries an `__init__.py`, so
-the combined run `pytest unit_test/etl -q` also collects all 363 tests with no
-basename collisions and passes green (verified ~11 min).
+the combined run `pytest unit_test/etl -q` also collects all 497 tests with no
+basename collisions and passes green (verified ~5 min).
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
+
+## Environment
+`evox_etl` and `evox_etl_ext` are PEP 420 namespace packages under `src/` (not
+pip-installed), so drivers need `PYTHONPATH=src:<site-packages>`. Provision a
+writable venv: `uv venv` then `uv pip install <copy-of-/home/bill/Source/etl>
+pytest numpy` (etl's own checkout is read-only — install from a copy), and set
+`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
+(that primary venv supplies plotly/torch; it is read-only).
+plotly enables the figure assertions of `vis_tools/` and
+`workflows/test_eval_monitor_plot.py`; without it those are `skipif`-guarded and
+the plotly-missing branches still run.
 
 ## Coverage notes (durable audit findings)
 - NO test under this tree uses any etl backend other than `"numpy"` on CPU: no
   `backend="iree"/"xla"`, no `Device(...)`, no cuda.
   Compiled-backend/GPU paths are exercised only by the `benchmarks/etl_vs_torch/`
   harness (torch-cuda/etl-iree-llvm-cpu/etl-iree-cuda/etl-xla-cuda), not by unit tests.
-- No `pytest.mark.skip`/`xfail` markers anywhere: every test that exists runs;
-  nothing is silently skipped. Known-not-ported code (e.g. `virtual_lora_es`,
-  asebo's iree/xla `etl.svd` blocker) simply has no module/test to exercise it —
-  see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
-- `evox_etl`'s OWN `StdWorkflow`/`EvalMonitor` (`src/evox_etl/core/workflow.py`,
-  `workflows/`) have NO tests here: algorithm tests drive raw init/ask/tell via
-  `helpers.run_generations`, and parity tests drive the TORCH StdWorkflow.
-  etl-workflow validation is ad hoc (`src/evox_etl/workflows/CONTEXT.md`) plus
-  the benchmark harness.
+- The only skip mechanism in the tree is `skipif`-guarding of Plotly figure
+  assertions (plotly present in the primary venv, so the gate run reports 0 skips);
+  there are no `pytest.mark.skip`/`xfail` markers. Known-not-ported code (e.g.
+  `virtual_lora_es`, asebo's iree/xla `etl.svd` blocker) simply has no module/test
+  to exercise it — see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
+- `evox_etl`'s own `StdWorkflow`/`EvalMonitor` (`src/evox_etl/core/workflow.py`,
+  `workflows/`) ARE covered here by the `workflows/` suite (EvalMonitor shape
+  policy + auxiliary-history channel + `EvalMonitor.plot`, driven directly
+  through `etl.build`/`etl.run` and via real algorithms with CoDE/CSO/PSO).
+  Algorithm tests still drive raw init/step via `helpers.run_generations`, and
+  parity tests drive the TORCH StdWorkflow.
 - Algorithms with etl-only smoke coverage and no torch parity: code/jade/ode/
   sade/shade, ars/asebo/des/esmc/guided_es/nes/noise_reuse_es/persistent_es/
   snes, rvea/rveaa/hype (parity exists for de, pso, cma_es, open_es, nsga2,
@@ -46,11 +67,17 @@ Suite-separate runs remain useful for per-suite numbers and faster failure isola
   `algorithms/`; problems tests keep direct dataclass construction by design).
 
 ## Packaging notes
-- Every suite dir and its `parity/` subdir has an empty `__init__.py` so pytest
-  treats them as distinct packages (`problems.parity.test_parity` vs
-  `metrics.parity.test_parity` etc.) — keep them if adding new parity dirs.
+- `algorithms/`, `operators/`, `problems/`, `metrics/` and their `parity/` (and
+  the `mo/`/`so/`) subdirs carry an empty `__init__.py` so pytest treats them as
+  distinct packages — keep them if adding new parity dirs.
+  `vis_tools/` and `ext/` also carry `__init__.py` (no helper must stay top-level).
+- `workflows/` deliberately has NO `__init__.py`: StdWorkflow resolves each
+  component's plain functions via `type(config).__module__` + `importlib`, so the
+  `aux_toy_*.py` siblings must be imported as TOP-LEVEL modules. New helper/toy
+  modules there need distinctive basenames.
 - Repo-root `conftest.py` shims sys.path (repo root + `src/`); each `parity/` and
-  the problems/metrics suites also carry idempotent relocate-ready conftest shims.
+  the problems/metrics/vis_tools/workflows suites also carry idempotent
+  relocate-ready conftest shims.
 - Test pattern: `etl.build(fn, *specs, backend="numpy")` + `etl.run(exe, *args)`;
   scalar tensor inputs are 0-d ndarrays (numpy scalars rejected at run boundary);
   statics re-passed at run in signature order; results need `.numpy()`.
