@@ -33,10 +33,26 @@ N_GENS = 80
 SIGMA = 5.0
 
 
-def _torch_best_fitness(seed: int) -> tuple[float, int]:
+def _torch_best_fitness(
+    seed: int, monkeypatch: pytest.MonkeyPatch
+) -> tuple[float, int]:
     """Run the torch CMAES for N_GENS generations; return (best fitness, n_gens)."""
     torch.manual_seed(seed)
     algorithm = CMAES(mean_init=torch.from_numpy(CENTER), sigma=SIGMA)
+    # torch-2.12 environment workaround (verified necessary): `CMAES.step` ->
+    # `_conditional_decomposition` calls `torch.cond(...)`, which under torch
+    # 2.12.1 raises `UncapturedHigherOrderOpError` ("Encountered aliasing during
+    # higher order op tracing") while capturing the `_decomposition` branch.
+    # `iteration % decomp_per_iter == 0` is always true for `decomp_per_iter ==
+    # 1` (asserted below), so `_decomposition` is always the taken branch and
+    # calling it directly is EXACTLY equivalent (same pattern as
+    # `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py`).
+    assert int(algorithm.decomp_per_iter) == 1
+    monkeypatch.setattr(
+        CMAES,
+        "_conditional_decomposition",
+        lambda self, iteration, C: self._decomposition(C),
+    )
     problem = Sphere()  # dim is inferred from the algorithm's population (40)
     monitor = EvalMonitor(full_sol_history=True)
     workflow = StdWorkflow(algorithm, problem, monitor=monitor)
@@ -49,8 +65,8 @@ def _torch_best_fitness(seed: int) -> tuple[float, int]:
 
 
 @pytest.mark.parametrize("seed", [0, 1])
-def test_cma_es_parity(seed: int):
-    torch_best, n_gens = _torch_best_fitness(seed)
+def test_cma_es_parity(seed: int, monkeypatch: pytest.MonkeyPatch):
+    torch_best, n_gens = _torch_best_fitness(seed, monkeypatch)
     config = etl_cma.make_cma_es(mean_init=CENTER, sigma=SIGMA)
     state = run_generations(etl_cma, config, SphereConfig(DIM), n_gens, seed=seed)
     etl_best = float(state.best_fitness.numpy())
