@@ -12,8 +12,11 @@ module is it. All functions are plain Python: they may only be called inside an
 active etl trace (ETL has no eager mode).
 
 Torch name -> etl adaptation:
+- ``switch`` — per-element select from a list of tensors; the torch
+  ``torch.where`` chain becomes an ``etl.select`` chain (1:1).
 - ``clamp``/``clamp_float``/``clamp_int`` — relu-based clamps (1:1).
-- ``maximum``/``minimum`` (+ ``_int`` variants) — relu-based elementwise ops (1:1).
+- ``clip`` — clamp into [0, 1] (1:1; torch invokes ``clamp(a, 0, 1)``).
+- ``maximum``/``minimum`` (+ ``_int``/``_float`` variants) — relu-based elementwise ops (1:1).
 - ``lexsort(keys, dim=-1)`` — stable multi-key argsort; like the torch original,
   the LAST key is primary (numpy lexsort convention; verified against torch).
 - ``nanmin``/``nanmax`` — NaN-ignoring min/max returning ``(values, indices)``.
@@ -36,13 +39,17 @@ import etl.random as random
 Tensor = etl.SymbolicTensor
 
 __all__ = [
+    "switch",
     "clamp",
     "clamp_float",
     "clamp_int",
+    "clip",
     "lexsort",
     "maximum",
+    "maximum_float",
     "maximum_int",
     "minimum",
+    "minimum_float",
     "minimum_int",
     "nanmax",
     "nanmin",
@@ -58,6 +65,14 @@ def _relu(x: Tensor) -> Tensor:
     return etl.relu(x)
 
 
+def switch(label: Tensor, values: List[Tensor]) -> Tensor:
+    """Select from `values` per element of `label` (jit-fix for the torch.where chain)."""
+    value = values[0]
+    for i in range(1, len(values)):
+        value = etl.select(label <= i - 1, value, values[i])
+    return value
+
+
 def clamp(a: Tensor, lb: Tensor, ub: Tensor) -> Tensor:
     """Clamp `a` elementwise into [lb, ub] via relu composition (jit-fix for torch.clamp)."""
     return a + _relu(lb - a) - _relu(a - ub)
@@ -71,6 +86,11 @@ def clamp_float(a: Tensor, lb: float, ub: float) -> Tensor:
 def clamp_int(a: Tensor, lb: int, ub: int) -> Tensor:
     """Clamp `a` elementwise into scalar int bounds [lb, ub], preserving `a`'s dtype."""
     return etl.cast(a + _relu(lb - a) - _relu(a - ub), a.dtype)
+
+
+def clip(a: Tensor) -> Tensor:
+    """Clip `a` elementwise into [0, 1] (jit-fix for torch.clamp; invokes clamp(a, 0, 1))."""
+    return clamp_float(a, 0.0, 1.0)
 
 
 def maximum(a: Tensor, b: Tensor) -> Tensor:
@@ -91,6 +111,16 @@ def maximum_int(a: Tensor, b: int) -> Tensor:
 def minimum_int(a: Tensor, b: int) -> Tensor:
     """Elementwise minimum of `a` and scalar int `b`, preserving `a`'s dtype."""
     return etl.cast(a - _relu(a - b), a.dtype)
+
+
+def maximum_float(a: Tensor, b: float) -> Tensor:
+    """Elementwise maximum of `a` and scalar float `b` (jit-fix for torch.maximum)."""
+    return a + etl.relu(b - a)
+
+
+def minimum_float(a: Tensor, b: float) -> Tensor:
+    """Elementwise minimum of `a` and scalar float `b` (jit-fix for torch.minimum)."""
+    return a - etl.relu(a - b)
 
 
 def _gather_last(x: Tensor, indices: Tensor) -> Tensor:
