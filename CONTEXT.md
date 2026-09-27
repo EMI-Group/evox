@@ -55,6 +55,7 @@ evox/
 | **Benchmarks** | `benchmarks/` | PSO benchmark (eager vs compile vs max-autotune), `switch` micro-benchmark, reusable `test_base.py` |
 | **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 6 backends (torch-cpu/cuda, etl-numpy/iree-llvm-cpu/iree-cuda/xla-cuda) × SO/MO suites × 3 scales; results JSONs + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
 | **Documentation** | `docs/` | Sphinx + shibuya theme; autodoc2 API docs; MyST Markdown tutorials; bilingual (gettext .po + manual ZH translations) |
+| **Examples** | `examples/` | Runnable standalone scripts: ETL quickstart (`quickstart.py`) + torch HPO demos (`examples/hpo/`); HPO is torch-only (not ported to ETL) |
 | **CI/CD** | `.github/workflows/` | Python package build/test, PyPI publish, Ruff lint check, Discord bot notifications |
 
 ## Key Architectural Concepts
