@@ -14,8 +14,9 @@ Porting rule (binding, see `../../DESIGN.md` §4.3):
 
 One exception to the "torch operators package" scope: `jit_fix_operator.py`
 lives here too. It ports the torch `evox/utils/jit_fix_operator.py` helpers
-(clamp/clamp_float/clamp_int, maximum/minimum(+`_int`), lexsort, nanmin/nanmax,
-key-first randint, `_take_along_axis`) that torch keeps under `evox/utils/` —
+(switch, clamp/clamp_float/clamp_int, clip, maximum/minimum(+`_int`/`_float`),
+lexsort, nanmin/nanmax, key-first randint, `_take_along_axis`) that torch keeps
+under `evox/utils/` —
 the torch algorithms call these instead of raw torch ops for JIT-operator-fusion
 safety, so the etl algorithm ports need them as well, and this package is their
 canonical operator-utility home. Like everything else here it is plain Python
