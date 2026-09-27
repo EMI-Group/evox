@@ -43,7 +43,8 @@ compile-once StdWorkflow loop.
 | Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
 | Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
-| Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
+| Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor; tests at `../unit_test/etl/workflows/` |
+| Visualization | `vis_tools/` | Plotly figure builders + EvoXVision `.exv` serialization; tests at `../unit_test/etl/vis_tools/` |
 | Utilities | `utils/` | functional helpers |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
