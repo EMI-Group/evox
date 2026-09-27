@@ -21,6 +21,7 @@ evox/
 ├── unit_test/etl/      ← etl-variant test suite (algorithms/operators/problems/metrics, 363 tests)
 ├── benchmarks/         ← Performance benchmark scripts
 ├── benchmarks/etl_vs_torch/  ← torch vs etl comparison harness + BENCHMARK_RESULTS.md + style_comparison.md
+├── examples/           ← Runnable standalone scripts: ETL quickstart + torch HPO demos (`examples/hpo/`)
 ├── REFACTOR_REPORT.md  ← Final report of the EvoX→ETL functional refactoring
 ├── docs/               ← Sphinx documentation (ReadTheDocs, bilingual EN/ZH)
 ├── .github/            ← CI/CD workflows + PR template
