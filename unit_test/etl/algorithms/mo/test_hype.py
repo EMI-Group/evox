@@ -3,7 +3,10 @@
 ETL-only, no torch. Checks the step-protocol gen-0 contract (``init_step``
 evaluates the FULL initial population, later ``step`` calls evaluate the
 offspring batch they generate), a 3-generation DTLZ1 run via
-``helpers.run_generations``, and seed determinism.
+``helpers.run_generations``, seed determinism, and the optional custom
+crossover/mutation op injection (``HypEConfig.mutation_op``/``crossover_op``;
+``None`` means the torch default; ``selection_op`` is intentionally not
+exposed because it is inert in the torch reference).
 """
 
 import pathlib
@@ -18,24 +21,32 @@ sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
 import numpy as np
+import pytest
 
 import etl
 import etl.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import hype
+from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.mutation import polynomial_mutation
 from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 
 
-def make_config():
-    """HypE config: 3 objectives, decision space [0, 1]^7."""
+def make_config(**kwargs):
+    """HypE config: 3 objectives, decision space [0, 1]^7.
+
+    Extra keyword args are forwarded to ``make_hype`` — used to inject custom
+    ``mutation_op`` / ``crossover_op``.
+    """
     return hype.make_hype(
         pop_size=POP_SIZE,
         n_objs=N_OBJS,
         lb=np.zeros(DIM, dtype=np.float32),
         ub=np.ones(DIM, dtype=np.float32),
+        **kwargs,
     )
 
 
@@ -125,3 +136,109 @@ def test_full_run_deterministic():
     s1 = run_generations(hype, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
     s2 = run_generations(hype, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
     assert np.array_equal(np.asarray(s1.pop.numpy()), np.asarray(s2.pop.numpy()))
+
+
+# --------------------------------------------------------------------------
+# Custom crossover / mutation op injection (torch ``HypE.__init__`` parity)
+# --------------------------------------------------------------------------
+
+
+def test_custom_ops_are_invoked():
+    """A user-supplied crossover/mutation op is actually called by ``step``.
+
+    The recorders are plain Python functions delegating to the ETL defaults, so
+    they fire while ``etl.build`` traces the generation function; each must be
+    invoked at least once.
+    """
+    calls = {"crossover": 0, "mutation": 0}
+
+    def recording_crossover(key, x):
+        calls["crossover"] += 1
+        return simulated_binary(key, x)
+
+    def recording_mutation(key, x, lb, ub):
+        calls["mutation"] += 1
+        return polynomial_mutation(key, x, lb, ub)
+
+    cfg = make_config(mutation_op=recording_mutation, crossover_op=recording_crossover)
+    assert calls == {"crossover": 0, "mutation": 0}
+
+    # n_gens=2 -> gen 0 is init_step, gen 1 is the single regular step.
+    run_generations(hype, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=2, seed=SEED)
+
+    assert calls["crossover"] >= 1
+    assert calls["mutation"] >= 1
+
+
+def test_custom_ops_change_offspring_and_none_matches_default():
+    """Identity custom ops change ``state.offspring``; ``None`` op fields
+    reproduce the default run bit-for-bit (same RNG draw order/output)."""
+    default_state = run_generations(
+        hype, make_config(), DTLZ1Config(DIM, N_OBJS), n_gens=2, seed=SEED
+    )
+    off_default = np.asarray(default_state.offspring.numpy())
+    assert off_default.shape == (POP_SIZE, DIM)
+
+    # Identity mutation leaves the (clamped) crossover batch untouched, so the
+    # offspring leaf differs from the polynomial-mutation default.
+    identity_mut_state = run_generations(
+        hype,
+        make_config(mutation_op=lambda key, x, lb, ub: x),
+        DTLZ1Config(DIM, N_OBJS),
+        n_gens=2,
+        seed=SEED,
+    )
+    off_identity_mut = np.asarray(identity_mut_state.offspring.numpy())
+    assert off_identity_mut.shape == off_default.shape
+    assert not np.array_equal(off_default, off_identity_mut)
+
+    # Identity crossover (no SBX recombination) differs from the default too.
+    identity_cross_state = run_generations(
+        hype,
+        make_config(crossover_op=lambda key, x: x),
+        DTLZ1Config(DIM, N_OBJS),
+        n_gens=2,
+        seed=SEED,
+    )
+    assert not np.array_equal(
+        off_default, np.asarray(identity_cross_state.offspring.numpy())
+    )
+
+    # Explicit None == the default: the whole state is reproduced exactly.
+    explicit_none = run_generations(
+        hype,
+        make_config(mutation_op=None, crossover_op=None),
+        DTLZ1Config(DIM, N_OBJS),
+        n_gens=2,
+        seed=SEED,
+    )
+    assert np.array_equal(
+        np.asarray(explicit_none.pop.numpy()), np.asarray(default_state.pop.numpy())
+    )
+    assert np.array_equal(
+        np.asarray(explicit_none.offspring.numpy()), off_default
+    )
+
+
+def test_make_hype_validates_ops_and_hides_selection_op():
+    """Non-callable op fields raise ValueError; ``selection_op`` is NOT exposed
+    (inert in the torch reference, which hard-codes ``tournament_selection``)."""
+    for field in ("mutation_op", "crossover_op"):
+        with pytest.raises(ValueError):
+            make_config(**{field: 5})
+    # Callables and None are both accepted.
+    assert make_config(mutation_op=lambda key, x, lb, ub: x).mutation_op is not None
+    assert make_config(crossover_op=None).crossover_op is None
+    assert not hasattr(hype.HypEConfig, "selection_op")
+
+
+def test_custom_ops_full_run_sanity():
+    """A 3-generation run with both custom ops stays finite and keeps shapes."""
+    cfg = make_config(mutation_op=polynomial_mutation, crossover_op=simulated_binary)
+    state = run_generations(hype, cfg, DTLZ1Config(DIM, N_OBJS), n_gens=N_GENS, seed=SEED)
+    pop = np.asarray(state.pop.numpy())
+    fit = np.asarray(state.fit.numpy())
+    assert pop.shape == (POP_SIZE, DIM)
+    assert fit.shape == (POP_SIZE, N_OBJS)
+    assert np.all(np.isfinite(fit))
+    assert np.all((pop >= -1e-6) & (pop <= 1.0 + 1e-6))
