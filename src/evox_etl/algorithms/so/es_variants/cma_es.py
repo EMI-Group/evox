@@ -294,3 +294,19 @@ def step(
         best_fitness=etl.minimum(state.best_fitness, etl.min(fitness)),
         key=state.key,
     )
+
+
+def record_step(
+    config: CMAESConfig,
+    state: CMAESState,
+    candidate: Tensor | None,
+    fitness: Tensor | None,
+) -> dict[str, Tensor]:
+    """Host-side auxiliary-info hook for the monitor (mirrors torch `CMAES.record_step`).
+
+    PLAIN module-level function (NOT ``@etl.defn``): `StdWorkflow` calls it
+    HOST-SIDE on CONCRETE etl tensors of the POST-step state, outside any traced
+    graph. `candidate`/`fitness` are accepted-but-ignored, as in torch. Returns
+    the distribution summary the monitor's `record_auxiliary` stores.
+    """
+    return {"mean": state.mean, "sigma": state.sigma}
