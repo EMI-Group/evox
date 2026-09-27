@@ -5,9 +5,9 @@ the torch OOP design; see ``DESIGN.md`` for the binding spec. Algorithms,
 problems and operators stay importable as submodules (not loaded at root).
 """
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
-from . import core, metrics, utils, workflows
+from . import core, metrics, utils, vis_tools, workflows
 
 from .core import (
     Algorithm, AlgorithmConfig, AlgorithmState, Candidates, EmptyState,
@@ -24,7 +24,7 @@ import etl.random as random
 from etl.random import key
 
 __all__ = [
-    "core", "metrics", "utils", "workflows",
+    "core", "metrics", "utils", "vis_tools", "workflows",
     "Algorithm", "AlgorithmConfig", "AlgorithmState", "Candidates",
     "EmptyState", "Fitness", "KeyArray",
     "Monitor", "MonitorConfig", "MonitorState",
@@ -36,3 +36,11 @@ __all__ = [
     "gd", "gd_plus", "hv", "igd", "igd_plus",
     "random", "key",
 ]
+
+# Autoload the ETL extension namespace (guarded: tolerate its absence).
+try:
+    from evox_etl_ext.autoload_ext import auto_load_extensions
+
+    auto_load_extensions()
+except ImportError:
+    pass
