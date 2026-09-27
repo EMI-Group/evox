@@ -97,7 +97,7 @@ non-int `lora_rank`.
 - `reshape`/`transpose` with static ints (incl. the pop dim from
   `int(seeds.shape[0])`, the shared `lora_factors` idiom) work.
 
-## ETL issues found (escalate to root — also needs adding to `../CONTEXT.md`)
+## ETL issues found (escalated to root — recorded as #11 in `../CONTEXT.md`)
 1. **`etl` operators reject numpy scalars as operands.** `x / np.float32(2.0)`
    raises `TypeError: unsupported operand type float32: op operands must be
    SymbolicTensor or Python scalars (bool, int, float, complex); numpy
