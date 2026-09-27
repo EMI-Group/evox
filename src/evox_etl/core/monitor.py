@@ -48,3 +48,16 @@ class Monitor(Protocol):
     def init(self, config: MonitorConfig, key: KeyArray) -> MonitorState:
         """Optional: create the initial monitor state from the config and a random key."""
         ...
+
+    def record_auxiliary(self, config: MonitorConfig, aux: dict[str, Any]) -> None:
+        """Optional: store one generation of auxiliary info produced by the algorithm.
+
+        OPTIONAL — a monitor module may omit it. When present it is a PLAIN
+        module-level host-side function (NOT ``@etl.defn``) ``record_auxiliary(config,
+        aux) -> None`` living in the SAME module as the config. The workflow calls
+        it HOST-SIDE (outside any traced graph) once per generation with the dict
+        returned by the algorithm's optional ``record_step`` hook; the monitor
+        (e.g. EvalMonitor) stores it as host-side aux history (e.g.
+        ``aux_history``, keyed by the dict's entries).
+        """
+        ...
