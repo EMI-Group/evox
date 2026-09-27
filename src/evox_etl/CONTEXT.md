@@ -48,9 +48,12 @@ compile-once StdWorkflow loop.
 | Algorithms MO | `algorithms/mo/` | nsga2, nsga3, moead, rvea, rveaa, hype |
 | Config helpers (shared) | `algorithms/_config_utils.py` | make_* support: to_float_tuple, normalize_bounds, require_*, bake_* |
 | Numerical problems | `problems/numerical/` | basic, dtlz, cec2022 |
+| Neuroevolution problems | `problems/neuroevolution/` | virtual Gaussian-noise problem (`VirtualProblem`/`VirtualLoRAProblem`) |
+| HPO wrapper (host-side) | `problems/hpo_wrapper.py` | HPOProblemWrapper/HPSlot/random_search; numpy host-side only |
 | Metrics | `metrics/` | gd/gd_plus, igd/igd_plus, hv + MC variants; in-node `tests/` |
 | Workflow + EvalMonitor | `workflows/` | std_workflow re-export, eval_monitor |
 | Utilities | `utils/` | functional helpers |
+| End-to-end tests | `tests/` | real-algorithm convergence tests; `.gitignore`d, stage with `git add -f` |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs etl) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
