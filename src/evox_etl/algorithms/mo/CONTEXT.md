@@ -90,6 +90,12 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   etl functional variants hard-code tournament_selection_multifit /
   simulated_binary[_half] / polynomial_mutation). These configs are now
   plain static-leaf pytrees, revalidated by value at `etl.run`.
+- `make_nsga3` also raises ValueError when `data_type` is neither `None` nor
+  the builtin `bool` type (`_normalize_data_type`, re-called in `init` so
+  direct dataclass construction fails loudly too). `data_type=bool` draws the
+  torch `data_type == torch.bool` boolean population (uniform > 0.5);
+  `torch.bool` itself is NOT accepted (the etl module never imports torch) —
+  callers must pass the builtin `bool`.
 - `make_*` signatures (drives the test-migration round; all raise ValueError
   on malformed bounds; the three callable-bearing ones also raise ValueError
   on a non-callable non-None op field):
