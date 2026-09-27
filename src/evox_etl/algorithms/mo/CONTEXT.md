@@ -95,7 +95,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - `make_*` signatures (drives the test-migration round; all raise ValueError
   on malformed bounds; the three callable-bearing ones also raise ValueError
   on a non-callable non-None op field):
-  - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike) -> NSGA2Config`
+  - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> NSGA2Config`
   - `make_nsga3(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None, data_type: Optional[Any] = None) -> NSGA3Config`
   - `make_moead(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> MOEADConfig`
   - `make_rvea(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAConfig`
