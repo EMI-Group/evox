@@ -203,11 +203,17 @@ def step(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1
     )[0]
     theta_grad = 0.5 * fit_diff_noise
-    # DELIBERATE DEVIATION from torch: torch divides by `self.UUT`, a Mutable that
-    # is only zero-initialised in `__init__` and NEVER refreshed (torch `step`
-    # re-binds a LOCAL `UUT`), so once `gen_counter > subspace_dims` alpha
-    # degenerates to inf and torch's `cholesky` raises LinAlgError at generation
-    # `subspace_dims + 2`.  The port keeps the finite, freshly computed `UUT`.
+    # alpha's denominator is `state.UUT`, the MASKED UUT stored above: the mask
+    # uses the PRE-increment counter while alpha's own mask uses the
+    # POST-increment one — exactly as the torch reference does (`where` on its
+    # local UUT before `gen_counter` is bumped, `where` on alpha after).  So in
+    # the generation where `gen_counter` first exceeds `subspace_dims` the
+    # denominator is the all-zero matrix and alpha = inf, reproducing torch,
+    # which divides by its never-refreshed all-zero `self.UUT`.  torch then
+    # raises LinAlgError in `cholesky` at generation `subspace_dims + 2`; numpy's
+    # cholesky NaN-propagates instead and the port surfaces it one generation
+    # later as an `etl.svd` non-convergence error.  Runs beyond `subspace_dims`
+    # generations are unsupported on both sides (see this directory's CONTEXT.md).
     alpha = etl.norm(
         etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
     ) / etl.norm(etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])
