@@ -75,14 +75,19 @@ the plotly-missing branches still run.
   `algorithms/`; problems tests keep direct dataclass construction by design).
 
 ## Packaging notes
-- `algorithms/`, `operators/`, `problems/`, `metrics/` and their `parity/` (and
-  the `mo/`/`so/`) subdirs carry an empty `__init__.py` so pytest treats them as
-  distinct packages — keep them if adding new parity dirs.
-  `vis_tools/` and `ext/` also carry `__init__.py` (no helper must stay top-level).
-- `workflows/` deliberately has NO `__init__.py`: StdWorkflow resolves each
-  component's plain functions via `type(config).__module__` + `importlib`, so the
-  `aux_toy_*.py` siblings must be imported as TOP-LEVEL modules. New helper/toy
-  modules there need distinctive basenames.
+- `operators/`, `problems/`, `metrics/`, `vis_tools/`, `ext/` and every `parity/`
+  subdir carry an `__init__.py`, as do `algorithms/mo/`, `algorithms/parity/` and
+  `algorithms/so/es_variants/`; pytest then imports those test modules with their
+  package prefix (`parity.test_parity`, `es_variants.test_virtual_es`, …), which is
+  what keeps same-basename files (e.g. the four `parity/test_parity.py`) from
+  colliding. Keep the markers when adding new parity/package dirs.
+- `algorithms/`, `algorithms/so/`, `algorithms/so/de_variants/`,
+  `algorithms/so/pso_variants/` and `workflows/` deliberately have NO `__init__.py`,
+  so their test modules import as TOP-LEVEL names — new files there need
+  distinctive basenames.
+- `workflows/` in particular must stay flat: StdWorkflow resolves each component's
+  plain functions via `type(config).__module__` + `importlib`, so the `aux_toy_*.py`
+  siblings have to remain top-level modules.
 - Repo-root `conftest.py` shims sys.path (repo root + `src/`); each `parity/` and
   the problems/metrics/vis_tools/workflows suites also carry idempotent
   relocate-ready conftest shims.
