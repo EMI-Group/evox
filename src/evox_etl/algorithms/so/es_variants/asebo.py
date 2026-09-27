@@ -159,15 +159,14 @@ def step(
     # Active subspace via SVD of the gradient history.
     X = state.grad_subspace - etl.mean(state.grad_subspace, axes=0)
     U, _S, Vh = etl.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
-    k = min(sub, dim)
-    max_abs_cols = etl.argmax(etl.abs(U), axis=0)
-    offset_idx = max_abs_cols + etl.cast(
-        enp.arange(k, dtype=np.dtype("int64")), np.dtype("int64")
-    ) * sub
-    row_collected = etl.gather(enp.reshape(U, (-1,)), offset_idx, axis=0)
-    signs = etl.sign(row_collected)
+    max_abs_cols = etl.argmax(etl.abs(U), axis=0)  # (k,) int64
+    # torch writes `signs = torch.sign(U[max_abs_cols, :])` — advanced indexing on
+    # dim 0 selects k ROWS, so `signs` is a (k, k) sign MATRIX (row i = sign of row
+    # max_abs_cols[i] of U), NOT a length-k vector.  `etl.gather(x, idx, axis=0)` is
+    # numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`.
+    signs = etl.sign(etl.gather(U, max_abs_cols, axis=0))  # (k, k)
     U = U * signs
-    Vh = Vh * enp.expand_dims(signs, axis=1)
+    Vh = Vh * signs
 
     U2 = Vh[:half]
     UUT = etl.dot(etl.transpose(U2), U2)
@@ -199,6 +198,11 @@ def step(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1
     )[0]
     theta_grad = 0.5 * fit_diff_noise
+    # DELIBERATE DEVIATION from torch: torch divides by `self.UUT`, a Mutable that
+    # is only zero-initialised in `__init__` and NEVER refreshed (torch `step`
+    # re-binds a LOCAL `UUT`), so once `gen_counter > subspace_dims` alpha
+    # degenerates to inf and torch's `cholesky` raises LinAlgError at generation
+    # `subspace_dims + 2`.  The port keeps the finite, freshly computed `UUT`.
     alpha = etl.norm(
         etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
     ) / etl.norm(etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])
