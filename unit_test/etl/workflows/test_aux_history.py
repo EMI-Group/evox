@@ -20,10 +20,6 @@ configs in one module would collide on names like ``init``):
 * ``aux_toy_problem.py``            — stateless toy sphere problem
 
 Numpy backend only; no torch imports.
-
-NOTE (relocation): this suite lives in ``src/evox_etl/workflows/tests/`` while
-the migration wave settles; it is written to be moved to
-``unit_test/etl/workflows/`` verbatim.
 """
 
 from __future__ import annotations

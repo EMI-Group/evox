@@ -53,16 +53,13 @@ parameter order, and Plotly figure structure).
 ## Routing Table
 | Area | Path | Notes |
 |---|---|---|
-| Tests (pytest) | `tests/` | `conftest.py` sys.path shim + `test_exv.py` (exv dtype/metadata/round-trip) + `test_plot.py` (6 figure builders + plotly-missing path); 42 tests |
+| Tests (pytest) | `../../unit_test/etl/vis_tools/` | `conftest.py` sys.path shim + `test_exv.py` (exv dtype/metadata/round-trip) + `test_plot.py` (6 figure builders + plotly-missing path); 42 tests |
 
 ## See Also
 - Read-only torch reference (never modify): `../../evox/vis_tools/`
   (`plot.py`, `exv.py`).
-- Tests live in-node at `tests/` (the sanctioned temporary home; mirrors
-  `src/evox_etl/metrics/tests/`). The parent relocates the suite to
-  `unit_test/etl/vis_tools/` — that path is outside this node's write scope,
-  so relocation is a parent-level action. Run with:
-  `$BASE/venv/bin/python -m pytest src/evox_etl/vis_tools/tests -q`
-  (`PYTHONPATH="src:<plotly-site-packages>"`; plotly 6.0.0/numpy 2.5.1 supplied
-  from the primary `.venv` site-packages).
+- Tests live in the canonical mirror tree at `unit_test/etl/vis_tools/`:
+  `PYTHONPATH="src:<site-packages>" <venv>/bin/python -m pytest
+  unit_test/etl/vis_tools -q` (plotly 6.0.0/numpy 2.5.1 supplied from the
+  primary `.venv` site-packages).
 - Optional extra: `pyproject.toml` `[project.optional-dependencies] vis` (`plotly >= 5.0.0`).

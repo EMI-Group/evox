@@ -12,10 +12,6 @@ call ``plot`` on the resulting monitor. The POP source uses the toy algorithm's
 ``record_step`` aux channel, so the toy modules are imported as TOP-LEVEL modules
 (this directory intentionally has no ``__init__.py``, same as the sibling
 ``test_aux_history.py``).
-
-NOTE (relocation): this suite lives in ``src/evox_etl/workflows/tests/`` while
-the migration wave settles; it is written to be moved to
-``unit_test/etl/workflows/`` verbatim.
 """
 
 from __future__ import annotations

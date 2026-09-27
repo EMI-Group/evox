@@ -1,13 +1,8 @@
-# src/evox_etl/workflows/tests — in-node pytest suite
-
+# unit_test/etl/workflows — workflows suite
 ## Intent
 pytest suite for `evox_etl.workflows` (EvalMonitor semantics + StdWorkflow
-monitor/history behavior), runnable without installing `evox_etl` (it is a PEP
-420 namespace package under `src/`). Numpy backend only — no torch imports.
-
-NOTE (relocation): these files live here while the migration wave settles; each
-test file is written to be moved to `unit_test/etl/workflows/` verbatim.
-
+monitor/history behavior). Numpy backend only — no torch imports. Runnable
+without installing `evox_etl` (it is a PEP 420 namespace package under `src/`).
 ## Files
 - `conftest.py` — sys.path shim (repo root + `src/`), idempotent, locations
   computed from `__file__`. Shared bootstrap; do NOT add a second conftest.
@@ -34,15 +29,11 @@ test file is written to be moved to `unit_test/etl/workflows/` verbatim.
   resolves each component's plain functions via `type(config).__module__`):
   `aux_toy_algorithm.py` (WITH `record_step`), `aux_toy_algorithm_no_hook.py`
   (WITHOUT `record_step`), `aux_toy_problem.py` (stateless sphere).
-
 ## Constraints
 - NO `__init__.py` here: pytest's prepend import mode imports the test modules
   AND the `aux_toy_*` siblings as TOP-LEVEL modules, which is exactly what makes
   `type(config).__module__` resolvable via `importlib`. New helper/toy modules
   need distinctive basenames to avoid collisions with other test directories.
 - Two configs used together by one workflow MUST live in distinct modules.
-- The directory is gitignored (`.gitignore:168 "tests"`); new files must be
-  `git add -f`'d to be tracked, like the pre-existing ones.
 - Run: `PYTHONPATH=src:<site-packages> <venv>/bin/python -m pytest
-  src/evox_etl/workflows/tests -q` (38 tests: 9 aux-history + 15 pre-existing +
-  14 `test_eval_monitor_plot.py`; ~14 s with plotly available).
+  unit_test/etl/workflows -q` (38 tests; ~14 s with plotly available).

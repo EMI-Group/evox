@@ -10,10 +10,6 @@ and a monotone running elite.
 
 These tests go through ``evox_etl.workflows.StdWorkflow`` (the etl workflow —
 NOT torch). Numpy backend only; no torch imports.
-
-NOTE (relocation): this suite lives in ``src/evox_etl/workflows/tests/`` while
-the migration wave settles; it is written to be moved to
-``unit_test/etl/workflows/`` verbatim.
 """
 
 from __future__ import annotations

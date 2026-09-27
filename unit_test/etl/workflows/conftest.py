@@ -4,7 +4,7 @@
 ``src/``), so pytest needs the repository root and its ``src/`` directory on
 ``sys.path`` before the test modules are collected. The shim is idempotent and
 computes the locations from ``__file__`` (same pattern as
-``../../metrics/tests/conftest.py``).
+``../metrics/conftest.py``).
 """
 
 import sys
