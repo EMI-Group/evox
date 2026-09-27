@@ -50,6 +50,14 @@ __all__ = [
     "ProblemState",
     "VirtualProblem",
     "VirtualLoRAProblem",
+    "hpo_wrapper",
+    "HPSlot",
+    "HPOFitnessMonitorConfig",
+    "HPOMonitor",
+    "HPOFitnessMonitor",
+    "HPOProblemConfig",
+    "HPOProblemWrapper",
+    "random_search",
 ]
 
 from . import numerical
@@ -80,3 +88,13 @@ from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
 from . import neuroevolution
 from .neuroevolution import VirtualLoRAProblem, VirtualProblem
+from . import hpo_wrapper
+from .hpo_wrapper import (
+    HPOFitnessMonitor,
+    HPOFitnessMonitorConfig,
+    HPOMonitor,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)

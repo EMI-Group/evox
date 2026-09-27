@@ -30,6 +30,10 @@ from .es_variants import (
     PersistentESConfig,
     SeparableNESConfig,
     SNESConfig,
+    VirtualES,
+    VirtualESConfig,
+    VirtualLoRAES,
+    VirtualLoRAESConfig,
     XNESConfig,
     make_open_es,
     make_xnes,
@@ -43,6 +47,8 @@ from .es_variants import (
     make_guided_es,
     make_esmc,
     make_cma_es,
+    make_virtual_es,
+    make_virtual_lora_es,
 )
 from .pso_variants import (
     CLPSO,
@@ -114,6 +120,13 @@ __all__ = [
     "make_guided_es",
     "make_esmc",
     "make_cma_es",
+    # ES Variants — virtual (training-free) family
+    "VirtualESConfig",
+    "VirtualLoRAESConfig",
+    "VirtualES",
+    "VirtualLoRAES",
+    "make_virtual_es",
+    "make_virtual_lora_es",
     # PSO Variants
     "CLPSO",
     "CSO",

@@ -421,6 +421,12 @@ class StdWorkflow:
         fn = getattr(self._algo_mod, resolved)
         evaluate_problem = prob_mod.evaluate
         mon_update = getattr(mon_mod, "monitor_update", None) if mon_mod is not None else None
+        # Optional algorithm-module hook mapping the raw `candidates` object the
+        # algorithm hands to `evaluate` onto the tensor the monitor consumes
+        # (default: identity, so the ordinary `(pop_size, dim)` candidate path is
+        # unchanged). Virtual algorithms pass a `(center, seeds, sigma)` payload
+        # tuple, which the monitor cannot concatenate directly.
+        monitor_candidate = getattr(self._algo_mod, "monitor_candidate", None)
         solution_transform = self.solution_transform
         fitness_transform = self.fitness_transform
         opt_dir = self._opt_direction
@@ -443,7 +449,10 @@ class StdWorkflow:
                 # monitor sees RAW candidates (post_ask semantics) and
                 # TRANSFORMED fitness (pre_tell semantics)
                 if mon_update is not None:
-                    mon_state = mon_update(mon_cfg, mon_state, candidates, fitness)
+                    monitor_solution = (
+                        candidates if monitor_candidate is None else monitor_candidate(candidates)
+                    )
+                    mon_state = mon_update(mon_cfg, mon_state, monitor_solution, fitness)
                 return fitness
 
             alg_state = fn(algo_cfg, state.algorithm_state, evaluate)
