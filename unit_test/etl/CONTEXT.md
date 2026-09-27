@@ -30,9 +30,11 @@ pytest suite mirroring `src/evox_etl/` (functional EvoX on ETL). Seven sub-suite
 <venv>/bin/python -m pytest unit_test/etl/workflows -q   # 38, ~14 s
 <venv>/bin/python -m pytest unit_test/etl/ext -q         # 6, <1 s
 ```
-Every `parity/` dir (and the `mo/`/`so/` subdirs) carries an `__init__.py`, so
-the combined run `pytest unit_test/etl -q` also collects all 613 tests with no
-basename collisions and passes green (verified ~6.5 min).
+Every `parity/` dir — plus `algorithms/mo/` and `algorithms/so/es_variants/` —
+carries an `__init__.py`, so the combined run `pytest unit_test/etl -q` collects
+all 613 tests with no basename collisions (the four `parity/test_parity.py` files
+import as `parity.*`, `metrics.parity.*`, `problems.parity.*`,
+`operators.parity.*`) and passes green (verified ~6 min).
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
 
 ## Environment
