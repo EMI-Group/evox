@@ -4,8 +4,6 @@
 Pytest suite for the functional `evox_etl` metrics (`gd`, `igd`, `gd_plus`,
 `igd_plus`, `hv` / `bounding_cube_monte_carlo_hv`, `each_cube_monte_carlo_hv`),
 running everything through `etl.build` + `etl.run` on the numpy backend.
-Relocated from `src/evox_etl/metrics/tests/` (the old location is kept in sync
-by another agent until deletion).
 
 ## Structure
 - `test_metrics.py` — pure-etl tests (NO torch): metrics vs hand-rolled numpy

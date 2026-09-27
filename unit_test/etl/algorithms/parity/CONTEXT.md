@@ -6,9 +6,9 @@ evox reference (`src/evox`, read-only) on the same deterministic problem,
 hyperparameters and seeds.
 Torch imports ARE allowed in this directory — the only torch-importing tests
 under `unit_test/etl/algorithms/`.
-The dir carries `__init__.py`, so pytest collects it as the `algorithms.parity`
-package with no basename collisions against `so/`/`mo/` smoke tests or the
-other suites' `parity/` dirs.
+The dir carries `__init__.py`, so pytest collects it as the `parity` package
+(the parent `algorithms/` has no `__init__.py`), with no basename collisions
+against the `so/`/`mo/` smoke tests or the other suites' `parity/` dirs.
 
 ## Files
 | File | What it compares (Sphere unless noted) |
@@ -22,16 +22,18 @@ other suites' `parity/` dirs.
 | `test_nsga2.py` | NSGA2 vs torch on DTLZ1 (parity_common setting) — final-pop min == history min (NSGA-II is elitist) |
 | `test_nsga3.py` | NSGA3 vs torch on DTLZ1 (same reasoning) |
 | `test_moead.py` | MOEA/D vs torch on DTLZ1 — NON-elitist, so etl side pools min over all evaluated fitness vs torch history-PF min; needs MOEAD_ABS_TOL=0.20 (seed 42 f3 axis 0.197 vs torch 0.0; cross-seed sweep 1/7/123/999: etl at-or-better on 4/5 seeds) |
+| `test_parity.py` | ES-variant STATE-level parity vs torch under injected identical noise: ASEBO (end-to-end state parity + the SVD/sign subspace block on a constructed well-posed `X`), ARS (odd `pop_size=5, elite_ratio=0.9` elite count), CMA-ES (2-step state parity) |
 
 Coverage gap (convergence level, in this directory): NO torch-parity tests for
-code/jade/ode/sade/shade, for the ES family beyond cma_es/open_es (ars, asebo,
-des, esmc, guided_es, nes, noise_reuse_es, persistent_es, snes), or for MO
+code/jade/ode/sade/shade, for the ES family beyond cma_es/open_es (des, esmc,
+guided_es, nes, noise_reuse_es, persistent_es, snes), or for MO
 rvea/rveaa/hype — those have etl-only smoke tests (`so/*/test_*.py`,
 `mo/test_*.py`) that assert convergence on Sphere/DTLZ1 via
 `helpers.run_generations` (numpy backend).
-Three ES variants DO have torch parity at a different level (STATE equality
-under injected identical noise, not convergence) in the es_variants node's own
-suite outside this directory — see "See also".
+Three ES variants (ARS, ASEBO, CMA-ES) DO have torch parity at a different
+level — STATE equality under injected identical noise, not convergence — in
+`test_parity.py` in THIS directory, so they are no longer part of the
+convergence gap above.
 
 ## Design notes (verified — do not re-investigate)
 - Neither torch algorithm overrides `init_step`, so `StdWorkflow.init_step()`
@@ -61,7 +63,7 @@ suite outside this directory — see "See also".
 - `test_cma_es.py` monkeypatches the TORCH `CMAES._conditional_decomposition`
   to `lambda self, iteration, C: self._decomposition(C)`, guarded by
   `assert int(algorithm.decomp_per_iter) == 1` (same pattern as
-  `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py`).
+  `test_parity.py`).
   The workaround exists because of an ENVIRONMENT / torch-version limitation of
   `torch.cond`, NOT an etl port defect: under the installed torch 2.12.1
   (+cu130, Python 3.13) `CMAES.step` → `_conditional_decomposition`
@@ -83,11 +85,6 @@ suite outside this directory — see "See also".
   side is correct (true `torch.outer(p_c, p_c)` rank-one update) and converges
   better than torch. The underlying env limitation remains — the workaround is
   needed on any torch version where `torch.cond` rejects this branch.
-
-## See also (outside this directory — read-only from here)
-| Area | Path | Description |
-|---|---|---|
-| ES-variant STATE parity vs torch | `src/evox_etl/algorithms/so/es_variants/tests/parity/test_parity.py` | 3 tests: ASEBO (state parity + subspace block on a constructed well-posed X), ARS odd `pop_size=5, elite_ratio=0.9`, CMA-ES 2-step state parity — identical noise injected on both sides. Run `python -m pytest src/evox_etl/algorithms/so/es_variants/tests -q`. STATE-level equality, complementary to this directory's convergence-level checks; `tests/` is gitignored there (force-add). |
 
 ## Run (deterministic)
   `/mnt/local-ssd/bchuang/evox/.venv/bin/python -m pytest unit_test/etl/algorithms/parity -q`
