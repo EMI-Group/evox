@@ -50,7 +50,7 @@ def DE_binary_crossover(mutation_vector: torch.Tensor, current_vector: torch.Ten
     pop_size, dim = mutation_vector.size()
     if CR.ndim == 1:
         CR = CR.unsqueeze(1)
-    mask = torch.randn(pop_size, dim, device=device) < CR
+    mask = torch.rand(pop_size, dim, device=device) < CR
     rind = torch.randint(0, dim, (pop_size,), device=device).unsqueeze(1)
     jind = torch.arange(dim, device=device).unsqueeze(0) == rind
     trial_vector = torch.where(torch.logical_or(mask, jind), mutation_vector, current_vector)
