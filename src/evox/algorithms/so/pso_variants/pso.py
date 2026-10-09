@@ -57,8 +57,8 @@ class PSO(Algorithm):
         velocity = torch.rand(self.pop_size, self.dim, device=device)
         velocity = 2 * length * velocity - length
         # write to self
-        self.lb = lb
-        self.ub = ub
+        self.lb = torch.nn.Buffer(lb, persistent=False)
+        self.ub = torch.nn.Buffer(ub, persistent=False)
         # mutable
         self.pop = Mutable(pop)
         self.velocity = Mutable(velocity)
