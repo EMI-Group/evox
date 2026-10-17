@@ -688,9 +688,8 @@ error/gens mismatch → skip. Counts over the 192 new records:
   DTLZ1 at 100 gens (both sides still far from the front) and in DTLZ2's igd.
 - **All skips are error records:** 9 `torch-rocm` CMA-ES SO cells
   (`torch.cond`), 12 `etl-iree-rocm` MO cells (compile SIGSEGV), 9
-  `etl-iree-llvm-cpu` MO cells (compile failures). The `etl-iree-rocm` error
-  records carry no `parity` block at all, which is the same convention counted
-  as a skip.
+  `etl-iree-llvm-cpu` MO cells (compile failures). Error records carry
+  `parity.ok = null` with `skip: "backend error"`.
 - **No new record is gens-capped** — all 192 ran the full 100 gens (the
   pre-fix 22-gen llvm-cpu CMA-ES cap is gone). The reused `etl-numpy` column
   has no post-fix parity verdicts: those values are copied from
