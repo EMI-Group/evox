@@ -8,12 +8,15 @@ from typing import Any, Callable
 
 import etl
 import etl.core
+import etl.io
 import etl.random
 import numpy as np
 
 from .state import replace
 
 __all__ = ["EmptyState", "WorkflowState", "StdWorkflow"]
+
+_HOST = etl.core.Device("cpu")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -189,6 +192,10 @@ class StdWorkflow:
         self._state: WorkflowState | None = None
         self._init_exe = None
         self._mon_init_exe = None
+        # Deferred monitor readbacks: (target history list, etl.io.AsyncCopy)
+        # pairs issued by the LAST recorded generation and appended by the next
+        # one (see `_readback`/`_drain_readbacks`).
+        self._pending_readbacks: list[tuple[list, Any]] = []
         # Lazily built step exes, keyed by (resolved variant, state signature):
         # a step graph is valid for exactly one leaf-shape/dtype signature, and
         # algorithm/monitor state leaves legitimately RESIZE between generations
@@ -217,6 +224,7 @@ class StdWorkflow:
 
     def init(self, seed: int = 42) -> WorkflowState:
         """Build the init/step graphs (once) and return the initial workflow state."""
+        self._drain_readbacks()  # flush anything left from a manually-stepped run
         if self._init_exe is None:
             self._init_exe = self._build_algorithm_init_exe()
         state = etl.run(self._init_exe, etl.random.key(seed))
@@ -467,7 +475,20 @@ class StdWorkflow:
         return step_fn
 
     def _record_history(self, state: WorkflowState) -> None:
-        """Host-side history recording: copy monitor state leaves to the config's lists."""
+        """Host-side history recording: copy monitor state leaves to the config's lists.
+
+        The device→host copies are PIPELINED by one generation: the copies of
+        generation k are scheduled as ``etl.io.sink`` handles at the end of
+        generation k and appended at the START of generation k+1, so the D2H
+        latency overlaps the next generation's step graph instead of stalling
+        the host loop. The appended values, their per-list order and the final
+        lists are identical to an immediate copy; only the moment at which the
+        last generation's entry becomes visible moves to the end of the loop
+        (``_drain_readbacks`` runs there).
+        """
+        # Consume the copies issued one generation ago: the etl.io worker has
+        # had the whole step window of this generation to finish them.
+        self._drain_readbacks()
         if self.monitor is not None:
             self.monitor.state = state.monitor_state
         cfg = self.monitor_config
@@ -499,15 +520,10 @@ class StdWorkflow:
         if not has_history:
             return
         mon_state = state.monitor_state
-        cpu = etl.core.Device("cpu")
         if "fit_history" in field_names and getattr(cfg, "full_fit_history", False):
-            latest_fitness = getattr(mon_state, "latest_fitness", None)
-            if latest_fitness is not None:
-                getattr(cfg, "fit_history").append(latest_fitness.to(cpu).numpy())
+            self._readback(getattr(cfg, "fit_history"), getattr(mon_state, "latest_fitness", None))
         if "sol_history" in field_names and getattr(cfg, "full_sol_history", False):
-            latest_solution = getattr(mon_state, "latest_solution", None)
-            if latest_solution is not None:
-                getattr(cfg, "sol_history").append(latest_solution.to(cpu).numpy())
+            self._readback(getattr(cfg, "sol_history"), getattr(mon_state, "latest_solution", None))
         # Legacy pop_history fallback: only used when the algorithm has NO
         # `record_step` hook. When it does, the monitor derives `pop_history`
         # from `aux_history["pop"]`, so appending here would double-record.
@@ -516,11 +532,42 @@ class StdWorkflow:
             and getattr(cfg, "full_pop_history", False)
             and not self._has_record_step
         ):
-            latest_solution = getattr(mon_state, "latest_solution", None)
-            if latest_solution is not None:
-                getattr(cfg, "pop_history").append(latest_solution.to(cpu).numpy())
+            self._readback(getattr(cfg, "pop_history"), getattr(mon_state, "latest_solution", None))
 
-    # ------------------------------------------------------------------ run
+    def _readback(self, target: list, tensor: Any) -> None:
+        """Append one monitored tensor to ``target``, deferring the D2H copy.
+
+        Host-resident tensor leaves are appended immediately (a cpu copy costs
+        nothing worth hiding). Device-resident leaves are scheduled as an
+        ``etl.io.sink`` download — executed by the process-global ``etl.io``
+        worker thread, which keeps the device buffer alive until the copy
+        completes — and appended by the next ``_drain_readbacks`` call. A copy
+        failure is therefore re-raised one generation later (never swallowed).
+        """
+        if tensor is None:
+            return
+        if getattr(getattr(tensor, "device", None), "kind", "cpu") == "cpu":
+            target.append(tensor.to(_HOST).numpy())
+            return
+        self._pending_readbacks.append((target, etl.io.sink(tensor)))
+
+    def _drain_readbacks(self) -> None:
+        """Wait for and append every deferred monitored tensor, in issue order."""
+        if not self._pending_readbacks:
+            return
+        pending, self._pending_readbacks = self._pending_readbacks, []
+        for target, handle in pending:
+            target.append(handle.result().numpy())
+
+    def flush(self) -> None:
+        """Block until every deferred monitor readback has been appended.
+
+        Only needed by callers that drive ``step``/``init_step``/``final_step``
+        directly and then read the monitor history: generation k's readback is
+        normally appended at the start of generation k+1 (``run``/``fit`` drain
+        it at the end of their loop, so they never need this).
+        """
+        self._drain_readbacks()    # ------------------------------------------------------------------ run
 
     def run(self, generations: int | None = None, seed: int = 42) -> WorkflowState:
         """Initialize and run the optimization loop for `generations` generations.
@@ -571,6 +618,8 @@ class StdWorkflow:
         Dispatch mirrors the torch workflow: the first generation uses
         `init_step` (falling back to `step`), the last one `final_step`
         (falling back to `step`), everything in between plain `step`.
+        Ends by draining the deferred readback of the last generation, so the
+        history lists are complete when the loop returns.
         """
         if generations <= 0:
             return state
@@ -579,4 +628,5 @@ class StdWorkflow:
             state = self.step(state)
         if generations >= 2:
             state = self.final_step(state)
+        self._drain_readbacks()
         return state
