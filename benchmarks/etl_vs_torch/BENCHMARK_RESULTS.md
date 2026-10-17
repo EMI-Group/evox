@@ -44,6 +44,10 @@ under *Artifacts*.
 
 - etl-xla-cuda is therefore 1.16-1.45× faster than torch-cuda per step on
   these cells, at identical convergence to the committed records.
+- **The device-resident etl rows of the SO/MO tables below are conservative.**
+  They predate the five `evox_etl` changes listed under *Post-fix ROCm re-run* → *What changed* (batched `eigh`, split rank-0 reduction, faster XLA per-call hot path, emitter correctness fixes, pipelined monitor readback).
+  Where those fixes bite, their ms/step is ~1.2-1.6× slow — *Post-fix ROCm re-run* carries the measured old→new deltas.
+  The `etl-numpy` column is unaffected by the readback win but does not reflect the etl fixes either.
 
 ## Setup
 
