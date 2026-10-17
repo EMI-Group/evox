@@ -55,7 +55,7 @@ evox/
 | **Tests (torch)** | `unit_test/` | `unittest`-based; mirrors `src/evox/` structure; tests eager, `torch.compile`, and `vmap` modes |
 | **Tests (ETL, canonical)** | `unit_test/etl/` | pytest-based; the sole/canonical ETL suite, mirrors `src/evox_etl/`; covers algorithms (SO/MO + torch-parity), operators, problems, metrics, workflows, `vis_tools`, extension autoload (run suites separately) |
 | **Benchmarks** | `benchmarks/` | PSO benchmark (eager vs compile vs max-autotune), `switch` micro-benchmark, reusable `test_base.py` |
-| **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 6 backends (torch-cpu/cuda, etl-numpy/iree-llvm-cpu/iree-cuda/xla-cuda) × SO/MO suites × 3 scales; results JSONs + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
+| **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 9 backend ids (torch-cpu/cuda/rocm, etl-numpy, etl-iree-llvm-cpu/iree-cuda/iree-rocm, etl-xla-cuda/xla-rocm) × SO/MO suites × 3 scales; results JSONs (incl. the ROCm post-fix matrix and its `rocm_prefix_baseline.json`) + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
 | **Documentation** | `docs/` | Sphinx + shibuya theme; autodoc2 API docs; MyST Markdown tutorials; bilingual (gettext .po + manual ZH translations) |
 | **Examples** | `examples/` | Runnable standalone scripts: ETL quickstart (`quickstart.py`, functional numpy backend) + HPO demos (`examples/hpo/`, torch reference API) |
 | **CI/CD** | `.github/workflows/` | Python package build/test, PyPI publish, Ruff lint check, Discord bot notifications |
