@@ -621,9 +621,11 @@ Hypotheses, and what I consider most likely per group:
 ### Measurement caveats
 
 - **Two `torch-rocm` MO sweeps.** The committed `torch-rocm` MO column is the
-  second of two full sweeps this round; the first was 5–9% slower per cell
-  with one NSGA3 cell 32% slower. NSGA3/MOEAD torch timings therefore carry
-  roughly ±3–7% run-to-run spread, and NSGA3 is additionally known not to
+  second of two full sweeps this round; the first differed by −0.6% to +7.1%
+  per cell (slower on 10 of the 12 cells). A separate two-case spot run of
+  `NSGA3/DTLZ2/100x3x10` measured 186.2 ms/step against 254.3–272.3 in the two
+  full sweeps, so NSGA3's run-to-run spread is ~±20% while NSGA2/MOEAD stay
+  within ~7%. NSGA3 is additionally known not to
   reproduce point-for-point across GPU runs (its reference-point machinery is
   data- and order-dependent), so NSGA3 cells should be read as
   "same order of magnitude", not as exact.
@@ -641,8 +643,10 @@ Hypotheses, and what I consider most likely per group:
 - **`etl-iree-rocm` MO: 12/12 `err`** — the documented upstream iree-compile
   SIGSEGV (`BackendError: iree-compile failed to compile ... Error code: -11`,
   stack inside `libIREECompiler.so`) on the `rocm` target (`--iree-rocm-target=gfx942`),
-  failing on every compile attempt (each case carries the
-  `documented: iree MO compile instability (compile retried)` note). No
+  failing on every compile attempt — each case carries the
+  `documented: iree-compile segfault (SIGSEGV, error -11) compiling the MO
+  program for the rocm target; deterministic across 4 in-process and 4
+  fresh-process attempts` note. No
   ratio, no parity, nothing to attribute to evox_etl.
 - **`etl-iree-llvm-cpu` MO: 3/12** — MO compilation on this backend is
   nondeterministic, so the three working cells needed process-level retries

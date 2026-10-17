@@ -245,8 +245,10 @@ the committed CUDA runs.
   (`UncapturedHigherOrderOpError ... torch.cond`, a torch 2.13
   incompatibility that also reproduces on torch-cpu — the torch reference for
   CMA-ES does not exist, do not chase it); `torch-rocm` MO timings vary
-  between full sweeps (first sweep 5–9% slower, one NSGA3 cell 32% slower)
-  and NSGA3 is not point-for-point reproducible across GPU runs; a
+  between full sweeps (−0.6% to +7.1% per cell) and NSGA3 carries a larger
+  ~±20% run-to-run spread (186 ms/step for `NSGA3/DTLZ2/100x3x10` in a
+  two-case spot run vs 254–272 in the full sweeps) and is not point-for-point
+  reproducible across GPU runs; a
   `torch-rocm` process can abort in the HIP teardown path
   (`c10::cuda::SetDevice` inside a `TensorImpl` destructor) AFTER the JSON is
   written — stdout/the JSON is the source of truth, it is not a failed run.

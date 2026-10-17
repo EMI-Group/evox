@@ -287,8 +287,10 @@ single-tenant.
   path (`c10::cuda::SetDevice` inside a `TensorImpl` destructor) AFTER the
   JSON is written. Read stdout / the JSON as the source of truth — it is not
   a failed run and must not be re-run or re-recorded as an error.
-- **`torch-rocm` MO timing variance:** full sweeps differ (first sweep 5–9%
-  slower, one NSGA3 cell 32% slower) and NSGA3 does not reproduce
+- **`torch-rocm` MO timing variance:** full sweeps differ by −0.6% to +7.1% per
+  cell, and NSGA3 carries a larger ~±20% run-to-run spread (186 ms/step for
+  `NSGA3/DTLZ2/100x3x10` in a two-case spot run vs 254–272 in full sweeps) and
+  does not reproduce
   point-for-point across GPU runs. Quote numbers from the committed JSON,
   never from a re-run.
 - **Torch MO on this box** uses the harness's existing default-device
