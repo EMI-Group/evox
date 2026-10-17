@@ -13,6 +13,7 @@ import json
 import os
 import pathlib
 import sys
+import time
 from typing import Any, Callable
 
 import numpy as np
@@ -46,8 +47,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 RESULTS_DIR = HERE / "results"
 
 # ---------------------------------------------------------------------------
-# GPU environment recipe (set BEFORE importing torch/etl/evox)
+# GPU environment recipes (set BEFORE importing torch/etl/evox)
 # ---------------------------------------------------------------------------
+
+# --- NVIDIA (CUDA) recipe --------------------------------------------------
 
 # cuDNN >= 9.8 needed by the xla_cuda12 PJRT plugin (the venv ships 9.1.0);
 # prepended to LD_LIBRARY_PATH, keeping existing entries.
@@ -92,26 +95,84 @@ def set_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
     os.environ.setdefault("ETL_PJRT_PLUGIN", ETL_PJRT_PLUGIN)
 
 
+# --- AMD (ROCm) recipe -----------------------------------------------------
+
+# The xla_rocm7 PJRT plugin shipped with the ROCm benchmark venv. AMD needs
+# no cuDNN preload and no ``--xla_gpu_cuda_data_dir``; HIP graph command
+# buffers must be OFF because they SIGSEGV inside
+# ``PJRT_Executable_Execute`` in that plugin.
+ROCM_PJRT_PLUGIN = (
+    "/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/"
+    "site-packages/jax_plugins/xla_rocm7/xla_rocm_plugin.so"
+)
+ROCM_XLA_FLAGS = "--xla_gpu_enable_command_buffer="
+
+
+def set_rocm_env(gpu_id: int, enable_pjrt: bool = False) -> None:
+    """Set the AMD ROCm environment recipe for in-process device id 0.
+
+    ``HIP_VISIBLE_DEVICES`` (HIP runtime) and ``ROCR_VISIBLE_DEVICES``
+    (the ROCr/HSA runtime underneath it) both remap the scanned physical GPU
+    to device id 0 inside the process, so torch (``device="cuda"`` — on a
+    ROCm build of torch ``torch.cuda`` IS the HIP runtime, there is no
+    ``"rocm"`` torch device) and etl (``"rocm:0"``) address the same card.
+    Call this BEFORE importing torch/etl/evox modules.
+
+    ``enable_pjrt`` additionally points ``ETL_PJRT_PLUGIN`` at the xla_rocm7
+    plugin and disables XLA/HIP graph command buffers (they SIGSEGV inside
+    ``PJRT_Executable_Execute``, so every xla-rocm run must turn them off).
+    An ``ETL_PJRT_PLUGIN`` already present in the environment wins (that is
+    how another venv's plugin can be selected) and existing ``XLA_FLAGS``
+    entries are preserved; setting plain strings keeps the call idempotent.
+    """
+    os.environ["HIP_VISIBLE_DEVICES"] = str(gpu_id)
+    os.environ["ROCR_VISIBLE_DEVICES"] = str(gpu_id)
+    if enable_pjrt:
+        os.environ.setdefault("ETL_PJRT_PLUGIN", ROCM_PJRT_PLUGIN)
+        flags = os.environ.get("XLA_FLAGS", "")
+        if ROCM_XLA_FLAGS not in flags.split():
+            os.environ["XLA_FLAGS"] = " ".join(
+                e for e in (flags, ROCM_XLA_FLAGS) if e
+            )
+
+
+# --- shared "apply before import" machinery --------------------------------
+
 _ENV_MARKER = "EVOX_BENCH_GPU_ENV"
 
 
-def ensure_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
-    """Apply the GPU env recipe BEFORE any backend import, re-execing if needed.
+def _ensure_env(recipe_key: str, apply: Callable[[], None]) -> None:
+    """Apply an env recipe BEFORE any backend import, re-execing if needed.
 
-    The dynamic loader reads ``LD_PRELOAD`` (and the CUDA driver reads
-    ``CUDA_VISIBLE_DEVICES``) at process start, so a plain in-process
+    The dynamic loader reads ``LD_PRELOAD`` (and the CUDA/HIP drivers read the
+    ``*_VISIBLE_DEVICES`` variables) at process start, so a plain in-process
     ``os.environ`` mutation is not enough: the first call re-executes this
-    Python process with the recipe in the environment; a marker variable
-    makes the re-exec idempotent (callers may invoke this unconditionally
-    before importing torch/etl).
+    Python process with the recipe in the environment. ``recipe_key`` is
+    stored in ``EVOX_BENCH_GPU_ENV`` so the re-exec is idempotent and callers
+    may invoke this unconditionally before importing torch/etl (a different
+    recipe key — e.g. another vendor or GPU — re-execs again).
     """
-    marker = os.environ.get(_ENV_MARKER)
-    want = f"{gpu_id}:{int(bool(preload_cudnn))}"
-    if marker == want:
+    if os.environ.get(_ENV_MARKER) == recipe_key:
         return
-    set_gpu_env(gpu_id, preload_cudnn)
-    os.environ[_ENV_MARKER] = want
+    apply()
+    os.environ[_ENV_MARKER] = recipe_key
     os.execve(sys.executable, [sys.executable, *sys.argv], os.environ)
+
+
+def ensure_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
+    """Apply the NVIDIA CUDA env recipe (re-execs the process, idempotent)."""
+    _ensure_env(
+        f"nvidia:{gpu_id}:{int(bool(preload_cudnn))}",
+        lambda: set_gpu_env(gpu_id, preload_cudnn),
+    )
+
+
+def ensure_rocm_env(gpu_id: int, enable_pjrt: bool = False) -> None:
+    """Apply the AMD ROCm env recipe (re-execs the process, idempotent)."""
+    _ensure_env(
+        f"rocm:{gpu_id}:{int(bool(enable_pjrt))}",
+        lambda: set_rocm_env(gpu_id, enable_pjrt),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -121,33 +182,67 @@ def ensure_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
 ALL_BACKENDS: tuple[str, ...] = (
     "torch-cpu",
     "torch-cuda",
+    "torch-rocm",
     "etl-numpy",
     "etl-iree-llvm-cpu",
     "etl-iree-cuda",
+    "etl-iree-rocm",
     "etl-xla-cuda",
+    "etl-xla-rocm",
 )
 
-TORCH_BACKENDS = frozenset({"torch-cpu", "torch-cuda"})
+TORCH_BACKENDS = frozenset({"torch-cpu", "torch-cuda", "torch-rocm"})
 CUDA_BACKENDS = frozenset({"torch-cuda", "etl-iree-cuda", "etl-xla-cuda"})
+ROCM_BACKENDS = frozenset({"torch-rocm", "etl-iree-rocm", "etl-xla-rocm"})
+# xla backends run through the PJRT client (aborts at interpreter teardown,
+# see ``finish_run``)
+PJRT_BACKENDS = frozenset({"etl-xla-cuda", "etl-xla-rocm"})
+
+# vendor -> environment variables that select the physical device
+GPU_VISIBLE_VARS: dict[str, tuple[str, ...]] = {
+    "nvidia": ("CUDA_VISIBLE_DEVICES",),
+    "rocm": ("HIP_VISIBLE_DEVICES", "ROCR_VISIBLE_DEVICES"),
+}
 
 
 def is_torch_backend(backend: str) -> bool:
     return backend in TORCH_BACKENDS
 
 
+def backend_vendor(backend: str) -> str | None:
+    """``"nvidia"`` / ``"rocm"`` for a GPU backend, ``None`` for a CPU backend."""
+    if backend in CUDA_BACKENDS:
+        return "nvidia"
+    if backend in ROCM_BACKENDS:
+        return "rocm"
+    return None
+
+
+def torch_device(backend: str) -> str:
+    """torch device string for a torch backend.
+
+    A ROCm build of torch exposes HIP through ``torch.cuda`` (and
+    ``torch.cuda.synchronize`` maps to ``hipDeviceSynchronize``): there is no
+    ``"rocm"`` torch device, so both GPU vendors use ``"cuda"`` device 0,
+    selected by ``CUDA_VISIBLE_DEVICES`` / ``HIP_VISIBLE_DEVICES``.
+    """
+    return "cpu" if backend == "torch-cpu" else "cuda"
+
+
 def etl_backend_spec(backend: str) -> tuple[str, str | None]:
     """Map a harness backend id to ``(etl backend name, etl device spec)``.
 
     Returns etl strings only (no ``etl.core`` import needed here): the etl
-    ``StdWorkflow`` accepts a device as ``None`` (cpu) or a ``"cuda:N"``
-    string. ``CUDA_VISIBLE_DEVICES`` is set before import, so the in-process
-    cuda device id is always 0.
+    ``StdWorkflow`` accepts a device as ``None`` (cpu), a ``"cuda:N"`` string
+    or a ``"rocm:N"`` string. The ``*_VISIBLE_DEVICES`` variable is set before
+    import, so the in-process GPU device id is always 0.
 
-    etl-xla-cuda: the xla adapter supports device-resident CUDA executables
-    (etl master f2f50a7+), so like etl-iree-cuda it requests ``"cuda:0"``.
-    A ``None`` device would build a CPU-kind executable that host-stages
-    every input on every ``etl.run`` call (the source of the old ~15 ms/step
-    xla numbers at 10000x100 vs ~0.9-1.3 ms/step device-resident).
+    etl-xla-cuda / etl-xla-rocm: the xla adapter supports device-resident
+    executables (etl master f2f50a7+), so like the iree GPU backends they
+    request ``"<vendor>:0"``. A ``None`` device would build a CPU-kind
+    executable that host-stages every input on every ``etl.run`` call (the
+    source of the old ~15 ms/step xla numbers at 10000x100 vs ~0.9-1.3
+    ms/step device-resident).
     """
     if backend == "etl-numpy":
         return "numpy", None
@@ -155,9 +250,59 @@ def etl_backend_spec(backend: str) -> tuple[str, str | None]:
         return "iree", None
     if backend == "etl-iree-cuda":
         return "iree", "cuda:0"
+    if backend == "etl-iree-rocm":
+        return "iree", "rocm:0"
     if backend == "etl-xla-cuda":
         return "xla", "cuda:0"
+    if backend == "etl-xla-rocm":
+        return "xla", "rocm:0"
     raise ValueError(f"not an etl backend: {backend!r}")
+
+
+def ensure_backend_env(backend: str, gpu_id: int) -> None:
+    """Apply the env recipe matching ``backend``'s vendor (re-execs if needed).
+
+    Must run BEFORE any torch/etl/evox import. CPU backends fall back to the
+    NVIDIA recipe, which is harmless (it only pins an unused visibility
+    variable) and preserves the historical behaviour of ``--gpu`` on them.
+    """
+    if backend_vendor(backend) == "rocm":
+        ensure_rocm_env(gpu_id, enable_pjrt=(backend in PJRT_BACKENDS))
+    else:
+        ensure_gpu_env(gpu_id, preload_cudnn=(backend == "etl-xla-cuda"))
+
+
+def gpu_selection_error(backend: str, gpu_id: int | None) -> str | None:
+    """Error text when a GPU backend has no selected GPU, else ``None``."""
+    vendor = backend_vendor(backend)
+    if vendor is None or gpu_id is not None:
+        return None
+    names = GPU_VISIBLE_VARS[vendor]
+    if any(name in os.environ for name in names):
+        return None
+    return (
+        f"--backend {backend} requires --gpu N "
+        f"(or {' / '.join(names)} already set in the environment)"
+    )
+
+
+def finish_run(backend: str) -> None:
+    """Leave a completed run without PJRT interpreter teardown.
+
+    xla (PJRT) clients abort inside the plugin's shutdown path AFTER all work
+    is done and the result JSON is written, which would turn a complete run
+    into a reported crash (``Aborted`` / nonzero exit). For those backends
+    flush stdout/stderr and leave via ``os._exit(0)`` so a run whose records
+    are complete reports success. A genuinely failed run never reaches this
+    call: the exception surfaces from the case loop or ``save_results``
+    (per-case failures are already written as error records). Non-PJRT
+    backends simply return and exit normally.
+    """
+    if backend not in PJRT_BACKENDS:
+        return
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(0)
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +606,9 @@ def save_results(
     """Write the records to ``results/{suite}_{backend}.json`` (or ``--out``).
 
     Attaches the ``parity`` block vs the torch-cpu baseline for every
-    non-torch-cpu record (skipped when the baseline file is absent).
+    non-torch-cpu record (skipped when the baseline file is absent). The file
+    is flushed and fsynced before returning so a run that leaves through
+    ``finish_run`` (PJRT teardown abort) always has complete results on disk.
     """
     out = pathlib.Path(out_path) if out_path else default_results_path(suite, backend)
     for rec in records:
@@ -470,7 +617,10 @@ def save_results(
             if parity is not None:
                 rec["parity"] = parity
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(records, indent=2) + "\n")
+    with out.open("w") as fh:
+        fh.write(json.dumps(records, indent=2) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
     return out
 
 
@@ -478,6 +628,57 @@ def format_parity(parity: dict[str, Any] | None) -> str:
     if not parity:
         return "-"
     return f"ok={parity['ok']} rel={parity['rel_err']:.3f}"
+
+
+# ---------------------------------------------------------------------------
+# etl compile robustness
+# ---------------------------------------------------------------------------
+
+# Compiling an etl MO program can fail nondeterministically on GPU backends
+# (upstream iree ``Stream::AffinityAnalysis`` recursion / stack exhaustion on
+# the while-loop programs, plus one-off exporter rejections that do not
+# reproduce on the next attempt). Rebuild + re-init the workflow a handful of
+# times and keep the first SUCCESSFUL artifact. Applied to every etl backend,
+# which is harmless where compiles are deterministic.
+ETL_COMPILE_ATTEMPTS = 4
+COMPILE_RETRY_BACKOFF_S = 1.0
+
+
+def init_with_retry(
+    build_workflow: Callable[[], Any],
+    seed: int,
+    label: str = "",
+    attempts: int = ETL_COMPILE_ATTEMPTS,
+) -> tuple[Any, Any, float]:
+    """Build and ``init`` an etl workflow, retrying a failed compile.
+
+    ``build_workflow`` must return a FRESH workflow on every call (a
+    half-initialized one is never reused). Returns
+    ``(workflow, state, compile_time_s)``, the time being the wall time of the
+    attempt that succeeded. When every attempt fails the last exception is
+    re-raised, so the caller records the usual per-case error record.
+    ``KeyboardInterrupt`` / ``SystemExit`` are never retried.
+    """
+    last_exc: BaseException | None = None
+    for attempt in range(1, attempts + 1):
+        workflow = build_workflow()
+        t0 = time.perf_counter()
+        try:
+            state = workflow.init(seed=seed)
+        except Exception as exc:  # noqa: BLE001 — retried on the next attempt
+            last_exc = exc
+            print(
+                f"    compile attempt {attempt}/{attempts} failed"
+                f"{f' for {label}' if label else ''}: "
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
+            )
+            if attempt < attempts:
+                time.sleep(COMPILE_RETRY_BACKOFF_S)
+            continue
+        return workflow, state, time.perf_counter() - t0
+    assert last_exc is not None
+    raise last_exc
 
 
 # ---------------------------------------------------------------------------

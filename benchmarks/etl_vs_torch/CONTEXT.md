@@ -7,8 +7,9 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
 
 ## Contents
 - `bench_common.py` — sys.path shim, case tables, numpy metric helpers
-  (hv/igd + seeded DTLZ ref fronts), parity helpers, GPU env recipe,
-  JSON record schema. Pure stdlib + numpy (no torch/etl imports).
+  (hv/igd + seeded DTLZ ref fronts), parity helpers, NVIDIA **and** AMD GPU
+  env recipes, backend id tables, etl compile-retry helper, JSON record
+  schema. Pure stdlib + numpy (no torch/etl imports).
 - `bench_so.py` / `bench_mo.py` — per-backend runners (torch eager, etl
   numpy/iree/xla), resilient per-case error records.
 - `run.py` — CLI dispatcher: `--backend --suite {so,mo} [--gpu N]
@@ -22,11 +23,35 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
 - `results/` — 12 committed JSONs (`{so,mo}_{backend}.json` × 6 backends),
   288 records with parity verdicts vs torch-cpu written in. Schema, metric
   definitions, timing semantics and quirks are documented in
-  `results/README.md`.
+  `results/README.md`. **No ROCm JSONs exist yet.**
+
+## Backends
+
+`bench_common.ALL_BACKENDS` (id → etl `(backend, device)`; torch ids use
+`bench_common.torch_device`):
+
+| id | vendor | etl spec / torch device |
+|---|---|---|
+| `torch-cpu` | — | torch `"cpu"` |
+| `torch-cuda` | nvidia | torch `"cuda"` |
+| `torch-rocm` | rocm | torch `"cuda"` (ROCm torch exposes HIP through `torch.cuda`; there is no `"rocm"` torch device) |
+| `etl-numpy` | — | `("numpy", None)` |
+| `etl-iree-llvm-cpu` | — | `("iree", None)` |
+| `etl-iree-cuda` | nvidia | `("iree", "cuda:0")` |
+| `etl-iree-rocm` | rocm | `("iree", "rocm:0")` |
+| `etl-xla-cuda` | nvidia | `("xla", "cuda:0")` |
+| `etl-xla-rocm` | rocm | `("xla", "rocm:0")` |
+
+`CUDA_BACKENDS` / `ROCM_BACKENDS` / `PJRT_BACKENDS` (the two xla ids) /
+`TORCH_BACKENDS` drive env selection, the `--gpu` requirement and the exit
+path. Case tables, seeds, timed region, JSON schema and parity logic are
+backend-independent.
 
 ## How to run
-Venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (torch 2.6.0+cu124,
-Python 3.11.2). From this directory:
+NVIDIA venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (torch
+2.6.0+cu124, Python 3.11.2). ROCm venv:
+`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python` (torch
+2.13.0+rocm7.1, Python 3.14). From this directory:
 
 ```
 python run.py --backend torch-cpu      --suite so     # and --suite mo
@@ -35,18 +60,54 @@ python run.py --backend etl-numpy      --suite so
 python run.py --backend etl-iree-llvm-cpu --suite so
 python run.py --backend etl-iree-cuda  --suite so --gpu 0
 python run.py --backend etl-xla-cuda   --suite so --gpu 0
+python run.py --backend torch-rocm     --suite so --gpu 0     # ROCm venv
+python run.py --backend etl-iree-rocm  --suite so --gpu 0     # ROCm venv
+python run.py --backend etl-xla-rocm   --suite so --gpu 0     # ROCm venv
 ```
 
-`--gpu N` applies the GPU recipe before any torch/etl import
-(`bench_common.ensure_gpu_env`): `CUDA_VISIBLE_DEVICES=<id>`, prepend
-`/mnt/local-ssd/bchuang/cudnn-xla/lib` to `LD_LIBRARY_PATH`,
-`XLA_FLAGS=--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data`,
-`ETL_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`;
-etl-xla-cuda additionally LD_PRELOADs cuDNN 9.8 and re-execs the process
-(marker-guarded). Use `--cases` / `--gens-override` / `--out <tmp path>` for
-subsets and smoke runs — never write smoke outputs into `results/`.
+`--gpu N` applies the vendor recipe before any torch/etl import through
+`bench_common.ensure_backend_env(backend, N)`, which re-execs the process
+once (marker `EVOX_BENCH_GPU_ENV`, idempotent, keeps `sys.argv`):
+
+- **NVIDIA** (`set_gpu_env`): `CUDA_VISIBLE_DEVICES=<id>`, prepend
+  `/mnt/local-ssd/bchuang/cudnn-xla/lib` to `LD_LIBRARY_PATH`,
+  `XLA_FLAGS=--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data`,
+  `ETL_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`;
+  etl-xla-cuda additionally LD_PRELOADs cuDNN 9.8.
+- **AMD ROCm** (`set_rocm_env`): `HIP_VISIBLE_DEVICES=<id>` +
+  `ROCR_VISIBLE_DEVICES=<id>`, no cuDNN preload, no
+  `--xla_gpu_cuda_data_dir`. The xla ids (etl-xla-rocm) additionally set
+  `ETL_PJRT_PLUGIN=<rocm venv>/jax_plugins/xla_rocm7/xla_rocm_plugin.so`
+  (an already-set `ETL_PJRT_PLUGIN` wins) and append
+  `XLA_FLAGS=--xla_gpu_enable_command_buffer=` — HIP graph command buffers
+  SIGSEGV inside `PJRT_Executable_Execute`.
+
+Use `--cases` / `--gens-override` / `--out <tmp path>` for subsets and smoke
+runs — never write smoke outputs into `results/`.
+
+## Robustness on the etl/GPU paths
+- **etl compile retry:** `bench_common.init_with_retry` (used by both
+  runners) builds a FRESH workflow and calls `init(seed)` up to
+  `ETL_COMPILE_ATTEMPTS` (4) times with a 1 s backoff, keeping the first
+  successful artifact and its wall time as `compile_time_s` (only that
+  attempt is timed). It is applied to every etl backend (harmless where
+  compiles are deterministic) because the iree MO compile fails
+  nondeterministically (upstream `Stream::AffinityAnalysis` recursion). When
+  every attempt fails the last exception is re-raised and `run_one` writes
+  the usual per-case error record. `KeyboardInterrupt`/`SystemExit` are never
+  retried. A hard compiler SIGSEGV still terminates the process (Python-level
+  retry cannot catch signals).
+- **PJRT exit handling:** xla processes can abort during PJRT teardown AFTER
+  the work is done. `save_results` flushes + fsyncs the JSON, then
+  `bench_common.finish_run(backend)` flushes stdio and leaves via
+  `os._exit(0)` for `PJRT_BACKENDS` — a completed run is never reported as a
+  crash. Non-PJRT backends return and exit normally; a genuinely failed run
+  raises before `finish_run` (per-case failures are already error records).
 
 ## Current results status
+- **No ROCm numbers yet:** the `torch-rocm` / `etl-iree-rocm` /
+  `etl-xla-rocm` ids are wired and runnable but `results/` holds no rocm
+  JSONs — nothing in the tables below covers ROCm.
 - **Numbers exist for:** SO on all six backends (36 cases each, no errors);
   MO full on torch-cpu, torch-cuda, etl-numpy, and etl-xla-cuda (12 cases
   each, 100 gens — xla-cuda became a full matrix after the NSGA3 fix);
@@ -141,9 +202,16 @@ subsets and smoke runs — never write smoke outputs into `results/`.
   (see Current results status; out of scope — xla remains the MO compiled
   backend).
 - **Per-step host copies are NOT the bottleneck once device-resident:** history D2H readback (`.to(cpu).numpy()` of `latest_fitness`, `workflow.py:413-416`; `full_sol/pop_history` default off, `eval_monitor.py:52-54`) ≈ 0.09 ms/step; same-device `tree_map .to` no-op (`workflow.py:317-318`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
-- **Timing fairness:** the etl path times without an explicit device sync (`bench_so.py:147-156`; the torch path syncs at 76-81), but iree/xla `run` invokes are host-blocking, so steps cannot overlap — per-step timing is fair; the 2 warmup steps (`bench_common.WARMUP_STEPS`) exercise the same `step()` path and absorb first-call costs.
+- **Timing fairness:** the etl path times without an explicit device sync (`bench_so.py:159-162`; the torch path syncs at 75-80), but iree/xla `run` invokes are host-blocking, so steps cannot overlap — per-step timing is fair; the 2 warmup steps (`bench_common.WARMUP_STEPS`) exercise the same `step()` path and absorb first-call costs.
 
 ## Notes for agents
+- **ROCm runs:** use the ROCm venv
+  (`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python`) and always
+  pass `--gpu N` (`HIP_VISIBLE_DEVICES` / `ROCR_VISIBLE_DEVICES` are set and
+  the process re-execs before any import). The ROCm device is single-tenant
+  here — never start a ROCm job while another one is running. ROCm results
+  belong in `results/{suite}_{backend}.json` like every other backend; until
+  they exist, no rocm cell may appear in `BENCHMARK_RESULTS.md`.
 - Result JSON schema and field semantics are documented in
   `results/README.md` — read it before touching the JSONs.
 - **The runners OVERWRITE `results/{suite}_{backend}.json` with only the

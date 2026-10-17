@@ -15,7 +15,6 @@ runner continues (exit code 0) — errors are always printed.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import time
 from typing import Any
@@ -35,7 +34,7 @@ def run_torch_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
     from evox.problems.numerical import Ackley, Rastrigin, Sphere
     from evox.workflows import EvalMonitor, StdWorkflow
 
-    device = "cpu" if backend == "torch-cpu" else "cuda"
+    device = bench_common.torch_device(backend)
     torch.manual_seed(case.seed)
 
     lb = torch.full((case.dim,), bench_common.SO_LB, dtype=torch.float32)
@@ -133,18 +132,23 @@ def run_etl_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
     monitor_cfg = EvalMonitorConfig(pop_size=case.pop_size, dim=case.dim)
 
     etl_backend, device = bench_common.etl_backend_spec(backend)
-    workflow = StdWorkflow(
-        algorithm=algo_cfg,
-        problem=problem_cfg,
-        monitor=monitor_cfg,
-        opt_direction="min",
-        num_generations=None,
-        backend=etl_backend,
-        device=device,
+
+    def _build() -> Any:
+        return StdWorkflow(
+            algorithm=algo_cfg,
+            problem=problem_cfg,
+            monitor=monitor_cfg,
+            opt_direction="min",
+            num_generations=None,
+            backend=etl_backend,
+            device=device,
+        )
+
+    # init() is where the graph is built + compiled; a failed compile is
+    # retried on a fresh workflow (see bench_common.init_with_retry).
+    workflow, state, compile_time = bench_common.init_with_retry(
+        _build, case.seed, label=case.case_id
     )
-    t0 = time.perf_counter()
-    state = workflow.init(seed=case.seed)
-    compile_time = time.perf_counter() - t0  # graph build + backend compile
 
     # Generation 0 goes through the explicit first-generation call (mirrors
     # the torch path's ``workflow.init_step()``); the remaining generations
@@ -218,7 +222,10 @@ def main(argv: list[str] | None = None) -> int:
         "--gpu",
         type=int,
         default=None,
-        help="physical GPU id to use (sets CUDA_VISIBLE_DEVICES; required for cuda backends)",
+        help=(
+            "physical GPU id to use (sets the vendor visibility variables; "
+            "required for gpu backends)"
+        ),
     )
     parser.add_argument(
         "--cases", default=None, help="comma-separated case ids to run (default: all)"
@@ -232,19 +239,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.gpu is not None:
-        # re-execs the process so the env recipe is active before any import
-        bench_common.ensure_gpu_env(
-            args.gpu, preload_cudnn=(args.backend == "etl-xla-cuda")
-        )
-    if (
-        args.backend in bench_common.CUDA_BACKENDS
-        and args.gpu is None
-        and "CUDA_VISIBLE_DEVICES" not in os.environ
-    ):
-        parser.error(
-            f"--backend {args.backend} requires --gpu N "
-            "(or CUDA_VISIBLE_DEVICES already set in the environment)"
-        )
+        # re-execs the process so the env recipe (CUDA / ROCm) is active
+        # before any torch/etl import
+        bench_common.ensure_backend_env(args.backend, args.gpu)
+    gpu_error = bench_common.gpu_selection_error(args.backend, args.gpu)
+    if gpu_error:
+        parser.error(gpu_error)
 
     cases = bench_common.select_cases("so", args.cases, args.gens_override)
     print(
@@ -260,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
         _print_line(rec)
     ok = sum(1 for r in records if not r.get("error"))
     print(f"wrote {len(records)} records ({ok} ok, {len(records) - ok} errors) -> {out}")
+    bench_common.finish_run(args.backend)  # PJRT: flush + os._exit (see helper)
     return 0
 
 
