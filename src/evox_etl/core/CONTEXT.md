@@ -46,14 +46,21 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `final_step(state=None)` (public step API; each runs ONE generation, records
   monitor history, updates `self._state`, returns the new state), `run(generations=
   None, seed=42)`, `fit(fitness=None, generations=None, seed=42)` (needs a monitor
-  wrapper with `get_best_fitness`). Internals: `opt_direction` property (tuple of ±1),
+  wrapper with `get_best_fitness`), `flush()` (block until the deferred monitor
+  readback of the last generation is appended — only needed by callers that drive
+  `step`/`init_step`/`final_step` directly; `run`/`fit` flush themselves).
+  Internals: `opt_direction` property (tuple of ±1),
   `monitor` (host wrapper), `monitor_config` (completed cfg), `monitor_state`,
   `_has_init_step`/`_has_final_step`/`_has_record_step` (host-side callable-presence
   flags, resolved once in `__init__` via `getattr`),
   `_step_exes` (dict `(resolved variant, state signature)` → exe, lazily built),
   `_state_signature(state)` (staticmethod: ordered `(shape, dtype)` tuple of all
   tensor leaves — the `_spec_key` idiom from
-  `unit_test/etl/algorithms/helpers.py`), `_init_exe`/`_mon_init_exe`.
+  `unit_test/etl/algorithms/helpers.py`), `_init_exe`/`_mon_init_exe`,
+  `_pending_readbacks` (list of `(target list, etl.io.AsyncCopy)` issued by the
+  last recorded generation) with `_readback(target, tensor)` / `_drain_readbacks()`
+  — see "Monitor readback pipelining" below.
+
 
 ## The step protocol (BINDING for algorithm modules)
 - `init(config, key) -> state` — unchanged from the pre-1.0 protocol.
@@ -122,6 +129,54 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   so the workflow does not double-record. `fit_history`/`sol_history` appends are
   unaffected (still gated on their `full_*_history` flags).
 
+## Monitor readback pipelining (device→host cost model)
+- Per generation `_record_history` appends the monitored leaves to the config's
+  host lists (`fit_history` ← `latest_fitness`, `sol_history`/`pop_history` ←
+  `latest_solution`). Those D2H copies are PIPELINED by one generation:
+  `_readback` schedules the copy with `etl.io.sink` (the process-global
+  `etl.io` FIFO worker thread) at the END of generation k and `_drain_readbacks`
+  appends it at the START of generation k+1 — the next generation's compiled
+  graph run then overlaps the copy instead of the host stalling on it.
+- Host-resident leaves (`device.kind == "cpu"`, i.e. the numpy backend) are
+  appended EAGERLY in the same call: a cpu copy costs ~0.0002 ms, nothing to hide.
+- Flush points: `run`/`fit` end of `_run_loop`, plus `init()` (leftovers from a
+  manually stepped run) and the public `StdWorkflow.flush()`.
+- Measured cost of the eager path (why this exists): iree/ROCm `to_host()` is
+  ~65 µs fixed overhead + ~0.4 µs/KB per call, so a 4 KB `(1000,)` fitness
+  readback costs ~0.07 ms on an IDLE device and ~0.13-0.18 ms in-loop (it waits
+  for the step just enqueued: `etl.run` is host-async). `Tensor.to`'s own
+  overhead is negligible (~5 µs) — there is no cheaper eager copy path.
+  MI300X, iree `rocm:0`, PSO/Sphere, seed 42, best-of-5 (gens 25/20/10):
+
+  | case | eager | pipelined | total | readback path |
+  |---|---|---|---|---|
+  | 1000x50, 25 gens | 0.7475 ms/step | 0.6334 ms/step | 1.18x | 0.1435 → 0.0294 ms (4.9x) |
+  | 1000x50 `full_sol_history` | 0.9135 | 0.7842 | 1.17x | — |
+  | 100x10, 20 gens | 0.4866 | 0.4195 | 1.16x | — |
+  | 10000x100, 10 gens | 0.6595 | 0.5563 | 1.19x | — |
+  | xla `rocm:0`, 1000x50 | 0.5126 | 0.4359 | 1.18x | 0.1913 → 0.1146 ms (1.7x) |
+
+  The host stack (Python + etl pipeline) — not the device — bounds the loop at
+  these scales (~0.4-0.6 ms/step of host work), so removing host work shows up
+  as wall-clock. xla wins less on the path (its `to_host()` from the worker
+  thread overlaps poorly) but still wins overall.
+- SEMANTICS: identical values, identical per-list order, identical final lists
+  (verified `max|diff| == 0` at every scale). The single observable difference:
+  generation k's entry becomes visible at the start of generation k+1, so a
+  caller that drives `step()`/`init_step()`/`final_step()` directly must call
+  `flush()` before reading the history mid-run (`run`/`fit`/`_run_loop` flush
+  themselves, so post-run history is complete). A copy failure is re-raised one
+  generation later at `handle.result()` — never swallowed. The aux channel
+  (`record_auxiliary`) stays EAGER (its conversion lives in the monitor module).
+- Sync behavior: the readback was the only implicit device sync in the etl
+  benchmark loop; it still is (the sink copy waits for its generation's kernels),
+  it just does so off the calling thread — so a timed loop measures the same
+  serialized device work, only without the host-side copy latency.
+- Test gap: the canonical `unit_test/etl` suite runs the numpy backend (host
+  leaves) and therefore only exercises the eager branch — the deferred branch
+  needs either a GPU run or a monkeypatched `etl.io.sink` (a fake handle whose
+  `.result()` returns a cpu tensor) plus an assertion that the history is one
+  entry short before `flush()` and exact after it.
 ## Constraints
 - Everything runs on the configured backend/device; the default is the "numpy"
   backend on cpu; use the documented venv for any run.

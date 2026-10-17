@@ -110,6 +110,15 @@ See `../DESIGN.md`.
 - Workflow tweaks in `../core/workflow.py`: `_discover_pop_size` falls back to
   the `pop` state attribute when `population` is absent (PSO/NSGA2 states);
   `_complete_monitor_config` fills `opt_direction` from the workflow.
+- History appends are PIPELINED in `../core/workflow.py` (`_readback` /
+  `_drain_readbacks`): `fit_history`/`sol_history`/`pop_history` entries are
+  copied device→host with `etl.io.sink` at the end of generation k and appended
+  at the start of generation k+1, so the copy overlaps the next step graph.
+  Values, order and the final lists are unchanged; `run`/`fit` flush the last
+  generation themselves, a caller driving `step()` directly must call
+  `StdWorkflow.flush()` before reading the history mid-run. The
+  `record_auxiliary` channel (`config.aux_history`) stays eager. Cost model and
+  measured numbers: `../core/CONTEXT.md` → "Monitor readback pipelining".
 - Validation (venv interpreter, `sys.path` + `src/`): PSO+Sphere+min converges
   monotone to ~0.028 @ gen 50 (torch ref 0.012; 6.3 vs 4.0 @ gen 30 — parity),
   `fit()` returns a scalar float, opt_direction="max" un-negates correctly;
