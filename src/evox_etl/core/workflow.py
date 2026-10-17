@@ -567,7 +567,9 @@ class StdWorkflow:
         normally appended at the start of generation k+1 (``run``/``fit`` drain
         it at the end of their loop, so they never need this).
         """
-        self._drain_readbacks()    # ------------------------------------------------------------------ run
+        self._drain_readbacks()
+
+    # ------------------------------------------------------------------ run
 
     def run(self, generations: int | None = None, seed: int = 42) -> WorkflowState:
         """Initialize and run the optimization loop for `generations` generations.
