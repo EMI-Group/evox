@@ -1,0 +1,884 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.04770198604092002,
+    "ms_per_step": 0.4770198604092002,
+    "metric": {
+      "best_fitness": 9.31256050051843e-09
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.39459531525239433,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.04835246491711587,
+    "ms_per_step": 0.48352464917115867,
+    "metric": {
+      "best_fitness": 13.463113784790039
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.5624503354978724,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.05795277201104909,
+    "ms_per_step": 0.5795277201104909,
+    "metric": {
+      "best_fitness": 1860.453857421875
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.2699376769908601,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.05436355108395219,
+    "ms_per_step": 0.5436355108395219,
+    "metric": {
+      "best_fitness": 5.0478668212890625
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.375877038247263,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.04367736598942429,
+    "ms_per_step": 0.4367736598942429,
+    "metric": {
+      "best_fitness": 330.6071472167969
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.15545263859682712,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06360838399268687,
+    "ms_per_step": 0.6360838399268687,
+    "metric": {
+      "best_fitness": 3444.25146484375
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.10436896840429781,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.05878268298693001,
+    "ms_per_step": 0.5878268298693001,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06003863096702844,
+    "ms_per_step": 0.6003863096702844,
+    "metric": {
+      "best_fitness": 20.052574157714844
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0026287078857421876,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "torch-rocm",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.06862552894745022,
+    "ms_per_step": 0.6862552894745022,
+    "metric": {
+      "best_fitness": 20.25983428955078
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.00888105068118069,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.038581821019761264,
+    "ms_per_step": 0.38581821019761264,
+    "metric": {
+      "best_fitness": 0.1859542429447174
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.2815331848173817,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.0340260419761762,
+    "ms_per_step": 0.340260419761762,
+    "metric": {
+      "best_fitness": 25619.103515625
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.42518098640442514,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.03966556303203106,
+    "ms_per_step": 0.3966556303203106,
+    "metric": {
+      "best_fitness": 119098.21875
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.2255813052320968,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.03904006991069764,
+    "ms_per_step": 0.3904006991069764,
+    "metric": {
+      "best_fitness": 56.896907806396484
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.1984985805418931,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.040265710093081,
+    "ms_per_step": 0.40265710093081,
+    "metric": {
+      "best_fitness": 27489.048828125
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.22490153368637547,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.044275145046412945,
+    "ms_per_step": 0.44275145046412945,
+    "metric": {
+      "best_fitness": 97372.515625
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.09838097963579565,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.05603871704079211,
+    "ms_per_step": 0.5603871704079211,
+    "metric": {
+      "best_fitness": 19.417137145996094
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028948483439654366,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.056964976945891976,
+    "ms_per_step": 0.5696497694589198,
+    "metric": {
+      "best_fitness": 20.25882339477539
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.001095634503101069,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "torch-rocm",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.04719534295145422,
+    "ms_per_step": 0.4719534295145422,
+    "metric": {
+      "best_fitness": 20.650318145751953
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0021674862620655287,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "torch-rocm",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": null,
+    "warmup_steps": 2,
+    "run_time_s": null,
+    "ms_per_step": null,
+    "metric": null,
+    "note": null,
+    "error": "UncapturedHigherOrderOpError: This higher order operator doesn't work unless it is captured completely with torch.compile. Got graph break/error:\n\nEncountered aliasing during higher order op tracing\n  Higher Order Operator: torch.cond\n  Explanation: Higher order ops do not support aliasing. Found in <bound method HigherOrderOperator.name of <torch._higher_order_ops.cond.CondOp object at 0x7115543f41a0>>\n  Hint: Replace `return input` with `return input.clone()` to avoid aliasing.\n  Hint: Consider using the debug context to change user code to avoid aliasing.\n  Hint: Please open an issue.\n\n  Developer debug context: Input-to-input aliasing detected at nodes l_args_3_0_ and getattr_1 in\n     graph():\n        %s85 : torch.SymInt [num_users=0] = placeholder[target=s85]\n        %s12 : torch.SymInt [num_users=0] = placeholder[target=s12]\n        %l_args_3_0_ : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=l_args_3_0_]\n        %getattr_1 : torch._subclasses.fake_tensor.FakeTensor [num_users=1] = placeholder[target=getattr_1]\n        %add : [num_users=1] = call_function[target=operator.add](args = (%l_args_3_0_, %getattr_1), kwargs = {})\n        %C : [num_users=1] = call_function[target=operator.truediv](args = (%add, 2), kwargs = {})\n        %linalg_eigh : [num_users=2] = call_function[target=torch._C._linalg.linalg_eigh](args = (%C,), kwargs = {})\n        %D : [num_users=1] = call_function[target=operator.getitem](args = (%linalg_eigh, 0), kwargs = {})\n        %B : [num_users=4] = call_function[target=operator.getitem](args = (%linalg_eigh, 1), kwargs = {})\n        %D_1 : [num_users=2] = call_function[target=torch.clamp](args = (%D,), kwargs = {min: 1e-08})\n        %sqrt : [num_users=1] = call_function[target=torch.sqrt](args = (%D_1,), kwargs = {})\n        %truediv_1 : [num_users=1] = call_function[target=operator.truediv](args = (1.0, %sqrt), kwargs = {})\n        %diag : [num_users=1] = call_function[target=torch.diag](args = (%truediv_1,), kwargs = {})\n        %matmul : [num_users=1] = call_function[target=operator.matmul](args = (%B, %diag), kwargs = {})\n        %getattr_2 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %C_invsqrt : [num_users=1] = call_function[target=operator.matmul](args = (%matmul, %getattr_2), kwargs = {})\n        %D_2 : [num_users=1] = call_function[target=torch.diag](args = (%D_1,), kwargs = {})\n        %D_3 : [num_users=1] = call_function[target=torch.sqrt](args = (%D_2,), kwargs = {})\n        %D_4 : [num_users=1] = call_function[target=operator.matmul](args = (%B, %D_3), kwargs = {})\n        %getattr_3 : [num_users=1] = call_function[target=builtins.getattr](args = (%B, T), kwargs = {})\n        %stack : [num_users=1] = call_function[target=torch.stack](args = ([%getattr_3, %D_4, %C_invsqrt],), kwargs = {dim: 0})\n        return (stack,)\n\n For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0040.html\n\nfrom user code:\n   File \"/tmp/genesis/task_3858dfe003526650/etlbench-venv/lib/python3.14/site-packages/torch/_higher_order_ops/cond.py\", line 242, in _cond_op_wrapper\n    return cond_op(*args, **kwargs)\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+    "parity": {
+      "vs": "torch-cpu",
+      "ok": null,
+      "skip": "backend error"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.021336794015951455,
+    "ms_per_step": 0.21336794015951455,
+    "metric": {
+      "best_fitness": 92.91455078125
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.46218556271258,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.021329847048036754,
+    "ms_per_step": 0.21329847048036754,
+    "metric": {
+      "best_fitness": 1750.898681640625
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.03456341330668258,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.025830141035839915,
+    "ms_per_step": 0.25830141035839915,
+    "metric": {
+      "best_fitness": 3924.38232421875
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.069801019231891,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.02505192207172513,
+    "ms_per_step": 0.2505192207172513,
+    "metric": {
+      "best_fitness": 201.4042510986328
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.20102897740565615,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.02554934099316597,
+    "ms_per_step": 0.2554934099316597,
+    "metric": {
+      "best_fitness": 2213.9375
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.024914744577819666,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.030472803045995533,
+    "ms_per_step": 0.30472803045995533,
+    "metric": {
+      "best_fitness": 4958.1640625
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.03958562556388517,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.029465347062796354,
+    "ms_per_step": 0.29465347062796354,
+    "metric": {
+      "best_fitness": 20.504966735839844
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0074990749405266155,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.0291519439779222,
+    "ms_per_step": 0.291519439779222,
+    "metric": {
+      "best_fitness": 21.214698791503906
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.001964376341917056,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "torch-rocm",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.0,
+    "warmup_steps": 2,
+    "run_time_s": 0.03250679303891957,
+    "ms_per_step": 0.3250679303891957,
+    "metric": {
+      "best_fitness": 21.357521057128906
+    },
+    "note": "eager",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0027811917786480845,
+      "ok": true,
+      "note": null
+    }
+  }
+]
