@@ -1,0 +1,902 @@
+[
+  {
+    "case_id": "PSO/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7508718649623916,
+    "warmup_steps": 2,
+    "run_time_s": 0.021984411985613406,
+    "ms_per_step": 0.21984411985613406,
+    "metric": {
+      "best_fitness": 2.440125612679367e-08
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.5863128912896417,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7349286309909075,
+    "warmup_steps": 2,
+    "run_time_s": 0.1239399709738791,
+    "ms_per_step": 1.239399709738791,
+    "metric": {
+      "best_fitness": 31.505905151367188
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.023938328768388535,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Sphere/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.9068789019947872,
+    "warmup_steps": 2,
+    "run_time_s": 1.4719955309992656,
+    "ms_per_step": 14.719955309992656,
+    "metric": {
+      "best_fitness": 2660.171630859375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04388027291333171,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7688722950406373,
+    "warmup_steps": 2,
+    "run_time_s": 0.026246841996908188,
+    "ms_per_step": 0.2624684199690819,
+    "metric": {
+      "best_fitness": 5.499366760253906
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.3200531646954727,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7329929060069844,
+    "warmup_steps": 2,
+    "run_time_s": 0.19123335799667984,
+    "ms_per_step": 1.9123335799667984,
+    "metric": {
+      "best_fitness": 363.5811462402344
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.071219420698808,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Rastrigin/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8517345869913697,
+    "warmup_steps": 2,
+    "run_time_s": 2.701195986010134,
+    "ms_per_step": 27.011959860101342,
+    "metric": {
+      "best_fitness": 4116.01904296875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.07031510885599439,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7411623309599236,
+    "warmup_steps": 2,
+    "run_time_s": 0.027808467973954976,
+    "ms_per_step": 0.27808467973954976,
+    "metric": {
+      "best_fitness": 20.0
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0003432049238466408,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7601236610207707,
+    "warmup_steps": 2,
+    "run_time_s": 0.2025109379319474,
+    "ms_per_step": 2.025109379319474,
+    "metric": {
+      "best_fitness": 20.561412811279297
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028070640563964844,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "PSO/Ackley/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "PSO",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8854892950039357,
+    "warmup_steps": 2,
+    "run_time_s": 2.8111954979831353,
+    "ms_per_step": 28.111954979831353,
+    "metric": {
+      "best_fitness": 20.01506805419922
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.003307598700819605,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7519575459882617,
+    "warmup_steps": 2,
+    "run_time_s": 0.0205705490661785,
+    "ms_per_step": 0.205705490661785,
+    "metric": {
+      "best_fitness": 0.45508238673210144
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.7582905765603876,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7506123629864305,
+    "warmup_steps": 2,
+    "run_time_s": 0.10579827195033431,
+    "ms_per_step": 1.057982719503343,
+    "metric": {
+      "best_fitness": 23839.615234375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.326188730004031,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Sphere/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.875015674973838,
+    "warmup_steps": 2,
+    "run_time_s": 1.4248911900212988,
+    "ms_per_step": 14.248911900212988,
+    "metric": {
+      "best_fitness": 104824.4296875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0786967488261986,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7893610710743815,
+    "warmup_steps": 2,
+    "run_time_s": 0.023024349939078093,
+    "ms_per_step": 0.23024349939078093,
+    "metric": {
+      "best_fitness": 56.38290023803711
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.18767132533915526,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.7628112399252132,
+    "warmup_steps": 2,
+    "run_time_s": 0.1766761119943112,
+    "ms_per_step": 1.7667611199431121,
+    "metric": {
+      "best_fitness": 27923.310546875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.24425207028165857,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "DE/Rastrigin/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8879037889419124,
+    "warmup_steps": 2,
+    "run_time_s": 2.9198597699869424,
+    "ms_per_step": 29.198597699869424,
+    "metric": {
+      "best_fitness": 108335.4765625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0031303558505600686,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8142705840291455,
+    "warmup_steps": 2,
+    "run_time_s": 0.023872673977166414,
+    "ms_per_step": 0.23872673977166414,
+    "metric": {
+      "best_fitness": 18.954586029052734
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.05208067642038686,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8137733860639855,
+    "warmup_steps": 2,
+    "run_time_s": 0.18797508301213384,
+    "ms_per_step": 1.8797508301213384,
+    "metric": {
+      "best_fitness": 20.14360809326172
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.006776569936090182,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "DE/Ackley/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "DE",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.9314872769173235,
+    "warmup_steps": 2,
+    "run_time_s": 2.7780344240600243,
+    "ms_per_step": 27.780344240600243,
+    "metric": {
+      "best_fitness": 20.55666732788086
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.002377422153864496,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3843439210904762,
+    "warmup_steps": 2,
+    "run_time_s": 0.240160773973912,
+    "ms_per_step": 2.40160773973912,
+    "metric": {
+      "best_fitness": 7.886441499849184e-10
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.9961784448056061,
+      "ok": true,
+      "note": "both converged to machine zero"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.3884132800158113,
+    "warmup_steps": 2,
+    "run_time_s": 3.411033559939824,
+    "ms_per_step": 34.11033559939824,
+    "metric": {
+      "best_fitness": 35.78731155395508
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.4662322717107961,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Sphere/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.641337268985808,
+    "warmup_steps": 2,
+    "run_time_s": 218.17269751802087,
+    "ms_per_step": 2181.7269751802087,
+    "metric": {
+      "best_fitness": 198.8644256591797
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.3237182211448301,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4357799460412934,
+    "warmup_steps": 2,
+    "run_time_s": 0.16977008106186986,
+    "ms_per_step": 1.6977008106186986,
+    "metric": {
+      "best_fitness": 14.409194946289062
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.4483423180907916,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.437547929934226,
+    "warmup_steps": 2,
+    "run_time_s": 3.4959138210397214,
+    "ms_per_step": 34.959138210397214,
+    "metric": {
+      "best_fitness": 444.1834716796875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.09293672420560162,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Rastrigin/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.6616555830696598,
+    "warmup_steps": 2,
+    "run_time_s": 215.16032049898058,
+    "ms_per_step": 2151.603204989806,
+    "metric": {
+      "best_fitness": 1135.350341796875
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0998553116123319,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4491926319897175,
+    "warmup_steps": 2,
+    "run_time_s": 0.26665446697734296,
+    "ms_per_step": 2.6665446697734296,
+    "metric": {
+      "best_fitness": 20.380115509033203
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 5621.230991844252,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.4872977229533717,
+    "warmup_steps": 2,
+    "run_time_s": 3.5981654879869893,
+    "ms_per_step": 35.98165487986989,
+    "metric": {
+      "best_fitness": 21.211029052734375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 1.8988177100548342,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "CMAES/Ackley/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "CMAES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 1.7434691489906982,
+    "warmup_steps": 2,
+    "run_time_s": 218.63740098197013,
+    "ms_per_step": 2186.3740098197013,
+    "metric": {
+      "best_fitness": 21.332794189453125
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.7906973151135067,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6367507739923894,
+    "warmup_steps": 2,
+    "run_time_s": 0.023976550088264048,
+    "ms_per_step": 0.23976550088264048,
+    "metric": {
+      "best_fitness": 132.08493041992188
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.2354568586874824,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6487598530948162,
+    "warmup_steps": 2,
+    "run_time_s": 0.1535027710488066,
+    "ms_per_step": 1.535027710488066,
+    "metric": {
+      "best_fitness": 1887.1129150390625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.040544418991192356,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Sphere/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Sphere",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8646622630767524,
+    "warmup_steps": 2,
+    "run_time_s": 2.210890530026518,
+    "ms_per_step": 22.108905300265178,
+    "metric": {
+      "best_fitness": 4100.10009765625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.028150517254629272,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6460471139289439,
+    "warmup_steps": 2,
+    "run_time_s": 0.025793171022087336,
+    "ms_per_step": 0.25793171022087336,
+    "metric": {
+      "best_fitness": 221.2354736328125
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.12235848231431842,
+      "ok": false,
+      "note": "RNG-stream variance on unconverged run"
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6694568269886076,
+    "warmup_steps": 2,
+    "run_time_s": 0.21865055803209543,
+    "ms_per_step": 2.1865055803209543,
+    "metric": {
+      "best_fitness": 2370.28271484375
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.04394443222818937,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Rastrigin/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Rastrigin",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8470193949760869,
+    "warmup_steps": 2,
+    "run_time_s": 3.517775991000235,
+    "ms_per_step": 35.17775991000235,
+    "metric": {
+      "best_fitness": 5109.79931640625
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.010213326525962293,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/100x10",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 100,
+    "dim": 10,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6928851980483159,
+    "warmup_steps": 2,
+    "run_time_s": 0.026601620949804783,
+    "ms_per_step": 0.26601620949804783,
+    "metric": {
+      "best_fitness": 20.69388198852539
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0016449810076611911,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/1000x50",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 1000,
+    "dim": 50,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.6965180319966748,
+    "warmup_steps": 2,
+    "run_time_s": 0.21669158292934299,
+    "ms_per_step": 2.16691582929343,
+    "metric": {
+      "best_fitness": 21.242355346679688
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0006632865850288178,
+      "ok": true,
+      "note": null
+    }
+  },
+  {
+    "case_id": "OpenES/Ackley/10000x100",
+    "backend": "etl-iree-llvm-cpu",
+    "algo": "OpenES",
+    "problem": "Ackley",
+    "pop_size": 10000,
+    "dim": 100,
+    "n_obj": 1,
+    "gens": 100,
+    "seed": 42,
+    "compile_time_s": 0.8603345470037311,
+    "warmup_steps": 2,
+    "run_time_s": 3.6376939070178196,
+    "ms_per_step": 36.376939070178196,
+    "metric": {
+      "best_fitness": 21.322124481201172
+    },
+    "note": "compiled (iree)",
+    "parity": {
+      "vs": "torch-cpu",
+      "rel_err": 0.0011192470005649071,
+      "ok": true,
+      "note": null
+    }
+  }
+]
