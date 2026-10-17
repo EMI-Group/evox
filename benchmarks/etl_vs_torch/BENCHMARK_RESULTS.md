@@ -1,9 +1,12 @@
 # evox (torch) vs evox_etl — Benchmark Results
 
 Comparison of the torch OOP `evox` (`src/evox/`) against the functional
-`evox_etl` (`src/evox_etl/`). Six backends, two suites (single-objective,
-multi-objective), small → large scale. All numbers below are read from the
-committed `results/*.json` (12 files, one per suite×backend).
+`evox_etl` (`src/evox_etl/`). Two suites (single-objective, multi-objective),
+small → large scale, on two hosts: six backends on an NVIDIA A6000 host and
+the ROCm backends on an AMD Instinct MI300X (see *Post-fix ROCm re-run*). All
+numbers below are read from the committed `results/*.json` — 12
+per-suite×backend files for the A6000 matrix, plus the ROCm-round files listed
+under *Artifacts*.
 
 ## Measurement caveats (2026-09-07)
 
@@ -386,6 +389,315 @@ iree-llvm-cpu cell dies at runtime with the `ref is null` INVALID_ARGUMENT).
   iree-llvm-cpu 0.88–2.95 s; iree-cuda 0.85–2.80 s. torch pays nothing
   (eager).
 
+## Post-fix ROCm re-run (AMD Instinct MI300X, ROCm 7.1)
+
+This is the **first committed ROCm matrix** (`torch-rocm` /
+`etl-xla-rocm` / `etl-iree-rocm` / `etl-iree-llvm-cpu_mi300x` result files
+below), run to measure the etl fixes against the previous round's pre-fix
+ROCm numbers. It sits between *Key numbers* and *Reproduction* on purpose — it
+is a second host, not a re-measurement of the A6000 matrix above.
+
+**Host/env:** AMD Instinct MI300X (one VF, single tenant), ROCm 7.1, venv
+`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python` (Python 3.14,
+torch 2.13.0+rocm7.1), etl 0.1.0, `evox_etl` imported from this repo's
+`src/`. Seed 42, 100 generations (caps noted), 2 warmup steps excluded, and
+`ms/step = 1000 · run_time_s / gens` — same case tables, metrics, seeds and
+timing semantics as the CUDA sections (the `_mi300x` suffix marks the
+CPU-interpreter column re-run on this host, so the A6000
+`{so,mo}_etl-iree-llvm-cpu.json` files are never overwritten). torch's device
+string is `"cuda"` on ROCm too — HIP is exposed through `torch.cuda`, there is
+no `"rocm"` torch device.
+
+**Cell format in this section:** `pre-fix → post-fix / speedup×`, where
+`speedup = torch-rocm ms/step ÷ etl ms/step` (**>1.0 = etl faster than
+torch-rocm**, **<1.0 = etl slower**). `err` = error record, `@Ng` = gens cap,
+`-` = ratio undefined because one side is `err`, `1.00×` = tie inside
+measurement noise, `etl-numpy (reused)` = baseline value only (not re-run:
+no old→new, no ratio).
+
+### What changed
+
+Four `evox_etl` fixes landed between the two matrices:
+
+1. **batched `eigh` by default** — covariance eigendecompositions are issued
+   batched instead of as a per-matrix loop;
+2. **two-stage split reduction for rank-0 reductions** — scalar (rank-0)
+   reduction results are produced by a split two-stage reduction;
+3. **XLA per-call hot path** — the per-step xla execution call path was put on
+   a hot path (every `step()` goes through it);
+4. **emitter correctness fixes** — bool/int reductions and NaN-aware
+   `argmin`/`argmax` now emit correct/exportable code.
+
+A fifth change also moves these numbers: `src/evox_etl/core/workflow.py` now
+**pipelines the monitor's device→host readback**, worth ~1.18× per step on
+device-resident backends (the per-generation monitor state is read back while
+the next step runs, instead of serializing with it).
+
+**The old→new deltas below mix all five effects plus measurement noise and
+cannot be attributed to any single fix.** The noise floor is visible in the
+`torch-rocm` column itself, which is code-identical between the two rounds:
+its SO cells move by −22.9% to +43.1% and its MO cells by +3.0% to +13.4% (see
+*Measurement caveats*). Only the CMA-ES family (3.9–69×) and the device-resident
+non-CMA-ES xla cells (1.23–1.60×) clearly exceed that floor.
+
+### Provenance
+
+The pre-fix ROCm matrix was **never committed to this repository before this
+run**: the `torch-rocm` / `etl-xla-rocm` / `etl-iree-rocm` ids only became
+runnable once the harness gained ROCm support (`bench_common.set_rocm_env`,
+`ROCM_BACKENDS`, the ROCm PJRT-plugin recipe), and the previous round's ROCm
+numbers existed only as scratch table dumps in that round's `$TMPDIR`. Every
+"old" number in this section therefore comes from those scratch measurements,
+re-committed as `results/rocm_prefix_baseline.json`: its `provenance` block
+names the three source dumps, the host, the date, the pre-fix `evox_etl`
+build and the reconstruction rules, and its `so` / `mo` maps hold
+`ms_per_step` + `best_fitness` (`mo`: `hv`/`igd`/`n_pf_points`) per case and
+backend — `ms_per_step: null` + `error: true` is an error record, a `gens`
+key is a gens cap. It is a reference file, not a runner output: it carries no
+`parity` blocks.
+
+`etl-numpy` was **not re-run** in this round — the fixes target the compiled
+device paths and the numpy interpreter is unaffected — so its numbers are
+reused verbatim from that baseline file and are labelled `etl-numpy (reused)`
+in every table below: no old→new arrow, no ratio. They mean "no change
+claimed", not "post-fix measurement". That baseline records no gens caps for
+`etl-numpy` (only the pre-fix `etl-iree-llvm-cpu` CMA-ES 10000x100 cells are
+capped, at 22 gens), so the reused column carries plain values.
+
+### Single-objective (SO) — PSO / DE / CMA-ES / OpenES
+
+PS/PR/PA = PSO on Sphere/Rastrigin/Ackley, DS/DR/DA = DE, CS/CR/CA = CMA-ES,
+OS/OR/OA = OpenES.
+
+#### 100 × 10
+
+| backend | PS | PR | PA | DS | DR | DA | CS | CR | CA | OS | OR | OA |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `torch-rocm` | 0.531 → 0.477 | 0.527 → 0.5436 | 0.588 → 0.5878 | 0.319 → 0.3858 | 0.36 → 0.3904 | 0.444 → 0.5604 | err → err | err → err | err → err | 0.203 → 0.2134 | 0.246 → 0.2505 | 0.306 → 0.2947 |
+| `etl-xla-rocm` | 0.544 → 0.4277 / 1.12× | 0.577 → 0.4228 / 1.29× | 0.557 → 0.4186 / 1.40× | 0.59 → 0.3899 / 0.99× | 0.486 → 0.3756 / 1.04× | 0.492 → 0.4016 / 1.40× | 7.54 → 1.582 / - | 7.62 → 1.598 / - | 7.41 → 1.64 / - | 0.516 → 0.3934 / 0.54× | 0.574 → 0.4054 / 0.62× | 0.517 → 0.3876 / 0.76× |
+| `etl-iree-rocm` | 0.456 → 0.4034 / 1.18× | 0.443 → 0.4533 / 1.20× | 0.45 → 0.4087 / 1.44× | 0.39 → 0.3524 / 1.09× | 0.403 → 0.3753 / 1.04× | 0.402 → 0.3615 / 1.55× | 21.9 → 5.481 / - | 21.6 → 5.076 / - | 22.2 → 5.052 / - | 0.41 → 0.3805 / 0.56× | 0.425 → 0.3755 / 0.67× | 0.544 → 0.3763 / 0.78× |
+| `etl-iree-llvm-cpu` | 0.204 → 0.2198 / 2.17× | 0.263 → 0.2625 / 2.07× | 0.273 → 0.2781 / 2.11× | 0.213 → 0.2057 / 1.88× | 0.233 → 0.2302 / 1.70× | 0.242 → 0.2387 / 2.35× | 9.78 → 2.402 / - | 9.7 → 1.698 / - | 10.5 → 2.667 / - | 0.228 → 0.2398 / 0.89× | 0.257 → 0.2579 / 0.97× | 0.264 → 0.266 / 1.11× |
+| `etl-numpy` (reused) | 0.534 | 0.575 | 0.609 | 0.611 | 0.649 | 0.679 | 0.884 | 0.995 | 1.05 | 0.419 | 0.457 | 0.504 |
+
+#### 1000 × 50
+
+| backend | PS | PR | PA | DS | DR | DA | CS | CR | CA | OS | OR | OA |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `torch-rocm` | 0.504 → 0.4835 | 0.532 → 0.4368 | 0.439 → 0.6004 | 0.324 → 0.3403 | 0.491 → 0.4027 | 0.398 → 0.5696 | err → err | err → err | err → err | 0.201 → 0.2133 | 0.257 → 0.2555 | 0.276 → 0.2915 |
+| `etl-xla-rocm` | 0.604 → 0.4293 / 1.13× | 0.623 → 0.4195 / 1.04× | 0.612 → 0.4261 / 1.41× | 0.516 → 0.389 / 0.87× | 0.524 → 0.3889 / 1.04× | 0.533 → 0.4114 / 1.38× | 262 → 8.307 / - | 266 → 8.64 / - | 260 → 8.768 / - | 0.535 → 0.3998 / 0.53× | 0.569 → 0.398 / 0.64× | 0.545 → 0.4029 / 0.72× |
+| `etl-iree-rocm` | 0.648 → 0.6331 / 0.76× | 0.669 → 0.6389 / 0.68× | 0.66 → 0.6252 / 0.96× | 0.616 → 0.5601 / 0.61× | 0.634 → 0.5765 / 0.70× | 0.615 → 0.5527 / 1.03× | 882 → 40.39 / - | 902 → 40.29 / - | 925 → 40.15 / - | 0.718 → 0.6525 / 0.33× | 0.717 → 0.6572 / 0.39× | 0.711 → 0.6694 / 0.44× |
+| `etl-iree-llvm-cpu` | 1.1 → 1.239 / 0.39× | 1.79 → 1.912 / 0.23× | 1.89 → 2.025 / 0.30× | 0.993 → 1.058 / 0.32× | 1.68 → 1.767 / 0.23× | 1.79 → 1.88 / 0.30× | 661 → 34.11 / - | 659 → 34.96 / - | 664 → 35.98 / - | 1.39 → 1.535 / 0.14× | 2.1 → 2.187 / 0.12× | 2.14 → 2.167 / 0.13× |
+| `etl-numpy` (reused) | 1.4 | 1.51 | 1.56 | 1.29 | 1.44 | 1.48 | 2.23 | 2.3 | 2.35 | 0.745 | 0.826 | 0.867 |
+
+#### 10000 × 100
+
+| backend | PS | PR | PA | DS | DR | DA | CS | CR | CA | OS | OR | OA |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `torch-rocm` | 0.574 → 0.5795 | 0.607 → 0.6361 | 0.501 → 0.6863 | 0.365 → 0.3967 | 0.574 → 0.4428 | 0.437 → 0.472 | err → err | err → err | err → err | 0.242 → 0.2583 | 0.289 → 0.3047 | 0.315 → 0.3251 |
+| `etl-xla-rocm` | 0.612 → 0.4707 / 1.23× | 0.62 → 0.43 / 1.48× | 0.701 → 0.4393 / 1.56× | 0.514 → 0.396 / 1.00× | 0.558 → 0.3773 / 1.17× | 0.506 → 0.3758 / 1.26× | 1256 → 18.22 / - | 1220 → 18.53 / - | 1246 → 19.35 / - | 0.603 → 0.416 / 0.62× | 0.572 → 0.4108 / 0.74× | 0.616 → 0.4275 / 0.76× |
+| `etl-iree-rocm` | 2.61 → 0.5511 / 1.05× | 2.63 → 0.571 / 1.11× | 2.63 → 0.5769 / 1.19× | 2.28 → 0.4651 / 0.85× | 2.29 → 0.4829 / 0.92× | 2.29 → 0.4878 / 0.97× | 4127 → 94.59 / - | 4107 → 94.47 / - | 4095 → 94.64 / - | 3.16 → 0.6561 / 0.39× | 3.13 → 0.6739 / 0.45× | 3.14 → 0.6756 / 0.48× |
+| `etl-iree-llvm-cpu` | 13.4 → 14.72 / 0.04× | 25.6 → 27.01 / 0.02× | 27.4 → 28.11 / 0.02× | 14.1 → 14.25 / 0.03× | 27.7 → 29.2 / 0.02× | 26.9 → 27.78 / 0.02× | 10578@22g → 2182 / - | 10515@22g → 2152 / - | 10607@22g → 2186 / - | 21.6 → 22.11 / 0.01× | 34.3 → 35.18 / 0.01× | 35 → 36.38 / 0.01× |
+| `etl-numpy` (reused) | 27.8 | 34.1 | 32.9 | 18.9 | 18.7 | 20.1 | 29.3 | 31.6 | 28.4 | 11.3 | 20.6 | 17.4 |
+
+**CMA-ES is where the fixes are largest.** At 10000x100 the SO CMA-ES cells go
+from 1256 → **18.22** ms/step (`etl-xla-rocm`, 68.9×), 4127 → **94.59**
+(`etl-iree-rocm`, 43.6×) and 10578@22g → **2182** (`etl-iree-llvm-cpu`,
+4.85×); at 1000x50 from 262 → 8.31 (31.5×) / 882 → 40.4 (21.8×) / 661 → 34.1
+(19.4×); at 100x10 from 7.54 → 1.58 (4.8×) / 21.9 → 5.48 (4.0×) / 9.78 → 2.40
+(4.1×). **The pre-fix 22-gen cap on the llvm-cpu 10000x100 CMA-ES cells is no
+longer needed**: per-step cost fell 4.85–4.89×, so the full 100-generation run
+(215–219 s) now costs slightly *less* than the old 22-generation capped run
+(231–233 s), and all three compiled etl backends run the full 36-cell SO
+matrix with **no gens caps and no error records**. Over the 27 non-CMA-ES SO
+cells the old→new improvement is 1.23–1.60× (median 1.35×) on xla, 0.98–4.90×
+(median 1.11×) on iree and 0.89–1.04× (median 0.96×) on llvm-cpu — the device
+backends moved, the CPU interpreter (which these fixes do not target) did not.
+
+### Multi-objective (MO) — NSGA2 / NSGA3 / MOEAD
+
+D1/D2 = DTLZ1/DTLZ2. `hv`/`igd` for every cell are in the JSONs; the timings
+are the comparison here. MOEAD's effective population is the Das-Dennis vector
+count on both sides.
+
+#### 100 × 3 × 10
+
+| backend | NSGA2/1 | NSGA2/2 | NSGA3/1 | NSGA3/2 | MOEAD/1 | MOEAD/2 |
+|---|---|---|---|---|---|---|
+| `torch-rocm` | 3.07 → 3.318 | 2.71 → 3.009 | 176 → 191.8 | 243 → 272.3 | 159 → 174.3 | 168 → 183.1 |
+| `etl-xla-rocm` | 1.02 → 0.8361 / 3.97× | 0.84 → 0.6413 / 4.69× | 3.02 → 2.349 / 81.66× | 2.6 → 1.984 / 137.26× | 5.24 → 5.309 / 32.83× | 5.29 → 5.573 / 32.86× |
+| `etl-iree-rocm` | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - |
+| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 4.673 / 37.29× | err → err / - |
+| `etl-numpy` (reused) | 4.82 | 4.13 | 7.21 | 5.5 | 32.7 | 33.1 |
+
+#### 1000 × 3 × 30
+
+| backend | NSGA2/1 | NSGA2/2 | NSGA3/1 | NSGA3/2 | MOEAD/1 | MOEAD/2 |
+|---|---|---|---|---|---|---|
+| `torch-rocm` | 4.29 → 4.42 | 3.08 → 3.365 | 253 → 270.4 | 249 → 282.4 | 1743 → 1870 | 1840 → 1912 |
+| `etl-xla-rocm` | 1.56 → 1.282 / 3.45× | 1.04 → 0.8066 / 4.17× | 3.55 → 2.844 / 95.08× | 3.12 → 2.279 / 123.90× | 48.2 → 52.89 / 35.35× | 52.4 → 53.77 / 35.55× |
+| `etl-iree-rocm` | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - |
+| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 134.1 / 13.94× | err → 130 / 14.70× |
+| `etl-numpy` (reused) | 201 | 164 | 257 | 226 | 383 | 387 |
+
+- **`etl-xla-rocm` is a full 12/12 MO matrix** and beats `torch-rocm` on every
+  cell: NSGA2 3.45–4.69×, NSGA3 81.7–137.3×, MOEAD 32.8–35.6× (median over
+  the 12 cells 34.11×). Old→new: the 8 NSGA2/NSGA3 cells improved 1.22–1.37×, the 4 MOEAD
+  cells are 0.91–0.99× — flat within the run-to-run spread visible in the
+  torch column, so no MOEAD improvement is claimed.
+- **`etl-iree-rocm` MO is `err` on all 12 cells** (documented upstream
+  iree-compile SIGSEGV on the `rocm` target; see *Measurement caveats*), so
+  every ratio is `-`.
+- **`etl-iree-llvm-cpu` MO runs 3 of 12 cells** —
+  `MOEAD/DTLZ1/100x3x10` 4.67 ms/step (37.3×), `MOEAD/DTLZ1/1000x3x30` 134.1
+  (13.9×), `MOEAD/DTLZ2/1000x3x30` 130.0 (14.7×) — and is `err` on the other
+  9 (compile failures). This is 3/12 where the pre-fix round had 0/12.
+
+### Still slower than torch-rocm (ratio < 1.0)
+
+Comparable cells only (both sides non-`err`; the 9 CMA-ES SO cells are never
+comparable — no torch reference). **No MO cell is in this list.**
+
+- **`etl-xla-rocm`: 11 of 27 cells** — all nine OpenES cells (0.53–0.76×:
+  `OS` 0.54/0.53/0.62, `OR` 0.62/0.64/0.74, `OA` 0.76/0.72/0.76 at
+  100x10/1000x50/10000x100) plus `DE/Sphere/100x10` 0.99× and
+  `DE/Sphere/1000x50` 0.87×. The other 16 are faster (up to 1.56×); median
+  1.04×.
+- **`etl-iree-rocm`: 17 of 27 cells** — all nine OpenES cells (0.33–0.78×),
+  the three PSO 1000x50 cells (`PS` 0.76, `PR` 0.68, `PA` 0.96) and five DE
+  cells (`DS` 0.61 @1000x50 / 0.85 @10000x100, `DR` 0.70 / 0.92, `DA` 0.97
+  @10000x100 — `DE/Ackley/1000x50` is a 1.03× win). Ten cells are faster (up
+  to 1.55×); median 0.85×.
+- **`etl-iree-llvm-cpu`: 20 of 27 cells** — every 1000x50 and 10000x100 cell
+  (0.01–0.39×, worst at 10000x100) plus `OpenES/Sphere/100x10` 0.89× and
+  `OpenES/Rastrigin/100x10` 0.97×. Only seven cells win (1.11–2.35×, all at
+  100x10); median 0.23×.
+- **MO: none.** `etl-xla-rocm` 12/12 faster (3.45–137.26×, median 34.11×);
+  `etl-iree-llvm-cpu` 3/3 comparable cells faster (13.94–37.29×);
+  `etl-iree-rocm` has no comparable MO cell.
+
+Hypotheses, and what I consider most likely per group:
+
+1. **A constant ~0.35–0.45 ms/step host-side floor on the compiled etl
+   backends** (execute call + monitor readback + Python dispatch) that
+   dominates cheap per-step device work. The evidence is scale invariance:
+   across all 27 non-CMA-ES SO cells `etl-xla-rocm` never leaves
+   **0.376–0.471 ms/step** while the population grows 100× (100x10 →
+   10000x100), whereas `torch-rocm` spans 0.213–0.686 over the same cells.
+   OpenES isolates it because its device work is tiny: etl xla sits at
+   0.388–0.427 and etl iree at 0.375–0.676 ms/step nearly flat across all
+   three scales, while torch eager scales 0.213 → 0.325. Where torch's own
+   per-step overhead is already large (PSO, and DE at 10000x100) the same
+   floor is hidden and etl wins. **Most likely for the 11 xla cells and the
+   OpenES part of the 17 iree cells**; iree's floor is higher than xla's
+   (0.47–0.68 ms/step at ≥1000x50 vs xla's 0.38–0.47), which is exactly why
+   iree loses the 1000x50 PSO/DE cells that xla ties or wins.
+2. **CMA-ES on iree still pays the cyclic-Jacobi `eigh` lowering** — iree
+   ships no native `stablehlo.eigh`, so the per-step covariance eigh lowers to
+   an O(n⁴) while-loop composition. The old→new drop (4127 → 94.6 ms/step at
+   dim 100, and 4.0–43.6× across the family) reflects the batched-eigh default
+   together with the other fixes — but it did **not** give iree a native eigh:
+   iree is still 3.1–5.2× slower than xla on identical CMA-ES cells, and the
+   gap widens with dimension (iree/xla 3.08–3.46× at dim 10, 4.58–4.86× at
+   dim 50, 4.89–5.19× at dim 100), the signature of a super-linear lowering
+   rather than a fixed overhead. These cells are absent from the list above
+   only because `torch-rocm` CMA-ES is `err`. **Most likely for iree's absolute
+   CMA-ES cost, the largest single-backend deficit left in the matrix.**
+3. **`etl-iree-llvm-cpu` is a CPU interpreter, not a GPU path** — at 10000x100
+   (torch 0.40–0.69 ms/step) it loses by 1–2 orders (0.009–0.04×) and at
+   1000x50 by 2.6–8.5× (0.12–0.39×). It wins only at 100x10, where
+   torch-rocm's per-step cost is pure overhead (0.39–0.59 ms/step on the
+   PSO/DE cells) and the interpreter runs at 0.21–0.28 ms/step; it still loses
+   the two OpenES 100x10 cells (0.89×/0.97×), where torch-rocm is down at
+   0.21–0.29 ms/step. **Most likely for all 20 llvm-cpu cells.**
+4. **In-graph monitor topk/gather as the marginal cost at 10000x100** — the
+   *marginal* device cost is bounded by measurement, not separated: growing
+   the population 100× moves the xla floor by only ~0.02–0.06 ms/step
+   (0.376–0.428 at 100x10 → 0.376–0.471 at 10000x100), so all scale-dependent
+   device work at that size is of that order. Plausible as the marginal
+   component of hypothesis 1; **not separately provable from this matrix** (it
+   needs a monitor-ablation run) and not the driver of any losing cell on its
+   own.
+
+### Measurement caveats
+
+- **Two `torch-rocm` MO sweeps.** The committed `torch-rocm` MO column is the
+  second of two full sweeps this round; the first was 5–9% slower per cell
+  with one NSGA3 cell 32% slower. NSGA3/MOEAD torch timings therefore carry
+  roughly ±3–7% run-to-run spread, and NSGA3 is additionally known not to
+  reproduce point-for-point across GPU runs (its reference-point machinery is
+  data- and order-dependent), so NSGA3 cells should be read as
+  "same order of magnitude", not as exact.
+- **The torch path is unchanged by the fixes.** `torch-rocm` old→new
+  differences are pure measurement variance: SO spans −22.9% to +43.1%
+  (`DE/Rastrigin/10000x100` 0.574 → 0.443, `DE/Ackley/1000x50` 0.398 → 0.570)
+  and MO +3.0% to +13.4%. Single-cell old→new deltas of that magnitude are
+  noise, not code effects — which is why only the CMA-ES family and the
+  device-resident non-CMA-ES xla cells (1.23–1.60×) are claimed as
+  improvements.
+- **The torch CMA-ES reference does not exist on this host.** All 9
+  `torch-rocm` CMA-ES SO records are `err` with `UncapturedHigherOrderOpError:
+  ... torch.cond` (a torch 2.13 incompatibility that also reproduces on
+  torch-cpu). Their ratio cells are `-` by construction, not "etl lost".
+- **`etl-iree-rocm` MO: 12/12 `err`** — the documented upstream iree-compile
+  SIGSEGV (`BackendError: iree-compile failed to compile ... Error code: -11`,
+  stack inside `libIREECompiler.so`) on the `rocm` target (`--iree-rocm-target=gfx942`),
+  failing on every compile attempt (each case carries the
+  `documented: iree MO compile instability (compile retried)` note). No
+  ratio, no parity, nothing to attribute to evox_etl.
+- **`etl-iree-llvm-cpu` MO: 3/12** — MO compilation on this backend is
+  nondeterministic, so the three working cells needed process-level retries
+  (the `ETL_COMPILE_ATTEMPTS` recipe); the other 9 are `err`.
+- **`torch-rocm` can abort in HIP teardown** after the JSON is written
+  (`c10::cuda::SetDevice` inside a `TensorImpl` destructor). The JSON/stdout is
+  the source of truth; that abort is not a failed run and cannot affect
+  timings (they are taken long before).
+- **One VF, single tenant:** runs were serial and foreground; no co-tenant and
+  no concurrent ROCm job, so no cross-run interference is expected beyond the
+  sweep-to-sweep spread above.
+
+### Parity summary
+
+Parity follows the existing convention — each record vs the **`torch-cpu`**
+baseline (`results/{so,mo}_torch-cpu.json`, same `case_id`): relative error
+≤ 10% → ok, both sides ≤ 1e-4 → ok ("both converged to machine zero"),
+error/gens mismatch → skip. Counts over the 192 new records:
+
+| backend | suite | ok | not-ok | skip | machine-zero oks |
+|---|---|---|---|---|---|
+| `torch-rocm` | SO | 15 | 12 | 9 | 1 |
+| `etl-xla-rocm` | SO | 21 | 15 | 0 | 2 |
+| `etl-iree-rocm` | SO | 21 | 15 | 0 | 2 |
+| `etl-iree-llvm-cpu` | SO | 23 | 13 | 0 | 2 |
+| **SO total** | | **80** | **55** | **9** | 7 |
+| `torch-rocm` | MO | 6 | 6 | 0 | 0 |
+| `etl-xla-rocm` | MO | 3 | 9 | 0 | 0 |
+| `etl-iree-rocm` | MO | 0 | 0 | 12 | 0 |
+| `etl-iree-llvm-cpu` | MO | 0 | 3 | 9 | 0 |
+| **MO total** | | **9** | **18** | **21** | 0 |
+
+- **Every not-ok cell is `RNG-stream variance on unconverged run`** — no new
+  note text, no correctness verdict change. The largest are
+  `MOEAD/DTLZ1/1000x3x30` rel 21.01 (xla and llvm-cpu),
+  `NSGA3/DTLZ1/1000x3x30` rel 3.84 (xla), `CMAES/Ackley/100x10` rel ≈ 5.6e3
+  (all three etl backends — Ackley's flat-plateau convergence scatter) plus
+  the small-scale DE/OpenES/Rastrigin cells. MO not-ok is concentrated in
+  DTLZ1 at 100 gens (both sides still far from the front) and in DTLZ2's igd.
+- **All skips are error records:** 9 `torch-rocm` CMA-ES SO cells
+  (`torch.cond`), 12 `etl-iree-rocm` MO cells (compile SIGSEGV), 9
+  `etl-iree-llvm-cpu` MO cells (compile failures). The `etl-iree-rocm` error
+  records carry no `parity` block at all, which is the same convention counted
+  as a skip.
+- **No new record is gens-capped** — all 192 ran the full 100 gens (the
+  pre-fix 22-gen llvm-cpu CMA-ES cap is gone). The reused `etl-numpy` column
+  has no post-fix parity verdicts: those values are copied from
+  `results/rocm_prefix_baseline.json`, which records no gens cap for them.
+- The three compiled etl backends share a 13-cell SO not-ok core (xla and iree
+  add `CMAES/Rastrigin/1000x50` and `/10000x100`) but are **not** bit-identical
+  on this box, unlike the CUDA round: `PSO/Sphere/100x10` best = 2.44e-08
+  (xla) vs 3.31e-08 (iree); `CMAES/Rastrigin/100x10` best = 2.59 (xla) /
+  1.13 (iree) / 14.41 (llvm-cpu). Reduction order and RNG-stream differences
+  on hardware targets — consistent with the not-ok notes, not a defect signal.
+
 ## Reproduction
 
 From `benchmarks/etl_vs_torch/` with the venv python
@@ -422,8 +734,15 @@ parity verdicts per the committed conventions (never hand-edit verdicts).
 
 ## Artifacts
 
-- `results/{so,mo}_{backend}.json` — 12 files, 288 records with parity
-  verdicts vs torch-cpu written in.
+- `results/{so,mo}_{backend}.json` — 12 A6000-host files, 288 records with
+  parity verdicts vs torch-cpu written in.
+- `results/{so,mo}_{torch-rocm,etl-xla-rocm,etl-iree-rocm}.json` and
+  `results/{so,mo}_etl-iree-llvm-cpu_mi300x.json` — the 8 MI300X/ROCm
+  measurement files (192 records with parity verdicts vs torch-cpu). The
+  `_mi300x` suffix keeps the A6000 `etl-iree-llvm-cpu` files intact.
+- `results/rocm_prefix_baseline.json` — pre-fix ROCm reference matrix
+  (`provenance` block + `so`/`mo` maps; no parity blocks, not a runner
+  output) that every "old" number in the ROCm section traces back to.
 - `retag_parity.py` — partial-run merge + parity verdict re-derivation.
 - `style_comparison.md` — code style/cleanliness comparison (torch OOP vs
   etl functional).

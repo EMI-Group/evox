@@ -20,10 +20,18 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
   numbers, reproduction. **All numbers come from `results/*.json`.**
 - `style_comparison.md` — code style/cleanliness pros & cons (torch OOP vs
   etl functional).
-- `results/` — 12 committed JSONs (`{so,mo}_{backend}.json` × 6 backends),
-  288 records with parity verdicts vs torch-cpu written in. Schema, metric
-  definitions, timing semantics and quirks are documented in
-  `results/README.md`. **No ROCm JSONs exist yet.**
+- `results/` — committed JSONs: 12 CUDA/A6000 files (`{so,mo}_{backend}.json`
+  × 6 backends, 288 records) plus 8 MI300X/ROCm files —
+  `{so,mo}_torch-rocm.json`, `{so,mo}_etl-xla-rocm.json`,
+  `{so,mo}_etl-iree-rocm.json`, `{so,mo}_etl-iree-llvm-cpu_mi300x.json` —
+  every record carrying a parity verdict vs `results/{suite}_torch-cpu.json`.
+  Schema, metric definitions, timing semantics and quirks live in
+  `results/README.md`.
+- `results/rocm_prefix_baseline.json` — the pre-fix ROCm matrix (SO + MO, all
+  five MI300X columns incl. `etl-numpy`) reconstructed from the earlier
+  round's scratch table dumps, with a `provenance` block; it is the traceable
+  source for every pre-fix ROCm number and for the REUSED `etl-numpy` MI300X
+  numbers.
 
 ## Backends
 
@@ -46,6 +54,19 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
 `TORCH_BACKENDS` drive env selection, the `--gpu` requirement and the exit
 path. Case tables, seeds, timed region, JSON schema and parity logic are
 backend-independent.
+
+All nine ids are wired AND measured: the three `*-rocm` ids have MI300X /
+ROCm 7.1 columns in `results/`, and the CPU column was refreshed on that host
+too (`etl-iree-llvm-cpu_mi300x`).
+
+**Host distinction (do not mix columns):** the committed
+`results/{suite}_{backend}.json` files for `etl-numpy`, `etl-iree-llvm-cpu`
+(no suffix), `torch-cpu`, `torch-cuda`, `etl-iree-cuda` and `etl-xla-cuda`
+were measured on a DIFFERENT host (A6000 / CUDA) and still back the CUDA
+sections of `BENCHMARK_RESULTS.md` — never overwrite them with MI300X
+numbers. Measurements taken on the MI300X host use the natural `*-rocm` file
+names, or a `_mi300x` suffix for CPU-column refreshes
+(`results/{so,mo}_etl-iree-llvm-cpu_mi300x.json`).
 
 ## How to run
 NVIDIA venv: `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (torch
@@ -85,6 +106,13 @@ once (marker `EVOX_BENCH_GPU_ENV`, idempotent, keeps `sys.argv`):
 Use `--cases` / `--gens-override` / `--out <tmp path>` for subsets and smoke
 runs — never write smoke outputs into `results/`.
 
+On the MI300X host the ROCm venv writes `results/{suite}_torch-rocm.json`,
+`results/{suite}_etl-iree-rocm.json` and `results/{suite}_etl-xla-rocm.json`;
+an `etl-iree-llvm-cpu` re-run here must be sent with `--out
+results/{suite}_etl-iree-llvm-cpu_mi300x.json` so the A6000 file is not
+overwritten. Runs are serial and foreground — the ROCm device is
+single-tenant.
+
 ## Robustness on the etl/GPU paths
 - **etl compile retry:** `bench_common.init_with_retry` (used by both
   runners) builds a FRESH workflow and calls `init(seed)` up to
@@ -105,73 +133,88 @@ runs — never write smoke outputs into `results/`.
   raises before `finish_run` (per-case failures are already error records).
 
 ## Current results status
-- **No ROCm numbers yet:** the `torch-rocm` / `etl-iree-rocm` /
-  `etl-xla-rocm` ids are wired and runnable but `results/` holds no rocm
-  JSONs — nothing in the tables below covers ROCm.
-- **Numbers exist for:** SO on all six backends (36 cases each, no errors);
-  MO full on torch-cpu, torch-cuda, etl-numpy, and etl-xla-cuda (12 cases
-  each, 100 gens — xla-cuda became a full matrix after the NSGA3 fix);
-  iree-llvm-cpu / iree-cuda 12/12 error records.
+- **ROCm host (AMD Instinct MI300X, one VF, ROCm 7.1) columns:** SO —
+  `torch-rocm` 36 records (9 CMA-ES `err`), `etl-xla-rocm` 36/36,
+  `etl-iree-rocm` 36/36, `etl-iree-llvm-cpu_mi300x` 36/36 (CMA-ES 10000x100
+  at the full 100 gens — no cap); MO — `torch-rocm` 12/12, `etl-xla-rocm`
+  12/12, `etl-iree-rocm` 12/12 `err` (iree-compile SIGSEGV) and
+  `etl-iree-llvm-cpu_mi300x` 3/12 run + 9/12 `err` (the three successes are
+  `MOEAD/DTLZ1/100x3x10`, `MOEAD/DTLZ1/1000x3x30`,
+  `MOEAD/DTLZ2/1000x3x30`).
+- **`etl-numpy` MI300X numbers are REUSED, not re-measured:** the numpy
+  backend is unaffected by the etl device-path fixes, so its ROCm-host cells
+  come from `results/rocm_prefix_baseline.json` and must be labelled reused.
+- **`torch-rocm` CMA-ES does not exist:** all 9 CMA-ES cells are `err`
+  (`UncapturedHigherOrderOpError ... torch.cond`), a torch 2.13
+  incompatibility that also reproduces on torch-cpu — the torch CMA-ES
+  reference is unavailable on this host; do not chase it.
+- **ROCm headline numbers (ms/step, seed 42, 100 gens):** CMA-ES 10000x100 is
+  43× faster on `etl-iree-rocm` (4127 → 94.6), 69× on `etl-xla-rocm`
+  (1256 → 18.2) and 4.8× on `etl-iree-llvm-cpu_mi300x` (10578 @22 gens →
+  2182 @100 gens); non-CMA-ES SO — PSO/Sphere/10000x100 on `etl-iree-rocm`
+  2.61 → 0.55; MO on `etl-xla-rocm` 0.64–53.8 ms/step, i.e. 3.5–137× faster
+  than `torch-rocm`.
+- **OpenES is the one SO family where `torch-rocm` wins:** the etl compiled
+  backends carry a ~0.35–0.45 ms/step host-side floor (0.38–0.68 measured vs
+  0.21–0.33 for torch-rocm), which dominates steps this small.
+- **CUDA host (A6000) columns, unchanged:** SO on all six CUDA-era backends
+  (36 cases each, no errors); MO full on torch-cpu, torch-cuda, etl-numpy and
+  etl-xla-cuda (12 cases each, 100 gens); iree-llvm-cpu / iree-cuda 12/12
+  error records.
 - **etl-numpy caps:** SO 1000x50 → 50 gens, 10000x100 → 10 gens
-  (interpreter too slow). The MO cap is removed: Pareto fronts are now
-  extracted per-generation in `bench_mo.py` (`_etl_pf_fitness`, mirroring
+  (interpreter too slow). The MO cap is removed: Pareto fronts are extracted
+  per-generation in `bench_mo.py` (`_etl_pf_fitness`, mirroring
   `_torch_pf_fitness`), replacing the O(n²) whole-history ranking that made
   100 gens infeasible — verified point-for-point identical.
-- **etl-GPU MO blockers:** the DTLZ `cumprod`/`flip` v1-export issue and the
-  NSGA3 `matrix_rank`/`solve` export rejection are both FIXED (nsga3.py now
-  uses eigh-based full-rank guard + normal-equations solve). Remaining: (1)
-  iree-compile segfault (`Error code: -11`, stack in `libIREECompiler.so`) on
-  ALL MO programs — 23 cells: iree-cuda 12/12, iree-llvm-cpu 11/12 (NSGA3
-  now reaches the compiler post-fix and crashes identically to NSGA2/MOEAD —
-  an upstream iree while-loop compiler bug, proven by the unmodified
-  NSGA2/MOEAD trigger; do not attempt to fix iree); (2)
-  MOEAD/DTLZ2/100x3x10 on iree-llvm-cpu dies at runtime (`ref is null`,
-  `hal.buffer_view.create`).
-- **CMA-ES `c_c` framework bug is FIXED** in both torch and etl (Hansen
-  canonical formula); all 9 CMA-ES SO cells on all 6 backends were re-run.
-- **CMAES/Ackley/100x10 now converges on all four etl backends** (best
+- **iree MO compile blocker (current, no fix attempted):** iree-compile
+  SIGSEGV (`Error code: -11`, stack in `libIREECompiler.so`) on ALL MO
+  programs — an upstream iree while-loop compiler bug, proven by the
+  unmodified NSGA2/MOEAD trigger. Counts: `etl-iree-cuda` 12/12,
+  `etl-iree-rocm` 12/12 (deterministic: 4 in-process + 4 fresh-process
+  attempts per case), `etl-iree-llvm-cpu` 11/12 (A6000) and
+  `etl-iree-llvm-cpu_mi300x` 9/12 (MO compile is nondeterministic on
+  llvm-cpu, so the 3 successes needed process-level retries — the documented
+  recipe). `etl-xla-*` is the working compiled MO backend. Separately,
+  `MOEAD/DTLZ2/100x3x10` on A6000 llvm-cpu passes compile and dies at
+  runtime (`ref is null`, `hal.buffer_view.create`).
+- **CMAES/Ackley/100x10 converges on all four etl backends** (best
   0.00055–0.0037, matching torch-cpu 0.0036; iree-llvm-cpu parity ok at rel
-  0.007). This required replicating torch's 1-D `p_c @ p_c.T`
+  0.007), which requires replicating torch's 1-D `p_c @ p_c.T`
   scalar-dot-product quirk (isotropic c_1 inflation) instead of the
   canonical rank-one outer product — see
   `src/evox_etl/algorithms/so/es_variants/`. Large-scale Ackley cells
   (1000x50/10000x100) still scatter on unconverged runs (torch-cuda
   ≈20.6/20.4; etl compiled backends rel 0.44–1.89) — RNG-stream variance,
   not a stall.
-- **CMAES slow path on iree is characterized, not a defect:** per-step
+- **CMAES is the slowest SO family on every compiled backend:** per-step
   covariance `etl.eigh` lowers to an iree cyclic-Jacobi while-loop
   composition (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0),
   O(n^4). Probes: standalone iree-cuda eigh 39.0 / 1317 / 5778 ms @ dims
   10/50/100 vs 0.087 ms no-eigh control; llvm-cpu dim-100 23676 ms vs 0.157;
   real-harness iree-cuda gens=10 matched (39.5 / 1036.6 / 5779.3 ms/step);
-  xla-cuda native eigh 387.3 ms/step (15-18× faster). All iree CMAES cells
-  carry a JSON note; upstream doc:
+  xla-cuda native eigh 387.3 ms/step. Current dim-100 magnitudes: 94.6
+  ms/step on iree-rocm, 18.2 on xla-rocm, 2182 on llvm-cpu-mi300x. All iree
+  CMAES cells carry a JSON note; upstream doc:
   `/mnt/local-ssd/bchuang/etl/etl/backends/stablehlo/CONTEXT.md`.
-- **Parity (vs torch-cpu, 10% rel tolerance, near-zero rule):** SO 94 ok /
-  62 not-ok / 24 skip (etl-numpy gens caps); MO 12 ok / 24 not-ok / 24 skip
-  (backend errors). etl compiled backends are bit/last-ulp identical to
-  each other; not-ok cells are RNG-stream scatter on unconverged runs
-  (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley 1000x50/
-  10000x100, MO DTLZ1 incl. xla-cuda NSGA3 rel 16.636/0.528 — see
-  `BENCHMARK_RESULTS.md`).
+- **Parity (10% rel tolerance, near-zero rule):** every non-torch-cpu record
+  is compared against the `results/{suite}_torch-cpu.json` record with the
+  same `case_id`; `ok` is `true`/`false`/`null` (null only for skips: backend
+  error, baseline error, gens cap). etl compiled backends are bit/last-ulp
+  identical to each other; not-ok cells are RNG-stream scatter on unconverged
+  runs (small-scale 100x10 Rastrigin/DE/OpenES, large-scale Ackley
+  1000x50/10000x100, MO DTLZ1 incl. xla-cuda NSGA3 rel 16.636/0.528) — see
+  `BENCHMARK_RESULTS.md` for the per-column verdict tables.
 - **etl-xla-cuda is device-resident and measured at torch-cuda speed
   (2026-09-07, idle A6000 #6, seed 42, 100 gens, compile excluded):**
   PSO/Sphere 1000x50 0.896, 10000x100 0.988/1.045 ms/step; DE/Rastrigin
   1000x50 0.799, 10000x100 0.776/0.843 ms/step — 1.16-1.45× faster than
   torch-cuda (1.036-1.217 ms/step, same-day), convergence identical to the
-  committed records. This required both landed fixes: the harness mapping
+  committed records. This relies on both landed fixes: the harness mapping
   (`bench_common.etl_backend_spec` → `("xla", "cuda:0")`) and the workflow
   backend activation before device placement (commit 1a6fef1c,
   `workflow.py:229-244`). The committed xla SO cells (5.73/17.0 ms/step)
   are host-staging-bound artifacts of the old `("xla", None)` mapping —
   stale, see the caveat note in `BENCHMARK_RESULTS.md`.
-- **Both iree SO JSONs are fully refreshed under iree 3.11.0 on healthy
-  hardware** (36/36 records each: `so_etl-iree-cuda.json` commit 2770e1fc on
-  GPU 0, `so_etl-iree-llvm-cpu.json` commit ba895503 under the fixed etl).
-  The old broken-GPU-era big-scale values (35.70 / 3482 ms/step @1000x50 /
-  @10000x100) are gone — git history preserves them. The refreshed CMAES
-  cells are the slow-path exception (per-step eigh lowering, see the CMAES
-  slow-path bullet above), explicitly noted in the JSONs.
 - Details, tables and key numbers: see `BENCHMARK_RESULTS.md`.
 
 ## GPU performance path — issues and fixes (measurement-verified, current state)
@@ -206,12 +249,16 @@ runs — never write smoke outputs into `results/`.
 
 ## Notes for agents
 - **ROCm runs:** use the ROCm venv
-  (`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python`) and always
-  pass `--gpu N` (`HIP_VISIBLE_DEVICES` / `ROCR_VISIBLE_DEVICES` are set and
-  the process re-execs before any import). The ROCm device is single-tenant
-  here — never start a ROCm job while another one is running. ROCm results
-  belong in `results/{suite}_{backend}.json` like every other backend; until
-  they exist, no rocm cell may appear in `BENCHMARK_RESULTS.md`.
+  (`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python`, Python 3.14,
+  torch 2.13.0+rocm7.1, etl 0.1.0, `evox_etl` imported from the repo `src/`)
+  and always pass `--gpu N` (`HIP_VISIBLE_DEVICES` / `ROCR_VISIBLE_DEVICES`
+  are set and the process re-execs before any import). The ROCm device is
+  single-tenant — never run two ROCm jobs at once, and run them serially in
+  the foreground. Write ROCm results to `results/{suite}_torch-rocm.json`,
+  `results/{suite}_etl-iree-rocm.json`, `results/{suite}_etl-xla-rocm.json`;
+  an `etl-iree-llvm-cpu` re-run on this host goes to
+  `results/{suite}_etl-iree-llvm-cpu_mi300x.json` via `--out` (the default
+  name would clobber the A6000 file).
 - Result JSON schema and field semantics are documented in
   `results/README.md` — read it before touching the JSONs.
 - **The runners OVERWRITE `results/{suite}_{backend}.json` with only the
@@ -234,3 +281,27 @@ runs — never write smoke outputs into `results/`.
   staging, MOEAD pop_size overwritten by Das-Dennis count, NSGA3
   non-reproducibility across GPU runs) are recorded in `results/README.md`
   and `BENCHMARK_RESULTS.md` — do not re-derive them.
+
+### Known quirks (ROCm/MI300X host)
+- **`torch-rocm` teardown abort:** the process can abort in the HIP teardown
+  path (`c10::cuda::SetDevice` inside a `TensorImpl` destructor) AFTER the
+  JSON is written. Read stdout / the JSON as the source of truth — it is not
+  a failed run and must not be re-run or re-recorded as an error.
+- **`torch-rocm` MO timing variance:** full sweeps differ (first sweep 5–9%
+  slower, one NSGA3 cell 32% slower) and NSGA3 does not reproduce
+  point-for-point across GPU runs. Quote numbers from the committed JSON,
+  never from a re-run.
+- **Torch MO on this box** uses the harness's existing default-device
+  workaround in `bench_mo.py` — do not re-derive it.
+- **AMD xla recipe:** `ETL_PJRT_PLUGIN` → the venv's
+  `jax_plugins/xla_rocm7/xla_rocm_plugin.so`, plus
+  `XLA_FLAGS=--xla_gpu_enable_command_buffer=` (HIP command buffers SIGSEGV
+  inside `PJRT_Executable_Execute`). `torch-rocm` has no `"rocm"` torch
+  device — `torch.cuda` IS HIP.
+- **PJRT/xla teardown on ROCm** can also abort after all work is done; the
+  harness flushes + fsyncs the JSON and exits via `os._exit(0)` for
+  `PJRT_BACKENDS` (see Robustness above), so a completed run is never
+  reported as a crash.
+- **`torch-rocm` has no CMA-ES reference** (`UncapturedHigherOrderOpError ...
+  torch.cond`, reproducible on torch-cpu): those 9 SO records stay `err` and
+  their parity stays a skip.
