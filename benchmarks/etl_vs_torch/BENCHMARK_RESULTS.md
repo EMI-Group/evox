@@ -436,7 +436,7 @@ the next step runs, instead of serializing with it).
 **The old→new deltas below mix all five effects plus measurement noise and
 cannot be attributed to any single fix.** The noise floor is visible in the
 `torch-rocm` column itself, which is code-identical between the two rounds:
-its SO cells move by −22.9% to +43.1% and its MO cells by +3.0% to +13.4% (see
+its SO cells move by −22.9% to +43.1% and its MO cells by +2.3% to +11.1% (see
 *Measurement caveats*). Only the CMA-ES family (3.9–69×) and the device-resident
 non-CMA-ES xla cells (1.23–1.60×) clearly exceed that floor.
 
@@ -523,33 +523,33 @@ count on both sides.
 
 | backend | NSGA2/1 | NSGA2/2 | NSGA3/1 | NSGA3/2 | MOEAD/1 | MOEAD/2 |
 |---|---|---|---|---|---|---|
-| `torch-rocm` | 3.07 → 3.318 | 2.71 → 3.009 | 176 → 191.8 | 243 → 272.3 | 159 → 174.3 | 168 → 183.1 |
-| `etl-xla-rocm` | 1.02 → 0.8361 / 3.97× | 0.84 → 0.6413 / 4.69× | 3.02 → 2.349 / 81.66× | 2.6 → 1.984 / 137.26× | 5.24 → 5.309 / 32.83× | 5.29 → 5.573 / 32.86× |
+| `torch-rocm` | 3.07 → 3.318 | 2.71 → 2.822 | 176 → 185.3 | 243 → 254.3 | 159 → 166.8 | 168 → 172.0 |
+| `etl-xla-rocm` | 1.02 → 0.8361 / 3.97× | 0.84 → 0.6413 / 4.40× | 3.02 → 2.349 / 78.91× | 2.6 → 1.984 / 128.20× | 5.24 → 5.309 / 31.42× | 5.29 → 5.573 / 30.87× |
 | `etl-iree-rocm` | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - |
-| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 4.673 / 37.29× | err → err / - |
+| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 4.673 / 35.70× | err → err / - |
 | `etl-numpy` (reused) | 4.82 | 4.13 | 7.21 | 5.5 | 32.7 | 33.1 |
 
 #### 1000 × 3 × 30
 
 | backend | NSGA2/1 | NSGA2/2 | NSGA3/1 | NSGA3/2 | MOEAD/1 | MOEAD/2 |
 |---|---|---|---|---|---|---|
-| `torch-rocm` | 4.29 → 4.42 | 3.08 → 3.365 | 253 → 270.4 | 249 → 282.4 | 1743 → 1870 | 1840 → 1912 |
-| `etl-xla-rocm` | 1.56 → 1.282 / 3.45× | 1.04 → 0.8066 / 4.17× | 3.55 → 2.844 / 95.08× | 3.12 → 2.279 / 123.90× | 48.2 → 52.89 / 35.35× | 52.4 → 53.77 / 35.55× |
+| `torch-rocm` | 4.29 → 4.446 | 3.08 → 3.165 | 253 → 268.7 | 249 → 276.6 | 1743 → 1803 | 1840 → 1882 |
+| `etl-xla-rocm` | 1.56 → 1.282 / 3.47× | 1.04 → 0.8066 / 3.92× | 3.55 → 2.844 / 94.50× | 3.12 → 2.279 / 121.37× | 48.2 → 52.89 / 34.09× | 52.4 → 53.77 / 34.99× |
 | `etl-iree-rocm` | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - | err → err / - |
-| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 134.1 / 13.94× | err → 130 / 14.70× |
+| `etl-iree-llvm-cpu` | err → err / - | err → err / - | err → err / - | err → err / - | err → 134.1 / 13.45× | err → 130.0 / 14.47× |
 | `etl-numpy` (reused) | 201 | 164 | 257 | 226 | 383 | 387 |
 
 - **`etl-xla-rocm` is a full 12/12 MO matrix** and beats `torch-rocm` on every
-  cell: NSGA2 3.45–4.69×, NSGA3 81.7–137.3×, MOEAD 32.8–35.6× (median over
-  the 12 cells 34.11×). Old→new: the 8 NSGA2/NSGA3 cells improved 1.22–1.37×, the 4 MOEAD
+  cell: NSGA2 3.47–4.40×, NSGA3 78.9–128.2×, MOEAD 30.9–35.0× (median over
+  the 12 cells 32.76×). Old→new: the 8 NSGA2/NSGA3 cells improved 1.22–1.37×, the 4 MOEAD
   cells are 0.91–0.99× — flat within the run-to-run spread visible in the
   torch column, so no MOEAD improvement is claimed.
 - **`etl-iree-rocm` MO is `err` on all 12 cells** (documented upstream
   iree-compile SIGSEGV on the `rocm` target; see *Measurement caveats*), so
   every ratio is `-`.
 - **`etl-iree-llvm-cpu` MO runs 3 of 12 cells** —
-  `MOEAD/DTLZ1/100x3x10` 4.67 ms/step (37.3×), `MOEAD/DTLZ1/1000x3x30` 134.1
-  (13.9×), `MOEAD/DTLZ2/1000x3x30` 130.0 (14.7×) — and is `err` on the other
+  `MOEAD/DTLZ1/100x3x10` 4.67 ms/step (35.70×), `MOEAD/DTLZ1/1000x3x30` 134.1
+  (13.45×), `MOEAD/DTLZ2/1000x3x30` 130.0 (14.47×) — and is `err` on the other
   9 (compile failures). This is 3/12 where the pre-fix round had 0/12.
 
 ### Still slower than torch-rocm (ratio < 1.0)
@@ -571,8 +571,8 @@ comparable — no torch reference). **No MO cell is in this list.**
   (0.01–0.39×, worst at 10000x100) plus `OpenES/Sphere/100x10` 0.89× and
   `OpenES/Rastrigin/100x10` 0.97×. Only seven cells win (1.11–2.35×, all at
   100x10); median 0.23×.
-- **MO: none.** `etl-xla-rocm` 12/12 faster (3.45–137.26×, median 34.11×);
-  `etl-iree-llvm-cpu` 3/3 comparable cells faster (13.94–37.29×);
+- **MO: none.** `etl-xla-rocm` 12/12 faster (3.47–128.20×, median 32.76×);
+  `etl-iree-llvm-cpu` 3/3 comparable cells faster (13.45–35.70×);
   `etl-iree-rocm` has no comparable MO cell.
 
 Hypotheses, and what I consider most likely per group:
@@ -630,7 +630,7 @@ Hypotheses, and what I consider most likely per group:
 - **The torch path is unchanged by the fixes.** `torch-rocm` old→new
   differences are pure measurement variance: SO spans −22.9% to +43.1%
   (`DE/Rastrigin/10000x100` 0.574 → 0.443, `DE/Ackley/1000x50` 0.398 → 0.570)
-  and MO +3.0% to +13.4%. Single-cell old→new deltas of that magnitude are
+  and MO +2.3% to +11.1%. Single-cell old→new deltas of that magnitude are
   noise, not code effects — which is why only the CMA-ES family and the
   device-resident non-CMA-ES xla cells (1.23–1.60×) are claimed as
   improvements.

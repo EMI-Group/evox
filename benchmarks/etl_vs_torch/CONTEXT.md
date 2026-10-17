@@ -152,7 +152,7 @@ single-tenant.
   43× faster on `etl-iree-rocm` (4127 → 94.6), 69× on `etl-xla-rocm`
   (1256 → 18.2) and 4.8× on `etl-iree-llvm-cpu_mi300x` (10578 @22 gens →
   2182 @100 gens); non-CMA-ES SO — PSO/Sphere/10000x100 on `etl-iree-rocm`
-  2.61 → 0.55; MO on `etl-xla-rocm` 0.64–53.8 ms/step, i.e. 3.5–137× faster
+  2.61 → 0.55; MO on `etl-xla-rocm` 0.64–53.8 ms/step, i.e. 3.5–128× faster
   than `torch-rocm`.
 - **OpenES is the one SO family where `torch-rocm` wins:** the etl compiled
   backends carry a ~0.35–0.45 ms/step host-side floor (0.38–0.68 measured vs
