@@ -89,32 +89,31 @@ class ASEBO(Algorithm):
         search distribution.
         """
         device = self.center.device
+        subspace_ready = self.gen_counter > self.subspace_dims
 
         X = self.grad_subspace
         X = X - torch.mean(X, dim=0)
-        U, S, Vt = torch.svd(X, some=True)
-
-        max_abs_cols = torch.argmax(torch.abs(U), dim=0)
-        signs = torch.sign(U[max_abs_cols, :])
-        U = U * signs
-        Vt = Vt * signs
-
-        U = Vt[: int(self.pop_size / 2)]
-        UUT = torch.matmul(U.T, U)
-        U_ort = Vt[int(self.pop_size / 2) :]
-        UUT_ort = torch.matmul(U_ort.T, U_ort)
-
-        UUT = torch.where(self.gen_counter > self.subspace_dims, UUT, torch.zeros(self.dim, self.dim, device=device))
+        # The rows of Vh are the right singular vectors: the principal directions of the past gradients
+        _, S, Vh = torch.linalg.svd(X, full_matrices=False)
+        U = Vh[: self.subspace_dims]
+        # Drop directions without variance; the centred buffer has rank at most subspace_dims - 1
+        tol = torch.finfo(S.dtype).eps * max(X.shape) * S[0]
+        informative = (S[: self.subspace_dims] > tol).to(U.dtype)
+        UUT = (U.T * informative) @ U
+        UUT_ort = torch.eye(self.dim, device=device) - UUT
+        UUT = torch.where(subspace_ready, UUT, torch.zeros(self.dim, self.dim, device=device))
+        UUT_ort = torch.where(subspace_ready, UUT_ort, torch.zeros(self.dim, self.dim, device=device))
+        effective_dims = torch.clamp(informative.sum(), min=1.0)
 
         cov = (
-            self.sigma * (self.alpha / self.dim) * torch.eye(self.dim, device=device)
-            + ((1 - self.alpha) / int(self.pop_size / 2)) * UUT
+            (self.alpha / self.dim) * torch.eye(self.dim, device=device)
+            + ((1 - self.alpha) / effective_dims) * UUT
+            + 1e-6 * torch.eye(self.dim, device=device)
         )
         chol = torch.linalg.cholesky(cov)
-        noise = torch.randn(self.dim, int(self.pop_size / 2), device=device)
+        noise = torch.randn(int(self.pop_size / 2), self.dim, device=device)
 
-        z_plus = torch.swapaxes(chol @ noise, 0, 1)
-        z_plus = z_plus / torch.linalg.norm(z_plus, dim=-1)[:, None]
+        z_plus = self.sigma * (noise @ chol.T)
         z = torch.cat([z_plus, -1.0 * z_plus])
 
         population = self.center + z
@@ -130,9 +129,9 @@ class ASEBO(Algorithm):
         fit_diff_noise = noise_1.T @ (fit_1 - fit_2)
 
         theta_grad = 1.0 / 2.0 * fit_diff_noise
-        alpha = torch.linalg.norm(theta_grad @ UUT_ort) / torch.linalg.norm(theta_grad @ self.UUT)
+        alpha = torch.linalg.norm(theta_grad @ UUT_ort) / (torch.linalg.norm(theta_grad @ UUT) + 1e-8)
 
-        alpha = torch.where(self.gen_counter > self.subspace_dims, alpha, 1.0)
+        alpha = torch.where(subspace_ready, torch.clamp(alpha, 0.0, 1.0), 1.0)
 
         self.grad_subspace = torch.cat([self.grad_subspace, theta_grad[None, :]])[1:, :]
         theta_grad /= torch.linalg.norm(theta_grad) / self.dim + 1e-8
@@ -155,6 +154,8 @@ class ASEBO(Algorithm):
         self.center = center
         self.sigma = sigma
         self.alpha = alpha
+        self.UUT = UUT
+        self.UUT_ort = UUT_ort
 
     def record_step(self):
         return {
