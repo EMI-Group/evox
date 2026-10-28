@@ -1,10 +1,10 @@
 # evox_etl/metrics — multi-objective quality indicators
 
 ## Intent
-Pure **plain** Python functions (NOT `@etl.defn` — DESIGN.md §4.3: defn objects
+Pure **plain** Python functions (NOT `@evoxc.defn` — DESIGN.md §4.3: defn objects
 raise when nested, plain callables compose inside traces) implementing the
-torch `evox.metrics` math on etl tensors. All functions must be called inside
-an active trace (`etl.build`/`etl.run`); there is no eager mode.
+torch `evox.metrics` math on evoxc tensors. All functions must be called inside
+an active trace (`evoxc.build`/`evoxc.run`); there is no eager mode.
 
 ## API Surface
 - `gd(objs, pf)` — Generational Distance; L2 norm of per-solution min distance
@@ -19,26 +19,26 @@ an active trace (`etl.build`/`etl.run`); there is no eager mode.
 - `hv(key, objs, ref, num_sample=100000)` and
   `bounding_cube_monte_carlo_hv(key, objs, ref, num_sample=100000)` — torch
   `hv` bounding-cube Monte Carlo; `hv` delegates to
-  `bounding_cube_monte_carlo_hv`. `key` is an etl PRNG key (first param —
-  etl RNG needs keys, unlike torch).
+  `bounding_cube_monte_carlo_hv`. `key` is an evoxc PRNG key (first param —
+  evoxc RNG needs keys, unlike torch).
 - `each_cube_monte_carlo_hv(key, objs, ref, num_sample=100000)` — jax-evoX
   v0.9.0 per-cube Monte Carlo (no vmap): static Python loop over the n points
   (n is a static shape int), `random.split_n` keys, per-cube uniform draws,
   `sum(1/dom_count over dominating samples)` share counting.
 - `_distance.py` — internal `pairwise_euclidean(x, y)`: `(n, m)` vs `(k, m)` →
-  `(n, k)` via expand_dims broadcast (etl has no `cdist`).
+  `(n, k)` via expand_dims broadcast (evoxc has no `cdist`).
 
-All outputs cast to float32 explicitly (etl dtype promotion differs from
-torch — CONTEXT issue #12). `any`/`all` do not exist in etl: composed as
-`etl.max`/`etl.min` over boolean axes.
+All outputs cast to float32 explicitly (evoxc dtype promotion differs from
+torch — CONTEXT issue #12). `any`/`all` do not exist in evoxc: composed as
+`evoxc.max`/`evoxc.min` over boolean axes.
 
 ## Constraints
-- No torch/numpy imports. `import etl`, `import etl.numpy as enp`,
-  `import etl.random as random` are the sanctioned imports.
+- No torch/numpy imports. `import evoxc`, `import evoxc.numpy as enp`,
+  `import evoxc.random as random` are the sanctioned imports.
 - Broadcast tensor math only (no vmap). Static Python loops over static shape
   ints (num_points, m) are fine; no control flow on tensor values.
-- Everything must run inside traces — validated via `etl.build` +
-  `etl.run` (see unit_test conventions; `etl.run` returns concrete
+- Everything must run inside traces — validated via `evoxc.build` +
+  `evoxc.run` (see unit_test conventions; `evoxc.run` returns concrete
   `Tensor` objects, use `.numpy()`).
 
 ## Validation (throwaway, results)
@@ -59,7 +59,7 @@ torch — CONTEXT issue #12). `any`/`all` do not exist in etl: composed as
   (torch parity; the only torch-importing file).
   Run: `python -m pytest unit_test/etl/metrics -q` (53 tests).
 
-## ETL issues found
-Consolidated in `../CONTEXT.md` "ETL issues found" (#16-18: `etl.run` returns
-concrete Tensors — use `.numpy()`; static build/run arg-structure matching;
-positive finds re uniform/split_n/norm/gather/any-all).
+## EvoX Compiler issues found
+Consolidated in `../CONTEXT.md` "EvoX Compiler issues found" (#16-18:
+`evoxc.run` returns concrete Tensors — use `.numpy()`; static build/run
+arg-structure matching; positive finds re uniform/split_n/norm/gather/any-all).
