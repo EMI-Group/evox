@@ -14,8 +14,9 @@ from evox.algorithms import (
     PersistentES,
     SeparableNES,
 )
+from evox.workflows import StdWorkflow
 
-from .test_base import TestBase
+from .test_base import Sphere, TestBase
 
 
 class TestESVariants(TestBase):
@@ -176,6 +177,24 @@ class TestESVariants(TestBase):
             optimizer="adam",
         )
         self.run_all(algo)
+
+    def test_asebo_after_subspace_activates(self):
+        # run_all stops after a few generations; the gradient subspace only takes over once more than
+        # subspace_dims gradients are buffered, including when subspace_dims < dim
+        for subspace_dims in (None, 2):
+            algo = ASEBO(pop_size=self.pop_size, center_init=self.center, subspace_dims=subspace_dims)
+            workflow = StdWorkflow(algo, Sphere())
+            workflow.init_step()
+            for _ in range(3 * self.dim):
+                workflow.step()
+            self.assertTrue(torch.isfinite(algo.center).all())
+            self.assertTrue(0 <= float(algo.alpha) <= 1)
+            # UUT is an orthogonal projector onto at most subspace_dims directions
+            UUT = algo.UUT
+            torch.testing.assert_close(UUT @ UUT, UUT, atol=1e-4, rtol=1e-4)
+            torch.testing.assert_close(UUT, UUT.T)
+            self.assertLessEqual(round(float(torch.trace(UUT))), algo.subspace_dims)
+            self.assertGreater(float(torch.trace(UUT)), 0.5)
 
     def test_cmaes(self):
         algo = CMAES(
