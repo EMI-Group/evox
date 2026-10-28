@@ -6,17 +6,17 @@ import dataclasses
 import importlib
 from typing import Any, Callable
 
-import etl
-import etl.core
-import etl.io
-import etl.random
+import evoxc
+import evoxc.core
+import evoxc.io
+import evoxc.random
 import numpy as np
 
 from .state import replace
 
 __all__ = ["EmptyState", "WorkflowState", "StdWorkflow"]
 
-_HOST = etl.core.Device("cpu")
+_HOST = evoxc.core.Device("cpu")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -28,7 +28,7 @@ class EmptyState:
 class WorkflowState:
     """State of a running workflow.
 
-    All leaves are ETL tensors: `generation` is a 0-d int32 tensor and `key` a
+    All leaves are ``evoxc`` tensors: `generation` is a 0-d int32 tensor and `key` a
     0-d int64 tensor. `monitor_state` is a 0-d float32 dummy tensor when no
     monitor is configured.
     """
@@ -45,19 +45,19 @@ def _module_of(config: Any) -> Any:
     return importlib.import_module(type(config).__module__)
 
 
-def _parse_device(device: str | etl.core.Device | None) -> etl.core.Device:
+def _parse_device(device: str | evoxc.core.Device | None) -> evoxc.core.Device:
     """Parse a device spec: None -> cpu, str ("cpu"/"cuda"/"cuda:N") or Device."""
     if device is None:
-        return etl.core.Device("cpu")
-    if isinstance(device, etl.core.Device):
+        return evoxc.core.Device("cpu")
+    if isinstance(device, evoxc.core.Device):
         return device
     if isinstance(device, str):
         text = device.strip().lower()
         if ":" in text:
             kind, _, index = text.partition(":")
-            return etl.core.Device(kind, int(index))
-        return etl.core.Device(text)
-    raise TypeError(f"device must be None, a str or an etl.core.Device, got {type(device)}")
+            return evoxc.core.Device(kind, int(index))
+        return evoxc.core.Device(text)
+    raise TypeError(f"device must be None, a str or an evoxc.core.Device, got {type(device)}")
 
 
 def _parse_opt_direction(opt_direction: str | list[str] | tuple[str, ...]) -> tuple[int, ...]:
@@ -77,12 +77,12 @@ def _parse_opt_direction(opt_direction: str | list[str] | tuple[str, ...]) -> tu
 
 def _dummy_monitor_state() -> Any:
     """0-d float32 constant placeholder for a missing monitor (baked in-graph)."""
-    return etl.ops.constant(etl.core.tensor(np.asarray(0.0, dtype=np.float32)))
+    return evoxc.ops.constant(evoxc.core.tensor(np.asarray(0.0, dtype=np.float32)))
 
 
 def _zero_generation() -> Any:
     """0-d int32 constant used as the initial generation counter."""
-    return etl.cast(etl.ops.constant(etl.core.tensor(np.asarray(0, dtype=np.int64))), np.int32)
+    return evoxc.cast(evoxc.ops.constant(evoxc.core.tensor(np.asarray(0, dtype=np.int64))), np.int32)
 
 
 def _opt_direction_constant(opt_dir: tuple[int, ...]) -> Any:
@@ -90,7 +90,7 @@ def _opt_direction_constant(opt_dir: tuple[int, ...]) -> Any:
     arr = np.asarray(opt_dir, dtype=np.float32)
     if arr.ndim == 1 and arr.shape[0] == 1:
         arr = arr.reshape(())
-    return etl.ops.constant(etl.core.tensor(arr))
+    return evoxc.ops.constant(evoxc.core.tensor(arr))
 
 
 class StdWorkflow:
@@ -128,7 +128,7 @@ class StdWorkflow:
         fitness_transform: Callable[[Any], Any] | None = None,
         num_generations: int | None = None,
         backend: str = "numpy",
-        device: str | etl.core.Device | None = None,
+        device: str | evoxc.core.Device | None = None,
         compile_options: dict[str, Any] | None = None,
     ):
         """Initialize the workflow with static arguments.
@@ -142,9 +142,9 @@ class StdWorkflow:
         :param solution_transform: Plain callable applied to candidates before evaluation. Defaults to None (identity).
         :param fitness_transform: Plain callable applied to the opt-direction-scaled fitness. Defaults to None (identity).
         :param num_generations: Default number of generations for `run`/`fit`. Defaults to None.
-        :param backend: etl compiler backend. Defaults to "numpy".
+        :param backend: evoxc compiler backend. Defaults to "numpy".
         :param device: Device to run the step graph on. Defaults to None (cpu).
-        :param compile_options: Extra keyword options passed to `etl.build`. Defaults to None.
+        :param compile_options: Extra keyword options passed to `evoxc.build`. Defaults to None.
         """
         if not dataclasses.is_dataclass(algorithm):
             raise TypeError(f"algorithm must be a config dataclass, got {type(algorithm)}")
@@ -192,7 +192,7 @@ class StdWorkflow:
         self._state: WorkflowState | None = None
         self._init_exe = None
         self._mon_init_exe = None
-        # Deferred monitor readbacks: (target history list, etl.io.AsyncCopy)
+        # Deferred monitor readbacks: (target history list, evoxc.io.AsyncCopy)
         # pairs issued by the LAST recorded generation and appended by the next
         # one (see `_readback`/`_drain_readbacks`).
         self._pending_readbacks: list[tuple[list, Any]] = []
@@ -212,7 +212,7 @@ class StdWorkflow:
         the shape contract a compiled step graph was traced for.
         """
         return tuple(
-            (tuple(leaf.shape), str(leaf.dtype)) for leaf in etl.tree_leaves(state)
+            (tuple(leaf.shape), str(leaf.dtype)) for leaf in evoxc.tree_leaves(state)
         )
 
     @property
@@ -227,7 +227,7 @@ class StdWorkflow:
         self._drain_readbacks()  # flush anything left from a manually-stepped run
         if self._init_exe is None:
             self._init_exe = self._build_algorithm_init_exe()
-        state = etl.run(self._init_exe, etl.random.key(seed))
+        state = evoxc.run(self._init_exe, evoxc.random.key(seed))
         return self._finish_init(state)
 
     def _build_algorithm_init_exe(self) -> Any:
@@ -238,7 +238,7 @@ class StdWorkflow:
         prob_init = getattr(prob_mod, "init", None)
 
         def body(key: Any) -> WorkflowState:
-            key, subkey = etl.random.split(key)
+            key, subkey = evoxc.random.split(key)
             alg_state = algo_init(algo_cfg, subkey)
             if prob_init is not None:
                 out = prob_init(prob_cfg, subkey)
@@ -257,8 +257,8 @@ class StdWorkflow:
                 key=key,
             )
 
-        key_spec = etl.core.TensorSpec((), np.int64)
-        return etl.build(body, key_spec, backend="numpy", device=etl.core.Device("cpu"))
+        key_spec = evoxc.core.TensorSpec((), np.int64)
+        return evoxc.build(body, key_spec, backend="numpy", device=evoxc.core.Device("cpu"))
 
     def _finish_init(self, state: WorkflowState) -> WorkflowState:
         """Host-side part of init: monitor setup, device placement, step graph build."""
@@ -273,15 +273,15 @@ class StdWorkflow:
             # Activate this workflow's backend BEFORE placing state on the
             # device: `Tensor.to` dispatches through the process-global,
             # last-wins device-transfer provider registry, where
-            # `etl.backends` installs a lazy iree "cuda" thunk at import
-            # time. `etl.backends.get(self.backend)` activates the workflow's
+            # `evoxc.backends` installs a lazy iree "cuda" thunk at import
+            # time. `evoxc.backends.get(self.backend)` activates the workflow's
             # own adapter, which overwrites that slot with its direct
             # upload_tensor (idempotent; numpy/cpu unaffected) — without it,
             # state would be placed with an IreeDevicePayload even when the
             # step graph consumes a different backend (e.g. xla), and the
             # first run would reject the foreign payload with a DeviceError.
-            etl.backends.get(self.backend)
-            state = etl.tree_map(lambda t: t.to(self._device), state)
+            evoxc.backends.get(self.backend)
+            state = evoxc.tree_map(lambda t: t.to(self._device), state)
         self._state = state
         signature = self._state_signature(state)
         if ("step", signature) not in self._step_exes:
@@ -330,7 +330,7 @@ class StdWorkflow:
             return replace(state, monitor_state=EmptyState())
         if self._mon_init_exe is None:
             self._mon_init_exe = self._build_monitor_init_exe(mon_init)
-        mon_state, key = etl.run(self._mon_init_exe, state.key)
+        mon_state, key = evoxc.run(self._mon_init_exe, state.key)
         return replace(state, monitor_state=mon_state, key=key)
 
     def _build_monitor_init_exe(self, mon_init: Callable[..., Any]) -> Any:
@@ -338,11 +338,11 @@ class StdWorkflow:
         mon_cfg = self.monitor_config
 
         def body(key: Any) -> tuple[Any, Any]:
-            key, subkey = etl.random.split(key)
+            key, subkey = evoxc.random.split(key)
             return mon_init(mon_cfg, subkey), key
 
-        key_spec = etl.core.TensorSpec((), np.int64)
-        return etl.build(body, key_spec, backend="numpy", device=etl.core.Device("cpu"))
+        key_spec = evoxc.core.TensorSpec((), np.int64)
+        return evoxc.build(body, key_spec, backend="numpy", device=evoxc.core.Device("cpu"))
 
     def _setup_monitor_wrapper(self) -> None:
         """Create the host-side monitor convenience wrapper, if the module provides one."""
@@ -389,14 +389,14 @@ class StdWorkflow:
         if state is None:
             raise RuntimeError("Workflow is not initialized: call init() first.")
         if self._device.kind != "cpu":
-            state = etl.tree_map(lambda t: t.to(self._device), state)
+            state = evoxc.tree_map(lambda t: t.to(self._device), state)
         resolved = self._resolve_variant(variant)
         cache_key = (resolved, self._state_signature(state))
         exe = self._step_exes.get(cache_key)
         if exe is None:
             exe = self._build_step_exe(resolved, state)
             self._step_exes[cache_key] = exe
-        state = etl.run(exe, state)
+        state = evoxc.run(exe, state)
         self._record_history(state)
         self._state = state
         return state
@@ -407,13 +407,13 @@ class StdWorkflow:
         Called on a cache miss for ``(resolved variant, state signature)``; the
         resulting exe is valid only for states with that same leaf signature.
         """
-        specs = etl.tree_map(
-            lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype),
+        specs = evoxc.tree_map(
+            lambda t: evoxc.core.TensorSpec(tuple(t.shape), t.dtype),
             state,
         )
         step_fn = self._make_step_fn(resolved)
         options = {k: v for k, v in self._compile_options.items() if k not in ("backend", "device")}
-        return etl.build(step_fn, specs, backend=self.backend, device=self._device, **options)
+        return evoxc.build(step_fn, specs, backend=self.backend, device=self._device, **options)
 
     def _make_step_fn(self, resolved: str) -> Callable[[WorkflowState], WorkflowState]:
         """Compose one full generation for one algorithm function:
@@ -468,7 +468,7 @@ class StdWorkflow:
                 algorithm_state=alg_state,
                 problem_state=prob_state,
                 monitor_state=mon_state,
-                generation=etl.cast(state.generation + 1, np.int32),
+                generation=evoxc.cast(state.generation + 1, np.int32),
                 key=state.key,
             )
 
@@ -478,7 +478,7 @@ class StdWorkflow:
         """Host-side history recording: copy monitor state leaves to the config's lists.
 
         The device→host copies are PIPELINED by one generation: the copies of
-        generation k are scheduled as ``etl.io.sink`` handles at the end of
+        generation k are scheduled as ``evoxc.io.sink`` handles at the end of
         generation k and appended at the START of generation k+1, so the D2H
         latency overlaps the next generation's step graph instead of stalling
         the host loop. The appended values, their per-list order and the final
@@ -486,7 +486,7 @@ class StdWorkflow:
         last generation's entry becomes visible moves to the end of the loop
         (``_drain_readbacks`` runs there).
         """
-        # Consume the copies issued one generation ago: the etl.io worker has
+        # Consume the copies issued one generation ago: the evoxc.io worker has
         # had the whole step window of this generation to finish them.
         self._drain_readbacks()
         if self.monitor is not None:
@@ -539,7 +539,7 @@ class StdWorkflow:
 
         Host-resident tensor leaves are appended immediately (a cpu copy costs
         nothing worth hiding). Device-resident leaves are scheduled as an
-        ``etl.io.sink`` download — executed by the process-global ``etl.io``
+        ``evoxc.io.sink`` download — executed by the process-global ``evoxc.io``
         worker thread, which keeps the device buffer alive until the copy
         completes — and appended by the next ``_drain_readbacks`` call. A copy
         failure is therefore re-raised one generation later (never swallowed).
@@ -549,7 +549,7 @@ class StdWorkflow:
         if getattr(getattr(tensor, "device", None), "kind", "cpu") == "cpu":
             target.append(tensor.to(_HOST).numpy())
             return
-        self._pending_readbacks.append((target, etl.io.sink(tensor)))
+        self._pending_readbacks.append((target, evoxc.io.sink(tensor)))
 
     def _drain_readbacks(self) -> None:
         """Wait for and append every deferred monitored tensor, in issue order."""
