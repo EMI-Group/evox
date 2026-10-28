@@ -1,8 +1,9 @@
 """EvoX-ETL quickstart: functional PSO on the Sphere function.
 
-End-to-end demo of the functional rewrite of EvoX on the ETL tensor library:
-real PSO (``evox_etl.algorithms``) + real Sphere (``evox_etl.problems``) +
-EvalMonitor + StdWorkflow, 50 generations on the numpy backend.
+End-to-end demo of the functional rewrite of EvoX on the EvoX Compiler
+(``evoxc``) tensor library: real PSO (``evox_etl.algorithms``) + real Sphere
+(``evox_etl.problems``) + EvalMonitor + StdWorkflow, 50 generations on the
+numpy backend.
 
 Intended to live at the repo root as ``examples/quickstart.py``; the sys.path
 bootstrap below locates the repo root by walking up to the directory that

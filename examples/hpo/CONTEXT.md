@@ -8,11 +8,12 @@ seconds, prints human-readable progress, and doubles as a smoke test for the HPO
 
 All scripts use the torch reference API (`evox.*`): they demonstrate the
 nested-workflow HPO `Problem` in `src/evox/problems/hpo_wrapper.py`, whose inner
-workflow is traced inside the outer `evaluate`. That graph nesting has no ETL
-analogue (ETL has no eager mode), so the ETL port ships a **host-side** HPO
-redesign instead — `src/evox_etl/problems/hpo_wrapper.py` (`HPOProblemWrapper`,
-which is NOT an `evox_etl` `Problem` and cannot be an outer `StdWorkflow`
-problem). These demos are therefore not rewritten against the ETL wrapper.
+workflow is traced inside the outer `evaluate`. That graph nesting has no
+`evoxc` analogue (`evoxc` has no eager mode), so the ETL port ships a
+**host-side** HPO redesign instead — `src/evox_etl/problems/hpo_wrapper.py`
+(`HPOProblemWrapper`, which is NOT an `evox_etl` `Problem` and cannot be an
+outer `StdWorkflow` problem). These demos are therefore not rewritten against
+the `evox_etl` wrapper.
 
 ## API Surface
 | Script | Demonstrates | Inner workflow | Outer optimizer |
