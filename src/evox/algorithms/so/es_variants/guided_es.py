@@ -85,7 +85,8 @@ class GuidedES(Algorithm):
         eps_full = torch.randn(self.dim, int(self.pop_size // 2), device=device)
 
         eps_subspace = torch.randn(self.subspace_dims, int(self.pop_size // 2), device=device)
-        Q, _ = torch.linalg.qr(self.grad_subspace)
+        # Orthonormal basis (dim x subspace_dims) of the span of the stored gradients, which are rows.
+        Q, _ = torch.linalg.qr(self.grad_subspace.T)
 
         z_plus = a * eps_full + c * (Q @ eps_subspace)
         z_plus = torch.swapaxes(z_plus, 0, 1)

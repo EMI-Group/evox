@@ -64,6 +64,12 @@ class TestESVariants(TestBase):
         )
         self.run_all(algo)
 
+    def test_nes_default_pop_size(self):
+        xnes = XNES(init_mean=self.center, init_covar=torch.eye(self.dim))
+        sepnes = SeparableNES(init_mean=self.center, init_std=torch.full((self.dim,), 1))
+        self.assertEqual(xnes.pop_size, 8)
+        self.assertEqual(sepnes.pop_size, 8)
+
     def test_des(self):
         algo = DES(
             pop_size=self.pop_size,
@@ -121,6 +127,14 @@ class TestESVariants(TestBase):
         algo = GuidedES(
             pop_size=self.pop_size,
             center_init=self.center,
+        )
+        self.run_all(algo)
+
+    def test_guided_es_subspace(self):
+        algo = GuidedES(
+            pop_size=self.pop_size,
+            center_init=self.center,
+            subspace_dims=2,
         )
         self.run_all(algo)
 
