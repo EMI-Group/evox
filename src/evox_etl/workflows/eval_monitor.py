@@ -14,8 +14,8 @@ import warnings
 from dataclasses import field
 from typing import Any
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 import numpy as np
 
 from evox_etl.operators.selection import non_dominate_rank
@@ -72,28 +72,28 @@ class EvalMonitorConfig:
 class EvalMonitorState:
     """Single-objective monitor state; fixed-shape float32 tensor leaves only."""
 
-    latest_solution: etl.SymbolicTensor
-    latest_fitness: etl.SymbolicTensor
-    topk_solutions: etl.SymbolicTensor
-    topk_fitness: etl.SymbolicTensor
+    latest_solution: evoxc.SymbolicTensor
+    latest_fitness: evoxc.SymbolicTensor
+    topk_solutions: evoxc.SymbolicTensor
+    topk_fitness: evoxc.SymbolicTensor
 
 
 @dataclasses.dataclass(frozen=True)
 class MOEvalMonitorState:
     """Multi-objective monitor state; latest solution/fitness float32 leaves only."""
 
-    latest_solution: etl.SymbolicTensor
-    latest_fitness: etl.SymbolicTensor
+    latest_solution: evoxc.SymbolicTensor
+    latest_fitness: evoxc.SymbolicTensor
 
 
-def _zeros(shape: tuple[int, ...]) -> etl.SymbolicTensor:
-    """In-graph float32 zeros constant (top-level ``etl.zeros`` is eager-only)."""
-    return etl.ops.constant(etl.core.tensor(np.zeros(shape, dtype=np.float32)))
+def _zeros(shape: tuple[int, ...]) -> evoxc.SymbolicTensor:
+    """In-graph float32 zeros constant (top-level ``evoxc.zeros`` is eager-only)."""
+    return evoxc.ops.constant(evoxc.core.tensor(np.zeros(shape, dtype=np.float32)))
 
 
-def _inf(shape: tuple[int, ...]) -> etl.SymbolicTensor:
+def _inf(shape: tuple[int, ...]) -> evoxc.SymbolicTensor:
     """In-graph float32 +inf constant; initializes the SO elite so gen-0 always wins."""
-    return etl.ops.constant(etl.core.tensor(np.full(shape, np.inf, dtype=np.float32)))
+    return evoxc.ops.constant(evoxc.core.tensor(np.full(shape, np.inf, dtype=np.float32)))
 
 
 def _init_so(config: EvalMonitorConfig) -> EvalMonitorState:
@@ -128,7 +128,7 @@ def _init_mo(config: EvalMonitorConfig) -> MOEvalMonitorState:
     )
 
 
-def init(config: EvalMonitorConfig, key: etl.SymbolicTensor) -> Any:
+def init(config: EvalMonitorConfig, key: evoxc.SymbolicTensor) -> Any:
     """Create the fixed-shape monitor state (``key`` unused, kept for the contract)."""
     if config.multi_obj:
         return _init_mo(config)
@@ -138,8 +138,8 @@ def init(config: EvalMonitorConfig, key: etl.SymbolicTensor) -> Any:
 def monitor_update(
     config: EvalMonitorConfig,
     state: Any,
-    candidate: etl.SymbolicTensor,
-    fitness: etl.SymbolicTensor,
+    candidate: evoxc.SymbolicTensor,
+    fitness: evoxc.SymbolicTensor,
 ) -> Any:
     """One monitor update inside the step graph (static branch on fitness rank).
 
@@ -150,10 +150,10 @@ def monitor_update(
     """
     if len(fitness.shape) == 1:
         # single-objective: running elite
-        concat_fit = etl.concatenate([state.topk_fitness, fitness], axis=0)
-        top_fit, indices = etl.topk(concat_fit, config.topk, axis=0, largest=False)
-        concat_sol = etl.concatenate([state.topk_solutions, candidate], axis=0)
-        topk_solutions = etl.gather(concat_sol, indices, axis=0)
+        concat_fit = evoxc.concatenate([state.topk_fitness, fitness], axis=0)
+        top_fit, indices = evoxc.topk(concat_fit, config.topk, axis=0, largest=False)
+        concat_sol = evoxc.concatenate([state.topk_solutions, candidate], axis=0)
+        topk_solutions = evoxc.gather(concat_sol, indices, axis=0)
         return EvalMonitorState(
             latest_solution=candidate,
             latest_fitness=fitness,
@@ -168,14 +168,14 @@ def record_auxiliary(config: EvalMonitorConfig, aux: dict) -> None:
     """Host-side: record one generation of auxiliary tensors.
 
     Gated on ``config.full_pop_history`` (torch parity). Each value is a CONCRETE
-    etl tensor, converted to numpy via ``.to(etl.core.Device('cpu')).numpy()``
+    evoxc tensor, converted to numpy via ``.to(evoxc.core.Device('cpu')).numpy()``
     (mirroring the ``EvalMonitor._to_numpy`` idiom) and appended to
     ``config.aux_history[key]``.
     """
     if not config.full_pop_history:
         return
     for key, value in aux.items():
-        arr = np.asarray(value.to(etl.core.Device("cpu")).numpy())
+        arr = np.asarray(value.to(evoxc.core.Device("cpu")).numpy())
         config.aux_history.setdefault(key, []).append(arr)
 
 
@@ -204,7 +204,7 @@ class EvalMonitor:
 
     Stored fitness is opt-direction-scaled (negated under ``opt_direction="max"``);
     all ``get_*fitness`` accessors undo that scaling. State leaves are concrete
-    etl tensors converted to numpy arrays on access.
+    evoxc tensors converted to numpy arrays on access.
     """
 
     def __init__(self, config: EvalMonitorConfig, state: Any):
@@ -217,8 +217,8 @@ class EvalMonitor:
 
     @staticmethod
     def _to_numpy(t: Any) -> np.ndarray:
-        """Copy a concrete etl tensor leaf to a host numpy array."""
-        return np.asarray(t.to(etl.core.Device("cpu")).numpy())
+        """Copy a concrete evoxc tensor leaf to a host numpy array."""
+        return np.asarray(t.to(evoxc.core.Device("cpu")).numpy())
 
     def _unn(self, arr: np.ndarray) -> np.ndarray:
         """Undo the opt-direction scaling (a (1,) direction acts as a scalar)."""
@@ -228,19 +228,19 @@ class EvalMonitor:
         return arr * opt_dir
 
     def _non_dominate_rank(self, fitness: np.ndarray) -> np.ndarray:
-        """0-based non-domination ranks, host-side via a lazily cached etl exe."""
+        """0-based non-domination ranks, host-side via a lazily cached evoxc exe."""
         shape = tuple(fitness.shape)
         exe = self._rank_exes.get(shape)
         if exe is None:
-            exe = etl.build(
+            exe = evoxc.build(
                 non_dominate_rank,
-                etl.core.TensorSpec(shape, np.float32),
+                evoxc.core.TensorSpec(shape, np.float32),
                 backend="numpy",
-                device=etl.core.Device("cpu"),
+                device=evoxc.core.Device("cpu"),
             )
             self._rank_exes[shape] = exe
         arr = np.asarray(fitness, dtype=np.float32)
-        out = etl.run(exe, etl.core.tensor(arr))
+        out = evoxc.run(exe, evoxc.core.tensor(arr))
         return np.asarray(out.numpy())
 
     def _check_single_objective(self) -> None:
