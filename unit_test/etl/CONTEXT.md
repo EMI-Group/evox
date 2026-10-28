@@ -43,8 +43,11 @@ The compiler the port and these tests run on is `evoxc` (distribution `evoxc`
 `evoxc.io`, `evoxc.ops`).
 `evox_etl` and `evox_etl_ext` are PEP 420 namespace packages under `src/` (not
 pip-installed), so drivers need `PYTHONPATH=src:<site-packages>`. Provision a
-writable venv: `uv venv` then `uv pip install <copy-of-/root/evoxc>
-pytest numpy` (evoxc's own checkout is read-only — install from a copy), and set
+writable venv: `uv venv` then `uv pip install <path-to-evoxc-checkout>
+pytest numpy` — the `evoxc` distribution is publish-ready but not yet on a
+package index, so install it from a source checkout (copy it somewhere writable
+if the checkout is read-only; `uv pip install evoxc` by name works once it is
+published), and set
 `PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
 (that primary venv supplies plotly/torch; it is read-only).
 plotly enables the figure assertions of `vis_tools/` and
@@ -55,7 +58,7 @@ the plotly-missing branches still run.
 - NO test under this tree uses any evoxc backend other than `"numpy"` on CPU: no
   `backend="iree"/"xla"`, no `Device(...)`, no cuda.
   Compiled-backend/GPU paths are exercised only by the `benchmarks/etl_vs_torch/`
-  harness (torch-cuda/evoxc-iree-llvm-cpu/evoxc-iree-cuda/evoxc-xla-cuda), not by unit tests.
+  harness (torch-cuda/etl-iree-llvm-cpu/etl-iree-cuda/etl-xla-cuda), not by unit tests.
 - The only skip mechanism in the tree is `skipif`-guarding of Plotly figure
   assertions (plotly present in the primary venv, so the gate run reports 0 skips);
   there are no `pytest.mark.skip`/`xfail` markers. Known-not-ported code (e.g.
