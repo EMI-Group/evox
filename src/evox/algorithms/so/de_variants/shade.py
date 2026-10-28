@@ -103,6 +103,8 @@ class SHADE(Algorithm):
         trial_fitness = self.evaluate(trial_vector)
 
         compare = trial_fitness < self.fit
+        # Improvement of each trial over its parent, taken before the parent fitness is replaced.
+        deltas = self.fit - trial_fitness
 
         population_update = torch.where(compare[:, None], trial_vector, self.pop)
         fitness_update = torch.where(compare, trial_fitness, self.fit)
@@ -112,30 +114,12 @@ class SHADE(Algorithm):
 
         self.best_index = torch.argmin(self.fit)
 
-        S_F = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
-        S_CR = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
-        S_delta = torch.full((self.pop_size,), fill_value=torch.nan, device=device)
-
-        deltas = self.fit - trial_fitness
-
-        for i in range(self.pop_size):  #  get_success_delta
-            is_success = compare[i].float()
-            F = F_vect[i]
-            CR = CR_vect[i]
-            delta = deltas[i]
-
-            S_F_update_temp = torch.roll(S_F, shifts=1)
-            S_F_update = torch.cat([F.unsqueeze(0), S_F_update_temp[1:]], dim=0)
-
-            S_CR_update_temp = torch.roll(S_CR, shifts=1)
-            S_CR_update = torch.cat([CR.unsqueeze(0), S_CR_update_temp[1:]], dim=0)
-
-            S_delta_update_temp = torch.roll(S_delta, shifts=1)
-            S_delta_update = torch.cat([delta.unsqueeze(0), S_delta_update_temp[1:]], dim=0)
-
-            S_F = is_success * S_F_update + (1.0 - is_success) * S_F_update_temp
-            S_CR = is_success * S_CR_update + (1.0 - is_success) * S_CR_update_temp
-            S_delta = is_success * S_delta_update + (1.0 - is_success) * S_delta_update_temp
+        # Successful F, CR and improvements, NaN for unsuccessful trials. Selecting with torch.where
+        # matters: blending with arithmetic would turn every entry into NaN, since 0 * NaN is NaN.
+        nan = torch.tensor(torch.nan, device=device)
+        S_F = torch.where(compare, F_vect, nan)
+        S_CR = torch.where(compare, CR_vect, nan)
+        S_delta = torch.where(compare, deltas, nan)
 
         norm_delta = S_delta / torch.nansum(S_delta)
         M_CR = torch.nansum(norm_delta * S_CR)

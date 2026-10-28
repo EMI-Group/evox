@@ -1,8 +1,9 @@
 import torch
 
 from evox.algorithms import DE, ODE, SHADE, CoDE, SaDE
+from evox.workflows import StdWorkflow
 
-from .test_base import TestBase
+from .test_base import Sphere, TestBase
 
 
 class TestDEVariants(TestBase):
@@ -41,3 +42,13 @@ class TestDEVariants(TestBase):
     def test_sade(self):
         algo = SaDE(self.pop_size, self.lb, self.ub)
         self.run_all(algo)
+
+    def test_shade_adapts_memory(self):
+        algo = SHADE(self.pop_size, self.lb, self.ub)
+        workflow = StdWorkflow(algo, Sphere())
+        memory = algo.Memory_FCR.clone()
+        for _ in range(5):
+            workflow.step()
+        self.assertFalse(torch.equal(algo.Memory_FCR, memory))
+        self.assertTrue(torch.isfinite(algo.Memory_FCR).all())
+
