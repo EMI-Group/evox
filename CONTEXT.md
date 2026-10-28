@@ -93,6 +93,8 @@ Triton provides hand-written GPU kernels for performance-critical operations. Th
 - **Compile-friendly**: Operators and algorithms must be `torch.compile`/`vmap` compatible. No Python control flow depending on tensor values.
 - **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
 - **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
+- **Compiler dependency is the `evoxc` distribution**: the functional port targets the `evoxc` package (EvoX Compiler); nothing named `etl` is importable, and the compiler reads `EVOXC_*` environment variables (e.g. `EVOXC_PJRT_PLUGIN`), with `EVOXCError` as its public error base class.
+- **Port names stay unchanged**: `evox_etl`/`evox_etl_ext`, `unit_test/etl/`, `benchmarks/etl_vs_torch/` and the frozen `etl-*` benchmark backend ids keep the ETL naming even though the compiler is now `evoxc`.
 - **Bilingual docs**: Documentation supports English and Simplified Chinese via ReadTheDocs language switching.
 - **Count claims kept in sync**: The ecosystem "140+ algorithms" / "240+ benchmark problems" counts and the built-in "30+ algorithms" / "30+ benchmark problems" counts are stated in this file, `README.md`, and `README_ZH.md` (EN + ZH); any change must be applied to all three.
 - **Descriptions vs counts**: `pyproject.toml` `[project] description` is just `"evox"` and carries no count claims — do not look there for them.
