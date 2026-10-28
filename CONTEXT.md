@@ -89,7 +89,7 @@ The functional ETL port mirrors this with the `evox_etl_ext` namespace package: 
 Triton provides hand-written GPU kernels for performance-critical operations. The infrastructure is **optional** — Triton is an optional dependency (`pip install evox[triton]`). When available, `register_triton_op` registers both a PyTorch fallback (runs everywhere) and a Triton CUDA kernel. PyTorch's dispatcher auto-routes CUDA → Triton, CPU/other → PyTorch. Without Triton installed, only the PyTorch fallback is used and everything works normally.
 
 ## Constraints
-- **Pure PyTorch**: No NumPy in framework code. All tensors must be PyTorch tensors for GPU compatibility. (This governs the torch `src/evox/` package; in the functional ETL port NumPy is permitted **host-side only** — cec2022 data loading, `make_*` preprocessing, and host-side metrics/HPO — while traced ETL code stays torch/NumPy-free.)
+- **Pure PyTorch**: No NumPy in framework code. All tensors must be PyTorch tensors for GPU compatibility. (This governs the torch `src/evox/` package; in the functional ETL port NumPy is permitted **host-side only** — cec2022 data loading, `make_*` preprocessing, and host-side metrics/HPO — while traced `evoxc` code stays torch/NumPy-free.)
 - **Compile-friendly**: Operators and algorithms must be `torch.compile`/`vmap` compatible. No Python control flow depending on tensor values.
 - **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
 - **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
