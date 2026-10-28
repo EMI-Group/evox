@@ -1,8 +1,8 @@
 """Shared infrastructure for the evox (torch) vs evox_etl benchmark harness.
 
 IMPORTANT: this module is pure stdlib + numpy. It MUST NOT import
-torch/etl/evox/evox_etl, because ``run.py`` imports it eagerly at the top of
-``main()`` BEFORE setting the GPU environment variables (any torch/etl-touching
+torch/evoxc/evox/evox_etl, because ``run.py`` imports it eagerly at the top of
+``main()`` BEFORE setting the GPU environment variables (any torch/evoxc-touching
 code lives in ``bench_so.py`` / ``bench_mo.py``, which are imported lazily).
 """
 
@@ -47,7 +47,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 RESULTS_DIR = HERE / "results"
 
 # ---------------------------------------------------------------------------
-# GPU environment recipes (set BEFORE importing torch/etl/evox)
+# GPU environment recipes (set BEFORE importing torch/evoxc/evox)
 # ---------------------------------------------------------------------------
 
 # --- NVIDIA (CUDA) recipe --------------------------------------------------
@@ -56,7 +56,7 @@ RESULTS_DIR = HERE / "results"
 # prepended to LD_LIBRARY_PATH, keeping existing entries.
 CUDNN_XLA_LIB_DIR = "/mnt/local-ssd/bchuang/cudnn-xla/lib"
 XLA_FLAGS = "--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data"
-ETL_PJRT_PLUGIN = (
+EVOXC_PJRT_PLUGIN = (
     "/mnt/local-ssd/bchuang/evox/.venv/lib/python3.11/site-packages/"
     "jax_plugins/xla_cuda12/xla_cuda_plugin.so"
 )
@@ -66,9 +66,9 @@ def set_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
     """Set the GPU environment recipe for in-process device id 0.
 
     ``CUDA_VISIBLE_DEVICES=<gpu_id>`` remaps the scanned physical GPU to device
-    id 0 inside the process, so both torch (``device="cuda"``) and etl
+    id 0 inside the process, so both torch (``device="cuda"``) and evoxc
     (``Device("cuda", 0)`` / ``"cuda:0"``) address it uniformly. Call this
-    BEFORE importing torch/etl/evox modules.
+    BEFORE importing torch/evoxc/evox modules.
 
     ``preload_cudnn`` additionally prepends the cuDNN >= 9.8 library to
     ``LD_PRELOAD`` (required by the xla-cuda path): the xla PJRT plugin was
@@ -92,7 +92,7 @@ def set_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
         if lib not in lp.split():
             os.environ["LD_PRELOAD"] = " ".join(e for e in (lib, lp) if e)
     os.environ["XLA_FLAGS"] = XLA_FLAGS
-    os.environ.setdefault("ETL_PJRT_PLUGIN", ETL_PJRT_PLUGIN)
+    os.environ.setdefault("EVOXC_PJRT_PLUGIN", EVOXC_PJRT_PLUGIN)
 
 
 # --- AMD (ROCm) recipe -----------------------------------------------------
@@ -115,20 +115,20 @@ def set_rocm_env(gpu_id: int, enable_pjrt: bool = False) -> None:
     (the ROCr/HSA runtime underneath it) both remap the scanned physical GPU
     to device id 0 inside the process, so torch (``device="cuda"`` — on a
     ROCm build of torch ``torch.cuda`` IS the HIP runtime, there is no
-    ``"rocm"`` torch device) and etl (``"rocm:0"``) address the same card.
-    Call this BEFORE importing torch/etl/evox modules.
+    ``"rocm"`` torch device) and evoxc (``"rocm:0"``) address the same card.
+    Call this BEFORE importing torch/evoxc/evox modules.
 
-    ``enable_pjrt`` additionally points ``ETL_PJRT_PLUGIN`` at the xla_rocm7
+    ``enable_pjrt`` additionally points ``EVOXC_PJRT_PLUGIN`` at the xla_rocm7
     plugin and disables XLA/HIP graph command buffers (they SIGSEGV inside
     ``PJRT_Executable_Execute``, so every xla-rocm run must turn them off).
-    An ``ETL_PJRT_PLUGIN`` already present in the environment wins (that is
+    An ``EVOXC_PJRT_PLUGIN`` already present in the environment wins (that is
     how another venv's plugin can be selected) and existing ``XLA_FLAGS``
     entries are preserved; setting plain strings keeps the call idempotent.
     """
     os.environ["HIP_VISIBLE_DEVICES"] = str(gpu_id)
     os.environ["ROCR_VISIBLE_DEVICES"] = str(gpu_id)
     if enable_pjrt:
-        os.environ.setdefault("ETL_PJRT_PLUGIN", ROCM_PJRT_PLUGIN)
+        os.environ.setdefault("EVOXC_PJRT_PLUGIN", ROCM_PJRT_PLUGIN)
         flags = os.environ.get("XLA_FLAGS", "")
         if ROCM_XLA_FLAGS not in flags.split():
             os.environ["XLA_FLAGS"] = " ".join(
@@ -149,7 +149,7 @@ def _ensure_env(recipe_key: str, apply: Callable[[], None]) -> None:
     ``os.environ`` mutation is not enough: the first call re-executes this
     Python process with the recipe in the environment. ``recipe_key`` is
     stored in ``EVOX_BENCH_GPU_ENV`` so the re-exec is idempotent and callers
-    may invoke this unconditionally before importing torch/etl (a different
+    may invoke this unconditionally before importing torch/evoxc (a different
     recipe key — e.g. another vendor or GPU — re-execs again).
     """
     if os.environ.get(_ENV_MARKER) == recipe_key:
@@ -230,17 +230,17 @@ def torch_device(backend: str) -> str:
 
 
 def etl_backend_spec(backend: str) -> tuple[str, str | None]:
-    """Map a harness backend id to ``(etl backend name, etl device spec)``.
+    """Map a harness backend id to ``(evoxc backend name, evoxc device spec)``.
 
-    Returns etl strings only (no ``etl.core`` import needed here): the etl
+    Returns evoxc strings only (no ``evoxc.core`` import needed here): the etl
     ``StdWorkflow`` accepts a device as ``None`` (cpu), a ``"cuda:N"`` string
     or a ``"rocm:N"`` string. The ``*_VISIBLE_DEVICES`` variable is set before
     import, so the in-process GPU device id is always 0.
 
     etl-xla-cuda / etl-xla-rocm: the xla adapter supports device-resident
-    executables (etl master f2f50a7+), so like the iree GPU backends they
+    executables (evoxc f2f50a7+), so like the iree GPU backends they
     request ``"<vendor>:0"``. A ``None`` device would build a CPU-kind
-    executable that host-stages every input on every ``etl.run`` call (the
+    executable that host-stages every input on every ``evoxc.run`` call (the
     source of the old ~15 ms/step xla numbers at 10000x100 vs ~0.9-1.3
     ms/step device-resident).
     """
@@ -262,7 +262,7 @@ def etl_backend_spec(backend: str) -> tuple[str, str | None]:
 def ensure_backend_env(backend: str, gpu_id: int) -> None:
     """Apply the env recipe matching ``backend``'s vendor (re-execs if needed).
 
-    Must run BEFORE any torch/etl/evox import. CPU backends fall back to the
+    Must run BEFORE any torch/evoxc/evox import. CPU backends fall back to the
     NVIDIA recipe, which is harmless (it only pins an unused visibility
     variable) and preserves the historical behaviour of ``--gpu`` on them.
     """
@@ -522,7 +522,7 @@ def hv_ref_point(n_obj: int) -> np.ndarray:
 WARMUP_STEPS = 2
 
 # Parity tolerance vs the torch-cpu baseline (relative error). Both sides draw
-# different RNG streams (torch MT19937 vs etl keyed PRNGs), so convergence
+# different RNG streams (torch MT19937 vs evoxc keyed PRNGs), so convergence
 # parity of 10% matches the convention used by unit_test/etl/algorithms/parity.
 PARITY_TOL = 0.10
 
@@ -631,16 +631,16 @@ def format_parity(parity: dict[str, Any] | None) -> str:
 
 
 # ---------------------------------------------------------------------------
-# etl compile robustness
+# evoxc compile robustness
 # ---------------------------------------------------------------------------
 
-# Compiling an etl MO program can fail nondeterministically on GPU backends
+# Compiling an evoxc MO program can fail nondeterministically on GPU backends
 # (upstream iree ``Stream::AffinityAnalysis`` recursion / stack exhaustion on
 # the while-loop programs, plus one-off exporter rejections that do not
 # reproduce on the next attempt). Rebuild + re-init the workflow a handful of
 # times and keep the first SUCCESSFUL artifact. Applied to every etl backend,
 # which is harmless where compiles are deterministic.
-ETL_COMPILE_ATTEMPTS = 4
+EVOXC_COMPILE_ATTEMPTS = 4
 COMPILE_RETRY_BACKOFF_S = 1.0
 
 
@@ -648,7 +648,7 @@ def init_with_retry(
     build_workflow: Callable[[], Any],
     seed: int,
     label: str = "",
-    attempts: int = ETL_COMPILE_ATTEMPTS,
+    attempts: int = EVOXC_COMPILE_ATTEMPTS,
 ) -> tuple[Any, Any, float]:
     """Build and ``init`` an etl workflow, retrying a failed compile.
 

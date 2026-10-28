@@ -1,7 +1,7 @@
 """Thin CLI dispatcher for the evox (torch) vs evox_etl benchmark suites.
 
 Sets the GPU environment recipe (NVIDIA CUDA or AMD ROCm, chosen from the
-backend id) BEFORE importing any torch/etl/evox module (the bench runners are
+backend id) BEFORE importing any torch/evoxc/evox module (the bench runners are
 imported lazily inside ``main``; ``bench_common`` is pure stdlib + numpy, so
 importing it eagerly is safe).
 
@@ -66,14 +66,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.suite is None:
         parser.error("--suite {so,mo} is required (or use --list)")
 
-    # ---- GPU environment MUST be set before any torch/etl/evox import ----
+    # ---- GPU environment MUST be set before any torch/evoxc/evox import ----
     # (ensure_backend_env re-execs the process so LD_PRELOAD / the vendor
     # visibility variables are honored by the loader/driver from process
     # start; the recipe is NVIDIA or AMD ROCm depending on the backend)
     if args.gpu is not None:
         bench_common.ensure_backend_env(args.backend, args.gpu)
 
-    # ---- import the runner lazily (it imports torch/etl inside) ----------
+    # ---- import the runner lazily (it imports torch/evoxc inside) ----------
     if args.suite == "so":
         import bench_so
 

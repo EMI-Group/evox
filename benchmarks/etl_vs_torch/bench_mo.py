@@ -8,7 +8,7 @@ is measured with IDENTICAL metric code.
 
 Known limit: the etl iree backends are shape-risky on the NSGA-family
 while-loops (GPU especially), and their MO compile can fail nondeterministically
-(an upstream iree recursion); the etl compile is therefore retried a few times
+(an upstream iree recursion); the evoxc compile is therefore retried a few times
 per case (``bench_common.init_with_retry``). Failures are recorded with the
 documented "limit" note and the suite continues (xla — cuda or rocm — is the
 preferred GPU MO backend).
@@ -339,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.gpu is not None:
         # re-execs the process so the env recipe (CUDA / ROCm) is active
-        # before any torch/etl import
+        # before any torch/evoxc import
         bench_common.ensure_backend_env(args.backend, args.gpu)
     gpu_error = bench_common.gpu_selection_error(args.backend, args.gpu)
     if gpu_error:

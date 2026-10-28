@@ -128,7 +128,7 @@ re-run on this host.
 - torch-cuda: `torch.cuda.synchronize()` before and after the timed window,
   so queued kernel execution is included.
 - etl xla/iree adapters stage inputs from host buffers and copy outputs
-  back to host on every `etl.run`, so per-step wall time includes the
+  back to host on every `evoxc.run`, so per-step wall time includes the
   device↔host transfer cost inherent to the current adapter design.
 - etl-xla-cuda runs with the adapter's cpu device label (`device=None`):
   the current xla adapter rejects non-cpu devices at load ("the xla adapter
@@ -141,7 +141,7 @@ re-run on this host.
 `CUDA_VISIBLE_DEVICES=<id>`,
 `LD_LIBRARY_PATH=/mnt/local-ssd/bchuang/cudnn-xla/lib` (prepended),
 `XLA_FLAGS=--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data`,
-`ETL_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`.
+`EVOXC_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`.
 
 For `etl-xla-cuda` the harness additionally prepends
 `/mnt/local-ssd/bchuang/cudnn-xla/lib/libcudnn.so.9` to `LD_PRELOAD` and
@@ -218,7 +218,7 @@ Known issues recorded in the JSONs after the re-run:
 
 Host/env: AMD Instinct MI300X (one VF), ROCm 7.1, venv
 `/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python` (Python 3.14,
-torch 2.13.0+rocm7.1), etl 0.1.0, `evox_etl` imported from the repo `src/`.
+torch 2.13.0+rocm7.1), evoxc 0.1.0, `evox_etl` imported from the repo `src/`.
 Runs were serial and foreground, seed 42, 100 gens (caps noted below), the
 timed window excluding 2 warmup steps, with case tables/geometry identical to
 the committed CUDA runs.
@@ -237,9 +237,9 @@ the committed CUDA runs.
   (`MOEAD/DTLZ1/100x3x10`, `MOEAD/DTLZ1/1000x3x30`,
   `MOEAD/DTLZ2/1000x3x30`) and 9/12 `err` — MO compile on llvm-cpu is
   nondeterministic, so those three needed process-level retries (the
-  documented `ETL_COMPILE_ATTEMPTS` recipe).
+  documented `EVOXC_COMPILE_ATTEMPTS` recipe).
 - **Reused, not re-measured: `etl-numpy`.** The numpy backend is unaffected
-  by the etl device-path fixes, so its MI300X numbers come from
+  by the evoxc device-path fixes, so its MI300X numbers come from
   `rocm_prefix_baseline.json` and must be labelled as reused.
 - **Round caveats:** torch CMA-ES is unavailable on this host
   (`UncapturedHigherOrderOpError ... torch.cond`, a torch 2.13
@@ -253,7 +253,7 @@ the committed CUDA runs.
   (`c10::cuda::SetDevice` inside a `TensorImpl` destructor) AFTER the JSON is
   written — stdout/the JSON is the source of truth, it is not a failed run.
 - **ROCm env recipe:** `HIP_VISIBLE_DEVICES` + `ROCR_VISIBLE_DEVICES`; the xla
-  id additionally sets `ETL_PJRT_PLUGIN` to the venv's
+  id additionally sets `EVOXC_PJRT_PLUGIN` to the venv's
   `jax_plugins/xla_rocm7/xla_rocm_plugin.so` and appends
   `XLA_FLAGS=--xla_gpu_enable_command_buffer=` (HIP command buffers SIGSEGV
   inside `PJRT_Executable_Execute`). The ROCm device is single-tenant — never

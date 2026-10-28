@@ -240,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.gpu is not None:
         # re-execs the process so the env recipe (CUDA / ROCm) is active
-        # before any torch/etl import
+        # before any torch/evoxc import
         bench_common.ensure_backend_env(args.backend, args.gpu)
     gpu_error = bench_common.gpu_selection_error(args.backend, args.gpu)
     if gpu_error:

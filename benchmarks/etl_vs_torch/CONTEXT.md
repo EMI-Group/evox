@@ -8,8 +8,8 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
 ## Contents
 - `bench_common.py` — sys.path shim, case tables, numpy metric helpers
   (hv/igd + seeded DTLZ ref fronts), parity helpers, NVIDIA **and** AMD GPU
-  env recipes, backend id tables, etl compile-retry helper, JSON record
-  schema. Pure stdlib + numpy (no torch/etl imports).
+  env recipes, backend id tables, evoxc compile-retry helper, JSON record
+  schema. Pure stdlib + numpy (no torch/evoxc imports).
 - `bench_so.py` / `bench_mo.py` — per-backend runners (torch eager, etl
   numpy/iree/xla), resilient per-case error records.
 - `run.py` — CLI dispatcher: `--backend --suite {so,mo} [--gpu N]
@@ -35,10 +35,11 @@ style/cleanliness comparison report. See `../../src/evox_etl/DESIGN.md` §7.
 
 ## Backends
 
-`bench_common.ALL_BACKENDS` (id → etl `(backend, device)`; torch ids use
-`bench_common.torch_device`):
+`bench_common.ALL_BACKENDS` (id → evoxc `(backend, device)`; torch ids use
+`bench_common.torch_device`). The `etl-*` ids are frozen keys into the
+committed result JSONs and name the evoxc-backed implementations:
 
-| id | vendor | etl spec / torch device |
+| id | vendor | evoxc spec / torch device |
 |---|---|---|
 | `torch-cpu` | — | torch `"cpu"` |
 | `torch-cuda` | nvidia | torch `"cuda"` |
@@ -86,20 +87,20 @@ python run.py --backend etl-iree-rocm  --suite so --gpu 0     # ROCm venv
 python run.py --backend etl-xla-rocm   --suite so --gpu 0     # ROCm venv
 ```
 
-`--gpu N` applies the vendor recipe before any torch/etl import through
+`--gpu N` applies the vendor recipe before any torch/evoxc import through
 `bench_common.ensure_backend_env(backend, N)`, which re-execs the process
 once (marker `EVOX_BENCH_GPU_ENV`, idempotent, keeps `sys.argv`):
 
 - **NVIDIA** (`set_gpu_env`): `CUDA_VISIBLE_DEVICES=<id>`, prepend
   `/mnt/local-ssd/bchuang/cudnn-xla/lib` to `LD_LIBRARY_PATH`,
   `XLA_FLAGS=--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data`,
-  `ETL_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`;
+  `EVOXC_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`;
   etl-xla-cuda additionally LD_PRELOADs cuDNN 9.8.
 - **AMD ROCm** (`set_rocm_env`): `HIP_VISIBLE_DEVICES=<id>` +
   `ROCR_VISIBLE_DEVICES=<id>`, no cuDNN preload, no
   `--xla_gpu_cuda_data_dir`. The xla ids (etl-xla-rocm) additionally set
-  `ETL_PJRT_PLUGIN=<rocm venv>/jax_plugins/xla_rocm7/xla_rocm_plugin.so`
-  (an already-set `ETL_PJRT_PLUGIN` wins) and append
+  `EVOXC_PJRT_PLUGIN=<rocm venv>/jax_plugins/xla_rocm7/xla_rocm_plugin.so`
+  (an already-set `EVOXC_PJRT_PLUGIN` wins) and append
   `XLA_FLAGS=--xla_gpu_enable_command_buffer=` — HIP graph command buffers
   SIGSEGV inside `PJRT_Executable_Execute`.
 
@@ -114,9 +115,9 @@ overwritten. Runs are serial and foreground — the ROCm device is
 single-tenant.
 
 ## Robustness on the etl/GPU paths
-- **etl compile retry:** `bench_common.init_with_retry` (used by both
+- **evoxc compile retry:** `bench_common.init_with_retry` (used by both
   runners) builds a FRESH workflow and calls `init(seed)` up to
-  `ETL_COMPILE_ATTEMPTS` (4) times with a 1 s backoff, keeping the first
+  `EVOXC_COMPILE_ATTEMPTS` (4) times with a 1 s backoff, keeping the first
   successful artifact and its wall time as `compile_time_s` (only that
   attempt is timed). It is applied to every etl backend (harmless where
   compiles are deterministic) because the iree MO compile fails
@@ -142,7 +143,7 @@ single-tenant.
   `MOEAD/DTLZ1/100x3x10`, `MOEAD/DTLZ1/1000x3x30`,
   `MOEAD/DTLZ2/1000x3x30`).
 - **`etl-numpy` MI300X numbers are REUSED, not re-measured:** the numpy
-  backend is unaffected by the etl device-path fixes, so its ROCm-host cells
+  backend is unaffected by the evoxc device-path fixes, so its ROCm-host cells
   come from `results/rocm_prefix_baseline.json` and must be labelled reused.
 - **`torch-rocm` CMA-ES does not exist:** all 9 CMA-ES cells are `err`
   (`UncapturedHigherOrderOpError ... torch.cond`), a torch 2.13
@@ -187,7 +188,7 @@ single-tenant.
   ≈20.6/20.4; etl compiled backends rel 0.44–1.89) — RNG-stream variance,
   not a stall.
 - **CMAES is the slowest SO family on every compiled backend:** per-step
-  covariance `etl.eigh` lowers to an iree cyclic-Jacobi while-loop
+  covariance `evoxc.eigh` lowers to an iree cyclic-Jacobi while-loop
   composition (no native stablehlo.eigh in stablehlo 1.0 / iree 3.11.0),
   O(n^4). Probes: standalone iree-cuda eigh 39.0 / 1317 / 5778 ms @ dims
   10/50/100 vs 0.087 ms no-eigh control; llvm-cpu dim-100 23676 ms vs 0.157;
@@ -195,7 +196,7 @@ single-tenant.
   xla-cuda native eigh 387.3 ms/step. Current dim-100 magnitudes: 94.6
   ms/step on iree-rocm, 18.2 on xla-rocm, 2182 on llvm-cpu-mi300x. All iree
   CMAES cells carry a JSON note; upstream doc:
-  `/mnt/local-ssd/bchuang/etl/etl/backends/stablehlo/CONTEXT.md`.
+  `/mnt/local-ssd/bchuang/evoxc/evoxc/backends/stablehlo/CONTEXT.md`.
 - **Parity (10% rel tolerance, near-zero rule):** every non-torch-cpu record
   is compared against the `results/{suite}_torch-cpu.json` record with the
   same `case_id`; `ok` is `true`/`false`/`null` (null only for skips: backend
@@ -220,14 +221,14 @@ single-tenant.
 ## GPU performance path — issues and fixes (measurement-verified, current state)
 - **The old etl-xla-cuda slowness was the harness mapping + placement bug,
   now FIXED:** `bench_common.etl_backend_spec` maps etl-xla-cuda to
-  `("xla", "cuda:0")` (commit 8202692f; etl HEAD f2f50a7 supports
+  `("xla", "cuda:0")` (commit 8202692f; evoxc HEAD f2f50a7 supports
   device-resident `Device("cuda", N)` executables), and `StdWorkflow` now
   activates the workflow's own backend adapter before placing state on
   device (`workflow.py:229-244`, commit 1a6fef1c) — replacing the manual
-  pre-activation (`etl.backends.get("xla")` before `wf.init`) that was
+  pre-activation (`evoxc.backends.get("xla")` before `wf.init`) that was
   previously required because `Tensor.to(cuda)` dispatches through a
   process-global, last-wins device-transfer slot (lazy iree thunk from
-  `etl/backends/__init__.py`; the xla adapter overwrites it on activation).
+  `evoxc/backends/__init__.py`; the xla adapter overwrites it on activation).
 - **Old committed xla SO numbers are host-staging-bound:** a `("xla", None)`
   device makes the workflow CPU-kind (`workflow.py:45-48`) and the xla
   adapter host-stages EVERY input every step (`.numpy()` + `buffer_from_host`
@@ -240,17 +241,17 @@ single-tenant.
 - **iree 3.9.0 CUDA segfault is gone under iree ≥ 3.11.0:** the earlier
   deterministic step-1 crash on the harness path (bisected to `workflow.step`
   retaining `self._state = state`, now `workflow.py:323`) no longer occurs —
-  etl crash repro passed 4/4 and both full iree SO suites ran clean on
+  evoxc crash repro passed 4/4 and both full iree SO suites ran clean on
   3.11.0. The remaining iree blocker is only the MO while-loop compile bug
   (see Current results status; out of scope — xla remains the MO compiled
   backend).
-- **Per-step host copies are NOT the bottleneck once device-resident:** the monitor's D2H readback is pipelined, not eager — `_readback` (`workflow.py:537-552`) schedules each device-resident hit through `etl.io.sink` on the `etl.io` worker thread, and `_drain_readbacks` appends it at the start of the next generation, so the copy overlaps the next step (MI300X `iree` `rocm:0`, PSO/Sphere 1000x50: 0.1435 eager → 0.0294 pipelined ms/step on the readback path, 1.18× total per step). `full_sol/pop_history` default off (`eval_monitor.py:52-54`) and the same-device `tree_map .to` no-op (`workflow.py:317-318`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
+- **Per-step host copies are NOT the bottleneck once device-resident:** the monitor's D2H readback is pipelined, not eager — `_readback` (`workflow.py:537-552`) schedules each device-resident hit through `evoxc.io.sink` on the `evoxc.io` worker thread, and `_drain_readbacks` appends it at the start of the next generation, so the copy overlaps the next step (MI300X `iree` `rocm:0`, PSO/Sphere 1000x50: 0.1435 eager → 0.0294 pipelined ms/step on the readback path, 1.18× total per step). `full_sol/pop_history` default off (`eval_monitor.py:52-54`) and the same-device `tree_map .to` no-op (`workflow.py:317-318`) ≈ 0.08 ms/step. The monitor's in-graph topk/gather is the main marginal cost at scale (≈1.5-2.3 ms of the 2.4-3.05 ms/step @10000x100 iree-cuda). Enabling `full_sol_history`/`full_pop_history` WOULD copy (pop,dim) per step — keep off in benchmarks.
 - **Timing fairness:** the etl path times without an explicit device sync (`bench_so.py:159-162`; the torch path syncs at 75-80), but iree/xla `run` invokes are host-blocking, so steps cannot overlap — per-step timing is fair; the 2 warmup steps (`bench_common.WARMUP_STEPS`) exercise the same `step()` path and absorb first-call costs.
 
 ## Notes for agents
 - **ROCm runs:** use the ROCm venv
   (`/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python`, Python 3.14,
-  torch 2.13.0+rocm7.1, etl 0.1.0, `evox_etl` imported from the repo `src/`)
+  torch 2.13.0+rocm7.1, evoxc 0.1.0, `evox_etl` imported from the repo `src/`)
   and always pass `--gpu N` (`HIP_VISIBLE_DEVICES` / `ROCR_VISIBLE_DEVICES`
   are set and the process re-execs before any import). The ROCm device is
   single-tenant — never run two ROCm jobs at once, and run them serially in
@@ -295,7 +296,7 @@ single-tenant.
   never from a re-run.
 - **Torch MO on this box** uses the harness's existing default-device
   workaround in `bench_mo.py` — do not re-derive it.
-- **AMD xla recipe:** `ETL_PJRT_PLUGIN` → the venv's
+- **AMD xla recipe:** `EVOXC_PJRT_PLUGIN` → the venv's
   `jax_plugins/xla_rocm7/xla_rocm_plugin.so`, plus
   `XLA_FLAGS=--xla_gpu_enable_command_buffer=` (HIP command buffers SIGSEGV
   inside `PJRT_Executable_Execute`). `torch-rocm` has no `"rocm"` torch
