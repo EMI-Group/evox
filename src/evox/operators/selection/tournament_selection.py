@@ -24,7 +24,7 @@ def tournament_selection_multifit(n_round: int, fitnesses: List[torch.Tensor], t
     candidates_fitness = fitness_tensor[parents]
     candidates_fitness = lexsort(candidates_fitness.unbind(-1))
 
-    selected_parents = torch.gather(parents, 1, candidates_fitness[:, 0].unsqueeze(1)).squeeze()
+    selected_parents = torch.gather(parents, 1, candidates_fitness[:, 0].unsqueeze(1)).squeeze(1)
 
     return selected_parents
 
@@ -49,6 +49,6 @@ def tournament_selection(n_round: int, fitness: torch.Tensor, tournament_size: i
 
     winner_indices = torch.argmin(candidates_fitness, dim=1)
 
-    selected_parents = torch.gather(parents, 1, winner_indices.unsqueeze(1)).squeeze()
+    selected_parents = torch.gather(parents, 1, winner_indices.unsqueeze(1)).squeeze(1)
 
     return selected_parents

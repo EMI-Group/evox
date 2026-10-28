@@ -40,7 +40,7 @@ class XNES(Algorithm):
         super().__init__()
         dim = init_mean.shape[0]
         if pop_size is None:
-            pop_size = 4 + math.floor(3 * math.log(self.dim))
+            pop_size = 4 + math.floor(3 * math.log(dim))
         assert pop_size > 0
 
         if learning_rate_mean is None:
@@ -151,7 +151,7 @@ class SeparableNES(Algorithm):
         assert init_std.shape == (dim,)
 
         if pop_size is None:
-            pop_size = 4 + math.floor(3 * math.log(self.dim))
+            pop_size = 4 + math.floor(3 * math.log(dim))
         assert pop_size > 0
 
         if learning_rate_mean is None:
