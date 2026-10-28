@@ -52,3 +52,7 @@ class TestDEVariants(TestBase):
         self.assertFalse(torch.equal(algo.Memory_FCR, memory))
         self.assertTrue(torch.isfinite(algo.Memory_FCR).all())
 
+    def test_initial_population_within_bounds(self):
+        for algorithm in (SHADE, CoDE, SaDE):
+            algo = algorithm(self.pop_size, self.lb, self.ub)
+            self.assertTrue(((algo.pop >= self.lb) & (algo.pop <= self.ub)).all(), algorithm.__name__)

@@ -53,7 +53,7 @@ class SHADE(Algorithm):
         # setup
         self.best_index = Mutable(torch.tensor(0, device=device))
         self.Memory_FCR = Mutable(torch.full((2, pop_size), fill_value=0.5, device=device))
-        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.pop = Mutable(torch.rand(pop_size, dim, device=device) * (ub - lb) + lb)
         self.fit = Mutable(torch.full((pop_size,), fill_value=torch.inf, device=device))
 
     def step(self):
