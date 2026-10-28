@@ -15,7 +15,7 @@ EvoX is a distributed GPU-accelerated evolutionary computation framework built o
 ```
 evox/
 ├── src/evox/           ← Main Python package (the framework, frozen torch reference)
-├── src/evox_etl/       ← Functional ETL port (new package; the functional successor — full user-facing surface)
+├── src/evox_etl/       ← Functional ETL port of EvoX on evoxc (the functional successor — full user-facing surface)
 ├── src/evox_ext/       ← Extension/plugin autoloading for torch evox (PEP 420 namespace)
 ├── src/evox_etl_ext/   ← Extension/plugin autoloading for the ETL port (PEP 420 namespace)
 ├── unit_test/          ← Unit test suite (mirrors src/evox/)
