@@ -23,7 +23,7 @@ class Monitor(Protocol):
     - a frozen config dataclass named after the monitor, whose host-side history
       lists (e.g. ``fit_history``/``sol_history``/``pop_history``) live on the
       config object (plain Python lists, appended by the workflow),
-    - a PLAIN module-level function (NOT ``@etl.defn``) ``monitor_update`` living
+    - a PLAIN module-level function (NOT ``@evoxc.defn``) ``monitor_update`` living
       in the SAME module as the config, plus optionally ``init``,
     - optionally a host-side convenience wrapper class named ``Monitor``
       (constructor ``Monitor(config=..., state=...)``) that exposes accessors
@@ -31,8 +31,8 @@ class Monitor(Protocol):
 
     The workflow resolves the functions via
     ``importlib.import_module(type(config).__module__)``. All graph functions must
-    be called inside an active etl trace; calling them outside a trace raises
-    etl's ``TraceError``.
+    be called inside an active evoxc trace; calling them outside a trace raises
+    evoxc's ``TraceError``.
     """
 
     def monitor_update(
@@ -53,7 +53,7 @@ class Monitor(Protocol):
         """Optional: store one generation of auxiliary info produced by the algorithm.
 
         OPTIONAL — a monitor module may omit it. When present it is a PLAIN
-        module-level host-side function (NOT ``@etl.defn``) ``record_auxiliary(config,
+        module-level host-side function (NOT ``@evoxc.defn``) ``record_auxiliary(config,
         aux) -> None`` living in the SAME module as the config. The workflow calls
         it HOST-SIDE (outside any traced graph) once per generation with the dict
         returned by the algorithm's optional ``record_step`` hook; the monitor

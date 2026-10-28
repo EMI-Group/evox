@@ -7,8 +7,8 @@ Plain functions (`init`/`step`) + frozen config/state dataclasses, per
 workflow-injected `evaluate` closure standing in for torch's
 `self.evaluate(population)`.
 
-ETL has no eager mode — these functions may only be called inside an active
-trace (`etl.build`/`etl.run`). numpy is used only at trace time to bake the
+EvoX Compiler has no eager mode — these functions may only be called inside an active
+trace (`evoxc.build`/`evoxc.run`). numpy is used only at trace time to bake the
 initial center as a graph constant.
 """
 
@@ -18,10 +18,10 @@ from typing import Callable, Literal
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl import core
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc import core
 
 from evox_etl.algorithms._config_utils import ArrayLike, require_choice, require_gt, to_float_tuple
 
@@ -80,7 +80,7 @@ def make_snes(
 
 @dataclass(frozen=True)
 class SNESState:
-    """SNES mutable state (ETL tensor leaves only)."""
+    """SNES mutable state (``evoxc`` tensor leaves only)."""
 
     center: Tensor  # (dim,)
     sigma: Tensor  # (dim,)
@@ -91,37 +91,37 @@ class SNESState:
 
 
 def _softmax(x: Tensor) -> Tensor:
-    """1-D softmax (etl has no softmax op).
+    """1-D softmax (evoxc has no softmax op).
 
     Shared helper — also imported by des.py (its temperature-softmax weighting
     is the same formula as SNES's "temp" scheme).
     """
-    m = etl.max(x)
-    e = etl.exp(x - m)
-    return e / etl.sum(e)
+    m = evoxc.max(x)
+    e = evoxc.exp(x - m)
+    return e / evoxc.sum(e)
 
 
 def init(config: SNESConfig, key: Tensor) -> SNESState:
     """Create the initial state (center, sigma, rank weights, zero noise)."""
     dim = len(config.center_init)
     pop_size = config.pop_size
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=F32))
+    center = evoxc.ops.constant(
+        evoxc.core.tensor(np.asarray(config.center_init, dtype=F32))
     )
     sigma = enp.full((dim,), config.sigma, dtype=F32)
 
     if config.weight_type == "temp":
         ranks = enp.arange(pop_size, dtype=F32) / (pop_size - 1) - 0.5
-        w = _softmax(-20.0 * etl.sigmoid(config.temperature * ranks))
+        w = _softmax(-20.0 * evoxc.sigmoid(config.temperature * ranks))
     else:  # "recomb"
-        w = etl.clamp(
+        w = evoxc.clamp(
             math.log(pop_size / 2 + 1)
-            - etl.log(enp.arange(1, pop_size + 1, dtype=F32)),
+            - evoxc.log(enp.arange(1, pop_size + 1, dtype=F32)),
             0.0,
             math.inf,
         )
-        w = w / etl.sum(w) - 1.0 / pop_size
-    weights = etl.tile(enp.expand_dims(w, axis=1), (1, dim))
+        w = w / evoxc.sum(w) - 1.0 / pop_size
+    weights = evoxc.tile(enp.expand_dims(w, axis=1), (1, dim))
 
     noise = enp.zeros((pop_size, dim), dtype=F32)
     best_fitness = enp.full((), np.inf, dtype=F32)
@@ -141,21 +141,21 @@ def step(
     pop_size, dim = config.pop_size, len(config.center_init)
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
-    population = state.center + noise * etl.reshape(state.sigma, (1, dim))
+    population = state.center + noise * evoxc.reshape(state.sigma, (1, dim))
     state = replace(state, noise=noise, key=key)
 
     fitness = evaluate(population)
 
     lrate_sigma = (3 + math.log(dim)) / (5 * math.sqrt(dim))
 
-    order = etl.argsort(fitness)
-    sorted_noise = etl.gather(state.noise, order, axis=0)
-    grad_mean = etl.sum(state.weights * sorted_noise, axes=0)
-    grad_sigma = etl.sum(state.weights * (sorted_noise**2 - 1), axes=0)
+    order = evoxc.argsort(fitness)
+    sorted_noise = evoxc.gather(state.noise, order, axis=0)
+    grad_mean = evoxc.sum(state.weights * sorted_noise, axes=0)
+    grad_sigma = evoxc.sum(state.weights * (sorted_noise**2 - 1), axes=0)
 
     center = state.center + config.lrate_mean * state.sigma * grad_mean
-    sigma = state.sigma * etl.exp(lrate_sigma / 2 * grad_sigma)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = state.sigma * evoxc.exp(lrate_sigma / 2 * grad_sigma)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(state, center=center, sigma=sigma, best_fitness=best_fitness)
 
 

@@ -20,13 +20,13 @@ class Problem(Protocol):
     inherit from it. A problem module is a plain Python module that defines:
 
     - a frozen config dataclass named after the problem (e.g. ``Sphere``),
-    - a PLAIN module-level function (NOT ``@etl.defn``) ``evaluate`` living in
+    - a PLAIN module-level function (NOT ``@evoxc.defn``) ``evaluate`` living in
       the SAME module as the config, plus optionally ``init`` for stateful
       problems (numerical problems are stateless and simply omit it).
 
     The workflow resolves them via
     ``importlib.import_module(type(config).__module__)``. All functions must be
-    called inside an active etl trace; calling them outside a trace raises etl's
+    called inside an active evoxc trace; calling them outside a trace raises evoxc's
     ``TraceError``.
     """
 

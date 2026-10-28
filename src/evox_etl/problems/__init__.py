@@ -1,7 +1,7 @@
-"""Benchmark problems in functional style (etl).
+"""Benchmark problems in functional style (evoxc).
 
 Port of ``src/evox/problems/numerical/`` (torch evox, read-only reference) onto
-the ETL tensor library. Problems are plain functions (traced by the workflow)
+the EvoX Compiler tensor library. Problems are plain functions (traced by the workflow)
 with the uniform signature ``evaluate(config, problem_state, pop) ->
 (fitness, problem_state)``; configs are frozen dataclasses, and all numerical
 problems share the empty frozen :class:`ProblemState`.

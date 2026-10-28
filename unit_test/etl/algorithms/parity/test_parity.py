@@ -5,18 +5,18 @@ This is the only torch-importing file in this suite; mirrors
 
 The driver below is deliberately self-contained: it drives a functional
 step-protocol module (``init(config, key)`` / ``step(config, state,
-evaluate)``) through ``etl.build`` / ``etl.run`` on the ``numpy`` backend; the
-``etl.build``/``etl.run`` contract is used only as the reference (scalar graph
-inputs are 0-d int64 arrays, state pytrees are passed as specs, and ``etl.run``
+evaluate)``) through ``evoxc.build`` / ``evoxc.run`` on the ``numpy`` backend; the
+``evoxc.build``/``evoxc.run`` contract is used only as the reference (scalar graph
+inputs are 0-d int64 arrays, state pytrees are passed as specs, and ``evoxc.run``
 returns concrete tensors that must be read with ``.numpy()``).
 
-Noise injection is what makes the two sides comparable at all: the etl port
+Noise injection is what makes the two sides comparable at all: the ETL port
 and the torch reference otherwise draw from different RNG streams.  Both are
 patched to the SAME fixed noise — ``torch.randn`` through the module attribute
-and ``etl.random.normal`` through an in-graph ``etl.ops.constant`` (the
-``evox_etl`` ES modules do ``import etl.random as random``, so patching that
-attribute affects the trace; ``etl.ops.constant`` rejects a raw ndarray, hence
-the explicit ``etl.core.tensor``).
+and ``evoxc.random.normal`` through an in-graph ``evoxc.ops.constant`` (the
+``evox_etl`` ES modules do ``import evoxc.random as random``, so patching that
+attribute affects the trace; ``evoxc.ops.constant`` rejects a raw ndarray, hence
+the explicit ``evoxc.core.tensor``).
 """
 
 from dataclasses import replace
@@ -26,9 +26,9 @@ import numpy as np
 import pytest
 import torch
 
-import etl
-import etl.random as random
-from etl.core import TensorSpec
+import evoxc
+import evoxc.random as random
+from evoxc.core import TensorSpec
 
 from evox.algorithms import ARS, ASEBO, CMAES
 
@@ -45,7 +45,7 @@ INT64 = np.dtype("int64")
 # --------------------------------------------------------------------------- #
 def _spec_tree(tree: Any) -> Any:
     """Replace every tensor leaf of a state pytree with a matching TensorSpec."""
-    return etl.tree_map(
+    return evoxc.tree_map(
         lambda t: TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype)), tree
     )
 
@@ -75,7 +75,7 @@ def _inject_fixed_noise(monkeypatch: pytest.MonkeyPatch, values: np.ndarray) -> 
         return torch.from_numpy(fixed.copy())
 
     def etl_normal(key, shape, mean=0.0, std=1.0, dtype=None):
-        return etl.ops.constant(etl.core.tensor(fixed.copy()))
+        return evoxc.ops.constant(evoxc.core.tensor(fixed.copy()))
 
     monkeypatch.setattr(torch, "randn", torch_randn)
     monkeypatch.setattr(random, "normal", etl_normal)
@@ -83,7 +83,7 @@ def _inject_fixed_noise(monkeypatch: pytest.MonkeyPatch, values: np.ndarray) -> 
 
 def _sphere(candidates: Any) -> Any:
     """Toy fitness evaluated INSIDE the trace: ``f(x) = sum(x * x)`` per row."""
-    return etl.sum(candidates * candidates, axes=1)
+    return evoxc.sum(candidates * candidates, axes=1)
 
 
 def _drive(
@@ -107,13 +107,13 @@ def _drive(
             state = state_transform(state)
         return mod.step(config, state, _sphere)
 
-    init_exe = etl.build(
+    init_exe = evoxc.build(
         lambda key: mod.init(config, key), TensorSpec((), INT64), backend="numpy"
     )
-    state = etl.run(init_exe, np.asarray(key_seed, dtype=np.int64))
-    step_exe = etl.build(generation, _spec_tree(state), backend="numpy")
+    state = evoxc.run(init_exe, np.asarray(key_seed, dtype=np.int64))
+    step_exe = evoxc.build(generation, _spec_tree(state), backend="numpy")
     for _ in range(n_gens):
-        state = etl.run(step_exe, state)
+        state = evoxc.run(step_exe, state)
     return state
 
 
@@ -165,7 +165,7 @@ def _torch_asebo_subspace_block(
 
     CONVENTION FACT (do not "fix"): ``torch.svd(X, some=True)``'s THIRD output
     is **V** (== ``Vh.T``), not ``Vh`` — deprecated-API convention; the port
-    transposes ``etl.svd``'s ``Vh`` to match (commit 16543cd5).  Using
+    transposes ``evoxc.svd``'s ``Vh`` to match (commit 16543cd5).  Using
     ``torch.linalg.svd`` here would test the wrong target.
 
     ``transpose=False`` (the non-transposed ``Vh[half:].T @ Vh[half:]`` slicing)
@@ -181,7 +181,7 @@ def _torch_asebo_subspace_block(
         signs = torch.sign(U[max_abs_cols, torch.arange(U.shape[1])])  # (k,) vector
     U = U * signs
     Vt = Vt * signs
-    Vh = Vt.T  # the pre-fix port fed etl.svd's Vh straight into the slicing
+    Vh = Vt.T  # the pre-fix port fed evoxc.svd's Vh straight into the slicing
     U_ort = Vt[half:] if transpose else Vh[half:]
     return (U_ort.T @ U_ort).numpy()
 
@@ -252,7 +252,7 @@ def test_asebo_state_parity_with_torch(monkeypatch: pytest.MonkeyPatch) -> None:
         config,
         1,
         state_transform=lambda s: replace(
-            s, grad_subspace=etl.ops.constant(etl.core.tensor(dense_x))
+            s, grad_subspace=evoxc.ops.constant(evoxc.core.tensor(dense_x))
         ),
     )
     X = (dense_x - dense_x.mean(axis=0, dtype=F32)).astype(F32)
@@ -400,7 +400,7 @@ def test_cma_es_step_parity_with_torch(monkeypatch: pytest.MonkeyPatch) -> None:
     assert np.max(np.abs(B @ B.T - np.eye(dim))) <= 1e-4
 
     # Discriminating power (throwaway experiment): restoring the pre-fix scalar
-    # dot form (`pc_norm_sq = etl.sum(p_c * p_c)`, a 0-d value broadcast
+    # dot form (`pc_norm_sq = evoxc.sum(p_c * p_c)`, a 0-d value broadcast
     # additively into every element of C instead of the true outer product) and
     # re-running with the SAME injected noise changes C by |dC| = 0.1197 after 2
     # generations — ~6 orders of magnitude above the 5.96e-8 float32 rounding

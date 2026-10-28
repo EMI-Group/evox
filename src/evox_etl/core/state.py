@@ -1,11 +1,11 @@
-"""State helpers: pytree-agnostic `replace`, nested get/set, and etl tree re-exports."""
+"""State helpers: pytree-agnostic `replace`, nested get/set, and evoxc tree re-exports."""
 
 from __future__ import annotations
 
 import dataclasses
 from typing import Any, Iterable, TypeVar
 
-from etl import tree_flatten, tree_leaves, tree_map, tree_unflatten
+from evoxc import tree_flatten, tree_leaves, tree_map, tree_unflatten
 
 __all__ = [
     "replace",

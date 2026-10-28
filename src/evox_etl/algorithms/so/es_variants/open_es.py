@@ -1,7 +1,7 @@
 """Functional ETL port of the torch evox OpenES algorithm (step protocol).
 
-Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
 mode.  Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/open_es.py` exactly: `step` owns the WHOLE
 generation (sample → `evaluate(candidates)` → gradient update), with the
@@ -17,9 +17,9 @@ from typing import Callable, Literal
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from ..._config_utils import (
     ArrayLike,
@@ -30,7 +30,7 @@ from ..._config_utils import (
 )
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 F32 = np.dtype("float32")
 
@@ -128,7 +128,7 @@ def step(
     key, subkey = random.split(state.key)
     if config.mirrored_sampling:
         noise = random.normal(subkey, (config.pop_size // 2, dim), dtype=F32)
-        noise = etl.concatenate([noise, -noise], axis=0)
+        noise = evoxc.concatenate([noise, -noise], axis=0)
     else:
         noise = random.normal(subkey, (config.pop_size, dim), dtype=F32)
     population = enp.expand_dims(state.center, axis=0) + config.noise_stdev * noise
@@ -137,7 +137,7 @@ def step(
     fitness = evaluate(population)
 
     grad = (
-        etl.dot(enp.expand_dims(fitness, axis=0), state.noise)[0]
+        evoxc.dot(enp.expand_dims(fitness, axis=0), state.noise)[0]
         / config.pop_size
         / config.noise_stdev
     )
@@ -154,7 +154,7 @@ def step(
             0.999,
             config.learning_rate,
         )
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,
@@ -172,7 +172,7 @@ def record_step(
 ) -> dict[str, Tensor]:
     """Host-side auxiliary-info hook, mirroring torch ``OpenES.record_step``.
 
-    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
     accepted-but-unused, exactly like the torch reference which ignores them.

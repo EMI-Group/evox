@@ -4,7 +4,7 @@ Port source: ``src/evox/algorithms/so/de_variants/shade.py`` (1:1 semantics).
 ``step`` owns ONE full generation: it draws F/CR from the success-history
 memory, builds the trial vectors, evaluates them through the opaque
 ``evaluate`` closure, then performs the selection and the memory update from
-the fitnesses. RNG is key-based (``etl.random``): the key is advanced in the
+the fitnesses. RNG is key-based (``evoxc.random``): the key is advanced in the
 state, one ``random.split`` per random op in torch's exact draw order; the
 selection/memory half draws no randomness. Bounds are baked once per function
 as (1, dim) constants; ``lb``/``ub`` config fields are normalized to flat
@@ -14,9 +14,9 @@ tuples of plain Python floats by the ``make_shade`` constructor.
 from dataclasses import dataclass
 from typing import Any, Callable
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -28,7 +28,7 @@ from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.crossover import DE_binary_crossover, DE_differential_sum
 from evox_etl.operators.selection import select_rand_pbest
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -62,7 +62,7 @@ def make_shade(pop_size: int, lb: ArrayLike, ub: ArrayLike, diff_padding_num: in
 
 @dataclass(frozen=True)
 class SHADEState:
-    """SHADE algorithm state; every leaf is an etl tensor.
+    """SHADE algorithm state; every leaf is an evoxc tensor.
 
     ``trial_vectors``/``F_vect``/``CR_vect`` record the last generation's
     candidates and their per-individual parameters (observable state); the
@@ -108,11 +108,11 @@ def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor])
 
     # (1) Random permutation of memory indices (argsort-of-rand, torch-exact).
     key, k_fcr = random.split(state.key)
-    FCR_ids = etl.argsort(
+    FCR_ids = evoxc.argsort(
         random.uniform(k_fcr, (pop_size,), 0.0, 1.0, "float32"), axis=0, stable=True
     )
-    M_F_vect = etl.gather(state.Memory_FCR[0], FCR_ids, axis=0)
-    M_CR_vect = etl.gather(state.Memory_FCR[1], FCR_ids, axis=0)
+    M_F_vect = evoxc.gather(state.Memory_FCR[0], FCR_ids, axis=0)
+    M_CR_vect = evoxc.gather(state.Memory_FCR[1], FCR_ids, axis=0)
 
     # (2) F from the success-history memory, clamped to [0, 1].
     key, k_f = random.split(key)
@@ -153,9 +153,9 @@ def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor])
     # (9) Selection over the trial vectors.
     fitness = evaluate(trial_vectors)
     compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
-    fit = etl.select(compare, fitness, state.fit)
-    best_index = etl.argmin(fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
+    fit = evoxc.select(compare, fitness, state.fit)
+    best_index = evoxc.argmin(fit)
 
     # torch computes deltas AFTER updating self.fit — use the updated fit.
     deltas = fit - fitness
@@ -165,19 +165,19 @@ def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor])
     S_delta = enp.full((pop_size,), float("nan"), dtype="float32")
 
     for i in range(pop_size):  # get_success_delta
-        is_success = etl.cast(compare[i], "float32")
+        is_success = evoxc.cast(compare[i], "float32")
         F = F_vect[i]
         CR = CR_vect[i]
         delta = deltas[i]
 
-        S_F_update_temp = etl.roll(S_F, 1, axis=0)
-        S_F_update = etl.concatenate([enp.expand_dims(F, 0), S_F_update_temp[1:]], axis=0)
+        S_F_update_temp = evoxc.roll(S_F, 1, axis=0)
+        S_F_update = evoxc.concatenate([enp.expand_dims(F, 0), S_F_update_temp[1:]], axis=0)
 
-        S_CR_update_temp = etl.roll(S_CR, 1, axis=0)
-        S_CR_update = etl.concatenate([enp.expand_dims(CR, 0), S_CR_update_temp[1:]], axis=0)
+        S_CR_update_temp = evoxc.roll(S_CR, 1, axis=0)
+        S_CR_update = evoxc.concatenate([enp.expand_dims(CR, 0), S_CR_update_temp[1:]], axis=0)
 
-        S_delta_update_temp = etl.roll(S_delta, 1, axis=0)
-        S_delta_update = etl.concatenate(
+        S_delta_update_temp = evoxc.roll(S_delta, 1, axis=0)
+        S_delta_update = evoxc.concatenate(
             [enp.expand_dims(delta, 0), S_delta_update_temp[1:]], axis=0
         )
 
@@ -185,26 +185,26 @@ def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor])
         S_CR = is_success * S_CR_update + (1.0 - is_success) * S_CR_update_temp
         S_delta = is_success * S_delta_update + (1.0 - is_success) * S_delta_update_temp
 
-    norm_delta = S_delta / etl.nansum(S_delta, axes=0)
-    M_CR = etl.nansum(norm_delta * S_CR, axes=0)
-    M_F = etl.nansum(norm_delta * (S_F**2), axes=0) / etl.nansum(norm_delta * S_F, axes=0)
+    norm_delta = S_delta / evoxc.nansum(S_delta, axes=0)
+    M_CR = evoxc.nansum(norm_delta * S_CR, axes=0)
+    M_F = evoxc.nansum(norm_delta * (S_F**2), axes=0) / evoxc.nansum(norm_delta * S_F, axes=0)
 
-    Memory_FCR_update = etl.roll(state.Memory_FCR, 1, axis=1)
+    Memory_FCR_update = evoxc.roll(state.Memory_FCR, 1, axis=1)
     # Memory_FCR_update[0, 0] = M_F via a boolean mask (no index assignment).
     mask00 = enp.logical_and(
         enp.expand_dims(enp.arange(2, dtype="int32") == 0, 1),
         enp.expand_dims(enp.arange(pop_size, dtype="int32") == 0, 0),
     )
-    Memory_FCR_update = etl.select(mask00, M_F, Memory_FCR_update)
+    Memory_FCR_update = evoxc.select(mask00, M_F, Memory_FCR_update)
     # Memory_FCR_update[1, 0] = M_CR.
     mask10 = enp.logical_and(
         enp.expand_dims(enp.arange(2, dtype="int32") == 1, 1),
         enp.expand_dims(enp.arange(pop_size, dtype="int32") == 0, 0),
     )
-    Memory_FCR_update = etl.select(mask10, M_CR, Memory_FCR_update)
+    Memory_FCR_update = evoxc.select(mask10, M_CR, Memory_FCR_update)
 
-    is_F_nan = etl.isnan(M_F)
-    Memory_FCR_update = etl.select(is_F_nan, state.Memory_FCR, Memory_FCR_update)
+    is_F_nan = evoxc.isnan(M_F)
+    Memory_FCR_update = evoxc.select(is_F_nan, state.Memory_FCR, Memory_FCR_update)
 
     # torch's is_S_nan = torch.all(torch.isnan(compare)) is statically False
     # (isnan of a bool tensor), so the final Memory_FCR is Memory_FCR_update.

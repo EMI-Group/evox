@@ -55,7 +55,7 @@ under *Artifacts*.
 - **Python:** `/mnt/local-ssd/bchuang/evox/.venv/bin/python` (3.11.2).
 - **torch:** 2.6.0+cu124, **eager only** — `StdWorkflow` has no compile mode,
   so `compile_time_s = 0.0` and torch runs never pay a compile cost.
-- **etl:** compiled backends — `etl-numpy` (CPU interpreter),
+- **evoxc:** compiled backends — `etl-numpy` (CPU interpreter),
   `etl-iree-llvm-cpu`, `etl-iree-cuda`, `etl-xla-cuda`; compile time is the
   wall time of `wf.init(seed=42)` and is reported separately from ms/step.
 - **Seed** 42 everywhere; 100 generations default; 2 warmup steps.
@@ -143,7 +143,7 @@ path is slow (~59–132 ms/step vs 1.3–1.5 on etl-numpy, 9.2–9.9 on xla-cuda
 22–25 on iree-llvm-cpu, 42–47 on iree-cuda) — plus torch-cuda's 31.9×
 PSO/Rastrigin/10000x100 and iree-cuda's 11.3× DE/Rastrigin/10000x100. The
 "torch wins" floor is set by large-scale CMA-ES on iree: its per-step
-covariance `etl.eigh` lowers to an O(n^4) cyclic-Jacobi while-loop (see
+covariance `evoxc.eigh` lowers to an O(n^4) cyclic-Jacobi while-loop (see
 *CMAES slow path* below), so iree-llvm-cpu runs CMA-ES 10000x100 at
 22.2–22.3 s/step and iree-cuda at 6.9–7.4 s/step vs torch-cpu's 0.16 s/step.
 That floor drags the all-cell medians down (iree-cuda 1.39×, iree-llvm-cpu
@@ -159,7 +159,7 @@ fastest GPU path at that scale (0.63–1.26 ms/step), with xla-cuda next at
 
 All nine CMAES cells in each of `so_etl-iree-llvm-cpu.json` and
 `so_etl-iree-cuda.json` carry a record-level note: per-step covariance
-`etl.eigh` (pop_dim × pop_dim) lowers to an iree cyclic-Jacobi while-loop
+`evoxc.eigh` (pop_dim × pop_dim) lowers to an iree cyclic-Jacobi while-loop
 composition — stablehlo 1.0 / iree 3.11.0 ship no native `stablehlo.eigh`
 (only cholesky survives) — and that composition is O(n^4) in pop_dim. The
 cells ran healthy (no error records); the note documents the slowness and
@@ -167,7 +167,7 @@ does not change their parity verdicts.
 
 Measured on healthy hardware with iree 3.11.0:
 
-- Standalone `etl.eigh` on iree-cuda: 39.0 / 1317 / 5778 ms at dims
+- Standalone `evoxc.eigh` on iree-cuda: 39.0 / 1317 / 5778 ms at dims
   10 / 50 / 100, while the no-eigh control runs at 0.087 ms/step. On
   iree-llvm-cpu the dim-100 eigh takes 23676 ms (control 0.157 ms/step).
 - Real-harness iree-cuda (gens=10) matches the standalone cost: 39.5 /
@@ -176,7 +176,7 @@ Measured on healthy hardware with iree 3.11.0:
   faster.
 - Verdict: an iree lowering property — not an evox_etl graph defect, not a
   host round-trip, and not a measurement artifact.
-- Upstream documentation: `/mnt/local-ssd/bchuang/etl/etl/backends/stablehlo/CONTEXT.md`.
+- Upstream documentation: `/mnt/local-ssd/bchuang/evoxc/evoxc/backends/stablehlo/CONTEXT.md`.
 
 ## Multi-objective (MO) — NSGA2 / NSGA3 / MOEAD × DTLZ1 / DTLZ2
 
@@ -403,7 +403,7 @@ is a second host, not a re-measurement of the A6000 matrix above.
 
 **Host/env:** AMD Instinct MI300X (one VF, single tenant), ROCm 7.1, venv
 `/tmp/genesis/task_3858dfe003526650/etlbench-venv/bin/python` (Python 3.14,
-torch 2.13.0+rocm7.1), etl 0.1.0, `evox_etl` imported from this repo's
+torch 2.13.0+rocm7.1), evoxc 0.1.0, `evox_etl` imported from this repo's
 `src/`. Seed 42, 100 generations (caps noted), 2 warmup steps excluded, and
 `ms/step = 1000 · run_time_s / gens` — same case tables, metrics, seeds and
 timing semantics as the CUDA sections (the `_mi300x` suffix marks the
@@ -654,7 +654,7 @@ Hypotheses, and what I consider most likely per group:
   ratio, no parity, nothing to attribute to evox_etl.
 - **`etl-iree-llvm-cpu` MO: 3/12** — MO compilation on this backend is
   nondeterministic, so the three working cells needed process-level retries
-  (the `ETL_COMPILE_ATTEMPTS` recipe); the other 9 are `err`.
+  (the `EVOXC_COMPILE_ATTEMPTS` recipe); the other 9 are `err`.
 - **`torch-rocm` can abort in HIP teardown** after the JSON is written
   (`c10::cuda::SetDevice` inside a `TensorImpl` destructor). The JSON/stdout is
   the source of truth; that abort is not a failed run and cannot affect
@@ -719,13 +719,13 @@ python run.py --backend etl-iree-cuda  --suite so --gpu 0
 python run.py --backend etl-xla-cuda   --suite so --gpu 0
 ```
 
-`--gpu N` applies the GPU environment recipe **before any torch/etl import**
+`--gpu N` applies the GPU environment recipe **before any torch/evoxc import**
 (`bench_common.ensure_gpu_env`; see `results/README.md`):
 
 - `CUDA_VISIBLE_DEVICES=<id>`
 - `LD_LIBRARY_PATH` prepends `/mnt/local-ssd/bchuang/cudnn-xla/lib`
 - `XLA_FLAGS=--xla_gpu_cuda_data_dir=/home/bchuang/xla_cuda_data`
-- `ETL_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`
+- `EVOXC_PJRT_PLUGIN=<venv>/jax_plugins/xla_cuda12/xla_cuda_plugin.so`
 - for `etl-xla-cuda` additionally: `LD_PRELOAD`
   `/mnt/local-ssd/bchuang/cudnn-xla/lib/libcudnn.so.9` (the xla PJRT plugin
   was built against cuDNN 9.8 but DT_RPATHs the venv's 9.1.0) + a

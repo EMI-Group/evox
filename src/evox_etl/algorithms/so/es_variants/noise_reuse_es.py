@@ -1,8 +1,8 @@
 """Functional ETL port of the torch evox NoiseReuseES algorithm (step
 protocol).
 
-Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
 mode. Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/noise_reuse_es.py` exactly: `step` owns
 the WHOLE generation (perturbation sampling/reuse → `evaluate(candidates)` →
@@ -18,9 +18,9 @@ from typing import Callable, Literal, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -31,7 +31,7 @@ from evox_etl.algorithms._config_utils import (
 
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,7 @@ def make_noise_reuse_es(
 
 @dataclass(frozen=True)
 class NoiseReuseESState:
-    """Mutable NoiseReuseES state; all leaves are ETL tensors."""
+    """Mutable NoiseReuseES state; all leaves are ``evoxc`` tensors."""
 
     center: Tensor
     sigma: Tensor
@@ -134,16 +134,16 @@ def step(
     f32 = np.dtype("float32")
     key, subkey = random.split(state.key)
     pos = random.normal(subkey, (half, dim), dtype=f32) * state.sigma
-    perturbations = etl.concatenate([pos, -pos], axis=0)
-    unroll_pert = etl.select(
-        etl.equal(state.inner_step_counter, 0), perturbations, state.unroll_pert
+    perturbations = evoxc.concatenate([pos, -pos], axis=0)
+    unroll_pert = evoxc.select(
+        evoxc.equal(state.inner_step_counter, 0), perturbations, state.unroll_pert
     )
     population = state.center + unroll_pert
     state = replace(state, unroll_pert=unroll_pert, key=key)
 
     fitness = evaluate(population)
 
-    theta_grad = etl.mean(
+    theta_grad = evoxc.mean(
         state.unroll_pert * enp.expand_dims(fitness, axis=1) / (state.sigma * state.sigma),
         axes=0,
     )
@@ -160,13 +160,13 @@ def step(
     else:
         center = state.center - config.lr * theta_grad
         exp_avg, exp_avg_sq = state.exp_avg, state.exp_avg_sq
-    inner_step_counter = etl.select(
+    inner_step_counter = evoxc.select(
         state.inner_step_counter + config.K >= config.T,
         0,
         state.inner_step_counter + config.K,
     )
-    sigma = etl.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = evoxc.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,
@@ -187,8 +187,8 @@ def record_step(
     """Host-side auxiliary-info hook for the monitor (mirrors torch
     `NoiseReuseES.record_step`).
 
-    PLAIN module-level function (NOT ``@etl.defn``): `StdWorkflow` calls it
-    HOST-SIDE on CONCRETE etl tensors of the POST-step state, outside any traced
+    PLAIN module-level function (NOT ``@evoxc.defn``): `StdWorkflow` calls it
+    HOST-SIDE on CONCRETE evoxc tensors of the POST-step state, outside any traced
     graph. `candidate`/`fitness` are accepted-but-ignored, as in torch. Returns
     the distribution summary the monitor's `record_auxiliary` stores.
     """

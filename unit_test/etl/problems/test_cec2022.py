@@ -1,9 +1,9 @@
-"""Pure-etl tests for the CEC2022 suite (NO torch imports here).
+"""Pure-ETL tests for the CEC2022 suite (NO torch imports here).
 
 Covers running every valid (function, dimension) pair on a random population,
 the config assertions mirrored from torch (invalid dimension, f6-8 at D=2),
 error paths, and the f1 shift-point check (fitness == 300 at the optimum).
-Everything runs through ``etl.build`` + ``etl.run`` on the default numpy
+Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default numpy
 backend.
 """
 
@@ -12,8 +12,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 
 from evox_etl.problems.numerical import cec2022 as cec_module
 from evox_etl.problems.numerical.cec2022 import CEC2022, evaluate
@@ -45,9 +45,9 @@ ALL_CASES = [
 def run_cec(func_num, dim, x):
     """Trace ``evaluate(CEC2022(func_num, dim), ProblemState(), pop)`` and run it."""
     config = CEC2022(func_num, dim)
-    spec = etl.core.TensorSpec(x.shape, np.dtype("float32"))
-    exe = etl.build(evaluate, config, ProblemState(), spec)
-    fitness, problem_state = etl.run(exe, config, ProblemState(), x)
+    spec = evoxc.core.TensorSpec(x.shape, np.dtype("float32"))
+    exe = evoxc.build(evaluate, config, ProblemState(), spec)
+    fitness, problem_state = evoxc.run(exe, config, ProblemState(), x)
     return fitness.numpy(), problem_state
 
 

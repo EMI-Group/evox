@@ -1,16 +1,16 @@
 """Functional ETL port of ``src/evox/algorithms/so/pso_variants/utils.py``.
 
-Plain (non-defn) functions — callable only inside an active etl trace.
+Plain (non-defn) functions — callable only inside an active evoxc trace.
 Semantics mirror the torch originals 1:1 (see DESIGN.md §4.3).
 """
 
 from typing import List, Tuple
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 def min_by(values: List[Tensor], keys: List[Tensor]) -> Tuple[Tensor, Tensor]:
@@ -20,13 +20,13 @@ def min_by(values: List[Tensor], keys: List[Tensor]) -> Tuple[Tensor, Tensor]:
     returns the corresponding value (axis-0 row squeezed away) and the minimum
     key itself — the torch ``min_by`` semantics (cat + argmin + index_select).
     """
-    values = etl.concatenate(values, axis=0)
-    keys = etl.concatenate(keys, axis=0)
-    idx = etl.argmin(keys, axis=0)
+    values = evoxc.concatenate(values, axis=0)
+    keys = evoxc.concatenate(keys, axis=0)
+    idx = evoxc.argmin(keys, axis=0)
     idx = enp.reshape(idx, (1,))
     return (
-        enp.reshape(etl.gather(values, idx, axis=0), tuple(values.shape[1:])),
-        enp.reshape(etl.gather(keys, idx, axis=0), ()),
+        enp.reshape(evoxc.gather(values, idx, axis=0), tuple(values.shape[1:])),
+        enp.reshape(evoxc.gather(keys, idx, axis=0), ()),
     )
 
 
@@ -39,16 +39,16 @@ def random_select_from_mask(
     the first ``count`` indices and scatters 1 into a zero mask there — the
     torch ``random_select_from_mask`` semantics with key-first RNG.
     """
-    assert mask.dtype == etl.bool_, f"Expected mask to be boolean, got {mask.dtype}"
+    assert mask.dtype == evoxc.bool_, f"Expected mask to be boolean, got {mask.dtype}"
     key_rand, _ = random.split(key)
-    noise = random.uniform(key_rand, tuple(mask.shape), 0.0, 1.0, etl.float32)
-    sorted_idx = etl.argsort(
-        -(etl.cast(mask, etl.float32) + noise), axis=dim, stable=True
+    noise = random.uniform(key_rand, tuple(mask.shape), 0.0, 1.0, evoxc.float32)
+    sorted_idx = evoxc.argsort(
+        -(evoxc.cast(mask, evoxc.float32) + noise), axis=dim, stable=True
     )
     sliced_idx = sorted_idx[:count]
-    # etl v1 scatter rejects scalar updates (rank-0 vs expected rank 1) —
+    # evoxc v1 scatter rejects scalar updates (rank-0 vs expected rank 1) —
     # use a rank-matching ones update instead (replacement semantics).
-    return etl.scatter(
+    return evoxc.scatter(
         enp.zeros(tuple(mask.shape), dtype=mask.dtype),
         sliced_idx,
         enp.ones(tuple(sliced_idx.shape), dtype=mask.dtype),

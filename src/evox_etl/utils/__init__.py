@@ -1,6 +1,6 @@
-"""evox_etl.utils — functional helpers for the ETL-based EvoX rewrite.
+"""evox_etl.utils — functional helpers for the ``evoxc``-based EvoX rewrite.
 
-Plain (non-defn) functions, callable only inside an active etl trace (except
+Plain (non-defn) functions, callable only inside an active evoxc trace (except
 ``parse_opt_direction``/``compose``, which are pure Python).  Mirrors the JAX
 evox v0.9.0 ``utils/common.py`` surface.  See DESIGN.md §4.3.
 """

@@ -1,4 +1,4 @@
-"""Unit tests for the functional VirtualES port (ETL numpy backend, no torch).
+"""Unit tests for the functional VirtualES port (evoxc numpy backend, no torch).
 
 Coverage:
 1. `make_virtual_es` normalization + validation (ValueError, never bare assert).
@@ -24,8 +24,8 @@ from dataclasses import dataclass
 import numpy as np
 import pytest
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from evox_etl.algorithms.so.es_variants import virtual_es
 from evox_etl.algorithms.so.es_variants.virtual_noise import virtual_normal
@@ -64,7 +64,7 @@ def evaluate(config: _VirtualSphereConfig, state: object, payload: object):
     dim = sum(math.prod(shape) for shape in config.param_shapes)
     noise = virtual_normal(seeds, 0, dim)  # (pop_size, dim)
     perturbed = enp.expand_dims(center, axis=0) + sigma * noise
-    return etl.sum(perturbed * perturbed, axes=1), state
+    return evoxc.sum(perturbed * perturbed, axes=1), state
 
 
 def _config(**overrides: object) -> virtual_es.VirtualESConfig:
@@ -82,10 +82,10 @@ def _config(**overrides: object) -> virtual_es.VirtualESConfig:
 
 def _init_state(cfg: virtual_es.VirtualESConfig, seed: int = 0):
     """Run the traced `init` graph once and return the resulting state."""
-    exe = etl.build(
-        virtual_es.init, cfg, etl.core.TensorSpec((), np.int64), backend="numpy"
+    exe = evoxc.build(
+        virtual_es.init, cfg, evoxc.core.TensorSpec((), np.int64), backend="numpy"
     )
-    return etl.run(exe, cfg, np.asarray(seed, dtype=np.int64))
+    return evoxc.run(exe, cfg, np.asarray(seed, dtype=np.int64))
 
 
 # --------------------------------------------------------------------- make_*
@@ -193,10 +193,10 @@ def _step_once(cfg: virtual_es.VirtualESConfig, state):
 
         return virtual_es.step(cfg, alg_state, evaluate_closure)
 
-    specs = etl.tree_map(
-        lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype), state
+    specs = evoxc.tree_map(
+        lambda t: evoxc.core.TensorSpec(tuple(t.shape), t.dtype), state
     )
-    return etl.run(etl.build(generation, specs, backend="numpy"), state)
+    return evoxc.run(evoxc.build(generation, specs, backend="numpy"), state)
 
 
 def test_step_resamples_seeds_and_moves_the_center():

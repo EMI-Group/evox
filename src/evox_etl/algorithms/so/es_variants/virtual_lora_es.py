@@ -12,8 +12,8 @@ algorithm still stores only ``center`` + ``seeds`` (O(dim) memory).
 
 ``step`` mirrors the torch original in
 ``src/evox/algorithms/so/es_variants/virtual_lora_es.py`` with an extra
-``lora_rank`` hyperparameter.  Plain (non-``@etl.defn``) functions: they may
-only be called inside an active trace, since ETL has no eager mode.
+``lora_rank`` hyperparameter.  Plain (non-``@evoxc.defn``) functions: they may
+only be called inside an active trace, since EvoX Compiler has no eager mode.
 """
 
 from dataclasses import dataclass
@@ -21,8 +21,8 @@ from typing import Callable, Literal, Sequence
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from ..._config_utils import (
     ArrayLike,
@@ -34,7 +34,7 @@ from ..._config_utils import (
 from ._virtual_common import draw_seeds, normalize_param_shapes, param_dim, update_center
 from .virtual_noise import compute_counter_offsets, lora_factors
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 #: float32 dtype spoken by every state leaf.
 F32 = np.dtype("float32")
@@ -154,15 +154,15 @@ def step(
         if isinstance(factors, tuple):
             # >=2-D block: per-individual delta = B @ A has shape (d, k).
             a, b = factors  # (pop_size, rank, k) and (pop_size, d, rank)
-            delta = etl.dot(b, a)  # (pop_size, d, k)
+            delta = evoxc.dot(b, a)  # (pop_size, d, k)
             weighted = delta * enp.expand_dims(weighted_fitness, axis=2)
-            grad_part = etl.sum(weighted, axes=0) / (pop_size * sigma)  # (d, k)
+            grad_part = evoxc.sum(weighted, axes=0) / (pop_size * sigma)  # (d, k)
             parts.append(enp.reshape(grad_part, (-1,)))
         else:
             # 1-D block: factors is the flat (pop_size, n) noise.
-            grad_part = etl.sum(factors * weighted_fitness, axes=0)  # (n,)
+            grad_part = evoxc.sum(factors * weighted_fitness, axes=0)  # (n,)
             parts.append(grad_part / (pop_size * sigma))
-    flat_grad = etl.concatenate(parts, axis=0)
+    flat_grad = evoxc.concatenate(parts, axis=0)
 
     return update_center(config, state, flat_grad, fitness, seeds, key)
 
@@ -188,7 +188,7 @@ def record_step(
 ) -> dict[str, Tensor]:
     """Host-side auxiliary-info hook, mirroring torch ``VirtualLoRAES.record_step``.
 
-    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
     accepted-but-unused, exactly like the torch reference which ignores them.

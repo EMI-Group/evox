@@ -1,15 +1,15 @@
-"""Pure-etl tests for the basic numerical problems (NO torch imports here).
+"""Pure-ETL tests for the basic numerical problems (NO torch imports here).
 
 Covers shapes/dtypes, known optima, raw-math (no boundary clamping) behaviour,
 shift/affine config handling and the plain ``*_func`` helpers.  Everything runs
-through ``etl.build`` + ``etl.run`` on the default numpy backend.
+through ``evoxc.build`` + ``evoxc.run`` on the default numpy backend.
 """
 
 import numpy as np
 import pytest
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 
 from evox_etl.problems.numerical.basic import (
     Ackley,
@@ -37,17 +37,17 @@ RNG = np.random.default_rng(0)
 
 def run_evaluate(config, x):
     """Trace ``evaluate(config, ProblemState(), pop)`` and run it on ``x``."""
-    spec = etl.core.TensorSpec(x.shape, np.dtype("float32"))
-    exe = etl.build(evaluate, config, ProblemState(), spec)
-    fitness, problem_state = etl.run(exe, config, ProblemState(), x)
+    spec = evoxc.core.TensorSpec(x.shape, np.dtype("float32"))
+    exe = evoxc.build(evaluate, config, ProblemState(), spec)
+    fitness, problem_state = evoxc.run(exe, config, ProblemState(), x)
     return fitness.numpy(), problem_state
 
 
 def run_func(fn, x, *static_args):
     """Trace a plain ``*_func`` (e.g. ``ackley_func(a, b, c, x)``) and run it."""
-    spec = etl.core.TensorSpec(x.shape, np.dtype("float32"))
-    exe = etl.build(fn, *static_args, spec)
-    return etl.run(exe, *static_args, x).numpy()
+    spec = evoxc.core.TensorSpec(x.shape, np.dtype("float32"))
+    exe = evoxc.build(fn, *static_args, spec)
+    return evoxc.run(exe, *static_args, x).numpy()
 
 
 def zeros(n=N, dim=DIM):

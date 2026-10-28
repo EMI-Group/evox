@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
-import etl
+import evoxc
 import numpy as np
 
 from evox_etl.operators.selection import ref_vec_guided
@@ -24,8 +24,8 @@ from evox_etl.operators.selection.rvea_selection import apd_fn
 
 
 def _trace(fn, specs, static_args):
-    """Build a numpy-backend executable for a plain etl function."""
-    return etl.build(fn, *specs, *static_args, backend="numpy")
+    """Build a numpy-backend executable for a plain evoxc function."""
+    return evoxc.build(fn, *specs, *static_args, backend="numpy")
 
 
 def _np_ref_ref_vec_guided(x, f, v, theta):
@@ -88,14 +88,14 @@ def test_apd_fn_exact_values():
     exe = _trace(
         apd_fn,
         [
-            etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("int64")),
-            etl.core.TensorSpec(shape=y.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=z.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=obj.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=x.shape, dtype=np.dtype("int64")),
+            evoxc.core.TensorSpec(shape=y.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=z.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=obj.shape, dtype=np.dtype("float32")),
         ],
         [theta],
     )
-    got = etl.run(exe, x, y, z, obj, theta)
+    got = evoxc.run(exe, x, y, z, obj, theta)
     np.testing.assert_allclose(got.numpy(), expected, rtol=1e-5, atol=1e-6)
 
 
@@ -110,13 +110,13 @@ def test_ref_vec_guided_known_selection():
     exe = _trace(
         ref_vec_guided,
         [
-            etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
         ],
         [theta],
     )
-    got_x, got_f = etl.run(exe, x, f, v, theta)
+    got_x, got_f = evoxc.run(exe, x, f, v, theta)
     assert got_x.shape == (nv, d)
     assert got_f.shape == (nv, m)
     assert np.isfinite(got_x.numpy()).all()
@@ -150,13 +150,13 @@ def test_ref_vec_guided_nonorthogonal_vectors():
     exe = _trace(
         ref_vec_guided,
         [
-            etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
         ],
         [theta],
     )
-    got_x, got_f = etl.run(exe, x, f, v, theta)
+    got_x, got_f = evoxc.run(exe, x, f, v, theta)
     assert got_x.shape == (nv, d)
     assert got_f.shape == (nv, m)
     assert np.isfinite(got_x.numpy()).all()
@@ -178,13 +178,13 @@ def test_ref_vec_guided_nan_solution_never_selected():
     exe = _trace(
         ref_vec_guided,
         [
-            etl.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
-            etl.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=x.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=f.shape, dtype=np.dtype("float32")),
+            evoxc.core.TensorSpec(shape=v.shape, dtype=np.dtype("float32")),
         ],
         [theta],
     )
-    got_x, got_f = etl.run(exe, x, f, v, theta)
+    got_x, got_f = evoxc.run(exe, x, f, v, theta)
     assert got_x.shape == (nv, d)
     assert got_f.shape == (nv, m)
     # no NaN rows in the output and the NaN-fitness solution is never chosen

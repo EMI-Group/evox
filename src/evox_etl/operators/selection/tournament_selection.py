@@ -2,9 +2,9 @@
 
 from typing import List
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from .non_dominate import _lexsort, _take_along_axis
 
@@ -26,13 +26,13 @@ def tournament_selection(key, n_round: int, fitness, tournament_size: int = 2):
     num_candidates = fitness.shape[0]
 
     parents = random.randint(key, (n_round, tournament_size), 0, num_candidates, 'int32')
-    candidates_fitness = etl.gather(fitness, parents, axis=0)
+    candidates_fitness = evoxc.gather(fitness, parents, axis=0)
 
-    winner_indices = etl.argmin(candidates_fitness, axis=1)
+    winner_indices = evoxc.argmin(candidates_fitness, axis=1)
 
-    selected_parents = etl.gather(
-        etl.reshape(parents, (-1,)),
-        enp.arange(n_round, dtype='int64') * tournament_size + etl.cast(winner_indices, 'int64'),
+    selected_parents = evoxc.gather(
+        evoxc.reshape(parents, (-1,)),
+        enp.arange(n_round, dtype='int64') * tournament_size + evoxc.cast(winner_indices, 'int64'),
     )
 
     return selected_parents
@@ -53,17 +53,17 @@ def tournament_selection_multifit(
     This function performs tournament selection by randomly selecting a group of candidates for each round,
     and selecting the best one from each group based on their fitness values across multiple objectives.
     """
-    fitness_tensor = etl.stack(fitnesses, axis=1)
+    fitness_tensor = evoxc.stack(fitnesses, axis=1)
     n_fit = fitness_tensor.shape[1]
 
     num_candidates = fitness_tensor.shape[0]
     parents = random.randint(key, (n_round, tournament_size), 0, num_candidates, 'int32')
-    candidates_fitness = etl.gather(fitness_tensor, parents, axis=0)
+    candidates_fitness = evoxc.gather(fitness_tensor, parents, axis=0)
     keys = [
-        etl.gather(candidates_fitness, etl.constant(etl.core.tensor(i, dtype='int64')), axis=-1)
+        evoxc.gather(candidates_fitness, evoxc.constant(evoxc.core.tensor(i, dtype='int64')), axis=-1)
         for i in range(n_fit)
     ]
     candidates_order = _lexsort(keys, axis=1)
 
     selected_parents = _take_along_axis(parents, candidates_order[:, :1], axis=1)
-    return etl.reshape(selected_parents, (n_round,))
+    return evoxc.reshape(selected_parents, (n_round,))

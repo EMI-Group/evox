@@ -17,7 +17,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import etl
+import evoxc
 
 from evox_etl.algorithms.so.es_variants import virtual_es, virtual_lora_es
 from evox_etl.core.workflow import StdWorkflow
@@ -84,13 +84,13 @@ def _center_loss(problem: virtual_problem.VirtualProblemConfig, center: np.ndarr
         fitness, _ = virtual_problem.evaluate(problem, ProblemState(), (center_flat, seed_flat, 0.0))
         return fitness
 
-    exe = etl.build(
+    exe = evoxc.build(
         body,
-        etl.core.TensorSpec((DIM,), np.float32),
-        etl.core.TensorSpec((1,), np.int64),
+        evoxc.core.TensorSpec((DIM,), np.float32),
+        evoxc.core.TensorSpec((1,), np.int64),
         backend="numpy",
     )
-    return float(np.mean(etl.run(exe, center, seeds).numpy()))
+    return float(np.mean(evoxc.run(exe, center, seeds).numpy()))
 
 
 def _center_of(state) -> np.ndarray:
@@ -193,12 +193,12 @@ def test_virtual_es_workflow_runs_with_eval_monitor():
 def test_monitor_candidate_broadcasts_center(module):
     """`monitor_candidate` broadcasts the ``(dim,)`` center to ``(pop, dim)``."""
     dim, pop = 5, 4
-    exe = etl.build(
+    exe = evoxc.build(
         lambda center, seeds: module.monitor_candidate((center, seeds, 0.1)),
-        etl.core.TensorSpec((dim,), np.float32),
-        etl.core.TensorSpec((pop,), np.int64),
+        evoxc.core.TensorSpec((dim,), np.float32),
+        evoxc.core.TensorSpec((pop,), np.int64),
         backend="numpy",
     )
-    out = etl.run(exe, np.arange(dim, dtype=np.float32), np.zeros(pop, np.int64)).numpy()
+    out = evoxc.run(exe, np.arange(dim, dtype=np.float32), np.zeros(pop, np.int64)).numpy()
     assert out.shape == (pop, dim)
     np.testing.assert_array_equal(out, np.tile(np.arange(dim, dtype=np.float32), (pop, 1)))

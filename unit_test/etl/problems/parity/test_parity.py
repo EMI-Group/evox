@@ -1,4 +1,4 @@
-"""Parity tests: functional evox_etl (etl numpy backend) vs torch evox.
+"""Parity tests: functional evox_etl (evoxc numpy backend) vs torch evox.
 
 This is the ONLY file in the suite allowed to import torch (DESIGN §6).  The
 same seeded numpy populations are evaluated by both implementations and
@@ -12,8 +12,8 @@ import numpy as np
 import pytest
 import torch
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 
 import evox.problems.numerical as torch_num
 import evox.problems.numerical.basic as torch_basic  # Zakharov/Levy live here only
@@ -25,7 +25,7 @@ from evox_etl.problems.numerical.state import ProblemState
 
 RNG = np.random.default_rng(2024)
 
-# (name, etl config class, torch problem class, default d)
+# (name, ETL config class, torch problem class, default d)
 BASIC_CASES = [
     ("Ackley", etl_basic.Ackley, torch_num.Ackley),
     ("Griewank", etl_basic.Griewank, torch_num.Griewank),
@@ -38,7 +38,7 @@ BASIC_CASES = [
     ("Levy", etl_basic.Levy, torch_basic.Levy),
 ]
 
-# (name, etl config class, torch problem class, default d)
+# (name, ETL config class, torch problem class, default d)
 DTLZ_CASES = [
     ("DTLZ1", etl_dtlz.DTLZ1, torch_num.DTLZ1, 7),
     ("DTLZ2", etl_dtlz.DTLZ2, torch_num.DTLZ2, 12),
@@ -55,16 +55,16 @@ CEC_CASES = [(f, 10) for f in range(1, 13)] + [(1, 2), (9, 2), (1, 20), (9, 20)]
 
 def run_etl(fn, config, x):
     """Trace ``fn(config, ProblemState(), pop)`` and run it on ``x`` (numpy)."""
-    spec = etl.core.TensorSpec(x.shape, np.dtype("float32"))
-    exe = etl.build(fn, config, ProblemState(), spec)
-    fitness, _ = etl.run(exe, config, ProblemState(), x)
+    spec = evoxc.core.TensorSpec(x.shape, np.dtype("float32"))
+    exe = evoxc.build(fn, config, ProblemState(), spec)
+    fitness, _ = evoxc.run(exe, config, ProblemState(), x)
     return fitness.numpy()
 
 
 def run_etl_pf(fn, config):
     """Trace ``fn(config)`` (no tensor args) and run it."""
-    exe = etl.build(fn, config)
-    return etl.run(exe, config).numpy()
+    exe = evoxc.build(fn, config)
+    return evoxc.run(exe, config).numpy()
 
 
 def run_torch(torch_cls, x, **kwargs):

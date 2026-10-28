@@ -1,9 +1,9 @@
-"""Pure-etl tests for the virtual Gaussian-noise neuroevolution problem.
+"""Pure-ETL tests for the virtual Gaussian-noise neuroevolution problem.
 
 No torch imports: the expected fitness is computed by an INDEPENDENT pure-numpy
 reference that re-derives the same splitmix64 + Box-Muller noise stream and
 re-implements the layer-by-layer forward pass / loss.  Everything runs through
-``etl.build`` + ``etl.run`` on the default numpy backend.
+``evoxc.build`` + ``evoxc.run`` on the default numpy backend.
 """
 
 import dataclasses
@@ -12,8 +12,8 @@ import math
 import numpy as np
 import pytest
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 
 from evox_etl.problems.numerical.state import ProblemState
 from evox_etl.problems.neuroevolution.virtual_problem import (
@@ -176,12 +176,12 @@ def base_kwargs():
 def run_evaluate(config, center, seeds, sigma=SIGMA):
     """Trace ``evaluate`` and run it on the payload; returns cpu fitness + state."""
     payload_spec = (
-        etl.core.TensorSpec(center.shape, np.dtype("float32")),
-        etl.core.TensorSpec(seeds.shape, np.dtype("int64")),
+        evoxc.core.TensorSpec(center.shape, np.dtype("float32")),
+        evoxc.core.TensorSpec(seeds.shape, np.dtype("int64")),
         sigma,
     )
-    exe = etl.build(evaluate, config, ProblemState(), payload_spec)
-    fitness, problem_state = etl.run(exe, config, ProblemState(), (center, seeds, sigma))
+    exe = evoxc.build(evaluate, config, ProblemState(), payload_spec)
+    fitness, problem_state = evoxc.run(exe, config, ProblemState(), (center, seeds, sigma))
     return fitness.numpy(), problem_state
 
 

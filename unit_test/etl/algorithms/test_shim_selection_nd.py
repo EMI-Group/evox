@@ -18,8 +18,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 import numpy as np
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox_etl.operators.selection import (
     crowding_distance,
@@ -39,11 +39,11 @@ def spec(shape, dtype="float32"):
 
 def build_run(fn, args, inputs):
     """Build fn with mixed TensorSpec/static args (fn's parameter order) and run."""
-    exe = etl.build(fn, *args, backend="numpy")
+    exe = evoxc.build(fn, *args, backend="numpy")
     full_args = [
         next(inputs) if isinstance(a, core.TensorSpec) else a for a in args
     ]
-    return etl.run(exe, *full_args)
+    return evoxc.run(exe, *full_args)
 
 
 def test_dominate_relation():

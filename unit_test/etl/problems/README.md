@@ -1,7 +1,7 @@
 # evox_etl problems — test suite
 
 Pytest suite for the functional `evox_etl` problems, running everything through
-`etl.build` + `etl.run` on the numpy backend. The pure-etl tests (no torch) live
+`evoxc.build` + `evoxc.run` on the numpy backend. The pure-ETL tests (no torch) live
 at the top level:
 
 - `test_basic.py`, `test_dtlz.py`, `test_cec2022.py` — the numerical problems

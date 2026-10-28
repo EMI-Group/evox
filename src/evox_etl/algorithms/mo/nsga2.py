@@ -19,9 +19,9 @@ from typing import Callable, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.crossover import simulated_binary
@@ -50,7 +50,7 @@ class NSGA2Config:
 
     The optional op fields mirror the torch class: ``None`` means the torch
     default (``tournament_selection_multifit`` / ``simulated_binary`` /
-    ``polynomial_mutation``). A custom op must match the etl keyed signature of
+    ``polynomial_mutation``). A custom op must match the evoxc keyed signature of
     the default it replaces — ``selection_op(key, n_parents, fitness)``,
     ``crossover_op(key, x)``, ``mutation_op(key, x, lb, ub)``.
     """
@@ -76,8 +76,8 @@ def _config_unflatten(config: NSGA2Config, _children) -> NSGA2Config:
 # This registration is REQUIRED: the config carries optional callable op fields
 # (selection_op/mutation_op/crossover_op), and functions are not valid static
 # pytree leaves — so the config travels as one opaque childless node through
-# etl.build/etl.run untouched.
-etl.register_pytree_node(NSGA2Config, _config_flatten, _config_unflatten)
+# evoxc.build/evoxc.run untouched.
+evoxc.register_pytree_node(NSGA2Config, _config_flatten, _config_unflatten)
 
 
 def make_nsga2(
@@ -124,15 +124,15 @@ class NSGA2State:
     always has shape (pop_size, dim) so the state pytree never changes.
     """
 
-    pop: etl.SymbolicTensor
-    fit: etl.SymbolicTensor
-    rank: etl.SymbolicTensor
-    dis: etl.SymbolicTensor
-    offspring: etl.SymbolicTensor
-    key: etl.SymbolicTensor
+    pop: evoxc.SymbolicTensor
+    fit: evoxc.SymbolicTensor
+    rank: evoxc.SymbolicTensor
+    dis: evoxc.SymbolicTensor
+    offspring: evoxc.SymbolicTensor
+    key: evoxc.SymbolicTensor
 
 
-def init(config: NSGA2Config, key: etl.SymbolicTensor) -> NSGA2State:
+def init(config: NSGA2Config, key: evoxc.SymbolicTensor) -> NSGA2State:
     """Draw the initial population uniformly in [lb, ub]; unfit until init_step."""
     lb, ub = bake_bounds(config.lb, config.ub)
     dim = len(config.lb)
@@ -167,15 +167,15 @@ def step(config: NSGA2Config, state: NSGA2State, evaluate: Callable) -> NSGA2Sta
     mating_pool = selection(
         k_sel,
         config.pop_size,
-        [etl.negate(state.dis), etl.cast(state.rank, F32)],
+        [evoxc.negate(state.dis), evoxc.cast(state.rank, F32)],
     )
-    crossovered = crossover(k_cross, etl.gather(state.pop, mating_pool, axis=0))
+    crossovered = crossover(k_cross, evoxc.gather(state.pop, mating_pool, axis=0))
     offspring = mutation(k_mut, crossovered, lb, ub)
     offspring = clamp(offspring, lb, ub)
     intermediate = replace(state, offspring=offspring, key=key)
 
     fitness = evaluate(offspring)
-    merge_pop = etl.concatenate([intermediate.pop, intermediate.offspring], axis=0)
-    merge_fit = etl.concatenate([intermediate.fit, fitness], axis=0)
+    merge_pop = evoxc.concatenate([intermediate.pop, intermediate.offspring], axis=0)
+    merge_fit = evoxc.concatenate([intermediate.fit, fitness], axis=0)
     pop, fit, rank, dis = nd_environmental_selection(merge_pop, merge_fit, config.pop_size)
     return replace(intermediate, pop=pop, fit=fit, rank=rank, dis=dis)

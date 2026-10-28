@@ -21,8 +21,8 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 import numpy as np
 import pytest
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import rveaa
@@ -57,13 +57,13 @@ def make_config(**op_kwargs):
 
 
 def _leaf_spec(t):
-    """TensorSpec mirroring one etl tensor leaf."""
-    return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
+    """TensorSpec mirroring one evoxc tensor leaf."""
+    return evoxc.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
 def _spec_tree(pytree):
-    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
-    return etl.tree_map(_leaf_spec, pytree)
+    """Pytree of evoxc tensors -> pytree of TensorSpecs (state mirror)."""
+    return evoxc.tree_map(_leaf_spec, pytree)
 
 
 def _trace_step(step_fn, cfg, state):
@@ -85,15 +85,15 @@ def _trace_step(step_fn, cfg, state):
 
         return step_fn(cfg, state, evaluate), box["batch"]
 
-    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
-    return etl.run(exe, state), seen
+    exe = evoxc.build(generation_fn, _spec_tree(state), backend="numpy")
+    return evoxc.run(exe, state), seen
 
 
 def _init_state(cfg, seed=SEED):
     """Build+run ``rveaa.init`` for ``cfg``; return the initial state."""
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(rveaa.init, cfg, key_spec, backend="numpy")
-    return etl.run(init_exe, cfg, np.asarray(seed, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(rveaa.init, cfg, key_spec, backend="numpy")
+    return evoxc.run(init_exe, cfg, np.asarray(seed, dtype=np.int64))
 
 
 def _run_one_step(cfg, seed=SEED):
@@ -170,7 +170,7 @@ def test_full_run_deterministic():
 def test_custom_ops_are_invoked():
     """A user-supplied op is actually called (not silently ignored).
 
-    The custom ops are plain Python functions executed during ``etl.build``
+    The custom ops are plain Python functions executed during ``evoxc.build``
     tracing; they record each call and delegate to the ETL defaults.
     """
     calls = {"selection": 0, "crossover": 0, "mutation": 0}

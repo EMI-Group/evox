@@ -2,10 +2,10 @@
 
 ## Intent
 Port of torch evox mutation operators (`../../../evox/operators/mutation/`, read-only)
-as PLAIN functions (NO `@etl.defn` — plain functions compose inside traces; defn
+as PLAIN functions (NO `@evoxc.defn` — plain functions compose inside traces; defn
 objects raise when called). Porting rules (binding, `../../DESIGN.md` §4.3): keep torch
 argument names/order EXACTLY; functions using randomness gain `key` as FIRST parameter
-(`etl.random`; split from the caller's key); torch→etl op translation (where→select,
+(`evoxc.random`; split from the caller's key); torch→evoxc op translation (where→select,
 pow→power, logical and→logical_and).
 
 ## Files
@@ -16,19 +16,19 @@ pow→power, logical and→logical_and).
 
 ## API Surface
 - `polynomial_mutation(key, x, lb, ub, pro_m, dis_m) -> (n, d) float32 tensor`.
-  `key`: etl int64 scalar key tensor (e.g. `etl.random.key(42)`).
+  `key`: evoxc int64 scalar key tensor (e.g. `evoxc.random.key(42)`).
 
 ## Gotchas (verified)
-- No `etl.full/zeros/ones/empty` inside traces (concrete eager tensors raise in graph
+- No `evoxc.full/zeros/ones/empty` inside traces (concrete eager tensors raise in graph
   ops) — use select-chains with scalar `0.0` for the where-else branch.
-- `etl.run(exe, key, x, lb, ub, pro_m, dis_m)` — static scalar args (pro_m, dis_m)
-  must be re-passed to `etl.run` (they are part of the run signature), and the graph
+- `evoxc.run(exe, key, x, lb, ub, pro_m, dis_m)` — static scalar args (pro_m, dis_m)
+  must be re-passed to `evoxc.run` (they are part of the run signature), and the graph
   SPECIALIZES on their values at build time: re-passing a different scalar (e.g.
-  pro_m=0.0 on a graph built with 1.0) raises `etl.core.TraceError` — build a
+  pro_m=0.0 on a graph built with 1.0) raises `evoxc.core.TraceError` — build a
   separate executable per distinct static value.
-- Key spec for `etl.build`: `etl.core.TensorSpec((), "int64")`.
-  (`TensorSpec.from_tensor` does NOT exist in current etl.)
-- `etl.random.key(seed)` returns an eager int64 scalar Tensor (creatable outside
+- Key spec for `evoxc.build`: `evoxc.core.TensorSpec((), "int64")`.
+  (`TensorSpec.from_tensor` does NOT exist in current evoxc.)
+- `evoxc.random.key(seed)` returns an eager int64 scalar Tensor (creatable outside
   traces); `split`/`uniform` only work inside traces.
-- numpy arrays are accepted as `etl.run` inputs on the numpy (cpu) backend;
+- numpy arrays are accepted as `evoxc.run` inputs on the numpy (cpu) backend;
   outputs convert via `out.numpy()` (np.asarray does NOT work).

@@ -1,7 +1,7 @@
 """Inverted Generational Distance (IGD) metrics."""
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from ._distance import pairwise_euclidean
 
@@ -22,9 +22,9 @@ def igd(objs, pf, p: float = 1.0):
     A lower IGD score indicates that the approximation is closer to the Pareto front.
     ```
     """
-    min_dis = etl.min(pairwise_euclidean(pf, objs), axes=1)
-    return etl.cast(
-        (etl.mean(min_dis ** float(p), axes=None)) ** (1.0 / float(p)), 'float32'
+    min_dis = evoxc.min(pairwise_euclidean(pf, objs), axes=1)
+    return evoxc.cast(
+        (evoxc.mean(min_dis ** float(p), axes=None)) ** (1.0 / float(p)), 'float32'
     )
 
 
@@ -39,9 +39,9 @@ def igd_plus(objs, pf, p: float = 1.0):
     """
     # distance from each front point to the solutions: sqrt(sum(max(obj - pf, 0)^2))
     diff = enp.expand_dims(objs, 0) - enp.expand_dims(pf, 1)
-    distances = etl.sqrt(etl.sum(etl.maximum(diff, 0.0) ** 2, axes=-1))
-    min_dis = etl.min(distances, axes=1)
-    return etl.cast(
-        (etl.sum(min_dis ** float(p), axes=None) / float(pf.shape[0])) ** (1.0 / float(p)),
+    distances = evoxc.sqrt(evoxc.sum(evoxc.maximum(diff, 0.0) ** 2, axes=-1))
+    min_dis = evoxc.min(distances, axes=1)
+    return evoxc.cast(
+        (evoxc.sum(min_dis ** float(p), axes=None) / float(pf.shape[0])) ** (1.0 / float(p)),
         'float32',
     )

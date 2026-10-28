@@ -1,9 +1,9 @@
 # unit_test/etl — tests for the functional evox_etl package
 
 ## Intent
-pytest suite mirroring `src/evox_etl/` (functional EvoX on ETL). Seven sub-suites:
+pytest suite mirroring `src/evox_etl/` (functional EvoX on evoxc). Seven sub-suites:
 1. `algorithms/` — algorithm smoke/parity tests + converted operator-shim tests
-   (canonical `evox_etl.operators.*` imports; etl-only, no torch except `parity/`).
+   (canonical `evox_etl.operators.*` imports; ETL-only, no torch except `parity/`).
    Includes the virtual-ES / VirtualLoRA-ES smoke tests and the virtual
    end-to-end convergence tests under `so/es_variants/`; `parity/` also holds the
    ES-variant ASEBO/ARS/CMA-ES STATE-level parity file (`test_parity.py`).
@@ -38,10 +38,13 @@ import as `parity.*`, `metrics.parity.*`, `problems.parity.*`,
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
 
 ## Environment
+The compiler the port and these tests run on is `evoxc` (distribution `evoxc`
+0.1.0; traced surface `evoxc`, `evoxc.core`, `evoxc.numpy`, `evoxc.random`,
+`evoxc.io`, `evoxc.ops`).
 `evox_etl` and `evox_etl_ext` are PEP 420 namespace packages under `src/` (not
 pip-installed), so drivers need `PYTHONPATH=src:<site-packages>`. Provision a
-writable venv: `uv venv` then `uv pip install <copy-of-/home/bill/Source/etl>
-pytest numpy` (etl's own checkout is read-only — install from a copy), and set
+writable venv: `uv venv` then `uv pip install <copy-of-/root/evoxc>
+pytest numpy` (evoxc's own checkout is read-only — install from a copy), and set
 `PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
 (that primary venv supplies plotly/torch; it is read-only).
 plotly enables the figure assertions of `vis_tools/` and
@@ -49,22 +52,22 @@ plotly enables the figure assertions of `vis_tools/` and
 the plotly-missing branches still run.
 
 ## Coverage notes (durable audit findings)
-- NO test under this tree uses any etl backend other than `"numpy"` on CPU: no
+- NO test under this tree uses any evoxc backend other than `"numpy"` on CPU: no
   `backend="iree"/"xla"`, no `Device(...)`, no cuda.
   Compiled-backend/GPU paths are exercised only by the `benchmarks/etl_vs_torch/`
-  harness (torch-cuda/etl-iree-llvm-cpu/etl-iree-cuda/etl-xla-cuda), not by unit tests.
+  harness (torch-cuda/evoxc-iree-llvm-cpu/evoxc-iree-cuda/evoxc-xla-cuda), not by unit tests.
 - The only skip mechanism in the tree is `skipif`-guarding of Plotly figure
   assertions (plotly present in the primary venv, so the gate run reports 0 skips);
   there are no `pytest.mark.skip`/`xfail` markers. Known-not-ported code (e.g.
-  asebo's iree/xla `etl.svd` blocker) simply has no module/test to exercise it —
+  asebo's iree/xla `evoxc.svd` blocker) simply has no module/test to exercise it —
   see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
 - `evox_etl`'s own `StdWorkflow`/`EvalMonitor` (`src/evox_etl/core/workflow.py`,
   `workflows/`) ARE covered here by the `workflows/` suite (EvalMonitor shape
   policy + auxiliary-history channel + `EvalMonitor.plot`, driven directly
-  through `etl.build`/`etl.run` and via real algorithms with CoDE/CSO/PSO).
+  through `evoxc.build`/`evoxc.run` and via real algorithms with CoDE/CSO/PSO).
   Algorithm tests still drive raw init/step via `helpers.run_generations`, and
   parity tests drive the TORCH StdWorkflow.
-- Algorithms with etl-only smoke coverage and no torch parity: code/jade/ode/
+- Algorithms with ETL-only smoke coverage and no torch parity: code/jade/ode/
   sade/shade, des/esmc/guided_es/nes/noise_reuse_es/persistent_es/snes,
   rvea/rveaa/hype. Convergence parity exists for de, pso, cma_es, open_es,
   nsga2, nsga3, moead; ars/asebo/cma_es additionally have STATE-level parity
@@ -91,7 +94,7 @@ the plotly-missing branches still run.
 - Repo-root `conftest.py` shims sys.path (repo root + `src/`); each `parity/` and
   the problems/metrics/vis_tools/workflows suites also carry idempotent
   relocate-ready conftest shims.
-- Test pattern: `etl.build(fn, *specs, backend="numpy")` + `etl.run(exe, *args)`;
+- Test pattern: `evoxc.build(fn, *specs, backend="numpy")` + `evoxc.run(exe, *args)`;
   scalar tensor inputs are 0-d ndarrays (numpy scalars rejected at run boundary);
   statics re-passed at run in signature order; results need `.numpy()`.
 

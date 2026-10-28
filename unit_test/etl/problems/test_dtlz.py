@@ -1,16 +1,16 @@
-"""Pure-etl tests for the DTLZ problems (NO torch imports here).
+"""Pure-ETL tests for the DTLZ problems (NO torch imports here).
 
 Covers evaluate shapes/dtypes for all variants at their default configs, known
 values, custom configs, and the ``pf`` reference fronts (shapes + value
-ranges).  Everything runs through ``etl.build`` + ``etl.run`` on the default
+ranges).  Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default
 numpy backend; traced shapes are fully static (concrete n and d).
 """
 
 import numpy as np
 import pytest
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 
 from evox_etl.problems.numerical.dtlz import (
     DTLZ1,
@@ -43,16 +43,16 @@ DTLZ_CASES = [
 
 def run_evaluate(config, x):
     """Trace ``evaluate(config, ProblemState(), pop)`` and run it on ``x``."""
-    spec = etl.core.TensorSpec(x.shape, np.dtype("float32"))
-    exe = etl.build(evaluate, config, ProblemState(), spec)
-    fitness, problem_state = etl.run(exe, config, ProblemState(), x)
+    spec = evoxc.core.TensorSpec(x.shape, np.dtype("float32"))
+    exe = evoxc.build(evaluate, config, ProblemState(), spec)
+    fitness, problem_state = evoxc.run(exe, config, ProblemState(), x)
     return fitness.numpy(), problem_state
 
 
 def run_pf(config):
     """Trace ``pf(config)`` (no tensor args) and run it."""
-    exe = etl.build(pf, config)
-    return etl.run(exe, config).numpy()
+    exe = evoxc.build(pf, config)
+    return evoxc.run(exe, config).numpy()
 
 
 # --- evaluate: shapes / dtypes / finiteness -------------------------------

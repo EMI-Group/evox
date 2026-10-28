@@ -5,7 +5,7 @@ implementations exercised by this benchmark: the PyTorch-native OOP `evox`
 (`src/evox/`, `torch.nn.Module`-based `Algorithm` classes with in-place
 `Mutable` state) and its functional port `evox_etl` (`src/evox_etl/`, frozen
 config/state dataclasses plus pure `init`/`ask`/`tell` functions traced by the
-`etl` tensor library). Both implement the same algorithms/problems with 1:1
+`evoxc` tensor library). Both implement the same algorithms/problems with 1:1
 semantics (PSO, DE, CMA-ES, OpenES, NSGA2/NSGA3/MOEAD on
 Sphere/Rastrigin/Ackley/DTLZ1/DTLZ2), so this is purely about how each style
 expresses the same computation — readability, state handling, device/dtype/
@@ -69,9 +69,9 @@ def init(config: PSO, key: Tensor) -> PSOState:
     length = ub - lb
     pop_size, dim = config.pop_size, len(config.lb)
     subkey_pop, subkey_vel = random.split(subkey)
-    pop = length * random.uniform(subkey_pop, (pop_size, dim), 0.0, 1.0, etl.float32) + lb
+    pop = length * random.uniform(subkey_pop, (pop_size, dim), 0.0, 1.0, evoxc.float32) + lb
     ...
-    inf_fit = enp.full((pop_size,), float("inf"), dtype=etl.float32)
+    inf_fit = enp.full((pop_size,), float("inf"), dtype=evoxc.float32)
     return PSOState(pop=pop, velocity=velocity, fit=inf_fit,
                     local_best_location=pop, local_best_fit=inf_fit, ..., key=key)
 ```
@@ -112,15 +112,15 @@ def ask(config: PSO, state: PSOState) -> Tuple[Tensor, PSOState]:
     lb, ub = _bounds(config)
     pop_size, dim = config.pop_size, len(config.lb)
     compare = state.local_best_fit > state.fit
-    local_best_location = etl.select(
+    local_best_location = evoxc.select(
         enp.expand_dims(compare, axis=1), state.pop, state.local_best_location
     )
-    local_best_fit = etl.select(compare, state.fit, state.local_best_fit)
+    local_best_fit = evoxc.select(compare, state.fit, state.local_best_fit)
     global_best_location, global_best_fit = min_by(...)    # same math as torch
     key, subkey = random.split(state.key)          # PRNG threaded explicitly
     subkey_rg, subkey_rp = random.split(subkey)
-    rg = random.uniform(subkey_rg, (pop_size, dim), 0.0, 1.0, etl.float32)
-    rp = random.uniform(subkey_rp, (pop_size, dim), 0.0, 1.0, etl.float32)
+    rg = random.uniform(subkey_rg, (pop_size, dim), 0.0, 1.0, evoxc.float32)
+    rp = random.uniform(subkey_rp, (pop_size, dim), 0.0, 1.0, evoxc.float32)
     velocity = (
         config.w * state.velocity
         + config.phi_p * rp * (local_best_location - state.pop)
@@ -236,7 +236,7 @@ for _ in range(case.gens):
 - **Static shapes, no eager mode**: the tracer rejects numpy arrays/scalars as
   static trace arguments (`TraceError`), so bounds are stored as float tuples
   (`PSO.__post_init__`, `pso.py:43-51`), and everything runs through
-  `etl.build`/`etl.run` — no dynamic shapes, and you cannot step through one
+  `evoxc.build`/`evoxc.run` — no dynamic shapes, and you cannot step through one
   tensor op interactively as in torch.
 - **Op-coverage gaps surface at compile time**: the stablehlo exporter defers
   `cumprod`/`flip` used by DTLZ
@@ -263,7 +263,7 @@ adapter reality is visible in the numbers: `results/so_etl-xla-cuda.json`
 shows PSO/Sphere at ~5.4 ms/step (100x10) and ~17 ms/step (10000x100) after
 ~2-4 s of compile, while `results/so_torch-cuda.json` holds ~1.1 ms/step at
 every scale in eager mode — but the etl staging cost is adapter overhead
-(host↔device copies per `etl.run`, see `results/README.md`), not the
+(host↔device copies per `evoxc.run`, see `results/README.md`), not the
 functional style itself, and the MO gaps are compiler-adapter gaps, not
 language gaps. Per-case tables, parity checks, and error notes live in
 `results/*.json` (with the `BENCHMARK_RESULTS.md` ms/step summary generated

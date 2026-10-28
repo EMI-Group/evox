@@ -1,13 +1,13 @@
 """Smoke tests for the es_variants shared helpers (adam_step, sort_utils).
 
-ETL has no eager mode: the helpers are plain functions exercised inside a
-traced wrapper via `etl.build`/`etl.run` (numpy backend). No torch imports.
+`evoxc` has no eager mode: the helpers are plain functions exercised inside a
+traced wrapper via `evoxc.build`/`evoxc.run` (numpy backend). No torch imports.
 """
 
 import numpy as np
 
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox_etl.algorithms.so.es_variants.adam_step import adam_single_tensor
 from evox_etl.algorithms.so.es_variants.sort_utils import sort_by_key
@@ -32,12 +32,12 @@ def test_adam_single_tensor():
             weight_decay=wd, eps=eps,
         )
 
-    exe = etl.build(
+    exe = evoxc.build(
         _apply, _spec(param), _spec(grad), _spec(exp_avg), _spec(exp_avg_sq),
         backend="numpy",
     )
     new_param, new_ea, new_eas = [
-        t.numpy() for t in etl.run(exe, param, grad, exp_avg, exp_avg_sq)
+        t.numpy() for t in evoxc.run(exe, param, grad, exp_avg, exp_avg_sq)
     ]
 
     g = grad + wd * param
@@ -54,10 +54,10 @@ def test_sort_by_key():
     keys = rng.standard_normal((10,)).astype(np.float32)
     pop = rng.standard_normal((10, 3)).astype(np.float32)
 
-    exe = etl.build(
+    exe = evoxc.build(
         sort_by_key, _spec(keys), _spec(pop), backend="numpy"
     )
-    sk, sp = [t.numpy() for t in etl.run(exe, keys, pop)]
+    sk, sp = [t.numpy() for t in evoxc.run(exe, keys, pop)]
 
     np.testing.assert_allclose(sk, np.sort(keys), rtol=0, atol=1e-6)
     np.testing.assert_array_equal(sp, pop[np.argsort(keys)])

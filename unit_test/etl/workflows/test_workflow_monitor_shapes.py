@@ -8,7 +8,7 @@ behavior end-to-end through ``StdWorkflow``: no ShapeError at generation 2
 (the pre-fix crash), sane convergence on Sphere, full-batch history entries
 and a monotone running elite.
 
-These tests go through ``evox_etl.workflows.StdWorkflow`` (the etl workflow —
+These tests go through ``evox_etl.workflows.StdWorkflow`` (the ETL workflow —
 NOT torch). Numpy backend only; no torch imports.
 """
 

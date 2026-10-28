@@ -3,10 +3,10 @@
 Each torch class becomes a frozen config dataclass mirroring the torch
 ``__init__`` signature (``shift``/``affine`` are numpy arrays; no ``device``).
 ``evaluate`` is a plain module-level function (no decorator — the workflow
-traces it with ``etl.build``/``etl.trace``): the config's shift and affine
+traces it with ``evoxc.build``/``evoxc.trace``): the config's shift and affine
 transform are applied to the input first (baked as graph constants), then the
-true function is evaluated.  Calling the functions outside an active etl
-trace raises ``etl.core.TraceError`` (expected).
+true function is evaluated.  Calling the functions outside an active evoxc
+trace raises ``evoxc.core.TraceError`` (expected).
 """
 
 from __future__ import annotations
@@ -39,8 +39,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 if TYPE_CHECKING:
     from .state import ProblemState
@@ -175,7 +175,7 @@ class Levy:
         _validate_shift_affine(self.shift, self.affine)
 
 
-def ackley_func(a: float, b: float, c: float, x: etl.Tensor) -> etl.Tensor:
+def ackley_func(a: float, b: float, c: float, x: evoxc.Tensor) -> evoxc.Tensor:
     return (
         -a * enp.exp(-b * enp.sqrt(enp.mean(x**2, axis=1)))
         - enp.exp(enp.mean(enp.cos(c * x), axis=1))
@@ -184,7 +184,7 @@ def ackley_func(a: float, b: float, c: float, x: etl.Tensor) -> etl.Tensor:
     )
 
 
-def griewank_func(x: etl.Tensor) -> etl.Tensor:
+def griewank_func(x: evoxc.Tensor) -> evoxc.Tensor:
     return (
         1 / 4000 * enp.sum(x**2, axis=1)
         - enp.prod(
@@ -195,34 +195,34 @@ def griewank_func(x: etl.Tensor) -> etl.Tensor:
     )
 
 
-def rastrigin_func(x: etl.Tensor) -> etl.Tensor:
+def rastrigin_func(x: evoxc.Tensor) -> evoxc.Tensor:
     return 10 * x.shape[1] + enp.sum(x**2 - 10 * enp.cos(2 * math.pi * x), axis=1)
 
 
-def rosenbrock_func(x: etl.Tensor) -> etl.Tensor:
+def rosenbrock_func(x: evoxc.Tensor) -> evoxc.Tensor:
     dim = x.shape[1]
-    # torch: x[:, 1:] and x[:, :-1] — expressed with gather (etl's IR slice op
+    # torch: x[:, 1:] and x[:, :-1] — expressed with gather (evoxc's IR slice op
     # cannot express a full-axis slice over the symbolic batch dim).
-    x_right = etl.gather(x, enp.arange(1, dim, dtype=np.int32), axis=1)
-    x_left = etl.gather(x, enp.arange(0, dim - 1, dtype=np.int32), axis=1)
+    x_right = evoxc.gather(x, enp.arange(1, dim, dtype=np.int32), axis=1)
+    x_left = evoxc.gather(x, enp.arange(0, dim - 1, dtype=np.int32), axis=1)
     return enp.sum(100 * (x_right - x_left**2) ** 2 + (x_left - 1) ** 2, axis=1)
 
 
-def schwefel_func(x: etl.Tensor) -> etl.Tensor:
+def schwefel_func(x: evoxc.Tensor) -> evoxc.Tensor:
     return 418.9828872724338 * x.shape[1] - enp.sum(
         x * enp.sin(enp.sqrt(enp.abs(x))), axis=1
     )
 
 
-def sphere_func(x: etl.Tensor) -> etl.Tensor:
+def sphere_func(x: evoxc.Tensor) -> evoxc.Tensor:
     return enp.sum(x**2, axis=1)
 
 
-def ellipsoid_func(x: etl.Tensor) -> etl.Tensor:
+def ellipsoid_func(x: evoxc.Tensor) -> evoxc.Tensor:
     return enp.sum(enp.arange(1, x.shape[1] + 1, dtype=x.dtype) * x**2, axis=1)
 
 
-def zakharov_func(x: etl.Tensor) -> etl.Tensor:
+def zakharov_func(x: evoxc.Tensor) -> evoxc.Tensor:
     d = x.shape[-1]
     i = enp.arange(1, d + 1, dtype=x.dtype)
     sum1 = enp.sum(x**2, axis=-1)
@@ -230,13 +230,13 @@ def zakharov_func(x: etl.Tensor) -> etl.Tensor:
     return sum1 + sum2**2 + sum2**4
 
 
-def levy_func(x: etl.Tensor) -> etl.Tensor:
+def levy_func(x: evoxc.Tensor) -> evoxc.Tensor:
     dim = x.shape[1]
     w = 1 + (x - 1) / 4
     # torch: w[:, 0], w[:, :-1], w[:, -1] — expressed with gather (see rosenbrock_func).
-    w_first = etl.gather(w, 0, axis=1)
-    w_head = etl.gather(w, enp.arange(0, dim - 1, dtype=np.int32), axis=1)
-    w_last = etl.gather(w, dim - 1, axis=1)
+    w_first = evoxc.gather(w, 0, axis=1)
+    w_head = evoxc.gather(w, enp.arange(0, dim - 1, dtype=np.int32), axis=1)
+    w_last = evoxc.gather(w, dim - 1, axis=1)
     term1 = enp.sin(math.pi * w_first) ** 2
     term2 = enp.sum(
         (w_head - 1) ** 2 * (1 + 10 * enp.sin(math.pi * w_head + 1) ** 2), axis=1
@@ -246,24 +246,24 @@ def levy_func(x: etl.Tensor) -> etl.Tensor:
 
 
 def _shift_affine(
-    config: ShiftAffineNumericalProblem, pop: etl.Tensor
-) -> etl.Tensor:
+    config: ShiftAffineNumericalProblem, pop: evoxc.Tensor
+) -> evoxc.Tensor:
     """Apply the config's shift and affine transform to the input points first."""
     dim = pop.shape[1]
     if config.shift is not None:
-        shift = etl.constant(etl.tensor(np.asarray(config.shift, dtype=np.float32)))
+        shift = evoxc.constant(evoxc.tensor(np.asarray(config.shift, dtype=np.float32)))
         pop = pop + shift
     else:
-        pop = pop + etl.constant(etl.tensor(np.zeros(dim, dtype=np.float32)))
+        pop = pop + evoxc.constant(evoxc.tensor(np.zeros(dim, dtype=np.float32)))
     if config.affine is not None:
-        affine = etl.constant(
-            etl.tensor(np.asarray(config.affine, dtype=np.float32))
+        affine = evoxc.constant(
+            evoxc.tensor(np.asarray(config.affine, dtype=np.float32))
         )
-        pop = etl.matmul(pop, affine)
+        pop = evoxc.matmul(pop, affine)
     return pop
 
 
-def _true_evaluate(config: object, pop: etl.Tensor) -> etl.Tensor:
+def _true_evaluate(config: object, pop: evoxc.Tensor) -> evoxc.Tensor:
     """Dispatch to the true function for the config's type (static at trace time)."""
     if isinstance(config, Ackley):
         return ackley_func(config.a, config.b, config.c, pop)
@@ -289,8 +289,8 @@ def _true_evaluate(config: object, pop: etl.Tensor) -> etl.Tensor:
 def evaluate(
     config: ShiftAffineNumericalProblem,
     problem_state: ProblemState,
-    pop: etl.Tensor,
-) -> tuple[etl.Tensor, ProblemState]:
+    pop: evoxc.Tensor,
+) -> tuple[evoxc.Tensor, ProblemState]:
     """Evaluate the population: shift/affine the input first, then the true function.
 
     :param pop: The population of points to evaluate, shape ``(n, dim)`` float32.

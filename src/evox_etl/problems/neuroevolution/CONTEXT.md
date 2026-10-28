@@ -8,7 +8,7 @@ ES problem that evaluates a population of perturbed networks WITHOUT receiving a
 regenerates each individual's weight/bias noise on demand from its seed.
 `virtual_problem.py` is a frozen config dataclass + plain module-level
 `make_virtual_problem` + plain module-level `evaluate(config, problem_state,
-payload)` (NO `@etl.defn` — DESIGN §4.3). The torch `VirtualProblem` class and the
+payload)` (NO `@evoxc.defn` — DESIGN §4.3). The torch `VirtualProblem` class and the
 distinct `virtual_lora_problem.py` low-rank forward are unified here behind the
 `lora_rank` config field (torch's public `VirtualLoRAProblem` export is itself an
 alias of `VirtualProblem`); the other torch neuroevolution problems (brax,
@@ -35,8 +35,8 @@ dependent — reported to root, see `../CONTEXT.md`).
 pytree as a static leaf — verified). Returns `fitness` `(pop_size,)` f32,
 minimization semantics. `problem_state` is the shared empty
 `evox_etl.problems.numerical.state.ProblemState` (reused, not redefined); the
-problem is stateless and defines no `init`. `sigma` passed at `etl.build` MUST be
-re-passed by value at `etl.run` (`../CONTEXT.md` issue 17).
+problem is stateless and defines no `init`. `sigma` passed at `evoxc.build` MUST be
+re-passed by value at `evoxc.run` (`../CONTEXT.md` issue 17).
 
 ## Forward + noise
 Uses the SHARED `evox_etl.algorithms.so.es_variants.virtual_noise` stream
@@ -45,7 +45,7 @@ Uses the SHARED `evox_etl.algorithms.so.es_variants.virtual_noise` stream
 a `sigma`-scaled per-individual noise matmul, so the `(out, in)` weight delta is
 never added to the center weight. Activations stay at `(pop_size, batch,
 features)`. Supported activations: `relu`, `tanh`, `sigmoid`, `gelu`
-(`etl.gelu` == exact erf GELU, torch `nn.GELU` default), `identity`.
+(`evoxc.gelu` == exact erf GELU, torch `nn.GELU` default), `identity`.
 
 **Offsets (easy to get wrong):** center-vector slicing ALWAYS uses the full flat
 parameter layout (`compute_offsets(param_shapes)`); only the NOISE stream switches
@@ -68,8 +68,8 @@ or ≠ `batch_size` (cross_entropy), bad `reduction`/`loss`, and a non-positive 
 non-int `lora_rank`.
 
 ## Deliberate differences from the torch reference
-1. **ETL trade-off (materialization).** Torch's fused Triton kernel never
-   materializes `(out, in)` noise; etl has no fused matmul, so this port DOES
+1. **EvoX Compiler trade-off (materialization).** Torch's fused Triton kernel never
+   materializes `(out, in)` noise; evoxc has no fused matmul, so this port DOES
    materialize per-block `(pop_size, out, in)` noise (and `(pop_size, rank, k)` /
    `(pop_size, d, rank)` LoRA factors). Still far smaller than a full
    `(pop_size, dim)` population, so the O(dim) algorithm state (a `(dim,)` center
@@ -86,20 +86,20 @@ non-int `lora_rank`.
 5. `mse` per-sample loss is the mean over output features; identical to torch for
    `out_features == 1` (the only case torch's `MSELoss` path supports).
 
-## Verified etl facts (do not re-investigate)
-- Batched AND mixed-rank `etl.matmul` broadcast like numpy: `(batch,in) @
+## Verified evoxc facts (do not re-investigate)
+- Batched AND mixed-rank `evoxc.matmul` broadcast like numpy: `(batch,in) @
   (pop,in,out) -> (pop,batch,out)`, `(pop,batch,in) @ (pop,in,out) -> (pop,batch,out)`
   — so the first layer needs no `(pop, ...)` input expansion at all.
-- `etl.gelu` is the EXACT erf GELU (matches `0.5*x*(1+erf(x/sqrt2))`); `etl.equal`
-  exists (`!=` is still not overloaded — use `etl.not_equal`); `enp.zeros(shape)` is
+- `evoxc.gelu` is the EXACT erf GELU (matches `0.5*x*(1+erf(x/sqrt2))`); `evoxc.equal`
+  exists (`!=` is still not overloaded — use `evoxc.not_equal`); `enp.zeros(shape)` is
   usable inside a trace.
 - Static 1-D slicing `leaf[a:b]` with static ints works (unlike full-axis `:` over
   a dynamic dim — see `../numerical/CONTEXT.md`).
 - `reshape`/`transpose` with static ints (incl. the pop dim from
   `int(seeds.shape[0])`, the shared `lora_factors` idiom) work.
 
-## ETL issues found (escalated to root — recorded as #11 in `../CONTEXT.md`)
-1. **`etl` operators reject numpy scalars as operands.** `x / np.float32(2.0)`
+## EvoX Compiler issues found (escalated to root — recorded as #11 in `../CONTEXT.md`)
+1. **`evoxc` operators reject numpy scalars as operands.** `x / np.float32(2.0)`
    raises `TypeError: unsupported operand type float32: op operands must be
    SymbolicTensor or Python scalars (bool, int, float, complex); numpy
    scalars/arrays are not Python scalars`. Repro: trace
@@ -110,11 +110,11 @@ non-int `lora_rank`.
 `../../../unit_test/etl/problems/test_virtual_problem.py` (canonical mirror
 location — sibling, write access requires parent). 51 tests, all green on the
 numpy backend. The problems gate also collects `parity/`, which imports `torch`,
-so a torch (CPU) wheel must be installed alongside etl/pytest/numpy:
+so a torch (CPU) wheel must be installed alongside evoxc/pytest/numpy:
 
-    BASE=$TMPDIR/etl_run
+    BASE=$TMPDIR/evoxc_run
     uv venv --python 3.13 $BASE/venv
-    uv pip install --python $BASE/venv/bin/python $BASE/etl_src pytest numpy
+    uv pip install --python $BASE/venv/bin/python evoxc pytest numpy
     uv pip install --python $BASE/venv/bin/python torch \
         --index-url https://download.pytorch.org/whl/cpu
     PYTHONPATH="src" $BASE/venv/bin/python -m pytest unit_test/etl/problems -q

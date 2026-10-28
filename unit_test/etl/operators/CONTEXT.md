@@ -2,14 +2,14 @@
 
 ## Intent
 pytest suite mirroring `src/evox_etl/operators/` (pure functional genetic
-operators on ETL). Two kinds:
+operators on evoxc). Two kinds:
 1. **Property tests** (top level, NO torch imports): determinism (same key +
    inputs → identical output), key divergence, and shape/dtype/bounds/invariant
    contracts for the keyed random operators; determinism + invariants for the
    keyless samplers.
 2. **`parity/` — parity tests vs the torch evox reference** (torch imports
-   allowed ONLY here): same numpy inputs through `etl.build(fn, *specs,
-   backend="numpy")` + `etl.run(exe, *args)` on one side and `torch.tensor`
+   allowed ONLY here): same numpy inputs through `evoxc.build(fn, *specs,
+   backend="numpy")` + `evoxc.run(exe, *args)` on one side and `torch.tensor`
    inputs on the other, compared at 1e-6 (bool/int outputs exactly).
 
 Run: `<venv>/bin/python -m pytest unit_test/etl/operators -q`
@@ -33,11 +33,11 @@ Run: `<venv>/bin/python -m pytest unit_test/etl/operators -q`
 distinct pytest package (no basename collisions when suites run together).
 
 ## Test strategy notes
-- Statics passed to `etl.build` are re-passed to `etl.run` in signature order
+- Statics passed to `evoxc.build` are re-passed to `evoxc.run` in signature order
   (same value); Python defaults baked at build are omitted at run (issue 17).
   Graphs specialize on static values → fresh executable per distinct static.
-- `etl.run` returns etl tensors → convert with `.numpy()` (never
-  `np.asarray`, issue 16). Tuple-returning functions give tuples of etl
+- `evoxc.run` returns evoxc tensors → convert with `.numpy()` (never
+  `np.asarray`, issue 16). Tuple-returning functions give tuples of evoxc
   tensors. Keys are 0-d int64 ndarrays (`TensorSpec((), "int64")`).
 - Int dtypes: tournament/multifit/select outputs int32; non_dominate_rank
   int32; DE_differential_sum second output int64 with `replace=False` (the
@@ -48,7 +48,7 @@ distinct pytest package (no basename collisions when suites run together).
   - `latin_hypercube_sampling_standard(smooth=False)` is NOT row-identical
     across keys (the cell-permutation draw always happens, as in torch); the
     deterministic multiset of cell centers per column IS asserted.
-  - `apd_fn` masked entries (x == -1): etl indexes `norm_obj` via relu(x)
+  - `apd_fn` masked entries (x == -1): evoxc indexes `norm_obj` via relu(x)
     (→ row 0), torch via raw x (negative wrap-around → last row);
     `ref_vec_guided` overwrites exactly those entries with inf, so its
     observable output is bit-identical — the parity test compares apd_fn's

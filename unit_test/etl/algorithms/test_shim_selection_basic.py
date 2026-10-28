@@ -21,9 +21,9 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 import numpy as np
 import pytest
 
-import etl
-import etl.random as random
-from etl.core import TensorSpec, from_numpy
+import evoxc
+import evoxc.random as random
+from evoxc.core import TensorSpec, from_numpy
 
 from evox_etl.operators.selection import (
     select_rand_pbest,
@@ -64,7 +64,7 @@ def _exercise_all(k, fitness, pbf_fitness, fitnesses, population):
     parents_ts2 = random.randint(k1, (N_ROUND, 2), 0, POP, 'int32')
     parents_full = random.randint(k2, (N_ROUND, POP), 0, POP, 'int32')
     parents_multi = random.randint(k3, (N_ROUND, POP), 0, POP, 'int32')
-    pbest_pool = etl.argsort(pbf_fitness)[:3]
+    pbest_pool = evoxc.argsort(pbf_fitness)[:3]
     pbest_idx = random.randint(k4, (POP,), 0, 3, 'int32')
     return (
         winners_ts2, winners_full, winners_multi, pbest,
@@ -74,7 +74,7 @@ def _exercise_all(k, fitness, pbf_fitness, fitnesses, population):
 
 @pytest.mark.parametrize("container", [list, tuple])
 def test_selection_basic(container):
-    exe = etl.build(
+    exe = evoxc.build(
         _exercise_all,
         KEY_SPEC, FIT_SPEC, FIT_SPEC,
         container([FIT_SPEC, FIT_SPEC]), POP_SPEC,
@@ -87,7 +87,7 @@ def test_selection_basic(container):
     fitnesses = container([from_numpy(FITNESS_0), from_numpy(FITNESS_1)])
     population = from_numpy(POPULATION)
 
-    out = etl.run(exe, key, fitness, pbf_fitness, fitnesses, population)
+    out = evoxc.run(exe, key, fitness, pbf_fitness, fitnesses, population)
     (winners_ts2, winners_full, winners_multi, pbest,
      parents_ts2, parents_full, parents_multi, pbest_pool, pbest_idx) = [
         o.numpy() for o in out
@@ -109,7 +109,7 @@ def test_selection_basic(container):
     )
     np.testing.assert_array_equal(winners_full, exp_full)
 
-    # multifit: numpy lexsort (last key primary, matches the etl port)
+    # multifit: numpy lexsort (last key primary, matches the ETL port)
     assert winners_multi.shape == (N_ROUND,)
     exp_multi = np.array(
         [
@@ -129,6 +129,6 @@ def test_selection_basic(container):
     exp_pbest = POPULATION[pbest_pool[pbest_idx]]
     np.testing.assert_array_equal(pbest, exp_pbest)
 
-    out2 = etl.run(exe, key, fitness, pbf_fitness, fitnesses, population)
+    out2 = evoxc.run(exe, key, fitness, pbf_fitness, fitnesses, population)
     for a, b in zip(out, out2):
         assert np.array_equal(a.numpy(), b.numpy())

@@ -5,7 +5,7 @@ math 1:1 per phase). Torch's `ODE.step` runs TWO evaluations: the DE trial
 vectors and then, after the first selection, the opposition population
 `lb + ub - pop`. The fused `step` owns the whole generation and may call the
 opaque `evaluate` closure several times, so both evaluations now fit in ONE
-etl step — no phase state machine, generation count matches torch exactly.
+evoxc step — no phase state machine, generation count matches torch exactly.
 `init_step` encodes torch's `init_step` (evaluate the initial population).
 Other deviations as in `de.py`: key-based RNG (the DE-mutation draws happen
 once per step, in torch's draw order) and array-like config fields normalized
@@ -15,9 +15,9 @@ to flat float tuples by the `make_ode` constructor.
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Tuple, Union
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -32,7 +32,7 @@ from evox_etl.algorithms._config_utils import (
 from evox_etl.algorithms.so.de_variants.de import _de_trial
 from evox_etl.operators.jit_fix_operator import clamp
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 __all__ = ["ODE", "ODEState", "init", "init_step", "step", "make_ode"]
 
@@ -166,15 +166,15 @@ def step(config: ODE, state: ODEState, evaluate: Callable[[Tensor], Tensor]) -> 
     # DE selection on the trial vectors.
     fitness = evaluate(trial)
     compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial, state.pop)
-    fit = etl.select(compare, fitness, state.fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial, state.pop)
+    fit = evoxc.select(compare, fitness, state.fit)
 
     # Opposition-Based Population from the post-selection pop, then selection.
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
     opposition = lb + ub - pop
     opposition_fitness = evaluate(opposition)
     compare_opposition = opposition_fitness < fit
-    pop = etl.select(enp.expand_dims(compare_opposition, 1), opposition, pop)
-    fit = etl.select(compare_opposition, opposition_fitness, fit)
+    pop = evoxc.select(enp.expand_dims(compare_opposition, 1), opposition, pop)
+    fit = evoxc.select(compare_opposition, opposition_fitness, fit)
 
     return ODEState(pop=pop, fit=fit, trial_vectors=trial, key=key)

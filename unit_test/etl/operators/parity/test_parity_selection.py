@@ -1,14 +1,14 @@
 """Parity tests: evox_etl selection operators vs the torch evox reference (torch allowed here).
 
-Both sides run on the SAME numpy inputs: the etl side via ``etl.build`` +
-``etl.run`` (numpy backend; etl has no eager mode, ``etl.run`` results are
+Both sides run on the SAME numpy inputs: the ETL side via ``evoxc.build`` +
+``evoxc.run`` (numpy backend; evoxc has no eager mode, ``evoxc.run`` results are
 converted with ``.numpy()`` — issue 16), the torch side via ``torch.tensor``
 inputs. ``torch``'s ``non_dominate_rank`` must be called eagerly (never under
 ``torch.compile``).
 
 Known deviations (faithful to observable torch behaviour):
 - ``apd_fn``: at MASKED entries (x == -1) torch indexes ``norm_obj`` with the
-  raw x (negative wrap-around → last row) while etl uses relu(x) (→ row 0).
+  raw x (negative wrap-around → last row) while evoxc uses relu(x) (→ row 0).
   ``ref_vec_guided`` overwrites exactly those entries with inf, so its output
   is unaffected — the parity test for ``apd_fn`` compares the unmasked
   entries only, plus a fully-assigned (x >= 0) case where parity is total.
@@ -20,8 +20,8 @@ import numpy as np
 import pytest
 import torch
 
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox.operators.selection import (
     crowding_distance as torch_crowding_distance,
@@ -49,8 +49,8 @@ BOOL = np.dtype("bool")
 
 
 def _build_run(fn, *specs, args):
-    exe = etl.build(fn, *specs, backend="numpy")
-    return etl.run(exe, *args)
+    exe = evoxc.build(fn, *specs, backend="numpy")
+    return evoxc.run(exe, *args)
 
 
 # --- dominate_relation -------------------------------------------------------
@@ -190,9 +190,9 @@ def test_apd_fn_parity_all_entries_assigned():
 
 
 def _ref_vec_guided_both(x, f, r, theta=0.2):
-    """Run the etl and torch ref_vec_guided on the same inputs; v via Das-Dennis."""
-    v_exe = etl.build(uniform_sampling, r, 2, backend="numpy")
-    v, _ = etl.run(v_exe, r, 2)
+    """Run the ETL and torch ref_vec_guided on the same inputs; v via Das-Dennis."""
+    v_exe = evoxc.build(uniform_sampling, r, 2, backend="numpy")
+    v, _ = evoxc.run(v_exe, r, 2)
     v = v.numpy()
     nx, nf = (
         o.numpy()

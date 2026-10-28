@@ -1,8 +1,8 @@
 """Functional ETL port of the torch evox ESMC algorithm (step protocol).
 
 Reference (read-only): ``src/evox/algorithms/so/es_variants/esmc.py`` (the DES
-algorithm from Learn2Hop).  ETL has no eager mode, so ``init``/``step`` are
-plain functions traced via ``etl.build``/``etl.run``; ``step`` owns the WHOLE
+algorithm from Learn2Hop).  EvoX Compiler has no eager mode, so ``init``/``step`` are
+plain functions traced via ``evoxc.build``/``evoxc.run``; ``step`` owns the WHOLE
 generation — the torch ``step`` body with its internal ``self.evaluate`` call
 fused in via the workflow-injected ``evaluate`` closure.  ``pop_size`` must be
 odd (mirrored sampling).
@@ -13,10 +13,10 @@ from typing import Callable, Literal
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl.core import SymbolicTensor
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -76,7 +76,7 @@ def make_esmc(
 
 @dataclass(frozen=True)
 class ESMCState:
-    """Mutable state of ESMC; all leaves are etl tensors."""
+    """Mutable state of ESMC; all leaves are evoxc tensors."""
 
     center: SymbolicTensor
     sigma: SymbolicTensor
@@ -116,7 +116,7 @@ def step(
     z_plus = random.normal(
         subkey, (config.pop_size // 2, dim), mean=0.0, std=1.0, dtype=F32
     )
-    z = etl.concatenate(
+    z = evoxc.concatenate(
         [enp.zeros((1, dim), dtype=F32), z_plus, -1.0 * z_plus], axis=0
     )
     population = state.center + z * enp.reshape(state.sigma, (1, dim))
@@ -127,10 +127,10 @@ def step(
     half = (config.pop_size - 1) // 2
     bline = fitness[0]
     noise_1 = state.z[1 : half + 1]
-    fit_diff = etl.minimum(fitness[1 : half + 1], bline) - etl.minimum(
+    fit_diff = evoxc.minimum(fitness[1 : half + 1], bline) - evoxc.minimum(
         fitness[half + 1 :], bline
     )
-    fit_diff_noise = etl.dot(enp.expand_dims(fit_diff, axis=0), noise_1)[0]
+    fit_diff_noise = evoxc.dot(enp.expand_dims(fit_diff, axis=0), noise_1)[0]
     theta_grad = 1.0 / half * fit_diff_noise
     if config.optimizer == "adam":
         center, exp_avg, exp_avg_sq = adam_single_tensor(
@@ -145,8 +145,8 @@ def step(
     else:
         center = state.center - config.lr * theta_grad
         exp_avg, exp_avg_sq = state.exp_avg, state.exp_avg_sq
-    sigma = etl.maximum(state.sigma * config.sigma_decay, config.sigma_limit)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = evoxc.maximum(state.sigma * config.sigma_decay, config.sigma_limit)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,

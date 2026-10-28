@@ -33,13 +33,13 @@ mirroring the torch `__all__`.
 - **Config construction pattern (all 7 configs)**: configs are dumb frozen
   dataclasses with `lb`/`ub` (and cso/fs_pso `mean`/`stdev`) stored as flat
   float tuples (`tuple[float, ...]`) — plain static pytree leaves that pass
-  `etl.build`/`etl.run` unchanged, no pytree registration (mo/ configs keep
+  `evoxc.build`/`evoxc.run` unchanged, no pytree registration (mo/ configs keep
   ndarrays with zero-child pytree registration, see `../mo/nsga2.py`).
   `make_*` is the single place that normalizes array-like input and
   validates (see "Config-constructor notes" below). Direct dataclass
   construction with already-normalized statics remains legal (it bypasses
   `make_*` validation).
-- `utils.py` — `min_by` (concat axis 0, `etl.argmin(keys, axis=0)`, gather
+- `utils.py` — `min_by` (concat axis 0, `evoxc.argmin(keys, axis=0)`, gather
   with reshaped (1,) index, reshape back to `x.shape[1:]`) and
   `random_select_from_mask` (noise + argsort + scatter-ones, key-first RNG).
 - Clamp comes from `evox_etl.operators.jit_fix_operator` (`clamp`,
@@ -76,30 +76,30 @@ mirroring the torch `__all__`.
   clpso/fs_pso/sl_pso_* set `global_best_fit = min(fitness)` but do NOT
   update `global_best_location`).
 
-## Verified ETL facts (do not re-investigate)
+## Verified EvoX Compiler facts (do not re-investigate)
 - np.ndarray config fields ARE accepted as static trace values by the
-  installed etl (see `../../CONTEXT.md` "ETL issues found" #1) — direct
+  installed evoxc (see `../../CONTEXT.md` "EvoX Compiler issues found" #1) — direct
   ndarray config construction still graphs, but it bypasses `make_*`
   normalization/validation. Plain float-tuple storage stays the norm
   (frozen `__eq__`/`__hash__` on tuples, static-legal leaves, normalized
   once by `make_*`).
 - Newaxis indexing (`x[None, :]`) raises TraceError — use `enp.expand_dims`.
-- `etl.min(x, axes=0)` on (n,) returns a scalar; `etl.argmin(x, axis=0)`
+- `evoxc.min(x, axes=0)` on (n,) returns a scalar; `evoxc.argmin(x, axis=0)`
   returns an int64 scalar.
 - `random.split_n(key, n)` returns n keys; `random.randint(key, (n,), low,
-  high, dtype=etl.int32)`; `random.uniform/normal(key, shape, ..., etl.float32)`.
-- `etl.select(cond, a, 0)` broadcasts python scalars; int32/int64 1-D indices
-  work with `etl.gather(x, idx, axis=0)` (numpy-take semantics).
-- `enp.zeros((n,), dtype=etl.float32)` and `enp.full((), float("inf"),
-  dtype=etl.float32)` work inside traces.
+  high, dtype=evoxc.int32)`; `random.uniform/normal(key, shape, ..., evoxc.float32)`.
+- `evoxc.select(cond, a, 0)` broadcasts python scalars; int32/int64 1-D indices
+  work with `evoxc.gather(x, idx, axis=0)` (numpy-take semantics).
+- `enp.zeros((n,), dtype=evoxc.float32)` and `enp.full((), float("inf"),
+  dtype=evoxc.float32)` work inside traces.
 - Draws are in torch order, one subkey each: rg, rp, tournament1, tournament2,
   offset, mutation_prob (then store the advanced key back in the state).
 - torch `step` concatenates 2*half rows, so odd `pop_size` shrinks to
   2*(pop_size//2) after the first step — ported as-is (torch parity).
 - The workflow-owned `evaluate` closure is called INSIDE the traced step
   body (nonlocal problem/monitor state threading works — validated in
-  `core/workflow.py` `_make_step_fn`); configs reach etl by closure capture
-  in the workflow, or as STATIC args to both `etl.build` and `etl.run` in
+  `core/workflow.py` `_make_step_fn`); configs reach evoxc by closure capture
+  in the workflow, or as STATIC args to both `evoxc.build` and `evoxc.run` in
   direct drivers.
 
 ## Config-constructor notes (current state)

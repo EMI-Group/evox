@@ -1,7 +1,7 @@
 """StdWorkflow regression tests for the pipelined monitor readback.
 
 ``StdWorkflow._readback`` does NOT copy a device-resident monitor leaf right
-away: it schedules an ``etl.io.sink`` download, parks the
+away: it schedules an ``evoxc.io.sink`` download, parks the
 ``(target list, handle)`` pair in ``self._pending_readbacks`` and appends the
 result at the start of the next generation (``_drain_readbacks``), so the
 device→host latency overlaps the next step graph. ``run``/``fit`` drain the
@@ -14,7 +14,7 @@ take the eager copy path, so these tests pin the pipeline from both sides:
 * deferred-vs-eager history equality on a real PSO + Sphere run, plus the
   empty ``_pending_readbacks`` invariant after ``run()``;
 * the deferral itself, via a fake device leaf (``device.kind == "cuda"``) and a
-  fake ``etl.io.sink`` handle — no GPU is touched;
+  fake ``evoxc.io.sink`` handle — no GPU is touched;
 * ``flush()`` idempotence (calling it twice appends nothing).
 
 Numpy backend only; no torch imports, no cuda/rocm device work.
@@ -22,9 +22,9 @@ Numpy backend only; no torch imports, no cuda/rocm device work.
 
 from __future__ import annotations
 
-import etl
-import etl.core
-import etl.io
+import evoxc
+import evoxc.core
+import evoxc.io
 import numpy as np
 
 from evox_etl.algorithms import make_pso
@@ -34,7 +34,7 @@ from evox_etl.workflows import EvalMonitorConfig, StdWorkflow
 _DIM = 4
 _POP_SIZE = 10
 _LB, _UB = [-5.0] * _DIM, [5.0] * _DIM
-_CPU = etl.core.Device("cpu")
+_CPU = evoxc.core.Device("cpu")
 
 
 def _make_workflow(generations: int = 6) -> StdWorkflow:
@@ -67,7 +67,7 @@ def _eager_readback(self: StdWorkflow, target: list, tensor) -> None:
 
 
 class _FakeDevice:
-    """Minimal stand-in for ``etl.core.Device`` carrying only ``kind``."""
+    """Minimal stand-in for ``evoxc.core.Device`` carrying only ``kind``."""
 
     kind = "cuda"
 
@@ -110,7 +110,7 @@ def test_readback_defers_device_leaf(monkeypatch):
 
     class _FakeHandle:
         def result(self):
-            return etl.core.tensor(expected)
+            return evoxc.core.tensor(expected)
 
     sink_calls = []
 
@@ -118,7 +118,7 @@ def test_readback_defers_device_leaf(monkeypatch):
         sink_calls.append(device_tensor)
         return _FakeHandle()
 
-    monkeypatch.setattr(etl.io, "sink", _fake_sink)
+    monkeypatch.setattr(evoxc.io, "sink", _fake_sink)
 
     wf = _make_workflow()
     target: list = []

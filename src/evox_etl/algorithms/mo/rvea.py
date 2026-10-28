@@ -2,8 +2,8 @@
 
 Reference Vector Guided Evolutionary Algorithm [1, 2] as plain `init/init_step/
 step` functions over frozen `RVEAConfig`/`RVEAState` dataclasses (DESIGN.md
-§4-5 and the step protocol of `evox_etl.core.algorithm`). No `@etl.defn`
-wrappers — call these only inside an active trace (ETL has no eager mode).
+§4-5 and the step protocol of `evox_etl.core.algorithm`). No `@evoxc.defn`
+wrappers — call these only inside an active trace (EvoX Compiler has no eager mode).
 Ported 1:1 from the torch reference: `step` owns ONE whole generation
 (offspring generation → `evaluate` → RVEA selection + reference-vector
 adaptation); `init_step` evaluates the full initial population.
@@ -19,9 +19,9 @@ adaptation); `init_step` evaluates the full initial population.
 from dataclasses import dataclass, replace
 from typing import Callable, Optional
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
@@ -30,7 +30,7 @@ from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling
 from evox_etl.operators.selection import ref_vec_guided
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -61,8 +61,8 @@ def _config_unflatten(config: RVEAConfig, _children) -> RVEAConfig:
 # This registration is REQUIRED: the config carries optional callable op
 # fields (selection_op/mutation_op/crossover_op), and functions are not valid
 # static pytree leaves — so the config travels as one opaque childless node
-# through etl.build/etl.run untouched.
-etl.register_pytree_node(RVEAConfig, _config_flatten, _config_unflatten)
+# through evoxc.build/evoxc.run untouched.
+evoxc.register_pytree_node(RVEAConfig, _config_flatten, _config_unflatten)
 
 
 def make_rvea(
@@ -80,7 +80,7 @@ def make_rvea(
     """Construct an :class:`RVEAConfig` from array-like bounds and optional custom ops.
 
     Bounds are normalized to flat tuples of plain Python floats (the config's
-    static representation for etl); a ``None`` op field means the algorithm
+    static representation for evoxc); a ``None`` op field means the algorithm
     default (simulated_binary, polynomial_mutation, ref_vec_guided).
     """
     for name, op in (
@@ -107,7 +107,7 @@ def make_rvea(
 
 @dataclass(frozen=True)
 class RVEAState:
-    """Frozen RVEA state; every leaf is an ETL tensor (no Python scalars).
+    """Frozen RVEA state; every leaf is an ``evoxc`` tensor (no Python scalars).
 
     ``offspring`` carries the latest candidate batch from the offspring phase
     of `step` into its selection phase (the fused body is one trace); it always
@@ -129,7 +129,7 @@ def init(config: RVEAConfig, key: Tensor) -> RVEAState:
     v, n_v = uniform_sampling(config.pop_size, config.n_objs)
     dim = len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub)
-    population = random.uniform(key, (n_v, dim), 0.0, 1.0, etl.float32) * (ub - lb) + lb
+    population = random.uniform(key, (n_v, dim), 0.0, 1.0, evoxc.float32) * (ub - lb) + lb
     fit = enp.full((n_v, config.n_objs), float("inf"))
     offspring = enp.zeros((n_v, dim), dtype="float32")
     gen = enp.zeros((), dtype="int32")
@@ -165,25 +165,25 @@ def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tens
     offspring, RVEA-select n_v survivors, adapt the reference vectors.
     """
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
-    gen = etl.cast(state.gen + 1, etl.int32)
+    gen = evoxc.cast(state.gen + 1, evoxc.int32)
 
     pop = state.pop
     n_v = pop.shape[0]
 
     # Mating pool (torch `_mating_pool`): candidates are rows that are not all-NaN.
-    valid_mask = enp.logical_not(etl.ops.reduce_max(etl.isnan(pop), axes=1))
-    num_valid = etl.cast(etl.sum(etl.cast(valid_mask, etl.int32)), etl.int32)
-    mating_pool = randint(k_mate, 0, num_valid, (n_v,), dtype=etl.int32)
-    sorted_indices = etl.argsort(
-        etl.cast(
-            etl.select(valid_mask, enp.arange(n_v, dtype="int32"), 2147483647),
-            etl.int32,
+    valid_mask = enp.logical_not(evoxc.ops.reduce_max(evoxc.isnan(pop), axes=1))
+    num_valid = evoxc.cast(evoxc.sum(evoxc.cast(valid_mask, evoxc.int32)), evoxc.int32)
+    mating_pool = randint(k_mate, 0, num_valid, (n_v,), dtype=evoxc.int32)
+    sorted_indices = evoxc.argsort(
+        evoxc.cast(
+            evoxc.select(valid_mask, enp.arange(n_v, dtype="int32"), 2147483647),
+            evoxc.int32,
         ),
         axis=0,
         stable=True,
     )
-    pool = etl.gather(pop, sorted_indices, axis=0)
-    mated = etl.gather(pool, mating_pool, axis=0)
+    pool = evoxc.gather(pop, sorted_indices, axis=0)
+    mated = evoxc.gather(pool, mating_pool, axis=0)
 
     lb, ub = bake_bounds(config.lb, config.ub)
 
@@ -196,10 +196,10 @@ def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tens
 
     fitness = evaluate(offspring)
 
-    merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
-    merge_fit = etl.concatenate([state.fit, fitness], axis=0)
+    merge_pop = evoxc.concatenate([state.pop, state.offspring], axis=0)
+    merge_fit = evoxc.concatenate([state.fit, fitness], axis=0)
 
-    theta = (etl.cast(state.gen, etl.float32) / config.max_gen) ** config.alpha
+    theta = (evoxc.cast(state.gen, evoxc.float32) / config.max_gen) ** config.alpha
 
     selection_fn = config.selection_op if config.selection_op is not None else ref_vec_guided
     survivor, survivor_fit = selection_fn(
@@ -212,8 +212,8 @@ def step(config: RVEAConfig, state: RVEAState, evaluate: Callable[[Tensor], Tens
     min_vals = nanmin(survivor_fit, dim=0)[0]
     adapted = state.init_v * (max_vals - min_vals)
     kept = state.reference_vector
-    new_v = etl.select(
-        etl.remainder(state.gen, etl.cast(state.rv_adapt_every, etl.int32)) == 0,
+    new_v = evoxc.select(
+        evoxc.remainder(state.gen, evoxc.cast(state.rv_adapt_every, evoxc.int32)) == 0,
         adapted,
         kept,
     )

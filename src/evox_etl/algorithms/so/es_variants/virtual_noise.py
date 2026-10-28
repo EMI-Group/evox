@@ -1,9 +1,9 @@
 """Deterministic virtual-population Gaussian noise for the virtual-ES family.
 
-ETL is stateless-key based (no jump-ahead counter streams), so torch's
+``evoxc`` is stateless-key based (no jump-ahead counter streams), so torch's
 ``triton_kernels.kernels.{philox,virtual_noise}`` is replaced here by a
 deterministic **splitmix64 integer hash + Box-Muller** transform built purely
-from ETL ops.  Given per-individual integer ``seeds`` and a flat element
+from ``evoxc`` ops.  Given per-individual integer ``seeds`` and a flat element
 ``offset``, :func:`virtual_normal` regenerates the SAME ``(pop_size, n_elements)``
 standard-normal noise on every call, so the problem's forward pass and the
 algorithm's gradient estimate stay consistent WITHOUT ever materialising a full
@@ -26,8 +26,8 @@ from __future__ import annotations
 import math
 from typing import Sequence
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 import numpy as np
 
 __all__ = [
@@ -82,49 +82,49 @@ def compute_counter_offsets(param_shapes: Sequence[Sequence[int]], lora_rank: in
     return offsets
 
 
-def _logical_rshift(x: etl.SymbolicTensor, shift: int) -> etl.SymbolicTensor:
+def _logical_rshift(x: evoxc.SymbolicTensor, shift: int) -> evoxc.SymbolicTensor:
     """Logical (zero-filling) right shift, robust to arithmetic ``>>`` semantics."""
-    return etl.bitwise_and(etl.bitwise_right_shift(x, shift), (1 << (64 - shift)) - 1)
+    return evoxc.bitwise_and(evoxc.bitwise_right_shift(x, shift), (1 << (64 - shift)) - 1)
 
 
-def _splitmix64(z: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def _splitmix64(z: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """The canonical splitmix64 finalizer, wrapping mod 2**64 (int64 ops)."""
-    z = etl.bitwise_xor(z, _logical_rshift(z, 30))
+    z = evoxc.bitwise_xor(z, _logical_rshift(z, 30))
     z = z * _GAMMA_I64
-    z = etl.bitwise_xor(z, _logical_rshift(z, 27))
+    z = evoxc.bitwise_xor(z, _logical_rshift(z, 27))
     z = z * _GAMMA_I64
-    z = etl.bitwise_xor(z, _logical_rshift(z, 31))
+    z = evoxc.bitwise_xor(z, _logical_rshift(z, 31))
     return z
 
 
-def virtual_normal(seeds: etl.SymbolicTensor, offset: int, n_elements: int) -> etl.SymbolicTensor:
+def virtual_normal(seeds: evoxc.SymbolicTensor, offset: int, n_elements: int) -> evoxc.SymbolicTensor:
     """Deterministic ``(pop_size, n_elements)`` standard-normal noise (float32).
 
     :param seeds: ``(pop_size,)`` int tensor of per-individual seeds.
     :param offset: Static flat element offset of this block.
     :param n_elements: Static number of elements per individual.
     """
-    seeds = etl.cast(enp.reshape(seeds, (-1,)), np.int64)
+    seeds = evoxc.cast(enp.reshape(seeds, (-1,)), np.int64)
     flat = enp.arange(n_elements, dtype=np.int64) + offset
-    z = etl.bitwise_xor(
+    z = evoxc.bitwise_xor(
         enp.expand_dims(seeds, axis=1),
         enp.expand_dims(flat, axis=0) * _GAMMA_I64,
     )
     z = _splitmix64(z)
-    high32 = etl.bitwise_and(etl.bitwise_right_shift(z, 32), 0xFFFFFFFF)
-    low32 = etl.bitwise_and(z, 0xFFFFFFFF)
-    u1 = etl.cast(low32, np.float32) * (1.0 / float(1 << 32))
-    u2 = etl.cast(high32, np.float32) * (1.0 / float(1 << 32))
-    r = etl.sqrt(-2.0 * etl.log(etl.clamp(u1, 1e-10, 1.0)))
-    return r * etl.cos(2.0 * math.pi * u2)
+    high32 = evoxc.bitwise_and(evoxc.bitwise_right_shift(z, 32), 0xFFFFFFFF)
+    low32 = evoxc.bitwise_and(z, 0xFFFFFFFF)
+    u1 = evoxc.cast(low32, np.float32) * (1.0 / float(1 << 32))
+    u2 = evoxc.cast(high32, np.float32) * (1.0 / float(1 << 32))
+    r = evoxc.sqrt(-2.0 * evoxc.log(evoxc.clamp(u1, 1e-10, 1.0)))
+    return r * evoxc.cos(2.0 * math.pi * u2)
 
 
 def lora_factors(
-    seeds: etl.SymbolicTensor,
+    seeds: evoxc.SymbolicTensor,
     shape: Sequence[int],
     rank: int,
     counter: int,
-) -> etl.SymbolicTensor | tuple[etl.SymbolicTensor, etl.SymbolicTensor]:
+) -> evoxc.SymbolicTensor | tuple[evoxc.SymbolicTensor, evoxc.SymbolicTensor]:
     """Deterministic LoRA factors for a block, batched over individuals.
 
     - 1-D ``(n,)``: returns a flat ``(pop_size, n)`` noise tensor.
