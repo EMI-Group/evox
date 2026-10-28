@@ -8,8 +8,8 @@ from pathlib import Path
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
 
 import numpy as np
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox_etl.operators.jit_fix_operator import (
     clamp, clamp_float, clamp_int, lexsort, maximum, maximum_int,
@@ -18,7 +18,7 @@ from evox_etl.operators.jit_fix_operator import (
 
 
 def _exercise(key, a, lb, ub, keys, with_nan):
-    k1, k2 = etl.random.split(key)
+    k1, k2 = evoxc.random.split(key)
     return (
         clamp(a, lb, ub),
         clamp_float(a, 0.0, 2.0),
@@ -28,8 +28,8 @@ def _exercise(key, a, lb, ub, keys, with_nan):
         lexsort(keys),
         nanmin(with_nan)[0], nanmin(with_nan)[1],
         nanmax(with_nan)[0], nanmax(with_nan)[1],
-        randint(k1, 3, 8, (7,), dtype=etl.int32),
-        randint(k2, 0, 10, (5,), dtype=etl.int32),
+        randint(k1, 3, 8, (7,), dtype=evoxc.int32),
+        randint(k2, 0, 10, (5,), dtype=evoxc.int32),
     )
 
 
@@ -46,7 +46,7 @@ WITH_NAN = np.array([[1.0, 2.0, np.nan, 0.5],
 
 
 def test_jit_fix_utils():
-    exe = etl.build(
+    exe = evoxc.build(
         _exercise,
         core.TensorSpec(shape=(), dtype=np.dtype("int64")),
         core.TensorSpec(shape=(3, 4), dtype=np.dtype("float32")),
@@ -57,7 +57,7 @@ def test_jit_fix_utils():
         core.TensorSpec(shape=(3, 4), dtype=np.dtype("float32")),
         backend="numpy",
     )
-    outs = etl.run(exe, np.array(42, dtype=np.int64), A, LB, UB, [K0, K1], WITH_NAN)
+    outs = evoxc.run(exe, np.array(42, dtype=np.int64), A, LB, UB, [K0, K1], WITH_NAN)
     c, cf, ci, mx, mn, mxi, mni, ls, nmin_v, nmin_i, nmax_v, nmax_i, r1, r2 = [o.numpy() for o in outs]
 
     np.testing.assert_allclose(c, np.clip(A, -1.0, 2.0), rtol=0, atol=1e-6)
@@ -81,5 +81,5 @@ def test_jit_fix_utils():
     assert r1.shape == (7,) and np.issubdtype(r1.dtype, np.integer)
     assert np.all((r1 >= 3) & (r1 < 8))
     assert r2.shape == (5,) and np.all((r2 >= 0) & (r2 < 10))
-    outs2 = etl.run(exe, np.array(42, dtype=np.int64), A, LB, UB, [K0, K1], WITH_NAN)
+    outs2 = evoxc.run(exe, np.array(42, dtype=np.int64), A, LB, UB, [K0, K1], WITH_NAN)
     assert np.array_equal(outs2[12].numpy(), r1) and np.array_equal(outs2[13].numpy(), r2)

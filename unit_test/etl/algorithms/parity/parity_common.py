@@ -8,10 +8,10 @@ seed=42, 20 offspring generations, on DTLZ1 (optimum = 0 per objective).
   the Pareto front over the WHOLE history of evaluated fitness.
 - ETL side: the functional step-protocol port (``init`` / optional
   ``init_step`` / ``step``, see ``evox_etl.core.algorithm``) driven through
-  ``etl.build``/``etl.run`` on the numpy backend, with the evaluated batch
+  ``evoxc.build``/``evoxc.run`` on the numpy backend, with the evaluated batch
   recorded by the traced ``evaluate`` closure.
 
-The two sides draw different RNG streams (torch global RNG vs etl keyed
+The two sides draw different RNG streams (torch global RNG vs evoxc keyed
 RNG), so parity is asserted on CONVERGENCE (per-objective best value seen,
 within a documented tolerance), not on identical trajectories.
 """
@@ -22,8 +22,8 @@ import warnings
 import numpy as np
 import torch
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 from unit_test.etl.algorithms.helpers import DTLZ1Config, ToyProblemState, toy_evaluate
 
 warnings.filterwarnings("ignore")
@@ -63,17 +63,17 @@ def torch_reference(algo_cls):
 
 
 def _spec(t):
-    """TensorSpec mirroring an etl tensor leaf."""
-    return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
+    """TensorSpec mirroring an evoxc tensor leaf."""
+    return evoxc.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
 def _spec_tree(pytree):
-    """Pytree of etl tensors -> pytree of TensorSpecs."""
-    return etl.tree_map(_spec, pytree)
+    """Pytree of evoxc tensors -> pytree of TensorSpecs."""
+    return evoxc.tree_map(_spec, pytree)
 
 
 def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
-    """Drive an etl step-protocol module for ``n_gens + 1`` generations
+    """Drive an ETL step-protocol module for ``n_gens + 1`` generations
     (generation 0 via ``init_step`` when the module defines it, then
     ``step``), accumulating the elementwise minimum over EVERY evaluated
     fitness — the exact counterpart of the torch monitor's whole-history
@@ -92,10 +92,10 @@ def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
     array of shape (n_obj,).
     """
     prob_cfg = DTLZ1Config(DIM, N_OBJ)
-    init_exe = etl.build(
+    init_exe = evoxc.build(
         algo_mod.init, algo_cfg, _spec(np.asarray(seed, dtype=np.int64)), backend="numpy"
     )
-    state = etl.run(init_exe, algo_cfg, np.asarray(seed, dtype=np.int64))
+    state = evoxc.run(init_exe, algo_cfg, np.asarray(seed, dtype=np.int64))
 
     has_init_step = callable(getattr(algo_mod, "init_step", None))
 
@@ -105,7 +105,7 @@ def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
 
             def evaluate(candidates):
                 fitness, _ = toy_evaluate(prob_cfg, ToyProblemState(), candidates)
-                batch_min = etl.min(fitness, axes=0)
+                batch_min = evoxc.min(fitness, axes=0)
                 box["min"] = (
                     batch_min if "min" not in box else enp.minimum(box["min"], batch_min)
                 )
@@ -119,10 +119,10 @@ def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
     hist_min = None
     for gen in range(n_gens + 1):
         step_fn = algo_mod.init_step if (gen == 0 and has_init_step) else algo_mod.step
-        gen_exe = etl.build(
+        gen_exe = evoxc.build(
             _generation_fn(step_fn, algo_cfg), _spec_tree(state), backend="numpy"
         )
-        state, batch_min = etl.run(gen_exe, state)
+        state, batch_min = evoxc.run(gen_exe, state)
         batch_min = np.asarray(batch_min.numpy())
         hist_min = batch_min if hist_min is None else np.minimum(hist_min, batch_min)
 
@@ -130,8 +130,8 @@ def etl_run_with_history(algo_mod, algo_cfg, n_gens=N_GENS, seed=SEED):
 
 # MOEA/D-specific tolerance (see test_moead.py for the full justification):
 # MOEA/D is non-elitist and 20 generations of its per-weight search are
-# noisy; on the prescribed seed 42 the etl history min on the f3 axis is
+# noisy; on the prescribed seed 42 the ETL history min on the f3 axis is
 # 0.197 vs torch's 0.0, while a cross-seed sweep (1, 7, 123, 999) shows the
-# etl side at-or-better than torch on 4/5 seeds. 0.20 is the smallest
+# ETL side at-or-better than torch on 4/5 seeds. 0.20 is the smallest
 # tolerance holding for seed 42 that still catches gross regressions.
 MOEAD_ABS_TOL = 0.20

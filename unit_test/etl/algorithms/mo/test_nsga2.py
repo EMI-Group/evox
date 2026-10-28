@@ -22,8 +22,8 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 import numpy as np
 import pytest
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import nsga2
@@ -48,13 +48,13 @@ def make_config(**ops):
 
 
 def _leaf_spec(t):
-    """TensorSpec mirroring one etl tensor leaf."""
-    return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
+    """TensorSpec mirroring one evoxc tensor leaf."""
+    return evoxc.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
 def _spec_tree(pytree):
-    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
-    return etl.tree_map(_leaf_spec, pytree)
+    """Pytree of evoxc tensors -> pytree of TensorSpecs (state mirror)."""
+    return evoxc.tree_map(_leaf_spec, pytree)
 
 
 def _trace_step(step_fn, cfg, state):
@@ -76,15 +76,15 @@ def _trace_step(step_fn, cfg, state):
 
         return step_fn(cfg, state, evaluate), box["batch"]
 
-    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
-    return etl.run(exe, state), seen
+    exe = evoxc.build(generation_fn, _spec_tree(state), backend="numpy")
+    return evoxc.run(exe, state), seen
 
 
 def test_init_step_full_population_and_step_offspring_shape():
     cfg = make_config()
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(nsga2.init, cfg, key_spec, backend="numpy")
-    state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(nsga2.init, cfg, key_spec, backend="numpy")
+    state = evoxc.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
     assert tuple(state.pop.shape) == (POP_SIZE, DIM)
 
     # Gen 0 (init_step) evaluates the FULL initial population (no RNG draw):
@@ -138,9 +138,9 @@ def test_full_run_deterministic():
 
 def _init_state(cfg):
     """Run init + init_step on ``cfg`` and return a ready-to-step state."""
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(nsga2.init, cfg, key_spec, backend="numpy")
-    state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(nsga2.init, cfg, key_spec, backend="numpy")
+    state = evoxc.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
     (state, _), _ = _trace_step(nsga2.init_step, cfg, state)
     return state
 
@@ -171,7 +171,7 @@ def test_custom_ops_are_invoked_and_delegate_to_defaults():
     assert calls["selection"] >= 1
     assert calls["crossover"] >= 1
     assert calls["mutation"] >= 1
-    # Ops that delegate to the etl defaults reproduce the default run exactly.
+    # Ops that delegate to the ETL defaults reproduce the default run exactly.
     assert np.array_equal(
         np.asarray(custom_state.offspring.numpy()),
         np.asarray(default_state.offspring.numpy()),
@@ -200,8 +200,8 @@ def test_identity_mutation_changes_offspring_and_none_reproduces_default():
             box["mutation_in"],
         )
 
-    exe = etl.build(generation_fn, _spec_tree(base_state), backend="numpy")
-    ident_state, mutation_in = etl.run(exe, base_state)
+    exe = evoxc.build(generation_fn, _spec_tree(base_state), backend="numpy")
+    ident_state, mutation_in = evoxc.run(exe, base_state)
     offspring = np.asarray(ident_state.offspring.numpy())
 
     # Identity mutation => stored offspring equals the (clamped) crossover batch.

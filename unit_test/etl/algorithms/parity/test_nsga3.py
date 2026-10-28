@@ -5,7 +5,7 @@ Setting (both sides, equivalent): dim=7, n_obj=3, pop_size=100, seed=42,
 
 - torch side: ``StdWorkflow`` + ``EvalMonitor``; best = per-objective
   minimum over the whole-history Pareto front.
-- etl side: the functional step-protocol port driven by
+- ETL side: the functional step-protocol port driven by
   ``helpers.run_generations`` on the numpy backend; best = per-objective
   minimum of the final population (NSGA-III is elitist — the final
   population retains the front — so final-pop min == history min).
@@ -36,13 +36,13 @@ def test_nsga3_dtlz1_parity():
     torch_best, torch_final = torch_reference(evox.algorithms.NSGA3)
 
     print(f"NSGA3 parity (DTLZ1 d={DIM} m={N_OBJ}, {N_GENS} gens, seed {SEED}):")
-    print(f"  etl   final-pop min = {etl_best}")
+    print(f"  ETL   final-pop min = {etl_best}")
     print(f"  torch PF-hist min   = {torch_best}")
     print(f"  torch final-pop min = {torch_final}")
 
     for k in range(N_OBJ):
         bound = torch_best[k] * REL_MARGIN + ABS_TOL
         assert etl_best[k] <= bound, (
-            f"objective {k}: etl {etl_best[k]} worse than torch {torch_best[k]} "
+            f"objective {k}: ETL {etl_best[k]} worse than torch {torch_best[k]} "
             f"beyond the {ABS_TOL}+{REL_MARGIN}x margin (bound {bound})"
         )

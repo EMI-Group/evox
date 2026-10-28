@@ -17,9 +17,9 @@ from __future__ import annotations
 import dataclasses
 from typing import Callable
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 import numpy as np
 
 __all__ = [
@@ -29,7 +29,7 @@ __all__ = [
     "step",
 ]
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 F32 = np.dtype("float32")
 
@@ -73,7 +73,7 @@ def step(
     candidates = state.population + config.sigma * noise
     fitness = evaluate(candidates)
     center = enp.mean(candidates, axis=0)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return dataclasses.replace(
         state,
         population=candidates,

@@ -1,7 +1,7 @@
 """Parity tests: evox_etl sampling operators vs the torch evox reference (torch allowed here).
 
-Both sides run on the SAME numpy inputs: the etl side via ``etl.build`` +
-``etl.run`` (numpy backend; etl has no eager mode), the torch side via
+Both sides run on the SAME numpy inputs: the ETL side via ``evoxc.build`` +
+``evoxc.run`` (numpy backend; evoxc has no eager mode), the torch side via
 ``torch.tensor`` inputs. Weights are compared with ``np.testing`` at 1e-6 and
 ``n_samples`` must be equal. The (30, 5) uniform_sampling case triggers the
 Das-Dennis h2 branch on both sides.
@@ -10,7 +10,7 @@ Das-Dennis h2 branch on both sides.
 import numpy as np
 import pytest
 
-import etl
+import evoxc
 
 from evox.operators.sampling import gird as torch_gird
 from evox.operators.sampling import uniform_sampling as torch_uniform_sampling
@@ -19,8 +19,8 @@ from evox_etl.operators.sampling import grid_sampling, uniform_sampling
 
 def _run_etl(fn, *statics):
     """Trace the all-static ``fn`` and run it once on the numpy backend."""
-    exe = etl.build(fn, *statics, backend="numpy")
-    return etl.run(exe, *statics)
+    exe = evoxc.build(fn, *statics, backend="numpy")
+    return evoxc.run(exe, *statics)
 
 
 @pytest.mark.parametrize("n,m", [(20, 3), (30, 5), (6, 4)])

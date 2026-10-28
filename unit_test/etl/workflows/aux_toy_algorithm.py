@@ -14,8 +14,8 @@ Protocol implemented here (see ``evox_etl/core/algorithm.py``):
 * ``record_step(config, state, candidate, fitness) -> dict[str, etl_tensor]`` —
   the OPTIONAL plain host-side auxiliary-history hook ``StdWorkflow`` calls
   after each generation. It receives the post-step algorithm state plus the
-  CONCRETE etl tensors ``state.monitor_state.latest_solution``/``latest_fitness``
-  and returns a dict of concrete etl tensors (each supporting
+  CONCRETE evoxc tensors ``state.monitor_state.latest_solution``/``latest_fitness``
+  and returns a dict of concrete evoxc tensors (each supporting
   ``.to(Device("cpu")).numpy()``).
 
 No torch imports — numpy backend only.
@@ -26,9 +26,9 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Callable
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 import numpy as np
 
 __all__ = [
@@ -39,7 +39,7 @@ __all__ = [
     "record_step",
 ]
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 F32 = np.dtype("float32")
 
@@ -88,7 +88,7 @@ def step(
     candidates = state.population + config.sigma * noise
     fitness = evaluate(candidates)
     center = enp.mean(candidates, axis=0)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return dataclasses.replace(
         state,
         population=candidates,
@@ -106,10 +106,10 @@ def record_step(
 ) -> dict[str, Any]:
     """Host-side aux-history hook: report three tensors for this generation.
 
-    ``candidate``/``fitness`` are the concrete etl tensors the monitor stored as
+    ``candidate``/``fitness`` are the concrete evoxc tensors the monitor stored as
     ``latest_solution``/``latest_fitness`` (or ``None`` when the monitor state
     lacks them). ``state`` is the POST-step algorithm state. All returned values
-    are concrete etl tensors.
+    are concrete evoxc tensors.
     """
     aux: dict[str, Any] = {"center": state.center}
     if candidate is not None:

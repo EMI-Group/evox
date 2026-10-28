@@ -1,11 +1,11 @@
-"""Pure-etl tests for the EvalMonitor shape policy (torch EvalMonitor parity).
+"""Pure-ETL tests for the EvalMonitor shape policy (torch EvalMonitor parity).
 
 The monitor stores the FULL evaluated batch as-is: the candidate/fitness
 leading dim may differ from ``pop_size`` (CoDE evaluates ``3 * pop_size``
 trials per generation, CSO ``pop_size // 2`` after its first generation —
 torch ``EvalMonitor.post_ask``/``pre_tell`` store the raw batch the same way,
 with no slicing to ``pop_size``). These tests drive the module-level
-``init``/``monitor_update`` functions directly through ``etl.build``/``etl.run``
+``init``/``monitor_update`` functions directly through ``evoxc.build``/``evoxc.run``
 with several batch leading dims, pinning the monitor semantics independently
 of ``StdWorkflow``.
 
@@ -16,15 +16,15 @@ from __future__ import annotations
 
 import dataclasses
 
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 import numpy as np
 import pytest
 
 import evox_etl.workflows.eval_monitor as em
 
-_KEY_SPEC = etl.core.TensorSpec((), np.int64)
-_CPU = etl.core.Device("cpu")
+_KEY_SPEC = evoxc.core.TensorSpec((), np.int64)
+_CPU = evoxc.core.Device("cpu")
 
 
 def _run_init(cfg: em.EvalMonitorConfig):
@@ -32,13 +32,13 @@ def _run_init(cfg: em.EvalMonitorConfig):
     def body(key):
         return em.init(cfg, key)
 
-    exe = etl.build(body, _KEY_SPEC, backend="numpy", device=_CPU)
-    return etl.run(exe, etl.core.tensor(np.asarray(0, dtype=np.int64)))
+    exe = evoxc.build(body, _KEY_SPEC, backend="numpy", device=_CPU)
+    return evoxc.run(exe, evoxc.core.tensor(np.asarray(0, dtype=np.int64)))
 
 
 def _spec_tree(pytree):
-    return etl.tree_map(
-        lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype), pytree
+    return evoxc.tree_map(
+        lambda t: evoxc.core.TensorSpec(tuple(t.shape), t.dtype), pytree
     )
 
 
@@ -50,11 +50,11 @@ def _update(cfg: em.EvalMonitorConfig, state, cand: np.ndarray, fit: np.ndarray)
 
     specs = (
         _spec_tree(state),
-        etl.core.TensorSpec(cand.shape, np.float32),
-        etl.core.TensorSpec(fit.shape, np.float32),
+        evoxc.core.TensorSpec(cand.shape, np.float32),
+        evoxc.core.TensorSpec(fit.shape, np.float32),
     )
-    exe = etl.build(body, *specs, backend="numpy", device=_CPU)
-    return etl.run(exe, state, etl.core.tensor(cand), etl.core.tensor(fit))
+    exe = evoxc.build(body, *specs, backend="numpy", device=_CPU)
+    return evoxc.run(exe, state, evoxc.core.tensor(cand), evoxc.core.tensor(fit))
 
 
 def _to_np(t):

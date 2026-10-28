@@ -1,19 +1,19 @@
-"""Pure-etl tests for the evox_etl metrics (NO torch imports here).
+"""Pure-ETL tests for the evox_etl metrics (NO torch imports here).
 
-Everything runs through ``etl.build`` + ``etl.run`` on the default numpy
+Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default numpy
 backend. Host-side contract (verified empirically, see
 unit_test/etl/algorithms/helpers.py):
-* static Python-scalar args must be passed to ``etl.build`` AND re-passed
-  (by value) to ``etl.run``;
-* ``etl.run`` returns concrete ``etl.core.tensor.Tensor`` objects — use
+* static Python-scalar args must be passed to ``evoxc.build`` AND re-passed
+  (by value) to ``evoxc.run``;
+* ``evoxc.run`` returns concrete ``evoxc.core.tensor.Tensor`` objects — use
   ``.numpy()`` to get ndarrays (np.asarray gives object dtype).
 """
 import numpy as np
 import pytest
-import etl
-import etl.numpy as enp
-import etl.random as rnd
-from etl.core import TensorSpec
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as rnd
+from evoxc.core import TensorSpec
 
 from evox_etl.metrics import (
     bounding_cube_monte_carlo_hv,
@@ -33,9 +33,9 @@ def _as_np(x):
 
 
 def _run(fn, *args, specs):
-    exe = etl.build(fn, *specs, backend="numpy")
-    tensors = [etl.core.tensor(a) if isinstance(a, np.ndarray) else a for a in args]
-    return etl.run(exe, *tensors)
+    exe = evoxc.build(fn, *specs, backend="numpy")
+    tensors = [evoxc.core.tensor(a) if isinstance(a, np.ndarray) else a for a in args]
+    return evoxc.run(exe, *tensors)
 
 
 def _gd_np(objs, pf):
@@ -107,14 +107,14 @@ def test_igd_plus_matches_numpy_reference(shapes, seed, p):
 
 
 def _hv_with_samples(key, objs, ref, num_sample):
-    points = etl.abs(objs - ref)
-    bound = etl.max(points, axes=0)
-    max_vol = etl.prod(bound, axes=None)
+    points = evoxc.abs(objs - ref)
+    bound = evoxc.max(points, axes=0)
+    max_vol = evoxc.prod(bound, axes=None)
     samples = rnd.uniform(key, (num_sample, points.shape[1]), 0.0, bound)
     dominated = enp.expand_dims(samples, 1) < enp.expand_dims(points, 0)
-    in_any = etl.max(etl.min(dominated, axes=-1), axes=-1)
-    count = etl.sum(in_any, axes=None)
-    return etl.cast(count, 'float32') / float(num_sample) * max_vol, samples
+    in_any = evoxc.max(evoxc.min(dominated, axes=-1), axes=-1)
+    count = evoxc.sum(in_any, axes=None)
+    return evoxc.cast(count, 'float32') / float(num_sample) * max_vol, samples
 
 
 @pytest.mark.parametrize("seed,num_sample", [(0, 20000), (7, 5000)])
@@ -150,7 +150,7 @@ def test_each_cube_hv_matches_brute_force(seed):
     key_np = rnd.key(seed).numpy()
 
     def each_cube_with_samples(key, objs_, ref_):
-        points = etl.abs(objs_ - ref_)
+        points = evoxc.abs(objs_ - ref_)
         n = points.shape[0]
         k = num_sample // n
         keys = rnd.split_n(key, n)
@@ -160,10 +160,10 @@ def test_each_cube_hv_matches_brute_force(seed):
             samples_i = rnd.uniform(keys[i], (k, points.shape[1]), 0.0, enp.expand_dims(points[i], 0))
             samples_list.append(samples_i)
             dominated = enp.expand_dims(samples_i, 1) < enp.expand_dims(points, 0)
-            dom_count = etl.sum(etl.min(dominated, axes=-1), axes=-1)
-            share = etl.select(dom_count > 0, 1.0 / etl.maximum(etl.cast(dom_count, 'float32'), 1.0), 0.0)
-            total = total + etl.prod(points[i], axes=None) * etl.sum(share, axes=None) / float(k)
-        return etl.cast(total, 'float32'), samples_list
+            dom_count = evoxc.sum(evoxc.min(dominated, axes=-1), axes=-1)
+            share = evoxc.select(dom_count > 0, 1.0 / evoxc.maximum(evoxc.cast(dom_count, 'float32'), 1.0), 0.0)
+            total = total + evoxc.prod(points[i], axes=None) * evoxc.sum(share, axes=None) / float(k)
+        return evoxc.cast(total, 'float32'), samples_list
 
     specs = [TensorSpec((), np.int64), TensorSpec(objs.shape, F32), TensorSpec(ref.shape, F32)]
     got, samples_list = _run(each_cube_with_samples, key_np, objs, ref, specs=specs)

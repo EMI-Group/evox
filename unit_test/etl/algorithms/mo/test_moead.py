@@ -19,8 +19,8 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import moead
@@ -43,13 +43,13 @@ def make_config():
 
 
 def _leaf_spec(t):
-    """TensorSpec mirroring one etl tensor leaf."""
-    return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
+    """TensorSpec mirroring one evoxc tensor leaf."""
+    return evoxc.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
 def _spec_tree(pytree):
-    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
-    return etl.tree_map(_leaf_spec, pytree)
+    """Pytree of evoxc tensors -> pytree of TensorSpecs (state mirror)."""
+    return evoxc.tree_map(_leaf_spec, pytree)
 
 
 def _trace_step(step_fn, cfg, state):
@@ -71,15 +71,15 @@ def _trace_step(step_fn, cfg, state):
 
         return step_fn(cfg, state, evaluate), box["batch"]
 
-    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
-    return etl.run(exe, state), seen
+    exe = evoxc.build(generation_fn, _spec_tree(state), backend="numpy")
+    return evoxc.run(exe, state), seen
 
 
 def test_init_step_full_population_and_step_offspring_shape():
     cfg = make_config()
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(moead.init, cfg, key_spec, backend="numpy")
-    state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(moead.init, cfg, key_spec, backend="numpy")
+    state = evoxc.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
     assert tuple(state.pop.shape) == (N_EFF, DIM)
 
     # Gen 0 (init_step) evaluates the FULL initial population (one solution

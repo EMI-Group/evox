@@ -8,18 +8,18 @@ without installing `evox_etl` (it is a PEP 420 namespace package under `src/`).
   computed from `__file__`. Shared bootstrap; do NOT add a second conftest.
 - `test_eval_monitor.py` — module-level `init`/`monitor_update` shape policy
   (SO wide/narrow batches, MO, wrapper accessors) driven directly through
-  `etl.build`/`etl.run`, independent of `StdWorkflow`.
+  `evoxc.build`/`evoxc.run`, independent of `StdWorkflow`.
 - `test_workflow_monitor_shapes.py` — end-to-end `StdWorkflow` tests for
   monitor-batch shape drift using real algorithms (CoDE `3n`, CSO `n/2`,
   PSO `n`).
 - `test_monitor_readback.py` — regression tests for the pipelined monitor
   readback in `src/evox_etl/core/workflow.py` (`_readback` /
-  `_drain_readbacks` / `flush`, backed by `etl.io.sink` handles parked in
+  `_drain_readbacks` / `flush`, backed by `evoxc.io.sink` handles parked in
   `_pending_readbacks`): deferred-vs-eager history equality on a real PSO +
   Sphere run (element-wise `np.array_equal`, `len(fit_history) ==
   len(sol_history) == gens`, `_pending_readbacks == []` after `run()`), the
   deferral itself via a fake tensor whose `device.kind` is `"cuda"` plus a
-  monkeypatched fake `etl.io.sink` handle (no GPU touched — asserts nothing is
+  monkeypatched fake `evoxc.io.sink` handle (no GPU touched — asserts nothing is
   appended until `_drain_readbacks()`), and `flush()` idempotence. Host-resident
   (numpy-backend) leaves still copy eagerly, so only the device branch is
   exercised through the fake; the eager path is pinned by the first test.

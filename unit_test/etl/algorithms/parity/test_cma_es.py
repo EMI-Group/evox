@@ -5,11 +5,11 @@ deterministic initial mean and run the SAME number of generations.
 The torch side drives `CMAES` through `StdWorkflow` + `EvalMonitor`;
 `CMAES` does not override `init_step`, so `init_step()` falls back to a
 plain `step()` and 1 init_step + (N_GENS - 1) steps == N_GENS generations
-(verified by counting `monitor.fitness_history` entries, which the etl
+(verified by counting `monitor.fitness_history` entries, which the ETL
 side's `n_gens` is aligned to).
 
-The RNG streams differ (torch global `manual_seed` vs the etl keyed RNG),
-so only convergence parity within 10% is asserted: the etl port may be
+The RNG streams differ (torch global `manual_seed` vs the evoxc keyed RNG),
+so only convergence parity within 10% is asserted: the ETL port may be
 better, but must not be worse by more than the margin.
 """
 

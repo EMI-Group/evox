@@ -1,6 +1,6 @@
 """Parity test: torch evox DE vs functional evox_etl de on Sphere (torch allowed).
 
-Both sides use different RNG streams (torch MT19937 vs etl keyed PRNGs), so
+Both sides use different RNG streams (torch MT19937 vs evoxc keyed PRNGs), so
 bit-identical trajectories are impossible and per-seed best fitnesses fluctuate
 symmetrically around ratio ~1.0 (60-seed sweep: mean ratio ~1.03, spread
 0.57-1.92, no systematic bias). A single-seed 10% margin fails ~1/3 of the time
@@ -8,7 +8,7 @@ by pure chance, so the test compares the MEDIAN best fitness over 3 seeds with
 the same 10% margin — convergence must match within 10% in expectation.
 
 Note the torch side evaluates the initial population in init_step (21 evals for
-20 generations); the etl side mirrors this via init_step.
+20 generations); the ETL side mirrors this via init_step.
 """
 import sys
 from pathlib import Path
@@ -51,6 +51,6 @@ def test_de_parity_sphere():
     etl_bests = [_etl_best(s) for s in SEEDS]
     torch_med, etl_med = float(np.median(torch_bests)), float(np.median(etl_bests))
     assert etl_med <= torch_med * 1.1 + 1e-3, (
-        f"median etl best {etl_med} > median torch best {torch_med} * 1.1 + 1e-3 "
-        f"(per-seed: torch {torch_bests}, etl {etl_bests})"
+        f"median ETL best {etl_med} > median torch best {torch_med} * 1.1 + 1e-3 "
+        f"(per-seed: torch {torch_bests}, ETL {etl_bests})"
     )

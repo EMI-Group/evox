@@ -1,4 +1,4 @@
-"""Unit tests for the functional VirtualLoRAES port (ETL numpy backend, no torch).
+"""Unit tests for the functional VirtualLoRAES port (evoxc numpy backend, no torch).
 
 This is a DISTINCT low-rank variant of VirtualES: a >= 2-D parameter block is
 perturbed by ``delta = B @ A`` (``A`` ``(rank, k)``, ``B`` ``(d, rank)``) while
@@ -25,8 +25,8 @@ from dataclasses import dataclass
 import numpy as np
 import pytest
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from evox_etl.algorithms.so.es_variants import virtual_lora_es
 from evox_etl.algorithms.so.es_variants.virtual_noise import (
@@ -67,10 +67,10 @@ def _perturbation(config: _VirtualLoRASphereConfig, seeds, pop_size: int):
         factors = lora_factors(seeds, shape, config.lora_rank, counter)
         if isinstance(factors, tuple):
             a, b = factors  # (pop, rank, k), (pop, d, rank)
-            parts.append(enp.reshape(etl.dot(b, a), (pop_size, -1)))
+            parts.append(enp.reshape(evoxc.dot(b, a), (pop_size, -1)))
         else:
             parts.append(factors)  # (pop, n) flat noise
-    return etl.concatenate(parts, axis=1)
+    return evoxc.concatenate(parts, axis=1)
 
 
 def evaluate(config: _VirtualLoRASphereConfig, state: object, payload: object):
@@ -78,7 +78,7 @@ def evaluate(config: _VirtualLoRASphereConfig, state: object, payload: object):
     center, seeds, sigma = payload
     noise = _perturbation(config, seeds, int(seeds.shape[0]))
     perturbed = enp.expand_dims(center, axis=0) + sigma * noise
-    return etl.sum(perturbed * perturbed, axes=1), state
+    return evoxc.sum(perturbed * perturbed, axes=1), state
 
 
 def _config(**overrides: object) -> virtual_lora_es.VirtualLoRAESConfig:
@@ -97,10 +97,10 @@ def _config(**overrides: object) -> virtual_lora_es.VirtualLoRAESConfig:
 
 def _init_state(cfg: virtual_lora_es.VirtualLoRAESConfig, seed: int = 0):
     """Run the traced `init` graph once and return the resulting state."""
-    exe = etl.build(
-        virtual_lora_es.init, cfg, etl.core.TensorSpec((), np.int64), backend="numpy"
+    exe = evoxc.build(
+        virtual_lora_es.init, cfg, evoxc.core.TensorSpec((), np.int64), backend="numpy"
     )
-    return etl.run(exe, cfg, np.asarray(seed, dtype=np.int64))
+    return evoxc.run(exe, cfg, np.asarray(seed, dtype=np.int64))
 
 
 # --------------------------------------------------------------------- make_*
@@ -198,10 +198,10 @@ def test_lora_factors_exercises_both_block_paths():
         flat = lora_factors(seeds, SHAPES[1], LORA_RANK, counters[1])
         return a, b, flat
 
-    exe = etl.build(
-        factors, etl.core.TensorSpec((pop_size,), np.int64), backend="numpy"
+    exe = evoxc.build(
+        factors, evoxc.core.TensorSpec((pop_size,), np.int64), backend="numpy"
     )
-    a, b, flat = etl.run(exe, np.arange(pop_size, dtype=np.int64))
+    a, b, flat = evoxc.run(exe, np.arange(pop_size, dtype=np.int64))
 
     assert a.numpy().shape == (pop_size, LORA_RANK, 3)
     assert b.numpy().shape == (pop_size, 4, LORA_RANK)
@@ -217,12 +217,12 @@ def test_lora_delta_is_a_true_batched_matmul():
 
     def delta(seeds):
         a, b = lora_factors(seeds, SHAPES[0], LORA_RANK, counter)
-        return a, b, etl.dot(b, a)
+        return a, b, evoxc.dot(b, a)
 
-    exe = etl.build(
-        delta, etl.core.TensorSpec((pop_size,), np.int64), backend="numpy"
+    exe = evoxc.build(
+        delta, evoxc.core.TensorSpec((pop_size,), np.int64), backend="numpy"
     )
-    a, b, traced = etl.run(exe, np.arange(pop_size, dtype=np.int64))
+    a, b, traced = evoxc.run(exe, np.arange(pop_size, dtype=np.int64))
 
     expected = b.numpy() @ a.numpy()  # (pop, d, rank) @ (pop, rank, k)
     assert traced.numpy().shape == (pop_size, 4, 3)

@@ -1,4 +1,4 @@
-# unit_test/etl/algorithms/mo — MO algorithm smoke tests (etl-only)
+# unit_test/etl/algorithms/mo — MO algorithm smoke tests (ETL-only)
 
 ## Intent
 Step-protocol smoke tests for the six functional evox_etl MO ports
@@ -48,6 +48,6 @@ seed-determinism check.
   assertions must use 2·N_EFF.
 
 ## Constraints
-- ETL only (numpy backend): everything inside `etl.build`/`etl.run`.
+- ETL only (numpy backend): everything inside `evoxc.build`/`evoxc.run`.
 - No thresholds beyond the loose sanity bounds above; convergence-quality
   parity vs torch is `../parity/`'s job.

@@ -1,4 +1,4 @@
-"""Pure-etl smoke tests for the host-side HPO wrapper (NO torch imports).
+"""Pure-ETL smoke tests for the host-side HPO wrapper (NO torch imports).
 
 Builds small inner ``StdWorkflow``s (PSO on Sphere with an ``EvalMonitorConfig``),
 wraps them in :class:`HPOProblemWrapper`, and checks that ``evaluate`` really runs

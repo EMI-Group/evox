@@ -1,4 +1,4 @@
-"""Parity test: etl PSO vs the torch evox reference on Sphere (torch allowed)."""
+"""Parity test: ETL PSO vs the torch evox reference on Sphere (torch allowed)."""
 
 import pathlib
 import sys
@@ -20,10 +20,10 @@ from helpers import SphereConfig, run_generations
 
 
 def test_pso_parity_with_torch():
-    """etl PSO must converge as well as the torch reference on Sphere.
+    """ETL PSO must converge as well as the torch reference on Sphere.
 
     Uses 100 generations: the two implementations draw different RNG streams
-    (etl Threefry keys vs torch MT19937), so after only ~20 generations both
+    (evoxc Threefry keys vs torch MT19937), so after only ~20 generations both
     sit in a high-variance regime (~100 on Sphere dim=40) where paired runs
     differ by up to ~2x.  At 100 generations both converge to single digits,
     where a 1.5x relative bound is a meaningful parity check.
@@ -44,7 +44,7 @@ def test_pso_parity_with_torch():
     # opt_direction="min": topk keeps the smallest fitness (largest=False).
     torch_best = float(monitor.get_topk_fitness()[0])
 
-    # etl port: gens + 1 generations = init eval + gens steps (matches torch).
+    # ETL port: gens + 1 generations = init eval + gens steps (matches torch).
     cfg = pso_mod.make_pso(
         pop_size=pop_size,
         lb=np.full(dim, -10.0, np.float32),
@@ -56,5 +56,5 @@ def test_pso_parity_with_torch():
     etl_best = float(state.global_best_fit.numpy())
 
     assert etl_best <= torch_best * 1.5 + 1e-3, (
-        f"etl PSO best {etl_best:.6f} vs torch PSO best {torch_best:.6f}"
+        f"ETL PSO best {etl_best:.6f} vs torch PSO best {torch_best:.6f}"
     )

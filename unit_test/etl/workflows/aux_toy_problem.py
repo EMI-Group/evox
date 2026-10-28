@@ -21,7 +21,7 @@ from typing import Any
 
 __all__ = ["AuxToySphere", "evaluate"]
 
-import etl.numpy as enp
+import evoxc.numpy as enp
 
 
 @dataclasses.dataclass(frozen=True)

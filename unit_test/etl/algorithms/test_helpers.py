@@ -11,7 +11,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 import types
 
-import etl
+import evoxc
 import numpy as np
 from helpers import (
     AckleyConfig,
@@ -33,9 +33,9 @@ F32 = np.dtype("float32")
 
 def _evaluate(config, x):
     """Host helper: build + run toy_evaluate once for a numpy input."""
-    spec = etl.core.TensorSpec(shape=tuple(x.shape), dtype=F32)
-    exe = etl.build(toy_evaluate, config, ToyProblemState(), spec, backend="numpy")
-    fitness, _ = etl.run(exe, config, ToyProblemState(), x)
+    spec = evoxc.core.TensorSpec(shape=tuple(x.shape), dtype=F32)
+    exe = evoxc.build(toy_evaluate, config, ToyProblemState(), spec, backend="numpy")
+    fitness, _ = evoxc.run(exe, config, ToyProblemState(), x)
     return fitness
 
 
@@ -152,7 +152,7 @@ def test_run_generations_shade_converges_without_init_step():
 def _recorded(fn, calls):
     """Wrap ``fn``, appending one entry per INVOCATION.
 
-    ``etl.build`` traces a function exactly once per build (later ``etl.run``
+    ``evoxc.build`` traces a function exactly once per build (later ``evoxc.run``
     calls replay the recorded graph without re-invoking Python), so with the
     driver's per-(function, shape) exe cache ``len(calls)`` equals the number
     of distinct builds of ``fn``.  That is exactly what dispatch verification

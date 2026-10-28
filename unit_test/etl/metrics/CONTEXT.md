@@ -3,10 +3,10 @@
 ## Intent
 Pytest suite for the functional `evox_etl` metrics (`gd`, `igd`, `gd_plus`,
 `igd_plus`, `hv` / `bounding_cube_monte_carlo_hv`, `each_cube_monte_carlo_hv`),
-running everything through `etl.build` + `etl.run` on the numpy backend.
+running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 
 ## Structure
-- `test_metrics.py` — pure-etl tests (NO torch): metrics vs hand-rolled numpy
+- `test_metrics.py` — pure-ETL tests (NO torch): metrics vs hand-rolled numpy
   references (GD, IGD, GD+, IGD+ for several shapes/seeds and p exponents) and
   Monte-Carlo HV vs brute-force recomputation from the drawn samples.
 - `parity/test_parity.py` — the ONLY file allowed to import torch; compares
@@ -31,4 +31,4 @@ running everything through `etl.build` + `etl.run` on the numpy backend.
 ## Constraints
 - Never modify `src/evox_etl/` from here — if a test exposes a package bug,
   report it instead of fixing package code.
-- Pure-etl files must not import torch; torch is only allowed in `parity/`.
+- Pure-ETL files must not import torch; torch is only allowed in `parity/`.

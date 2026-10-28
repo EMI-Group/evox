@@ -13,16 +13,16 @@ import itertools
 from math import comb
 
 import numpy as np
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling
 
 
 def _exercise(key, x, lb, ub):
-    # pro_m/dis_m stay at the python defaults baked at trace time (per etl
-    # conventions they are NOT passed to etl.build/etl.run).
+    # pro_m/dis_m stay at the python defaults baked at trace time (per evoxc
+    # conventions they are NOT passed to evoxc.build/evoxc.run).
     pm = polynomial_mutation(key, x, lb, ub)
     w, n_samples = uniform_sampling(20, 3)
     return pm, w, n_samples
@@ -62,7 +62,7 @@ class TestMutationSamplingOperators:
         # against x like the old stacked boundary [-1, 1]).
         lb = np.array(-1.0, dtype=np.float32)
         ub = np.array(1.0, dtype=np.float32)
-        exe = etl.build(
+        exe = evoxc.build(
             _exercise,
             core.TensorSpec(shape=(), dtype=np.dtype("int64")),
             core.TensorSpec(shape=(6, 4), dtype=np.dtype("float32")),
@@ -70,7 +70,7 @@ class TestMutationSamplingOperators:
             core.TensorSpec(shape=(), dtype=np.dtype("float32")),
             backend="numpy",
         )
-        outs = etl.run(exe, key, x, lb, ub)
+        outs = evoxc.run(exe, key, x, lb, ub)
         return x, lb, ub, [o.numpy() for o in outs[:2]], outs[2]
 
     def test_polynomial_mutation(self):

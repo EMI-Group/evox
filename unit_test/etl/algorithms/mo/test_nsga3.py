@@ -22,8 +22,8 @@ sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 import numpy as np
 import pytest
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 import helpers
 from evox_etl.algorithms.mo import nsga3
@@ -43,13 +43,13 @@ def make_config():
 
 
 def _leaf_spec(t):
-    """TensorSpec mirroring one etl tensor leaf."""
-    return etl.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
+    """TensorSpec mirroring one evoxc tensor leaf."""
+    return evoxc.core.TensorSpec(shape=tuple(t.shape), dtype=np.dtype(t.dtype))
 
 
 def _spec_tree(pytree):
-    """Pytree of etl tensors -> pytree of TensorSpecs (state mirror)."""
-    return etl.tree_map(_leaf_spec, pytree)
+    """Pytree of evoxc tensors -> pytree of TensorSpecs (state mirror)."""
+    return evoxc.tree_map(_leaf_spec, pytree)
 
 
 def _trace_step(step_fn, cfg, state):
@@ -71,15 +71,15 @@ def _trace_step(step_fn, cfg, state):
 
         return step_fn(cfg, state, evaluate), box["batch"]
 
-    exe = etl.build(generation_fn, _spec_tree(state), backend="numpy")
-    return etl.run(exe, state), seen
+    exe = evoxc.build(generation_fn, _spec_tree(state), backend="numpy")
+    return evoxc.run(exe, state), seen
 
 
 def test_init_step_full_population_and_step_offspring_shape():
     cfg = make_config()
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(nsga3.init, cfg, key_spec, backend="numpy")
-    state = etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(nsga3.init, cfg, key_spec, backend="numpy")
+    state = evoxc.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
     assert tuple(state.pop.shape) == (POP_SIZE, DIM)
 
     # Gen 0 (init_step) evaluates the FULL initial population (no RNG draw):
@@ -132,9 +132,9 @@ def test_full_run_deterministic():
 
 def _run_init(cfg):
     """Trace ``nsga3.init`` for ``cfg`` and run it with a fixed seed."""
-    key_spec = etl.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
-    init_exe = etl.build(nsga3.init, cfg, key_spec, backend="numpy")
-    return etl.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
+    key_spec = evoxc.core.TensorSpec(shape=(), dtype=np.dtype("int64"))
+    init_exe = evoxc.build(nsga3.init, cfg, key_spec, backend="numpy")
+    return evoxc.run(init_exe, cfg, np.asarray(SEED, dtype=np.int64))
 
 
 def test_data_type_bool_draws_boolean_population():
@@ -188,15 +188,15 @@ def test_final_survivors_preserve_merge_order():
     rank = np.asarray([1, 0, 2, 0, 5], dtype=np.int32)
 
     specs = (
-        etl.core.TensorSpec(shape=(n, k), dtype=np.dtype("float32")),
-        etl.core.TensorSpec(shape=(n, m), dtype=np.dtype("float32")),
-        etl.core.TensorSpec(shape=(n,), dtype=np.dtype("int32")),
+        evoxc.core.TensorSpec(shape=(n, k), dtype=np.dtype("float32")),
+        evoxc.core.TensorSpec(shape=(n, m), dtype=np.dtype("float32")),
+        evoxc.core.TensorSpec(shape=(n,), dtype=np.dtype("int32")),
     )
-    exe = etl.build(
+    exe = evoxc.build(
         lambda mp, mf, rk: nsga3._final_survivors(mp, mf, rk, 2, 3),
         *specs, backend="numpy",
     )
-    pop, fit, out_rank = etl.run(exe, merge_pop, merge_fit, rank)
+    pop, fit, out_rank = evoxc.run(exe, merge_pop, merge_fit, rank)
 
     survivors = np.asarray([0, 1, 3], dtype=np.int64)
     # [1, 0, 0] is the merge-order ranking; the old sort would give [0, 0, 1].

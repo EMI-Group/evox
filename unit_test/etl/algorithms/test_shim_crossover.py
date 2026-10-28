@@ -10,8 +10,8 @@ from pathlib import Path
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
 
 import numpy as np
-import etl
-from etl import core
+import evoxc
+from evoxc import core
 
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
@@ -54,7 +54,7 @@ class TestCrossoverOperators:
             core.TensorSpec(shape=(POP,), dtype=np.dtype("float32")),
             core.TensorSpec(shape=(POP,), dtype=np.dtype("float32")),
         ]
-        cls.exe = etl.build(_exercise, *specs, backend="numpy")
+        cls.exe = evoxc.build(_exercise, *specs, backend="numpy")
 
         rng = np.random.default_rng(0)
         cls.key = np.array(42, dtype=np.int64)
@@ -68,7 +68,7 @@ class TestCrossoverOperators:
         cls.K = np.linspace(0.1, 0.9, POP).astype(np.float32)
 
     def run(self):
-        outs = etl.run(
+        outs = evoxc.run(
             self.exe, self.key, self.x, self.num_diff_vects, self.index,
             self.population, self.mutation, self.current, self.CR, self.K,
         )
@@ -93,7 +93,7 @@ class TestCrossoverOperators:
             assert ds.shape == (POP, DIM) and ds.dtype == np.float32
             assert np.isfinite(ds).all()
         assert first_r.shape == (POP,) and first_r.dtype == np.int32
-        # canonical: with replace=False the fix-up `etl.select(rand_indices == index,
+        # canonical: with replace=False the fix-up `evoxc.select(rand_indices == index,
         # pop_size - 1, rand_indices)` promotes the int32 draws to int64 via the
         # python-int scalar (torch promotes the same way) — the old shim cast this
         # back to int32; the canonical operator does not.

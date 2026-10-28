@@ -27,8 +27,8 @@ from __future__ import annotations
 import aux_toy_algorithm
 import aux_toy_algorithm_no_hook
 import aux_toy_problem
-import etl
-import etl.core
+import evoxc
+import evoxc.core
 import numpy as np
 
 import evox_etl.workflows.eval_monitor as em
@@ -198,7 +198,7 @@ def test_no_hook_algorithm_keeps_legacy_pop_history():
 def test_module_record_auxiliary_noop_when_gate_off():
     """The module-level hook early-returns when ``full_pop_history`` is off."""
     cfg = EvalMonitorConfig(full_pop_history=False)
-    tensor = etl.core.tensor(np.arange(DIM, dtype=np.float32))
+    tensor = evoxc.core.tensor(np.arange(DIM, dtype=np.float32))
     em.record_auxiliary(cfg, {"x": tensor})
     assert cfg.aux_history == {}
 
@@ -206,8 +206,8 @@ def test_module_record_auxiliary_noop_when_gate_off():
 def test_module_record_auxiliary_converts_and_accumulates():
     """Each call appends one CPU-numpy copy per key (channel accumulates)."""
     cfg = EvalMonitorConfig(full_pop_history=True)
-    first = etl.core.tensor(np.zeros(DIM, dtype=np.float32))
-    second = etl.core.tensor(np.ones(DIM, dtype=np.float32))
+    first = evoxc.core.tensor(np.zeros(DIM, dtype=np.float32))
+    second = evoxc.core.tensor(np.ones(DIM, dtype=np.float32))
     em.record_auxiliary(cfg, {"x": first})
     em.record_auxiliary(cfg, {"x": second, "y": first})
     assert set(cfg.aux_history) == {"x", "y"}
