@@ -2,7 +2,7 @@
 
 Step-protocol port of the read-only torch reference in
 ``src/evox/algorithms/so/pso_variants/fs_pso.py``: ``init``/``init_step``/
-``step`` plain functions (no ``@etl.defn``), each step-family function owning
+``step`` plain functions (no ``@evoxc.defn``), each step-family function owning
 one full generation (candidate generation → ``evaluate`` → state update).
 numpy is used at trace time to bake constants and on the host in the config
 constructor.
@@ -13,10 +13,10 @@ from typing import Any
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl import core
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc import core
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -121,22 +121,22 @@ def init(config: FSPSO, key: Tensor) -> FSPSOState:
         mean_c = bake_float32_constant(config.mean, shape=(1, -1))
         stdev_c = bake_float32_constant(config.stdev, shape=(1, -1))
         pop = clamp(
-            mean_c + stdev_c * random.normal(subkey1, (pop_size, dim), 0.0, 1.0, etl.float32),
+            mean_c + stdev_c * random.normal(subkey1, (pop_size, dim), 0.0, 1.0, evoxc.float32),
             lb,
             ub,
         )
-        velocity = stdev_c * random.normal(subkey2, (pop_size, dim), 0.0, 1.0, etl.float32)
+        velocity = stdev_c * random.normal(subkey2, (pop_size, dim), 0.0, 1.0, evoxc.float32)
     else:
-        pop = length * random.uniform(subkey1, (pop_size, dim), 0.0, 1.0, etl.float32) + lb
-        velocity = random.uniform(subkey2, (pop_size, dim), 0.0, 1.0, etl.float32) * length * 2 - length
+        pop = length * random.uniform(subkey1, (pop_size, dim), 0.0, 1.0, evoxc.float32) + lb
+        velocity = random.uniform(subkey2, (pop_size, dim), 0.0, 1.0, evoxc.float32) * length * 2 - length
     return FSPSOState(
         pop=pop,
-        fit=enp.zeros((pop_size,), etl.float32),
+        fit=enp.zeros((pop_size,), evoxc.float32),
         velocity=velocity,
         local_best_location=pop,
-        local_best_fit=enp.full((pop_size,), float("inf"), dtype=etl.float32),
+        local_best_fit=enp.full((pop_size,), float("inf"), dtype=evoxc.float32),
         global_best_location=pop[0],
-        global_best_fit=enp.full((), float("inf"), dtype=etl.float32),
+        global_best_fit=enp.full((), float("inf"), dtype=evoxc.float32),
         key=key,
     )
 
@@ -153,7 +153,7 @@ def init_step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
         state,
         fit=fitness,
         local_best_fit=fitness,
-        global_best_fit=etl.min(fitness, axes=0),
+        global_best_fit=evoxc.min(fitness, axes=0),
     )
 
 
@@ -173,19 +173,19 @@ def step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
     lb, ub = _bake_bounds(config)
 
     # ----------------Enhancement----------------
-    ranked_index = etl.argsort(state.fit, axis=0, stable=True)
+    ranked_index = evoxc.argsort(state.fit, axis=0, stable=True)
     elite_index = ranked_index[:half]
-    elite_pop = etl.gather(state.pop, elite_index, axis=0)
-    elite_velocity = etl.gather(state.velocity, elite_index, axis=0)
-    elite_fit = etl.gather(state.fit, elite_index, axis=0)
-    elite_local_best_location = etl.gather(state.local_best_location, elite_index, axis=0)
-    elite_local_best_fit = etl.gather(state.local_best_fit, elite_index, axis=0)
+    elite_pop = evoxc.gather(state.pop, elite_index, axis=0)
+    elite_velocity = evoxc.gather(state.velocity, elite_index, axis=0)
+    elite_fit = evoxc.gather(state.fit, elite_index, axis=0)
+    elite_local_best_location = evoxc.gather(state.local_best_location, elite_index, axis=0)
+    elite_local_best_fit = evoxc.gather(state.local_best_fit, elite_index, axis=0)
 
     compare = elite_local_best_fit > elite_fit
-    local_best_location = etl.select(
+    local_best_location = evoxc.select(
         enp.expand_dims(compare, 1), elite_pop, elite_local_best_location
     )
-    local_best_fit = etl.select(compare, elite_fit, elite_local_best_fit)
+    local_best_fit = evoxc.select(compare, elite_fit, elite_local_best_fit)
 
     global_best_location, global_best_fit = min_by(
         [enp.expand_dims(state.global_best_location, 0), elite_pop],
@@ -193,8 +193,8 @@ def step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
     )
 
     key, rg_key, rp_key, t1_key, t2_key, off_key, mp_key = random.split_n(state.key, 7)
-    rg = random.uniform(rg_key, (half, dim), 0.0, 1.0, etl.float32)
-    rp = random.uniform(rp_key, (half, dim), 0.0, 1.0, etl.float32)
+    rg = random.uniform(rg_key, (half, dim), 0.0, 1.0, evoxc.float32)
+    rp = random.uniform(rp_key, (half, dim), 0.0, 1.0, evoxc.float32)
     updated_elite_velocity = (
         config.inertia_weight * elite_velocity
         + config.cognitive_coefficient * rp * (elite_local_best_location - elite_pop)
@@ -204,32 +204,32 @@ def step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
     updated_elite_velocity = clamp(updated_elite_velocity, lb, ub)
 
     # ----------------Crossover----------------
-    tournament1 = random.randint(t1_key, (half,), 0, half, dtype=etl.int32)
-    tournament2 = random.randint(t2_key, (half,), 0, half, dtype=etl.int32)
-    compare = etl.gather(elite_fit, tournament1, axis=0) < etl.gather(
+    tournament1 = random.randint(t1_key, (half,), 0, half, dtype=evoxc.int32)
+    tournament2 = random.randint(t2_key, (half,), 0, half, dtype=evoxc.int32)
+    compare = evoxc.gather(elite_fit, tournament1, axis=0) < evoxc.gather(
         elite_fit, tournament2, axis=0
     )
-    mutating_pool = etl.select(compare, tournament1, tournament2)
+    mutating_pool = evoxc.select(compare, tournament1, tournament2)
 
     # Extend (mutate and create new generation)
-    original_population = etl.gather(elite_pop, mutating_pool, axis=0)
-    offspring_velocity = etl.gather(elite_velocity, mutating_pool, axis=0)
+    original_population = evoxc.gather(elite_pop, mutating_pool, axis=0)
+    offspring_velocity = evoxc.gather(elite_velocity, mutating_pool, axis=0)
 
-    offset = (2 * random.uniform(off_key, (half, dim), 0.0, 1.0, etl.float32) - 1) * (ub - lb)
-    mutation_prob = random.uniform(mp_key, (half, dim), 0.0, 1.0, etl.float32)
+    offset = (2 * random.uniform(off_key, (half, dim), 0.0, 1.0, evoxc.float32) - 1) * (ub - lb)
+    mutation_prob = random.uniform(mp_key, (half, dim), 0.0, 1.0, evoxc.float32)
     mask = mutation_prob < config.mutate_rate
-    offspring_population = original_population + etl.select(mask, offset, 0)
+    offspring_population = original_population + evoxc.select(mask, offset, 0)
     offspring_population = clamp(offspring_population, lb, ub)
     offspring_local_best_location = offspring_population
-    offspring_local_best_fit = enp.full((half,), float("inf"), dtype=etl.float32)
+    offspring_local_best_fit = enp.full((half,), float("inf"), dtype=evoxc.float32)
 
     # Concatenate updated and offspring populations
-    pop = etl.concatenate([updated_elite_pop, offspring_population], axis=0)
-    velocity = etl.concatenate([updated_elite_velocity, offspring_velocity], axis=0)
-    local_best_location = etl.concatenate(
+    pop = evoxc.concatenate([updated_elite_pop, offspring_population], axis=0)
+    velocity = evoxc.concatenate([updated_elite_velocity, offspring_velocity], axis=0)
+    local_best_location = evoxc.concatenate(
         [local_best_location, offspring_local_best_location], axis=0
     )
-    local_best_fit = etl.concatenate([local_best_fit, offspring_local_best_fit], axis=0)
+    local_best_fit = evoxc.concatenate([local_best_fit, offspring_local_best_fit], axis=0)
 
     intermediate = FSPSOState(
         pop=pop,

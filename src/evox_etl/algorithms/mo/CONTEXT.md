@@ -5,7 +5,7 @@ Plain-function ports of `src/evox/algorithms/mo/` (torch, READ-ONLY reference):
 nsga2, nsga3, moead, rvea, rveaa, hype. Each module = frozen config dataclass
 (`<Name>Config`), frozen state dataclass (`<Name>State`, tensor leaves only),
 and plain `init`/`init_step`/`step` functions following the step protocol of
-`../../core/algorithm.py` (NO `@etl.defn`, see `../../DESIGN.md` §4.3; no
+`../../core/algorithm.py` (NO `@evoxc.defn`, see `../../DESIGN.md` §4.3; no
 module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 
 ## API Surface (all six modules)
@@ -32,10 +32,10 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
      selection (split into a module-private helper in nsga3/moead — a plain
      function split, not a protocol function).
 - The workflow dispatches `init_step`/`step` HOST-SIDE (no in-graph
-  generation branch); every module traces via `etl.build`/`etl.run`.
+  generation branch); every module traces via `evoxc.build`/`evoxc.run`.
 - Config fields mirror torch `__init__` exactly minus `device`; `lb`/`ub`
   tuples baked as (dim,) float32 graph constants
-  (`bake_bounds` → `etl.ops.constant(etl.core.tensor(np.asarray(...,
+  (`bake_bounds` → `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...,
   np.float32)))`); optional ops are plain function refs, `None` = algorithm
   default, resolved inside functions (see the config-construction section
   for the registration/op-field split between the six modules).
@@ -83,14 +83,14 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   carries `data_type: Optional[Any] = None`. Every `step` resolves a `None` op
   field to the torch default at the torch call site; an all-None config is
   byte-identical to the pre-injection behavior (same RNG draw order).
-  Custom-op signatures (etl keyed unless noted): `selection_op(key, n_parents,
+  Custom-op signatures (evoxc keyed unless noted): `selection_op(key, n_parents,
   fitness)` for the nsga2/nsga3/moead tournament style, or `selection_op(x, f,
   v, theta)` with NO key for the rvea/rveaa ref-vector style;
   `crossover_op(key, x)`; `mutation_op(key, x, lb, ub)`.
-- Callable-bearing configs KEEP a zero-child `etl.register_pytree_node`
+- Callable-bearing configs KEEP a zero-child `evoxc.register_pytree_node`
   registration (all six modules now) — REQUIRED because non-None callables are
   NOT static pytree values (TraceError at the callable leaf). Registration
-  makes the config an opaque static node: `etl.run` performs NO by-value
+  makes the config an opaque static node: `evoxc.run` performs NO by-value
   revalidation, and `lb`/`ub`/op fields travel with the node. The
   `_config_flatten`/`_config_unflatten` boilerplate is duplicated per module by
   design (same convention as the operators).
@@ -98,7 +98,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   the builtin `bool` type (`_normalize_data_type`, re-called in `init` so
   direct dataclass construction fails loudly too). `data_type=bool` draws the
   torch `data_type == torch.bool` boolean population (uniform > 0.5);
-  `torch.bool` itself is NOT accepted (the etl module never imports torch) —
+  `torch.bool` itself is NOT accepted (the evoxc module never imports torch) —
   callers must pass the builtin `bool`.
 - `make_*` signatures (all raise ValueError on malformed bounds and on a
   non-callable non-None op field):
@@ -109,7 +109,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   - `make_rveaa(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, alpha: float = 2.0, fr: float = 0.1, max_gen: int = 100, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> RVEAaConfig`
   - `make_hype(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, n_sample: int = 10000, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> HypEConfig`
 - Direct `*Config(...)` dataclass construction with ndarray lb/ub still runs
-  (field annotations are unenforced and the installed etl accepts ndarray
+  (field annotations are unenforced and the installed evoxc accepts ndarray
   statics) but is not the sanctioned API; nsga3's `init` re-validates
   `data_type` so direct construction still fails loudly on a bad value.
 
@@ -170,43 +170,43 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   agent). The torch `matrix_rank(extreme) == n_objs` guard is therefore
   rank = count(sqrt(eigvalsh(AᵀA)) > s_max·n·eps32) with AᵀA accumulated in
   float64 (noise floor ~1e-8·s_max « cutoff ~1e-7·s_max; verified ≡
-  `etl.matrix_rank` on 14k random/singular/near-singular matrices), and the
+  `evoxc.matrix_rank` on 14k random/singular/near-singular matrices), and the
   torch `solve(extreme, ones)` hyperplane is the eigh-based normal equations
   (AᵀA)⁻¹Aᵀ·1 in float64 (≤1.2e-7 rel vs the numpy LU solve even at cond
   1e5). Both build+run on iree-llvm-cpu and xla-cuda.
 
-## ETL gotchas (verified — do not re-investigate)
-- MOEAD's update loop is one traced `etl.while_loop`: cond/body take the
+## EvoX Compiler gotchas (verified — do not re-investigate)
+- MOEAD's update loop is one traced `evoxc.while_loop`: cond/body take the
   carry as ONE tuple arg; closure-capture of outer args (`state.w`,
   `state.next_parents`, `fitness`) is legal. Carry `i` must stay int32
-  (`etl.cast(i + 1, etl.int32)`).
+  (`evoxc.cast(i + 1, evoxc.int32)`).
 - MOEAD sequential overwrites: the same row can be updated by several i's in
   one generation (last-i-wins) — torch does the same; do not "deduplicate".
-- `etl.sum/mean` take `axes=`; `etl.min(x, axes=..)` values only (argmin
-  separate); `etl.topk(x, k, axis, largest=False)` → `(values, indices)`;
-  `etl.sort(x, axis, descending=, stable=)` values only; `etl.argsort(...,
+- `evoxc.sum/mean` take `axes=`; `evoxc.min(x, axes=..)` values only (argmin
+  separate); `evoxc.topk(x, k, axis, largest=False)` → `(values, indices)`;
+  `evoxc.sort(x, axis, descending=, stable=)` values only; `evoxc.argsort(...,
   stable=True)` → int64 indices. `random.permutation(key, n, dtype=int32)`.
-- `etl.cond(pred, true_fn, false_fn, *operands)` — NSGA3 uses it for the
+- `evoxc.cond(pred, true_fn, false_fn, *operands)` — NSGA3 uses it for the
   hyperplane branch: the full-rank guard keeps the solve off deficient
   `extreme` matrices (numpy `linalg.solve` would RAISE there; never compute
   it unconditionally).
 - No boolean/advanced indexing with dynamic masks (no dynamic shapes): select
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
   one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
-- `etl.gather` = numpy `take`: row-local gathers → `_take_along_axis` from
-  `evox_etl.operators.jit_fix_operator`; `etl.scatter` = put_along_axis
+- `evoxc.gather` = numpy `take`: row-local gathers → `_take_along_axis` from
+  `evox_etl.operators.jit_fix_operator`; `evoxc.scatter` = put_along_axis
   replacement (no scatter-add — torch NSGA3 `scatter_add` → one-hot sum).
-- No `&`/`!=`/`%` overloads → `enp.logical_and`, `etl.not_equal`,
-  `etl.remainder`. `enp.zeros/enp.full` (not `etl.zeros`); Python-int tensor
-  promotion → wrap in `etl.cast`. `etl.stack` of mixed dtypes is risky → cast
+- No `&`/`!=`/`%` overloads → `enp.logical_and`, `evoxc.not_equal`,
+  `evoxc.remainder`. `enp.zeros/enp.full` (not `evoxc.zeros`); Python-int tensor
+  promotion → wrap in `evoxc.cast`. `evoxc.stack` of mixed dtypes is risky → cast
   int32 rank to float32 before stacking in `tournament_selection_multifit`.
 - while_loop carry is ONE pytree argument (unpack inside cond/body); carry
   dtypes must be identical across iterations.
-- No `etl.cdist` → MOEAD neighbors via
+- No `evoxc.cdist` → MOEAD neighbors via
   `sqrt(maximum(d2, 0))`, `d2 = w2[:, None] + w2[None, :] - 2*dot(w, w.T)`.
 
 ## Tests
-- Smoke: `unit_test/etl/algorithms/mo/test_<name>.py` (etl-only, `__init__.py`
+- Smoke: `unit_test/etl/algorithms/mo/test_<name>.py` (evoxc-only, `__init__.py`
   present so pytest collects uniquely-qualified names vs the parity dir). Each
   uses `make_*` and adds custom-op tests: a recording wrapper proves each
   user-supplied op is invoked during `step`; identity/constant ops prove the op
@@ -235,7 +235,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 | Torch reference | `../../../evox/algorithms/mo/` | sibling — READ-ONLY |
 
 ## Escalation (outside this node's write scope)
-- `src/evox_etl/CONTEXT.md` "ETL issues found" #1 still claims stale
+- `src/evox_etl/CONTEXT.md` "EvoX Compiler issues found" #1 still claims stale
   "ndarray rejected" comments remain in mo/*.py — RESOLVED for this node
   (T2-A44); root agent should condense that bullet once the SO rounds and
   problems/numerical land. DESIGN.md §4.1 was refreshed upstream (make_*

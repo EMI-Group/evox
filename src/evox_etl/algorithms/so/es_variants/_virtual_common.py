@@ -7,19 +7,19 @@ avoids duplicating the update rule between `virtual_es.py` and
 `virtual_lora_es.py`.
 
 numpy is used on the host side only (inside `make_*`); the functions called
-inside a trace use etl ops exclusively.
+inside a trace use evoxc ops exclusively.
 """
 
 import math
 from dataclasses import replace
 from typing import Any, Literal, Protocol, Sequence
 
-import etl
-import etl.random as random
+import evoxc
+import evoxc.random as random
 
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 class VirtualConfig(Protocol):
@@ -77,7 +77,7 @@ def draw_seeds(key: Tensor, pop_size: int) -> tuple[Tensor, Tensor]:
     reference's ``torch.randint(0, 2**31, (pop_size,), dtype=torch.int64)``.
     """
     key, subkey = random.split(key)
-    seeds = random.randint(subkey, (pop_size,), 0, 2**31, dtype=etl.int64)
+    seeds = random.randint(subkey, (pop_size,), 0, 2**31, dtype=evoxc.int64)
     return key, seeds
 
 
@@ -112,7 +112,7 @@ def update_center(
             0.999,
             config.learning_rate,
         )
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,

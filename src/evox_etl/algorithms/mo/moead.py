@@ -1,22 +1,22 @@
 """Functional ETL port of the torch evox MOEA/D algorithm.
 
-Plain functions (no ``@etl.defn`` — ETL has no eager mode; call them only
-inside an active trace via ``etl.build``/``etl.run``). 1:1 port of
+Plain functions (no ``@evoxc.defn`` — EvoX Compiler has no eager mode; call them only
+inside an active trace via ``evoxc.build``/``evoxc.run``). 1:1 port of
 ``src/evox/algorithms/mo/moead.py`` (read-only torch reference): same math,
 same draw order, key-first RNG (operator shims). One ``step`` call owns the
 whole generation: the per-individual offspring batch is drawn up-front (the
 batched pairing is equivalent to the torch per-i calls), evaluated through
 the opaque ``evaluate`` closure, and the sequential per-individual update
-loop runs as one traced ``etl.while_loop``.
+loop runs as one traced ``evoxc.while_loop``.
 """
 
 import math
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Optional, Tuple
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp, minimum
@@ -55,9 +55,9 @@ def _config_unflatten(config: MOEADConfig, _children) -> MOEADConfig:
 
 # The registration is REQUIRED: the config carries optional callable op
 # fields, and functions are not valid static pytree leaves — so the config is
-# registered as a childless node and passes through etl.build/etl.run as one
+# registered as a childless node and passes through evoxc.build/evoxc.run as one
 # opaque static value.
-etl.register_pytree_node(MOEADConfig, _config_flatten, _config_unflatten)
+evoxc.register_pytree_node(MOEADConfig, _config_flatten, _config_unflatten)
 
 
 def make_moead(
@@ -98,7 +98,7 @@ def make_moead(
 
 @dataclass(frozen=True)
 class MOEADState:
-    """MOEA/D search state; every leaf is an ETL tensor."""
+    """MOEA/D search state; every leaf is an ``evoxc`` tensor."""
 
     pop: Any
     fit: Any
@@ -115,10 +115,10 @@ def pbi(f: Any, w: Any, z: Any) -> Any:
 
     1:1 port of the torch ``pbi`` in ``evox.algorithms.mo.moead``.
     """
-    norm_w = etl.norm(w, axis=1)
+    norm_w = evoxc.norm(w, axis=1)
     f = f - z
-    d1 = etl.sum(f * w, axes=1) / norm_w
-    d2 = etl.norm(f - enp.expand_dims(d1, 1) * w / enp.expand_dims(norm_w, 1), axis=1)
+    d1 = evoxc.sum(f * w, axes=1) / norm_w
+    d2 = evoxc.norm(f - enp.expand_dims(d1, 1) * w / enp.expand_dims(norm_w, 1), axis=1)
     return d1 + 5.0 * d2
 
 
@@ -138,15 +138,15 @@ def init(config: MOEADConfig, key: Any) -> MOEADState:
     fit = enp.full((n_w, config.n_objs), float("inf"), dtype="float32")
     z = enp.zeros((config.n_objs,), dtype="float32")
 
-    # Pairwise squared distances of the weight vectors (no etl.cdist).
-    w2 = etl.sum(w * w, axes=1)
+    # Pairwise squared distances of the weight vectors (no evoxc.cdist).
+    w2 = evoxc.sum(w * w, axes=1)
     d2 = (
         enp.expand_dims(w2, 1)
         + enp.expand_dims(w2, 0)
-        - 2.0 * etl.dot(w, etl.transpose(w, axes=(1, 0)))
+        - 2.0 * evoxc.dot(w, evoxc.transpose(w, axes=(1, 0)))
     )
-    dist = etl.sqrt(enp.maximum(d2, 0.0))
-    neighbors = etl.cast(etl.argsort(dist, axis=1, stable=True)[:, :n_neighbor], etl.int32)
+    dist = evoxc.sqrt(enp.maximum(d2, 0.0))
+    neighbors = evoxc.cast(evoxc.argsort(dist, axis=1, stable=True)[:, :n_neighbor], evoxc.int32)
 
     return MOEADState(
         pop=population,
@@ -164,7 +164,7 @@ def init_step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOE
     """First generation (torch ``init_step``): evaluate the whole population
     and record its fitness and the ideal point (no RNG draw)."""
     fitness = evaluate(state.pop)
-    return replace(state, fit=fitness, z=etl.min(fitness, axes=0))
+    return replace(state, fit=fitness, z=evoxc.min(fitness, axes=0))
 
 
 def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADState:
@@ -174,7 +174,7 @@ def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADSta
     for crossover (equivalent to the torch per-i single-pair call), mutates
     and clamps — producing one offspring per weight vector — then evaluates
     the offspring batch via ``evaluate`` and runs the sequential per-i
-    update loop as one traced ``etl.while_loop``; ``z`` is a loop carry
+    update loop as one traced ``evoxc.while_loop``; ``z`` is a loop carry
     lowered per-i BEFORE the g comparisons, exactly like torch's
     ``self.z = minimum(self.z, off_fit)`` (a pre-loop batch min would
     contaminate the g_old/g_new decisions with future offspring minima).
@@ -182,7 +182,7 @@ def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADSta
     key, k_perm, k_cross, k_mut = random.split_n(state.key, 4)
     n_w, n_neighbor = state.next_parents.shape
 
-    perm = etl.argsort(
+    perm = evoxc.argsort(
         random.uniform(k_perm, (n_w, n_neighbor), 0.0, 1.0, "float32"),
         axis=1,
         stable=True,
@@ -190,10 +190,10 @@ def step(config: MOEADConfig, state: MOEADState, evaluate: Callable) -> MOEADSta
     next_parents = _take_along_axis(state.neighbors, perm, axis=1)
     parents = next_parents[:, :2]
 
-    x_pairs = etl.concatenate(
+    x_pairs = evoxc.concatenate(
         [
-            etl.gather(state.pop, parents[:, 0], axis=0),
-            etl.gather(state.pop, parents[:, 1], axis=0),
+            evoxc.gather(state.pop, parents[:, 0], axis=0),
+            evoxc.gather(state.pop, parents[:, 1], axis=0),
         ],
         axis=0,
     )
@@ -226,41 +226,41 @@ def _update(config: MOEADConfig, state: MOEADState, fitness: Any) -> MOEADState:
 
     def body(carry: Tuple[Any, Any, Any, Any]) -> Tuple[Any, Any, Any, Any]:
         i, pop, fit, z = carry
-        parents = etl.gather(state.next_parents, enp.expand_dims(i, 0), axis=0)[0]
-        off = etl.gather(state.next_generation, enp.expand_dims(i, 0), axis=0)[0]
-        off_fit = etl.gather(fitness, enp.expand_dims(i, 0), axis=0)[0]
+        parents = evoxc.gather(state.next_parents, enp.expand_dims(i, 0), axis=0)[0]
+        off = evoxc.gather(state.next_generation, enp.expand_dims(i, 0), axis=0)[0]
+        off_fit = evoxc.gather(fitness, enp.expand_dims(i, 0), axis=0)[0]
         z = minimum(z, off_fit)
 
-        w_p = etl.gather(state.w, parents, axis=0)
-        fit_p = etl.gather(fit, parents, axis=0)
+        w_p = evoxc.gather(state.w, parents, axis=0)
+        fit_p = evoxc.gather(fit, parents, axis=0)
         g_old = pbi(fit_p, w_p, z)
         g_new = pbi(enp.expand_dims(off_fit, 0), w_p, z)
         mask = enp.expand_dims(g_old >= g_new, 1)
 
         # Replacement scatter is safe: the parents of one row are distinct.
-        pop = etl.scatter(
+        pop = evoxc.scatter(
             pop,
             parents,
-            etl.select(
+            evoxc.select(
                 mask,
-                etl.tile(enp.expand_dims(off, 0), (n_neighbor, 1)),
-                etl.gather(pop, parents, axis=0),
+                evoxc.tile(enp.expand_dims(off, 0), (n_neighbor, 1)),
+                evoxc.gather(pop, parents, axis=0),
             ),
             axis=0,
         )
-        fit = etl.scatter(
+        fit = evoxc.scatter(
             fit,
             parents,
-            etl.select(
+            evoxc.select(
                 mask,
-                etl.tile(enp.expand_dims(off_fit, 0), (n_neighbor, 1)),
-                etl.gather(fit, parents, axis=0),
+                evoxc.tile(enp.expand_dims(off_fit, 0), (n_neighbor, 1)),
+                evoxc.gather(fit, parents, axis=0),
             ),
             axis=0,
         )
-        i = etl.cast(i + 1, etl.int32)
+        i = evoxc.cast(i + 1, evoxc.int32)
         return i, pop, fit, z
 
     i0 = enp.zeros((), dtype="int32")
-    i, pop, fit, z = etl.while_loop(cond, body, (i0, state.pop, state.fit, z))
+    i, pop, fit, z = evoxc.while_loop(cond, body, (i0, state.pop, state.fit, z))
     return replace(state, pop=pop, fit=fit, z=z)

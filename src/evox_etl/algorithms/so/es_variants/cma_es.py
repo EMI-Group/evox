@@ -1,9 +1,9 @@
 """Functional ETL port of the torch evox `cma_es.py` algorithm (CMA-ES, step
 protocol).
 
-Plain (non-`@etl.defn`) functions: `init`, `step`. They may only be
-called inside an active trace (a function passed to `etl.build`/
-`etl.run`), since ETL has no eager mode. Semantics mirror the torch
+Plain (non-`@evoxc.defn`) functions: `init`, `step`. They may only be
+called inside an active trace (a function passed to `evoxc.build`/
+`evoxc.run`), since EvoX Compiler has no eager mode. Semantics mirror the torch
 original in `src/evox/algorithms/so/es_variants/cma_es.py` exactly; the
 `CMAESConfig` fields match its `__init__` signature minus `device`. `step`
 owns the WHOLE generation (sample → `evaluate(candidates)` → mean/covariance/
@@ -17,9 +17,9 @@ from typing import Callable, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from ..._config_utils import (
     ArrayLike,
@@ -29,7 +29,7 @@ from ..._config_utils import (
 )
 from .sort_utils import sort_by_key
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -74,7 +74,7 @@ def make_cma_es(
 
 @dataclass(frozen=True)
 class CMAESState:
-    """CMA-ES mutable state; every leaf is an ETL tensor (no Python scalars)."""
+    """CMA-ES mutable state; every leaf is an ``evoxc`` tensor (no Python scalars)."""
 
     iteration: Tensor  # int32 scalar, incremented at the start of each step
     C: Tensor  # (dim, dim) covariance matrix
@@ -158,15 +158,15 @@ def _decompose(
     C: Tensor, B: Tensor, D: Tensor, C_invsqrt: Tensor
 ) -> tuple[Tensor, Tensor, Tensor]:
     """Eigendecompose the covariance matrix (true branch of the cond)."""
-    C = (C + etl.transpose(C, (1, 0))) / 2
-    D_evals, B_vecs = etl.eigh(C)
-    D_evals = etl.maximum(D_evals, 1e-8)
-    C_invsqrt = etl.dot(
+    C = (C + evoxc.transpose(C, (1, 0))) / 2
+    D_evals, B_vecs = evoxc.eigh(C)
+    D_evals = evoxc.maximum(D_evals, 1e-8)
+    C_invsqrt = evoxc.dot(
         B_vecs,
-        etl.dot(etl.diag(1.0 / etl.sqrt(D_evals)), etl.transpose(B_vecs, (1, 0))),
+        evoxc.dot(evoxc.diag(1.0 / evoxc.sqrt(D_evals)), evoxc.transpose(B_vecs, (1, 0))),
     )
-    D_new = etl.dot(B_vecs, etl.diag(etl.sqrt(D_evals)))
-    return etl.transpose(B_vecs, (1, 0)), D_new, C_invsqrt
+    D_new = evoxc.dot(B_vecs, evoxc.diag(evoxc.sqrt(D_evals)))
+    return evoxc.transpose(B_vecs, (1, 0)), D_new, C_invsqrt
 
 
 def _no_decompose(
@@ -183,15 +183,15 @@ def init(config: CMAESConfig, key: Tensor) -> CMAESState:
     mean_c = bake_float32_constant(config.mean_init)
     mean = enp.expand_dims(mean_c, axis=0)  # (1, dim)
     sigma = enp.full((), config.sigma, dtype=f32)
-    eye = etl.eye(p.dim)
+    eye = evoxc.eye(p.dim)
     if config.weights is None:
-        w = math.log((p.pop_size + 1) / 2) - etl.log(
+        w = math.log((p.pop_size + 1) / 2) - evoxc.log(
             enp.arange(1, p.mu + 1, dtype=f32)
         )
-        weights = enp.expand_dims(w / etl.sum(w), axis=0)  # (1, mu)
+        weights = enp.expand_dims(w / evoxc.sum(w), axis=0)  # (1, mu)
     else:
         w_c = bake_float32_constant(config.weights)
-        weights = etl.reshape(w_c, (1, p.mu))
+        weights = evoxc.reshape(w_c, (1, p.mu))
     return CMAESState(
         iteration=enp.full((), 0, dtype=np.dtype("int32")),
         C=eye,
@@ -223,11 +223,11 @@ def step(
     """
     p = _derive(config)
     f32 = np.dtype("float32")
-    iteration = etl.cast(state.iteration + 1, np.dtype("int32"))
+    iteration = evoxc.cast(state.iteration + 1, np.dtype("int32"))
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (p.pop_size, p.dim), dtype=f32)
-    y = etl.dot(noise, state.D)
-    y = etl.dot(y, state.B)
+    y = evoxc.dot(noise, state.D)
+    y = evoxc.dot(y, state.B)
     population = state.mean + state.sigma * y
     state = replace(state, iteration=iteration, y=y, key=key)
 
@@ -239,20 +239,20 @@ def step(
     fitness, population = sort_by_key(fitness, population)
     population_selected = population[: p.mu]
     old_mean = state.mean
-    new_mean = old_mean + etl.dot(state.weights, population_selected - old_mean)
+    new_mean = old_mean + evoxc.dot(state.weights, population_selected - old_mean)
     delta_mean = (new_mean - old_mean)[0]
 
     p_sigma = (1 - p.c_sigma) * state.p_sigma + math.sqrt(
         p.c_sigma * (2 - p.c_sigma) * p.mu_eff
-    ) * etl.dot(state.C_invsqrt, enp.expand_dims(delta_mean, axis=1))[
+    ) * evoxc.dot(state.C_invsqrt, enp.expand_dims(delta_mean, axis=1))[
         :, 0
     ] / state.sigma
 
-    exponent = etl.cast(2 * state.iteration, f32)
-    norm_term = etl.norm(p_sigma) / etl.sqrt(
-        1 - etl.exp(exponent * math.log(1 - p.c_sigma))
+    exponent = evoxc.cast(2 * state.iteration, f32)
+    norm_term = evoxc.norm(p_sigma) / evoxc.sqrt(
+        1 - evoxc.exp(exponent * math.log(1 - p.c_sigma))
     )
-    h_sigma = etl.cast(
+    h_sigma = evoxc.cast(
         norm_term < (1.4 + 2 / (p.dim + 1)) * p.chi_n, f32
     )
 
@@ -262,20 +262,20 @@ def step(
 
     y_sel = (population_selected - old_mean) / state.sigma
     # Rank-one covariance update: the torch reference uses `torch.outer(p_c, p_c)`
-    # (a true outer product), so the port must too — `etl.dot` needs rank >= 2,
+    # (a true outer product), so the port must too — `evoxc.dot` needs rank >= 2,
     # hence the two `expand_dims` (dim,1) @ (1,dim) -> (dim,dim).
-    pc_outer = etl.dot(enp.expand_dims(p_c, axis=1), enp.expand_dims(p_c, axis=0))
+    pc_outer = evoxc.dot(enp.expand_dims(p_c, axis=1), enp.expand_dims(p_c, axis=0))
     C_new = (
         (1 - p.c_1 - p.c_mu) * state.C
         + p.c_1 * (pc_outer + (1 - h_sigma) * p.c_c * (2 - p.c_c) * state.C)
-        + p.c_mu * etl.dot(etl.transpose(y_sel, (1, 0)) * state.weights, y_sel)
+        + p.c_mu * evoxc.dot(evoxc.transpose(y_sel, (1, 0)) * state.weights, y_sel)
     )
-    sigma_new = state.sigma * etl.exp(
-        p.c_sigma / p.d_sigma * (etl.norm(p_sigma) / p.chi_n - 1)
+    sigma_new = state.sigma * evoxc.exp(
+        p.c_sigma / p.d_sigma * (evoxc.norm(p_sigma) / p.chi_n - 1)
     )
 
-    pred = etl.equal(etl.remainder(state.iteration, p.decomp_per_iter), 0)
-    B_new, D_new, C_invsqrt_new = etl.cond(
+    pred = evoxc.equal(evoxc.remainder(state.iteration, p.decomp_per_iter), 0)
+    B_new, D_new, C_invsqrt_new = evoxc.cond(
         pred, _decompose, _no_decompose, C_new, state.B, state.D, state.C_invsqrt
     )
 
@@ -291,7 +291,7 @@ def step(
         sigma=sigma_new,
         weights=state.weights,
         y=state.y,
-        best_fitness=etl.minimum(state.best_fitness, etl.min(fitness)),
+        best_fitness=evoxc.minimum(state.best_fitness, evoxc.min(fitness)),
         key=state.key,
     )
 
@@ -304,8 +304,8 @@ def record_step(
 ) -> dict[str, Tensor]:
     """Host-side auxiliary-info hook for the monitor (mirrors torch `CMAES.record_step`).
 
-    PLAIN module-level function (NOT ``@etl.defn``): `StdWorkflow` calls it
-    HOST-SIDE on CONCRETE etl tensors of the POST-step state, outside any traced
+    PLAIN module-level function (NOT ``@evoxc.defn``): `StdWorkflow` calls it
+    HOST-SIDE on CONCRETE evoxc tensors of the POST-step state, outside any traced
     graph. `candidate`/`fitness` are accepted-but-ignored, as in torch. Returns
     the distribution summary the monitor's `record_auxiliary` stores.
     """

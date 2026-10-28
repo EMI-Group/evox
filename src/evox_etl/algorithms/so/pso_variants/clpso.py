@@ -3,8 +3,8 @@
 Step-protocol port of ``src/evox/algorithms/so/pso_variants/clpso.py``
 (read-only torch reference): ``init``/``init_step``/``step`` plain functions,
 each step-family function owning one full generation (candidate generation →
-``evaluate`` → state update).  ETL has no eager mode, so these functions only
-run inside an active trace via ``etl.build``/``etl.run``.
+``evaluate`` → state update).  EvoX Compiler has no eager mode, so these functions only
+run inside an active trace via ``evoxc.build``/``evoxc.run``.
 
 Config note: ``CLPSO`` stores ``lb``/``ub`` as flat float tuples (plain static
 pytree leaves); ``make_clpso`` normalizes array-like bounds (see DESIGN.md §4.1).
@@ -13,9 +13,9 @@ pytree leaves); ``make_clpso`` normalizes array-like bounds (see DESIGN.md §4.1
 from dataclasses import dataclass, replace
 from typing import Any
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -26,7 +26,7 @@ from evox_etl.operators.jit_fix_operator import clamp
 
 from .utils import min_by
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ def make_clpso(
 
 @dataclass(frozen=True)
 class CLPSOState:
-    """CLPSO mutable state (one etl tensor per leaf)."""
+    """CLPSO mutable state (one evoxc tensor per leaf)."""
 
     pop: Tensor
     fit: Tensor
@@ -93,20 +93,20 @@ def init(config: CLPSO, key: Tensor) -> CLPSOState:
     key_pop, key_vel = random.split(init_key)
 
     pop = (
-        length * random.uniform(key_pop, (pop_size, dim), 0.0, 1.0, etl.float32) + lb
+        length * random.uniform(key_pop, (pop_size, dim), 0.0, 1.0, evoxc.float32) + lb
     )
     velocity = (
-        2 * length * random.uniform(key_vel, (pop_size, dim), 0.0, 1.0, etl.float32)
+        2 * length * random.uniform(key_vel, (pop_size, dim), 0.0, 1.0, evoxc.float32)
         - length
     )
     return CLPSOState(
         pop=pop,
-        fit=enp.zeros((pop_size,), dtype=etl.float32),
+        fit=enp.zeros((pop_size,), dtype=evoxc.float32),
         velocity=velocity,
         personal_best_location=pop,
-        personal_best_fit=enp.full((pop_size,), float("inf"), dtype=etl.float32),
+        personal_best_fit=enp.full((pop_size,), float("inf"), dtype=evoxc.float32),
         global_best_location=pop[0],
-        global_best_fit=enp.full((), float("inf"), dtype=etl.float32),
+        global_best_fit=enp.full((), float("inf"), dtype=evoxc.float32),
         key=state_key,
     )
 
@@ -124,7 +124,7 @@ def init_step(config: CLPSO, state: CLPSOState, evaluate: Any) -> CLPSOState:
         fit=fitness,
         personal_best_fit=fitness,
         # torch does NOT update global_best_location in init_step — port 1:1.
-        global_best_fit=etl.min(fitness, axes=0),
+        global_best_fit=evoxc.min(fitness, axes=0),
     )
 
 
@@ -147,36 +147,36 @@ def step(config: CLPSO, state: CLPSOState, evaluate: Any) -> CLPSOState:
 
     # Draw order mirrors torch step exactly: coefficient, rand1, rand2, possibility.
     key, subkey = random.split(state.key)
-    random_coefficient = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, etl.float32)
+    random_coefficient = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, evoxc.float32)
     key, subkey = random.split(key)
-    rand1_index = random.randint(subkey, (pop_size,), 0, pop_size, dtype=etl.int32)
+    rand1_index = random.randint(subkey, (pop_size,), 0, pop_size, dtype=evoxc.int32)
     key, subkey = random.split(key)
-    rand2_index = random.randint(subkey, (pop_size,), 0, pop_size, dtype=etl.int32)
+    rand2_index = random.randint(subkey, (pop_size,), 0, pop_size, dtype=evoxc.int32)
     key, subkey = random.split(key)
-    rand_possibility = random.uniform(subkey, (pop_size,), 0.0, 1.0, etl.float32)
+    rand_possibility = random.uniform(subkey, (pop_size,), 0.0, 1.0, evoxc.float32)
 
-    learning_index = etl.select(
-        etl.gather(state.personal_best_fit, rand1_index, axis=0)
-        < etl.gather(state.personal_best_fit, rand2_index, axis=0),
+    learning_index = evoxc.select(
+        evoxc.gather(state.personal_best_fit, rand1_index, axis=0)
+        < evoxc.gather(state.personal_best_fit, rand2_index, axis=0),
         rand1_index,
         rand2_index,
     )
     # Update personal_best.
     compare = state.personal_best_fit > state.fit
-    personal_best_location = etl.select(
+    personal_best_location = evoxc.select(
         enp.reshape(compare, (pop_size, 1)), state.pop, state.personal_best_location
     )
-    personal_best_fit = etl.select(compare, state.fit, state.personal_best_fit)
+    personal_best_fit = evoxc.select(compare, state.fit, state.personal_best_fit)
     # Update global_best.
     global_best_location, global_best_fit = min_by(
         [enp.reshape(state.global_best_location, (1, dim)), state.pop],
         [enp.reshape(state.global_best_fit, (1,)), state.fit],
     )
     # Choose personal_best.
-    learning_personal_best = etl.gather(
+    learning_personal_best = evoxc.gather(
         personal_best_location, learning_index, axis=0
     )
-    personal_best = etl.select(
+    personal_best = evoxc.select(
         enp.reshape(rand_possibility < config.learning_probability, (pop_size, 1)),
         learning_personal_best,
         personal_best_location,

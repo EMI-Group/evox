@@ -10,9 +10,9 @@ generation → ``evaluate`` → state update).
 from dataclasses import dataclass, replace
 from typing import Any
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, clamp_int
@@ -65,7 +65,7 @@ def make_sl_pso_us(
 
 @dataclass(frozen=True)
 class SLPSOUSState:
-    """Mutable state of SLPSOUS (all leaves are etl tensors)."""
+    """Mutable state of SLPSOUS (all leaves are evoxc tensors)."""
 
     pop: Any
     fit: Any
@@ -86,12 +86,12 @@ def init(config: SLPSOUS, key: Any) -> SLPSOUSState:
     lb, ub = _bake_bounds(config)
     length = ub - lb
     key, subkey1 = random.split(key)
-    pop = length * random.uniform(subkey1, (config.pop_size, dim), 0.0, 1.0, etl.float32) + lb
+    pop = length * random.uniform(subkey1, (config.pop_size, dim), 0.0, 1.0, evoxc.float32) + lb
     key, subkey2 = random.split(key)
-    velocity = 2 * length * random.uniform(subkey2, (config.pop_size, dim), 0.0, 1.0, etl.float32) - length
-    fit = enp.zeros((config.pop_size,), etl.float32)
+    velocity = 2 * length * random.uniform(subkey2, (config.pop_size, dim), 0.0, 1.0, evoxc.float32) - length
+    fit = enp.zeros((config.pop_size,), evoxc.float32)
     global_best_location = pop[0]
-    global_best_fit = enp.full((), float("inf"), etl.float32)
+    global_best_fit = enp.full((), float("inf"), evoxc.float32)
     return SLPSOUSState(
         pop=pop,
         fit=fit,
@@ -110,7 +110,7 @@ def init_step(config: SLPSOUS, state: SLPSOUSState, evaluate: Any) -> SLPSOUSSta
     See `step` for more details.
     """
     fitness = evaluate(state.pop)
-    return replace(state, fit=fitness, global_best_fit=etl.min(fitness, axes=0))
+    return replace(state, fit=fitness, global_best_fit=evoxc.min(fitness, axes=0))
 
 
 def step(config: SLPSOUS, state: SLPSOUSState, evaluate: Any) -> SLPSOUSState:
@@ -131,16 +131,16 @@ def step(config: SLPSOUS, state: SLPSOUSState, evaluate: Any) -> SLPSOUSState:
     )
     # Demonstrator choice (uniform sampling): sort worst to best, then each
     # individual picks a demonstrator uniformly from the range [q, pop_size].
-    ranked_population = etl.gather(
-        state.pop, etl.argsort(-state.fit, axis=0, stable=True), axis=0
+    ranked_population = evoxc.gather(
+        state.pop, evoxc.argsort(-state.fit, axis=0, stable=True), axis=0
     )
     q = clamp_int(
         config.pop_size
-        - etl.ceil(
-            etl.cast(
+        - evoxc.ceil(
+            evoxc.cast(
                 config.demonstrator_choice_factor
-                * (config.pop_size - (etl.arange(config.pop_size, dtype=etl.int64) + 1) - 1),
-                etl.float32,
+                * (config.pop_size - (evoxc.arange(config.pop_size, dtype=evoxc.int64) + 1) - 1),
+                evoxc.float32,
             )
         ),
         1,
@@ -148,22 +148,22 @@ def step(config: SLPSOUS, state: SLPSOUSState, evaluate: Any) -> SLPSOUSState:
     )
     key, subkey1 = random.split(state.key)
     uniform_distribution = (
-        random.uniform(subkey1, (config.pop_size,), 0.0, 1.0, etl.float32)
+        random.uniform(subkey1, (config.pop_size,), 0.0, 1.0, evoxc.float32)
         * (config.pop_size + 1 - q)
         + q
     )
     index_k = clamp_int(
-        etl.cast(etl.floor(uniform_distribution), etl.int64) - 1, 0, config.pop_size - 1
+        evoxc.cast(evoxc.floor(uniform_distribution), evoxc.int64) - 1, 0, config.pop_size - 1
     )
-    X_k = etl.gather(ranked_population, index_k, axis=0)
+    X_k = evoxc.gather(ranked_population, index_k, axis=0)
     # Update population and velocity.
-    X_avg = etl.mean(state.pop, axes=0)
+    X_avg = evoxc.mean(state.pop, axes=0)
     key, subkey2 = random.split(key)
-    r1 = random.uniform(subkey2, (config.pop_size, dim), 0.0, 1.0, etl.float32)
+    r1 = random.uniform(subkey2, (config.pop_size, dim), 0.0, 1.0, evoxc.float32)
     key, subkey3 = random.split(key)
-    r2 = random.uniform(subkey3, (config.pop_size, dim), 0.0, 1.0, etl.float32)
+    r2 = random.uniform(subkey3, (config.pop_size, dim), 0.0, 1.0, evoxc.float32)
     key, subkey4 = random.split(key)
-    r3 = random.uniform(subkey4, (config.pop_size, dim), 0.0, 1.0, etl.float32)
+    r3 = random.uniform(subkey4, (config.pop_size, dim), 0.0, 1.0, evoxc.float32)
     velocity = (
         r1 * state.velocity
         + r2 * (X_k - state.pop)

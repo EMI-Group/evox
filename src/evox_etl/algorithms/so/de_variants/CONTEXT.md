@@ -24,12 +24,12 @@ protocol doc `../../core/algorithm.py`.
 - No `final_step` anywhere (the torch reference defines no algorithm-level
   overrides). Only `init`/`init_step`/`step` exist — the pre-1.0 two-phase
   candidate/fitness protocol is gone.
-- State leaves are etl tensors ONLY (float32 preferred, int32/int64 indices, key `()`
+- State leaves are evoxc tensors ONLY (float32 preferred, int32/int64 indices, key `()`
   int64) and their dtypes/shapes must be STABLE across generations (compile-once
   step graphs — no per-run dtype drift, see the SaDE cast notes below).
 - `step` never re-threads `evaluate`; ODE calls it TWICE per generation (DE
   trials, then the opposition population `lb + ub - pop` built from the
-  POST-selection pop — one etl step == one torch ODE step; the old two-phase
+  POST-selection pop — one evoxc step == one torch ODE step; the old two-phase
   state machine and the `opposition`/`phase` state fields are gone).
 
 ## Constraints
@@ -37,7 +37,7 @@ protocol doc `../../core/algorithm.py`.
   (canonical, torch-parity-verified) and the jit-fix utils (clamp, clamp_float,
   `_take_along_axis`, ...) from `evox_etl.operators.jit_fix_operator`.
 - No torch/numpy in graph code (numpy only for baking constants via
-  `etl.ops.constant(etl.core.tensor(np.asarray(...)))`).
+  `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`).
 - Files < ~400 lines; static Python loops/config branches allowed in traces.
 
 ## Notes for agents (verified — do not re-investigate)
@@ -47,7 +47,7 @@ protocol doc `../../core/algorithm.py`.
 - Construct configs via the module-level `make_*` constructor (normalizes
   arrays→plain float tuples and validates with ValueError naming the param);
   direct construction with already-normalized statics stays legal.
-  Installed etl accepts np.ndarray static values, so raw-array fields trace
+  Installed evoxc accepts np.ndarray static values, so raw-array fields trace
   fine, but `make_*` is the sanctioned entry point (policy: `DESIGN.md` §4.1).
   CoDE `param_pool` stores a nested tuple of (F, CR) pairs (natural (3, 2)
   shape — flattened storage would break the trial generation's gather over
@@ -57,11 +57,11 @@ protocol doc `../../core/algorithm.py`.
   `normalize_bounds`, `require_ge`/`require_between`/`require_choice`,
   `bake_float32_constant`, `bake_bounds(..., as_row=True)`); this family no
   longer defines local `_to_float_tuple`/`_bounds`/`_bake*` helpers.
-- **`etl.select` does NOT numpy-broadcast** a `(n,)` condition against `(n, m)`
+- **`evoxc.select` does NOT numpy-broadcast** a `(n,)` condition against `(n, m)`
   operands (ShapeError). Always `enp.expand_dims(cond, 1)` first. Scalar conds
   broadcast fine. Python float + float32 → float32 OK; Python int + int32 → int64
   (avoid — use `enp.full/ones/zeros/arange` with explicit dtype).
-- `etl.gather` = numpy take semantics; a 0-d index drops the indexed axis
+- `evoxc.gather` = numpy take semantics; a 0-d index drops the indexed axis
   (result `(dim,)`). Row-local gather needs `_take_along_axis` (2-D only).
 - RNG: `key, subkey = random.split(state.key)` at function entry; one split per
   random op, in torch's draw order; store the advanced `key` back in the state.
@@ -73,15 +73,15 @@ protocol doc `../../core/algorithm.py`.
   both tuple and ndarray fields).
 - SHADE/SaDE/CoDE init populations use **`randn` scaled by bounds** (torch quirk —
   no uniform, no clamp) — do not assert in-bounds on their initial pops.
-- `etl.median(x, axis=0)` matches torch's NaN propagation BUT promotes
+- `evoxc.median(x, axis=0)` matches torch's NaN propagation BUT promotes
   float32→float64; `int32 * bool` also promotes to int64 — cast back explicitly
   (SaDE does; see the casts around `CRM_update`/`success_counts`/
   `failure_counts` there). Compile-once step graphs REQUIRE stable state
   dtypes across generations.
-- `etl.roll(x, shift, axis)`; `etl.nansum(x, axes=0)`; `etl.argsort(x, axis=0,
+- `evoxc.roll(x, shift, axis)`; `evoxc.nansum(x, axes=0)`; `evoxc.argsort(x, axis=0,
   stable=True)` (int64 indices).
 - Verified host pattern (dataclass config as static arg + dataclass state pytree):
-  `etl.build(fn, cfg, spec_tree, backend="numpy")` / `etl.run(exe, cfg, state)` —
+  `evoxc.build(fn, cfg, spec_tree, backend="numpy")` / `evoxc.run(exe, cfg, state)` —
   wrap `step` in a `body(cfg, state) -> step(cfg, state, evaluate)` closure with
   the toy `evaluate` inlined. See `unit_test/etl/algorithms/helpers.py` for the
   build/run mechanics.
@@ -98,7 +98,7 @@ protocol doc `../../core/algorithm.py`.
   -> (trial_batch, advanced_key)`.
 - Legacy direct-dataclass-construction sites (family smoke tests, parity
   test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115) still pass raw
-  np.ndarray `lb`/`ub` and still trace (bakers accept ArrayLike; etl accepts
+  np.ndarray `lb`/`ub` and still trace (bakers accept ArrayLike; evoxc accepts
   ndarray statics); they should migrate to `make_*` (parallel migration round).
   Tests only exercise default hyperparameters — the tuple `differential_weight`
   (ndv>1), `mean`/`stdev` init, and non-default `param_pool` paths have NO test

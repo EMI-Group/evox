@@ -1,10 +1,10 @@
 """Functional ETL port of the torch evox xNES / SeparableNES algorithms (step
 protocol).
 
-Plain-function (non-``@etl.defn``) ``init``/``step`` ports of the torch
+Plain-function (non-``@evoxc.defn``) ``init``/``step`` ports of the torch
 classes in ``src/evox/algorithms/so/es_variants/nes.py`` (read-only reference).
-ETL has no eager mode: every op runs inside functions invoked via
-``etl.build``/``etl.run``.  ``step`` owns the WHOLE generation (sample →
+EvoX Compiler has no eager mode: every op runs inside functions invoked via
+``evoxc.build``/``evoxc.run``.  ``step`` owns the WHOLE generation (sample →
 ``evaluate(candidates)`` → natural-gradient update), with the workflow-injected
 ``evaluate`` closure standing in for torch's ``self.evaluate(population)``.
 The shared module-level ``init``/``step`` dispatch on the (static) config
@@ -25,10 +25,10 @@ from typing import Any, Callable
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl.core import SymbolicTensor
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -42,12 +42,12 @@ F32 = np.dtype("float32")
 
 def _default_recombination_weights(pop_size: int) -> SymbolicTensor:
     """log-utility weights: clip(log(pop/2+1) - log(i+1), 0), zero-summed."""
-    w = etl.clamp(
-        math.log(pop_size / 2 + 1) - etl.log(enp.arange(1, pop_size + 1, dtype=F32)),
+    w = evoxc.clamp(
+        math.log(pop_size / 2 + 1) - evoxc.log(enp.arange(1, pop_size + 1, dtype=F32)),
         0.0,
         np.inf,
     )
-    return w / etl.sum(w) - 1.0 / pop_size
+    return w / evoxc.sum(w) - 1.0 / pop_size
 
 
 @dataclass(frozen=True)
@@ -93,7 +93,7 @@ def make_xnes(
 
     Array arguments are normalized ONCE to f32-rounded tuples of Python
     floats; ``pop_size`` and the learning rates default from
-    ``dim = len(init_mean)`` (mirroring the torch/etl derivation).  Raises
+    ``dim = len(init_mean)`` (mirroring the torch/evoxc derivation).  Raises
     ValueError on invalid input.
     """
     # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
@@ -148,16 +148,16 @@ def _xn_init(config: XNESConfig, key: SymbolicTensor) -> XNESState:
     dim = len(config.init_mean)
     pop_size = config.pop_size
     mean = bake_float32_constant(config.init_mean)
-    covar = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.init_covar, dtype=F32))
+    covar = evoxc.ops.constant(
+        evoxc.core.tensor(np.asarray(config.init_covar, dtype=F32))
     )
     if not config.covar_as_cholesky:
-        covar = etl.cholesky(covar)
+        covar = evoxc.cholesky(covar)
     if config.recombination_weights is None:
         weights = _default_recombination_weights(pop_size)
     else:
         weights = bake_float32_constant(config.recombination_weights)
-    sigma = enp.power(etl.prod(etl.diagonal(covar)), 1.0 / dim)
+    sigma = enp.power(evoxc.prod(evoxc.diagonal(covar)), 1.0 / dim)
     B = covar / sigma
     return XNESState(
         mean=mean,
@@ -186,7 +186,7 @@ def _xn_step(
     dim = len(config.init_mean)
     key, subkey = random.split(state.key)
     noise = random.normal(subkey, (pop_size, dim), mean=0.0, std=1.0, dtype=F32)
-    population = state.mean + state.sigma * etl.dot(noise, etl.transpose(state.B, (1, 0)))
+    population = state.mean + state.sigma * evoxc.dot(noise, evoxc.transpose(state.B, (1, 0)))
     state = XNESState(
         mean=state.mean,
         sigma=state.sigma,
@@ -199,23 +199,23 @@ def _xn_step(
 
     fitness = evaluate(population)
 
-    order = etl.argsort(fitness)
-    noise = etl.gather(state.noise, order, axis=0)
+    order = evoxc.argsort(fitness)
+    noise = evoxc.gather(state.noise, order, axis=0)
     weights = state.recombination_weights
-    Ind = etl.eye(dim)
-    grad_delta = etl.sum(enp.expand_dims(weights, axis=1) * noise, axes=0)
-    grad_M = etl.dot(etl.transpose(noise, (1, 0)) * weights, noise) - etl.sum(weights) * Ind
-    grad_sigma = etl.sum(etl.diagonal(grad_M)) / dim
+    Ind = evoxc.eye(dim)
+    grad_delta = evoxc.sum(enp.expand_dims(weights, axis=1) * noise, axes=0)
+    grad_M = evoxc.dot(evoxc.transpose(noise, (1, 0)) * weights, noise) - evoxc.sum(weights) * Ind
+    grad_sigma = evoxc.sum(evoxc.diagonal(grad_M)) / dim
     grad_B = grad_M - grad_sigma * Ind
     mean = (
         state.mean
         + config.learning_rate_mean
         * state.sigma
-        * etl.dot(state.B, enp.expand_dims(grad_delta, axis=1))[:, 0]
+        * evoxc.dot(state.B, enp.expand_dims(grad_delta, axis=1))[:, 0]
     )
-    sigma = state.sigma * etl.exp(config.learning_rate_var / 2 * grad_sigma)
-    B = etl.dot(state.B, etl.matrix_exp(config.learning_rate_B / 2 * grad_B))
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = state.sigma * evoxc.exp(config.learning_rate_var / 2 * grad_sigma)
+    B = evoxc.dot(state.B, evoxc.matrix_exp(config.learning_rate_B / 2 * grad_B))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return XNESState(
         mean=mean,
         sigma=sigma,
@@ -257,7 +257,7 @@ def make_separable_nes(
 
     Array arguments are normalized ONCE to f32-rounded tuples of Python
     floats; ``pop_size`` and the learning rates default from
-    ``dim = len(init_mean)`` (mirroring the torch/etl derivation).  Raises
+    ``dim = len(init_mean)`` (mirroring the torch/evoxc derivation).  Raises
     ValueError on invalid input.
     """
     # NOTE: torch uses self.dim here while it is still undefined (bug) -> local dim.
@@ -352,14 +352,14 @@ def _sn_step(
 
     fitness = evaluate(population)
 
-    order = etl.argsort(fitness)
-    zero_mean_pop = etl.gather(state.zero_mean_pop, order, axis=0)
-    weight = etl.tile(enp.expand_dims(state.weight, axis=1), (1, dim))
-    grad_mu = etl.sum(weight * zero_mean_pop, axes=0)
-    grad_sigma = etl.sum(weight * (zero_mean_pop**2 - 1), axes=0)
+    order = evoxc.argsort(fitness)
+    zero_mean_pop = evoxc.gather(state.zero_mean_pop, order, axis=0)
+    weight = evoxc.tile(enp.expand_dims(state.weight, axis=1), (1, dim))
+    grad_mu = evoxc.sum(weight * zero_mean_pop, axes=0)
+    grad_sigma = evoxc.sum(weight * (zero_mean_pop**2 - 1), axes=0)
     mean = state.mean + config.learning_rate_mean * state.sigma * grad_mu
-    sigma = state.sigma * etl.exp(config.learning_rate_var / 2 * grad_sigma)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = state.sigma * evoxc.exp(config.learning_rate_var / 2 * grad_sigma)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return SeparableNESState(
         mean=mean,
         sigma=sigma,

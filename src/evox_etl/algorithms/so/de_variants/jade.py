@@ -9,7 +9,7 @@ F_u/CR_u adaptation from the successes. ``init_step`` encodes torch's
 ``init_step`` (initial-population evaluation before the first generation).
 
 Deviations from torch (mathematically equivalent):
-- The RNG key is stored in the state and advanced at every draw (etl RNG is
+- The RNG key is stored in the state and advanced at every draw (evoxc RNG is
   stateless); each ``torch.randn``/``torch.rand``/``torch.randint`` draw gets its
   own ``random.split`` subkey, in the same draw order with the same distribution.
 - ``lb``/``ub``/``mean``/``stdev`` config fields are normalized to flat tuples of
@@ -20,9 +20,9 @@ Deviations from torch (mathematically equivalent):
 from dataclasses import dataclass
 from typing import Any, Callable
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -35,7 +35,7 @@ from evox_etl.algorithms._config_utils import (
 from evox_etl.operators.jit_fix_operator import clamp, clamp_float
 from evox_etl.operators.selection import select_rand_pbest
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -83,7 +83,7 @@ def make_jade(
 
 @dataclass(frozen=True)
 class JaDEState:
-    """JaDE algorithm state (all leaves are etl tensors).
+    """JaDE algorithm state (all leaves are evoxc tensors).
 
     ``trial_vectors``/``F_vec``/``CR_vec`` record the last generation's
     candidates and their per-individual parameters (observable state); the
@@ -184,11 +184,11 @@ def step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -
         key, k_choice = random.split(key)
         random_choices.append(random.randint(k_choice, (pop_size,), 0, pop_size, "int32"))
 
-    difference_vectors = etl.sum(
-        etl.stack(
+    difference_vectors = evoxc.sum(
+        evoxc.stack(
             [
-                etl.gather(pop, random_choices[i], axis=0)
-                - etl.gather(pop, random_choices[i + 1], axis=0)
+                evoxc.gather(pop, random_choices[i], axis=0)
+                - evoxc.gather(pop, random_choices[i + 1], axis=0)
                 for i in range(1, num_vec - 1, 2)
             ],
             axis=0,
@@ -207,35 +207,35 @@ def step(config: JaDE, state: JaDEState, evaluate: Callable[[Tensor], Tensor]) -
     cross_prob = random.uniform(k_cross, (pop_size, dim), 0.0, 1.0, "float32")
     key, k_dim = random.split(key)
     random_dim = random.randint(k_dim, (pop_size, 1), 0, dim, "int32")
-    mask = etl.logical_or(
+    mask = evoxc.logical_or(
         cross_prob < enp.expand_dims(CR_vec, 1),
         enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == random_dim,
     )
-    trial_vectors = etl.select(mask, mutation_vectors, pop)
+    trial_vectors = evoxc.select(mask, mutation_vectors, pop)
     trial_vectors = clamp(trial_vectors, lb, ub)
 
     # 4) Selection over the trial vectors.
     fitness = evaluate(trial_vectors)
     compare = fitness < fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, pop)
-    fit = etl.select(compare, fitness, fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial_vectors, pop)
+    fit = evoxc.select(compare, fitness, fit)
 
     # 5) F_u/CR_u adaptation from the successes.
-    compare_float = etl.cast(compare, "float32")
-    sum_F2 = etl.sum(F_vec**2 * compare_float, axes=0)
-    sum_F = etl.sum(F_vec * compare_float, axes=0)
-    sum_CR = etl.sum(CR_vec * compare_float, axes=0)
-    count = etl.sum(compare_float, axes=0)
+    compare_float = evoxc.cast(compare, "float32")
+    sum_F2 = evoxc.sum(F_vec**2 * compare_float, axes=0)
+    sum_F = evoxc.sum(F_vec * compare_float, axes=0)
+    sum_CR = evoxc.sum(CR_vec * compare_float, axes=0)
+    count = evoxc.sum(compare_float, axes=0)
 
-    mean_F_success = etl.select(count > 0, sum_F2 / (sum_F + 1e-9), 0.0)
-    mean_CR_success = etl.select(count > 0, sum_CR / (count + 1e-9), 0.0)
+    mean_F_success = evoxc.select(count > 0, sum_F2 / (sum_F + 1e-9), 0.0)
+    mean_CR_success = evoxc.select(count > 0, sum_CR / (count + 1e-9), 0.0)
 
     updated_F_u = (1 - config.c) * F_u + config.c * mean_F_success
     updated_CR_u = (1 - config.c) * CR_u + config.c * mean_CR_success
 
     count_mask = count > 0.0
-    F_u = etl.select(count_mask, updated_F_u, F_u)
-    CR_u = etl.select(count_mask, updated_CR_u, CR_u)
+    F_u = evoxc.select(count_mask, updated_F_u, F_u)
+    CR_u = evoxc.select(count_mask, updated_CR_u, CR_u)
 
     return JaDEState(
         pop=pop,

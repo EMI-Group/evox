@@ -3,8 +3,8 @@
 Step-protocol port of ``src/evox/algorithms/so/pso_variants/cso.py``
 (read-only torch reference): ``init``/``init_step``/``step`` plain functions,
 each step-family function owning one full generation (candidate generation →
-``evaluate`` → state update).  ETL has no eager mode, so these functions only
-run inside an active trace via ``etl.build``/``etl.run``.
+``evaluate`` → state update).  EvoX Compiler has no eager mode, so these functions only
+run inside an active trace via ``evoxc.build``/``evoxc.run``.
 
 The config stores flat float tuples; ``make_cso`` normalizes array-like bounds
 and optional sampling stats (DESIGN.md §4.1).
@@ -15,9 +15,9 @@ from typing import Any
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -27,7 +27,7 @@ from evox_etl.algorithms._config_utils import (
 )
 from evox_etl.operators.jit_fix_operator import clamp
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -106,25 +106,25 @@ def init(config: CSO, key: Tensor) -> CSOState:
         pop = clamp(
             mean_c
             + stdev_c
-            * random.normal(key_pop, (pop_size, dim), 0.0, 1.0, etl.float32),
+            * random.normal(key_pop, (pop_size, dim), 0.0, 1.0, evoxc.float32),
             lb,
             ub,
         )
     else:
         pop = (
             length
-            * random.uniform(key_pop, (pop_size, dim), 0.0, 1.0, etl.float32)
+            * random.uniform(key_pop, (pop_size, dim), 0.0, 1.0, evoxc.float32)
             + lb
         )
     velocity = (
-        2 * length * random.uniform(key_vel, (pop_size, dim), 0.0, 1.0, etl.float32)
+        2 * length * random.uniform(key_vel, (pop_size, dim), 0.0, 1.0, evoxc.float32)
         - length
     )
     return CSOState(
         pop=pop,
         velocity=velocity,
-        fit=enp.zeros((pop_size,), dtype=etl.float32),
-        students=enp.zeros((pop_size // 2,), dtype=etl.int64),
+        fit=enp.zeros((pop_size,), dtype=evoxc.float32),
+        students=enp.zeros((pop_size // 2,), dtype=evoxc.int64),
         key=state_key,
     )
 
@@ -157,34 +157,34 @@ def step(config: CSO, state: CSOState, evaluate: Any) -> CSOState:
     vel_range = ub - lb
 
     key, subkey = random.split(state.key)
-    perm = random.permutation(subkey, pop_size, dtype=etl.int64)
+    perm = random.permutation(subkey, pop_size, dtype=evoxc.int64)
     left = perm[:half]
     right = perm[half:]
-    mask = etl.gather(state.fit, left, axis=0) < etl.gather(state.fit, right, axis=0)
-    teachers = etl.select(mask, left, right)
-    students = etl.select(mask, right, left)
-    center = etl.mean(state.pop, axes=0)
+    mask = evoxc.gather(state.fit, left, axis=0) < evoxc.gather(state.fit, right, axis=0)
+    teachers = evoxc.select(mask, left, right)
+    students = evoxc.select(mask, right, left)
+    center = evoxc.mean(state.pop, axes=0)
 
     key, subkey2 = random.split(key)
-    lambdas = random.uniform(subkey2, (3, half, dim), 0.0, 1.0, etl.float32)
+    lambdas = random.uniform(subkey2, (3, half, dim), 0.0, 1.0, evoxc.float32)
     lambda1, lambda2, lambda3 = lambdas[0], lambdas[1], lambdas[2]
 
-    pop_students = etl.gather(state.pop, students, axis=0)
-    pop_teachers = etl.gather(state.pop, teachers, axis=0)
+    pop_students = evoxc.gather(state.pop, students, axis=0)
+    pop_teachers = evoxc.gather(state.pop, teachers, axis=0)
     student_velocity = (
-        lambda1 * etl.gather(state.velocity, students, axis=0)  # inertia
+        lambda1 * evoxc.gather(state.velocity, students, axis=0)  # inertia
         + lambda2 * (pop_teachers - pop_students)  # learn from teachers
         + config.phi * lambda3 * (center - pop_students)  # converge to the center
     )
     student_velocity = clamp(student_velocity, -vel_range, vel_range)
     candidates = clamp(pop_students + student_velocity, lb, ub)
-    new_pop = etl.scatter(state.pop, students, candidates, axis=0)
+    new_pop = evoxc.scatter(state.pop, students, candidates, axis=0)
 
     fitness = evaluate(candidates)
     return replace(
         state,
         pop=new_pop,
-        fit=etl.scatter(state.fit, students, fitness, axis=0),
+        fit=evoxc.scatter(state.fit, students, fitness, axis=0),
         students=students,
         key=key,
     )

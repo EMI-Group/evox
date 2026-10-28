@@ -1,14 +1,14 @@
 """Functional ETL port of the torch NSGA-III (``src/evox/algorithms/mo/nsga3.py``).
 
-Plain functions only (no ``@etl.defn`` — DESIGN.md §4.3; ETL has no eager mode):
+Plain functions only (no ``@evoxc.defn`` — DESIGN.md §4.3; EvoX Compiler has no eager mode):
 ``init`` / ``init_step`` / ``step`` plus the frozen ``NSGA3Config`` /
 ``NSGA3State`` dataclasses. ``step`` owns one whole generation (tournament
 selection → SBX → polynomial mutation → ``evaluate`` → environmental
 selection); call the functions only inside an active trace
-(``etl.build`` / ``etl.evaluate``). The math is ported 1:1 from the torch
+(``evoxc.build`` / ``evoxc.evaluate``). The math is ported 1:1 from the torch
 reference (read-only); the torch dynamic-shape boolean indexings in the
 environmental selection are replaced by fixed-shape mask tricks
-(``etl.select`` + one-hot ``reduce_max`` hits), and ``scatter_add`` becomes
+(``evoxc.select`` + one-hot ``reduce_max`` hits), and ``scatter_add`` becomes
 a one-hot sum.
 """
 from __future__ import annotations
@@ -18,10 +18,10 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl.core import SymbolicTensor
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
@@ -53,7 +53,7 @@ class NSGA3Config:
     :param data_type: The data type for the decision variables: exactly ``None``
         (float32 population, the default) or the builtin ``bool`` type (the
         initial population is drawn as a uniform > 0.5 boolean tensor). Anything
-        else — notably ``torch.bool``, unimportable in the etl port — raises
+        else — notably ``torch.bool``, unimportable in the evoxc port — raises
         ValueError (see ``_normalize_data_type``).
     """
 
@@ -77,12 +77,12 @@ def _config_unflatten(config: NSGA3Config, _children) -> NSGA3Config:
 
 
 # The config carries optional callable op fields (selection_op/mutation_op/
-# crossover_op). Functions are not static pytree values (etl raises TraceError
+# crossover_op). Functions are not static pytree values (evoxc raises TraceError
 # at a non-None callable leaf), so the config is registered as a childless
-# pytree node and travels as one opaque static node through etl.build/etl.run.
+# pytree node and travels as one opaque static node through evoxc.build/evoxc.run.
 # (ndarray leaves would now be accepted statically, but a non-None callable
 # field anywhere in the pytree is not.)
-etl.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
+evoxc.register_pytree_node(NSGA3Config, _config_flatten, _config_unflatten)
 
 
 def _normalize_data_type(data_type: Optional[Any]) -> Optional[type]:
@@ -90,14 +90,14 @@ def _normalize_data_type(data_type: Optional[Any]) -> Optional[type]:
 
     Only ``None`` (float32 population, the default) and the builtin ``bool``
     type (bool population) are accepted; anything else — notably ``torch.bool``,
-    which the etl port cannot import — raises ValueError. Callers wanting a
+    which the evoxc port cannot import — raises ValueError. Callers wanting a
     boolean population must pass the builtin ``bool``.
     """
     if data_type is None or data_type is bool:
         return data_type
     raise ValueError(
         f"data_type must be None (float32) or the builtin bool, got "
-        f"{data_type!r}. torch.bool is not supported in the etl port — pass "
+        f"{data_type!r}. torch.bool is not supported in the evoxc port — pass "
         f"the builtin bool instead."
     )
 
@@ -168,13 +168,13 @@ def _masked_hit(n: int, idx: SymbolicTensor, mask: SymbolicTensor) -> SymbolicTe
     static (no dynamic-shape boolean indexing).
     """
     chosen = enp.logical_and(
-        etl.equal(
+        evoxc.equal(
             enp.expand_dims(enp.arange(n, dtype="int32"), 0),
             enp.expand_dims(idx, 1),
         ),
         enp.expand_dims(mask, 1),
     )
-    return etl.ops.reduce_max(chosen, axes=0)
+    return evoxc.ops.reduce_max(chosen, axes=0)
 
 
 def init(config: NSGA3Config, key: SymbolicTensor) -> NSGA3State:
@@ -216,7 +216,7 @@ def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3Sta
 
     The torch version filters ``rank <= worst_rank`` with dynamic boolean
     indexing; here the full (n, ...) tensors are kept and excluded rows are
-    masked via ``etl.select`` instead.
+    masked via ``evoxc.select`` instead.
     """
     if config.selection_op is None:
         selection = tournament_selection_multifit
@@ -232,8 +232,8 @@ def step(config: NSGA3Config, state: NSGA3State, evaluate: Callable) -> NSGA3Sta
         mutation = config.mutation_op
 
     key, k_sel, k_cross, k_mut = random.split_n(state.key, 4)
-    mating_pool = selection(k_sel, config.pop_size, [etl.cast(state.rank, "float32")])
-    crossovered = crossover(k_cross, etl.gather(state.pop, mating_pool, axis=0))
+    mating_pool = selection(k_sel, config.pop_size, [evoxc.cast(state.rank, "float32")])
+    crossovered = crossover(k_cross, evoxc.gather(state.pop, mating_pool, axis=0))
 
     lb, ub = bake_bounds(config.lb, config.ub)
     offspring = mutation(k_mut, crossovered, lb, ub)
@@ -257,14 +257,14 @@ def _final_survivors(
     """
     n = rank.shape[0]
     surv_mask = rank < worst_rank
-    order = etl.argsort(
-        etl.cast(etl.select(surv_mask, enp.arange(n, dtype="int32"), n + 1), etl.int32),
+    order = evoxc.argsort(
+        evoxc.cast(evoxc.select(surv_mask, enp.arange(n, dtype="int32"), n + 1), evoxc.int32),
         axis=0,
         stable=True,
     )[:pop_size]
-    pop = etl.gather(merge_pop, order, axis=0)
-    fit = etl.gather(merge_fit, order, axis=0)
-    rank = etl.gather(rank, order, axis=0)
+    pop = evoxc.gather(merge_pop, order, axis=0)
+    fit = evoxc.gather(merge_fit, order, axis=0)
+    rank = evoxc.gather(rank, order, axis=0)
     return pop, fit, rank
 
 
@@ -273,7 +273,7 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
 
     The torch version filters ``rank <= worst_rank`` with dynamic boolean
     indexing; here the full (n, ...) tensors are kept and excluded rows are
-    masked via ``etl.select`` instead.
+    masked via ``evoxc.select`` instead.
     """
     pop_size = config.pop_size
     n_objs = config.n_objs
@@ -281,30 +281,30 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     n = 2 * pop_size
 
     key, k_shuf, k_ref = random.split_n(state.key, 3)
-    merge_pop = etl.concatenate([state.pop, state.off], axis=0)
-    merge_fit = etl.concatenate([state.fit, fitness], axis=0)
-    shuffled_idx = random.permutation(k_shuf, n, dtype=etl.int32)
-    merge_pop = etl.gather(merge_pop, shuffled_idx, axis=0)
-    merge_fit = etl.gather(merge_fit, shuffled_idx, axis=0)
+    merge_pop = evoxc.concatenate([state.pop, state.off], axis=0)
+    merge_fit = evoxc.concatenate([state.fit, fitness], axis=0)
+    shuffled_idx = random.permutation(k_shuf, n, dtype=evoxc.int32)
+    merge_pop = evoxc.gather(merge_pop, shuffled_idx, axis=0)
+    merge_fit = evoxc.gather(merge_fit, shuffled_idx, axis=0)
 
     rank = non_dominate_rank(merge_fit)
-    worst_rank = etl.topk(rank, pop_size + 1, axis=0, largest=False)[0][-1]
+    worst_rank = evoxc.topk(rank, pop_size + 1, axis=0, largest=False)[0][-1]
 
     # Filtered-set trick: mask excluded rows instead of indexing them out.
     in_mask = rank <= worst_rank  # (n,)
-    ideal = etl.min(
-        etl.select(enp.expand_dims(in_mask, 1), merge_fit, float("inf")), axes=0
+    ideal = evoxc.min(
+        evoxc.select(enp.expand_dims(in_mask, 1), merge_fit, float("inf")), axes=0
     )
-    norm_fit = etl.select(enp.expand_dims(in_mask, 1), merge_fit - ideal, float("inf"))
+    norm_fit = evoxc.select(enp.expand_dims(in_mask, 1), merge_fit - ideal, float("inf"))
 
     # Extreme points (torch vmap_get_extreme, tensorized).
-    weight = etl.eye(n_objs, dtype="float32") + 1e-6
+    weight = evoxc.eye(n_objs, dtype="float32") + 1e-6
     t = enp.expand_dims(norm_fit, 0) / enp.expand_dims(weight, 1)  # (n_objs, n, n_objs)
-    ex_idx = etl.argmin(etl.max(t, axes=2), axis=1)  # (n_objs,)
-    extreme = etl.gather(norm_fit, ex_idx, axis=0)  # (n_objs, n_objs)
+    ex_idx = evoxc.argmin(evoxc.max(t, axes=2), axis=1)  # (n_objs,)
+    extreme = evoxc.gather(norm_fit, ex_idx, axis=0)  # (n_objs, n_objs)
 
     # Full-rank test (torch ``torch.linalg.matrix_rank(extreme) == n_objs``).
-    # ``etl.matrix_rank``/``etl.svd`` are deferred by the stablehlo-v1
+    # ``evoxc.matrix_rank``/``evoxc.svd`` are deferred by the stablehlo-v1
     # exporter (BackendError), so the rank is recomputed from the exportable
     # ``eigh``: the singular values of ``extreme`` are sqrt(eigvalsh(AᵀA)),
     # and rank = count(s > tol) with numpy/torch's default cutoff
@@ -312,39 +312,39 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     # noise floor (~1e-8 * s_max) sits far below the cutoff (~1e-7 * s_max):
     # the test then agrees with SVD-based matrix_rank except for a razor-thin
     # band around the cutoff itself.
-    extreme64 = etl.cast(extreme, "float64")
-    gram = etl.dot(etl.transpose(extreme64, axes=(1, 0)), extreme64)
-    evals, _ = etl.eigh(gram)  # ascending eigenvalues, >= 0 (AᵀA is PSD)
-    sing = etl.sqrt(enp.maximum(evals, 0.0))
-    tol = etl.max(sing, axes=None) * n_objs * float(np.finfo(np.float32).eps)
-    full_rank = etl.sum(etl.cast(sing > tol, etl.int32), axes=None) == n_objs
+    extreme64 = evoxc.cast(extreme, "float64")
+    gram = evoxc.dot(evoxc.transpose(extreme64, axes=(1, 0)), extreme64)
+    evals, _ = evoxc.eigh(gram)  # ascending eigenvalues, >= 0 (AᵀA is PSD)
+    sing = evoxc.sqrt(enp.maximum(evals, 0.0))
+    tol = evoxc.max(sing, axes=None) * n_objs * float(np.finfo(np.float32).eps)
+    full_rank = evoxc.sum(evoxc.cast(sing > tol, evoxc.int32), axes=None) == n_objs
 
     # Hyperplane intercepts. The full-rank guard above keeps the solve safe
     # for deficient ``extreme`` matrices (numpy linalg.solve would RAISE on
     # them); inside the guarded branch the solve runs on a full-rank matrix.
     def _hyperplane(extreme, norm_fit, in_mask, n_objs):
         # torch: hyperplane = solve(extreme, ones); intercepts = 1/hyperplane.
-        # ``etl.solve`` is deferred by the stablehlo exporter too, so the
+        # ``evoxc.solve`` is deferred by the stablehlo exporter too, so the
         # system is solved via the normal equations (AᵀA)⁻¹Aᵀ·b with an
         # eigh-based inverse — float64 keeps it near the numpy LU solve's
         # accuracy for the well-conditioned matrices that pass the guard.
-        a64 = etl.cast(extreme, "float64")
+        a64 = evoxc.cast(extreme, "float64")
         b64 = enp.full((n_objs, 1), 1.0, dtype="float64")
-        gram = etl.dot(etl.transpose(a64, axes=(1, 0)), a64)
-        evals, evecs = etl.eigh(gram)
-        c = etl.dot(etl.transpose(a64, axes=(1, 0)), b64)  # (n_objs, 1)
-        y = etl.dot(etl.transpose(evecs, axes=(1, 0)), c) / enp.reshape(
+        gram = evoxc.dot(evoxc.transpose(a64, axes=(1, 0)), a64)
+        evals, evecs = evoxc.eigh(gram)
+        c = evoxc.dot(evoxc.transpose(a64, axes=(1, 0)), b64)  # (n_objs, 1)
+        y = evoxc.dot(evoxc.transpose(evecs, axes=(1, 0)), c) / enp.reshape(
             evals, (n_objs, 1)
         )
-        hyperplane = enp.reshape(etl.dot(evecs, y), (n_objs,))
-        return etl.cast(1.0 / hyperplane, "float32")
+        hyperplane = enp.reshape(evoxc.dot(evecs, y), (n_objs,))
+        return evoxc.cast(1.0 / hyperplane, "float32")
 
     def _fallback(extreme, norm_fit, in_mask, n_objs):
-        return etl.max(
-            etl.select(enp.expand_dims(in_mask, 1), norm_fit, float("-inf")), axes=0
+        return evoxc.max(
+            evoxc.select(enp.expand_dims(in_mask, 1), norm_fit, float("-inf")), axes=0
         )
 
-    intercepts = etl.cond(
+    intercepts = evoxc.cond(
         full_rank,
         _hyperplane,
         _fallback,
@@ -359,87 +359,87 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     # rows are replaced by zeros first: their distances are never used
     # (group_id is overridden below) and inf/inf would yield NaN + warnings.
     n_ref = state.ref.shape[0]
-    ref_shuffled = etl.gather(
-        state.ref, random.permutation(k_ref, n_ref, dtype=etl.int32), axis=0
+    ref_shuffled = evoxc.gather(
+        state.ref, random.permutation(k_ref, n_ref, dtype=evoxc.int32), axis=0
     )
-    finite_fit = etl.select(enp.expand_dims(in_mask, 1), norm_fit, 0.0)
-    mag = etl.norm(finite_fit, axis=1, keepdims=True)
+    finite_fit = evoxc.select(enp.expand_dims(in_mask, 1), norm_fit, 0.0)
+    mag = evoxc.norm(finite_fit, axis=1, keepdims=True)
     mag = enp.maximum(mag, 1e-10)
     fit_norm = finite_fit / mag
     ref_norm = ref_shuffled / enp.maximum(
-        etl.norm(ref_shuffled, axis=1, keepdims=True), 1e-10
+        evoxc.norm(ref_shuffled, axis=1, keepdims=True), 1e-10
     )
-    cosine_sim = etl.dot(fit_norm, etl.transpose(ref_norm, axes=(1, 0)))
-    angular = etl.sqrt(enp.maximum(1.0 - etl.power(cosine_sim, 2.0), 1e-10))
+    cosine_sim = evoxc.dot(fit_norm, evoxc.transpose(ref_norm, axes=(1, 0)))
+    angular = evoxc.sqrt(enp.maximum(1.0 - evoxc.power(cosine_sim, 2.0), 1e-10))
     distances = mag * angular
 
     # Associate each solution with its nearest reference point.
-    group_dist = etl.min(distances, axes=1)
-    group_id = etl.argmin(distances, axis=1)
+    group_dist = evoxc.min(distances, axes=1)
+    group_id = evoxc.argmin(distances, axis=1)
     upper_bound = n + dim + n_objs + 1  # sentinel > any valid index
-    group_id = etl.cast(
-        etl.select(rank == worst_rank, group_id, upper_bound), etl.int32
+    group_id = evoxc.cast(
+        evoxc.select(rank == worst_rank, group_id, upper_bound), evoxc.int32
     )
 
     # rho / rho_last (one-hot sum replaces the torch scatter_add).
     arange_ref = enp.arange(n_ref, dtype="int32")
-    one_hot = etl.equal(enp.expand_dims(arange_ref, 0), enp.expand_dims(group_id, 1))
-    rho = etl.cast(
-        etl.sum(
-            etl.cast(
+    one_hot = evoxc.equal(enp.expand_dims(arange_ref, 0), enp.expand_dims(group_id, 1))
+    rho = evoxc.cast(
+        evoxc.sum(
+            evoxc.cast(
                 enp.logical_and(one_hot, enp.expand_dims(rank < worst_rank, 1)),
-                etl.int32,
+                evoxc.int32,
             ),
             axes=0,
         ),
-        etl.int32,
+        evoxc.int32,
     )
-    rho_last = etl.cast(
-        etl.sum(
-            etl.cast(
+    rho_last = evoxc.cast(
+        evoxc.sum(
+            evoxc.cast(
                 enp.logical_and(one_hot, enp.expand_dims(rank == worst_rank, 1)),
-                etl.int32,
+                evoxc.int32,
             ),
             axes=0,
         ),
-        etl.int32,
+        evoxc.int32,
     )
-    selected_num = etl.cast(etl.sum(rho, axes=None), etl.int32)
-    rho = etl.cast(etl.select(rho_last == 0, upper_bound, rho), etl.int32)
+    selected_num = evoxc.cast(evoxc.sum(rho, axes=None), evoxc.int32)
+    rho = evoxc.cast(evoxc.select(rho_last == 0, upper_bound, rho), evoxc.int32)
 
     # First selection stage (rho == 0).
     row_indices = enp.arange(n_ref, dtype="int32")
     selected_ref = rho == 0
-    d = etl.select(
+    d = evoxc.select(
         enp.logical_and(
-            etl.equal(enp.expand_dims(group_id, 1), enp.expand_dims(row_indices, 0)),
+            evoxc.equal(enp.expand_dims(group_id, 1), enp.expand_dims(row_indices, 0)),
             enp.expand_dims(rank == worst_rank, 1),
         ),
         enp.expand_dims(group_dist, 1),
         float("inf"),
     )  # (n, n_ref)
-    candi_idx = etl.cast(etl.argmin(d, axis=0), etl.int32)  # (n_ref,)
+    candi_idx = evoxc.cast(evoxc.argmin(d, axis=0), evoxc.int32)  # (n_ref,)
     hit = _masked_hit(n, candi_idx, selected_ref)
-    rank = etl.cast(
-        etl.select(hit, etl.cast(worst_rank, etl.int32) - 1, rank), etl.int32
+    rank = evoxc.cast(
+        evoxc.select(hit, evoxc.cast(worst_rank, evoxc.int32) - 1, rank), evoxc.int32
     )
-    rho_last = etl.cast(etl.select(selected_ref, rho_last - 1, rho_last), etl.int32)
-    rho = etl.cast(etl.select(selected_ref, 1, rho), etl.int32)
-    rho = etl.cast(etl.select(rho_last == 0, upper_bound, rho), etl.int32)
-    selected_num = etl.cast(
+    rho_last = evoxc.cast(evoxc.select(selected_ref, rho_last - 1, rho_last), evoxc.int32)
+    rho = evoxc.cast(evoxc.select(selected_ref, 1, rho), evoxc.int32)
+    rho = evoxc.cast(evoxc.select(rho_last == 0, upper_bound, rho), evoxc.int32)
+    selected_num = evoxc.cast(
         selected_num
-        + etl.cast(etl.sum(etl.cast(selected_ref, etl.int32), axes=None), etl.int32),
-        etl.int32,
+        + evoxc.cast(evoxc.sum(evoxc.cast(selected_ref, evoxc.int32), axes=None), evoxc.int32),
+        evoxc.int32,
     )
 
     # Second selection stage: per-ref candidate tables.
-    group_id = etl.cast(etl.select(hit, upper_bound, group_id), etl.int32)
-    sel = etl.equal(enp.expand_dims(row_indices, 1), enp.expand_dims(group_id, 0))
-    true_idx = etl.cast(
-        etl.select(sel, enp.expand_dims(enp.arange(n, dtype="int32"), 0), upper_bound),
-        etl.int32,
+    group_id = evoxc.cast(evoxc.select(hit, upper_bound, group_id), evoxc.int32)
+    sel = evoxc.equal(enp.expand_dims(row_indices, 1), enp.expand_dims(group_id, 0))
+    true_idx = evoxc.cast(
+        evoxc.select(sel, enp.expand_dims(enp.arange(n, dtype="int32"), 0), upper_bound),
+        evoxc.int32,
     )  # (n_ref, n); non-members sort as upper_bound at the end
-    ref_candidates = etl.sort(true_idx, axis=1, stable=False)
+    ref_candidates = evoxc.sort(true_idx, axis=1, stable=False)
     ref_cand_idx = enp.zeros((n_ref,), dtype="int32")
 
     def _cond(carry):
@@ -448,7 +448,7 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
 
     def _body(carry):
         rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx = carry
-        rho_level = etl.min(rho, axes=None)
+        rho_level = evoxc.min(rho, axes=None)
         selected_ref = rho == rho_level
         candi_idx = enp.reshape(
             _take_along_axis(
@@ -457,23 +457,23 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
             (n_ref,),
         )
         hit = _masked_hit(n, candi_idx, selected_ref)
-        rank = etl.cast(
-            etl.select(hit, etl.cast(worst_rank, etl.int32) - 1, rank), etl.int32
+        rank = evoxc.cast(
+            evoxc.select(hit, evoxc.cast(worst_rank, evoxc.int32) - 1, rank), evoxc.int32
         )
-        ref_cand_idx = etl.cast(
-            etl.select(selected_ref, ref_cand_idx + 1, ref_cand_idx), etl.int32
+        ref_cand_idx = evoxc.cast(
+            evoxc.select(selected_ref, ref_cand_idx + 1, ref_cand_idx), evoxc.int32
         )
-        rho_last = etl.cast(
-            etl.select(selected_ref, rho_last - 1, rho_last), etl.int32
+        rho_last = evoxc.cast(
+            evoxc.select(selected_ref, rho_last - 1, rho_last), evoxc.int32
         )
-        rho = etl.cast(etl.select(selected_ref, rho_level + 1, rho), etl.int32)
-        rho = etl.cast(etl.select(rho_last == 0, upper_bound, rho), etl.int32)
-        selected_num = etl.cast(
+        rho = evoxc.cast(evoxc.select(selected_ref, rho_level + 1, rho), evoxc.int32)
+        rho = evoxc.cast(evoxc.select(rho_last == 0, upper_bound, rho), evoxc.int32)
+        selected_num = evoxc.cast(
             selected_num
-            + etl.cast(
-                etl.sum(etl.cast(selected_ref, etl.int32), axes=None), etl.int32
+            + evoxc.cast(
+                evoxc.sum(evoxc.cast(selected_ref, evoxc.int32), axes=None), evoxc.int32
             ),
-            etl.int32,
+            evoxc.int32,
         )
         return (
             rank,
@@ -485,7 +485,7 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
             candi_idx,
         )
 
-    rank, selected_num, _, _, _, selected_ref, candi_idx = etl.while_loop(
+    rank, selected_num, _, _, _, selected_ref, candi_idx = evoxc.while_loop(
         _cond,
         _body,
         (rank, selected_num, ref_cand_idx, rho_last, rho, selected_ref, candi_idx),
@@ -494,11 +494,11 @@ def _select(config: NSGA3Config, state: NSGA3State, fitness: SymbolicTensor) -> 
     # Truncate the last batch back to pop_size (torch: demote the first
     # `dif` entries of the ascending sorted candidate indices).
     dif = selected_num - pop_size
-    candi_idx = etl.cast(etl.select(selected_ref, candi_idx, upper_bound), etl.int32)
-    sorted_index = etl.sort(candi_idx, axis=0, stable=False)
+    candi_idx = evoxc.cast(evoxc.select(selected_ref, candi_idx, upper_bound), evoxc.int32)
+    sorted_index = evoxc.sort(candi_idx, axis=0, stable=False)
     sel_pos = enp.arange(n_ref, dtype="int32") < dif
     hit = _masked_hit(n, sorted_index, sel_pos)
-    rank = etl.cast(etl.select(hit, worst_rank, rank), etl.int32)
+    rank = evoxc.cast(evoxc.select(hit, worst_rank, rank), evoxc.int32)
 
     # Final survivors: exactly pop_size rows have rank < worst_rank (same set
     # as torch's boolean indexing). `_final_survivors` preserves the shuffled

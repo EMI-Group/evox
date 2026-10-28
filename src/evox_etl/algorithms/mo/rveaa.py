@@ -1,8 +1,8 @@
 """Functional port of the torch RVEAa algorithm (``src/evox/algorithms/mo/rveaa.py``).
 
-Plain functions only (no ``@etl.defn``, per DESIGN.md §4.3) following the step
+Plain functions only (no ``@evoxc.defn``, per DESIGN.md §4.3) following the step
 protocol of ``evox_etl.core.algorithm``: the workflow traces ``init``/
-``init_step``/``step`` via ``etl.build``/``etl.run``.
+``init_step``/``step`` via ``evoxc.build``/``evoxc.run``.
 
 Port notes:
 - The torch OOP ``step()`` is one fused function here: the offspring phase
@@ -12,7 +12,7 @@ Port notes:
   offspring phase stores it in the intermediate state (``state.offspring``) —
   the same candidates-in-state pattern used by the DE ports.
 - torch's eager-if / ``torch.cond`` dual paths of ``_update_pop_and_rv`` become
-  ONE ``etl.select``-based path (both branches are pure and cheap).
+  ONE ``evoxc.select``-based path (both branches are pure and cheap).
 - The effective population size is the Das-Dennis count ``n_v`` from
   ``uniform_sampling`` (torch overwrites ``self.pop_size`` with it); the SBX
   quirk of torch ``simulated_binary`` (last odd row dropped) is preserved 1:1.
@@ -21,9 +21,9 @@ Port notes:
 from dataclasses import dataclass, replace
 from typing import Callable, Optional
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
@@ -32,7 +32,7 @@ from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling
 from evox_etl.operators.selection import non_dominate_rank, ref_vec_guided
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -73,8 +73,8 @@ def _config_unflatten(config: RVEAaConfig, _children) -> RVEAaConfig:
 # This registration is REQUIRED: the config carries optional callable op
 # fields (selection_op/mutation_op/crossover_op), and functions are not valid
 # static pytree leaves — so the config travels as one opaque childless node
-# through etl.build/etl.run untouched.
-etl.register_pytree_node(RVEAaConfig, _config_flatten, _config_unflatten)
+# through evoxc.build/evoxc.run untouched.
+evoxc.register_pytree_node(RVEAaConfig, _config_flatten, _config_unflatten)
 
 
 def make_rveaa(
@@ -153,7 +153,7 @@ def init(config: RVEAaConfig, key: Tensor) -> RVEAaState:
     population = random.uniform(k_pop, (n_v, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((n_v, n_objs), float("inf"), dtype="float32")
     v1 = random.uniform(k_v1, (n_v, n_objs), 0.0, 1.0, "float32")
-    reference_vector = etl.concatenate([v, v1], axis=0)
+    reference_vector = evoxc.concatenate([v, v1], axis=0)
     gen = enp.zeros((), dtype="int32")
     rv_adapt_every = enp.full(
         (), float(max(round(1.0 / config.fr), 1.0)), dtype="float32"
@@ -192,7 +192,7 @@ def step(
     adaptation and final batch truncation.
     """
     key, k_mate, k_cross, k_mut = random.split_n(state.key, 4)
-    gen = etl.cast(state.gen + 1, etl.int32)
+    gen = evoxc.cast(state.gen + 1, evoxc.int32)
     lb, ub = bake_bounds(config.lb, config.ub)
     pop = state.pop
     pop_rows = pop.shape[0]
@@ -203,19 +203,19 @@ def step(
 
     # torch _mating_pool: valid rows sort to the front (NaN rows get the int32
     # max sentinel), then n_v random draws over the valid prefix.
-    valid_mask = enp.logical_not(etl.ops.reduce_max(etl.isnan(pop), axes=1))
-    num_valid = etl.cast(etl.sum(etl.cast(valid_mask, etl.int32)), etl.int32)
-    mating_pool = randint(k_mate, 0, num_valid, (n_v,), dtype=etl.int32)
-    sorted_indices = etl.argsort(
-        etl.cast(
-            etl.select(valid_mask, enp.arange(pop_rows, dtype="int32"), 2147483647),
-            etl.int32,
+    valid_mask = enp.logical_not(evoxc.ops.reduce_max(evoxc.isnan(pop), axes=1))
+    num_valid = evoxc.cast(evoxc.sum(evoxc.cast(valid_mask, evoxc.int32)), evoxc.int32)
+    mating_pool = randint(k_mate, 0, num_valid, (n_v,), dtype=evoxc.int32)
+    sorted_indices = evoxc.argsort(
+        evoxc.cast(
+            evoxc.select(valid_mask, enp.arange(pop_rows, dtype="int32"), 2147483647),
+            evoxc.int32,
         ),
         axis=0,
         stable=True,
     )
-    pool = etl.gather(pop, sorted_indices, axis=0)
-    mated = etl.gather(pool, mating_pool, axis=0)
+    pool = evoxc.gather(pop, sorted_indices, axis=0)
+    mated = evoxc.gather(pool, mating_pool, axis=0)
 
     crossover_fn = (
         config.crossover_op if config.crossover_op is not None else simulated_binary
@@ -237,14 +237,14 @@ def step(
     # (2*n_v, n_objs) throughout, so n_v = half its rows.
     n_v = state.reference_vector.shape[0] // 2
 
-    merge_pop = etl.concatenate([pop, state.offspring], axis=0)
-    merge_fit = etl.concatenate([fit, fitness], axis=0)
+    merge_pop = evoxc.concatenate([pop, state.offspring], axis=0)
+    merge_fit = evoxc.concatenate([fit, fitness], axis=0)
 
     rank = non_dominate_rank(merge_fit)
-    merge_fit = etl.select(enp.expand_dims(rank, 1) == 0, merge_fit, float("nan"))
-    merge_pop = etl.select(enp.expand_dims(rank, 1) == 0, merge_pop, float("nan"))
+    merge_fit = evoxc.select(enp.expand_dims(rank, 1) == 0, merge_fit, float("nan"))
+    merge_pop = evoxc.select(enp.expand_dims(rank, 1) == 0, merge_pop, float("nan"))
 
-    theta = (etl.cast(gen, etl.float32) / config.max_gen) ** config.alpha
+    theta = (evoxc.cast(gen, evoxc.float32) / config.max_gen) ** config.alpha
     selection_fn = (
         config.selection_op if config.selection_op is not None else ref_vec_guided
     )
@@ -258,40 +258,40 @@ def step(
     v = state.reference_vector[n_v:]
     pop_obj = survivor_fit - nanmin(survivor_fit, dim=0)[0]
     # Row-normalized dot product == torch F.cosine_similarity (incl. NaN rows).
-    an = pop_obj / etl.norm(pop_obj, axis=1, keepdims=True)
-    bn = v / etl.norm(v, axis=1, keepdims=True)
-    cosine = etl.dot(an, etl.transpose(bn, axes=(1, 0)))  # (2*n_v, n_v)
-    mask = etl.isnan(cosine)
-    input_tensor = etl.select(mask, float("-inf"), cosine)
-    associate = etl.argmax(input_tensor, axis=1)
-    associate = etl.cast(
-        etl.select(input_tensor[:, 0] == float("-inf"), -1, associate), etl.int32
+    an = pop_obj / evoxc.norm(pop_obj, axis=1, keepdims=True)
+    bn = v / evoxc.norm(v, axis=1, keepdims=True)
+    cosine = evoxc.dot(an, evoxc.transpose(bn, axes=(1, 0)))  # (2*n_v, n_v)
+    mask = evoxc.isnan(cosine)
+    input_tensor = evoxc.select(mask, float("-inf"), cosine)
+    associate = evoxc.argmax(input_tensor, axis=1)
+    associate = evoxc.cast(
+        evoxc.select(input_tensor[:, 0] == float("-inf"), -1, associate), evoxc.int32
     )
-    invalid = etl.cast(
-        etl.sum(
-            etl.cast(
-                etl.equal(
+    invalid = evoxc.cast(
+        evoxc.sum(
+            evoxc.cast(
+                evoxc.equal(
                     enp.expand_dims(associate, 1),
                     enp.expand_dims(enp.arange(n_v, dtype="int32"), 0),
                 ),
-                etl.int32,
+                evoxc.int32,
             ),
             axes=0,
         ),
-        etl.int32,
+        evoxc.int32,
     )
     rand = random.uniform(k_reg, (n_v, n_objs), 0.0, 1.0, "float32") * nanmax(
         pop_obj, dim=0
     )[0]
-    new_v = etl.select(enp.expand_dims(invalid == 0, 1), rand, v)
+    new_v = evoxc.select(enp.expand_dims(invalid == 0, 1), rand, v)
 
     # --- torch _rv_adaptation vs _no_rv_adaptation: one select-based path ---
     adapted = state.init_v * (
         nanmax(survivor_fit, dim=0)[0] - nanmin(survivor_fit, dim=0)[0]
     )
     kept = state.reference_vector[:n_v]
-    v_adapt = etl.select(
-        etl.remainder(gen, etl.cast(state.rv_adapt_every, etl.int32)) == 0,
+    v_adapt = evoxc.select(
+        evoxc.remainder(gen, evoxc.cast(state.rv_adapt_every, evoxc.int32)) == 0,
         adapted,
         kept,
     )
@@ -299,24 +299,24 @@ def step(
     # --- torch _batch_truncation vs _no_batch_truncation: one select path ---
     n_total = 2 * n_v
     obj = survivor_fit
-    an = obj / etl.norm(obj, axis=1, keepdims=True)
-    cosine = etl.dot(an, etl.transpose(an, axes=(1, 0)))  # (n_total, n_total)
-    not_all_nan = enp.logical_not(etl.ops.reduce_max(etl.isnan(cosine), axes=1))
+    an = obj / evoxc.norm(obj, axis=1, keepdims=True)
+    cosine = evoxc.dot(an, evoxc.transpose(an, axes=(1, 0)))  # (n_total, n_total)
+    not_all_nan = enp.logical_not(evoxc.ops.reduce_max(evoxc.isnan(cosine), axes=1))
     mask = enp.logical_and(
-        etl.eye(n_total, dtype=etl.bool_), enp.expand_dims(not_all_nan, 1)
+        evoxc.eye(n_total, dtype=evoxc.bool_), enp.expand_dims(not_all_nan, 1)
     )
-    cosine = etl.select(mask, 0.0, cosine)
-    sorted_values = etl.sort(-cosine, axis=1)
+    cosine = evoxc.select(mask, 0.0, cosine)
+    sorted_values = evoxc.sort(-cosine, axis=1)
     first_col = sorted_values[:, 0]
-    first_col = etl.select(etl.isnan(first_col), float("-inf"), first_col)
-    _rank = etl.argsort(first_col, axis=0)  # torch computes this but never uses it
+    first_col = evoxc.select(evoxc.isnan(first_col), float("-inf"), first_col)
+    _rank = evoxc.argsort(first_col, axis=0)  # torch computes this but never uses it
     keep_mask = enp.arange(n_total, dtype="int32") >= n_v
-    trunc_pop = etl.select(enp.expand_dims(keep_mask, 1), survivor, float("nan"))
-    trunc_fit = etl.select(enp.expand_dims(keep_mask, 1), survivor_fit, float("nan"))
-    pop_out = etl.select(gen == config.max_gen, trunc_pop, survivor)
-    fit_out = etl.select(gen == config.max_gen, trunc_fit, survivor_fit)
+    trunc_pop = evoxc.select(enp.expand_dims(keep_mask, 1), survivor, float("nan"))
+    trunc_fit = evoxc.select(enp.expand_dims(keep_mask, 1), survivor_fit, float("nan"))
+    pop_out = evoxc.select(gen == config.max_gen, trunc_pop, survivor)
+    fit_out = evoxc.select(gen == config.max_gen, trunc_fit, survivor_fit)
 
-    reference_vector = etl.concatenate([v_adapt, new_v], axis=0)
+    reference_vector = evoxc.concatenate([v_adapt, new_v], axis=0)
     return replace(
         state,
         pop=pop_out,

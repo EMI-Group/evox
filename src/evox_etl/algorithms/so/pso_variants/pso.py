@@ -9,16 +9,16 @@ mirroring the torch evox PSO ``step``/``init_step`` 1:1 (see DESIGN.md §4-5).
 from dataclasses import dataclass, replace
 from typing import Any
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 
 from .utils import min_by
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -82,16 +82,16 @@ def init(config: PSO, key: Tensor) -> PSOState:
     pop_size, dim = config.pop_size, len(config.lb)
     subkey_pop, subkey_vel = random.split(subkey)
     pop = (
-        length * random.uniform(subkey_pop, (pop_size, dim), 0.0, 1.0, etl.float32)
+        length * random.uniform(subkey_pop, (pop_size, dim), 0.0, 1.0, evoxc.float32)
         + lb
     )
     velocity = (
         2
         * length
-        * random.uniform(subkey_vel, (pop_size, dim), 0.0, 1.0, etl.float32)
+        * random.uniform(subkey_vel, (pop_size, dim), 0.0, 1.0, evoxc.float32)
         - length
     )
-    inf_fit = enp.full((pop_size,), float("inf"), dtype=etl.float32)
+    inf_fit = enp.full((pop_size,), float("inf"), dtype=evoxc.float32)
     return PSOState(
         pop=pop,
         velocity=velocity,
@@ -99,7 +99,7 @@ def init(config: PSO, key: Tensor) -> PSOState:
         local_best_location=pop,
         local_best_fit=inf_fit,
         global_best_location=pop[0],
-        global_best_fit=enp.full((), float("inf"), dtype=etl.float32),
+        global_best_fit=enp.full((), float("inf"), dtype=evoxc.float32),
         key=key,
     )
 
@@ -138,18 +138,18 @@ def step(config: PSO, state: PSOState, evaluate: Any) -> PSOState:
     pop_size, dim = config.pop_size, len(config.lb)
 
     compare = state.local_best_fit > state.fit
-    local_best_location = etl.select(
+    local_best_location = evoxc.select(
         enp.expand_dims(compare, axis=1), state.pop, state.local_best_location
     )
-    local_best_fit = etl.select(compare, state.fit, state.local_best_fit)
+    local_best_fit = evoxc.select(compare, state.fit, state.local_best_fit)
     global_best_location, global_best_fit = min_by(
         [enp.expand_dims(state.global_best_location, axis=0), state.pop],
         [enp.expand_dims(state.global_best_fit, axis=0), state.fit],
     )
     key, subkey = random.split(state.key)
     subkey_rg, subkey_rp = random.split(subkey)
-    rg = random.uniform(subkey_rg, (pop_size, dim), 0.0, 1.0, etl.float32)
-    rp = random.uniform(subkey_rp, (pop_size, dim), 0.0, 1.0, etl.float32)
+    rg = random.uniform(subkey_rg, (pop_size, dim), 0.0, 1.0, evoxc.float32)
+    rp = random.uniform(subkey_rp, (pop_size, dim), 0.0, 1.0, evoxc.float32)
     velocity = (
         config.w * state.velocity
         + config.phi_p * rp * (local_best_location - state.pop)

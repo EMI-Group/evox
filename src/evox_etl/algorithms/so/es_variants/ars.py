@@ -1,7 +1,7 @@
 """Functional ETL port of the torch evox ARS algorithm (step protocol).
 
-Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
 mode.  Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/ars.py` exactly: `step` owns the WHOLE
 generation (mirrored sampling → `evaluate(candidates)` → elite rank update),
@@ -18,9 +18,9 @@ from typing import Callable, Literal
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from ..._config_utils import (
     ArrayLike,
@@ -31,7 +31,7 @@ from ..._config_utils import (
 )
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 F32 = np.dtype("float32")
 
@@ -122,7 +122,7 @@ def step(
     key, subkey = random.split(state.key)
     half = config.pop_size // 2
     z_plus = random.normal(subkey, (half, dim), dtype=F32)
-    noise = etl.concatenate([z_plus, -1.0 * z_plus], axis=0)
+    noise = evoxc.concatenate([z_plus, -1.0 * z_plus], axis=0)
     population = state.center + config.sigma * noise
     state = replace(state, noise=noise, key=key)
 
@@ -134,14 +134,14 @@ def step(
     elite_pop_size = max(1, int(config.pop_size / 2 * config.elite_ratio))
     fit_1 = fitness[:half]
     fit_2 = fitness[half:]
-    elite_idx = etl.argsort(etl.minimum(fit_1, fit_2))[:elite_pop_size]
-    fit_1_e = etl.gather(fit_1, elite_idx, axis=0)
-    fit_2_e = etl.gather(fit_2, elite_idx, axis=0)
-    fitness_elite = etl.concatenate([fit_1_e, fit_2_e], axis=0)
-    sigma_fitness = etl.std(fitness_elite, ddof=1) + 1e-5
+    elite_idx = evoxc.argsort(evoxc.minimum(fit_1, fit_2))[:elite_pop_size]
+    fit_1_e = evoxc.gather(fit_1, elite_idx, axis=0)
+    fit_2_e = evoxc.gather(fit_2, elite_idx, axis=0)
+    fitness_elite = evoxc.concatenate([fit_1_e, fit_2_e], axis=0)
+    sigma_fitness = evoxc.std(fitness_elite, ddof=1) + 1e-5
     fit_diff = fit_1_e - fit_2_e
-    noise_1_e = etl.gather(state.noise[:half], elite_idx, axis=0)
-    fit_diff_noise = etl.dot(enp.expand_dims(fit_diff, axis=0), noise_1_e)[0]
+    noise_1_e = evoxc.gather(state.noise[:half], elite_idx, axis=0)
+    fit_diff_noise = evoxc.dot(enp.expand_dims(fit_diff, axis=0), noise_1_e)[0]
     theta_grad = 1.0 / (elite_pop_size * sigma_fitness) * fit_diff_noise
     if config.optimizer is None:
         center = state.center - config.lr * theta_grad
@@ -156,7 +156,7 @@ def step(
             0.999,
             config.lr,
         )
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,
@@ -174,7 +174,7 @@ def record_step(
 ) -> dict[str, Tensor]:
     """Host-side auxiliary-info hook, mirroring torch ``ARS.record_step``.
 
-    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
     accepted-but-unused, exactly like the torch reference which ignores them.

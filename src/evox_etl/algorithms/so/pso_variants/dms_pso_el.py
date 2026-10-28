@@ -6,7 +6,7 @@ Step-protocol port of the read-only reference
 full generation (candidate generation → ``evaluate`` → state update).
 Dynamic sub-swarms regroup every `regrouped_iteration_num` steps and switch
 to a global-best strategy once `iteration >= 0.9 * max_iteration`
-(data-dependent, so the torch Python `if`s become `etl.cond`).
+(data-dependent, so the torch Python `if`s become `evoxc.cond`).
 """
 
 from dataclasses import dataclass, replace
@@ -15,14 +15,14 @@ from typing import Any
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -30,7 +30,7 @@ class DMSPSOEL:
     """Config of the DMSPSOEL algorithm (torch ``__init__`` minus ``device``).
 
     ``lb``/``ub`` are stored as flat tuples of Python floats — plain static
-    leaves per DESIGN.md §4.1 (frozen ``__eq__``/``__hash__`` and etl's
+    leaves per DESIGN.md §4.1 (frozen ``__eq__``/``__hash__`` and evoxc's
     by-value static revalidation). ``make_dms_pso_el`` is the array-accepting
     constructor; direct construction takes already-normalized tuples.
     """
@@ -88,7 +88,7 @@ def make_dms_pso_el(
 
 @dataclass(frozen=True)
 class DMSPSOELState:
-    """State of DMSPSOEL; leaves are etl tensors only."""
+    """State of DMSPSOEL; leaves are evoxc tensors only."""
 
     pop: Tensor
     velocity: Tensor
@@ -125,21 +125,21 @@ def init(config: DMSPSOEL, key: Tensor) -> DMSPSOELState:
     length = ub - lb
     key, key_pop = random.split(key)
     key, key_vel = random.split(key)
-    pop = length * random.uniform(key_pop, (pop_size, dim), dtype=etl.float32) + lb
-    velocity = 2 * length * random.uniform(key_vel, (pop_size, dim), dtype=etl.float32) - length
+    pop = length * random.uniform(key_pop, (pop_size, dim), dtype=evoxc.float32) + lb
+    velocity = 2 * length * random.uniform(key_vel, (pop_size, dim), dtype=evoxc.float32) - length
     local_best_location = enp.reshape(pop[:dynamic_size], (dssn, dss, dim))[:, 0, :]
     return DMSPSOELState(
         pop=pop,
         velocity=velocity,
-        fit=enp.zeros((pop_size,), dtype=etl.float32),
+        fit=enp.zeros((pop_size,), dtype=evoxc.float32),
         personal_best_location=pop,
-        personal_best_fit=enp.full((pop_size,), np.inf, dtype=etl.float32),
+        personal_best_fit=enp.full((pop_size,), np.inf, dtype=evoxc.float32),
         local_best_location=local_best_location,
-        local_best_fit=enp.full((dssn,), np.inf, dtype=etl.float32),
-        regional_best_index=enp.zeros((config.following_sub_swarm_size,), dtype=etl.int64),
-        global_best_location=enp.zeros((dim,), dtype=etl.float32),
-        global_best_fit=enp.full((), np.inf, dtype=etl.float32),
-        iteration=enp.full((), 0, dtype=etl.int32),
+        local_best_fit=enp.full((dssn,), np.inf, dtype=evoxc.float32),
+        regional_best_index=enp.zeros((config.following_sub_swarm_size,), dtype=evoxc.int64),
+        global_best_location=enp.zeros((dim,), dtype=evoxc.float32),
+        global_best_fit=enp.full((), np.inf, dtype=evoxc.float32),
+        iteration=enp.full((), 0, dtype=evoxc.int32),
         key=key,
     )
 
@@ -151,7 +151,7 @@ def init_step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOEL
     and counts the generation.  See `step` for more details.
     """
     fitness = evaluate(state.pop)
-    return replace(state, fit=fitness, iteration=etl.cast(state.iteration + 1, etl.int32))
+    return replace(state, fit=fitness, iteration=evoxc.cast(state.iteration + 1, evoxc.int32))
 
 
 def step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOELState:
@@ -166,7 +166,7 @@ def step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOELState
     order — update, evaluate, record, count — yields the identical net
     effect), completing one full generation.
     """
-    state = etl.cond(
+    state = evoxc.cond(
         state.iteration < 0.9 * config.max_iteration,
         partial(_strategy1, config),
         partial(_strategy2, config),
@@ -176,15 +176,15 @@ def step(config: DMSPSOEL, state: DMSPSOELState, evaluate: Any) -> DMSPSOELState
     return replace(
         state,
         fit=fitness,
-        iteration=etl.cast(state.iteration + 1, etl.int32),
+        iteration=evoxc.cast(state.iteration + 1, evoxc.int32),
     )
 
 
 def _strategy1(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
     """Torch ``_update_strategy_1``: regroup (every R iterations), then the
     pbest / dynamic-swarm / following-swarm velocity update."""
-    state = etl.cond(
-        etl.equal(etl.remainder(state.iteration, config.regrouped_iteration_num), 0),
+    state = evoxc.cond(
+        evoxc.equal(evoxc.remainder(state.iteration, config.regrouped_iteration_num), 0),
         partial(_regroup, config),
         partial(_identity, config),
         state,
@@ -194,10 +194,10 @@ def _strategy1(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
     pop_size, dynamic_size, dssn, dss = _static_sizes(config)
     # Update personal_best
     compare = state.personal_best_fit > state.fit
-    personal_best_location = etl.select(
+    personal_best_location = evoxc.select(
         enp.expand_dims(compare, axis=1), state.pop, state.personal_best_location
     )
-    personal_best_fit = etl.select(compare, state.fit, state.personal_best_fit)
+    personal_best_fit = evoxc.select(compare, state.fit, state.personal_best_fit)
     # Update dynamic swarms
     dloc = enp.reshape(state.pop[:dynamic_size], (dssn, dss, dim))
     dfit = enp.reshape(state.fit[:dynamic_size], (dssn, dss))
@@ -208,21 +208,21 @@ def _strategy1(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
     following_swarm_velocity = state.velocity[dynamic_size:]
     following_swarm_pbest = personal_best_location[dynamic_size:]
     # Update local_best (torch index_select(dloc, 1, lbi).diagonal().T -> flat gather)
-    local_best_fit = etl.min(dfit, axes=1)
-    local_best_index = etl.argmin(dfit, axis=1)
-    offsets = etl.arange(dssn, dtype=etl.int64) * dss
-    local_best_location = etl.gather(
+    local_best_fit = evoxc.min(dfit, axes=1)
+    local_best_index = evoxc.argmin(dfit, axis=1)
+    offsets = evoxc.arange(dssn, dtype=evoxc.int64) * dss
+    local_best_location = evoxc.gather(
         enp.reshape(dloc, (dynamic_size, dim)), offsets + local_best_index, axis=0
     )
     # Update regional_best
-    regional_best_location = etl.gather(state.pop, state.regional_best_index, axis=0)
+    regional_best_location = evoxc.gather(state.pop, state.regional_best_index, axis=0)
     # Draws in torch order; one subkey per draw, advanced key stored below.
     key, key_rand_pbest = random.split(state.key)
     key, key_rand_lbest = random.split(key)
     key, key_rand_rbest = random.split(key)
-    rand_pbest = random.uniform(key_rand_pbest, (pop_size, dim), dtype=etl.float32)
-    rand_lbest = random.uniform(key_rand_lbest, (dssn, dss, dim), dtype=etl.float32)
-    rand_rbest = random.uniform(key_rand_rbest, (config.following_sub_swarm_size, dim), dtype=etl.float32)
+    rand_pbest = random.uniform(key_rand_pbest, (pop_size, dim), dtype=evoxc.float32)
+    rand_lbest = random.uniform(key_rand_lbest, (dssn, dss, dim), dtype=evoxc.float32)
+    rand_rbest = random.uniform(key_rand_rbest, (config.following_sub_swarm_size, dim), dtype=evoxc.float32)
     # Calculate Dynamic Swarms Velocity
     dynamic_swarms_rand_pbest = enp.reshape(rand_pbest[:dynamic_size], (dssn, dss, dim))
     dynamic_swarms_velocity = (
@@ -244,7 +244,7 @@ def _strategy1(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
         * (regional_best_location - following_swarm_location)
     )
     # Update Population
-    velocity = etl.concatenate(
+    velocity = evoxc.concatenate(
         [enp.reshape(dynamic_swarms_velocity, (dynamic_size, dim)), following_swarm_velocity],
         axis=0,
     )
@@ -269,22 +269,22 @@ def _strategy2(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
     pop_size = _static_sizes(config)[0]
     # Update personal_best
     compare = state.personal_best_fit > state.fit
-    personal_best_location = etl.select(
+    personal_best_location = evoxc.select(
         enp.expand_dims(compare, axis=1), state.pop, state.personal_best_location
     )
-    personal_best_fit = etl.select(compare, state.fit, state.personal_best_fit)
+    personal_best_fit = evoxc.select(compare, state.fit, state.personal_best_fit)
     # Update global_best
-    global_best_fit = etl.min(personal_best_fit, axes=0)
-    global_best_idx = etl.argmin(personal_best_fit, axis=0)
+    global_best_fit = evoxc.min(personal_best_fit, axes=0)
+    global_best_idx = evoxc.argmin(personal_best_fit, axis=0)
     global_best_location = enp.reshape(
-        etl.gather(personal_best_location, enp.reshape(global_best_idx, (1,)), axis=0),
+        evoxc.gather(personal_best_location, enp.reshape(global_best_idx, (1,)), axis=0),
         (dim,),
     )
     # Draws in torch order; one subkey per draw, advanced key stored below.
     key, key_rand_pbest = random.split(state.key)
     key, key_rand_gbest = random.split(key)
-    rand_pbest = random.uniform(key_rand_pbest, (pop_size, dim), dtype=etl.float32)
-    rand_gbest = random.uniform(key_rand_gbest, (pop_size, dim), dtype=etl.float32)
+    rand_pbest = random.uniform(key_rand_pbest, (pop_size, dim), dtype=evoxc.float32)
+    rand_gbest = random.uniform(key_rand_gbest, (pop_size, dim), dtype=evoxc.float32)
     velocity = (
         config.inertia_weight * state.velocity
         + config.pbest_coefficient * rand_pbest * (personal_best_location - state.pop)
@@ -308,18 +308,18 @@ def _regroup(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
     """Torch ``_regroup``: randomly permute the dynamic sub-swarm and rebuild
     ``regional_best_index`` from the PRE-regroup dynamic-swarm fit (quirk)."""
     dynamic_size = _static_sizes(config)[1]
-    sort_index = etl.argsort(state.fit, axis=0, stable=True)
+    sort_index = evoxc.argsort(state.fit, axis=0, stable=True)
     key, subkey = random.split(state.key)
-    dynamic_swarm_population_index = random.permutation(subkey, dynamic_size, dtype=etl.int64)
-    regroup_index = etl.concatenate(
+    dynamic_swarm_population_index = random.permutation(subkey, dynamic_size, dtype=evoxc.int64)
+    regroup_index = evoxc.concatenate(
         [dynamic_swarm_population_index, sort_index[dynamic_size:]], axis=0
     )
-    pop = etl.gather(state.pop, regroup_index, axis=0)
-    velocity = etl.gather(state.velocity, regroup_index, axis=0)
-    personal_best_location = etl.gather(state.personal_best_location, regroup_index, axis=0)
-    personal_best_fit = etl.gather(state.personal_best_fit, regroup_index, axis=0)
+    pop = evoxc.gather(state.pop, regroup_index, axis=0)
+    velocity = evoxc.gather(state.velocity, regroup_index, axis=0)
+    personal_best_location = evoxc.gather(state.personal_best_location, regroup_index, axis=0)
+    personal_best_fit = evoxc.gather(state.personal_best_fit, regroup_index, axis=0)
     dynamic_swarm_fit = state.fit[:dynamic_size]
-    regional_best_index = etl.argsort(dynamic_swarm_fit, axis=0)[
+    regional_best_index = evoxc.argsort(dynamic_swarm_fit, axis=0)[
         : config.following_sub_swarm_size
     ]
     return replace(
@@ -334,5 +334,5 @@ def _regroup(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
 
 
 def _identity(config: DMSPSOEL, state: DMSPSOELState) -> DMSPSOELState:
-    """No-op branch for the regroup ``etl.cond`` (torch skipped ``_regroup``)."""
+    """No-op branch for the regroup ``evoxc.cond`` (torch skipped ``_regroup``)."""
     return state
