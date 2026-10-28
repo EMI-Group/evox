@@ -1,8 +1,8 @@
 """Functional ETL port of the JAX evox ``utils/common.py`` helpers (v0.9.0).
 
-All functions here are PLAIN Python functions (NOT ``@etl.defn``) — callable
-only inside an active etl trace, since ETL has no eager mode (a bare call
-outside a trace raises ``etl.core.TraceError``, which is expected).  The JAX
+All functions here are PLAIN Python functions (NOT ``@evoxc.defn``) — callable
+only inside an active evoxc trace, since EvoX Compiler has no eager mode (a bare call
+outside a trace raises ``evoxc.core.TraceError``, which is expected).  The JAX
 ``vmap`` batching becomes direct numpy-style broadcasting via ``expand_dims``:
 an ``(n, d)`` × ``(k, d)`` pair becomes ``(n, 1, d)`` × ``(1, k, d)`` and the
 per-pair function reduces over the last axis.  See DESIGN.md §4.3.
@@ -11,11 +11,11 @@ per-pair function reduces over the last axis.  See DESIGN.md §4.3.
 from collections.abc import Iterable
 from typing import Callable, List, Tuple, Union
 
-import etl
-import etl.numpy as enp
-from etl import tree_flatten, tree_leaves, tree_map, tree_unflatten
+import evoxc
+import evoxc.numpy as enp
+from evoxc import tree_flatten, tree_leaves, tree_map, tree_unflatten
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 __all__ = [
     "min_by",
@@ -51,25 +51,25 @@ def min_by(
     that naturally).
     """
     if isinstance(values, list):
-        values = etl.concatenate(values, axis=0)
-        keys = etl.concatenate(keys, axis=0)
-    min_index = etl.argmin(keys, axis=0)
-    return etl.gather(values, min_index, axis=0), etl.gather(keys, min_index, axis=0)
+        values = evoxc.concatenate(values, axis=0)
+        keys = evoxc.concatenate(keys, axis=0)
+    min_index = evoxc.argmin(keys, axis=0)
+    return evoxc.gather(values, min_index, axis=0), evoxc.gather(keys, min_index, axis=0)
 
 
 def euclidean_dist(x: Tensor, y: Tensor) -> Tensor:
     """Euclidean distance between two vectors (reduces over the last axis)."""
-    return etl.norm(x - y, axis=-1)
+    return evoxc.norm(x - y, axis=-1)
 
 
 def manhattan_dist(x: Tensor, y: Tensor) -> Tensor:
     """Manhattan (L1) distance between two vectors (reduces over the last axis)."""
-    return etl.sum(etl.abs(x - y), axes=-1)
+    return evoxc.sum(evoxc.abs(x - y), axes=-1)
 
 
 def chebyshev_dist(x: Tensor, y: Tensor) -> Tensor:
     """Chebyshev (L-inf) distance between two vectors (reduces over the last axis)."""
-    return etl.max(etl.abs(x - y), axes=-1)
+    return evoxc.max(evoxc.abs(x - y), axes=-1)
 
 
 def pairwise_func(
@@ -98,7 +98,7 @@ def pairwise_chebyshev_dist(x: Tensor, y: Tensor) -> Tensor:
 
 def pair_max(a: Tensor, b: Tensor) -> Tensor:
     """Max element of ``a - b`` (reduces over the last axis)."""
-    return etl.max(a - b, axes=-1)
+    return evoxc.max(a - b, axes=-1)
 
 
 def cos_dist(x: Tensor, y: Tensor) -> Tensor:
@@ -107,9 +107,9 @@ def cos_dist(x: Tensor, y: Tensor) -> Tensor:
     Row-normalized dot products as in the JAX reference (zero-norm rows
     propagate nan like jnp — no silent clamping).
     """
-    x_norm = x / etl.norm(x, axis=-1, keepdims=True)
-    y_norm = y / etl.norm(y, axis=-1, keepdims=True)
-    return etl.dot(x_norm, etl.transpose(y_norm, axes=(1, 0)))
+    x_norm = x / evoxc.norm(x, axis=-1, keepdims=True)
+    y_norm = y / evoxc.norm(y, axis=-1, keepdims=True)
+    return evoxc.dot(x_norm, evoxc.transpose(y_norm, axes=(1, 0)))
 
 
 def cal_max(x: Tensor, y: Tensor) -> Tensor:
@@ -132,16 +132,16 @@ def compose(*functions):
 
 def rank(array: Tensor) -> Tensor:
     """Rank (int) of each element of a 1-d array; ties broken by argsort order."""
-    order = etl.argsort(array, axis=0)
-    base = order * 0  # zero init in order's dtype (etl has no *_like ops)
+    order = evoxc.argsort(array, axis=0)
+    base = order * 0  # zero init in order's dtype (evoxc has no *_like ops)
     updates = enp.arange(array.shape[0], dtype=order.dtype)
-    return etl.scatter(base, order, updates, axis=0)
+    return evoxc.scatter(base, order, updates, axis=0)
 
 
 def rank_based_fitness(raw_fitness: Tensor) -> Tensor:
     """Normalized rank in [-0.5, 0.5] from raw fitness (float32 output)."""
     num_elems = raw_fitness.shape[0]
-    fitness_rank = etl.cast(rank(raw_fitness), etl.float32)
+    fitness_rank = evoxc.cast(rank(raw_fitness), evoxc.float32)
     return fitness_rank / (num_elems - 1) - 0.5
 
 
