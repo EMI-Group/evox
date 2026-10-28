@@ -6,8 +6,8 @@ Plain functions (`init`/`step`) + frozen config/state dataclasses, per
 (sample → `evaluate(candidates)` → ranked update), with the workflow-injected
 `evaluate` closure standing in for torch's `self.evaluate(population)`.
 
-ETL has no eager mode — these functions may only be called inside an active
-trace (`etl.build`/`etl.run`). numpy is used only at trace time to bake the
+EvoX Compiler has no eager mode — these functions may only be called inside an active
+trace (`evoxc.build`/`evoxc.run`). numpy is used only at trace time to bake the
 initial center as a graph constant.
 """
 
@@ -16,10 +16,10 @@ from typing import Callable
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl import core
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc import core
 
 from evox_etl.algorithms._config_utils import ArrayLike, require_gt, to_float_tuple
 
@@ -69,7 +69,7 @@ def make_des(
 
 @dataclass(frozen=True)
 class DESState:
-    """DES mutable state (ETL tensor leaves only)."""
+    """DES mutable state (``evoxc`` tensor leaves only)."""
 
     center: Tensor  # (dim,)
     sigma: Tensor  # (dim,)
@@ -82,8 +82,8 @@ def init(config: DESConfig, key: Tensor) -> DESState:
     """Create the initial state (center, sigma, zero noise)."""
     dim = len(config.center_init)
     pop_size = config.pop_size
-    center = etl.ops.constant(
-        etl.core.tensor(np.asarray(config.center_init, dtype=F32))
+    center = evoxc.ops.constant(
+        evoxc.core.tensor(np.asarray(config.center_init, dtype=F32))
     )
     sigma = enp.full((dim,), config.sigma_init, dtype=F32)
     noise = enp.zeros((pop_size, dim), dtype=F32)
@@ -110,21 +110,21 @@ def step(
     fitness = evaluate(population)
 
     population = state.center + state.noise * state.sigma
-    order = etl.argsort(fitness)
-    sorted_pop = etl.gather(population, order, axis=0)
+    order = evoxc.argsort(fitness)
+    sorted_pop = evoxc.gather(population, order, axis=0)
 
     ranks = enp.arange(pop_size, dtype=F32) / (pop_size - 1) - 0.5
-    weight = _softmax(-20.0 * etl.sigmoid(config.temperature * ranks))
-    weight = etl.tile(enp.expand_dims(weight, axis=1), (1, dim))
+    weight = _softmax(-20.0 * evoxc.sigmoid(config.temperature * ranks))
+    weight = evoxc.tile(enp.expand_dims(weight, axis=1), (1, dim))
 
-    weight_mean = etl.sum(weight * sorted_pop, axes=0)
-    weight_sigma = etl.sqrt(
-        etl.sum(weight * (sorted_pop - state.center) ** 2, axes=0) + 1e-6
+    weight_mean = evoxc.sum(weight * sorted_pop, axes=0)
+    weight_sigma = evoxc.sqrt(
+        evoxc.sum(weight * (sorted_pop - state.center) ** 2, axes=0) + 1e-6
     )
 
     center = state.center + 1.0 * (weight_mean - state.center)
     sigma = state.sigma + 0.1 * (weight_sigma - state.sigma)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(state, center=center, sigma=sigma, best_fitness=best_fitness)
 
 

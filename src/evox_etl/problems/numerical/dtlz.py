@@ -1,6 +1,6 @@
 """DTLZ test suite (DTLZ1-7) — functional ETL port of torch evox
 ``src/evox/problems/numerical/dtlz.py`` (read-only reference; math mirrored
-1:1, all ``torch.*`` ops replaced with ``etl`` / ``etl.numpy`` ops).
+1:1, all ``torch.*`` ops replaced with ``evoxc`` / ``evoxc.numpy`` ops).
 
 The torch ``DTLZ`` base class disappears: its ``sample`` (uniform sampling,
 ``ref_num * m`` rows) becomes the ``_sample`` helper, its ``pf`` (=
@@ -12,7 +12,7 @@ Notes for agents:
   (static ``isinstance`` at trace time — the config is a compile-time static
   arg). The per-variant functions are ``evaluate_dtlzN`` / ``pf_dtlzN`` and
   mirror each torch class method exactly.
-- Traced shapes must be fully STATIC (batch ``n`` AND dim ``d``): etl's IR
+- Traced shapes must be fully STATIC (batch ``n`` AND dim ``d``): evoxc's IR
   slice op cannot express full-axis slices over symbolic dims, and every
   DTLZ formula slices ``X`` on the feature axis (``X[:, m - 1:]``).
   ``StdWorkflow`` builds specs from concrete tensors, so this holds in
@@ -38,8 +38,8 @@ from dataclasses import dataclass
 from math import pi
 from typing import Any
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from evox_etl.operators.sampling import grid_sampling, uniform_sampling
 
@@ -110,24 +110,24 @@ class DTLZ7:
 DTLZConfig = DTLZ1 | DTLZ2 | DTLZ3 | DTLZ4 | DTLZ5 | DTLZ6 | DTLZ7
 
 
-def _sample(config: DTLZConfig) -> etl.SymbolicTensor:
+def _sample(config: DTLZConfig) -> evoxc.SymbolicTensor:
     """Base DTLZ sample — torch ``DTLZ.__init__``:
     ``uniform_sampling(ref_num * m, m)``."""
     return uniform_sampling(config.ref_num * config.m, config.m)[0]
 
 
-def _reverse_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
-    """Axis-1 reversal without ``etl.flip`` (rejected by the compiled
+def _reverse_axis1(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
+    """Axis-1 reversal without ``evoxc.flip`` (rejected by the compiled
     backends' StableHLO exporter): gather with descending static indices
-    (``etl.gather`` has numpy ``take`` semantics). Requires a static ``k``
+    (``evoxc.gather`` has numpy ``take`` semantics). Requires a static ``k``
     (DTLZ shapes are fully static)."""
     k = x.shape[1]
-    return etl.gather(x, enp.arange(k - 1, -1, -1, dtype=etl.int32), axis=1)
+    return evoxc.gather(x, enp.arange(k - 1, -1, -1, dtype=evoxc.int32), axis=1)
 
 
-def _flip_cumprod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
-    """``flip(cumprod(concat([ones, x], axis=1)), 1)`` without ``etl.flip`` /
-    ``etl.cumprod`` (both rejected by the compiled backends' StableHLO
+def _flip_cumprod_axis1(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
+    """``flip(cumprod(concat([ones, x], axis=1)), 1)`` without ``evoxc.flip`` /
+    ``evoxc.cumprod`` (both rejected by the compiled backends' StableHLO
     exporter). For a row ``[x0, ..., x_{k-1}]`` this yields the suffix
     products ``[prod(x0..x_{k-1}), ..., x0, 1]``: a prefix product scan
     (static Python loop — ``k`` is static) reversed along axis 1, with the
@@ -140,7 +140,7 @@ def _flip_cumprod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     return enp.concatenate([y, ones], axis=1)
 
 
-def _prefix_prod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def _prefix_prod_axis1(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Prefix product along axis 1 via a static Python loop (``k`` static):
     column ``i`` holds ``x[:, 0] * ... * x[:, i]``."""
     acc = enp.ones((x.shape[0], 1), dtype=x.dtype)
@@ -152,8 +152,8 @@ def _prefix_prod_axis1(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
 
 
 def evaluate_dtlz1(
-    config: DTLZ1, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ1, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ1 objectives (mirrors torch ``DTLZ1.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
@@ -181,8 +181,8 @@ def evaluate_dtlz1(
 
 
 def evaluate_dtlz2(
-    config: DTLZ2, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ2, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ2 objectives (mirrors torch ``DTLZ2.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
@@ -202,8 +202,8 @@ def evaluate_dtlz2(
 
 
 def evaluate_dtlz3(
-    config: DTLZ3, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ3, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ3 objectives (mirrors torch ``DTLZ3.evaluate``); problem_state
     passes through unchanged."""
     n, d = X.shape
@@ -233,8 +233,8 @@ def evaluate_dtlz3(
 
 
 def evaluate_dtlz4(
-    config: DTLZ4, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ4, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ4 objectives (mirrors torch ``DTLZ4.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
@@ -259,14 +259,14 @@ def evaluate_dtlz4(
 
 
 def evaluate_dtlz5(
-    config: DTLZ5, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ5, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ5 objectives (mirrors torch ``DTLZ5.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
 
     g = enp.sum((X[:, m - 1 :] - 0.5) ** 2, axis=1, keepdims=True)
-    temp = etl.tile(g, (1, m - 2))
+    temp = evoxc.tile(g, (1, m - 2))
 
     # torch: Xfront = X[:, : m - 1].clone(); Xfront[:, 1:] = (1 + 2 * temp *
     # Xfront[:, 1:]) / (2 + 2 * temp) — composed immutably here.
@@ -289,20 +289,20 @@ def evaluate_dtlz5(
 
 
 def evaluate_dtlz6(
-    config: DTLZ6, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ6, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ6 objectives (mirrors torch ``DTLZ6.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
     g = enp.sum(X[:, m - 1 :] ** 0.1, axis=1, keepdims=True)
-    temp = etl.tile(g, (1, m - 2))
+    temp = evoxc.tile(g, (1, m - 2))
     # Same immutably-composed Xfront update as DTLZ5.
     Xfront = enp.concatenate(
         [X[:, :1], (1 + 2 * temp * X[:, 1 : m - 1]) / (2 + 2 * temp)], axis=1
     )
 
     f = (
-        etl.tile(1 + g, (1, m))
+        evoxc.tile(1 + g, (1, m))
         * _flip_cumprod_axis1(enp.maximum(enp.cos(Xfront * pi / 2), 0.0))
         * enp.concatenate(
             [
@@ -316,8 +316,8 @@ def evaluate_dtlz6(
 
 
 def evaluate_dtlz7(
-    config: DTLZ7, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZ7, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """DTLZ7 objectives (mirrors torch ``DTLZ7.evaluate``); problem_state
     passes through unchanged."""
     m = config.m
@@ -325,7 +325,7 @@ def evaluate_dtlz7(
 
     term = enp.sum(
         X[:, : m - 1]
-        / (1 + etl.tile(g, (1, m - 1)))
+        / (1 + evoxc.tile(g, (1, m - 1)))
         * (1 + enp.sin(3 * pi * X[:, : m - 1])),
         axis=1,
         keepdims=True,
@@ -334,38 +334,38 @@ def evaluate_dtlz7(
     return f, problem_state
 
 
-def pf_dtlz1(config: DTLZ1) -> etl.SymbolicTensor:
+def pf_dtlz1(config: DTLZ1) -> evoxc.SymbolicTensor:
     """DTLZ1 Pareto front: uniform sample / 2 (torch base ``DTLZ.pf``)."""
     return _sample(config) / 2
 
 
-def pf_dtlz2(config: DTLZ2 | DTLZ3 | DTLZ4) -> etl.SymbolicTensor:
+def pf_dtlz2(config: DTLZ2 | DTLZ3 | DTLZ4) -> evoxc.SymbolicTensor:
     """DTLZ2 Pareto front: row-normalized uniform samples — DTLZ3/DTLZ4
     inherit it in torch."""
     sample = _sample(config)
     return sample / enp.sqrt(enp.sum(sample ** 2, axis=1, keepdims=True))
 
 
-def _pf_dtlz56(config: DTLZ5 | DTLZ6) -> etl.SymbolicTensor:
+def _pf_dtlz56(config: DTLZ5 | DTLZ6) -> evoxc.SymbolicTensor:
     """Shared DTLZ5/DTLZ6 Pareto front (identical bodies in torch)."""
     n = config.ref_num * config.m
     m = config.m
 
     # torch: vstack of two hstacks (arange rows + scalar), then .T
-    f = etl.transpose(
-        etl.stack(
+    f = evoxc.transpose(
+        evoxc.stack(
             [
                 enp.concatenate(
                     [
-                        enp.arange(0.0, 1.0, 1.0 / (n - 1), dtype=etl.float32),
-                        enp.ones((1,), dtype=etl.float32),
+                        enp.arange(0.0, 1.0, 1.0 / (n - 1), dtype=evoxc.float32),
+                        enp.ones((1,), dtype=evoxc.float32),
                     ],
                     axis=0,
                 ),
                 enp.concatenate(
                     [
-                        enp.arange(1.0, 0.0, -1.0 / (n - 1), dtype=etl.float32),
-                        enp.zeros((1,), dtype=etl.float32),
+                        enp.arange(1.0, 0.0, -1.0 / (n - 1), dtype=evoxc.float32),
+                        enp.zeros((1,), dtype=evoxc.float32),
                     ],
                     axis=0,
                 ),
@@ -374,7 +374,7 @@ def _pf_dtlz56(config: DTLZ5 | DTLZ6) -> etl.SymbolicTensor:
         )
     )
 
-    f = f / etl.tile(
+    f = f / evoxc.tile(
         enp.sqrt(enp.sum(f ** 2, axis=1, keepdims=True)), (1, f.shape[1])
     )
 
@@ -382,16 +382,16 @@ def _pf_dtlz56(config: DTLZ5 | DTLZ6) -> etl.SymbolicTensor:
         f = enp.concatenate([f[:, 0:1], f], axis=1)
 
     # torch: f / sqrt(2.0) ** tile(hstack([m - 2, arange(m - 2, -1, -1)]),
-    # (f.size(0), 1)) — int exponents cast to float32 (etl promotes
+    # (f.size(0), 1)) — int exponents cast to float32 (evoxc promotes
     # float32 ** int64 to float64).
     f = f / enp.power(
-        enp.sqrt(etl.constant(etl.core.tensor(2.0, dtype=etl.float32))),
-        etl.tile(
-            etl.cast(
+        enp.sqrt(evoxc.constant(evoxc.core.tensor(2.0, dtype=evoxc.float32))),
+        evoxc.tile(
+            evoxc.cast(
                 enp.concatenate(
                     [enp.arange(m - 2, m - 1), enp.arange(m - 2, -1, -1)], axis=0
                 ),
-                etl.float32,
+                evoxc.float32,
             ),
             (f.shape[0], 1),
         ),
@@ -399,21 +399,21 @@ def _pf_dtlz56(config: DTLZ5 | DTLZ6) -> etl.SymbolicTensor:
     return f
 
 
-def pf_dtlz5(config: DTLZ5) -> etl.SymbolicTensor:
+def pf_dtlz5(config: DTLZ5) -> evoxc.SymbolicTensor:
     """DTLZ5 Pareto front (mirrors torch ``DTLZ5.pf``)."""
     return _pf_dtlz56(config)
 
 
-def pf_dtlz6(config: DTLZ6) -> etl.SymbolicTensor:
+def pf_dtlz6(config: DTLZ6) -> evoxc.SymbolicTensor:
     """DTLZ6 Pareto front (mirrors torch ``DTLZ6.pf``)."""
     return _pf_dtlz56(config)
 
 
-def pf_dtlz7(config: DTLZ7) -> etl.SymbolicTensor:
+def pf_dtlz7(config: DTLZ7) -> evoxc.SymbolicTensor:
     """DTLZ7 Pareto front (mirrors torch ``DTLZ7.pf``)."""
     m = config.m
-    interval = etl.constant(
-        etl.core.tensor([0.0, 0.251412, 0.631627, 0.859401], dtype=etl.float32)
+    interval = evoxc.constant(
+        evoxc.core.tensor([0.0, 0.251412, 0.631627, 0.859401], dtype=evoxc.float32)
     )
     median = (interval[1] - interval[0]) / (
         interval[3] - interval[2] + interval[1] - interval[0]
@@ -443,8 +443,8 @@ def pf_dtlz7(config: DTLZ7) -> etl.SymbolicTensor:
 
 
 def evaluate(
-    config: DTLZConfig, problem_state: Any, X: etl.SymbolicTensor
-) -> tuple[etl.SymbolicTensor, Any]:
+    config: DTLZConfig, problem_state: Any, X: evoxc.SymbolicTensor
+) -> tuple[evoxc.SymbolicTensor, Any]:
     """``evaluate(config, problem_state, pop) -> (fitness, problem_state)``.
 
     Routes to the DTLZ1-7 variant evaluator by config type (static
@@ -467,7 +467,7 @@ def evaluate(
     raise TypeError(f"evaluate: unsupported DTLZ config type {type(config).__name__}")
 
 
-def pf(config: DTLZConfig) -> etl.SymbolicTensor:
+def pf(config: DTLZConfig) -> evoxc.SymbolicTensor:
     """``pf(config) -> Pareto front tensor`` — routes to the DTLZ variant pf
     by config type (static ``isinstance``)."""
     if isinstance(config, DTLZ1):

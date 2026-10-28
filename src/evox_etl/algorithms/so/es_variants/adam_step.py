@@ -1,14 +1,14 @@
 """Functional ETL port of the torch evox `adam_step.py` helper.
 
-Plain (non-`@etl.defn`) function: it may only be called inside an active
-trace (a function passed to `etl.build`/`etl.evaluate`), since ETL has no
+Plain (non-`@evoxc.defn`) function: it may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.evaluate`), since EvoX Compiler has no
 eager mode. Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/adam_step.py` exactly.
 """
 
-import etl
+import evoxc
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 def adam_single_tensor(
@@ -38,5 +38,5 @@ def adam_single_tensor(
     # Decay the first and second moment running average coefficient
     exp_avg = beta1 * exp_avg + (1.0 - beta1) * grad
     exp_avg_sq = exp_avg_sq * beta2 + grad * grad * (1.0 - beta2)
-    denom = etl.sqrt(exp_avg_sq) + eps
+    denom = evoxc.sqrt(exp_avg_sq) + eps
     return param - lr * exp_avg / denom, exp_avg, exp_avg_sq

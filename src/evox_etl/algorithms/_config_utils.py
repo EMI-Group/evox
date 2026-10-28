@@ -3,7 +3,7 @@
 Every algorithm family (`so/de_variants`, `so/pso_variants`, `so/es_variants`,
 `mo`) duplicates the same small private config idioms: array-like fields
 (`lb`, `ub`, `mean`, `stdev`, `center_init`, ...) are normalized to flat
-tuples of plain Python floats (etl static pytree leaves must be Python values,
+tuples of plain Python floats (evoxc static pytree leaves must be Python values,
 not numpy arrays), bounds pairs validated, scalar hyperparameters checked, and
 the normalized values baked as float32 graph constants.  This module is the
 canonical implementation; the per-module private helpers (`_to_float_tuple`,
@@ -25,10 +25,10 @@ Semantics contract (1:1 with today's modules):
   (AssertionError, dropped under ``python -O``) of today's modules.
 
 Environment: numpy is used here on purpose — this module runs eagerly on the
-host during config construction (``__post_init__``/``make_*``), outside any etl
+host during config construction (``__post_init__``/``make_*``), outside any evoxc
 trace, the one place numpy is allowed in the framework; the ``bake_*`` helpers
-build etl graph constants from inside traced functions.  The module imports
-``etl`` but no algorithm module, so importing it creates no import cycle.
+build evoxc graph constants from inside traced functions.  The module imports
+``evoxc`` but no algorithm module, so importing it creates no import cycle.
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from typing import Any, Iterable, Sequence
 import numpy as np
 from numpy.typing import DTypeLike
 
-import etl
+import evoxc
 
 ArrayLike = int | float | np.ndarray | Sequence[int | float]
 """Anything the array normalizers accept: a Python number, a numpy array, or a
@@ -159,10 +159,10 @@ def require_choice(name: str, value: Any, choices: Iterable[Any]) -> Any:
 
 def bake_float32_constant(
     values: ArrayLike, *, shape: Sequence[int] | None = None
-) -> etl.SymbolicTensor:
+) -> evoxc.SymbolicTensor:
     """Bake array-like values as a float32 graph constant.
 
-    Consolidates the ``etl.ops.constant(etl.core.tensor(np.asarray(x, dtype=
+    Consolidates the ``evoxc.ops.constant(evoxc.core.tensor(np.asarray(x, dtype=
     np.float32)))`` bodies of: de.py ``_constant_1d``, jade.py ``_bake_bounds``,
     sade.py ``_bake_lb_ub``, code.py ``_bake`` (default dtype), pso.py/cso.py/
     clpso.py/dms_pso_el.py ``_bounds``/``_bake`` (their ``[None, :]`` becomes
@@ -171,19 +171,19 @@ def bake_float32_constant(
 
     Called from inside traced ``init``/``step`` functions exactly like
     today's module-local bakers.  ``shape`` applies a numpy ``reshape`` before
-    ``etl.ops.constant``: ``(1, -1)`` reproduces the SO ``(1, dim)`` bound
+    ``evoxc.ops.constant``: ``(1, -1)`` reproduces the SO ``(1, dim)`` bound
     rows, ``None`` keeps the natural shape (code.py's (3, 2) ``param_pool``,
     the mo family's (dim,) bounds).
     """
     arr = np.asarray(values, dtype=np.float32)
     if shape is not None:
         arr = arr.reshape(shape)
-    return etl.ops.constant(etl.core.tensor(arr))
+    return evoxc.ops.constant(evoxc.core.tensor(arr))
 
 
 def bake_bounds(
     lb: ArrayLike, ub: ArrayLike, *, as_row: bool = False
-) -> tuple[etl.SymbolicTensor, etl.SymbolicTensor]:
+) -> tuple[evoxc.SymbolicTensor, evoxc.SymbolicTensor]:
     """Bake a (lb, ub) pair as float32 graph constants of equal shape.
 
     Consolidates the bound-pair bakers of de.py/jade.py/sade.py/pso.py/

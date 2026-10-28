@@ -6,7 +6,7 @@ clamped ``(3 * pop_size, dim)`` batch of trial vectors (one per strategy per
 individual), evaluates the whole stacked batch through a SINGLE opaque
 ``evaluate`` call (like torch), then applies the per-individual
 best-of-three-strategy selection plus the population update. RNG is
-key-based (``etl.random``): ``step`` splits the state key per random op in
+key-based (``evoxc.random``): ``step`` splits the state key per random op in
 torch's draw order and stores the advanced key; the selection half draws no
 randomness. Config ``lb``/``ub``/``param_pool`` are normalized to tuples of
 plain Python floats by the ``make_code`` constructor (``param_pool`` stays a
@@ -18,10 +18,10 @@ from typing import Callable
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl.core import SymbolicTensor
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_float32_constant, to_float_tuple
 from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
@@ -97,7 +97,7 @@ def make_code(
 
 @dataclass(frozen=True)
 class CoDEState:
-    """CoDE algorithm state (leaves are etl tensors only).
+    """CoDE algorithm state (leaves are evoxc tensors only).
 
     ``trial_vectors`` holds the ``(3 * pop_size, dim)`` stacked candidates of
     the last generation (written and re-read within the same ``step`` call).
@@ -144,29 +144,29 @@ def _generate_trials(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, Sy
 
     key, k_params = random.split(state.key)
     param_ids = random.randint(k_params, (3, pop_size), 0, 3, "int32")
-    params = etl.gather(param_pool_c, param_ids, axis=0)  # (3, pop_size, 2)
+    params = evoxc.gather(param_pool_c, param_ids, axis=0)  # (3, pop_size, 2)
     differential_weight = params[:, :, 0]  # (3, pop_size)
     cross_probability = params[:, :, 1]  # (3, pop_size)
 
     trials = []
     for i in range(3):
-        num_diff = etl.ops.constant(
-            etl.core.tensor(np.full((pop_size,), STRATEGIES[i][2], np.int32))
+        num_diff = evoxc.ops.constant(
+            evoxc.core.tensor(np.full((pop_size,), STRATEGIES[i][2], np.int32))
         )
         key, k_diff = random.split(key)
         difference_sum, rand_vec_idx = DE_differential_sum(
             k_diff, config.diff_padding_num, num_diff, indices, state.pop
         )
-        rand_vec = etl.gather(state.pop, rand_vec_idx, axis=0)
-        best_vec = etl.tile(
-            enp.expand_dims(etl.gather(state.pop, state.best_index, axis=0), 0),
+        rand_vec = evoxc.gather(state.pop, rand_vec_idx, axis=0)
+        best_vec = evoxc.tile(
+            enp.expand_dims(evoxc.gather(state.pop, state.best_index, axis=0), 0),
             (pop_size, 1),
         )
         key, k_pbest = random.split(key)
         pbest_vec = select_rand_pbest(k_pbest, 0.05, state.pop, state.fit)
         current_vec = state.pop
 
-        vec_merge = etl.stack([rand_vec, best_vec, pbest_vec, current_vec], axis=0)
+        vec_merge = evoxc.stack([rand_vec, best_vec, pbest_vec, current_vec], axis=0)
         base_vec_prim = vec_merge[STRATEGIES[i][0]]
         base_vec_sec = vec_merge[STRATEGIES[i][1]]
         base_vec = base_vec_prim + enp.expand_dims(differential_weight[i], 1) * (
@@ -196,7 +196,7 @@ def _generate_trials(config: CoDE, state: CoDEState) -> tuple[SymbolicTensor, Sy
             )
         trials.append(trial_vec)
 
-    trial_vectors = etl.stack(trials, axis=0)  # (3, pop_size, dim)
+    trial_vectors = evoxc.stack(trials, axis=0)  # (3, pop_size, dim)
     trial_vectors = clamp(enp.reshape(trial_vectors, (3 * pop_size, dim)), lb, ub)
     return trial_vectors, key
 
@@ -218,18 +218,18 @@ def step(
 
     pop_size = config.pop_size
     indices = enp.reshape(enp.arange(3 * pop_size, dtype="int32"), (3, pop_size))
-    trans_fit = etl.gather(fitness, indices, axis=0)  # (3, pop_size)
-    min_indices = etl.argmin(trans_fit, axis=0)  # (pop_size,)
+    trans_fit = evoxc.gather(fitness, indices, axis=0)  # (3, pop_size)
+    min_indices = evoxc.argmin(trans_fit, axis=0)  # (pop_size,)
     min_indices_global = enp.reshape(
         _take_along_axis(indices, enp.expand_dims(min_indices, 0), axis=0),
         (pop_size,),
     )
-    trial_fitness_select = etl.gather(fitness, min_indices_global, axis=0)
-    trial_vectors_select = etl.gather(trial_vectors, min_indices_global, axis=0)
+    trial_fitness_select = evoxc.gather(fitness, min_indices_global, axis=0)
+    trial_vectors_select = evoxc.gather(trial_vectors, min_indices_global, axis=0)
     compare = trial_fitness_select <= state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors_select, state.pop)
-    fit = etl.select(compare, trial_fitness_select, state.fit)
-    best_index = etl.argmin(fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial_vectors_select, state.pop)
+    fit = evoxc.select(compare, trial_fitness_select, state.fit)
+    best_index = evoxc.argmin(fit)
     return CoDEState(
         best_index=best_index,
         pop=pop,

@@ -9,7 +9,7 @@ further generation, so neither does this one.
 
 Deviations from torch:
 - RNG: torch's global `torch.rand`/`torch.randint` draws are key-based
-  (`etl.random`), one split per draw in torch's draw order; keys live in the
+  (`evoxc.random`), one split per draw in torch's draw order; keys live in the
   state and advance there. The selection half draws no randomness.
 - Array-like config fields (`lb`/`ub`/`mean`/`stdev` and a tuple
   `differential_weight`) are normalized to flat tuples of plain Python floats
@@ -20,9 +20,9 @@ Deviations from torch:
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Tuple, Union
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -36,7 +36,7 @@ from evox_etl.algorithms._config_utils import (
 )
 from evox_etl.operators.jit_fix_operator import clamp
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 __all__ = ["DE", "DEState", "init", "init_step", "step", "make_de"]
 
@@ -144,18 +144,18 @@ def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tenso
 
     # Determine the base vector.
     if config.base_vector == "best":
-        best_index = etl.argmin(fit)
-        base = enp.expand_dims(etl.gather(pop, best_index, axis=0), 0)
+        best_index = evoxc.argmin(fit)
+        base = enp.expand_dims(evoxc.gather(pop, best_index, axis=0), 0)
         start_index = 0
     else:
-        base = etl.gather(pop, choices[0], axis=0)
+        base = evoxc.gather(pop, choices[0], axis=0)
         start_index = 1
 
     # Sum of difference vectors from pairs of randomly chosen individuals.
-    difference_vector = etl.sum(
-        etl.stack(
+    difference_vector = evoxc.sum(
+        evoxc.stack(
             [
-                etl.gather(pop, choices[i], axis=0) - etl.gather(pop, choices[i + 1], axis=0)
+                evoxc.gather(pop, choices[i], axis=0) - evoxc.gather(pop, choices[i + 1], axis=0)
                 for i in range(start_index, num_vec - 1, 2)
             ],
             axis=0,
@@ -175,8 +175,8 @@ def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tenso
     cross_prob = random.uniform(kc, (pop_size, dim), 0.0, 1.0, "float32") < config.cross_probability
     subkey, kd = random.split(subkey)
     random_dim = random.randint(kd, (pop_size, 1), 0, dim, "int32")
-    mask = etl.logical_or(cross_prob, enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == random_dim)
-    new_pop = etl.select(mask, new_pop, pop)
+    mask = evoxc.logical_or(cross_prob, enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == random_dim)
+    new_pop = evoxc.select(mask, new_pop, pop)
 
     # Ensure the trial population is within bounds.
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
@@ -223,6 +223,6 @@ def step(config: DE, state: DEState, evaluate: Callable[[Tensor], Tensor]) -> DE
     trial, _ = _de_trial(config, state, subkey)
     fitness = evaluate(trial)
     compare = fitness < state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial, state.pop)
-    fit = etl.select(compare, fitness, state.fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial, state.pop)
+    fit = evoxc.select(compare, fitness, state.fit)
     return DEState(pop=pop, fit=fit, trial_vectors=trial, key=key)

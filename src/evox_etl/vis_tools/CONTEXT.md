@@ -1,10 +1,10 @@
 # evox_etl.vis_tools — host-side visualization utilities
 
 ## Intent
-Host-side visualization for the functional ETL EvoX rewrite: interactive Plotly
+Host-side visualization for the functional ``evoxc``-based EvoX rewrite: interactive Plotly
 figure builders (a near-verbatim functional port of the torch `evox.vis_tools`
 package) plus the EvoXVision binary serialization format (`.exv`) streaming writer.
-Nothing here is traced by ETL — it consumes already-materialized NumPy arrays (e.g.
+Nothing here is traced by ``evoxc`` — it consumes already-materialized NumPy arrays (e.g.
 host-side history lists collected by a workflow/monitor) and produces figures or
 writes files. It is a drop-in replacement for `evox.vis_tools` (same symbol names,
 parameter order, and Plotly figure structure).
@@ -36,7 +36,7 @@ parameter order, and Plotly figure structure).
 - **numpy/plotly/json allowed here** — documented exception to DESIGN.md §10's
   "no numpy imports in `src/evox_etl/**`": this subtree is host-side (like
   `problems/numerical/cec2022.py`), not graph code, so numpy/plotly/json/pathlib are
-  expected and never traced by ETL.
+  expected and never traced by ``evoxc``.
 - **Binary format (exv) preserved exactly**: magic `b"\x65\x78\x76\x31"` ("exv1"),
   then u32 little-endian metadata byte-length, then JSON-utf8 metadata, then raw
   binary chunks. Little-endian throughout.

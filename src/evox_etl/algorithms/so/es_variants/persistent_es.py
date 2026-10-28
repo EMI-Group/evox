@@ -1,8 +1,8 @@
 """Functional ETL port of the torch evox PersistentES algorithm (step
 protocol).
 
-Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
 mode. Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/persistent_es.py` exactly: `step` owns the
 WHOLE generation (mirrored perturbation sampling + accumulation →
@@ -20,9 +20,9 @@ from typing import Callable, Literal, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -33,7 +33,7 @@ from evox_etl.algorithms._config_utils import (
 
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -86,7 +86,7 @@ def make_persistent_es(
 
 @dataclass(frozen=True)
 class PersistentESState:
-    """Mutable PersistentES state; all leaves are ETL tensors."""
+    """Mutable PersistentES state; all leaves are ``evoxc`` tensors."""
 
     center: Tensor
     sigma: Tensor
@@ -139,14 +139,14 @@ def step(
     f32 = np.dtype("float32")
     key, subkey = random.split(state.key)
     pos = random.normal(subkey, (half, dim), dtype=f32) * state.sigma
-    perts = etl.concatenate([pos, -pos], axis=0)
+    perts = evoxc.concatenate([pos, -pos], axis=0)
     pert_accum = state.pert_accum + perts
     population = state.center + perts
     state = replace(state, pert_accum=pert_accum, key=key)
 
     fitness = evaluate(population)
 
-    theta_grad = etl.mean(
+    theta_grad = evoxc.mean(
         state.pert_accum * enp.expand_dims(fitness, axis=1) / (state.sigma * state.sigma),
         axes=0,
     )
@@ -165,10 +165,10 @@ def step(
         exp_avg, exp_avg_sq = state.exp_avg, state.exp_avg_sq
     inner_step_counter = state.inner_step_counter + config.K
     reset = inner_step_counter >= config.T
-    inner_step_counter = etl.select(reset, 0, inner_step_counter)
-    pert_accum = etl.select(reset, enp.zeros((config.pop_size, dim), dtype=f32), state.pert_accum)
-    sigma = etl.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    inner_step_counter = evoxc.select(reset, 0, inner_step_counter)
+    pert_accum = evoxc.select(reset, enp.zeros((config.pop_size, dim), dtype=f32), state.pert_accum)
+    sigma = evoxc.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,
@@ -190,8 +190,8 @@ def record_step(
     """Host-side auxiliary-info hook for the monitor (mirrors torch
     `PersistentES.record_step`).
 
-    PLAIN module-level function (NOT ``@etl.defn``): `StdWorkflow` calls it
-    HOST-SIDE on CONCRETE etl tensors of the POST-step state, outside any traced
+    PLAIN module-level function (NOT ``@evoxc.defn``): `StdWorkflow` calls it
+    HOST-SIDE on CONCRETE evoxc tensors of the POST-step state, outside any traced
     graph. `candidate`/`fitness` are accepted-but-ignored, as in torch. Returns
     the distribution summary the monitor's `record_auxiliary` stores.
     """

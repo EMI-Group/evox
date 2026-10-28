@@ -33,14 +33,14 @@ See `../DESIGN.md`.
     (pop,dim) zeros, latest_fitness (pop,) zeros, topk_solutions (topk,dim)
     zeros, topk_fitness (topk,) +inf)`; MO — `MOEvalMonitorState(latest_solution,
     latest_fitness (pop,n_obj) zeros)` ONLY. Zeros/+inf are in-graph
-    `etl.ops.constant(etl.core.tensor(np...))` (no eager `etl.zeros`, no
+    `evoxc.ops.constant(evoxc.core.tensor(np...))` (no eager `evoxc.zeros`, no
     `*_like`). Raises ValueError if pop_size/dim (or n_obj in MO) are None.
     +inf topk init makes the running elite monotone (gen-0 always wins).
   - `monitor_update(config, state, candidate, fitness)` branches on STATIC
     `len(fitness.shape)`: rank-1 (SO) → concat stored elite with the new gen,
-    `etl.topk(concat_fit, config.topk, axis=0, largest=False)` (returns
+    `evoxc.topk(concat_fit, config.topk, axis=0, largest=False)` (returns
     (values, int64 indices) tuple), row-gather solutions via
-    `etl.gather(concat_sol, indices, axis=0)` (numpy-take semantics); rank-2
+    `evoxc.gather(concat_sol, indices, axis=0)` (numpy-take semantics); rank-2
     (MO) → only latest_solution/latest_fitness.
   - SHAPE POLICY (torch EvalMonitor parity — monitor handles ANY leading dim):
     `monitor_update` stores the FULL incoming batch as-is, so
@@ -54,7 +54,7 @@ See `../DESIGN.md`.
     batches (CoDE `(3n,)` fitness; CSO `(n,)` at gen 0 then `(n/2,)`). The
     `(pop_size, dim)` zeros / `(topk,)` +inf buffers from `init` are gen-0
     placeholders only — every leaf is overwritten on the first
-    `monitor_update` (etl states must be full-size tensors from init, unlike
+    `monitor_update` (evoxc states must be full-size tensors from init, unlike
     torch's `Mutable(torch.empty(0))` which needs no pre-allocation).
     CONSEQUENCE: monitor-state leaf shapes may CHANGE between generations, so
     a compiled step graph is valid for exactly one state-shape signature —
@@ -65,14 +65,14 @@ See `../DESIGN.md`.
   - `record_auxiliary(config, aux)` — module-level PLAIN (non-defn) HOST-side
     function, same module as the config. Gated on `config.full_pop_history`
     (returns immediately when off, torch parity). For each `(key, value)` in the
-    `aux` dict, the value is a CONCRETE etl tensor converted to numpy via
-    `.to(etl.core.Device("cpu")).numpy()` (the `EvalMonitor._to_numpy` idiom) and
+    `aux` dict, the value is a CONCRETE evoxc tensor converted to numpy via
+    `.to(evoxc.core.Device("cpu")).numpy()` (the `EvalMonitor._to_numpy` idiom) and
     appended to `config.aux_history.setdefault(key, [])` (list created on first
     use). Source of the algorithm auxiliary-tensor channel; the workflow feeds it
     each generation.
   - Wrapper `EvalMonitor(config=..., state=...)` — workflow constructs it and
     reassigns `.state` after every step. All accessors return numpy (concrete
-    etl leaves via `t.to(etl.core.Device("cpu")).numpy()`); stored fitness is
+    evoxc leaves via `t.to(evoxc.core.Device("cpu")).numpy()`); stored fitness is
     opt-direction-scaled, so `get_latest_fitness`/`get_topk_fitness`/
     `get_best_fitness`/`get_fitness_history`/`get_pf_fitness` multiply by
     `config.opt_direction` (a `(1,)` direction acts as a scalar; `get_best_fitness`
@@ -81,8 +81,8 @@ See `../DESIGN.md`.
     `get_pf_fitness` dedupes on FITNESS (np.unique axis=0), `get_pf`/
     `get_pf_solutions` on SOLUTIONS (torch semantics — the two can differ).
     Non-domination ranks are computed host-side via a lazily cached exe:
-    `etl.build(non_dominate_rank, TensorSpec(shape, np.float32), backend="numpy",
-    device=Device("cpu"))` + `etl.run(exe, etl.core.tensor(arr))`, cached per
+    `evoxc.build(non_dominate_rank, TensorSpec(shape, np.float32), backend="numpy",
+    device=Device("cpu"))` + `evoxc.run(exe, evoxc.core.tensor(arr))`, cached per
     input shape. `fitness_history`/`fit_history`, `solution_history`/
     `sol_history` properties alias the config lists. `aux_history` /
     `auxiliary_history` (alias) return `config.aux_history`. `pop_history`
@@ -112,7 +112,7 @@ See `../DESIGN.md`.
   `_complete_monitor_config` fills `opt_direction` from the workflow.
 - History appends are PIPELINED in `../core/workflow.py` (`_readback` /
   `_drain_readbacks`): `fit_history`/`sol_history`/`pop_history` entries are
-  copied device→host with `etl.io.sink` at the end of generation k and appended
+  copied device→host with `evoxc.io.sink` at the end of generation k and appended
   at the start of generation k+1, so the copy overlaps the next step graph.
   Values, order and the final lists are unchanged; `run`/`fit` flush the last
   generation themselves, a caller driving `step()` directly must call

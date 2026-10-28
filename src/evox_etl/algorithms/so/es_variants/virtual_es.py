@@ -13,8 +13,8 @@ of O(pop_size * dim)).
 virtual-population problem), rebuild the SAME noise from those seeds, form the
 fitness-weighted ES gradient estimate and update the center.
 
-Plain (non-``@etl.defn``) functions: they may only be called inside an active
-trace, since ETL has no eager mode.
+Plain (non-``@evoxc.defn``) functions: they may only be called inside an active
+trace, since EvoX Compiler has no eager mode.
 """
 
 import math
@@ -23,8 +23,8 @@ from typing import Callable, Literal, Sequence
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from ..._config_utils import (
     ArrayLike,
@@ -36,7 +36,7 @@ from ..._config_utils import (
 from ._virtual_common import draw_seeds, normalize_param_shapes, param_dim, update_center
 from .virtual_noise import compute_offsets, virtual_normal
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 #: float32 dtype spoken by every state leaf.
 F32 = np.dtype("float32")
@@ -146,9 +146,9 @@ def step(
     parts = []
     for shape, offset in zip(config.param_shapes, compute_offsets(config.param_shapes)):
         noise = virtual_normal(seeds, offset, math.prod(shape))  # (pop_size, n)
-        grad_part = etl.sum(noise * enp.expand_dims(fitness, axis=1), axes=0)
+        grad_part = evoxc.sum(noise * enp.expand_dims(fitness, axis=1), axes=0)
         parts.append(grad_part / (pop_size * sigma))
-    flat_grad = etl.concatenate(parts, axis=0)
+    flat_grad = evoxc.concatenate(parts, axis=0)
 
     return update_center(config, state, flat_grad, fitness, seeds, key)
 
@@ -186,7 +186,7 @@ def record_step(
 ) -> dict[str, Tensor]:
     """Host-side auxiliary-info hook, mirroring torch ``VirtualES.record_step``.
 
-    A PLAIN (non-``@etl.defn``) module-level function called by ``StdWorkflow``
+    A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
     accepted-but-unused, exactly like the torch reference which ignores them.

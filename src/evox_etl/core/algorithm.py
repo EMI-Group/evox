@@ -30,17 +30,17 @@ class Algorithm(Protocol):
     inherit from it. An algorithm module is a plain Python module that defines:
 
     - a frozen config dataclass named after the algorithm (e.g. ``PSO``),
-    - PLAIN module-level functions (NOT ``@etl.defn`` — defn objects raise when
+    - PLAIN module-level functions (NOT ``@evoxc.defn`` — defn objects raise when
       called, even inside a trace) ``init`` and ``step`` (and optionally
       ``init_step``/``final_step``) living in the SAME module as the config.
 
     The workflow resolves them via
     ``importlib.import_module(type(config).__module__)``. All functions must be
-    called inside an active etl trace (``etl.build``/``etl.run``); calling them
-    outside a trace raises etl's ``TraceError``.
+    called inside an active evoxc trace (``evoxc.build``/``evoxc.run``); calling them
+    outside a trace raises evoxc's ``TraceError``.
 
     Key convention: functions that need randomness split the key FROM the state
-    (``key, subkey = etl.random.split(state.key)``), use subkeys, and store the
+    (``key, subkey = evoxc.random.split(state.key)``), use subkeys, and store the
     parent key back, so every step stays deterministic given the state.
 
     The pre-1.0 ``ask``/``tell``/``init_ask``/``init_tell`` protocol is GONE:
@@ -102,9 +102,9 @@ class Algorithm(Protocol):
         """Optional: build this generation's auxiliary-info dict for the monitor.
 
         OPTIONAL — most algorithm modules do NOT define it. When present it is a
-        PLAIN module-level host-side function (NOT ``@etl.defn``) living in the
+        PLAIN module-level host-side function (NOT ``@evoxc.defn``) living in the
         SAME module as the config, called by ``StdWorkflow`` HOST-SIDE (outside
-        any traced graph) after each generation on CONCRETE etl tensors:
+        any traced graph) after each generation on CONCRETE evoxc tensors:
 
         - ``config`` is the algorithm config dataclass,
         - ``state`` is the POST-step algorithm state returned for that generation,
@@ -112,7 +112,7 @@ class Algorithm(Protocol):
           and transformed fitness (``latest_solution`` / ``latest_fitness`` read
           off the monitor state), or ``None`` when unavailable.
 
-        Returns a dict of concrete etl tensors (e.g. ``{"pop": ..., "fit": ...}``)
+        Returns a dict of concrete evoxc tensors (e.g. ``{"pop": ..., "fit": ...}``)
         describing that generation, which the workflow forwards to the monitor's
         optional ``record_auxiliary(config, aux)`` hook. Returning ``None`` skips
         the monitor call.

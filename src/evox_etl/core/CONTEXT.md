@@ -6,7 +6,7 @@ STEP protocol — `init`/`step` + optional `init_step`/`final_step`/`record_step
 `monitor_candidate`, with a
 workflow-injected `evaluate` closure; Problem: `evaluate` (+ optional `init`); Monitor:
 `monitor_update` (+ optional `init`/`record_auxiliary`)), state helpers
-(`replace`/`get_nested`/`set_nested` + etl tree
+(`replace`/`get_nested`/`set_nested` + evoxc tree
 re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 `../DESIGN.md` §4 — the binding spec.
 
@@ -14,17 +14,17 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 - `state.py`: `replace(obj, **changes)` (dataclasses.replace, with a namedtuple
   `_replace` fallback), `get_nested(obj, path)` / `set_nested(obj, path, value)`
   (path = "a.b.c" or tuple of names), re-exports `tree_map/tree_leaves/
-  tree_flatten/tree_unflatten` from etl.
+  tree_flatten/tree_unflatten` from evoxc.
 - `algorithm.py` / `problem.py` / `monitor.py`: documentation-only `typing.Protocol`
   classes + type aliases (`AlgorithmState = Any`, ..., `Evaluate = Callable[[Candidates],
   Fitness]`). NO base classes required; functions are PLAIN module-level functions
-  (NOT `@etl.defn`) living in the SAME module as their config dataclass; the workflow
+  (NOT `@evoxc.defn`) living in the SAME module as their config dataclass; the workflow
   resolves them via `importlib.import_module(type(config).__module__)`.
 - Optional auxiliary-history hooks (documented in the Protocols, detected generically
   via `getattr`, absent from all current algorithm/monitor modules): algorithm
   `record_step(config, state, candidate, fitness) -> dict[str, tensor]` and monitor
   `record_auxiliary(config, aux) -> None` — both PLAIN module-level HOST-SIDE functions
-  (NOT `@etl.defn`, never called inside a trace; no `__all__` entry, they are Protocol
+  (NOT `@evoxc.defn`, never called inside a trace; no `__all__` entry, they are Protocol
   methods).
 - Optional monitor-candidate hook (also detected via `getattr`, called INSIDE the
   trace): algorithm `monitor_candidate(candidates) -> tensor`. Default = identity,
@@ -57,7 +57,7 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `_state_signature(state)` (staticmethod: ordered `(shape, dtype)` tuple of all
   tensor leaves — the `_spec_key` idiom from
   `unit_test/etl/algorithms/helpers.py`), `_init_exe`/`_mon_init_exe`,
-  `_pending_readbacks` (list of `(target list, etl.io.AsyncCopy)` issued by the
+  `_pending_readbacks` (list of `(target list, evoxc.io.AsyncCopy)` issued by the
   last recorded generation) with `_readback(target, tensor)` / `_drain_readbacks()`
   — see "Monitor readback pipelining" below.
 
@@ -109,15 +109,15 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 
 ## Auxiliary-history channel (HOST-SIDE, optional)
 - The algorithm module MAY define `record_step(config, state, candidate, fitness) ->
-  dict[str, etl_tensor]` (see `algorithm.py`); the monitor module MAY define
+  dict[str, evoxc tensor]` (see `algorithm.py`); the monitor module MAY define
   `record_auxiliary(config, aux: dict) -> None` (see `monitor.py`).
 - Both are PLAIN module-level host-side functions in the same module as their config
-  (NOT `@etl.defn`); both are detected generically via `getattr`, never required.
+  (NOT `@evoxc.defn`); both are detected generically via `getattr`, never required.
 - Flow, once per generation, HOST-SIDE after each `_run_variant` (`_record_history`
   calls it, so it is NOT part of any traced graph): `record_step(config, post_step_state,
   candidate, fitness)` → `record_auxiliary(monitor_config, aux)` → the monitor stores
   it as host-side aux history (EvalMonitor: `config.aux_history`).
-- `candidate`/`fitness` are the CONCRETE etl tensors `state.monitor_state.latest_solution`
+- `candidate`/`fitness` are the CONCRETE evoxc tensors `state.monitor_state.latest_solution`
   / `.latest_fitness` (or None if the monitor state lacks them); `state` is the
   POST-step algorithm state; a None return from `record_step` skips `record_auxiliary`.
 - The aux block runs whenever `self.monitor_config is not None`, BEFORE the
@@ -133,8 +133,8 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 - Per generation `_record_history` appends the monitored leaves to the config's
   host lists (`fit_history` ← `latest_fitness`, `sol_history`/`pop_history` ←
   `latest_solution`). Those D2H copies are PIPELINED by one generation:
-  `_readback` schedules the copy with `etl.io.sink` (the process-global
-  `etl.io` FIFO worker thread) at the END of generation k and `_drain_readbacks`
+  `_readback` schedules the copy with `evoxc.io.sink` (the process-global
+  `evoxc.io` FIFO worker thread) at the END of generation k and `_drain_readbacks`
   appends it at the START of generation k+1 — the next generation's compiled
   graph run then overlaps the copy instead of the host stalling on it.
 - Host-resident leaves (`device.kind == "cpu"`, i.e. the numpy backend) are
@@ -144,7 +144,7 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 - Measured cost of the eager path (why this exists): iree/ROCm `to_host()` is
   ~65 µs fixed overhead + ~0.4 µs/KB per call, so a 4 KB `(1000,)` fitness
   readback costs ~0.07 ms on an IDLE device and ~0.13-0.18 ms in-loop (it waits
-  for the step just enqueued: `etl.run` is host-async). `Tensor.to`'s own
+  for the step just enqueued: `evoxc.run` is host-async). `Tensor.to`'s own
   overhead is negligible (~5 µs) — there is no cheaper eager copy path.
   MI300X, iree `rocm:0`, PSO/Sphere, seed 42, best-of-5 (gens 25/20/10):
 
@@ -156,7 +156,7 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   | 10000x100, 10 gens | 0.6595 | 0.5563 | 1.19x | — |
   | xla `rocm:0`, 1000x50 | 0.5126 | 0.4359 | 1.18x | 0.1913 → 0.1146 ms (1.7x) |
 
-  The host stack (Python + etl pipeline) — not the device — bounds the loop at
+  The host stack (Python + evoxc pipeline) — not the device — bounds the loop at
   these scales (~0.4-0.6 ms/step of host work), so removing host work shows up
   as wall-clock. xla wins less on the path (its `to_host()` from the worker
   thread overlaps poorly) but still wins overall.
@@ -168,59 +168,59 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   themselves, so post-run history is complete). A copy failure is re-raised one
   generation later at `handle.result()` — never swallowed. The aux channel
   (`record_auxiliary`) stays EAGER (its conversion lives in the monitor module).
-- Sync behavior: the readback was the only implicit device sync in the etl
+- Sync behavior: the readback was the only implicit device sync in the evoxc
   benchmark loop; it still is (the sink copy waits for its generation's kernels),
   it just does so off the calling thread — so a timed loop measures the same
   serialized device work, only without the host-side copy latency.
 - Test gap: the canonical `unit_test/etl` suite runs the numpy backend (host
   leaves) and therefore only exercises the eager branch — the deferred branch
-  needs either a GPU run or a monkeypatched `etl.io.sink` (a fake handle whose
+  needs either a GPU run or a monkeypatched `evoxc.io.sink` (a fake handle whose
   `.result()` returns a cpu tensor) plus an assertion that the history is one
   entry short before `flush()` and exact after it.
 ## Constraints
 - Everything runs on the configured backend/device; the default is the "numpy"
   backend on cpu; use the documented venv for any run.
-- NO eager etl ops — all etl ops only inside traces (workflow builds exes via
-  `etl.build` and runs via `etl.run(exe, *args)`; `exe.run` does NOT exist).
+- NO eager evoxc ops — all evoxc ops only inside traces (workflow builds exes via
+  `evoxc.build` and runs via `evoxc.run(exe, *args)`; `exe.run` does NOT exist).
 - Step graphs built ONCE per variant: configs captured via CLOSURES (config
   dataclasses with callables/numpy arrays FAIL positional passing); the only graph
   inputs are state pytrees (+ key for init). Config fields = Python scalars/plain
   values.
 - No torch imports; numpy allowed ONLY for baking constant arrays into graphs
-  (`etl.ops.constant(etl.core.tensor(np.asarray(...)))` — inside the trace).
+  (`evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))` — inside the trace).
 - State leaves are tensors ONLY; shapes must be static across runs (no
   dynamically-sized buffers in the compiled step graphs — allocate full-size and
   track elites by value).
 - Minimization semantics internally; workflow applies opt_direction BEFORE
   fitness_transform; monitor gets RAW candidates + TRANSFORMED fitness.
 
-## Notes for Agents (verified ETL gotchas)
-- `etl.sum`/`mean`/reductions take `axes=`, but `topk`/`argmin`/`gather` take
+## Notes for Agents (verified EvoX Compiler gotchas)
+- `evoxc.sum`/`mean`/reductions take `axes=`, but `topk`/`argmin`/`gather` take
   `axis=` — inconsistent keyword naming.
 - Dynamic indexing `x[idx]` with a symbolic scalar tensor is NOT supported
-  ("getitem: unsupported index key SymbolicTensor") — use `etl.gather(x, idx, axis=0)`.
-- `etl.select(pred, a, b)` broadcasts pred with a/b directly (unlike torch.where's
-  leading-dim broadcast): reshape the pred, e.g. `etl.reshape(cond, (n, 1))`.
-- `etl.tree_unflatten(leaves, treespec)` — argument order REVERSED vs JAX.
+  ("getitem: unsupported index key SymbolicTensor") — use `evoxc.gather(x, idx, axis=0)`.
+- `evoxc.select(pred, a, b)` broadcasts pred with a/b directly (unlike torch.where's
+  leading-dim broadcast): reshape the pred, e.g. `evoxc.reshape(cond, (n, 1))`.
+- `evoxc.tree_unflatten(leaves, treespec)` — argument order REVERSED vs JAX.
 - int32 tensor + Python int → int64; int32 * Python float → float64 (f32 + Python
   float stays f32). Cast generation counters explicitly to np.int32.
-- `etl.ops.constant` (and every op) fails OUTSIDE a trace (TraceError); constant()
-  rejects raw ndarray — wrap via `etl.core.tensor(...)` first, inside the trace.
-- Top-level `etl.zeros`/`etl.ones`/`etl.full` are EAGER constructors returning
+- `evoxc.ops.constant` (and every op) fails OUTSIDE a trace (TraceError); constant()
+  rejects raw ndarray — wrap via `evoxc.core.tensor(...)` first, inside the trace.
+- Top-level `evoxc.zeros`/`evoxc.ones`/`evoxc.full` are EAGER constructors returning
   CONCRETE `Tensor`s — NOT usable inside traces (graph outputs must be
   `SymbolicTensor`s). For in-graph constants always use
-  `etl.ops.constant(etl.core.tensor(np.asarray(...)))`.
+  `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`.
 - `TensorSpec(shape_tuple, np_dtype)`; build via
-  `etl.tree_map(lambda t: etl.core.TensorSpec(tuple(t.shape), t.dtype), state)`
+  `evoxc.tree_map(lambda t: evoxc.core.TensorSpec(tuple(t.shape), t.dtype), state)`
   (no TensorSpec.from_tensor). Empty dataclasses (e.g. `EmptyState`) flow through
   build/run as empty pytree containers.
 - `dataclasses.replace` does NOT work on namedtuples (py3.11) — use `state.replace`.
-- Eager (outside trace) is fine: `etl.random.key(seed)`, `t.shape`/`t.dtype`/
-  `t.numpy()`, `t.to(etl.core.Device("cpu"))`, `etl.core.tensor(np_array)`.
+- Eager (outside trace) is fine: `evoxc.random.key(seed)`, `t.shape`/`t.dtype`/
+  `t.numpy()`, `t.to(evoxc.core.Device("cpu"))`, `evoxc.core.tensor(np_array)`.
 - NONLOCAL CLOSURES INSIDE TRACES WORK (validated): a traced step body can define
   `evaluate` with `nonlocal prob_state, mon_state` rebinding across multiple calls —
   this is exactly how the workflow threads problem/monitor state inside one
-  generation. etl traces plain Python closures, not just pure expressions.
+  generation. evoxc traces plain Python closures, not just pure expressions.
 - MODULE CONVENTION GOTCHA: the workflow resolves functions via
   `type(config).__module__`, so algorithm/problem/monitor configs used together
   MUST live in DISTINCT modules — two configs defined in the same module (e.g.
@@ -236,6 +236,6 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
 - `global_best_fitness`-style fields are often shape (1,) — use
   `float(np.asarray(t.numpy()).reshape(-1)[0])` in tests, not `float(t.numpy())`.
 - Reference for workflow behavior: `../../evox/workflows/std_workflow.py` and
-  `../../evox/core/components.py` (torch, read-only siblings). ETL same-device loop
-  pattern validated in etl tests (`tests/backends/test_iree_same_device_loop.py`
+  `../../evox/core/components.py` (torch, read-only siblings). EvoX Compiler same-device loop
+  pattern validated in evoxc tests (`tests/backends/test_iree_same_device_loop.py`
   in the foreign repo).

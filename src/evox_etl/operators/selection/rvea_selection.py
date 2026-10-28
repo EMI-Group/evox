@@ -1,7 +1,7 @@
 """RVEA reference-vector guided selection (APD calculation)."""
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from .non_dominate import _take_along_axis
 
@@ -18,14 +18,14 @@ def apd_fn(x, y, z, obj, theta):
 
     :return: A tensor containing the APD values for each solution.
     """
-    relu_x = etl.cast(enp.maximum(x, 0), 'int64')
+    relu_x = evoxc.cast(enp.maximum(x, 0), 'int64')
     selected_z = _take_along_axis(z, relu_x, 0)
-    left = (1 + obj.shape[1] * theta * selected_z) / etl.reshape(y, (1, y.shape[0]))
-    norm_obj = etl.norm(obj, axis=1)
+    left = (1 + obj.shape[1] * theta * selected_z) / evoxc.reshape(y, (1, y.shape[0]))
+    norm_obj = evoxc.norm(obj, axis=1)
     # torch does norm_obj[x] with the RAW indices (negative indices wrap to the
-    # last row, matching etl.gather's numpy-take semantics) — relu only guards
+    # last row, matching evoxc.gather's numpy-take semantics) — relu only guards
     # the selected_z gather above.
-    right = etl.gather(norm_obj, x, axis=0)
+    right = evoxc.gather(norm_obj, x, axis=0)
     return left * right
 
 
@@ -49,44 +49,44 @@ def ref_vec_guided(x, f, v, theta):
     n = f.shape[0]
     nv = v.shape[0]
 
-    obj = f - enp.min(etl.nan_to_num(f, nan=float('inf')), axis=0, keepdims=True)
-    obj = etl.maximum(obj, 1e-32)
+    obj = f - enp.min(evoxc.nan_to_num(f, nan=float('inf')), axis=0, keepdims=True)
+    obj = evoxc.maximum(obj, 1e-32)
 
-    num = etl.matmul(v, etl.transpose(v))
-    den = etl.reshape(etl.norm(v, axis=1), (nv, 1)) * etl.reshape(etl.norm(v, axis=1), (1, nv))
+    num = evoxc.matmul(v, evoxc.transpose(v))
+    den = evoxc.reshape(evoxc.norm(v, axis=1), (nv, 1)) * evoxc.reshape(evoxc.norm(v, axis=1), (1, nv))
     cosine = num / den
-    cosine = etl.select(etl.eye(nv, dtype='bool'), 0.0, cosine)
-    cosine = etl.clamp(cosine, 0.0, 1.0)
-    gamma = enp.min(etl.acos(cosine), axis=1)
+    cosine = evoxc.select(evoxc.eye(nv, dtype='bool'), 0.0, cosine)
+    cosine = evoxc.clamp(cosine, 0.0, 1.0)
+    gamma = enp.min(evoxc.acos(cosine), axis=1)
 
-    angle = etl.acos(
-        etl.clamp(
-            etl.matmul(obj, etl.transpose(v))
-            / (etl.reshape(etl.norm(obj, axis=1), (n, 1)) * etl.reshape(etl.norm(v, axis=1), (1, nv))),
+    angle = evoxc.acos(
+        evoxc.clamp(
+            evoxc.matmul(obj, evoxc.transpose(v))
+            / (evoxc.reshape(evoxc.norm(obj, axis=1), (n, 1)) * evoxc.reshape(evoxc.norm(v, axis=1), (1, nv))),
             0.0,
             1.0,
         )
     )
 
-    nan_mask = enp.sum(etl.cast(etl.isnan(obj), 'int32'), axis=1) > 0
-    associate = etl.argmin(angle, axis=1)
-    associate = etl.reshape(etl.select(nan_mask, -1, associate), (n, 1))
+    nan_mask = enp.sum(evoxc.cast(evoxc.isnan(obj), 'int32'), axis=1) > 0
+    associate = evoxc.argmin(angle, axis=1)
+    associate = evoxc.reshape(evoxc.select(nan_mask, -1, associate), (n, 1))
 
-    IndexMatrix = etl.reshape(enp.arange(nv, dtype='int64'), (1, nv))
-    partition = etl.select(
+    IndexMatrix = evoxc.reshape(enp.arange(nv, dtype='int64'), (1, nv))
+    partition = evoxc.select(
         associate == IndexMatrix,
-        etl.tile(etl.reshape(enp.arange(n, dtype='int64'), (n, 1)), (1, nv)),
+        evoxc.tile(evoxc.reshape(enp.arange(n, dtype='int64'), (n, 1)), (1, nv)),
         -1,
     )
 
-    mask = etl.not_equal(associate, IndexMatrix)
-    mask_null = enp.sum(etl.cast(mask, 'int32'), axis=0) == n
+    mask = evoxc.not_equal(associate, IndexMatrix)
+    mask_null = enp.sum(evoxc.cast(mask, 'int32'), axis=0) == n
 
     apd = apd_fn(partition, gamma, angle, obj, theta)
-    apd = etl.select(mask, float('inf'), apd)
+    apd = evoxc.select(mask, float('inf'), apd)
 
-    next_ind = etl.argmin(apd, axis=0)
-    next_x = etl.select(etl.reshape(mask_null, (nv, 1)), float('nan'), etl.gather(x, next_ind, axis=0))
-    next_f = etl.select(etl.reshape(mask_null, (nv, 1)), float('nan'), etl.gather(f, next_ind, axis=0))
+    next_ind = evoxc.argmin(apd, axis=0)
+    next_x = evoxc.select(evoxc.reshape(mask_null, (nv, 1)), float('nan'), evoxc.gather(x, next_ind, axis=0))
+    next_f = evoxc.select(evoxc.reshape(mask_null, (nv, 1)), float('nan'), evoxc.gather(f, next_ind, axis=0))
 
     return next_x, next_f

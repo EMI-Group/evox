@@ -1,7 +1,7 @@
 """Shared pairwise-distance helpers for the metrics package (internal)."""
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 
 def pairwise_euclidean(x, y):
@@ -14,4 +14,4 @@ def pairwise_euclidean(x, y):
         pair of rows.
     """
     diff = enp.expand_dims(x, 1) - enp.expand_dims(y, 0)
-    return etl.sqrt(etl.sum(diff ** 2, axes=-1))
+    return evoxc.sqrt(evoxc.sum(diff ** 2, axes=-1))

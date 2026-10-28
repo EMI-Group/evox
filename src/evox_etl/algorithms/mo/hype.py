@@ -2,7 +2,7 @@
 
 1:1 port of the read-only torch reference ``src/evox/algorithms/mo/hype.py``
 as plain ``init/init_step/step`` functions following the step protocol of
-``evox_etl.core.algorithm`` (no ``@etl.defn`` — ETL has no eager mode, see
+``evox_etl.core.algorithm`` (no ``@evoxc.defn`` — EvoX Compiler has no eager mode, see
 DESIGN.md §4.3). The torch class does everything inside ``step()``; here the
 fused ``step`` is selection → crossover → mutation → clamp →
 ``fitness = evaluate(offspring)`` → merge → rank → hypervolume truncation.
@@ -14,10 +14,10 @@ phases of the same trace (replaced by the next generation).
 from dataclasses import dataclass, replace
 from typing import Callable, Optional
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl import core
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc import core
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp, lexsort
@@ -41,7 +41,7 @@ class HypEConfig:
     honored here; ``None`` means the torch default (``polynomial_mutation`` /
     ``simulated_binary``). A custom ``crossover_op`` is called as
     ``crossover_op(key, x)`` and a custom ``mutation_op`` as
-    ``mutation_op(key, x, lb, ub)`` (the etl operators take an explicit RNG key
+    ``mutation_op(key, x, lb, ub)`` (the evoxc operators take an explicit RNG key
     and baked (dim,) float32 bounds). ``selection_op`` is deliberately NOT
     exposed: the torch reference accepts it but immediately overwrites
     ``self.selection`` with ``tournament_selection``, so it is inert there too
@@ -67,10 +67,10 @@ def _config_unflatten(config: HypEConfig, _children) -> HypEConfig:
 
 
 # The config carries optional callable op fields (mutation_op/crossover_op):
-# functions are not static pytree values (etl raises TraceError at a non-None
+# functions are not static pytree values (evoxc raises TraceError at a non-None
 # callable leaf), so the config is registered as a childless pytree node and
-# travels as one opaque static node through etl.build/etl.run.
-etl.register_pytree_node(HypEConfig, _config_flatten, _config_unflatten)
+# travels as one opaque static node through evoxc.build/evoxc.run.
+evoxc.register_pytree_node(HypEConfig, _config_flatten, _config_unflatten)
 
 
 def make_hype(
@@ -106,7 +106,7 @@ def make_hype(
 
 @dataclass(frozen=True)
 class HypEState:
-    """Frozen state of HypE; all leaves are ETL tensors.
+    """Frozen state of HypE; all leaves are ``evoxc`` tensors.
 
     ``offspring`` holds the offspring batch between the generation phase and
     the selection phase of the same fused ``step`` trace (the opaque
@@ -134,8 +134,8 @@ def cal_hv(
     contribution (n,).
     """
     n, m = fit.shape
-    alpha_num = etl.cumprod(
-        etl.concatenate(
+    alpha_num = evoxc.cumprod(
+        evoxc.concatenate(
             [
                 enp.ones((1,), dtype="float32"),
                 (pop_size - enp.arange(1, n, dtype="float32"))
@@ -145,9 +145,9 @@ def cal_hv(
         ),
         axis=0,
     )
-    alpha = etl.nan_to_num(alpha_num / enp.arange(1, n + 1, dtype="float32"))
+    alpha = evoxc.nan_to_num(alpha_num / enp.arange(1, n + 1, dtype="float32"))
 
-    f_min = etl.min(fit, axes=0)
+    f_min = evoxc.min(fit, axes=0)
 
     samples = (
         random.uniform(key, (n_sample, m), 0.0, 1.0, "float32") * (ref - f_min)
@@ -155,28 +155,28 @@ def cal_hv(
     )
 
     # (n_sample, n, m) <= 0 reduced with all() over the last axis → (n_sample, n)
-    pds = etl.ops.reduce_min(
-        etl.less_equal(
+    pds = evoxc.ops.reduce_min(
+        evoxc.less_equal(
             enp.expand_dims(fit, 0) - enp.expand_dims(samples, 1), 0.0
         ),
         axes=2,
     )
-    ds = etl.cast(etl.sum(etl.cast(pds, etl.int64), axes=1), etl.int64)
-    ds = etl.select(ds == 0, ds, ds - 1)
+    ds = evoxc.cast(evoxc.sum(evoxc.cast(pds, evoxc.int64), axes=1), evoxc.int64)
+    ds = evoxc.select(ds == 0, ds, ds - 1)
 
     # torch where(pds.T, ds.unsqueeze(0), -1): (n, n_sample) int64
-    temp = etl.cast(
-        etl.select(etl.transpose(pds, axes=(1, 0)), enp.expand_dims(ds, 0), -1),
-        etl.int64,
+    temp = evoxc.cast(
+        evoxc.select(evoxc.transpose(pds, axes=(1, 0)), enp.expand_dims(ds, 0), -1),
+        evoxc.int64,
     )
     # torch indexes alpha[temp] with -1 wrapping to the last entry; clamp the
     # index instead — the value is masked out below anyway.
-    safe_idx = etl.maximum(temp, 0)
-    gathered = etl.gather(alpha, safe_idx, axis=0)
-    value = etl.select(etl.not_equal(temp, -1), gathered, 0.0)
-    f = etl.sum(value, axes=1)
+    safe_idx = evoxc.maximum(temp, 0)
+    gathered = evoxc.gather(alpha, safe_idx, axis=0)
+    value = evoxc.select(evoxc.not_equal(temp, -1), gathered, 0.0)
+    f = evoxc.sum(value, axes=1)
 
-    return f * etl.prod(ref - f_min) / float(n_sample)
+    return f * evoxc.prod(ref - f_min) / float(n_sample)
 
 
 def init(config: HypEConfig, key: core.Tensor) -> HypEState:
@@ -201,7 +201,7 @@ def init_step(config: HypEConfig, state: HypEState, evaluate):
     """Generation 0 (fused torch ``init_step``): evaluate the FULL population
     and derive ``ref = 1.2 * max(fitness)``."""
     fitness = evaluate(state.pop)
-    ref = enp.full((config.n_objs,), 1.2, dtype="float32") * etl.max(
+    ref = enp.full((config.n_objs,), 1.2, dtype="float32") * evoxc.max(
         fitness, axes=None
     )
     return replace(state, fit=fitness, ref=ref)
@@ -226,7 +226,7 @@ def step(config: HypEConfig, state: HypEState, evaluate):
     hv = cal_hv(k_hv, state.fit, state.ref, config.pop_size, config.n_sample)
     # torch selects on -hv: highest hypervolume contribution wins the tournament
     mating_pool = tournament_selection(k_sel, config.pop_size, -hv)
-    parents = etl.gather(state.pop, mating_pool, axis=0)
+    parents = evoxc.gather(state.pop, mating_pool, axis=0)
     crossover_fn = (
         config.crossover_op if config.crossover_op is not None else simulated_binary
     )
@@ -240,27 +240,27 @@ def step(config: HypEConfig, state: HypEState, evaluate):
 
     fitness = evaluate(offspring)
 
-    merge_pop = etl.concatenate([state.pop, state.offspring], axis=0)
-    merge_fit = etl.concatenate([state.fit, fitness], axis=0)
+    merge_pop = evoxc.concatenate([state.pop, state.offspring], axis=0)
+    merge_fit = evoxc.concatenate([state.fit, fitness], axis=0)
 
     rank = non_dominate_rank(merge_fit)
-    order = etl.argsort(rank, axis=0)
-    worst_rank = etl.gather(
+    order = evoxc.argsort(rank, axis=0)
+    worst_rank = evoxc.gather(
         rank, enp.expand_dims(order[config.pop_size - 1], 0), axis=0
     )[0]
     mask = rank <= worst_rank
 
     key, k_hv2 = random.split(state.key)
     k_count = (
-        etl.cast(etl.sum(etl.cast(mask, etl.int32)), etl.int32) - config.pop_size
+        evoxc.cast(evoxc.sum(evoxc.cast(mask, evoxc.int32)), evoxc.int32) - config.pop_size
     )
     hv = cal_hv(k_hv2, merge_fit, state.ref, k_count, config.n_sample)
-    dis = etl.select(mask, hv, float("-inf"))
+    dis = evoxc.select(mask, hv, float("-inf"))
 
     # last key primary (rank), -dis as tiebreaker — torch 1:1
     combined_indices = lexsort([-dis, rank])[: config.pop_size]
 
-    pop = etl.gather(merge_pop, combined_indices, axis=0)
-    fit = etl.gather(merge_fit, combined_indices, axis=0)
+    pop = evoxc.gather(merge_pop, combined_indices, axis=0)
+    fit = evoxc.gather(merge_fit, combined_indices, axis=0)
 
     return replace(state, pop=pop, fit=fit, key=key)

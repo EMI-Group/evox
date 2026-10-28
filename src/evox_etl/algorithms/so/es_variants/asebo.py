@@ -1,9 +1,9 @@
 """Functional ETL port of the torch evox ASEBO algorithm (step protocol).
 
 Reference (read-only): ``src/evox/algorithms/so/es_variants/asebo.py``
-(Adaptive ES-Active Subspaces for Blackbox Optimization).  ETL has no eager
-mode, so ``init``/``step`` are plain functions traced via ``etl.build``/
-``etl.run``; ``step`` owns the WHOLE generation — the torch ``step`` body with
+(Adaptive ES-Active Subspaces for Blackbox Optimization).  EvoX Compiler has no eager
+mode, so ``init``/``step`` are plain functions traced via ``evoxc.build``/
+``evoxc.run``; ``step`` owns the WHOLE generation — the torch ``step`` body with
 its internal ``self.evaluate`` call fused in via the workflow-injected
 ``evaluate`` closure.  ``lr_decay``/``lr_limit`` are kept for API parity but
 unused (as in torch).
@@ -14,10 +14,10 @@ from typing import Callable, Literal
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
-from etl.core import SymbolicTensor
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -92,7 +92,7 @@ def make_asebo(
 
 @dataclass(frozen=True)
 class ASEBOState:
-    """Mutable state of ASEBO; all leaves are etl tensors."""
+    """Mutable state of ASEBO; all leaves are evoxc tensors."""
 
     center: SymbolicTensor
     grad_subspace: SymbolicTensor
@@ -157,39 +157,39 @@ def step(
     key, subkey = random.split(state.key)
 
     # Active subspace via SVD of the gradient history.
-    X = state.grad_subspace - etl.mean(state.grad_subspace, axes=0)
-    U, _S, Vh = etl.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
+    X = state.grad_subspace - evoxc.mean(state.grad_subspace, axes=0)
+    U, _S, Vh = evoxc.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
     # The reference calls the deprecated `torch.svd(X, some=True)`, whose THIRD
-    # output is V (shape (dim, k), named `Vt` there), not Vh; etl.svd follows the
+    # output is V (shape (dim, k), named `Vt` there), not Vh; evoxc.svd follows the
     # numpy/`torch.linalg.svd` convention, so transpose to match the reference.
     # NOTE: the transpose must happen BEFORE the sign multiply.
-    Vt = etl.transpose(Vh, (1, 0))  # (dim, k) == V, the reference's `Vt`
-    max_abs_cols = etl.argmax(etl.abs(U), axis=0)  # (k,) int64
+    Vt = evoxc.transpose(Vh, (1, 0))  # (dim, k) == V, the reference's `Vt`
+    max_abs_cols = evoxc.argmax(evoxc.abs(U), axis=0)  # (k,) int64
     # torch writes `signs = torch.sign(U[max_abs_cols, :])` — advanced indexing on
     # dim 0 selects k ROWS, so `signs` is a (k, k) sign MATRIX (row i = sign of row
-    # max_abs_cols[i] of U), NOT a length-k vector.  `etl.gather(x, idx, axis=0)` is
+    # max_abs_cols[i] of U), NOT a length-k vector.  `evoxc.gather(x, idx, axis=0)` is
     # numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`.
-    signs = etl.sign(etl.gather(U, max_abs_cols, axis=0))  # (k, k)
+    signs = evoxc.sign(evoxc.gather(U, max_abs_cols, axis=0))  # (k, k)
     U = U * signs
     Vt = Vt * signs
 
     U2 = Vt[:half]  # rows of V, exactly as the reference does
-    UUT = etl.dot(etl.transpose(U2), U2)
+    UUT = evoxc.dot(evoxc.transpose(U2), U2)
     U_ort = Vt[half:]
-    UUT_ort = etl.dot(etl.transpose(U_ort), U_ort)
-    UUT = etl.select(
+    UUT_ort = evoxc.dot(evoxc.transpose(U_ort), U_ort)
+    UUT = evoxc.select(
         state.gen_counter > sub, UUT, enp.zeros((dim, dim), dtype=F32)
     )
 
     cov = (
-        state.sigma * (state.alpha / dim) * etl.eye(dim)
+        state.sigma * (state.alpha / dim) * evoxc.eye(dim)
         + ((1.0 - state.alpha) / half) * UUT
     )
-    chol = etl.cholesky(cov)
+    chol = evoxc.cholesky(cov)
     noise = random.normal(subkey, (dim, half), mean=0.0, std=1.0, dtype=F32)
-    z_plus = etl.transpose(etl.dot(chol, noise), (1, 0))
-    z_plus = z_plus / etl.norm(z_plus, axis=1, keepdims=True)
-    z = etl.concatenate([z_plus, -1.0 * z_plus], axis=0)
+    z_plus = evoxc.transpose(evoxc.dot(chol, noise), (1, 0))
+    z_plus = z_plus / evoxc.norm(z_plus, axis=1, keepdims=True)
+    z = evoxc.concatenate([z_plus, -1.0 * z_plus], axis=0)
     population = state.center + z
     gen_counter = state.gen_counter + 1.0
     state = replace(
@@ -199,7 +199,7 @@ def step(
     fitness = evaluate(population)
 
     noise_1 = state.z[:half] / state.sigma
-    fit_diff_noise = etl.dot(
+    fit_diff_noise = evoxc.dot(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1
     )[0]
     theta_grad = 0.5 * fit_diff_noise
@@ -212,16 +212,16 @@ def step(
     # which divides by its never-refreshed all-zero `self.UUT`.  torch then
     # raises LinAlgError in `cholesky` at generation `subspace_dims + 2`; numpy's
     # cholesky NaN-propagates instead and the port surfaces it one generation
-    # later as an `etl.svd` non-convergence error.  Runs beyond `subspace_dims`
+    # later as an `evoxc.svd` non-convergence error.  Runs beyond `subspace_dims`
     # generations are unsupported on both sides (see this directory's CONTEXT.md).
-    alpha = etl.norm(
-        etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
-    ) / etl.norm(etl.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])
-    alpha = etl.select(state.gen_counter > config.subspace_dims, alpha, 1.0)
-    grad_subspace = etl.concatenate(
+    alpha = evoxc.norm(
+        evoxc.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
+    ) / evoxc.norm(evoxc.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])
+    alpha = evoxc.select(state.gen_counter > config.subspace_dims, alpha, 1.0)
+    grad_subspace = evoxc.concatenate(
         [state.grad_subspace, enp.expand_dims(theta_grad, axis=0)], axis=0
     )[1:, :]
-    theta_grad = theta_grad / (etl.norm(theta_grad) / dim + 1e-8)
+    theta_grad = theta_grad / (evoxc.norm(theta_grad) / dim + 1e-8)
     if config.optimizer == "adam":
         center, exp_avg, exp_avg_sq = adam_single_tensor(
             state.center,
@@ -235,8 +235,8 @@ def step(
     else:
         center = state.center - config.lr * theta_grad
         exp_avg, exp_avg_sq = state.exp_avg, state.exp_avg_sq
-    sigma = etl.maximum(state.sigma * config.sigma_decay, config.sigma_limit)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = evoxc.maximum(state.sigma * config.sigma_decay, config.sigma_limit)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,

@@ -1,7 +1,7 @@
 """Functional ETL port of the torch evox GuidedES algorithm (step protocol).
 
-Plain (non-`@etl.defn`) functions: they may only be called inside an active
-trace (a function passed to `etl.build`/`etl.run`), since ETL has no eager
+Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
+trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
 mode. Semantics mirror the torch original in
 `src/evox/algorithms/so/es_variants/guided_es.py` exactly: `step` owns the
 WHOLE generation (mirrored sampling in the guided subspace →
@@ -17,9 +17,9 @@ from typing import Callable, Literal, Optional
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -30,7 +30,7 @@ from evox_etl.algorithms._config_utils import (
 
 from .adam_step import adam_single_tensor
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,7 @@ def make_guided_es(
 
 @dataclass(frozen=True)
 class GuidedESState:
-    """Mutable GuidedES state; all leaves are ETL tensors."""
+    """Mutable GuidedES state; all leaves are ``evoxc`` tensors."""
 
     center: Tensor
     alpha: Tensor
@@ -144,14 +144,14 @@ def step(
     f32 = np.dtype("float32")
     key, subkey = random.split(state.key)
     key, subkey2 = random.split(key)
-    a = state.sigma * etl.sqrt(state.alpha / dim)
-    c = state.sigma * etl.sqrt((1.0 - state.alpha) / subspace_dims)
+    a = state.sigma * evoxc.sqrt(state.alpha / dim)
+    c = state.sigma * evoxc.sqrt((1.0 - state.alpha) / subspace_dims)
     eps_full = random.normal(subkey, (dim, half), dtype=f32)
     eps_subspace = random.normal(subkey2, (subspace_dims, half), dtype=f32)
-    q, _ = etl.qr(state.grad_subspace)
-    z_plus = a * eps_full + c * etl.dot(q, eps_subspace)
-    z_plus = etl.transpose(z_plus, (1, 0))
-    z = etl.concatenate([z_plus, -z_plus], axis=0)
+    q, _ = evoxc.qr(state.grad_subspace)
+    z_plus = a * eps_full + c * evoxc.dot(q, eps_subspace)
+    z_plus = evoxc.transpose(z_plus, (1, 0))
+    z = evoxc.concatenate([z_plus, -z_plus], axis=0)
     population = state.center + z
     state = replace(state, z=z, key=key)
 
@@ -160,9 +160,9 @@ def step(
     noise = state.z / state.sigma
     noise_1 = noise[:half]
     fit_diff = fitness[:half] - fitness[half:]
-    fit_diff_noise = etl.dot(enp.expand_dims(fit_diff, axis=0), noise_1)[0]
+    fit_diff_noise = evoxc.dot(enp.expand_dims(fit_diff, axis=0), noise_1)[0]
     theta_grad = (1.0 / pop_size) * fit_diff_noise
-    grad_subspace = etl.concatenate(
+    grad_subspace = evoxc.concatenate(
         [state.grad_subspace, enp.expand_dims(theta_grad, axis=0)], axis=0
     )[1:, :]
     if config.optimizer == "adam":
@@ -178,8 +178,8 @@ def step(
     else:
         center = state.center - config.lr * theta_grad
         exp_avg, exp_avg_sq = state.exp_avg, state.exp_avg_sq
-    sigma = etl.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
-    best_fitness = etl.minimum(state.best_fitness, etl.min(fitness))
+    sigma = evoxc.maximum(config.sigma_decay * state.sigma, config.sigma_limit)
+    best_fitness = evoxc.minimum(state.best_fitness, evoxc.min(fitness))
     return replace(
         state,
         center=center,

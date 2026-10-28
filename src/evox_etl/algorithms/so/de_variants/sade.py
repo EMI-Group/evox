@@ -6,7 +6,7 @@ Port notes:
   selection, per-individual F/CR, DE mutation and crossover, evaluation
   through the opaque ``evaluate`` closure, then selection and the
   success/failure/CR memory updates.
-- Stateless etl RNG: the key is stored in the state and advanced with ONE
+- Stateless evoxc RNG: the key is stored in the state and advanced with ONE
   ``random.split`` per torch random draw, in torch's draw order. The
   selection/memory half draws no randomness.
 - ``lb``/``ub`` config fields are normalized to flat tuples of plain Python
@@ -22,9 +22,9 @@ from typing import Any, Callable
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
-import etl.random as random
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -41,7 +41,7 @@ from evox_etl.operators.crossover import (
 )
 from evox_etl.operators.selection import select_rand_pbest
 
-Tensor = etl.SymbolicTensor
+Tensor = evoxc.SymbolicTensor
 
 # Strategy codes (4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]
 # base_vec: 0="rand", 1="best", 2="pbest", 3="current"; cross: 0=bin, 1=exp, 2=arith
@@ -138,8 +138,8 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
     of the trial vectors, selection, then success/failure/CR memory updates."""
     pop_size, dim = config.pop_size, len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
-    strategy_pool = etl.ops.constant(
-        etl.core.tensor(np.asarray(STRATEGY_POOL, dtype=np.int32))
+    strategy_pool = evoxc.ops.constant(
+        evoxc.core.tensor(np.asarray(STRATEGY_POOL, dtype=np.int32))
     )
 
     # One split per torch random draw, in torch's draw order.
@@ -153,20 +153,20 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
     key, k_bin = random.split(key)  # binary crossover (mask + rind)
     key, k_exp = random.split(key)  # exponential crossover (nn + ll)
 
-    success_sum = etl.cast(etl.sum(state.success_memory, axes=0), "float32")
-    failure_sum = etl.cast(etl.sum(state.failure_memory, axes=0), "float32")
+    success_sum = evoxc.cast(evoxc.sum(state.success_memory, axes=0), "float32")
+    failure_sum = evoxc.cast(evoxc.sum(state.failure_memory, axes=0), "float32")
     S_mat = success_sum / (success_sum + failure_sum) + 0.01
-    strategy_p_update = S_mat / etl.sum(S_mat, axes=0)
+    strategy_p_update = S_mat / evoxc.sum(S_mat, axes=0)
     strategy_p_init = enp.full((4,), 0.25, dtype="float32")
-    strategy_p = etl.select(
+    strategy_p = evoxc.select(
         state.gen_iter >= config.LP, strategy_p_update, strategy_p_init
     )
 
     CRM_init = enp.full((4,), 0.5, dtype="float32")
-    # etl.median promotes float32 -> float64; torch stays float32, so cast back
+    # evoxc.median promotes float32 -> float64; torch stays float32, so cast back
     # (compile-once step graphs require dtypes to be stable across generations).
-    CRM_update = etl.cast(etl.median(state.CR_memory, axis=0), "float32")
-    CRM = etl.select(state.gen_iter > config.LP, CRM_update, CRM_init)
+    CRM_update = evoxc.cast(evoxc.median(state.CR_memory, axis=0), "float32")
+    CRM = evoxc.select(state.gen_iter > config.LP, CRM_update, CRM_init)
 
     strategy_ids = random.multinomial(k_mult, strategy_p, pop_size)
 
@@ -174,8 +174,8 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
     CRs_vec_repair = (
         random.normal(k_cr_rep, (pop_size, 4), 0.0, 1.0, "float32") * 0.1 + CRM
     )
-    mask = etl.logical_or(CRs_vec < 0, CRs_vec > 1)
-    CRs_vec = etl.select(mask, CRs_vec_repair, CRs_vec)
+    mask = evoxc.logical_or(CRs_vec < 0, CRs_vec > 1)
+    CRs_vec = evoxc.select(mask, CRs_vec_repair, CRs_vec)
 
     differential_weight = random.normal(k_f, (pop_size,), 0.0, 1.0, "float32") * 0.3 + 0.5
     cross_probability = enp.reshape(
@@ -183,7 +183,7 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
         (pop_size,),
     )
 
-    strategy_code = etl.gather(strategy_pool, strategy_ids, axis=0)
+    strategy_code = evoxc.gather(strategy_pool, strategy_ids, axis=0)
     base_vec_prim_type = strategy_code[:, 0]
     base_vec_sec_type = strategy_code[:, 1]
     num_diff_vectors = strategy_code[:, 2]
@@ -197,24 +197,24 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
         state.pop,
     )
 
-    rand_vec = etl.gather(state.pop, rand_vec_idx, axis=0)
-    best_vec = etl.tile(
-        enp.expand_dims(etl.gather(state.pop, state.best_index, axis=0), 0),
+    rand_vec = evoxc.gather(state.pop, rand_vec_idx, axis=0)
+    best_vec = evoxc.tile(
+        enp.expand_dims(evoxc.gather(state.pop, state.best_index, axis=0), 0),
         (pop_size, 1),
     )
     pbest_vec = select_rand_pbest(k_pbest, 0.05, state.pop, state.fit)
     current_vec = state.pop
-    vector_merge = etl.stack([rand_vec, best_vec, pbest_vec, current_vec], axis=0)
+    vector_merge = evoxc.stack([rand_vec, best_vec, pbest_vec, current_vec], axis=0)
 
     base_vector_prim = enp.zeros((pop_size, dim), dtype="float32")
     base_vector_sec = enp.zeros((pop_size, dim), dtype="float32")
     for i in range(4):
-        base_vector_prim = etl.select(
+        base_vector_prim = evoxc.select(
             enp.expand_dims(base_vec_prim_type == i, 1),
             vector_merge[i],
             base_vector_prim,
         )
-        base_vector_sec = etl.select(
+        base_vector_sec = evoxc.select(
             enp.expand_dims(base_vec_sec_type == i, 1),
             vector_merge[i],
             base_vector_sec,
@@ -234,13 +234,13 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
     trial_arith = DE_arithmetic_recombination(mutation_vector, current_vec, cross_probability)
 
     trial_vectors = enp.zeros((pop_size, dim), dtype="float32")
-    trial_vectors = etl.select(
+    trial_vectors = evoxc.select(
         enp.expand_dims(cross_strategy == 0, 1), trial_bin, trial_vectors
     )
-    trial_vectors = etl.select(
+    trial_vectors = evoxc.select(
         enp.expand_dims(cross_strategy == 1, 1), trial_exp, trial_vectors
     )
-    trial_vectors = etl.select(
+    trial_vectors = evoxc.select(
         enp.expand_dims(cross_strategy == 2, 1), trial_arith, trial_vectors
     )
     trial_vectors = clamp(trial_vectors, lb, ub)
@@ -252,9 +252,9 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
 
     gen_iter = state.gen_iter + 1
     compare = fitness <= state.fit
-    pop = etl.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
-    fit = etl.select(compare, fitness, state.fit)
-    best_index = etl.argmin(fit)
+    pop = evoxc.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
+    fit = evoxc.select(compare, fitness, state.fit)
+    best_index = evoxc.argmin(fit)
 
     # torch: roll, zero row 0, then per-i scatter-ADD 1 at (0, strategy_ids[i])
     # when compare[i]. Exact vectorized equivalent: after roll+zero, row 0 holds
@@ -264,35 +264,35 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
         enp.arange(4, dtype="int32"), 0
     )
 
-    success_rolled = etl.roll(state.success_memory, 1, axis=0)
-    success_rolled = etl.select(
+    success_rolled = evoxc.roll(state.success_memory, 1, axis=0)
+    success_rolled = evoxc.select(
         row0_mask, enp.zeros((LP, 4), dtype="int32"), success_rolled
     )
-    # int32 * bool one-hot promotes to int64 in etl; torch stays int32 — cast
+    # int32 * bool one-hot promotes to int64 in evoxc; torch stays int32 — cast
     # back so the memory dtype is stable across generations.
-    success_counts = etl.cast(
-        etl.sum(enp.expand_dims(etl.cast(compare, "int32"), 1) * onehot, axes=0),
+    success_counts = evoxc.cast(
+        evoxc.sum(enp.expand_dims(evoxc.cast(compare, "int32"), 1) * onehot, axes=0),
         "int32",
     )
-    success_memory = etl.select(
+    success_memory = evoxc.select(
         row0_mask, enp.expand_dims(success_counts, 0), success_rolled
     )
 
-    failure_rolled = etl.roll(state.failure_memory, 1, axis=0)
-    failure_rolled = etl.select(
+    failure_rolled = evoxc.roll(state.failure_memory, 1, axis=0)
+    failure_rolled = evoxc.select(
         row0_mask, enp.zeros((LP, 4), dtype="int32"), failure_rolled
     )
-    failure_counts = etl.cast(
-        etl.sum(
+    failure_counts = evoxc.cast(
+        evoxc.sum(
             enp.expand_dims(
-                enp.ones((pop_size,), dtype="int32") - etl.cast(compare, "int32"), 1
+                enp.ones((pop_size,), dtype="int32") - evoxc.cast(compare, "int32"), 1
             )
             * onehot,
             axes=0,
         ),
         "int32",
     )
-    failure_memory = etl.select(
+    failure_memory = evoxc.select(
         row0_mask, enp.expand_dims(failure_counts, 0), failure_rolled
     )
 
@@ -305,20 +305,20 @@ def step(config: SaDE, state: SaDEState, evaluate: Callable[[Tensor], Tensor]) -
     CR_memory = state.CR_memory
     for i in range(pop_size):
         str_idx = strategy_ids[i]
-        CR_memory_t = etl.transpose(CR_memory, axes=(1, 0))  # (4, LP)
+        CR_memory_t = evoxc.transpose(CR_memory, axes=(1, 0))  # (4, LP)
         CR_mk = enp.reshape(
-            etl.gather(CR_memory_t, enp.reshape(str_idx, (1,)), axis=0), (LP,)
+            evoxc.gather(CR_memory_t, enp.reshape(str_idx, (1,)), axis=0), (LP,)
         )
-        CR_mk_up = etl.roll(CR_mk, 1, axis=0)
-        CR_mk_up = etl.select(
+        CR_mk_up = evoxc.roll(CR_mk, 1, axis=0)
+        CR_mk_up = evoxc.select(
             enp.arange(LP, dtype="int32") == 0,
             enp.expand_dims(CRs_vec_out[i], 0),
             CR_mk_up,
         )
         row_mask = enp.expand_dims(enp.arange(4, dtype="int32") == str_idx, 1)
-        CR_memory_up = etl.select(row_mask, enp.expand_dims(CR_mk_up, 0), CR_memory_t)
-        CR_memory_up = etl.transpose(CR_memory_up, axes=(1, 0))
-        CR_memory = etl.select(compare[i], CR_memory_up, CR_memory)
+        CR_memory_up = evoxc.select(row_mask, enp.expand_dims(CR_mk_up, 0), CR_memory_t)
+        CR_memory_up = evoxc.transpose(CR_memory_up, axes=(1, 0))
+        CR_memory = evoxc.select(compare[i], CR_memory_up, CR_memory)
 
     return SaDEState(
         gen_iter=gen_iter,

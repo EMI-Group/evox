@@ -2,14 +2,14 @@
 
 ## Intent
 Port of torch evox operators (`../../../evox/operators/`, read-only) as PURE functions
-(plain Python, NOT `@etl.defn` — they get called inside traces by algorithms; a bare
-call outside a trace raises etl's "no eager mode" TraceError, which is expected).
+(plain Python, NOT `@evoxc.defn` — they get called inside traces by algorithms; a bare
+call outside a trace raises evoxc's "no eager mode" TraceError, which is expected).
 Porting rule (binding, see `../../DESIGN.md` §4.3):
 - Keep torch function names, argument names and order EXACTLY.
 - Functions using randomness in torch gain `key` as the FIRST parameter
-  (etl.random; split from the caller's key).
+  (evoxc.random; split from the caller's key).
 - Drop the `device: torch.device` parameter (`latin_hypercube_sampling_standard`).
-- `torch.Tensor` → etl tensors; translate ops 1:1 (where→select, clamp→clamp,
+- `torch.Tensor` → evoxc tensors; translate ops 1:1 (where→select, clamp→clamp,
   argsort→argsort, gather→gather, cumsum→cumsum, rand→random.uniform etc.).
 
 One exception to the "torch operators package" scope: `jit_fix_operator.py`
@@ -18,7 +18,7 @@ lives here too. It ports the torch `evox/utils/jit_fix_operator.py` helpers
 lexsort, nanmin/nanmax, key-first randint, `_take_along_axis`) that torch keeps
 under `evox/utils/` —
 the torch algorithms call these instead of raw torch ops for JIT-operator-fusion
-safety, so the etl algorithm ports need them as well, and this package is their
+safety, so the evoxc algorithm ports need them as well, and this package is their
 canonical operator-utility home. Like everything else here it is plain Python
 (trace-only) and is NOT re-exported from `__init__.__all__` — algorithms import
 it directly (`from evox_etl.operators.jit_fix_operator import ...`).
@@ -37,7 +37,7 @@ Top-level `__init__.py` mirrors torch exactly:
   `latin_hypercube_sampling_standard(key, n, d, smooth=True)` (key FIRST, no device
   arg), `latin_hypercube_sampling(key, n, lb, ub, smooth=True)`
 - `selection/`: `dominate_relation(x, y)`, `non_dominate_rank(x)` (0-based ranks;
-  iterative Pareto-front loop via `etl.while_loop` — torch's vmap/compile tricks
+  iterative Pareto-front loop via `evoxc.while_loop` — torch's vmap/compile tricks
   replaced by the loop), `crowding_distance(costs, mask)`,
   `nd_environmental_selection(x, f, topk)`, `tournament_selection(key, n_round,
   fitness, tournament_size=2)`, `tournament_selection_multifit(key, n_round,
@@ -61,25 +61,25 @@ Top-level `__init__.py` mirrors torch exactly:
 | Jit-fix operator utils | `jit_fix_operator.py` | port of torch evox/utils/jit_fix_operator.py (switch, clamp family, clip, maximum/minimum(+`_int`/`_float`), lexsort, nanmin/nanmax, randint, `_take_along_axis`); imported directly by algorithms, not in `__all__` |
 | Tests (sibling) | `../unit_test/etl/operators/` | 104 tests (random-op property + torch parity) — root agent owns; see Test Strategy |
 
-## Notes for Agents (cross-cutting etl gotchas)
+## Notes for Agents (cross-cutting evoxc gotchas)
 Detailed per-module gotchas live in each subdir's CONTEXT.md. Cross-cutting:
-- `etl.build(fn, *specs)` + `etl.run(exe, *args)`: positional args in order; tensor
-  args declared via `etl.core.TensorSpec(shape, dtype)`; statics (int/float/None/
+- `evoxc.build(fn, *specs)` + `evoxc.run(exe, *args)`: positional args in order; tensor
+  args declared via `evoxc.core.TensorSpec(shape, dtype)`; statics (int/float/None/
   bool) passed as-is and must be re-passed at run; graphs specialise on static
   values. Scalar tensor inputs must be 0-d ndarrays (np.float32(0.5) is REJECTED).
-- `etl.gather` = numpy-take (out.shape = x.shape[:axis] + indices.shape +
+- `evoxc.gather` = numpy-take (out.shape = x.shape[:axis] + indices.shape +
   x.shape[axis+1:]); torch take_along_axis → `_take_along_axis` flatten trick
   (private helper in `selection/non_dominate.py`, imported by tournament/rvea).
-- `etl.constant(etl.core.tensor(list, dtype=...))` is the only way to embed
-  constants; `etl.full/zeros/ones/empty` are eager and raise inside traces — use
+- `evoxc.constant(evoxc.core.tensor(list, dtype=...))` is the only way to embed
+  constants; `evoxc.full/zeros/ones/empty` are eager and raise inside traces — use
   select-chains with scalar `0.0` instead.
 - dtype promotion differs from torch: `float32 * int32 → float64`, `int32 + python
   int → int64`. Cast explicitly to keep float32 outputs (see sbx.py sign cast).
 - No `.ndim` on SymbolicTensor — check `getattr(x, "shape", None) is not None and
   len(x.shape) == k`. `enp.sum`/`enp.min` take `axis=` (singular). No
-  newaxis/ellipsis in getitem (use `etl.reshape`/`enp.expand_dims`). `!=` on
-  symbolic tensors → `etl.not_equal`. No where/any/all/amax/amin/meshgrid/atan2/
-  moveaxis/repeat/take/lexsort; `log1p`/`floor` are at etl top level (not enp).
+  newaxis/ellipsis in getitem (use `evoxc.reshape`/`enp.expand_dims`). `!=` on
+  symbolic tensors → `evoxc.not_equal`. No where/any/all/amax/amin/meshgrid/atan2/
+  moveaxis/repeat/take/lexsort; `log1p`/`floor` are at evoxc top level (not enp).
 - `random.key(seed)` works eagerly; key spec is `TensorSpec((), "int64")`. Keys are
   never consumed — same key+inputs → identical output.
 - `torch.randn`-based masks (DE_binary) → `random.normal`.
