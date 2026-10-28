@@ -184,6 +184,18 @@ class TestESVariants(TestBase):
         )
         self.run_all(algo)
 
+    def test_cmaes_cumulation_constant(self):
+        # c_c = (4 + mu_eff / n) / (n + 4 + 2 mu_eff / n), eq. (56) of the CMA-ES tutorial; it must stay
+        # in (0, 1] so that sqrt(c_c * (2 - c_c) * mu_eff) in the p_c update is real
+        for dim, pop_size in [(10, 10), (10, 100), (10, 1000), (100, 1000)]:
+            algo = CMAES(mean_init=torch.zeros(dim), sigma=1, pop_size=pop_size)
+            mu_eff = float(algo.mu_eff)
+            expected = (4 + mu_eff / dim) / (dim + 4 + 2 * mu_eff / dim)
+            self.assertAlmostEqual(float(algo.c_c), expected, places=5)
+            self.assertLessEqual(float(algo.c_c), 1)
+            p_c = algo._update_path_c(torch.zeros(dim), torch.tensor(1.0), torch.ones(dim))
+            self.assertTrue(torch.isfinite(p_c).all())
+
     def test_cmaes_covariance_rank_one(self):
         algo = CMAES(mean_init=torch.zeros(3), sigma=1, pop_size=4)
         C = torch.eye(3)
