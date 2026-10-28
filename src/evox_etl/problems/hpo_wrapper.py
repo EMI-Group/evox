@@ -9,13 +9,13 @@ bookkept in the module-global ``HPOData`` registry).
 
 ## Known Issues (why this is a host-side redesign rather than a port)
 
-1. **A nested compiled workflow can never run inside an outer trace.**  ETL has NO
-   eager mode (``DESIGN.md`` §2.1: every ``etl.numpy``/``etl.ops``/``etl.random``
-   call needs an active trace) and ``etl.run`` cannot be called while a trace is
+1. **A nested compiled workflow can never run inside an outer trace.**  EvoX Compiler has NO
+   eager mode (``DESIGN.md`` §2.1: every ``evoxc.numpy``/``evoxc.ops``/``evoxc.random``
+   call needs an active trace) and ``evoxc.run`` cannot be called while a trace is
    active — it submits its own graph.  The inner workflow's step is a compiled
    ``Executable`` built by :class:`~evox_etl.core.StdWorkflow`, so an
    ``evaluate(candidates)`` closure traced by an OUTER ``StdWorkflow`` can never
-   call it; ETL also has no equivalent of ``torch.func.stack_module_state`` nor of
+   call it; EvoX Compiler also has no equivalent of ``torch.func.stack_module_state`` nor of
    the ``register_vmap`` custom op that maps the inner state over the outer
    population.  A faithful in-graph HPO is therefore NOT portable, and this module
    does not pretend otherwise.
@@ -53,9 +53,9 @@ bookkept in the module-global ``HPOData`` registry).
   Multi-objective inner problems additionally need ``multi_obj_metric`` (the inner
   ``get_best_fitness`` accessor is single-objective only) plus
   ``full_fit_history=True``; ``multi_obj_metric`` is a HOST-side callable over a
-  numpy ``(n_pareto, n_objs)`` array, so an etl metric function (e.g.
-  ``evox_etl.metrics.igd``) must first be wrapped host-side with ``etl.build`` +
-  ``etl.run`` — etl ops cannot run outside a trace.
+  numpy ``(n_pareto, n_objs)`` array, so an evoxc metric function (e.g.
+  ``evox_etl.metrics.igd``) must first be wrapped host-side with ``evoxc.build`` +
+  ``evoxc.run`` — evoxc ops cannot run outside a trace.
 - The torch plumbing ``HPOData`` / ``_hpo_evaluate_loop`` / ``copy_init_state`` has
   no analogue here: the inner workflow is rebuilt per candidate, so there is no
   shared init state to copy.
@@ -229,7 +229,7 @@ class HPOProblemConfig:
     :param seed: Base seed of the inner runs. Defaults to 42.
     :param opt_direction: Opt direction of the inner workflow (a list for
         multi-objective). Defaults to "min".
-    :param backend: ETL backend of the inner workflow. Defaults to "numpy".
+    :param backend: EvoX Compiler backend of the inner workflow. Defaults to "numpy".
     :param device: Device of the inner workflow. Defaults to None (cpu).
     """
 

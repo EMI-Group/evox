@@ -4,8 +4,8 @@
 Port of the numerical problems from torch evox (`../../../evox/problems/`, read-only):
 basic.py (Sphere, Rastrigin, Rosenbrock, Ackley, Griewank, Schwefel, Zakharov,
 Levy...), dtlz.py (DTLZ1-7 + helpers), cec2022.py (with shipped input data). Plain
-functions in etl style — no classes, no OOP; the workflow traces them (per
-`../DESIGN.md` §4.3, functions are NOT `@etl.defn`-wrapped).
+functions in evoxc style — no classes, no OOP; the workflow traces them (per
+`../DESIGN.md` §4.3, functions are NOT `@evoxc.defn`-wrapped).
 
 Beyond numerical, the neuroevolution virtual Gaussian-noise ES problem is ported
 in `neuroevolution/` (unifying the torch `VirtualProblem`/`VirtualLoRAProblem`
@@ -45,60 +45,60 @@ problems (brax, mujoco_playground, supervised_learning).
   (`HPOProblemWrapper`, `HPOProblemConfig`, `HPOFitnessMonitor`/`HPOMonitor`,
   `HPSlot`, `random_search`) — NOT an `evox_etl` `Problem`, so it cannot be the
   outer problem of a `StdWorkflow`; it builds/runs a fresh inner `StdWorkflow`
-  per candidate in plain host Python (ETL has no eager mode and cannot nest
-  `etl.run` in a trace). See the module docstring for the precise limitations.
+  per candidate in plain host Python (EvoX Compiler has no eager mode and cannot nest
+  `evoxc.run` in a trace). See the module docstring for the precise limitations.
 
 ## Notes for Agents
 - cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/`
   — numpy allowed ONLY for loading that data; bake it as constant tensors (closure).
-- **Test suite** (numerical + neuroevolution virtual-problem; pure-etl + torch
+- **Test suite** (numerical + neuroevolution virtual-problem; pure-evoxc + torch
   parity): canonical home is the sibling `../../../unit_test/etl/problems/`
   (write access requires parent). Gate: `<venv>/bin/python -m pytest
   unit_test/etl/problems -q`.
 
-## ETL issues found (escalated to root — also needs adding to ../CONTEXT.md)
+## EvoX Compiler issues found (escalated to root — also needs adding to ../CONTEXT.md)
 Hit while porting the numerical problems; all worked around in this node (see
-`numerical/CONTEXT.md` "Verified etl facts" for the workaround patterns):
+`numerical/CONTEXT.md` "Verified evoxc facts" for the workaround patterns):
 1. **Slice op can't express full-axis `:` over a dynamic dim** — `x[:, a:b]` /
    `x[:, :]` fail at trace/lower when the batch dim is symbolic. Repro:
-   `etl.build(lambda x: x[:, 1:], TensorSpec((None, 4), np.float32))` → lower
-   error. Workaround: `etl.gather(x, const_int32_arange, axis=1)`.
+   `evoxc.build(lambda x: x[:, 1:], TensorSpec((None, 4), np.float32))` → lower
+   error. Workaround: `evoxc.gather(x, const_int32_arange, axis=1)`.
 2. **Reductions directly over a trace-input leaf fail** — `enp.sum(x, axis=1)`
    where x is the function's input leaf raises a shape mismatch (IR Dim-vs-None
-   inconsistency). Repro: `etl.build(lambda x: etl.sum(x, axis=1),
+   inconsistency). Repro: `evoxc.build(lambda x: evoxc.sum(x, axis=1),
    TensorSpec((2, 3), np.float32))`. Workaround: apply an elementwise op first
    (`x * 1.0`).
 3. **`enp.expand_dims`/`enp.reshape` can't carry dynamic (None) dims** — they
    reject None entries and Dim entries fail at lowering. Workaround: unroll
    static Python loops (see `katsuura_func` in cec2022.py).
 4. **`!=` is not overloaded on symbolic tensors** (`x != 0` raises TraceError;
-   only `== < > <= >=` work). Use `etl.not_equal`.
+   only `== < > <= >=` work). Use `evoxc.not_equal`.
 5. **No `*_like` ops** (`zeros_like`/`ones_like`/`full_like` absent in
-   etl.numpy) — zero-init via `x * 0.0`.
-6. **`enp.floor` missing** (top-level `etl.floor` exists); similarly top-level
-   `etl.zeros`/`etl.ones` are CONCRETE creators and must not be used inside
+   evoxc.numpy) — zero-init via `x * 0.0`.
+6. **`enp.floor` missing** (top-level `evoxc.floor` exists); similarly top-level
+   `evoxc.zeros`/`evoxc.ones` are CONCRETE creators and must not be used inside
    traces (`enp.zeros`/`enp.ones` are the traced versions) — easy to mix up.
 7. **`float32 ** int64` promotes to float64** — cast exponents to float32
    explicitly.
 8. **Numpy arrays inside config dataclasses are legal static trace leaves on
-   the installed etl master** (ndarray accepted by `etl.build`) — basic.py
-   configs use no pytree registration: as plain-leaf pytrees they keep etl's
-   by-value static revalidation, so a drifted config at `etl.run` raises
+   the installed evoxc master** (ndarray accepted by `evoxc.build`) — basic.py
+   configs use no pytree registration: as plain-leaf pytrees they keep evoxc's
+   by-value static revalidation, so a drifted config at `evoxc.run` raises
    TraceError. See `numerical/CONTEXT.md` "Config design (current state)".
    The `make_*` constructor policy does not apply to numerical problems
    (DESIGN.md §4.1 carve-out: they keep their validation-only
    `__post_init__`s).
-9. **`etl.gather` + `enp.expand_dims` interaction is confusing** (see
-   cec2022.py comments); `etl.gather` accepts int32 indices, np.take semantics.
+9. **`evoxc.gather` + `enp.expand_dims` interaction is confusing** (see
+   cec2022.py comments); `evoxc.gather` accepts int32 indices, np.take semantics.
 10. **`TensorSpec` API quirks**: no `from_tensor` method; shape must be a flat
     tuple; built `Executable` has no `.run` method (use top-level
-    `etl.run(exe, *args)` with ALL positional args, static ones included).
-    `etl.evaluate` rejects static args entirely (configs must go through
-    `etl.build`).
-11. **etl operators reject numpy scalars as operands** — `x / np.float32(2.0)`
-    raises `TypeError: ... numpy scalars/arrays are not Python scalars` (etl
+    `evoxc.run(exe, *args)` with ALL positional args, static ones included).
+    `evoxc.evaluate` rejects static args entirely (configs must go through
+    `evoxc.build`).
+11. **evoxc operators reject numpy scalars as operands** — `x / np.float32(2.0)`
+    raises `TypeError: ... numpy scalars/arrays are not Python scalars` (evoxc
     only accepts SymbolicTensor or Python `bool`/`int`/`float`/`complex` as
-    operands). Repro: `etl.build(lambda x: x / np.float32(2.0),
+    operands). Repro: `evoxc.build(lambda x: x / np.float32(2.0),
     TensorSpec((4,), np.float32))`. Workaround: pass a Python float (`x / 2.0`).
 
 ## Routing Table

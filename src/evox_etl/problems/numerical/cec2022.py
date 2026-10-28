@@ -10,8 +10,8 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 
 from evox_etl.problems.numerical.basic import (
     ackley_func,
@@ -78,34 +78,34 @@ def _load_data(func_num: int, dim: int) -> Tuple[np.ndarray, np.ndarray, Optiona
 # Transform functions
 
 
-def _slice_cols(x: etl.SymbolicTensor, start: int, stop: int) -> etl.SymbolicTensor:
+def _slice_cols(x: evoxc.SymbolicTensor, start: int, stop: int) -> evoxc.SymbolicTensor:
     """Gather-based static column slice ``x[:, start:stop]``.
 
     The IR slice op cannot express a full-axis ``:`` over a dynamic (batch)
     dim, so ``x[:, a:b]`` is done with a constant int32 index array instead.
     """
-    return etl.gather(x, etl.constant(etl.tensor(np.arange(start, stop, dtype=np.int32))), axis=1)
+    return evoxc.gather(x, evoxc.constant(evoxc.tensor(np.arange(start, stop, dtype=np.int32))), axis=1)
 
 
-def shift(x: etl.SymbolicTensor, offset: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def shift(x: evoxc.SymbolicTensor, offset: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Shift the input vector."""
     return x - offset[:, : x.shape[1]]
 
 
-def rotate(x: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def rotate(x: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Rotate the input vector."""
-    return etl.matmul(x, M[: x.shape[1], :])
+    return evoxc.matmul(x, M[: x.shape[1], :])
 
 
 def cut(
-    x: etl.SymbolicTensor,
+    x: evoxc.SymbolicTensor,
     Gp: List[float],
     sh_flag: bool,
     rot_flag: bool,
-    offset: etl.SymbolicTensor,
-    M: etl.SymbolicTensor,
-    SS: Optional[etl.SymbolicTensor],
-) -> List[etl.SymbolicTensor]:
+    offset: evoxc.SymbolicTensor,
+    M: evoxc.SymbolicTensor,
+    SS: Optional[evoxc.SymbolicTensor],
+) -> List[evoxc.SymbolicTensor]:
     nx = x.shape[1]
     G_nx = [ceil(g * nx) for g in Gp]
     G_nx[-1] = nx - sum(G_nx[:-1])
@@ -114,7 +114,7 @@ def cut(
         G[i] = G[i - 1] + G_nx[i - 1]
 
     y = sr_func_rate(x, sh_rate=1.0, sh_flag=sh_flag, rot_flag=rot_flag, offset=offset, M=M)
-    z = etl.gather(y, SS[:nx], axis=1) if SS is not None else y
+    z = evoxc.gather(y, SS[:nx], axis=1) if SS is not None else y
 
     z_piece = []
     for i in range(len(Gp)):
@@ -123,13 +123,13 @@ def cut(
 
 
 def sr_func_rate(
-    x: etl.SymbolicTensor,
+    x: evoxc.SymbolicTensor,
     sh_rate: float,
     sh_flag: bool,
     rot_flag: bool,
-    offset: etl.SymbolicTensor,
-    M: etl.SymbolicTensor,
-) -> etl.SymbolicTensor:
+    offset: evoxc.SymbolicTensor,
+    M: evoxc.SymbolicTensor,
+) -> evoxc.SymbolicTensor:
     """Shift and rotate function with rate."""
     if sh_flag:
         if rot_flag:
@@ -147,21 +147,21 @@ def sr_func_rate(
 
 
 def cf_cal(
-    x: etl.SymbolicTensor,
-    fit: List[etl.SymbolicTensor],
+    x: evoxc.SymbolicTensor,
+    fit: List[evoxc.SymbolicTensor],
     delta: List[int],
     bias: List[int],
-    OShift: etl.SymbolicTensor,
-) -> etl.SymbolicTensor:
+    OShift: evoxc.SymbolicTensor,
+) -> evoxc.SymbolicTensor:
     nx = x.shape[1]
     w_all = []
-    # x * 0.0: zero init of shape (n,); direct leaf reductions hit an etl
+    # x * 0.0: zero init of shape (n,); direct leaf reductions hit an evoxc
     # Dim-vs-None shape mismatch, arithmetic outputs carry the None form.
     w_sum = enp.sum(x * 0.0, axis=1)
     for i, (d, f, b) in enumerate(zip(delta, fit, bias)):
         diff = x - OShift[:, i * nx : (i + 1) * nx]
         w = enp.sum(diff**2, axis=1)
-        w = enp.where(etl.not_equal(w, 0), (1 / enp.sqrt(w)) * enp.exp(-w / (2 * nx * d * d)), float("inf"))
+        w = enp.where(evoxc.not_equal(w, 0), (1 / enp.sqrt(w)) * enp.exp(-w / (2 * nx * d * d)), float("inf"))
         w_sum = w_sum + w
         w_all.append(w * (f + b))
     w_ret = enp.sum(x * 0.0, axis=1)
@@ -176,34 +176,34 @@ def cf_cal(
 # Problem
 
 
-def cec2022_f1(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f1(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Zakharov Function"""
     return zakharov_func(sr_func_rate(x, 1.0, True, True, OShift, M)) + 300.0
 
 
-def cec2022_f2(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f2(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Rosenbrock Function"""
     return rosenbrock_func(1 + sr_func_rate(x, 2.048e-2, True, True, OShift, M)) + 400
 
 
-def cec2022_f3(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f3(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Schaffer F7 Function"""
     return schaffer_F7_func(sr_func_rate(x, 1.0, True, True, OShift, M)) + 600.0
 
 
-def cec2022_f4(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f4(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Step Rastrigin Function (Noncontinuous Rastrigin's)"""
     return rastrigin_func(sr_func_rate(x, 5.12e-2, True, True, OShift, M)) + 800.0
 
 
-def cec2022_f5(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f5(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Levy Function"""
     return levy_func(sr_func_rate(x, 1.0, True, True, OShift, M)) + 900.0
 
 
 def cec2022_f6(
-    x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor, SS: etl.SymbolicTensor
-) -> etl.SymbolicTensor:
+    x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor, SS: evoxc.SymbolicTensor
+) -> evoxc.SymbolicTensor:
     """Hybrid Function 2"""
     # cf_num = 3
     Gp = [0.4, 0.4, 0.2]
@@ -217,8 +217,8 @@ def cec2022_f6(
 
 
 def cec2022_f7(
-    x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor, SS: etl.SymbolicTensor
-) -> etl.SymbolicTensor:
+    x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor, SS: evoxc.SymbolicTensor
+) -> evoxc.SymbolicTensor:
     """Hybrid Function 10"""
     # cf_num_ = 6
     Gp = [0.1, 0.2, 0.2, 0.2, 0.1, 0.2]
@@ -235,8 +235,8 @@ def cec2022_f7(
 
 
 def cec2022_f8(
-    x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor, SS: etl.SymbolicTensor
-) -> etl.SymbolicTensor:
+    x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor, SS: evoxc.SymbolicTensor
+) -> evoxc.SymbolicTensor:
     """Hybrid Function 6"""
     # cf_num_ = 5
     Gp = [0.3, 0.2, 0.2, 0.1, 0.2]
@@ -251,7 +251,7 @@ def cec2022_f8(
     return fit0 + fit1 + fit2 + fit3 + fit4 + 2200.0
 
 
-def cec2022_f9(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f9(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Composition Function 1"""
     nx = x.shape[1]
     delta = [10, 20, 30, 40, 50]
@@ -286,7 +286,7 @@ def cec2022_f9(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.Symboli
     return f + 2300.0
 
 
-def cec2022_f10(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f10(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Composition Function 2"""
     nx = x.shape[1]
     delta = [20, 10, 10]
@@ -309,7 +309,7 @@ def cec2022_f10(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.Symbol
     return f + 2400.0
 
 
-def cec2022_f11(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f11(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Composition Function 6"""
     nx = x.shape[1]
     delta = [20, 20, 30, 30, 20]
@@ -341,7 +341,7 @@ def cec2022_f11(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.Symbol
     return f + 2600.0
 
 
-def cec2022_f12(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def cec2022_f12(x: evoxc.SymbolicTensor, OShift: evoxc.SymbolicTensor, M: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Composition Function 7"""
     nx = x.shape[1]
     delta = [10, 20, 30, 40, 50, 60]
@@ -386,7 +386,7 @@ def cec2022_f12(x: etl.SymbolicTensor, OShift: etl.SymbolicTensor, M: etl.Symbol
 # Basic functions
 
 
-def levy_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def levy_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Problem number = 5."""
     w = 1.0 + x / 4.0
     tmp1 = enp.sin(pi * w[:, 0]) ** 2
@@ -396,11 +396,11 @@ def levy_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     return tmp1 + enp.sum(sum_, axis=1) + tmp2
 
 
-def bent_cigar_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def bent_cigar_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     return x[:, 0] ** 2 + enp.sum((10.0**6) * _slice_cols(x, 1, x.shape[1]) ** 2, axis=1)
 
 
-def hgbat_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def hgbat_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     alpha = 1.0 / 4.0
     tmp = x - 1
     r2 = enp.sum(tmp**2, axis=1)
@@ -408,7 +408,7 @@ def hgbat_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     return enp.abs(r2**2 - sum_x**2) ** (2 * alpha) + (0.5 * r2 + sum_x) / x.shape[1] + 0.5
 
 
-def katsuura_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def katsuura_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     nx = x.shape[1]
     # tmp1 = 2.0 ** arange(1, 33) and the sum over j are unrolled as a static
     # loop: enp.expand_dims cannot carry dynamic batch dims, so the (n, nx, 32)
@@ -416,24 +416,24 @@ def katsuura_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     temp = x * 0.0
     for j in range(1, 33):
         p2 = 2.0**j
-        temp = temp + enp.abs(x * p2 - etl.floor(x * p2 + 0.5)) / p2
+        temp = temp + enp.abs(x * p2 - evoxc.floor(x * p2 + 0.5)) / p2
     tmp3 = enp.arange(1, nx + 1, dtype=x.dtype)
     f = enp.prod((1 + temp * tmp3) ** (10.0 / (nx**1.2)), axis=1)
     return (f - 1) * (10.0 / nx / nx)
 
 
-def modified_schwefel_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def modified_schwefel_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     nx = x.shape[1]
     tmp1 = x + 420.9687462275036
     tmp2 = -tmp1 * enp.sin(enp.sqrt(enp.abs(tmp1)))
-    fm = enp.abs(tmp1) - etl.floor(enp.abs(tmp1) / 500.0) * 500.0
+    fm = enp.abs(tmp1) - evoxc.floor(enp.abs(tmp1) / 500.0) * 500.0
     tmp3 = (500.0 - fm) * enp.sin(enp.sqrt(enp.abs(500.0 - fm)))
     tmp5 = enp.where(tmp1 > 500.0, -tmp3 + (tmp1 - 500.0) ** 2 / 10000.0 / nx, tmp2)
     tmp5 = enp.where(tmp1 < -500.0, tmp3 + (tmp1 + 500.0) ** 2 / 10000.0 / nx, tmp5)
     return enp.sum(tmp5, axis=1) + 418.98288727243378 * nx
 
 
-def schaffer_F7_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def schaffer_F7_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     nx = x.shape[1]
     tmp1 = enp.sqrt(_slice_cols(x, 0, nx - 1) ** 2 + _slice_cols(x, 1, nx) ** 2)
     tmp2 = enp.sin(50.0 * (tmp1**0.2))
@@ -442,14 +442,14 @@ def schaffer_F7_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     return f * f
 
 
-def escaffer6_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
-    y = etl.concatenate([_slice_cols(x, 1, x.shape[1]), _slice_cols(x, 0, 1)], axis=1)
+def escaffer6_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
+    y = evoxc.concatenate([_slice_cols(x, 1, x.shape[1]), _slice_cols(x, 0, 1)], axis=1)
     tmp1 = enp.sin(enp.sqrt(x**2 + y**2)) ** 2
     tmp2 = 1.0 + 0.001 * (x**2 + y**2)
     return enp.sum(0.5 + (tmp1 - 0.5) / (tmp2**2), axis=1)
 
 
-def happycat_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def happycat_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     alpha = 1.0 / 8.0
     nx = x.shape[1]
     tmp = x - 1
@@ -458,18 +458,18 @@ def happycat_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
     return enp.abs(r2 - nx) ** (2 * alpha) + (0.5 * r2 + sum_x) / nx + 0.5
 
 
-def grie_rosen_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def grie_rosen_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     x = x + 1
-    y = etl.concatenate([_slice_cols(x, 1, x.shape[1]), _slice_cols(x, 0, 1)], axis=1)
+    y = evoxc.concatenate([_slice_cols(x, 1, x.shape[1]), _slice_cols(x, 0, 1)], axis=1)
     tmp = 100.0 * (x**2 - y) ** 2 + (x - 1.0) ** 2
     return enp.sum((tmp**2) / 4000.0 - enp.cos(tmp) + 1.0, axis=1)
 
 
-def discus_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def discus_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     return (10.0**6) * x[:, 0] ** 2 + enp.sum(_slice_cols(x, 1, x.shape[1]) ** 2, axis=1)
 
 
-def ellips_func(x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def ellips_func(x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     nx = x.shape[1]
     idx = enp.arange(nx, dtype=x.dtype)
     powers = 6.0 * idx / (nx - 1)
@@ -493,7 +493,7 @@ class CEC2022:
         )
 
 
-def evaluate(config: CEC2022, problem_state, pop: etl.SymbolicTensor) -> Tuple[etl.SymbolicTensor, object]:
+def evaluate(config: CEC2022, problem_state, pop: evoxc.SymbolicTensor) -> Tuple[evoxc.SymbolicTensor, object]:
     """Evaluate the configured CEC2022 test function on a population of shape (n, dim)."""
     nx = config.dimension
     assert pop.shape[1] == nx, f"Dimension mismatch! Expect {nx}, got {pop.shape[1]}."
@@ -501,9 +501,9 @@ def evaluate(config: CEC2022, problem_state, pop: etl.SymbolicTensor) -> Tuple[e
 
     # Bake the input data ONCE per trace as graph constants.
     M_np, OShift_np, SS_np = _load_data(func_num, nx)
-    M = etl.constant(etl.tensor(M_np.astype(np.float32)))
-    OShift = etl.constant(etl.tensor(OShift_np.astype(np.float32)))
-    SS = etl.constant(etl.tensor(SS_np.astype(np.int32))) if SS_np is not None else None
+    M = evoxc.constant(evoxc.tensor(M_np.astype(np.float32)))
+    OShift = evoxc.constant(evoxc.tensor(OShift_np.astype(np.float32)))
+    SS = evoxc.constant(evoxc.tensor(SS_np.astype(np.int32))) if SS_np is not None else None
 
     if func_num == 1:
         fitness = cec2022_f1(pop, OShift, M)

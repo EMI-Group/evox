@@ -22,8 +22,8 @@ cross-subtree contract with the ``VirtualES``/``VirtualLoRAES`` algorithms).
 
 Notes / deliberate differences from the torch reference
 -------------------------------------------------------
-1. **ETL trade-off (materialization).**  Torch's fused kernel never
-   materializes ``(out, in)`` noise; etl has no fused matmul, so this port DOES
+1. **EvoX Compiler trade-off (materialization).**  Torch's fused kernel never
+   materializes ``(out, in)`` noise; evoxc has no fused matmul, so this port DOES
    materialize per-block ``(pop_size, out, in)`` noise for the full-noise mode
    (and the ``(pop_size, rank, k)``/``(pop_size, d, rank)`` LoRA factors for the
    LoRA mode).  That is still far smaller than a full ``(pop_size, dim)``
@@ -63,8 +63,8 @@ __all__ = [
 import dataclasses
 from typing import Any, Sequence
 
-import etl
-import etl.numpy as enp
+import evoxc
+import evoxc.numpy as enp
 import numpy as np
 
 from evox_etl.algorithms._config_utils import require_choice, to_float_tuple
@@ -89,7 +89,7 @@ class VirtualProblemConfig:
     """Configuration of the virtual Gaussian-noise neuroevolution problem.
 
     Every field is a plain static leaf (Python scalars + flat float tuples), so
-    the config is a plain pytree passed as an etl static argument.  Build it
+    the config is a plain pytree passed as an evoxc static argument.  Build it
     with :func:`make_virtual_problem`, which performs all normalization and
     validation.  ``layer_specs`` entries have the layout
     ``("linear", weight_index, bias_index_or_None, activation_name)`` where the
@@ -262,33 +262,33 @@ def make_virtual_problem(
     )
 
 
-def _constant(values: Sequence[float] | np.ndarray, shape: tuple[int, ...]) -> etl.SymbolicTensor:
+def _constant(values: Sequence[float] | np.ndarray, shape: tuple[int, ...]) -> evoxc.SymbolicTensor:
     """Bake host values as a float32 graph constant of the given static shape."""
     arr = np.asarray(values, dtype=np.float32).reshape(shape)
-    return etl.ops.constant(etl.core.tensor(arr))
+    return evoxc.ops.constant(evoxc.core.tensor(arr))
 
 
-def _activation(name: str, x: etl.SymbolicTensor) -> etl.SymbolicTensor:
+def _activation(name: str, x: evoxc.SymbolicTensor) -> evoxc.SymbolicTensor:
     """Apply one supported element-wise activation (static dispatch on the name)."""
     if name == "identity":
         return x
     if name == "relu":
-        return etl.relu(x)
+        return evoxc.relu(x)
     if name == "tanh":
-        return etl.tanh(x)
+        return evoxc.tanh(x)
     if name == "sigmoid":
-        return etl.sigmoid(x)
+        return evoxc.sigmoid(x)
     if name == "gelu":
-        return etl.gelu(x)
+        return evoxc.gelu(x)
     raise ValueError(f"unsupported activation {name!r}")  # pragma: no cover — validated in make_*
 
 
 def _virtual_forward(
     config: VirtualProblemConfig,
-    center_flat: etl.SymbolicTensor,
-    seeds: etl.SymbolicTensor,
+    center_flat: evoxc.SymbolicTensor,
+    seeds: evoxc.SymbolicTensor,
     sigma: float,
-) -> etl.SymbolicTensor:
+) -> evoxc.SymbolicTensor:
     """Layer-by-layer forward pass with on-demand perturbations — ``(pop_size, batch, out)``.
 
     For each Linear layer the per-individual perturbed weight/bias is regenerated
@@ -314,19 +314,19 @@ def _virtual_forward(
     for _, w_idx, b_idx, activation in config.layer_specs:
         out_f, in_f = config.param_shapes[w_idx]
         w_offset = param_offsets[w_idx]
-        w_center = etl.reshape(center_flat[w_offset : w_offset + out_f * in_f], (out_f, in_f))
+        w_center = evoxc.reshape(center_flat[w_offset : w_offset + out_f * in_f], (out_f, in_f))
         # base: h @ W^T (shared across individuals).
-        out = etl.matmul(h, etl.transpose(w_center, (1, 0)))
+        out = evoxc.matmul(h, evoxc.transpose(w_center, (1, 0)))
 
         if lora_rank is None:
-            noise = etl.reshape(
+            noise = evoxc.reshape(
                 virtual_normal(seeds, noise_offsets[w_idx], out_f * in_f), (pop, out_f, in_f)
             )
-            delta = etl.matmul(h, etl.transpose(noise, (0, 2, 1)))
+            delta = evoxc.matmul(h, evoxc.transpose(noise, (0, 2, 1)))
         else:
             a, b = lora_factors(seeds, (out_f, in_f), lora_rank, noise_offsets[w_idx])
             # delta = h @ A^T @ B^T  (== h @ (B @ A)^T), (pop_size, batch, out).
-            delta = etl.matmul(etl.matmul(h, etl.transpose(a, (0, 2, 1))), etl.transpose(b, (0, 2, 1)))
+            delta = evoxc.matmul(evoxc.matmul(h, evoxc.transpose(a, (0, 2, 1))), evoxc.transpose(b, (0, 2, 1)))
         out = out + sigma * delta
 
         if b_idx is not None:
@@ -336,29 +336,29 @@ def _virtual_forward(
                 b_noise = virtual_normal(seeds, noise_offsets[b_idx], out_f)  # (pop_size, out)
             else:
                 b_noise = lora_factors(seeds, (out_f,), lora_rank, noise_offsets[b_idx])  # (pop, out)
-            out = out + etl.reshape(b_center + sigma * b_noise, (pop, 1, out_f))
+            out = out + evoxc.reshape(b_center + sigma * b_noise, (pop, 1, out_f))
         h = _activation(activation, out)
 
     return h  # (pop_size, batch, out_features)
 
 
 def _per_sample_loss(
-    config: VirtualProblemConfig, out: etl.SymbolicTensor, pop: int
-) -> etl.SymbolicTensor:
+    config: VirtualProblemConfig, out: evoxc.SymbolicTensor, pop: int
+) -> evoxc.SymbolicTensor:
     """Per-sample loss ``(pop_size, batch_size)`` from the ``(pop, batch, out)`` logits."""
     if config.loss == "mse":
         target = _constant(config.targets, (config.batch_size, config.out_features))
         diff = out - target  # broadcast (batch, out) over pop_size
-        return etl.mean(diff * diff, axes=2)
+        return evoxc.mean(diff * diff, axes=2)
 
     # cross-entropy: targets are class indices; pick the target logit via a one-hot.
-    target = etl.cast(_constant(config.targets, (config.batch_size,)), np.int32)
+    target = evoxc.cast(_constant(config.targets, (config.batch_size,)), np.int32)
     classes = enp.reshape(enp.arange(config.out_features, dtype=np.int32), (1, config.out_features))
-    onehot = etl.cast(etl.equal(enp.reshape(target, (config.batch_size, 1)), classes), np.float32)
-    selected = etl.sum(out * enp.reshape(onehot, (1, config.batch_size, config.out_features)), axes=2)
-    logit_max = etl.max(out, axes=2)  # (pop_size, batch)
-    log_sum_exp = etl.log(
-        etl.sum(etl.exp(out - enp.reshape(logit_max, (pop, config.batch_size, 1))), axes=2)
+    onehot = evoxc.cast(evoxc.equal(enp.reshape(target, (config.batch_size, 1)), classes), np.float32)
+    selected = evoxc.sum(out * enp.reshape(onehot, (1, config.batch_size, config.out_features)), axes=2)
+    logit_max = evoxc.max(out, axes=2)  # (pop_size, batch)
+    log_sum_exp = evoxc.log(
+        evoxc.sum(evoxc.exp(out - enp.reshape(logit_max, (pop, config.batch_size, 1))), axes=2)
     ) + logit_max
     return log_sum_exp - selected
 
@@ -366,8 +366,8 @@ def _per_sample_loss(
 def evaluate(
     config: VirtualProblemConfig,
     problem_state: ProblemState,
-    payload: tuple[etl.SymbolicTensor, etl.SymbolicTensor, float],
-) -> tuple[etl.SymbolicTensor, ProblemState]:
+    payload: tuple[evoxc.SymbolicTensor, evoxc.SymbolicTensor, float],
+) -> tuple[evoxc.SymbolicTensor, ProblemState]:
     """Evaluate a virtual Gaussian-noise-perturbed population (traced).
 
     ``payload = (center_flat, seeds, sigma)`` — ``center_flat`` ``(dim,)`` f32,
@@ -381,7 +381,7 @@ def evaluate(
     out = _virtual_forward(config, center_flat, seeds, sigma)
     per_sample = _per_sample_loss(config, out, pop)  # (pop_size, batch)
     if config.reduction == "mean":
-        fitness = etl.mean(per_sample, axes=1)
+        fitness = evoxc.mean(per_sample, axes=1)
     else:  # "sum"
-        fitness = etl.sum(per_sample, axes=1)
+        fitness = evoxc.sum(per_sample, axes=1)
     return fitness, problem_state
