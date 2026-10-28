@@ -178,7 +178,6 @@ class TestESVariants(TestBase):
         self.run_all(algo)
 
     def test_cmaes(self):
-        return
         algo = CMAES(
             mean_init=self.center,
             sigma=5,
