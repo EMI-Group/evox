@@ -1,4 +1,4 @@
-"""evox_etl.vis_tools — host-side visualization utilities for the ETL EvoX rewrite.
+"""evox_etl.vis_tools — host-side visualization utilities for the ``evoxc``-based EvoX rewrite.
 
 Interactive Plotly figure builders (a near-verbatim functional port of the torch
 ``evox.vis_tools`` package) plus the EvoXVision (``.exv``) binary serialization
