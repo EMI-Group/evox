@@ -66,7 +66,7 @@ class SaDE(Algorithm):
         self.gen_iter = Mutable(torch.tensor(0, device=device))
         self.best_index = Mutable(torch.tensor(0, device=device))
         self.Memory_FCR = Mutable(torch.full((2, 100), fill_value=0.5, device=device))
-        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.pop = Mutable(torch.rand(pop_size, dim, device=device) * (ub - lb) + lb)
         self.fit = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
         self.success_memory = Mutable(torch.full((LP, 4), fill_value=0, device=device))
         self.failure_memory = Mutable(torch.full((LP, 4), fill_value=0, device=device))
