@@ -2,8 +2,8 @@
 
 ## Intent
 A functional rewrite of the EvoX framework on the EvoX Compiler tensor library
-(`evoxc`, foreign repo `/root/evoxc`, installed from PyPI into a locally built
-test venv — see "Environment" below). Replaces the
+(`evoxc`, installed from its source checkout into a locally built test venv —
+see "Environment" below). Replaces the
 torch OOP design (`src/evox/`, kept untouched as reference) with plain functional code:
 frozen config dataclasses, namedtuple/dataclass tensor states, plain module-level
 functions (no `@evoxc.defn` — see DESIGN.md §4.3) in the step protocol
@@ -44,8 +44,8 @@ compile-once StdWorkflow loop.
 - No torch/numpy in framework code (numpy allowed only to load cec2022 input data and
   for host-side make_* preprocessing).
 - EvoX Compiler issues found while implementing: record under "EvoX Compiler issues
-  found" below and escalate to the root agent (do NOT edit the `/root/evoxc` repo from
-  here).
+  found" below and escalate to the root agent (do NOT edit the `evoxc` source checkout
+  at `<path-to-evoxc-checkout>` from here).
 
 ## Routing Table
 | Area | Path | Notes |
@@ -66,12 +66,15 @@ compile-once StdWorkflow loop.
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs evoxc) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
 | Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
-| EvoX Compiler library | (foreign repo `/root/evoxc`) | read via the installed `evoxc` package; fixes only by root agent |
+| EvoX Compiler library | `<path-to-evoxc-checkout>` | read via the installed `evoxc` package; fixes only by root agent |
 
 ## Environment
 No pre-provisioned venv — build one locally with `uv venv` +
-`uv pip install evoxc numpy pytest "torch>=2.6.0"` (`evoxc` is the PyPI distribution of
-the EvoX Compiler; torch-cpu wheel index suffices — no GPU here). The primary
+`uv pip install <path-to-evoxc-checkout> numpy pytest "torch>=2.6.0"`
+(`<path-to-evoxc-checkout>` is the EvoX Compiler source checkout whose
+`pyproject.toml` has `name = "evoxc"`; a
+published `evoxc` distribution can be installed by bare name instead; torch-cpu wheel
+index suffices — no GPU here). The primary
 `/home/bill/Source/evox/.venv` is read-only and lacks evoxc/pytest, so run the
 gate from the locally built test venv with
 `PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`

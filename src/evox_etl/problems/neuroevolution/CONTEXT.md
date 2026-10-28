@@ -114,7 +114,7 @@ so a torch (CPU) wheel must be installed alongside evoxc/pytest/numpy:
 
     BASE=$TMPDIR/evoxc_run
     uv venv --python 3.13 $BASE/venv
-    uv pip install --python $BASE/venv/bin/python evoxc pytest numpy
+    uv pip install --python $BASE/venv/bin/python <path-to-evoxc-checkout> pytest numpy
     uv pip install --python $BASE/venv/bin/python torch \
         --index-url https://download.pytorch.org/whl/cpu
     PYTHONPATH="src" $BASE/venv/bin/python -m pytest unit_test/etl/problems -q

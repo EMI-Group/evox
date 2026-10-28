@@ -257,8 +257,9 @@ the reference source, not this file's history.
   touching the file anyway. Numpy import is sanctioned for this + np.dtype only.
 
 ## Tests
-Environment (no pre-provisioned venv): `uv venv` + `uv pip install <evoxc-source-copy>
-pytest numpy`, then `PYTHONPATH="src:<torch-site-packages>"` (torch comes from the
+Environment (no pre-provisioned venv): `uv venv` + `uv pip install <path-to-evoxc-checkout>
+pytest numpy` (a published `evoxc` distribution can be installed by bare name instead),
+then `PYTHONPATH="src:<torch-site-packages>"` (torch comes from the
 shared evox venv; no GPU here).
 - **Family suite**: `unit_test/etl/algorithms/so/es_variants/` — the no-torch
   smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`) plus

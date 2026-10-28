@@ -6,7 +6,8 @@ All implementers MUST follow it. Read it fully before writing code.
 ## 1. Goal
 
 Build a new, functional implementation of the EvoX evolutionary-computation framework
-on top of the **EvoX Compiler tensor library** (foreign repo `/root/evoxc`, import
+on top of the **EvoX Compiler tensor library** (the `evoxc` distribution, source
+checkout at `<path-to-evoxc-checkout>`, import
 name `evoxc`), replacing the torch OOP design with plain functional code:
 
 - **Config objects**: plain frozen dataclasses holding hyperparameters (Python scalars,
@@ -422,7 +423,10 @@ fitness) -> dict` hook; the workflow appends its dict to the monitor's `aux_hist
 ## 8. Environment
 
 No pre-provisioned venv. Build a writable test venv locally with `uv venv` +
-`uv pip install evoxc numpy pytest "torch>=2.6.0"` (torch-cpu wheels suffice — no GPU
+`uv pip install <path-to-evoxc-checkout> numpy pytest "torch>=2.6.0"` (install the
+EvoX Compiler from its source checkout — the one whose `pyproject.toml` has
+`name = "evoxc"`; a published `evoxc` distribution can be installed by bare name
+instead; torch-cpu wheels suffice — no GPU
 here) and run tests from it:
 `PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
 (that primary venv supplies plotly/torch). The primary
