@@ -1,5 +1,5 @@
-import etl
-import etl.random as random
+import evoxc
+import evoxc.random as random
 
 
 def polynomial_mutation(key, x, lb, ub, pro_m: float = 1.0, dis_m: float = 20.0):
@@ -21,21 +21,21 @@ def polynomial_mutation(key, x, lb, ub, pro_m: float = 1.0, dis_m: float = 20.0)
     site = random.uniform(k1, (n, d), dtype="float32") < pro_m / d
     mu = random.uniform(k2, (n, d), dtype="float32")
     # Apply mutation for the first part where mu <= 0.5
-    temp = etl.logical_and(site, mu <= 0.5)
+    temp = evoxc.logical_and(site, mu <= 0.5)
     lower = lb
     upper = ub
 
-    pop_dec = etl.maximum(etl.minimum(x, upper), lower)
+    pop_dec = evoxc.maximum(evoxc.minimum(x, upper), lower)
 
-    norm = etl.select(temp, (pop_dec - lower) / (upper - lower), 0.0)
+    norm = evoxc.select(temp, (pop_dec - lower) / (upper - lower), 0.0)
 
-    pop_dec = etl.select(
+    pop_dec = evoxc.select(
         temp,
         pop_dec
         + (upper - lower)
         * (
-            etl.power(
-                2 * mu + (1 - 2 * mu) * etl.power(1 - norm, dis_m + 1.0),
+            evoxc.power(
+                2 * mu + (1 - 2 * mu) * evoxc.power(1 - norm, dis_m + 1.0),
                 1.0 / (dis_m + 1.0),
             )
             - 1.0
@@ -44,16 +44,16 @@ def polynomial_mutation(key, x, lb, ub, pro_m: float = 1.0, dis_m: float = 20.0)
     )
 
     # Apply mutation for the second part where mu > 0.5
-    temp = etl.logical_and(site, mu > 0.5)
-    norm = etl.select(temp, (upper - pop_dec) / (upper - lower), 0.0)
-    pop_dec = etl.select(
+    temp = evoxc.logical_and(site, mu > 0.5)
+    norm = evoxc.select(temp, (upper - pop_dec) / (upper - lower), 0.0)
+    pop_dec = evoxc.select(
         temp,
         pop_dec
         + (upper - lower)
         * (
             1.0
-            - etl.power(
-                2 * (1 - mu) + 2 * (mu - 0.5) * etl.power(1 - norm, dis_m + 1.0),
+            - evoxc.power(
+                2 * (1 - mu) + 2 * (mu - 0.5) * evoxc.power(1 - norm, dis_m + 1.0),
                 1.0 / (dis_m + 1.0),
             )
         ),

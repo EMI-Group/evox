@@ -2,8 +2,8 @@
 
 ## Intent
 Port of torch evox crossover operators (`../../../evox/operators/crossover/`, read-only)
-as PLAIN functions (no `@etl.defn` — see `../../DESIGN.md` §4.3): rng-using functions
-gain `key` as first param, all functions use `etl`/`etl.numpy as enp`/`etl.random as
+as PLAIN functions (no `@evoxc.defn` — see `../../DESIGN.md` §4.3): rng-using functions
+gain `key` as first param, all functions use `evoxc`/`evoxc.numpy as enp`/`evoxc.random as
 random` only (no torch/numpy in framework code).
 
 ## API Surface (implemented)
@@ -12,20 +12,20 @@ random` only (no torch/numpy in framework code).
 - `sbx_half.py`: `simulated_binary_half(key, x, pro_c=1.0, dis_c=20.0)` → (n2, m).
 - `__init__.py` mirrors torch `__all__` + imports.
 
-## Constraints / gotchas (verified against etl 0.1.0)
+## Constraints / gotchas (verified against evoxc 0.1.0)
 - **No `.ndim` on SymbolicTensor** — only `.shape` (tuple of static ints). Rank checks
   use `getattr(x, "shape", None) is not None and len(x.shape) == k` (also tolerates
   python-scalar statics).
-- **`[:, None]` newaxis is NOT supported** by etl getitem (`too many indices (2) for
+- **`[:, None]` newaxis is NOT supported** by evoxc getitem (`too many indices (2) for
   rank 1`). Use `enp.expand_dims(a, axis)` instead. `[None, :]` likewise → `expand_dims(a, 0)`.
-- **`etl.gather(x, indices, axis=0)` = numpy-take** (out.shape = x.shape[:axis] +
+- **`evoxc.gather(x, indices, axis=0)` = numpy-take** (out.shape = x.shape[:axis] +
   indices.shape + x.shape[axis+1:]). For torch `gather(x, dim, idx)` (out[i,j] =
-  x2d[idx[i,j], j]) use the flatten trick: `etl.gather(etl.reshape(tiled, (-1,)),
+  x2d[idx[i,j], j]) use the flatten trick: `evoxc.gather(evoxc.reshape(tiled, (-1,)),
   idx_flat)` with int64 indices (see `DE_exponential_crossover`).
-- **No `etl.zeros` inside traces** — initialize via `etl.select(cond, a, 0.0)`
+- **No `evoxc.zeros` inside traces** — initialize via `evoxc.select(cond, a, 0.0)`
   select-chains (see `simulated_binary` beta init).
-- **`enp.log1p`/`enp.floor` don't exist** on `etl.numpy` — they live at `etl` top
-  level (`etl.log1p`, `etl.floor`). `enp.sum(a, axis=..., ...)` keyword only.
+- **`enp.log1p`/`enp.floor` don't exist** on `evoxc.numpy` — they live at `evoxc` top
+  level (`evoxc.log1p`, `evoxc.floor`). `enp.sum(a, axis=..., ...)` keyword only.
 - **`random.key(seed)` works EAGERLY** (concrete Tensor) — keys are graph inputs via
   `TensorSpec((), 'int64')`. `TensorSpec` is a plain dataclass (shape, dtype) — no
   `from_tensor` classmethod.
@@ -39,7 +39,7 @@ random` only (no torch/numpy in framework code).
   `difference_sum * F` (F expanded to (pop,1) when rank-1).
 
 ## Test strategy
-Smoke-tested on etl numpy backend (throwaway script, not committed): exact parity vs
+Smoke-tested on evoxc numpy backend (throwaway script, not committed): exact parity vs
 torch for `DE_arithmetic_recombination` (K scalar/(pop,)/(pop,1), atol 1e-6);
 determinism (same key → same output) and children-from-parents for DE binary/expo
 crossover; `DE_differential_sum` verified against a numpy rebuild from the identical
