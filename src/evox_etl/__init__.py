@@ -1,4 +1,4 @@
-"""evox_etl: the ETL-based functional rewrite of EvoX.
+"""evox_etl: the evoxc-based functional rewrite of EvoX.
 
 Pure functions, frozen config dataclasses, and dataclass tensor states replace
 the torch OOP design; see ``DESIGN.md`` for the binding spec. Algorithms,
@@ -19,9 +19,9 @@ from .core import (
 from .metrics import gd, gd_plus, hv, igd, igd_plus
 from .workflows import EvalMonitor, EvalMonitorConfig
 
-# RNG: expose etl's stateless random module and key helper
-import etl.random as random
-from etl.random import key
+# RNG: expose ``evoxc``'s stateless random module and key helper
+import evoxc.random as random
+from evoxc.random import key
 
 __all__ = [
     "core", "metrics", "utils", "vis_tools", "workflows",
