@@ -45,12 +45,12 @@ cd docs && rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html s
 - `README.md`/`README_ZH.md`, `pyproject.toml` and other repo-root files are outside this node.
 
 ## Known Issues
-- Every install surface advertises `evox[iree]` / `evox[tvm]` / `evox[compilers]` (≈12 sites on 7 pages); those extras exist only on the `evoxc` distribution, so `pip install "evox[iree]"` installs nothing.
-- The install pages say the default install pulls in `evoxc` and needs no torch, but `pyproject.toml` declares `torch >= 2.6.0` + `numpy` and no `evoxc`, so `pip install evox` + `import evox_etl` fails with `ModuleNotFoundError: No module named 'evoxc'`.
-- Pages state a 3.10 floor (`evox` metadata) although `evoxc` requires 3.11, so nothing documented runs on 3.10.
-- `evox_etl.__version__` is `1.4.0` while `source/conf.py` declares `version = "2.0.0-pre"`; `guide/install/evox.md` prints the former as a 2.0 install check.
-- The build is warning-free, so topic drift is invisible to it: several `{doc}` targets resolve but lead to the wrong chapter (`examples/index` → `tutorial_part6` labelled "other backends"; `advanced/metrics` → `tutorial_part5` as the MO walkthrough; `advanced/hpo` → `tutorial_part7` as a workflow walk-through).
-
+- `pyproject.toml` is still the 1.x manifest (torch + numpy dependencies, no `evoxc`, no `iree`/`tvm`/`compilers` extras), so `pip install "evox[iree]"` is a no-op and only `evoxc[iree]` installs a backend today; the install pages state both spellings and say which one works.
+- `src/evox_etl/__init__.py` reports `__version__ = "1.4.0"` while `source/conf.py` declares `version = "2.0.0-pre"`; no page uses a version string as a 2.0 verification step for this reason.
+- `src/evox_etl/problems/numerical/cec2022.py` resolves its data directory through the frozen torch tree (`src/evox/...`), so CEC2022 only works from a source checkout.
+- `evoxc` raises the provider's raw import error for a device whose provider package is missing (`backend="numpy", device="cuda"` → `ModuleNotFoundError: No module named 'iree'`); `guide/advanced/backends.md` and `miscellaneous/selecting_gpu.md` describe device failures behaviourally instead of promising one exception class.
+- The gettext catalog `docs.po` still holds entries extracted from the 1.x pages (unmatched entries are ignored by gettext) and the tutorial translations cover only `index.md`, so the 2.0 tutorial is English-only until the Chinese rewrite lands.
+- The build is warning-free, so a `{doc}` target that resolves but points at the wrong chapter is invisible to it — check cross-page "next step" links by hand when editing.
 ## Routing Table
 | Area | Child Directory | Description |
 |---|---|---|
