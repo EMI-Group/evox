@@ -35,7 +35,7 @@ plus the root-level torch-free release gate:
 
 ## Gate (counts verified: 655 = 196 + 118 + 192 + 59 + 42 + 41 + 6 + 1)
 ```
-<venv>/bin/python -m pytest unit_test/etl/algorithms -q      # 196, ~3.5 min (torch-parity runs dominate)
+<venv>/bin/python -m pytest unit_test/etl/algorithms -q      # 196, ~4 min (torch-parity runs dominate)
 <venv>/bin/python -m pytest unit_test/etl/operators -q       # 118, ~15 s
 <venv>/bin/python -m pytest unit_test/etl/problems -q        # 192, ~100 s
 <venv>/bin/python -m pytest unit_test/etl/metrics -q         # 59, ~10 s
