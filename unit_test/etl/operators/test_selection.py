@@ -4,10 +4,11 @@ Only the KEYED (random) selection operators are covered here —
 ``tournament_selection``, ``tournament_selection_multifit`` and
 ``select_rand_pbest``. The deterministic ones (``dominate_relation``,
 ``non_dominate_rank``, ``crowding_distance``, ``nd_environmental_selection``,
-``apd_fn``, ``ref_vec_guided``) are covered by the torch parity suite in
-``parity/``. Each operator is checked for determinism (same key + inputs →
-identical output), key divergence, and its documented shape/dtype/bounds
-contract, via ``evoxc.build`` + ``evoxc.run`` on the numpy backend.
+``apd_fn``, ``ref_vec_guided``) are covered by the algorithm shim tests under
+``unit_test/etl/algorithms/`` (with hand-verified numpy references). Each
+operator is checked for determinism (same key + inputs → identical output), key
+divergence, and its documented shape/dtype/bounds contract, via
+``evoxc.build`` + ``evoxc.run`` on the numpy backend.
 """
 
 import numpy as np

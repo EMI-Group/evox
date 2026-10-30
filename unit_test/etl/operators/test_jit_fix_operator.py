@@ -1,14 +1,13 @@
 """Property tests for the jit-fix operator utils (ETL only, NO torch).
 
-Covers the torch-``torch.where``/``torch.clamp``-fusion replacements added to
+Covers the ``torch.where``/``torch.clamp``-fusion replacements ported to
 ``evox_etl/operators/jit_fix_operator.py``: ``switch``, ``clip``,
 ``maximum_float`` and ``minimum_float``. Like every plain function in that
 module these are trace-only (evoxc has no eager mode), so each one is driven
-inside an ``evoxc.build`` + ``evoxc.run`` graph on the numpy backend. Exact
-torch-parity for the same four helpers lives in ``parity/`` (torch imports are
-allowed only there); here we assert their documented contracts:
-``switch`` selects per label from a list of tensors, ``clip`` maps values into
-[0, 1], and the float max/min compositions behave elementwise.
+inside an ``evoxc.build`` + ``evoxc.run`` graph on the numpy backend. Here we
+assert their documented contracts: ``switch`` selects per label from a list of
+tensors, ``clip`` maps values into [0, 1], and the float max/min compositions
+behave elementwise.
 """
 
 import evoxc

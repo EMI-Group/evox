@@ -1,10 +1,10 @@
-# unit_test/etl/algorithms — algorithm smoke/parity tests (ETL-only)
+# unit_test/etl/algorithms — algorithm smoke tests (ETL-only)
 
 ## Intent
 Shared scaffolding + tests for the functional evox_etl algorithm port
-(`src/evox_etl/algorithms/`).  No torch imports here — parity tests that import
-torch live in `unit_test/etl/algorithms/parity/` (8 test files +
-`parity_common.py`, see its CONTEXT.md for the full inventory).  The virtual-ES /
+(`src/evox_etl/algorithms/`).  No torch imports here — the old torch-parity
+suite was removed with the torch package; expectations are hand-verified numpy
+references.  The virtual-ES /
 VirtualLoRA-ES smoke tests and the virtual end-to-end (real neuroevolution
 problem) convergence tests live under `so/es_variants/`.
 

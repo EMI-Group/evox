@@ -110,7 +110,7 @@ def _ackley(pop: Any) -> Any:
 
 
 def _dtlz1(config: DTLZ1Config, pop: Any) -> Any:
-    """DTLZ1 (minimize) — mirrors ``src/evox/problems/numerical/dtlz.py``."""
+    """DTLZ1 (minimize) — mirrors ``evox_etl/problems/numerical/dtlz.py``."""
     m = config.n_obj
     n, d = pop.shape
     f32 = np.dtype("float32")

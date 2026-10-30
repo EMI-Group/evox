@@ -3,25 +3,24 @@
 ## Intent
 pytest suite mirroring `src/evox_etl/` (functional EvoX on evoxc). Seven sub-suites
 plus the root-level torch-free release gate:
-1. `algorithms/` — algorithm smoke/parity tests + converted operator-shim tests
-   (canonical `evox_etl.operators.*` imports; ETL-only, no torch except `parity/`).
+1. `algorithms/` — algorithm smoke tests + converted operator-shim tests
+   (canonical `evox_etl.operators.*` imports; ETL-only, numpy expectations).
    Includes the virtual-ES / VirtualLoRA-ES smoke tests and the virtual
-   end-to-end convergence tests under `so/es_variants/`; `parity/` also holds the
-   ES-variant ASEBO/ARS/CMA-ES STATE-level parity file (`test_parity.py`).
+   end-to-end convergence tests under `so/es_variants/`.
    Ported-upstream-fix regressions: initial-population bounds/uniformity for
    CoDE/SaDE/SHADE (`so/de_variants/test_init_bounds.py`), SHADE success-history
    adaptation (`so/de_variants/test_shade.py`), NES default `pop_size` and
    GuidedES `subspace_dims < dim` (`so/es_variants/test_nes.py`,
    `so/es_variants/test_guided_es.py`).
-2. `operators/` — operator property tests (random ops, no torch) + `parity/`
-   (exact parity vs torch `evox` within 1e-6; torch imports ONLY there).
+2. `operators/` — operator property tests (keyed random ops + the keyless
+   samplers; numpy only).
    Includes the uniform `DE_binary_crossover` mask-rate regression
    (`test_crossover.py`) and the 1-D tournament index shape / large-tournament
    winner regressions (`test_selection.py`).
 3. `problems/` — numerical problem tests + the neuroevolution virtual-problem
    suite (`test_virtual_problem.py`) + the host-side HPO-wrapper suite
-   (`test_hpo_wrapper.py`) + `parity/`.
-4. `metrics/` — metric tests + `parity/`; includes the hypervolume
+   (`test_hpo_wrapper.py`).
+4. `metrics/` — metric tests; includes the hypervolume
    reference-point clipping regressions (`hv` / `each_cube_monte_carlo_hv`).
 5. `vis_tools/` — Plotly figure builders + the EvoXVision `.exv` binary format.
    Numpy/plotly only, no torch.
@@ -31,29 +30,26 @@ plus the root-level torch-free release gate:
    plus the root-export + guarded-autoload tests (`test_autoload.py`).
 8. `test_no_torch.py` (root) — release gate: a FRESH interpreter imports
    `evox_etl` and runs a small PSO-on-Sphere optimization, then asserts no
-   `torch` module entered `sys.modules` (the dev venv does have torch installed).
+   `torch` module entered `sys.modules`.
 
-## Gate (counts verified: 655 = 196 + 118 + 192 + 59 + 42 + 41 + 6 + 1)
+## Gate (counts verified: 552 = 182 + 86 + 144 + 50 + 42 + 41 + 6 + 1)
 ```
-<venv>/bin/python -m pytest unit_test/etl/algorithms -q      # 196, ~4 min (torch-parity runs dominate)
-<venv>/bin/python -m pytest unit_test/etl/operators -q       # 118, ~15 s
-<venv>/bin/python -m pytest unit_test/etl/problems -q        # 192, ~100 s
-<venv>/bin/python -m pytest unit_test/etl/metrics -q         # 59, ~10 s
-<venv>/bin/python -m pytest unit_test/etl/vis_tools -q       # 42, ~1 s
-<venv>/bin/python -m pytest unit_test/etl/workflows -q       # 41, ~9 s
-<venv>/bin/python -m pytest unit_test/etl/ext -q             # 6, <1 s
-<venv>/bin/python -m pytest unit_test/etl/test_no_torch.py -q  # 1, <1 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/algorithms -q      # 182, ~80 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/operators -q       #  86, ~5 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/problems -q        # 144, ~30 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/metrics -q         #  50, ~5 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/vis_tools -q       #  42, ~1 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/workflows -q       #  41, ~5 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/ext -q             #   6, <1 s
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/test_no_torch.py -q #  1, <1 s
 ```
-The combined run `pytest unit_test/etl -q` collects all 655 tests with no
-basename collisions (every `parity/` dir — plus `algorithms/mo/` and
-`algorithms/so/es_variants/` — carries an `__init__.py`, so the four
-`parity/test_parity.py` files import as `parity.*`, `metrics.parity.*`,
-`problems.parity.*`, `operators.parity.*`).
-The only failure in the combined run is
-`algorithms/parity/test_parity.py::test_asebo_state_parity_with_torch` — a
-PRE-EXISTING defect of the frozen torch reference
-(`src/evox/algorithms/so/es_variants/asebo.py:116` raises a mat1/mat2 shape
-error), not of the port; `parity/` is slated for deletion.
+The combined run `PYTHONPATH=src <venv>/bin/python -m pytest -q` from the
+repository root collects all 552 tests with no basename collisions and passes
+with 0 errors and 0 skips in ~2 min (`pyproject.toml` sets
+`testpaths = ["unit_test/etl"]`). Every subdirectory that carries an
+`__init__.py` (`algorithms/mo/`, `algorithms/so/es_variants/`, `operators/`,
+`problems/`, `metrics/`, `vis_tools/`, `ext/`) imports its modules with the
+package prefix, which is what keeps same-basename files distinct.
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
 
 ## Environment
@@ -61,14 +57,13 @@ The compiler the port and these tests run on is `evoxc` (distribution `evoxc`
 0.1.0; traced surface `evoxc`, `evoxc.core`, `evoxc.numpy`, `evoxc.random`,
 `evoxc.io`, `evoxc.ops`).
 `evox_etl` and `evox_etl_ext` are PEP 420 namespace packages under `src/` (not
-pip-installed), so drivers need `PYTHONPATH=src:<site-packages>`. Provision a
-writable venv: `uv venv` then `uv pip install <path-to-evoxc-checkout>
-pytest numpy` — the `evoxc` distribution is publish-ready but not yet on a
-package index, so install it from a source checkout (copy it somewhere writable
-if the checkout is read-only; `uv pip install evoxc` by name works once it is
-published), and set
-`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
-(that primary venv supplies plotly/torch; it is read-only).
+pip-installed when working from a checkout), so drivers need
+`PYTHONPATH=src:<site-packages>`. Provision a writable venv: `uv venv` then
+`uv pip install evoxc pytest numpy` — the `evoxc` distribution is publish-ready
+but not yet on a package index, so install it from a source checkout (copy it
+somewhere writable if the checkout is read-only).
+torch is NOT part of this environment: the 2.0 release ships only
+`evoxc` + `numpy`, and no test under this tree may pull torch in.
 plotly enables the figure assertions of `vis_tools/` and
 `workflows/test_eval_monitor_plot.py`; without it those are `skipif`-guarded and
 the plotly-missing branches still run.
@@ -79,7 +74,7 @@ the plotly-missing branches still run.
   Compiled-backend/GPU paths are exercised only by the `benchmarks/etl_vs_torch/`
   harness (torch-cuda/etl-iree-llvm-cpu/etl-iree-cuda/etl-xla-cuda), not by unit tests.
 - The only skip mechanism in the tree is `skipif`-guarding of Plotly figure
-  assertions (plotly present in the primary venv, so the gate run reports 0 skips);
+  assertions (plotly present in the dev venv, so the gate run reports 0 skips);
   there are no `pytest.mark.skip`/`xfail` markers. Known-not-ported code (e.g.
   asebo's iree/xla `evoxc.svd` blocker) simply has no module/test to exercise it —
   see `src/evox_etl/algorithms/CONTEXT.md` + `es_variants/CONTEXT.md`.
@@ -87,25 +82,18 @@ the plotly-missing branches still run.
   `workflows/`) ARE covered here by the `workflows/` suite (EvalMonitor shape
   policy + auxiliary-history channel + `EvalMonitor.plot`, driven directly
   through `evoxc.build`/`evoxc.run` and via real algorithms with CoDE/CSO/PSO).
-  Algorithm tests still drive raw init/step via `helpers.run_generations`, and
-  parity tests drive the TORCH StdWorkflow.
-- Algorithms with ETL-only smoke coverage and no torch parity: code/jade/ode/
-  sade/shade, des/esmc/guided_es/nes/noise_reuse_es/persistent_es/snes,
-  rvea/rveaa/hype. Convergence parity exists for de, pso, cma_es, open_es,
-  nsga2, nsga3, moead; ars/asebo/cma_es additionally have STATE-level parity
-  under injected identical noise — see `algorithms/parity/CONTEXT.md`.
+  Algorithm tests drive raw init/step via `helpers.run_generations`.
 - Algorithm tests construct configs via functional `make_*` constructors
   (`de_mod.make_de(...)`, `nsga2.make_nsga2(...)`, resolved at call time via
   module aliases — no direct `XConfig`/alias dataclass construction remains in
   `algorithms/`; problems tests keep direct dataclass construction by design).
 
 ## Packaging notes
-- `operators/`, `problems/`, `metrics/`, `vis_tools/`, `ext/` and every `parity/`
-  subdir carry an `__init__.py`, as do `algorithms/mo/`, `algorithms/parity/` and
-  `algorithms/so/es_variants/`; pytest then imports those test modules with their
-  package prefix (`parity.test_parity`, `es_variants.test_virtual_es`, …), which is
-  what keeps same-basename files (e.g. the four `parity/test_parity.py`) from
-  colliding. Keep the markers when adding new parity/package dirs.
+- `operators/`, `problems/`, `metrics/`, `vis_tools/`, `ext/` carry an
+  `__init__.py`, as do `algorithms/mo/` and `algorithms/so/es_variants/`; pytest
+  then imports those test modules with their package prefix
+  (`es_variants.test_virtual_es`, …), which is what keeps same-basename files
+  from colliding. Keep the markers when adding new package dirs.
 - `algorithms/`, `algorithms/so/`, `algorithms/so/de_variants/`,
   `algorithms/so/pso_variants/` and `workflows/` deliberately have NO `__init__.py`,
   so their test modules import as TOP-LEVEL names — new files there need
@@ -113,18 +101,18 @@ the plotly-missing branches still run.
 - `workflows/` in particular must stay flat: StdWorkflow resolves each component's
   plain functions via `type(config).__module__` + `importlib`, so the `aux_toy_*.py`
   siblings have to remain top-level modules.
-- Repo-root `conftest.py` shims sys.path (repo root + `src/`); each `parity/` and
-  the problems/metrics/vis_tools/workflows suites also carry idempotent
-  relocate-ready conftest shims.
+- Repo-root `conftest.py` shims sys.path (repo root + `src/`); the
+  problems/metrics/vis_tools/workflows suites (and `algorithms/`) also carry
+  idempotent relocate-ready conftest shims.
 - Test pattern: `evoxc.build(fn, *specs, backend="numpy")` + `evoxc.run(exe, *args)`;
   scalar tensor inputs are 0-d ndarrays (numpy scalars rejected at run boundary);
   statics re-passed at run in signature order; results need `.numpy()`.
 
 ## Known operator deviations (reported to root agent, tests adapted)
-- Canonical `apd_fn` gathers with `relu(x)` where torch uses `norm_obj[x]`
-  (negative-index wrap) — latent in `ref_vec_guided`; details in
+- Canonical `apd_fn` gathers with `relu(x)` where the reference uses
+  `norm_obj[x]` (negative-index wrap) — latent in `ref_vec_guided`; details in
   `operators/CONTEXT.md` and `algorithms/CONTEXT.md`.
 - Canonical `DE_differential_sum` second output dtype varies (int32 replace=True,
-  int64 replace=False) — torch-faithful promotion.
+  int64 replace=False) — upstream-faithful promotion.
 
 See `../../src/evox_etl/DESIGN.md` §6 for the testing strategy.

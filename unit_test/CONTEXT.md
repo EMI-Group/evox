@@ -3,7 +3,7 @@
 ## Intent
 Holds the test suite of the EvoX 2.0 pre-release, which is built on the `evoxc` compiler and ships the functional package `src/evox_etl/` (+ the `src/evox_etl_ext/` plugin namespace).
 Only the canonical ETL suite `unit_test/etl/` remains; the old PyTorch 1.x test tree was removed with the torch package.
-The suite is pure `pytest` and must not import torch (torch is no longer a dependency of this repository).
+The suite is pure `pytest` and must stay torch-free (torch is no longer a dependency of this repository).
 
 ## API Surface
 - `conftest.py` — repo-root bootstrap: inserts the repo root and `<repo>/src` into `sys.path` so the PEP 420 namespace packages `evox_etl` / `evox_etl_ext` import without installation.
@@ -30,7 +30,7 @@ PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/test_no_torch.py -q #  
 The counts sum to 552 with no basename collisions: every subdirectory that ships an `__init__.py` (`algorithms/mo/`, `algorithms/so/es_variants/`, `operators/`, `problems/`, `metrics/`, `vis_tools/`, `ext/`) imports its test modules with the package prefix, which keeps same-basename files distinct.
 
 ## Torch-free gate
-- No file under `unit_test/` may import torch, `evox`, or any `src/evox` module — that tree no longer exists and torch is not installed as part of the 2.0 dependency set (`pyproject.toml`: `evoxc`, `numpy`).
+- No file under `unit_test/` may pull in torch, `evox`, or any `src/evox` module — that tree no longer exists and torch is not installed as part of the 2.0 dependency set (`pyproject.toml`: `evoxc`, `numpy`).
 - `etl/test_no_torch.py` enforces this in a fresh subprocess (`sys.executable -c ...`, `PYTHONPATH=src:<repo>`), so an in-process `sys.modules` check cannot be fooled by the pytest session.
 - Plotly is an optional extra (`evox[vis]`): `vis_tools/` and `workflows/test_eval_monitor_plot.py` keep their figure assertions behind `skipif`, so a plotly-less environment still passes.
 

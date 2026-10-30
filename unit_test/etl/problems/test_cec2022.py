@@ -7,8 +7,6 @@ Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default numpy
 backend.
 """
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 
@@ -19,16 +17,9 @@ from evox_etl.problems.numerical import cec2022 as cec_module
 from evox_etl.problems.numerical.cec2022 import CEC2022, evaluate
 from evox_etl.problems.numerical.state import ProblemState
 
-# Same resolution as the module's DATA_DIR (anchored on the module's own
-# location, so it keeps working after the suite is relocated).
-DATA_DIR = (
-    Path(cec_module.__file__).resolve().parents[4]
-    / "src"
-    / "evox"
-    / "problems"
-    / "numerical"
-    / "cec2022_input_data"
-)
+# The port ships the CEC2022 data inside its own package, so reuse the module's
+# own resolution (a Traversable) instead of reaching into the old torch tree.
+DATA_DIR = cec_module.DATA_DIR
 
 N = 8
 

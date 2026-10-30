@@ -3,7 +3,7 @@
 ## Intent
 Step-protocol smoke tests for the six functional evox_etl MO ports
 (`src/evox_etl/algorithms/mo/`): nsga2, nsga3, rvea, rveaa, moead, hype.
-No torch imports here — torch parity tests live in `../parity/`.
+No torch imports here — expectations are loose numpy sanity bounds.
 
 ## Files
 Every file follows the same three-part pattern: (1) a gen-0/step contract
@@ -36,8 +36,8 @@ seed-determinism check.
 ## Known Issues (behaviors the assertions must respect)
 - MOEAD is NOT elitist: per-objective bests of the FINAL population can
   regress vs the run history. Final-pop sanity bounds stay loose (100 on
-  DTLZ1); convergence-quality assertions live in `../parity/test_moead.py`
-  with the history-min metric and MOEAD_ABS_TOL=0.20.
+  DTLZ1); convergence-quality assertions are not pinned here (they lived in the
+  now-removed torch-parity suite); use the history-min metric if needed.
 - RVEA/RVEAa selection keeps one survivor row per reference vector,
   NaN-filled for unmatched vectors (torch-faithful `ref_vec_guided`):
   use `np.nanmin`, and compare determinism with `equal_nan=True`.
@@ -50,4 +50,4 @@ seed-determinism check.
 ## Constraints
 - ETL only (numpy backend): everything inside `evoxc.build`/`evoxc.run`.
 - No thresholds beyond the loose sanity bounds above; convergence-quality
-  parity vs torch is `../parity/`'s job.
+  parity vs the reference implementation is not this suite's job.

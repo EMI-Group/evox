@@ -1,13 +1,15 @@
-"""Release gate: importing and running the ETL port must NOT import torch.
+"""Release gate: importing and running the ETL port must NOT pull in torch.
 
-Torch is installed in the dev venv (the frozen ``src/evox`` reference and the
-``**/parity/**`` suites still need it), so an in-process
-``"torch" not in sys.modules`` check would be meaningless here — this very
-pytest session may have imported torch already. The gate therefore runs a
-FRESH interpreter (``sys.executable -c ...``) with ``PYTHONPATH`` pointing at
-the repository's ``src`` directory, imports ``evox_etl``, runs a small
-PSO-on-Sphere optimization through ``evox_etl.workflows.StdWorkflow`` and only
-then asserts that ``torch`` never got imported.
+The torch implementation of EvoX 1.x is gone from this repository, yet the
+gate is still worth keeping: a stray optional dependency or a careless helper
+could drag the heavy ``torch`` package (and its GPU stack) into a release that
+only needs ``evoxc`` + ``numpy``. An in-process ``"torch" not in sys.modules``
+check would be meaningless — this very pytest session may have loaded it — so
+the gate runs a FRESH interpreter (``sys.executable -c ...``) with
+``PYTHONPATH`` pointing at the repository's ``src`` directory, imports
+``evox_etl``, runs a small PSO-on-Sphere optimization through
+``evox_etl.workflows.StdWorkflow`` and only then asserts that no torch module
+entered ``sys.modules``.
 
 No network, numpy backend only.
 """
