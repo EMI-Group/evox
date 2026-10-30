@@ -6,9 +6,9 @@ Pytest suite for the functional `evox_etl` metrics (`gd`, `igd`, `gd_plus`,
 running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 
 ## Structure
-- `test_metrics.py` — pure-ETL tests (NO torch): metrics vs hand-rolled numpy
-  references (GD, IGD, GD+, IGD+ for several shapes/seeds and p exponents) and
-  Monte-Carlo HV vs brute-force recomputation from the drawn samples.
+- `test_metrics.py` — metrics vs hand-rolled numpy references (GD, IGD, GD+,
+  IGD+ for several shapes/seeds and p exponents) and Monte-Carlo HV vs
+  brute-force recomputation from the drawn samples.
   Also the HV reference-point CLIPPING regressions for both estimators
   (`hv` / `bounding_cube_monte_carlo_hv` and `each_cube_monte_carlo_hv`):
   a point that is not better than `ref` along an objective has zero extent
@@ -16,14 +16,10 @@ running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
   0.32 two-point half-outside front (`num_sample=400000`), and a 3-objective
   mixed front where the exact union volume comes from host-side
   inclusion-exclusion and adding the outside point must not change the value.
-- `parity/test_parity.py` — the ONLY file allowed to import torch; compares
-  `evox_etl` `gd`/`igd` against the torch `evox` reference on seeded inputs.
 
 ## Packaging
-- `__init__.py` in both `metrics/` and `metrics/parity/` makes them distinct
-  pytest packages. Without these, `test_parity.py` here would collide (module
-  name `parity.test_parity`) with `unit_test/etl/{algorithms,operators,problems}`
-  parity suites when the suites run together.
+- `__init__.py` in `metrics/` keeps its test module distinct from same-named
+  modules in other suites when everything runs together.
 - `conftest.py` shims `sys.path` (repo root + `src/`) for the uninstalled PEP
   420 `evox_etl` namespace package. It locates the repo root by searching
   parents of `__file__` for `pyproject.toml` and is idempotent (no duplicate
@@ -31,11 +27,11 @@ running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 
 ## Run
 ```
-<venv>/bin/python -m pytest unit_test/etl/metrics -q
+PYTHONPATH=src <venv>/bin/python -m pytest unit_test/etl/metrics -q
 ```
-59 tests, ~10s (parity imports torch). Runs from the repository root.
+50 tests, ~5s. Runs from the repository root.
 
 ## Constraints
 - Never modify `src/evox_etl/` from here — if a test exposes a package bug,
   report it instead of fixing package code.
-- Pure-ETL files must not import torch; torch is only allowed in `parity/`.
+- No test file in this tree may pull in torch; references are plain numpy.

@@ -8,7 +8,7 @@ key divergence and its documented shape/dtype/contract invariants
 ``c1 + c2 == p1 + p2``; the mathematically false "SBX children within parent
 range" is deliberately NOT tested — beta > 1 extrapolates, same as torch).
 ``DE_arithmetic_recombination`` (deterministic, no key) is covered by the
-torch parity suite in ``parity/``.
+operator-shim test ``unit_test/etl/algorithms/test_shim_crossover.py``.
 
 Note: ``DE_differential_sum``'s second output is int64 with ``replace=False``
 (the select against the python-int self-pick mirror promotes the int32

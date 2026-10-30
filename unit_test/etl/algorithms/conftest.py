@@ -1,9 +1,9 @@
 """Shared pytest path setup for the unit_test/etl/algorithms tests.
 
-Makes both the repo root (``evox``) and ``src/`` (``evox_etl``) importable in
-every test collected under this directory, so ``import evox`` (torch
-reference, used by parity tests) and ``import evox_etl`` (the functional
-package under test) work without any installation.
+Makes ``src/`` importable in every test collected under this directory, so the
+PEP 420 namespace package ``evox_etl`` (the package under test) works without
+any installation. The repository root is kept on ``sys.path`` as well so
+repository-level helpers stay importable.
 """
 
 import pathlib

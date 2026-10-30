@@ -104,8 +104,8 @@ class TestKwargsPassThrough:
     """``**kwargs`` reach the plotly layout for builders that forward them.
 
     ``plot_obj_space_1d_no_animation`` deliberately does NOT forward kwargs —
-    this mirrors the torch reference (``src/evox/vis_tools/plot.py``), so it is
-    intentionally excluded here.
+    this mirrors the reference implementation (``evox_etl/vis_tools/plot.py``),
+    so it is intentionally excluded here.
     """
 
     def test_dec_space(self) -> None:
