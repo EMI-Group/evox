@@ -34,7 +34,12 @@ Reimplementations of PyTorch operators that are not yet supported in `torch.comp
 | Export | Purpose |
 |---|---|
 | `register_vmap_op(fn, *, fake_fn, vmap_fn, fake_vmap_fn, ...)` | Decorator/function to register a custom operator with optional vmap support via `torch.library.custom_op` |
-| `VmapInfo` | Named tuple re-exported from `torch._functorch.autograd_function.VmapInfo` |
+| `VmapInfo` | Named tuple re-exported from `torch._functorch.autograd_function.VmapInfo`; exactly `VmapInfo(batch_size: int, randomness: str)`. Passed as the first positional argument to every `vmap_fn`/`fake_vmap_fn`/`vmap_wrap_inputs` callback. Re-exported by `evox.utils` for `problems/neuroevolution/brax.py` and `mujoco_playground.py`, which read `vmap_info.batch_size`. |
+
+### Absent helpers (do not assume they exist)
+- `FlattenedState` does **not** exist anywhere in this repository (no class, no function).
+- There is **no activation-lookup helper** in `src/evox/utils` (no `get_activation`/`ACTIVATION_MAP`; `problems/neuroevolution/virtual_problem.py` and `virtual_lora_problem.py` dispatch activations by `isinstance` on `nn.ReLU`/`nn.Tanh`/... modules directly).
+- `compile`/`vmap`/`use_state`/`Parameter`/`Mutable`/`ModuleBase` live in `evox.core`, not here; the closest equivalent to a "flattened state" is `ParamsAndVector` itself plus `torch.func.stack_module_state` in `problems/neuroevolution/utils.py`.
 
 `register_vmap_op` wraps `torch.library.custom_op` and layers on vmap registration. It provides a `_default_vmap_wrap_inputs` that moves vmap dimensions to position 0 and handles pytree structures. Required callbacks:
 - `fake_fn` — abstract evaluation for the operator (required)
