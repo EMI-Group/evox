@@ -1,2 +1,7 @@
-include src/evox/problems/numerical/data/*.json
-include src/evox/problems/numerical/cec2022_input_data/*.txt
+include src/evox_etl/problems/numerical/cec2022_input_data/*.txt
+include README.md
+include README_ZH.md
+include REFACTOR_REPORT.md
+include LICENSE
+recursive-include docs/source *.md
+recursive-include docs/source *.py

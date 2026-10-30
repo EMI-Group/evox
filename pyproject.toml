@@ -1,10 +1,9 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
 [project]
 name = "evox"
-version = "1.4.0"
+version = "2.0.0a1"
 authors = [
   { name = "Bill Huang", email = "bill.huang2001@gmail.com" },
   { name = "Boqing Xu", email = "xuboqing123@gmail.com" },
@@ -16,39 +15,51 @@ authors = [
 description = "evox"
 readme = "README.md"
 license = "GPL-3.0-or-later"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-
+# The 2.0 experimental line is built on the EvoX Compiler (`evoxc`).
+# The default install ships the pure-numpy backend; compiled backends are opt-in extras below.
 dependencies = [
-  "torch >= 2.6.0",
+  "evoxc >= 0.1.0",
   "numpy >= 2.0.0",
 ]
-
 [project.optional-dependencies]
+# Compiled backend selection — each extra pulls the toolchain for one `StdWorkflow(backend=...)` choice.
+# Set `backend="iree"` / `"tvm"` / `"xla"` when constructing a workflow.
+iree = [
+  "evoxc[iree] >= 0.1.0",
+]
+tvm = [
+  "evoxc[tvm] >= 0.1.0",
+]
+# Both compiled backends (+ jaxlib, which supplies the PJRT plugin used by `backend="xla"`).
+compilers = [
+  "evoxc[compilers] >= 0.1.0",
+]
+all = [
+  "evoxc[compilers] >= 0.1.0",
+  "plotly >= 5.0.0",
+  "pandas >= 2.0.0",
+]
 vis = [
   "plotly >= 5.0.0",
   "pandas >= 2.0.0",
 ]
-
-neuroevolution = [
-  "torchvision >= 0.16.0",
-  "brax >= 0.12.0",
-  "playground >= 0.0.4",
-  "imageio >= 2.0.0",
-]
-
-test = [
-  "torchvision >= 0.16.0",
-  "brax >= 0.12.0",
+# Historical alias kept from the 1.x metadata (`pip install evox[default]`).
+default = [
   "plotly >= 5.0.0",
-  "playground >= 0.0.4",
-  "imageio >= 2.0.0",
+  "pandas >= 2.0.0",
 ]
-
+test = [
+  "pytest >= 7.0",
+  "plotly >= 5.0.0",
+  "pandas >= 2.0.0",
+]
 docs = [
   "shibuya",
   "sphinx-autodoc2",
@@ -63,20 +74,18 @@ docs = [
   "sphinxcontrib-mermaid",
   "polib",
 ]
-
-default = [
-  "plotly >= 5.0.0",
-  "pandas >= 2.0.0",
-]
-
-triton = [
-  "triton >= 3.0.0; platform_system == 'Linux'",
-]
-
 [project.urls]
 "Homepage" = "https://github.com/EMI-Group/evox"
 "Bug Tracker" = "https://github.com/EMI-Group/evox/issues"
-
+[tool.setuptools]
+include-package-data = true
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+[tool.setuptools.package-data]
+"evox_etl.problems.numerical" = ["cec2022_input_data/*.txt"]
+[tool.pytest.ini_options]
+testpaths = ["unit_test/etl"]
 [tool.ruff]
 # Allow lines to be as long as 128. (default: 88)
 line-length = 128
@@ -85,4 +94,4 @@ format.line-ending = "lf"
 # F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
 lint.select = ["F", "E", "W", "I", "NPY"]
 lint.ignore = ["E501"] # Ignore line length error
-lint.per-file-ignores = {"*.ipynb" = ["I001"], "src/evox/__init__.py" = ["I001"], "src/evox_ext/autoload_ext.py" = ["I001"]}
+lint.per-file-ignores = { "*.ipynb" = ["I001"], "src/evox_etl/__init__.py" = ["I001"], "src/evox_etl_ext/autoload_ext.py" = ["I001"] }
