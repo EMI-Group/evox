@@ -141,3 +141,48 @@ See `../DESIGN.md`.
   `full_pop_history=False` nothing is recorded; without a `"pop"` aux key
   `pop_history` returns `cfg.pop_history`; fresh config defaults are an empty
   dict / empty list.
+
+## Torch-parity gaps (vs `src/evox/workflows` + `src/evox/core`)
+Current-state inventory of what the torch API has and this node does not (torch
+`src/evox/` is the read-only reference until it is deleted):
+- No distributed multi-rank evaluation: torch `StdWorkflow(enable_distributed,
+  group)` splits one population across ranks, gathers fitness and forks the RNG;
+  the port runs one device per workflow (multi-GPU = one process per GPU only).
+  Documented user-facing in `docs/source/guide/experimental/distributed_workflow.md`.
+- Monitor hooks are collapsed to ONE `monitor_update(config, state, candidate,
+  fitness)`; torch `Monitor.pre_eval` (post-solution-transform) and
+  `post_eval` (pre-fitness_transform) observations no longer exist, and monitor
+  code runs IN-GRAPH, so arbitrary host-side side effects per hook are gone
+  (host-side effects only via the algorithm `record_step` -> monitor
+  `record_auxiliary` aux channel).
+- No `set_config(**config)`, no user-constructed/shared monitor instance, no
+  `get_submodule("monitor")`: the workflow owns the wrapper (`wf.monitor` is
+  None until `init`), and one `EvalMonitorConfig` must not be shared across
+  workflows (its history lists would interleave).
+- No `device`/`history_device` knobs on the monitor: history is always host
+  numpy (D2H copies pipelined by `_readback`), never GPU-resident.
+- `EvalMonitor.get_best_fitness()` returns a Python `float` (torch returns a 0-d
+  tensor), and every accessor returns numpy (torch returns tensors) — docs'
+  `monitor.get_best_fitness().item()` idiom breaks.
+- MO detection is static: `multi_obj`/`n_obj` are filled only from a LIST
+  `opt_direction`; torch auto-set `multi_obj` from a rank-2 fitness at runtime.
+- Aux/pop history coverage: torch `Algorithm.record_step()` default returned
+  `{"pop", "fit"}` for EVERY algorithm; here only 13 of 32 algorithm modules
+  define the hook (the ES variants). For the other 19, `aux_history` stays
+  empty, so `plot(source="pop")` raises KeyError, and the legacy `pop_history`
+  fallback records the last EVALUATED batch rather than the post-step
+  population.
+- History is appended once per workflow step; torch appended once per
+  `evaluate` call (`pre_tell`), so a custom algorithm calling `evaluate` several
+  times per generation yields fewer entries here.
+- No batched/vmapped workflows (`use_state` + `vmap` + `stack_module_state` in
+  torch); `evoxc.vmap` exists but is not wired into `StdWorkflow`.
+- No `nn.Module` interop: no `state_dict`/`load_state_dict`/`parameters()`/
+  `get_submodule`/`train`-`eval`/`torch.save(workflow)`; `solution_transform`/
+  `fitness_transform` must be evoxc-traceable plain callables (a `torch.nn`
+  module transform cannot be passed).
+- No public workflow `.state` accessor for reading algorithm state after a run
+  (the returned `WorkflowState`/the private `wf._state` are the only handles);
+  torch users read `algo.fit`/`algo.pop` directly.
+- Validation errors are `TypeError`/`ValueError` where torch raised
+  `AssertionError` (e.g. bad `opt_direction`).
