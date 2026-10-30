@@ -30,15 +30,15 @@ program; after that you can jump to whichever part matches what you are doing.
    * - :doc:`tutorial_part2`
      - Everyone. The full walkthrough of one program: algorithm, problem, monitor and workflow.
    * - :doc:`tutorial_part3`
-     - Users writing their first real optimization script.
+     - Anyone writing their own script: the `StdWorkflow` contract, state threading, stateless RNG and `EvalMonitor`.
    * - :doc:`tutorial_part4`
-     - Users configuring algorithms, problems and monitoring for their own tasks.
+     - Choosing an algorithm: all 27 single-objective and 6 multi-objective configs, `make_*` and the virtual ES family.
    * - :doc:`tutorial_part5`
-     - Users extending the framework with their own algorithms, problems, operators and monitors.
+     - Choosing a benchmark problem (numerical, DTLZ, CEC2022, virtual) or writing your own.
    * - :doc:`tutorial_part6`
-     - Anyone who needs speed: running the same program on the IREE, TVM or XLA backends and on GPUs.
+     - Multi-objective work: running NSGA-II on DTLZ2, reading the Pareto front, HV/IGD/GD, plotting and `.exv` export.
    * - :doc:`tutorial_part7`
-     - Users bringing 1.x torch code across, plus practical end-to-end examples.
+     - Bringing 1.x torch code across: the one-to-one mapping and the list of removed features.
 ```
 
 ```{toctree}
@@ -61,7 +61,7 @@ tutorial_part7
   backend of your choice (`backend=` at the workflow): the default self-contained NumPy
   interpreter, or a compiled IREE / TVM / XLA backend for CPUs and GPUs.
 - **`evox_etl_ext`** — the plugin namespace package. Installed extensions are merged into the
-  matching `evox_etl.*` modules when you `import evox_etl`; see {doc}`tutorial_part5`.
+  matching `evox_etl.*` modules when you `import evox_etl`; see {doc}`../guide/advanced/extensions`.
 
 EvoX ships **30+ algorithms** and **30+ benchmark problems**. Together with the 13 related
 GPU-accelerated evolutionary computation libraries in the EMI-Group ecosystem, the combined

@@ -163,7 +163,7 @@ print(pf_solutions.shape, pf_fitness.shape)                 # (787, 12) (787, 2)
 ## The catalogue
 
 The pre-release ships **27 single-objective configs and 6 multi-objective configs** — the
-"30+ algorithms" claim of the EvoX ecosystem. Every row below was read off the package: the config
+"30+ algorithms" claim of EvoX. Every row below was read off the package: the config
 class, the `make_*` constructor, and the facts that actually distinguish the variants.
 
 ### Differential evolution — 6 configs
