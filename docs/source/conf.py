@@ -80,6 +80,11 @@ exclude_patterns = [
     # Agent-facing Context Tree files are not documentation pages.
     "CONTEXT.md",
     "**/CONTEXT.md",
+    # autodoc2 documents this module (it is imported by ``evox_etl.problems``)
+    # but the parent package's ``__all__`` does not list it, so autodoc2 never
+    # links it from a toctree. Excluding the generated page avoids an
+    # "orphan document" warning; nothing links to it.
+    "apidocs/evox_etl/evox_etl.problems.numerical.state.md",
 ]
 
 # The documented package (``evox_etl``) is pure Python on top of the ``evoxc``
@@ -167,10 +172,8 @@ html_theme_options = {
             ],
         },
     ],
-    "repository_branch": "main",
-    "path_to_docs": "/docs/source",
-    "use_repository_button": True,
-    "launch_buttons": {"colab_url": "https://colab.research.google.com"},
+    # ``source_*`` / ``github_url`` above already drive the shibuya repository
+    # and edit-on-GitHub links.
 }
 favicons = [
     "favicon-16x16.ico",
