@@ -11,7 +11,7 @@ Benchmarks are ad-hoc manual runs (`if __name__ == "__main__"` / small CLIs), ne
 ## Constraints
 - **No torch**: nothing under `benchmarks/` imports `torch`, `torch.*` or the deleted `evox` package — the harness imports `evox_etl` + `evoxc` + numpy + stdlib only.
 - **Explicit backends**: no auto device detection — the backend id decides the `evoxc` backend/device, and GPU runs take `--gpu N` (the env recipe is applied before any backend import).
-- **No PyTorch/NumPy-only shortcuts in methodology**: keep per-step timing, fixed seeds, warmup steps and the small → large scale sweep identical across backends.
+- **Identical methodology across backends**: keep per-step timing, the fixed seed, warmup steps and the small → large scale sweep the same for every backend.
 - **Frozen artefacts stay frozen**: committed result JSONs and reports under `etl_vs_torch/` keep their historical numbers; only provenance prose may be added.
 
 ## Routing Table
