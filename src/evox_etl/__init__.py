@@ -5,7 +5,12 @@ the torch OOP design; see ``DESIGN.md`` for the binding spec. Algorithms,
 problems and operators stay importable as submodules (not loaded at root).
 """
 
-__version__ = "1.4.0"
+from importlib.metadata import PackageNotFoundError, version as _dist_version
+
+try:
+    __version__ = _dist_version("evox")
+except PackageNotFoundError:  # running from a source tree, not an installed dist
+    __version__ = "0.0.0.dev0"
 
 from . import core, metrics, utils, vis_tools, workflows
 
