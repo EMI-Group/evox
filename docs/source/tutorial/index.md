@@ -11,9 +11,10 @@ pre-releases — pin a version if you need stability.
 
 This tutorial takes you from a clean Python environment to a running, compiled evolutionary
 optimization loop. Every page is based on the same programming model: **configuration is data**
-(frozen dataclasses), **state is data** (a pytree of tensors), and **the only compile site is
-`StdWorkflow`**, which traces the algorithm, problem and monitor once through `evoxc` and then
-runs the resulting program in a host-side loop.
+(frozen dataclasses), **state is data** (a pytree of tensors), and **the only compile site in the
+component model is `StdWorkflow`**, which traces the algorithm, problem and monitor once through
+`evoxc` and then runs the resulting program in a host-side loop. Code that calls a traced function
+directly — as in parts 5 and 6 — builds its own one-shot program with `evoxc.build` / `evoxc.evaluate`.
 
 Read the parts in order the first time. Parts 1–2 get you installed and through one complete
 program; after that you can jump to whichever part matches what you are doing.

@@ -47,9 +47,10 @@ Three things follow from that shape, and they explain almost every difference fr
    mid-run forces a recompile — which is why algorithms carry fixed-shape buffers (some keep an
    `offspring` buffer purely so the pytree never changes).
 
-You never call `init`/`step` yourself; the entire interaction is two lines
+You rarely need to call `init`/`step` yourself: the whole interaction is usually two lines
 (`workflow = StdWorkflow(config, problem, ...)` then `workflow.run(generations=N, seed=42)`), as in
-the four runnable examples below.
+the four runnable examples below. {doc}`Part 2 <tutorial_part2>` shows the manual
+`init`/`init_step`/`step`/`final_step` loop for the cases that need per-generation host-side work.
 
 ## Naming rules
 
@@ -60,8 +61,8 @@ family. Reading the four rules below is enough to avoid every import error:
   `PSO(...)` and `DE(...)` construct dataclass instances, and that instance is the workflow's
   `algorithm=` argument.
 - **The ES family defines its configs with a `*Config` suffix** and re-exports them under the
-  torch-style bare names. Both spellings are importable from `evox_etl.algorithms.so` and from
-  `evox_etl.algorithms`, and they are *the same object*:
+  torch-style bare names. Both spellings are importable from `evox_etl.algorithms.so`, and they
+  are *the same object*:
 
   ```python
   from evox_etl.algorithms.so import CMAES, CMAESConfig
@@ -71,6 +72,10 @@ family. Reading the four rules below is enough to avoid every import error:
   The same pairing holds for `OpenES`/`OpenESConfig`, `XNES`/`XNESConfig`, `SNES`, `ARS`, `ASEBO`,
   `DES`, `ESMC`, `GuidedES`, `NoiseReuseES`, `PersistentES` and `SeparableNES`. Note that the bare
   aliases are what appear in `__all__`; the `*Config` names are importable by explicit import.
+  The package-level `evox_etl.algorithms` re-exports only the MO `*Config` names, the two
+  virtual-ES configs (`VirtualESConfig`/`VirtualLoRAESConfig`) and the bare aliases — so
+  `from evox_etl.algorithms import CMAESConfig` raises `ImportError`; import it from
+  `evox_etl.algorithms.so` instead.
 - **The MO family exposes only `*Config` names plus `make_*` from `evox_etl.algorithms.mo`**;
   `evox_etl.algorithms` adds the bare aliases on top (`NSGA2`, `NSGA3`, `MOEAD`, `RVEA`, `RVEAa`,
   `HypE`). So `from evox_etl.algorithms.mo import NSGA2` fails, while
@@ -227,7 +232,7 @@ API pages: {doc}`nsga2 <../apidocs/evox_etl/evox_etl.algorithms.mo.nsga2>`,
 | Config class | `make_*` constructor | Notes |
 |---|---|---|
 | `NSGA2Config` | `make_nsga2` | Non-dominated sorting + crowding distance. Fields: `pop_size, n_objs, lb, ub, selection_op, mutation_op, crossover_op`. |
-| `NSGA3Config` | `make_nsga3` | Reference-point niching for many-objective problems. Same fields as NSGA-II plus `data_type`, which is the decision-variable dtype: `None` (float32 population, the default) or the builtin `bool` for a boolean population — anything else, notably `torch.bool`, raises `ValueError`. |
+| `NSGA3Config` | `make_nsga3` | Reference-point niching for many-objective problems. Same fields as NSGA-II plus `data_type`, which is the decision-variable dtype: `None` (float32 population, the default) or the builtin `bool` for a boolean population — anything else, notably `numpy.bool_`, raises `ValueError`. |
 | `MOEADConfig` | `make_moead` | Decomposition-based (PBI) MOEA: one sub-problem per weight vector, updated one-by-one inside a single traced generation loop. No extra hyperparameters beyond the shared four. |
 | `RVEAConfig` | `make_rvea` | Reference-vector guided EA with an APD selection criterion. Adds `alpha=2.0` (exponent of the APD penalty), `fr=0.1` (reference vectors are re-adapted every `round(1 / fr)` generations) and `max_gen=100`, the horizon that normalizes the generation counter in `theta = (gen / max_gen) ** alpha` — set it to the run length you intend. |
 | `RVEAaConfig` | `make_rveaa` | RVEA with reference-vector regeneration (`a`-variant): the effective population size becomes the Das–Dennis count of the reference vectors, and `alpha`/`fr`/`max_gen` mean the same as in RVEA. |
