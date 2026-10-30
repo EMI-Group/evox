@@ -67,7 +67,9 @@ def DE_binary_crossover(key, mutation_vector, current_vector, CR):
     pop_size, dim = mutation_vector.shape
     if getattr(CR, "shape", None) is not None and len(CR.shape) == 1:
         CR = enp.expand_dims(CR, 1)
-    rn = random.normal(k1, (pop_size, dim), 0.0, 1.0, "float32")
+    # Uniform draws (NOT normal): the mask must cross over with probability CR
+    # (torch commit 5e68f81f); a standard normal yields ~0.57 at CR=0.1.
+    rn = random.uniform(k1, (pop_size, dim), dtype="float32")
     mask = rn < CR
     rind = enp.expand_dims(random.randint(k2, (pop_size,), 0, dim, "int32"), 1)
     jind = enp.expand_dims(enp.arange(dim, dtype="int32"), 0) == rind
