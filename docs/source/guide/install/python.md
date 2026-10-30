@@ -4,14 +4,14 @@ This guide is for those who are new to the Python programming language and want 
 system. It covers the interpreter and the isolated environment you need before installing EvoX.
 
 ```{tip}
-EvoX 2.0 is a pure-Python package: the default install runs on a built-in NumPy backend, so you only
-need a working Python interpreter — no compiler toolchain, no CUDA driver, no PyTorch.
-EvoX declares `Python >= 3.10`; we recommend the **latest stable version** of Python.
+EvoX 2.0 requires **Python 3.11 or newer**: it runs on the `evoxc` compiler, which declares
+`Python >= 3.11`. Use the latest stable version of Python 3.11 or later.
 ```
 
 ```{note}
-The `evoxc` compiler that EvoX runs on declares `Python >= 3.11`. Use Python 3.11 or newer if you can,
-so that both requirements are satisfied by the same interpreter.
+The `evox` distribution's metadata still says `Python >= 3.10`, because the 1.x line is still in it.
+That floor does not apply to the 2.0 pre-release: `import evox_etl` imports `evoxc` unconditionally, so
+no 2.0 program runs on 3.10. Pick 3.11+.
 ```
 
 ## Install Python interpreter
@@ -111,11 +111,11 @@ $ uv python install 3.12
 ### Why an isolated environment
 
 A virtual environment is a self-contained directory holding one Python interpreter plus the packages
-installed into it. EvoX pulls in its own dependencies (the `evoxc` compiler and NumPy), and research
-code usually pins several versions of the same library across projects. Installing into an isolated
-environment keeps those versions from colliding, keeps your system Python untouched, and makes the
-installation reproducible: deleting the environment is a complete uninstall. Use one environment per
-project.
+installed into it. EvoX needs the `evoxc` compiler on top of its own dependencies (the 1.x manifest
+declares PyTorch and NumPy), and research code usually pins several versions of the same library across
+projects. Installing into an isolated environment keeps those versions from colliding, keeps your system
+Python untouched, and makes the installation reproducible: deleting the environment is a complete
+uninstall. Use one environment per project.
 
 ### Pip and Venv
 
