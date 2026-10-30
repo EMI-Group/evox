@@ -59,6 +59,18 @@ with `A (pop, rank, in)`, `B (pop, out, rank)` from `lora_factors`; the bias del
 is direct 1-D noise (`lora_factors` on the `(out,)` shape), mirroring torch
 `lora_delta_output`.
 
+**Noise-stream parity:** full-noise `virtual_normal` is formula-identical to torch's
+PyTorch fallback `_cpu_normal_noise` (same `seed ^ (idx*GAMMA)` hash input, splitmix64,
+low32→u1 / high32→u2, Box-Muller cos branch, `u1` clamped at 1e-10) but NOT to torch's
+Triton path (`tl.randn`), so bit-parity holds only against the CPU fallback. LoRA
+factors reuse the same splitmix64 stream while torch's LoRA path uses `philox_normal`
+→ statistically, not bit, equivalent.
+
+**Bias noise offset:** the port draws bias noise from `compute_offsets(b_idx)` and
+slices the center bias at its own index (bias need not follow its weight in flat
+order), while torch's fused op hard-codes `weight_offset + out*in`. Equal for the
+standard `named_parameters()` adjacency.
+
 ## Config construction / validation (`make_virtual_problem`)
 `ValueError` (never bare assert) for: non-2-D weight shape, bias shape ≠
 `(out,)`, out-of-range weight/bias index, non-`"linear"` kind, unsupported
