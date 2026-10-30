@@ -3,7 +3,7 @@
 ## Intent
 Port of the numerical problems from torch evox (`../../../evox/problems/`, read-only):
 basic.py (Sphere, Rastrigin, Rosenbrock, Ackley, Griewank, Schwefel, Zakharov,
-Levy...), dtlz.py (DTLZ1-7 + helpers), cec2022.py (with shipped input data). Plain
+Levy...), dtlz.py (DTLZ1-7 + `pf` helpers), cec2022.py (CEC2022 f1-f12). Plain
 functions in evoxc style — no classes, no OOP; the workflow traces them (per
 `../DESIGN.md` §4.3, functions are NOT `@evoxc.defn`-wrapped).
 
