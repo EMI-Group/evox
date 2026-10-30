@@ -26,9 +26,26 @@ NOT ported (external-library dependent — reported to root): the brax, mujoco_p
 - The validators and their messages are frozen — asserted by unit tests (`unit_test/etl/problems/test_basic.py` ~L183-195, `test_cec2022.py` ~L83-90).
 - The zero-child `evoxc.register_pytree_node` loop (former basic.py tail) is DELETED: ndarray statics are legal on the installed evoxc, and unregistered plain-leaf configs keep the run-time static-value check (drifted config at `evoxc.run` raises TraceError).
 - Problems do NOT use the algorithms' `make_*` constructor pattern — that policy lives in DESIGN.md §4.
+- Validation stays asserts (AssertionError, frozen messages): `basic._validate_shift_affine` (square affine / 1-D shift / matching dim) and `CEC2022.__post_init__` (dim ∈ {2,10,20}, funcs 6-8 not at D=2).
 
-## Data location
-cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/` (torch source tree); loaded as numpy with `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"` (memoized module-level cache). numpy allowed ONLY for that loading; never in graph code.
+## Parity vs the torch reference (verified against code)
+- `basic.py` is name-for-name complete: 10 configs + 9 `*_func`s, `__all__` identical to torch `basic.__all__`; no `d` field in either API (dimension comes from `pop`), shift is applied first then affine, no boundary handling.
+- Torch classes are a subclass chain (`Ackley(ShiftAffineNumericalProblem)`); port configs are independent frozen dataclasses, so `isinstance(x, ShiftAffineNumericalProblem)` is False for `Ackley` and `_true_evaluate` overrides are impossible — dispatch is `isinstance` on the exact config type (`basic.py:266-286`), unknown/base config raises `TypeError`.
+- `dtlz.py` has all 7 variants and all 5 PF variants (`pf_dtlz1` = sample/2, `pf_dtlz2` shared by DTLZ3/4, `_pf_dtlz56` shared by DTLZ5/6, `pf_dtlz7`), rows 2926 for DTLZ1-4 and 3000 for DTLZ5/6 at `ref_num=1000, m=3`.
+- Torch's `DTLZ` base class (exported in `dtlz.__all__`) has NO port equivalent — there is no `DTLZ` symbol here, only `DTLZ1..7` + the `DTLZConfig` union alias; extending DTLZ means adding a config plus an `evaluate_dtlzN`/`pf_dtlzN` pair and a dispatcher branch.
+- `cec2022.py` ports all 12 functions with 1:1 math; instance selection is `problem_number` in both APIs, but the port defers `FileNotFoundError`/unknown-function `ValueError` to `evaluate` and has no `device` field.
+- Port export surface is a SUPERSET of torch `evox.problems.numerical.__all__` (25 names): adds `ShiftAffineNumericalProblem`, `Zakharov`, `Levy`, `zakharov_func`, `levy_func`, `ProblemState`.
+- `state.ProblemState` is a concrete empty frozen dataclass, distinct from `evox_etl.core.ProblemState` (which is `Any`); numerical `evaluate`s ignore whatever state they receive.
+- Name collision: `basic.levy_func` (w = 1+(x-1)/4) and `cec2022.levy_func` (w = 1+x/4) are different public functions — import explicitly, never star-import both.
+- Fully STATIC shapes (batch n AND dim) are required: `basic._shift_affine` builds a `zeros(dim)` constant, `dtlz` indexes `_reverse_axis1`/`enp.ones((n, 1))` with Python ints, cec2022 gathers with static index arrays. `core/workflow.py:410-416` traces from concrete state shapes, so this holds for `StdWorkflow`; a dynamic-dim spec fails.
+
+## Data location (release-blocking)
+cec2022 input data is read from the torch tree, NOT shipped with the port: `cec2022.py:27` sets `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"`, and `_load_data` parses the 54 tracked `.txt` files (`../../../evox/problems/numerical/cec2022_input_data/`) into a memoized `(M, OShift, SS)` numpy cache.
+numpy is allowed ONLY for that loading; never in graph code.
+That path breaks in both release scenarios: (a) deleting `src/evox/` deletes the directory, so source checkouts and `../../../../unit_test/etl/problems/test_cec2022.py` (which recomputes the same expression, no skip guard) fail; (b) in any wheel/sdist install it resolves to `<venv>/lib/pythonX.Y/src/evox/...` because `parents[4]` of `site-packages/evox_etl/problems/numerical/cec2022.py` is the stdlib dir.
+Nothing under `src/evox_etl/` contains data (`git ls-files` shows no `.txt`/`.json` there), `MANIFEST.in:2` lists only the torch path, and `pyproject.toml` has no `[tool.setuptools]`/`package-data` section; DESIGN.md §5.9 requires port-owned data loaded via `importlib.resources`.
+Fix shape: copy the 54 files into this directory, resolve via `importlib.resources`, and add a packaging entry.
+Data errors surface at trace time (`evaluate` → `_load_data`), not at config construction.
 
 ## Validation
 Pattern: `evoxc.build` + `evoxc.run` (numpy backend) vs references — basic: bit-exact vs numpy versions of the torch formulas, shift/affine variants match torch within float32 rounding; dtlz: evaluate parity ≤ few float32 ulps, pf parity ≤ 2e-6 (torch); cec2022: all 12 functions × dims {2,10,20} within rel 1e-5 vs torch. Unit tests: sibling `../../../../unit_test/etl/problems/` (parity tests may import torch).
