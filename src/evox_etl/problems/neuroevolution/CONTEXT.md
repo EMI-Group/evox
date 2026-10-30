@@ -69,6 +69,36 @@ chain (`in_features` → … → `out_features`), `inputs` length ≠
 or ≠ `batch_size` (cross_entropy), bad `reduction`/`loss`, and a non-positive /
 non-int `lora_rank`.
 
+## Torch parity map (frozen reference `../../../evox/problems/neuroevolution/`)
+| Torch file (public class) | Status | Reason / lost capability |
+|---|---|---|
+| `virtual_problem.py` (`VirtualProblem`) | PORTED | full-noise mode (`lora_rank=None`); fused Triton kernel replaced by an explicit `h @ noise^T` matmul. |
+| `virtual_lora_problem.py` (`VirtualLoRAProblem`) | PORTED | LoRA mode (`lora_rank>0`); non-fused `base + sigma*(h@A^T)@B^T`. |
+| `utils.py` (`ModelStateForwardResult`, `get_vmap_model_state_forward`) | INTENTIONALLY OMITTED | built on `torch.func.stack_module_state` + `evox.core.vmap` + `use_state`; no state_dict/vmap in evoxc. NOTE this file has NO param-flatten helper and no `FlattenedState` — flattening lives in `evox.utils.ParamsAndVector` (`parameters_and_vector.py`), which is what the virtual problems used. |
+| `supervised_learning.py` (`SupervisedLearningProblem`) | INTENTIONALLY OMITTED | needs `torch.nn.Module` + `DataLoader` + vmapped module state. Lost: train a population of torch models on an arbitrary dataset (the general neuroevolution entry point). |
+| `brax.py` (`BraxProblem`) | INTENTIONALLY OMITTED | needs `jax`/`brax` envs, DLPack bridging, `torch.library.custom_op` + functorch unwrapping + `weakref`-keyed global registry + mutated `self.key`. Lost: policy search on Brax locomotion envs + `visualize()`. |
+| `mujoco_playground.py` (`MujocoProblem`) | INTENTIONALLY OMITTED | needs `jax`/`brax`/`mujoco_playground` MJX + `imageio` rendering (signature also lacks `backend`/`compile_policy` vs `BraxProblem`). Lost: MJX env policy search + `visualize()`. |
+
+## Migration notes (torch → this port)
+- The `(center, seeds, sigma)` payload protocol is NOT new: torch's
+  `VirtualES.step` already called `self.evaluate((center, seeds, sigma))` and the
+  workflow already routed payloads, so `solution_transform` MUST stay `None` in both —
+  no host-side wrapper is needed, `StdWorkflow` passes the payload straight to
+  `problem.evaluate` (payload-aware monitor via the algorithm's `monitor_candidate`).
+- There is NO `ParamsAndVector` analogue anywhere in `src/evox_etl` (no
+  `to_vector`/`to_params`; not in `evox_etl.utils.__all__`): the host must derive
+  `param_shapes` (torch `named_parameters()` order), the `layer_specs` 4-tuples and
+  the flat f32 `center`/`center_init` by hand, and keep the algorithm config's
+  `param_shapes` identical to the problem config's.
+- `criterion: nn.Module` → the string `loss` (`mse`|`cross_entropy` only, no
+  weights/label_smoothing/ignore_index); `device=` and `n_batch_per_eval` are gone.
+- `sigma` is a static payload leaf, not a config field → one compiled step graph per
+  distinct sigma value (`../CONTEXT.md` issue 17).
+- No example driver exists (`examples/` has quickstart + HPO only); the only real
+  wiring is `../../../unit_test/etl/algorithms/so/es_variants/test_virtual_e2e.py`
+  (StdWorkflow + `make_virtual_es`/`make_virtual_lora_es` on a 4→8→1 net) — use it as
+  the template.
+
 ## Deliberate differences from the torch reference
 1. **EvoX Compiler trade-off (materialization).** Torch's fused Triton kernel never
    materializes `(out, in)` noise; evoxc has no fused matmul, so this port DOES
