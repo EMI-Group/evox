@@ -26,6 +26,8 @@ dependent — reported to root, see `../CONTEXT.md`).
 - `make_virtual_problem(...)`: normalizes (`to_float_tuple(dtype=np.float32)`) +
   validates; raises `ValueError` for every inconsistency (see below).
 - `evaluate(config, problem_state, payload) -> (fitness, problem_state)`.
+- Module-level `__all__` also exposes `SUPPORTED_ACTIVATIONS` / `SUPPORTED_LOSSES`
+  / `SUPPORTED_REDUCTIONS` (module only, NOT re-exported at package level).
 - `__init__.py` exports `virtual_problem`, `VirtualProblemConfig`,
   `VirtualProblem`, `VirtualLoRAProblem`, `make_virtual_problem`, `evaluate`.
 
