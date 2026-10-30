@@ -1,5 +1,16 @@
 # results/ — evox (torch) vs evox_etl benchmark outputs
 
+> **Historical evidence (1.x torch era).** Every JSON in this directory is a
+> frozen measurement record taken while the PyTorch 1.x reference
+> implementation `src/evox/` still existed, during the 1.4 → 2.0 refactor; the
+> files are preserved byte-for-byte and are not re-measured.
+> The `*_torch-*.json` files (`torch-cpu`, `torch-cuda`, `torch-rocm`) are kept
+> as historical references only — those backend ids no longer exist in the 2.0
+> harness.
+> The `etl-*` filenames are frozen keys that name the `evoxc`-backed
+> implementations (`etl-numpy` = numpy backend, `etl-iree-*` = iree backend,
+> `etl-xla-*` = xla backend).
+
 ## Naming convention
 
 Each run writes one JSON file per suite and backend:
@@ -15,6 +26,9 @@ results/{suite}_{backend}.json
 
 A `--out <path>` override is also supported (used by smoke tests, which
 never touch this directory).
+
+Only the `etl-*` / `etl-*-mi300x` names are producible today — the `torch-*`
+ids above are listed only to document the historical files.
 
 ### Host distinction (A6000/CUDA vs MI300X/ROCm)
 

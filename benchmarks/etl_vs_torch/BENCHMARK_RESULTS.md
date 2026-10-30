@@ -1,5 +1,24 @@
 # evox (torch) vs evox_etl — Benchmark Results
 
+> **Historical artefact (1.x torch reference, measured during the 1.4 → 2.0 refactor).**
+> Every number in this report was measured against the PyTorch 1.x reference
+> implementation `src/evox/` while it still existed in the tree; that package
+> has since been removed for the 2.0 pre-release (the shipped implementation is
+> the functional `evox_etl` port, `src/evox_etl/`, on the `evoxc` compiler).
+> This report and the `results/*.json` files are frozen historical experimental
+> evidence: they are deliberately **not** re-measured and **not** edited, so past
+> conclusions stay traceable.
+> - The `torch-*` backend ids (`torch-cpu`, `torch-cuda`, `torch-rocm`) no
+>   longer exist — the 2.0 harness has no torch backends at all.
+> - The `etl-*` ids are FROZEN keys into the committed JSONs; they name the
+>   `evoxc`-backed implementations (`etl-numpy` = numpy backend,
+>   `etl-iree-*` = iree backend, `etl-xla-*` = xla backend). The implementation
+>   package is now `evoxc`, even though the ids keep the `etl` name.
+> - `results/{suite}_torch-cpu.json` survives only as the frozen historical
+>   convergence baseline behind the `parity` verdicts.
+> - Live measurement today: `python run.py --backend etl-numpy --suite so
+>   --cases <case> --out /tmp/x.json` (no torch required).
+
 Comparison of the torch OOP `evox` (`src/evox/`) against the functional
 `evox_etl` (`src/evox_etl/`). Two suites (single-objective, multi-objective),
 small → large scale, on two hosts: six backends on an NVIDIA A6000 host and

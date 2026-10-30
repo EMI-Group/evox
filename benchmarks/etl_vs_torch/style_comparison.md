@@ -1,5 +1,11 @@
 # Style comparison: torch OOP evox vs functional evox_etl
 
+> **Historical document (1.4 era).** The torch OOP `evox` (`src/evox/`) side
+> compared below has been removed in 2.0; only the functional `evox_etl` side —
+> now running on the `evoxc` compiler — remains the shipped implementation.
+> This analysis is kept as design rationale for the functional style, not as a
+> description of files that still exist.
+
 This report compares the **code style and cleanliness** of the two
 implementations exercised by this benchmark: the PyTorch-native OOP `evox`
 (`src/evox/`, `torch.nn.Module`-based `Algorithm` classes with in-place
