@@ -1,33 +1,40 @@
-# docs/source/tutorial/ — EvoX Getting-Started Tutorial Series
+# docs/source/tutorial/ — EvoX 2.0 Getting-Started Tutorial
 
 ## Intent
-This directory contains the **7-part getting-started tutorial** for EvoX, written in English MyST Markdown. It is the primary onboarding path for new users — starting from "What is EvoX?" through installation, basic usage, advanced features, custom development, troubleshooting, and culminating in practical end-to-end examples.
+This directory holds the 7-part getting-started tutorial for the **experimental EvoX 2.0 pre-release**, whose import name is `evox_etl` (functional rewrite on the `evoxc` compiler).
+The series is the primary onboarding path: install → one complete program → workflow/monitor contract → algorithm catalogue → problem catalogue → multi-objective → migration from 1.x.
+Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_CN/tutorial/` and are maintained separately (the machine-translation script skips tutorials).
 
 ## API Surface
 
-| File | Purpose |
-|---|---|
-| `index.md` | Single `{toctree}` listing all 7 parts at `maxdepth: 1`. Serves as the landing page titled "EvoX Tutorial" |
-| `tutorial_part1.md` | **1. Introduction** — What is EvoX, key features (modular architecture, distributed execution, functional programming, visualization, extensive algorithm/problem libraries), and use cases (large-scale optimization, multi-objective, HPO, neuroevolution, research) |
-| `tutorial_part2.md` | **2. Installation and Environment Setup** — Prerequisites (Python 3.10+, PyTorch), Windows installation (one-click script or manual), Linux installation (pip, Docker/Podman), optional extras (`vis`, `neuroevolution`), verification steps |
-| `tutorial_part3.md` | **3. Basic Operations** — First optimization run (PSO + Ackley), the algorithm-problem-workflow-monitor concept, step-by-step project configuration (6-step recipe), basic command reference for `StdWorkflow`, `EvalMonitor`, and device control (`.to()`) |
-| `tutorial_part4.md` | **4. Advanced Features** — Custom configuration (algorithm params, operator replacement, multi-objective settings, logging), plugin management (vis, neuroevolution, sibling projects, custom plugins), performance optimization (GPU parallelism, batch evaluation, `torch.compile`, population tuning, distributed deployment, profiling) |
-| `tutorial_part5.md` | **5. Development and Extension** — Implementing custom `Problem` subclasses (`evaluate` with batch input), implementing custom `Algorithm` subclasses (full PSO example using `Mutable`/`Parameter`), custom monitors/operators, API tour (`evox.algorithms.so`, `evox.algorithms.mo`, `evox.problems`, `evox.metrics`), ML/RL integration patterns (HPO wrapping, Brax neuroevolution, `ParamsAndVector`) |
-| `tutorial_part6.md` | **6. Troubleshooting and Optimization** — Common issues (import errors, GPU not used, OOM, convergence stagnation, poor results, backend conflicts, version mismatch) with solutions, debugging tips (small-scale testing, print statements, IDE breakpoints, profiling, logging), performance tuning guide (progressive scaling, hardware monitoring, parallelism, batch evaluation, algorithm selection) |
-| `tutorial_part7.md` | **7. Practical Examples** — Three complete worked examples: (1) single-objective PSO on 10D Rastrigin, (2) multi-objective NSGA-II on a custom bi-objective problem with Pareto front visualization, (3) hyperparameter optimization of logistic regression on breast cancer data using CMA-ES |
-
-## Integration Points
-
-### Upstream (who links here)
-- **`docs/source/index.md`** — Root documentation landing page includes `tutorial/index` in the "Getting Started" toctree (caption: "Getting Started") and as a grid-item-card
-- **`docs/source/locale/zh_CN/tutorial/`** — Contains Chinese translations of all 7 tutorial parts plus a translated `index.md`; these are NOT in this directory but are structurally parallel
-
-### Downstream
-- This directory has no child subdirectories — it is a leaf node
+| File | Title | Content |
+|---|---|---|
+| `index.md` | EvoX Tutorial | Pre-release `{warning}`, reading-order list-table, `{toctree}` (`:maxdepth: 1`) over the 7 parts, the stack (`evox_etl` / `evoxc` / `evox_etl_ext`), count claims |
+| `tutorial_part1.md` | 1. EvoX 2.0 and Installation | One paragraph on what changed vs 1.x, functional model at a glance, install (`pip install evox` = numpy backend, Python 3.11+, extras `vis`/`iree`/`tvm`/`compilers` also available as `evoxc[...]`, xla needs `EVOXC_PJRT_PLUGIN` exported before the process starts), smoke test, next-step links |
+| `tutorial_part2.md` | 2. Your First Optimization: PSO on Sphere | Full program adapted from `examples/quickstart.py`, argument table, manual `init`/`init_step`/`step`/`final_step`/`flush` loop, reading results, `monitor.plot()`, one-line algorithm/problem swaps |
+| `tutorial_part3.md` | 3. Workflow and Monitor | `StdWorkflow` contract (incl. `solution_transform`/`fitness_transform`/`compile_options`), `run` vs `fit` vs step loop, one step = one generation, `opt_direction`, state threading, stateless RNG, `EvalMonitorConfig` field table, `EvalMonitor` method table, monitors outside the graph |
+| `tutorial_part4.md` | 4. Algorithms | Naming rules (bare name = config, ES `*Config` aliases, MO `*Config` only under `.mo`, `make_*` recommended), four executed snippets, one table per family (DE 6 / ES 14 / PSO 7 / MO 6), virtual ES family, MO custom-operator injection, choosing an algorithm |
+| `tutorial_part5.md` | 5. Problems | Basic numerical table, DTLZ1–7 (`d`/`m`/`ref_num` + module-level `pf(config)`), CEC2022, shift/affine, virtual problems (`VirtualProblem`/`VirtualLoRAProblem`, `(center_flat, seeds, sigma)` payload), writing your own problem |
+| `tutorial_part6.md` | 6. Multi-Objective Optimization | NSGA-II on DTLZ2 with list `opt_direction`, `get_pf()`, the seven metrics (`gd`/`gd_plus`/`igd`/`igd_plus`/`hv` + MC variants), plotting with `problem_pf`, `.exv` export via `EvoXVisionAdapter` |
+| `tutorial_part7.md` | 7. Migrating from EvoX 1.x | 10-row mapping table, before/after code pairs, "removed in 2.0" list, migration checklist |
 
 ## Constraints
-- The tutorial is written in **MyST Markdown** (`.md` with `{toctree}`, `{note}`, `{tip}`, `{figure}`, `{math}` directives)
-- Parts should be read sequentially (Part 1 → Part 7) — each builds on prior knowledge
-- Chinese translations live under `locale/zh_CN/tutorial/` and are maintained separately (the machine translation script at `docs/machine_translate.py` explicitly skips tutorials since they are manually translated)
-- Figures referenced in tutorials (e.g., `rastrigin_function.svg`, `example_nsga2_result.svg`) live in `docs/source/_static/`
-- The `index.md` toctree must stay in sync with the actual tutorial files; any new part must be added to the toctree
+- Every page opens with exactly one H1; the `index.md` H1 is `# EvoX Tutorial` and its toctree must list all seven parts with `:maxdepth: 1`.
+- **No 1.x torch API is taught anywhere in this directory except `tutorial_part7.md`** (the migration page); other pages may mention 1.x in at most one "what changed" framing sentence.
+- All code blocks are verified against the real `src/evox_etl` package with `PYTHONPATH=src /tmp/venv/bin/python` before being written down; do not publish an unexecuted snippet.
+- Guide links use the agreed paths under `../guide/` (`install/index`, `install/evox`, `advanced/backends`, `advanced/operators`, `advanced/metrics`, `advanced/viz`, `advanced/hpo`, `advanced/extensions`, `developer/architecture`, `developer/custom-alg-pro`, `developer/custom-monitor`); some may not exist yet.
+- Count claims: EvoX ships **30+ algorithms** and **30+ benchmark problems**; the EMI-Group ecosystem **140+ algorithms** and **240+ benchmark problems/environments** — keep EN/ZH identical.
+- Never reference `apidocs/` files as sources (generated at build time) and never edit `locale/**` `.po` files from here.
+
+## Notes for Agents
+- `EvalMonitorConfig(pop_size=..., dim=...)` completion: the workflow infers `pop_size`/`dim` only from an algorithm state population (`population`/`pop`); CMA-ES carries no bounds, so its monitor needs an explicit `dim=`.
+- Monitors and history are affected by the step-loop style: `run(n)` performs `init_step` + (n-2) plain steps + `final_step` (n total; `n == 1` is only `init_step`), and a manual loop must call `init_step` first; monitor history lists live on the config and keep appending across `run`/`fit` calls on the same workflow (a second `run` doubles the list).
+- `wf.flush()` only matters when monitor state lives on a non-CPU device: `_readback` appends CPU leaves immediately, so on the default `backend="numpy"`/`device=None` the history is already complete without flushing.
+- `init()` runs the algorithm/monitor init graphs and traces the plain `step` graph; the `init_step`/`final_step` variants are traced lazily on first use, and any variant is re-traced when a state leaf changes shape/dtype.
+- Problems and metrics are traced `evoxc` functions: outside a trace use `evoxc.evaluate(fn, *concrete_args)` or `evoxc.build` + `evoxc.run`; `hv` additionally takes a leading RNG key and a static `num_sample`.
+- `PSO`/`make_pso` take `lb`/`ub` only (no `dim`; 1-D arrays required), and `DTLZ` exposes its Pareto front as the module-level `pf(config)`, not a method.
+- `tutorial_part4.md` is the only page that links into generated `../apidocs/evox_etl/...` documents (one per algorithm family); those targets resolve only after autodoc2 has run, and `../conf.py` now restricts `autodoc2_module_all_regexes` to `core`/`problems`/`utils`/`workflows`, so the former `algorithms/so/de_variants/code.py` abort no longer applies.
+- Link targets used from these pages all exist today: `../guide/install/{index,evox}`, `../guide/advanced/{backends,operators,metrics,viz,hpo,extensions}`, `../guide/developer/{architecture,custom-alg-pro,custom-monitor}`.
+
+## Known Issues
+- `tutorial_part5.md` labels `dim = 8*4 + 8 + 1*8 + 1` as `# 41` (it is 49).

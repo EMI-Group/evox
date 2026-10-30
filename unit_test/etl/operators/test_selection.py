@@ -94,6 +94,82 @@ def test_tournament_key_divergence():
     assert not np.array_equal(a, b)
 
 
+# --- 1-D output for short selections (torch fix: n_round=1 / n_round=3) ------
+# Reduced rounds must not leave a spurious trailing axis: the selection index
+# tensor is 1-D of shape (n_round,) for every n_round, n_round=1 included.
+
+
+@pytest.mark.parametrize("n_round", [1, 3])
+@pytest.mark.parametrize("tournament_size", [2, 3])
+def test_tournament_short_selection_is_1d(n_round, tournament_size):
+    exe = build(tournament_selection, KEY_SPEC, n_round, FIT_SPEC, tournament_size)
+    out = to_numpy(evoxc.run(exe, make_key(0), n_round, FITNESS, tournament_size))
+    assert out.shape == (n_round,)
+    assert out.dtype == np.int32
+    assert np.all(out >= 0) and np.all(out < N)
+
+
+@pytest.mark.parametrize("n_round", [1, 3])
+@pytest.mark.parametrize("tournament_size", [2, 3])
+def test_multifit_short_selection_is_1d(n_round, tournament_size):
+    fits = [FITNESS, FITNESS2]
+    exe = build(
+        tournament_selection_multifit, KEY_SPEC, n_round, _multifit_specs(2), tournament_size
+    )
+    out = to_numpy(evoxc.run(exe, make_key(0), n_round, fits, tournament_size))
+    assert out.shape == (n_round,)
+    assert out.dtype == np.int32
+    assert np.all(out >= 0) and np.all(out < N)
+
+
+# --- very large tournament: the winner is the argmin -------------------------
+# FITNESS_BIG has its unique minimum away from the ends, so "argmin" cannot be
+# confused with "lowest index".
+FITNESS_BIG = np.abs(np.arange(N, dtype=np.float32) - 13.0)
+BIG_TOURNAMENT = 10 * N  # every candidate is drawn (with duplicates) w.h.p.
+
+
+def test_tournament_large_size_picks_argmin():
+    exe = build(tournament_selection, KEY_SPEC, 4, FIT_SPEC, BIG_TOURNAMENT)
+    out = to_numpy(evoxc.run(exe, make_key(0), 4, FITNESS_BIG, BIG_TOURNAMENT))
+    assert out.shape == (4,)
+    assert int(FITNESS_BIG.argmin()) == 13
+    assert np.all(out == 13)
+
+
+# The multifit lexicographic order follows numpy's ``lexsort``: the LAST
+# fitness is the primary key, earlier ones are tie-breakers.
+MULTIFIT_F0 = np.abs(np.arange(N, dtype=np.float32) - 41.0)  # argmin at 41
+MULTIFIT_F1 = np.abs(np.arange(N, dtype=np.float32) - 13.0)  # argmin at 13
+
+
+def test_multifit_large_size_picks_lexicographic_winner():
+    fits = [MULTIFIT_F0, MULTIFIT_F1]
+    exe = build(
+        tournament_selection_multifit, KEY_SPEC, 4, _multifit_specs(2), BIG_TOURNAMENT
+    )
+    out = to_numpy(evoxc.run(exe, make_key(0), 4, fits, BIG_TOURNAMENT))
+    expected = int(np.lexsort((MULTIFIT_F0, MULTIFIT_F1))[0])
+    assert expected == 13  # primary key (the last one) decides
+    assert out.shape == (4,)
+    assert np.all(out == expected)
+
+
+def test_multifit_large_size_breaks_ties_with_earlier_key():
+    primary = np.full(N, 0.5, dtype=np.float32)
+    primary[[3, 7]] = 0.4  # tie on the primary key between 3 and 7
+    secondary = np.arange(N, dtype=np.float32)  # prefers 3 over 7
+    fits = [secondary, primary]
+    exe = build(
+        tournament_selection_multifit, KEY_SPEC, 4, _multifit_specs(2), BIG_TOURNAMENT
+    )
+    out = to_numpy(evoxc.run(exe, make_key(0), 4, fits, BIG_TOURNAMENT))
+    expected = int(np.lexsort((secondary, primary))[0])
+    assert expected == 3
+    assert out.shape == (4,)
+    assert np.all(out == expected)
+
+
 # --- tournament_selection_multifit -------------------------------------------
 
 

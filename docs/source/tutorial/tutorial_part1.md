@@ -1,31 +1,140 @@
-# 1. Introduction
+# 1. EvoX 2.0 and Installation
 
-## What is EvoX?
+## What EvoX is — and what changed in 2.0
 
-EvoX is an open-source evolutionary computation library, mainly used to solve various complex optimization problems. Evolutionary computation is a category of algorithms that simulate natural evolution to search for optimal solutions, including Genetic Algorithms (GA), Evolution Strategies (ES), Particle Swarm Optimization (PSO), etc.
+EvoX is a GPU-accelerated framework for scalable evolutionary computation. In 1.x every component
+was a `ModuleBase` subclass holding `Parameter`/`Mutable` tensors, and parallelism came from
+`torch.compile`/`vmap` wrappers around those classes; in 2.0 that component model is gone.
+An algorithm, a problem and a monitor are now **frozen config dataclasses** (plain hyperparameters,
+built by `make_*` constructors such as `make_pso`), the population and any other mutable quantities
+are **tensor-valued state** carried through plain `init` / `step` functions, and `StdWorkflow`
+compiles that trio exactly once through the **`evoxc`** compiler before running it in a loop.
+The package you import is **`evox_etl`** — the torch `import evox` API has been removed.
 
-Traditional evolutionary frameworks are often limited by computational resources and programming models, making them inefficient for large-scale problems. EvoX overcomes these challenges by combining **GPU acceleration** and **distributed computing**, offering an efficient and scalable solution that allows users to find better solutions faster in complex search spaces.
+## The functional model at a glance
 
-## Key Features of EvoX
+- **Algorithm = config dataclass.** `PSO(pop_size=40, lb=..., ub=...)` is inert data: no state, no
+  `forward`, nothing to reset. The search dimension is implied by the length of `lb`/`ub`.
+- **Problem = config dataclass.** `Sphere()` carries the problem definition; the evaluation logic
+  lives in the module's `evaluate` function.
+- **State = a pytree of tensors.** `init(config, key)` returns it, `step(config, state, evaluate)`
+  returns the next one. State leaves are `evoxc` tensors, never Python scalars, so the whole
+  pytree can cross the compilation boundary.
+- **Logic = plain module-level functions.** `init(config, key)`, `step(config, state, evaluate)`,
+  optional `init_step` / `final_step`, plus `evaluate` for problems. They are ordinary Python
+  functions — no decorators to remember, and trivially unit-testable.
+- **One compile site in the component model.** `StdWorkflow` traces the algorithm, problem and
+  monitor into a graph once (`evoxc.build`) and reuses that executable for every generation;
+  monitors, metrics and history bookkeeping stay host-side. (Pages that call `evoxc.build`
+  themselves, such as the Pareto-front and metric examples, compile their own small graphs.)
 
-- **Modular Architecture**: EvoX breaks down the optimization process into independent modules: Algorithm, Problem, Monitor, and Workflow. Users don’t need to worry about low-level parallel implementations—EvoX automatically leverages hardware to boost performance.
-- **Distributed Execution**: EvoX supports multi-GPU and even multi-node distributed execution. The same code can run on a single machine or scale up to a GPU cluster with little to no additional parallel programming effort. This means your optimization tasks can easily scale from a laptop to a server cluster environment.
-- **Functional Programming Interface**: EvoX provides a functional programming interface that aligns closely with mathematical models. Core algorithms are implemented as pure functions without side effects, simplifying parallelization and debugging. Users only need to implement the required functions as defined by the framework, without manually managing complex algorithm states.
-- **Visualization and Monitoring**: EvoX includes rich visualization tools and monitoring modules to track the evolutionary process in real time. It uses a dedicated `.exv` data format for efficient streaming and logging of optimization data and provides user-friendly visualization modules to plot convergence curves and more. These tools give users an intuitive understanding of algorithm performance and convergence status.
-- **Extensive Algorithm and Problem Libraries**: EvoX includes 30+ single- and multi-objective evolutionary algorithms and 30+ benchmark optimization problems, while the wider EvoX ecosystem—EvoX together with 13 related GPU-accelerated evolutionary computation libraries—provides 140+ algorithms and 240+ benchmark problems and environments. Whether it’s classical function optimization, complex engineering challenges, or machine learning tasks like hyperparameter optimization (HPO) and neuroevolution, EvoX provides ready-to-use algorithms and problem interfaces out of the box.
+```python
+from evox_etl import StdWorkflow, EvalMonitorConfig
+from evox_etl.algorithms import PSO
+from evox_etl.problems.numerical import Sphere
 
-## Use Cases
-
-Thanks to the above features, EvoX is especially suitable for the following scenarios:
-
-- **Large-Scale Parameter Optimization**: For high-dimensional problems with large search spaces, EvoX’s GPU-based parallel computing and efficient algorithms can significantly reduce solving time. Examples include optimizing neural network weights or designing complex system parameters—EvoX can accelerate the process.
-- **Multi-Objective Optimization**: When you need to optimize multiple (often conflicting) objectives simultaneously—such as balancing cost and performance in engineering design—EvoX includes a variety of multi-objective evolutionary algorithms (like NSGA-II, RVEA, etc.) to search for the Pareto-optimal set.
-- **Hyperparameter Optimization (HPO)**: Searching for the best hyperparameter combinations for machine learning models can be time-consuming. EvoX allows the use of evolutionary strategies to efficiently search for hyperparameter configurations, often finding better solutions faster than grid search or random search.
-- **Reinforcement Learning and Neuroevolution**: EvoX natively supports reinforcement learning environments (like OpenAI Gym and Google Brax) and deep learning datasets (such as CIFAR-10). This allows users to train control policies or neural network architectures using evolutionary algorithms (i.e., neuroevolution)—for example, using genetic algorithms to optimize RL policy parameters.
-- **Academic Research and Engineering Applications**: For researchers in evolutionary algorithms, EvoX offers a highly flexible platform to implement and test new methods. For engineering optimization tasks (like tuning industrial process parameters or adjusting control systems), EvoX provides a high-performance solver that can obtain near-optimal solutions within a reasonable time frame.
-
-In summary, EvoX is suitable for any optimization task that **requires exploring a large solution space quickly**, as long as the task can be massively parallelized on a GPU. Whether you’re an AI researcher or an engineering developer facing complex optimization problems, EvoX is a powerful tool to improve your solving efficiency.
-
-```{tip}
-EvoX can run on many GPU devices, including NVIDIA GPUs and AMD GPUs, or even the GPU in your Mac.
+algorithm = PSO(pop_size=40, lb=[-5.0] * 5, ub=[5.0] * 5)   # frozen config dataclass
+problem = Sphere()                                          # frozen config dataclass
+workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(), backend="numpy")
+workflow.run(generations=20, seed=42)                       # one compile, then a host-side loop
+print(workflow.monitor.get_best_fitness())
 ```
+
+That is the whole 2.0 programming model in eight lines. {doc}`tutorial_part2` walks through it
+argument by argument.
+
+## Installation
+
+### Core install
+
+```bash
+pip install evox
+```
+
+This installs the framework together with the **NumPy backend**, which is the default and needs
+**no compiled toolchain** — there is nothing to build, no CUDA setup and no compiler environment
+variable to configure. EvoX 2.0 requires **Python 3.11 or newer** (the floor comes from the
+`evoxc` compiler; the `evox` distribution metadata still declares 3.10 for the 1.x line). A 3.11
+environment is already enough to run every single- and multi-objective example in this tutorial.
+
+### Optional extras
+
+```bash
+pip install "evox[vis]"        # Plotly-based plotting: monitor.plot() and evox_etl.vis_tools
+pip install "evox[iree]"       # the IREE backend
+pip install "evox[tvm]"        # the TVM backend
+pip install "evox[compilers]"  # every compiler backend at once
+```
+
+`evox[vis]` provides Plotly (plus pandas) for the figure builders in `evox_etl.vis_tools`, which is
+what `EvalMonitor.plot()` dispatches to; without it `plot()` warns and returns `None` while all
+history accessors keep working. The three compiler extras pull in the runtime that the corresponding
+`evoxc` backend needs to lower and execute a graph. If you manage the compiler as its own
+distribution rather than through `evox`, the same extras exist there as `evoxc[iree]`,
+`evoxc[tvm]` and `evoxc[compilers]`.
+
+### Choosing a backend
+
+A backend is **not** a global setting. It is the `backend=` argument of the workflow that owns the
+compiled step graph:
+
+```python
+workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(), backend="numpy")  # default
+workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(), backend="iree")   # compiled
+```
+
+Available names are `"numpy"` (the default interpreter, always present), `"iree"`, `"tvm"` and
+`"xla"`. Which devices each one supports differs; anything unsupported raises a loud
+`evoxc` backend error instead of silently falling back. Pass `device=` (for example `"cpu"`,
+`"cuda"` or `"cuda:0"`) to pin the step graph to a device. Per-backend capabilities and caveats are
+covered in {doc}`../guide/advanced/backends`.
+
+```{note} XLA needs a PJRT plugin
+The `"xla"` backend is only usable once a PJRT plugin is available for your platform. Point the
+`EVOXC_PJRT_PLUGIN` environment variable at the plugin shared library **before the process starts**:
+on a cold process the backend discovery only consults that variable and a few well-known library
+paths, so the per-workflow `compile_options={"plugin_path": ...}` option helps only once a PJRT
+client already exists. With no plugin anywhere, building the step graph fails with a backend error
+that names the missing plugin.
+```
+
+## Smoke test
+
+Save the following as `smoke.py` and run it with `python smoke.py`. It runs 20 generations of PSO on
+the sphere function, whose minimum is the origin with fitness `0`, and prints the best fitness found
+so far.
+
+```python
+from evox_etl import StdWorkflow, EvalMonitorConfig
+from evox_etl.algorithms import PSO
+from evox_etl.problems.numerical import Sphere
+
+workflow = StdWorkflow(
+    algorithm=PSO(pop_size=40, lb=[-5.0] * 5, ub=[5.0] * 5),
+    problem=Sphere(),
+    monitor=EvalMonitorConfig(),
+    num_generations=20,
+    backend="numpy",
+)
+workflow.run(seed=42)
+print(workflow.monitor.get_best_fitness())
+```
+
+The output is a single positive float, small and well below `1.0` after 20 generations (for
+example `0.009578287601470947`) — PSO is heading towards the origin. `workflow.monitor` also
+exposes `get_best_solution()`, `get_fitness_history()` and, with `evox[vis]` installed, `plot()`.
+
+If you see that number, your install works and you are ready for the full walkthrough.
+
+```{tip} Reproducibility
+`run(seed=42)` derives every random draw from that one integer through the stateless `evoxc`
+key chain stored in the state. The same seed, configuration and backend give the same result —
+there is no hidden global RNG to reset.
+```
+
+## Where to go next
+
+- {doc}`tutorial_part2` — the same program, explained piece by piece.
+- {doc}`../guide/install/index` — all installation options in one place.
+- {doc}`../guide/install/evox` — installing EvoX itself, packaging and environments.
+- {doc}`../guide/advanced/backends` — how the NumPy, IREE, TVM and XLA backends differ.

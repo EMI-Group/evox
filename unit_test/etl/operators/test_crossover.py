@@ -169,6 +169,39 @@ def test_de_binary_vector_cr():
     assert np.all((out == mv) | (out == cv))
 
 
+# --- DE_binary_crossover mask distribution (torch commit 5e68f81f) ------------
+# The crossover mask must be drawn from a UNIFORM distribution, not a normal
+# one: a standard normal yields an empirical crossover rate of ~0.57 at CR=0.1
+# and ~0.82 at CR=0.9, i.e. it fails both bands below.
+RATE_POP, RATE_DIM = 2000, 20
+_RATE_RNG = np.random.default_rng(2024)
+RATE_MV = _RATE_RNG.standard_normal((RATE_POP, RATE_DIM)).astype(np.float32)
+RATE_CV = _RATE_RNG.standard_normal((RATE_POP, RATE_DIM)).astype(np.float32)
+RATE_SPEC = core.TensorSpec((RATE_POP, RATE_DIM), np.dtype("float32"))
+
+
+def _binary_crossover_out(CR, seed=0):
+    exe = build(DE_binary_crossover, KEY_SPEC, RATE_SPEC, RATE_SPEC, CR)
+    return to_numpy(evoxc.run(exe, make_key(seed), RATE_MV, RATE_CV, CR))
+
+
+@pytest.mark.parametrize("CR,low,high", [(0.1, 0.0, 0.2), (0.9, 0.85, 1.0)])
+def test_de_binary_crossover_rate_is_uniform(CR, low, high):
+    out = _binary_crossover_out(CR)
+    # a child gene comes from the mutation vector iff the uniform mask fired or
+    # the column is the forced ``jind`` one → rate = CR + (1 - CR) / dim
+    rate = float((out == RATE_MV).mean())
+    assert low < rate < high
+    assert abs(rate - (CR + (1.0 - CR) / RATE_DIM)) <= 0.02
+
+
+def test_de_binary_crossover_cr_zero_mutates_exactly_one_gene():
+    out = _binary_crossover_out(0.0)
+    per_row = (out == RATE_MV).sum(axis=1)
+    assert np.all(per_row == 1)  # only the forced jind column
+    assert np.all((out == RATE_MV) | (out == RATE_CV))
+
+
 @pytest.mark.parametrize("fn", [DE_binary_crossover, DE_exponential_crossover],
                          ids=["binary", "exponential"])
 def test_de_crossover_determinism(fn):

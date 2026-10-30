@@ -1,33 +1,33 @@
-# docs/source/examples/ — Jupyter Notebook Examples
+# docs/source/examples/ — EvoX 2.0 example pages
 
 ## Intent
-This directory contains **Jupyter Notebook examples** showcasing EvoX's capabilities across a spectrum of evolutionary optimization tasks. These notebooks serve as entry-level, hands-on demonstrations for new users exploring the framework. They are rendered as part of the Sphinx documentation via `myst_nb` (execution mode: off).
+This directory holds the **example walkthroughs** for the EvoX 2.0 pre-release (import name `evox_etl`, the functional rewrite on the `evoxc` compiler).
+Every page is MyST Markdown with runnable, self-contained programs — there are no notebooks here (build-time notebook execution is disabled, so code blocks are never executed by Sphinx).
+Each page states what it proves, shows the program, quotes the real printed output, and explains the API surface it touches.
 
 ## API Surface
-
 | File | Purpose |
 |---|---|
-| `index.md` | MyST toctree that lists all 6 notebooks for Sphinx navigation |
-| `so-algorithm.ipynb` | **Numerical Optimization** — Optimizing the Ackley function with PSO using built-in `PSO`, `Ackley`, `StdWorkflow`, and `EvalMonitor` |
-| `moalg.ipynb` | **Multi-Objective Optimization** — RVEA on DTLZ2 with IGD metric evaluation, GPU support, and Plotly 3D visualization of Pareto fronts |
-| `brax.ipynb` | **Neuroevolution with Brax** — Training a SimpleMLP policy on a Brax "swimmer" environment via PSO, using `ParamsAndVector` to bridge neural network parameters and the evolutionary algorithm |
-| `supervised-learning.ipynb` | **Neuroevolution for ML** — MNIST digit classification using PSO + `SupervisedLearningProblem` + `ParamsAndVector`, with optional gradient-based fine-tuning and test evaluation |
-| `hpo.ipynb` | **Hyperparameter Optimization** — Using `HPOProblemWrapper` to transform a workflow into a problem, then tuning PSO hyperparameters with another PSO; demonstrates `vmap`-based GPU acceleration |
-| `custom_algo_prob.ipynb` | **Custom Algorithm & Problem** — Building a PSO algorithm and a Sphere problem from scratch using `evox.core` primitives (`Algorithm`, `Problem`, `Mutable`, `Parameter`), showing the low-level extension API |
-
-## Integration with Documentation
-
-- **Linked from** `source/index.md` under the "Examples" toctree entry
-- **Nav bar entry** configured in `source/conf.py` via `html_theme_options["icon_links"]` pointing to `examples/index`
-- All notebooks use **`myst_nb`** for rendering; notebook execution is **disabled at build time** (`nb_execution_mode = "off"`) — notebooks must be pre-executed before committing
+| `index.md` | Landing page: the 2.0 pre-release warning, prerequisites (`PYTHONPATH=src`, optional `plotly`), `{toctree}` (`:maxdepth: 1`) over the three walkthroughs, and the cross-links into `tutorial/` and `guide/`. |
+| `so.md` | Single-objective walkthrough: PSO on Sphere mirroring `examples/quickstart.py`, the manual `init`/`step` loop vs `run`, a measured PSO/DE/CMA-ES comparison, `wf.monitor.plot()`, and swapping in `Ackley`/`Rastrigin`. |
+| `mo.md` | Multi-objective walkthrough: NSGA-II on DTLZ2 with `opt_direction=["min", "min"]`, `get_pf()` / `get_pf_fitness()`, traced IGD/GD/hypervolume scoring, `plot(problem_pf=...)`, and `.exv` export via `EvoXVisionAdapter`. |
+| `neuroevolution.md` | Virtual (training-free) ES: `make_virtual_es` / `make_virtual_lora_es` + `make_virtual_problem`, the network-as-data description (`param_shapes`, `layer_specs`), the `(center_flat, seeds, sigma)` payload protocol, center-network deployment, and why the 1.x Brax/MuJoCo/supervised-learning problems are gone. |
 
 ## Constraints
-
-- Notebooks must remain **pre-executed** with outputs saved, since Sphinx does not execute them at build time
-- Output cells (especially Plotly visualizations and Brax HTML iframes) can be very large; the `.ipynb` files range from ~5 MB to ~11 MB
-- Each notebook imports from `evox.*` at the top — these imports must remain valid as the source code evolves
-- The toctree in `index.md` uses `:maxdepth: 1` to keep the listing flat; new notebooks should be added to the toctree
+Every code block must be **executed before publication** against the real `src/evox_etl` code (`PYTHONPATH=src python <snippet>.py`), and the quoted numbers must be copied from that run (fixed seed 42).
+Document only the 1.x-free surface: `evox_etl` configs built by `make_*`, `StdWorkflow`, `EvalMonitorConfig`, `evox_etl.metrics`, `evox_etl.vis_tools` — never `import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`, or the torch neuroevolution problems.
+Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `../guide/advanced/backends`.
+Every backend/device reference on these pages links to `../guide/advanced/backends` (`tutorial_part6` is the multi-objective chapter, not a backends page).
+`so.md`'s hand-driven loop deliberately skips `init_step`/`final_step`/`flush()`, so it reaches `0.007325` where `run(50)` reaches `0.027914`; the divergence comes from the generation-1 `init_step` dispatch (the raw `init` state still carries `inf` fitness), not from an off-by-one, and the page states that explicitly.
+`plotly` is needed only by the figure builders and `plot()`; the `.exv` serializer in `evox_etl.vis_tools` needs no Plotly.
+HPO appears only as host-side `HPOProblemWrapper` + `random_search` (linked to `../guide/advanced/hpo`), never as an in-graph outer optimizer.
+`evox_etl.metrics` functions are traced graph functions: examples must build them with `evoxc.build` + `TensorSpec` and pass static scalars to both `build` and `run`.
+`EvalMonitorConfig(full_sol_history=True)` is required for `get_pf()`; algorithms with no `population`/`pop` state (CMA-ES) need `EvalMonitorConfig(dim=dim)`.
+`hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`) and a static `num_sample`.
+Code blocks use `python` fences only (never executed by the build), with `{note}`/`{tip}`/`{warning}` admonitions and `{doc}` cross-references; one H1 per page.
+Count claims stay exactly "30+ algorithms" / "30+ benchmark problems" and, for the ecosystem, "140+ algorithms" / "240+ benchmark problems/environments".
+Do not reference the deleted 1.x notebooks, and do not edit `conf.py`, `source/index.md`, `locale/`, `src/`, or other doc subtrees.
 
 ## Routing Table
-
-This is a leaf directory with no child subdirectories. All content is in the 7 files listed above.
+This is a leaf directory: all content is in the four pages listed above.
+Related documentation lives elsewhere — `../tutorial/tutorial_part2` (PSO walkthrough), `../tutorial/tutorial_part6` (multi-objective chapter, overlapping `mo.md`), `../tutorial/tutorial_part7` (1.x migration), `../guide/advanced/backends`, `../guide/advanced/metrics`, `../guide/advanced/viz`, `../guide/advanced/hpo`, `../guide/developer/custom-alg-pro`.

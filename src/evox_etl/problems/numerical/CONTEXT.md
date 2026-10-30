@@ -39,13 +39,15 @@ NOT ported (external-library dependent — reported to root): the brax, mujoco_p
 - Name collision: `basic.levy_func` (w = 1+(x-1)/4) and `cec2022.levy_func` (w = 1+x/4) are different public functions — import explicitly, never star-import both.
 - Fully STATIC shapes (batch n AND dim) are required: `basic._shift_affine` builds a `zeros(dim)` constant, `dtlz` indexes `_reverse_axis1`/`enp.ones((n, 1))` with Python ints, cec2022 gathers with static index arrays. `core/workflow.py:410-416` traces from concrete state shapes, so this holds for `StdWorkflow`; a dynamic-dim spec fails.
 
-## Data location (release-blocking)
-cec2022 input data is read from the torch tree, NOT shipped with the port: `cec2022.py:27` sets `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"`, and `_load_data` parses the 54 tracked `.txt` files (`../../../evox/problems/numerical/cec2022_input_data/`) into a memoized `(M, OShift, SS)` numpy cache.
-numpy is allowed ONLY for that loading; never in graph code.
-That path breaks in both release scenarios: (a) deleting `src/evox/` deletes the directory, so source checkouts and `../../../../unit_test/etl/problems/test_cec2022.py` (which recomputes the same expression, no skip guard) fail; (b) in any wheel/sdist install it resolves to `<venv>/lib/pythonX.Y/src/evox/...` because `parents[4]` of `site-packages/evox_etl/problems/numerical/cec2022.py` is the stdlib dir.
-Nothing under `src/evox_etl/` contains data (`git ls-files` shows no `.txt`/`.json` there), `MANIFEST.in:2` lists only the torch path, and `pyproject.toml` has no `[tool.setuptools]`/`package-data` section; DESIGN.md §5.9 requires port-owned data loaded via `importlib.resources`.
-Fix shape: copy the 54 files into this directory, resolve via `importlib.resources`, and add a packaging entry.
-Data errors surface at trace time (`evaluate` → `_load_data`), not at config construction.
+## Data location (self-contained)
+CEC2022 input data ships WITH the port in `cec2022_input_data/` (same file names as the torch tree, so future diffs stay obvious): 35 `M_<func>_D<dim>.txt`, 12 `shift_data_<func>.txt`, 6 `shuffle_data_<func>_D<dim>.txt` = 53 files (~880 KB, byte-identical copies of the torch originals).
+`Rand_Seeds.txt` from the torch directory is NOT copied — neither the torch module nor the port reads it.
+`cec2022.py` resolves `DATA_DIR = importlib.resources.files("evox_etl.problems.numerical").joinpath("cec2022_input_data")` — package-relative (DESIGN.md §5.9), so it works from a source checkout AND from an installed wheel, with no `src/evox/` path and no CWD dependence.
+`DATA_DIR` is a `Traversable` (`pathlib.Path` in both source and wheel installs); `_read_floats` uses `is_file()`/`open("r")` on it, so do not assume a `str`/`Path`-only handle when touching this code.
+`_load_data` parses those files into a memoized `(M, OShift, SS)` numpy cache; numpy is allowed ONLY for that loading, never in graph code.
+Data errors surface at trace time (`evaluate` → `_load_data` → `FileNotFoundError: Cannot open <path> for reading`), not at config construction; the message still starts with `Cannot open` (asserted by `unit_test/etl/problems/test_cec2022.py`).
+Packaging (owner: root agent — `pyproject.toml`/`MANIFEST.in`): the data dir needs `[tool.setuptools.package-data]` `"evox_etl.problems.numerical" = ["cec2022_input_data/*.txt"]` (verified: setuptools 78 PEP 420 auto-discovery finds `evox_etl.problems.numerical`, and that glob copies all 53 files into the wheel) plus a matching `MANIFEST.in` `include` line for sdists.
+Sibling test note: `../../../../unit_test/etl/problems/test_cec2022.py:22-31` still computes its own `DATA_DIR` as `parents[4] / "src" / "evox" / ...` (torch tree) for the `test_f1_shift_point_is_minimum` fixture — that test file (outside this node) must be switched to the port's `cec_module.DATA_DIR` before `src/evox/` is deleted.
 
 ## Validation
 Pattern: `evoxc.build` + `evoxc.run` (numpy backend) vs references — basic: bit-exact vs numpy versions of the torch formulas, shift/affine variants match torch within float32 rounding; dtlz: evaluate parity ≤ few float32 ulps, pf parity ≤ 2e-6 (torch); cec2022: all 12 functions × dims {2,10,20} within rel 1e-5 vs torch. Unit tests: sibling `../../../../unit_test/etl/problems/` (parity tests may import torch).

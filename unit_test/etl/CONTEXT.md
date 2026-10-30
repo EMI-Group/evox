@@ -1,40 +1,59 @@
 # unit_test/etl — tests for the functional evox_etl package
 
 ## Intent
-pytest suite mirroring `src/evox_etl/` (functional EvoX on evoxc). Seven sub-suites:
+pytest suite mirroring `src/evox_etl/` (functional EvoX on evoxc). Seven sub-suites
+plus the root-level torch-free release gate:
 1. `algorithms/` — algorithm smoke/parity tests + converted operator-shim tests
    (canonical `evox_etl.operators.*` imports; ETL-only, no torch except `parity/`).
    Includes the virtual-ES / VirtualLoRA-ES smoke tests and the virtual
    end-to-end convergence tests under `so/es_variants/`; `parity/` also holds the
    ES-variant ASEBO/ARS/CMA-ES STATE-level parity file (`test_parity.py`).
+   Ported-upstream-fix regressions: initial-population bounds/uniformity for
+   CoDE/SaDE/SHADE (`so/de_variants/test_init_bounds.py`), SHADE success-history
+   adaptation (`so/de_variants/test_shade.py`), NES default `pop_size` and
+   GuidedES `subspace_dims < dim` (`so/es_variants/test_nes.py`,
+   `so/es_variants/test_guided_es.py`).
 2. `operators/` — operator property tests (random ops, no torch) + `parity/`
    (exact parity vs torch `evox` within 1e-6; torch imports ONLY there).
+   Includes the uniform `DE_binary_crossover` mask-rate regression
+   (`test_crossover.py`) and the 1-D tournament index shape / large-tournament
+   winner regressions (`test_selection.py`).
 3. `problems/` — numerical problem tests + the neuroevolution virtual-problem
    suite (`test_virtual_problem.py`) + the host-side HPO-wrapper suite
    (`test_hpo_wrapper.py`) + `parity/`.
-4. `metrics/` — metric tests + `parity/`.
+4. `metrics/` — metric tests + `parity/`; includes the hypervolume
+   reference-point clipping regressions (`hv` / `each_cube_monte_carlo_hv`).
 5. `vis_tools/` — Plotly figure builders + the EvoXVision `.exv` binary format.
    Numpy/plotly only, no torch.
 6. `workflows/` — `evox_etl.workflows` (EvalMonitor semantics + StdWorkflow
    monitor/history behavior).
 7. `ext/` — `evox_etl_ext.autoload_ext` extension discovery/merge/idempotency
    plus the root-export + guarded-autoload tests (`test_autoload.py`).
+8. `test_no_torch.py` (root) — release gate: a FRESH interpreter imports
+   `evox_etl` and runs a small PSO-on-Sphere optimization, then asserts no
+   `torch` module entered `sys.modules` (the dev venv does have torch installed).
 
-## Gate (counts verified: 621 = 183 + 104 + 192 + 53 + 42 + 41 + 6, zero failures/errors/skips)
+## Gate (counts verified: 655 = 196 + 118 + 192 + 59 + 42 + 41 + 6 + 1)
 ```
-<venv>/bin/python -m pytest unit_test/etl/algorithms -q  # 183, ~3.5 min (torch-parity runs dominate)
-<venv>/bin/python -m pytest unit_test/etl/operators -q   # 104, ~15 s
-<venv>/bin/python -m pytest unit_test/etl/problems -q    # 192, ~100 s
-<venv>/bin/python -m pytest unit_test/etl/metrics -q     # 53, ~8 s
-<venv>/bin/python -m pytest unit_test/etl/vis_tools -q   # 42, ~1 s
-<venv>/bin/python -m pytest unit_test/etl/workflows -q   # 41, ~9 s
-<venv>/bin/python -m pytest unit_test/etl/ext -q         # 6, <1 s
+<venv>/bin/python -m pytest unit_test/etl/algorithms -q      # 196, ~4 min (torch-parity runs dominate)
+<venv>/bin/python -m pytest unit_test/etl/operators -q       # 118, ~15 s
+<venv>/bin/python -m pytest unit_test/etl/problems -q        # 192, ~100 s
+<venv>/bin/python -m pytest unit_test/etl/metrics -q         # 59, ~10 s
+<venv>/bin/python -m pytest unit_test/etl/vis_tools -q       # 42, ~1 s
+<venv>/bin/python -m pytest unit_test/etl/workflows -q       # 41, ~9 s
+<venv>/bin/python -m pytest unit_test/etl/ext -q             # 6, <1 s
+<venv>/bin/python -m pytest unit_test/etl/test_no_torch.py -q  # 1, <1 s
 ```
-Every `parity/` dir — plus `algorithms/mo/` and `algorithms/so/es_variants/` —
-carries an `__init__.py`, so the combined run `pytest unit_test/etl -q` collects
-all 621 tests with no basename collisions (the four `parity/test_parity.py` files
-import as `parity.*`, `metrics.parity.*`, `problems.parity.*`,
-`operators.parity.*`) and passes green (verified ~6 min).
+The combined run `pytest unit_test/etl -q` collects all 655 tests with no
+basename collisions (every `parity/` dir — plus `algorithms/mo/` and
+`algorithms/so/es_variants/` — carries an `__init__.py`, so the four
+`parity/test_parity.py` files import as `parity.*`, `metrics.parity.*`,
+`problems.parity.*`, `operators.parity.*`).
+The only failure in the combined run is
+`algorithms/parity/test_parity.py::test_asebo_state_parity_with_torch` — a
+PRE-EXISTING defect of the frozen torch reference
+(`src/evox/algorithms/so/es_variants/asebo.py:116` raises a mat1/mat2 shape
+error), not of the port; `parity/` is slated for deletion.
 Suite-separate runs remain useful for per-suite numbers and faster failure isolation.
 
 ## Environment

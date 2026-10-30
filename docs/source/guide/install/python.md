@@ -1,11 +1,17 @@
 # Python Installation Guide
 
-This guide is for those who are new to the Python programming language and want to install it on their system.
-It will help you set up the Python environment needed to run EvoX.
+This guide is for those who are new to the Python programming language and want to install it on their
+system. It covers the interpreter and the isolated environment you need before installing EvoX.
 
 ```{tip}
-EvoX is written in Python, so you will need to have Python installed on your system.
-EvoX support Python 3.10 and above, and we recommend using the **latest version** of Python.
+EvoX 2.0 requires **Python 3.11 or newer**: it runs on the `evoxc` compiler, which declares
+`Python >= 3.11`. Use the latest stable version of Python 3.11 or later.
+```
+
+```{note}
+The `evox` distribution's metadata still says `Python >= 3.10`, because the 1.x line is still in it.
+That floor does not apply to the 2.0 pre-release: `import evox_etl` imports `evoxc` unconditionally, so
+no 2.0 program runs on 3.10. Pick 3.11+.
 ```
 
 ## Install Python interpreter
@@ -18,19 +24,39 @@ Go to [Download Python](https://www.python.org/downloads/) and download the late
 Make sure to check the box that says "Add Python to PATH" during the installation process.
 ```
 
+### macOS Version
+
+Download the official installer from [Download Python](https://www.python.org/downloads/) and run it,
+or install Python with [Homebrew](https://brew.sh/):
+
+```console
+$ brew install python@3.12
+```
+
+Homebrew installs into its own prefix (`/opt/homebrew` on Apple silicon, `/usr/local` on Intel) instead
+of into macOS's system Python, so the interpreter you put on your `PATH` is the one your projects use.
+
 ### Linux Version
 
 Different Linux distributions have different ways to install Python.
 It depends on the package manager of your distribution.
 Here are some examples:
+
 - Debian/Ubuntu: `apt`
-- Archlinux: `pacman`
+- Arch Linux: `pacman`
 - Fedora: `dnf`
+
+On Debian and Ubuntu the virtual-environment support is a separate package, so install it before you
+create an environment:
+
+```console
+$ sudo apt install python3 python3-venv
+```
 
 ### Install through `uv`
 
-`uv` is an extremely fast Python package and project manager, is working on Windows, Linux and MacOS.
-We recommend using `uv` to install Python interpreter as well as managing Python environments.
+`uv` is an extremely fast Python package and project manager, working on Windows, Linux and macOS.
+We recommend using `uv` to install the Python interpreter as well as managing Python environments.
 The detailed installation guide can be found in the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/#installation-methods).
 
 ::::{tab-set}
@@ -51,7 +77,7 @@ $ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.6.16/install
 
 :::
 
-:::{tab-item} Linux and MacOS
+:::{tab-item} Linux and macOS
 Use `curl` to download the script and execute it with `sh`:
 
 ```console
@@ -73,87 +99,90 @@ $ curl -LsSf https://astral.sh/uv/0.6.16/install.sh | sh
 
 ::::
 
+Once `uv` is installed, it can also fetch an interpreter for you, which avoids the platform sections
+above entirely:
+
+```console
+$ uv python install 3.12
+```
+
 ## Managing Python Environments
+
+### Why an isolated environment
+
+A virtual environment is a self-contained directory holding one Python interpreter plus the packages
+installed into it. EvoX needs the `evoxc` compiler on top of its own dependencies (the 1.x manifest
+declares PyTorch and NumPy), and research code usually pins several versions of the same library across
+projects. Installing into an isolated environment keeps those versions from colliding, keeps your system
+Python untouched, and makes the installation reproducible: deleting the environment is a complete
+uninstall. Use one environment per project.
 
 ### Pip and Venv
 
-`pip` is the package manager for Python. `venv` is the built-in tool for creating virtual environments in Python.
-A virtual environment is a self-contained directory that contains a Python installation for a particular version of Python, plus several additional packages.
-This is useful for managing dependencies for different projects separately.
+`pip` is the package manager for Python. `venv` is the built-in tool for creating virtual environments
+in Python.
 
-To create a virtual environment, run the following command in your terminal:
-
-```console
-$ python -m venv <env_path> # usually <env_path> is a `.venv` directory in your project
-```
-This will create a new directory called `<env_path>` that contains a copy of the Python interpreter and the standard library.
-To activate the virtual environment, run the following command:
+To create a virtual environment, run the following command in your project directory (`python3` is the
+usual name of the interpreter on macOS and Linux; on Windows it is `python`):
 
 ```console
-$ source <env_path>/bin/activate # Bash
-$ source <env_path>/bin/activate.fish # Fish
-$ <env_path>\Scripts\activate # Windows
+$ python3 -m venv .venv
 ```
-This will change your shell prompt to indicate that you are now working inside the virtual environment.
-To deactivate the virtual environment, run the following command:
+
+This creates a `.venv` directory containing a copy of the Python interpreter and the standard library.
+To activate it, run:
+
+```console
+$ source .venv/bin/activate # Bash
+$ source .venv/bin/activate.fish # Fish
+$ .venv\Scripts\activate # Windows
+```
+
+This changes your shell prompt to indicate that you are now working inside the virtual environment.
+To leave it, run:
 
 ```console
 $ deactivate
 ```
-This will return you to your system's default Python interpreter with all its installed libraries.
 
-While the virtual environment is activated, you can use `pip` to install packages into the virtual environment.
-For example, to install the latest version of `numpy`, run the following command:
+This returns you to your system's default Python interpreter with all its installed libraries.
 
-```console
-$ pip install numpy
-```
-This will install `numpy` into the virtual environment, and it will not affect the system-wide Python installation.
-To install a specific version of `numpy`, run the following command:
+While the environment is active, `pip` installs into that environment only:
 
 ```console
-$ pip install numpy==1.23.4
-```
-This will install version `1.23.4` of `numpy` into the virtual environment.
-To list all the packages installed in the virtual environment, run the following command:
-
-```console
+$ pip install "evox"
 $ pip list
+$ pip install --upgrade evox
+$ pip uninstall evox
 ```
-This will show you a list of all the packages installed in the virtual environment, along with their versions.
-To uninstall a package, run the following command:
 
-```console
-$ pip uninstall numpy
-```
-This will uninstall `numpy` from the virtual environment.
-To upgrade a package, run the following command:
-
-```console
-$ pip install --upgrade numpy
-```
-This will upgrade `numpy` to the latest version in the virtual environment.
+None of these commands affect the system-wide Python installation.
 
 ### uv
 
 `uv` can not only manage Python versions, but also manage Python environments.
-To create a new Python environment, run the following command:
+To create a new environment, run the following command:
 
 ```console
-$ uv venv --python <python_version> # e.g. 3.10, 3.11, ...
+$ uv venv --python <python_version> # e.g. 3.11, 3.12, ...
 ```
-This will create a new directory called `.venv` that contains a copy of the Python interpreter and the standard library.
-To activate the virtual environment, run the following command:
+
+This creates a `.venv` directory containing a copy of the Python interpreter and the standard library.
+To activate the environment, use the same commands as above:
 
 ```console
-$ source <env_path>/bin/activate # Bash
-$ source <env_path>/bin/activate.fish # Fish
-$ <env_path>\Scripts\activate # Windows
+$ source .venv/bin/activate # Bash
+$ source .venv/bin/activate.fish # Fish
+$ .venv\Scripts\activate # Windows
 ```
 
-After activating the virtual environment, you can use `uv pip` to install packages into the virtual environment.
-For example, to install the latest version of `numpy`, run the following command:
+After activating the environment, use `uv pip` to install packages into it:
 
 ```console
-$ uv pip install numpy
+$ uv pip install "evox"
 ```
+
+Alternatively, skip activation and let `uv` resolve the environment for you with `uv run python ...`,
+or point `uv pip` at it explicitly with `--python .venv`.
+
+Continue with {doc}`evox` to install the package itself.

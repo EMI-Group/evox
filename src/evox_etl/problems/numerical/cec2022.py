@@ -4,8 +4,8 @@ __all__ = [
 
 
 import dataclasses
+from importlib.resources import files
 from math import ceil, pi
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -22,18 +22,22 @@ from evox_etl.problems.numerical.basic import (
 )
 
 
-# Data files shipped with the torch evox package (read-only reference).
-# numpy is used ONLY to load this input data; never inside graph code.
-DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"
+# Input data ships WITH this package (``cec2022_input_data/`` next to this
+# module, same file names as the torch tree).  Resolved package-relatively via
+# ``importlib.resources`` so it works from a source checkout AND from an
+# installed wheel, and never depends on the current working directory.
+# ``DATA_DIR`` is a Traversable (``pathlib.Path`` in both source and wheel
+# installs), not a ``str``/``Path``-only handle.
+DATA_DIR = files("evox_etl.problems.numerical").joinpath("cec2022_input_data")
 
 # Memoized parsed input data (plain numpy arrays, host-side), keyed by (func_num, dim).
 _DATA_CACHE: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray, Optional[np.ndarray]]] = {}
 
 
-def _read_floats(filename: Path) -> List[float]:
+def _read_floats(filename) -> List[float]:
     if not filename.is_file():
         raise FileNotFoundError(f"Cannot open {filename} for reading")
-    with open(filename, "r") as f:
+    with filename.open("r") as f:
         return [float(num) for num in f.read().split()]
 
 
@@ -44,7 +48,7 @@ def _load_data(func_num: int, dim: int) -> Tuple[np.ndarray, np.ndarray, Optiona
         return _DATA_CACHE[key]
 
     # Loading rotation matrix M
-    m_filename = DATA_DIR / f"M_{func_num}_D{dim}.txt"
+    m_filename = DATA_DIR.joinpath(f"M_{func_num}_D{dim}.txt")
     M_data = _read_floats(m_filename)
     if func_num < 9:
         M = np.array(M_data).reshape(dim, dim).T
@@ -52,7 +56,7 @@ def _load_data(func_num: int, dim: int) -> Tuple[np.ndarray, np.ndarray, Optiona
         M = np.array(M_data).reshape(-1, dim).T
 
     # Loading shift matrix OShift
-    shift_filename = DATA_DIR / f"shift_data_{func_num}.txt"
+    shift_filename = DATA_DIR.joinpath(f"shift_data_{func_num}.txt")
     shift_data = _read_floats(shift_filename)
     if func_num < 9:
         OShift = np.array(shift_data).reshape(1, -1)
@@ -62,10 +66,10 @@ def _load_data(func_num: int, dim: int) -> Tuple[np.ndarray, np.ndarray, Optiona
     # Loading shuffle index SS
     SS: Optional[np.ndarray] = None
     if 6 <= func_num <= 8:
-        shuffle_filename = DATA_DIR / f"shuffle_data_{func_num}_D{dim}.txt"
+        shuffle_filename = DATA_DIR.joinpath(f"shuffle_data_{func_num}_D{dim}.txt")
         if not shuffle_filename.is_file():
             raise FileNotFoundError(f"Cannot open {shuffle_filename} for reading")
-        with open(shuffle_filename, "r") as f:
+        with shuffle_filename.open("r") as f:
             shuffle_data = [int(num) for num in f.read().split()]
         # To 0-based index
         SS = np.array(shuffle_data) - 1

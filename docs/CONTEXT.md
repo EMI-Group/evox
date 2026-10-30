@@ -1,62 +1,66 @@
 # docs/ — EvoX Documentation
 
 ## Intent
-This directory contains the **Sphinx-based documentation system** for EvoX, published on Read the Docs. It covers tutorials, installation guides, developer guides, API references (auto-generated from source code), Jupyter notebook examples, and miscellaneous reference material. The documentation is bilingual (English and Simplified Chinese).
+This directory contains the **Sphinx-based documentation system** for EvoX, published on Read the Docs.
+It documents the **experimental EvoX 2.0 pre-release** — the functional package `src/evox_etl/` (import name `evox_etl`) built on the EvoX Compiler (`evoxc`) — and nothing else.
+The frozen EvoX 1.x torch package (`src/evox/`, `ModuleBase`/`Parameter`/`Mutable`, `torch.compile`/`vmap`, distributed workflow, Triton kernels, Brax/MuJoCo problems) is deliberately undocumented; it survives only in the "removed in 2.0" sections of `source/tutorial/tutorial_part7.md` and in short "not covered" notes at the top of guide sections.
+The documentation is bilingual: English sources live under `source/`, Simplified Chinese under `source/locale/zh_CN/`.
 
 ## API Surface
-The documentation build system exposes these entry points:
-
 | File / Directory | Purpose |
 |---|---|
-| `Makefile` | Standard Sphinx Makefile; routes all targets (`html`, `clean`, etc.) to `sphinx-build` |
-| `make.bat` | Windows batch equivalent of the Makefile |
-| `source/conf.py` | Sphinx configuration — extensions, theme, autodoc setup, i18n, nav links |
-| `source/index.md` | Root documentation landing page (MyST Markdown) |
-| `fix_output.py` | Post-processing script that removes "Duplicate implicit target name" entries from the zh_CN `.po` translation file |
-| `machine_translate.py` | Machine-translates `.po` entries from English → Chinese using a TGI-compatible LLM API (GPT-4o); skips code references, tutorials (already manually translated), SVGs, and fuzzy entries |
-| `fix_notebook_translation.py` | Wraps translated notebook strings as JSON cell structures in the `.po` file to satisfy the Sphinx notebook builder |
+| `Makefile` / `make.bat` | Route `html`, `clean`, … to `sphinx-build` |
+| `source/conf.py` | Sphinx configuration — extensions, shibuya theme, autodoc2 targets (`../../src/evox_etl`), i18n, nav links, `version = "2.0.0-pre"` |
+| `source/index.md` | Root landing page (pre-release warning, quickstart, toctrees, grid cards) |
+| `source/` | English content: `tutorial/`, `guide/install/`, `guide/developer/`, `guide/advanced/`, `examples/`, `miscellaneous/`, `_static/`, `_templates/` |
+| `source/locale/zh_CN/` | Chinese resources: gettext catalog `LC_MESSAGES/docs.po` + partial manual tutorial translations |
+| `fix_output.py` | Post-processes the zh_CN `.po` catalog (removes "Duplicate implicit target name" entries) |
+| `machine_translate.py` | Optional batch translator for `.po` entries via a TGI-compatible LLM API; not part of the build |
+| `fix_notebook_translation.py` | Historical helper that wrapped translated notebook strings as JSON cells; only relevant if notebooks return |
 
-### Build System
-- **Builder**: Sphinx via `sphinx-build`, source directory is `source/`, output goes to `build/`
-- **Theme**: `shibuya` (dark/light modes, GitHub integration, social links)
-- **Key extensions**:
-  - `autodoc2` — Auto-generates API docs from `src/evox` (rendered via MyST)
-  - `myst_nb` — Executable MyST Markdown notebooks (execution mode: off)
-  - `sphinxcontrib.mermaid` — Mermaid diagram support
-  - `sphinx_copybutton` — Copy button on code blocks
-  - `sphinx_design` — UI components (cards, grids)
-  - `sphinx.ext.mathjax`, `sphinx.ext.napoleon`, `sphinx.ext.viewcode`
-- **Mock imports**: `brax`, `mujoco_playground`, `torchvision` (allow building without them)
-- **Autodoc packages**: `evox.core.*`, `evox.problems.*`, `evox.workflows.*` expose `__all__`
+### Build system
+- Builder: `sphinx-build`, source `source/`, output `build/`; `sys.path` prepends `../../src` so autodoc2 can read `evox_etl`.
+- Theme: `shibuya` (dark/light, GitHub source links, Discord, ecosystem nav children).
+- Extensions: `autodoc2` (API docs from `src/evox_etl`), `myst_nb`, `sphinxcontrib.mermaid`, `sphinx_copybutton`, `sphinx_design`, `sphinx_favicon`, `sphinx.ext.mathjax`, `sphinx.ext.napoleon`, `sphinx.ext.viewcode`.
+- `autodoc2_render_plugin = "myst"`; `autodoc2_module_all_regexes` is limited to `core`, `problems`, `utils`, `workflows` because those are the packages whose every module defines `__all__` (a match on a module without `__all__` aborts the build).
+- MyST extensions enabled: `dollarmath`, `fieldlist`, `linkify`, `colon_fence`, `deflist`, `attrs_inline`.
+- Notebook execution is disabled (`nb_execution_mode = "off"`, `nbsphinx_execute = "never"`); the docs currently contain no notebooks.
 
-### i18n / Localization
-- **Locale directory**: `source/locale/zh_CN/LC_MESSAGES/docs.po` (gettext translation catalog)
-- Translated tutorial pages live under `source/locale/zh_CN/tutorial/`
-- `conf.py` uses `READTHEDOCS_LANGUAGE` env var to switch between English and Chinese for nav labels and theme context
+### Local build
+```bash
+uv pip install sphinx shibuya sphinx-autodoc2 myst-parser myst-nb sphinx-copybutton \
+  sphinx-design sphinx-favicon sphinxcontrib-mermaid nbsphinx linkify-it-py
+cd docs && rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html source /tmp/docs_build
+```
+`source/apidocs/` is generated by autodoc2 at build time, is git-ignored, and must be deleted after changing the scanned package (stale pages otherwise raise `autodoc2.missing`).
 
 ## Constraints
-- `apidocs/` is **auto-generated** by autodoc2 at build time — it is NOT committed to git and should not be edited manually
-- The `.po` file at `source/locale/zh_CN/LC_MESSAGES/docs.po` requires post-processing after machine translation: run `fix_output.py` to remove duplicate-anchor entries, and `fix_notebook_translation.py` to reconcile notebook vs. regular page translations
-- Notebook execution is disabled at build time (`nb_execution_mode = "off"`, `nbsphinx_execute = "never"`) — notebooks must be pre-executed before committing
-- The source tree root points to `../../src` (the `src/` directory at the repo root) for autodoc imports
-- **Algorithm / benchmark-problem count claims** — keep EN and zh_CN numbers identical, and keep every `.po` `msgid` exactly equal to its English source sentence (gettext contract):
-  - EvoX core (`src/evox/`): **30+ algorithms**, **30+ benchmark problems/environments**.
-  - EvoX ecosystem (EvoX + 13 related GPU-accelerated EC libraries under the EMI-Group org): **140+ algorithms**, **240+ benchmark problems/environments**.
-  - Stated on `source/index.md` (ecosystem figures), `source/tutorial/tutorial_part1.md` (core + ecosystem), and their zh_CN counterparts (the `.po` `msgstr`s and the manually translated `source/locale/zh_CN/tutorial/tutorial_part1.md`).
-  - Do NOT conflate these with the unrelated "over 100x speedup" performance claim.
+- **2.0 API only**: every snippet must be valid `evox_etl` code (frozen config dataclasses + `make_*`, `StdWorkflow(algorithm=…, problem=…, monitor=…, opt_direction=…, backend=…, device=…)`, stateless `key(seed)`, host-side `EvalMonitor`/metrics/`vis_tools`). Verify snippets against `src/evox_etl` before publishing.
+- **apidocs/ is generated** — never create, edit or commit files there.
+- **Backends are optional extras of the compiler, not of evox**: the default install runs on the `evoxc` numpy backend; `evox[vis]` adds Plotly; the compiled backends come from `evoxc[iree]`, `evoxc[tvm]`, `evoxc[compilers]` (the `evox` distribution declares only `vis`, `default`, `neuroevolution`, `test`, `docs`, `triton`); XLA has no pip extra and needs a user-built PJRT plugin selected via the `EVOXC_PJRT_PLUGIN` environment variable.
+- **Runtime floor is `evoxc`'s**: `evoxc` declares `requires-python = ">=3.11"`, so 3.11+ is the real floor for every documented snippet even though the `evox` metadata still says `>=3.10`.
+- **Count claims** must stay identical wherever they appear (EN + ZH): EvoX core **30+ algorithms** / **30+ benchmark problems**; EvoX ecosystem (EvoX + 13 related libraries) **140+ algorithms** / **240+ benchmark problems/environments**. Do not conflate them with a speedup claim.
+- **Bilingual policy**: English pages only under `source/`; translations under `source/locale/`. Tutorial parts are full-page manual translations copied over the English tree by the `.readthedocs.yaml` pre-build job; everything else uses the gettext `.po` catalog. New or changed pages are translated by hand — the build never machine-translates. `docs.po` is currently stale (extracted from the 1.x pages); unmatched entries are ignored by gettext and cannot fail the build. Refresh with `sphinx-build -b gettext` + `sphinx-intl update -p <potdir> -l zh_CN`, then translate.
+- `source/locale/zh_CN/tutorial/` currently holds only a translated `index.md`; the 1.x translations of `tutorial_part1..7` were removed because they documented the removed torch API, and untranslated parts fall back to English.
+- `README.md`/`README_ZH.md`, `pyproject.toml` and other repo-root files are outside this node.
 
+## Known Issues
+- `pyproject.toml` is still the 1.x manifest (torch + numpy dependencies, no `evoxc`, no `iree`/`tvm`/`compilers` extras), so `pip install "evox[iree]"` is a no-op and only `evoxc[iree]` installs a backend today; the install pages state both spellings and say which one works.
+- `src/evox_etl/__init__.py` reports `__version__ = "1.4.0"` while `source/conf.py` declares `version = "2.0.0-pre"`; no page uses a version string as a 2.0 verification step for this reason.
+- `src/evox_etl/problems/numerical/cec2022.py` resolves its data directory through the frozen torch tree (`src/evox/...`), so CEC2022 only works from a source checkout.
+- `evoxc` raises the provider's raw import error for a device whose provider package is missing (`backend="numpy", device="cuda"` → `ModuleNotFoundError: No module named 'iree'`); `guide/advanced/backends.md` and `miscellaneous/selecting_gpu.md` describe device failures behaviourally instead of promising one exception class.
+- The gettext catalog `docs.po` still holds entries extracted from the 1.x pages (unmatched entries are ignored by gettext) and the tutorial translations cover only `index.md`, so the 2.0 tutorial is English-only until the Chinese rewrite lands.
+- The build is warning-free, so a `{doc}` target that resolves but points at the wrong chapter is invisible to it — check cross-page "next step" links by hand when editing.
 ## Routing Table
-
 | Area | Child Directory | Description |
 |---|---|---|
-| Sphinx config & build | `source/conf.py`, `Makefile`, `make.bat` | Build system configuration and scripts |
-| Static assets | `source/_static/` | Images, CSS, logos, favicons |
-| Jinja2 templates | `source/_templates/` | Autosummary templates (class/module) and HTML partials (social links, webfonts) |
-| Tutorials | `source/tutorial/` | 7-part English getting-started tutorial series |
-| Chinese translations | `source/locale/zh_CN/` | Translated tutorial pages and gettext `.po` catalog |
-| Installation guide | `source/guide/install/` | Python setup, PyTorch + EvoX installation |
-| Developer guide | `source/guide/developer/` | Custom algorithms, HPO problems, module base design, environment setup, doc contribution |
-| Experimental features | `source/guide/experimental/` | Distributed workflow documentation |
-| Notebook examples | `source/examples/` | Jupyter notebooks: single/multi-objective optimization, neuroevolution (Brax), HPO, supervised learning |
-| Miscellaneous | `source/miscellaneous/` | GPU selection, Linux distribution notes, MATLAB migration |
-| Translation tooling | `machine_translate.py`, `fix_output.py`, `fix_notebook_translation.py` | Scripts for maintaining the zh_CN `.po` catalog |
+| Sphinx config & build scripts | `source/conf.py`, `Makefile`, `make.bat` | Build system configuration and entry points |
+| Landing page | `source/index.md` | Root toctrees, quickstart, feature list |
+| Tutorial series | `source/tutorial/` | 7 parts: install, first run, workflow+monitor, algorithms, problems, multi-objective, 1.x migration |
+| Installation guide | `source/guide/install/` | Python environment and `evox` install with backend extras |
+| Developer guide | `source/guide/developer/` | Functional architecture, custom algorithm/problem/monitor, contributor environment, documentation contribution |
+| Advanced guide | `source/guide/advanced/` | Backends/performance, operators, metrics, visualization/`.exv`, host-side HPO, `evox_etl_ext` extensions |
+| Examples | `source/examples/` | Single-objective, multi-objective, neuroevolution walkthroughs with executed outputs |
+| Miscellaneous | `source/miscellaneous/` | Device/GPU selection, alternative hardware, Linux notes, MATLAB migration |
+| Chinese translations | `source/locale/` | `zh_CN` gettext catalog + partial manual tutorial translations |
+| Translation tooling | `fix_output.py`, `machine_translate.py`, `fix_notebook_translation.py` | Maintenance scripts for the `.po` catalog |

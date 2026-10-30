@@ -19,8 +19,8 @@ Run: `<venv>/bin/python -m pytest unit_test/etl/operators -q`
 | File | Operators covered |
 |---|---|
 | `test_sampling.py` | uniform_sampling, grid_sampling (deterministic); latin_hypercube_sampling_standard, latin_hypercube_sampling (keyed) |
-| `test_selection.py` | tournament_selection, tournament_selection_multifit, select_rand_pbest (keyed random only) |
-| `test_crossover.py` | DE_differential_sum, DE_binary_crossover, DE_exponential_crossover, simulated_binary, simulated_binary_half |
+| `test_selection.py` | tournament_selection, tournament_selection_multifit, select_rand_pbest (keyed random only); incl. the 1-D `(n_round,)` shape regressions for `n_round` 1/3 and the very-large-tournament argmin / lexicographic-winner regressions |
+| `test_crossover.py` | DE_differential_sum, DE_binary_crossover, DE_exponential_crossover, simulated_binary, simulated_binary_half; incl. the uniform-mask regression (empirical crossover rate `CR + (1-CR)/dim`, a normal-draw mask fails both the CR=0.1 and CR=0.9 bands) |
 | `test_mutation.py` | polynomial_mutation |
 | `test_jit_fix_operator.py` | switch, clip, maximum_float, minimum_float (property tests: the trace-only jit-fix helpers) |
 | `parity/test_parity_sampling.py` | uniform_sampling (incl. h2 branch), grid_sampling |
@@ -60,3 +60,9 @@ distinct pytest package (no basename collisions when suites run together).
 - Torch `non_dominate_rank` is called eagerly (never under torch.compile).
 - Keep files focused (<~400 lines); runtime moderate (pop 32–64, dim 8–20,
   n_round ~100); build executables once per test and reuse.
+- Regression tests pinning ported upstream torch fixes live next to their
+  siblings (no torch): the `DE_binary_crossover` UNIFORM mask draw
+  (`pop_size=2000, dim=20`, rate `CR + (1-CR)/dim` within ±0.02, plus
+  `CR=0` mutating exactly one gene per row) and the 1-D tournament index
+  shape for `n_round` 1 and 3 together with the large-tournament
+  argmin / `np.lexsort` lexicographic-winner assertions.

@@ -9,6 +9,13 @@ running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 - `test_metrics.py` — pure-ETL tests (NO torch): metrics vs hand-rolled numpy
   references (GD, IGD, GD+, IGD+ for several shapes/seeds and p exponents) and
   Monte-Carlo HV vs brute-force recomputation from the drawn samples.
+  Also the HV reference-point CLIPPING regressions for both estimators
+  (`hv` / `bounding_cube_monte_carlo_hv` and `each_cube_monte_carlo_hv`):
+  a point that is not better than `ref` along an objective has zero extent
+  there, so it adds no hypervolume — pinned by an exact `== 0.0` case, the
+  0.32 two-point half-outside front (`num_sample=400000`), and a 3-objective
+  mixed front where the exact union volume comes from host-side
+  inclusion-exclusion and adding the outside point must not change the value.
 - `parity/test_parity.py` — the ONLY file allowed to import torch; compares
   `evox_etl` `gd`/`igd` against the torch `evox` reference on seeded inputs.
 
@@ -26,7 +33,7 @@ running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 ```
 <venv>/bin/python -m pytest unit_test/etl/metrics -q
 ```
-53 tests, ~10s (parity imports torch). Runs from the repository root.
+59 tests, ~10s (parity imports torch). Runs from the repository root.
 
 ## Constraints
 - Never modify `src/evox_etl/` from here — if a test exposes a package bug,

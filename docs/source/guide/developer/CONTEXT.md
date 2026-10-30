@@ -1,26 +1,36 @@
 # developer/ — Developer Guide
 
 ## Intent
-This directory holds the **Developer Guide** section of the EvoX documentation. It covers everything contributors need: setting up a dev environment, understanding `ModuleBase` (the foundational class), implementing custom algorithms and problems, deploying HPO with custom algorithms, and writing documentation. The section is linked from the root landing page (`source/index.md`) under the "Getting Started" toctree and as a grid-item-card labeled "Developer Guide."
+Developer-facing documentation for the experimental EvoX 2.0 pre-release (import name `evox_etl`, a functional framework on the `evoxc` compiler).
+It covers the architecture, how to write custom algorithms/problems/monitors, contributor setup, and the documentation workflow.
+The section is linked from `docs/source/index.md` under "Getting Started" and as a grid card labeled "Developer Guide".
 
-## API Surface
-
-| File | Page Title | Description |
+## Pages
+| File | Title | Content |
 |---|---|---|
-| `index.md` | Developer Guide | Section landing page; toctree at `:maxdepth: 1` linking all five sub-pages |
-| `environment.md` | Develop environment | Clone repo, pip editable install with test deps, Nix shell, ruff linting, pre-commit setup, and `python -m unittest` usage |
-| `modulebase.md` | Working with Module in EvoX | Introduces `ModuleBase` (extends `torch.nn.Module`): key methods (`__init__`, `load_state_dict`, `add_mutable`), its role (mutable values, functional programming via state dicts, standardized init via `setup`), and usage rules (`@jit` for static methods, `torch.cond` for vmap-compatible control flow) |
-| `custom-alg-pro.md` | Custom algorithms and problems in EvoX | Explains the flat Algorithm–Problem layout; documents the `Algorithm` interface (`__init__`, `step`, optional `init_step`) and `Problem` interface (`__init__`, `evaluate`); provides complete code examples: PSO algorithm + Sphere problem |
-| `custom_hpo_prob.ipynb` | Deploy HPO with Custom Algorithms | Jupyter notebook; covers making algorithms parallelizable for HPO (no in-place operations, no Python control flow), and wrapping custom algorithms as HPO problems |
-| `document.md` | Document Writing Guide | Sphinx-style docstring conventions (`:param`, `:return`, `:raises`), Markdown/IPYNB preferences, pre-execution requirement for notebooks, cross-reference syntax, and translation update workflow (`make gettext` → `sphinx-intl update` → `fix_output.py`) |
+| `index.md` | Developer Guide | Landing page: short intro, pre-release warning, page table, hidden `:maxdepth: 1` toctree over the other five pages. |
+| `architecture.md` | Architecture of EvoX 2.0 | Config/state split, the three `evox_etl.core` protocols, module-resolution rule, step protocol (`init`/`init_step`/`step`/`final_step`, the host-side `record_step` of the auxiliary channel, the in-graph `monitor_candidate`), the `evaluate` closure pipeline, what `StdWorkflow` builds incl. the monitor field-fill table, RNG keys, the `make_*` convention, design rationale. |
+| `custom-alg-pro.md` | Custom algorithms and problems in EvoX | Two verified end-to-end examples: `my_algorithm.py` + `run_algorithm.py` (custom ES with built-in Sphere) and `my_problem.py` + `run_problem.py` (custom shifted sphere with built-in PSO); traceability rules; MO operator injection pointers. |
+| `custom-monitor.md` | Writing a custom monitor | Monitor protocol, a pointer to the workflow-filled config fields on `architecture.md`, `monitor_update` semantics, host-side wrapper and readback, the `record_step`/`record_auxiliary`/`aux_history` channel, a verified `my_monitor.py` + `run_monitor.py` example. |
+| `environment.md` | Develop environment | Clone + editable install plus a separate `pip install evoxc`, Python 3.11+ (`evoxc` floor), extras (`vis`; compiled backends only via `evoxc[...]` today), Nix dev shells, ruff/pre-commit, `pytest unit_test/etl/...` commands, docs build command. |
+| `document.md` | Document Writing Guide | Sphinx + MyST page conventions, toctree rules, autodoc2-generated `apidocs/`, docstring style, notebook pre-execution, local build, bilingual gettext + manual-tutorial policy, translation commands. |
 
 ## Constraints
+- No 1.x API anywhere: no `ModuleBase`, `Parameter`/`Mutable`, `use_state`, `torch.compile`/`vmap`, class-based components, or `python -m unittest`.
+  The only allowed exceptions are the `index.md` warning that names the removed 1.x API, and `environment.md` noting that `unit_test/etl/**/parity/` modules import PyTorch for numeric comparison.
+- Every code snippet must be runnable and verified with the numpy backend (`PYTHONPATH=src python`).
+  The large snippets on `custom-alg-pro.md` and `custom-monitor.md` are byte-identical to scripts run end-to-end; keep them in sync if the API changes.
+- One component per module: the workflow resolves functions via `importlib.import_module(type(config).__module__)`, so an algorithm, a problem and a monitor each need their own file.
+- Install story on these pages: Python 3.11+ (the `evoxc` floor; `evox`'s `>=3.10` metadata is the 1.x line), `pip install -e .` **and** `pip install evoxc`, and no 1.x extras (`docs`, `test`, `default`, `triton`, `neuroevolution`) — compiled backends install via `evoxc[...]` today, with `../install/evox` owning the details.
+- MyST Markdown, exactly one H1 per page, `{doc}` cross-references (paths without `.md`), `{note}`/`{tip}`/`{warning}` admonitions, fenced Python/bash code.
+- Count claims stay exact: "30+ algorithms", "30+ benchmark problems" (ecosystem pages: "140+ algorithms", "240+ benchmark problems/environments").
+- `docs/source/apidocs/` is generated by autodoc2 from `src/evox_etl` and git-ignored — never edit or commit it.
 
-- The `.ipynb` file (`custom_hpo_prob.ipynb`) must be **pre-executed and saved with output** before committing, since the build system has `nb_execution_mode = "off"` — CI/CD cannot run GPU-dependent cells
-- All pages use **MyST Markdown** (`.md`) rendered by Sphinx with the `shibuya` theme, except the notebook which is processed by the `myst_nb` extension
-- Cross-references use the `[label](#ref)` syntax (e.g., `[ModuleBase](#evox.core.module.ModuleBase)`)
-- Docstrings in the EvoX source code follow **Sphinx-style** (no types in docstrings — types are in function signatures)
+## Notes for Agents
+- Agreed cross-link targets outside this node: `../advanced/backends`, `../advanced/operators`, `../advanced/metrics`, `../advanced/viz`, `../advanced/hpo`, `../advanced/extensions`, `../install/evox`, `../../tutorial/tutorial_part2`, `../../tutorial/tutorial_part3`, `../../tutorial/tutorial_part7`.
+- Build check from `docs/`: `rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html source <out>`.
+- Verified behavioural gotchas worth preserving: `record_step` runs host-side after each generation and must return existing concrete tensors (creating a new one raises `evoxc` `TraceError`); `workflow.monitor_state` is captured during init, only the wrapper's `.state` is refreshed per generation; a monitor config only receives the fields it declares (`pop_size`, `dim`, `n_obj`, `multi_obj`, `opt_direction`).
+- The auxiliary channel is active only when the algorithm module defines `record_step` and the monitor module defines `record_auxiliary`; `EvalMonitor` additionally gates it on `full_pop_history`.
 
 ## Routing Table
-
-This directory is a leaf node — there are no child subdirectories. All six files are at the top level and listed above.
+This directory is a leaf node — no child subdirectories; all pages are listed above.
