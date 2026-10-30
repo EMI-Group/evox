@@ -68,3 +68,14 @@ generation) + frozen config dataclasses. See `../../DESIGN.md` §4-5 and
   torch-faithful: `selected_z` gathers with `relu(x)` but the `norm_obj` gather
   uses the RAW indices (negative indices wrap to the last row, numpy-take
   semantics — same as torch `norm_obj[x]`).
+- Upstream torch bug-fix semantics are ported into `so/de_variants/` (uniform
+  initial sampling for CoDE/SaDE/SHADE, SHADE F/CR memory adaptation) and
+  `so/es_variants/` (ASEBO active-subspace fix, GuidedES basis transpose); the
+  CMA-ES `c_c` constant, the XNES/SeparableNES default `pop_size` and the
+  CMA-ES `torch.cond` aliasing fix needed no port work (already correct /
+  torch-graph-only).
+- `unit_test/etl/algorithms/parity/test_parity.py::test_asebo_state_parity_with_torch`
+  is the one red test of this node's gate: it is a STALE torch-side harness
+  (injects noise shaped `(dim, half)` into the fixed reference, which now samples
+  `(half, dim)`), so it fails before any evoxc assertion; re-porting it belongs to
+  the test tree (sibling — escalated to the parent agent).
