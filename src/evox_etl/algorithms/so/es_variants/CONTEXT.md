@@ -41,11 +41,11 @@ hook" below).
 | `snes.py` | SNESConfig/State — weight_type "temp"/"recomb"; `_softmax` shared with des.py |
 | `des.py` | DESConfig/State — ranks softmax weighting |
 | `nes.py` | XNESConfig + SeparableNESConfig/States — `init`/`step` dispatch on config type via isinstance |
-| `guided_es.py` | GuidedESConfig/State — QR surrogate-gradient subspace |
+| `guided_es.py` | GuidedESConfig/State — QR basis `(dim, subspace_dims)` of the gradient rows' span (factorises `grad_subspace.T`) |
 | `noise_reuse_es.py` | NoiseReuseESConfig/State — perturbation reuse, T/K counter |
 | `persistent_es.py` | PersistentESConfig/State — perturbation accumulation + reset |
 | `esmc.py` | ESMCConfig/State — baseline member; pop_size must be ODD |
-| `asebo.py` | ASEBOConfig/State — SVD active subspaces; lr_decay/lr_limit config-only (unused in torch too) |
+| `asebo.py` | ASEBOConfig/State — SVD active subspaces (fixed b448084a semantics, see Design Decisions); lr_decay/lr_limit config-only (unused in torch too) |
 | `virtual_noise.py` | SHARED deterministic generator (do not modify): `compute_offsets`, `compute_counter_offsets`, `virtual_normal`, `lora_factors` |
 | `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; torch-parity `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` aliases |
 | `virtual_lora_es.py` | VirtualLoRAESConfig/State + make_virtual_lora_es — DISTINCT low-rank variant (extra `lora_rank`, `B @ A` perturbations for ≥2-D blocks) |
@@ -150,46 +150,41 @@ configured AND `EvalMonitorConfig.full_pop_history` is True.
 ## Routing Table
 | Area | Path |
 |---|---|
-| Family tests — smoke (no torch) + relocated torch-parity | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
+| Family tests — no-torch smoke tests | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
 | Convergence-parity tests vs torch | `unit_test/etl/algorithms/parity/` (sibling — read-only here, escalate writes to the parent agent) |
 | Shared test driver / toy problems | `unit_test/etl/algorithms/helpers.py` (sibling — read-only) |
 | Torch reference for every module here | `src/evox/algorithms/so/es_variants/` (read-only, never modify) |
 
 ## Design Decisions (torch-parity choices — current state)
-### 1. ASEBO's SVD block mirrors the reference verbatim, including two API traps
-`asebo.py step()` reproduces `src/evox/algorithms/so/es_variants/asebo.py:95-107`
-exactly:
-- `signs` is a **(k,k) sign MATRIX**, not a length-k vector: the reference writes
-  `torch.sign(U[max_abs_cols, :])`, where advanced indexing on dim 0 selects k
-  ROWS (row i = sign of row `max_abs_cols[i]` of U), then multiplies `U` and `Vt`
-  element-wise. The port uses `evoxc.sign(evoxc.gather(U, max_abs_cols, axis=0))`
-  (`evoxc.gather` is numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`).
-- The reference's `Vt` is the **deprecated `torch.svd` third output = V (= Vh.T)**,
-  NOT Vh; `evoxc.svd` returns Vh. The port therefore transposes to the reference's
-  convention **before** the sign multiply (`Vt = evoxc.transpose(Vh, (1, 0))`);
-  transposing after the multiply is NOT equivalent.
-Both are required: without them the port's `UUT_ort` differs from the reference by
-≈ 1.2 (missing transpose) / ≈ 0.8 (sign vector) on an identical X. Shape law: the
-reference's `U * signs` / `Vt * signs` broadcasts only when
-`subspace_dims == dim` — the port keeps that constraint (no generalisation), so
-ASEBO here is defined only for the default `subspace_dims == dim`.
+### 1. ASEBO mirrors the post-b448084a reference (right singular vectors, no sign juggling)
+`asebo.py step()` reproduces the FIXED reference:
+`subspace_ready = gen_counter > subspace_dims` is computed ONCE from the
+PRE-increment counter and gates BOTH `UUT`/`UUT_ort` and `alpha`.
+`X = grad_subspace - mean(X, axes=0)`; `_, S, Vh = evoxc.svd(X)`;
+`U = Vh[:subspace_dims]` (ROWS of the right singular vectors — `evoxc.svd`
+already returns the numpy/`torch.linalg.svd` convention, so no transpose and no
+sign multiply); `tol = eps(f32) * max(X.shape) * S[0]`;
+`informative = (S[:subspace_dims] > tol)`;
+`UUT = (U.T * informative) @ U`; `UUT_ort = I - UUT`;
+`effective_dims = clamp(sum(informative), min=1.0)`.
+`cov = (alpha/dim) I + ((1-alpha)/effective_dims) UUT + 1e-6 I` — NO sigma factor;
+sigma instead multiplies the sampled perturbation (`z_plus = sigma * (noise @
+chol.T)` with `noise (half, dim)`, no per-vector normalisation).
+`alpha = norm(theta_grad @ UUT_ort) / (norm(theta_grad @ UUT) + 1e-8)`, clamped to
+[0, 1] and pinned to 1.0 while not ready.
+The freshly computed `UUT`/`UUT_ort` are stored in the returned state and feed
+that same generation's alpha (the pre-fix port divided by the never-written
+all-zero state buffer and never stored them).
 
-### 2. ASEBO's alpha degenerates EXACTLY like the reference — deliberately not "fixed"
-The `alpha` denominator is `state.UUT`, i.e. the MASKED UUT stored a few lines
-earlier: the UUT mask reads the PRE-increment `gen_counter` while alpha's own mask
-reads the POST-increment one — the same ordering the reference has (`where` on its
-local UUT before the counter bump, `where` on alpha after). So in the generation
-where `gen_counter` first exceeds `subspace_dims` the denominator is the all-zero
-matrix and **alpha = inf**, reproducing the reference's division by its
-never-refreshed all-zero `self.UUT`. torch then raises `LinAlgError` in
-`cholesky` at generation `subspace_dims + 2`; numpy's cholesky NaN-propagates
-instead and the port surfaces the failure one generation later as an `evoxc.svd`
-non-convergence error. Verified with the real torch algorithm (dim=10, pop=8,
-sigma=0.5, lr=1.0, seed 0): alpha=1.0 through generation 10, alpha=inf at 11,
-LinAlgError at 12. Running a *finite* alpha instead does not help: measured, an
-unmasked fresh UUT in the denominator makes `cov` non-positive-definite at
-generation 12 anyway (alpha can exceed 1, so `(1-alpha)*UUT` goes negative).
-**Runs beyond `subspace_dims` generations are unsupported on both sides.**
+### 2. ASEBO is well-posed for any `subspace_dims <= dim` and any run length
+The centred gradient buffer has rank at most `subspace_dims - 1`, so the trailing
+direction(s) are dropped by the singular-value tolerance and `effective_dims`
+floors the normalisation at 1; the `1e-6 * I` jitter keeps `cov` positive
+definite for every alpha in [0, 1].
+Measured on Sphere (20 generations, seed 0, center_init 5, sigma 0.5, lr 1.0):
+(dim=10, pop=8, subspace_dims=4) 248.03 → 54.00, (dim=10, pop=8, default
+subspace_dims=10) 248.03 → 51.83, (dim=12, pop=6, subspace_dims=3) 298.85 → 74.86
+— all finite, alpha in [0, 1], `best_fitness` (a running min) non-increasing.
 
 ### 3. CMA-ES's rank-one covariance update = TRUE outer product
 The reference was fixed upstream (commit 86e8fa63) from the 1-D `p_c @ p_c.T`
@@ -202,17 +197,13 @@ divergence. Any future "replicate the quirk" reasoning here is obsolete: check
 the reference source, not this file's history.
 
 ## Known Issues
-- ASEBO is defined only for `subspace_dims == dim`, and numerically usable only
-  for ≤ `subspace_dims` generations (Design Decisions 1 and 2).
-- ASEBO's subspace block is float32-degenerate on a REAL gradient history:
-  `X = grad_subspace - mean(grad_subspace, axes=0)` always has columns summing to
-  zero (rank ≤ sub−1), so the smallest singular value ≈ 0 and the `argmax`/signs
-  land on float32 ties — numpy's and torch's pipelines can disagree by 0.2-1.0 in
-  `UUT_ort` on identical ops. Parity of that block is therefore asserted on a
-  well-posed constructed X in the sibling parity test; note the block is
-  also INERT for `gen_counter <= subspace_dims` (alpha is forced to 1.0 and UUT is
-  masked to zero, so `cov` is isotropic and the sampled population, fitness and
-  center are independent of the SVD block).
+- The sibling parity test `unit_test/etl/algorithms/parity/test_parity.py::test_asebo_state_parity_with_torch`
+  still encodes the PRE-b448084a ASEBO semantics and now FAILS on the TORCH side:
+  it injects `torch.randn` noise shaped `(dim, half)` while the fixed reference
+  samples `(half, dim)` (`RuntimeError: mm: mat1 and mat2 shapes cannot be
+  multiplied`), and it asserts against an old `torch.svd`/`signs`/`Vt[half:]`
+  replica block plus now-false "isotropic cov" / "crashes past subspace_dims"
+  claims; re-porting it belongs to the test tree (outside this node's write scope).
 - `asebo.py step` uses `evoxc.svd` (U, S, Vh), which evoxc's stablehlo-v1 exporter
   DEFERS (`BackendError` on compiled backends iree/xla); the numpy backend is
   fine. The NSGA3 fix pattern (eigh-based equivalents, see
@@ -238,10 +229,15 @@ the reference source, not this file's history.
   is **V** (n, k), the transpose (its docstring: `input = U diag(S) V^H`; verified
   on torch 2.12.1 with a (4,6) input → third output (6,4); `torch.linalg.svd(...,
   full_matrices=False).Vh == V.T`). The two conventions coincide in shape — but
-  not in value — for a SQUARE matrix (as in `asebo.py`, where
-  `subspace_dims == dim`): `|V − Vh| ≈ 1.0` for a random 10×10. `asebo.py`
-  transposes evoxc's Vh back to `torch.svd`'s V (Design Decisions 1); every other
-  module here consumes Vh directly (matching `torch.linalg.svd`).
+  not in value — for a SQUARE matrix: `|V − Vh| ≈ 1.0` for a random 10×10. Every
+  module here consumes Vh directly (matching `torch.linalg.svd`), including
+  `asebo.py`, whose fixed reference also switched to `torch.linalg.svd`.
+- `guided_es.py` factorises `evoxc.transpose(state.grad_subspace, (1, 0))` (the
+  stored gradients are ROWS), so `evoxc.qr` returns Q `(dim, subspace_dims)`
+  (verified: 3×10 → Q (10,3), 10×10 → Q (10,10)); factorising the un-transposed
+  `(subspace_dims, dim)` buffer yields a `(subspace_dims, subspace_dims)` basis
+  and `c * Q @ eps_subspace` then raises a ShapeError whenever
+  `subspace_dims < dim`.
 - `evoxc.qr` returns `(Q, R)` reduced, Q first. `evoxc.cond` supports pytree outputs.
 - `evoxc.dot` requires rank ≥ 2 BUT also supports BATCHED 3-D matmul: `evoxc.dot(B
   (pop,d,rank), A (pop,rank,k)) -> (pop,d,k)` works (numpy backend; used by
@@ -262,40 +258,28 @@ pytest numpy` (a published `evoxc` distribution can be installed by bare name in
 then `PYTHONPATH="src:<torch-site-packages>"` (torch comes from the
 shared evox venv; no GPU here).
 - **Family suite**: `unit_test/etl/algorithms/so/es_variants/` — the no-torch
-  smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`) plus
-  the relocated torch-parity file (the only torch-importing file in that node;
-  its `conftest.py` is the repo-root/`src` sys.path shim — the pattern is the
-  sibling `unit_test/etl/workflows/conftest.py`). The parity file injects
+  smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`; its
+  `conftest.py` is the repo-root/`src` sys.path shim — the pattern is the sibling
+  `unit_test/etl/workflows/conftest.py`); that node imports no torch.
+- **Torch-parity suite**: `unit_test/etl/algorithms/parity/` (sibling) injects
   IDENTICAL noise on both sides (monkeypatch `torch.randn` +
   `evoxc.random.normal` → an in-graph `evoxc.ops.constant`) to make torch and evoxc
-  trajectories comparable, and covers: ASEBO (state parity + the subspace block
-  vs the reference ops, on a well-posed X) with discriminating-power guards
-  (~1.2 / ~0.8), ARS odd `pop_size=5, elite_ratio=0.9` (torch elite count 2 vs the
-  old integer-division 1, Δcenter 1.8e-2) and CMA-ES 2-step state parity
-  (ΔC 6e-8; the pre-fix scalar form shifts C by 0.12). Also
-  `test_record_step_aux.py` drives `cma_es`/`des` through `StdWorkflow` +
+  trajectories comparable; it covers ARS odd `pop_size=5, elite_ratio=0.9` (torch
+  elite count 2 vs the old integer-division 1, Δcenter 1.8e-2), CMA-ES 2-step state
+  parity (ΔC 6e-8; the pre-fix scalar form shifts C by 0.12), OpenES, and ASEBO —
+  the ASEBO case `test_parity.py::test_asebo_state_parity_with_torch` still encodes
+  the PRE-b448084a semantics and FAILS on the TORCH side (see Known Issues).
+- `unit_test/etl/algorithms/parity/test_cma_es.py` passes; it monkeypatches
+  `CMAES._conditional_decomposition` to `_decomposition` because `torch.cond`
+  rejects the transposed-operand view on the installed torch — mathematically
+  identical for its configs (`decomp_per_iter == 1`, guarded by an assert); torch
+  5.06529 / 5.64848 vs evoxc 3.96482 / 2.59804 (seeds 0 / 1).
+- `test_record_step_aux.py` drives `cma_es`/`des` through `StdWorkflow` +
   `EvalMonitorConfig(full_pop_history=True)` and pins the `record_step` →
   `aux_history` aux channel (keys, one entry/generation, shapes, final-state
   match). Note: these ES states expose neither `population`/`pop` nor a `dim`
   config field, so `dim` (and `pop_size` for `cma_es`'s `None` default) must be
   passed EXPLICITLY to `EvalMonitorConfig`.
-- **Sibling parity (torch)**: `unit_test/etl/algorithms/parity/test_cma_es.py`
-  (+ `test_open_es.py`), the sole red tests of the evoxc suite here. `test_cma_es.py`
-  fails BOTH parametrizations for an ENVIRONMENT reason on the TORCH side, not a
-  port defect, and this node cannot edit that sibling file (write scope — escalate
-  to the parent agent): `CMAES.step` → `_conditional_decomposition` calls
-  `torch.cond(...)`, which under torch 2.12.1 raises `UncapturedHigherOrderOpError`
-  while capturing the **`_decomposition`** branch — its first line
-  `C = (C + C.T) / 2` takes a transposed VIEW of the cond operand, dynamo lifts that
-  view as a second graph input aliasing the operand, and HOP tracing rejects
-  input-to-input aliasing (a later clone inside the branch does NOT help). The torch
-  side dies at `workflow.init_step()` before any evoxc code runs. The evoxc side is
-  correct and converges BETTER than torch (Design Decisions 3). Fix: on this file's
-  configs `decomp_per_iter == 1`, so `_decomposition` is always the taken branch —
-  monkeypatch `CMAES._conditional_decomposition` to
-  `lambda self, iteration, C: self._decomposition(C)`, guarded by
-  `assert int(alg.decomp_per_iter) == 1`, which is mathematically identical and
-  drives both parametrizations green (torch 5.06529 / 5.64848 vs evoxc 3.96482 /
-  2.59804, seeds 0 / 1). The same monkeypatch pattern is already used in
-  the sibling es_variants parity file; the full write-up lives in
-  `unit_test/etl/algorithms/parity/CONTEXT.md` (Known Issues).
+- Gate: `PYTHONPATH=src /tmp/venv/bin/python -m pytest
+  unit_test/etl/algorithms/so/es_variants unit_test/etl/algorithms/parity -q`
+  → everything green except the stale ASEBO parity test above.
