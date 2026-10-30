@@ -16,7 +16,7 @@ Each page states what it proves, shows the program, quotes the real printed outp
 ## Constraints
 Every code block must be **executed before publication** against the real `src/evox_etl` code (`PYTHONPATH=src python <snippet>.py`), and the quoted numbers must be copied from that run (fixed seed 42).
 Document only the 1.x-free surface: `evox_etl` configs built by `make_*`, `StdWorkflow`, `EvalMonitorConfig`, `evox_etl.metrics`, `evox_etl.vis_tools` — never `import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`, or the torch neuroevolution problems.
-Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `tutorial/tutorial_part6`.
+Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `../guide/advanced/backends` (`tutorial_part6` is the multi-objective chapter, not a backends page).
 `evox_etl.metrics` functions are traced graph functions: examples must build them with `evoxc.build` + `TensorSpec` and pass static scalars to both `build` and `run`.
 `EvalMonitorConfig(full_sol_history=True)` is required for `get_pf()`; algorithms with no `population`/`pop` state (CMA-ES) need `EvalMonitorConfig(dim=dim)`.
 `hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`) and a static `num_sample`.
@@ -26,4 +26,4 @@ Do not reference the deleted 1.x notebooks, and do not edit `conf.py`, `source/i
 
 ## Routing Table
 This is a leaf directory: all content is in the four pages listed above.
-Related documentation lives elsewhere — `../tutorial/tutorial_part2` (workflow internals), `../tutorial/tutorial_part6` (backends), `../tutorial/tutorial_part7` (1.x migration), `../guide/advanced/metrics`, `../guide/advanced/viz`, `../guide/advanced/hpo`, `../guide/developer/custom-alg-pro`.
+Related documentation lives elsewhere — `../tutorial/tutorial_part2` (PSO walkthrough), `../tutorial/tutorial_part6` (multi-objective chapter, overlapping `mo.md`), `../tutorial/tutorial_part7` (1.x migration), `../guide/advanced/backends`, `../guide/advanced/metrics`, `../guide/advanced/viz`, `../guide/advanced/hpo`, `../guide/developer/custom-alg-pro`.
