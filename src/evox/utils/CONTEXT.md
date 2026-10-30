@@ -48,6 +48,11 @@ Reimplementations of PyTorch operators that are not yet supported in `torch.comp
 - `vmap_wrap_inputs` — custom input-preprocessing for vmap (defaults to `_default_vmap_wrap_inputs`)
 - `max_vmap_level` — vmap nesting depth (defaults to 1)
 
+### Absent helpers (do not assume they exist)
+- `FlattenedState` does **not** exist anywhere in this repository (no class, no function).
+- There is **no activation-lookup helper** in `src/evox/utils` (no `get_activation`/`ACTIVATION_MAP`; `problems/neuroevolution/virtual_problem.py` and `virtual_lora_problem.py` dispatch activations by `isinstance` on `nn.ReLU`/`nn.Tanh`/... modules directly).
+- `compile`/`vmap`/`use_state`/`Parameter`/`Mutable`/`ModuleBase` live in `evox.core`, not here; the closest equivalent to a "flattened state" is `ParamsAndVector` itself plus `torch.func.stack_module_state` in `problems/neuroevolution/utils.py`.
+
 ### 3. Parameter/Vector Conversion (`parameters_and_vector.py`)
 
 | Export | Purpose |
