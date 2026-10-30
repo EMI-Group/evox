@@ -20,7 +20,11 @@ an active trace (`evoxc.build`/`evoxc.run`); there is no eager mode.
   `bounding_cube_monte_carlo_hv(key, objs, ref, num_sample=100000)` — torch
   `hv` bounding-cube Monte Carlo; `hv` delegates to
   `bounding_cube_monte_carlo_hv`. `key` is an evoxc PRNG key (first param —
-  evoxc RNG needs keys, unlike torch).
+  evoxc RNG needs keys, unlike torch). Both share the `_distances_to_ref`
+  helper, which ports the torch `clamp(ref - objs, min=0)` semantics: objectives
+  along which a point does not dominate the reference point contribute a 0
+  extent, so such points do not add to the hypervolume (upstream commit
+  f4b24d72, replacing the old `|objs - ref|`).
 - `each_cube_monte_carlo_hv(key, objs, ref, num_sample=100000)` — jax-evoX
   v0.9.0 per-cube Monte Carlo (no vmap): static Python loop over the n points
   (n is a static shape int), `random.split_n` keys, per-cube uniform draws,
