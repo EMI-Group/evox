@@ -25,9 +25,9 @@ generation:
 | `compile_options=` | `dict` or `None` (default) | Extra keyword options for `evoxc.build` (`backend`/`device` keys are stripped). |
 
 Both transforms must be **plain, traceable callables** — they run *inside* the compiled
-graph, so a `torch.nn.Module` or anything that reads a Python global at trace time will
-not work. The evaluation pipeline they slot into is fixed, and it is the only place
-fitness is produced:
+graph, so a stateful object (anything that keeps mutable Python attributes) or a function
+that reads a Python global at trace time will not work. The evaluation pipeline they slot
+into is fixed, and it is the only place fitness is produced:
 
 ```text
 evaluate(candidates):
@@ -83,7 +83,8 @@ best solution: [3.0135 3.0221 3.0158]
 |---|---|---|---|
 | `wf.run(generations=None, seed=42)` | `init` + the whole loop (`init_step`, plain `step`s, `final_step`) | the final `WorkflowState` | no |
 | `wf.fit(fitness=None, generations=None, seed=42)` | the same loop, then reads the elite | the best fitness (`float`) | yes — raises `ValueError` without one |
-| `wf.init(seed)` / `init_step` / `step` / `final_step` | one generation per call; you own the loop | a new `WorkflowState` per call | no |
+| `wf.init(seed=42)` | builds the init graph (and the plain `step` graph) and returns the generation-0 state — no generation is evaluated | the initial `WorkflowState` | no |
+| `wf.init_step(state)` / `wf.step(state)` / `wf.final_step(state)` | one generation per call; you own the loop | a new `WorkflowState` per call | no |
 
 The generation count is resolved per call: `run(n)`/`fit(generations=n)` override the
 constructor's `num_generations`. When neither is given you get a clear error rather than
@@ -267,21 +268,23 @@ and `float(...)` all work directly — no `.item()` call is needed.
 ## Where monitors run
 
 The monitor is a module like any other component: `monitor_update(config, state,
-candidates, fitness)` is a plain function that is **traced into the step graph**, which
+candidate, fitness)` is a plain function that is **traced into the step graph**, which
 is why the update itself costs nothing per generation beyond the tensors it touches.
 Everything you actually read from is **host-side**: the history lists, the Pareto front
 computation and the plots are computed from the state leaves that are copied back after
 each step, and the device→host copies are pipelined one generation behind the step graph
 so they overlap with computation.
 
-That pipelining is visible in exactly one place: after driving the loop yourself, the
-last generation's history entry is still in flight until you call
+That pipelining is visible in exactly one place: after driving the loop yourself on a
+non-CPU `device=`, the last generation's history entry is still in flight until you call
 
 ```python
 wf.flush()    # block until every deferred monitor readback has been appended
 ```
 
-`run()` and `fit()` flush at the end of their own loop, so they never need it.
+`run()` and `fit()` flush at the end of their own loop, so they never need it. On the
+default CPU setup (`device=None`) each entry is appended to the history immediately, so
+`flush()` is a no-op there and the lists are already complete without it.
 
 Because the per-generation update is compiled, there is no hook for arbitrary host-side
 side effects (no per-generation callback that opens a file, prints, or mutates a Python

@@ -90,7 +90,7 @@ The config dataclass and the `evaluate` function must live in the **same** modul
 ```
 
 `evaluate` is a plain module-level function, not a method: it returns `(fitness, state)`, so a stateless problem returns `state` untouched (the workflow supplies an `EmptyState` when the module defines no `init`).
-Handed to a multi-objective workflow, this problem works end to end: `wf.run(generations=60, seed=0)` followed by `wf.monitor.get_pf_fitness()` yields a `(2227, 2)` Pareto-front estimate.
+Handed to a multi-objective workflow, this problem works end to end: `wf.run(generations=60, seed=0)` followed by `wf.monitor.get_pf_fitness()` yields the Pareto-front estimate as a `(k, 2)` array.
 
 ### Workflow: mutating steps → state threading
 
@@ -256,7 +256,7 @@ wf = StdWorkflow(
 )
 
 state = wf.init(seed=42)          # seeds the whole run; no global seed
-state = wf.init_step(state)       # generation 0
+state = wf.init_step(state)       # generation 1
 for gen in range(1, 100):
     state = wf.step(state)
     if gen % 20 == 0:

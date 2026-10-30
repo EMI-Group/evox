@@ -52,8 +52,9 @@ pip install evox
 
 This installs the framework together with the **NumPy backend**, which is the default and needs
 **no compiled toolchain** — there is nothing to build, no CUDA setup and no compiler environment
-variable to configure. Python 3.10 or newer is required. If you have one, this is already enough
-to run every single- and multi-objective example in this tutorial.
+variable to configure. EvoX 2.0 requires **Python 3.11 or newer** (the floor comes from the
+`evoxc` compiler; the `evox` distribution metadata still declares 3.10 for the 1.x line). A 3.11
+environment is already enough to run every single- and multi-objective example in this tutorial.
 
 ### Optional extras
 
@@ -66,8 +67,10 @@ pip install "evox[compilers]"  # every compiler backend at once
 
 `evox[vis]` provides Plotly (plus pandas) for the figure builders in `evox_etl.vis_tools`, which is
 what `EvalMonitor.plot()` dispatches to; without it `plot()` warns and returns `None` while all
-history accessors keep working. The compiler extras pull in the runtime that the corresponding
-`evoxc` backend needs to lower and execute a graph.
+history accessors keep working. The three compiler extras pull in the runtime that the corresponding
+`evoxc` backend needs to lower and execute a graph. If you manage the compiler as its own
+distribution rather than through `evox`, the same extras exist there as `evoxc[iree]`,
+`evoxc[tvm]` and `evoxc[compilers]`.
 
 ### Choosing a backend
 
@@ -87,8 +90,11 @@ covered in {doc}`../guide/advanced/backends`.
 
 ```{note} XLA needs a PJRT plugin
 The `"xla"` backend is only usable once a PJRT plugin is available for your platform. Point the
-`EVOXC_PJRT_PLUGIN` environment variable at the plugin shared library before you run the program;
-without it, building the step graph fails with a backend error that names the variable.
+`EVOXC_PJRT_PLUGIN` environment variable at the plugin shared library **before the process starts**:
+on a cold process the backend discovery only consults that variable and a few well-known library
+paths, so the per-workflow `compile_options={"plugin_path": ...}` option helps only once a PJRT
+client already exists. With no plugin anywhere, building the step graph fails with a backend error
+that names the missing plugin.
 ```
 
 ## Smoke test

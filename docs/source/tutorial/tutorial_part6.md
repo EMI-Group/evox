@@ -143,7 +143,7 @@ They are traced `evoxc` functions like everything else in the framework: they ta
 | Function | Signature | Meaning |
 |---|---|---|
 | `gd` | `gd(objs, pf)` | Generational Distance: distance from each approximation point to the closest true-front point (L2 norm of the per-solution distances, divided by `n`). **Convergence**. Lower is better. |
-| `gd_plus` | `gd_plus(objs, pf, p=1.0)` | GD+, the dominance-respecting variant: only the components where the front point is better (`max(pf - obj, 0)`) count. Lower is better. |
+| `gd_plus` | `gd_plus(objs, pf, p=1.0)` | GD+, the dominance-respecting variant: each solution's distance to its closest front point sums only the components where the front point is **worse** (`max(pf - obj, 0)`), so a front point that is better contributes nothing and a solution weakly dominated by a front point scores 0. Lower is better. |
 | `igd` | `igd(objs, pf, p=1.0)` | Inverted GD: distance from each true-front point to the closest approximation point. Because *every* front point must be covered, it rewards **convergence and diversity**. Lower is better. |
 | `igd_plus` | `igd_plus(objs, pf, p=1.0)` | IGD+ with the same dominance-respecting distance, reversed (`max(obj - pf, 0)`). Lower is better. |
 | `hv` | `hv(key, objs, ref, num_sample=100000)` | Hypervolume, estimated by bounding-cube Monte Carlo. Unlike the others it takes a **leading RNG key** and a reference point `ref`. **Higher** is better. |
@@ -305,5 +305,8 @@ You now have the full MO loop: configure, run, read the front, score it, plot it
 - {doc}`../guide/advanced/metrics` — the indicators in depth: `p` exponents, reference-point selection, and how the Monte-Carlo hypervolume estimators behave.
 - {doc}`../guide/advanced/viz` — every `vis_tools` figure builder and the `.exv` format in detail.
 - {doc}`../guide/advanced/hpo` — hyperparameter optimization, the other place where you will meet a list-valued objective.
-- {doc}`tutorial_part4` — custom operators, configuration and the compiled backends.
-- {doc}`tutorial_part5` — writing your own algorithm, problem or monitor.
+- {doc}`tutorial_part4` — the algorithm catalogue, the `make_*` constructors and custom operator injection.
+- {doc}`tutorial_part5` — the problem catalogue, including how to write your own problem.
+- {doc}`../guide/advanced/backends` — the compiled IREE / TVM / XLA backends and their options.
+- {doc}`../guide/developer/custom-alg-pro` — writing your own algorithm or problem.
+- {doc}`../guide/developer/custom-monitor` — writing your own monitor.

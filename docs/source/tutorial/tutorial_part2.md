@@ -100,12 +100,12 @@ generations (log, checkpoint, adapt a hyperparameter, stop early):
 ```python
 generations = 50
 
-state = wf.init(seed=42)          # build the graphs, return the generation-0 state
+state = wf.init(seed=42)          # run the init graph, return the generation-0 state
 state = wf.init_step(state)       # generation 1
 for _ in range(generations - 2):  # generations 2 .. 49
     state = wf.step(state)
 state = wf.final_step(state)      # generation 50
-wf.flush()                        # drain the monitor readback of the last generation
+wf.flush()                        # drain the monitor readback (a no-op on CPU)
 ```
 
 Two details matter:
@@ -114,10 +114,12 @@ Two details matter:
   dispatch is decided host-side, by you (or by `run()`). And when the algorithm
   module does not define `init_step`/`final_step`, the workflow silently falls back
   to ordinary `step` for those two calls.
-- Monitor history entries are copied device→host one generation *behind* the step.
-  `run()`/`fit()` flush that pipeline when their loop ends; when you drive the loop
-  manually you must call `wf.flush()` before reading `fitness_history` or any other
-  history property, otherwise the last generation is missing from the list.
+- Monitor history entries are copied device→host one generation *behind* the step graph when
+  the workflow runs on a non-CPU `device=`. `run()`/`fit()` flush that pipeline when their
+  loop ends; when you drive the loop manually on such a device you must call `wf.flush()`
+  before reading `fitness_history` or any other history property, otherwise the last
+  generation is missing from the list. On the default CPU setup (`device=None`) every entry
+  is appended immediately, so the history is already complete without `flush()`.
 
 On a fresh workflow the loop above reproduces `run(50)` exactly: the same best fitness
 `0.027914` and the same 50 history entries. Re-stepping an *already run* workflow is

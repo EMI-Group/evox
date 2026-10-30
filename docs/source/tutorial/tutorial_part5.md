@@ -93,7 +93,7 @@ print(front.shape)                        # (2926, 3)
 print(front.min(), front.max())           # (1e-06, 1.0) — all objectives in [0, 1]
 ```
 
-The per-variant functions `pf_dtlz1` … `pf_dtlz7` are exported too (DTLZ3/DTLZ4 reuse `pf_dtlz2`'s normalised sphere, exactly like the original class hierarchy), but `pf` dispatches on the config type for you. The ndarray you get back is the natural argument to the monitor's overlay: `workflow.monitor.plot(problem_pf=front)` on a multi-objective run (see {doc}`tutorial_part6`).
+The per-variant functions `pf_dtlz1`, `pf_dtlz2`, `pf_dtlz5`, `pf_dtlz6` and `pf_dtlz7` are exported too — there is no `pf_dtlz3`/`pf_dtlz4`, because those configs reuse `pf_dtlz2`'s normalised sphere exactly like the original class hierarchy — but `pf` dispatches on the config type for you. The ndarray you get back is the natural argument to the monitor's overlay: `workflow.monitor.plot(problem_pf=front)` on a multi-objective run (see {doc}`tutorial_part6`).
 
 ```{tip}
 `pf` is traced, not eagerly executed, so it needs the same static shapes as `evaluate`. With `d`/`m` fixed in the config this is always satisfied: the number of rows and columns is decided by `ref_num` and `m` alone.
@@ -118,11 +118,15 @@ fitness, _ = evoxc.run(exe, config, ProblemState(), x)
 print(fitness.numpy())      # (4,) float32
 ```
 
-Constraints the config enforces when you construct it:
+The config validates only two things, as `assert`s in its constructor — an invalid value raises
+`AssertionError`, not `ValueError`:
 
-- `problem_number` selects the function, `1`–`12` (an unknown number raises `ValueError` at evaluation).
 - `dimension` must be one of **2, 10 or 20**.
 - Functions **6, 7 and 8 are not defined for `dimension=2`** and are rejected.
+
+There is **no range check on `problem_number`**: values `1`–`12` select the twelve functions, any
+integer constructs fine, and an unknown number fails later, when the graph is first traced for
+evaluation, with a `FileNotFoundError` naming the missing data file (for example `M_13_D10.txt`).
 
 The suite is **single-objective**: fitness has shape `(pop_size,)`. `evaluate` also asserts that the population width equals `dimension` ("Dimension mismatch! Expect 10, got …"), so the `d` you give the algorithm must match the config exactly.
 
@@ -139,7 +143,7 @@ x' = (x + shift) @ affine      # shift added, then rotated/scaled
 fitness = f_true(x')
 ```
 
-So `Sphere(shift=np.ones(3))` is minimised at `x = [-1, -1, -1]`, not at the origin. Both values are validated at construction time (square `affine`, 1-D `shift`, matching dimensions) and baked as graph constants, which is how a "shifted/rotated benchmark" becomes a single config field instead of a wrapper problem.
+So `Sphere(shift=np.ones(3))` is minimised at `x = [-1, -1, -1]`, not at the origin. Both values are checked with `assert`s when you build the config (square `affine`, 1-D `shift`, matching dimensions), so an inconsistent pair raises `AssertionError` rather than a `ValueError`, and a valid pair is baked as graph constants — which is how a "shifted/rotated benchmark" becomes a single config field instead of a wrapper problem.
 
 `ShiftAffineNumericalProblem()` itself is the *base* config, not a problem you can run: the evaluator dispatches on the concrete type and raises `TypeError: unknown numerical problem config: ShiftAffineNumericalProblem`. Use it for `isinstance`-free reasoning about the shared fields, and instantiate `Sphere`/`Ackley`/`Rastrigin`/… to actually evaluate.
 
