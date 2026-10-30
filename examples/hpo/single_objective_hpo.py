@@ -97,7 +97,7 @@ def main() -> None:
             monitor=HPOFitnessMonitorConfig(inner_monitor=EvalMonitorConfig()),
             num_repeats=1,  # one inner run per candidate (see repeated_hpo.py)
             seed=SEED,  # base seed of the inner runs
-            backend="numpy",  # inner workflow backend ("iree"/"xla" also work)
+            backend="numpy",  # inner workflow backend ("iree"/"xla" need the evoxc extra)
         )
     )
 
