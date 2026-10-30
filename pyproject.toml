@@ -37,7 +37,8 @@ iree = [
 tvm = [
   "evoxc[tvm] >= 0.1.0",
 ]
-# Both compiled backends (+ jaxlib, which supplies the PJRT plugin used by `backend="xla"`).
+# Both compiled backends (IREE + TVM). XLA has no extra of its own: it loads a user-supplied
+# PJRT plugin (`.so` exporting `GetPjRtApi`) discovered through `EVOXC_PJRT_PLUGIN`.
 compilers = [
   "evoxc[compilers] >= 0.1.0",
 ]
