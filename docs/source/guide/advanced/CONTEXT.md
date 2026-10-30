@@ -26,7 +26,7 @@ The section landing page `index.md` is the single entry point; the root `docs/so
 - Every standalone Python block on every page was executed against this repository on the NumPy backend (`PYTHONPATH=src /tmp/venv/bin/python`); keep it that way when editing.
 - Exactly the three `backends.md` blocks listed above are excerpts (or need a compiled backend) and must stay marked as such, with no quoted output.
 - `evoxc` has no eager mode: examples must trace through `evoxc.build` + `evoxc.run` (or a `StdWorkflow` step) and use `.numpy()` on results — never `np.asarray` on a `Tensor`.
-- Compiled backends are opt-in: `pyproject.toml` defines only the `vis`, `neuroevolution`, `test`, `docs`, `default` and `triton` extras; the compiled toolchains come from the compiler's `evoxc[iree]`/`evoxc[tvm]`/`evoxc[compilers]`, and XLA has no extra and needs a user-supplied PJRT plugin.
+- Compiled backends are opt-in: `pyproject.toml` defines the `iree`, `tvm`, `compilers` (each forwarding to the matching `evoxc[...]`), `all`, `vis`, `default`, `test` and `docs` extras; XLA has no extra and needs a user-supplied PJRT plugin.
 - No page here claims to have run a compiled backend.
 - Performance statements are quoted only from `REFACTOR_REPORT.md` §3/§6 and `benchmarks/etl_vs_torch/`, never invented.
 - One H1 per page, MyST Markdown, and the shared `{warning}` block marking the experimental 2.0 pre-release on every content page.
