@@ -241,5 +241,6 @@ monitor and the algorithm disagree about the fitness shape.
 
 - Metrics in depth, including `gd_plus` / `igd_plus`: {doc}`../guide/advanced/metrics`.
 - Visualization and the `.exv` read/write API: {doc}`../guide/advanced/viz`.
-- Tuning a workflow's hyperparameters with another optimizer: {doc}`../guide/advanced/hpo`.
+- Tuning a workflow's hyperparameters host-side, with `HPOProblemWrapper` + `random_search`:
+  {doc}`../guide/advanced/hpo`.
 - Single-objective walkthrough: {doc}`so`.

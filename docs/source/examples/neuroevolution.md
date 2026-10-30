@@ -273,4 +273,4 @@ between runs, or feed a larger baked batch and rely on `reduction="mean"`.
 - The single-objective workflow these algorithms plug into: {doc}`so`.
 - Multi-objective optimization and front metrics: {doc}`mo`.
 - Writing your own `Problem` config (e.g. wrapping a simulator rollout): {doc}`../guide/developer/custom-alg-pro`.
-- Backends — the same virtual-ES program on IREE/TVM/XLA devices: {doc}`../tutorial/tutorial_part6`.
+- Backends — the same virtual-ES program on IREE/TVM/XLA devices: {doc}`../guide/advanced/backends`.

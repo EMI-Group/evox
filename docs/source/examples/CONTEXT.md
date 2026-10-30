@@ -16,7 +16,11 @@ Each page states what it proves, shows the program, quotes the real printed outp
 ## Constraints
 Every code block must be **executed before publication** against the real `src/evox_etl` code (`PYTHONPATH=src python <snippet>.py`), and the quoted numbers must be copied from that run (fixed seed 42).
 Document only the 1.x-free surface: `evox_etl` configs built by `make_*`, `StdWorkflow`, `EvalMonitorConfig`, `evox_etl.metrics`, `evox_etl.vis_tools` — never `import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`, or the torch neuroevolution problems.
-Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `../guide/advanced/backends` (`tutorial_part6` is the multi-objective chapter, not a backends page).
+Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `../guide/advanced/backends`.
+Every backend/device reference on these pages links to `../guide/advanced/backends` (`tutorial_part6` is the multi-objective chapter, not a backends page).
+`so.md`'s hand-driven loop deliberately skips `init_step`/`final_step`/`flush()`, so it reaches `0.007325` where `run(50)` reaches `0.027914`; the divergence comes from the generation-1 `init_step` dispatch (the raw `init` state still carries `inf` fitness), not from an off-by-one, and the page states that explicitly.
+`plotly` is needed only by the figure builders and `plot()`; the `.exv` serializer in `evox_etl.vis_tools` needs no Plotly.
+HPO appears only as host-side `HPOProblemWrapper` + `random_search` (linked to `../guide/advanced/hpo`), never as an in-graph outer optimizer.
 `evox_etl.metrics` functions are traced graph functions: examples must build them with `evoxc.build` + `TensorSpec` and pass static scalars to both `build` and `run`.
 `EvalMonitorConfig(full_sol_history=True)` is required for `get_pf()`; algorithms with no `population`/`pop` state (CMA-ES) need `EvalMonitorConfig(dim=dim)`.
 `hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`) and a static `num_sample`.

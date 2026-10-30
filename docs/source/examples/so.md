@@ -10,7 +10,7 @@ The code below uses the `evox_etl` import name (the functional rewrite on the `e
 the **NumPy backend** (`backend="numpy"`), so it runs on any machine without a compiler toolchain.
 The 1.x torch API (`import evox`, `Mutable`, `torch.compile`) is not used.
 See {doc}`../tutorial/tutorial_part2` for the same program explained line by line, and
-{doc}`../tutorial/tutorial_part6` for switching the backend to IREE, TVM or XLA.
+{doc}`../guide/advanced/backends` for switching the backend to IREE, TVM or XLA devices.
 ```
 
 ## The complete program
@@ -72,6 +72,11 @@ The true optimum is the origin with fitness `0`, so after 50 generations the swa
 returns the best value seen over every generation and `get_best_solution()` the matching solution
 vector.
 
+The loop is deliberately the *hand-driven* variant: it calls `step` 50 times on the raw `init` state
+and never dispatches `init_step`, `final_step` or `flush()`.
+That is why it does not reproduce `workflow.run(50, seed=42)` — it follows a different trajectory, not
+the `run()` trajectory shifted by one generation (see the tip under *The objects you construct* below).
+
 ```{note}
 `PSO(pop_size, lb, ub, w=0.6, phi_p=2.5, phi_g=0.8)` has **no `dim` argument** — the dimension is
 the length of `lb`/`ub`. In this page the bounds are NumPy arrays, which the dataclass stores as
@@ -99,12 +104,21 @@ There is no global seed — the key lives inside the state, which is why `seed=`
 `init`/`run` and never to the components.
 
 ```{tip}
-`workflow.run(50, seed=42)` is the shortcut for the loop above.
-It dispatches the first generation to the algorithm's `init_step` (evaluate the initial population,
-do not move yet) and the last to `final_step` when the module defines one, so `run(50)` performs
-**49 moving generations** while the manual `init` + 50 × `step` loop performs **50**.
-That is why the same problem and seed give `0.027914` from `run(50, seed=42)` and `0.007325` from
-the manual loop — one extra generation is a visible difference this early in convergence.
+`workflow.run(50, seed=42)` is the shortcut for the loop above, but it is not the same loop.
+`run(generations)` dispatches generation 1 to the algorithm's `init_step` (evaluate the initial
+population, do not move yet) and the last generation to `final_step`, then drains the monitor
+readbacks — so `run(50)` is `init` + `init_step` + 49 × `step` (the 49th `step` being the
+`final_step` dispatch, which falls back to `step` because PSO defines no `final_step`).
+The loop above is instead `init` + 50 × `step`, and its first `step` runs on the raw `init` state,
+whose fitness vector is still `inf`: the cognitive term is zero (the local best is still the current
+positions) and the social best is particle 0, the tie-break when every fitness is `inf`.
+The two runs therefore diverge from that first move instead of being one generation apart —
+`run(50, seed=42)` reaches `0.027914`, the loop above reaches `0.007325` (its 49th generation is
+`0.010226`), and `run(51, seed=42)` reaches `0.027468`, which is still not the loop's 50-generation
+value.
+To follow the `run()` trajectory by hand, call `init_step` before the loop and `final_step` after it
+(both fall back to `step` when the algorithm has no such variant), and call `flush()` before reading
+the monitor on a device backend.
 ```
 
 ## Comparing PSO, DE and CMA-ES
@@ -157,7 +171,8 @@ gradually from a search box of width 200.
 `EvalMonitorConfig(dim=dim)` passes the solution dimension explicitly, which is only needed for
 algorithms whose state carries no `population`/`pop` tensor — CMA-ES keeps a `mean` and a
 covariance matrix instead. Without it the workflow cannot infer `dim` and fails during `init` with
-`EvalMonitor requires pop_size and dim to initialize its buffers, got pop_size=100, dim=None`.
+`EvalMonitor requires pop_size and dim to initialize its buffers, got pop_size=100, dim=None. The
+workflow fills them from the algorithm state (population/pop) or the algorithm config.`
 For PSO/DE the plain `EvalMonitorConfig()` is enough, so you can drop the argument there.
 ```
 

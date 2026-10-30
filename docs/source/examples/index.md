@@ -30,7 +30,7 @@ Two optional dependencies are worth installing alongside EvoX:
 
 | Package | Needed for | Without it |
 |---|---|---|
-| `plotly` | `wf.monitor.plot()` and every builder in `evox_etl.vis_tools` | `plot()` warns and returns `None`; everything else works |
+| `plotly` | `wf.monitor.plot()` and the figure builders in `evox_etl.vis_tools` | `plot()` warns and returns `None`; the `.exv` serializer and everything else still work |
 | `evoxc` compilers (IREE / TVM / XLA) | a non-NumPy `backend=` | the default NumPy backend still runs the same program |
 
 ```{note}
@@ -55,9 +55,10 @@ neuroevolution
 | {doc}`mo` | Multi-objective optimization: NSGA-II on DTLZ2, reading the Pareto front, scoring it with IGD/GD/hypervolume, plotting it, and exporting a run to an `.exv` file. |
 | {doc}`neuroevolution` | The virtual (training-free) ES family: `VirtualES` / `VirtualLoRAES` training a small network through a `VirtualProblem`, and the Gaussian-noise payload protocol that makes it work without materializing a population. |
 
-Two things are deliberately *not* here: the deep dive into how a run is put together is in
-{doc}`../tutorial/tutorial_part2` and {doc}`../tutorial/tutorial_part6` (other backends), while the
-reference material for the analysis pieces lives in {doc}`../guide/advanced/metrics`,
-{doc}`../guide/advanced/viz` and {doc}`../guide/advanced/hpo`.
+These pages deliberately stay shallow in places: the deep dive into how a run is put together is in
+{doc}`../tutorial/tutorial_part2`, backend and device detail (compiled extras, PJRT plugin,
+performance) is in {doc}`../guide/advanced/backends`, and the reference material for the analysis
+pieces lives in {doc}`../guide/advanced/metrics`, {doc}`../guide/advanced/viz` and
+{doc}`../guide/advanced/hpo`.
 Writing your own algorithm or problem from scratch is covered in
 {doc}`../guide/developer/custom-alg-pro`.
