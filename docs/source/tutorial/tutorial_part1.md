@@ -23,9 +23,10 @@ The package you import is **`evox_etl`** — the torch `import evox` API has bee
 - **Logic = plain module-level functions.** `init(config, key)`, `step(config, state, evaluate)`,
   optional `init_step` / `final_step`, plus `evaluate` for problems. They are ordinary Python
   functions — no decorators to remember, and trivially unit-testable.
-- **Exactly one compile site.** `StdWorkflow` traces the algorithm, problem and monitor into a graph
-  once (`evoxc.build`) and reuses that executable for every generation; monitors, metrics and
-  history bookkeeping stay host-side.
+- **One compile site in the component model.** `StdWorkflow` traces the algorithm, problem and
+  monitor into a graph once (`evoxc.build`) and reuses that executable for every generation;
+  monitors, metrics and history bookkeeping stay host-side. (Pages that call `evoxc.build`
+  themselves, such as the Pareto-front and metric examples, compile their own small graphs.)
 
 ```python
 from evox_etl import StdWorkflow, EvalMonitorConfig

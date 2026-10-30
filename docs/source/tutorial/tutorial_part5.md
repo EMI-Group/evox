@@ -196,7 +196,7 @@ from evox_etl.problems.numerical import ProblemState
 
 shapes = ((8, 4), (8,), (1, 8), (1,))    # a 4 -> 8 -> 1 MLP, named_parameters() order
 layers = (("linear", 0, 1, "relu"), ("linear", 2, 3, "identity"))
-dim = 8 * 4 + 8 + 1 * 8 + 1          # 41
+dim = 8 * 4 + 8 + 1 * 8 + 1          # 49 parameters
 
 rng = np.random.default_rng(0)
 inputs = rng.uniform(-1.0, 1.0, size=(8, 4)).astype(np.float32)

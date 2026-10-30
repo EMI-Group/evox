@@ -109,13 +109,16 @@ definition.
 Supported kinds are `cpu`, `cuda`, `rocm` and `vulkan`; `"hip"` is accepted as an alias/equivalent
 filter for the `rocm` kind by device enumeration. `_parse_device` only splits the string — a kind the
 chosen backend cannot serve is rejected when the workflow places the state on the device during
-`init()`: that placement raises `evoxc.core.DeviceError`, never a `ModuleNotFoundError` and never a
-silent fallback to CPU (this is also what the common `backend="numpy", device="cuda"` mistake gets).
+`init()`, and there is no silent fallback to CPU. Every such failure is raised from `init()` rather
+than surviving as a quietly wrong result, but the exception class is not uniform today: an unclaimed
+device kind raises `evoxc.core.DeviceError`, while a device whose provider package is missing can
+surface the provider's own import error (e.g. `backend="numpy"` with `device="cuda"` currently reports
+`ModuleNotFoundError: No module named 'iree'`).
 
 ```{warning} `device=` does not create acceleration on its own
 The NumPy backend runs on the CPU only, and asking it for a GPU device does not quietly stay on the
-CPU: state placement in `init()` raises `evoxc.core.DeviceError` because no provider can serve that
-device. Pick a backend that serves the device, e.g. `backend="iree", device="cuda"`.
+CPU: state placement in `init()` fails because no provider can serve that device. Pick a backend that
+serves the device, e.g. `backend="iree", device="cuda"`.
 ```
 
 ## Choosing a backend
