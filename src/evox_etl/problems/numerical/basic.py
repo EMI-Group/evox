@@ -37,10 +37,9 @@ import dataclasses
 import math
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
+import numpy as np
 
 if TYPE_CHECKING:
     from .state import ProblemState

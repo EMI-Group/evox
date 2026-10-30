@@ -65,7 +65,7 @@ from .cma_es import CMAESConfig, make_cma_es
 from .des import DESConfig, make_des
 from .esmc import ESMCConfig, make_esmc
 from .guided_es import GuidedESConfig, make_guided_es
-from .nes import XNESConfig, make_xnes, SeparableNESConfig, make_separable_nes
+from .nes import SeparableNESConfig, XNESConfig, make_separable_nes, make_xnes
 from .noise_reuse_es import NoiseReuseESConfig, make_noise_reuse_es
 from .open_es import OpenESConfig, make_open_es
 from .persistent_es import PersistentESConfig, make_persistent_es

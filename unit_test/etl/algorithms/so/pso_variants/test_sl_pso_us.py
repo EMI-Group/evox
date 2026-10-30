@@ -9,7 +9,6 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 sys.path.insert(0, str(REPO_ROOT / "unit_test" / "etl" / "algorithms"))
 
 import numpy as np
-
 from helpers import SphereConfig, run_generations
 
 from evox_etl.algorithms.so.pso_variants import sl_pso_us

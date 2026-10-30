@@ -7,13 +7,14 @@ separate lower/upper bound tensors instead of the old stacked ``boundary``.
 """
 import sys
 from pathlib import Path
+
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
 
 import itertools
 from math import comb
 
-import numpy as np
 import evoxc
+import numpy as np
 from evoxc import core
 
 from evox_etl.operators.mutation import polynomial_mutation

@@ -1,8 +1,6 @@
 """Smoke test for the functional ETL port of CMA-ES (no torch imports)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.es_variants.cma_es as cma_es

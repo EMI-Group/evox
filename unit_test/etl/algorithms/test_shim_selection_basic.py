@@ -18,11 +18,10 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-import numpy as np
-import pytest
-
 import evoxc
 import evoxc.random as random
+import numpy as np
+import pytest
 from evoxc.core import TensorSpec, from_numpy
 
 from evox_etl.operators.selection import (

@@ -8,7 +8,6 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 import numpy as np
 
 import evox_etl.algorithms.so.pso_variants.fs_pso as algo_mod
-
 from unit_test.etl.algorithms.helpers import SphereConfig, run_generations
 
 

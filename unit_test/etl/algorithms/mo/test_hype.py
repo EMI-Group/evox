@@ -20,17 +20,15 @@ sys.path.insert(0, str(_ROOT))
 sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
+import evoxc
+import helpers
 import numpy as np
 import pytest
+from helpers import DTLZ1Config, run_generations
 
-import evoxc
-import evoxc.numpy as enp
-
-import helpers
 from evox_etl.algorithms.mo import hype
 from evox_etl.operators.crossover import simulated_binary
 from evox_etl.operators.mutation import polynomial_mutation
-from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 

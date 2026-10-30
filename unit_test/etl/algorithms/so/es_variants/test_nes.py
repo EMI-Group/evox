@@ -8,9 +8,8 @@ few generations.
 import math
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
+
 import evox_etl.algorithms.so.es_variants.nes as nes
 
 

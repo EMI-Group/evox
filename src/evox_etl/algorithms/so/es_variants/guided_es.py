@@ -17,11 +17,10 @@ Reference: Guided evolutionary strategies (https://arxiv.org/abs/1806.10230)
 from dataclasses import dataclass, replace
 from typing import Callable, Literal, Optional
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,

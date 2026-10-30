@@ -17,14 +17,14 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Callable, Optional
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
+
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
-from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.jit_fix_operator import clamp
 from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.selection import (
     nd_environmental_selection,

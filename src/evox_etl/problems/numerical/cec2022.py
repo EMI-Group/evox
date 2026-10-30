@@ -8,10 +8,9 @@ from importlib.resources import files
 from math import ceil, pi
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
+import numpy as np
 
 from evox_etl.problems.numerical.basic import (
     ackley_func,
@@ -20,7 +19,6 @@ from evox_etl.problems.numerical.basic import (
     rosenbrock_func,
     zakharov_func,
 )
-
 
 # Input data ships WITH this package (``cec2022_input_data/`` next to this
 # module, same file names as the torch tree).  Resolved package-relatively via

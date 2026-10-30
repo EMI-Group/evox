@@ -14,9 +14,9 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 sys.path.insert(0, str(REPO_ROOT / "unit_test" / "etl" / "algorithms"))
 
 import numpy as np
+from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.pso_variants.dms_pso_el as dms_pso_el
-from helpers import SphereConfig, run_generations
 
 DIM = 20
 LB = np.full(DIM, -10.0, np.float32)

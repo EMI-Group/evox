@@ -15,10 +15,9 @@ deterministic across keys is the SET of cell centers per column: each column
 is a permutation of ``{(c + 0.5) / n : c in [0, n)}``.
 """
 
+import evoxc
 import numpy as np
 import pytest
-
-import evoxc
 from evoxc import core
 
 from evox_etl.operators.sampling import (

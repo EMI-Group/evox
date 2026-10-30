@@ -1,7 +1,7 @@
 """Smoke tests for the functional ETL port of SNES (no torch imports)."""
 import numpy as np
-import helpers
 from helpers import SphereConfig, run_generations
+
 import evox_etl.algorithms.so.es_variants.snes as snes
 
 

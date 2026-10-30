@@ -12,11 +12,10 @@ unused (as in torch).
 from dataclasses import dataclass, replace
 from typing import Callable, Literal
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import (

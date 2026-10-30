@@ -20,11 +20,10 @@ Port notes:
 from dataclasses import dataclass
 from typing import Any, Callable
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,
@@ -32,13 +31,13 @@ from evox_etl.algorithms._config_utils import (
     normalize_bounds,
     require_ge,
 )
-from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
     DE_exponential_crossover,
 )
+from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.selection import select_rand_pbest
 
 Tensor = evoxc.SymbolicTensor

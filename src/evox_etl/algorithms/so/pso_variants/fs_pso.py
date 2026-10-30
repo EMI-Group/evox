@@ -11,11 +11,10 @@ constructor.
 from dataclasses import dataclass, replace
 from typing import Any
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 from evoxc import core
 
 from evox_etl.algorithms._config_utils import (

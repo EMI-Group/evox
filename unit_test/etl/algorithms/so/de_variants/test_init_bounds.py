@@ -14,10 +14,9 @@ sys.path[0:0] = [
     str(Path(__file__).resolve().parents[5] / "src"),
 ]
 
+import evoxc
 import numpy as np
 import pytest
-
-import evoxc
 
 import evox_etl.algorithms.so.de_variants.code as code_mod
 import evox_etl.algorithms.so.de_variants.sade as sade_mod

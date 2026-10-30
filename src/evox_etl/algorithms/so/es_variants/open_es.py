@@ -15,11 +15,10 @@ Reinforcement Learning" (https://arxiv.org/abs/1703.03864).
 from dataclasses import dataclass, replace
 from typing import Callable, Literal
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from ..._config_utils import (
     ArrayLike,

@@ -21,11 +21,10 @@ effect).
 import math
 from dataclasses import dataclass
 
-import numpy as np
-import pytest
-
 import evoxc
 import evoxc.numpy as enp
+import numpy as np
+import pytest
 
 from evox_etl.algorithms.so.es_variants import virtual_es
 from evox_etl.algorithms.so.es_variants.virtual_noise import virtual_normal

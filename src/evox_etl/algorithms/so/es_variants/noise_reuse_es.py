@@ -16,11 +16,10 @@ Reference: Noise-Reuse in Online Evolution Strategies
 from dataclasses import dataclass, replace
 from typing import Callable, Literal, Optional
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from evox_etl.algorithms._config_utils import (
     ArrayLike,

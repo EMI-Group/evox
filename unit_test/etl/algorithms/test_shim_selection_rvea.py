@@ -69,7 +69,7 @@ def test_apd_fn_exact_values():
     the last row). On this input ``relu(x) == x`` so the two agree; negative
     entries would hit the known latent divergence.
     """
-    n, nv, m = 2, 2, 2
+    nv, m = 2, 2
     x = np.array([[0, 0], [1, 1]], dtype=np.int64)
     y = np.array([1.0, 2.0], dtype=np.float32)
     z = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
@@ -101,7 +101,7 @@ def test_apd_fn_exact_values():
 
 def test_ref_vec_guided_known_selection():
     """ref_vec_guided picks the argmin-APD solution per reference vector."""
-    n, d, m, nv = 4, 2, 2, 2
+    d, m, nv = 2, 2, 2
     x = np.array([[10.0, 20.0], [1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     f = np.array([[2.0, 1.0], [1.5, 0.5], [0.5, 2.0], [1.0, 1.0]], dtype=np.float32)
     v = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
@@ -138,7 +138,7 @@ def test_ref_vec_guided_nonorthogonal_vectors():
     """ref_vec_guided with non-orthogonal reference vectors (exercises the
     canonical inlined cosine-similarity computation, which replaced the old
     shim-only ``_cosine_similarity`` helper) agrees with the hand-math reference."""
-    n, d, m, nv = 4, 2, 2, 2
+    d, m, nv = 2, 2, 2
     x = np.array([[10.0, 20.0], [1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     f = np.array([[2.0, 1.0], [1.5, 0.5], [0.5, 2.0], [1.0, 1.0]], dtype=np.float32)
     # vector 1 sits at 45deg from vector 0 (v[0] . v[1] / |v0||v1| = 1/sqrt(2))
@@ -168,7 +168,7 @@ def test_ref_vec_guided_nonorthogonal_vectors():
 
 def test_ref_vec_guided_nan_solution_never_selected():
     """A solution with NaN fitness is never selected; outputs stay finite."""
-    n, d, m, nv = 4, 2, 2, 2
+    d, m, nv = 2, 2, 2
     x = np.array([[10.0, 20.0], [1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     f = np.array([[2.0, 1.0], [1.5, 0.5], [0.5, 2.0], [1.0, 1.0]], dtype=np.float32)
     f[1, :] = np.nan

@@ -16,11 +16,10 @@ implementation follows the evosax version like the torch reference.
 from dataclasses import dataclass, replace
 from typing import Callable, Literal
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from ..._config_utils import (
     ArrayLike,

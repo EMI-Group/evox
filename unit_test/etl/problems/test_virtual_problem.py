@@ -9,13 +9,11 @@ re-implements the layer-by-layer forward pass / loss.  Everything runs through
 import dataclasses
 import math
 
+import evoxc
+import evoxc.core
 import numpy as np
 import pytest
 
-import evoxc
-import evoxc.core
-
-from evox_etl.problems.numerical.state import ProblemState
 from evox_etl.problems.neuroevolution.virtual_problem import (
     SUPPORTED_ACTIVATIONS,
     VirtualLoRAProblem,
@@ -24,6 +22,7 @@ from evox_etl.problems.neuroevolution.virtual_problem import (
     evaluate,
     make_virtual_problem,
 )
+from evox_etl.problems.numerical.state import ProblemState
 
 # --------------------------------------------------------------------------- #
 # independent numpy reference

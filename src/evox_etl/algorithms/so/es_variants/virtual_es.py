@@ -21,10 +21,9 @@ import math
 from dataclasses import dataclass
 from typing import Callable, Literal, Sequence
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
+import numpy as np
 
 from ..._config_utils import (
     ArrayLike,

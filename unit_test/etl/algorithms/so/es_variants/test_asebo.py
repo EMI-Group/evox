@@ -1,8 +1,6 @@
 """Smoke tests for the functional ETL port of ASEBO (no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.es_variants.asebo as asebo

@@ -13,11 +13,10 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import Any
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
 from evox_etl.operators.jit_fix_operator import clamp

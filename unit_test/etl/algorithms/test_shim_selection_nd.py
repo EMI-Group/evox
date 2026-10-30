@@ -17,8 +17,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
-import numpy as np
 import evoxc
+import numpy as np
 from evoxc import core
 
 from evox_etl.operators.selection import (

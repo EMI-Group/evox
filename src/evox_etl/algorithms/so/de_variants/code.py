@@ -16,21 +16,20 @@ tuple of (F, CR) pairs).
 from dataclasses import dataclass
 from typing import Callable
 
-import numpy as np
-
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as random
+import numpy as np
 from evoxc.core import SymbolicTensor
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_float32_constant, to_float_tuple
-from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.crossover import (
     DE_arithmetic_recombination,
     DE_binary_crossover,
     DE_differential_sum,
     DE_exponential_crossover,
 )
+from evox_etl.operators.jit_fix_operator import _take_along_axis, clamp
 from evox_etl.operators.selection import select_rand_pbest
 
 # Strategy codes (4 bits): [base_vec_prim, base_vec_sec, diff_num, cross_strategy]

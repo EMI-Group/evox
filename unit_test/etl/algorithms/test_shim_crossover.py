@@ -7,10 +7,11 @@ and asserts the canonical dtypes.
 """
 import sys
 from pathlib import Path
+
 sys.path[0:0] = [str(Path(__file__).resolve().parents[3]), str(Path(__file__).resolve().parents[3] / "src")]
 
-import numpy as np
 import evoxc
+import numpy as np
 from evoxc import core
 
 from evox_etl.operators.crossover import (

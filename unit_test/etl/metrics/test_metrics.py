@@ -9,11 +9,12 @@ unit_test/etl/algorithms/helpers.py):
   ``.numpy()`` to get ndarrays (np.asarray gives object dtype).
 """
 import itertools
-import numpy as np
-import pytest
+
 import evoxc
 import evoxc.numpy as enp
 import evoxc.random as rnd
+import numpy as np
+import pytest
 from evoxc.core import TensorSpec
 
 from evox_etl.metrics import (

@@ -1,8 +1,6 @@
 """Smoke tests for the functional GuidedES port (no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.es_variants.guided_es as guided_es

@@ -1,8 +1,6 @@
 """Smoke tests for the functional PersistentES port (no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.es_variants.persistent_es as persistent_es

@@ -16,10 +16,9 @@ randint draws) and int32 with ``replace=True`` — the tests assert the exact
 observable dtype per variant.
 """
 
+import evoxc
 import numpy as np
 import pytest
-
-import evoxc
 from evoxc import core
 
 from evox_etl.operators.crossover import (

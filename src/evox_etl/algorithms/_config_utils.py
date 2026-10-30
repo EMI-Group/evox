@@ -35,10 +35,9 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Sequence
 
+import evoxc
 import numpy as np
 from numpy.typing import DTypeLike
-
-import evoxc
 
 ArrayLike = int | float | np.ndarray | Sequence[int | float]
 """Anything the array normalizers accept: a Python number, a numpy array, or a

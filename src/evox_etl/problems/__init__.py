@@ -63,9 +63,17 @@ __all__ = [
     "random_search",
 ]
 
-from . import numerical
-from . import neuroevolution
-from . import hpo_wrapper
+from . import hpo_wrapper, neuroevolution, numerical
+from .hpo_wrapper import (
+    HPOFitnessMonitor,
+    HPOFitnessMonitorConfig,
+    HPOMonitor,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)
+from .neuroevolution import VirtualLoRAProblem, VirtualProblem
 from .numerical import basic, cec2022, dtlz
 from .numerical.basic import (
     Ackley,
@@ -91,13 +99,3 @@ from .numerical.basic import (
 from .numerical.cec2022 import CEC2022
 from .numerical.dtlz import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ5, DTLZ6, DTLZ7
 from .numerical.state import ProblemState
-from .neuroevolution import VirtualLoRAProblem, VirtualProblem
-from .hpo_wrapper import (
-    HPOFitnessMonitor,
-    HPOFitnessMonitorConfig,
-    HPOMonitor,
-    HPOProblemConfig,
-    HPOProblemWrapper,
-    HPSlot,
-    random_search,
-)

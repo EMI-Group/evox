@@ -5,11 +5,10 @@ shift/affine config handling and the plain ``*_func`` helpers.  Everything runs
 through ``evoxc.build`` + ``evoxc.run`` on the default numpy backend.
 """
 
-import numpy as np
-import pytest
-
 import evoxc
 import evoxc.core
+import numpy as np
+import pytest
 
 from evox_etl.problems.numerical.basic import (
     Ackley,

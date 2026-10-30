@@ -33,9 +33,9 @@ for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
+import evoxc
 import numpy as np
 
-import evoxc
 from evox_etl import EvalMonitorConfig, StdWorkflow
 from evox_etl.algorithms import NSGA2, PSO
 from evox_etl.problems.numerical import DTLZ2, Sphere

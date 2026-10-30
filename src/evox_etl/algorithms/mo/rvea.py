@@ -24,8 +24,8 @@ import evoxc.numpy as enp
 import evoxc.random as random
 
 from evox_etl.algorithms._config_utils import ArrayLike, bake_bounds, normalize_bounds
-from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
 from evox_etl.operators.crossover import simulated_binary
+from evox_etl.operators.jit_fix_operator import clamp, nanmax, nanmin, randint
 from evox_etl.operators.mutation import polynomial_mutation
 from evox_etl.operators.sampling import uniform_sampling
 from evox_etl.operators.selection import ref_vec_guided

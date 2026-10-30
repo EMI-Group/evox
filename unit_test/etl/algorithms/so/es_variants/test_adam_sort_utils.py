@@ -4,9 +4,8 @@
 traced wrapper via `evoxc.build`/`evoxc.run` (numpy backend). No torch imports.
 """
 
-import numpy as np
-
 import evoxc
+import numpy as np
 from evoxc import core
 
 from evox_etl.algorithms.so.es_variants.adam_step import adam_single_tensor

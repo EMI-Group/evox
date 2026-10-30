@@ -19,15 +19,13 @@ sys.path.insert(0, str(_ROOT))
 sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_PATH.parents[1]))  # unit_test/etl/algorithms -> helpers
 
+import evoxc
+import helpers
 import numpy as np
 import pytest
-
-import evoxc
-import evoxc.numpy as enp
-
-import helpers
-from evox_etl.algorithms.mo import nsga2
 from helpers import DTLZ1Config, run_generations
+
+from evox_etl.algorithms.mo import nsga2
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 

@@ -1,9 +1,8 @@
 """Smoke tests for the functional OpenES port (ETL only — no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
+
 import evox_etl.algorithms.so.es_variants.open_es as open_es
 
 

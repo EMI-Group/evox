@@ -11,10 +11,9 @@ divergence, and its documented shape/dtype/bounds contract, via
 ``evoxc.build`` + ``evoxc.run`` on the numpy backend.
 """
 
+import evoxc
 import numpy as np
 import pytest
-
-import evoxc
 from evoxc import core
 
 from evox_etl.operators.selection import (

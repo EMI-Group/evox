@@ -14,10 +14,9 @@ network the algorithm carries in its ``(dim,)`` center.
 
 from __future__ import annotations
 
+import evoxc
 import numpy as np
 import pytest
-
-import evoxc
 
 from evox_etl.algorithms.so.es_variants import virtual_es, virtual_lora_es
 from evox_etl.core.workflow import StdWorkflow

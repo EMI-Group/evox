@@ -1,9 +1,8 @@
 """Smoke tests for the functional ARS port (ETL only — no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
+
 import evox_etl.algorithms.so.es_variants.ars as ars
 
 

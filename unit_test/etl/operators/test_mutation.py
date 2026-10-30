@@ -7,9 +7,8 @@ identity edge case and the baked-default (pro_m=1.0, dis_m=20.0) path.
 Everything runs through ``evoxc.build`` + ``evoxc.run`` on the numpy backend.
 """
 
-import numpy as np
-
 import evoxc
+import numpy as np
 from evoxc import core
 
 from evox_etl.operators.mutation import polynomial_mutation

@@ -1,8 +1,6 @@
 """Smoke tests for the functional NoiseReuseES port (no torch)."""
 
 import numpy as np
-
-import helpers
 from helpers import SphereConfig, run_generations
 
 import evox_etl.algorithms.so.es_variants.noise_reuse_es as noise_reuse_es

@@ -7,11 +7,10 @@ Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default numpy
 backend.
 """
 
-import numpy as np
-import pytest
-
 import evoxc
 import evoxc.core
+import numpy as np
+import pytest
 
 from evox_etl.problems.numerical import cec2022 as cec_module
 from evox_etl.problems.numerical.cec2022 import CEC2022, evaluate
