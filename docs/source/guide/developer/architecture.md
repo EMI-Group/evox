@@ -73,7 +73,7 @@ multi-objective algorithm configs accepting custom operators do so with
 A state is the opposite: every leaf is a concrete `evoxc` tensor with a fixed shape and
 dtype, and it is the only thing that varies between generations. Being an ordinary pytree,
 a state can be mapped over, copied, moved to another device and serialised — the workflow
-does all four — and algorithm states carry an RNG key leaf (see [Randomness](#randomness)). The
+does all four — and algorithm states carry an RNG key leaf (see the Randomness section below). The
 workflow's own `WorkflowState` has five fields: `algorithm_state`, `problem_state`,
 `monitor_state`, `generation` (a 0-d `int32` tensor) and `key` (0-d `int64`).
 
