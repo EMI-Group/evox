@@ -1,37 +1,34 @@
-# EvoX — Distributed GPU-accelerated Evolutionary Computation Framework
+# EvoX — Functional Evolutionary Computation on the EvoX Compiler (2.0 pre-release)
 
 ## Intent
-EvoX is a distributed GPU-accelerated evolutionary computation framework built on top of PyTorch. It ships 33 algorithm classes (32 distinct exported classes — `VirtualLoRAES` is an alias of `VirtualES`) and 22 user-facing `Problem` classes (~33 distinct benchmark functions/instances), with a programming model designed for scalability across CPUs and GPUs.
+EvoX (distribution `evox`, version `2.0.0a1`, experimental pre-release) is a GPU-accelerated framework for scalable evolutionary computation, rewritten as a purely functional library on the **EvoX Compiler** (`evoxc`) tensor library.
+The framework is the package `src/evox_etl/`, imported as `evox_etl`; no module is importable as `evox`, and the 1.x PyTorch tree no longer exists in this repository.
+It ships 32 distinct algorithm classes, exported as 27 single-objective names (one of them, `VirtualLoRAES`, aliases `VirtualES`) plus 6 multi-objective names, along with 15 operators, numerical and virtual problems, metrics, visualization, and a host-side HPO wrapper.
 
 **Core goals:**
-- **High performance**: GPU acceleration via PyTorch tensorization, `torch.compile`, and `vmap` vectorization, achieving 100x+ speedups over CPU baselines.
-- **All-in-one**: Single- and multi-objective optimization, meta-learning, hyperparameter optimization (HPO), and neuroevolution.
-- **Easy-to-use**: PyTorch-native, hierarchical component model (`Algorithm` → `Problem` → `Workflow`), one-click install.
+- **High performance**: one compile site (`StdWorkflow` traces a single step graph through `evoxc.build`) plus per-workflow backend selection — the pure-NumPy interpreter by default, compiled IREE / TVM / XLA execution for CPU and GPU by changing one argument.
+- **All-in-one**: single- and multi-objective optimization, virtual neuroevolution problems, and hyperparameter optimization, with 140+ algorithms and 240+ benchmark problems/environments across the EvoX ecosystem.
+- **Easy-to-use**: frozen config dataclasses, `make_*` constructors, plain `init`/`step` functions, tensor-only state, and stateless RNG keys for exact reproducibility.
 
-**Project metadata:** GPL-3.0-or-later, Python ≥3.10, PyTorch ≥2.6.0. Version 1.4.0 (current `pyproject.toml`).
+**Project metadata:** GPL-3.0-or-later, Python ≥3.11, runtime dependencies `evoxc >= 0.1.0` and `numpy >= 2.0.0`. Version 2.0.0a1, single-sourced in `pyproject.toml`.
 
 ## Repository Structure
 
 ```
 evox/
-├── src/evox/           ← Main Python package (the framework, frozen torch reference)
-├── src/evox_etl/       ← Functional ETL port of EvoX on evoxc (the functional successor — full user-facing surface)
-├── src/evox_ext/       ← Extension/plugin autoloading for torch evox (PEP 420 namespace)
-├── src/evox_etl_ext/   ← Extension/plugin autoloading for the ETL port (PEP 420 namespace)
-├── unit_test/          ← Unit test suite (mirrors src/evox/)
-├── unit_test/etl/      ← Canonical ETL test suite (mirrors src/evox_etl/)
-├── benchmarks/         ← Performance benchmark scripts
-├── benchmarks/etl_vs_torch/  ← torch vs etl comparison harness + BENCHMARK_RESULTS.md + style_comparison.md
-├── examples/           ← Runnable standalone scripts: ETL quickstart + HPO demos (`examples/hpo/`)
-├── REFACTOR_REPORT.md  ← Final report of the EvoX→ETL functional refactoring
-├── docs/               ← Sphinx documentation (ReadTheDocs, bilingual EN/ZH)
-├── .github/            ← CI/CD workflows + PR template
-├── pyproject.toml      ← Build config, deps, tool.ruff linting
-├── MANIFEST.in         ← Source distribution manifest
-├── flake.nix / flake.lock / dev_env_builder.nix  ← Nix dev environment
-├── .pre-commit-config.yaml
-├── .readthedocs.yaml
-├── README.md / README_ZH.md
+├── src/evox_etl/       ← the framework (import name `evox_etl`): core, algorithms, operators,
+│                         problems, metrics, workflows, vis_tools, utils, DESIGN.md
+├── src/evox_etl_ext/   ← PEP 420 namespace package for plugins, autoloaded at `import evox_etl`
+├── unit_test/etl/      ← the test suite (pytest, mirrors src/evox_etl)
+├── benchmarks/         ← `etl_vs_torch/` backend-comparison harness + committed result JSONs
+├── examples/           ← runnable quickstart and HPO demo scripts
+├── docs/               ← Sphinx documentation (bilingual EN / zh_CN, autodoc2 API pages)
+├── REFACTOR_REPORT.md  ← historical 1.4 → 2.0 refactor report
+├── README.md / README_ZH.md   ← the 2.0 pre-release landing pages (EN / ZH)
+├── pyproject.toml / MANIFEST.in
+├── conftest.py         ← pytest sys.path shim (repo root + src/)
+├── flake.nix / flake.lock / dev_env_builder.nix
+├── .pre-commit-config.yaml / .readthedocs.yaml
 └── LICENSE
 ```
 
@@ -39,86 +36,73 @@ evox/
 
 | Area | Path | Description |
 |---|---|---|
-| **Main package** | `src/evox/` | Core framework: algorithms, problems, operators, workflows, metrics, utils, visualization (torch OOP variant — frozen reference) |
-| **Functional ETL port** | `src/evox_etl/` | Functional port of the whole user-facing framework on the `evoxc` (EvoX Compiler) tensor library (binding spec `DESIGN.md`): all SO/MO algorithms incl. the training-free virtual ES family (`VirtualES`/`VirtualLoRAES`) and MO custom-operator injection, all operators, numerical + virtual/neuroevolution problems, metrics, `vis_tools` (Plotly + `.exv`), functional `StdWorkflow`/`EvalMonitor` with `plot` + aux-history, the `evoxc`-native host-side HPO wrapper, and `make_*` constructors (see `REFACTOR_REPORT.md`) |
-| **ETL extensions** | `src/evox_etl_ext/` | PEP 420 namespace-package plugin system for the ETL port; `auto_load_extensions()` merges external algorithms, problems, operators, metrics, utils into the matching `evox_etl.*` modules at `import evox_etl` time |
-| Core abstractions | `src/evox/core/` | `ModuleBase`, `Parameter`, `Mutable`, `compile`, `vmap`, `use_state` + component ABCs (`Algorithm`, `Problem`, `Workflow`, `Agent`, `Monitor`) |
-| Algorithms | `src/evox/algorithms/` | 33 EA classes (32 distinct — `VirtualLoRAES` aliases `VirtualES`): SO 27 (DE 6, ES 14, PSO 7) + MO 6 (NSGA2, NSGA3, RVEA, MoEAD, HypE, RVEAa) |
-| Problems | `src/evox/problems/` | Benchmark problems: numerical (CEC2022, DTLZ, basic), neuroevolution (Brax, MuJoCo, supervised learning), HPO wrapper |
-| Operators | `src/evox/operators/` | Genetic operators: selection, crossover, mutation, sampling (pure stateless tensor functions) |
-| Workflows | `src/evox/workflows/` | `StdWorkflow` (standard optimization loop) + `EvalMonitor` (fitness/elite tracking) |
-| Metrics | `src/evox/metrics/` | Multi-objective metrics: GD, HV, IGD |
-| Triton kernels | `src/evox/triton_kernels/` | Optional Triton GPU kernels with PyTorch fallback; `register_triton_op` decorator, backend detection |
-| Utilities | `src/evox/utils/` | JIT/vmap-compatible tensor ops, custom op registration, param↔vector conversion, PyTree re-exports |
-| Visualization | `src/evox/vis_tools/` | Plotly-based interactive plots + EvoXVision (.exv) binary serialization |
-| **Extensions** | `src/evox_ext/` | PEP 420 namespace-package plugin system; auto-discovers external algorithms, problems, operators, metrics, utils |
-| **Tests (torch)** | `unit_test/` | `unittest`-based; mirrors `src/evox/` structure; tests eager, `torch.compile`, and `vmap` modes |
-| **Tests (ETL, canonical)** | `unit_test/etl/` | pytest-based; the sole/canonical ETL suite, mirrors `src/evox_etl/`; covers algorithms (SO/MO + torch-parity), operators, problems, metrics, workflows, `vis_tools`, extension autoload (run suites separately) |
-| **Benchmarks** | `benchmarks/` | PSO benchmark (eager vs compile vs max-autotune), `switch` micro-benchmark, reusable `test_base.py` |
-| **torch-vs-etl benchmarks** | `benchmarks/etl_vs_torch/` | 9 backend ids (torch-cpu/cuda/rocm, etl-numpy, etl-iree-llvm-cpu/iree-cuda/iree-rocm, etl-xla-cuda/xla-rocm — the `etl-*` ids are frozen keys into the committed result JSONs and name the evoxc-backed implementations) × SO/MO suites × 3 scales; results JSONs (incl. the ROCm post-fix matrix and its `rocm_prefix_baseline.json`) + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
-| **Documentation** | `docs/` | Sphinx + shibuya theme; autodoc2 API docs; MyST Markdown tutorials; bilingual (gettext .po + manual ZH translations) |
-| **Examples** | `examples/` | Runnable standalone scripts: ETL quickstart (`quickstart.py`, functional numpy backend) + HPO demos (`examples/hpo/`, torch reference API) |
-| **CI/CD** | `.github/workflows/` | Python package build/test, PyPI publish, Ruff lint check, Discord bot notifications |
+| **Framework** | `src/evox_etl/` | Functional EvoX on `evoxc`: core protocols + `StdWorkflow`, all SO/MO algorithms (incl. the training-free virtual ES family), pure operators, numerical (basic/DTLZ/CEC2022) and virtual neuroevolution problems, host-side HPO wrapper, GD/IGD/HV metrics, Plotly + `.exv` visualization, `make_*` constructors; binding spec `DESIGN.md` |
+| **Extensions** | `src/evox_etl_ext/` | PEP 420 plugin namespace; `auto_load_extensions()` merges installed packages into the matching `evox_etl.*` modules at `import evox_etl` time |
+| **Tests** | `unit_test/etl/` | The sole test suite (pytest), mirroring `src/evox_etl/`: algorithms, operators, problems, metrics, workflows, `vis_tools`, extension autoload, plus the root `test_no_torch.py` release gate |
+| **Benchmarks** | `benchmarks/` | `etl_vs_torch/` harness (backend ids × SO/MO suites × scales), committed result JSONs, `BENCHMARK_RESULTS.md` and `style_comparison.md` |
+| **Docs** | `docs/` | Sphinx + shibuya, autodoc2 API reference, MyST Markdown: `tutorial/` (7 parts incl. the 1.x migration page), `guide/install/`, `guide/developer/`, `guide/advanced/` (backends, operators, metrics, viz, HPO, extensions), `examples/`, `miscellaneous/`, `locale/zh_CN` |
+| **Examples** | `examples/` | Runnable standalone scripts: `quickstart.py` (functional numpy backend) and `hpo/` (single-objective, multi-objective, repeated HPO) |
 
 ## Key Architectural Concepts
 
-The concepts below describe the torch `src/evox/` package (frozen reference). The functional ETL port `src/evox_etl/` replaces the OOP machinery with frozen config dataclasses, tensor-valued state, and plain step-protocol functions — see `src/evox_etl/DESIGN.md` and `REFACTOR_REPORT.md`.
+### Component Model
+An algorithm module exposes `init(config, key) -> state` and `step(config, state, evaluate) -> state`, optionally with `init_step`/`final_step` variants.
+A problem module exposes `evaluate(config, state, candidates)`; a monitor module exposes `init`/`step`/`record_*` and keeps its history host-side.
+`StdWorkflow` resolves each component's plain functions from `type(config).__module__`, so a config and its functions always live in the same module.
 
-### Component Hierarchy
-All framework components inherit from `ModuleBase` (extends `torch.nn.Module`):
-```
-ModuleBase
-  ├── Algorithm   — Evolutionary search logic (step, init_step, evaluate proxy)
-  ├── Problem     — Fitness evaluation (evaluate)
-  ├── Workflow    — Orchestrates Algorithm + Problem + Monitor
-  ├── Agent       — Individual agent for RL-style tasks
-  └── Monitor     — Lifecycle callbacks for observation/logging
-```
+### Configuration and State
+Configs are frozen dataclasses holding only static leaves (Python scalars, strings, flat `float` tuples) and are built by `make_*` constructors that normalize bounds and validate arguments.
+State is a pytree whose leaves are `evoxc` tensors only; `WorkflowState` carries the algorithm state, problem state, monitor state, a generation counter and the RNG key.
+Randomness is stateless (`evox_etl.key(seed)`, `evox_etl.random.*`): keys live in the state, are split there, and make a whole run reproducible from one integer seed.
 
-### Functional Programming Model
-- `Parameter(value)` — marks hyperparameters (stateless, fixed during search)
-- `Mutable(value)` — marks state tensors (population, fitness, velocities)
-- `use_state` — converts module methods to functional form for `vmap`
-- `compile` / `vmap` — PyTorch wrappers with scalar-index graph-break workarounds
+### Compile Site and Backends
+`StdWorkflow` is the only compile site: it builds one executable per step variant through `evoxc.build` and runs it in a same-device loop (`run`, or `init`/`init_step`/`step`/`final_step`).
+`backend=` defaults to `"numpy"` and `device=` to `"cpu"`; `"iree"`, `"tvm"` and `"xla"` require their opt-in extras (XLA additionally needs a PJRT plugin).
+Unsupported graph shapes raise a loud `evoxc` `BackendError`/`TransformError`; there is never a silent fallback.
+
+### Host-Side Surface
+Monitors, metrics, visualization and HPO run on the host in NumPy: `EvalMonitor` reads state through a token-passing history channel, and `HPOProblemWrapper` rebuilds and runs an inner `StdWorkflow` per candidate.
+That is why `HPOProblemWrapper` is not an `evox_etl` `Problem` and cannot be nested inside an outer workflow's `evaluate`.
 
 ### Extension System
-External packages install into the `evox_ext` namespace package. At `import evox` time, `auto_load_extensions()` discovers and merges them into the corresponding `evox.*` modules (algorithms, problems, operators, metrics, utils).
-The functional ETL port mirrors this with the `evox_etl_ext` namespace package: `evox_etl/__init__.py` calls `evox_etl_ext.autoload_ext.auto_load_extensions()`, which merges installed extensions into the matching `evox_etl.*` modules. Because ETL extensions are functional, an extension module exposes plain functions + frozen config dataclasses + `make_*` constructors (no `ModuleBase` classes); the guard makes a missing `evox_etl_ext` a silent no-op.
-
-### Triton Kernel Integration
-Triton provides hand-written GPU kernels for performance-critical operations. The infrastructure is **optional** — Triton is an optional dependency (`pip install evox[triton]`). When available, `register_triton_op` registers both a PyTorch fallback (runs everywhere) and a Triton CUDA kernel. PyTorch's dispatcher auto-routes CUDA → Triton, CPU/other → PyTorch. Without Triton installed, only the PyTorch fallback is used and everything works normally.
+External packages install into the `evox_etl_ext` namespace package and expose plain functions, config dataclasses and `make_*` constructors.
+`evox_etl/__init__.py` calls `evox_etl_ext.autoload_ext.auto_load_extensions()`, which merges them into the matching `evox_etl.*` modules; a missing `evox_etl_ext` is a silent no-op.
 
 ## Constraints
-- **Pure PyTorch**: No NumPy in framework code. All tensors must be PyTorch tensors for GPU compatibility. (This governs the torch `src/evox/` package; in the functional ETL port NumPy is permitted **host-side only** — cec2022 data loading, `make_*` preprocessing, and host-side metrics/HPO — while traced `evoxc` code stays torch/NumPy-free.)
-- **Compile-friendly**: Operators and algorithms must be `torch.compile`/`vmap` compatible. No Python control flow depending on tensor values.
-- **Minimization semantics**: All algorithms minimize internally; `StdWorkflow` applies `opt_direction` transforms for maximization.
-- **Monitor outside jit**: Monitors run outside the compiled graph. Use token-passing patterns for compile-safe history.
-- **Compiler dependency is the `evoxc` distribution**: the functional port targets the `evoxc` package (EvoX Compiler); nothing named `etl` is importable, and the compiler reads `EVOXC_*` environment variables (e.g. `EVOXC_PJRT_PLUGIN`), with `EVOXCError` as its public error base class.
-- **Port names stay unchanged**: `evox_etl`/`evox_etl_ext`, `unit_test/etl/`, `benchmarks/etl_vs_torch/` and the frozen `etl-*` benchmark backend ids keep the ETL naming even though the compiler is now `evoxc`.
-- **Bilingual docs**: Documentation supports English and Simplified Chinese via ReadTheDocs language switching.
-- **Count claims kept in sync**: The ecosystem "140+ algorithms" / "240+ benchmark problems" counts and the built-in "30+ algorithms" / "30+ benchmark problems" counts are stated in this file, `README.md`, and `README_ZH.md` (EN + ZH); any change must be applied to all three.
+- **Eager-mode-free traced code**: every `evoxc` tensor op must run inside an active trace, so framework code never calls tensor ops at import time or outside `init`/`step`/`evaluate`.
+- **No torch, host-side NumPy only**: nothing in the framework imports torch; NumPy is permitted host-side (CEC2022 data loading, `make_*` preprocessing, metrics, HPO, visualization) and never inside traced code.
+- **Compile-friendly**: no Python control flow depending on tensor values; batches are expressed as leading tensor dimensions, and `vmap` is not used in algorithm or operator code.
+- **Static configs, tensor state**: config fields are plain static leaves baked into the trace; state leaves are `evoxc` tensors only.
+- **Minimization semantics**: algorithms minimize internally; `StdWorkflow` applies the `opt_direction` sign transform for maximization.
+- **Monitors outside the graph**: monitors, metrics and HPO run host-side, connected to the loop through token-passing history.
+- **Compiler dependency is the `evoxc` distribution**: the compiler reads `EVOXC_*` environment variables (e.g. `EVOXC_PJRT_PLUGIN` for the XLA plugin) and exposes `EVOXCError` as its public error base class.
+- **Port names stay unchanged**: `evox_etl`/`evox_etl_ext`, `unit_test/etl/`, `benchmarks/etl_vs_torch/` and the frozen `etl-*` benchmark backend ids (`etl-numpy`, `etl-iree-llvm-cpu`, `etl-iree-cuda`, `etl-iree-rocm`, `etl-xla-cuda`, `etl-xla-rocm`) keep the ETL naming even though the compiler is `evoxc`; the ids are frozen keys into the committed result JSONs.
+- **Bilingual docs**: documentation is English with a Simplified Chinese translation (`docs/source/locale/zh_CN`) served through Read the Docs language switching.
+- **Count claims kept in sync**: the ecosystem "140+ algorithms" / "240+ benchmark problems/environments" counts and the built-in "30+ algorithms" / "30+ benchmark problems" counts are stated in this file, `README.md` and `README_ZH.md` (EN + ZH); any change must be applied to all three.
 - **Descriptions vs counts**: `pyproject.toml` `[project] description` is just `"evox"` and carries no count claims — do not look there for them.
 
 ## Release Process
 
-Version is single-sourced in `pyproject.toml` under `[project] version` (currently 1.4.0); there is no `__version__` defined in the package code.
-A release consists of: a commit bumping the version (message style `Bump version to vX.Y.Z`), a git tag `vX.Y.Z` on that commit, and a published GitHub Release.
-`.github/workflows/python-publish.yml` triggers on the GitHub `release` (published) event, builds with `python -m build`, and publishes to PyPI via trusted publishing (OIDC, no repo token).
-Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing/mismatched entry there.
-Past release bumps also update the news entries in `README.md` and `README_ZH.md` (which link to an announcement post on evox.group) and the version mention in this file's project metadata above.
+The 2.0 line is released as pre-releases; `2.0.0a1` is the current version and is single-sourced in `pyproject.toml` under `[project] version`.
+A release is: a commit bumping the version (message style `Bump version to vX.Y.Z`), a `vX.Y.Z` tag on that commit, and a GitHub Release with **"Set as a pre-release"** ticked.
+Ticking pre-release matters twice: the PyPI classifier metadata derives from the version string (`2.0.0a1` is a PEP 440 pre-release), and the GitHub release page tells users what they are getting.
+PyPI treats `2.0.0a1` as a pre-release, so `pip install evox` keeps resolving the 1.x line and only `pip install --pre evox==2.0.0a1` (or `pip install 'evox>=2.0.0a1'`) installs 2.0.
+`.github/workflows/python-publish.yml` triggers on the GitHub `release` (published) event, builds with `python -m build`, and publishes to PyPI through trusted publishing (OIDC, no repository token).
+Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing or mismatched entry there.
+Because the distribution name stays `evox`, both lines share one PyPI project page, and the 1.x wheels remain the default resolution.
 
 ## Related Projects (EMI-Group ecosystem)
 
 EvoX is one of ~13 sibling libraries published under https://github.com/EMI-Group/ .
-These are SEPARATE repos (not part of this source tree) and are the upstream homes of the `evox_ext` plugin family.
+These are SEPARATE repos (not part of this source tree) and are the upstream homes of the `evox_etl_ext` plugin family.
 Together with EvoX, these libraries form an ecosystem of 140+ algorithms and 240+ benchmark problems/environments.
-- **evomo** — PyTorch GPU-accelerated evolutionary multi-objective optimization (EMO). 57 tensorized MOEAs + 131 numerical/constrained benchmark problems (ZDT/DTLZ/WFG/MAF/LSMOP + CTP/MW/DOC/SDC/LSCM/LIRCMOP/DASCMOP/FCP) + MoRobtrol multi-objective robot-control suite.
+- **evomo** — PyTorch GPU-accelerated evolutionary multi-objective optimization (EMO). 57 tensorized MOEAs + 131 numerical/constrained benchmark problems (ZDT/DTLZ/WFG/MAF/LSMOP + CTP/MW/DOC/SDC/LSCMOP/DASCMOP/FCP) + MoRobtrol multi-objective robot-control suite.
 - **evorl** — JAX fully GPU-accelerated Evolutionary RL framework (RL/EA/ERL/PBT/multi-agent algorithms; wraps Brax/MuJoCo-Playground/gymnax/Jumanji/JaxMARL/EnvPool/Gymnasium).
 - **evogp** — PyTorch + custom CUDA kernels for Tree-based Genetic Programming (symbolic regression, classification, transformation, Brax/MuJoCo control).
 - **tensorneat** — JAX tensorized NEAT / HyperNEAT.
 - **tensoraco** — JAX tensorized Ant Colony Optimization for TSP (bundles the TSPLIB).
 - **evoxbench** — NAS-as-multi-objective-optimization benchmark platform (NAS-Bench-101/201, NATS, DARTS, MobileNetV3, ResNet50, Transformer, MoSegNAS); no GPU/PyTorch needed.
-- **tensorrvea**, **metade**, **istratde**, **evogo**, **autopso**, **evonas**, **evococo** — additional tensorized EC libraries/frameworks (RVEA, DE meta-framework, DE variant, data-driven black-box opt, automated PSO, NAS, automatic tensorization).
+- **tensorrvea**, **metade**, **istratde**, **evogo**, **autopso**, **evonas**, **evococ** — additional tensorized EC libraries/frameworks (RVEA, DE meta-framework, DE variant, data-driven black-box opt, automated PSO, NAS, automatic tensorization).
 - Research/paper repos (single-algorithm code, not general libraries): GMOEA, RelativeNAS, DenseNAS, nsganetv2, fr-nas, gpbt-pl, Incremental-Optimization, GMPB, BLVG.
 - Non-EC repos in the org (unrelated to EvoX): FaPN, PDVC, SoloGAN, mixer-snn, spikefpn, snn-temporal-fusion, spikingedn, SFLM, mesa, genesis, evox-portal (website).
 The official website https://evox.group/ is built from the SEPARATE repo `EMI-Group/evox-portal` (Astro).
@@ -127,4 +111,9 @@ Pages under `src/content/releases/*` are historical release announcements and in
 
 ## Known Issues
 
-`docs/source/tutorial/tutorial_part2.md` references `evox.__version__`, but the attribute is not defined anywhere in `src/evox/` — it raises AttributeError at runtime (doc bug only).
+- `evox_etl.__version__` is a hand-written string that still reports the 1.x value and is not derived from `pyproject.toml`, so it is not a reliable 2.0 release check — verify a 2.0 install by importing the package and running a smoke test.
+- `evoxc` has no eager mode, so any direct `evoxc` tensor call outside an active trace raises `TraceError`; ad-hoc scripting must go through `StdWorkflow` or an explicit `evoxc.build`/`evoxc.run`.
+- The XLA backend has no pip extra and needs a user-supplied PJRT plugin found through `EVOXC_PJRT_PLUGIN`, so it is unavailable on a default install; the `plugin_path` compile option alone is not enough because loading and running rediscover the plugin from the environment.
+- `HPOProblemWrapper` is host-side by design: it is not an `evox_etl` `Problem`, evaluates candidates one at a time, and re-traces the inner workflow per candidate because config values are baked in as static leaves.
+- Not implemented in the 2.0 line: the distributed multi-rank workflow, the Brax / MuJoCo Playground / supervised-learning problems, `ParamsAndVector` / `torch.nn` interop, the Triton kernel package, and any `torch.compile`/`vmap` layer.
+- `unit_test/etl/` exercises the `"numpy"` backend only; compiled backends and GPUs are covered solely by the `benchmarks/etl_vs_torch/` harness.
