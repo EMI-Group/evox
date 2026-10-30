@@ -1,9 +1,14 @@
+# Announce GitHub releases in the Discord `#changelog` channel.
+#
+# `release: published` fires for stable releases AND for pre-releases, so the
+# experimental 2.0 pre-releases (e.g. `v2.0.0a1`) are announced too — the
+# release body is the changelog, so it should say "experimental pre-release".
+# The avatar/footer images point at the brand assets in this repo
+# (`docs/source/_static/evox_logo_light.svg`), which still exist on `main`.
 name: Github Releases To Discord
-
 on:
   release:
     types: [published]
-
 jobs:
   github-releases-to-discord:
     runs-on: ubuntu-latest

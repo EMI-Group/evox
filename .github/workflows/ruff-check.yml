@@ -1,5 +1,17 @@
 name: Ruff
-on: [ push, pull_request ]
+# Lint gate for the EvoX 2.0 pre-release; triggers match `python-package.yml`.
+# The action runs `ruff check` over the repo and picks up the
+# `[tool.ruff]` / `[tool.ruff.lint]` configuration from pyproject.toml
+# (line-length 128, select F/E/W/I/NPY, per-file-ignores for the
+# `evox_etl/__init__.py` and `evox_etl_ext/autoload_ext.py` re-export modules).
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   ruff:
     runs-on: ubuntu-latest

@@ -1,40 +1,58 @@
-# This workflow will upload a Python Package using Twine when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
+# Publish the EvoX distribution to PyPI when a GitHub release is published.
+#
+# Release flow (see .github/CONTEXT.md): bump `version` in pyproject.toml ->
+# commit "Bump version to vX.Y.Z" -> `git tag vX.Y.Z` -> publish a GitHub
+# release for that tag. Experimental 2.0 builds are tagged as PEP 440
+# pre-releases (e.g. `2.0.0a1` / `v2.0.0a1`) and the GitHub release is ticked
+# as "pre-release", so `pip install evox` keeps serving the stable 1.x line.
+#
+# Authentication is PyPI trusted publishing (OIDC) — no API token secret.
+# The PyPI-side trusted publisher must be configured for repo
+# `EMI-Group/evox` / workflow `python-publish.yml`.
 name: Upload Python Package
-
 on:
   release:
     types: [published]
+  # Manual retry of a failed publish from the Actions UI. Note that this
+  # rebuilds from the branch the run is started on, so start it on the
+  # release's tag/commit to re-upload the same version.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# Never let two releases upload at the same time.
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
-
     # Required for OIDC trusted publishing
     permissions:
       id-token: write
-
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.x'
-    - name: Install dependencies
+        # `evoxc` requires >= 3.11; the wheels are pure Python (`py3-none-any`).
+        python-version: "3.12"
+    - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install build wheel setuptools
+        python -m pip install build
     - name: Build package
       run: python -m build
+    - name: Smoke test the built wheel
+      # Fail fast instead of shipping a broken artifact: install the fresh wheel
+      # and import/run it from outside the checkout (also proves the CEC2022
+      # package data made it into the wheel).
+      run: |
+        wheel=$(ls dist/*.whl)
+        python -m pip install "$wheel[test]"
+        cd "$RUNNER_TEMP"
+        python "$GITHUB_WORKSPACE/.github/scripts/wheel_smoke.py"
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@v1.14.0
