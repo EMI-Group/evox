@@ -7,22 +7,17 @@ They do **not** cover the EvoX 1.x torch API (`import evox`, `torch.device("cuda
 nowhere in these pages. APIs may still change between pre-releases.
 ```
 
-NVIDIA GPUs are the best-trodden path for EvoX: every compiled backend has been validated on CUDA, and
-most of the numbers in `REFACTOR_REPORT.md` come from an NVIDIA card. That is a statement about testing
-coverage, not about the programming model — an EvoX 2.0 program never names a vendor. It names a
-`backend` and a device **kind**, and the framework either serves that combination or fails loudly.
+NVIDIA GPUs are the best-trodden path for EvoX: IREE-CUDA and XLA-CUDA were validated on NVIDIA
+hardware, and most of the numbers in `REFACTOR_REPORT.md` come from an NVIDIA card (TVM, by contrast, is
+CPU-only). That is a statement about testing coverage, not about the programming model — an EvoX 2.0
+program never names a vendor. It names a `backend` and a device **kind**, and the framework either serves
+that combination or fails loudly.
 
-| `backend=` | Device kinds it serves | Extra install |
-|---|---|---|
-| `"numpy"` | `cpu` only | none (default) |
-| `"iree"` | `cpu` (→ `llvm-cpu`), `cuda`, `rocm` (alias `hip`), `vulkan` (→ `vulkan-spirv`) | `pip install "evox[iree]"` |
-| `"xla"` | `cpu`, `cuda`, `rocm` (alias `hip`) | none, but **you** supply a PJRT plugin |
-| `"tvm"` | `cpu` (→ `llvm`) only | `pip install "evox[tvm]"` |
-
-The kind list is the framework's, not ours: `evoxc.core.device` recognizes `cpu`, `cuda`, `rocm` (alias
-`hip`) and `vulkan`, and each adapter maps the kind onto its own compile target
-(`cpu`→`llvm-cpu`, `cuda`→`cuda`, `rocm`→`rocm`, `vulkan`→`vulkan-spirv` for IREE). For an IREE build the
-compile target is inferred from the device you pass, so changing hardware is one keyword
+Which backend serves which device kind, what each kind compiles to, and which extra installs what is
+{doc}`../guide/advanced/backends`' subject; this page only records what differs on non-NVIDIA hardware.
+In the shorthand: IREE serves `cpu`, `cuda`, `rocm` and `vulkan`, XLA serves `cpu`, `cuda` and `rocm`
+once you supply a PJRT plugin, TVM is `cpu` only, and the default NumPy interpreter is `cpu` only. For an
+IREE build the compile target is inferred from the device you pass, so changing hardware is one keyword
 ({doc}`selecting_gpu` has the device forms and how to enumerate what the process can see):
 
 ```python
@@ -39,7 +34,7 @@ workflow = StdWorkflow(
     algorithm,
     Sphere(),
     monitor=EvalMonitorConfig(),
-    backend="iree",  # pip install "evox[iree]"
+    backend="iree",  # needs the IREE extra: pip install "evoxc[iree]"
     device="rocm",   # an AMD GPU; "rocm:1" for the second one
 )
 workflow.run(100, seed=42)
@@ -50,12 +45,14 @@ workflow.run(100, seed=42)
 `backend="numpy"` is a pure-Python interpreter over the traced graph: no compiler toolchain, no GPU
 driver, no optional package. It runs anywhere CPython and NumPy run — x86-64, ARM64, Windows, macOS on
 either Intel or Apple Silicon — and it is the reference implementation the compiled backends are checked
-against. Fitnesses agree bit-for-bit with the compiled backends, so "develop on numpy, deploy on the GPU"
-is a legitimate workflow, not a compromise.
+against. IREE results are bit-identical to it for the same seed and configuration; XLA may compute an
+fp32 `dot` at TF32-class precision unless you pass `dot_precision="HIGHEST"`, so a dot-heavy graph can
+differ in the last bits; TVM is CPU (`llvm`) only. "Develop on numpy, deploy on IREE or XLA" is therefore
+a legitimate workflow, not a compromise.
 
 For a faster CPU-only run, two compiled options are available and neither needs a GPU: IREE's
-`llvm-cpu` target (`backend="iree", device="cpu"` after installing the extra) and XLA driven by a CPU
-PJRT plugin (`backend="xla", device="cpu"` plus the plugin below).
+`llvm-cpu` target (`backend="iree", device="cpu"` once the IREE extra is installed) and XLA driven by a
+CPU PJRT plugin (`backend="xla", device="cpu"` plus the plugin below).
 
 ## AMD GPUs (ROCm)
 
@@ -96,35 +93,18 @@ ROCm path is documented here from the code and from the upstream validation runs
 ## XLA and the PJRT plugin requirement
 
 `backend="xla"` does not ship a plugin. It drives whatever PJRT C API library you point it at — a `.so`
-exporting `GetPjRtApi` — and there is no pip-installable plugin for EvoX to depend on. In practice such a
-library comes from an XLA/JAX build (a JAX PJRT wheel installs one under `jax_plugins/`, e.g. `xla_cuda12/`
-or `xla_rocm7/`), or you build one from OpenXLA with
-`bazel build //xla/pjrt/c:pjrt_c_api_cpu_plugin`.
+exporting `GetPjRtApi` — and there is no pip-installable plugin for EvoX to depend on, so the hardware
+this backend reaches is decided by the plugin you supply: a CPU plugin keeps it on `device="cpu"`, a
+CUDA plugin (`xla_cuda12/`, as a JAX PJRT wheel installs under `jax_plugins/`) makes `device="cuda"` and
+`device="cuda:N"` usable, a ROCm plugin (`xla_rocm7/`) makes `device="rocm"` usable — which is also the
+route for multi-objective programs on AMD, since IREE cannot compile them.
 
-Discovery order is: the `plugin_path` compile option, then the `EVOXC_PJRT_PLUGIN` environment variable,
-then a few well-known paths (`/usr/local/lib`, `/usr/lib`, `$HOME/.local/lib`, the working directory, all
-named `pjrt_c_api_cpu_plugin.so`).
-
-```bash
-export EVOXC_PJRT_PLUGIN=/opt/pjrt/pjrt_c_api_cpu_plugin.so
-```
-
-```python
-workflow = StdWorkflow(
-    algorithm,
-    Sphere(),
-    monitor=EvalMonitorConfig(),
-    backend="xla",
-    device="cpu",
-    compile_options={"plugin_path": "/opt/pjrt/pjrt_c_api_cpu_plugin.so"},
-)
-```
-
-```{warning} Set the environment variable, not only `plugin_path`
-The backend is activated on first use, and that activation probe only knows about `EVOXC_PJRT_PLUGIN` and
-the well-known paths — on a cold process a `plugin_path` alone is not enough. Set both, or set the
-environment variable and omit the option.
-```
+A plugin comes from an XLA/JAX build or from your own OpenXLA build
+(`bazel build //xla/pjrt/c:pjrt_c_api_cpu_plugin`). Name it with the `plugin_path` compile option or the
+`EVOXC_PJRT_PLUGIN` environment variable — but export the variable **before the process starts**, because
+a cold process's activation probe only consults that variable and the well-known library paths, never a
+`plugin_path`. {doc}`../guide/advanced/backends` owns the discovery order, the compile options and the
+full plugin warning; from this page only the hardware mapping matters.
 
 With no plugin anywhere, the first build raises an `evoxc.core.BackendError` naming the missing plugin and
 the OpenXLA build recipe; it never falls back to another backend.
@@ -152,18 +132,22 @@ Vulkan path end-to-end on any GPU, so treat it as a supported code path rather t
 
 Apple Silicon has no usable accelerator path in this pre-release. `evoxc` knows no `mps` or `metal` device
 kind and no backend targets Metal, so the Metal Performance Shaders route that EvoX 1.x offered through
-PyTorch does not exist here: `device="metal"` parses into a device of kind `metal`, which no backend
-serves, and fails at load time with a `BackendError` rather than substituting something else.
+PyTorch does not exist here. `_parse_device` does not reject `device="metal"` — it only splits the string,
+so the device comes out as kind `metal` — but no backend serves that kind, so the failure lands when
+`init()` places the state on it: with the default NumPy backend this release raises an
+`evoxc.core.DeviceError` naming the kind, rather than substituting something else.
 
-What does work on a Mac is the CPU: `backend="numpy"` out of the box, and — with the extras and plugins
+What does work on a Mac is the CPU: `backend="numpy"` out of the box, and — with the extras and plugin
 above — IREE's `llvm-cpu` target or XLA with a CPU plugin. The programming model is identical; only the
-speed differs. If GPU acceleration on Apple hardware matters to you, that is a feature request for the
-`evoxc` compiler backends, not something a workflow argument can switch on.
+speed differs. This repository's benchmarks run on Linux, so the macOS CPU path is documented from the
+code and not measured here. If GPU acceleration on Apple hardware matters to you, that is a feature
+request for the `evoxc` compiler backends, not something a workflow argument can switch on.
 
 ## When in doubt, make the failure happen early
 
-No backend falls back silently: an unsupported device kind, a missing compiler, a missing PJRT plugin or an
-op the exporter cannot lower all raise `evoxc.core.BackendError` / `TransformError` naming what is wrong.
+No backend falls back silently: an unsupported op, a missing compiler or a missing PJRT plugin fails
+during the build with an `evoxc.core.BackendError`/`TransformError` naming what is wrong, and a device
+kind no backend can serve fails when `init()` places the state on it.
 Compilation is paid up front, so build the same workflow with `num_generations=1` (or `run(2)`) on the new
 machine before starting a real study — a wiring problem costs a second there and an hour in the middle of a
 run.

@@ -26,7 +26,7 @@ year, and the driver it packages may predate the compiler features the backends 
 
 As a rule, prefer a newer distribution over an older one for a GPU machine. Ubuntu 20.04 is a good
 example of a release that is still supported but dated for GPU work: even an RTX 3090, hardly a new card,
-can fall outside what its default drivers support well. A current release, such as Ubuntu 25.04, is
+can fall outside what its default drivers support well. A current release, such as Ubuntu 26.04 LTS, is
 usually the smoother starting point than an older long-term-support one.
 
 The second factor is how a distribution treats proprietary software. Some, such as Fedora, prioritise
@@ -50,8 +50,9 @@ EvoX 2.0 is not a CUDA program. Nothing in it compiles kernels with `nvcc` at in
 default NumPy backend never touches a GPU at all. The compiled backends reach the card through the
 *driver*: IREE's CUDA HAL and the XLA CUDA plugin both load against the installed driver, and on AMD the
 ROCm user-space runtime that the distribution's driver packages provide. So install and update the
-driver, not a toolkit, and let `pip install "evox[iree]"` (or your PJRT plugin of choice) supply the
-compiler side — see {doc}`../guide/advanced/backends`.
+driver, not a toolkit, and let the compiler's extra (`pip install "evoxc[iree]"`) — or your PJRT plugin
+of choice — supply the compiler side; {doc}`../guide/install/evox` and
+{doc}`../guide/advanced/backends` have the extras story.
 ```
 
 Once the driver is installed, confirm that the runtime sees the hardware *before* you write an experiment

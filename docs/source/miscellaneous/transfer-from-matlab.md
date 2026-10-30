@@ -56,7 +56,7 @@ of the MATLAB PSO shown above it.
 - Dimensions of length 1 are **preserved** and treated as broadcast dimensions.
 - Broadcasting follows NumPy rules and is explicit about it: a `(dim,)` vector does not line up with a
   `(pop_size, dim)` matrix by accident — write `enp.expand_dims(vector, axis=0)` to make the row
-  explicit. Turning `(dim,)` into `(1, dim)` is the job `x.unsqueeze(0)` did in PyTorch code.
+  explicit.
 
 ### Functions and definitions
 
@@ -367,7 +367,8 @@ def main():
     )
     # the `for i = 1:20` loop, driven by hand
     state = workflow.init(seed=42)
-    state = workflow.init_step(state)  # falls back to step() when there is no init_step
+    # the first generation: the module's init_step (evaluate the initial pop)
+    state = workflow.init_step(state)
     report(1, state)
     for i in range(2, 21):
         state = workflow.step(state)

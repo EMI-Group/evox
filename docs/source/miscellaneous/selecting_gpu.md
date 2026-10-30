@@ -37,20 +37,15 @@ workflow.run(50, seed=42)
 ## What `device=` accepts
 
 `StdWorkflow` parses `device=` with `_parse_device` (`src/evox_etl/core/workflow.py`) before anything is
-built, so the accepted forms are exactly these:
-
-| `device=` | Parsed as | Rule |
-|---|---|---|
-| `None` | `evoxc.core.Device("cpu", 0)` | the default |
-| `"cpu"`, `"cuda"`, `"rocm"`, `"vulkan"` | `Device(kind, 0)` | the string is stripped and lower-cased |
-| `"cuda:1"` | `Device("cuda", 1)` | split on `:`, the index goes through `int()` |
-| `evoxc.core.Device("rocm", 0)` | unchanged | passed through as an `evoxc` device |
-| anything else | `TypeError` | |
+built. It takes `None` (the CPU default), a device kind such as `"cuda"`, a kind with an explicit index
+such as `"cuda:1"`, or an `evoxc.core.Device`; anything else is a `TypeError` at construction. The full
+table — and its sibling table for `backend=` and `compile_options=` — lives on
+{doc}`../guide/advanced/backends`.
 
 The index is **0-based within the devices the process can see**, so `device="cuda:0"` is the first
 visible GPU and `device="cuda:1"` the second. Parsing only splits the string: a kind that the chosen
-`backend` cannot serve is rejected later, loudly, when the executable loads — never by silently falling
-back to the CPU.
+`backend` cannot serve is rejected later, loudly, when `init()` places the state on that device — never by
+silently falling back to the CPU.
 
 ## Which device kinds exist
 
@@ -84,7 +79,11 @@ On a CPU-only host that prints:
 ```text
 [Device(kind='cpu', index=0)]
 []
+[]
 ```
+
+The three lines are the results of the three calls above, in order: the host itself, then no NVIDIA
+device, then no AMD device.
 
 `evoxc.devices()` is honest and side-effect free: it never invents a device, and a kind with no runtime
 present yields an empty list rather than an error.
@@ -93,29 +92,38 @@ present yields an empty list rather than an error.
 Enumeration is a *probe*. In this pre-release the `cuda` probe reads its count from an installed
 CUDA-enabled PyTorch build, and the `rocm` probe from IREE's HIP HAL driver, falling back to a ROCm
 build of PyTorch. A host can therefore fail to *list* a GPU it could still serve — an empty list is a
-hint, not a verdict. The verdict comes from building the workflow: a wrong `device=` fails loudly at
-load time.
+hint, not a verdict. The verdict comes from building the workflow: a wrong `device=` fails loudly when
+`init()` places the state on it.
 ```
 
 ## `device=` does not create acceleration by itself
 
 The backend has to serve the device. `backend="numpy"` is a CPU interpreter, so asking it for a GPU does
-not quietly stay on the CPU — the workflow tries to place the data on that device and fails in the
-transfer path. On a host with no compiled backend installed that shows up as a bare dependency error:
+not quietly stay on the CPU — the workflow tries to place the state on that device while `init()` builds
+it, and fails in the transfer path. Never a silent fallback; but the error you read depends on which
+piece of that path is missing. Asking for `cuda` (or `rocm`) without the compiler's IREE packages
+installed currently surfaces the missing dependency itself, with no hint from EvoX:
 
 ```text
 ModuleNotFoundError: No module named 'iree'
 ```
 
-The fix is to install and select a backend that serves the device (`backend="iree"` or `backend="xla"`,
-with the extras and plugins described in {doc}`../guide/advanced/backends`):
+A kind no device-transfer provider claims at all — `"metal"`, say — is reported by the transfer registry
+as an `evoxc.core.DeviceError` naming the kind. Both are placement-time failures raised out of `init()`,
+so build the workflow once before starting a long run: the wiring failure costs a second there, hours in
+the middle of a study.
+
+The fix is to install and select a backend that serves the device (`backend="iree"` or `backend="xla"`).
+The compiled backends are optional extras — install `evoxc[iree]`, `evoxc[tvm]` or
+`evoxc[compilers]`, or their intended `evox[...]` spellings — and XLA additionally needs a PJRT plugin
+you supply; {doc}`../guide/advanced/backends` and {doc}`../guide/install/evox` have both stories.
 
 ```python
 workflow = StdWorkflow(
     algorithm,
     problem,
     monitor=EvalMonitorConfig(),
-    backend="iree",     # pip install "evox[iree]"
+    backend="iree",     # needs the IREE extra: pip install "evoxc[iree]"
     device="cuda:1",    # the second visible NVIDIA GPU
 )
 ```
