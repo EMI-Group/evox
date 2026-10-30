@@ -1,5 +1,12 @@
 # EvoX → evoxc Functional Refactoring — Report
 
+> [!NOTE]
+> **Historical document (1.4 → 2.0).** This report was written while the 1.x PyTorch implementation and the
+> functional port lived side by side in one tree, so it refers to `src/evox/` as the live reference implementation
+> and to torch-parity tests as part of the suite. That tree has been deleted for the 2.0.0a1 pre-release: `src/evox_etl/`
+> (import name `evox_etl`) is now the only implementation, and there is nothing to compare against or to port from.
+> Read the paths, parity claims and "not portable" lists below in that light; the analysis itself is unchanged.
+
 **Goal:** rewrite EvoX on top of the evoxc tensor library, replacing torch's
 OOP-heavy design with plain functional code (dicts/tuples/dataclasses/namedtuples,
 pure functions, separate `init`), benchmark torch vs evoxc on CPU/GPU from small
