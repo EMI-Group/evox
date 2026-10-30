@@ -143,9 +143,21 @@ def step(
     state: ASEBOState,
     evaluate: Callable[[SymbolicTensor], SymbolicTensor],
 ) -> ASEBOState:
-    """Run ONE full generation: project onto the active subspace (SVD of the
-    gradient history), sample the mirrored population, evaluate it, and update
-    center, alpha and sigma from the mirrored fitness pairs.
+    """Run ONE full generation: rebuild the active subspace from the gradient
+    history, sample the mirrored population from the covariance it induces,
+    evaluate it, and update center, alpha and sigma from the mirrored fitness
+    pairs.
+
+    The subspace basis is the leading ``subspace_dims`` rows of the right
+    singular vectors ``Vh`` of the CENTRED gradient buffer; directions whose
+    singular value is numerically zero are dropped (the centred buffer has rank
+    at most ``subspace_dims - 1``), ``UUT = U^T U`` is the projector onto the
+    subspace and ``UUT_ort = I - UUT`` its orthogonal complement.  Both are
+    zeroed — and ``alpha`` is pinned to 1.0 — until more than
+    ``subspace_dims`` gradients have been buffered (determined ONCE per
+    generation from the pre-increment counter).  The freshly computed ``UUT``/
+    ``UUT_ort`` are stored in the returned state and used for this generation's
+    alpha.
 
     ``evaluate`` is the workflow-injected traced closure (opaque; minimization
     semantics).
@@ -156,39 +168,41 @@ def step(
 
     key, subkey = random.split(state.key)
 
-    # Active subspace via SVD of the gradient history.
+    # Gate computed ONCE, from the PRE-increment counter, and reused for both
+    # the UUT/UUT_ort mask and the alpha mask (mirrors the torch reference).
+    subspace_ready = evoxc.greater(state.gen_counter, float(sub))
+
+    # Active subspace via SVD of the centred gradient history.
     X = state.grad_subspace - evoxc.mean(state.grad_subspace, axes=0)
-    U, _S, Vh = evoxc.svd(X)  # reduced: U (sub, k), Vh (k, dim), k = min(sub, dim)
-    # The reference calls the deprecated `torch.svd(X, some=True)`, whose THIRD
-    # output is V (shape (dim, k), named `Vt` there), not Vh; evoxc.svd follows the
-    # numpy/`torch.linalg.svd` convention, so transpose to match the reference.
-    # NOTE: the transpose must happen BEFORE the sign multiply.
-    Vt = evoxc.transpose(Vh, (1, 0))  # (dim, k) == V, the reference's `Vt`
-    max_abs_cols = evoxc.argmax(evoxc.abs(U), axis=0)  # (k,) int64
-    # torch writes `signs = torch.sign(U[max_abs_cols, :])` — advanced indexing on
-    # dim 0 selects k ROWS, so `signs` is a (k, k) sign MATRIX (row i = sign of row
-    # max_abs_cols[i] of U), NOT a length-k vector.  `evoxc.gather(x, idx, axis=0)` is
-    # numpy-take semantics, i.e. exactly `U[max_abs_cols, :]`.
-    signs = evoxc.sign(evoxc.gather(U, max_abs_cols, axis=0))  # (k, k)
-    U = U * signs
-    Vt = Vt * signs
+    # evoxc.svd follows the numpy / `torch.linalg.svd` convention and returns a
+    # reduced (U, S, Vh) triple: the ROWS of Vh are the right singular vectors,
+    # i.e. the principal directions of the past gradients.
+    _, S, Vh = evoxc.svd(X)
+    U = Vh[:sub]  # (k, dim), k = min(sub, dim) — no transpose / sign juggling
+    # Drop directions without variance: the centred buffer has rank at most
+    # `subspace_dims - 1`, so the trailing singular value(s) are ~0.  `tol` is
+    # the numpy/torch SVD rank tolerance; only the eps is a Python float.
+    tol = float(np.finfo(np.float32).eps) * max(sub, dim) * S[0]
+    informative = evoxc.cast(evoxc.greater(S[:sub], tol), F32)  # (k,)
 
-    U2 = Vt[:half]  # rows of V, exactly as the reference does
-    UUT = evoxc.dot(evoxc.transpose(U2), U2)
-    U_ort = Vt[half:]
-    UUT_ort = evoxc.dot(evoxc.transpose(U_ort), U_ort)
-    UUT = evoxc.select(
-        state.gen_counter > sub, UUT, enp.zeros((dim, dim), dtype=F32)
-    )
+    # UUT = U^T diag(informative) U, broadcasting (dim, k) * (k,) over the last axis.
+    UUT = evoxc.dot(evoxc.transpose(U, (1, 0)) * informative, U)  # (dim, dim)
+    UUT_ort = evoxc.eye(dim) - UUT
+    zero = enp.zeros((dim, dim), dtype=F32)
+    UUT = evoxc.select(subspace_ready, UUT, zero)
+    UUT_ort = evoxc.select(subspace_ready, UUT_ort, zero)
+    # Number of genuinely informative directions, floored at 1 (scalar).
+    effective_dims = evoxc.maximum(evoxc.sum(informative, axes=0), 1.0)
 
+    # Perturbations are sigma * N(0, cov), as in evosax (which the reference follows).
     cov = (
-        state.sigma * (state.alpha / dim) * evoxc.eye(dim)
-        + ((1.0 - state.alpha) / half) * UUT
+        (state.alpha / dim) * evoxc.eye(dim)
+        + ((1.0 - state.alpha) / effective_dims) * UUT
+        + 1e-6 * evoxc.eye(dim)
     )
     chol = evoxc.cholesky(cov)
-    noise = random.normal(subkey, (dim, half), mean=0.0, std=1.0, dtype=F32)
-    z_plus = evoxc.transpose(evoxc.dot(chol, noise), (1, 0))
-    z_plus = z_plus / evoxc.norm(z_plus, axis=1, keepdims=True)
+    noise = random.normal(subkey, (half, dim), mean=0.0, std=1.0, dtype=F32)
+    z_plus = state.sigma * evoxc.dot(noise, evoxc.transpose(chol, (1, 0)))
     z = evoxc.concatenate([z_plus, -1.0 * z_plus], axis=0)
     population = state.center + z
     gen_counter = state.gen_counter + 1.0
@@ -198,26 +212,19 @@ def step(
 
     fitness = evaluate(population)
 
-    noise_1 = state.z[:half] / state.sigma
+    noise_1 = z[:half] / state.sigma
     fit_diff_noise = evoxc.dot(
         enp.expand_dims(fitness[:half] - fitness[half:], axis=0), noise_1
     )[0]
     theta_grad = 0.5 * fit_diff_noise
-    # alpha's denominator is `state.UUT`, the MASKED UUT stored above: the mask
-    # uses the PRE-increment counter while alpha's own mask uses the
-    # POST-increment one — exactly as the torch reference does (`where` on its
-    # local UUT before `gen_counter` is bumped, `where` on alpha after).  So in
-    # the generation where `gen_counter` first exceeds `subspace_dims` the
-    # denominator is the all-zero matrix and alpha = inf, reproducing torch,
-    # which divides by its never-refreshed all-zero `self.UUT`.  torch then
-    # raises LinAlgError in `cholesky` at generation `subspace_dims + 2`; numpy's
-    # cholesky NaN-propagates instead and the port surfaces it one generation
-    # later as an `evoxc.svd` non-convergence error.  Runs beyond `subspace_dims`
-    # generations are unsupported on both sides (see this directory's CONTEXT.md).
+    # alpha is computed from THIS generation's freshly computed UUT/UUT_ort
+    # (the pre-fix port divided by the never-written `state.UUT` buffer, which
+    # made alpha NaN — and the next Cholesky factorisation fail — as soon as the
+    # subspace activated).
     alpha = evoxc.norm(
-        evoxc.dot(enp.expand_dims(theta_grad, axis=0), state.UUT_ort)[0]
-    ) / evoxc.norm(evoxc.dot(enp.expand_dims(theta_grad, axis=0), state.UUT)[0])
-    alpha = evoxc.select(state.gen_counter > config.subspace_dims, alpha, 1.0)
+        evoxc.dot(enp.expand_dims(theta_grad, axis=0), UUT_ort)[0]
+    ) / (evoxc.norm(evoxc.dot(enp.expand_dims(theta_grad, axis=0), UUT)[0]) + 1e-8)
+    alpha = evoxc.select(subspace_ready, evoxc.clamp(alpha, 0.0, 1.0), 1.0)
     grad_subspace = evoxc.concatenate(
         [state.grad_subspace, enp.expand_dims(theta_grad, axis=0)], axis=0
     )[1:, :]
