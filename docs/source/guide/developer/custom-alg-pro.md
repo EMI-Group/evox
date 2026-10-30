@@ -1,210 +1,343 @@
 # Custom algorithms and problems in EvoX
 
-In this chapter, we will introduce how to implement your own algorithms and problems in EvoX.
+This page contains two worked examples: first a custom algorithm run against a built-in
+problem, then a custom problem run with a built-in algorithm.
 
-## Layout of the algorithms and problems
+Every component follows the same shape: a **frozen config dataclass** holding static
+hyperparameters, plus **plain module-level functions** (`init`, `init_step`, `step`,
+or `evaluate`) in the same module. `StdWorkflow` receives the config object and locates
+the functions with `importlib.import_module(type(config).__module__)` — the module a
+config was defined in *is* the component.
 
-In most traditional EC libraries, algorithms usually call the objective function internally, which gives the following layout:
-
+```{warning}
+Put exactly one component in each module. Two components in one file live in the same
+module, so the workflow would resolve the same shared names (`init`, `step`, `evaluate`)
+for both, and the two components would silently collide. Give every algorithm, problem,
+and monitor its own file.
 ```
-Algorithm
-|
-+--Problem
-```
-
-**But in EvoX, we have a flat layout:**
-
-```
-Algorithm.step -- Problem.evaluate
-```
-
-This layout makes both algorithms and problems more universal: an algorithm can optimize different problems, while a problem can also be suitable for many algorithms.
-
-
-
-## Algorithm class
-
-The [`Algorithm`](#evox.core.components.Algorithm) class is inherited from [`ModuleBase`](#evox.core.module.ModuleBase).
-
-**In total,** **there are 5 methods (2 methods are optional) that we need to implement:**
-
-| Method       | Signature                               | Usage                                                                                                              |
-| ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `__init__` | `(self, ...)`                   | Initialize the algorithm instance, for example, the population size (keeps constant during iteration), hyper-parameters (can only be set by HPO problem wrapper or initialized here), and / or mutable tensors (can be modified on the fly). |
-| `step`               | `(self)`                        | Perform a normal optimization iteration step of the algorithm. |
-| `init_step` (optional) | `(self)` | Perform the first step of the optimization of the algorithm. If this method were not overwritten, the `step` method would be invoked instead. |
 
 ```{note}
-The static initialization can still be written in the `__init__` while the mutable submodule(s) initialization cannot. Therefore, multiple calls of `setup` for repeated initializations are possible if the overwritten `setup` method invokes the `setup()` of [`ModuleBase`](#evox.core.module.ModuleBase) first.
-
-If such `setup` method in [`ModuleBase`](#evox.core.module.ModuleBase) is not suitable for your algorithm, you can override the `setup` method when you create your own algorithm class.
+This page shows only the component contract. How `StdWorkflow` validates configs,
+traces a generation, and drives the state is described in {doc}`architecture`, and a
+full end-to-end walkthrough is in {doc}`../../tutorial/tutorial_part3`.
 ```
 
+## Part 1 — Write your own algorithm
 
-## Problem class
+The algorithm module, `my_algorithm.py`, consists of six pieces:
 
-The [`Problem`](#evox.core.components.Problem) class is also inherited from [`ModuleBase`](#evox.core.module.ModuleBase).
+- `GaussianES` — a frozen dataclass holding the hyperparameters (`pop_size`, `dim`,
+  `sigma`, `lb`, `ub`). Its leaves are plain Python values and stay static for the whole
+  run.
+- `make_gaussian_es(...)` — the host-side entry point following the `make_*` convention:
+  it validates and normalises the arguments (checking ranges, casting to `int`/`float`)
+  and returns the config. Doing this host-side keeps the traced code free of checks.
+- `GaussianESState` — a dataclass whose leaves are `evoxc` tensors only, each with a
+  fixed shape, including the RNG `key`.
+- `init(config, key)` — samples the initial population uniformly inside the box with
+  `random.uniform`.
+- `init_step(config, state, evaluate)` — generation 0. Instead of mutating the initial
+  population it evaluates it directly and seeds the best trackers, so no generation is
+  wasted.
+- `step(config, state, evaluate)` — owns exactly one full generation: it splits
+  `state.key`, mutates the population, clamps the trial with `enp.clip`, calls
+  `fitness = evaluate(trial)`, keeps the better of parent and child with `evoxc.select`,
+  and advances the key.
 
-However, the Problem class is quite simple. **Beside the `__init__` method, the only necessary method is the `evaluate` method.**
-
-| Method     | Signature                                   | Usage                                         |
-| ---------- | ------------------------------------------- | --------------------------------------------- |
-| `__init__` | `(self, ...)`                       | Initialize the settings of the problem.       |
-| `evaluate` | `(self, pop: torch.Tensor) -> torch.Tensor` | Evaluate the fitness of the given population. |
-
-However, the type of `pop` argument in `evaluate` can be changed to other JIT-compatible types in the overwritten method.
-
-
-## Example
-
-Here we give an example of **implementing a PSO algorithm that solves the Sphere problem**.
-
-### Pseudo-code of the example
-
-Here is a pseudo-code:
-
-```text
-Set hyper-parameters
-
-Generate the initial population
-Do
-    Compute fitness
-
-    Update the local best fitness and the global best fitness
-    Update the velocity
-    Update the population
-
-Until stopping criterion
+```{note}
+`evaluate` is an opaque workflow closure, not a user function. It accepts a batch of
+candidates and returns fitness already scaled to **minimisation**, and your `step` may
+call it more than once per generation (for example with trial batches or a restart). Treat
+it as a black box that returns a tensor of shape `(pop_size,)`.
 ```
 
-And here is what each part of the algorithm and the problem corresponds to in EvoX.
-
-```text
-Set hyper-parameters # Algorithm.__init__
-
-Generate the initial population # Algorithm.setup
-Do
-    # Problem.evaluate (not part of the algorithm)
-    Compute fitness
-
-    # Algorithm.step
-    Update the local best fitness and the global best fitness
-    Update the velocity
-    Update the population
-
-Until stopping criterion
-```
-
-### Algorithm example: PSO algorithm
-
-Particle Swarm Optimization (PSO) is a population-based meta-heuristic algorithm inspired by the social behavior of birds and fish. It is widely used for solving continuous and discrete optimization problems.
-
-**Here is an implementation example of PSO algorithm in EvoX:**
+The complete `my_algorithm.py`:
 
 ```python
-import torch
-from typing import List
+"""A minimal evolution strategy written as an evox_etl algorithm module."""
 
-from evox.utils import clamp
-from evox.core import Parameter, Mutable, Algorithm
+from __future__ import annotations
 
-class PSO(Algorithm):
-    #Initialize the PSO algorithm with the given parameters.
-    def __init__(
-        self,
-        pop_size: int,
-        lb: torch.Tensor,
-        ub: torch.Tensor,
-        w: float = 0.6,
-        phi_p: float = 2.5,
-        phi_g: float = 0.8,
-        device: torch.device | None = None,
-    ):
-        super().__init__()
-        assert lb.shape == ub.shape and lb.ndim == 1 and ub.ndim == 1 and lb.dtype == ub.dtype
-        self.pop_size = pop_size
-        self.dim = lb.shape[0]
-        # Here, Parameter is used to indicate that these values are hyper-parameters
-        # so that they can be correctly traced and vector-mapped
-        self.w = Parameter(w, device=device)
-        self.phi_p = Parameter(phi_p, device=device)
-        self.phi_g = Parameter(phi_g, device=device)
-        lb = lb[None, :].to(device=device)
-        ub = ub[None, :].to(device=device)
-        length = ub - lb
-        population = torch.rand(self.pop_size, self.dim, device=device)
-        population = length * population + lb
-        velocity = torch.rand(self.pop_size, self.dim, device=device)
-        velocity = 2 * length * velocity - length
-        self.lb = lb
-        self.ub = ub
-        # Mutable parameters
-        self.population = Mutable(population)
-        self.velocity = Mutable(velocity)
-        self.local_best_location = Mutable(population)
-        self.local_best_fitness = Mutable(torch.empty(self.pop_size, device=device).fill_(torch.inf))
-        self.global_best_location = Mutable(population[0])
-        self.global_best_fitness = Mutable(torch.tensor(torch.inf, device=device))
+import dataclasses
+from typing import Any
 
-    def step(self):
-        # Compute fitness
-        fitness = self.evaluate(self.population)
+import evoxc
+import evoxc.numpy as enp
+import evoxc.random as random
+import numpy as np
 
-        # Update the local best fitness and the global best fitness
-        compare = self.local_best_fitness - fitness
-        self.local_best_location = torch.where(
-            compare[:, None] > 0, self.population, self.local_best_location
-        )
-        self.local_best_fitness = self.local_best_fitness - torch.relu(compare)
-        self.global_best_location, self.global_best_fitness = self._min_by(
-            [self.global_best_location.unsqueeze(0), self.population],
-            [self.global_best_fitness.unsqueeze(0), fitness],
-        )
+Tensor = evoxc.SymbolicTensor
+F32 = np.dtype("float32")
 
-        # Update the velocity
-        rg = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        rp = torch.rand(self.pop_size, self.dim, dtype=fitness.dtype, device=fitness.device)
-        velocity = (
-            self.w * self.velocity
-            + self.phi_p * rp * (self.local_best_location - self.population)
-            + self.phi_g * rg * (self.global_best_location - self.population)
-        )
 
-        # Update the population
-        population = self.population + velocity
-        self.population = clamp(population, self.lb, self.ub)
-        self.velocity = clamp(velocity, self.lb, self.ub)
+@dataclasses.dataclass(frozen=True)
+class GaussianES:
+    """Hyperparameters: plain Python values, fixed for the whole run."""
 
-    def _min_by(self, values: List[torch.Tensor], keys: List[torch.Tensor]):
-        # Find the value with the minimum key
-        values = torch.cat(values, dim=0)
-        keys = torch.cat(keys, dim=0)
-        min_index = torch.argmin(keys)
-        return values[min_index], keys[min_index]
+    pop_size: int
+    dim: int
+    sigma: float = 0.1
+    lb: float = -10.0
+    ub: float = 10.0
+
+
+def make_gaussian_es(
+    pop_size: int, dim: int, sigma: float = 0.1, lb: float = -10.0, ub: float = 10.0
+) -> GaussianES:
+    """Validate the hyperparameters and return a config with plain Python leaves."""
+    if pop_size <= 0:
+        raise ValueError(f"pop_size must be positive, got {pop_size}")
+    if dim <= 0:
+        raise ValueError(f"dim must be positive, got {dim}")
+    if sigma <= 0.0:
+        raise ValueError(f"sigma must be positive, got {sigma}")
+    if not lb < ub:
+        raise ValueError(f"require lb < ub, got lb={lb}, ub={ub}")
+    return GaussianES(
+        pop_size=int(pop_size), dim=int(dim), sigma=float(sigma), lb=float(lb), ub=float(ub)
+    )
+
+
+@dataclasses.dataclass(frozen=True)
+class GaussianESState:
+    """Algorithm state: evoxc tensor leaves only."""
+
+    population: Tensor  # (pop_size, dim)
+    fitness: Tensor  # (pop_size,)
+    best_solution: Tensor  # (dim,)
+    best_fitness: Tensor  # ()
+    key: Tensor  # ()
+
+
+def init(config: GaussianES, key: Tensor) -> GaussianESState:
+    """Sample the initial population uniformly inside the box."""
+    key, subkey = random.split(key)
+    population = random.uniform(
+        subkey, (config.pop_size, config.dim), config.lb, config.ub, F32
+    )
+    return GaussianESState(
+        population=population,
+        fitness=enp.full((config.pop_size,), np.inf, dtype=F32),
+        best_solution=population[0],
+        best_fitness=enp.full((), np.inf, dtype=F32),
+        key=key,
+    )
+
+
+def init_step(
+    config: GaussianES, state: GaussianESState, evaluate: Any
+) -> GaussianESState:
+    """Generation 0: evaluate the initial population instead of mutating it."""
+    fitness = evaluate(state.population)
+    best_index = enp.argmin(fitness)
+    return dataclasses.replace(
+        state,
+        fitness=fitness,
+        best_solution=evoxc.gather(state.population, best_index, axis=0),
+        best_fitness=enp.min(fitness),
+    )
+
+
+def step(config: GaussianES, state: GaussianESState, evaluate: Any) -> GaussianESState:
+    """One generation: mutate, evaluate, keep the better of parent and child."""
+    key, subkey = random.split(state.key)
+    noise = random.normal(subkey, (config.pop_size, config.dim), dtype=F32)
+    trial = enp.clip(state.population + config.sigma * noise, config.lb, config.ub)
+    trial_fitness = evaluate(trial)
+    improved = trial_fitness < state.fitness
+    population = evoxc.select(
+        enp.expand_dims(improved, axis=1), trial, state.population
+    )
+    fitness = evoxc.select(improved, trial_fitness, state.fitness)
+    best_index = enp.argmin(fitness)
+    return dataclasses.replace(
+        state,
+        population=population,
+        fitness=fitness,
+        best_solution=evoxc.gather(population, best_index, axis=0),
+        best_fitness=enp.min(fitness),
+        key=key,
+    )
 ```
 
-### Problem example: Sphere problem
-
-The Sphere problem is a simple, yet fundamental benchmark optimization problem used to test optimization algorithms.
-
-The Sphere function is defined as:
-
-$$
-\min f(x)= \sum_{i=1}^{n} x_{i}^{2}
-$$
-**Here is an implementation example of Sphere problem in EvoX:**
+With the algorithm in place, the runner only has to plug it into a workflow with a
+built-in problem and a monitor:
 
 ```python
-import torch
+"""Run the custom algorithm with a built-in problem and monitor."""
 
-from evox.core import Problem
+import numpy as np
 
-class Sphere(Problem):
-    def __init__(self):
-        super().__init__()
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.problems.numerical import Sphere
+from my_algorithm import make_gaussian_es
 
-    def evaluate(self, pop: torch.Tensor):
-        return (pop**2).sum(-1)
+workflow = StdWorkflow(
+    make_gaussian_es(pop_size=64, dim=5, sigma=0.2),
+    Sphere(),
+    monitor=EvalMonitorConfig(),
+    opt_direction="min",
+    num_generations=200,
+)
+best = workflow.fit(generations=200, seed=0)
+print("best fitness:", float(np.asarray(best).reshape(-1)[0]))
 ```
 
-Now, you can initiate a workflow and run it.
+For seed `0` this prints a small value around `0.0124`:
+
+```
+best fitness: 0.0124...
+```
+
+That is roughly `0.01`, **not exactly zero**: this is a simple mutation-only strategy,
+not a tuned optimiser. The exact digits depend on the backend and on how many
+generations you run.
+
+```{tip}
+`workflow.fit(...)` returns the best-so-far value and also records history on the
+monitor. Call `fit` with a fixed `seed` while you iterate on the algorithm so that
+changes in the printed value reflect your code, not noise.
+```
+
+## Part 2 — Write your own problem
+
+The problem module, `my_problem.py`, mirrors the same layout with an `evaluate` function
+instead of a step function:
+
+- `ShiftedSphere` — the frozen config. `center` is a flat tuple of Python floats, which
+  makes it a static leaf; `make_shifted_sphere` produces it from any array-like input.
+- `evaluate(config, state, pop)` — returns `(fitness, state)`. Fitness has shape `(n,)`
+  for a single-objective problem or `(n, n_obj)` for a multi-objective one. This problem
+  is stateless, so it returns the incoming state unchanged (the workflow passes
+  `EmptyState` when the module defines no `init`).
+- Host arrays inside a trace must be baked once with
+  `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`; never put NumPy arrays in the
+  config, where they would break static-leaf rules.
+- A problem may keep state — a counter or a cache, for instance — by declaring a state
+  dataclass and an `init(config, key)` function in the same module. In that case
+  `evaluate` receives the current state and must return the updated one.
+
+```{warning}
+The `(fitness, state)` return value is not optional, even for a problem that carries no
+state. The workflow always unpacks the pair, so returning only the fitness fails
+immediately.
+```
+
+The complete `my_problem.py`:
+
+```python
+"""A minimal shifted-sphere problem written as an evox_etl problem module."""
+
+from __future__ import annotations
+
+import dataclasses
+import math
+
+import evoxc
+import evoxc.numpy as enp
+import numpy as np
+
+
+@dataclasses.dataclass(frozen=True)
+class ShiftedSphere:
+    """The sphere function minimised at ``center``; the center is a static leaf."""
+
+    center: tuple[float, ...]
+    scale: float = 1.0
+
+
+def make_shifted_sphere(center, scale: float = 1.0) -> ShiftedSphere:
+    """Normalise ``center`` to a flat tuple of Python floats and validate ``scale``."""
+    center_array = np.asarray(center, dtype=np.float64)
+    if center_array.ndim != 1:
+        raise ValueError(f"center must be 1-D, got shape {center_array.shape}")
+    if not math.isfinite(scale) or scale <= 0.0:
+        raise ValueError(f"scale must be positive and finite, got {scale}")
+    return ShiftedSphere(
+        center=tuple(float(v) for v in center_array), scale=float(scale)
+    )
+
+
+def evaluate(config: ShiftedSphere, state, pop: evoxc.SymbolicTensor):
+    """Return ``(fitness, state)``; this problem is stateless, so state round-trips."""
+    center = evoxc.ops.constant(
+        evoxc.core.tensor(np.asarray(config.center, dtype=np.float32))
+    )
+    diff = pop - center
+    fitness = config.scale * enp.sum(diff * diff, axis=1)
+    return fitness, state
+```
+
+The runner pairs the custom problem with a built-in algorithm:
+
+```python
+"""Run a built-in algorithm against the custom problem."""
+
+import numpy as np
+
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.algorithms import PSO
+from my_problem import make_shifted_sphere
+
+dim = 5
+problem = make_shifted_sphere(center=[1.0, -2.0, 0.5, 2.0, 0.0])
+workflow = StdWorkflow(
+    PSO(pop_size=100, lb=tuple([-10.0] * dim), ub=tuple([10.0] * dim)),
+    problem,
+    monitor=EvalMonitorConfig(),
+    opt_direction="min",
+    num_generations=100,
+)
+best = workflow.fit(generations=100, seed=0)
+print("best fitness:", float(np.asarray(best).reshape(-1)[0]))
+print("distance to the optimum:", np.linalg.norm(workflow.monitor.get_best_solution() - np.asarray(problem.center)))
+```
+
+The expected output for seed `0` is a best fitness near `1e-13` and a distance to the
+optimum near `1e-6`: PSO drives both the objective and the distance to the center toward
+zero, and the remaining gap is the usual numerical residue of a finite run.
+
+## Part 3 — Keeping component code traceable
+
+The workflow records a trace once and then executes that graph, so component code has to
+obey a few rules:
+
+- All tensor work must use `evoxc` / `evoxc.numpy` (`enp`) / `evoxc.random` ops. There is
+  no eager mode, so calling those ops outside a trace raises the `evoxc` `TraceError`.
+- No Python control flow on tensor values. `if fitness < best:` is illegal; use
+  `evoxc.select`, `evoxc.where`, or a reduction instead.
+- Shapes must be static. The workflow traces one graph per state-leaf signature, so a
+  state whose shapes change between generations forces a re-trace. `pop_size` and `dim`
+  belong in the config, not in the state.
+- Config values are static. Reading `config.sigma` inside a traced function is fine, but
+  a config value cannot be a tensor; normalise arrays host-side in `make_*`.
+- Host-side recursion in Python — plain `for` loops over static counts — runs at trace
+  time and is fine; use `evoxc.scan` / `evoxc.while_loop` only for graph-level loops.
+- The algorithm always minimises. `evaluate` hands back opt-direction-scaled fitness, so
+  `step` must treat smaller as better even when the user asked for maximisation.
+
+## Part 4 — Multi-objective custom operators
+
+`NSGA2Config` (and the other multi-objective configs) accept optional operator callables:
+`selection_op`, `crossover_op`, and `mutation_op`. Their signatures must match the
+defaults they replace:
+
+| Callable | Signature |
+|---|---|
+| `selection_op` | `selection_op(key, n_parents, fitness)` |
+| `crossover_op` | `crossover_op(key, x)` |
+| `mutation_op` | `mutation_op(key, x, lb, ub)` |
+
+Passing `None` selects the built-in operator. Because callables are not valid static
+pytree leaves, a config that carries them must be registered with
+`evoxc.register_pytree_node`; the multi-objective modules do this themselves at import
+time (see `evox_etl.algorithms.mo.nsga2`).
+
+For the operator catalog, see {doc}`../advanced/operators`. For tuning algorithm
+hyperparameters, see {doc}`../advanced/hpo`; neither catalog is duplicated here.
+
+## Next
+
+- {doc}`custom-monitor` — monitor hooks, reading a run back on the host, and history.
+- {doc}`architecture` — how the workflow builds and executes the graph.
+- {doc}`../../tutorial/tutorial_part3` — end-to-end workflow mechanics.

@@ -1,44 +1,145 @@
 # Develop environment
 
-## Clone the repository and install it in editable mode (recommended)
+This page walks through a development checkout of the experimental EvoX 2.0 pre-release: cloning
+the repository, installing it editable, running the lint hooks and the test suite, and building
+these documentation pages. The import name in 2.0 is `evox_etl`.
+
+## Clone and install
 
 ```bash
 git clone https://github.com/EMI-Group/evox.git
 cd evox
-pip install -e ".[test]" # install the package in editable mode with test dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
 ```
 
-## Nix
+- Python **3.10 or newer** is required (`requires-python = ">=3.10"` in `pyproject.toml`);
+  **3.11+ is recommended**, because that is the interpreter Read the Docs builds this
+  documentation with and the one the compiled-backend wheels target.
+- EvoX 2.0 runs on the **EvoX Compiler** (`evoxc`), a normal Python dependency that provides
+  `evoxc`, `evoxc.numpy`, `evoxc.random`, `evoxc.core` and the backends. Installing EvoX pulls it
+  in. If you are developing against a compiler checkout instead of the installed distribution,
+  put that checkout into the same environment:
 
-Enable the Nix environment by running the following command:
 ```bash
-nix develop .
+pip install /path/to/evoxc
 ```
-This will create a shell with all the necessary dependencies and a `.venv` directory with the Python environment.
 
-## Style guide
+The default **NumPy backend** needs no compiler toolchain, no GPU driver and no PyTorch — a fresh
+virtual environment plus the editable install is enough for everything on this page.
 
-EvoX's has the following style guide:
-1. Make sure to use [ruff](https://docs.astral.sh/ruff/) to lint your code.
-2. Make sure there are no trailing whitespaces.
+```{tip}
+Editable mode (`-e`) keeps `evox_etl` importable straight from `src/`, so edits take effect
+without reinstalling. Add what the test suite needs with `pip install pytest numpy`.
+```
 
-## Pre-commit
+Visualization tests import Plotly (`pip install plotly`, or `pip install -e ".[vis]"`). Optional
+extras — `vis`, `iree`, `tvm`, `compilers` — are listed in {doc}`../install/evox`.
 
-We recommend using [pre-commit](https://pre-commit.com/) to enforce the style guide.
-After installing pre-commit, run the following command to install the hooks in your local repository:
+## Nix dev shell
+
+If you prefer Nix over a hand-managed virtual environment, the repository flake provides a
+ready-made shell:
+
 ```bash
+nix develop .        # or: nix develop .#cuda / .#rocm / .#vulkan
+```
+
+- The flake declares `devShells.default` (an alias of `cpu`) plus `cpu`, `cuda`, `rocm` and
+  `vulkan`.
+- The shell brings its own Python environment, including a `.venv` directory, so you can skip the
+  manual `python -m venv` step above.
+
+```{note}
+The flake is x86_64-linux only — that is the single system it declares.
+```
+
+## Style and pre-commit
+
+Ruff is both the linter and the formatter; its configuration lives under `[tool.ruff]` in
+`pyproject.toml` (line length 128, LF line endings, `F`/`E`/`W`/`I`/`NPY` rules). The remaining
+whitespace rules — no trailing whitespace, a final newline — are enforced by pre-commit.
+
+Install the hooks once, then run them before pushing:
+
+```bash
+pip install pre-commit
 pre-commit install
+pre-commit run --all-files
 ```
 
-## Run Unit Test
+`.pre-commit-config.yaml` wires up trailing-whitespace, end-of-file-fixer, check-yaml,
+check-added-large-files, `ruff --fix` and `ruff-format`.
 
-1. prepare the test environment by installing the required packages (e.g., `torch`) in your Python environment
-2. run unittest:
-```shell
-# run all tests
-python -m unittest
-# run tests in [path], e.g. python -m unittest unit_test/core/test_jit_util.py
-python -m unittest [path-to-test-file]
-# run a specific test method or module, e.g. python -m unittest unit_test.core.test_jit_util.TestJitUtil.test_single_eval
-python -m unittest [path-to-method-or-module]
+## Run the test suite
+
+The canonical suite is **`unit_test/etl/`**, a pytest suite that mirrors `src/evox_etl/`.
+`evox_etl` is a namespace package under `src/`, so either install the project editable (see
+above) or prepend `src` to the import path; the repo-root `conftest.py` already shims `sys.path`
+with both the repository root and `src`.
+
+Per-suite commands:
+
+```bash
+pytest unit_test/etl/algorithms -q
+pytest unit_test/etl/operators -q
+pytest unit_test/etl/problems -q
+pytest unit_test/etl/metrics -q
+pytest unit_test/etl/vis_tools -q
+pytest unit_test/etl/workflows -q
+pytest unit_test/etl/ext -q
 ```
+
+Whole suite:
+
+```bash
+pytest unit_test/etl -q
+```
+
+```{note}
+Whole-suite runs share one collection; separate suite runs stay useful for per-suite numbers and
+for isolating a failure faster.
+```
+
+- `unit_test/etl/algorithms` takes minutes because it contains the parity runs. Each `parity/`
+  directory compares numerically against the frozen reference package and therefore needs
+  PyTorch installed (a CPU wheel is enough). Everything outside `parity/` is `evoxc`-only and
+  needs no torch.
+- The `vis_tools` and monitor-plot assertions need Plotly and are `skipif`-guarded otherwise.
+- Tests use the `numpy` backend only, so no GPU is needed. Compiled backends and GPU execution
+  are exercised by the comparison harness under `benchmarks/etl_vs_torch/`.
+
+To narrow a failing run, point pytest at a single file, and append `::test_name` to run a single
+test:
+
+```bash
+pytest unit_test/etl/workflows/test_aux_history.py -q
+```
+
+## Build the documentation
+
+```bash
+pip install -e ".[docs]"
+rm -rf docs/source/apidocs
+PYTHONPATH=src python -m sphinx -b html docs/source docs/build/html
+```
+
+- `docs/source/apidocs/` is generated by the `autodoc2` extension at build time and is
+  git-ignored: delete it before a clean build, and never edit it by hand.
+- On Windows use `docs\make.bat html`, or run the same `sphinx` command from a shell; from
+  `docs/` the shortcut is `make html`. The output always lands in `docs/build/html`.
+- Set `READTHEDOCS_LANGUAGE=zh-cn` to switch the navigation labels and theme text to Chinese;
+  the tutorial translations are copied into place by the Read the Docs pre-build job, so a
+  full Chinese preview also needs that copy step (described in {doc}`document`).
+
+```{warning}
+A stale `docs/source/apidocs/` tree produces confusing build warnings and missing members. If the
+API reference looks wrong, remove the directory and rebuild before debugging anything else.
+```
+
+## Next
+
+- {doc}`document` — documentation conventions, autodoc rules and the translation workflow.
+- {doc}`architecture` — how the functional 2.0 framework fits together.
+- {doc}`../install/evox` — install options, extras and backend selection.
