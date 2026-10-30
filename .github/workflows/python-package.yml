@@ -1,13 +1,24 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python package
-
+# CI for the EvoX 2.0 experimental pre-release.
+#
+# The package is the functional `evox_etl` port on the EvoX Compiler (`evoxc`);
+# the 1.x torch implementation is gone, so nothing here installs torch or needs
+# a GPU. Everything runs on the default `numpy` backend.
+#
+# Jobs:
+#   build    - sdist + wheel, install the wheel with the `test` extra, run the
+#              pytest suite (`unit_test/etl`) and smoke-test the wheel from a
+#              directory *outside* the checkout (catches missing package data).
+#   examples - run the standalone demo scripts under `examples/` end to end.
+#   docs     - build the Sphinx docs (warnings are not fatal, matching RTD).
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -15,8 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-
+        # `evoxc` requires >= 3.11; 3.10 is no longer supported by the 2.0 line.
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,13 +37,59 @@ jobs:
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install build wheel setuptools
-        # Install CPU version of torch, as the GPU is not available in the CI
-        python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-    - name: Build and install package
+        python -m pip install build
+    - name: Build sdist and wheel
+      run: python -m build
+    - name: Install the built wheel with the test extra
       run: |
-        output=$(python -m build --wheel)
-        pip install dist/${output##* }[test]
-    - name: Test with unittest
+        wheel=$(ls dist/*.whl)
+        python -m pip install "$wheel[test]"
+    - name: Test with pytest
+      # The same gate a contributor runs locally: `pytest`, which picks up
+      # `testpaths = ["unit_test/etl"]` from pyproject.toml.
+      run: python -m pytest
+    - name: Smoke test the wheel from outside the repo
+      # Wheel-only check: cwd is $RUNNER_TEMP so `import evox_etl` cannot resolve
+      # to the checkout. Exercises StdWorkflow + PSO + CEC2022 package data.
       run: |
-        python -m unittest
+        cd "$RUNNER_TEMP"
+        python "$GITHUB_WORKSPACE/.github/scripts/wheel_smoke.py"
+
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.12"
+    - name: Install the package with the visualization extras
+      # `vis` supplies plotly/pandas, so the examples' (optional) plot path runs too.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install ".[vis]"
+    - name: Run the quickstart example
+      run: python examples/quickstart.py
+    - name: Run the HPO examples (numpy backend)
+      run: |
+        python examples/hpo/single_objective_hpo.py
+        python examples/hpo/multi_objective_hpo.py
+        python examples/hpo/repeated_hpo.py
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v6
+      with:
+        # Matches the interpreter used by Read the Docs (.readthedocs.yaml).
+        python-version: "3.11"
+    - name: Install the documentation dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install ".[docs]"
+    - name: Build the documentation
+      # No `-W`: pre-existing docstring shortcodes must not fail the build;
+      # this job only proves the docs still build.
+      run: sphinx-build -b html docs/source "$RUNNER_TEMP/docs-html"
