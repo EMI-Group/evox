@@ -125,6 +125,6 @@ Hit while porting the numerical problems; all worked around in this node (see
 |---|---|---|
 | Numerical problems (basic, dtlz, cec2022, state) | `numerical/` | single subpackage; owns `ProblemState` |
 | Neuroevolution (virtual Gaussian-noise problem) | `neuroevolution/` | payload protocol `(center_flat, seeds, sigma)`; shared `ProblemState`; see `neuroevolution/CONTEXT.md` |
-| HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`) + `random_search`; plain host Python, no traced nested workflow |
-| Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — numerical + virtual-problem tests; write access requires parent |
+| HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`, scalar config-field slots only) + `random_search`; plain host Python, no traced nested workflow |
+| Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — numerical, virtual-problem + host-side HPO tests; write access requires parent |
 | Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |
