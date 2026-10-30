@@ -1,8 +1,14 @@
-"""Shared infrastructure for the evox (torch) vs evox_etl benchmark harness.
+"""Shared infrastructure for the evox_etl (evoxc) benchmark harness.
+
+The harness measures the functional ``evox_etl`` port on every evoxc backend
+(numpy, iree, xla) — see ``ALL_BACKENDS``. Records are compared against a
+FROZEN HISTORICAL baseline file (``results/{suite}_torch-cpu.json``, the old
+torch-1.x reference measurements); that file is only read as JSON, no torch
+code is involved anywhere.
 
 IMPORTANT: this module is pure stdlib + numpy. It MUST NOT import
-torch/evoxc/evox/evox_etl, because ``run.py`` imports it eagerly at the top of
-``main()`` BEFORE setting the GPU environment variables (any torch/evoxc-touching
+evoxc/evox_etl (or torch), because ``run.py`` imports it eagerly at the top of
+``main()`` BEFORE setting the GPU environment variables (any evoxc-touching
 code lives in ``bench_so.py`` / ``bench_mo.py``, which are imported lazily).
 """
 
@@ -47,7 +53,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 RESULTS_DIR = HERE / "results"
 
 # ---------------------------------------------------------------------------
-# GPU environment recipes (set BEFORE importing torch/evoxc/evox)
+# GPU environment recipes (set BEFORE importing evoxc / the backends)
 # ---------------------------------------------------------------------------
 
 # --- NVIDIA (CUDA) recipe --------------------------------------------------
@@ -66,9 +72,9 @@ def set_gpu_env(gpu_id: int, preload_cudnn: bool = False) -> None:
     """Set the GPU environment recipe for in-process device id 0.
 
     ``CUDA_VISIBLE_DEVICES=<gpu_id>`` remaps the scanned physical GPU to device
-    id 0 inside the process, so both torch (``device="cuda"``) and evoxc
-    (``Device("cuda", 0)`` / ``"cuda:0"``) address it uniformly. Call this
-    BEFORE importing torch/evoxc/evox modules.
+    id 0 inside the process, so evoxc (``Device("cuda", 0)`` / ``"cuda:0"``)
+    addresses it uniformly. Call this BEFORE importing evoxc / the backend
+    modules.
 
     ``preload_cudnn`` additionally prepends the cuDNN >= 9.8 library to
     ``LD_PRELOAD`` (required by the xla-cuda path): the xla PJRT plugin was
@@ -113,10 +119,8 @@ def set_rocm_env(gpu_id: int, enable_pjrt: bool = False) -> None:
 
     ``HIP_VISIBLE_DEVICES`` (HIP runtime) and ``ROCR_VISIBLE_DEVICES``
     (the ROCr/HSA runtime underneath it) both remap the scanned physical GPU
-    to device id 0 inside the process, so torch (``device="cuda"`` — on a
-    ROCm build of torch ``torch.cuda`` IS the HIP runtime, there is no
-    ``"rocm"`` torch device) and evoxc (``"rocm:0"``) address the same card.
-    Call this BEFORE importing torch/evoxc/evox modules.
+    to device id 0 inside the process, so evoxc (``"rocm:0"``) addresses that
+    card. Call this BEFORE importing evoxc / the backend modules.
 
     ``enable_pjrt`` additionally points ``EVOXC_PJRT_PLUGIN`` at the xla_rocm7
     plugin and disables XLA/HIP graph command buffers (they SIGSEGV inside
@@ -149,7 +153,7 @@ def _ensure_env(recipe_key: str, apply: Callable[[], None]) -> None:
     ``os.environ`` mutation is not enough: the first call re-executes this
     Python process with the recipe in the environment. ``recipe_key`` is
     stored in ``EVOX_BENCH_GPU_ENV`` so the re-exec is idempotent and callers
-    may invoke this unconditionally before importing torch/evoxc (a different
+    may invoke this unconditionally before importing evoxc (a different
     recipe key — e.g. another vendor or GPU — re-execs again).
     """
     if os.environ.get(_ENV_MARKER) == recipe_key:
@@ -179,10 +183,10 @@ def ensure_rocm_env(gpu_id: int, enable_pjrt: bool = False) -> None:
 # Backends
 # ---------------------------------------------------------------------------
 
+# The ``etl-*`` ids are FROZEN keys into the committed ``results/*.json``
+# files (they keep the historical ETL naming even though the implementation
+# package is now ``evoxc``) — never rename them.
 ALL_BACKENDS: tuple[str, ...] = (
-    "torch-cpu",
-    "torch-cuda",
-    "torch-rocm",
     "etl-numpy",
     "etl-iree-llvm-cpu",
     "etl-iree-cuda",
@@ -191,9 +195,8 @@ ALL_BACKENDS: tuple[str, ...] = (
     "etl-xla-rocm",
 )
 
-TORCH_BACKENDS = frozenset({"torch-cpu", "torch-cuda", "torch-rocm"})
-CUDA_BACKENDS = frozenset({"torch-cuda", "etl-iree-cuda", "etl-xla-cuda"})
-ROCM_BACKENDS = frozenset({"torch-rocm", "etl-iree-rocm", "etl-xla-rocm"})
+CUDA_BACKENDS = frozenset({"etl-iree-cuda", "etl-xla-cuda"})
+ROCM_BACKENDS = frozenset({"etl-iree-rocm", "etl-xla-rocm"})
 # xla backends run through the PJRT client (aborts at interpreter teardown,
 # see ``finish_run``)
 PJRT_BACKENDS = frozenset({"etl-xla-cuda", "etl-xla-rocm"})
@@ -205,10 +208,6 @@ GPU_VISIBLE_VARS: dict[str, tuple[str, ...]] = {
 }
 
 
-def is_torch_backend(backend: str) -> bool:
-    return backend in TORCH_BACKENDS
-
-
 def backend_vendor(backend: str) -> str | None:
     """``"nvidia"`` / ``"rocm"`` for a GPU backend, ``None`` for a CPU backend."""
     if backend in CUDA_BACKENDS:
@@ -216,17 +215,6 @@ def backend_vendor(backend: str) -> str | None:
     if backend in ROCM_BACKENDS:
         return "rocm"
     return None
-
-
-def torch_device(backend: str) -> str:
-    """torch device string for a torch backend.
-
-    A ROCm build of torch exposes HIP through ``torch.cuda`` (and
-    ``torch.cuda.synchronize`` maps to ``hipDeviceSynchronize``): there is no
-    ``"rocm"`` torch device, so both GPU vendors use ``"cuda"`` device 0,
-    selected by ``CUDA_VISIBLE_DEVICES`` / ``HIP_VISIBLE_DEVICES``.
-    """
-    return "cpu" if backend == "torch-cpu" else "cuda"
 
 
 def etl_backend_spec(backend: str) -> tuple[str, str | None]:
@@ -262,7 +250,7 @@ def etl_backend_spec(backend: str) -> tuple[str, str | None]:
 def ensure_backend_env(backend: str, gpu_id: int) -> None:
     """Apply the env recipe matching ``backend``'s vendor (re-execs if needed).
 
-    Must run BEFORE any torch/evoxc/evox import. CPU backends fall back to the
+    Must run BEFORE any evoxc / backend import. CPU backends fall back to the
     NVIDIA recipe, which is harmless (it only pins an unused visibility
     variable) and preserves the historical behaviour of ``--gpu`` on them.
     """
@@ -433,12 +421,15 @@ def hv(
     num_sample: int = HV_NUM_SAMPLE,
     seed: int = HV_SEED,
 ) -> float:
-    """Monte Carlo hypervolume via the bounding-cube method.
+    """Monte Carlo hypervolume via the bounding-cube method (numpy/scalar).
 
-    Identical math to ``src/evox/metrics/hv.py`` (torch version), in numpy:
-    shift by |objs - ref|, bound the cube, count the fraction of uniform
-    samples dominated by any point, scale by the cube volume. Computed in
-    sample chunks to bound memory.
+    Mirrors the ``evox_etl.metrics.hv`` semantics (``_distances_to_ref`` is
+    ``maximum(ref - objs, 0)``): every objective is clipped at the reference
+    point, so points that do not dominate ``ref`` contribute nothing. The
+    estimator is the same bounding-cube method — bound the cube around the
+    clipped points, count the fraction of uniform samples dominated by any
+    point, scale by the cube volume — computed in sample chunks to bound
+    memory. Reporting only: this is host-side numpy, never traced.
     """
     objs = np.asarray(objs, dtype=np.float64)
     if objs.ndim == 1:
@@ -446,8 +437,10 @@ def hv(
     ref = np.asarray(ref, dtype=np.float64)
     if objs.shape[0] == 0:
         return 0.0
-    points = np.abs(objs - ref)
+    points = np.maximum(ref - objs, 0.0)
     bound = np.max(points, axis=0)
+    # With clipping, a zero-extent objective means no point dominates the
+    # reference in that objective, hence the hypervolume is zero.
     if not np.all(np.isfinite(bound)) or np.any(bound <= 0.0):
         return 0.0
     max_vol = float(np.prod(bound))
@@ -459,7 +452,6 @@ def hv(
     for start in range(0, num_sample, chunk):
         take = min(chunk, num_sample - start)
         samples = rng.random((take, m)) * bound
-        # torch: any(all(samples.unsqueeze(1) < points.unsqueeze(0), dim=2), dim=1)
         in_hypercube = np.any(
             np.all(samples[:, None, :] < points[None, :, :], axis=2), axis=1
         )
@@ -468,11 +460,10 @@ def hv(
 
 
 def igd(objs: Any, pf: Any, p: float = 1.0) -> float:
-    """Inverted generational distance.
+    """Inverted generational distance (numpy/scalar, reporting only).
 
-    Identical math to ``src/evox/metrics/igd.py`` (torch ``cdist`` with
-    p-norm over the objective axis): the mean over reference-front points of
-    the minimum distance to the solution set.
+    The mean over reference-front points of the minimum p-norm distance to the
+    solution set (the p-norm is taken over the objective axis).
     """
     objs = np.asarray(objs, dtype=np.float64)
     if objs.ndim == 1:
@@ -521,9 +512,14 @@ def hv_ref_point(n_obj: int) -> np.ndarray:
 
 WARMUP_STEPS = 2
 
-# Parity tolerance vs the torch-cpu baseline (relative error). Both sides draw
-# different RNG streams (torch MT19937 vs evoxc keyed PRNGs), so convergence
-# parity of 10% matches the convention used by unit_test/etl/algorithms/parity.
+# ``torch-cpu`` is kept as a label only: the parity baseline is a FROZEN
+# HISTORICAL artefact — the committed ``results/{suite}_torch-cpu.json`` holds
+# the 1.x torch reference measurements, read as JSON only (no torch code
+# involved, and ``torch-cpu`` is no longer a runnable backend id).
+#
+# The 10% relative tolerance below compares against that frozen baseline; both
+# sides draw different RNG streams (torch legacy MT19937 vs evoxc keyed PRNGs),
+# matching the convention used by unit_test/etl/algorithms/parity.
 PARITY_TOL = 0.10
 
 
@@ -544,7 +540,7 @@ def base_record(case: Any, backend: str, n_obj: int) -> dict[str, Any]:
         "run_time_s": None,
         "ms_per_step": None,
         "metric": None,
-        # "parity" is added at write time (never for the torch-cpu baseline)
+        # "parity" is added at write time (never for the baseline artefact)
         "note": None,
     }
 
@@ -568,7 +564,15 @@ def _rel_err(value: float, ref_value: float) -> float:
 
 
 def _compute_parity(suite: str, rec: dict[str, Any]) -> dict[str, Any] | None:
-    """Compare a record against the torch-cpu baseline file (if it exists)."""
+    """Compare a record against the frozen torch-cpu baseline file (if present).
+
+    The baseline (``results/{suite}_torch-cpu.json``) is the historical 1.x
+    torch reference measurement set; it is read as JSON only — no torch code
+    is involved and no torch backend is runnable. The returned block keeps the
+    committed ``"vs": "torch-cpu"`` label; ``ok`` is ``True``/``False`` here
+    (``None`` is only produced by ``retag_parity.py`` for skips), and ``None``
+    is returned when there is no baseline record/metric to compare against.
+    """
     baseline_path = default_results_path(suite, "torch-cpu")
     if not baseline_path.is_file():
         return None
@@ -605,8 +609,8 @@ def save_results(
 ) -> pathlib.Path:
     """Write the records to ``results/{suite}_{backend}.json`` (or ``--out``).
 
-    Attaches the ``parity`` block vs the torch-cpu baseline for every
-    non-torch-cpu record (skipped when the baseline file is absent). The file
+    Attaches the ``parity`` block vs the frozen torch-cpu baseline artefact
+    for every record (skipped when the baseline file is absent). The file
     is flushed and fsynced before returning so a run that leaves through
     ``finish_run`` (PJRT teardown abort) always has complete results on disk.
     """
@@ -687,6 +691,6 @@ def init_with_retry(
 
 
 def run_steps(fn: Callable[[], Any], n: int) -> None:
-    """Call ``fn`` ``n`` times (tiny loop helper shared by both runners)."""
+    """Call ``fn`` ``n`` times (tiny loop helper for timing/warmup loops)."""
     for _ in range(n):
         fn()
