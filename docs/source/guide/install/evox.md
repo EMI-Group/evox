@@ -6,59 +6,77 @@ EvoX is distributed on PyPI as the **`evox`** package. In the 2.0 pre-release th
 Everything below assumes an activated virtual environment and **Python 3.11 or newer** — see
 {doc}`python` if you have not set one up yet.
 
-## Install from a source checkout
+## Install the 2.0 pre-release
 
-EvoX 2.0 has no published wheel yet: the `evox` release on PyPI is still the 1.x line, whose tree does
-not contain `src/evox_etl`. Install from a checkout, and install the compiler next to it:
+The distribution name is still **`evox`**, and the 2.0 line ships as **pre-releases** — `2.0.0a1` is
+the current one. PyPI derives pre-release status from the version string itself, so a plain
+`pip install evox` keeps resolving the **1.x stable line**, whose tree has no `src/evox_etl`. Ask for
+the pre-release explicitly:
+
+```bash
+pip install --pre evox==2.0.0a1     # this pre-release, exactly
+pip install "evox>=2.0.0a1"         # newest 2.0 pre-release; the specifier itself opts into pre-releases
+```
+
+Either command installs the framework **and** the compiler it runs on: `pyproject.toml` declares
+`dependencies = ["evoxc >= 0.1.0", "numpy >= 2.0.0"]` and `requires-python = ">=3.11"`, so nothing else
+has to be installed by hand.
+If no 2.0 pre-release is on the index yet, both commands fail with
+`No matching distribution found for evox==2.0.0a1` — use the source checkout below.
+
+## Install from a source checkout
 
 ```bash
 git clone https://github.com/EMI-Group/evox.git
 cd evox
-pip install -e .        # the `evox` distribution — its metadata is still the 1.x manifest
-pip install evoxc       # the compiler that `import evox_etl` needs
+pip install -e .
 ```
 
-The second command is not optional, and the first one is not enough on its own. `evox`'s packaging is
-still the 1.x manifest: it declares `torch >= 2.6.0` and `numpy >= 2.0.0`, and it does **not** declare
-`evoxc`. So `pip install -e .` pulls PyTorch (which no 2.0 code path imports) and leaves the compiler
-out, while `import evox_etl` imports `evoxc` unconditionally — an environment with only `evox` fails
-with `ModuleNotFoundError: No module named 'evoxc'`.
+One command is enough: the editable install of the `evox` distribution pulls `evoxc >= 0.1.0` (the
+compiler that `import evox_etl` needs) and `numpy >= 2.0.0` as declared dependencies. It installs no
+PyTorch — no 2.0 code path imports it.
 
-Check that both halves are importable:
+Check that the package is importable:
 
 ```bash
 python -c "import evox_etl"
 ```
 
-```{note} Verify with an import, not a version number
-`evox_etl.__version__` is inherited from the 1.x line and does not track the 2.0 pre-release, so it is
-not a usable 2.0 check. Importing the package (above) and running the smoke test further down are.
+```{note} Where `evox_etl.__version__` comes from
+The module reads it from the installed distribution metadata (`importlib.metadata.version("evox")`), so
+it reports `2.0.0a1` once the `evox` distribution is installed, and `0.0.0.dev0` in a bare source
+checkout that was never installed (expected there, not a broken environment). The import above and the
+smoke test further down remain the checks that matter.
 ```
 
-```{note} The 1.x torch implementation is no longer part of the documented surface
+```{note} The 1.x torch implementation is no longer part of this tree
 EvoX 1.x lived in `src/evox/` as an object-oriented PyTorch API (`import evox`, `ModuleBase`,
-`Parameter`/`Mutable`, `torch.compile`/`vmap`) and required `torch >= 2.6.0`. That implementation is
-frozen and scheduled for removal, and none of it — nor its extras — is part of the documented surface.
-If you are porting 1.x code, start from the tutorial rather than from these pages.
+`Parameter`/`Mutable`, `torch.compile`/`vmap`) and required `torch >= 2.6.0`. It was removed in 2.0:
+`src/evox/` does not exist any more, and no 2.0 code path imports torch. If you still run 1.x code, keep
+it in an environment pinned to `evox<2`; {doc}`../../tutorial/tutorial_part7` maps each removed API to
+its 2.0 equivalent.
 ```
 
 ## Optional extras
 
 The install above already runs on the NumPy backend; everything else is optional, and extras can be
-combined, e.g. `pip install "evox[vis]" "evoxc[iree]"`.
+combined, e.g. `pip install "evox[vis]" "evox[iree]"`.
 
-The compiled backends come from the compiler's extras. EvoX documents them as extras of the `evox`
-distribution — `evox[iree]`, `evox[tvm]`, `evox[compilers]` — and the compiler package exposes the same
-three as `evoxc[iree]`, `evoxc[tvm]` and `evoxc[compilers]`, which is what you install when you manage
-`evoxc` separately.
+The compiled backends come from the compiler's extras, which the `evox` metadata re-exports: `evox[iree]`
+is declared as `evoxc[iree]`, and the compiler package exposes the same three extras directly as
+`evoxc[iree]`, `evoxc[tvm]` and `evoxc[compilers]` — the spelling to use when you manage `evoxc` yourself.
 
 | Extra | Installs | Use it for |
 |---|---|---|
-| *(none)* | `evox` itself, with `torch >= 2.6.0` + `numpy >= 2.0.0` from its 1.x manifest; **not** `evoxc` | the smallest base; add `pip install evoxc` to get a working `import evox_etl` |
+| *(none)* | `evox` plus `evoxc >= 0.1.0` and `numpy >= 2.0.0` | the smallest base — a complete, working install on the NumPy backend |
 | `vis` | `plotly`, `pandas` | `evox_etl.vis_tools` plotting, `.exv` result files, and `EvalMonitor.plot()` |
 | `iree` (or `evoxc[iree]`) | `iree-base-compiler` + `iree-base-runtime` (3.11.x) | the `iree` backend — compiled CPU, NVIDIA CUDA or AMD ROCm execution |
 | `tvm` (or `evoxc[tvm]`) | `apache-tvm`, plus `jaxlib` for its MLIR bindings | the `tvm` backend (StableHLO frontend + Relax VM, CPU end-to-end) |
 | `compilers` (or `evoxc[compilers]`) | both compiled toolchains (`iree` + `tvm`) | benchmarking or mixing compiled backends |
+| `all` | `evoxc[compilers]` + `plotly` + `pandas` | every optional runtime dependency in one command |
+
+`default` survives from 1.x as an alias of `vis`, and `test` / `docs` are the developer extras (pytest
+plus plotting; the Sphinx toolchain) — {doc}`../developer/environment` uses them.
 
 ```bash
 pip install "evox[vis]"             # plotting
@@ -68,11 +86,10 @@ pip install "evox[compilers]"       # IREE + TVM
 ```
 
 ```{note} `evox[...]` versus `evoxc[...]`
-`evox`'s `optional-dependencies` table is still the 1.x manifest, which declares neither `evoxc` nor a
-compiled-backend extra: today `pip install "evox[iree]"` warns that the extra does not exist and
-installs nothing, while `pip install "evoxc[iree]"` really does pull the toolchain. The `evox[...]`
-spellings are the intended 2.0 surface; until the manifest catches up, use the `evoxc[...]` spelling to
-get the compiler extra installed.
+Both spellings install the same toolchain. `pip install "evox[iree]"` resolves to
+`evoxc[iree] >= 0.1.0` from the `evox` metadata and really does pull `iree-base-compiler` +
+`iree-base-runtime`; `pip install "evoxc[iree]"` installs the identical packages when the compiler is
+managed as its own distribution. Use one of them, so both cannot disagree about the compiler version.
 ```
 
 IREE compiles and runs with the same version, so keep `iree-base-compiler` and `iree-base-runtime` in

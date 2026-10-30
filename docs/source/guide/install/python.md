@@ -9,9 +9,8 @@ EvoX 2.0 requires **Python 3.11 or newer**: it runs on the `evoxc` compiler, whi
 ```
 
 ```{note}
-The `evox` distribution's metadata still says `Python >= 3.10`, because the 1.x line is still in it.
-That floor does not apply to the 2.0 pre-release: `import evox_etl` imports `evoxc` unconditionally, so
-no 2.0 program runs on 3.10. Pick 3.11+.
+The 2.0 metadata states that floor: `pyproject.toml` declares `requires-python = ">=3.11"`, and
+`import evox_etl` imports `evoxc` unconditionally, so no 2.0 program runs on 3.10. Pick 3.11+.
 ```
 
 ## Install Python interpreter
@@ -111,11 +110,10 @@ $ uv python install 3.12
 ### Why an isolated environment
 
 A virtual environment is a self-contained directory holding one Python interpreter plus the packages
-installed into it. EvoX needs the `evoxc` compiler on top of its own dependencies (the 1.x manifest
-declares PyTorch and NumPy), and research code usually pins several versions of the same library across
-projects. Installing into an isolated environment keeps those versions from colliding, keeps your system
-Python untouched, and makes the installation reproducible: deleting the environment is a complete
-uninstall. Use one environment per project.
+installed into it. EvoX 2.0's dependencies are the `evoxc` compiler and NumPy, and research code usually
+pins several versions of the same library across projects. Installing into an isolated environment keeps
+those versions from colliding, keeps your system Python untouched, and makes the installation
+reproducible: deleting the environment is a complete uninstall. Use one environment per project.
 
 ### Pip and Venv
 
@@ -157,6 +155,12 @@ $ pip uninstall evox
 ```
 
 None of these commands affect the system-wide Python installation.
+
+```{note}
+These are plain `pip` mechanics. For 2.0 itself the pre-release flag matters — `pip install evox`
+resolves the 1.x stable line — so read the exact command in {doc}`evox` first; it applies to
+`uv pip install` too.
+```
 
 ### uv
 

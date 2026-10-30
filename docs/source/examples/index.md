@@ -11,8 +11,8 @@ These examples target the **EvoX 2.0 pre-release** — the functional rewrite of
 They run on the **NumPy backend by default** (`backend="numpy"`), so no compiler toolchain or GPU
 is needed to follow along.
 The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
-`torch.compile`/`vmap`, the Brax/MuJoCo/supervised-learning problems) is not used anywhere in
-these pages and is scheduled for removal.
+`torch.compile`/`vmap`, the Brax/MuJoCo/supervised-learning problems) was removed in 2.0 and is not
+used anywhere in these pages.
 APIs may still change between pre-releases — see {doc}`../tutorial/tutorial_part7` for the
 migration view.
 ```

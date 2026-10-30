@@ -2,8 +2,8 @@
 
 ```{warning} Experimental EvoX 2.0 pre-release
 These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `torch.*`), which is frozen, scheduled for
-removal, and documented nowhere in these pages.
+They do **not** cover the EvoX 1.x torch API (`import evox`, `torch.*`), which was removed in 2.0 and is
+documented nowhere in these pages.
 ```
 
 The advice below is about the *host*, not about EvoX: which Linux to install on a GPU machine, and where

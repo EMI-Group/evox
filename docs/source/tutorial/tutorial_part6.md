@@ -9,7 +9,7 @@ It targets the experimental **EvoX 2.0 pre-release**, the functional rewrite of 
 
 ```{warning} Pre-release API
 Everything below uses the EvoX 2.0 functional API (`import evox_etl`, frozen config dataclasses, `make_*` constructors, explicit RNG keys).
-The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`) is being removed and is not used anywhere in this chapter — see {doc}`tutorial_part7` if you are bringing 1.x code across.
+The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`) was removed in 2.0 and is not used anywhere in this chapter — see {doc}`tutorial_part7` if you are bringing 1.x code across.
 ```
 
 ## 6.1 What multi-objective mode changes

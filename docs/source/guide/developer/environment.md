@@ -11,39 +11,36 @@ git clone https://github.com/EMI-Group/evox.git
 cd evox
 python -m venv .venv           # Python 3.11+
 source .venv/bin/activate
-pip install -e .               # the `evox` distribution — its metadata is still the 1.x manifest
-pip install evoxc              # the compiler that `import evox_etl` needs
+pip install -e .               # `evox` plus its declared dependencies (`evoxc`, `numpy`)
 ```
 
 - **Python 3.11 or newer** is required. `import evox_etl` imports the
-  [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`) unconditionally, and `evoxc`
-  declares `requires-python = ">=3.11"`. The `evox` distribution's own metadata still says
-  `>=3.10` because it is the 1.x manifest, but no 2.0 program runs on 3.10.
-- The second `pip` command is not optional. `evox`'s packaging is still the 1.x manifest: it
-  declares `torch >= 2.6.0` and `numpy >= 2.0.0` and does **not** declare `evoxc`, so an
-  environment with only `evox` fails on `import evox_etl` with
-  `ModuleNotFoundError: No module named 'evoxc'`. The editable install also pulls PyTorch, which
-  no 2.0 code path imports.
+  [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`) unconditionally, and both `evoxc` and
+  the `evox` manifest (2.0.0a1) declare `requires-python = ">=3.11"`.
+- One `pip` command installs both halves: `pyproject.toml` declares
+  `dependencies = ["evoxc >= 0.1.0", "numpy >= 2.0.0"]`, so the editable install brings the compiler
+  and NumPy with it and installs no PyTorch. If `import evox_etl` fails with
+  `ModuleNotFoundError: No module named 'evoxc'`, the environment holds the 1.x `evox` (no `evoxc`
+  dependency and no `evox_etl`) rather than this checkout.
 - If you are developing against a compiler checkout instead of the published distribution, install
-  that path instead:
+  that path over the one `pip` resolved:
 
 ```bash
 pip install /path/to/evoxc
 ```
 
-The default **NumPy backend** then needs no compiler toolchain and no GPU driver: an environment
-with both halves installed is enough for everything on this page.
+The default **NumPy backend** then needs no compiler toolchain and no GPU driver: the editable install
+alone is enough for everything on this page.
 
 ```{tip}
 Editable mode (`-e`) keeps `evox_etl` importable straight from `src/`, so edits take effect
 without reinstalling. Add what the test suite needs with `pip install pytest numpy`.
 ```
 
-Visualization tests import Plotly (`pip install plotly`, or `pip install -e ".[vis]"`). The
-compiled backends are extras of the compiler: EvoX documents them as `evox[iree]`, `evox[tvm]` and
-`evox[compilers]`, and `evoxc` exposes the same three as `evoxc[iree]`, `evoxc[tvm]` and
-`evoxc[compilers]`. Until the 2.0 manifest ships, only the `evoxc[...]` spelling installs anything
-— `pip install -e ".[iree]"` warns that the extra does not exist and installs nothing.
+Visualization tests import Plotly (`pip install plotly`, or `pip install -e ".[vis]"`). The compiled
+backends are extras of the compiler, re-exported by the distribution: `evox[iree]`, `evox[tvm]` and
+`evox[compilers]` are thin aliases of `evoxc[iree]`, `evoxc[tvm]` and `evoxc[compilers]`, so
+`pip install -e ".[iree]"` really does pull the IREE toolchain.
 {doc}`../install/evox` lists every extra and what it pulls in.
 
 ## Nix dev shell
@@ -85,7 +82,7 @@ check-added-large-files, `ruff --fix` and `ruff-format`.
 
 The canonical suite is **`unit_test/etl/`**, a pytest suite that mirrors `src/evox_etl/`.
 `evox_etl` is a regular installed package (`src/evox_etl/__init__.py`); only the extension
-namespaces `evox_ext` and `evox_etl_ext` are PEP 420 namespace packages. Either install the
+namespace `evox_etl_ext` is a PEP 420 namespace package. Either install the
 project editable (see above) or prepend `src` to the import path; the repo-root `conftest.py`
 already shims `sys.path` with both the repository root and `src`.
 
@@ -112,10 +109,9 @@ Whole-suite runs share one collection; separate suite runs stay useful for per-s
 for isolating a failure faster.
 ```
 
-- `unit_test/etl/algorithms` takes minutes because it contains the parity runs. Each `parity/`
-  directory compares numerically against the frozen reference package and therefore needs
-  PyTorch installed (a CPU wheel is enough). Everything outside `parity/` is `evoxc`-only and
-  needs no torch.
+- The suite needs **no PyTorch**: the old torch-parity runs were removed with the 1.x package, and
+  `unit_test/etl/test_no_torch.py` is a release gate that imports `evox_etl` in a fresh interpreter
+  and asserts no torch module was loaded.
 - The `vis_tools` and monitor-plot assertions need Plotly and are `skipif`-guarded otherwise.
 - Tests use the `numpy` backend only, so no GPU is needed. Compiled backends and GPU execution
   are exercised by the comparison harness under `benchmarks/etl_vs_torch/`.

@@ -48,14 +48,20 @@ argument by argument.
 ### Core install
 
 ```bash
-pip install evox
+pip install --pre evox==2.0.0a1
 ```
 
-This installs the framework together with the **NumPy backend**, which is the default and needs
-**no compiled toolchain** — there is nothing to build, no CUDA setup and no compiler environment
-variable to configure. EvoX 2.0 requires **Python 3.11 or newer** (the floor comes from the
-`evoxc` compiler; the `evox` distribution metadata still declares 3.10 for the 1.x line). A 3.11
-environment is already enough to run every single- and multi-objective example in this tutorial.
+The distribution is still named `evox`, but 2.0 ships as **pre-releases**, so a plain
+`pip install evox` resolves the 1.x stable line, which has no `evox_etl`. `--pre` lets pip consider
+pre-releases and `==2.0.0a1` names this one; `pip install "evox>=2.0.0a1"` is equivalent, because a
+specifier that mentions a pre-release opts into pre-releases on its own. Either command installs the
+framework together with the **NumPy backend** — `evoxc` and `numpy` are the declared dependencies — which
+is the default and needs **no compiled toolchain**: there is nothing to build, no CUDA setup and no
+compiler environment variable to configure. EvoX 2.0 requires **Python 3.11 or newer**, the floor
+declared by both `evoxc` and the 2.0 `evox` metadata. A 3.11 environment is already enough to run every
+single- and multi-objective example in this tutorial. If the pre-release is not on the index yet,
+install from a checkout with `pip install -e .` instead — {doc}`../guide/install/evox` covers both
+routes.
 
 ### Optional extras
 
