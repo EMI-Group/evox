@@ -2,7 +2,7 @@
 ## Intent
 This directory is the **Sphinx documentation source root** for EvoX and contains everything `sphinx-build` compiles into the published HTML on Read the Docs: configuration, content pages, static assets, templates and i18n resources.
 It documents the **experimental EvoX 2.0 pre-release** only: the functional package `src/evox_etl/` (import name `evox_etl`) running on the EvoX Compiler (`evoxc`).
-The frozen EvoX 1.x torch package (`src/evox/`) is not documented anywhere; the only place 1.x appears is the migration page `tutorial/tutorial_part7.md`, which maps removed APIs to their 2.0 equivalents.
+The EvoX 1.x torch package (`src/evox/`, deleted in 2.0) is not documented anywhere; the only place 1.x appears is the migration page `tutorial/tutorial_part7.md`, which maps removed APIs to their 2.0 equivalents.
 The documentation is bilingual: English sources here, Simplified Chinese under `locale/`.
 
 ## API Surface
