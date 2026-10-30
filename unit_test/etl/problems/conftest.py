@@ -1,16 +1,13 @@
-"""pytest bootstrap shim for the relocate-ready evox_etl problems test suite.
+"""pytest bootstrap shim for the evox_etl problems test suite.
 
-``evox_etl`` is not pip-installed (no ``src/evox_etl/__init__.py`` exists yet —
-it is a PEP 420 namespace package), so pytest needs the repository root and its
+``evox_etl`` lives under ``src/`` and is not necessarily pip-installed when the
+tests run from a checkout, so pytest needs the repository root and its
 ``src/`` directory on ``sys.path`` before the test modules are collected.
 
 The shim is idempotent (skips entries already on ``sys.path``) and computes the
 locations from ``__file__``: the repository root is the first ancestor of this
-directory containing ``pyproject.toml``, which works both from the temporary
-home ``src/evox_etl/problems/tests/`` and, after the parent relocates the
-suite, from ``unit_test/etl/problems/``.  (From the current location the plain
-parents chain is: 0 = tests, 1 = problems, 2 = evox_etl, 3 = src, 4 = repo
-root; the marker search generalizes that to the relocated layout.)
+directory containing ``pyproject.toml`` (from ``unit_test/etl/problems/`` the
+plain parents chain is 0 = problems, 1 = etl, 2 = unit_test, 3 = repo root).
 
 No other pytest configuration is needed — pytest collects ``tests/`` as given.
 """

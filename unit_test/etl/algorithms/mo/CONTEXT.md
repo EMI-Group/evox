@@ -36,10 +36,10 @@ seed-determinism check.
 ## Known Issues (behaviors the assertions must respect)
 - MOEAD is NOT elitist: per-objective bests of the FINAL population can
   regress vs the run history. Final-pop sanity bounds stay loose (100 on
-  DTLZ1); convergence-quality assertions are not pinned here (they lived in the
-  now-removed torch-parity suite); use the history-min metric if needed.
+  DTLZ1); convergence-quality assertions are not pinned here — use the
+  history-min metric if needed.
 - RVEA/RVEAa selection keeps one survivor row per reference vector,
-  NaN-filled for unmatched vectors (torch-faithful `ref_vec_guided`):
+  NaN-filled for unmatched vectors (as in `ref_vec_guided`):
   use `np.nanmin`, and compare determinism with `equal_nan=True`.
 - NSGA3 with odd pop_size raises ShapeError — pre-existing upstream quirk;
   the smoke test uses even pop_size (20) and does not pin it.
@@ -50,4 +50,4 @@ seed-determinism check.
 ## Constraints
 - ETL only (numpy backend): everything inside `evoxc.build`/`evoxc.run`.
 - No thresholds beyond the loose sanity bounds above; convergence-quality
-  parity vs the reference implementation is not this suite's job.
+  comparison against the reference implementation is not this suite's job.

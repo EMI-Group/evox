@@ -160,7 +160,7 @@ CENTER_DIM = 49
 
 
 def base_kwargs():
-    """A valid 4 -> 8 -> 1 MLP configuration (torch named_parameters order)."""
+    """A valid 4 -> 8 -> 1 MLP configuration (reference parameter order)."""
     rng = np.random.default_rng(0)
     return {
         "param_shapes": ((8, 4), (8,), (1, 8), (1,)),

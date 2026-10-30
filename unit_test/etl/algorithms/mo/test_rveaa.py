@@ -33,11 +33,11 @@ from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 # Effective population: uniform_sampling overwrites pop_size=20 with the
-# Das-Dennis count for 3 objectives (15) — same as the torch reference.
+# Das-Dennis count for 3 objectives (15) — same as the reference implementation.
 N_EFF = 15
 # step's offspring phase draws an (N_EFF, dim) mating pool, then SBX pairs
 # rows n//2 and returns 2*(n//2) children -> (14, 7). Same quirk as the
-# torch RVEAa.
+# reference RVEAa.
 N_OFFSPRING = 2 * (N_EFF // 2)
 
 

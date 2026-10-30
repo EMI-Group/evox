@@ -28,11 +28,11 @@ from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 # Effective population: uniform_sampling overwrites pop_size=20 with the
-# Das-Dennis count for 3 objectives (15) — same as the torch reference.
+# Das-Dennis count for 3 objectives (15) — same as the reference implementation.
 N_EFF = 15
 # step's offspring phase draws an (N_EFF, dim) mating pool, then SBX pairs
 # rows n//2 and returns 2*(n//2) children -> (14, 7). Same quirk as the
-# torch RVEA.
+# reference RVEA.
 N_OFFSPRING = 2 * (N_EFF // 2)
 
 
@@ -119,9 +119,9 @@ def test_full_run_shapes_and_sanity():
     fit = np.asarray(state.fit.numpy())
     assert pop.shape == (N_EFF, DIM)
     assert fit.shape == (N_EFF, N_OBJS)
-    # Torch-faithful: RVEA selection keeps one survivor row per reference
-    # vector, NaN-filled for unmatched vectors (verified against the torch
-    # ref_vec_guided op), so the fit may contain NaN rows.
+    # RVEA selection keeps one survivor row per reference vector, NaN-filled
+    # for unmatched vectors (verified against the reference ``ref_vec_guided``
+    # formula), so the fit may contain NaN rows.
     assert np.isfinite(np.nanmin(fit))
     # DTLZ1 optimum is 0; after 3 gens each objective's best is well below
     # 100 (loose sanity bound, NaN-ignoring).

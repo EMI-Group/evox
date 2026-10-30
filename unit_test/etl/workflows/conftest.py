@@ -1,9 +1,9 @@
 """pytest bootstrap shim for the evox_etl workflows test suite.
 
-``evox_etl`` is not pip-installed (it is a PEP 420 namespace package under
-``src/``), so pytest needs the repository root and its ``src/`` directory on
-``sys.path`` before the test modules are collected. The shim is idempotent and
-computes the locations from ``__file__`` (same pattern as
+``evox_etl`` lives under ``src/`` and is not necessarily pip-installed when the
+tests run from a checkout, so pytest needs the repository root and its ``src/``
+directory on ``sys.path`` before the test modules are collected. The shim is
+idempotent and computes the locations from ``__file__`` (same pattern as
 ``../metrics/conftest.py``).
 """
 

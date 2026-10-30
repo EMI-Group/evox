@@ -1,7 +1,8 @@
 """Pure-ETL tests for the CEC2022 suite (NO torch imports here).
 
 Covers running every valid (function, dimension) pair on a random population,
-the config assertions mirrored from torch (invalid dimension, f6-8 at D=2),
+the config assertions inherited from the reference (invalid dimension, f6-8 at
+D=2),
 error paths, and the f1 shift-point check (fitness == 300 at the optimum).
 Everything runs through ``evoxc.build`` + ``evoxc.run`` on the default numpy
 backend.
@@ -18,7 +19,7 @@ from evox_etl.problems.numerical.cec2022 import CEC2022, evaluate
 from evox_etl.problems.numerical.state import ProblemState
 
 # The port ships the CEC2022 data inside its own package, so reuse the module's
-# own resolution (a Traversable) instead of reaching into the old torch tree.
+# own resolution (a Traversable) instead of reaching into another source tree.
 DATA_DIR = cec_module.DATA_DIR
 
 N = 8
@@ -68,7 +69,7 @@ def test_all_functions_finite(func_num, dim):
     assert np.all(np.isfinite(fitness))
 
 
-# --- config validation (mirrors torch CEC2022.__init__) ----------------------
+# --- config validation (mirrors the CEC2022 config contract) -----------------
 
 
 def test_invalid_dimension_rejected():
@@ -83,7 +84,7 @@ def test_f6_not_defined_for_d2():
 
 def test_unknown_function_number_rejected():
     # _load_data runs (at trace time) before the dispatch, so a missing data
-    # file surfaces first — same behaviour as torch (which loads in __init__).
+    # file surfaces first — the reference loads its data in __init__ too.
     with pytest.raises(FileNotFoundError, match="Cannot open"):
         run_cec(13, 10, np.zeros((2, 10), dtype=np.float32))
 

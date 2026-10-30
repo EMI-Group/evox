@@ -86,14 +86,14 @@ def test_evaluate_vector_matches_manual_inner_run():
     assert isinstance(fitness, float)
     assert np.isfinite(fitness)
     assert fitness >= 0.0  # Sphere is non-negative
-    # exact parity: same seed, same backend, same substituted hyperparameters
+    # exact match: same seed, same backend, same substituted hyperparameters
     assert fitness == run_inner(w=0.4, phi_p=1.0)
 
 
 def test_evaluate_defaults_keep_inner_config_values():
     wrapper = build_wrapper()
     defaults = wrapper.evaluate(None)
-    assert wrapper.evaluate({}) == defaults  # torch's evaluate({}) semantics
+    assert wrapper.evaluate({}) == defaults  # evaluate({}) keeps every default
     # omitted mapping keys fall back to the inner config's current value
     assert wrapper.evaluate({"algorithm.w": 0.6}) == wrapper.evaluate({"algorithm.w": 0.6, "algorithm.phi_p": 2.5})
     # ... and passing the defaults explicitly is the same run

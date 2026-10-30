@@ -5,7 +5,7 @@ evaluates the FULL initial population, later ``step`` calls evaluate the
 offspring batch they generate), a 3-generation DTLZ1 run via
 ``helpers.run_generations``, seed determinism, and the optional custom
 operator injection (``NSGA2Config.selection_op``/``crossover_op``/
-``mutation_op``; ``None`` means the torch default).
+``mutation_op``; ``None`` means the module default).
 """
 
 import pathlib
@@ -36,7 +36,7 @@ def make_config(**ops):
     """NSGA2 config: 3 objectives, decision space [0, 1]^7.
 
     ``ops`` forwards optional custom ``selection_op``/``mutation_op``/
-    ``crossover_op`` to ``make_nsga2`` (``None`` = torch default).
+    ``crossover_op`` to ``make_nsga2`` (``None`` = module default).
     """
     return nsga2.make_nsga2(
         pop_size=POP_SIZE,
@@ -132,7 +132,7 @@ def test_full_run_deterministic():
 
 
 # ---------------------------------------------------------------------------
-# Custom operator injection (config op fields, torch signature parity)
+# Custom operator injection (config op fields, upstream signatures)
 # ---------------------------------------------------------------------------
 
 

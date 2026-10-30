@@ -95,7 +95,7 @@ def test_tournament_key_divergence():
     assert not np.array_equal(a, b)
 
 
-# --- 1-D output for short selections (torch fix: n_round=1 / n_round=3) ------
+# --- 1-D output for short selections (ported fix: n_round=1 / n_round=3) ----
 # Reduced rounds must not leave a spurious trailing axis: the selection index
 # tensor is 1-D of shape (n_round,) for every n_round, n_round=1 included.
 

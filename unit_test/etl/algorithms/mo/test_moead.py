@@ -28,7 +28,7 @@ from helpers import DTLZ1Config, run_generations
 
 POP_SIZE, N_OBJS, DIM, N_GENS, SEED = 20, 3, 7, 3, 0
 # Effective population: uniform_sampling overwrites pop_size=20 with the
-# Das-Dennis count for 3 objectives (15) — same as the torch reference.
+# Das-Dennis count for 3 objectives (15) — same as the reference implementation.
 N_EFF = 15
 
 

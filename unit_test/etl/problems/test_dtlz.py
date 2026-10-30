@@ -29,7 +29,7 @@ N = 64
 M = 3
 RNG = np.random.default_rng(42)
 
-# (config class, default d) — mirrors torch evox defaults
+# (config class, default d) — mirrors the EvoX defaults
 DTLZ_CASES = [
     (DTLZ1, 7),
     (DTLZ2, 12),
@@ -77,7 +77,7 @@ def test_evaluate_does_not_mutate_input():
     np.testing.assert_array_equal(x, x_copy)
 
 
-# --- known values (verified against the torch formulas) --------------------
+# --- known values (verified against the reference formulas) ----------------
 
 
 def test_dtlz2_known_values_zero_front():
@@ -122,7 +122,7 @@ def test_custom_config_fields_respected():
 
 
 # --- pf reference fronts ----------------------------------------------------
-# Row counts match the torch reference implementation exactly (same sampling
+# Row counts match the reference implementation exactly (same sampling
 # math): Das-Dennis uniform sampling with n = ref_num * m = 3000, m = 3 yields
 # C(77, 2) = 2926 rows (DTLZ1-4); the DTLZ5/6 pf has ref_num * m = 3000 rows;
 # DTLZ7 grid sampling yields ceil(sqrt(3000))^2 = 3025 rows.

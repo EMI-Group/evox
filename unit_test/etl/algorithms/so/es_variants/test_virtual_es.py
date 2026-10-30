@@ -107,8 +107,8 @@ def test_make_virtual_es_normalizes_config():
     assert cfg.optimizer is None
 
 
-def test_torch_parity_aliases():
-    """`VirtualLoRAES = VirtualES` alias mirrors torch `virtual_es.py:122`."""
+def test_lora_es_is_an_alias_of_virtual_es():
+    """`VirtualLoRAES` is exported as an alias of `VirtualES`."""
     assert virtual_es.VirtualES is virtual_es.VirtualESConfig
     assert virtual_es.VirtualLoRAES is virtual_es.VirtualES
 

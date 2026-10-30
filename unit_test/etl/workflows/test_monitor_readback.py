@@ -79,7 +79,7 @@ class _FakeDeviceLeaf:
         self.device = _FakeDevice()
 
 
-# ------------------------------------------------------------- eager parity
+# --------------------------------------------------------- eager reference
 
 
 def test_deferred_readback_matches_eager(monkeypatch):

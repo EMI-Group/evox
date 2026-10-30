@@ -9,8 +9,8 @@ documented shape/dtype/bounds contract. Everything runs through
 ``evoxc.build`` + ``evoxc.run`` on the numpy backend (evoxc has no eager mode).
 
 Note on ``latin_hypercube_sampling_standard(smooth=False)``: the cell
-PERMUTATION is still key-dependent (the permutation draw always happens —
-same as torch), so different keys give different ROW ORDERS. What is
+PERMUTATION is still key-dependent (the permutation draw always happens), so
+different keys give different ROW ORDERS. What is
 deterministic across keys is the SET of cell centers per column: each column
 is a permutation of ``{(c + 0.5) / n : c in [0, n)}``.
 """
@@ -134,8 +134,7 @@ def test_lhs_standard_latin_property_smooth():
 def test_lhs_standard_cell_centers_deterministic_across_keys():
     # smooth=False: the multiset of values per column is the fixed cell-center
     # set {(c + 0.5) / n} — identical for every key. (The row ORDER is not
-    # deterministic across keys; the permutation draw still happens, as in
-    # torch.)
+    # deterministic across keys; the permutation draw still happens.)
     n, d = 16, 5
     exe = build(latin_hypercube_sampling_standard, KEY_SPEC, n, d, False)
     centers = (np.arange(n, dtype=np.float64) + 0.5) / n

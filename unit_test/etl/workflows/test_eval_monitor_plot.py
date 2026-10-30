@@ -1,7 +1,7 @@
 """Tests for the implemented ``EvalMonitor.plot`` (host-side Plotly figures).
 
 ``EvalMonitor.plot(problem_pf=None, source="eval", **kwargs)`` is a plain
-host-side method (torch-parity port of ``evox.workflows.EvalMonitor.plot``) that
+host-side method (ported from the 1.x ``evox.workflows.EvalMonitor.plot``) that
 dispatches to the ``evox_etl.vis_tools`` figure builders by number of
 objectives: 1 objective -> ``plot_obj_space_1d``, 2 -> ``plot_obj_space_2d``,
 3 -> ``plot_obj_space_3d``, anything else -> warn + None. It returns None (with

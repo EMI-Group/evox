@@ -99,7 +99,7 @@ def toy_evaluate(config: Any, state: ToyProblemState, pop: Any) -> tuple[Any, To
 
 
 def _ackley(pop: Any) -> Any:
-    """Ackley function (a=20, b=0.2, c=2*pi) — mirrors the torch evox reference."""
+    """Ackley function (a=20, b=0.2, c=2*pi) — mirrors the EvoX reference."""
     a, b, c = 20.0, 0.2, 2.0 * np.pi
     return (
         -a * enp.exp(-b * enp.sqrt(evoxc.mean(pop * pop, axes=1)))
