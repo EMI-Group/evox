@@ -37,6 +37,10 @@ random` only (no torch/numpy in framework code).
 - DE_differential_sum keeps the torch self-pick fix (map index→pop_size-1) unless
   `replace=True`; F=None reproduces the exact old torch behavior, else
   `difference_sum * F` (F expanded to (pop,1) when rank-1).
+- `DE_binary_crossover` draws its mask from a UNIFORM distribution
+  (`random.uniform(k1, (pop_size, dim), dtype='float32') < CR`) — matching torch
+  commit 5e68f81f; a normal draw does NOT give a crossover rate near CR (it was
+  ~0.57 at CR=0.1). The forced `jind` column still guarantees ≥1 mutated gene per row.
 
 ## Test strategy
 Smoke-tested on evoxc numpy backend (throwaway script, not committed): exact parity vs

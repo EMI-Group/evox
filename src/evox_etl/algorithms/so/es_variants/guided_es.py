@@ -7,7 +7,9 @@ mode. Semantics mirror the torch original in
 WHOLE generation (mirrored sampling in the guided subspace →
 `evaluate(candidates)` → center/subspace/sigma update), with the
 workflow-injected `evaluate` closure standing in for torch's
-`self.evaluate(population)`.
+`self.evaluate(population)`. The guided subspace is the span of the stored
+gradients (rows of `grad_subspace`), sampled through its orthonormal basis
+(dim x subspace_dims), mirroring torch commit 68b6ef53.
 
 Reference: Guided evolutionary strategies (https://arxiv.org/abs/1806.10230)
 """
@@ -134,6 +136,12 @@ def step(
     current center in the guided (surrogate-gradient) subspace, evaluate it,
     and update center, grad_subspace and sigma.
 
+    The guided subspace is the span of the stored gradient rows in
+    `grad_subspace` (shape (subspace_dims, dim)); perturbations are sampled
+    through its orthonormal basis of shape (dim, subspace_dims), so with
+    `subspace_dims == dim` the basis is a rotation of the whole space and with
+    `subspace_dims < dim` the draws stay inside the gradient span.
+
     ``evaluate`` is the workflow-injected traced closure (opaque; minimization
     semantics).
     """
@@ -148,7 +156,9 @@ def step(
     c = state.sigma * evoxc.sqrt((1.0 - state.alpha) / subspace_dims)
     eps_full = random.normal(subkey, (dim, half), dtype=f32)
     eps_subspace = random.normal(subkey2, (subspace_dims, half), dtype=f32)
-    q, _ = evoxc.qr(state.grad_subspace)
+    # Orthonormal basis (dim x subspace_dims) of the span of the stored
+    # gradients, which are rows — factorize the transpose (torch 68b6ef53).
+    q, _ = evoxc.qr(evoxc.transpose(state.grad_subspace, (1, 0)))
     z_plus = a * eps_full + c * evoxc.dot(q, eps_subspace)
     z_plus = evoxc.transpose(z_plus, (1, 0))
     z = evoxc.concatenate([z_plus, -z_plus], axis=0)
