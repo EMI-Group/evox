@@ -1,215 +1,224 @@
-"""EvoX multi-objective HPO example: an inner MO optimizer tuned by IGD.
+"""EvoX (evox_etl) multi-objective hyperparameter optimization (HPO) example.
 
-What this script demonstrates
------------------------------
-*Multi-objective* hyper-parameter optimization (HPO) with EvoX, obtained by
-nesting two optimization loops:
+The inner run is a real multi-objective optimizer — RVEA on the 2-objective
+DTLZ2 benchmark — and its hyperparameters are tuned by a host-side random
+search. Because a Pareto front is not a single number, the inner run's quality
+is collapsed into one scalar by ``multi_obj_metric``: the Inverted Generational
+Distance (IGD) between the inner run's approximate Pareto front and the true
+DTLZ2 front.
 
-* Inner loop - a tiny multi-objective ``(mu, lambda)`` evolutionary algorithm
-  searches the 2-objective ``DTLZ1`` benchmark. The quality of its final
-  population is collapsed into a SINGLE scalar, the Inverted Generational
-  Distance (IGD) to the true Pareto front, using
-  ``HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, prob.pf()))``.
-* Outer loop - ``HPOProblemWrapper`` turns the whole inner workflow into a
-  black-box problem whose inputs are the inner algorithm's hyper-parameters
-  (marked with ``evox.core.Parameter``) and whose output is the IGD. A PSO
-  ``StdWorkflow`` then searches that hyper-parameter space, evaluating one
-  inner run per hyper-parameter set (``num_instances`` == outer ``pop_size``).
+The tuned fields are the RVEA rates that shape the reference-vector
+adaptation:
 
-Every metric printed below is the IGD to the true Pareto front of DTLZ1
-(lower is better). The inner problem is single-instance cheap; the outer loop
-runs a whole inner optimization per candidate hyper-parameter set.
+    alpha   penalty rate applied to the angle        (default 2.0)
+    fr      frequency of the reference-vector update (default 0.1)
 
-Run:
-    /home/bill/Source/evox/.venv/bin/python examples/hpo/multi_objective_hpo.py
+Two pieces of the recipe are worth reading closely:
+
+* ``evox_etl.metrics.igd`` is an ``evoxc`` *traceable* function, so it cannot
+  be called on numpy arrays directly (``evoxc`` has no eager mode). It is
+  wrapped host-side once with ``evoxc.build`` + ``evoxc.run`` — exactly what
+  ``hpo_wrapper``'s docstring prescribes. The compiled metric is cached per
+  input shape, because the number of Pareto-front points varies per candidate.
+* the inner monitor needs ``full_fit_history=True`` (the default) so
+  ``get_pf_fitness()`` can derive the front, and ``opt_direction`` must be a
+  list with one direction per objective.
+
+Only ``numpy`` + ``evoxc`` are needed; the inner workflow runs on the numpy
+backend (switch ``HPOProblemConfig(backend=...)`` to ``"iree"``/``"xla"`` to
+compile the inner runs).
+
+Run (CPU only, a few seconds):
+    python examples/hpo/multi_objective_hpo.py
 """
 
+import dataclasses
 import pathlib
 import sys
 import time
 
-# Make `evox` importable without an editable install: walk up until we find the
-# repo root, i.e. the directory that contains ``src/evox/__init__.py``.
+# Make `evox_etl` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox" / "__init__.py").is_file():
+    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
-import torch
+import numpy as np
 
-from evox.algorithms import PSO
-from evox.core import Algorithm, Mutable, Parameter
-from evox.metrics import igd
-from evox.operators.selection import nd_environmental_selection
-from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
-from evox.problems.numerical import DTLZ1
-from evox.workflows import EvalMonitor, StdWorkflow
+import evoxc
+from evoxc.core import TensorSpec
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.algorithms import RVEA
+from evox_etl.metrics import igd
+from evox_etl.problems.hpo_wrapper import (
+    HPOFitnessMonitorConfig,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)
+from evox_etl.problems.numerical import DTLZ2
+from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
 
-# CPU-only machine here, so this resolves to "cpu"; on a GPU box it would be "cuda".
-torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+# ---------------------------------------------------------------------------
+# Configuration (kept small so the whole script runs in a few seconds).
+# ---------------------------------------------------------------------------
+DIM = 5  # decision dimension of DTLZ2
+N_OBJS = 2
+POP_SIZE = 20  # RVEA population size
+INNER_GENS = 30  # inner generations per hyperparameter candidate
+SEARCH_BOUNDS = [(0.5, 4.0), (0.05, 0.4)]  # alpha, fr
+N_TRIALS = 8  # candidates sampled by the random search
+SEED = 42
 
 
-# --------------------------------------------------------------------------- #
-# Inner algorithm: a small (mu, lambda) multi-objective evolutionary algorithm
-# --------------------------------------------------------------------------- #
-class SimpleMOAlgorithm(Algorithm):
-    """A minimal multi-objective EA with two tunable hyper-parameters.
+def true_pareto_front(problem: DTLZ2) -> np.ndarray:
+    """The reference DTLZ2 front as a numpy array ``(ref_num * m, m)``.
 
-    Each generation ``lambda = 2 * mu`` offspring are produced by Gaussian
-    mutation of the current population (each parent is mutated twice) and the
-    ``mu`` best candidates are kept by non-dominated environmental selection
-    (non-domination rank + crowding distance).
+    The problem's ``pf`` function is an ``evoxc`` traceable function, so it is
+    built once and run once, host-side.
+    """
+    return evoxc.run(evoxc.build(dtlz_pf, problem), problem).numpy()
 
-    The two hyper-parameters are wrapped in ``Parameter`` so that
-    ``HPOProblemWrapper`` can discover them by attribute path:
 
-    * ``algorithm.sigma`` - standard deviation of the Gaussian mutation
-    * ``algorithm.p_m``   - per-coordinate probability of applying a mutation
+class HostIGD:
+    """Host-side IGD to a fixed reference front (``evox_etl.metrics.igd``).
+
+    ``evoxc`` ops only run inside a trace, so the metric is compiled once per
+    ``(n_pareto, n_objs)`` shape and then called on numpy arrays. The front size
+    changes from candidate to candidate, hence the per-shape cache.
     """
 
-    def __init__(
-        self,
-        pop_size: int,
-        lb: torch.Tensor,
-        ub: torch.Tensor,
-        n_objs: int,
-        sigma: float = 0.2,
-        p_m: float = 1.0,
-        device: torch.device | None = None,
-    ):
-        super().__init__()
-        device = torch.get_default_device() if device is None else device
-        self.pop_size = pop_size
-        self.dim = lb.shape[0]
-        self.n_objs = n_objs
-        # Tunable hyper-parameters (discovered as "algorithm.sigma" / "algorithm.p_m").
-        self.sigma = Parameter(float(sigma), device=device)
-        self.p_m = Parameter(float(p_m), device=device)
-        self.lb = lb.to(device=device)
-        self.ub = ub.to(device=device)
-        # Initial population, uniform in [lb, ub].
-        init_pop = torch.rand(pop_size, self.dim, device=device)
-        init_pop = init_pop * (self.ub - self.lb)[None, :] + self.lb[None, :]
-        self.pop = Mutable(init_pop)
-        self.fit = Mutable(torch.zeros(pop_size, n_objs, device=device))
+    def __init__(self, front: np.ndarray) -> None:
+        """Store the reference front and its concrete evoxc tensor."""
+        self.front = np.asarray(front, dtype=np.float32)
+        self._front_tensor = evoxc.core.tensor(self.front)
+        self._exes: dict[tuple[int, int], object] = {}
 
-    def step(self) -> None:
-        lam = 2 * self.pop_size
-        parents = self.pop.repeat(2, 1)  # (2 * mu, dim)
-        # Per-coordinate mutation mask and Gaussian perturbation.
-        mask = (torch.rand(lam, self.dim, device=self.pop.device) < self.p_m).to(self.pop.dtype)
-        offspring = parents + mask * self.sigma * torch.randn(lam, self.dim, device=self.pop.device)
-        offspring = torch.clamp(offspring, self.lb, self.ub)
-        # Evaluate through the workflow proxy (the monitor sees these fitnesses).
-        offspring_fit = self.evaluate(offspring)
-        # Keep the best `pop_size` candidates (non-domination + crowding distance).
-        self.pop, self.fit, _, _ = nd_environmental_selection(offspring, offspring_fit, self.pop_size)
+    def _exe(self, shape: tuple[int, int]):
+        """Compiled ``igd(front, objs)`` executable for one ``objs`` shape."""
+        exe = self._exes.get(shape)
+        if exe is None:
+            exe = evoxc.build(
+                igd,
+                TensorSpec(self.front.shape, np.float32),
+                TensorSpec(shape, np.float32),
+                backend="numpy",
+            )
+            self._exes[shape] = exe
+        return exe
+
+    def __call__(self, pareto_fitness: np.ndarray) -> np.ndarray:
+        """IGD of an ``(n_pareto, n_objs)`` fitness array (0-d numpy array)."""
+        objs = np.asarray(pareto_fitness, dtype=np.float32)
+        out = evoxc.run(self._exe(objs.shape), self._front_tensor, evoxc.core.tensor(objs))
+        return np.asarray(out.numpy())
 
 
-# --------------------------------------------------------------------------- #
-# Main: wire up the inner MO workflow, wrap it as an HPO problem, optimize it
-# --------------------------------------------------------------------------- #
 def main() -> None:
-    t_start = time.time()
+    print("=" * 70)
+    print("EvoX HPO (multi-objective): tune RVEA (alpha, fr) on 2-objective DTLZ2")
+    print("=" * 70)
 
-    # ---- Problem and reduced sizes (kept tiny so the whole demo runs in seconds).
-    n_objs, dim = 2, 2  # DTLZ1 with 2 objectives and 2 decision variables
-    inner_pop_size = 20
-    inner_iterations = 16
-    num_instances = 8  # == outer PSO pop_size
-    outer_generations = 9
-    # Hyper-parameter search ranges (also used as the outer PSO bounds).
-    sigma_range = (0.02, 0.6)
-    p_m_range = (0.1, 1.0)
-
-    prob = DTLZ1(d=dim, m=n_objs)
-    pf = prob.pf()  # true Pareto front, shape (k, n_objs)
-
-    # ---- 1) Inner multi-objective workflow, scored by IGD ------------------ #
-    inner_algo = SimpleMOAlgorithm(
-        pop_size=inner_pop_size,
-        lb=0.0 * torch.ones(dim),
-        ub=1.0 * torch.ones(dim),
-        n_objs=n_objs,
-        sigma=0.2,
-        p_m=1.0,
+    # ------------------------------------------------------------------
+    # Stage 1: the INNER run plus the scalar quality score.
+    # ------------------------------------------------------------------
+    problem = DTLZ2(d=DIM, m=N_OBJS, ref_num=100)  # 200 reference front points
+    front = true_pareto_front(problem)
+    host_igd = HostIGD(front)
+    inner_algorithm = RVEA(
+        pop_size=POP_SIZE,
+        n_objs=N_OBJS,
+        lb=(0.0,) * DIM,
+        ub=(1.0,) * DIM,
+        alpha=2.0,  # RVEA default
+        fr=0.1,  # RVEA default
+        max_gen=INNER_GENS,  # RVEA adapts the reference vectors relative to max_gen
     )
-    inner_monitor = HPOFitnessMonitor(multi_obj_metric=lambda f: igd(f, pf))
-    inner_workflow = StdWorkflow(inner_algo, prob, monitor=inner_monitor)
-
-    # ---- 2) Wrap the inner workflow as an HPO "problem" -------------------- #
-    hpo_prob = HPOProblemWrapper(
-        iterations=inner_iterations,
-        num_instances=num_instances,
-        workflow=inner_workflow,
-        copy_init_state=True,
-    )
-
-    keys = hpo_prob.get_params_keys()
-    print("Multi-objective HPO: tuning an inner (mu, lambda) MO-EA on DTLZ1")
-    print(
-        f"  inner: {inner_pop_size} individuals, {inner_iterations} generations, "
-        f"metric = IGD to the true Pareto front (lower is better)"
-    )
-    print(f"  outer: PSO over {len(keys)} hyper-parameters, pop_size = {num_instances}, {outer_generations} generations")
-    print(f"  tunable keys: {keys}")
-    print()
-
-    # ---- 3) Baseline: IGD with the DEFAULT (untuned) hyper-parameters ------ #
-    default_params = {k: v.clone() for k, v in hpo_prob.get_init_params().items()}
-    default_params["algorithm.sigma"] = Parameter(0.2 * torch.ones(num_instances))
-    default_params["algorithm.p_m"] = Parameter(1.0 * torch.ones(num_instances))
-    default_igd = float(hpo_prob.evaluate(default_params).mean())
-    print(f"Baseline IGD with default hyper-parameters (sigma=0.2, p_m=1.0): {default_igd:.6f}\n")
-
-    # ---- 4) Outer optimization loop --------------------------------------- #
-    # The outer population tensor is mapped to the inner hyper-parameter dict.
-    # Columns of the outer solution are the inner hyper-parameters, searched
-    # within the ranges declared above.
-    class solution_transform(torch.nn.Module):
-        def forward(self, x: torch.Tensor):
-            return {
-                "algorithm.sigma": sigma_range[0] + (sigma_range[1] - sigma_range[0]) * x[:, 0],
-                "algorithm.p_m": p_m_range[0] + (p_m_range[1] - p_m_range[0]) * x[:, 1],
-            }
-
-    outer_lb = torch.tensor([0.0, 0.0])
-    outer_ub = torch.tensor([1.0, 1.0])
-    outer_algo = PSO(pop_size=num_instances, lb=outer_lb, ub=outer_ub)
-    outer_monitor = EvalMonitor()
-    outer_workflow = StdWorkflow(
-        outer_algo,
-        hpo_prob,
-        monitor=outer_monitor,
-        solution_transform=solution_transform(),
+    hpo = HPOProblemWrapper(
+        HPOProblemConfig(
+            algorithm=inner_algorithm,
+            problem=problem,
+            hyperparameters=(HPSlot("algorithm", "alpha"), HPSlot("algorithm", "fr")),
+            num_generations=INNER_GENS,
+            monitor=HPOFitnessMonitorConfig(
+                # `get_pf_fitness()` needs the per-generation fitness history.
+                inner_monitor=EvalMonitorConfig(full_fit_history=True),
+                # Collapse the inner Pareto front into one scalar: IGD (smaller is better).
+                multi_obj_metric=host_igd,
+            ),
+            # A list with one direction per objective marks the inner run as multi-objective.
+            opt_direction=["min"] * N_OBJS,
+            seed=SEED,
+            backend="numpy",
+        )
     )
 
-    outer_workflow.init_step()
-    for gen in range(1, outer_generations + 1):
-        outer_workflow.step()
-        best = float(outer_monitor.get_best_fitness())
-        print(f"  outer generation {gen:>2}: best IGD so far = {best:.6f}")
+    keys = hpo.get_params_keys()
+    defaults = hpo.get_init_params()
+    print(f"\n[inner] RVEA(pop_size={POP_SIZE}) on {N_OBJS}-objective DTLZ2 (d={DIM}), "
+          f"{INNER_GENS} generations per candidate")
+    print(f"[inner] quality score: IGD to the true front ({len(front)} reference points), lower is better")
+    print("\n[hpo] tunable hyperparameters:")
+    for key, (low, high) in zip(keys, SEARCH_BOUNDS):
+        print(f"        {key:<18} default = {defaults[key]:<5.2f} search range = [{low}, {high}]")
 
-    # ---- 5) Report the best hyper-parameters found ------------------------ #
-    best_igd = float(outer_monitor.get_best_fitness())
-    best_pos = outer_monitor.get_best_solution()
-    best_sigma = sigma_range[0] + (sigma_range[1] - sigma_range[0]) * float(best_pos[0])
-    best_p_m = p_m_range[0] + (p_m_range[1] - p_m_range[0]) * float(best_pos[1])
+    # ------------------------------------------------------------------
+    # Stage 2: baseline — the inner run with its UNCHANGED hyperparameters.
+    # ------------------------------------------------------------------
+    start = time.perf_counter()
+    baseline = hpo.evaluate(None)
+    print(f"\n[base] default hyperparameters: IGD = {baseline:.5f}"
+          f"   ({time.perf_counter() - start:.2f}s)")
 
-    print()
+    # ------------------------------------------------------------------
+    # Stage 3: search — uniform random sampling, one full inner run per sample.
+    # ------------------------------------------------------------------
+    start = time.perf_counter()
+    best_values, best_fitness = random_search(hpo, SEARCH_BOUNDS, n_trials=N_TRIALS, seed=SEED)
+    elapsed = time.perf_counter() - start
+
+    print(f"\n[search] {N_TRIALS} random candidates in {elapsed:.2f}s "
+          f"({elapsed / N_TRIALS * 1000:.0f} ms per full inner run)")
+    print("\n" + "-" * 70)
     print("Result")
-    print(f"  best IGD found              : {best_igd:.6f}")
-    print(f"  best hyper-parameters       : sigma = {best_sigma:.4f}, p_m = {best_p_m:.4f}")
-    print(f"  default-hyper-parameter IGD : {default_igd:.6f}")
-    print("  note: the metric is the IGD between the inner run's population and the")
-    print("        true Pareto front of DTLZ1 - lower is better.")
-    print(f"\nElapsed: {time.time() - t_start:.2f}s")
+    print("-" * 70)
+    for key, value in zip(keys, best_values):
+        print(f"  best {key:<18} = {float(value):.4f}   (default {defaults[key]:.2f})")
+    print(f"  best IGD                   = {best_fitness:.5f}")
+    print(f"  default hyperparameters    = {baseline:.5f}")
+    improvement = 100.0 * (baseline - best_fitness) / baseline if baseline != 0 else 0.0
+    print(f"  IGD reduction over defaults = {improvement:.1f}%")
+
+    # ------------------------------------------------------------------
+    # Stage 4: use the tuned hyperparameters — rebuild the inner config and
+    # measure its Pareto front directly.
+    # ------------------------------------------------------------------
+    tuned_fields = {key.rsplit(".", 1)[-1]: float(value) for key, value in zip(keys, best_values)}
+    tuned_algorithm = dataclasses.replace(inner_algorithm, **tuned_fields)
+    tuned_workflow = StdWorkflow(
+        algorithm=tuned_algorithm,
+        problem=problem,
+        monitor=EvalMonitorConfig(full_fit_history=True),
+        opt_direction=["min"] * N_OBJS,
+        num_generations=INNER_GENS,
+        backend="numpy",
+    )
+    tuned_workflow.run(INNER_GENS, seed=SEED)
+    tuned_pareto = tuned_workflow.monitor.get_pf_fitness()
+    reproduced = float(host_igd(tuned_pareto))
+    print(f"\n[apply] a StdWorkflow built with the tuned config reaches {len(tuned_pareto)} "
+          f"Pareto points, IGD = {reproduced:.5f} (HPO reported {best_fitness:.5f})")
+    assert np.isclose(reproduced, best_fitness, atol=1e-5)
+    # The DTLZ2 front is the unit sphere, so an optimal front has |f| == 1.
+    print(f"        max |f| deviation from the true front: "
+          f"{np.abs(np.linalg.norm(tuned_pareto, axis=1) - 1.0).max():.5f}")
 
 
 if __name__ == "__main__":

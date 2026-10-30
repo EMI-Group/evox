@@ -1,162 +1,164 @@
-"""EvoX single-objective hyperparameter optimization (HPO) example.
+"""EvoX (evox_etl) single-objective hyperparameter optimization (HPO) example.
 
-Demonstrates end-to-end HPO with the torch API: an *inner* optimization
-workflow (a real PSO running on the 5-D Rastrigin function) is wrapped by
-``HPOProblemWrapper`` into an ``evox.core.Problem`` whose search space is the
-inner workflow's ``Parameter``s.  An *outer* evolutionary loop (another PSO)
-then searches for the inner hyperparameters that make the inner PSO converge
-fastest, and we compare the tuned result against the default hyperparameters.
-
-The tunables are the three PSO weights exposed by ``evox.algorithms.PSO``:
+An *inner* optimization run (PSO on the 10-D Rastrigin function) is wrapped by
+:class:`evox_etl.problems.hpo_wrapper.HPOProblemWrapper`, whose search space is
+a set of the inner config's fields — the PSO weights
 
     w       inertia weight          (default 0.6)
     phi_p   cognitive (personal)    (default 2.5)
     phi_g   social (global)         (default 0.8)
 
-They are searched in the range [0, 3].
+A host-side random search (:func:`random_search`) samples candidates in
+[0, 4]^3, evaluates each one by actually RUNNING the inner workflow
+(``HPOProblemWrapper.evaluate`` -> ``StdWorkflow.run`` -> best inner fitness),
+and reports the best hyperparameters found next to the untuned defaults.
 
-Run (CPU is fine, finishes in a few seconds):
-    /home/bill/Source/evox/.venv/bin/python examples/hpo/single_objective_hpo.py
+Unlike the torch ``HPOProblemWrapper`` (which nests the inner workflow inside
+the outer workflow's traced ``evaluate``), this wrapper is host-side Python:
+the outer search is a plain loop over ``evaluate``, and only the inner run is
+compiled. See ``src/evox_etl/problems/hpo_wrapper.py`` and
+``src/evox_etl/DESIGN.md`` for why a nested compiled workflow is impossible.
+
+Only ``numpy`` + ``evoxc`` are needed; the inner workflow runs on the numpy
+backend (``HPOProblemConfig(backend="numpy")``, change it to ``"iree"`` to
+compile the inner runs on IREE).
+
+Run (CPU only, a few seconds):
+    python examples/hpo/single_objective_hpo.py
 """
 
+import dataclasses
 import pathlib
 import sys
+import time
 
-# Make `evox` (the torch reference implementation) importable without an
-# editable install by walking up to the repo root that contains src/evox.
+# Make `evox_etl` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox" / "__init__.py").is_file():
+    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
-import torch
+import numpy as np
 
-from evox.algorithms import PSO
-from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
-from evox.problems.numerical import Rastrigin
-from evox.workflows import EvalMonitor, StdWorkflow
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.algorithms import PSO
+from evox_etl.problems.hpo_wrapper import (
+    HPOFitnessMonitorConfig,
+    HPOProblemConfig,
+    HPOProblemWrapper,
+    HPSlot,
+    random_search,
+)
+from evox_etl.problems.numerical import Rastrigin
 
 # ---------------------------------------------------------------------------
-# Configuration (kept small so the whole script runs in a couple of seconds).
+# Configuration (kept small so the whole script runs in a few seconds).
 # ---------------------------------------------------------------------------
-DIM = 5  # dimension of the inner Rastrigin problem
-INNER_POP = 30  # population size of the inner PSO
-INNER_ITERS = 30  # inner generations evaluated per hyperparameter set
-OUTER_POP = 16  # number of hyperparameter sets evaluated in parallel
-OUTER_GENS = 15  # number of outer generations
-HP_LB, HP_UB = 0.0, 3.0  # search range for each hyperparameter
+DIM = 10  # dimension of the inner Rastrigin problem
+INNER_POP = 20  # population size of the inner PSO
+INNER_GENS = 30  # inner generations per hyperparameter candidate
+# One (low, high) pair per tuned hyperparameter, in `HPSlot` order.
+SEARCH_BOUNDS = [(0.0, 1.0), (0.0, 4.0), (0.0, 4.0)]  # w, phi_p, phi_g
+N_TRIALS = 18  # candidates sampled by the random search
 SEED = 42
 
 
-class HyperparameterTransform(torch.nn.Module):
-    """Map an outer PSO particle (a length-3 vector) to the inner Parameter dict.
-
-    The keys must match ``HPOProblemWrapper.get_params_keys()`` (the module
-    attribute paths of the inner workflow's ``Parameter``s).
-    """
-
-    def forward(self, x: torch.Tensor):
-        return {
-            "algorithm.w": x[:, 0],
-            "algorithm.phi_p": x[:, 1],
-            "algorithm.phi_g": x[:, 2],
-        }
-
-
 def main() -> None:
-    torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.manual_seed(SEED)
-
     print("=" * 70)
-    print("EvoX single-objective HPO: tune PSO (w, phi_p, phi_g) on Rastrigin")
+    print("EvoX HPO (single-objective): tune PSO (w, phi_p, phi_g) on 10-D Rastrigin")
     print("=" * 70)
 
     # ------------------------------------------------------------------
-    # Stage 1: the INNER workflow -- the thing we want to run well.
+    # Stage 1: describe the INNER run and which of its fields are tuned.
     # ------------------------------------------------------------------
-    lb = -5.12 * torch.ones(DIM)
-    ub = 5.12 * torch.ones(DIM)
-    inner_algo = PSO(pop_size=INNER_POP, lb=lb, ub=ub)  # uses default w/phi_p/phi_g
-    inner_prob = Rastrigin()  # global optimum 0 at the origin
-    # The inner monitor MUST be an HPOFitnessMonitor: the wrapper reads the
-    # best fitness found by the inner run from it.
-    inner_monitor = HPOFitnessMonitor()
-    inner_workflow = StdWorkflow(inner_algo, inner_prob, monitor=inner_monitor)
-
-    print(f"\n[inner] PSO(pop_size={INNER_POP}) on {DIM}-D Rastrigin, {INNER_ITERS} generations per evaluation")
-
-    # ------------------------------------------------------------------
-    # Stage 2: wrap the inner workflow as a problem for the OUTER loop.
-    # ------------------------------------------------------------------
-    hpo_prob = HPOProblemWrapper(
-        iterations=INNER_ITERS,
-        num_instances=OUTER_POP,
-        workflow=inner_workflow,
-        copy_init_state=True,
+    inner_algorithm = PSO(pop_size=INNER_POP, lb=(-5.12,) * DIM, ub=(5.12,) * DIM)
+    inner_problem = Rastrigin()  # global optimum 0 at the origin
+    hpo = HPOProblemWrapper(
+        HPOProblemConfig(
+            algorithm=inner_algorithm,
+            problem=inner_problem,
+            # One HPSlot per tuned field, addressed as "<config>.<field>":
+            # config_kind is "algorithm" / "problem" / "monitor".
+            hyperparameters=(
+                HPSlot("algorithm", "w"),
+                HPSlot("algorithm", "phi_p"),
+                HPSlot("algorithm", "phi_g"),
+            ),
+            num_generations=INNER_GENS,
+            # The inner monitor must be an EvalMonitorConfig (HPO reads the inner
+            # run's best fitness from it) wrapped in the HPO policy config.
+            monitor=HPOFitnessMonitorConfig(inner_monitor=EvalMonitorConfig()),
+            num_repeats=1,  # one inner run per candidate (see repeated_hpo.py)
+            seed=SEED,  # base seed of the inner runs
+            backend="numpy",  # inner workflow backend ("iree"/"xla" also work)
+        )
     )
 
-    keys = hpo_prob.get_params_keys()
-    init_params = hpo_prob.get_init_params()
-    print(f"\n[hpo]  tunable keys: {keys}")
-    for k in keys:
-        print(f"         {k:<18} default = {float(init_params[k][0]):.3f}   (search range [{HP_LB}, {HP_UB}])")
+    keys = hpo.get_params_keys()  # e.g. ["algorithm.w", "algorithm.phi_p", ...]
+    defaults = hpo.get_init_params()  # current values, taken from the inner config
+    print(f"\n[inner] PSO(pop_size={INNER_POP}) on {DIM}-D Rastrigin, {INNER_GENS} generations per candidate")
+    print("\n[hpo] tunable hyperparameters:")
+    for key, (low, high) in zip(keys, SEARCH_BOUNDS):
+        print(f"        {key:<18} default = {defaults[key]:<5.2f} search range = [{low}, {high}]")
 
     # ------------------------------------------------------------------
-    # Stage 3: baseline -- evaluate the DEFAULT hyperparameters, cheaply.
-    # (Empty dict => every instance keeps the inner workflow's init params.)
+    # Stage 2: baseline — evaluate the inner config UNCHANGED.
+    # `evaluate(None)` (or `evaluate({})`) keeps every field at its default.
     # ------------------------------------------------------------------
-    baseline = torch.stack([hpo_prob.evaluate({}) for _ in range(3)])
-    baseline_fit = float(baseline.mean())
-    print(f"\n[base] untuned default hyperparameters: mean best fitness = {baseline_fit:.4f}")
+    start = time.perf_counter()
+    baseline = hpo.evaluate(None)
+    print(f"\n[base] default hyperparameters: best inner fitness = {baseline:.4f}"
+          f"   ({time.perf_counter() - start:.2f}s)")
 
     # ------------------------------------------------------------------
-    # Stage 4: OUTER optimization loop -- search for better hyperparameters.
+    # Stage 3: search — uniform random sampling of the hyperparameter box,
+    # each sample evaluated by one full inner run.
     # ------------------------------------------------------------------
-    outer_algo = PSO(
-        pop_size=OUTER_POP,  # MUST equal num_instances
-        lb=HP_LB * torch.ones(3),
-        ub=HP_UB * torch.ones(3),
-    )
-    outer_monitor = EvalMonitor()
-    outer_workflow = StdWorkflow(
-        outer_algo,
-        hpo_prob,
-        monitor=outer_monitor,
-        solution_transform=HyperparameterTransform(),
-    )
+    start = time.perf_counter()
+    best_values, best_fitness = random_search(hpo, SEARCH_BOUNDS, n_trials=N_TRIALS, seed=SEED)
+    elapsed = time.perf_counter() - start
 
-    print(f"\n[outer] PSO(pop_size={OUTER_POP}) searching 3 hyperparameters for {OUTER_GENS} generations")
-    outer_workflow.init_step()
-    for generation in range(1, OUTER_GENS + 1):
-        outer_workflow.step()
-        if generation % 3 == 0 or generation == OUTER_GENS:
-            best = float(outer_monitor.get_best_fitness())
-            print(f"  generation {generation:>2}: best inner fitness = {best:.4f}")
-
-    # ------------------------------------------------------------------
-    # Stage 5: report the best hyperparameters found.
-    # ------------------------------------------------------------------
-    best_solution = outer_monitor.get_best_solution()
-    best_fitness = float(outer_monitor.get_best_fitness())
+    print(f"\n[search] {N_TRIALS} random candidates in {elapsed:.2f}s "
+          f"({elapsed / N_TRIALS * 1000:.0f} ms per full inner run)")
     print("\n" + "-" * 70)
     print("Result")
     print("-" * 70)
-    print(f"  best {keys[0]:<16} = {float(best_solution[0]):.4f}")
-    print(f"  best {keys[1]:<16} = {float(best_solution[1]):.4f}")
-    print(f"  best {keys[2]:<16} = {float(best_solution[2]):.4f}")
-    print(f"  best inner fitness     = {best_fitness:.4f}")
-    print(f"  untuned default fitness = {baseline_fit:.4f}")
-    print(
-        "\nSearched the inner PSO (w, phi_p, phi_g) in [0, 3]; HPO found a set "
-        "that\nconverges the inner PSO on 5-D Rastrigin noticeably better than "
-        "the defaults."
+    for key, value in zip(keys, best_values):
+        print(f"  best {key:<18} = {float(value):.4f}   (default {defaults[key]:.2f})")
+    print(f"  best inner fitness        = {best_fitness:.4f}")
+    print(f"  default hyperparameters   = {baseline:.4f}")
+    improvement = 100.0 * (baseline - best_fitness) / baseline if baseline != 0 else 0.0
+    print(f"  improvement over defaults = {improvement:.1f}%")
+
+    # `evaluate` is deterministic for a given (candidate, seed): re-evaluating
+    # the reported candidate reproduces the reported score exactly.
+    assert abs(hpo.evaluate(best_values) - best_fitness) < 1e-9
+
+    # ------------------------------------------------------------------
+    # Stage 4: use the tuned hyperparameters — rebuild the inner algorithm
+    # config with the tuned field values and run it as usual.
+    # ------------------------------------------------------------------
+    tuned_fields = {key.rsplit(".", 1)[-1]: float(value) for key, value in zip(keys, best_values)}
+    tuned_algorithm = dataclasses.replace(inner_algorithm, **tuned_fields)
+    tuned_workflow = StdWorkflow(
+        algorithm=tuned_algorithm,
+        problem=inner_problem,
+        monitor=EvalMonitorConfig(),
+        opt_direction="min",
+        num_generations=INNER_GENS,
+        backend="numpy",
     )
+    tuned_workflow.run(INNER_GENS, seed=SEED)
+    reproduced = tuned_workflow.monitor.get_best_fitness()
+    print(f"\n[apply] a StdWorkflow built with the tuned config scores {reproduced:.4f}"
+          f" (HPO reported {best_fitness:.4f})")
+    assert np.isclose(reproduced, best_fitness, atol=1e-6)
 
 
 if __name__ == "__main__":
