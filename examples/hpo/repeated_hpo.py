@@ -13,8 +13,10 @@ matters) and shows
 
 1. how much one candidate's score really moves across seeds (the spread),
 2. what each aggregation policy reports for that same candidate,
-3. why searching with the seed-averaged score picks a more reliable
-   hyperparameter set than searching with a single lucky run.
+3. how a seed-averaged search scores the tuned candidate next to one single
+   seed of it — the single run is one sample of the spread, so it can look
+   better or worse than the mean, which is why hyperparameters chosen on one
+   seed often fail to transfer.
 
 Only ``numpy`` + ``evoxc`` are needed; the inner runs use the numpy backend.
 
@@ -107,16 +109,14 @@ def per_seed_scores(candidate, keys, seeds) -> list[float]:
     return scores
 
 
-CANDIDATE_KEYS: list[str] = []  # filled in main(); used by per_seed_scores
-
-
 def main() -> None:
     print("=" * 74)
     print("EvoX HPO (repeated evaluation): tune PSO (w, phi_p, phi_g) on 10-D Rastrigin")
     print("=" * 74)
 
-    keys = build_wrapper(1).get_params_keys()
-    defaults = build_wrapper(1).get_init_params()
+    single_run = build_wrapper(1)  # one inner run per candidate (no repeats)
+    keys = single_run.get_params_keys()
+    defaults = single_run.get_init_params()
     candidate = [0.7, 2.0, 1.0]  # a fixed, reasonable-looking (w, phi_p, phi_g)
 
     # ------------------------------------------------------------------
@@ -144,7 +144,6 @@ def main() -> None:
         print(f"           num_repeats={NUM_REPEATS}, fit_aggregation={policy:<5} -> {score:.4f}"
               f"   ({time.perf_counter() - start:.2f}s)")
 
-    single_run = build_wrapper(1, fit_aggregation="mean")
     start = time.perf_counter()
     single_score = single_run.evaluate(candidate)
     print(f"           num_repeats=1                        -> {single_score:.4f}"
@@ -165,7 +164,7 @@ def main() -> None:
     print("\n" + "-" * 74)
     print("Result (num_repeats=%d, fit_aggregation='mean')" % NUM_REPEATS)
     print("-" * 74)
-    for key, value in zip(CANDIDATE_KEYS, best_values):
+    for key, value in zip(keys, best_values):
         print(f"  best {key:<18} = {float(value):.4f}   (default {defaults[key]:.2f})")
     print(f"  best seed-averaged fitness = {best_fitness:.4f}")
     print(f"  default hyperparameters    = {baseline:.4f}")

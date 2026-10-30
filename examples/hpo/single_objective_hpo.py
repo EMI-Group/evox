@@ -13,15 +13,16 @@ A host-side random search (:func:`random_search`) samples candidates in
 (``HPOProblemWrapper.evaluate`` -> ``StdWorkflow.run`` -> best inner fitness),
 and reports the best hyperparameters found next to the untuned defaults.
 
-Unlike the torch ``HPOProblemWrapper`` (which nests the inner workflow inside
-the outer workflow's traced ``evaluate``), this wrapper is host-side Python:
-the outer search is a plain loop over ``evaluate``, and only the inner run is
+Unlike an in-graph HPO design (which would nest the inner workflow inside the
+outer workflow's traced ``evaluate``), this wrapper is host-side Python: the
+outer search is a plain loop over ``evaluate``, and only the inner run is
 compiled. See ``src/evox_etl/problems/hpo_wrapper.py`` and
 ``src/evox_etl/DESIGN.md`` for why a nested compiled workflow is impossible.
 
 Only ``numpy`` + ``evoxc`` are needed; the inner workflow runs on the numpy
-backend (``HPOProblemConfig(backend="numpy")``, change it to ``"iree"`` to
-compile the inner runs on IREE).
+backend (``HPOProblemConfig(backend="numpy")`` — set ``backend="iree"``/``"xla"``
+to compile the inner runs, which needs the matching evoxc backend extra, e.g.
+``pip install "evoxc[iree]"``).
 
 Run (CPU only, a few seconds):
     python examples/hpo/single_objective_hpo.py

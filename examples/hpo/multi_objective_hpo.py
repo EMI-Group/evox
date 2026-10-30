@@ -26,7 +26,8 @@ Two pieces of the recipe are worth reading closely:
 
 Only ``numpy`` + ``evoxc`` are needed; the inner workflow runs on the numpy
 backend (switch ``HPOProblemConfig(backend=...)`` to ``"iree"``/``"xla"`` to
-compile the inner runs).
+compile the inner runs — those need the matching evoxc backend extra, e.g.
+``pip install "evoxc[iree]"``).
 
 Run (CPU only, a few seconds):
     python examples/hpo/multi_objective_hpo.py

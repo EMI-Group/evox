@@ -11,7 +11,8 @@ Two small end-to-end demos, both on the default numpy backend:
 
 Only ``numpy`` + ``evoxc`` are needed. Compiled backends are a one-word change:
 ``StdWorkflow(..., backend="iree")`` (or ``"xla"``) instead of ``"numpy"`` — the
-algorithm/problem configs stay exactly the same.
+algorithm/problem configs stay exactly the same (those backends need their evoxc
+extras, e.g. ``pip install "evoxc[iree]"``).
 
 Run (no installation needed — the bootstrap below locates the repo root):
     python examples/quickstart.py
