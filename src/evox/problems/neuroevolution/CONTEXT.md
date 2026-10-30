@@ -62,6 +62,9 @@ Attributes set by both `__init__`s: `device`, `model`, `data_loader`, `data_load
 - `BraxProblem` and `MujocoProblem` require both `torch` and `jax` installed with compatible DLPack support.
 - Policy models must accept batched observations: `forward(batched_obs) -> action`.
 - `BraxProblem` provides optional `torch.compile` on the policy via the `compile_policy` flag. `MujocoProblem` always compiles the single state_forward.
+- `MujocoProblem.__init__` has no `backend` or `compile_policy` parameters (it takes `policy, env_name, max_episode_length, num_episodes, seed=None, pop_size=None, rotate_key=True, reduce_fn=torch.mean, device=None`), unlike `BraxProblem`.
+- `get_vmap_model_state_forward` returns only the vmapped pair despite its docstring mentioning a `get_non_vmap` flag; the vmapped `init_state` is `params | buffers` from `torch.func.stack_module_state` (buffers included), unlike `ParamsAndVector` vectors (parameters only).
+- `BraxProblem`/`MujocoProblem` keep a module-level registry `__brax_data__` / `__mjx_data__` keyed by `id(self)` and cleaned by `weakref.finalize`, so compiled JAX closures live outside the instance; `evaluate` also mutates `self.key` (PRNG state carried across calls) when `rotate_key=True`.
 
 ## Routing Table
 - `./brax.py` → `BraxProblem` — Google Brax physics simulation evaluation
