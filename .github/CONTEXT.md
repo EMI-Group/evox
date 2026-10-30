@@ -19,7 +19,8 @@ Publishing goes to PyPI only through OIDC trusted publishing — there is no API
 `build` job steps: checkout → setup-python → `pip install --upgrade pip` + `pip install build` → `python -m build` (sdist + wheel) → install the built wheel with the `test` extra → `python -m pytest` (picks up `testpaths = ["unit_test/etl"]`) → wheel-only smoke test.
 The wheel-only smoke test runs `.github/scripts/wheel_smoke.py` with `cwd = $RUNNER_TEMP`, so `import evox_etl` must resolve to `site-packages`, not the checkout.
 `python-publish.yml` `deploy` job steps: checkout → setup-python 3.12 → `python -m build` → install the fresh wheel and run the same smoke script → `pypa/gh-action-pypi-publish`.
-The publish job is serialized by `concurrency: group: pypi-publish` (`cancel-in-progress: false`) and carries `id-token: write`; the workflow-level permission is `contents: read`.
+The publish job is serialized by `concurrency: group: pypi-publish` (`cancel-in-progress: false`).
+Its `deploy` job declares `permissions: contents: read` + `id-token: write`: the workflow-level `permissions: contents: read` is **not** inherited, because a job-level block replaces (does not merge with) the workflow-level one, so `contents: read` must be repeated there for `actions/checkout` while `id-token: write` is the OIDC half.
 
 ## Local equivalents (what a contributor runs)
 ```
@@ -39,6 +40,7 @@ ruff check .                            # = the `Ruff` job
 - CI installs `evoxc` from PyPI as a plain dependency; compiled-backend extras (`iree`/`tvm`/`compilers`) are never installed here (numpy backend only).
 - Do not add `-W` to the Sphinx build: pre-existing docstring warnings must not fail the job; RTD (`.readthedocs.yaml`) is the real docs publisher.
 - Never add a PyPI API token/password: publishing is OIDC trusted publishing, which requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`.
+- Job-level `permissions` blocks replace the workflow-level one, so `python-publish.yml`'s `deploy` job lists `contents: read` alongside `id-token: write`; keep both entries together.
 - `workflow_dispatch` on the publish workflow rebuilds from the branch the run is started on, so start it on the release's tag/commit when retrying.
 - `wheel_smoke.py` must stay runnable outside the checkout and keep asserting the import came from `site-packages`; the CEC2022 part is the package-data guard (`cec2022_input_data/*.txt`).
 - Workflow changes are YAML: validate locally with `python -c "import yaml,sys;[yaml.safe_load(open(f)) for f in sys.argv[1:]]" .github/workflows/*.yml`.

@@ -29,8 +29,12 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Required for OIDC trusted publishing
+    # Required for OIDC trusted publishing. A job-level `permissions` block
+    # replaces (does not merge with) the workflow-level block above, so
+    # `contents: read` must be repeated here or `actions/checkout` would run
+    # without access to the repository contents.
     permissions:
+      contents: read
       id-token: write
     steps:
     - uses: actions/checkout@v6
