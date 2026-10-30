@@ -24,6 +24,10 @@ readthedocs_canonical = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 project = "EvoX"
 copyright = "2022, Bill Huang"
 author = "Bill Huang"
+# The documented API is the experimental EvoX 2.0 pre-release (package
+# ``evox_etl``); the 1.x torch package ``evox`` is no longer documented.
+version = "2.0.0-pre"
+release = "2.0.0-pre"
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,14 +47,22 @@ extensions = [
     "myst_nb",
 ]
 
+# The API documentation is generated from the functional EvoX 2.0 package ONLY
+# (``src/evox_etl``, built on the ``evoxc`` compiler). The 1.x torch package
+# ``src/evox`` is not scanned: it is frozen and scheduled for removal.
 autodoc2_packages = [
-    "../../src/evox",
+    "../../src/evox_etl",
 ]
 
 autodoc2_module_all_regexes = [
-    r"evox\.core\..*",
-    r"evox\.problems\..*",
-    r"evox\.workflows\..*",
+    r"evox_etl\.algorithms\..*",
+    r"evox_etl\.core\..*",
+    r"evox_etl\.metrics\..*",
+    r"evox_etl\.operators\..*",
+    r"evox_etl\.problems\..*",
+    r"evox_etl\.utils\..*",
+    r"evox_etl\.vis_tools\..*",
+    r"evox_etl\.workflows\..*",
 ]
 
 autodoc2_render_plugin = "myst"
@@ -61,14 +73,16 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["locale/**"]
-
-# mock these modules, so we can build the document without these dependencies.
-autodoc_mock_imports = [
-    "brax",
-    "mujoco_playground",
-    "torchvision",
+exclude_patterns = [
+    "locale/**",
+    # Agent-facing Context Tree files are not documentation pages.
+    "CONTEXT.md",
+    "**/CONTEXT.md",
 ]
+
+# The documented package (``evox_etl``) is pure Python on top of the ``evoxc``
+# compiler; no third-party environment packages need to be mocked any more.
+autodoc_mock_imports = []
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -174,6 +188,13 @@ autosummary_imported_members = True
 nb_execution_mode = "off"
 nbsphinx_execute = "never"
 nb_output_stderr = "remove"
-myst_enable_extensions = ["dollarmath", "fieldlist", "linkify"]
+myst_enable_extensions = [
+    "dollarmath",
+    "fieldlist",
+    "linkify",
+    "colon_fence",
+    "deflist",
+    "attrs_inline",
+]
 locale_dirs = ["locale/"]
 gettext_compact = "docs"
