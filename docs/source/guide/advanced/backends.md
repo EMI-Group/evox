@@ -9,9 +9,10 @@ pages. APIs may still change between pre-releases.
 
 A **backend** is where an EvoX program actually runs. It is *not* a global setting and there is no
 environment switch to flip before `import`: it is the `backend=` argument of the `StdWorkflow` owning
-the compiled step graph.
+the compiled step graph (excerpt — `algorithm`/`problem` are config instances built like those in the
+runnable example at the end of this page):
 
-```python
+```{code-block} python
 from evox_etl import EvalMonitorConfig, StdWorkflow
 
 workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(), backend="numpy")  # default
@@ -23,7 +24,9 @@ Each step *variant* (`init_step` / `step` / `final_step`) is traced and compiled
 `evoxc.build` (cached per state shape signature), then run generation after generation — re-evaluating
 per generation is the anti-pattern the workflow exists to avoid.
 
-```python
+Excerpt from `src/evox_etl/core/workflow.py` (`StdWorkflow._build_step_exe`, abridged):
+
+```{code-block} python
 # src/evox_etl/core/workflow.py — StdWorkflow._build_step_exe (abridged)
 options = {k: v for k, v in self._compile_options.items() if k not in ("backend", "device")}
 return evoxc.build(step_fn, specs, backend=self.backend, device=self._device, **options)
@@ -47,15 +50,23 @@ tests, and any workload small enough that compiling costs more than it saves ({d
 | Backend | Install | Targets | State |
 |---|---|---|---|
 | `"numpy"` | nothing (default) | CPU | always available |
-| `"iree"` | `pip install "evox[iree]"` (`iree-base-compiler` + `iree-base-runtime`) | `llvm-cpu`, `cuda`, `rocm`, `vulkan-spirv` | validated end-to-end |
-| `"tvm"` | `pip install "evox[tvm]"` (`apache-tvm` + `jaxlib` for its MLIR bindings) | `llvm` CPU only | limited; see below |
+| `"iree"` | `pip install "evoxc[iree]"` (`iree-base-compiler` + `iree-base-runtime`) | `llvm-cpu`, `cuda`, `rocm`, `vulkan-spirv` | validated end-to-end |
+| `"tvm"` | `pip install "evoxc[tvm]"` (`apache-tvm` + `jaxlib` for its MLIR bindings) | `llvm` CPU only | limited; see below |
 | `"xla"` | **no extra** — you supply a PJRT plugin `.so` | CPU, CUDA, ROCm | validated end-to-end |
 
-`evox[compilers]` installs IREE and TVM together; `evox[vis]` is unrelated (Plotly/`.exv` output).
+Compiled backends are optional extras. EvoX documents them as `evox[iree]`, `evox[tvm]` and
+`evox[compilers]`, and the compiler package exposes the same three as `evoxc[iree]`, `evoxc[tvm]`
+and `evoxc[compilers]`; until the 2.0 manifest ships, only the `evoxc[...]` spellings install
+anything — the current `evox` manifest has none of them — so install `evoxc[...]` and see
+{doc}`../install/evox` for the full extras story. `evoxc[compilers]` installs IREE and TVM together;
+`evox[vis]` is unrelated (Plotly/`.exv` output).
 
 **IREE** compiles the StableHLO export with `iree-compile` and runs it through the IREE runtime: the
 `local-task` CPU driver, or the `cuda`/`hip`/`vulkan` HAL drivers on GPUs. Compiler and runtime must
-stay version-locked, which is why the `iree` extra pins the two `iree-base-*` packages together.
+stay version-locked, which is why the `iree` extra pins the two `iree-base-*` packages together. The
+extra installs no Vulkan loader or ICD, so a Vulkan run needs the system driver provided separately,
+and IREE's default Vulkan profile caps workgroup shared memory at 16 KiB — set `vulkan_target` to a
+larger profile before compiling anything that needs more.
 
 **TVM** translates StableHLO into a Relax module and builds it for `target=llvm`, so it is CPU-only.
 Its op whitelist excludes control flow (`stablehlo.if`/`stablehlo.while`) and `gather`/`scatter`, which
@@ -84,7 +95,8 @@ definition.
 | compile | iree: `target_backends`, `iree_compile_args`, `opt_level`, `vulkan_target` · xla: `plugin_path`, `xla_compile_options`, `opt_level` · tvm: `tvm_target`, `tvm_pass_configs`, `opt_level` |
 | load | iree: `iree_runtime_args` · xla: `plugin_path` |
 
-`device=` accepts three forms, parsed by `_parse_device` before anything is built:
+`device=` accepts `None`, a string (`kind` or `kind:N`) or an `evoxc.core.Device`, parsed by
+`_parse_device` before anything is built:
 
 | `device=` | Result | Rule |
 |---|---|---|
@@ -96,13 +108,14 @@ definition.
 
 Supported kinds are `cpu`, `cuda`, `rocm` and `vulkan`; `"hip"` is accepted as an alias/equivalent
 filter for the `rocm` kind by device enumeration. `_parse_device` only splits the string — a kind the
-chosen backend cannot serve fails loudly when the executable loads, never by silently falling back to
-CPU.
+chosen backend cannot serve is rejected when the workflow places the state on the device during
+`init()`: that placement raises `evoxc.core.DeviceError`, never a `ModuleNotFoundError` and never a
+silent fallback to CPU (this is also what the common `backend="numpy", device="cuda"` mistake gets).
 
 ```{warning} `device=` does not create acceleration on its own
 The NumPy backend runs on the CPU only, and asking it for a GPU device does not quietly stay on the
-CPU: the workflow tries to move the data and, with no compiled backend installed, fails in the transfer
-path. Pick a backend that serves the device, e.g. `backend="iree", device="cuda"`.
+CPU: state placement in `init()` raises `evoxc.core.DeviceError` because no provider can serve that
+device. Pick a backend that serves the device, e.g. `backend="iree", device="cuda"`.
 ```
 
 ## Choosing a backend
@@ -134,16 +147,19 @@ yourself (XLA), and compilation is a fixed cost paid per step variant that domin
 - **TVM has no control flow**, so NSGA-family generation loops do not compile on it.
 - **XLA dynamic shapes are unusable.** The adapter's static-shape gate raises `BackendError` naming the
   offending spec instead of miscompiling it.
-- **Failures are loud.** Unsupported ops, devices or options raise `evoxc.core.BackendError` or
-  `TransformError` (unknown backend name, missing IREE install with its pip hint, unsupported device
-  kind); there is never a silent fallback to another backend.
+- **Failures are loud.** Unsupported ops, devices or options raise `evoxc.core.BackendError`,
+  `DeviceError` or `TransformError` (unknown backend name, missing IREE install with its pip hint, a
+  device kind the backend cannot serve at placement time); there is never a silent fallback to another
+  backend.
 
 ## Correctness
 
-Fitnesses produced by the four evoxc backends (numpy, IREE, TVM, XLA) are **bit-identical** for the same
-seed and configuration: a backend changes *how fast* a run is, not *what it finds* — which is why you can
-debug on numpy and deploy on XLA. The one caveat sits outside the backends: on an unconverged stochastic
-problem, two *different* runs scatter anyway.
+Results agree with the reference interpreter: for the same seed and configuration, **IREE** output is
+bit-identical to the NumPy backend, and **XLA** may compute an fp32 `dot` at TF32-class precision
+unless you pass `dot_precision="HIGHEST"`, so a graph built around matrix products can differ in the
+last bits. **TVM** is CPU (`llvm`) only. A backend changes *how fast* a run is, not *what it finds* —
+which is why you can debug on numpy and deploy on IREE or XLA. The one caveat sits outside the
+backends: on an unconverged stochastic problem, two *different* runs scatter anyway.
 
 The numbers on this page are workload-dependent measurements from `benchmarks/etl_vs_torch/`
 (RTX A6000, seed 42, 100 generations), summarized in `REFACTOR_REPORT.md` §3: at 10⁴ × 10²,
@@ -179,15 +195,17 @@ numpy 3.054e-08
 ```
 
 Sphere is minimized at the origin, so a value near zero is the correct answer. Nothing above depends on
-the backend — move it to a compiler by changing those arguments and installing what the backend needs:
+the backend — move it to a compiler by changing those arguments and installing what the backend needs.
+The two alternatives below are an excerpt that reuses `algorithm`/`problem` from the run above (each
+needs its compiled backend installed, so neither is exercised on this page):
 
-```python
-# pip install "evox[iree]"   ->  compiled CPU / CUDA / ROCm via IREE
+```{code-block} python
+# pip install "evoxc[iree]"   ->  compiled CPU / CUDA / ROCm via IREE
 workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(),
                        backend="iree",
                        device="cuda:1")   # parsed to evoxc.core.Device(kind="cuda", index=1)
 
-# XLA: no extra; the PJRT plugin is yours. Keep the env var set and/or pin it per workflow.
+# XLA: no extra; the PJRT plugin is yours. Set EVOXC_PJRT_PLUGIN before the process starts.
 workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(),
                        backend="xla", device="cpu",
                        compile_options={"plugin_path": "/path/to/pjrt_c_api_cpu_plugin.so"})

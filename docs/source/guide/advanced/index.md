@@ -69,6 +69,7 @@ APIs may still change between pre-releases.
 
 ```{tip}
 The advanced pages are independent. If you only need one thing — a metric, a plot, a backend switch — jump
-straight to that page; each one is self-contained and every Python block in it has been executed against the
-code in this repository.
+straight to that page; each one is self-contained, and its standalone Python blocks have been executed
+against the code in this repository. The exceptions are blocks explicitly labelled as excerpts and the
+compiled-backend-only alternatives, which need an IREE/XLA install to run.
 ```
