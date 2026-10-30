@@ -1,11 +1,10 @@
 """ASEBO (Adaptive ES-Active Subspaces for Blackbox Optimization), part of the 2.0 functional API.
 
 
-EvoX Compiler has no eager
-mode, so ``init``/``step`` are plain functions traced via ``evoxc.build``/
-``evoxc.run``; ``step`` owns the WHOLE generation — one fused body whose
-evaluation comes in through the workflow-injected
-``evaluate`` closure.  ``lr_decay``/``lr_limit`` are kept for signature compatibility but
+EvoX Compiler has no eager mode, so ``init``/``step`` are plain functions traced
+via ``evoxc.build``/``evoxc.run``; ``step`` owns the WHOLE generation — one fused
+body whose evaluation comes in through the workflow-injected ``evaluate``
+closure.  ``lr_decay``/``lr_limit`` are kept for signature compatibility but
 unused (as in the 1.x version).
 """
 

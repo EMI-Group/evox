@@ -1,17 +1,15 @@
 """Compatibility helpers (clamp/maximum/...) + shared gather util.
 
-Plain (NOT ``@evoxc.defn``) functions.
-Algorithms call these instead of raw
-``evoxc`` ops wherever the classic code needed JIT-operator-fusion safety;
-the math is identical (relu
-composition).
+Plain (NOT ``@evoxc.defn``) functions.  Algorithms call these instead of raw
+``evoxc`` ops wherever the classic code needed JIT-operator-fusion safety; the
+math is identical (relu composition).
 
 This module is their canonical home: ``evox_etl.operators`` mirrors the classic
 ``operators/`` package surface, while these helpers (historically kept in
-``evox/utils/``) live here. All functions are plain Python: they may only be called inside an
-active evoxc trace (the EvoX Compiler has no eager mode).
+``evox/utils/``) live here.  All functions are plain Python: they may only be
+called inside an active evoxc trace (the EvoX Compiler has no eager mode).
 
-Torch name -> evoxc adaptation:
+1.x name -> evoxc adaptation:
 - ``switch`` — per-element select from a list of tensors; the torch
   ``torch.where`` chain becomes an ``evoxc.select`` chain (1:1).
 - ``clamp``/``clamp_float``/``clamp_int`` — relu-based clamps (1:1).

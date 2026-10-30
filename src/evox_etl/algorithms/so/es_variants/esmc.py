@@ -1,11 +1,10 @@
 """ESMC (the DES algorithm from Learn2Hop), part of the 2.0 functional API (step protocol).
 
 
-EvoX Compiler has no eager mode, so ``init``/``step`` are
-plain functions traced via ``evoxc.build``/``evoxc.run``; ``step`` owns the WHOLE
-generation — one fused body whose evaluation comes in through the
-workflow-injected ``evaluate`` closure.  ``pop_size`` must be
-odd (mirrored sampling).
+EvoX Compiler has no eager mode, so ``init``/``step`` are plain functions traced
+via ``evoxc.build``/``evoxc.run``; ``step`` owns the WHOLE generation — one fused
+body whose evaluation comes in through the workflow-injected ``evaluate``
+closure.  ``pop_size`` must be odd (mirrored sampling).
 """
 
 from dataclasses import dataclass, replace
