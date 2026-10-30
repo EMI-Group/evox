@@ -2,7 +2,7 @@
 
 ## Intent
 The advanced guide for the experimental EvoX 2.0 pre-release: it covers the machinery around the optimizer loop — backends, operators, metrics, visualization, host-side HPO and the extension system.
-Every page teaches the functional `evox_etl` API on the `evoxc` compiler and deliberately never teaches the frozen 1.x torch API (`src/evox/`).
+Every page teaches the functional `evox_etl` API on the `evoxc` compiler and deliberately never teaches the 1.x torch API (`src/evox/`, removed in 2.0).
 The section landing page `index.md` is the single entry point; the root `docs/source/index.md` already lists `guide/advanced/index` in its toctree and card grid.
 
 ## Page map
