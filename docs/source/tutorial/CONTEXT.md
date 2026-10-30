@@ -28,7 +28,9 @@ Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_
 
 ## Notes for Agents
 - `EvalMonitorConfig(pop_size=..., dim=...)` completion: the workflow infers `pop_size`/`dim` only from an algorithm state population (`population`/`pop`); CMA-ES carries no bounds, so its monitor needs an explicit `dim=`.
-- Monitors and history are affected by the step-loop style: `run(n)` performs `init_step` + n-1 steps ending in `final_step`, while a manual loop must call `init_step` first and `flush()` before reading history; monitor history lists live on the config and keep appending across `run`/`fit` calls on the same workflow.
+- Monitors and history are affected by the step-loop style: `run(n)` performs `init_step` + (n-2) plain steps + `final_step` (n total; `n == 1` is only `init_step`), and a manual loop must call `init_step` first; monitor history lists live on the config and keep appending across `run`/`fit` calls on the same workflow (a second `run` doubles the list).
+- `wf.flush()` only matters when monitor state lives on a non-CPU device: `_readback` appends CPU leaves immediately, so on the default `backend="numpy"`/`device=None` the history is already complete without flushing.
+- `init()` builds only the algorithm/monitor init graphs; the per-variant step graphs are traced lazily on the first `init_step`/`step`/`final_step` call (and re-traced when a state leaf changes shape/dtype).
 - Problems and metrics are traced `evoxc` functions: outside a trace use `evoxc.evaluate(fn, *concrete_args)` or `evoxc.build` + `evoxc.run`; `hv` additionally takes a leading RNG key and a static `num_sample`.
 - `PSO`/`make_pso` take `lb`/`ub` only (no `dim`; 1-D arrays required), and `DTLZ` exposes its Pareto front as the module-level `pf(config)`, not a method.
 - Pre-existing build blocker (outside this node): `autodoc2_module_all_regexes` in `../conf.py` matches `evox_etl.algorithms.*`, which includes `algorithms/so/de_variants/code.py` — a module without `__all__`, so autodoc2 aborts the build at `builder-inited`.
