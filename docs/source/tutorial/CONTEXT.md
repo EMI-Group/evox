@@ -28,7 +28,19 @@ Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_
 
 ## Notes for Agents
 - `EvalMonitorConfig(pop_size=..., dim=...)` completion: the workflow infers `pop_size`/`dim` only from an algorithm state population (`population`/`pop`); CMA-ES carries no bounds, so its monitor needs an explicit `dim=`.
-- Monitors and history are affected by the step-loop style: `run(n)` performs `init_step` + n-1 steps ending in `final_step`, while a manual loop must call `init_step` first and `flush()` before reading history; monitor history lists live on the config and keep appending across `run`/`fit` calls on the same workflow.
+- Monitors and history are affected by the step-loop style: `run(n)` performs `init_step` + (n-2) plain steps + `final_step` (n total; `n == 1` is only `init_step`), and a manual loop must call `init_step` first; monitor history lists live on the config and keep appending across `run`/`fit` calls on the same workflow (a second `run` doubles the list).
+- `wf.flush()` only matters when monitor state lives on a non-CPU device: `_readback` appends CPU leaves immediately, so on the default `backend="numpy"`/`device=None` the history is already complete without flushing.
+- `init()` builds only the algorithm/monitor init graphs; the per-variant step graphs are traced lazily on the first `init_step`/`step`/`final_step` call (and re-traced when a state leaf changes shape/dtype).
 - Problems and metrics are traced `evoxc` functions: outside a trace use `evoxc.evaluate(fn, *concrete_args)` or `evoxc.build` + `evoxc.run`; `hv` additionally takes a leading RNG key and a static `num_sample`.
 - `PSO`/`make_pso` take `lb`/`ub` only (no `dim`; 1-D arrays required), and `DTLZ` exposes its Pareto front as the module-level `pf(config)`, not a method.
-- Pre-existing build blocker (outside this node): `autodoc2_module_all_regexes` in `../conf.py` matches `evox_etl.algorithms.*`, which includes `algorithms/so/de_variants/code.py` — a module without `__all__`, so autodoc2 aborts the build at `builder-inited`.
+- `tutorial_part4.md` is the only page that links into generated `../apidocs/evox_etl/...` documents (one per algorithm family); those targets resolve only after autodoc2 has run, and `../conf.py` now restricts `autodoc2_module_all_regexes` to `core`/`problems`/`utils`/`workflows`, so the former `algorithms/so/de_variants/code.py` abort no longer applies.
+- Link targets used from these pages all exist today: `../guide/install/{index,evox}`, `../guide/advanced/{backends,operators,metrics,viz,hpo,extensions}`, `../guide/developer/{architecture,custom-alg-pro,custom-monitor}`.
+
+## Known Issues
+- `tutorial_part1.md` documents extras `evox[iree]`/`evox[tvm]`/`evox[compilers]`, which `pyproject.toml` does not define (extras are exactly `vis`, `neuroevolution`, `test`, `docs`, `default`, `triton`); the same extras are listed in `../guide/install/evox.md`.
+- `tutorial_part1.md` states "Python 3.10 or newer is required", while `../guide/install/python.md` notes `evoxc` itself declares `>= 3.11`.
+- `tutorial_part4.md` claims the ES `*Config` spellings are importable from `evox_etl.algorithms`; only `VirtualESConfig`/`VirtualLoRAESConfig` are, the rest are attributes of `evox_etl.algorithms.so` only.
+- `tutorial_part5.md` labels `dim = 8*4 + 8 + 1*8 + 1` as `# 41` (it is 49) and says CEC2022 constraints are "enforced when you construct it" — they fire at evaluate time as `AssertionError`, and an out-of-range `problem_number` fails with `FileNotFoundError` from the CEC data load.
+- `tutorial_part5.md` says `pf_dtlz1 … pf_dtlz7` are exported; `dtlz` exports `pf`, `pf_dtlz1`, `pf_dtlz2`, `pf_dtlz5`, `pf_dtlz6`, `pf_dtlz7` (no `pf_dtlz3`/`pf_dtlz4`).
+- `tutorial_part7.md` labels `wf.init_step(state)` as "generation 0" (`tutorial_part2.md`/`tutorial_part3.md` call it generation 1, which matches `state.generation`), and its "(2227, 2)" `get_pf_fitness` figure for the `TwoObjective` example is not reproducible from the page because the algorithm/pop_size/bounds used are never shown.
+- `tutorial_part6.md` next-step lines describe `tutorial_part5` as covering "writing your own algorithm, problem or monitor" (it covers problems only) and `tutorial_part4` as covering "compiled backends" (backends live in `../guide/advanced/backends`).
