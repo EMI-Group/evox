@@ -16,6 +16,9 @@ parameter (evoxc.random); everything else runs inside an active trace via
 - `tournament_selection.py`: `tournament_selection(key, n_round, fitness,
   tournament_size=2)`, `tournament_selection_multifit(key, n_round, fitnesses,
   tournament_size=2)` — key FIRST.
+  Both return a 1-D `(n_round,)` int index tensor for every `n_round` (including 1:
+  the single selected column is reshaped, never squeezed away — mirrors torch
+  commit f3ea50a8), so downstream gather/broadcast sees the same shape.
 - `find_pbest.py`: `select_rand_pbest(key, percent, population, fitness)`.
 - `rvea_selection.py`: `apd_fn`, `ref_vec_guided` (no rng).
 - `__init__.py`: mirrors torch `__all__` exactly (dominate_relation/apd_fn stay
