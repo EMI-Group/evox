@@ -8,7 +8,7 @@ The documentation is bilingual: English sources here, Simplified Chinese under `
 ## API Surface
 | File / Directory | Purpose |
 |---|---|
-| `conf.py` | Sphinx configuration: extensions, shibuya theme, autodoc2 (scanning `../../src/evox_etl` only), i18n, nav links, `version = "2.0.0-pre"` |
+| `conf.py` | Sphinx configuration: extensions, shibuya theme, autodoc2 (scanning `../../src/evox_etl` only), i18n, nav links, `version = "2.0.0a1"` (kept in step with `pyproject.toml`) |
 | `index.md` | Root landing page: pre-release warning, functional-model summary, runnable quickstart, feature list, toctrees + grid-card navigation |
 | `tutorial/` | 7-part getting-started series (2.0 only) |
 | `guide/install/` | Python and `evox` installation, backend extras, XLA PJRT plugin |
