@@ -1,293 +1,319 @@
-# 7. Practical Examples
+# 7. Migrating from EvoX 1.x
 
-This chapter presents several complete, practical examples to demonstrate how to apply the knowledge from previous chapters. We'll build an optimization project from scratch and showcase how EvoX can be integrated with other tools. These examples cover a range of problem types to help you apply EvoX in real-world scenarios.
+This page is for you if you already have an EvoX 1.x script and want it running on EvoX 2.0.
 
----
+EvoX 2.0 is an **experimental pre-release**. It is imported as `evox_etl`, it is a functional rewrite built on the `evoxc` compiler, and it replaces the torch object model that 1.x shipped in `src/evox/`.
+The 1.x tree is frozen and scheduled for deletion, so it receives no fixes and no new features; the public surface for 2.0 is `src/evox_etl/`.
 
-## Example 1: Single-Objective Optimization
+"The 1.x API is removed" means exactly that, not "deprecated with a warning": there is no `ModuleBase`, no `Parameter` and no `Mutable`; no `evox.core.compile`, `vmap` or `use_state`; no class-component `StdWorkflow` (the constructor keeps its name and argument order, but every component it receives is now a frozen config dataclass); and no distributed workflow switch.
+`evox_etl` imports nothing from `src/evox/` and nothing from torch, so 1.x code does not merely warn at import time — it simply is not there.
 
-**Problem**: Optimize the classic Rastrigin function:
+```{note}
+The vocabulary does **not** change, and that is why migration is mostly mechanical. Three shapes change:
 
-```{math}
-f(\mathbf{x}) = 10 d + \sum_{i=1}^{d}[x_i^2 - 10 \cos{(2\pi x_i)}],
+1. **Classes → frozen config dataclasses.** `PSO(...)` in 1.x was a `torch.nn.Module` subclass; in 2.0 `PSO` is an immutable dataclass of hyperparameters, usually built by a `make_*` constructor.
+2. **Mutating methods → functions that take and return state.** `wf.step()` mutated tensors hidden inside modules; `wf.step(state)` returns the next `WorkflowState`.
+3. **Ambient RNG → an explicit key.** `torch.manual_seed(...)` is gone; the run's key is a tensor leaf inside the state, seeded by `seed=` on `init`/`run`/`fit`.
 ```
 
-where $\mathbf{x} \in \mathbb{R}^d$ and $d$ is the dimensionality. The global optimum is 0 at the origin. The function is highly multimodal, making it ideal for testing global optimization algorithms. Here's a plot of the Rastrigin function
+## Mapping table
 
-```{figure} /_static/rastrigin_function.svg
-:alt: A plot of the Rastrigin function
-:figwidth: 70%
-:align: center
+| 1.x | 2.0 | note |
+|---|---|---|
+| `from evox.algorithms import PSO`; `PSO(pop_size=50, lb=-32*torch.ones(d), ub=32*torch.ones(d), device=...)` | `from evox_etl.algorithms import make_pso`; `make_pso(pop_size=50, lb=[-32.0]*d, ub=[32.0]*d)` | Frozen config dataclass built by the `make_*` constructor; bounds are flat float tuples; no `dim` and no `device` argument |
+| `StdWorkflow(algorithm=algo, problem=prob, monitor=EvalMonitor())` with class components | `StdWorkflow(make_pso(...), Sphere(), monitor=EvalMonitorConfig())` | Same name and argument order; the components are config dataclasses instead of modules |
+| `wf.init_step()`; `for _ in range(n): wf.step()` — mutates internals | `state = wf.init(seed=42)`; `state = wf.init_step(state)`; `state = wf.step(state)` | State threading; `wf.run(n, seed=...)` / `wf.fit(...)` run the whole loop for you |
+| `torch.manual_seed(42)` before the run | `wf.run(seed=42)` / `wf.init(seed=42)`; `evox_etl.key(seed)` for anything you build yourself | Keys live in the state; there is no global seed |
+| `hv(objs, ref)` | `hv(key, objs, ref, num_sample=100000)` | Leading key added; still must run inside a trace |
+| `from evox.utils import switch, clamp, clamp_int, clip, maximum, minimum, lexsort, nanmin, nanmax, randint` | `from evox_etl.operators.jit_fix_operator import switch, clamp, clamp_int, clip, maximum, minimum, lexsort, nanmin, nanmax, randint` | NOT re-exported from `evox_etl.utils`; `randint` gains a leading `key` |
+| `evox.__version__` (undefined in 1.x — raises `AttributeError`) | `evox_etl.__version__` | The attribute exists and is a plain string |
+| `monitor = EvalMonitor(topk=1)`; `monitor.get_best_fitness().item()` | `monitor=EvalMonitorConfig(topk=1)`; `wf.monitor.get_best_fitness()` | You construct the *config*; the workflow builds the host-side wrapper at `init` time |
+| `self.w = Parameter(w, device=device)`; `self.fit = Mutable(torch.zeros(...))` in `class MyAlgo(Algorithm)` | config field `w: float = 0.6`; `fit` field of the `<Algo>State` dataclass | Config fields are static Python values; state fields are traced tensor leaves |
+| `@evox.core.compile` / `@evox.core.vmap` on operators and algorithm methods | nothing | The workflow compiles one step graph per step variant; `vmap` has no analogue |
 
-Rastrigin function
-```
+## Before and after
 
-In this example, we will use the Particle Swarm Optimization (PSO) algorithm to optimize the 10-dimensional Rastrigin function.
-
-**Step 1: Setup**
-
-Assuming you've configured your EvoX environment as explained in Chapter 2.
-
-**Step 2: Workflow Setup**
-
-Create a Python script `opt_rastrigin_10.py`:
+### Algorithms: class → frozen config
 
 ```python
+# 1.x
 import torch
-from evox.algorithms.so.pso_variants import PSO
-from evox.problems.numerical.basic import Rastrigin
-from evox.workflows import StdWorkflow, EvalMonitor
-```
+from evox.algorithms import PSO
 
-Define the PSO algorithm:
-
-```python
 dim = 10
-algo = PSO(
-    pop_size=50,
-    lb=-32 * torch.ones(dim),
-    ub=32 * torch.ones(dim)
-)
+algo = PSO(pop_size=50, lb=-32 * torch.ones(dim), ub=32 * torch.ones(dim))
 ```
-
-Set up the problem and workflow:
 
 ```python
-prob = Rastrigin()
-monitor = EvalMonitor()
-workflow = StdWorkflow(
-    algorithm=algo,
-    problem=prob,
-    monitor=monitor
-)
+# 2.0
+from evox_etl.algorithms import make_pso
+
+DIM = 10
+algo = make_pso(pop_size=50, lb=[-32.0] * DIM, ub=[32.0] * DIM)
 ```
 
-**Step 3: Run Optimization**
+`PSO` is itself importable and is a frozen dataclass with fields `pop_size, lb, ub, w, phi_p, phi_g`; `make_pso` is the same thing plus bound validation and `list`/`ndarray` → flat `float` tuple normalization.
+In 1.x the bounds *also* carried the dimensionality (`dim = lb.shape[0]`); in 2.0 the dimension is implied by the length of `lb`/`ub`, which is why `PSO` has no `dim` argument.
+
+### Problems: subclass → module with `evaluate`
 
 ```python
-workflow.init_step()
-for iter in range(501):
-    workflow.step()
-    if iter % 100 == 0:
-        current_best_fitness = monitor.get_best_fitness().item()
-        print(f"Iter {iter}, Best Fitness: {current_best_fitness}")
-
-print(f"Final Best Solution: {monitor.get_best_solution()}")
-```
-
-**Sample Output**:
-
-```
-Iter 0, Best Fitness: 1398.625
-Iter 100, Best Fitness: 11.608497619628906
-Iter 200, Best Fitness: 2.5700759887695312
-Iter 300, Best Fitness: 1.9909820556640625
-Iter 400, Best Fitness: 1.9899139404296875
-Iter 500, Best Fitness: 0.9976348876953125
-Final Best Solution: tensor([...])
-```
-
-The PSO algorithm finds a near-optimal solution close to the origin, as expected.
-
----
-
-## Example 2: Multi-Objective Optimization
-
-**Problem**: Minimize two objectives:
-
-```{math}
-f_1(x) = x^2, \quad
-f_2(x) = (x - 2)^2
-```
-
-The Pareto front lies between $x = 0$ (optimal for $f_1$) and $x = 2$ (optimal for $f_2$).
-
-**Step 1: Environment Setup**
-
-Make sure you have EvoX installed with NSGA-II support.
-
-**Step 2: Define the Custom Problem**
-
-EvoX has many built-in multi-objective test problems, but for this example, we will define a custom problem to optimize the two objectives:
-
-```python
+# 1.x
 import torch
-import numpy as np
-import matplotlib.pyplot as plt
-
-from evox.algorithms import NSGA2
-from evox.workflows import StdWorkflow, EvalMonitor
-# Import evox core classes, see Chapter 5 for details
 from evox.core import Problem
 
 class TwoObjectiveProblem(Problem):
-    def __init__(
-        self,
-        d: int = 1,
-        m: int = 2,
-    ):
-        super().__init__()
-        self.d = d
-        self.m = m
-
     def evaluate(self, X: torch.Tensor) -> torch.Tensor:
         x = X[:, 0]
-        f_1 = x ** 2
-        f_2 = (x - 2) ** 2
-        return torch.stack([f_1, f_2], dim=1)
-
-    # Optional: Define the Pareto front function
-    def pf(self) -> torch.Tensor:
-        pass
+        return torch.stack([x ** 2, (x - 2) ** 2], dim=1)
 ```
-
-**Step 3: Define Algorithm and Workflow**
 
 ```python
-from evox.algorithms import NSGA2
-from evox.workflows import StdWorkflow, EvalMonitor
+# 2.0 — put BOTH of these in my_problems.py
+import dataclasses
 
-prob = TwoObjectiveProblem()
-torch.set_default_device("cuda:0")
+import evoxc.numpy as enp
 
-algo = NSGA2(
-    pop_size=50,
-    n_objs=2,
-    lb=-5 * torch.ones(1),
-    ub=5 * torch.ones(1),
-    device=torch.device("cuda"),
-)
 
-monitor = EvalMonitor()
-workflow = StdWorkflow(algo, prob, monitor)
+@dataclasses.dataclass(frozen=True)
+class TwoObjective:
+    """f1 = x^2, f2 = (x - 2)^2 over a 1-D search space."""
+
+
+def evaluate(config, state, pop):
+    x = pop[:, 0]
+    return enp.stack([x ** 2, (x - 2.0) ** 2], axis=1), state
 ```
 
-**Step 4: Optimization and Visualization**
+```{warning}
+The config dataclass and the `evaluate` function must live in the **same** module — the workflow resolves the function via `type(config).__module__` — and `pop` is **symbolic** while tracing, so the body uses `evoxc` ops (`evoxc.numpy` as `enp` above), never numpy or torch.
+```
+
+`evaluate` is a plain module-level function, not a method: it returns `(fitness, state)`, so a stateless problem returns `state` untouched (the workflow supplies an `EmptyState` when the module defines no `init`).
+Handed to a multi-objective workflow, this problem works end to end: `wf.run(generations=60, seed=0)` followed by `wf.monitor.get_pf_fitness()` yields a `(2227, 2)` Pareto-front estimate.
+
+### Workflow: mutating steps → state threading
 
 ```python
-workflow.init_step()
-for i in range(100):
-    workflow.step()
-
-data = algo.fit.cpu().numpy()
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-x_vals = np.linspace(0, 2, 400)
-pf_f1 = x_vals ** 2
-pf_f2 = (x_vals - 2) ** 2
-
-plt.figure(figsize=(8, 6))
-plt.scatter(data[:, 0], data[:, 1], c='blue', label='Optimized Population', alpha=0.7)
-plt.plot(pf_f1, pf_f2, 'r-', linewidth=2, label='Pareto Front')
-plt.xlabel("f1")
-plt.ylabel("f2")
-plt.title("NSGA-II on Bi-objective Problem")
-plt.legend()
-plt.grid(True)
-plt.show()
-```
-
-We can visualize the results using Matplotlib. The blue points represent the optimized population, while the red line shows the Pareto front.
-
-```{figure} /_static/example_nsga2_result.svg
-:alt: A plot of the NSGA-II population
-:figwidth: 70%
-:align: center
-
-A plot of the NSGA-II population after optimization
-```
-
-In Jupyter Notebook, you can use EvoX's built-in plotting capabilities to visualize the optimization process and monitor how the population evolves over generations.
-
-```python
-monitor.plot()
-```
-
----
-
-## Example 3: Hyperparameter Optimization (HPO)
-
-**Problem**: Tune `C` and `max_iter` of a logistic regression classifier on the breast cancer dataset to maximize validation accuracy.
-
-**Step 1: Load Data and Model**
-
-```python
-import torch
-from sklearn.datasets import load_breast_cancer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from evox.core import Problem
-
-X, y = load_breast_cancer(return_X_y=True)
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-scaler = StandardScaler().fit(X_train)
-X_train = scaler.transform(X_train)
-X_val = scaler.transform(X_val)
-```
-
-**Step 2: Define the Problem**
-
-```python
-class HyperParamOptProblem(Problem):
-    def __init__(self):
-        super().__init__()
-
-    def evaluate(self, pop):
-        pop = pop.detach().cpu().numpy()
-        objs = []
-        for C_val, max_iter_val in pop:
-            C_val = float(max(1e-3, C_val))
-            max_iter_val = int(max(50, max_iter_val))
-            model = LogisticRegression(C=C_val, max_iter=max_iter_val, solver='liblinear')
-            model.fit(X_train, y_train)
-            acc = model.score(X_val, y_val)
-            objs.append(1 - acc)  # error rate
-        return torch.tensor(objs)
-```
-
-**Step 3: Workflow Setup**
-
-```python
-from evox.algorithms.so.es_variants import CMAES
+# 1.x
 from evox.workflows import EvalMonitor, StdWorkflow
 
-prob = HyperParamOptProblem()
-init_params = torch.tensor([1.0, 100.0])
-print("Initial error rate:", prob.evaluate(init_params.unsqueeze(0)).item())
-
-algo = CMAES(
-    mean_init=init_params,
-    sigma=1.0,
-)
-
 monitor = EvalMonitor()
-workflow = StdWorkflow(algo, prob, monitor)
+wf = StdWorkflow(algorithm=algo, problem=prob, monitor=monitor)
+wf.init_step()
+for _ in range(99):
+    wf.step()
 ```
-
-**Step 4: Optimization**
 
 ```python
-workflow.init_step()
-for _ in range(100):
-    workflow.step()
+# 2.0
+from evox_etl import EvalMonitorConfig, StdWorkflow
 
-best_params = monitor.get_best_solution()
-best_error = prob.evaluate(best_params.unsqueeze(0)).item()
-print("Optimized error rate:", best_error)
+wf = StdWorkflow(algorithm=algo, problem=prob, monitor=EvalMonitorConfig())
+state = wf.init(seed=42)
+state = wf.init_step(state)
+for _ in range(99):
+    state = wf.step(state)
 ```
 
-**Sample Output**:
+`wf.step()` without an argument is still accepted — it re-uses the state remembered from the previous call — so a loop that ignores the return value keeps working.
+What you cannot do is reach into the workflow for a mutated population: after the conversion, `algo.pop` no longer exists, and the tensors you want are leaves of `WorkflowState` (the algorithm's population lives in `state.algorithm_state`).
 
+```{tip}
+Prefer `wf.run(generations=100, seed=42)` or `wf.fit(generations=100, seed=42)` whenever you do not need per-generation host-side work: they initialize, dispatch `init_step` / `step` / `final_step` correctly, and drain the monitor's asynchronous read-backs at the end.
 ```
-Initial error rate: 0.0263
-Optimized error rate: 0.0088
+
+### Seeding: global seed → explicit key
+
+```python
+# 1.x
+import torch
+
+torch.manual_seed(0)
+wf.init_step()
 ```
 
-With just a few lines of code, EvoX automates the tedious trial-and-error of hyperparameter tuning.
+```python
+# 2.0
+from evox_etl import key
 
----
+state = wf.init(seed=0)          # workflow-level seeding
+k = key(0)                        # a 0-d int64 evoxc tensor, for code you build yourself
+```
 
-These practical examples illustrate how EvoX can be effectively applied across various domains, from mathematical test functions to machine learning workflows. Once you're comfortable with the basic structure—**Algorithm + Problem + Monitor + Workflow**—you can adapt EvoX to suit almost any optimization task.
+`key(seed)` is `evoxc.random.key`; the key is threaded through `WorkflowState.key` and split by each component that needs randomness (population init, operator sampling, Monte Carlo metrics), so a run is reproducible from `seed=` alone regardless of what else ran in the process.
+
+### Monitor: object → config plus host-side wrapper
+
+```python
+# 1.x
+monitor = EvalMonitor(topk=1)
+wf = StdWorkflow(algo, prob, monitor)
+wf.init_step()
+
+best = monitor.get_best_fitness().item()      # torch tensor -> Python float
+sol = monitor.get_best_solution()             # torch tensor
+```
+
+```python
+# 2.0
+from evox_etl import EvalMonitorConfig, StdWorkflow
+
+wf = StdWorkflow(algo, prob, monitor=EvalMonitorConfig(topk=1))
+wf.run(generations=100, seed=42)
+
+best = wf.monitor.get_best_fitness()          # Python float
+sol = wf.monitor.get_best_solution()          # numpy array
+```
+
+The object you construct is now the **config**; the accessor object appears as `wf.monitor` once the workflow has run `init` (which fills in `pop_size`, `dim`, `n_obj`, `multi_obj` and `opt_direction` for you). Note the missing `.item()`: `get_best_fitness()` already returns a Python `float`, and the solution accessors return numpy arrays because history is recorded host-side.
+`wf.monitor.plot()` is still there — it delegates to `evox_etl.vis_tools` and needs the optional `plotly` dependency.
+
+### Metrics: `hv` gains a key
+
+```python
+# 1.x
+from evox.metrics import hv
+
+value = hv(objs, ref)                          # torch tensors in, tensor out
+```
+
+```python
+# 2.0
+import numpy as np
+import evoxc
+
+from evox_etl import hv, key
+
+objs = np.array([[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]], dtype=np.float32)
+ref = np.array([2.0, 2.0], dtype=np.float32)
+value = float(evoxc.evaluate(hv, key(0), objs, ref).numpy())
+```
+
+```text
+3.245039939880371
+```
+
+The Monte Carlo sampler needs randomness, so `hv(key, objs, ref, num_sample=100000)` takes the key first; the same key and the same points give the same estimate, and `num_sample` is a static trace-time argument. `evoxc.evaluate(fn, *concrete_tensors)` is the short host-side form (build a graph from the argument shapes, then run it).
+`gd`, `igd`, `gd_plus` and `igd_plus` keep their 1.x signatures — `gd(objs, pf)`, `igd(objs, pf, p=1.0)` — and only need the same wrapper, because evoxc has no eager mode and every `evox_etl` metric must run inside a trace.
+
+### Safe math helpers: `evox.utils` → `evox_etl.operators.jit_fix_operator`
+
+```python
+# 1.x
+from evox.utils import clamp, maximum, randint
+
+x = clamp(x, lb, ub)
+x = maximum(x, 0.0)
+r = randint(0, 10, (4,))
+```
+
+```python
+# 2.0
+from evox_etl import key
+from evox_etl.operators.jit_fix_operator import clamp, maximum, randint
+
+x = clamp(x, lb, ub)
+x = maximum(x, 0.0)
+r = randint(key(0), 0, 10, (4,))    # leading key
+```
+
+The math is the same relu/`select` composition that keeps operator fusion safe, and the same caveat applies: these are trace-time functions, callable only inside an active graph. `randint` is the one signature that changes, because evoxc randomness is stateless.
+
+### The whole program: PSO on Sphere
+
+```python
+# 1.x — pso_sphere.py
+import torch
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
+from evox.workflows import EvalMonitor, StdWorkflow
+
+torch.manual_seed(42)
+dim = 10
+algo = PSO(pop_size=50, lb=-32 * torch.ones(dim), ub=32 * torch.ones(dim))
+wf = StdWorkflow(algorithm=algo, problem=Sphere(), monitor=EvalMonitor())
+
+wf.init_step()
+for gen in range(1, 100):
+    wf.step()
+    if gen % 20 == 0:
+        print(f"gen {gen:3d}  best fitness {wf.monitor.get_best_fitness().item():10.4f}")
+```
+
+```python
+# 2.0 — pso_sphere.py
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.algorithms import make_pso
+from evox_etl.problems import Sphere
+
+DIM = 10
+wf = StdWorkflow(
+    algorithm=make_pso(pop_size=50, lb=[-32.0] * DIM, ub=[32.0] * DIM),
+    problem=Sphere(),
+    monitor=EvalMonitorConfig(),
+    opt_direction="min",
+)
+
+state = wf.init(seed=42)          # seeds the whole run; no global seed
+state = wf.init_step(state)       # generation 0
+for gen in range(1, 100):
+    state = wf.step(state)
+    if gen % 20 == 0:
+        print(f"gen {gen:3d}  best fitness {wf.monitor.get_best_fitness():10.4f}")
+
+print("final best solution:", wf.monitor.get_best_solution())
+print("generations run:", int(state.generation.numpy()))
+```
+
+```text
+gen  20  best fitness    16.7388
+gen  40  best fitness     0.0656
+gen  60  best fitness     0.0011
+gen  80  best fitness     0.0000
+final best solution: [ 5.0371531e-05 -4.5477755e-05  6.2948122e-05  5.0059789e-05
+  1.9440666e-04 -1.2963169e-04 -1.1773363e-05 -7.5407603e-05
+ -2.3137491e-04  8.7571068e-05]
+generations run: 100
+```
+
+Sphere has its optimum at the origin, so a correct PSO drives the best fitness towards `0.0` and the best solution towards zero — the same qualitative behaviour as 1.x, reached through configs and state instead of modules and mutations.
+
+If you do not need the per-generation print, the whole run collapses to one call: build the workflow with `num_generations=100` and use `best = wf.fit(seed=42)`, which returns the best fitness (`1.327e-07` for this seed) after running the loop for you.
+
+## Removed in 2.0
+
+| Removed | Why / what to use instead |
+|---|---|
+| `evox.core.ModuleBase`, `Parameter`, `Mutable` | The class hierarchy is gone: components are frozen config dataclasses plus plain functions. `evox_etl.core.Algorithm` / `Problem` / `Monitor` are documentation-only `Protocol`s, so there is nothing to inherit. Static hyperparameters become config fields, mutable tensors become `<Component>State` fields. |
+| `evox.core.compile`, `evox.core.vmap`, `evox.core.use_state` | The workflow compiles one step graph per step variant and per state shape; `vmap` has no analogue because a component owns a whole generation in one traced call, so a population is already a batch. |
+| Distributed workflow: `StdWorkflow(enable_distributed=True, group=...)` | `evox_etl`'s `StdWorkflow` accepts neither argument, and there is no `torch.distributed` integration. Device placement is `device=` plus `backend=`. |
+| Brax / MuJoCo-Playground / supervised-learning problems in `evox.problems.neuroevolution` | These wrapped external libraries through `torch`; only the virtual Gaussian-noise ES family was ported (`evox_etl.problems.neuroevolution.VirtualProblem`, `VirtualLoRAProblem`). |
+| `evox.utils.ParamsAndVector`, `VmapInfo`, `register_vmap_op` | Parameter↔vector conversion and custom-vmap registration existed to serve `torch.func`/`vmap`; 2.0 has plain pytrees instead (`evox_etl.core.tree_flatten/tree_leaves/tree_map/tree_unflatten`) and no `vmap` to register operators for. |
+| `evox.triton_kernels` | The optional Triton package has no 2.0 counterpart; the virtual-ES noise generation it accelerated is a plain evoxc graph (`evox_etl.algorithms.so.es_variants.virtual_noise`). |
+| `nn.Module` transforms for `solution_transform` / `fitness_transform` | 2.0 takes plain callables (`Callable[[Any], Any]`); `torch.nn.Sequential` compositions must become ordinary Python functions. |
+
+Where a replacement does exist:
+
+- **Safe math helpers** → `evox_etl.operators.jit_fix_operator` (traced, same math as 1.x's `evox.utils`).
+- **Plotting** → `evox_etl.vis_tools` (`plot_obj_space_1d`, `plot_obj_space_2d`, `plot_obj_space_3d`, `plot_dec_space`) or `wf.monitor.plot()`; both need the optional `plotly` extra.
+- **Hyperparameter optimization** → `evox_etl.problems.hpo_wrapper.HPOProblemWrapper`, a host-side rewrite: it substitutes candidate values into inner configs, rebuilds and runs an inner `StdWorkflow`, and reads back the inner monitor's best fitness. Its limitation matters for migration planning — it is **not** an `evox_etl` `Problem`, so it cannot be the outer problem of a `StdWorkflow` (you drive it from host code such as `random_search`), it evaluates candidates one at a time instead of batched via `vmap`, only tunes plain static config fields, and re-traces the inner graph for every distinct candidate.
+
+## Migration checklist
+
+1. Pin the new import: replace `import evox...` with `import evox_etl...` in one environment, and confirm `evox_etl.__version__` imports before touching any logic.
+2. Convert algorithms: pick the matching config dataclass and build it with `make_*`; turn tensor bounds into flat `float` lists and drop `dim`/`device` arguments.
+3. Convert problems: move each `class MyProblem(Problem)` body into a module-level `evaluate(config, state, pop)` next to its frozen config dataclass, replacing torch/numpy ops with `evoxc` ops.
+4. Convert monitors: `EvalMonitor(...)` → `EvalMonitorConfig(...)`, and read results through `wf.monitor` after `init`/`run`/`fit` (drop the trailing `.item()`).
+5. Thread state: `wf.init(seed=...)` then `state = wf.step(state)`; prefer `wf.run(...)`/`wf.fit(...)` wherever the loop body has no host-side work.
+6. Replace seeding: delete `torch.manual_seed(...)`, pass `seed=` to `init`/`run`/`fit`, and use `evox_etl.key(seed)` for graphs you build yourself.
+7. Fix `hv` calls: add the leading key and wrap the call in `evoxc.evaluate` (or `evoxc.build` + `evoxc.run`); check that `gd`/`igd` calls are wrapped the same way.
+8. Replace removed helpers: `evox.utils.switch/clamp/...` → `evox_etl.operators.jit_fix_operator`, and rewrite anything relying on `ModuleBase`, `Parameter`, `Mutable`, `compile`, `vmap`, `register_vmap_op`, `ParamsAndVector`, the Triton package or the distributed switch.
+9. Run the smoke test from {doc}`tutorial_part1` on the converted script; if it passes, your script is on the 2.0 API.
+
+## Where to go next
+
+Workflow and monitor details — including `EvalMonitorConfig` history options, `wf.monitor` accessors and plotting — are covered in {doc}`tutorial_part3`.
+For the reasoning behind configs, state and the step protocol, read the architecture guide at {doc}`../guide/developer/architecture`.
+Compiler backends and device placement (`backend=`, `device=`, `compile_options=`) are described in {doc}`../guide/advanced/backends`.
+If you maintain a plugin package, the 2.0 extension mechanism (the `evox_etl_ext` namespace package) is documented in {doc}`../guide/advanced/extensions`.
