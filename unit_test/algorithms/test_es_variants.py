@@ -14,8 +14,9 @@ from evox.algorithms import (
     PersistentES,
     SeparableNES,
 )
+from evox.workflows import StdWorkflow
 
-from .test_base import TestBase
+from .test_base import Sphere, TestBase
 
 
 class TestESVariants(TestBase):
@@ -63,6 +64,12 @@ class TestESVariants(TestBase):
             init_std=torch.full((self.dim,), 1),
         )
         self.run_all(algo)
+
+    def test_nes_default_pop_size(self):
+        xnes = XNES(init_mean=self.center, init_covar=torch.eye(self.dim))
+        sepnes = SeparableNES(init_mean=self.center, init_std=torch.full((self.dim,), 1))
+        self.assertEqual(xnes.pop_size, 8)
+        self.assertEqual(sepnes.pop_size, 8)
 
     def test_des(self):
         algo = DES(
@@ -124,6 +131,14 @@ class TestESVariants(TestBase):
         )
         self.run_all(algo)
 
+    def test_guided_es_subspace(self):
+        algo = GuidedES(
+            pop_size=self.pop_size,
+            center_init=self.center,
+            subspace_dims=2,
+        )
+        self.run_all(algo)
+
     def test_guided_es_adam(self):
         algo = GuidedES(
             pop_size=self.pop_size,
@@ -177,13 +192,42 @@ class TestESVariants(TestBase):
         )
         self.run_all(algo)
 
+    def test_asebo_after_subspace_activates(self):
+        # run_all stops after a few generations; the gradient subspace only takes over once more than
+        # subspace_dims gradients are buffered, including when subspace_dims < dim
+        for subspace_dims in (None, 2):
+            algo = ASEBO(pop_size=self.pop_size, center_init=self.center, subspace_dims=subspace_dims)
+            workflow = StdWorkflow(algo, Sphere())
+            workflow.init_step()
+            for _ in range(3 * self.dim):
+                workflow.step()
+            self.assertTrue(torch.isfinite(algo.center).all())
+            self.assertTrue(0 <= float(algo.alpha) <= 1)
+            # UUT is an orthogonal projector onto at most subspace_dims directions
+            UUT = algo.UUT
+            torch.testing.assert_close(UUT @ UUT, UUT, atol=1e-4, rtol=1e-4)
+            torch.testing.assert_close(UUT, UUT.T)
+            self.assertLessEqual(round(float(torch.trace(UUT))), algo.subspace_dims)
+            self.assertGreater(float(torch.trace(UUT)), 0.5)
+
     def test_cmaes(self):
-        return
         algo = CMAES(
             mean_init=self.center,
             sigma=5,
         )
         self.run_all(algo)
+
+    def test_cmaes_cumulation_constant(self):
+        # c_c = (4 + mu_eff / n) / (n + 4 + 2 mu_eff / n), eq. (56) of the CMA-ES tutorial; it must stay
+        # in (0, 1] so that sqrt(c_c * (2 - c_c) * mu_eff) in the p_c update is real
+        for dim, pop_size in [(10, 10), (10, 100), (10, 1000), (100, 1000)]:
+            algo = CMAES(mean_init=torch.zeros(dim), sigma=1, pop_size=pop_size)
+            mu_eff = float(algo.mu_eff)
+            expected = (4 + mu_eff / dim) / (dim + 4 + 2 * mu_eff / dim)
+            self.assertAlmostEqual(float(algo.c_c), expected, places=5)
+            self.assertLessEqual(float(algo.c_c), 1)
+            p_c = algo._update_path_c(torch.zeros(dim), torch.tensor(1.0), torch.ones(dim))
+            self.assertTrue(torch.isfinite(p_c).all())
 
     def test_cmaes_covariance_rank_one(self):
         algo = CMAES(mean_init=torch.zeros(3), sigma=1, pop_size=4)

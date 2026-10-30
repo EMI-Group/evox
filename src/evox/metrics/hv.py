@@ -5,13 +5,16 @@ def hv(objs: torch.Tensor, ref: torch.Tensor, num_sample: int = 100000):
     """
     Monte Carlo Hypervolume Calculation using bounding cube method.
 
-    :param objs: Objective points of shape (n_points, n_objs).
+    :param objs: Objective points of shape (n_points, n_objs), to be minimized.
     :param ref: Reference point of shape (n_objs, ).
+        Points that do not dominate the reference point do not add to the hypervolume.
     :param num_sample: Number of Monte Carlo samples.
     :return: Estimated hypervolume.
     """
 
-    points = torch.abs(objs - ref)
+    # distance of each point to the reference point, 0 along objectives
+    # where the point is not better than the reference point
+    points = torch.clamp(ref - objs, min=0)
     bound = torch.max(points, dim=0).values
     max_vol = torch.prod(bound)
     samples = torch.rand(num_sample, points.size(1)) * bound

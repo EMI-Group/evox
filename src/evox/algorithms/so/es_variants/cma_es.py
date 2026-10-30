@@ -158,7 +158,9 @@ class CMAES(Algorithm):
             self._no_decomposition,
             (C,),
         )
-        return B, D, C_invsqrt
+        # Unpacking the stacked output gives views of one tensor; clone them so that the next
+        # step's torch.cond does not see its captured buffers as aliasing each other
+        return B.clone(), D.clone(), C_invsqrt.clone()
 
     def _no_decomposition(self, C: torch.Tensor):
         return torch.stack([self.B, self.D, self.C_invsqrt], dim=0)
@@ -167,7 +169,8 @@ class CMAES(Algorithm):
         self,
         C: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        C = (C + C.T) / 2
+        # torch.cond rejects `.T` of its operand as aliasing, so transpose explicitly
+        C = (C + C.transpose(0, 1)) / 2
         D, B = torch.linalg.eigh(C)
         D = torch.clamp(D, min=1e-8)
         C_invsqrt = B @ torch.diag(1.0 / torch.sqrt(D)) @ B.T

@@ -36,7 +36,7 @@ For a parameter block at flat element offset ``off``:
 """
 
 import math
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import torch
 
@@ -157,7 +157,7 @@ def _cpu_normal_noise(seeds: torch.Tensor, n_elements: int, offset: int) -> torc
 # ---------------------------------------------------------------------------
 
 
-def compute_offsets(param_shapes: list[tuple]) -> list[int]:
+def compute_offsets(param_shapes: List[Tuple]) -> List[int]:
     """Compute cumulative flat-element offsets for a list of parameter blocks.
 
     For each block the number of elements is ``prod(shape)``. The returned list
@@ -209,7 +209,7 @@ def _virtual_perturbed_linear_fake(
 def _virtual_weight_gradient_fake(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    weight_shape: list[int],
+    weight_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,
@@ -220,7 +220,7 @@ def _virtual_weight_gradient_fake(
 def _virtual_bias_gradient_fake(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    bias_shape: list[int],
+    bias_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,
@@ -463,7 +463,7 @@ def _triton_virtual_perturbed_linear(
 def _triton_virtual_weight_gradient(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    weight_shape: list[int],
+    weight_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,
@@ -497,7 +497,7 @@ def _triton_virtual_weight_gradient(
 def _triton_virtual_bias_gradient(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    bias_shape: list[int],
+    bias_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,
@@ -601,7 +601,7 @@ def virtual_perturbed_linear(
 def virtual_weight_gradient(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    weight_shape: list[int],
+    weight_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,
@@ -635,7 +635,7 @@ def virtual_weight_gradient(
 def virtual_bias_gradient(
     fitness: torch.Tensor,
     seeds: torch.Tensor,
-    bias_shape: list[int],
+    bias_shape: List[int],
     sigma: float,
     pop_size: int,
     offset: int,

@@ -68,7 +68,7 @@ class CoDE(Algorithm):
         self.strategies = torch.tensor([rand_1_bin, rand_2_bin, current2rand_1], device=device)
         # setup
         self.best_index = Mutable(torch.tensor(0, device=device))
-        self.pop = Mutable(torch.randn(pop_size, dim, device=device) * (ub - lb) + lb)
+        self.pop = Mutable(torch.rand(pop_size, dim, device=device) * (ub - lb) + lb)
         self.fit = Mutable(torch.full((self.pop_size,), fill_value=torch.inf, device=device))
 
     def step(self):
