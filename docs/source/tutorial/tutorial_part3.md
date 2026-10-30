@@ -1,113 +1,299 @@
-# 3. Basic Operations
+# 3. Workflow and Monitor
 
-In this chapter, we will guide you through running your first EvoX optimization task, including how to **start EvoX** and **initialize the optimization process**, how to **configure an EvoX project** (selecting algorithms and problems and assembling them), and the commonly used **basic commands** (or methods) to control the optimization process. Through a simple example, you will learn the basic usage of EvoX.
+{doc}`Part 2 <tutorial_part2>` showed the shortest path from a config to a result. This
+chapter explains the machinery behind it: what `StdWorkflow` does with each of its
+arguments, how a generation maps onto an algorithm step, how state and randomness are
+threaded, and how `EvalMonitorConfig`/`EvalMonitor` record and expose the run.
 
-## Starting and Initializing
+## The `StdWorkflow` contract
 
-After verifying the installation, you can start writing optimization scripts using EvoX. You can import EvoX in any Python environment (such as terminal, Jupyter Notebook, IDE, etc.).
+`StdWorkflow` is the only orchestration object in EvoX 2.0. It takes frozen config
+dataclasses, traces them into a compiled step graph, and runs that graph generation by
+generation:
 
-First, let’s import EvoX and its related modules, and initialize a simple optimization task. For example, we will use the Particle Swarm Optimization (PSO) algorithm to optimize the classic Ackley function. The Ackley function is a common benchmark function with a known global optimum at \((0,0,\dots,0)\), making it suitable for demonstration.
-Here is a minimal EvoX example code that demonstrates how to start and run the optimization:
+| Argument | Type | Role |
+|---|---|---|
+| `algorithm=` | frozen config dataclass | Algorithm to run. Its module must define `step(config, state, evaluate)`, and optionally `init_step`/`final_step`. |
+| `problem=` | frozen config dataclass | Problem to evaluate. Its module defines `evaluate(config, state, x) -> (fitness, new_state)`. |
+| `monitor=` | config dataclass or `None` (default) | Monitor to update every generation. Without one, `wf.monitor` stays `None`. |
+| `opt_direction=` | `str` or `list[str]` (default `"min"`) | `"min"`/`"max"`, or a list of them for multi-objective problems. |
+| `solution_transform=` | callable or `None` (default) | Applied to the candidates **before** they reach the problem. |
+| `fitness_transform=` | callable or `None` (default) | Applied to the fitness **after** opt-direction scaling, before the algorithm sees it. |
+| `num_generations=` | `int` or `None` (default) | Default budget for `run()`/`fit()`. |
+| `backend=` | `str` (default `"numpy"`) | `evoxc` compiler backend for the step graph. |
+| `device=` | `str`/`evoxc.Device`/`None` (default) | Device the step graph runs on; `None` means CPU. |
+| `compile_options=` | `dict` or `None` (default) | Extra keyword options for `evoxc.build` (`backend`/`device` keys are stripped). |
 
-```python
-import torch
-from evox.algorithms import PSO                      # Import PSO algorithm
-from evox.problems.numerical import Ackley           # Import Ackley optimization problem
-from evox.workflows import StdWorkflow, EvalMonitor  # Import standard workflow and monitor
-
-# 1. Define the optimization algorithm and problem
-algorithm = PSO(
-    pop_size=50,                    # Population size of 50
-    lb=-32 * torch.ones(2),         # Decision variable lower bound: 2D vector, each -32
-    ub= 32 * torch.ones(2)          # Decision variable upper bound: 2D vector, each 32
-)
-problem = Ackley()                  # Optimization problem: Ackley function (default dimension matches the algorithm)
-
-# 2. Assemble the workflow and add a monitor to track results
-monitor = EvalMonitor()
-workflow = StdWorkflow(algorithm, problem, monitor)
-
-# 3. Initialize the workflow
-workflow.init_step()  # Initialize the internal state of the algorithm and problem
-
-# 4. Execute optimization iterations
-for i in range(100):
-    workflow.step()   # Advance the optimization by one step
-
-# 5. Obtain results (e.g., print the optimal value)
-best_fitness = monitor.get_best_fitness() # Get the best fitness value from the monitor
-print("Iteration completed, current best fitness value found:", float(best_fitness))
-```
-
-The above code includes the following steps:
-- First, we set the parameters for the PSO algorithm: population size of 50 and a search space in 2D ranging from [-32, 32].
-- Then, we define the Ackley problem (the Ackley function is defined as 2D by default).
-- We create a standard workflow `StdWorkflow` that **assembles** the algorithm and problem, and pass in a monitor `EvalMonitor` to record the optimization process data.
-- Next, we complete the initialization process using `workflow.init_step()`, which automatically initializes the population, random seed, and other internal states.
-- Then, we run a loop to continuously execute 100 iterations using `workflow.step()`. Each time `step()` is called, the algorithm generates new solutions and evaluates their fitness, continuously approaching the optimal solution.
-- Finally, we use the method `get_min_fitness()` provided by the monitor to obtain the best fitness value during the iteration process and print it out.
-
-When you run this script, you will see the output of the optimization iterations, for example:
+Both transforms must be **plain, traceable callables** — they run *inside* the compiled
+graph, so a `torch.nn.Module` or anything that reads a Python global at trace time will
+not work. The evaluation pipeline they slot into is fixed, and it is the only place
+fitness is produced:
 
 ```text
-Iteration completed, current best fitness value found: 9.5367431640625e-07
+evaluate(candidates):
+    1. x          = solution_transform(candidates)        # if given
+    2. fitness, problem_state = problem.evaluate(problem_state, x)
+    3. fitness    = opt_direction * fitness               # min semantics inside
+    4. fitness    = fitness_transform(fitness)            # if given
+    5. monitor_state = monitor_update(candidates, fitness)  # raw candidates!
+    return fitness
 ```
 
-Since we did not explicitly print the intermediate results in the loop, the intermediate results will not be displayed. However, you can judge whether the algorithm has converged based on the final fitness value. For example, the optimal value of the Ackley function is 0, and if the output is close to 0, it indicates that PSO has found a solution close to the global optimum. You can also call `print(monitor.history)` to view the historical data recorded by the monitor or use `monitor.plot()` to plot convergence curves (requires visualization support like Plotly).
+Two consequences are worth remembering:
 
-```{note}
-`StdWorkflow` is a **standard optimization process** encapsulation provided by EvoX. It internally implements the "initialization-iteration update" logic found in traditional evolutionary algorithms and encapsulates the interaction between the algorithm and the problem. For most simple applications, using `StdWorkflow` directly will suffice. The `EvalMonitor` is a monitor that implements methods like `get_best_fitness()` and `plot()` to collect and display performance metrics during the optimization process. Beginners can temporarily understand it as a record book that records the best results of each iteration for later analysis.
+- The monitor records the **raw** candidates (step 1 input) together with the
+  **transformed** fitness (step 4 output). If `solution_transform` changes the meaning
+  of a point, the reported solution is the search-space point you asked for, not the
+  point the problem actually saw.
+- Everything downstream — the algorithm's own bookkeeping as well as the monitor — sees
+  the transformed fitness, and always in minimization orientation (step 3).
+
+```python
+import numpy as np
+
+from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox_etl.algorithms import PSO
+from evox_etl.problems.numerical import Sphere
+
+dim = 3
+lb = np.zeros(dim)
+ub = np.full(dim, 10.0)
+
+# Sphere is minimized at the origin, but we want the optimum at x = 3
+wf = StdWorkflow(
+    PSO(pop_size=40, lb=lb, ub=ub),
+    Sphere(),
+    monitor=EvalMonitorConfig(),
+    solution_transform=lambda x: x - 3.0,
+    backend="numpy",
+)
+wf.run(100, seed=0)
+print(f"best fitness : {wf.monitor.get_best_fitness():.5f}")
+print(f"best solution: {np.round(wf.monitor.get_best_solution(), 4)}")
 ```
 
-In the example above, we've created a basic configuration for an EvoX project, including selecting an algorithm, defining the problem, and assembling the workflow. Generally, configuring an EvoX project involves the following steps:
+```text
+best fitness : 0.00092
+best solution: [3.0135 3.0221 3.0158]
+```
 
-1. **Select/Define an Optimization Problem**: Clarify what optimization problem you're trying to solve. For example, if you're optimizing a mathematical function, EvoX provides many **built-in problems** under the `evox.problems` module (e.g., classic functions like Sphere, Rastrigin, Ackley) that you can use directly. If your problem isn't covered by the built-ins, you can define your own (covered in a later chapter). When configuring a problem, you usually need to know the **dimension of the decision variables** and their **value range**.
+## `run` vs `fit` vs the step loop
 
-2. **Select/Configure an Optimization Algorithm**: Choose an appropriate evolutionary algorithm based on the problem type. EvoX provides a rich set of algorithms under `evox.algorithms`, including single-objective algorithms (like PSO, GA, CMA-ES) and multi-objective algorithms (like NSGA-II, RVEA). After choosing the algorithm, you’ll generally need to set algorithm parameters, such as population size (`pop_size`) and algorithm-specific parameters (like crossover probability and mutation probability in GA). Most algorithms require the **variable range** (lower bound `lb` and upper bound `ub`) and problem dimension to initialize the population. If you're using a multi-objective algorithm, you'll also need to specify the number of objectives (`n_objs`). EvoX's algorithms often provide default values for common hyperparameters, but beginners should consider tuning these parameters based on the task for better performance.
+| Call | What it does | Returns | Needs a monitor? |
+|---|---|---|---|
+| `wf.run(generations=None, seed=42)` | `init` + the whole loop (`init_step`, plain `step`s, `final_step`) | the final `WorkflowState` | no |
+| `wf.fit(fitness=None, generations=None, seed=42)` | the same loop, then reads the elite | the best fitness (`float`) | yes — raises `ValueError` without one |
+| `wf.init(seed)` / `init_step` / `step` / `final_step` | one generation per call; you own the loop | a new `WorkflowState` per call | no |
 
-3. **Assemble the Workflow**: With the algorithm and problem instance ready, you need to "assemble" them into a workflow, which represents the full optimization process control. In EvoX, `StdWorkflow` is typically used to combine the algorithm and the problem. If you want to monitor optimization progress, you can add a monitor (like `EvalMonitor`) to the workflow. A monitor isn't required, but it can be very helpful during debugging and analysis. Assembling the workflow usually takes one line of code, like: `workflow = StdWorkflow(algo, prob, monitor)`.
+The generation count is resolved per call: `run(n)`/`fit(generations=n)` override the
+constructor's `num_generations`. When neither is given you get a clear error rather than
+a silent default:
 
-4. **Initialize**: Call the workflow’s initialization method to begin optimization. The latest version of EvoX provides a convenient `StdWorkflow.init_step()` method that completes the initialization process in one call.
+```text
+ValueError: The number of generations must be specified either in the constructor
+(num_generations) or in run(generations=...).
+```
 
-5. **Run Iterations**: Use a loop to repeatedly call `workflow.step()` to drive the evolutionary process forward. Each call performs one iteration, including steps like “generate new solutions -> evaluate -> select” inside the algorithm. During iterations, you can use a monitor to observe real-time results, like printing the current best fitness every few generations. Termination criteria can be set based on your needs — common ones include a fixed number of generations (e.g., run for 100 generations), or stopping when monitored metrics converge (e.g., no significant improvement over several generations).
+`fit()` is the shortest path to a number, and its optional `fitness=` argument records
+an externally known fitness vector as the generation-0 history entry (useful when you
+resume a run from a warm start):
 
-6. **Obtain Results**: After iterations end, you need to extract the final results from the algorithm — such as the best solution and its objective value. In EvoX, these are typically obtained via the monitor. For example, `EvalMonitor.get_best_fitness()` returns the best fitness value. To get the best solution vector, one way is to have the problem object store the best candidate during evaluation, or use the monitor’s interface. In EvoX’s standard implementation, `EvalMonitor` records the best individual and fitness each generation, accessible through its properties. Assuming `monitor.history` stores the history, you can retrieve the best individual from the last generation. Of course, you can also skip `EvalMonitor` and directly query the algorithm object after the loop — this depends on the algorithm implementation. If your custom algorithm implements `get_best()` or stores the best individual in its state, you can extract it directly. However, since EvoX emphasizes pure functions and modularity, results are usually accessed via monitoring modules.
+```python
+best = wf.fit(fitness=np.full(20, 1.0), generations=10, seed=0)   # -> Python float
+```
 
-By following these steps, you can clearly structure your optimization task code. For beginners, it's important to understand how the **algorithm-problem-workflow** trio works together: the algorithm handles generating and improving solutions, the problem evaluates their quality, and the workflow connects them into an iterative loop.
+The manual loop is the escape hatch — use it for early stopping, per-generation
+logging, checkpointing, or for interleaving a second experiment:
 
-Next, we’ll introduce some basic commands and function calls available in EvoX to help deepen your understanding of the optimization process.
+```python
+state = wf.init(seed=42)
+state = wf.init_step(state)
+for _ in range(2, 201):
+    if wf.monitor.get_best_fitness() < 1e-8:      # early stop
+        break
+    state = wf.step(state)
+wf.flush()
+```
 
-## Basic Command Overview
+## One generation = one algorithm step
 
-When using EvoX, there are some **commonly used methods and functions** that act as “commands” you’ll want to be familiar with:
+An algorithm module exposes `init(config, key)` and `step(config, state, evaluate)`.
+A single `step` call owns **one full generation**: it generates the candidates, asks
+`evaluate` for their fitness, updates its state, and returns the new state. It may call
+`evaluate` more than once per generation (CoDE evaluates three trial batches; that is an
+algorithm detail, not a workflow one).
 
-### Workflow-Related Methods
+`evaluate` is an opaque closure created by the workflow — treat it exactly like a
+function from a candidate batch to fitness. Do not store it in your state, do not
+re-thread it through return values, and do not try to read the problem or monitor state
+from it: the workflow owns that state, keeps the state of the last `evaluate` call, and
+increments the generation counter itself.
 
-- **`StdWorkflow.init_step()`**: Initialization. This is a quick-start command for launching the optimization process, often used at the beginning of a script. It calls the initialization logic for both the algorithm and problem, generates the initial population, and evaluates fitness. After this, the workflow contains the initial state and is ready for iteration.
+The workflow also owns the **compile site**: the step graph is built once per step
+variant (`init_step`/`step`/`final_step`) and per state-shape signature, then reused for
+every generation. A step that changes the shape of its state leaves (a shrinking
+population, a growing elite buffer) simply triggers one re-trace — you never manage
+compilation yourself.
 
-- **`StdWorkflow.step()`**: Advance one step in the optimization. Each call makes the algorithm generate new candidate solutions based on the current population state, evaluate them, and select the next generation. Users typically call this multiple times inside a loop. The `step()` function usually returns nothing (the internal state is updated within the workflow), though older versions may return a new state. For beginners, you can simply call it without worrying about the return value.
+## `opt_direction` semantics
 
-### Monitor-Related Methods
+All algorithms minimize internally. `opt_direction="max"` does not change the algorithm;
+the workflow multiplies the fitness by `-1` before it reaches the algorithm and undoes
+that scaling in every monitor accessor, so you always read direction-corrected numbers:
 
-Using `EvalMonitor` as an example, the common methods include:
+```python
+wf = StdWorkflow(
+    PSO(pop_size=40, lb=np.full(3, 5.0), ub=np.full(3, 10.0)),
+    Sphere(),
+    monitor=EvalMonitorConfig(),
+    opt_direction="max",
+    backend="numpy",
+)
+wf.run(100, seed=0)
+print(wf.opt_direction)               # (-1,)  — the baked-in scaling
+print(f"{wf.monitor.get_best_fitness():.1f}")   # 300.0, the MAXIMUM of Sphere
+```
 
-- `EvalMonitor.get_best_fitness()`: Returns the lowest recorded fitness (for minimization problems) or highest fitness (for maximization problems; the monitor usually distinguishes this). Useful for knowing the current best result.
-- `EvalMonitor.get_history()` or `monitor.history`: Retrieves the full history, such as the best value from each generation. Useful for analyzing convergence trends.
-- `EvalMonitor.plot()`: Plots convergence or performance curves; requires a graphical environment or Notebook. The monitor usually uses Plotly to render graphs, helping you visually assess algorithm performance.
-  Internally, the monitor records the number of evaluations and their results each generation — you typically don't need to intervene, just extract the data when needed.
+For multi-objective problems pass a list with one entry per objective, e.g.
+`opt_direction=["min", "max"]`. That list is also what tells the workflow (and the
+monitor) that a run is multi-objective: `multi_obj` and `n_obj` are derived from its
+length.
 
-### Algorithm-Related Methods
+## State threading
 
-- `Algorithm.__init__()` method: Initialization method of an algorithm. Variables are usually wrapped using `evox.core.Mutable()` and hyperparameters with `evox.core.Parameter()`.
+Every state is an immutable value: `step` never mutates in place, it returns a new
+state. Keep the return value:
 
-- `Algorithm.step()` method: In specific scenarios or when using custom algorithms/problems, you might directly call the algorithm’s `step()` method, which typically encapsulates the entire iteration logic of the algorithm.
+```python
+state = wf.init(seed=42)
+state = wf.init_step(state)
+state = wf.step(state)      # explicit threading: clearest
+state = wf.step()           # also fine: the workflow remembers the latest state
+wf.flush()
+print(int(state.generation.numpy()))            # 3 — one increment per step
+print(len(wf.monitor.fitness_history))          # 3
+```
 
-- `Algorithm.init_step()` method: The `init_step()` method includes the algorithm’s first iteration. If not overridden, it simply calls the `step()` method. For typical cases, the first iteration is no different from others, so many algorithms may not need a custom `init_step()`. But for algorithms involving hyperparameter tuning, you may need to update hyperparameters or related variables here.
+Passing `state=None` (or nothing) uses the state the workflow last returned. Explicit
+threading is still preferred: it survives interleaving two workflows, and it makes it
+obvious where a generation boundary is. `state.generation` is a 0-d `int32` tensor and
+`state.key` the RNG key; `state.algorithm_state`, `state.problem_state` and
+`state.monitor_state` are the component states.
 
-### Device and Parallel Control
+## Stateless RNG
 
-- `.to(device)` method: If you need to switch computation devices in your program, use PyTorch’s `.to(device)` method to move tensors (`torch.Tensor`) to GPU/CPU (some PyTorch methods like `torch.randn` also need the device specified). Generally, if you set the device using `torch.set_default_device()` to `cuda:0` (assuming your system supports it and EvoX and dependencies are installed correctly — verify with `torch.cuda.is_available()`), most EvoX high-performance parallel computations will run on GPU automatically. When writing custom algorithms, problems, or monitors, if you create new tensors or use device-sensitive PyTorch methods, it’s recommended to explicitly specify the `device` as `cuda:0` or use `torch.get_default_device()` to avoid performance drops from computations spread across different devices.
+There is **no global seed and no hidden RNG state**: randomness comes from explicit
+keys. `evox_etl.key(seed)` builds a key, `evox_etl.random` (the `evoxc.random` module)
+draws from it, and keys travel inside the states. The random ops are graph ops, so you
+sample from a key inside traced code — `evoxc.evaluate` runs a graph definition eagerly
+and returns a concrete tensor:
 
-For beginners, the above methods are sufficient for handling typical optimization tasks. In short: **Initialize problem/algorithm – set up monitor – assemble workflow – run and retrieve results** is the most common EvoX workflow. Mastering these allows you to tackle basic optimization tasks using EvoX.
+```python
+import evoxc
 
-Before moving on to the next chapter, try modifying the example: switch from PSO to another algorithm, replace the Ackley function with another test function, or use the monitor to extract more information — this will help you appreciate the flexibility of configuring EvoX projects.
+from evox_etl import key, random
+
+def sample(k):
+    k, subkey = random.split(k)      # split, use the subkey, keep the parent
+    return random.uniform(subkey, (3,), low=-5.0, high=5.0)
+
+print(evoxc.evaluate(sample, key(42)).numpy())   # [ 2.8856735 -2.4464002 -0.3658264]
+print(evoxc.evaluate(sample, key(42)).numpy())   # identical — same key, same numbers
+```
+
+`random` provides `key`, `split`, `split_n`, `uniform`, `normal`, `randint`,
+`permutation` and `multinomial`. Algorithms follow one convention: each `step` splits a
+subkey off the key stored in its own state for the generation's draws and stores the
+parent key back, so a given state reproduces bit-identical numbers forever. That is what makes `seed=` meaningful —
+`run(50, seed=42)` is exactly `wf.init(seed=42)` followed by the loop, and the same seed
+gives the same run.
+
+## `EvalMonitorConfig`
+
+`EvalMonitorConfig` is a frozen dataclass, but its history fields are host-side
+containers that the workflow appends to after each generation:
+
+| Field | Default | Who fills it | Meaning |
+|---|---|---|---|
+| `multi_obj` | `None` | workflow | Multi-objective switch, derived from a **list** `opt_direction`. |
+| `full_fit_history` | `True` | you | Record every generation's fitness vector. |
+| `full_sol_history` | `False` | you | Record every generation's candidates. |
+| `full_pop_history` | `False` | you | Record every generation's population; also gates the auxiliary channel. |
+| `topk` | `1` | you | How many elite solutions the single-objective monitor tracks. |
+| `pop_size` | `None` | workflow | Buffer size, inferred from the algorithm state (`population`/`pop`) or config. |
+| `dim` | `None` | workflow | Solution dimension; inferred the same way — pass it yourself for CMA-ES. |
+| `n_obj` | `None` | workflow | Number of objectives (multi-objective only). |
+| `opt_direction` | `(1,)` | workflow | Per-objective `±1` scaling; the workflow's direction always wins. |
+| `fit_history` | `[]` | workflow | Per-generation fitness arrays. |
+| `sol_history` | `[]` | workflow | Per-generation solution arrays. |
+| `pop_history` | `[]` | workflow | Per-generation populations (legacy fallback; only used when the algorithm module has no `record_step` hook). |
+| `aux_history` | `{}` | algorithm hook | Named auxiliary tensors, each a list of per-generation arrays. |
+
+The `full_*_history` flags are not free: each enabled flag keeps one array per
+generation on the host for the lifetime of the config, so memory grows as
+`generations × pop_size × dim`. Leave `full_sol_history`/`full_pop_history` off unless
+you actually need the populations (their main consumer is the multi-objective Pareto
+front in {doc}`Part 6 <tutorial_part6>`). `aux_history` only receives data when
+`full_pop_history=True` **and** the algorithm module provides a `record_step` hook.
+
+## `EvalMonitor` methods
+
+`wf.monitor` is created by the workflow during `init()` and refreshed after every step;
+its `.config` is the completed config and its `.state` the current monitor state.
+
+| Method / property | Returns | Notes |
+|---|---|---|
+| `get_best_fitness()` | `float` | Best so far, direction-corrected. Single-objective only. |
+| `get_best_solution()` | `(dim,)` array | The elite that achieved `get_best_fitness()`. Single-objective only. |
+| `get_topk_fitness()` | `(topk,)` array | The top-`topk` elite fitness values. Single-objective only. |
+| `get_topk_solutions()` | `(topk, dim)` array | The matching elite solutions. Single-objective only. |
+| `get_latest_fitness()` | last generation's fitness batch | Not necessarily `topk`-related. |
+| `get_latest_solution()` | last generation's candidate batch | Raw candidates (pre-`solution_transform`). |
+| `get_fitness_history()` | `list` of arrays | One entry per generation, direction-corrected. |
+| `get_pf()` | `(solutions, fitness)` | Pareto front. Multi-objective only; needs `full_fit_history` + `full_sol_history`. |
+| `get_pf_fitness()` | `(k, n_obj)` array | Pareto-front fitness. Multi-objective only; needs `full_fit_history`. |
+| `record_auxiliary(aux)` | `None` | Record one generation of algorithm auxiliary tensors (gated on `full_pop_history`). |
+| `aux_history` | `dict[str, list]` | The recorded auxiliary channel (`auxiliary_history` is an alias). |
+| `get_pf_solutions()` | `(k, dim)` array | Pareto-front solutions. Multi-objective only; needs `full_fit_history` + `full_sol_history`. |
+| `plot(problem_pf=None, source="eval", **kwargs)` | Plotly `Figure` | 1-D convergence curve for single-objective, 2-D/3-D objective-space scatter for multi-objective. |
+
+The accessors are split by problem type, and misuse is an error rather than a silent
+wrong answer: `get_best_*`/`get_topk_*` raise
+`ValueError: Multi-objective optimization does not have a single best solution...` under
+multi-objective, and `get_pf*` raise under single-objective. Every accessor returns
+host-side NumPy data (and `get_best_fitness()` a Python `float`), so `print`, `np.round`
+and `float(...)` all work directly — no `.item()` call is needed.
+
+## Where monitors run
+
+The monitor is a module like any other component: `monitor_update(config, state,
+candidates, fitness)` is a plain function that is **traced into the step graph**, which
+is why the update itself costs nothing per generation beyond the tensors it touches.
+Everything you actually read from is **host-side**: the history lists, the Pareto front
+computation and the plots are computed from the state leaves that are copied back after
+each step, and the device→host copies are pipelined one generation behind the step graph
+so they overlap with computation.
+
+That pipelining is visible in exactly one place: after driving the loop yourself, the
+last generation's history entry is still in flight until you call
+
+```python
+wf.flush()    # block until every deferred monitor readback has been appended
+```
+
+`run()` and `fit()` flush at the end of their own loop, so they never need it.
+
+Because the per-generation update is compiled, there is no hook for arbitrary host-side
+side effects (no per-generation callback that opens a file, prints, or mutates a Python
+object). The one supported channel is declarative: an algorithm module may define
+`record_step(config, state, candidate, fitness)` returning a dict of concrete tensors,
+and the workflow hands that dict to `monitor.record_auxiliary(...)` every generation,
+where it lands in `aux_history` under the returned keys.
+
+## Next steps
+
+The protocols behind all of this — the step protocol, the problem and monitor
+functions, and what a component module must define — are specified in
+{doc}`the architecture guide <../guide/developer/architecture>`. To write your own
+monitor (a custom metric, a convergence log, an early-stopping condition), continue
+with {doc}`Writing a custom monitor <../guide/developer/custom-monitor>`.
