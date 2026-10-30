@@ -17,7 +17,8 @@ The section landing page `index.md` is the single entry point; the root `docs/so
 | `extensions.md` | `evox_etl_ext` PEP 420 namespace, import-time `auto_load_extensions()`, merge semantics, functional extension contract, minimal package layout, autoload tests |
 
 ## Constraints
-- Every Python block on every page was executed against this repository on the NumPy backend (`PYTHONPATH=src /tmp/venv/bin/python`); keep it that way when editing.
+- Every runnable Python block on every page was executed against this repository on the NumPy backend (`PYTHONPATH=src /tmp/venv/bin/python`); keep it that way when editing.
+- Three `backends.md` blocks are illustrative fragments or compiled-backend-only and cannot be executed as written (undefined `algorithm`/`problem`, an abridged `_build_step_exe` excerpt, an `iree`/`xla` re-run).
 - `evoxc` has no eager mode: examples must trace through `evoxc.build` + `evoxc.run` (or a `StdWorkflow` step) and use `.numpy()` on results — never `np.asarray` on a `Tensor`.
 - Backends other than `numpy` are optional extras (`evox[iree]`, `evox[tvm]`, `evox[compilers]`); XLA has no extra and needs a user-supplied PJRT plugin, so no page claims to have run a compiled backend here.
 - Performance statements are quoted only from `REFACTOR_REPORT.md` §3/§6 and `benchmarks/etl_vs_torch/`, never invented.
