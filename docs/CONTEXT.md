@@ -44,6 +44,13 @@ cd docs && rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html s
 - `source/locale/zh_CN/tutorial/` currently holds only a translated `index.md`; the 1.x translations of `tutorial_part1..7` were removed because they documented the removed torch API, and untranslated parts fall back to English.
 - `README.md`/`README_ZH.md`, `pyproject.toml` and other repo-root files are outside this node.
 
+## Known Issues
+- Every install surface advertises `evox[iree]` / `evox[tvm]` / `evox[compilers]` (≈12 sites on 7 pages); those extras exist only on the `evoxc` distribution, so `pip install "evox[iree]"` installs nothing.
+- The install pages say the default install pulls in `evoxc` and needs no torch, but `pyproject.toml` declares `torch >= 2.6.0` + `numpy` and no `evoxc`, so `pip install evox` + `import evox_etl` fails with `ModuleNotFoundError: No module named 'evoxc'`.
+- Pages state a 3.10 floor (`evox` metadata) although `evoxc` requires 3.11, so nothing documented runs on 3.10.
+- `evox_etl.__version__` is `1.4.0` while `source/conf.py` declares `version = "2.0.0-pre"`; `guide/install/evox.md` prints the former as a 2.0 install check.
+- The build is warning-free, so topic drift is invisible to it: several `{doc}` targets resolve but lead to the wrong chapter (`examples/index` → `tutorial_part6` labelled "other backends"; `advanced/metrics` → `tutorial_part5` as the MO walkthrough; `advanced/hpo` → `tutorial_part7` as a workflow walk-through).
+
 ## Routing Table
 | Area | Child Directory | Description |
 |---|---|---|
