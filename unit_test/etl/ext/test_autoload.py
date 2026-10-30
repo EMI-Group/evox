@@ -12,7 +12,8 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from importlib.metadata import PackageNotFoundError, version as _dist_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _dist_version
 from pathlib import Path
 
 import evox_etl
