@@ -197,6 +197,39 @@ Unit-test construction sites at `../unit_test/etl` migrate to `make_*` in a
 parallel wave (direct construction still works for pre-normalized values but
 bypasses make_* validation).
 
+## Public-surface deltas vs torch `evox` (current state, matters for migration)
+- Root `evox_etl` re-exports core protocols, `StdWorkflow`, `EvalMonitor(Config)`,
+  the 5 metric functions and `random`/`key`; it does NOT explicitly import
+  `algorithms`/`problems`/`operators` — those become package attributes only because
+  `auto_load_extensions()` imports the 5 domains as a side effect.
+- `evox_etl.utils` is NOT the torch `evox.utils` surface: torch's
+  `switch/clamp*/clip/maximum*/minimum*/lexsort/nanmin/nanmax/randint` live in
+  `operators/jit_fix_operator.py` and are re-exported from neither `evox_etl.utils`
+  nor `evox_etl.operators`; `ParamsAndVector`, `VmapInfo`/`register_vmap_op` have no
+  counterpart (virtual problems take pre-flattened `param_shapes`/`layer_specs`).
+- Bare torch algorithm names resolve at `evox_etl.algorithms` and
+  `.algorithms.so`; `.algorithms.mo` and `.so.es_variants` expose only
+  `*Config` + `make_*`.
+- `metrics.hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`); the port
+  adds `gd_plus`/`igd_plus`/`bounding_cube_monte_carlo_hv`/`each_cube_monte_carlo_hv`.
+- DTLZ exposes the Pareto front as module-level `pf(config)`/`pf_dtlzN`, not a
+  `DTLZ.pf()` method; there is no `DTLZ` base class.
+- `vis_tools` exports all `plot_*` + `EvoXVisionAdapter`/`new_exv_metadata` at package
+  level (torch `evox.vis_tools.__init__` is empty) and imports Plotly lazily.
+
+## Known release blockers (torch deletion)
+- `problems/numerical/cec2022.py:27` resolves `DATA_DIR` to
+  `.../src/evox/problems/numerical/cec2022_input_data` — the tree being deleted (and
+  an invalid path from an installed wheel); no data or `package-data` exists under
+  `evox_etl`, `MANIFEST.in` lists only `src/evox/...`, and
+  `../unit_test/etl/problems/test_cec2022.py` has no skip.
+- `pyproject.toml` is still the 1.x manifest: `dependencies = ["torch>=2.6.0", ...]`
+  with no `evoxc`, MANIFEST only `src/evox/...`; the `evox_ext`/`evox_etl_ext` PEP 420
+  namespaces have no `__init__.py`, so verify they are included by the wheel build.
+- 15 `unit_test/etl/**/parity/**` modules import torch and the torch `evox` package
+  (no pytest marker/deselect config); `examples/hpo/*.py`, 6 `benchmarks/*` scripts
+  and the whole `docs/` tree (0 `evox_etl` references) still target the torch API.
+
 ## Not portable from torch evox
 Deliberately NOT ported, with the concrete reason (parallels live in the child
 CONTEXT.md files / `problems/hpo_wrapper.py`, not here):
