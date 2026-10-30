@@ -27,7 +27,7 @@ generation) + frozen config dataclasses. See `../../DESIGN.md` §4-5 and
 | Tests | `../../unit_test/etl/` | sibling — mirrors this package |
 
 ## Torch-parity state (audited against `../../evox/algorithms/`)
-- Module coverage is complete: all 32 torch algorithm modules have a port module (incl. helper modules `adam_step`, `es_variants/sort_utils`, `pso_variants/utils`); no torch algorithm is missing.
+- Module coverage is complete: all 35 torch modules (32 algorithm modules + helpers `adam_step`, `es_variants/sort_utils`, `pso_variants/utils`) have a port counterpart; nothing is missing.
 - Every algorithm module defines `make_*`, `init(config, key)` and `step(config, state, evaluate)`; `init_step` exists exactly where torch has it (DE/ODE/JaDE, all 7 PSO, all 6 MO) and is absent in the greedy ES family, whose torch counterpart also lacks it (the ES family has `record_step` instead, matching torch).
 - Constructor-parameter parity is 1:1 (minus `device`) for all 32 algorithms; the single deliberate drop is `HypE.selection_op` (inert in torch — overwritten by `tournament_selection`).
 - Bare torch names are exported at `evox_etl.algorithms`, `evox_etl.algorithms.so`, and in `de_variants`/`pso_variants`; they are ABSENT at `algorithms.mo` and `algorithms.so.es_variants` (those export `*Config` only, although torch's `mo/__init__.py`/`es_variants/__init__.py` export the bare names).
