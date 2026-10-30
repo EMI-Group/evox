@@ -27,8 +27,13 @@ NOT ported (external-library dependent — reported to root): the brax, mujoco_p
 - The zero-child `evoxc.register_pytree_node` loop (former basic.py tail) is DELETED: ndarray statics are legal on the installed evoxc, and unregistered plain-leaf configs keep the run-time static-value check (drifted config at `evoxc.run` raises TraceError).
 - Problems do NOT use the algorithms' `make_*` constructor pattern — that policy lives in DESIGN.md §4.
 
-## Data location
-cec2022 input data lives in `../../../evox/problems/numerical/cec2022_input_data/` (torch source tree); loaded as numpy with `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"` (memoized module-level cache). numpy allowed ONLY for that loading; never in graph code.
+## Data location (release-blocking)
+cec2022 input data is read from the torch tree, NOT shipped with the port: `cec2022.py:27` sets `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"`, and `_load_data` parses the 54 tracked `.txt` files (`../../../evox/problems/numerical/cec2022_input_data/`) into a memoized `(M, OShift, SS)` numpy cache.
+numpy is allowed ONLY for that loading; never in graph code.
+That path breaks in both release scenarios: (a) deleting `src/evox/` deletes the directory, so source checkouts and `../../../../unit_test/etl/problems/test_cec2022.py` (which recomputes the same expression, no skip guard) fail; (b) in any wheel/sdist install it resolves to `<venv>/lib/pythonX.Y/src/evox/...` because `parents[4]` of `site-packages/evox_etl/problems/numerical/cec2022.py` is the stdlib dir.
+Nothing under `src/evox_etl/` contains data (`git ls-files` shows no `.txt`/`.json` there), `MANIFEST.in:2` lists only the torch path, and `pyproject.toml` has no `[tool.setuptools]`/`package-data` section; DESIGN.md §5.9 requires port-owned data loaded via `importlib.resources`.
+Fix shape: copy the 54 files into this directory, resolve via `importlib.resources`, and add a packaging entry.
+Data errors surface at trace time (`evaluate` → `_load_data`), not at config construction.
 
 ## Validation
 Pattern: `evoxc.build` + `evoxc.run` (numpy backend) vs references — basic: bit-exact vs numpy versions of the torch formulas, shift/affine variants match torch within float32 rounding; dtlz: evaluate parity ≤ few float32 ulps, pf parity ≤ 2e-6 (torch); cec2022: all 12 functions × dims {2,10,20} within rel 1e-5 vs torch. Unit tests: sibling `../../../../unit_test/etl/problems/` (parity tests may import torch).
