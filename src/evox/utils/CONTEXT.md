@@ -18,7 +18,7 @@ Reimplementations of PyTorch operators that are not yet supported in `torch.comp
 | `clamp(a, lb, ub)` | Clamp tensor `a` between tensor bounds `lb` and `ub` |
 | `clamp_float(a, lb, ub)` | Clamp tensor `a` between float scalar bounds |
 | `clamp_int(a, lb, ub)` | Clamp tensor `a` between int scalar bounds |
-| `clip(a, lb, ub)` | Alias for `clamp` |
+| `clip(a)` | Single-arg `clamp(a, 0, 1)` — clamps into [0, 1]; it is NOT a `clamp` alias |
 | `maximum(a, b)` / `minimum(a, b)` | Element-wise max/min of two tensors |
 | `maximum_float(a, b)` / `minimum_float(a, b)` | Element-wise max/min of tensor and float scalar |
 | `maximum_int(a, b)` / `minimum_int(a, b)` | Element-wise max/min of tensor and int scalar |
