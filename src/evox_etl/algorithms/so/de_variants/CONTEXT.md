@@ -71,8 +71,18 @@ protocol doc `../../core/algorithm.py`.
   helper — `(1, dim)` float32 constants) or `bake_float32_constant(x, shape=(1, -1))`
   for a single bound; `dim = len(config.lb)` stays a static Python int (works for
   both tuple and ndarray fields).
-- SHADE/SaDE/CoDE init populations use **`randn` scaled by bounds** (torch quirk —
-  no uniform, no clamp) — do not assert in-bounds on their initial pops.
+- SHADE/SaDE/CoDE initial populations are drawn **uniformly within the bounds**
+  (as DE/ODE/JaDE and the PSO variants) — in-bounds assertions are valid.
+- SHADE's success-history `Memory_FCR` adapts every generation: the deltas are
+  taken from `state.fit` BEFORE the parent fitness is replaced, and the
+  successful `F`/`CR`/delta entries are selected with `evoxc.select(compare, x,
+  float("nan"))` (arithmetic NaN blending would keep every entry NaN).
+- SHADE draws no `init_step`, so generation 0 runs against the all-`inf` initial
+  fitness: its deltas are `inf`, `norm_delta` is NaN and the memory correctly
+  keeps its 0.5 start for that one generation (torch-identical, not a bug).
+- SHADE's `norm_delta` division therefore produces intentional NaN entries and the
+  evoxc numpy backend emits one cosmetic `invalid value encountered in divide` warning
+  (same class as the SBX/SaDE NaN paths; torch has identical semantics).
 - `evoxc.median(x, axis=0)` matches torch's NaN propagation BUT promotes
   float32→float64; `int32 * bool` also promotes to int64 — cast back explicitly
   (SaDE does; see the casts around `CRM_update`/`success_counts`/

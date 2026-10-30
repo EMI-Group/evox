@@ -99,8 +99,8 @@ class SaDEState:
 
 
 def init(config: SaDE, key: Tensor) -> SaDEState:
-    """Draw the initial state: randn-scaled population (torch quirk — no
-    uniform, no clamp), inf fitness, zeroed counters and NaN CR memory."""
+    """Draw the initial state: population drawn uniformly within the bounds,
+    inf fitness, zeroed counters and NaN CR memory."""
     key, subkey = random.split(key)
     pop_size, dim = config.pop_size, len(config.lb)
     lb, ub = bake_bounds(config.lb, config.ub, as_row=True)
@@ -108,7 +108,7 @@ def init(config: SaDE, key: Tensor) -> SaDEState:
     gen_iter = enp.full((), 0, dtype="int64")
     best_index = enp.full((), 0, dtype="int64")
     Memory_FCR = enp.full((2, 100), 0.5, dtype="float32")
-    pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
+    pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((pop_size,), float("inf"), dtype="float32")
     success_memory = enp.zeros((config.LP, 4), dtype="int32")
     failure_memory = enp.zeros((config.LP, 4), dtype="int32")

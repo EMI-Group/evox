@@ -80,12 +80,12 @@ class SHADEState:
 
 
 def init(config: SHADE, key: Tensor) -> SHADEState:
-    """Initialize the population (torch uses randn scaled by bounds — no clamp)."""
+    """Initialize the population, drawn uniformly within the bounds (as DE/ODE/JADE)."""
     pop_size, dim = config.pop_size, len(config.lb)
     lb = bake_float32_constant(config.lb, shape=(1, -1))
     ub = bake_float32_constant(config.ub, shape=(1, -1))
     key, subkey = random.split(key)
-    pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
+    pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     return SHADEState(
         best_index=enp.full((), 0, dtype="int64"),
         Memory_FCR=enp.full((2, pop_size), 0.5, dtype="float32"),
@@ -153,37 +153,19 @@ def step(config: SHADE, state: SHADEState, evaluate: Callable[[Tensor], Tensor])
     # (9) Selection over the trial vectors.
     fitness = evaluate(trial_vectors)
     compare = fitness < state.fit
+    # Improvement of each trial over its parent, taken before the parent fitness
+    # is replaced.
+    deltas = state.fit - fitness
     pop = evoxc.select(enp.expand_dims(compare, 1), trial_vectors, state.pop)
     fit = evoxc.select(compare, fitness, state.fit)
     best_index = evoxc.argmin(fit)
 
-    # torch computes deltas AFTER updating self.fit — use the updated fit.
-    deltas = fit - fitness
-
-    S_F = enp.full((pop_size,), float("nan"), dtype="float32")
-    S_CR = enp.full((pop_size,), float("nan"), dtype="float32")
-    S_delta = enp.full((pop_size,), float("nan"), dtype="float32")
-
-    for i in range(pop_size):  # get_success_delta
-        is_success = evoxc.cast(compare[i], "float32")
-        F = F_vect[i]
-        CR = CR_vect[i]
-        delta = deltas[i]
-
-        S_F_update_temp = evoxc.roll(S_F, 1, axis=0)
-        S_F_update = evoxc.concatenate([enp.expand_dims(F, 0), S_F_update_temp[1:]], axis=0)
-
-        S_CR_update_temp = evoxc.roll(S_CR, 1, axis=0)
-        S_CR_update = evoxc.concatenate([enp.expand_dims(CR, 0), S_CR_update_temp[1:]], axis=0)
-
-        S_delta_update_temp = evoxc.roll(S_delta, 1, axis=0)
-        S_delta_update = evoxc.concatenate(
-            [enp.expand_dims(delta, 0), S_delta_update_temp[1:]], axis=0
-        )
-
-        S_F = is_success * S_F_update + (1.0 - is_success) * S_F_update_temp
-        S_CR = is_success * S_CR_update + (1.0 - is_success) * S_CR_update_temp
-        S_delta = is_success * S_delta_update + (1.0 - is_success) * S_delta_update_temp
+    # Successful F, CR and improvements, NaN for unsuccessful trials. Selecting
+    # with evoxc.select matters: blending with arithmetic would turn every entry
+    # into NaN, since 0 * NaN is NaN.
+    S_F = evoxc.select(compare, F_vect, float("nan"))
+    S_CR = evoxc.select(compare, CR_vect, float("nan"))
+    S_delta = evoxc.select(compare, deltas, float("nan"))
 
     norm_delta = S_delta / evoxc.nansum(S_delta, axes=0)
     M_CR = evoxc.nansum(norm_delta * S_CR, axes=0)
