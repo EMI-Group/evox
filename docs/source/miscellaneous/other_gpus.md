@@ -1,8 +1,8 @@
 # Non-NVIDIA Hardware: AMD, Vulkan and Apple Silicon
 
 ```{warning} Experimental EvoX 2.0 pre-release
-These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `torch.device("cuda")`,
+These pages target the **EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`).
+They do **not** cover the EvoX 1.x torch API (`torch.device("cuda")`,
 `device = torch.device("mps")`, `#evox.compile`), which was removed in 2.0 and is documented
 nowhere in these pages. APIs may still change between pre-releases.
 ```
@@ -23,9 +23,9 @@ IREE build the compile target is inferred from the device you pass, so changing 
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems.numerical import Sphere
 
 dim = 10
 algorithm = make_pso(pop_size=1000, lb=np.full(dim, -100.0), ub=np.full(dim, 100.0))

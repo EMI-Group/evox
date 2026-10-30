@@ -6,7 +6,7 @@ run the test suite, and write documentation.
 
 ```{warning}
 This guide documents the **experimental EvoX 2.0 pre-release**, whose import name is
-`evox_etl`. EvoX 2.0 replaces the object-oriented 1.x API with plain functions on top of
+`evox`. EvoX 2.0 replaces the object-oriented 1.x API with plain functions on top of
 the [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`). The 1.x torch package
 (`ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`, class-based algorithms,
 problems and monitors) was removed in 2.0 — nothing on these pages uses it.

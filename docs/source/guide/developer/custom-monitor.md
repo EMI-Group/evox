@@ -41,7 +41,7 @@ A few details matter:
 - The `Monitor` wrapper is optional, but the built-in one exposes
   `get_best_fitness`/`get_best_solution`, and `workflow.fit()` requires a wrapper with
   `get_best_fitness`.
-- The protocol class in `evox_etl.core.monitor` (also named `Monitor`) is
+- The protocol class in `evox.core.monitor` (also named `Monitor`) is
   **documentation only**: monitors are duck-typed, and no inheritance is involved.
 
 ## What the workflow fills in for you
@@ -151,7 +151,7 @@ The module below tracks the best-so-far solution and fitness and records auxilia
 history. Save it as `my_monitor.py`.
 
 ```python
-"""A minimal best-so-far monitor written as an evox_etl monitor module."""
+"""A minimal best-so-far monitor written as an evox monitor module."""
 
 from __future__ import annotations
 
@@ -266,9 +266,9 @@ Run it with a built-in algorithm/problem pair, saved as `run_monitor.py` next to
 
 import numpy as np
 
-from evox_etl import StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 from my_monitor import BestMonitorConfig
 
 dim = 5

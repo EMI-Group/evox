@@ -7,7 +7,7 @@ The problem that scores those perturbations is `VirtualProblem`, which regenerat
 from per-individual seeds inside the compiled graph.
 
 ```{warning} Experimental EvoX 2.0 pre-release
-The code below uses the `evox_etl` import name (the functional rewrite on the `evoxc` compiler) and
+The code below uses the `evox` import name (the functional rewrite on the `evoxc` compiler) and
 the **NumPy backend** (`backend="numpy"`). The 1.x Brax / MuJoCo / supervised-learning problem
 classes are **not** part of 2.0 — see the first section for what replaces them.
 ```
@@ -51,10 +51,10 @@ losses are `"mse"` and `"cross_entropy"`; the per-sample loss is reduced over th
 ```python
 import numpy as np
 import evoxc
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_virtual_es
-from evox_etl.problems.neuroevolution import evaluate, make_virtual_problem
-from evox_etl.problems.numerical.state import ProblemState
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_virtual_es
+from evox.problems.neuroevolution import evaluate, make_virtual_problem
+from evox.problems.numerical.state import ProblemState
 
 # 1. A tiny fixed regression task: learn y = x @ w_true with a 4 -> 8 -> 1 MLP.
 batch, in_features, out_features = 8, 4, 1
@@ -168,7 +168,7 @@ Inside the graph, for every individual `i`:
 1. **Regenerate its noise from its seed.** `evoxc` keys are stateless and there is no jump-ahead
    counter stream, so the noise is a deterministic **splitmix64 integer hash + Box–Muller** transform
    keyed by `(seed_i, element offset)`. The same code path lives in
-   `evox_etl.algorithms.so.es_variants.virtual_noise`, which is what makes algorithm and problem
+   `evox.algorithms.so.es_variants.virtual_noise`, which is what makes algorithm and problem
    agree on the perturbation without ever materializing it.
 2. **Run the perturbed forward pass.** Each `Linear` layer computes the shared center matmul plus a
    `sigma`-scaled noise matmul — the `(out, in)` weight delta is never added to the center weight —
@@ -204,7 +204,7 @@ layer needs `r · (out + in)` noise numbers instead of `out · in`. The problem 
 the same `lora_rank` field:
 
 ```python
-from evox_etl.algorithms import make_virtual_lora_es
+from evox.algorithms import make_virtual_lora_es
 
 lora_problem = make_virtual_problem(
     param_shapes=param_shapes,
@@ -247,7 +247,7 @@ The rank-2 run also learns (loss `0.519039 → 0.004241`) but lands about 6× wo
 run on this tiny network, which is expected: a `(1, 8)` weight needs only 8 noise numbers, while
 rank 2 needs `2 · (1 + 8) = 18`. LoRA pays off on **wide** layers, where `r · (out + in) ≪ out · in`
 — that is why the family scales to large models, and the low-rank variant is also what an
-`evox_etl_ext` extension would build on.
+`evox_ext` extension would build on.
 
 ## Adapting it to your own data
 

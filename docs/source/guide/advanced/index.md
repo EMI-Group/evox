@@ -17,8 +17,8 @@ system. Read {doc}`../../tutorial/tutorial_part2` first if you have not written 
 page here assumes the functional model — frozen config dataclasses, tensor-valued state, keyed randomness.
 
 ```{warning} Experimental EvoX 2.0 pre-release
-These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
+These pages target the **EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`).
+They do **not** cover the EvoX 1.x torch API (`ModuleBase`, `Parameter`/`Mutable`,
 `torch.compile`/`vmap`), which was removed in 2.0 and is documented nowhere in these pages.
 APIs may still change between pre-releases.
 ```
@@ -44,13 +44,13 @@ APIs may still change between pre-releases.
   - `gd`, `gd_plus`, `igd`, `igd_plus`, `hv` and the Monte-Carlo hypervolume estimators — exact signatures,
     the leading RNG key of `hv`, how to call a traced metric from host code, and a worked IGD/HV example.
 * - {doc}`viz`
-  - The `evox_etl.vis_tools` Plotly figure builders, `EvalMonitor.plot()` for convergence curves and Pareto
+  - The `evox.vis_tools` Plotly figure builders, `EvalMonitor.plot()` for convergence curves and Pareto
     fronts, and the EvoXVision `.exv` binary format with a write/read round-trip.
 * - {doc}`hpo`
   - Host-side hyperparameter optimization: `HPOProblemWrapper`, `HPSlot`, the HPO monitors and
     `random_search`, why it cannot live inside a traced graph, and the resulting limits.
 * - {doc}`extensions`
-  - The `evox_etl_ext` PEP 420 namespace, the import-time autoloader, the functional extension contract,
+  - The `evox_ext` PEP 420 namespace, the import-time autoloader, the functional extension contract,
     and a minimal extension package layout.
 :::
 

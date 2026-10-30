@@ -1,12 +1,12 @@
 # EvoX 教程
 
 ```{warning} EvoX 2.0 预览版（实验性）
-本教程针对 **EvoX 2.0 预览版** 重写：导入名称为 **`evox_etl`**，基于 **EvoX Compiler**（`evoxc`）张量库的函数式 API。
-1.x 版本的 PyTorch 面向对象 API（`import evox`、`ModuleBase`、`Parameter`/`Mutable`、`torch.compile`/`vmap`）已不再提供，也不再记录在本教程中。
+本教程针对 **EvoX 2.0 预览版** 重写：导入名称为 **`evox`**，基于 **EvoX Compiler**（`evoxc`）张量库的函数式 API。
+1.x 版本的 PyTorch 面向对象 API（`ModuleBase`、`Parameter`/`Mutable`、`torch.compile`/`vmap`）已不再提供，也不再记录在本教程中。
 ```
 
 **中文翻译状态：** 教程正在针对 2.0 预览版整体重写，中文译文尚未完成。
-下列条目暂时指向英文原文；译文完成前请直接阅读英文页面，英文页面与 `evox_etl` 代码保持同步。
+下列条目暂时指向英文原文；译文完成前请直接阅读英文页面，英文页面与 `evox` 代码保持同步。
 
 ```{toctree}
 :maxdepth: 1

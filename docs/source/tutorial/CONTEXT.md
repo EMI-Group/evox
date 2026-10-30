@@ -1,7 +1,7 @@
 # docs/source/tutorial/ — EvoX 2.0 Getting-Started Tutorial
 
 ## Intent
-This directory holds the 7-part getting-started tutorial for the **experimental EvoX 2.0 pre-release**, whose import name is `evox_etl` (functional rewrite on the `evoxc` compiler).
+This directory holds the 7-part getting-started tutorial for the **experimental EvoX 2.0 pre-release**, whose import name is `evox` (functional rewrite on the `evoxc` compiler).
 The series is the primary onboarding path: install → one complete program → workflow/monitor contract → algorithm catalogue → problem catalogue → multi-objective → migration from 1.x.
 Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_CN/tutorial/` and are maintained separately (the machine-translation script skips tutorials).
 
@@ -9,7 +9,7 @@ Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_
 
 | File | Title | Content |
 |---|---|---|
-| `index.md` | EvoX Tutorial | Pre-release `{warning}`, reading-order list-table, `{toctree}` (`:maxdepth: 1`) over the 7 parts, the stack (`evox_etl` / `evoxc` / `evox_etl_ext`), count claims |
+| `index.md` | EvoX Tutorial | Pre-release `{warning}`, reading-order list-table, `{toctree}` (`:maxdepth: 1`) over the 7 parts, the stack (`evox` / `evoxc` / `evox_ext`), count claims |
 | `tutorial_part1.md` | 1. EvoX 2.0 and Installation | One paragraph on what changed vs 1.x, functional model at a glance, install (`pip install --pre evox==2.0.0a1` or `"evox>=2.0.0a1"` — a plain `pip install evox` still resolves 1.x — Python 3.11+, extras `vis`/`iree`/`tvm`/`compilers` also available as `evoxc[...]`, xla needs `EVOXC_PJRT_PLUGIN` exported before the process starts), smoke test, next-step links |
 | `tutorial_part2.md` | 2. Your First Optimization: PSO on Sphere | Full program adapted from `examples/quickstart.py`, argument table, manual `init`/`init_step`/`step`/`final_step`/`flush` loop, reading results, `monitor.plot()`, one-line algorithm/problem swaps |
 | `tutorial_part3.md` | 3. Workflow and Monitor | `StdWorkflow` contract (incl. `solution_transform`/`fitness_transform`/`compile_options`), `run` vs `fit` vs step loop, one step = one generation, `opt_direction`, state threading, stateless RNG, `EvalMonitorConfig` field table, `EvalMonitor` method table, monitors outside the graph |
@@ -21,7 +21,7 @@ Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_
 ## Constraints
 - Every page opens with exactly one H1; the `index.md` H1 is `# EvoX Tutorial` and its toctree must list all seven parts with `:maxdepth: 1`.
 - **No 1.x torch API is taught anywhere in this directory except `tutorial_part7.md`** (the migration page); other pages may mention 1.x in at most one "what changed" framing sentence.
-- All code blocks are verified against the real `src/evox_etl` package with `PYTHONPATH=src /tmp/venv/bin/python` before being written down; do not publish an unexecuted snippet.
+- All code blocks are verified against the real `src/evox` package with `PYTHONPATH=src /tmp/venv/bin/python` before being written down; do not publish an unexecuted snippet.
 - Guide links use the agreed paths under `../guide/` (`install/index`, `install/evox`, `advanced/backends`, `advanced/operators`, `advanced/metrics`, `advanced/viz`, `advanced/hpo`, `advanced/extensions`, `developer/architecture`, `developer/custom-alg-pro`, `developer/custom-monitor`); some may not exist yet.
 - Count claims: EvoX ships **30+ algorithms** and **30+ benchmark problems**; the EMI-Group ecosystem **140+ algorithms** and **240+ benchmark problems/environments** — keep EN/ZH identical.
 - Never reference `apidocs/` files as sources (generated at build time) and never edit `locale/**` `.po` files from here.
@@ -33,7 +33,7 @@ Pages are English MyST Markdown; the Chinese translations live in `../locale/zh_
 - `init()` runs the algorithm/monitor init graphs and traces the plain `step` graph; the `init_step`/`final_step` variants are traced lazily on first use, and any variant is re-traced when a state leaf changes shape/dtype.
 - Problems and metrics are traced `evoxc` functions: outside a trace use `evoxc.evaluate(fn, *concrete_args)` or `evoxc.build` + `evoxc.run`; `hv` additionally takes a leading RNG key and a static `num_sample`.
 - `PSO`/`make_pso` take `lb`/`ub` only (no `dim`; 1-D arrays required), and `DTLZ` exposes its Pareto front as the module-level `pf(config)`, not a method.
-- `tutorial_part4.md` is the only page that links into generated `../apidocs/evox_etl/...` documents (one per algorithm family); those targets resolve only after autodoc2 has run, and `../conf.py` now restricts `autodoc2_module_all_regexes` to `core`/`problems`/`utils`/`workflows`, so the former `algorithms/so/de_variants/code.py` abort no longer applies.
+- `tutorial_part4.md` is the only page that links into generated `../apidocs/evox/...` documents (one per algorithm family); those targets resolve only after autodoc2 has run, and `../conf.py` now restricts `autodoc2_module_all_regexes` to `core`/`problems`/`utils`/`workflows`, so the former `algorithms/so/de_variants/code.py` abort no longer applies.
 - Link targets used from these pages all exist today: `../guide/install/{index,evox}`, `../guide/advanced/{backends,operators,metrics,viz,hpo,extensions}`, `../guide/developer/{architecture,custom-alg-pro,custom-monitor}`.
 
 ## Known Issues

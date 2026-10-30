@@ -1,7 +1,7 @@
 # docs/source/examples/ — EvoX 2.0 example pages
 
 ## Intent
-This directory holds the **example walkthroughs** for the EvoX 2.0 pre-release (import name `evox_etl`, the functional rewrite on the `evoxc` compiler).
+This directory holds the **example walkthroughs** for the EvoX 2.0 pre-release (import name `evox`, the functional rewrite on the `evoxc` compiler).
 Every page is MyST Markdown with runnable, self-contained programs — there are no notebooks here (build-time notebook execution is disabled, so code blocks are never executed by Sphinx).
 Each page states what it proves, shows the program, quotes the real printed output, and explains the API surface it touches.
 
@@ -14,14 +14,14 @@ Each page states what it proves, shows the program, quotes the real printed outp
 | `neuroevolution.md` | Virtual (training-free) ES: `make_virtual_es` / `make_virtual_lora_es` + `make_virtual_problem`, the network-as-data description (`param_shapes`, `layer_specs`), the `(center_flat, seeds, sigma)` payload protocol, center-network deployment, and why the 1.x Brax/MuJoCo/supervised-learning problems are gone. |
 
 ## Constraints
-Every code block must be **executed before publication** against the real `src/evox_etl` code (`PYTHONPATH=src python <snippet>.py`), and the quoted numbers must be copied from that run (fixed seed 42).
-Document only the 1.x-free surface: `evox_etl` configs built by `make_*`, `StdWorkflow`, `EvalMonitorConfig`, `evox_etl.metrics`, `evox_etl.vis_tools` — never `import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`, or the torch neuroevolution problems.
+Every code block must be **executed before publication** against the real `src/evox` code (`PYTHONPATH=src python <snippet>.py`), and the quoted numbers must be copied from that run (fixed seed 42).
+Document only the 1.x-free surface: `evox` configs built by `make_*`, `StdWorkflow`, `EvalMonitorConfig`, `evox.metrics`, `evox.vis_tools` — never `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`, or the torch neuroevolution problems.
 Examples run on the default NumPy backend (`backend="numpy"`); a non-NumPy backend belongs in `../guide/advanced/backends`.
 Every backend/device reference on these pages links to `../guide/advanced/backends` (`tutorial_part6` is the multi-objective chapter, not a backends page).
 `so.md`'s hand-driven loop deliberately skips `init_step`/`final_step`/`flush()`, so it reaches `0.007325` where `run(50)` reaches `0.027914`; the divergence comes from the generation-1 `init_step` dispatch (the raw `init` state still carries `inf` fitness), not from an off-by-one, and the page states that explicitly.
-`plotly` is needed only by the figure builders and `plot()`; the `.exv` serializer in `evox_etl.vis_tools` needs no Plotly.
+`plotly` is needed only by the figure builders and `plot()`; the `.exv` serializer in `evox.vis_tools` needs no Plotly.
 HPO appears only as host-side `HPOProblemWrapper` + `random_search` (linked to `../guide/advanced/hpo`), never as an in-graph outer optimizer.
-`evox_etl.metrics` functions are traced graph functions: examples must build them with `evoxc.build` + `TensorSpec` and pass static scalars to both `build` and `run`.
+`evox.metrics` functions are traced graph functions: examples must build them with `evoxc.build` + `TensorSpec` and pass static scalars to both `build` and `run`.
 `EvalMonitorConfig(full_sol_history=True)` is required for `get_pf()`; algorithms with no `population`/`pop` state (CMA-ES) need `EvalMonitorConfig(dim=dim)`.
 `hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`) and a static `num_sample`.
 Code blocks use `python` fences only (never executed by the build), with `{note}`/`{tip}`/`{warning}` admonitions and `{doc}` cross-references; one H1 per page.

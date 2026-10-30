@@ -2,7 +2,7 @@
 
 This page walks through a development checkout of the experimental EvoX 2.0 pre-release: cloning
 the repository, installing it editable, running the lint hooks and the test suite, and building
-these documentation pages. The import name in 2.0 is `evox_etl`.
+these documentation pages. The import name in 2.0 is `evox`.
 
 ## Clone and install
 
@@ -14,14 +14,14 @@ source .venv/bin/activate
 pip install -e .               # `evox` plus its declared dependencies (`evoxc`, `numpy`)
 ```
 
-- **Python 3.11 or newer** is required. `import evox_etl` imports the
+- **Python 3.11 or newer** is required. `import evox` imports the
   [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`) unconditionally, and both `evoxc` and
   the `evox` manifest (2.0.0a1) declare `requires-python = ">=3.11"`.
 - One `pip` command installs both halves: `pyproject.toml` declares
   `dependencies = ["evoxc >= 0.1.0", "numpy >= 2.0.0"]`, so the editable install brings the compiler
-  and NumPy with it and installs no PyTorch. If `import evox_etl` fails with
+  and NumPy with it and installs no PyTorch. If `import evox` fails with
   `ModuleNotFoundError: No module named 'evoxc'`, the environment holds the 1.x `evox` (no `evoxc`
-  dependency and no `evox_etl`) rather than this checkout.
+  dependency and no `evox`) rather than this checkout.
 - If you are developing against a compiler checkout instead of the published distribution, install
   that path over the one `pip` resolved:
 
@@ -33,7 +33,7 @@ The default **NumPy backend** then needs no compiler toolchain and no GPU driver
 alone is enough for everything on this page.
 
 ```{tip}
-Editable mode (`-e`) keeps `evox_etl` importable straight from `src/`, so edits take effect
+Editable mode (`-e`) keeps `evox` importable straight from `src/`, so edits take effect
 without reinstalling. Add what the test suite needs with `pip install pytest numpy`.
 ```
 
@@ -80,28 +80,28 @@ check-added-large-files, `ruff --fix` and `ruff-format`.
 
 ## Run the test suite
 
-The canonical suite is **`unit_test/etl/`**, a pytest suite that mirrors `src/evox_etl/`.
-`evox_etl` is a regular installed package (`src/evox_etl/__init__.py`); only the extension
-namespace `evox_etl_ext` is a PEP 420 namespace package. Either install the
+The canonical suite is **`unit_test/evox/`**, a pytest suite that mirrors `src/evox/`.
+`evox` is a regular installed package (`src/evox/__init__.py`); only the extension
+namespace `evox_ext` is a PEP 420 namespace package. Either install the
 project editable (see above) or prepend `src` to the import path; the repo-root `conftest.py`
 already shims `sys.path` with both the repository root and `src`.
 
 Per-suite commands:
 
 ```bash
-pytest unit_test/etl/algorithms -q
-pytest unit_test/etl/operators -q
-pytest unit_test/etl/problems -q
-pytest unit_test/etl/metrics -q
-pytest unit_test/etl/vis_tools -q
-pytest unit_test/etl/workflows -q
-pytest unit_test/etl/ext -q
+pytest unit_test/evox/algorithms -q
+pytest unit_test/evox/operators -q
+pytest unit_test/evox/problems -q
+pytest unit_test/evox/metrics -q
+pytest unit_test/evox/vis_tools -q
+pytest unit_test/evox/workflows -q
+pytest unit_test/evox/ext -q
 ```
 
 Whole suite:
 
 ```bash
-pytest unit_test/etl -q
+pytest unit_test/evox -q
 ```
 
 ```{note}
@@ -110,17 +110,17 @@ for isolating a failure faster.
 ```
 
 - The suite needs **no PyTorch**: the old torch-parity runs were removed with the 1.x package, and
-  `unit_test/etl/test_no_torch.py` is a release gate that imports `evox_etl` in a fresh interpreter
+  `unit_test/evox/test_no_torch.py` is a release gate that imports `evox` in a fresh interpreter
   and asserts no torch module was loaded.
 - The `vis_tools` and monitor-plot assertions need Plotly and are `skipif`-guarded otherwise.
 - Tests use the `numpy` backend only, so no GPU is needed. Compiled backends and GPU execution
-  are exercised by the comparison harness under `benchmarks/etl_vs_torch/`.
+  are exercised by the comparison harness under `benchmarks/evox_vs_torch/`.
 
 To narrow a failing run, point pytest at a single file, and append `::test_name` to run a single
 test:
 
 ```bash
-pytest unit_test/etl/workflows/test_aux_history.py -q
+pytest unit_test/evox/workflows/test_aux_history.py -q
 ```
 
 ## Build the documentation

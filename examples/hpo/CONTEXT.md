@@ -1,13 +1,13 @@
-# HPO examples — runnable hyperparameter-optimization demos (evox_etl)
+# HPO examples — runnable hyperparameter-optimization demos (evox)
 
 ## Intent
 Runnable, CPU-only demo scripts for EvoX's hyperparameter optimization (HPO) on the `evoxc`
-compiler. They drive the **host-side** HPO redesign of `src/evox_etl/problems/hpo_wrapper.py`:
+compiler. They drive the **host-side** HPO redesign of `src/evox/problems/hpo_wrapper.py`:
 `HPOProblemWrapper` holds the *inner* algorithm/problem configs plus an `HPSlot` spec of which
 inner-config fields are tuned, and `evaluate(candidate)` is plain host Python that substitutes the
 values (`dataclasses.replace`), builds a fresh inner `StdWorkflow`, runs it (`wf.run(gens, seed=)`)
 and reads the inner monitor's best fitness. `random_search` is the minimal outer search driver.
-The wrapper is deliberately NOT an `evox_etl` `Problem` — a nested compiled workflow can never run
+The wrapper is deliberately NOT an `evox` `Problem` — a nested compiled workflow can never run
 inside an outer trace (`evoxc` has no eager mode) — so the outer loop is host-side Python.
 
 Each script is standalone (bootstraps `sys.path` to the repo root), runs in a few seconds, prints
@@ -25,10 +25,10 @@ Run command (from the repo root, CPU-only, no pytest/sklearn/optuna needed):
 ```
 python examples/hpo/<script>.py
 ```
-Public framework surface used: `evox_etl.problems.hpo_wrapper.{HPOFitnessMonitorConfig,
-HPOProblemConfig, HPOProblemWrapper, HPSlot, random_search}`, `evox_etl.{StdWorkflow,
-EvalMonitorConfig}`, `evox_etl.algorithms.{PSO, RVEA, NSGA2}`, `evox_etl.metrics.igd`,
-`evox_etl.problems.numerical.{Rastrigin, DTLZ2}` (+ `DTLZ`.pf for the reference front),
+Public framework surface used: `evox.problems.hpo_wrapper.{HPOFitnessMonitorConfig,
+HPOProblemConfig, HPOProblemWrapper, HPSlot, random_search}`, `evox.{StdWorkflow,
+EvalMonitorConfig}`, `evox.algorithms.{PSO, RVEA, NSGA2}`, `evox.metrics.igd`,
+`evox.problems.numerical.{Rastrigin, DTLZ2}` (+ `DTLZ`.pf for the reference front),
 `evoxc.build`/`evoxc.core.TensorSpec` for the host-side metric wrapper.
 
 ## Constraints
@@ -36,7 +36,7 @@ EvalMonitorConfig}`, `evox_etl.algorithms.{PSO, RVEA, NSGA2}`, `evox_etl.metrics
   (`_build_workflow`, `_resolve_values`, `_fresh_inner_monitor`, `_defaults`, …) from an example.
   Mechanism explanations belong in comments/CONTEXT.md, not in internals re-implementations.
 - Script conventions: module docstring with the exact run command, `sys.path` bootstrap locating
-  the repo root via `src/evox_etl/__init__.py`, `main()` under `if __name__ == "__main__":`,
+  the repo root via `src/evox/__init__.py`, `main()` under `if __name__ == "__main__":`,
   `backend="numpy"` (documented as switchable to `"iree"`/`"xla"`, which need the evoxc
   backend extra, e.g. `pip install "evoxc[iree]"`).
 - CPU-only, tiny populations/generation counts (each script finishes in a few seconds), seeds
@@ -63,7 +63,7 @@ EvalMonitorConfig}`, `evox_etl.algorithms.{PSO, RVEA, NSGA2}`, `evox_etl.metrics
 - Multi-objective inner runs need `multi_obj_metric` (the single-objective `get_best_fitness`
   accessor is SO-only) plus `full_fit_history=True` and an `opt_direction` LIST. `multi_obj_metric`
   is a HOST-side callable over an `(n_pareto, n_objs)` numpy array; an evoxc metric such as
-  `evox_etl.metrics.igd` must first be wrapped host-side with `evoxc.build` + `evoxc.run`
+  `evox.metrics.igd` must first be wrapped host-side with `evoxc.build` + `evoxc.run`
   (see `HostIGD` in `multi_objective_hpo.py`), cached per input shape because the front size varies.
 - `num_repeats > 1`: repeat `r` runs with seed `config.seed + r`; the per-repeat best fitness values
   are combined by `fit_aggregation`. `"mean"` is the seed-robust score to optimize, `"min"`/`"max"`

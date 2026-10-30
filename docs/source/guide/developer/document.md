@@ -5,7 +5,7 @@ page, which docstring conventions the API reference expects, and how the bilingu
 Simplified Chinese) build is kept in sync.
 
 ```{note}
-These pages describe the experimental EvoX 2.0 pre-release, whose import name is `evox_etl`.
+These pages describe the experimental EvoX 2.0 pre-release, whose import name is `evox`.
 Task-focused guides live under `docs/source/guide/`; the tutorials under `docs/source/tutorial/`
 are written for end users and follow exactly the same conventions.
 ```
@@ -18,10 +18,10 @@ are written for end users and follow exactly the same conventions.
 - English sources are the pages under `docs/source/`. The section landings — `docs/source/index.md`,
   `docs/source/guide/*/index.md`, `docs/source/tutorial/index.md` — own the `{toctree}`
   directives that order and include the child pages.
-- The API reference is generated from `src/evox_etl` by the `autodoc2` extension at build time.
+- The API reference is generated from `src/evox` by the `autodoc2` extension at build time.
   `docs/source/apidocs/` is therefore **generated, git-ignored, and never edited by hand**.
-  `autodoc2_module_all_regexes` restricts `__all__`-based filtering to `evox_etl.core.*`,
-  `evox_etl.problems.*`, `evox_etl.utils.*` and `evox_etl.workflows.*`; every other module is
+  `autodoc2_module_all_regexes` restricts `__all__`-based filtering to `evox.core.*`,
+  `evox.problems.*`, `evox.utils.*` and `evox.workflows.*`; every other module is
   documented by its public members.
 
 ## Writing a page
@@ -36,7 +36,7 @@ are written for end users and follow exactly the same conventions.
   ````
 
   Generated API anchors use the label syntax instead, for example
-  `[StdWorkflow](#evox_etl.core.workflow.StdWorkflow)`.
+  `[StdWorkflow](#evox.core.workflow.StdWorkflow)`.
 - Use `{note}`, `{tip}` and `{warning}` admonitions for asides, and fenced code blocks tagged
   `python` or `bash` (or `{code-block} python`) for code.
 - No page may teach the removed 1.x object-oriented API; EvoX 2.0 uses configs, tensor states and

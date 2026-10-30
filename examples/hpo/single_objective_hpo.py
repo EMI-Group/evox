@@ -1,7 +1,7 @@
-"""EvoX (evox_etl) single-objective hyperparameter optimization (HPO) example.
+"""EvoX (evox) single-objective hyperparameter optimization (HPO) example.
 
 An *inner* optimization run (PSO on the 10-D Rastrigin function) is wrapped by
-:class:`evox_etl.problems.hpo_wrapper.HPOProblemWrapper`, whose search space is
+:class:`evox.problems.hpo_wrapper.HPOProblemWrapper`, whose search space is
 a set of the inner config's fields — the PSO weights
 
     w       inertia weight          (default 0.6)
@@ -16,8 +16,8 @@ and reports the best hyperparameters found next to the untuned defaults.
 Unlike an in-graph HPO design (which would nest the inner workflow inside the
 outer workflow's traced ``evaluate``), this wrapper is host-side Python: the
 outer search is a plain loop over ``evaluate``, and only the inner run is
-compiled. See ``src/evox_etl/problems/hpo_wrapper.py`` and
-``src/evox_etl/DESIGN.md`` for why a nested compiled workflow is impossible.
+compiled. See ``src/evox/problems/hpo_wrapper.py`` and
+``src/evox/DESIGN.md`` for why a nested compiled workflow is impossible.
 
 Only ``numpy`` + ``evoxc`` are needed; the inner workflow runs on the numpy
 backend (``HPOProblemConfig(backend="numpy")`` — set ``backend="iree"``/``"xla"``
@@ -33,30 +33,30 @@ import pathlib
 import sys
 import time
 
-# Make `evox_etl` importable without an editable install.
+# Make `evox` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
+    if (_p / "src" / "evox" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.hpo_wrapper import (
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.hpo_wrapper import (
     HPOFitnessMonitorConfig,
     HPOProblemConfig,
     HPOProblemWrapper,
     HPSlot,
     random_search,
 )
-from evox_etl.problems.numerical import Rastrigin
+from evox.problems.numerical import Rastrigin
 
 # ---------------------------------------------------------------------------
 # Configuration (kept small so the whole script runs in a few seconds).

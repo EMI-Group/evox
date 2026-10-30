@@ -1,0 +1,35 @@
+# evox/operators/sampling — plain functional sampling operators
+
+## Intent
+Sampling operators. All functions are PLAIN Python functions (no `@evoxc.defn`)
+that compose inside traces — see `../../DESIGN.md` §4.3 for the binding rule.
+
+## API Surface
+- `uniform.py`: `uniform_sampling(n, m) -> (w: float32 (n', m), n_samples: int)` —
+  Das-Dennis sampling, deterministic, static-Python combinatorics; constants via
+  `evoxc.constant(evoxc.core.tensor(...))`.
+- `gird.py` (the historical file-name typo is kept): `grid_sampling(n, m) -> (w: float32, n_samples)` —
+  deterministic grid; no evoxc meshgrid → per-axis reshape+broadcast+stack.
+- `latin_hypercube.py`:
+  - `latin_hypercube_sampling_standard(key, n, d, smooth=True)` — key FIRST (two
+    random draws, keys split via `random.split`), no device arg. gather→
+    flatten trick: `evoxc.gather(reshape(cells,(-1,)), perms*d + col_idx)`.
+  - `latin_hypercube_sampling(key, n, lb, ub, smooth=True)` — `lb[None,:]` →
+    `evoxc.reshape(lb, (1, -1))` (evoxc getitem supports NO None/newaxis indexing).
+- `__init__.py`: exports the three modules' public functions.
+
+## Gotchas (verified against evoxc)
+- `evoxc.reshape` requires a TUPLE shape (lists raise TypeError).
+- `evoxc.getitem` supports only static ints/slices — no `None`/newaxis/ellipsis.
+- `evoxc.build` has no static-args support; static Python ints go via
+  `functools.partial` closures. Returning static Python ints alongside tensors
+  (e.g. `n_samples`) works.
+- `evoxc.random.key(seed)` returns a SCALAR int64 tensor (shape `()`) — key specs
+  are `evoxc.core.TensorSpec((), "int64")`.
+- Weak Python scalars (int/float) keep float32 promotion.
+
+## Constraints
+No torch/numpy imports. Deterministic functions follow the documented formulas
+bit-exactly (verified, incl. the h2 branch of uniform_sampling).
+Smoke tests live in `/tmp` throwaway scripts; unit tests are maintained by a
+separate agent under `unit_test/evox/operators/`.

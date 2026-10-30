@@ -1,8 +1,8 @@
 # Linux Distribution and GPU Driver
 
 ```{warning} Experimental EvoX 2.0 pre-release
-These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `torch.*`), which was removed in 2.0 and is
+These pages target the **EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`).
+They do **not** cover the EvoX 1.x torch API (`torch.*`), which was removed in 2.0 and is
 documented nowhere in these pages.
 ```
 

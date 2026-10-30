@@ -25,7 +25,7 @@ project = "EvoX"
 copyright = "2022, Bill Huang"
 author = "Bill Huang"
 # The documented API is the experimental EvoX 2.0 pre-release (package
-# ``evox_etl``); the 1.x torch package ``evox`` no longer exists in this tree.
+# ``evox``); the 1.x torch package ``evox`` no longer exists in this tree.
 # Keep these in step with ``[project] version`` in ``pyproject.toml`` (2.0.0a1).
 version = "2.0.0a1"
 release = "2.0.0a1"
@@ -49,23 +49,23 @@ extensions = [
 ]
 
 # The API documentation is generated from the functional EvoX 2.0 package ONLY
-# (``src/evox_etl``, built on the ``evoxc`` compiler). The 1.x torch package
+# (``src/evox``, built on the ``evoxc`` compiler). The 1.x torch package
 # ``src/evox`` is not scanned: it was deleted in 2.0 and no longer exists.
 autodoc2_packages = [
-    "../../src/evox_etl",
+    "../../src/evox",
 ]
 
 # ``autodoc2_module_all_regexes`` makes autodoc2 filter members through a
 # module's ``__all__``; it errors out for any matching module that has no
-# ``__all__``. In ``evox_etl`` only these four packages define ``__all__`` in
+# ``__all__``. In ``evox`` only these four packages define ``__all__`` in
 # every module (the algorithm/operator/metric/vis_tools leaf modules do not), so
 # the filter is restricted to them — everything else is documented by its public
 # member set.
 autodoc2_module_all_regexes = [
-    r"evox_etl\.core\..*",
-    r"evox_etl\.problems\..*",
-    r"evox_etl\.utils\..*",
-    r"evox_etl\.workflows\..*",
+    r"evox\.core\..*",
+    r"evox\.problems\..*",
+    r"evox\.utils\..*",
+    r"evox\.workflows\..*",
 ]
 
 autodoc2_render_plugin = "myst"
@@ -81,14 +81,14 @@ exclude_patterns = [
     # Agent-facing Context Tree files are not documentation pages.
     "CONTEXT.md",
     "**/CONTEXT.md",
-    # autodoc2 documents this module (it is imported by ``evox_etl.problems``)
+    # autodoc2 documents this module (it is imported by ``evox.problems``)
     # but the parent package's ``__all__`` does not list it, so autodoc2 never
     # links it from a toctree. Excluding the generated page avoids an
     # "orphan document" warning; nothing links to it.
-    "apidocs/evox_etl/evox_etl.problems.numerical.state.md",
+    "apidocs/evox/evox.problems.numerical.state.md",
 ]
 
-# The documented package (``evox_etl``) is pure Python on top of the ``evoxc``
+# The documented package (``evox``) is pure Python on top of the ``evoxc``
 # compiler; no third-party environment packages need to be mocked any more.
 autodoc_mock_imports = []
 

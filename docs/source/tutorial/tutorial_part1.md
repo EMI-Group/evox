@@ -9,7 +9,7 @@ An algorithm, a problem and a monitor are now **frozen config dataclasses** (pla
 built by `make_*` constructors such as `make_pso`), the population and any other mutable quantities
 are **tensor-valued state** carried through plain `init` / `step` functions, and `StdWorkflow`
 compiles that trio exactly once through the **`evoxc`** compiler before running it in a loop.
-The package you import is **`evox_etl`** — the torch `import evox` API has been removed.
+The package you import is **`evox`** — the torch object-oriented API of 1.x has been removed.
 
 ## The functional model at a glance
 
@@ -29,9 +29,9 @@ The package you import is **`evox_etl`** — the torch `import evox` API has bee
   themselves, such as the Pareto-front and metric examples, compile their own small graphs.)
 
 ```python
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 algorithm = PSO(pop_size=40, lb=[-5.0] * 5, ub=[5.0] * 5)   # frozen config dataclass
 problem = Sphere()                                          # frozen config dataclass
@@ -52,7 +52,7 @@ pip install --pre evox==2.0.0a1
 ```
 
 The distribution is still named `evox`, but 2.0 ships as **pre-releases**, so a plain
-`pip install evox` resolves the 1.x stable line, which has no `evox_etl`. `--pre` lets pip consider
+`pip install evox` resolves the 1.x stable line, which has no `evox`. `--pre` lets pip consider
 pre-releases and `==2.0.0a1` names this one; `pip install "evox>=2.0.0a1"` is equivalent, because a
 specifier that mentions a pre-release opts into pre-releases on its own. Either command installs the
 framework together with the **NumPy backend** — `evoxc` and `numpy` are the declared dependencies — which
@@ -66,13 +66,13 @@ routes.
 ### Optional extras
 
 ```bash
-pip install "evox[vis]"        # Plotly-based plotting: monitor.plot() and evox_etl.vis_tools
+pip install "evox[vis]"        # Plotly-based plotting: monitor.plot() and evox.vis_tools
 pip install "evox[iree]"       # the IREE backend
 pip install "evox[tvm]"        # the TVM backend
 pip install "evox[compilers]"  # every compiler backend at once
 ```
 
-`evox[vis]` provides Plotly (plus pandas) for the figure builders in `evox_etl.vis_tools`, which is
+`evox[vis]` provides Plotly (plus pandas) for the figure builders in `evox.vis_tools`, which is
 what `EvalMonitor.plot()` dispatches to; without it `plot()` warns and returns `None` while all
 history accessors keep working. The three compiler extras pull in the runtime that the corresponding
 `evoxc` backend needs to lower and execute a graph. If you manage the compiler as its own
@@ -111,9 +111,9 @@ the sphere function, whose minimum is the origin with fitness `0`, and prints th
 so far.
 
 ```python
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 workflow = StdWorkflow(
     algorithm=PSO(pop_size=40, lb=[-5.0] * 5, ub=[5.0] * 5),

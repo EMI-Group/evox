@@ -2,9 +2,10 @@
 
 > [!NOTE]
 > **Historical document (1.4 → 2.0).** This report was written while the 1.x PyTorch implementation and the
-> functional port lived side by side in one tree, so it refers to `src/evox/` as the live reference implementation
-> and to torch-parity tests as part of the suite. That tree has been deleted for the 2.0.0a1 pre-release: `src/evox_etl/`
-> (import name `evox_etl`) is now the only implementation, and there is nothing to compare against or to port from.
+> functional port lived side by side in one tree, so it refers to the live torch reference implementation and to
+> torch-parity tests as part of the suite. That tree has been deleted for the 2.0.0a1 pre-release: the functional
+> package `src/evox/` (import name `evox`) is now the only implementation, and there is nothing to compare against
+> or to port from.
 > Read the paths, parity claims and "not portable" lists below in that light; the analysis itself is unchanged.
 
 **Goal:** rewrite EvoX on top of the evoxc tensor library, replacing torch's
@@ -12,15 +13,15 @@ OOP-heavy design with plain functional code (dicts/tuples/dataclasses/namedtuple
 pure functions, separate `init`), benchmark torch vs evoxc on CPU/GPU from small
 to large scale, compare code style, and report anything unportable.
 
-**Result:** A complete functional port lives in `src/evox_etl/` (package
-`evox_etl`) beside the frozen torch reference `src/evox/`. It covers the whole
+**Result:** A complete functional port lives in `src/evox/` (package
+`evox`), the path that previously held the frozen torch reference. It covers the whole
 user-facing framework — every algorithm (including the training-free
 `VirtualES`/`VirtualLoRAES` family) and its companion `VirtualProblem`, all
 operators, the numerical and virtual/neuroevolution problems, the host-side HPO
 wrapper, metrics, `vis_tools`, the functional `StdWorkflow`/`EvalMonitor`
 (with `plot` and the aux-history channel), MO custom-operator injection, and the
-`evox_etl_ext` extension system. The binding spec is `src/evox_etl/DESIGN.md`;
-the canonical tests are `unit_test/etl/`. Benchmarks: 240 records across 6
+`evox_ext` extension system. The binding spec is `src/evox/DESIGN.md`;
+the canonical tests are `unit_test/evox/`. Benchmarks: 240 records across 6
 backends at 3 scales; bugs found and fixed on both the torch and port sides, plus
 three evoxc-repo fixes upstream (evoxc commit `5ab645be`). The old JAX-era (pre-1.0)
 design informed the function layout, but the module arrangement follows the
@@ -30,19 +31,19 @@ current torch layout.
 
 | Area | Contents | Status |
 |---|---|---|
-| Core | `evox_etl.core`: duck-typed `Algorithm`/`Problem`/`Monitor` protocols, state helpers, functional `std_workflow` (compile-once `evoxc.build` step loop), `WorkflowState`, `EvalMonitorConfig`, and the optional `record_step`/`record_auxiliary` aux-history channel | ✅ |
+| Core | `evox.core`: duck-typed `Algorithm`/`Problem`/`Monitor` protocols, state helpers, functional `std_workflow` (compile-once `evoxc.build` step loop), `WorkflowState`, `EvalMonitorConfig`, and the optional `record_step`/`record_auxiliary` aux-history channel | ✅ |
 | Algorithms — SO | DE family (DE, SHADE, SaDE, CoDE, ODE, JaDE), ES family (OpenES, XNES, SeparableNES, NES/SNES, ARS, ASEBO, DES, ESMC, GuidedES, NoiseReuseES, PersistentES, CMA-ES) and the training-free **virtual family** (`VirtualES`, `VirtualLoRAES` + `make_virtual_es`/`make_virtual_lora_es`), PSO family (PSO, CLPSO, CSO, DMS-PSO-EL, FS-PSO, SL-PSO-GS/US) — each a frozen config dataclass + `make_*` constructor + step-protocol functions | ✅ |
 | Algorithms — MO | NSGA2, NSGA3, RVEA, RVEAa, MOEAD, HypE — each with custom-operator injection (`selection_op`/`crossover_op`/`mutation_op` accepted by `make_*`) | ✅ |
 | Operators | all 15 operators (selection/crossover/mutation/sampling + `jit_fix_operator` utils) — torch-exact (parity ≤1e-6) | ✅ |
 | Problems | numerical: `basic` (10 fns), `dtlz` (DTLZ1-7 + pf), `cec2022` (all 12); virtual/neuroevolution: `VirtualProblem`/`VirtualLoRAProblem` (unified behind `lora_rank`) + `make_virtual_problem` | ✅ |
-| HPO | `problems/hpo_wrapper.py`: an `evoxc`-native **host-side** HPO (`HPOProblemWrapper`, `HPSlot`, HPO monitor configs, `random_search`), re-exported from `evox_etl.problems` | ✅ |
-| Visualization | `evox_etl.vis_tools`: Plotly figure builders (`plot_*`) + EvoXVision (`.exv`) serialization; `EvalMonitor.plot` dispatches to it | ✅ |
+| HPO | `problems/hpo_wrapper.py`: an `evoxc`-native **host-side** HPO (`HPOProblemWrapper`, `HPSlot`, HPO monitor configs, `random_search`), re-exported from `evox.problems` | ✅ |
+| Visualization | `evox.vis_tools`: Plotly figure builders (`plot_*`) + EvoXVision (`.exv`) serialization; `EvalMonitor.plot` dispatches to it | ✅ |
 | Metrics | GD, IGD(+), HV (host-side numpy implementations) | ✅ |
-| Utils | `parse_opt_direction`, `min_by`, rank/rank-based fitness, pairwise dists, `evox_etl.key`/`random` | ✅ |
+| Utils | `parse_opt_direction`, `min_by`, rank/rank-based fitness, pairwise dists, `evox.key`/`random` | ✅ |
 | Workflows | functional `StdWorkflow` + `EvalMonitor` (SO top-k elites, host-side PF, `plot`, aux-history) | ✅ |
-| Extensions | `evox_etl_ext`: PEP 420 namespace autoloading (`auto_load_extensions()`), merged into the matching `evox_etl.*` modules at `import evox_etl` time | ✅ |
-| Tests | `unit_test/etl/`: canonical suite mirroring `src/evox_etl/` — algorithms (SO/MO + torch parity), operators, problems, metrics, workflows, `vis_tools`, extension autoload | ✅ |
-| Benchmarks | `benchmarks/etl_vs_torch/`: 6 backends × 2 suites × 3 scales, results JSONs, `BENCHMARK_RESULTS.md`, `style_comparison.md` | ✅ |
+| Extensions | `evox_ext`: PEP 420 namespace autoloading (`auto_load_extensions()`), merged into the matching `evox.*` modules at `import evox` time | ✅ |
+| Tests | `unit_test/evox/`: canonical suite mirroring `src/evox/` — algorithms (SO/MO + torch parity), operators, problems, metrics, workflows, `vis_tools`, extension autoload | ✅ |
+| Benchmarks | `benchmarks/evox_vs_torch/`: 6 backends × 2 suites × 3 scales, results JSONs, `BENCHMARK_RESULTS.md`, `style_comparison.md` | ✅ |
 
 **Not portable (with reasons):**
 - torch `triton_kernels` — hand-written Triton CUDA kernels registered through the
@@ -53,9 +54,9 @@ current torch layout.
 - `src/evox/problems/neuroevolution/{brax,mujoco_playground,supervised_learning,utils}.py`
   — bound to JAX/Brax/MuJoCo environments and to `torch.nn` + `DataLoader`; only
   the virtual Gaussian-noise problem is ported (see
-  `src/evox_etl/problems/neuroevolution/`).
+  `src/evox/problems/neuroevolution/`).
 - torch `StdWorkflow` distributed multi-rank evaluation (`enable_distributed` /
-  `group`) — no evoxc analogue; the `evox_etl` workflow is single-device.
+  `group`) — no evoxc analogue; the `evox` workflow is single-device.
 - torch core `ModuleBase`/`Parameter`/`Mutable`/`compile`/`vmap`/`use_state` and
   the `Agent`/`Workflow` ABCs — superseded by the functional design (frozen config
   dataclasses + tensor state + plain functions; `DESIGN.md` §4).
@@ -83,23 +84,23 @@ current torch layout.
 
 ## 3. Benchmark results (summary)
 
-Full data: `benchmarks/etl_vs_torch/BENCHMARK_RESULTS.md`; reproduction:
-`<venv-python> benchmarks/etl_vs_torch/run.py --backend {torch-cpu,torch-cuda,etl-numpy,etl-iree-llvm-cpu,etl-iree-cuda,etl-xla-cuda} --suite {so,mo}`.
+Full data: `benchmarks/evox_vs_torch/BENCHMARK_RESULTS.md`; reproduction:
+`<venv-python> benchmarks/evox_vs_torch/run.py --backend {torch-cpu,torch-cuda,evox-numpy,evox-iree-llvm-cpu,evox-iree-cuda,evox-xla-cuda} --suite {so,mo}`.
 Machine: RTX A6000s, seed 42, 100 gens, ms/step includes host↔device staging.
 
 - **SO (PSO/DE/CMA-ES/OpenES × Sphere/Rastrigin/Ackley, 100×10 → 10000×100):**
   all 36 cells execute on every backend (zero error cells). At 100×10 evoxc
   compiled backends are ~torch-parity; at 10000×100 **torch-cuda wins
-  decisively** (PSO ~1.1 ms/step vs etl-xla-cuda ~17 ms/step; iree-cuda
-  ~3.5 s/step), while **etl-xla-cuda wins PSO/DE/OpenES at 10000×100**
+  decisively** (PSO ~1.1 ms/step vs evox-xla-cuda ~17 ms/step; iree-cuda
+  ~3.5 s/step), while **evox-xla-cuda wins PSO/DE/OpenES at 10000×100**
   (8–18 ms/step vs torch-cpu 8–36 ms/step). evoxc wins CMA-ES 100×10 big
   (torch-cpu 59–132 ms/step vs evoxc 1.3–10 ms/step); large-scale CMA-ES is the
   slowest evoxc cell (iree-llvm-cpu ~22 s/step — compiled while-loop overhead).
   evoxc fitnesses are bit-identical across all 4 evoxc backends (correctness of
   evoxc itself proven).
-- **MO (NSGA2/NSGA3/MOEAD × DTLZ1/2):** etl-xla-cuda runs the full 12-case
+- **MO (NSGA2/NSGA3/MOEAD × DTLZ1/2):** evox-xla-cuda runs the full 12-case
   matrix end-to-end — **median 28× faster than torch-cpu** (NSGA3 77–108×;
-  3.9–27.2 ms/step). etl-numpy is a full 100-gen matrix. **iree cannot compile
+  3.9–27.2 ms/step). evox-numpy is a full 100-gen matrix. **iree cannot compile
   any MO program** (upstream iree-compile segfault, see §6) — xla is the
   recommended compiled backend.
 - **Parity:** 192 evaluable records → **106 ok / 86 not-ok / 48 skip**.
@@ -109,9 +110,9 @@ Machine: RTX A6000s, seed 42, 100 gens, ms/step includes host↔device staging.
 
 ## 4. Code-style comparison
 
-Detailed side-by-side in `benchmarks/etl_vs_torch/style_comparison.md`.
+Detailed side-by-side in `benchmarks/evox_vs_torch/style_comparison.md`.
 
-**Pros of the functional evox_etl:**
+**Pros of the functional evox:**
 - State and configuration are explicit values (frozen dataclasses), not hidden
   `self.*` mutation — every transition is `State' = f(Config, State, X)`; no
   `Parameter`/`Mutable` bookkeeping machinery to learn.
@@ -127,7 +128,7 @@ Detailed side-by-side in `benchmarks/etl_vs_torch/style_comparison.md`.
   requires the numpy backend, and semantics differ from "normal Python".
 - evoxc static-leaf policy requires closure-capture/normalization tricks for
   configs holding arrays/callables (documented as gotchas #1-18 in
-  `src/evox_etl/CONTEXT.md`).
+  `src/evox/CONTEXT.md`).
 - Compiled-backend support is uneven (iree MO segfaults, deferred ops, see §6);
   the torch ecosystem's compiler maturity is absent.
 - Python scalar configs make parameter sweeps easy but per-step overhead at
@@ -144,7 +145,7 @@ Detailed side-by-side in `benchmarks/etl_vs_torch/style_comparison.md`.
 - **Torch reference CMA-ES `c_c` bug (fixed both sides):** `c_c = (mu_eff+2)/(dim+4+2·mu_eff/dim)`
   → NaN at pop≥1000 (torch silently, evoxc loudly). Replaced with Hansen
   canonical `(4+mu_eff/dim)/(dim+4+2·mu_eff/dim)`.
-- **evox_etl CMA-ES port divergence (CMAES/Ackley/100x10 stall ~20.5 vs 0.0036):**
+- **evox CMA-ES port divergence (CMAES/Ackley/100x10 stall ~20.5 vs 0.0036):**
   the port used the canonical rank-one outer product `p_c p_cᵀ`; torch's 1-D
   `p_c @ p_c.T` is actually a scalar dot product (isotropic `c₁‖p_c‖²`
   inflation). Quirk replicated → all 4 evoxc backends converge (0.0005–0.0037).
@@ -166,33 +167,33 @@ xla-cuda runs them at 88–406 ms/step vs torch-cpu 133–168 ms/step.
 1. **iree-compile segfault (-11) on every MO program** (23/24 iree MO cells):
    export succeeds, `libIREECompiler.so` crashes (deep recursion; unmodified
    NSGA2 triggers it identically) — upstream iree while-loop compiler bug.
-   etl-xla-cuda is unaffected and is the recommended compiled backend.
+   evox-xla-cuda is unaffected and is the recommended compiled backend.
 2. **MOEAD/DTLZ2/100x3x10 runtime `ref is null`** (`hal.buffer_view.create`,
    INVALID_ARGUMENT) on iree-llvm-cpu after successful export+compile — one cell.
 3. **stablehlo-v1 exporter defers `svd`/`matrix_rank`/`solve`/`cumprod`/`flip`:**
-   NSGA3 and DTLZ are worked around evox-side (eigh/reduce_prod/gather);
+   NSGA3 and DTLZ are worked around on the evox side (eigh/reduce_prod/gather);
    `asebo.py` still calls `evoxc.svd` in `step` — runs on the numpy backend (tests
    green) but would fail export; documented in
-   `src/evox_etl/algorithms/so/es_variants/CONTEXT.md` (full two-factor SVD
+   `src/evox/algorithms/so/es_variants/CONTEXT.md` (full two-factor SVD
    reconstruction is unstable for rank-deficient inputs; asebo isn't
    benchmarked).
 4. **iree O2/O3 forbidden on CUDA** (eigh/NSGA2 codegen bugs) — 28% default
    compile options mandated. XLA `dynamic_shapes` not usable.
-5. evoxc has no eager mode; etl-numpy is an interpreter (SO large scales capped
+5. evoxc has no eager mode; evox-numpy is an interpreter (SO large scales capped
    at 50/10 gens in benchmarks; MO runs the full 100 gens after per-generation PF
    extraction).
 
 ## 7. Verdict
 
-The functional `evox_etl` port of EvoX is complete and validated: every user-facing
+The functional `evox` port of EvoX is complete and validated: every user-facing
 algorithm (including the virtual ES family and its `VirtualProblem`), all
 operators, numerical + virtual problems, the host-side HPO wrapper, metrics,
 `vis_tools`, the functional workflow/monitor (with `plot` and aux-history), MO
-custom-operator injection and the `evox_etl_ext` extension system — with
-bit-identical etl-backend fitnesses, MO at up to 108× torch-cpu speed on
+custom-operator injection and the `evox_ext` extension system — with
+bit-identical evox-backend fitnesses, MO at up to 108× torch-cpu speed on
 xla-cuda, and a codebase that expresses the same algorithms in ~half the
 machinery (no Parameter/Mutable, no nn.Module state mutation). The gaps that
 remain are compiler-side (iree MO segfaults, deferred exporter ops) or the four
-external-ecosystem/architecture-bound pieces listed in §1. The torch variant
-stays as the frozen reference in `src/evox/`; the `evox_etl` port is the
-functional successor in `src/evox_etl/`.
+external-ecosystem/architecture-bound pieces listed in §1. The torch variant was
+the frozen reference in `src/evox/` until 2.0.0a1; the functional port now
+occupies that path and is its successor.

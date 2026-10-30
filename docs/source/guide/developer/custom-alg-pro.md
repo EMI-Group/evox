@@ -54,7 +54,7 @@ it as a black box that returns a tensor of shape `(pop_size,)`.
 The complete `my_algorithm.py`:
 
 ```python
-"""A minimal evolution strategy written as an evox_etl algorithm module."""
+"""A minimal evolution strategy written as an evox algorithm module."""
 
 from __future__ import annotations
 
@@ -168,8 +168,8 @@ built-in problem and a monitor:
 
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.problems.numerical import Sphere
 from my_algorithm import make_gaussian_es
 
 workflow = StdWorkflow(
@@ -226,7 +226,7 @@ immediately.
 The complete `my_problem.py`:
 
 ```python
-"""A minimal shifted-sphere problem written as an evox_etl problem module."""
+"""A minimal shifted-sphere problem written as an evox problem module."""
 
 from __future__ import annotations
 
@@ -275,8 +275,8 @@ The runner pairs the custom problem with a built-in algorithm:
 
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
 from my_problem import make_shifted_sphere
 
 dim = 5
@@ -331,7 +331,7 @@ defaults they replace:
 Passing `None` selects the built-in operator. Because callables are not valid static
 pytree leaves, a config that carries them must be registered with
 `evoxc.register_pytree_node`; the multi-objective modules do this themselves at import
-time (see `evox_etl.algorithms.mo.nsga2`).
+time (see `evox.algorithms.mo.nsga2`).
 
 For the operator catalog, see {doc}`../advanced/operators`. For tuning algorithm
 hyperparameters, see {doc}`../advanced/hpo`; neither catalog is duplicated here.

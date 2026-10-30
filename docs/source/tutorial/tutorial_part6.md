@@ -5,11 +5,11 @@ Real problems rarely work like that: a design is judged by cost, mass and stiffn
 In a **multi-objective (MO)** problem a solution evaluates to a *vector*, no solution wins on every axis, and the answer is a **Pareto front** — the set of solutions for which no objective can be improved without making another one worse.
 
 This chapter runs a complete MO study: NSGA-II on the DTLZ2 benchmark, reading the resulting front, scoring it with quality indicators, plotting it, and saving it for the EvoXVision viewer.
-It targets the experimental **EvoX 2.0 pre-release**, the functional rewrite of EvoX on the `evoxc` compiler (`import evox_etl`).
+It targets the experimental **EvoX 2.0 pre-release**, the functional rewrite of EvoX on the `evoxc` compiler (`import evox`).
 
 ```{warning} Pre-release API
-Everything below uses the EvoX 2.0 functional API (`import evox_etl`, frozen config dataclasses, `make_*` constructors, explicit RNG keys).
-The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`) was removed in 2.0 and is not used anywhere in this chapter — see {doc}`tutorial_part7` if you are bringing 1.x code across.
+Everything below uses the EvoX 2.0 functional API (frozen config dataclasses, `make_*` constructors, explicit RNG keys).
+The 1.x object-oriented torch API (`ModuleBase`, `Parameter`/`Mutable`) was removed in 2.0 and is not used anywhere in this chapter — see {doc}`tutorial_part7` if you are bringing 1.x code across.
 ```
 
 ## 6.1 What multi-objective mode changes
@@ -23,7 +23,7 @@ Only four things change; the workflow, monitor and plotting calls are the ones y
 | Monitor | keeps best-so-far | keeps per-generation fitness (and solutions, with `full_sol_history=True`), and exposes Pareto-front accessors instead of a single best. |
 | What you read | `get_best_fitness()` | `get_pf()` plus the quality indicators `gd` / `igd` / `hv`. |
 
-`evox_etl` still minimizes internally: the workflow applies `opt_direction` to the fitness before it reaches the algorithm, and the monitor un-applies it on the way out.
+`evox` still minimizes internally: the workflow applies `opt_direction` to the fitness before it reaches the algorithm, and the monitor un-applies it on the way out.
 Mixed directions are allowed, e.g. `opt_direction=["min", "max"]`, and each entry is sign-flipped independently.
 
 ```{warning} Always pass a list for MO
@@ -40,9 +40,9 @@ import time
 
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical import DTLZ2
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_nsga2
+from evox.problems.numerical import DTLZ2
 
 DIM, N_OBJ, POP_SIZE, GENERATIONS = 12, 3, 100, 100
 
@@ -137,7 +137,7 @@ It is an end-of-run analysis tool: call `get_pf()` once and reuse `sol` / `fit`,
 
 ## 6.4 Quality indicators
 
-Visual inspection does not scale, so MO runs are scored with indicators from `evox_etl.metrics`.
+Visual inspection does not scale, so MO runs are scored with indicators from `evox.metrics`.
 They are traced `evoxc` functions like everything else in the framework: they take symbolic tensors while the graph is traced and concrete tensors when it runs, so the shortest way to call one is `evoxc.evaluate(fn, *concrete_args)`, which builds and runs a one-shot program and returns a scalar `Tensor` (use `.numpy()`).
 
 | Function | Signature | Meaning |
@@ -153,9 +153,9 @@ They are traced `evoxc` functions like everything else in the framework: they ta
 ```python
 import evoxc
 
-import evox_etl
-from evox_etl.metrics import gd, gd_plus, hv, igd, igd_plus
-from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
+import evox
+from evox.metrics import gd, gd_plus, hv, igd, igd_plus
+from evox.problems.numerical.dtlz import pf as dtlz_pf
 
 truth_front = evoxc.evaluate(lambda: dtlz_pf(problem)).numpy()  # (595, 3), the analytic front
 print("truth front", truth_front.shape)
@@ -166,7 +166,7 @@ print(f"GD    {float(evoxc.evaluate(gd, fit, truth_front).numpy()):.6f}")
 print(f"GD+   {float(evoxc.evaluate(gd_plus, fit, truth_front).numpy()):.6f}")
 
 ref = np.array([1.1] * N_OBJ, dtype=np.float32)  # must dominate every point of the front
-key = evox_etl.key(0)  # explicit RNG key: it is part of the program, so results are reproducible
+key = evox.key(0)  # explicit RNG key: it is part of the program, so results are reproducible
 hv_value = evoxc.evaluate(lambda k, o, r: hv(k, o, r, num_sample=10_000), key, fit, ref)
 print(f"HV    {float(hv_value.numpy()):.6f}")
 ```
@@ -209,10 +209,10 @@ Figure 2 traces, 100 frames
 The figure holds one frame per generation (`Pareto Front` plus the moving `Population`), so the animation slider replays the whole optimization.
 `source="eval"` (the default) plots what the problem sees, i.e. un-negated fitness.
 
-For full control, call the figure builders in `evox_etl.vis_tools` directly — they take the host-side history list:
+For full control, call the figure builders in `evox.vis_tools` directly — they take the host-side history list:
 
 ```python
-from evox_etl.vis_tools import plot_obj_space_2d, plot_obj_space_3d
+from evox.vis_tools import plot_obj_space_2d, plot_obj_space_3d
 
 history = workflow.monitor.get_fitness_history()  # 100 × (100, 3)
 
@@ -248,7 +248,7 @@ The `.exv` format stores a whole run — every generation's population and fitne
 import tempfile
 from pathlib import Path
 
-from evox_etl.vis_tools import EvoXVisionAdapter, new_exv_metadata
+from evox.vis_tools import EvoXVisionAdapter, new_exv_metadata
 
 solutions = workflow.monitor.get_solution_history()  # 100 × (100, 12)
 fitnesses = workflow.monitor.get_fitness_history()  # 100 × (100, 3)

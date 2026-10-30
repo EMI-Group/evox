@@ -1,0 +1,132 @@
+# evox/algorithms/so/de_variants — DE-family algorithms
+
+## Intent
+The 2.0 functional DE family on the step protocol: `de.py`, `jade.py`,
+`shade.py`, `sade.py`, `ode.py`, `code.py` — one module per algorithm.
+Binding spec: `../../DESIGN.md` (read fully before writing code) and the
+protocol doc `../../core/algorithm.py`.
+
+## API Surface
+- Each module: frozen config dataclass named after the algorithm (`DE`, `JaDE`,
+  `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain
+  functions `init(config, key) -> state` and
+  `step(config, state, evaluate) -> state` owning ONE full generation
+  (candidate generation → `fitness = evaluate(candidates)` → state update,
+  fused into one trace).
+- Each config module also defines a `make_*` constructor in the SAME module
+  (`make_de`, `make_jade`, `make_shade`, `make_sade`, `make_ode`, `make_code`);
+  `__init__.py` exports the classes and all 6 `make_*`.
+- `init_step(config, state, evaluate) -> state` exists ONLY on `de.py`, `ode.py`,
+  `jade.py` (they evaluate the initial population before the first real step).
+  SHADE/SaDE/CoDE define none, so the workflow falls back to `step` for
+  generation 0.
+- No `final_step` anywhere. Only `init`/`init_step`/`step` exist.
+- State leaves are evoxc tensors ONLY (float32 preferred, int32/int64 indices, key `()`
+  int64) and their dtypes/shapes must be STABLE across generations (compile-once
+  step graphs — no per-run dtype drift, see the SaDE cast notes below).
+- `step` never re-threads `evaluate`; ODE calls it TWICE per generation (DE
+  trials, then the opposition population `lb + ub - pop` built from the
+  POST-selection pop — one evoxc step == one algorithm generation; there is no
+  two-phase state machine and no `opposition`/`phase` state field).
+
+## Constraints
+- Import crossover/sampling/selection operators from `evox.operators`
+  (the canonical modules) and the jit-fix utils (clamp, clamp_float,
+  `_take_along_axis`, ...) from `evox.operators.jit_fix_operator`.
+- No torch/numpy in graph code (numpy only for baking constants via
+  `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`).
+- Files < ~400 lines; static Python loops/config branches allowed in traces.
+
+## Notes for agents (verified — do not re-investigate)
+- **Configs are dumb frozen dataclasses** (no `__post_init__`, no normalization,
+  no validation) storing ONLY Python scalars + flat float tuples (`lb`/`ub`/
+  `mean`/`stdev`/`differential_weight`).
+- Construct configs via the module-level `make_*` constructor (normalizes
+  arrays→plain float tuples and validates with ValueError naming the param);
+  direct construction with already-normalized statics stays legal.
+  Installed evoxc accepts np.ndarray static values, so raw-array fields trace
+  fine, but `make_*` is the sanctioned entry point (policy: `DESIGN.md` §4.1).
+  CoDE `param_pool` stores a nested tuple of (F, CR) pairs (natural (3, 2)
+  shape — flattened storage would break the trial generation's gather over
+  param_ids).
+- Normalization/baking helpers are consolidated in
+  `evox/algorithms/_config_utils.py` (`to_float_tuple` dtype-preserving,
+  `normalize_bounds`, `require_ge`/`require_between`/`require_choice`,
+  `bake_float32_constant`, `bake_bounds(..., as_row=True)`); this family no
+  longer defines local `_to_float_tuple`/`_bounds`/`_bake*` helpers.
+- **`evoxc.select` does NOT numpy-broadcast** a `(n,)` condition against `(n, m)`
+  operands (ShapeError). Always `enp.expand_dims(cond, 1)` first. Scalar conds
+  broadcast fine. Python float + float32 → float32 OK; Python int + int32 → int64
+  (avoid — use `enp.full/ones/zeros/arange` with explicit dtype).
+- `evoxc.gather` = numpy take semantics; a 0-d index drops the indexed axis
+  (result `(dim,)`). Row-local gather needs `_take_along_axis` (2-D only).
+- RNG: `key, subkey = random.split(state.key)` at function entry; one split per
+  random op, in a fixed draw order; store the advanced `key` back in the state.
+  The post-evaluate halves draw no randomness. `random.multinomial(key, probs, n)`
+  returns int32.
+- Bounds baked per function via `bake_bounds(lb, ub, as_row=True)` (shared
+  helper — `(1, dim)` float32 constants) or `bake_float32_constant(x, shape=(1, -1))`
+  for a single bound; `dim = len(config.lb)` stays a static Python int (works for
+  both tuple and ndarray fields).
+- SHADE/SaDE/CoDE initial populations are drawn **uniformly within the bounds**
+  (as DE/ODE/JaDE and the PSO variants) — in-bounds assertions are valid.
+- SHADE's success-history `Memory_FCR` adapts every generation: the deltas are
+  taken from `state.fit` BEFORE the parent fitness is replaced, and the
+  successful `F`/`CR`/delta entries are selected with `evoxc.select(compare, x,
+  float("nan"))` (arithmetic NaN blending would keep every entry NaN).
+- SHADE draws no `init_step`, so generation 0 runs against the all-`inf` initial
+  fitness: its deltas are `inf`, `norm_delta` is NaN and the memory correctly
+  keeps its 0.5 start for that one generation (deliberate, not a bug).
+- SHADE's `norm_delta` division therefore produces intentional NaN entries and the
+  evoxc numpy backend emits one cosmetic `invalid value encountered in divide` warning
+  (same class as the SBX/SaDE NaN paths; the semantics are unchanged).
+- `evoxc.median(x, axis=0)` matches the expected NaN propagation BUT promotes
+  float32→float64; `int32 * bool` also promotes to int64 — cast back explicitly
+  (SaDE does; see the casts around `CRM_update`/`success_counts`/
+  `failure_counts` there). Compile-once step graphs REQUIRE stable state
+  dtypes across generations.
+- `evoxc.roll(x, shift, axis)`; `evoxc.nansum(x, axes=0)`; `evoxc.argsort(x, axis=0,
+  stable=True)` (int64 indices).
+- Verified host pattern (dataclass config as static arg + dataclass state pytree):
+  `evoxc.build(fn, cfg, spec_tree, backend="numpy")` / `evoxc.run(exe, cfg, state)` —
+  wrap `step` in a `body(cfg, state) -> step(cfg, state, evaluate)` closure with
+  the toy `evaluate` inlined. See `unit_test/evox/algorithms/helpers.py` for the
+  build/run mechanics.
+- Test modules keep their per-family basenames (`test_de.py`, ...) unique so
+  pytest's prepend import mode never collides within one run.
+- Convergence assertions use the MEDIAN of 3 seeds with a 10% margin: per-seed
+  best fitnesses fluctuate ~0.57-1.92× between RNG streams, so a single-seed 10%
+  margin fails ~1/3 of the time by chance. Median-of-3 is stable.
+- **ode.py imports `_de_trial` from de.py** (algorithm logic — stays; the
+  mutation/crossover helper is part of ODE's API) and the shared baking helpers
+  from `algorithms/_config_utils.py`; keep ode.py compiling when touching either.
+  code.py factors its candidate generation into `_generate_trials(config, state)
+  -> (trial_batch, advanced_key)`.
+- Legacy direct-dataclass-construction sites (`benchmarks/evox_vs_torch/
+  bench_so.py:115`) still pass raw np.ndarray `lb`/`ub` and still trace (bakers
+  accept ArrayLike; evoxc accepts ndarray statics); they should migrate to
+  `make_*`.
+  Tests only exercise default hyperparameters — the tuple `differential_weight`
+  (ndv>1), `mean`/`stdev` init, and non-default `param_pool` paths have NO test
+  coverage.
+- KNOWN ISSUE (pre-existing, NOT introduced by the step-protocol conversion):
+  DE/ODE with `num_difference_vectors > 1` + tuple `differential_weight`
+  constructs and validates fine but FAILS at trace time in `_de_trial`
+  (`base + f_const * difference_vector`, ShapeError — cannot broadcast ndv
+  against dim): the (ndv,) weight constant never multiplies per-individual
+  difference vectors. Reproduced identically on the pre-conversion HEAD.
+- KNOWN ISSUE (core/workflows, NOT this family): `EvalMonitor`'s fixed
+  `(pop_size, dim)` monitor buffers cannot absorb CoDE's
+  `(3*pop_size, dim)` candidate batch under the compile-once step protocol —
+  StdWorkflow(CoDE, ..., monitor=EvalMonitor) raises ShapeError at the second
+  generation. CoDE itself (no monitor) is fine. Needs a core-side fix
+  (dynamically-sized monitor state or a fixed-size monitor contract).
+
+## Routing Table
+| Area | Path |
+|---|---|
+| DE + ODE (shared mutation/crossover helpers) | `de.py`, `ode.py` |
+| JaDE / SHADE / SaDE / CoDE | `jade.py`, `shade.py`, `sade.py`, `code.py` |
+| Tests | `../../../../unit_test/evox/algorithms/so/de_variants/` (sibling — mirrors this package) |
+| Canonical operators (import from) | `../../../operators/crossover`, `../../../operators/selection`, `../../../operators/jit_fix_operator.py` |
+| Step-protocol contract | `../../core/algorithm.py` (protocol doc), `../../core/workflow.py` (`_make_step_fn`) |

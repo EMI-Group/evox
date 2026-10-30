@@ -1,11 +1,11 @@
 # 4. Algorithms
 
 This chapter is the algorithm catalogue of the **experimental EvoX 2.0 pre-release**, the functional
-rewrite of EvoX on the EvoX Compiler (`evoxc`). Everything here is imported from `evox_etl`:
+rewrite of EvoX on the EvoX Compiler (`evoxc`). Everything here is imported from `evox`:
 
 ```python
-import evox_etl                      # the workflow / monitor surface
-from evox_etl.algorithms import PSO  # the algorithms
+import evox                      # the workflow / monitor surface
+from evox.algorithms import PSO  # the algorithms
 ```
 
 ```{note}
@@ -61,31 +61,31 @@ family. Reading the four rules below is enough to avoid every import error:
   `PSO(...)` and `DE(...)` construct dataclass instances, and that instance is the workflow's
   `algorithm=` argument.
 - **The ES family defines its configs with a `*Config` suffix** and re-exports them under the
-  torch-style bare names. Both spellings are importable from `evox_etl.algorithms.so`, and they
+  torch-style bare names. Both spellings are importable from `evox.algorithms.so`, and they
   are *the same object*:
 
   ```python
-  from evox_etl.algorithms.so import CMAES, CMAESConfig
+  from evox.algorithms.so import CMAES, CMAESConfig
   assert CMAES is CMAESConfig      # identical class objects
   ```
 
   The same pairing holds for `OpenES`/`OpenESConfig`, `XNES`/`XNESConfig`, `SNES`, `ARS`, `ASEBO`,
   `DES`, `ESMC`, `GuidedES`, `NoiseReuseES`, `PersistentES` and `SeparableNES`. Note that the bare
   aliases are what appear in `__all__`; the `*Config` names are importable by explicit import.
-  The package-level `evox_etl.algorithms` re-exports only the MO `*Config` names, the two
+  The package-level `evox.algorithms` re-exports only the MO `*Config` names, the two
   virtual-ES configs (`VirtualESConfig`/`VirtualLoRAESConfig`) and the bare aliases — so
-  `from evox_etl.algorithms import CMAESConfig` raises `ImportError`; import it from
-  `evox_etl.algorithms.so` instead.
-- **The MO family exposes only `*Config` names plus `make_*` from `evox_etl.algorithms.mo`**;
-  `evox_etl.algorithms` adds the bare aliases on top (`NSGA2`, `NSGA3`, `MOEAD`, `RVEA`, `RVEAa`,
-  `HypE`). So `from evox_etl.algorithms.mo import NSGA2` fails, while
-  `from evox_etl.algorithms import NSGA2` works.
+  `from evox.algorithms import CMAESConfig` raises `ImportError`; import it from
+  `evox.algorithms.so` instead.
+- **The MO family exposes only `*Config` names plus `make_*` from `evox.algorithms.mo`**;
+  `evox.algorithms` adds the bare aliases on top (`NSGA2`, `NSGA3`, `MOEAD`, `RVEA`, `RVEAa`,
+  `HypE`). So `from evox.algorithms.mo import NSGA2` fails, while
+  `from evox.algorithms import NSGA2` works.
 - **`make_*` is the recommended constructor.** It normalizes array-like `lb`/`ub` (and other
   array-like fields) into flat tuples of plain Python floats, validates the hyperparameters by
   raising `ValueError`, and fills derived defaults. For example:
 
   ```python
-  from evox_etl.algorithms import make_pso, make_de, make_virtual_es
+  from evox.algorithms import make_pso, make_de, make_virtual_es
 
   make_pso(pop_size=10, lb=[0.0, 0.0], ub=[1.0])        # ValueError: lb and ub must have the same shape
   make_de(pop_size=0, lb=[0.0], ub=[1.0])               # ValueError: pop_size must be at least 4
@@ -106,9 +106,9 @@ only in the config and the problem, which is the whole point of the design.
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_de
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_de
+from evox.problems.numerical import Sphere
 
 dim = 10
 config = make_de(pop_size=100, lb=np.full(dim, -10.0), ub=np.full(dim, 10.0))
@@ -124,7 +124,7 @@ config carries no `dim` field, so pass `dim` to the monitor explicitly — the w
 `pop_size` from the config but not the search-space dimension:
 
 ```python
-from evox_etl.algorithms import make_cma_es
+from evox.algorithms import make_cma_es
 
 config = make_cma_es(mean_init=np.zeros(dim), sigma=0.5, pop_size=40)
 workflow = StdWorkflow(config, Sphere(), monitor=EvalMonitorConfig(dim=dim), opt_direction="min")
@@ -137,8 +137,8 @@ print("best fitness:", float(np.asarray(workflow.monitor.get_best_fitness()).res
 **PSO** on the multimodal 10-D Rastrigin function:
 
 ```python
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Rastrigin
+from evox.algorithms import make_pso
+from evox.problems.numerical import Rastrigin
 
 config = make_pso(pop_size=200, lb=np.full(dim, -5.12), ub=np.full(dim, 5.12))
 workflow = StdWorkflow(config, Rastrigin(), monitor=EvalMonitorConfig(), opt_direction="min")
@@ -153,8 +153,8 @@ direction is one entry per objective, and results come back as a Pareto set rath
 best solution:
 
 ```python
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical import DTLZ2
+from evox.algorithms import make_nsga2
+from evox.problems.numerical import DTLZ2
 
 config = make_nsga2(pop_size=100, n_objs=2, lb=np.zeros(12), ub=np.ones(12))
 monitor = EvalMonitorConfig(full_sol_history=True)          # get_pf() needs the solution history
@@ -173,7 +173,7 @@ class, the `make_*` constructor, and the facts that actually distinguish the var
 
 ### Differential evolution — 6 configs
 
-API reference: {doc}`evox_etl.algorithms.so.de_variants <../apidocs/evox_etl/evox_etl.algorithms.so.de_variants>`
+API reference: {doc}`evox.algorithms.so.de_variants <../apidocs/evox/evox.algorithms.so.de_variants>`
 
 | Config class | `make_*` constructor | Notes |
 |---|---|---|
@@ -186,7 +186,7 @@ API reference: {doc}`evox_etl.algorithms.so.de_variants <../apidocs/evox_etl/evo
 
 ### Evolution strategies — 14 configs
 
-API reference: {doc}`evox_etl.algorithms.so.es_variants <../apidocs/evox_etl/evox_etl.algorithms.so.es_variants>`
+API reference: {doc}`evox.algorithms.so.es_variants <../apidocs/evox/evox.algorithms.so.es_variants>`
 
 | Config class | `make_*` constructor | Notes |
 |---|---|---|
@@ -207,7 +207,7 @@ API reference: {doc}`evox_etl.algorithms.so.es_variants <../apidocs/evox_etl/evo
 
 ### Particle swarm optimization — 7 configs
 
-API reference: {doc}`evox_etl.algorithms.so.pso_variants <../apidocs/evox_etl/evox_etl.algorithms.so.pso_variants>`
+API reference: {doc}`evox.algorithms.so.pso_variants <../apidocs/evox/evox.algorithms.so.pso_variants>`
 
 | Config class | `make_*` constructor | Notes |
 |---|---|---|
@@ -222,12 +222,12 @@ API reference: {doc}`evox_etl.algorithms.so.pso_variants <../apidocs/evox_etl/ev
 ### Multi-objective — 6 configs
 
 These all take `pop_size`, `n_objs`, `lb`, `ub` and accept custom operators (next section but one).
-API pages: {doc}`nsga2 <../apidocs/evox_etl/evox_etl.algorithms.mo.nsga2>`,
-{doc}`nsga3 <../apidocs/evox_etl/evox_etl.algorithms.mo.nsga3>`,
-{doc}`moead <../apidocs/evox_etl/evox_etl.algorithms.mo.moead>`,
-{doc}`rvea <../apidocs/evox_etl/evox_etl.algorithms.mo.rvea>`,
-{doc}`rveaa <../apidocs/evox_etl/evox_etl.algorithms.mo.rveaa>`,
-{doc}`hype <../apidocs/evox_etl/evox_etl.algorithms.mo.hype>`.
+API pages: {doc}`nsga2 <../apidocs/evox/evox.algorithms.mo.nsga2>`,
+{doc}`nsga3 <../apidocs/evox/evox.algorithms.mo.nsga3>`,
+{doc}`moead <../apidocs/evox/evox.algorithms.mo.moead>`,
+{doc}`rvea <../apidocs/evox/evox.algorithms.mo.rvea>`,
+{doc}`rveaa <../apidocs/evox/evox.algorithms.mo.rveaa>`,
+{doc}`hype <../apidocs/evox/evox.algorithms.mo.hype>`.
 
 | Config class | `make_*` constructor | Notes |
 |---|---|---|
@@ -268,9 +268,9 @@ like any other workflow:
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow
-from evox_etl.algorithms import make_virtual_es
-from evox_etl.problems.neuroevolution import make_virtual_problem
+from evox import StdWorkflow
+from evox.algorithms import make_virtual_es
+from evox.problems.neuroevolution import make_virtual_problem
 
 # A 4 -> 8 -> 1 ReLU network; one shape per weight block, in named_parameters() order.
 param_shapes = ((8, 4), (8,), (1, 8), (1,))
@@ -330,9 +330,9 @@ everything towards the middle of the box:
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical import DTLZ2
+from evox import StdWorkflow
+from evox.algorithms import make_nsga2
+from evox.problems.numerical import DTLZ2
 
 def identity_mutation(key, x, lb, ub):
     return x

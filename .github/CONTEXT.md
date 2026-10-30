@@ -1,9 +1,9 @@
 # .github — CI/CD for the EvoX 2.0 experimental pre-release
 
 ## Intent
-Gate and ship the `evox` distribution for the 2.0 line, which is the functional `evox_etl` port on the EvoX Compiler (`evoxc`).
+Gate and ship the `evox` distribution for the 2.0 line, which is the functional `evox` port on the EvoX Compiler (`evoxc`).
 Nothing here installs or imports torch and nothing needs a GPU: the whole tree runs on the default `numpy` backend.
-The single test suite is `unit_test/etl/` (pytest); the only supported interpreters are >= 3.11 because `evoxc` requires it.
+The single test suite is `unit_test/evox/` (pytest); the only supported interpreters are >= 3.11 because `evoxc` requires it.
 CI proves three things: the built wheel works (installed, imported from outside the checkout), the user-facing examples run, and the Sphinx docs still build.
 Publishing goes to PyPI only through OIDC trusted publishing — there is no API token secret anywhere.
 
@@ -13,11 +13,11 @@ Publishing goes to PyPI only through OIDC trusted publishing — there is no API
 |---|---|---|---|---|
 | `Python package` | `./workflows/python-package.yml` | `push` / `pull_request` on `main`, `workflow_dispatch` | `build` (matrix 3.11/3.12/3.13), `examples`, `docs` | the wheel builds and the suite passes on every supported interpreter; the demo scripts and the docs build |
 | `Upload Python Package` | `./workflows/python-publish.yml` | GitHub `release: types: [published]`, `workflow_dispatch` | `deploy` | the released artifact is built, smoke-tested, then uploaded to PyPI via OIDC |
-| `Ruff` | `./workflows/ruff-check.yml` | `push` / `pull_request` on `main`, `workflow_dispatch` | `ruff` | `ruff check` passes with the `[tool.ruff]` config from `pyproject.toml` (line-length 128, `F/E/W/I/NPY`, per-file-ignores for `src/evox_etl/__init__.py` and `src/evox_etl_ext/autoload_ext.py`) |
+| `Ruff` | `./workflows/ruff-check.yml` | `push` / `pull_request` on `main`, `workflow_dispatch` | `ruff` | `ruff check` passes with the `[tool.ruff]` config from `pyproject.toml` (line-length 128, `F/E/W/I/NPY`, per-file-ignores for `src/evox/__init__.py` and `src/evox_ext/autoload_ext.py`) |
 | `Github Releases To Discord` | `./workflows/discord-bot.yml` | GitHub `release: types: [published]` | `github-releases-to-discord` | the release body is posted to the Discord changelog channel (pre-releases included) |
 
-`build` job steps: checkout → setup-python → `pip install --upgrade pip` + `pip install build` → `python -m build` (sdist + wheel) → install the built wheel with the `test` extra → `python -m pytest` (picks up `testpaths = ["unit_test/etl"]`) → wheel-only smoke test.
-The wheel-only smoke test runs `.github/scripts/wheel_smoke.py` with `cwd = $RUNNER_TEMP`, so `import evox_etl` must resolve to `site-packages`, not the checkout.
+`build` job steps: checkout → setup-python → `pip install --upgrade pip` + `pip install build` → `python -m build` (sdist + wheel) → install the built wheel with the `test` extra → `python -m pytest` (picks up `testpaths = ["unit_test/evox"]`) → wheel-only smoke test.
+The wheel-only smoke test runs `.github/scripts/wheel_smoke.py` with `cwd = $RUNNER_TEMP`, so `import evox` must resolve to `site-packages`, not the checkout.
 `python-publish.yml` `deploy` job steps: checkout → setup-python 3.12 → `python -m build` → install the fresh wheel and run the same smoke script → `pypa/gh-action-pypi-publish`.
 The publish job is serialized by `concurrency: group: pypi-publish` (`cancel-in-progress: false`).
 Its `deploy` job declares `permissions: contents: read` + `id-token: write`: the workflow-level `permissions: contents: read` is **not** inherited, because a job-level block replaces (does not merge with) the workflow-level one, so `contents: read` must be repeated there for `actions/checkout` while `id-token: write` is the OIDC half.
@@ -55,10 +55,8 @@ ruff check .                            # = the `Ruff` job
 7. Keep the news entries in `README.md` / `README_ZH.md` in sync with the release, as the 1.x bumps did.
 
 ## Known issues
-- `unit_test/etl/algorithms/parity/test_parity.py` still imports `torch` and `evox.algorithms` (the deleted 1.x code) and fails (`test_asebo_state_parity_with_torch`); the `build` job runs the whole suite, so it stays red until that file is removed/retired with `src/evox/` (owner: `unit_test/`, not this node).
-- Repo-wide `ruff check .` is clean (the 2.0 lint cleanup fixed the former `unit_test/etl` / `src/evox_etl` / `examples` violations); `ruff format --check` would still reformat many files, so the `Ruff` workflow runs `ruff check` only (unchanged behaviour).
+- Repo-wide `ruff check .` is clean (the 2.0 lint cleanup fixed the former `unit_test/evox` / `src/evox` / `examples` violations); `ruff format --check` would still reformat many files, so the `Ruff` workflow runs `ruff check` only (unchanged behaviour).
 - The full suite takes ~8 minutes per matrix entry (numpy-backend tracing dominates), so a 3-version matrix is ~8 minutes wall-clock with parallel runners.
-- The wheel currently still ships a legacy `evox/` package because `src/evox/` is mid-deletion in the 2.0 refactor; no workflow references that path.
 
 ## Routing Table
 | Area | Path | Description |

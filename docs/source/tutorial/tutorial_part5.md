@@ -21,7 +21,7 @@ Calling a problem function outside a trace raises `evoxc`'s `TraceError` — `ev
 
 ## 5.1 Numerical benchmark functions
 
-`evox_etl.problems.numerical` re-exports the nine basic single-objective functions (plus the raw `*_func` kernels such as `sphere_func(x)`):
+`evox.problems.numerical` re-exports the nine basic single-objective functions (plus the raw `*_func` kernels such as `sphere_func(x)`):
 
 | Config | Constructor arguments worth setting | Global minimum at | Commonly used box *(convention — not in the code)* |
 |---|---|---|---|
@@ -45,8 +45,8 @@ You can drive a built-in problem on its own, without a workflow, to check your u
 ```python
 import numpy as np
 import evoxc
-from evox_etl.problems.numerical import ProblemState, Sphere
-from evox_etl.problems.numerical.basic import evaluate
+from evox.problems.numerical import ProblemState, Sphere
+from evox.problems.numerical.basic import evaluate
 
 config = Sphere()
 x = np.array([[0.0, 0.0, 0.0], [1.0, 2.0, 2.0]], dtype=np.float32)
@@ -63,7 +63,7 @@ The same config reaches the problem through the *module* it is defined in, so `S
 
 ## 5.2 DTLZ1–DTLZ7 (multi-objective)
 
-The seven DTLZ problems live in `evox_etl.problems.numerical.dtlz`. Their configs share three integer fields:
+The seven DTLZ problems live in `evox.problems.numerical.dtlz`. Their configs share three integer fields:
 
 | Config | `d` (decision variables) | `m` (objectives) | `ref_num` (Pareto-front samples) |
 |---|---|---|---|
@@ -83,7 +83,7 @@ The reference Pareto front is a **module-level function** `pf(config)` — there
 
 ```python
 import evoxc
-from evox_etl.problems.numerical.dtlz import DTLZ2, pf
+from evox.problems.numerical.dtlz import DTLZ2, pf
 
 config = DTLZ2()                          # m=3, ref_num=1000
 exe = evoxc.build(pf, config)             # no tensor specs: pf(config) only
@@ -106,8 +106,8 @@ The per-variant functions `pf_dtlz1`, `pf_dtlz2`, `pf_dtlz5`, `pf_dtlz6` and `pf
 ```python
 import numpy as np
 import evoxc
-from evox_etl.problems.numerical import CEC2022, ProblemState
-from evox_etl.problems.numerical.cec2022 import evaluate
+from evox.problems.numerical import CEC2022, ProblemState
+from evox.problems.numerical.cec2022 import evaluate
 
 config = CEC2022(problem_number=3, dimension=10)
 x = np.random.default_rng(0).normal(size=(4, 10)).astype(np.float32)
@@ -190,9 +190,9 @@ Because the dataset is baked into the config, `evaluate` is a pure function of t
 ```python
 import numpy as np
 import evoxc
-from evox_etl.problems.neuroevolution import make_virtual_problem
-from evox_etl.problems.neuroevolution.virtual_problem import evaluate
-from evox_etl.problems.numerical import ProblemState
+from evox.problems.neuroevolution import make_virtual_problem
+from evox.problems.neuroevolution.virtual_problem import evaluate
+from evox.problems.numerical import ProblemState
 
 shapes = ((8, 4), (8,), (1, 8), (1,))    # a 4 -> 8 -> 1 MLP, named_parameters() order
 layers = (("linear", 0, 1, "relu"), ("linear", 2, 3, "identity"))
@@ -231,7 +231,7 @@ A full optimisation run needs one more input pair you must supply yourself: the 
 
 ## 5.6 Writing your own problem
 
-The step protocol is the whole contract (`evox_etl.core.problem.Problem` documents it; problems are duck-typed and do **not** inherit from anything):
+The step protocol is the whole contract (`evox.core.problem.Problem` documents it; problems are duck-typed and do **not** inherit from anything):
 
 | Function | Signature | Required |
 |---|---|---|
@@ -275,8 +275,8 @@ and optimise it with any single-objective algorithm — no registration step, no
 
 ```python
 import my_problem
-from evox_etl import StdWorkflow
-from evox_etl.algorithms.so import make_pso
+from evox import StdWorkflow
+from evox.algorithms.so import make_pso
 
 problem = my_problem.QuadraticBowl(center=1.0)   # the dimension comes from the population
 algo = make_pso(pop_size=64, lb=[-10.0, -10.0], ub=[10.0, 10.0])

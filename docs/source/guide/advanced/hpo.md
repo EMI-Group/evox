@@ -1,21 +1,21 @@
 # Hyperparameter optimization (HPO)
 
-Hyperparameter optimization tunes the *settings* of an evolutionary run — the inertia weight of PSO, the crossover rate of a DE variant, a population size, a monitor option — rather than the decision variables of the problem. In `evox_etl` this is done **host-side**: a `HPOProblemWrapper` runs a complete inner `StdWorkflow` once per candidate configuration and returns the inner run's best fitness, and a host-side search loop (`random_search`, or any external optimizer) drives the wrapper.
+Hyperparameter optimization tunes the *settings* of an evolutionary run — the inertia weight of PSO, the crossover rate of a DE variant, a population size, a monitor option — rather than the decision variables of the problem. In `evox` this is done **host-side**: a `HPOProblemWrapper` runs a complete inner `StdWorkflow` once per candidate configuration and returns the inner run's best fitness, and a host-side search loop (`random_search`, or any external optimizer) drives the wrapper.
 
 ```{warning}
-This page documents the **experimental EvoX 2.0 pre-release**. HPO in EvoX 2.0 is **host-side**, not a `Problem` you hand to another `StdWorkflow`. The 1.x design — wrapping a whole workflow as an outer `Problem` and optimizing its hyperparameters *inside* the outer workflow's traced `evaluate` — has no `evox_etl` counterpart and is not coming back; see below for why. The host-side API may still change before 2.0 final.
+This page documents the **experimental EvoX 2.0 pre-release**. HPO in EvoX 2.0 is **host-side**, not a `Problem` you hand to another `StdWorkflow`. The 1.x design — wrapping a whole workflow as an outer `Problem` and optimizing its hyperparameters *inside* the outer workflow's traced `evaluate` — has no `evox` counterpart and is not coming back; see below for why. The host-side API may still change before 2.0 final.
 ```
 
 ## Why host-side
 
-This is the single most important point on the page. `evoxc` (the tensor-graph compiler behind `evox_etl`, see {doc}`backends`) has **no eager mode**: every tensor operation needs an active trace, and `evoxc.run` — the only way to execute anything — **cannot be called while a trace is active**. An inner `StdWorkflow` step is a compiled `Executable`, so an `evaluate(candidates)` closure traced by an *outer* `StdWorkflow` could never call it: evaluating one hyperparameter candidate would mean submitting a nested graph from inside a trace. `evoxc` also has no analogue of `torch.func.stack_module_state` (or of the `register_vmap` custom-op loop the torch version used to map the inner state over the outer population), so candidates cannot even be batched in-graph. A faithful in-graph HPO is therefore not portable, and `HPOProblemWrapper` does not pretend otherwise:
+This is the single most important point on the page. `evoxc` (the tensor-graph compiler behind `evox`, see {doc}`backends`) has **no eager mode**: every tensor operation needs an active trace, and `evoxc.run` — the only way to execute anything — **cannot be called while a trace is active**. An inner `StdWorkflow` step is a compiled `Executable`, so an `evaluate(candidates)` closure traced by an *outer* `StdWorkflow` could never call it: evaluating one hyperparameter candidate would mean submitting a nested graph from inside a trace. `evoxc` also has no analogue of `torch.func.stack_module_state` (or of the `register_vmap` custom-op loop the torch version used to map the inner state over the outer population), so candidates cannot even be batched in-graph. A faithful in-graph HPO is therefore not portable, and `HPOProblemWrapper` does not pretend otherwise:
 
-- **`HPOProblemWrapper` is NOT an `evox_etl` `Problem`.** It cannot be the outer problem of a `StdWorkflow`, and no `evoxc` algorithm can be the outer optimizer.
+- **`HPOProblemWrapper` is NOT an `evox` `Problem`.** It cannot be the outer problem of a `StdWorkflow`, and no `evoxc` algorithm can be the outer optimizer.
 - The outer loop is **plain host Python** — `random_search` is the only driver shipped, but any external optimizer (Optuna, scikit-optimize, a hand-written loop) works if it calls `.evaluate()`.
 
 ## API reference
 
-`HPOProblemWrapper` and its companions are re-exported from `evox_etl.problems` (module: `evox_etl.problems.hpo_wrapper`).
+`HPOProblemWrapper` and its companions are re-exported from `evox.problems` (module: `evox.problems.hpo_wrapper`).
 
 | Name | Signature |
 |---|---|
@@ -58,9 +58,9 @@ Because the inner configs are frozen dataclasses and the wrapper holds no state 
 `w` and `phi_p` are float fields of the `PSO` config (defaults `0.6` and `2.5`).
 
 ```python
-from evox_etl import EvalMonitorConfig
-from evox_etl.algorithms import PSO
-from evox_etl.problems import (
+from evox import EvalMonitorConfig
+from evox.algorithms import PSO
+from evox.problems import (
     HPOFitnessMonitorConfig,
     HPOProblemConfig,
     HPOProblemWrapper,
@@ -105,9 +105,9 @@ For a multi-objective inner workflow the single-objective accessor is meaningles
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig
-from evox_etl.algorithms import NSGA2
-from evox_etl.problems import (
+from evox import EvalMonitorConfig
+from evox.algorithms import NSGA2
+from evox.problems import (
     DTLZ2,
     HPOFitnessMonitorConfig,
     HPOProblemConfig,
@@ -146,7 +146,7 @@ Only what the module documents, but all of it is load-bearing:
 - **No batched instances.** `num_instances` + `vmap` parallelism has no analogue here; `evaluate_many` is a sequential loop.
 - **Only plain static config fields are tunable.** Hyperparameters must be Python scalars, flat float tuples or strings that `dataclasses.replace` can substitute — tensor-valued or otherwise traced hyperparameters are unsupported, and only fields of the inner algorithm/problem/monitor configs can be tuned (there is no matrix-valued hyperparameter support).
 - **The inner monitor must be an `EvalMonitorConfig`.** `HPOFitnessMonitor.tell_fitness` raises if the inner workflow was built without one.
-- **Multi-objective inner problems need `multi_obj_metric`** (the single-objective accessor is meaningless there) **plus `full_fit_history=True`** on the inner monitor, and `opt_direction` must be a list. The metric is a **host-side callable over a numpy `(n_pareto, n_objs)` array** returning something `np.min`-able; an `evoxc` metric such as `evox_etl.metrics.igd` cannot run outside a trace and must first be wrapped host-side with `evoxc.build` + `evoxc.run` (see {doc}`metrics`).
+- **Multi-objective inner problems need `multi_obj_metric`** (the single-objective accessor is meaningless there) **plus `full_fit_history=True`** on the inner monitor, and `opt_direction` must be a list. The metric is a **host-side callable over a numpy `(n_pareto, n_objs)` array** returning something `np.min`-able; an `evoxc` metric such as `evox.metrics.igd` cannot run outside a trace and must first be wrapped host-side with `evoxc.build` + `evoxc.run` (see {doc}`metrics`).
 - **No torch plumbing.** `HPOData`, the custom-op evaluate loop and `copy_init_state` have no analogue: the inner workflow is rebuilt per candidate, so there is no shared init state to copy.
 
 ```{tip}

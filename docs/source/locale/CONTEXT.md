@@ -2,7 +2,7 @@
 ## Intent
 This directory holds the **internationalization (i18n) resources** for the EvoX documentation, which is bilingual English ↔ Simplified Chinese (`zh_CN`).
 It is wired into the build via `locale_dirs = ["locale/"]` and `gettext_compact = "docs"` in `conf.py`, and excluded from source scanning via `exclude_patterns = ["locale/**"]`.
-The documentation content itself was rewritten for the experimental EvoX 2.0 pre-release (import name `evox_etl`); the translation resources are being brought over to that content, and the gettext catalog still holds entries extracted from the 1.x pages.
+The documentation content itself was rewritten for the experimental EvoX 2.0 pre-release (import name `evox`); the translation resources are being brought over to that content, and the gettext catalog still holds entries extracted from the 1.x pages.
 
 ## Dual translation strategy
 | Content type | Mechanism | Location |
@@ -15,7 +15,7 @@ At build time the `.readthedocs.yaml` pre-build job copies `zh_CN/tutorial/` ove
 
 ## Current translation state (EvoX 2.0 pre-release)
 - `zh_CN/tutorial/index.md` is translated and marked as work-in-progress; its toctree points at the English `tutorial_part1..7` pages until each part is retranslated.
-- The 1.x Chinese translations of `tutorial_part1..7` were removed: they taught the removed torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) and would be actively misleading.
+- The 1.x Chinese translations of `tutorial_part1..7` were removed: they taught the removed torch API (`ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) and would be actively misleading.
 - `zh_CN/LC_MESSAGES/docs.po` is **stale**: its `msgid`s were extracted from the 1.x English pages, so most no longer match the 2.0 sources. Unmatched entries are simply unused by gettext (the English text is shown), so they never fail the build; orphaned entries (e.g. deleted `torch_and_evox.md`, deleted example notebooks, `guide/experimental/`) are harmless and are cleaned up on the next catalog refresh.
 
 ## Refreshing the catalog for a new or changed page

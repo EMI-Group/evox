@@ -3,7 +3,7 @@ name: Ruff
 # The action runs `ruff check` over the repo and picks up the
 # `[tool.ruff]` / `[tool.ruff.lint]` configuration from pyproject.toml
 # (line-length 128, select F/E/W/I/NPY, per-file-ignores for the
-# `evox_etl/__init__.py` and `evox_etl_ext/autoload_ext.py` re-export modules
+# `evox/__init__.py` and `evox_ext/autoload_ext.py` re-export modules
 # and for the `sys.path`-bootstrapping `unit_test/**`, `examples/**` and
 # `conftest.py` trees, which import after code by design).
 on:

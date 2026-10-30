@@ -5,18 +5,18 @@ frozen config dataclass that says *what it is*, plus plain module-level function
 *what it does*. That explains most of the design: no base class to inherit from, no
 per-component compile or vectorisation call, no state hidden in object attributes. A run
 is a value (the config) threaded through functions that return new values (the states).
-`evox_etl` ships 30+ algorithms and 30+ benchmark problems that follow the conventions
+`evox` ships 30+ algorithms and 30+ benchmark problems that follow the conventions
 below.
 
 ```{note}
-This page documents the **experimental EvoX 2.0 pre-release**, import name `evox_etl`,
+This page documents the **experimental EvoX 2.0 pre-release**, import name `evox`,
 built on the [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`). The sibling
 pages show how to write each piece.
 ```
 
 ## Three protocols, one resolution rule
 
-`evox_etl.core` defines three `typing.Protocol` classes — `Algorithm`, `Problem` and
+`evox.core` defines three `typing.Protocol` classes — `Algorithm`, `Problem` and
 `Monitor` — plus the aliases their signatures use (`AlgorithmConfig`,
 `AlgorithmState`, `Candidates`, `Fitness`, `Evaluate`, `KeyArray` and the problem/monitor
 equivalents). They are **documentation only**: no component inherits from them and
@@ -209,7 +209,7 @@ the **host, outside any trace**, and does three things: normalise array-like inp
 (bounds, centres, weights) into flat float tuples; validate (positivity, shape agreement,
 ordering) with a clear `ValueError`; and derive defaults that must appear as fields, such
 as a population size computed from the dimension. It returns the frozen config. Shared
-helpers live in `evox_etl.algorithms._config_utils` (`to_float_tuple`,
+helpers live in `evox.algorithms._config_utils` (`to_float_tuple`,
 `normalize_bounds`, `require_gt`, `bake_bounds`, …); direct construction works for
 already-normalised values but skips the `make_*` normalisation and validation.
 

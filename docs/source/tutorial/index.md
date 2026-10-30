@@ -2,8 +2,8 @@
 
 ```{warning} EvoX 2.0 — experimental pre-release
 These pages document the **EvoX 2.0 pre-release**: a functional rewrite of EvoX on top of the
-**EvoX Compiler** (`evoxc`) tensor library. The public import name is **`evox_etl`**.
-The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
+**EvoX Compiler** (`evoxc`) tensor library. The public import name is **`evox`**.
+The 1.x object-oriented torch API (`ModuleBase`, `Parameter`/`Mutable`,
 `torch.compile`/`vmap`, class-based `StdWorkflow` components) has been removed and is no longer
 taught anywhere in this tutorial. Because 2.0 is still a pre-release, APIs may change between
 pre-releases — pin a version if you need stability.
@@ -55,14 +55,14 @@ tutorial_part7
 
 ## What you will be using
 
-- **`evox_etl`** — the framework itself: `StdWorkflow`, `EvalMonitor`/`EvalMonitorConfig`,
+- **`evox`** — the framework itself: `StdWorkflow`, `EvalMonitor`/`EvalMonitorConfig`,
   the `core` protocols, `metrics` (GD/IGD/HV), `utils`, `vis_tools`, `workflows`, and the
   `algorithms` / `problems` / `operators` packages loaded through extension autoloading.
 - **`evoxc`** — the EvoX Compiler. It traces your program into a graph and executes it on a
   backend of your choice (`backend=` at the workflow): the default self-contained NumPy
   interpreter, or a compiled IREE / TVM / XLA backend for CPUs and GPUs.
-- **`evox_etl_ext`** — the plugin namespace package. Installed extensions are merged into the
-  matching `evox_etl.*` modules when you `import evox_etl`; see {doc}`../guide/advanced/extensions`.
+- **`evox_ext`** — the plugin namespace package. Installed extensions are merged into the
+  matching `evox.*` modules when you `import evox`; see {doc}`../guide/advanced/extensions`.
 
 EvoX ships **30+ algorithms** and **30+ benchmark problems**. Together with the 13 related
 GPU-accelerated evolutionary computation libraries in the EMI-Group ecosystem, the combined

@@ -1,8 +1,8 @@
 # Porting MATLAB Code to EvoX
 
 ```{warning} Experimental EvoX 2.0 pre-release
-These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
+These pages target the **EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`).
+They do **not** cover the EvoX 1.x torch API (`ModuleBase`, `Parameter`/`Mutable`,
 `torch.*`, `#evox.compile`), which was removed in 2.0 and is documented nowhere in these
 pages. APIs may still change between pre-releases.
 ```
@@ -184,16 +184,16 @@ comes from a global generator (→ an explicit `key` that is split at every use)
 
 ### Using the built-in PSO
 
-PSO already exists in `evox_etl.algorithms`, so the shortest port is a `make_*` constructor plus a
+PSO already exists in `evox.algorithms`, so the shortest port is a `make_*` constructor plus a
 `StdWorkflow`. The workflow evaluates the population (`test_fn` above), keeps the generation counter,
 and applies the optimization direction:
 
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems.numerical import Sphere
 
 workflow = StdWorkflow(
     algorithm=make_pso(pop_size=100, lb=np.full(2, -10.0), ub=np.full(2, 10.0)),
@@ -219,7 +219,7 @@ whole run) and the frozen **state** (tensors, one per generation). `init` builds
 module-level functions.
 
 ```python
-"""example_pso.py — a hand-written PSO for EvoX 2.0 (evox_etl)."""
+"""example_pso.py — a hand-written PSO for EvoX 2.0 (evox)."""
 
 from dataclasses import dataclass, replace
 
@@ -228,8 +228,8 @@ import evoxc.numpy as enp
 import evoxc.random as random
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.problems.numerical import Sphere
 
 
 @dataclass(frozen=True)

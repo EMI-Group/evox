@@ -7,10 +7,10 @@ printed number on these pages was produced by actually running the snippet with
 
 ```{warning} Experimental EvoX 2.0 pre-release
 These examples target the **EvoX 2.0 pre-release** — the functional rewrite of EvoX on top of the
-**EvoX Compiler** (`evoxc`) tensor library, importable as **`evox_etl`**.
+**EvoX Compiler** (`evoxc`) tensor library, importable as **`evox`**.
 They run on the **NumPy backend by default** (`backend="numpy"`), so no compiler toolchain or GPU
 is needed to follow along.
-The 1.x object-oriented torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
+The 1.x object-oriented torch API (`ModuleBase`, `Parameter`/`Mutable`,
 `torch.compile`/`vmap`, the Brax/MuJoCo/supervised-learning problems) was removed in 2.0 and is not
 used anywhere in these pages.
 APIs may still change between pre-releases — see {doc}`../tutorial/tutorial_part7` for the
@@ -30,7 +30,7 @@ Two optional dependencies are worth installing alongside EvoX:
 
 | Package | Needed for | Without it |
 |---|---|---|
-| `plotly` | `wf.monitor.plot()` and the figure builders in `evox_etl.vis_tools` | `plot()` warns and returns `None`; the `.exv` serializer and everything else still work |
+| `plotly` | `wf.monitor.plot()` and the figure builders in `evox.vis_tools` | `plot()` warns and returns `None`; the `.exv` serializer and everything else still work |
 | `evoxc` compilers (IREE / TVM / XLA) | a non-NumPy `backend=` | the default NumPy backend still runs the same program |
 
 ```{note}

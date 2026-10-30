@@ -1,7 +1,7 @@
 """Wheel-only smoke test for the evox 2.0 pre-release wheel.
 
 CI runs this from a directory *outside* the repository checkout
-(``$RUNNER_TEMP``) so that ``import evox_etl`` resolves to the installed wheel
+(``$RUNNER_TEMP``) so that ``import evox`` resolves to the installed wheel
 instead of the source tree: a wheel that lost its package data (the
 ``cec2022_input_data/*.txt`` matrices read by ``CEC2022``) fails here and
 nowhere else, because the test suite imports the sources.
@@ -26,18 +26,18 @@ import pathlib
 import evoxc
 import numpy as np
 
-import evox_etl
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import CEC2022, Sphere
-from evox_etl.problems.numerical.cec2022 import evaluate as cec2022_evaluate
-from evox_etl.problems.numerical.state import ProblemState
+import evox
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.numerical import CEC2022, Sphere
+from evox.problems.numerical.cec2022 import evaluate as cec2022_evaluate
+from evox.problems.numerical.state import ProblemState
 
 
 def check_imported_from_wheel() -> None:
-    """Fail if ``evox_etl`` resolved to a source checkout instead of the wheel."""
-    root = pathlib.Path(evox_etl.__file__).resolve()
-    print(f"evox_etl imported from: {root}")
+    """Fail if ``evox`` resolved to a source checkout instead of the wheel."""
+    root = pathlib.Path(evox.__file__).resolve()
+    print(f"evox imported from: {root}")
     assert root.parent.parent.name == "site-packages", f"expected an installed wheel, got {root}"
 
 

@@ -1,12 +1,12 @@
 # CI for the EvoX 2.0 experimental pre-release.
 #
-# The package is the functional `evox_etl` port on the EvoX Compiler (`evoxc`);
+# The package is the functional `evox` port on the EvoX Compiler (`evoxc`);
 # the 1.x torch implementation is gone, so nothing here installs torch or needs
 # a GPU. Everything runs on the default `numpy` backend.
 #
 # Jobs:
 #   build    - sdist + wheel, install the wheel with the `test` extra, run the
-#              pytest suite (`unit_test/etl`) and smoke-test the wheel from a
+#              pytest suite (`unit_test/evox`) and smoke-test the wheel from a
 #              directory *outside* the checkout (catches missing package data).
 #   examples - run the standalone demo scripts under `examples/` end to end.
 #   docs     - build the Sphinx docs (warnings are not fatal, matching RTD).
@@ -46,10 +46,10 @@ jobs:
         python -m pip install "$wheel[test]"
     - name: Test with pytest
       # The same gate a contributor runs locally: `pytest`, which picks up
-      # `testpaths = ["unit_test/etl"]` from pyproject.toml.
+      # `testpaths = ["unit_test/evox"]` from pyproject.toml.
       run: python -m pytest
     - name: Smoke test the wheel from outside the repo
-      # Wheel-only check: cwd is $RUNNER_TEMP so `import evox_etl` cannot resolve
+      # Wheel-only check: cwd is $RUNNER_TEMP so `import evox` cannot resolve
       # to the checkout. Exercises StdWorkflow + PSO + CEC2022 package data.
       run: |
         cd "$RUNNER_TEMP"

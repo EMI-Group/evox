@@ -1,4 +1,4 @@
-"""EvoX (evox_etl) multi-objective hyperparameter optimization (HPO) example.
+"""EvoX (evox) multi-objective hyperparameter optimization (HPO) example.
 
 The inner run is a real multi-objective optimizer — RVEA on the 2-objective
 DTLZ2 benchmark — and its hyperparameters are tuned by a host-side random
@@ -15,7 +15,7 @@ adaptation:
 
 Two pieces of the recipe are worth reading closely:
 
-* ``evox_etl.metrics.igd`` is an ``evoxc`` *traceable* function, so it cannot
+* ``evox.metrics.igd`` is an ``evoxc`` *traceable* function, so it cannot
   be called on numpy arrays directly (``evoxc`` has no eager mode). It is
   wrapped host-side once with ``evoxc.build`` + ``evoxc.run`` — exactly what
   ``hpo_wrapper``'s docstring prescribes. The compiled metric is cached per
@@ -38,14 +38,14 @@ import pathlib
 import sys
 import time
 
-# Make `evox_etl` importable without an editable install.
+# Make `evox` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
+    if (_p / "src" / "evox" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
@@ -54,18 +54,18 @@ import evoxc
 import numpy as np
 from evoxc.core import TensorSpec
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import RVEA
-from evox_etl.metrics import igd
-from evox_etl.problems.hpo_wrapper import (
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import RVEA
+from evox.metrics import igd
+from evox.problems.hpo_wrapper import (
     HPOFitnessMonitorConfig,
     HPOProblemConfig,
     HPOProblemWrapper,
     HPSlot,
     random_search,
 )
-from evox_etl.problems.numerical import DTLZ2
-from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
+from evox.problems.numerical import DTLZ2
+from evox.problems.numerical.dtlz import pf as dtlz_pf
 
 # ---------------------------------------------------------------------------
 # Configuration (kept small so the whole script runs in a few seconds).
@@ -89,7 +89,7 @@ def true_pareto_front(problem: DTLZ2) -> np.ndarray:
 
 
 class HostIGD:
-    """Host-side IGD to a fixed reference front (``evox_etl.metrics.igd``).
+    """Host-side IGD to a fixed reference front (``evox.metrics.igd``).
 
     ``evoxc`` ops only run inside a trace, so the metric is compiled once per
     ``(n_pareto, n_objs)`` shape and then called on numpy arrays. The front size

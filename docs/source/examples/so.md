@@ -6,9 +6,9 @@ It then grows that program three ways — a measured comparison against DE and C
 plot, and a different benchmark problem — without touching the workflow code.
 
 ```{warning} Experimental EvoX 2.0 pre-release
-The code below uses the `evox_etl` import name (the functional rewrite on the `evoxc` compiler) and
+The code below uses the `evox` import name (the functional rewrite on the `evoxc` compiler) and
 the **NumPy backend** (`backend="numpy"`), so it runs on any machine without a compiler toolchain.
-The 1.x torch API (`import evox`, `Mutable`, `torch.compile`) is not used.
+The 1.x torch API (`Mutable`, `torch.compile`) is not used.
 See {doc}`../tutorial/tutorial_part2` for the same program explained line by line, and
 {doc}`../guide/advanced/backends` for switching the backend to IREE, TVM or XLA devices.
 ```
@@ -20,9 +20,9 @@ Save this as `pso_sphere.py` (it mirrors `examples/quickstart.py` in the reposit
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 dim = 10
 lb = np.full(dim, -100.0)
@@ -80,7 +80,7 @@ the `run()` trajectory shifted by one generation (see the tip under *The objects
 ```{note}
 `PSO(pop_size, lb, ub, w=0.6, phi_p=2.5, phi_g=0.8)` has **no `dim` argument** — the dimension is
 the length of `lb`/`ub`. In this page the bounds are NumPy arrays, which the dataclass stores as
-given; the `make_pso(pop_size, lb, ub, ...)` constructor in `evox_etl.algorithms` validates them
+given; the `make_pso(pop_size, lb, ub, ...)` constructor in `evox.algorithms` validates them
 and normalizes them to flat Python float tuples, which is what the comparison below uses.
 ```
 
@@ -128,9 +128,9 @@ Only the algorithm config changes. The `make_*` constructors are the validating 
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_pso, make_de, make_cma_es
-from evox_etl.problems.numerical import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_pso, make_de, make_cma_es
+from evox.problems.numerical import Sphere
 
 dim = 10
 lb, ub = np.full(dim, -100.0), np.full(dim, 100.0)
@@ -209,9 +209,9 @@ domain; Rastrigin is usually benchmarked in `[-5.12, 5.12]`, so this is the hard
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Sphere, Ackley, Rastrigin
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_pso
+from evox.problems.numerical import Sphere, Ackley, Rastrigin
 
 dim = 10
 lb, ub = np.full(dim, -32.768), np.full(dim, 32.768)
@@ -238,9 +238,9 @@ PSO drives Sphere to `2.8e-19`, gets Ackley down to `9.5e-7` — its local minim
 a global-best swarm to slide into the global basin — and stalls on Rastrigin at `4.2`, a lattice of
 local minima on a unit grid where a plain global-best PSO has no mechanism to escape once the swarm
 has contracted. That is a property of the algorithm, not of the API: swapping in another PSO variant
-from `evox_etl.algorithms` is again a one-line change.
+from `evox.algorithms` is again a one-line change.
 
-The other built-in numerical problems live in `evox_etl.problems.numerical`:
+The other built-in numerical problems live in `evox.problems.numerical`:
 `Griewank`, `Rosenbrock`, `Schwefel`, `Ellipsoid`, `Zakharov`, `Levy`, the `DTLZ1`–`DTLZ7` family
 (multi-objective, see {doc}`mo`) and `CEC2022`.
 

@@ -1,9 +1,9 @@
-"""EvoX quickstart — the functional ``evox_etl`` API on the ``evoxc`` compiler.
+"""EvoX quickstart — the functional ``evox`` API on the ``evoxc`` compiler.
 
 Two small end-to-end demos, both on the default numpy backend:
 
-1. **Single-objective** — real PSO (``evox_etl.algorithms``) on the 10-D Sphere
-   function (``evox_etl.problems``), driven with ``StdWorkflow.run``.
+1. **Single-objective** — real PSO (``evox.algorithms``) on the 10-D Sphere
+   function (``evox.problems``), driven with ``StdWorkflow.run``.
 2. **Multi-objective** — NSGA2 on 2-objective DTLZ2, driven generation by
    generation with ``StdWorkflow.init``/``init_step``/``step``, reporting the
    approximate Pareto front and plotting it with ``EvalMonitor.plot`` (Plotly is
@@ -21,14 +21,14 @@ Run (no installation needed — the bootstrap below locates the repo root):
 import pathlib
 import sys
 
-# Make `evox_etl` importable without an editable install.
+# Make `evox` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
+    if (_p / "src" / "evox" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
@@ -36,10 +36,10 @@ for _path in (str(_ROOT), str(_ROOT / "src")):
 import evoxc
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import NSGA2, PSO
-from evox_etl.problems.numerical import DTLZ2, Sphere
-from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import NSGA2, PSO
+from evox.problems.numerical import DTLZ2, Sphere
+from evox.problems.numerical.dtlz import pf as dtlz_pf
 
 
 def single_objective_demo() -> None:

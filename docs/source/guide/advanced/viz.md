@@ -1,21 +1,21 @@
 # Visualization and result serialization
 
-`evox_etl.vis_tools` is a **host-side** toolkit: nothing in it is traced by `evoxc`. It consumes
+`evox.vis_tools` is a **host-side** toolkit: nothing in it is traced by `evoxc`. It consumes
 the NumPy history lists a monitor recorded *after* a run — the per-generation fitness
 (`EvalMonitor.fitness_history`) and, when enabled, the per-generation solutions
 (`solution_history`) — and turns them into [Plotly](https://plotly.com/python/) figures or
 EvoXVision (`.exv`) files. Figures are therefore always built **after** the compiled step graph
 has finished; you never plot from inside it.
 
-Plotly is an **optional** dependency (`pip install "evox[vis]"`). `import evox_etl.vis_tools`
+Plotly is an **optional** dependency (`pip install "evox[vis]"`). `import evox.vis_tools`
 succeeds without it: `plot.py` guards its import (`go = None`) and only the `plot_*` functions
 call `_require_plotly()`, which raises `ImportError: plotly is required for visualization but is
 not installed. Install the optional dependency with: pip install "evox[vis]"`. `EvalMonitor.plot()`
-degrades more gently — it *warns* and returns `None`. `evox_etl.vis_tools.exv` never needs Plotly.
+degrades more gently — it *warns* and returns `None`. `evox.vis_tools.exv` never needs Plotly.
 
 ## The figure builders
 
-All six builders live in `evox_etl.vis_tools.plot`, are re-exported from `evox_etl.vis_tools`,
+All six builders live in `evox.vis_tools.plot`, are re-exported from `evox.vis_tools`,
 and take a **list of per-generation NumPy arrays**:
 
 | Function | Signature |
@@ -41,10 +41,10 @@ and take a **list of per-generation NumPy arrays**:
   constructor, so options such as `title="..."` work on every builder.
 
 ```python
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Sphere
-from evox_etl.vis_tools import plot_dec_space, plot_obj_space_1d_no_animation
-from evox_etl.workflows import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems.numerical import Sphere
+from evox.vis_tools import plot_dec_space, plot_obj_space_1d_no_animation
+from evox.workflows import EvalMonitorConfig, StdWorkflow
 
 workflow = StdWorkflow(
     make_pso(pop_size=40, lb=[-5.0] * 4, ub=[5.0] * 4), Sphere(),
@@ -103,9 +103,9 @@ problem is a plain function of the problem config, so build it once with `evoxc`
 ```python
 import evoxc
 import plotly.graph_objects as go
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical.dtlz import DTLZ2, pf
-from evox_etl.workflows import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_nsga2
+from evox.problems.numerical.dtlz import DTLZ2, pf
+from evox.workflows import EvalMonitorConfig, StdWorkflow
 
 n_objs, d = 2, 6
 problem = DTLZ2(d=d, m=n_objs, ref_num=64)      # 64 * 2 = 128 true-front points
@@ -175,10 +175,10 @@ iterations have been observed. It sets `n_objs` to `1` for a 1-D fitness array a
 ```python
 import pathlib
 
-from evox_etl.algorithms import make_pso
-from evox_etl.problems.numerical import Sphere
-from evox_etl.vis_tools import EvoXVisionAdapter, new_exv_metadata
-from evox_etl.workflows import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems.numerical import Sphere
+from evox.vis_tools import EvoXVisionAdapter, new_exv_metadata
+from evox.workflows import EvalMonitorConfig, StdWorkflow
 
 run = StdWorkflow(
     make_pso(pop_size=20, lb=[-5.0] * 3, ub=[5.0] * 3), Sphere(),
@@ -212,9 +212,9 @@ otherwise the tail of the stream stays in the process buffer.
 
 ## Reading `.exv` files back
 
-The adapter is a **writer only**: `evox_etl` ships no reader class. Reading means parsing the
+The adapter is a **writer only**: `evox` ships no reader class. Reading means parsing the
 header and decoding each field with `np.frombuffer(..., offset=..., count=...)`, exactly as
-`unit_test/etl/vis_tools/test_exv.py` does:
+`unit_test/evox/vis_tools/test_exv.py` does:
 
 ```python
 import json
@@ -265,4 +265,4 @@ number (`v1`) is the only part that is intended to stay byte-stable.
 
 Related reading: {doc}`metrics` (GD/HV/IGD on the same recorded history), {doc}`hpo`
 (hyperparameter-optimization workflows that produce it), {doc}`../install/evox` (installing
-`evox_etl` and the `evox[vis]` extra) and {doc}`../../tutorial/tutorial_part6` (the guided tour).
+`evox` and the `evox[vis]` extra) and {doc}`../../tutorial/tutorial_part6` (the guided tour).

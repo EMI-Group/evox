@@ -1,7 +1,7 @@
 # EvoX Installation Guide
 
 EvoX is distributed on PyPI as the **`evox`** package. In the 2.0 pre-release the import name is
-**`evox_etl`**, and the framework runs on the [EvoX Compiler](https://github.com/EMI-Group/evoxc)
+**`evox`**, and the framework runs on the [EvoX Compiler](https://github.com/EMI-Group/evoxc)
 (`evoxc`), a minimal tensor-graph compiler shipped as a normal Python dependency.
 Everything below assumes an activated virtual environment and **Python 3.11 or newer** — see
 {doc}`python` if you have not set one up yet.
@@ -10,8 +10,8 @@ Everything below assumes an activated virtual environment and **Python 3.11 or n
 
 The distribution name is still **`evox`**, and the 2.0 line ships as **pre-releases** — `2.0.0a1` is
 the current one. PyPI derives pre-release status from the version string itself, so a plain
-`pip install evox` keeps resolving the **1.x stable line**, whose tree has no `src/evox_etl`. Ask for
-the pre-release explicitly:
+`pip install evox` keeps resolving the **1.x stable line**, which is the old PyTorch implementation. Ask
+for the pre-release explicitly:
 
 ```bash
 pip install --pre evox==2.0.0a1     # this pre-release, exactly
@@ -33,16 +33,16 @@ pip install -e .
 ```
 
 One command is enough: the editable install of the `evox` distribution pulls `evoxc >= 0.1.0` (the
-compiler that `import evox_etl` needs) and `numpy >= 2.0.0` as declared dependencies. It installs no
+compiler that `import evox` needs) and `numpy >= 2.0.0` as declared dependencies. It installs no
 PyTorch — no 2.0 code path imports it.
 
 Check that the package is importable:
 
 ```bash
-python -c "import evox_etl"
+python -c "import evox"
 ```
 
-```{note} Where `evox_etl.__version__` comes from
+```{note} Where `evox.__version__` comes from
 The module reads it from the installed distribution metadata (`importlib.metadata.version("evox")`), so
 it reports `2.0.0a1` once the `evox` distribution is installed, and `0.0.0.dev0` in a bare source
 checkout that was never installed (expected there, not a broken environment). The import above and the
@@ -50,11 +50,11 @@ smoke test further down remain the checks that matter.
 ```
 
 ```{note} The 1.x torch implementation is no longer part of this tree
-EvoX 1.x lived in `src/evox/` as an object-oriented PyTorch API (`import evox`, `ModuleBase`,
-`Parameter`/`Mutable`, `torch.compile`/`vmap`) and required `torch >= 2.6.0`. It was removed in 2.0:
-`src/evox/` does not exist any more, and no 2.0 code path imports torch. If you still run 1.x code, keep
-it in an environment pinned to `evox<2`; {doc}`../../tutorial/tutorial_part7` maps each removed API to
-its 2.0 equivalent.
+EvoX 1.x was an object-oriented PyTorch API (`ModuleBase`, `Parameter`/`Mutable`,
+`torch.compile`/`vmap`) and required `torch >= 2.6.0`. It was removed in 2.0: `src/evox/` now holds the
+functional package instead, and no 2.0 code path imports torch. If you still run 1.x code, keep it in an
+environment pinned to `evox<2`; {doc}`../../tutorial/tutorial_part7` maps each removed API to its 2.0
+equivalent.
 ```
 
 ## Optional extras
@@ -69,7 +69,7 @@ is declared as `evoxc[iree]`, and the compiler package exposes the same three ex
 | Extra | Installs | Use it for |
 |---|---|---|
 | *(none)* | `evox` plus `evoxc >= 0.1.0` and `numpy >= 2.0.0` | the smallest base — a complete, working install on the NumPy backend |
-| `vis` | `plotly`, `pandas` | `evox_etl.vis_tools` plotting, `.exv` result files, and `EvalMonitor.plot()` |
+| `vis` | `plotly`, `pandas` | `evox.vis_tools` plotting, `.exv` result files, and `EvalMonitor.plot()` |
 | `iree` (or `evoxc[iree]`) | `iree-base-compiler` + `iree-base-runtime` (3.11.x) | the `iree` backend — compiled CPU, NVIDIA CUDA or AMD ROCm execution |
 | `tvm` (or `evoxc[tvm]`) | `apache-tvm`, plus `jaxlib` for its MLIR bindings | the `tvm` backend (StableHLO frontend + Relax VM, CPU end-to-end) |
 | `compilers` (or `evoxc[compilers]`) | both compiled toolchains (`iree` + `tvm`) | benchmarking or mixing compiled backends |
@@ -134,9 +134,9 @@ The quickest end-to-end check is a 50-generation PSO run on the Sphere problem. 
 and run it with `python smoke.py`:
 
 ```python
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import PSO
-from evox_etl.problems import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import PSO
+from evox.problems import Sphere
 
 workflow = StdWorkflow(PSO(pop_size=100, lb=[-100.0] * 10, ub=[100.0] * 10), Sphere(), monitor=EvalMonitorConfig())
 workflow.run(50, seed=42)

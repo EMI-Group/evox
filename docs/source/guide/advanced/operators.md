@@ -11,7 +11,7 @@ The package is split into `sampling`, `selection`, `crossover` and `mutation` �
 plus `jit_fix_operator`, a module of compiler-safe scalar helpers. Each section below lists the exact signatures
 and return shapes as they are defined in the source.
 
-## Sampling — `evox_etl.operators.sampling`
+## Sampling — `evox.operators.sampling`
 
 | Signature | Returns | Semantics |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ The two `latin_hypercube_*` functions are key-first: they take an `evoxc` PRNG k
 actually produced — for `uniform_sampling` typically *fewer* than the requested `n`.
 ```
 
-## Selection — `evox_etl.operators.selection`
+## Selection — `evox.operators.selection`
 
 All selection operators assume **minimization**: the lowest fitness wins.
 
@@ -41,13 +41,13 @@ All selection operators assume **minimization**: the lowest fitness wins.
 | `ref_vec_guided(x, f, v, theta)` | `(next_x, next_f)` | RVEA APD-based selection against the reference vectors `v` (`(r, m)`); one survivor per reference vector, with `NaN` rows for partitions that received no solution. |
 
 ```{note}
-`dominate_relation(x, y)` and `apd_fn(...)` live in `evox_etl.operators.selection.non_dominate` and
-`evox_etl.operators.selection.rvea_selection`, but — mirroring the reference — neither is re-exported by
-`evox_etl.operators.selection`; only the seven functions above are public there, and two of them
-(`crowding_distance`, `non_dominate_rank`) are also re-exported at the `evox_etl.operators` top level.
+`dominate_relation(x, y)` and `apd_fn(...)` live in `evox.operators.selection.non_dominate` and
+`evox.operators.selection.rvea_selection`, but — mirroring the reference — neither is re-exported by
+`evox.operators.selection`; only the seven functions above are public there, and two of them
+(`crowding_distance`, `non_dominate_rank`) are also re-exported at the `evox.operators` top level.
 ```
 
-## Crossover — `evox_etl.operators.crossover`
+## Crossover — `evox.operators.crossover`
 
 | Signature | Returns | Semantics |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ All selection operators assume **minimization**: the lowest fitness wins.
 | `simulated_binary(key, x, pro_c=1.0, dis_c=20.0)` | `(2 * (n // 2), d)` | SBX: parent `i` of the first half is paired with parent `n//2 + i`; both children are returned, so `c1 + c2 == p1 + p2`. |
 | `simulated_binary_half(key, x, pro_c=1.0, dis_c=20.0)` | `(n // 2, d)` | Same pairing, but only `mid + beta * half_diff` is kept — one child per pair. |
 
-## Mutation — `evox_etl.operators.mutation`
+## Mutation — `evox.operators.mutation`
 
 | Signature | Returns | Semantics |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ All selection operators assume **minimization**: the lowest fitness wins.
 
 ## The pure-function contract
 
-Everything in `evox_etl.operators` obeys the same five rules, which is what makes them reusable and traceable:
+Everything in `evox.operators` obeys the same five rules, which is what makes them reusable and traceable:
 
 - **Stateless.** No module-level mutable state, no `self`, no cached buffers, nothing to reset between
   generations; every quantity an operator needs arrives as an argument.
@@ -81,12 +81,12 @@ Everything in `evox_etl.operators` obeys the same five rules, which is what make
   `evoxc.run` or from inside another traced function — see {doc}`backends`.
 - **Deterministic for a fixed key**, so seeding the key once replays a whole operator chain bit-for-bit.
 
-## Compiler-safe helpers: `evox_etl.operators.jit_fix_operator`
+## Compiler-safe helpers: `evox.operators.jit_fix_operator`
 
 The algorithm ports do not call raw `evoxc` scalar ops at their variation sites; they call these fifteen helpers,
 because the compiler promotes dtypes differently from PyTorch (`float32 * int32` → `float64`, `int32 + python int`
 → `int64`) and a few torch ops have no direct `evoxc` counterpart. They are **deliberately not** re-exported by
-`evox_etl.operators` or `evox_etl.utils` — import from `evox_etl.operators.jit_fix_operator` explicitly.
+`evox.operators` or `evox.utils` — import from `evox.operators.jit_fix_operator` explicitly.
 
 | Helper | Semantics |
 | --- | --- |
@@ -120,8 +120,8 @@ arguments (ints, floats, `None`, configs) are passed as plain values — and the
 import numpy as np, evoxc
 import evoxc.random as random
 from evoxc import core
-from evox_etl.operators.jit_fix_operator import clamp
-from evox_etl.operators.mutation import polynomial_mutation
+from evox.operators.jit_fix_operator import clamp
+from evox.operators.mutation import polynomial_mutation
 
 def mutate_step(key, pop, lb, ub):
     """One step: mutate the whole batch, then clamp every child into bounds."""
@@ -153,7 +153,7 @@ idiomatic way to pick a tensor per element without a `where` chain, clamping out
 ```python
 import numpy as np, evoxc
 from evoxc import core
-from evox_etl.operators.jit_fix_operator import switch
+from evox.operators.jit_fix_operator import switch
 
 def pick(label, a, b):
     return switch(label, [a, b])
@@ -187,8 +187,8 @@ reference-vector ones (RVEA, RVEAa); `crossover_op(key, x)` (parents in, childre
 
 ```python
 import numpy as np
-from evox_etl.algorithms.mo import make_nsga2
-from evox_etl.operators.crossover import simulated_binary
+from evox.algorithms.mo import make_nsga2
+from evox.operators.crossover import simulated_binary
 
 cfg = make_nsga2(pop_size=20, n_objs=2,
                  lb=np.zeros(4, dtype=np.float32), ub=np.ones(4, dtype=np.float32),
@@ -216,7 +216,7 @@ for a walkthrough of composing operators into a full run, see {doc}`../../tutori
 ```
 
 ```{warning}
-This page documents the **experimental EvoX 2.0 pre-release** API: the functional `evox_etl` package running on the
+This page documents the **experimental EvoX 2.0 pre-release** API: the functional `evox` package running on the
 `evoxc` tensor-graph compiler. Operator names, argument order and the `jit_fix_operator` helper set may still
 change between pre-release builds, and there is no eager mode to fall back on — code written against the 1.x
 PyTorch API will not run here. Pin the version you build against and re-read this page when you upgrade.

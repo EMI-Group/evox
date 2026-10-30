@@ -11,8 +11,8 @@
 > [!WARNING]
 > This branch is the **experimental EvoX 2.0 pre-release (`2.0.0a1`)** — a from-scratch **functional rewrite** of
 > EvoX on top of the [**EvoX Compiler**](https://github.com/EMI-Group/evoxc) (`evoxc`) tensor library.
-> It is **not** the 1.x PyTorch API: the package is imported as **`evox_etl`** (there is no `import evox` module in
-> 2.0.0a1), and the 1.x PyTorch implementation has been deleted from this branch.
+> It is **not** the 1.x PyTorch API: the package is imported as **`evox`**, and that name now resolves to this
+> functional rewrite — the 1.x PyTorch implementation has been deleted from this branch.
 > The distribution name is still **`evox`**, so PyPI treats `2.0.0a1` as a **pre-release**: a plain
 > `pip install evox` keeps giving you the stable **1.x** line, which is the recommended choice for most users.
 > Only `pip install --pre evox==2.0.0a1` (or `pip install 'evox>=2.0.0a1'`) installs the new line — do that in a
@@ -40,7 +40,7 @@
 ---
 
 ## 🔥 News
-- [2026-10-30] Released **EvoX 2.0.0a1** (experimental pre-release) — EvoX is now a from-scratch **functional** rewrite on the **EvoX Compiler** (`evoxc`), imported as `evox_etl`. [[Release Notes](https://github.com/EMI-Group/evox/releases/tag/v2.0.0a1)]
+- [2026-10-30] Released **EvoX 2.0.0a1** (experimental pre-release) — EvoX is now a from-scratch **functional** rewrite on the **EvoX Compiler** (`evoxc`), imported as `evox`. [[Release Notes](https://github.com/EMI-Group/evox/releases/tag/v2.0.0a1)]
 - [2026-09-09] Released **EvoX 1.4.0** - 🚀 A maintenance release with various fixes and improvements! [[Release Notes](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
 
 ## Table of Contents
@@ -81,9 +81,9 @@ GPU by changing one argument.
   algorithm and problem configs stay identical.
 - **Compile once, loop on the device**: `StdWorkflow` builds the step graph a single time and feeds outputs back as
   inputs, instead of re-tracing per generation.
-- **GPU-class throughput**: in the committed harness `benchmarks/etl_vs_torch/`, the compiled XLA-CUDA backend runs
+- **GPU-class throughput**: in the committed harness `benchmarks/evox_vs_torch/`, the compiled XLA-CUDA backend runs
   the same PSO/DE cells **1.16–1.45× faster per step than the 1.x torch implementation** on an RTX A6000, at
-  identical convergence ([BENCHMARK_RESULTS.md](benchmarks/etl_vs_torch/BENCHMARK_RESULTS.md)).
+  identical convergence ([BENCHMARK_RESULTS.md](benchmarks/evox_vs_torch/BENCHMARK_RESULTS.md)).
 
 ### 🌐 All-in-One Solution
 
@@ -91,7 +91,7 @@ GPU by changing one argument.
 - **30+ benchmark problems**: 10 basic numerical problems (9 classic functions plus a shift/affine wrapper), DTLZ1–7,
   all 12 CEC2022 functions, and virtual (Gaussian-noise neuroevolution) problems, with **240+ benchmark
   problems/environments** across the ecosystem.
-- **Host-side hyperparameter optimization** through `evox_etl.problems.hpo_wrapper` (see
+- **Host-side hyperparameter optimization** through `evox.problems.hpo_wrapper` (see
   [What Changed Since 1.x](#what-changed-since-1x) for why it is host-side).
 
 ### 🛠️ Easy-to-Use Functional Design
@@ -100,7 +100,7 @@ GPU by changing one argument.
   (`make_pso(...)`, `make_cma_es(...)`, `make_nsga2(...)`).
 - **State is data**: `init(config, key)` returns a pytree of tensors, `step(config, state, evaluate)` returns the
   next one — serialize it, diff it, replay it.
-- **Explicit randomness**: stateless keys (`evox_etl.key(seed)`) live inside the state, so a single integer seed
+- **Explicit randomness**: stateless keys (`evox.key(seed)`) live inside the state, so a single integer seed
   reproduces a whole run; there is no global seed.
 - **Plain functions everywhere**: algorithms, operators and metrics are ordinary Python you can test and reuse —
   no framework base class to inherit.
@@ -109,8 +109,8 @@ GPU by changing one argument.
 
 - **Ready-to-use analysis**: `EvalMonitor` records fitness, elite and population histories plus auxiliary channels,
   and `EvalMonitor.plot()` returns an interactive Plotly figure.
-- **Multi-objective metrics**: `gd` and `igd` (with `gd_plus`/`igd_plus`) plus `hv` in `evox_etl.metrics`.
-- **Real-time data streaming**: the tailored **`.exv`** format (`evox_etl.vis_tools`) serializes runs for fast,
+- **Multi-objective metrics**: `gd` and `igd` (with `gd_plus`/`igd_plus`) plus `hv` in `evox.metrics`.
+- **Real-time data streaming**: the tailored **`.exv`** format (`evox.vis_tools`) serializes runs for fast,
   incremental loading.
 
 ## Main Contents
@@ -170,14 +170,14 @@ GPU by changing one argument.
     </tr>
     <tr>
       <td><b>Workflow / HPO / Extensions</b></td>
-      <td>StdWorkflow + EvalMonitor, host-side HPO wrapper, `evox_etl_ext` plugin namespace</td>
+      <td>StdWorkflow + EvalMonitor, host-side HPO wrapper, `evox_ext` plugin namespace</td>
     </tr>
   </tbody>
 </table>
 
 For a comprehensive list and detailed descriptions, check the [Tutorial](https://evox.readthedocs.io/en/latest/tutorial/index.html),
 the [API Reference](https://evox.readthedocs.io/en/latest/apidocs/index.html), and
-[`src/evox_etl/DESIGN.md`](src/evox_etl/DESIGN.md) for the binding design specification.
+[`src/evox/DESIGN.md`](src/evox/DESIGN.md) for the binding design specification.
 
 ## Installation
 
@@ -214,7 +214,7 @@ change between pre-releases.
 | `evox[iree]` | `evoxc[iree]` | `backend="iree"` — compiled CPU, NVIDIA CUDA and AMD ROCm |
 | `evox[tvm]` | `evoxc[tvm]` | `backend="tvm"` — compiled CPU |
 | `evox[compilers]` | both compiled toolchains | `"iree"` and `"tvm"` in one environment |
-| `evox[vis]` | `plotly`, `pandas` | `EvalMonitor.plot()`, `evox_etl.vis_tools` figures and `.exv` files |
+| `evox[vis]` | `plotly`, `pandas` | `EvalMonitor.plot()`, `evox.vis_tools` figures and `.exv` files |
 | `evox[all]` | both compiled toolchains + `plotly`/`pandas` | everything above |
 
 ```bash
@@ -240,7 +240,7 @@ cd evox
 pip install -e .
 ```
 
-`src/evox_etl` and `src/evox_etl_ext` are PEP 420 namespace packages, so uninstalled checkouts need
+`src/evox` and `src/evox_ext` are PEP 420 namespace packages, so uninstalled checkouts need
 `PYTHONPATH=src` (the runnable scripts under `examples/` add it for you). Contributor setup, the test venv and the
 suite layout are documented in the [Developer Guide](https://evox.readthedocs.io/en/latest/guide/developer/index.html).
 
@@ -250,9 +250,9 @@ A single-objective run — PSO on the 10-D Sphere function — uses the default 
 `evoxc` and NumPy:
 
 ```python
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_pso
-from evox_etl.problems import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems import Sphere
 
 dim = 10
 workflow = StdWorkflow(
@@ -280,9 +280,9 @@ A multi-objective run — NSGA-II on 2-objective DTLZ2 — driven generation by 
 
 ```python
 import numpy as np
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems import DTLZ2
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_nsga2
+from evox.problems import DTLZ2
 
 dim = 5
 workflow = StdWorkflow(
@@ -334,21 +334,22 @@ EvoX 2.0 is functional end to end, in three steps:
 The component contract is equally plain: an algorithm module exposes `init(config, key) -> state` and
 `step(config, state, evaluate) -> state` (optionally `init_step`/`final_step`), a problem exposes
 `evaluate(config, state, candidates)`, and a monitor exposes `init`/`step`/`record_*`. Randomness is a stateless key
-— `evox_etl.key(seed)` and `evox_etl.random.*` — stored in the state and advanced there, so runs are reproducible
+— `evox.key(seed)` and `evox.random.*` — stored in the state and advanced there, so runs are reproducible
 without any global seed. Internally everything minimizes; `opt_direction="max"` (or a per-objective list) makes the
 workflow flip signs. Only algorithms, problems and the step graph live in a trace: monitors, metrics and HPO stay
 host-side.
 
 ## What Changed Since 1.x
 
-EvoX 2.0 is a rewrite, not a wrapper: `import evox_etl` touches neither the 1.x tree nor PyTorch. The 1.x
-object-oriented API — `import evox`, `ModuleBase`, `Parameter`/`Mutable`, `evox.core.compile`/`vmap`/`use_state`,
+EvoX 2.0 is a rewrite, not a wrapper: `import evox` loads the functional package and touches neither the 1.x code
+nor PyTorch. The 1.x object-oriented API — `ModuleBase`, `Parameter`/`Mutable`, `evox.core.compile`/`vmap`/`use_state`,
 class-based components, the `enable_distributed` multi-rank switch and the Triton kernel package — **has been
-removed**, together with the `src/evox/` tree; there is no deprecation shim.
+removed**; the `evox` import name is kept, but it now resolves to the functional 2.0 tree, and there is no
+deprecation shim.
 
-| Area | 1.x (removed) | 2.0 (`evox_etl`) |
+| Area | 1.x (removed) | 2.0 |
 |---|---|---|
-| Import | `evox` | `evox_etl` |
+| Import | `import evox` — torch tree | `import evox` — functional package |
 | Components | `torch.nn.Module` subclasses, mutable attributes | frozen config dataclasses + `make_*` constructors |
 | Execution | `wf.init_step()` / `wf.step()`, mutating internals | `state = wf.init(seed=...)` → `wf.step(state)`, or `wf.run(n, seed=...)` |
 | Randomness | `torch.manual_seed(...)` | stateless keys in the state, seeded by `seed=` |
@@ -385,9 +386,9 @@ it maps every removed API to its replacement.
 - **API reference** — [English](https://evox.readthedocs.io/en/latest/apidocs/index.html)
 - **Examples** — [English](https://evox.readthedocs.io/en/latest/examples/index.html), plus runnable scripts in
   [`examples/`](examples) (`quickstart.py`, `examples/hpo/`)
-- **Design and history** — [`src/evox_etl/DESIGN.md`](src/evox_etl/DESIGN.md) (binding spec),
+- **Design and history** — [`src/evox/DESIGN.md`](src/evox/DESIGN.md) (binding spec),
   [`REFACTOR_REPORT.md`](REFACTOR_REPORT.md) (1.4 → 2.0 refactor report),
-  [`benchmarks/etl_vs_torch/`](benchmarks/etl_vs_torch) (backend comparison harness and results)
+  [`benchmarks/evox_vs_torch/`](benchmarks/evox_vs_torch) (backend comparison harness and results)
 
 ## Sister Projects
 - **EvoRL**: GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).

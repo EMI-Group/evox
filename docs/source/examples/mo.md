@@ -6,7 +6,7 @@ IGD/GD/hypervolume metrics, plots it against the true front, and streams the who
 `.exv` file.
 
 ```{warning} Experimental EvoX 2.0 pre-release
-The code below uses the `evox_etl` import name (the functional rewrite on the `evoxc` compiler) and
+The code below uses the `evox` import name (the functional rewrite on the `evoxc` compiler) and
 the **NumPy backend** (`backend="numpy"`). The 1.x torch API — including `evox.metrics` taking plain
 tensors and `EvalMonitor.plot` without a problem front — is not used.
 ```
@@ -15,9 +15,9 @@ tensors and `EvalMonitor.plot` without a problem front — is not used.
 
 ```python
 import numpy as np
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical import DTLZ2
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_nsga2
+from evox.problems.numerical import DTLZ2
 
 d = 12
 problem = DTLZ2(d=d, m=2)                                  # 2 objectives, d = 12 decision variables
@@ -85,7 +85,7 @@ form.
 
 ## Scoring the front: IGD, GD and hypervolume
 
-The metric functions in `evox_etl.metrics` are **traced graph functions**, not host-side helpers:
+The metric functions in `evox.metrics` are **traced graph functions**, not host-side helpers:
 there is no eager mode, so you build a one-shot executable with `evoxc.build` and run it with
 `evoxc.run`. Static scalars (`num_sample`) must be passed to `evoxc.build` *and* re-passed by value
 to `evoxc.run`.
@@ -94,9 +94,9 @@ to `evoxc.run`.
 import numpy as np
 import evoxc
 from evoxc.core import TensorSpec
-from evox_etl import key
-from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
-from evox_etl.metrics import gd, igd, hv
+from evox import key
+from evox.problems.numerical.dtlz import pf as dtlz_pf
+from evox.metrics import gd, igd, hv
 
 front = evoxc.run(evoxc.build(dtlz_pf, problem), problem).numpy()   # (k, 2) true front
 objs = np.asarray(fitness, dtype=np.float32)
@@ -143,7 +143,7 @@ HV : 0.417172
   `igd` and `igd_plus` are deterministic and take no key.
 
 ```{note}
-`dtlz_pf` — `evox_etl.problems.numerical.dtlz.pf` — is a graph function of the problem config only,
+`dtlz_pf` — `evox.problems.numerical.dtlz.pf` — is a graph function of the problem config only,
 so `evoxc.build(pf, problem)` followed by `evoxc.run(exe, problem)` produces the analytic front. It
 returns 2000 points for a two-objective DTLZ2 and 2926 for three objectives at the default
 `ref_num=1000`; the achieved front has a few hundred points, so IGD is dominated by the true front's
@@ -192,7 +192,7 @@ so a run can be replayed or inspected outside Python.
 streams one chunk per generation:
 
 ```python
-from evox_etl.vis_tools import EvoXVisionAdapter, new_exv_metadata
+from evox.vis_tools import EvoXVisionAdapter, new_exv_metadata
 
 populations = [np.asarray(p) for p in workflow.monitor.get_solution_history()]
 fitnesses = [np.asarray(f) for f in workflow.monitor.get_fitness_history()]

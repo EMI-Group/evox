@@ -5,7 +5,7 @@ You will build a particle swarm optimizer (PSO) that minimizes the 10-dimensiona
 function for 50 generations, then inspect the best solution it found, plot the
 convergence curve, and swap the algorithm or the problem with a single line.
 
-Everything here is the **EvoX 2.0 pre-release API** (import name `evox_etl`), the
+Everything here is the **EvoX 2.0 pre-release API** (import name `evox`), the
 functional rewrite of EvoX on the `evoxc` compiler. Components are **frozen config
 dataclasses** plus plain step functions — there are no component classes, no
 `Parameter`/`Mutable`, and no `torch.compile`.
@@ -17,9 +17,9 @@ Create `pso_sphere.py`:
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 dim = 10
 lb = np.full(dim, -100.0)
@@ -171,7 +171,7 @@ The algorithm is just a config dataclass, so replacing PSO is a one-line change 
 here for `DE` (differential evolution) and CMA-ES:
 
 ```python
-from evox_etl.algorithms import DE, make_cma_es
+from evox.algorithms import DE, make_cma_es
 
 # differential evolution — same bounds, same everything else
 algorithm = DE(pop_size=100, lb=lb, ub=ub)
@@ -200,7 +200,7 @@ The problem is equally easy to swap — `Ackley()` and `Rastrigin()` are drop-in
 replacements for `Sphere()`, with the same `evaluate` contract:
 
 ```python
-from evox_etl.problems.numerical import Ackley, Rastrigin
+from evox.problems.numerical import Ackley, Rastrigin
 
 problem = Ackley()       # or Rastrigin()
 ```

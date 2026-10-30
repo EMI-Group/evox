@@ -51,9 +51,9 @@ Two consequences are worth remembering:
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 dim = 3
 lb = np.zeros(dim)
@@ -184,7 +184,7 @@ obvious where a generation boundary is. `state.generation` is a 0-d `int32` tens
 ## Stateless RNG
 
 There is **no global seed and no hidden RNG state**: randomness comes from explicit
-keys. `evox_etl.key(seed)` builds a key, `evox_etl.random` (the `evoxc.random` module)
+keys. `evox.key(seed)` builds a key, `evox.random` (the `evoxc.random` module)
 draws from it, and keys travel inside the states. The random ops are graph ops, so you
 sample from a key inside traced code — `evoxc.evaluate` runs a graph definition eagerly
 and returns a concrete tensor:
@@ -192,7 +192,7 @@ and returns a concrete tensor:
 ```python
 import evoxc
 
-from evox_etl import key, random
+from evox import key, random
 
 def sample(k):
     k, subkey = random.split(k)      # split, use the subkey, keep the parent

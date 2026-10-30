@@ -15,7 +15,7 @@ It stores assets only — no documentation pages live here, and nothing here des
 ## Constraints
 - **Brand assets stay even when unreferenced**: logos, favicons, icons and theme images are configuration-driven (`conf.py`, shibuya theme options) or kept for reuse, so an unused brand asset is never a reason to delete it.
 - **No 1.x-era assets**: the 1.x torch API is gone from this tree, so torch-era screenshots (`ModuleBase`, `jit_vmap`, `halfcheetah_200`, example run outputs) and the 1.x Windows one-click installer `win-install.bat` were deleted rather than archived; they advertised `pip install "evox[vis]>=1.0.0"`, a torch-CPU fallback and `triton-windows` for `torch.compile`, none of which exists in 2.0.
-- **New screenshots must come from the 2.0 API**: a run output, diagram or installer script added here has to be produced from `evox_etl` on the `evoxc` backends, and the page that embeds it must reference it by its `/_static/<name>` path.
+- **New screenshots must come from the 2.0 API**: a run output, diagram or installer script added here has to be produced from `evox` on the `evoxc` backends, and the page that embeds it must reference it by its `/_static/<name>` path.
 - Every added asset has to be referenced by a page or by `conf.py`; an orphan that is also 1.x-era is deleted instead of being left in the tree.
 - This directory is `html_static_path` in `conf.py`, so `CONTEXT.md` files are excluded from the build through `exclude_patterns` (`**/CONTEXT.md`) and are not copied into the output.
 ## Routing Table

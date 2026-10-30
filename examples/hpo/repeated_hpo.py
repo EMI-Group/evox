@@ -1,4 +1,4 @@
-"""EvoX (evox_etl) HPO example: repeated evaluation and fitness aggregation.
+"""EvoX (evox) HPO example: repeated evaluation and fitness aggregation.
 
 Real optimization runs are noisy: the same hyperparameters give a different
 final fitness on a different random seed. ``HPOProblemWrapper`` therefore
@@ -28,30 +28,30 @@ import pathlib
 import sys
 import time
 
-# Make `evox_etl` importable without an editable install.
+# Make `evox` importable without an editable install.
 _here = pathlib.Path(__file__).resolve()
 for _p in _here.parents:
-    if (_p / "src" / "evox_etl" / "__init__.py").is_file():
+    if (_p / "src" / "evox" / "__init__.py").is_file():
         _ROOT = _p
         break
 else:  # pragma: no cover
-    raise RuntimeError("could not locate the repo root (src/evox_etl/__init__.py)")
+    raise RuntimeError("could not locate the repo root (src/evox/__init__.py)")
 for _path in (str(_ROOT), str(_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.hpo_wrapper import (
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.hpo_wrapper import (
     HPOFitnessMonitorConfig,
     HPOProblemConfig,
     HPOProblemWrapper,
     HPSlot,
     random_search,
 )
-from evox_etl.problems.numerical import Rastrigin
+from evox.problems.numerical import Rastrigin
 
 # ---------------------------------------------------------------------------
 # Configuration (kept small so the whole script runs in a few seconds).

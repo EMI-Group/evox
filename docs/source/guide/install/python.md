@@ -10,7 +10,7 @@ EvoX 2.0 requires **Python 3.11 or newer**: it runs on the `evoxc` compiler, whi
 
 ```{note}
 The 2.0 metadata states that floor: `pyproject.toml` declares `requires-python = ">=3.11"`, and
-`import evox_etl` imports `evoxc` unconditionally, so no 2.0 program runs on 3.10. Pick 3.11+.
+`import evox` imports `evoxc` unconditionally, so no 2.0 program runs on 3.10. Pick 3.11+.
 ```
 
 ## Install Python interpreter

@@ -1,8 +1,8 @@
 # Backends and Performance
 
 ```{warning} Experimental EvoX 2.0 pre-release
-These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
-They do **not** cover the EvoX 1.x torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
+These pages target the **EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`).
+They do **not** cover the EvoX 1.x torch API (`ModuleBase`, `Parameter`/`Mutable`,
 `torch.compile`/`vmap`), which was removed in 2.0 and is documented nowhere in these
 pages. APIs may still change between pre-releases.
 ```
@@ -13,7 +13,7 @@ the compiled step graph (excerpt — `algorithm`/`problem` are config instances 
 runnable example at the end of this page):
 
 ```{code-block} python
-from evox_etl import EvalMonitorConfig, StdWorkflow
+from evox import EvalMonitorConfig, StdWorkflow
 
 workflow = StdWorkflow(algorithm, problem, monitor=EvalMonitorConfig(), backend="numpy")  # default
 ```
@@ -24,10 +24,10 @@ Each step *variant* (`init_step` / `step` / `final_step`) is traced and compiled
 `evoxc.build` (cached per state shape signature), then run generation after generation — re-evaluating
 per generation is the anti-pattern the workflow exists to avoid.
 
-Excerpt from `src/evox_etl/core/workflow.py` (`StdWorkflow._build_step_exe`, abridged):
+Excerpt from `src/evox/core/workflow.py` (`StdWorkflow._build_step_exe`, abridged):
 
 ```{code-block} python
-# src/evox_etl/core/workflow.py — StdWorkflow._build_step_exe (abridged)
+# src/evox/core/workflow.py — StdWorkflow._build_step_exe (abridged)
 options = {k: v for k, v in self._compile_options.items() if k not in ("backend", "device")}
 return evoxc.build(step_fn, specs, backend=self.backend, device=self._device, **options)
 ```
@@ -163,7 +163,7 @@ last bits. **TVM** is CPU (`llvm`) only. A backend changes *how fast* a run is, 
 which is why you can debug on numpy and deploy on IREE or XLA. The one caveat sits outside the
 backends: on an unconverged stochastic problem, two *different* runs scatter anyway.
 
-The numbers on this page are workload-dependent measurements from `benchmarks/etl_vs_torch/`
+The numbers on this page are workload-dependent measurements from `benchmarks/evox_vs_torch/`
 (RTX A6000, seed 42, 100 generations), summarized in `REFACTOR_REPORT.md` §3: at 10⁴ × 10²,
 XLA-on-CUDA runs PSO/DE/OpenES in 8–18 ms/step (torch-cpu 8–36 ms/step, IREE-on-CUDA ~3.5 s/step);
 on the MO matrix XLA-on-CUDA runs all 12 cases at a median **28× faster than torch-cpu**; large-scale
@@ -180,9 +180,9 @@ This program is complete and uses the default backend, so it needs nothing but P
 ```python
 import numpy as np
 
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import PSO
-from evox_etl.problems.numerical import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import PSO
+from evox.problems.numerical import Sphere
 
 dim = 10
 algorithm = PSO(pop_size=100, lb=np.full(dim, -100.0), ub=np.full(dim, 100.0))

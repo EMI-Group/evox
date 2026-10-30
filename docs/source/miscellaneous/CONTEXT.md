@@ -2,7 +2,7 @@
 
 ## Intent
 This directory holds the reference material that fits neither the tutorial nor the guides: which hardware an EvoX 2.0 workflow runs on, what non-NVIDIA hardware is reachable, which Linux and GPU driver to install on a server, and how to port MATLAB habits.
-Every page targets the **experimental EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`) and therefore has no EvoX 1.x torch content — no `import evox`, `torch.device`, `Parameter`/`Mutable`, `ModuleBase`, `#evox.compile` or `mps` device.
+Every page targets the **experimental EvoX 2.0 pre-release** (import name `evox`, compiled by `evoxc`) and therefore has no EvoX 1.x torch content — no `torch.device`, `Parameter`/`Mutable`, `ModuleBase`, `#evox.compile` or `mps` device.
 
 ## API Surface
 | File | Page title | Purpose |
@@ -15,11 +15,11 @@ Every page targets the **experimental EvoX 2.0 pre-release** (import name `evox_
 
 ## Constraints
 - All pages are MyST Markdown with one H1 each, ```` ```python ```` fences and `{note}`/`{warning}`/`{tip}` admonitions; cross-page links use `{doc}` relative paths.
-- Device and backend facts must come from `evoxc` and `src/evox_etl/core/workflow.py`, never from memory: kinds, aliases, option names (`target_backends`, `iree_compile_args`, `vulkan_target`, `plugin_path`, `opt_level`) and `EVOXC_*` environment variables are all verifiable in the installed `evoxc` package.
+- Device and backend facts must come from `evoxc` and `src/evox/core/workflow.py`, never from memory: kinds, aliases, option names (`target_backends`, `iree_compile_args`, `vulkan_target`, `plugin_path`, `opt_level`) and `EVOXC_*` environment variables are all verifiable in the installed `evoxc` package.
 - Backend mechanics (extras, compile options, limitations, performance, the `device=`/`compile_options=` tables) are owned by `../guide/advanced/backends` and the extras story by `../guide/install/evox`; link there instead of duplicating tables, and keep any local restatement consistent with them.
 - Compiled-backend extras are `evox[iree]` / `evox[tvm]` / `evox[compilers]`, which forward to `evoxc[iree]` / `evoxc[tvm]` / `evoxc[compilers]`; either spelling installs the same toolchain, and `../guide/install/evox` owns the full extras story.
 - Exception classes quoted on a page must have been reproduced in this repository: state the timing (parse-time `TypeError`, placement-time failure during `init()`, build-time `BackendError`) and describe the generic device-failure case behaviourally rather than naming one stable class.
-- Every `python` sample must run against `src/evox_etl` (numpy backend, CPU); samples that need a GPU or an optional extra only need to *construct*, and that must be said when it is not obvious. Shown `text` output must match what the sample prints, line for line.
+- Every `python` sample must run against `src/evox` (numpy backend, CPU); samples that need a GPU or an optional extra only need to *construct*, and that must be said when it is not obvious. Shown `text` output must match what the sample prints, line for line.
 - Hardware that was not verified in this repository (ROCm, Vulkan, Apple Silicon GPUs, real PJRT plugins) must be labelled as documented-from-code, not measured.
 - Count claims stay exactly as in the rest of the docs: "30+ algorithms", "30+ benchmark problems", ecosystem "140+ algorithms", "240+ benchmark problems/environments".
 - The directory is listed from `docs/source/index.md` under the "Additional Resources" caption; that file is owned elsewhere and must not be edited from here.

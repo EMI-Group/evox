@@ -11,7 +11,7 @@
 > [!WARNING]
 > 本分支是 **EvoX 2.0 实验性预发布版本（`2.0.0a1`）**：基于 [**EvoX Compiler**](https://github.com/EMI-Group/evoxc)
 > （`evoxc`）张量库，从零重写的**函数式** EvoX。
-> 它**不是** 1.x 的 PyTorch API：包导入名为 **`evox_etl`**（2.0.0a1 中不存在 `import evox` 模块），1.x 的 PyTorch
+> 它**不是** 1.x 的 PyTorch API：包导入名为 **`evox`**，该名称现在指向的就是这个函数式重写版本，1.x 的 PyTorch
 > 实现已从本分支中删除。
 > 发布名依然是 **`evox`**，因此 PyPI 将 `2.0.0a1` 视为**预发布版本**：直接 `pip install evox` 仍会得到稳定的
 > **1.x** 版本，这也是大多数用户推荐的选择。
@@ -40,7 +40,7 @@
 ---
 
 ## 🔥 新闻
-- [2026-10-30] 发布 **EvoX 2.0.0a1**（实验性预发布）—— EvoX 现已基于 **EvoX Compiler**（`evoxc`）从零重写为**函数式**框架，导入名为 `evox_etl`。[[发布说明](https://github.com/EMI-Group/evox/releases/tag/v2.0.0a1)]
+- [2026-10-30] 发布 **EvoX 2.0.0a1**（实验性预发布）—— EvoX 现已基于 **EvoX Compiler**（`evoxc`）从零重写为**函数式**框架，导入名为 `evox`。[[发布说明](https://github.com/EMI-Group/evox/releases/tag/v2.0.0a1)]
 - [2026-09-09] 发布 **EvoX 1.4.0** - 🚀 维护版本更新，包含多项修复与改进！ [[发布说明](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
 
 ## 目录
@@ -81,9 +81,9 @@ IREE / TVM / XLA 编译后端的 CPU 与 GPU 上。
 - **一个程序，多种执行模式**：`backend="numpy"`（默认，无需任何工具链）、`"iree"`（编译后的 CPU / CUDA / ROCm）、
   `"tvm"`（编译后的 CPU）或 `"xla"`（PJRT）。只需修改 `StdWorkflow(backend=..., device=...)`，算法与问题配置完全不变。
 - **一次编译，设备端循环**：`StdWorkflow` 只构建一次单步计算图，之后把输出作为输入回灌，而不是每代重新追踪。
-- **GPU 级吞吐**：在仓库自带的 `benchmarks/etl_vs_torch/` 测试中，编译后的 XLA-CUDA 后端在相同的 PSO/DE 用例上
+- **GPU 级吞吐**：在仓库自带的 `benchmarks/evox_vs_torch/` 测试中，编译后的 XLA-CUDA 后端在相同的 PSO/DE 用例上
   每步比 1.x 的 torch 实现**快 1.16–1.45 倍**（RTX A6000），且收敛结果完全一致
-  （[BENCHMARK_RESULTS.md](benchmarks/etl_vs_torch/BENCHMARK_RESULTS.md)）。
+  （[BENCHMARK_RESULTS.md](benchmarks/evox_vs_torch/BENCHMARK_RESULTS.md)）。
 
 ### 🌐 一体化解决方案
 
@@ -92,7 +92,7 @@ IREE / TVM / XLA 编译后端的 CPU 与 GPU 上。
   **140+ 种算法**。
 - **30+ 个基准问题**：10 个基础数值问题（9 个经典函数外加一个 shift/affine 包装器）、DTLZ1–7、CEC2022 的全部 12 个函数，
   以及虚拟（高斯噪声神经演化）问题；生态内共有 **240+ 基准问题/环境**。
-- **宿主端超参数优化**：通过 `evox_etl.problems.hpo_wrapper` 提供（为何是宿主端实现，见
+- **宿主端超参数优化**：通过 `evox.problems.hpo_wrapper` 提供（为何是宿主端实现，见
   [与 1.x 相比的变化](#与-1x-相比的变化)）。
 
 ### 🛠️ 易用的函数式设计
@@ -101,7 +101,7 @@ IREE / TVM / XLA 编译后端的 CPU 与 GPU 上。
   （`make_pso(...)`、`make_cma_es(...)`、`make_nsga2(...)`）。
 - **状态即数据**：`init(config, key)` 返回由张量组成的 pytree，`step(config, state, evaluate)` 返回下一个状态 ——
   可序列化、可比对、可回放。
-- **显式随机性**：无状态的随机键（`evox_etl.key(seed)`）保存在状态中，因此一个整数种子即可复现整次运行；
+- **显式随机性**：无状态的随机键（`evox.key(seed)`）保存在状态中，因此一个整数种子即可复现整次运行；
   不存在全局种子。
 - **处处皆普通函数**：算法、算子与指标都是可测试、可复用的普通 Python —— 没有需要继承的框架基类。
 
@@ -109,8 +109,8 @@ IREE / TVM / XLA 编译后端的 CPU 与 GPU 上。
 
 - **开箱即用的分析工具**：`EvalMonitor` 记录适应度、精英个体与种群历史，以及自定义的辅助通道；
   `EvalMonitor.plot()` 返回可交互的 Plotly 图。
-- **多目标指标**：`evox_etl.metrics` 提供 `gd`、`igd`（含 `gd_plus`/`igd_plus`）与 `hv`。
-- **实时数据流**：定制的 **`.exv`** 格式（`evox_etl.vis_tools`）可序列化整次运行，支持快速增量读取。
+- **多目标指标**：`evox.metrics` 提供 `gd`、`igd`（含 `gd_plus`/`igd_plus`）与 `hv`。
+- **实时数据流**：定制的 **`.exv`** 格式（`evox.vis_tools`）可序列化整次运行，支持快速增量读取。
 
 ## 主要内容
 
@@ -169,14 +169,14 @@ IREE / TVM / XLA 编译后端的 CPU 与 GPU 上。
     </tr>
     <tr>
       <td><b>工作流 / HPO / 扩展</b></td>
-      <td>StdWorkflow + EvalMonitor、宿主端 HPO 包装器、`evox_etl_ext` 插件命名空间</td>
+      <td>StdWorkflow + EvalMonitor、宿主端 HPO 包装器、`evox_ext` 插件命名空间</td>
     </tr>
   </tbody>
 </table>
 
 完整的列表与详细说明，请参阅 [教程](https://evox.readthedocs.io/zh-cn/latest/tutorial/index.html)、
 [API 参考](https://evox.readthedocs.io/zh-cn/latest/apidocs/index.html)，以及
-[`src/evox_etl/DESIGN.md`](src/evox_etl/DESIGN.md)（约束性设计规范）。
+[`src/evox/DESIGN.md`](src/evox/DESIGN.md)（约束性设计规范）。
 
 ## 安装
 
@@ -211,7 +211,7 @@ pip install "evox>=2.0.0a1"
 | `evox[iree]` | `evoxc[iree]` | `backend="iree"` —— 编译后的 CPU、NVIDIA CUDA 与 AMD ROCm |
 | `evox[tvm]` | `evoxc[tvm]` | `backend="tvm"` —— 编译后的 CPU |
 | `evox[compilers]` | 两套编译工具链 | 在同一环境中使用 `"iree"` 与 `"tvm"` |
-| `evox[vis]` | `plotly`、`pandas` | `EvalMonitor.plot()`、`evox_etl.vis_tools` 绘图与 `.exv` 文件 |
+| `evox[vis]` | `plotly`、`pandas` | `EvalMonitor.plot()`、`evox.vis_tools` 绘图与 `.exv` 文件 |
 | `evox[all]` | 两套编译工具链 + `plotly`/`pandas` | 以上全部 |
 
 ```bash
@@ -236,7 +236,7 @@ cd evox
 pip install -e .
 ```
 
-`src/evox_etl` 与 `src/evox_etl_ext` 是 PEP 420 命名空间包，因此未安装的源码目录需要设置 `PYTHONPATH=src`
+`src/evox` 与 `src/evox_ext` 是 PEP 420 命名空间包，因此未安装的源码目录需要设置 `PYTHONPATH=src`
 （`examples/` 下的可运行脚本会自动处理）。贡献者环境、测试虚拟环境与测试套件结构见
 [开发者指南](https://evox.readthedocs.io/zh-cn/latest/guide/developer/index.html)。
 
@@ -245,9 +245,9 @@ pip install -e .
 下面是一个单目标示例 —— 用 PSO 求解 10 维 Sphere 函数，使用默认的 NumPy 后端，只需要 `evoxc` 与 NumPy：
 
 ```python
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_pso
-from evox_etl.problems import Sphere
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_pso
+from evox.problems import Sphere
 
 dim = 10
 workflow = StdWorkflow(
@@ -274,9 +274,9 @@ workflow.monitor.plot()                       # Plotly 图（需要 `evox[vis]`�
 
 ```python
 import numpy as np
-from evox_etl import EvalMonitorConfig, StdWorkflow
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems import DTLZ2
+from evox import EvalMonitorConfig, StdWorkflow
+from evox.algorithms import make_nsga2
+from evox.problems import DTLZ2
 
 dim = 5
 workflow = StdWorkflow(
@@ -326,19 +326,20 @@ EvoX 2.0 端到端都是函数式的，分三步：
 
 组件契约同样简单：算法模块提供 `init(config, key) -> state` 与 `step(config, state, evaluate) -> state`
 （可选 `init_step`/`final_step`），问题提供 `evaluate(config, state, candidates)`，监视器提供
-`init`/`step`/`record_*`。随机性是保存在状态中的无状态键 —— `evox_etl.key(seed)` 与 `evox_etl.random.*` —— 并在
+`init`/`step`/`record_*`。随机性是保存在状态中的无状态键 —— `evox.key(seed)` 与 `evox.random.*` —— 并在
 状态中推进，因此无需任何全局种子即可复现运行。框架内部一律做最小化；`opt_direction="max"`（或按目标给出的列表）
 让工作流翻转符号。只有算法、问题与单步计算图位于追踪之中：监视器、指标与 HPO 都留在宿主端。
 
 ## 与 1.x 相比的变化
 
-EvoX 2.0 是一次重写，而不是一层封装：`import evox_etl` 既不触及 1.x 的代码树，也不依赖 PyTorch。1.x 的面向对象
-API —— `import evox`、`ModuleBase`、`Parameter`/`Mutable`、`evox.core.compile`/`vmap`/`use_state`、基于类的组件、
-`enable_distributed` 多进程开关以及 Triton 内核包 —— **已被移除**，`src/evox/` 目录也一并删除；不提供任何弃用兼容层。
+EvoX 2.0 是一次重写，而不是一层封装：`import evox` 导入的是函数式包，既不触及 1.x 的代码，也不依赖 PyTorch。1.x 的面向对象
+API —— `ModuleBase`、`Parameter`/`Mutable`、`evox.core.compile`/`vmap`/`use_state`、基于类的组件、
+`enable_distributed` 多进程开关以及 Triton 内核包 —— **已被移除**；导入名 `evox` 保留下来，但指向的是 2.0 的函数式
+代码树，且不提供任何弃用兼容层。
 
-| 方面 | 1.x（已移除） | 2.0（`evox_etl`） |
+| 方面 | 1.x（已移除） | 2.0 |
 |---|---|---|
-| 导入 | `evox` | `evox_etl` |
+| 导入 | `import evox` —— torch 代码树 | `import evox` —— 函数式包 |
 | 组件 | `torch.nn.Module` 子类、可变属性 | 冻结配置数据类 + `make_*` 构造函数 |
 | 执行 | `wf.init_step()` / `wf.step()`，修改内部状态 | `state = wf.init(seed=...)` → `wf.step(state)`，或 `wf.run(n, seed=...)` |
 | 随机性 | `torch.manual_seed(...)` | 状态中的无状态键，由 `seed=` 初始化 |
@@ -373,9 +374,9 @@ API —— `import evox`、`ModuleBase`、`Parameter`/`Mutable`、`evox.core.com
 - **API 参考** — [中文](https://evox.readthedocs.io/zh-cn/latest/apidocs/index.html)
 - **示例** — [中文](https://evox.readthedocs.io/zh-cn/latest/examples/index.html)，以及 [`examples/`](examples) 下的
   可运行脚本（`quickstart.py`、`examples/hpo/`）
-- **设计与历史** — [`src/evox_etl/DESIGN.md`](src/evox_etl/DESIGN.md)（约束性规范）、
+- **设计与历史** — [`src/evox/DESIGN.md`](src/evox/DESIGN.md)（约束性规范）、
   [`REFACTOR_REPORT.md`](REFACTOR_REPORT.md)（1.4 → 2.0 重构报告）、
-  [`benchmarks/etl_vs_torch/`](benchmarks/etl_vs_torch)（后端对比工具与结果）
+  [`benchmarks/evox_vs_torch/`](benchmarks/evox_vs_torch)（后端对比工具与结果）
 
 ## 相关项目
 

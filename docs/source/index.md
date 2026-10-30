@@ -25,8 +25,8 @@ Miscellaneous <miscellaneous/index>
 
 ```{warning} EvoX 2.0 — experimental pre-release
 These pages document the **EvoX 2.0 pre-release**, a functional rewrite of EvoX on top of the
-**EvoX Compiler** (`evoxc`) tensor library. The import name is **`evox_etl`**; the 1.x object-oriented
-torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) has been
+**EvoX Compiler** (`evoxc`) tensor library. The import name is **`evox`**; the 1.x object-oriented
+torch API (`ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) has been
 **removed from this tree and is no longer documented**. The pre-release is `2.0.0a1`, and APIs may
 still change before 2.0 is final — see {doc}`tutorial/tutorial_part7` if you are bringing 1.x code
 across.
@@ -42,15 +42,15 @@ The 2.0 programming model is **functional end to end**:
   returns the next state. Nothing is stored on the object.
 - **One compile site**: `StdWorkflow` traces the algorithm/problem/monitor functions once through
   `evoxc.build` and runs the resulting program in a loop; monitors and metrics stay host-side.
-- **Explicit randomness**: stateless RNG keys (`evox_etl.key(seed)`) live in the state — there is no
+- **Explicit randomness**: stateless RNG keys (`evox.key(seed)`) live in the state — there is no
   global seed.
 
 ## Quickstart
 
 ```python
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_pso
-from evox_etl.problems import Sphere
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_pso
+from evox.problems import Sphere
 
 dim = 10
 workflow = StdWorkflow(
@@ -84,7 +84,7 @@ the same program on IREE, TVM or XLA devices.
   functions you can test and reuse, states you can serialize, and deterministic runs from a single
   integer seed.
 - 📊 **Built-in analysis**: `EvalMonitor` records fitness/solution histories and auxiliary channels,
-  `evox_etl.metrics` provides GD/IGD/HV, and `evox_etl.vis_tools` plots and serializes results to
+  `evox.metrics` provides GD/IGD/HV, and `evox.vis_tools` plots and serializes results to
   `.exv` files.
 
 ---

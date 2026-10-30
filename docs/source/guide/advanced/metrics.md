@@ -1,6 +1,6 @@
 # Multi-objective metrics
 
-`evox_etl.metrics` holds the classic multi-objective quality indicators, ported to `evoxc`
+`evox.metrics` holds the classic multi-objective quality indicators, ported to `evoxc`
 tensors: seven plain Python functions that take an achieved objective matrix, the reference
 front, and (for the stochastic estimators) a PRNG key, and return one **float32 scalar** each.
 
@@ -14,8 +14,8 @@ front, and (for the stochastic estimators) a PRNG key, and return one **float32 
 | `bounding_cube_monte_carlo_hv` | same as `hv` | the estimator `hv` delegates to |
 | `each_cube_monte_carlo_hv` | `(key, objs, ref, num_sample=100000)` | per-point-cube Monte-Carlo hypervolume |
 
-`gd`, `gd_plus`, `igd`, `igd_plus` and `hv` are also re-exported from the `evox_etl` root
-package; the two Monte-Carlo estimators are reachable only via `evox_etl.metrics`. For the front
+`gd`, `gd_plus`, `igd`, `igd_plus` and `hv` are also re-exported from the `evox` root
+package; the two Monte-Carlo estimators are reachable only via `evox.metrics`. For the front
 these numbers score, and for plotting them, see {doc}`viz` and {doc}`operators`.
 
 ## Arguments and shapes
@@ -85,7 +85,7 @@ run it with `evoxc.run`, which returns concrete tensors (use `.numpy()`). Static
 import numpy as np
 import evoxc
 from evoxc.core import TensorSpec
-from evox_etl.metrics import gd, gd_plus, igd, igd_plus
+from evox.metrics import gd, gd_plus, igd, igd_plus
 
 objs = np.array([[1.0, 0.0], [0.6, 0.6], [0.0, 1.0]], dtype=np.float32)  # (n=3, m=2)
 pf = np.array([[1.0, 0.0], [0.5, 0.5], [0.0, 1.0]], dtype=np.float32)    # (k=3, m=2)
@@ -119,11 +119,11 @@ import numpy as np
 import evoxc
 from evoxc.core import TensorSpec
 
-from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import make_nsga2
-from evox_etl.problems.numerical import DTLZ2
-from evox_etl.problems.numerical.dtlz import pf as dtlz_pf
-from evox_etl.metrics import igd, hv
+from evox import StdWorkflow, EvalMonitorConfig
+from evox.algorithms import make_nsga2
+from evox.problems.numerical import DTLZ2
+from evox.problems.numerical.dtlz import pf as dtlz_pf
+from evox.metrics import igd, hv
 
 problem = DTLZ2(d=7, m=2)
 algo = make_nsga2(pop_size=40, n_objs=2, lb=np.zeros(7, dtype=np.float32),
@@ -158,7 +158,7 @@ filters exactly this warning.
   the non-dominated subset of everything evaluated, host-side and already un-negated. With
   `full_fit_history=False` the history is empty and the call warns, then fails.
 - `pf` is a graph function of the problem config only — `evoxc.build(pf, config)` then
-  `evoxc.run(exe, config)` (see `unit_test/etl/problems/test_dtlz.py::run_pf`); DTLZ2's front lies
+  `evoxc.run(exe, config)` (see `unit_test/evox/problems/test_dtlz.py::run_pf`); DTLZ2's front lies
   on the unit sphere, so `front.max(axis=0) == [1, 1]`.
 - Hypervolume is stochastic: another key moves the estimate by well under `1 %` at
   `num_sample=200000`. Fix the key and the sample budget when comparing runs.
@@ -197,7 +197,7 @@ evaluated repeatedly — rebuilding per call dominates the runtime on a small fr
 ```
 
 ```{warning}
-This page documents the **experimental EvoX 2.0 pre-release**. `evox_etl` is a functional rewrite
+This page documents the **experimental EvoX 2.0 pre-release**. `evox` is a functional rewrite
 running on the `evoxc` tensor-graph compiler, so these signatures may still change before 2.0. For
 custom algorithms and problems see {doc}`../developer/custom-alg-pro`; for the end-to-end
 multi-objective walkthrough see {doc}`../../tutorial/tutorial_part6`. The 1.x `torch`-based `evox`
