@@ -54,6 +54,10 @@ torch — CONTEXT issue #12). `any`/`all` do not exist in evoxc: composed as
   (float64 reference differs ~1.1e-6 — expected float32 rounding);
   0 <= hv <= max_vol.
 - each_cube (n=3, num_sample=3000): exact vs numpy brute force.
+- ref-clipping parity vs torch `evox.metrics.hv` (upstream test cases + edges
+  "point at ref", "duplicate outside point", "all points outside on one dim",
+  3-objective mixed front; 5 seeds, num_sample 100k-400k): |diff| <= 6e-4
+  (Monte Carlo noise), and all-zero cases exact (0.0).
 
 ## See Also
 - `../../evox/metrics/` — READ-ONLY torch reference.
