@@ -94,4 +94,12 @@ format.line-ending = "lf"
 # F: Pyflakes / E, W: pycodestyle / I: isort / NPY: numpy
 lint.select = ["F", "E", "W", "I", "NPY"]
 lint.ignore = ["E501"] # Ignore line length error
-lint.per-file-ignores = { "*.ipynb" = ["I001"], "src/evox_etl/__init__.py" = ["I001"], "src/evox_etl_ext/autoload_ext.py" = ["I001"] }
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["I001"]
+"src/evox_etl/__init__.py" = ["I001"]
+"src/evox_etl_ext/autoload_ext.py" = ["I001"]
+# The test tree and the examples bootstrap `sys.path` (repo root + `src/`) before
+# importing `evox_etl`, so their module-level imports legitimately follow code.
+"unit_test/**" = ["E402"]
+"examples/**" = ["E402"]
+"conftest.py" = ["E402"]

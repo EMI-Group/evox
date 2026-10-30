@@ -54,7 +54,7 @@ ruff check .                            # = the `Ruff` job
 
 ## Known issues
 - `unit_test/etl/algorithms/parity/test_parity.py` still imports `torch` and `evox.algorithms` (the deleted 1.x code) and fails (`test_asebo_state_parity_with_torch`); the `build` job runs the whole suite, so it stays red until that file is removed/retired with `src/evox/` (owner: `unit_test/`, not this node).
-- Repo-wide `ruff check` has pre-existing violations in trees this node does not own (`unit_test/etl` ~227, `src/evox_etl` ~42, `examples`, `benchmarks`), and `ruff format --check` would reformat ~148 files, so the `Ruff` workflow runs `ruff check` only (unchanged behaviour) and files under `.github/` are kept clean.
+- Repo-wide `ruff check .` is clean (the 2.0 lint cleanup fixed the former `unit_test/etl` / `src/evox_etl` / `examples` violations); `ruff format --check` would still reformat many files, so the `Ruff` workflow runs `ruff check` only (unchanged behaviour).
 - The full suite takes ~8 minutes per matrix entry (numpy-backend tracing dominates), so a 3-version matrix is ~8 minutes wall-clock with parallel runners.
 - The wheel currently still ships a legacy `evox/` package because `src/evox/` is mid-deletion in the 2.0 refactor; no workflow references that path.
 
