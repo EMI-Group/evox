@@ -1,14 +1,18 @@
 # evox_etl — Functional EvoX on EvoX Compiler
 
 ## Intent
-A functional rewrite of the EvoX framework on the EvoX Compiler tensor library
+The EvoX framework on the EvoX Compiler tensor library
 (`evoxc`, installed from its source checkout into a locally built test venv —
-see "Environment" below). Replaces the
-torch OOP design (`src/evox/`, kept untouched as reference) with plain functional code:
-frozen config dataclasses, namedtuple/dataclass tensor states, plain module-level
+see "Environment" below). This package IS the shipped 2.0 release package
+(distribution `evox`, version `2.0.0a1`, single-sourced in the root
+`pyproject.toml`): the 1.x torch OOP implementation is gone from the source tree,
+so no module here may import or depend on it.
+The functional design replaces it: frozen config dataclasses, namedtuple/dataclass tensor states, and plain module-level
 functions (no `@evoxc.defn` — see DESIGN.md §4.3) in the step protocol
 (`init(config, key) -> state`, `step(config, state, evaluate) -> state`), and a
 compile-once StdWorkflow loop.
+`evox_etl.__version__` is read from the installed distribution metadata and
+falls back to `"0.0.0.dev0"` in a source checkout.
 **Binding spec: `DESIGN.md` in this directory — read it fully before writing any code.**
 
 ## API Surface
@@ -24,6 +28,12 @@ compile-once StdWorkflow loop.
   `virtual_es.py` (`VirtualES`/`VirtualLoRAES` + `make_virtual_es`),
   `virtual_lora_es.py` (`VirtualLoRAESConfig` + `make_virtual_lora_es`) and the
   shared deterministic-noise module `virtual_noise.py`.
+  The bare 1.x algorithm names are importable at every level: `evox_etl.algorithms`,
+  `.algorithms.so`, `.algorithms.mo` (`NSGA2`/`NSGA3`/`RVEA`/`RVEAa`/`MOEAD`/`HypE`)
+  and `.algorithms.so.es_variants` (`OpenES`, `XNES`, `SeparableNES`, `SNES`, `ARS`,
+  `ASEBO`, `DES`, `ESMC`, `GuidedES`, `NoiseReuseES`, `PersistentES`, `CMAES`,
+  `VirtualES`, `VirtualLoRAES`) — each is an alias of the matching `*Config`
+  dataclass, next to the port-native `*Config`/`make_*` spelling.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
 - `evox_etl.problems.numerical`: basic, dtlz, cec2022.
 - `evox_etl.problems.neuroevolution`: `VirtualProblem`/`VirtualLoRAProblem`
@@ -34,7 +44,10 @@ compile-once StdWorkflow loop.
   (NOT an `evox_etl` `Problem`).
 - `evox_etl.metrics`: igd, gd, hv. `evox_etl.workflows`: std_workflow, eval_monitor.
 - `evox_etl.utils`: tree helpers, min_by, dominate_relation, pairwise distances,
-  parse_opt_direction, rank.
+  parse_opt_direction, rank — plus re-exports of the 1.x `evox.utils` jit-fix helpers
+  (`switch`, `clamp`/`clamp_int`/`clamp_float`, `clip`, `maximum*`/`minimum*`,
+  `lexsort`, `nanmin`, `nanmax`, `randint`), whose canonical home stays
+  `evox_etl.operators.jit_fix_operator`.
 
 ## Constraints
 - NO eager tensor ops — everything inside `@evoxc.defn`/traces (EvoX Compiler has no eager mode).
@@ -65,25 +78,22 @@ compile-once StdWorkflow loop.
 | End-to-end tests (e2e + autoload) | `../unit_test/etl/` | real-algorithm convergence + autoload-guard tests (mirror) |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
 | Benchmarks (torch vs evoxc) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
-| Reference (torch) impl | `../evox/` | sibling — READ-ONLY, never modify |
 | EvoX Compiler library | `<path-to-evoxc-checkout>` | read via the installed `evoxc` package; fixes only by root agent |
 
 ## Environment
 No pre-provisioned venv — build one locally with `uv venv` +
-`uv pip install <path-to-evoxc-checkout> numpy pytest "torch>=2.6.0"`
+`uv pip install <path-to-evoxc-checkout> numpy pytest plotly pandas`
 (`<path-to-evoxc-checkout>` is the EvoX Compiler source checkout whose
-`pyproject.toml` has `name = "evoxc"`; a
-published `evoxc` distribution can be installed by bare name instead; torch-cpu wheel
-index suffices — no GPU here). The primary
-`/home/bill/Source/evox/.venv` is read-only and lacks evoxc/pytest, so run the
-gate from the locally built test venv with
-`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
-(that primary venv supplies plotly/torch). Canonical ETL suite: the sibling
+`pyproject.toml` has `name = "evoxc"`; a published `evoxc` distribution can be
+installed by bare name instead). Canonical suite: the sibling
 `../unit_test/etl/` (mirrors this package) —
-`<venv>/bin/python -m pytest unit_test/etl -q` (numpy backend; ~6 min,
-618 tests; per-suite counts in `../unit_test/etl/CONTEXT.md`).
+`PYTHONPATH=src <venv>/bin/python -m pytest -q` from the repo root (numpy
+backend; ~6 min; per-suite counts in `../unit_test/etl/CONTEXT.md`).
 `evox_etl` and `evox_etl_ext` are PEP 420 namespace packages — drivers need
 `PYTHONPATH=src`.
+Lint: `ruff check src/evox_etl src/evox_etl_ext` (config in the root `pyproject.toml`);
+the tree still carries pre-existing `I001`/`W292`/`F401` findings in
+`algorithms/` — do not introduce new ones.
 
 ## EvoX Compiler issues found (escalated to root agent)
 1. **np.ndarray fields in config dataclasses ARE accepted as static trace values
@@ -202,14 +212,15 @@ bypasses make_* validation).
   the 5 metric functions and `random`/`key`; it does NOT explicitly import
   `algorithms`/`problems`/`operators` — those become package attributes only because
   `auto_load_extensions()` imports the 5 domains as a side effect.
-- `evox_etl.utils` is NOT the torch `evox.utils` surface: torch's
-  `switch/clamp*/clip/maximum*/minimum*/lexsort/nanmin/nanmax/randint` live in
-  `operators/jit_fix_operator.py` and are re-exported from neither `evox_etl.utils`
-  nor `evox_etl.operators`; `ParamsAndVector`, `VmapInfo`/`register_vmap_op` have no
-  counterpart (virtual problems take pre-flattened `param_shapes`/`layer_specs`).
-- Bare torch algorithm names resolve at `evox_etl.algorithms` and
-  `.algorithms.so`; `.algorithms.mo` and `.so.es_variants` expose only
-  `*Config` + `make_*`.
+- `evox_etl.utils` re-exports the 1.x `evox.utils` jit-fix helpers
+  (`switch`/`clamp`/`clamp_int`/`clamp_float`/`clip`/`maximum*`/`minimum*`/`lexsort`/
+  `nanmin`/`nanmax`/`randint`) alongside the port-native helpers, so those 1.x imports
+  keep resolving; the canonical implementation home is `operators/jit_fix_operator.py`.
+  `ParamsAndVector`, `VmapInfo`/`register_vmap_op` have no counterpart and are NOT
+  re-exported (virtual problems take pre-flattened `param_shapes`/`layer_specs`).
+- Bare 1.x algorithm names resolve at every algorithmic level: `evox_etl.algorithms`,
+  `.algorithms.so`, `.algorithms.mo` (aliases of the `*Config` dataclasses) and
+  `.algorithms.so.es_variants` / `.de_variants` / `.pso_variants`.
 - `metrics.hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`); the port
   adds `gd_plus`/`igd_plus`/`bounding_cube_monte_carlo_hv`/`each_cube_monte_carlo_hv`.
 - DTLZ exposes the Pareto front as module-level `pf(config)`/`pf_dtlzN`, not a
@@ -217,18 +228,24 @@ bypasses make_* validation).
 - `vis_tools` exports all `plot_*` + `EvoXVisionAdapter`/`new_exv_metadata` at package
   level (torch `evox.vis_tools.__init__` is empty) and imports Plotly lazily.
 
-## Known release blockers (torch deletion)
-- `problems/numerical/cec2022.py:27` resolves `DATA_DIR` to
-  `.../src/evox/problems/numerical/cec2022_input_data` — the tree being deleted (and
-  an invalid path from an installed wheel); no data or `package-data` exists under
-  `evox_etl`, `MANIFEST.in` lists only `src/evox/...`, and
-  `../unit_test/etl/problems/test_cec2022.py` has no skip.
-- `pyproject.toml` is still the 1.x manifest: `dependencies = ["torch>=2.6.0", ...]`
-  with no `evoxc`, MANIFEST only `src/evox/...`; the `evox_ext`/`evox_etl_ext` PEP 420
-  namespaces have no `__init__.py`, so verify they are included by the wheel build.
-- 15 `unit_test/etl/**/parity/**` modules import torch and the torch `evox` package
-  (no pytest marker/deselect config); `examples/hpo/*.py`, 6 `benchmarks/*` scripts
-  and the whole `docs/` tree (0 `evox_etl` references) still target the torch API.
+## 2.0 packaging state
+Both former CEC2022/packaging blockers are RESOLVED in this tree — keep them that way:
+- CEC2022 input data ships WITH this package: the 53 `.txt` files live in
+  `problems/numerical/cec2022_input_data/`, `numerical/cec2022.py` resolves them
+  package-relatively via `importlib.resources` (works from a source checkout AND an
+  installed wheel), `MANIFEST.in` includes them and `pyproject.toml`
+  `[tool.setuptools.package-data]` ships them.
+- The root `pyproject.toml` is 2.0 metadata (distribution `evox`, version `2.0.0a1`,
+  dependencies `evoxc` + `numpy`, `include-package-data = true`,
+  `[tool.setuptools.packages.find] namespaces = true`), so the PEP 420
+  `evox_etl`/`evox_etl_ext` namespaces (and their data) build into the wheel.
+- `evox_etl.__version__` comes from that metadata, so it tracks the `pyproject.toml`
+  version with no second source of truth.
+Remaining 2.0 issues OUTSIDE this node (report, do not fix here): the 14
+`unit_test/etl/**/parity/test_*.py` modules (+ `.../parity/parity_common.py`) still
+import torch and the 1.x `evox` package, `benchmarks/etl_vs_torch/bench_{so,mo}.py`
+import the torch API, and `unit_test/etl/test_no_torch.py` documents the torch dev
+venv; they need deleting/guarding/pytest-marking before the wheel ships.
 
 ## Not portable from torch evox
 Deliberately NOT ported, with the concrete reason (parallels live in the child

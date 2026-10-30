@@ -1,17 +1,18 @@
 # evox_etl/problems — benchmark problems in functional style
 
 ## Intent
-Port of the numerical problems from torch evox (`../../../evox/problems/`, read-only):
+The numerical problems of the 2.0 `evox_etl` package (the 1.x torch implementation is
+gone from the source tree, so nothing here may depend on it):
 basic.py (Sphere, Rastrigin, Rosenbrock, Ackley, Griewank, Schwefel, Zakharov,
 Levy...), dtlz.py (DTLZ1-7 + `pf` helpers), cec2022.py (CEC2022 f1-f12). Plain
 functions in evoxc style — no classes, no OOP; the workflow traces them (per
 `../DESIGN.md` §4.3, functions are NOT `@evoxc.defn`-wrapped).
 
-Beyond numerical, the neuroevolution virtual Gaussian-noise ES problem is ported
-in `neuroevolution/` (unifying the torch `VirtualProblem`/`VirtualLoRAProblem`
+Beyond numerical, the neuroevolution virtual Gaussian-noise ES problem lives in
+`neuroevolution/` (the 1.x `VirtualProblem`/`VirtualLoRAProblem` unified
 behind `lora_rank`; details in `neuroevolution/CONTEXT.md`), and the HPO wrapper
-is ported as a HOST-SIDE redesign in `hpo_wrapper.py` (see below). NOT ported
-(external-library dependent — reported to root): the remaining neuroevolution
+is a HOST-SIDE redesign in `hpo_wrapper.py` (see below). Not implemented
+(external-library dependent — reported to root): the 1.x neuroevolution
 problems (brax, mujoco_playground, supervised_learning).
 
 ## API Surface
@@ -48,14 +49,14 @@ problems (brax, mujoco_playground, supervised_learning).
   per candidate in plain host Python (EvoX Compiler has no eager mode and cannot nest
   `evoxc.run` in a trace). See the module docstring for the precise limitations.
 
-## Release blocker — CEC2022 input data
-`numerical/cec2022.py:27` computes `DATA_DIR = Path(__file__).resolve().parents[4] / "src" / "evox" / "problems" / "numerical" / "cec2022_input_data"`, i.e. the 54 `.txt` files are read out of the torch tree that is scheduled for deletion.
-Deleting `src/evox/` makes every `CEC2022` trace raise `FileNotFoundError` (`cec2022.py:35`) in source checkouts; the expression is already wrong for an installed wheel (`parents[4]` = `site-packages`' parent).
-No data ships with the port: `src/evox_etl/problems/numerical/` has no `cec2022_input_data/`, `MANIFEST.in` lists only the torch path, and `pyproject.toml` has no `package-data`/`[tool.setuptools]` section.
-Fix shape (owner: this node + packaging owner): copy the `.txt` files under `src/evox_etl/problems/numerical/cec2022_input_data/`, load via `importlib.resources` (DESIGN.md §5.9), and add a manifest/package-data entry.
+## CEC2022 input data (resolved)
+The 53 `.txt` files ship WITH this package in `numerical/cec2022_input_data/`.
+`numerical/cec2022.py` resolves `DATA_DIR = importlib.resources.files("evox_etl.problems.numerical").joinpath("cec2022_input_data")` — package-relative (DESIGN.md §5.9), so it works from a source checkout AND from an installed wheel, with no `src/evox/` path and no CWD dependence.
+Packaging ships the data: `MANIFEST.in` includes `src/evox_etl/problems/numerical/cec2022_input_data/*.txt` and `pyproject.toml` has the matching `[tool.setuptools.package-data]` entry.
+`importlib.resources.files(...).is_file()` guards the read, so a genuinely missing file still raises `FileNotFoundError` with the resolved path.
 numpy stays allowed ONLY for loading that data; the values are baked as constant tensors.
 
-## HPO parity vs torch (`hpo_wrapper.py`)
+## HPO parity vs the 1.x torch wrapper (`hpo_wrapper.py`)
 torch `HPOProblemWrapper(iterations, num_instances, workflow, num_repeats, copy_init_state)` IS an `evox.core.Problem`: it stacks the workflow's `Parameter`s (`torch.func.stack_module_state` + `vmap` + a `torch.library` custom-op loop keyed by `HPOData`/`__hpo_data__`) so an OUTER `StdWorkflow` optimizes the hyperparameters in-graph.
 torch therefore tunes any `Parameter` of the workflow (arbitrary shape/tensor-valued, e.g. a `(7, 2)` matrix), evaluates `num_instances` candidates in parallel, and `copy_init_state` controls init-state reuse.
 The port tunes only scalar fields of the inner algorithm/problem/monitor config dataclasses (`HPSlot(config_kind, field, transform)`), one candidate at a time, `num_repeats` = independent seeds, and the outer search must be host Python (`random_search` is the only driver shipped).
@@ -64,12 +65,13 @@ Port-only API (no torch equivalent): `HPOProblemConfig` frozen config, `HPOFitne
 torch API with no port equivalent: `HPOData`, `get_sub_state`, `get_init_params()` returning tensor `Parameter`s (port returns a `{dotted name: float}` dict), and `HPOFitnessMonitor.pre_tell`/`tell_fitness()` tensor protocol (port: `tell_fitness(workflow) -> float`).
 Both keep `get_params_keys()`; both need `multi_obj_metric` for MO inners (port additionally needs `full_fit_history=True` on the inner monitor for `get_pf_fitness`).
 
-## Migration surface for deleted torch neighbours
-`examples/hpo/{single_objective_hpo,multi_objective_hpo,repeated_hpo}.py`, `docs/source/tutorial/tutorial_part5.md` and `docs/source/examples/{hpo,custom_hpo_prob}.ipynb` all import `evox.problems.hpo_wrapper` / `evox.*` and use the torch API, so they stop running when `src/evox/` is deleted.
-`unit_test/problems/test_hpo_wrapper.py` (22 tests incl. outer-workflow MO HPO) is the torch suite; the port's equivalent is `../../../unit_test/etl/problems/test_hpo_wrapper.py` (10 host-side tests, no outer-workflow case).
+## Migration surface (1.x torch neighbours)
+`examples/hpo/{single_objective_hpo,multi_objective_hpo,repeated_hpo}.py` and the `docs/` HPO material now import `evox_etl.*` and no longer use the torch API.
+The port's HPO suite is the sibling `../../../unit_test/etl/problems/test_hpo_wrapper.py` (host-side only, no outer-workflow case).
+The 1.x torch suites (`unit_test/problems/`, etc.) are outside this node and go away with the torch tree.
 
 ## Notes for Agents
-- cec2022 input data currently resolves into `../../../evox/problems/numerical/cec2022_input_data/` (see release blocker above).
+- CEC2022 input data resolves package-relatively (see "CEC2022 input data (resolved)" above) — never reintroduce a `src/evox/...` path.
 - **Test suite** (numerical + neuroevolution virtual-problem; pure-evoxc + torch
   parity): canonical home is the sibling `../../../unit_test/etl/problems/`
   (write access requires parent). Gate: `<venv>/bin/python -m pytest
@@ -127,4 +129,3 @@ Hit while porting the numerical problems; all worked around in this node (see
 | Neuroevolution (virtual Gaussian-noise problem) | `neuroevolution/` | payload protocol `(center_flat, seeds, sigma)`; shared `ProblemState`; see `neuroevolution/CONTEXT.md` |
 | HPO wrapper (host-side) | `hpo_wrapper.py` | `HPOProblemWrapper` (NOT a `Problem`, scalar config-field slots only) + `random_search`; plain host Python, no traced nested workflow |
 | Tests (canonical) | `../../../unit_test/etl/problems/` | sibling — numerical, virtual-problem + host-side HPO tests; write access requires parent |
-| Reference (torch) impl | `../../../evox/problems/` | sibling — READ-ONLY, never modify |
