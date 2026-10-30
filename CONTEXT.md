@@ -85,7 +85,7 @@ External packages install into the `evox_etl_ext` namespace package and expose p
 
 The 2.0 line is released as pre-releases; `2.0.0a1` is the current version and is single-sourced in `pyproject.toml` under `[project] version`.
 A release is: a commit bumping the version (message style `Bump version to vX.Y.Z`), a `vX.Y.Z` tag on that commit, and a GitHub Release with **"Set as a pre-release"** ticked.
-Ticking pre-release matters twice: the PyPI classifier metadata derives from the version string (`2.0.0a1` is a PEP 440 pre-release), and the GitHub release page tells users what they are getting.
+Ticking pre-release matters twice: PyPI derives pre-release status from the PEP 440 version string (`2.0.0a1`), and the GitHub release page tells users what they are getting.
 PyPI treats `2.0.0a1` as a pre-release, so `pip install evox` keeps resolving the 1.x line and only `pip install --pre evox==2.0.0a1` (or `pip install 'evox>=2.0.0a1'`) installs 2.0.
 `.github/workflows/python-publish.yml` triggers on the GitHub `release` (published) event, builds with `python -m build`, and publishes to PyPI through trusted publishing (OIDC, no repository token).
 Trusted publishing requires a PyPI-side trusted-publisher entry for repo `EMI-Group/evox` / workflow `python-publish.yml`; a failing publish is usually a missing or mismatched entry there.
@@ -94,7 +94,7 @@ Because the distribution name stays `evox`, both lines share one PyPI project pa
 ## Related Projects (EMI-Group ecosystem)
 
 EvoX is one of ~13 sibling libraries published under https://github.com/EMI-Group/ .
-These are SEPARATE repos (not part of this source tree) and are the upstream homes of the `evox_etl_ext` plugin family.
+These are SEPARATE repos (not part of this source tree) and the natural home of future `evox_etl_ext` plugins.
 Together with EvoX, these libraries form an ecosystem of 140+ algorithms and 240+ benchmark problems/environments.
 - **evomo** — PyTorch GPU-accelerated evolutionary multi-objective optimization (EMO). 57 tensorized MOEAs + 131 numerical/constrained benchmark problems (ZDT/DTLZ/WFG/MAF/LSMOP + CTP/MW/DOC/SDC/LSCMOP/DASCMOP/FCP) + MoRobtrol multi-objective robot-control suite.
 - **evorl** — JAX fully GPU-accelerated Evolutionary RL framework (RL/EA/ERL/PBT/multi-agent algorithms; wraps Brax/MuJoCo-Playground/gymnax/Jumanji/JaxMARL/EnvPool/Gymnasium).
