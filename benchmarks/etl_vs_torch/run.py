@@ -1,17 +1,24 @@
-"""Thin CLI dispatcher for the evox (torch) vs evox_etl benchmark suites.
+"""Thin CLI dispatcher for the evox_etl (evoxc) benchmark suites.
 
 Sets the GPU environment recipe (NVIDIA CUDA or AMD ROCm, chosen from the
-backend id) BEFORE importing any torch/evoxc/evox module (the bench runners are
-imported lazily inside ``main``; ``bench_common`` is pure stdlib + numpy, so
-importing it eagerly is safe).
+backend id) BEFORE importing any evoxc module (the bench runners are imported
+lazily inside ``main``; ``bench_common`` is pure stdlib + numpy, so importing
+it eagerly is safe).
+
+The ``torch-*`` backends of the old torch-OOP harness are gone. The one
+removed-id survivor is the parity baseline label: the committed
+``results/{suite}_torch-cpu.json`` is a FROZEN HISTORICAL artefact (1.x
+reference measurements) that the reporting side still compares against, but it
+is not a runnable backend here.
 
 Usage:
-    run.py --backend torch-cpu --suite so
-    run.py --backend etl-numpy --suite mo --cases NSGA2/DTLZ2/100x3x10 --gens-override 3
-    run.py --backend etl-xla-cuda --suite so --gpu 1
-    run.py --backend torch-rocm --suite so --gpu 0
-    run.py --backend etl-iree-rocm --suite mo --gpu 0
     run.py --list
+    run.py --backend etl-numpy --suite so
+    run.py --backend etl-numpy --suite mo --cases NSGA2/DTLZ2/100x3x10 --gens-override 3
+    run.py --backend etl-iree-llvm-cpu --suite so
+    run.py --backend etl-xla-cuda --suite so --gpu 1
+    run.py --backend etl-iree-rocm --suite mo --gpu 0
+    run.py --backend etl-xla-rocm --suite so --gpu 0
 """
 
 from __future__ import annotations
@@ -24,13 +31,16 @@ import bench_common  # noqa: F401  (sys.path shim + case tables; stdlib/numpy on
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="evox (torch) vs evox_etl benchmark dispatcher."
+        description="evox_etl (evoxc) benchmark dispatcher."
     )
     parser.add_argument(
         "--backend",
         choices=bench_common.ALL_BACKENDS,
         default=None,
-        help="backend under test (not required with --list)",
+        help=(
+            "backend under test (not required with --list); one of: "
+            + ", ".join(bench_common.ALL_BACKENDS)
+        ),
     )
     parser.add_argument(
         "--suite",
@@ -66,14 +76,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.suite is None:
         parser.error("--suite {so,mo} is required (or use --list)")
 
-    # ---- GPU environment MUST be set before any torch/evoxc/evox import ----
+    # ---- GPU environment MUST be set before any evoxc import --------------
     # (ensure_backend_env re-execs the process so LD_PRELOAD / the vendor
     # visibility variables are honored by the loader/driver from process
     # start; the recipe is NVIDIA or AMD ROCm depending on the backend)
     if args.gpu is not None:
         bench_common.ensure_backend_env(args.backend, args.gpu)
 
-    # ---- import the runner lazily (it imports torch/evoxc inside) ----------
+    # ---- import the runner lazily (it imports evoxc inside) ---------------
     if args.suite == "so":
         import bench_so
 
