@@ -26,3 +26,18 @@ Optional GPU/accelerator-accelerated operations using Triton. When Triton is ins
 | Philox PRNG | `kernels/philox.py` | Philox4x32-10 deterministic PRNG: `philox_uniform` ([0,1) floats), `philox_normal` (Box-Muller standard normal). Triton CUDA kernel + pure-PyTorch fallback |
 | LoRA noise utilities | `kernels/lora_noise.py` | Pure-PyTorch LoRA perturbation helpers built on `philox_normal`: `compute_counter_offsets`, `generate_lora_factors`, `lora_delta_output`, `lora_gradient` |
 | Virtual noise utilities | `kernels/virtual_noise.py` | Full-density Gaussian noise fused into matmul (never materialized). `virtual_perturbed_linear` (forward: `Y[i]=X@(W+sigma*N_i)^T+...`), `virtual_weight_gradient`/`virtual_bias_gradient` (regenerate the *same* noise for gradient estimates), `compute_offsets` (simple cumulative flat-element offsets). Triton kernel uses `tl.randn`/`tl.rand`; PyTorch fallback uses a splitmix64-based deterministic PRNG shared by forward+gradient |
+
+## Noise-Index Conventions (parity-critical)
+- `compute_offsets(param_shapes)` → per-block **starting flat element index** in the dense parameter vector; each block advances by `prod(shape)`.
+- `compute_counter_offsets(param_shapes, lora_rank)` → per-block **starting Philox counter** (one counter = 4 uint32 values); each block advances by `_ceil_div4(n_elements)` with `n_elements = shape[0]` for 1-D and `lora_rank*k + d*lora_rank` for ≥2-D (`d = prod(shape[:-1])`, `k = shape[-1]`).
+- The two offset lists live in different units and are not interchangeable; a LoRA bias block starts at `counter_offsets[bias_idx]`, NOT at `weight_counter + out*in`.
+- `virtual_perturbed_linear` derives the bias noise offset internally as `offset + out_features*in_features`, so callers pass only the weight block offset; this is only valid because `nn.Linear` `named_parameters()` yields weight then bias.
+- `generate_lora_factors(seeds, weight_shape, rank, counter)` — the 4th parameter is named `counter` (there is no `counter_offset` parameter), and `sigma` is applied by callers, never inside.
+- 1-D `weight_shape` makes `generate_lora_factors` return a `(pop_size, n)` flat noise tensor; ≥2-D returns a tuple `(A, B)` with `A: (pop, rank, k)` and `B: (pop, d, rank)`.
+
+## Known Issues
+- `virtual_noise` is not cross-backend numerically consistent: the fallback (splitmix64 hash + Box-Muller `cos`) and the Triton kernel (`tl.randn`, or `tl.rand` + Box-Muller) yield different values for the same `(seed, offset)`; only forward/gradient agreement *within* one backend is guaranteed (`philox`/LoRA helpers, by contrast, are bit-identical across backends).
+- The `virtual_perturbed_linear` fallback materializes the whole `(pop_size, out*in)` weight-noise tensor before its per-individual loop.
+- Triton launchers pass `seeds` as `int32` and build `int32` noise offsets, so seeds/offsets ≥ 2^31 truncate or overflow; tensors must be `float32` and contiguous (`x` 3-D indexing assumes a contiguous `(pop, batch, in)` layout).
+- The fallback allocates `out`/noise on `weight.device` / `seeds.device` respectively, so `seeds`, `x`, `weight` must all live on the same device.
+- `compute_counter_offsets` reserves `_ceil_div4(a+b)` counters per ≥2-D block while the layout actually reserves a 4-aligned slot for `A` plus `ceil_div4(b)`... precisely `4*ceil(a/4) + ceil(b/4)` counters, so for tiny blocks (`rank*k ≤ 2` and `d*rank ≤ 2`) adjacent blocks can share one counter.
