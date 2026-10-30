@@ -16,6 +16,13 @@ The section landing page `index.md` is the single entry point; the root `docs/so
 | `hpo.md` | Host-side HPO: `HPOProblemWrapper`, `HPSlot`, `HPOProblemConfig`, `HPOFitnessMonitor(Config)`, `random_search`; why nesting is impossible; limitations |
 | `extensions.md` | `evox_etl_ext` PEP 420 namespace, import-time `auto_load_extensions()`, merge semantics, functional extension contract, minimal package layout, autoload tests |
 
+## Known Issues
+- `backends.md` teaches `pip install "evox[iree]"`, `"evox[tvm]"` and `evox[compilers]` (table, prose and example comment); `pyproject.toml` defines none of them, so the install hints are wrong.
+- `metrics.md` `gd_plus` prose inverts the dominance semantics: the code measures `sqrt(sum(max(pf - obj, 0)^2))`, which is zero when a front point *dominates* the solution, not when the solution dominates the front.
+- `metrics.md` sends the "end-to-end multi-objective walkthrough" to `../../tutorial/tutorial_part5` (Problems); that walkthrough is `tutorial_part6`.
+- `hpo.md` sends the "full workflow walk-through" to `../../tutorial/tutorial_part7` (1.x migration); the workflow contract lives in `tutorial_part2`/`part3`.
+- `index.md` states every Python block in the section has been executed; the three `backends.md` fragments above have not.
+
 ## Constraints
 - Every runnable Python block on every page was executed against this repository on the NumPy backend (`PYTHONPATH=src /tmp/venv/bin/python`); keep it that way when editing.
 - Three `backends.md` blocks are illustrative fragments or compiled-backend-only and cannot be executed as written (undefined `algorithm`/`problem`, an abridged `_build_step_exe` excerpt, an `iree`/`xla` re-run).
