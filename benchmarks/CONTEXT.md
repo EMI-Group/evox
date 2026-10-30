@@ -1,18 +1,20 @@
-# benchmarks/
+# benchmarks/ — performance benchmarking
 
 ## Intent
-Performance benchmarking suite for EvoX. Measures wall-clock time and PyTorch profiler traces for core evolutionary computation workflows, including eager vs `torch.compile` comparisons, vectorized (`vmap`) execution, and utility function throughput.
+Holds the performance benchmarks of the EvoX 2.0 pre-release, all driving the `evoxc`-backed implementations.
+The old PyTorch 1.x benchmark scripts (`pso.py`, `utils.py`, `test_base.py`, `benchmark_virtual_lora_es.py`, which used `torch.compile`/`vmap`/`cuda` memory probes) were removed with the torch package.
+Nothing here is collected by pytest (`pyproject.toml` restricts testpaths to `unit_test/etl`).
 
 ## API Surface
-- **`test_base.py`** — Reusable benchmarking harness (`test()` function) for any EvoX `Algorithm`. Runs `StdWorkflow` + `EvalMonitor` on the `Sphere` problem. Tests both standard `compile` and `vmap`-based compiled steps. Optionally exports `torch._dynamo.explain` traces as markdown.
-- **`pso.py`** — Standalone PSO benchmark. Compares three compilation modes (eager, default `compile`, `max-autotune-no-cudagraphs`) over 1000 steps on a 500-dim Sphere problem.
-- **`utils.py`** — Benchmarks EvoX utility functions (`evox.utils.switch`). Tests basic compilation and large-scale `vmap` performance (1000×10000 tensors).
-- **`benchmark_virtual_lora_es.py`** — Compares `VirtualLoRAES` (memory-efficient virtual population via on-demand LoRA perturbations) against a naive `OpenES` baseline across a population sweep (16 → 131 072). Uses a transformer-structured `nn.Sequential` model (`nn.Linear` + `nn.GELU`, ~940K params) that is `VirtualLoRAProblem`-compatible. Measures per-step wall-clock time and peak memory (CUDA via `torch.cuda.max_memory_allocated`, CPU via `tracemalloc`). Records OOM configurations with `status: "oom"` and continues the sweep; saves results incrementally to `benchmarks/results/benchmark_results.json` (JSON: metadata + per-pop-size naive/virtual entries). Generates two matplotlib plots (`benchmark_time.png`, `benchmark_memory.png`) of time/memory vs population size (log2/log), stopping the line at the last successful point before OOM; also exposes a standalone `plot_from_json()` to regenerate plots from saved JSON. Auto-detects CUDA with CPU fallback.
+- `etl_vs_torch/` — the cross-backend comparison harness (self-contained: `run.py` driver, `bench_common.py`, `bench_so.py`, `bench_mo.py`, committed result JSONs, `BENCHMARK_RESULTS.md`, `style_comparison.md`). See its own `CONTEXT.md`.
+- This directory has no stand-alone scripts of its own any more.
 
 ## Constraints
-- All benchmarks auto-detect CUDA and default to GPU when available, falling back to CPU.
-- No external dependencies beyond PyTorch and EvoX itself.
-- Designed for ad-hoc manual execution (`if __name__ == "__main__"`), not automated CI — no test frameworks or assertions.
+- Benchmarks are ad-hoc/manual (`if __name__ == "__main__"`), not CI: no assertions or test framework here.
+- Keep compiled-backend/GPU work inside `etl_vs_torch/` (that harness owns the backend matrix and its committed results).
+- Do not reintroduce torch-only scripts: this repository's runtime dependencies are `evoxc` + `numpy` (compiled backends are optional extras).
 
 ## Routing Table
-_(flat directory — no child subdirectories)_
+| Path | Description |
+|---|---|
+| `./etl_vs_torch` | Torch-vs-ETL benchmark harness: 9 backend ids × SO/MO suites × 3 scales, result JSONs + `BENCHMARK_RESULTS.md` + `style_comparison.md` |
