@@ -111,7 +111,7 @@ class CoDEState:
 
 
 def init(config: CoDE, key: SymbolicTensor) -> CoDEState:
-    """Create the initial state: torch randn population (no clamp, 1:1 port),
+    """Create the initial state: population drawn uniformly within the bounds,
     +inf fitness, best_index 0 and an empty trial-vector batch."""
     pop_size = config.pop_size
     dim = len(config.lb)
@@ -119,7 +119,7 @@ def init(config: CoDE, key: SymbolicTensor) -> CoDEState:
     ub = bake_float32_constant(config.ub, shape=(1, -1))
 
     key, subkey = random.split(key)
-    pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
+    pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     fit = enp.full((pop_size,), float("inf"), dtype="float32")
     best_index = enp.full((), 0, dtype="int64")
     trial_vectors = enp.zeros((3 * pop_size, dim), dtype="float32")

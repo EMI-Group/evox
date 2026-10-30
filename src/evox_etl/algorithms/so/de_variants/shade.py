@@ -80,12 +80,12 @@ class SHADEState:
 
 
 def init(config: SHADE, key: Tensor) -> SHADEState:
-    """Initialize the population (torch uses randn scaled by bounds — no clamp)."""
+    """Initialize the population, drawn uniformly within the bounds (as DE/ODE/JADE)."""
     pop_size, dim = config.pop_size, len(config.lb)
     lb = bake_float32_constant(config.lb, shape=(1, -1))
     ub = bake_float32_constant(config.ub, shape=(1, -1))
     key, subkey = random.split(key)
-    pop = random.normal(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
+    pop = random.uniform(subkey, (pop_size, dim), 0.0, 1.0, "float32") * (ub - lb) + lb
     return SHADEState(
         best_index=enp.full((), 0, dtype="int64"),
         Memory_FCR=enp.full((2, pop_size), 0.5, dtype="float32"),
