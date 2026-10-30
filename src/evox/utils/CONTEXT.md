@@ -56,6 +56,16 @@ This is a core utility for evolutionary algorithms: it flattens a model's named 
 
 Internally uses `tree_flatten`/`tree_unflatten` to handle arbitrary `nn.Module` parameter trees.
 
+#### `ParamsAndVector` exact semantics (`parameters_and_vector.py`)
+- `__init__(self, dummy_model: nn.Module)` sets exactly four attributes: `self.param_spec` (a `torch.utils._pytree.TreeSpec` whose context is `list(dict(dummy_model.named_parameters()).keys())`), `self.shapes` (tuple of `torch.Size`), `self.start_indices` (tuple of int offsets), `self.slice_sizes` (tuple of int, `math.prod(shape)`).
+- Ordering is **torch pytree dict insertion order**, i.e. `dict(model.named_parameters())` order, i.e. `named_parameters()` order (module's own params first, then children recursively) — keys are the dotted names, no sorting happens (`_dict_flatten` is `list(d.values()), list(d.keys())`).
+- Flatten: `to_vector` = `torch.concat([x.reshape(-1) for x in leaves], dim=0)`; `batched_to_vector` = `torch.concat([x.reshape((x.size(0), -1)) ...], dim=1)`.
+- Unflatten loop: `vector.narrow(dim=0, start=start_index, length=slice_size).reshape(shape)` (batched: `narrow(dim=1, ...)` then `reshape(batch_size, *shape)`).
+- Only `named_parameters()` are included — **buffers are excluded** (contrast `torch.func.stack_module_state`, which returns params | buffers and is what `problems/neuroevolution/utils.py` uses).
+- No clone/detach/`.contiguous()`/dtype or device casting anywhere: `to_params` returns **views aliasing the input vector's storage** (in-place writes propagate back), on `vector.device`/`vector.dtype`, and as plain tensors (not `nn.Parameter`).
+- `to_vector` on real `nn.Parameter` leaves (requires_grad=True) returns a graph-connected tensor — callers must `.detach()`.
+- No key validation: a dict with the same keys in a different order is silently concatenated in *that* dict's order and then unflattened in `param_spec` order, producing silently wrong tensors when shapes differ.
+
 ### 4. PyTree Re-Exports (`re_export.py`)
 
 | Export | Purpose |
