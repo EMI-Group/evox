@@ -1,14 +1,13 @@
-"""Functional port of the torch evox Opposition-based DE (ODE) algorithm.
+"""Opposition-based DE (ODE), part of the 2.0 functional API.
 
-Port source: `src/evox/algorithms/so/de_variants/ode.py` (READ-ONLY reference,
-math 1:1 per phase). Torch's `ODE.step` runs TWO evaluations: the DE trial
+One generation runs TWO evaluations: the DE trial
 vectors and then, after the first selection, the opposition population
 `lb + ub - pop`. The fused `step` owns the whole generation and may call the
 opaque `evaluate` closure several times, so both evaluations now fit in ONE
-evoxc step — no phase state machine, generation count matches torch exactly.
-`init_step` encodes torch's `init_step` (evaluate the initial population).
+evoxc step — no phase state machine, and the generation count is unchanged.
+`init_step` evaluates the initial population.
 Other deviations as in `de.py`: key-based RNG (the DE-mutation draws happen
-once per step, in torch's draw order) and array-like config fields normalized
+once per step, in a fixed draw order) and array-like config fields normalized
 to flat float tuples by the `make_ode` constructor.
 """
 

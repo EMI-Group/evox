@@ -1,7 +1,7 @@
-"""evox_etl: the evoxc-based functional rewrite of EvoX.
+"""evox_etl: EvoX on the EvoX Compiler (2.0 functional design).
 
-Pure functions, frozen config dataclasses, and dataclass tensor states replace
-the torch OOP design; see ``DESIGN.md`` for the binding spec. Algorithms,
+Pure functions, frozen config dataclasses and dataclass tensor states, per
+``DESIGN.md`` (the binding spec). Algorithms,
 problems and operators stay importable as submodules (not loaded at root).
 """
 

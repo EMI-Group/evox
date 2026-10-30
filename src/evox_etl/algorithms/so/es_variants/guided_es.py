@@ -1,9 +1,8 @@
-"""Functional ETL port of the torch evox GuidedES algorithm (step protocol).
+"""GuidedES, part of the 2.0 functional API (step protocol).
 
 Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
-mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/guided_es.py` exactly: `step` owns the
+mode. `step` owns the
 WHOLE generation (mirrored sampling in the guided subspace →
 `evaluate(candidates)` → center/subspace/sigma update), with the
 workflow-injected `evaluate` closure standing in for torch's
@@ -37,7 +36,7 @@ Tensor = evoxc.SymbolicTensor
 
 @dataclass(frozen=True)
 class GuidedESConfig:
-    """GuidedES hyperparameters (same names/defaults as the torch evox __init__).
+    """GuidedES hyperparameters (same names/defaults as the 1.x evox __init__).
 
     Dumb frozen config storing plain static leaves: `center_init` arrives as a
     flat float32 tuple, normalized by `make_guided_es` (static config — baked
@@ -67,7 +66,7 @@ def make_guided_es(
     """Build a `GuidedESConfig`, normalizing `center_init` and validating fields.
 
     `subspace_dims` is NOT derived here (it defaults to `dim` at trace time in
-    init/step when left None, mirroring the torch reference).
+    init/step when left None, mirroring the 1.x implementation).
     """
     require_gt("pop_size", pop_size, 1)
     if pop_size % 2 != 0:
@@ -211,7 +210,7 @@ def record_step(
 
     PLAIN host-side hook (NOT traced) mirroring torch ``GuidedES.record_step``:
     exposes the POST-step ``center`` and ``sigma`` carried in the state. The
-    torch reference does NOT record ``alpha``, so it is omitted here too.
+    1.x implementation does NOT record ``alpha``, so it is omitted here too.
     ``candidate``/``fitness`` are accepted but unused, as in the reference.
     """
     return {"center": state.center, "sigma": state.sigma}

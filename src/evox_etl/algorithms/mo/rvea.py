@@ -1,10 +1,10 @@
-"""Functional ETL port of the torch evox RVEA algorithm (src/evox/algorithms/mo/rvea.py).
+"""RVEA, part of the 2.0 functional API.
 
 Reference Vector Guided Evolutionary Algorithm [1, 2] as plain `init/init_step/
 step` functions over frozen `RVEAConfig`/`RVEAState` dataclasses (DESIGN.md
 §4-5 and the step protocol of `evox_etl.core.algorithm`). No `@evoxc.defn`
 wrappers — call these only inside an active trace (EvoX Compiler has no eager mode).
-Ported 1:1 from the torch reference: `step` owns ONE whole generation
+`step` owns ONE whole generation
 (offspring generation → `evaluate` → RVEA selection + reference-vector
 adaptation); `init_step` evaluates the full initial population.
 

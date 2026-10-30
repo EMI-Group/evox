@@ -1,12 +1,12 @@
-"""Functional ETL port of the torch evox ASEBO algorithm (step protocol).
+"""ASEBO (Adaptive ES-Active Subspaces for Blackbox Optimization), part of the 2.0 functional API.
 
-Reference (read-only): ``src/evox/algorithms/so/es_variants/asebo.py``
-(Adaptive ES-Active Subspaces for Blackbox Optimization).  EvoX Compiler has no eager
+
+EvoX Compiler has no eager
 mode, so ``init``/``step`` are plain functions traced via ``evoxc.build``/
-``evoxc.run``; ``step`` owns the WHOLE generation — the torch ``step`` body with
-its internal ``self.evaluate`` call fused in via the workflow-injected
-``evaluate`` closure.  ``lr_decay``/``lr_limit`` are kept for API parity but
-unused (as in torch).
+``evoxc.run``; ``step`` owns the WHOLE generation — one fused body whose
+evaluation comes in through the workflow-injected
+``evaluate`` closure.  ``lr_decay``/``lr_limit`` are kept for signature compatibility but
+unused (as in the 1.x version).
 """
 
 from dataclasses import dataclass, replace
@@ -69,7 +69,7 @@ def make_asebo(
 
     `subspace_dims` defaults to ``len(center_init)`` when not given (derived
     eagerly here so ``cfg.subspace_dims`` is always concrete).  `lr_decay` and
-    `lr_limit` are kept for API parity but unused (as in torch).
+    `lr_limit` are kept for API compatibility but unused (as in the 1.x version).
     """
     require_gt("pop_size", pop_size, 1)
     require_choice("optimizer", optimizer, (None, "adam"))
@@ -169,7 +169,7 @@ def step(
     key, subkey = random.split(state.key)
 
     # Gate computed ONCE, from the PRE-increment counter, and reused for both
-    # the UUT/UUT_ort mask and the alpha mask (mirrors the torch reference).
+    # the UUT/UUT_ort mask and the alpha mask (mirrors the 1.x implementation).
     subspace_ready = evoxc.greater(state.gen_counter, float(sub))
 
     # Active subspace via SVD of the centred gradient history.
@@ -265,7 +265,7 @@ def record_step(
     """Host-side auxiliary-history hook (mirrors torch ``ASEBO.record_step``).
 
     Runs OUTSIDE any traced graph on the CONCRETE post-step state; ``candidate``
-    and ``fitness`` are accepted for signature parity with the other algorithms
+    and ``fitness`` are accepted for signature compatibility with the other algorithms
     and ignored (torch ignores them too).  Returns the current search
     distribution as ``{"center": state.center, "sigma": state.sigma, "alpha":
     state.alpha}``, which the workflow forwards to the monitor's

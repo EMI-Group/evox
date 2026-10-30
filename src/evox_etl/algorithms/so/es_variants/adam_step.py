@@ -1,9 +1,8 @@
-"""Functional ETL port of the torch evox `adam_step.py` helper.
+"""Adam step helper shared by the ES family, part of the 2.0 functional API.
 
 Plain (non-`@evoxc.defn`) function: it may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.evaluate`), since EvoX Compiler has no
-eager mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/adam_step.py` exactly.
+eager mode.
 """
 
 import evoxc
@@ -28,7 +27,7 @@ def adam_single_tensor(
     Returns `(new_param, new_exp_avg, new_exp_avg_sq)`. With
     `decouple_weight_decay=True` the decay is applied to `param` directly
     (AdamW style); otherwise it is added into `grad` (L2 style), matching
-    the torch reference.
+    the 1.x implementation.
     """
     # weight decay
     if decouple_weight_decay:

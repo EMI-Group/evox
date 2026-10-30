@@ -1,4 +1,4 @@
-"""Functional ETL port of ``src/evox/workflows/eval_monitor.py``.
+"""Host-side evaluation monitor, part of the 2.0 functional API.
 
 Plain (non-defn) functions ``init``/``monitor_update`` live in the SAME module
 as the frozen ``EvalMonitorConfig`` dataclass (the workflow resolves them via
@@ -167,7 +167,7 @@ def monitor_update(
 def record_auxiliary(config: EvalMonitorConfig, aux: dict) -> None:
     """Host-side: record one generation of auxiliary tensors.
 
-    Gated on ``config.full_pop_history`` (torch parity). Each value is a CONCRETE
+    Gated on ``config.full_pop_history`` (as in the 1.x version). Each value is a CONCRETE
     evoxc tensor, converted to numpy via ``.to(evoxc.core.Device('cpu')).numpy()``
     (mirroring the ``EvalMonitor._to_numpy`` idiom) and appended to
     ``config.aux_history[key]``.
@@ -179,7 +179,7 @@ def record_auxiliary(config: EvalMonitorConfig, aux: dict) -> None:
         config.aux_history.setdefault(key, []).append(arr)
 
 
-# Byte-identical to the torch `EvalMonitor.plot` warning (torch parity).
+# Byte-identical to the 1.x `EvalMonitor.plot` warning.
 _NO_VIS_TOOL_WARNING = 'No visualization tool available, return None. Hint: pip install "evox[vis]"'
 
 
@@ -244,7 +244,7 @@ class EvalMonitor:
         return np.asarray(out.numpy())
 
     def _check_single_objective(self) -> None:
-        """Raise the torch-style error for SO-only accessors under MO."""
+        """Raise the 1.x-style error for SO-only accessors under MO."""
         if self.config.multi_obj:
             raise ValueError(
                 "Multi-objective optimization does not have a single best solution. Please use get_pf_solutions"
@@ -346,7 +346,7 @@ class EvalMonitor:
 
     @property
     def fitness_history(self) -> list[np.ndarray]:
-        """Alias of ``fit_history`` (torch parity)."""
+        """Alias of ``fit_history``."""
         return self.config.fit_history
 
     @property
@@ -356,7 +356,7 @@ class EvalMonitor:
 
     @property
     def solution_history(self) -> list[np.ndarray]:
-        """Alias of ``sol_history`` (torch parity)."""
+        """Alias of ``sol_history``."""
         return self.config.sol_history
 
     @property
@@ -383,7 +383,7 @@ class EvalMonitor:
 
     @property
     def auxiliary_history(self) -> dict:
-        """Alias of ``aux_history`` (torch parity)."""
+        """Alias of ``aux_history``."""
         return self.config.aux_history
 
     # --------------------------------------------------------------- plot
@@ -391,7 +391,7 @@ class EvalMonitor:
     def plot(self, problem_pf: Any = None, source: str = "eval", **kwargs: Any) -> Any:
         """Plot the fitness history (or the algorithm's auxiliary "fit" channel).
 
-        Host-side, torch-parity port of ``EvalMonitor.plot``: dispatches to the
+        Host-side reimplementation of the 1.x ``EvalMonitor.plot``: dispatches to the
         ``evox_etl.vis_tools`` figure builders (Plotly is an OPTIONAL dependency)
         by the number of objectives. Returns None — with a warning — when there is
         nothing to plot or when the visualization tool is unavailable.

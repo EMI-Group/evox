@@ -1,10 +1,8 @@
-"""Functional ETL port of the torch evox NoiseReuseES algorithm (step
-protocol).
+"""NoiseReuseES on the step protocol, part of the 2.0 functional API.
 
 Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
-mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/noise_reuse_es.py` exactly: `step` owns
+mode. `step` owns
 the WHOLE generation (perturbation sampling/reuse → `evaluate(candidates)` →
 gradient update), with the workflow-injected `evaluate` closure standing in
 for torch's `self.evaluate(population)`.
@@ -36,7 +34,7 @@ Tensor = evoxc.SymbolicTensor
 
 @dataclass(frozen=True)
 class NoiseReuseESConfig:
-    """NoiseReuseES hyperparameters (same names/defaults as the torch evox __init__).
+    """NoiseReuseES hyperparameters (same names/defaults as the 1.x evox __init__).
 
     Dumb frozen config storing plain static leaves: `center_init` arrives as a
     flat float32 tuple, normalized by `make_noise_reuse_es` (static config —

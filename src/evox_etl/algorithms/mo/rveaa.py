@@ -1,4 +1,4 @@
-"""Functional port of the torch RVEAa algorithm (``src/evox/algorithms/mo/rveaa.py``).
+"""RVEAa, part of the 2.0 functional API.
 
 Plain functions only (no ``@evoxc.defn``, per DESIGN.md §4.3) following the step
 protocol of ``evox_etl.core.algorithm``: the workflow traces ``init``/
@@ -39,7 +39,7 @@ Tensor = evoxc.SymbolicTensor
 class RVEAaConfig:
     """Config mirroring torch ``RVEAa.__init__`` (``device`` dropped).
 
-    Signature parity: the torch RVEAa constructor's optional
+    Signature compatibility: the torch RVEAa constructor's optional
     ``selection_op``/``mutation_op``/``crossover_op`` are honored here too.
     A ``None`` op field means the torch default (``ref_vec_guided`` /
     ``simulated_binary`` / ``polynomial_mutation``). Custom signatures:

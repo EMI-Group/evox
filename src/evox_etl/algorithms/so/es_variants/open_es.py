@@ -1,9 +1,8 @@
-"""Functional ETL port of the torch evox OpenES algorithm (step protocol).
+"""OpenES, part of the 2.0 functional API (step protocol).
 
 Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
-mode.  Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/open_es.py` exactly: `step` owns the WHOLE
+mode.  `step` owns the WHOLE
 generation (sample → `evaluate(candidates)` → gradient update), with the
 workflow-injected `evaluate` closure standing in for torch's
 `self.evaluate(pop)`.
@@ -175,6 +174,6 @@ def record_step(
     A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
-    accepted-but-unused, exactly like the torch reference which ignores them.
+    accepted-but-unused, exactly like the 1.x implementation which ignores them.
     """
     return {"center": state.center}

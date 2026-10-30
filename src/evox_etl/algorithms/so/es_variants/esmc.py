@@ -1,10 +1,10 @@
-"""Functional ETL port of the torch evox ESMC algorithm (step protocol).
+"""ESMC (the DES algorithm from Learn2Hop), part of the 2.0 functional API (step protocol).
 
-Reference (read-only): ``src/evox/algorithms/so/es_variants/esmc.py`` (the DES
-algorithm from Learn2Hop).  EvoX Compiler has no eager mode, so ``init``/``step`` are
+
+EvoX Compiler has no eager mode, so ``init``/``step`` are
 plain functions traced via ``evoxc.build``/``evoxc.run``; ``step`` owns the WHOLE
-generation — the torch ``step`` body with its internal ``self.evaluate`` call
-fused in via the workflow-injected ``evaluate`` closure.  ``pop_size`` must be
+generation — one fused body whose evaluation comes in through the
+workflow-injected ``evaluate`` closure.  ``pop_size`` must be
 odd (mirrored sampling).
 """
 

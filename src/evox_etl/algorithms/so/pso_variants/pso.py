@@ -1,9 +1,9 @@
-"""Functional ETL port of ``src/evox/algorithms/so/pso_variants/pso.py``.
+"""PSO, part of the 2.0 functional API.
 
 Plain (non-defn) functions — ``init``/``init_step``/``step`` — plus the frozen
 ``PSO`` config and ``PSOState`` state dataclasses.  ``step``/``init_step`` own
 one full generation each (candidate generation → ``evaluate`` → state update),
-mirroring the torch evox PSO ``step``/``init_step`` 1:1 (see DESIGN.md §4-5).
+matching the 1.x PSO ``step``/``init_step`` (see DESIGN.md §4-5).
 """
 
 from dataclasses import dataclass, replace

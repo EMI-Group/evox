@@ -1,11 +1,9 @@
-"""Functional ETL port of the torch evox `cma_es.py` algorithm (CMA-ES, step
-protocol).
+"""CMA-ES on the step protocol, part of the 2.0 functional API.
 
 Plain (non-`@evoxc.defn`) functions: `init`, `step`. They may only be
 called inside an active trace (a function passed to `evoxc.build`/
-`evoxc.run`), since EvoX Compiler has no eager mode. Semantics mirror the torch
-original in `src/evox/algorithms/so/es_variants/cma_es.py` exactly; the
-`CMAESConfig` fields match its `__init__` signature minus `device`. `step`
+`evoxc.run`), since EvoX Compiler has no eager mode. The
+`CMAESConfig` fields follow the classic constructor signature minus `device`. `step`
 owns the WHOLE generation (sample → `evaluate(candidates)` → mean/covariance/
 step-size update), with the workflow-injected `evaluate` closure standing in
 for torch's `self.evaluate(population)`.
@@ -261,7 +259,7 @@ def step(
     ) * delta_mean / state.sigma
 
     y_sel = (population_selected - old_mean) / state.sigma
-    # Rank-one covariance update: the torch reference uses `torch.outer(p_c, p_c)`
+    # Rank-one covariance update: the 1.x implementation uses `torch.outer(p_c, p_c)`
     # (a true outer product), so the port must too — `evoxc.dot` needs rank >= 2,
     # hence the two `expand_dims` (dim,1) @ (1,dim) -> (dim,dim).
     pc_outer = evoxc.dot(enp.expand_dims(p_c, axis=1), enp.expand_dims(p_c, axis=0))

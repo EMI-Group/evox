@@ -1,4 +1,4 @@
-"""Functional ETL port of the torch evox VirtualLoRAES algorithm (step protocol).
+"""VirtualLoRAES (low-rank virtual population), part of the 2.0 functional API (step protocol).
 
 A DISTINCT low-rank variant of :mod:`evox_etl.algorithms.so.es_variants.virtual_es`:
 for a >= 2-D weight ``(d, k)`` the per-individual perturbation is not a full
@@ -10,8 +10,7 @@ factors are regenerated deterministically from the same seeds by
 forward pass and the algorithm's gradient estimate stay consistent while the
 algorithm still stores only ``center`` + ``seeds`` (O(dim) memory).
 
-``step`` mirrors the torch original in
-``src/evox/algorithms/so/es_variants/virtual_lora_es.py`` with an extra
+``step`` additionally takes a
 ``lora_rank`` hyperparameter.  Plain (non-``@evoxc.defn``) functions: they may
 only be called inside an active trace, since EvoX Compiler has no eager mode.
 """
@@ -191,6 +190,6 @@ def record_step(
     A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
-    accepted-but-unused, exactly like the torch reference which ignores them.
+    accepted-but-unused, exactly like the 1.x implementation which ignores them.
     """
     return {"center": state.center}

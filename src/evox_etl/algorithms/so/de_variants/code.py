@@ -1,10 +1,9 @@
-"""Functional ETL port of the torch evox CoDE algorithm (composite DE).
+"""CoDE (composite DE), part of the 2.0 functional API.
 
-Port source: ``src/evox/algorithms/so/de_variants/code.py`` (READ-ONLY torch
-reference, ported 1:1). ``step`` owns ONE full generation: it builds the
+``step`` owns ONE full generation: it builds the
 clamped ``(3 * pop_size, dim)`` batch of trial vectors (one per strategy per
 individual), evaluates the whole stacked batch through a SINGLE opaque
-``evaluate`` call (like torch), then applies the per-individual
+``evaluate`` call, then applies the per-individual
 best-of-three-strategy selection plus the population update. RNG is
 key-based (``evoxc.random``): ``step`` splits the state key per random op in
 torch's draw order and stores the advanced key; the selection half draws no
@@ -53,7 +52,7 @@ class CoDE:
     :param ub: The upper bounds of the search space (1-D array-like).
     :param diff_padding_num: The number of differential padding vectors to use.
     :param param_pool: Control parameter pairs (F, CR) tried per strategy.
-    :param replace: Kept for API parity only — torch CoDE never passes it to
+    :param replace: Kept for API compatibility only — torch CoDE never passes it to
         ``DE_differential_sum`` in ``step``, so it is unused here too.
 
     Dumb frozen dataclass — construct via ``make_code``, which normalizes the

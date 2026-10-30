@@ -1,7 +1,7 @@
-"""Functional ETL port of the torch evox CLPSO algorithm.
+"""CLPSO, part of the 2.0 functional API.
 
-Step-protocol port of ``src/evox/algorithms/so/pso_variants/clpso.py``
-(read-only torch reference): ``init``/``init_step``/``step`` plain functions,
+
+``init``/``init_step``/``step`` plain functions,
 each step-family function owning one full generation (candidate generation →
 ``evaluate`` → state update).  EvoX Compiler has no eager mode, so these functions only
 run inside an active trace via ``evoxc.build``/``evoxc.run``.
@@ -116,7 +116,7 @@ def init_step(config: CLPSO, state: CLPSOState, evaluate: Any) -> CLPSOState:
 
     Evaluates the initial population via ``evaluate`` and seeds the personal
     best fitness and the global best fitness from it (the global best
-    LOCATION is not updated — torch parity).  See `step` for more details.
+    LOCATION is not updated).  See `step` for more details.
     """
     fitness = evaluate(state.pop)
     return replace(

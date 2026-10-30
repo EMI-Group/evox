@@ -1,7 +1,7 @@
-"""Functional port of all torch evox algorithms (evox_etl).
+"""All algorithms of the 2.0 functional API (evox_etl).
 
-Mirrors torch evox.algorithms exports: frozen config dataclasses per algorithm
-under the torch class names (ES configs are aliased from their ``*Config``
+Public exports: frozen config dataclasses per algorithm
+under the bare algorithm names (ES configs are aliased from their ``*Config``
 names). All algorithms follow the binding functional contract (the STEP
 protocol, see ``core/algorithm.py``): ``init(config, key) -> State`` and
 ``step(config, state, evaluate) -> State`` owning ONE full generation
@@ -82,7 +82,7 @@ from .so import (
     make_sl_pso_us,
 )
 
-# torch-style bare-name aliases for the MO family configs
+# 1.x-style bare-name aliases for the MO family configs
 NSGA2 = NSGA2Config
 NSGA3 = NSGA3Config
 MOEAD = MOEADConfig

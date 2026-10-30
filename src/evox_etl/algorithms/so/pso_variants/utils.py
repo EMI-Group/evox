@@ -1,7 +1,7 @@
-"""Functional ETL port of ``src/evox/algorithms/so/pso_variants/utils.py``.
+"""Shared PSO-variant helpers (sampling / learning-rate schedules).
 
 Plain (non-defn) functions — callable only inside an active evoxc trace.
-Semantics mirror the torch originals 1:1 (see DESIGN.md §4.3).
+Semantics follow DESIGN.md §4.3.
 """
 
 from typing import List, Tuple

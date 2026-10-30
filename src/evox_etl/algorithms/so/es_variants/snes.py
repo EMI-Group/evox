@@ -1,11 +1,11 @@
-"""Functional ETL port of the torch evox SNES algorithm (step protocol).
+"""SNES, part of the 2.0 functional API (step protocol).
 
 Plain functions (`init`/`step`) + frozen config/state dataclasses, per
-`src/evox_etl/DESIGN.md`. Torch reference (read-only):
-`src/evox/algorithms/so/es_variants/snes.py`. `step` owns the WHOLE generation
+`src/evox_etl/DESIGN.md`.
+`step` owns the WHOLE generation
 (sample → `evaluate(candidates)` → natural-gradient update), with the
-workflow-injected `evaluate` closure standing in for torch's
-`self.evaluate(population)`.
+workflow-injected `evaluate` closure supplying the fitness.
+
 
 EvoX Compiler has no eager mode — these functions may only be called inside an active
 trace (`evoxc.build`/`evoxc.run`). numpy is used only at trace time to bake the

@@ -1,12 +1,12 @@
 """Benchmark problems in functional style (evoxc).
 
-Port of ``src/evox/problems/numerical/`` (torch evox, read-only reference) onto
-the EvoX Compiler tensor library. Problems are plain functions (traced by the workflow)
+
+Problems are plain functions (traced by the workflow)
 with the uniform signature ``evaluate(config, problem_state, pop) ->
 (fitness, problem_state)``; configs are frozen dataclasses, and all numerical
 problems share the empty frozen :class:`ProblemState`.
 
-Export surface mirrors torch evox's ``evox.problems.numerical`` plus
+Export surface covers the classic ``evox.problems.numerical`` names plus
 ``Zakharov``/``Levy`` (and their plain ``*_func`` helpers, present in torch
 basic.py but not re-exported there) and :class:`ProblemState`. The
 :mod:`~evox_etl.problems.neuroevolution` subpackage (virtual Gaussian-noise ES

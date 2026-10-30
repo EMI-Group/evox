@@ -1,8 +1,8 @@
-"""SO algorithm families — mirror of torch evox.algorithms.so exports.
+"""SO algorithm families of the 2.0 functional API.
 
 Note: the es_variants family names its frozen config dataclasses with a
-``*Config`` suffix; this module re-exports them under their torch-style bare
-names so the API surface mirrors torch evox.
+``*Config`` suffix; this module re-exports them under the bare
+algorithm names the public API exposes.
 """
 from .de_variants import (
     DE,
@@ -67,7 +67,7 @@ from .pso_variants import (
     make_sl_pso_us,
 )
 
-# torch-style bare-name aliases for the ES family
+# 1.x-style bare-name aliases for the ES family
 OpenES = OpenESConfig
 XNES = XNESConfig
 SeparableNES = SeparableNESConfig

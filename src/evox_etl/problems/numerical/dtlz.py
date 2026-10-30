@@ -1,11 +1,11 @@
-"""DTLZ test suite (DTLZ1-7) — functional ETL port of torch evox
-``src/evox/problems/numerical/dtlz.py`` (read-only reference; math mirrored
-1:1, all ``torch.*`` ops replaced with ``evoxc`` / ``evoxc.numpy`` ops).
+"""DTLZ test suite (DTLZ1-7) — part of the 2.0 functional API.
+All tensor math uses ``evoxc`` / ``evoxc.numpy`` ops.
 
-The torch ``DTLZ`` base class disappears: its ``sample`` (uniform sampling,
+
+There is no ``DTLZ`` base class: the shared ``sample`` (uniform sampling,
 ``ref_num * m`` rows) becomes the ``_sample`` helper, its ``pf`` (=
-``sample / 2``) becomes DTLZ1's pf, and DTLZ3/DTLZ4 inherit DTLZ2's pf
-exactly like the torch subclasses.
+``sample / 2``) is DTLZ1's pf, and DTLZ3/DTLZ4 reuse DTLZ2's pf
+like the classic subclasses.
 
 Notes for agents:
 - ``evaluate`` / ``pf`` are module-level dispatchers keyed on config type

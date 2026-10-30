@@ -1,12 +1,12 @@
-"""Functional ETL port of the torch NSGA-III (``src/evox/algorithms/mo/nsga3.py``).
+"""NSGA-III, part of the 2.0 functional API.
 
 Plain functions only (no ``@evoxc.defn`` — DESIGN.md §4.3; EvoX Compiler has no eager mode):
 ``init`` / ``init_step`` / ``step`` plus the frozen ``NSGA3Config`` /
 ``NSGA3State`` dataclasses. ``step`` owns one whole generation (tournament
 selection → SBX → polynomial mutation → ``evaluate`` → environmental
 selection); call the functions only inside an active trace
-(``evoxc.build`` / ``evoxc.evaluate``). The math is ported 1:1 from the torch
-reference (read-only); the torch dynamic-shape boolean indexings in the
+(``evoxc.build`` / ``evoxc.evaluate``). The math matches the 1.x algorithm;
+its dynamic-shape boolean indexings in the
 environmental selection are replaced by fixed-shape mask tricks
 (``evoxc.select`` + one-hot ``reduce_max`` hits), and ``scatter_add`` becomes
 a one-hot sum.

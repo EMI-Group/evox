@@ -1,8 +1,8 @@
-"""Functional ETL port of the torch SLPSOGS algorithm.
+"""SLPSOGS, part of the 2.0 functional API.
 
 Social Learning Particle Swarm Optimization with Gaussian Sampling for
-demonstrator choice (SLPSOGS). Step-protocol port of the torch reference
-``src/evox/algorithms/so/pso_variants/sl_pso_gs.py``: ``init``/``init_step``/
+demonstrator choice.
+``init``/``init_step``/
 ``step`` plain functions, each owning one full generation (candidate
 generation → ``evaluate`` → state update).
 """
@@ -106,7 +106,7 @@ def init_step(config: SLPSOGS, state: SLPSOGSState, evaluate: Any) -> SLPSOGSSta
     """Perform the first step of the SLPSOGS optimization.
 
     Evaluates the initial population via ``evaluate``, records its fitness
-    and updates the global best fitness (location untouched — torch parity).
+    and updates the global best fitness (location untouched).
     See `step` for more details.
     """
     fitness = evaluate(state.pop)

@@ -1,16 +1,15 @@
-"""Functional ETL port of the torch evox ARS algorithm (step protocol).
+"""ARS (Augmented Random Search), part of the 2.0 functional API (step protocol).
 
 Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
-mode.  Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/ars.py` exactly: `step` owns the WHOLE
+mode.  `step` owns the WHOLE
 generation (mirrored sampling → `evaluate(candidates)` → elite rank update),
 with the workflow-injected `evaluate` closure standing in for torch's
 `self.evaluate(population)`.
 
 ARS is described in "Simple random search provides a competitive approach to
 reinforcement learning" (https://arxiv.org/abs/1803.07055); this
-implementation follows the evosax version like the torch reference.
+implementation follows the evosax version like the 1.x implementation.
 """
 
 from dataclasses import dataclass, replace
@@ -177,6 +176,6 @@ def record_step(
     A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
-    accepted-but-unused, exactly like the torch reference which ignores them.
+    accepted-but-unused, exactly like the 1.x implementation which ignores them.
     """
     return {"center": state.center}

@@ -1,7 +1,7 @@
-"""Functional ETL port of the torch evox ``JaDE`` (adaptive DE) algorithm.
+"""JaDE (adaptive DE), part of the 2.0 functional API.
 
-Plain-function port of ``src/evox/algorithms/so/de_variants/jade.py`` (read-only
-torch reference), following the ``DESIGN.md`` §4-5 binding: ``init``/``step``
+Following the ``DESIGN.md`` §4-5 binding: ``init``/``step``
+
 replace the OOP class; ``step`` owns one full generation — it draws the
 per-individual ``F_vec``/``CR_vec``, builds the trial population, evaluates it
 through the opaque ``evaluate`` closure, then performs selection and the

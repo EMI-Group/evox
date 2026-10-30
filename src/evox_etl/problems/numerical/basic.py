@@ -1,7 +1,7 @@
-"""Functional port of the torch evox basic numerical problems (``basic.py``).
+"""Basic numerical problems, part of the 2.0 functional API.
 
-Each torch class becomes a frozen config dataclass mirroring the torch
-``__init__`` signature (``shift``/``affine`` are numpy arrays; no ``device``).
+Each problem is a frozen config dataclass mirroring the classic
+constructor signature (``shift``/``affine`` are numpy arrays; no ``device``).
 ``evaluate`` is a plain module-level function (no decorator — the workflow
 traces it with ``evoxc.build``/``evoxc.trace``): the config's shift and affine
 transform are applied to the input first (baked as graph constants), then the
