@@ -212,7 +212,7 @@ non-`None` callable is therefore only valid in a field the config actually decla
 
 ```{note}
 For the multi-objective quality indicators that consume these outputs (hypervolume, IGD, GD), see {doc}`metrics`;
-for a walkthrough of composing operators into a full run, see {doc}`../../tutorial/tutorial_part4`.
+for a walkthrough of composing operators into a full run, see {doc}`../../tutorial/tutorial_part3`.
 ```
 
 ```{warning}

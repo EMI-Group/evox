@@ -45,7 +45,7 @@ Two consequences worth knowing:
 - Top-level functions and classes defined directly in the extension package (or, in the collision path, in the colliding module) are lifted the same way. The lift walks `dir(...)` and keeps every `inspect.isfunction`/`inspect.isclass` member, so **imported** Python functions get lifted too — import into an extension module only what you mean to export.
 - The extension module's own `__all__` is not consulted; `__all__` entries are appended per name actually lifted.
 
-The loader is fully **idempotent**: a second `auto_load_extensions()` re-attaches nothing new and adds no duplicate `__all__` entry (`_extend_all` checks membership first). Merge priority follows `DOMAINS` order — a later domain never overrides an earlier one at the same level; genuine new names are added, a collision is merged.
+The loader is fully **idempotent**: a second `auto_load_extensions()` re-attaches nothing new and adds no duplicate `__all__` entry (`_extend_all` checks membership first). `DOMAINS` only fixes *which* domain is processed in which order — each domain is merged into its own `evox_etl.<domain>` target module with plain `setattr`, so there is no precedence between domains (a name under `operators` never competes with one under `metrics`). Within a domain, a colliding submodule is merged rather than replaced, and a lifted function or class whose name already exists is simply overwritten by whichever extension is loaded last, since `pkgutil.iter_modules` makes no ordering guarantee.
 
 ## The extension contract
 
@@ -69,7 +69,7 @@ my-evolution-ext/
         └── my_ga.py
 ```
 
-**No `__init__.py` anywhere in the namespace directories** — neither in `evox_etl_ext/` nor in `evox_etl_ext/<domain>/`. That is what makes PEP 420 discovery work: the domain directory becomes one more entry on the namespace package's `__path__`, so `pkgutil.iter_modules` lists your modules next to everyone else's (verified below: `iter_modules` over the namespace `__path__` returns `['my_probe']`).
+**No `__init__.py` anywhere in the namespace directories** — neither in `evox_etl_ext/` nor in `evox_etl_ext/<domain>/`. That is what makes PEP 420 discovery work: the domain directory becomes one more entry on the namespace package's `__path__`, so `pkgutil.iter_modules` lists your modules next to everyone else's.
 
 For packaging, the only requirement is that the distribution **ships the namespace package**: either a `[tool.setuptools.packages.find]`-style discovery with namespaces enabled (`namespaces = true`), or an explicit `packages` entry that includes `evox_etl_ext.*`. Let `setuptools` discover the tree rather than hand-listing modules, and never add an `__init__.py` to make an installer happy.
 

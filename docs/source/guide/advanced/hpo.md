@@ -154,5 +154,5 @@ Budget for recompilation, not for generations. Each candidate pays a full inner 
 ```
 
 ```{note}
-Looking for the tunable fields of an algorithm, problem or monitor? They are exactly the fields of its frozen config dataclass — read the config's API page, or `dataclasses.fields(...)` at runtime; a wrong slot name fails fast when the `HPOProblemWrapper` is constructed. For custom algorithms/problems see {doc}`../developer/custom-alg-pro`, and for a full workflow walk-through see {doc}`../../tutorial/tutorial_part7`.
+Looking for the tunable fields of an algorithm, problem or monitor? They are exactly the fields of its frozen config dataclass — read the config's API page, or `dataclasses.fields(...)` at runtime; a wrong slot name fails fast when the `HPOProblemWrapper` is constructed. For custom algorithms/problems see {doc}`../developer/custom-alg-pro`, and for a full workflow walk-through see {doc}`../../tutorial/tutorial_part3`.
 ```

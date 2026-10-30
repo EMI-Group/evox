@@ -38,10 +38,11 @@ opt-direction-resolved workflow.
 divided by `n`. The norm runs over the whole vector, so one far outlier dominates the score.
 
 `gd_plus(objs, pf, p=1.0)` replaces the plain distance with a dominance-aware one:
-`sqrt(sum(max(pf - obj, 0)^2))` per solution — a front point *worse* than the solution
-contributes nothing on that objective, so being better than the reference is never punished —
-aggregated as `(sum(min_dis ** p) / n) ** (1 / p)`. It is `0` exactly when every achieved
-solution weakly dominates at least one point of `pf`.
+`sqrt(sum(max(pf - obj, 0)^2))` per solution — a front point *better* than the solution (smaller,
+since objectives are minimized) contributes nothing on that objective, so a solution that is *worse*
+than the reference is never penalised, while the gap by which the *front point* is worse is what the
+distance measures — aggregated as `(sum(min_dis ** p) / n) ** (1 / p)`. It is `0` exactly when every
+achieved solution is weakly *dominated by* at least one point of `pf`.
 
 ## Inverted generational distance: `igd` and `igd_plus`
 
@@ -105,7 +106,7 @@ gd_plus p=2 0.0
 ```
 
 The achieved row `(0.6, 0.6)` is worse than the front point `(0.5, 0.5)`, yet `gd_plus` reports
-`0.0`: every solution dominates or matches its closest front point, so the clipped distances
+`0.0`: every solution is dominated by or matches its closest front point, so the clipped distances
 vanish (`gd` and `igd` coincide here only because the two sets are symmetric).
 
 ## Worked example: IGD and hypervolume on DTLZ2
@@ -148,6 +149,10 @@ print("ref:", ref, "HV:", float(evoxc.run(hv_exe, evoxc.random.key(0), objs, ref
 IGD: 0.006482047960162163
 ref: [1.1 1.1] HV: 0.41628843545913696
 ```
+
+The `numpy` backend prints a benign `RuntimeWarning: divide by zero` here from the crowding-distance
+normalisation (a zero-range objective column) — it does not affect the selection and the test suite
+filters exactly this warning.
 
 - `EvalMonitorConfig(multi_obj=True)` puts the monitor in Pareto mode; `get_pf_fitness()` returns
   the non-dominated subset of everything evaluated, host-side and already un-negated. With
@@ -195,6 +200,6 @@ evaluated repeatedly — rebuilding per call dominates the runtime on a small fr
 This page documents the **experimental EvoX 2.0 pre-release**. `evox_etl` is a functional rewrite
 running on the `evoxc` tensor-graph compiler, so these signatures may still change before 2.0. For
 custom algorithms and problems see {doc}`../developer/custom-alg-pro`; for the end-to-end
-multi-objective walkthrough see {doc}`../../tutorial/tutorial_part5`. The 1.x `torch`-based `evox`
+multi-objective walkthrough see {doc}`../../tutorial/tutorial_part6`. The 1.x `torch`-based `evox`
 package is scheduled for removal and is not covered here.
 ```
