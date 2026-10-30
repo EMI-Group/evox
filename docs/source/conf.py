@@ -25,9 +25,10 @@ project = "EvoX"
 copyright = "2022, Bill Huang"
 author = "Bill Huang"
 # The documented API is the experimental EvoX 2.0 pre-release (package
-# ``evox_etl``); the 1.x torch package ``evox`` is no longer documented.
-version = "2.0.0-pre"
-release = "2.0.0-pre"
+# ``evox_etl``); the 1.x torch package ``evox`` no longer exists in this tree.
+# Keep these in step with ``[project] version`` in ``pyproject.toml`` (2.0.0a1).
+version = "2.0.0a1"
+release = "2.0.0a1"
 
 
 # -- General configuration ---------------------------------------------------
@@ -49,7 +50,7 @@ extensions = [
 
 # The API documentation is generated from the functional EvoX 2.0 package ONLY
 # (``src/evox_etl``, built on the ``evoxc`` compiler). The 1.x torch package
-# ``src/evox`` is not scanned: it is frozen and scheduled for removal.
+# ``src/evox`` is not scanned: it was deleted in 2.0 and no longer exists.
 autodoc2_packages = [
     "../../src/evox_etl",
 ]

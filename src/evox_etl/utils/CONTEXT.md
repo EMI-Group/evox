@@ -4,8 +4,8 @@
 Pure functions used across algorithms: tree helpers, `min_by`, `dominate_relation`,
 `pairwise_euclidean_dist`/`pairwise_manhattan_dist`/`pairwise_chebyshev_dist`/
 `cos_dist`, `rank`, `rank_based_fitness`, `cal_max`, `parse_opt_direction`,
-`compose`. Mirror `../../evox/utils/` (read-only sibling) / JAX evox v0.9.0
-`utils/common.py`. See `../DESIGN.md`.
+`compose`. Two of them follow JAX evox v0.9.0 `utils/common.py`. See
+`../DESIGN.md`.
 
 ## API Surface (`common.py`, re-exported by `__init__.py`)
 ALL functions are PLAIN Python functions (NOT `@evoxc.defn`) — callable only
@@ -46,8 +46,8 @@ inside an active evoxc trace; a bare call outside a trace raises
   `axes=`, argmin/argmax/argsort take `axis=` — check each op). `norm` has
   `keepdims=True` — used by `cos_dist` instead of expand_dims.
 - `evoxc.gather` has numpy-take semantics and ACCEPTS 0-d scalar indices
-  (squeezes the axis) — verified on the shared venv evoxc.
+  (squeezes the axis).
 - `evoxc.argsort` returns int64 indices; keep `rank` outputs int64 via
   `enp.arange(n, dtype=order.dtype)`.
 - `evoxc.transpose` axes must be a tuple: `axes=(1, 0)`.
-- No torch/numpy in graph code; numpy allowed only for baking constants.
+- No torch/numpy in graph code; numpy is allowed only for baking constants.

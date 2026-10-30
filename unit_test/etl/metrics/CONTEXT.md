@@ -20,10 +20,10 @@ running everything through `evoxc.build` + `evoxc.run` on the numpy backend.
 ## Packaging
 - `__init__.py` in `metrics/` keeps its test module distinct from same-named
   modules in other suites when everything runs together.
-- `conftest.py` shims `sys.path` (repo root + `src/`) for the uninstalled PEP
-  420 `evox_etl` namespace package. It locates the repo root by searching
-  parents of `__file__` for `pyproject.toml` and is idempotent (no duplicate
-  sys.path entries).
+- `conftest.py` shims `sys.path` (repo root + `src/`) so the `evox_etl`
+  package under `src/` imports without an installation. It locates the repo
+  root by searching parents of `__file__` for `pyproject.toml` and is
+  idempotent (no duplicate sys.path entries).
 
 ## Run
 ```

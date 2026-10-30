@@ -96,7 +96,7 @@ class TestCrossoverOperators:
         assert first_r.shape == (POP,) and first_r.dtype == np.int32
         # canonical: with replace=False the fix-up `evoxc.select(rand_indices == index,
         # pop_size - 1, rand_indices)` promotes the int32 draws to int64 via the
-        # python-int scalar (torch promotes the same way) — the old shim cast this
+        # python-int scalar — the old shim cast this
         # back to int32; the canonical operator does not.
         assert first_nr.shape == (POP,) and first_nr.dtype == np.int64
         assert (first_r >= 0).all() and (first_r < POP).all()

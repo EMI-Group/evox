@@ -2,12 +2,12 @@
 
 ## Intent
 Host-side visualization for the functional ``evoxc``-based EvoX rewrite: interactive Plotly
-figure builders (a near-verbatim functional port of the torch `evox.vis_tools`
-package) plus the EvoXVision binary serialization format (`.exv`) streaming writer.
+figure builders plus the EvoXVision binary serialization format (`.exv`) streaming
+writer.
 Nothing here is traced by ``evoxc`` — it consumes already-materialized NumPy arrays (e.g.
 host-side history lists collected by a workflow/monitor) and produces figures or
-writes files. It is a drop-in replacement for `evox.vis_tools` (same symbol names,
-parameter order, and Plotly figure structure).
+writes files. Symbol names, parameter order and Plotly figure structure follow the
+1.x `vis_tools` API.
 
 ## API Surface
 - `plot.py` — six public figure builders, all returning `plotly.graph_objects.Figure`:
@@ -40,10 +40,9 @@ parameter order, and Plotly figure structure).
 - **Binary format (exv) preserved exactly**: magic `b"\x65\x78\x76\x31"` ("exv1"),
   then u32 little-endian metadata byte-length, then JSON-utf8 metadata, then raw
   binary chunks. Little-endian throughout.
-- **`plot.py` is one 614-line faithful file** intentionally: it mirrors the
-  589-line torch module name-for-name (plus ~25 lines of the plotly guard, the
-  `_require_plotly` helper, and type hints) so it stays diffable against the
-  reference. `plot.py` is the single source — do NOT add a second plot module
+- **`plot.py` is one 614-line file** intentionally: one builder per plot, plus the
+  plotly guard, the `_require_plotly` helper and type hints. `plot.py` is the
+  single source — do NOT add a second plot module
   unless you also re-export, since `from evox_etl.vis_tools.plot import
   plot_obj_space_2d` is part of the public surface.
 - Style: `from __future__ import annotations`; type hints on all public functions;
@@ -56,8 +55,6 @@ parameter order, and Plotly figure structure).
 | Tests (pytest) | `../../unit_test/etl/vis_tools/` | `conftest.py` sys.path shim + `test_exv.py` (exv dtype/metadata/round-trip) + `test_plot.py` (6 figure builders + plotly-missing path); 42 tests |
 
 ## See Also
-- Read-only torch reference (never modify): `../../evox/vis_tools/`
-  (`plot.py`, `exv.py`).
 - Tests live in the canonical mirror tree at `unit_test/etl/vis_tools/`:
   `PYTHONPATH="src:<site-packages>" <venv>/bin/python -m pytest
   unit_test/etl/vis_tools -q` (plotly 6.0.0/numpy 2.5.1 supplied from the

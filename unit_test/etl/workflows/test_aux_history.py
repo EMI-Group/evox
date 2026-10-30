@@ -1,6 +1,6 @@
 """End-to-end tests for the auxiliary-history channel of StdWorkflow/EvalMonitor.
 
-Auxiliary-history channel (torch parity): an algorithm module MAY define an
+Auxiliary-history channel: an algorithm module MAY define an
 optional PLAIN host-side function ``record_step(config, state, candidate,
 fitness) -> dict[str, etl_tensor]``. ``StdWorkflow`` calls it after each
 generation (host-side, never inside a trace) when both the algorithm module

@@ -3,7 +3,7 @@
 This page is for you if you already have an EvoX 1.x script and want it running on EvoX 2.0.
 
 EvoX 2.0 is an **experimental pre-release**. It is imported as `evox_etl`, it is a functional rewrite built on the `evoxc` compiler, and it replaces the torch object model that 1.x shipped in `src/evox/`.
-The 1.x tree is frozen and scheduled for deletion, so it receives no fixes and no new features; the public surface for 2.0 is `src/evox_etl/`.
+The 1.x tree was deleted when 2.0 landed (it survives only in the released 1.x distributions on PyPI), so it receives no fixes and no new features; the public surface for 2.0 is `src/evox_etl/`.
 
 "The 1.x API is removed" means exactly that, not "deprecated with a warning": there is no `ModuleBase`, no `Parameter` and no `Mutable`; no `evox.core.compile`, `vmap` or `use_state`; no class-component `StdWorkflow` (the constructor keeps its name and argument order, but every component it receives is now a frozen config dataclass); and no distributed workflow switch.
 `evox_etl` imports nothing from `src/evox/` and nothing from torch, so 1.x code does not merely warn at import time — it simply is not there.
@@ -26,7 +26,7 @@ The vocabulary does **not** change, and that is why migration is mostly mechanic
 | `torch.manual_seed(42)` before the run | `wf.run(seed=42)` / `wf.init(seed=42)`; `evox_etl.key(seed)` for anything you build yourself | Keys live in the state; there is no global seed |
 | `hv(objs, ref)` | `hv(key, objs, ref, num_sample=100000)` | Leading key added; still must run inside a trace |
 | `from evox.utils import switch, clamp, clamp_int, clip, maximum, minimum, lexsort, nanmin, nanmax, randint` | `from evox_etl.operators.jit_fix_operator import switch, clamp, clamp_int, clip, maximum, minimum, lexsort, nanmin, nanmax, randint` | NOT re-exported from `evox_etl.utils`; `randint` gains a leading `key` |
-| `evox.__version__` (undefined in 1.x — raises `AttributeError`) | `evox_etl.__version__` | The attribute exists and is a plain string |
+| `evox.__version__` (undefined in 1.x — raises `AttributeError`) | `evox_etl.__version__` | A plain string read from the installed `evox` metadata: `2.0.0a1` for this pre-release, `0.0.0.dev0` in a bare source checkout |
 | `monitor = EvalMonitor(topk=1)`; `monitor.get_best_fitness().item()` | `monitor=EvalMonitorConfig(topk=1)`; `wf.monitor.get_best_fitness()` | You construct the *config*; the workflow builds the host-side wrapper at `init` time |
 | `self.w = Parameter(w, device=device)`; `self.fit = Mutable(torch.zeros(...))` in `class MyAlgo(Algorithm)` | config field `w: float = 0.6`; `fit` field of the `<Algo>State` dataclass | Config fields are static Python values; state fields are traced tensor leaves |
 | `@evox.core.compile` / `@evox.core.vmap` on operators and algorithm methods | nothing | The workflow compiles one step graph per step variant; `vmap` has no analogue |
@@ -301,7 +301,7 @@ Where a replacement does exist:
 
 ## Migration checklist
 
-1. Pin the new import: replace `import evox...` with `import evox_etl...` in one environment, and confirm `evox_etl.__version__` imports before touching any logic.
+1. Pin the new import: replace `import evox...` with `import evox_etl...` in one environment, and confirm `import evox_etl` works (`evox_etl.__version__` reports `2.0.0a1` when the distribution is installed) before touching any logic.
 2. Convert algorithms: pick the matching config dataclass and build it with `make_*`; turn tensor bounds into flat `float` lists and drop `dim`/`device` arguments.
 3. Convert problems: move each `class MyProblem(Problem)` body into a module-level `evaluate(config, state, pop)` next to its frozen config dataclass, replacing torch/numpy ops with `evoxc` ops.
 4. Convert monitors: `EvalMonitor(...)` → `EvalMonitorConfig(...)`, and read results through `wf.monitor` after `init`/`run`/`fit` (drop the trailing `.item()`).

@@ -1,15 +1,14 @@
-"""Functional port of the torch evox Differential Evolution (DE) algorithm.
+"""Differential Evolution (DE), part of the 2.0 functional API.
 
-Port source: `src/evox/algorithms/so/de_variants/de.py` (READ-ONLY reference,
-semantics 1:1). One ``step`` call = one torch ``step``: it runs the whole
+One ``step`` call = one generation: it runs the whole
 generation (mutation + crossover → ``evaluate`` → selection) around the
-opaque ``evaluate`` closure. ``init_step`` encodes torch's ``init_step``
-(evaluate the initial population); torch DE's ``init_step`` performs no
+opaque ``evaluate`` closure. ``init_step`` mirrors the 1.x ``init_step``
+(evaluate the initial population); the 1.x ``init_step`` performs no
 further generation, so neither does this one.
 
-Deviations from torch:
-- RNG: torch's global `torch.rand`/`torch.randint` draws are key-based
-  (`evoxc.random`), one split per draw in torch's draw order; keys live in the
+Deviations from the 1.x design:
+- RNG: the global `torch.rand`/`torch.randint` draws are key-based
+  (`evoxc.random`), one split per draw in the original draw order; keys live in the
   state and advance there. The selection half draws no randomness.
 - Array-like config fields (`lb`/`ub`/`mean`/`stdev` and a tuple
   `differential_weight`) are normalized to flat tuples of plain Python floats
@@ -43,7 +42,7 @@ __all__ = ["DE", "DEState", "init", "init_step", "step", "make_de"]
 
 @dataclass(frozen=True)
 class DE:
-    """Differential Evolution (DE) config, mirroring torch `DE.__init__` (device dropped).
+    """Differential Evolution (DE) config, mirroring the 1.x `DE.__init__` (device dropped).
 
     Dumb frozen dataclass — construct via `make_de`, which validates and
     normalizes array-like fields to flat float tuples before construction.
@@ -73,7 +72,7 @@ def make_de(
 ) -> DE:
     """Build a :class:`DE` config, validating hyperparameters and normalizing array-like fields.
 
-    Same validation semantics as torch ``DE.__init__``'s asserts, raised as ValueError.
+    Same validation semantics as the 1.x ``DE.__init__`` asserts, raised as ValueError.
     """
     require_ge("pop_size", pop_size, 4)
     require_between("cross_probability", cross_probability, 0, 1, low_inclusive=False)
@@ -126,10 +125,10 @@ class DEState:
 
 
 def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tensor]:
-    """Port of torch ``DE.step``'s mutation + crossover stage (up to ``evaluate``).
+    """The mutation + crossover stage of one generation (up to ``evaluate``).
 
-    Draws linearly from `subkey` in torch's order: `num_vec` randint index
-    draws (torch draws all `num_vec` even in best mode), then the crossover
+    Draws linearly from `subkey` in the original order: `num_vec` randint index
+    draws (all `num_vec` are drawn even in best mode), then the crossover
     probability draw and the forced-crossover-dimension draw. Returns the
     clamped trial vectors and the last advanced subkey.
     """
@@ -163,7 +162,7 @@ def _de_trial(config: DE, state: DEState, subkey: Tensor) -> Tuple[Tensor, Tenso
         axes=0,
     )
 
-    # Mutant vector: base + F * difference (torch applies F after the sum).
+    # Mutant vector: base + F * difference (F is applied after the sum).
     if isinstance(config.differential_weight, float):
         new_pop = base + config.differential_weight * difference_vector
     else:
@@ -201,17 +200,17 @@ def init(config: DE, key: Tensor) -> DEState:
 
 
 def init_step(config: DE, state: DEState, evaluate: Callable[[Tensor], Tensor]) -> DEState:
-    """Initial-generation step (torch ``init_step``): evaluate the initial
+    """Initial-generation step (``init_step``): evaluate the initial
     population and record its fitness; no generation is performed yet."""
     fitness = evaluate(state.pop)
     return DEState(pop=state.pop, fit=fitness, trial_vectors=state.trial_vectors, key=state.key)
 
 
 def step(config: DE, state: DEState, evaluate: Callable[[Tensor], Tensor]) -> DEState:
-    """Run ONE full DE generation (torch ``step``): mutation, crossover,
+    """Run ONE full DE generation (``step``): mutation, crossover,
     evaluation of the trial vectors, then greedy selection.
 
-    Sub-steps (mirroring torch ``DE.step``):
+    Sub-steps:
     1. Mutation: mutant vectors from the configured base-vector strategy
        ("best"/"rand") and ``num_difference_vectors`` difference-vector pairs.
     2. Crossover: binomial crossover with the forced-dimension guarantee,

@@ -30,7 +30,7 @@ LB, UB = [-5.0] * 4, [5.0] * 4
 # candidate batches whose leading dim differs from ``pop_size`` — CoDE hands
 # the monitor (3n, dim) batches, CSO (n/2, dim) after its init_step — while
 # EvalMonitor stores each batch as-is. The monitor semantics themselves are
-# pinned torch-identically by test_eval_monitor.py.
+# pinned by test_eval_monitor.py.
 
 
 def test_code_runs_with_wide_monitor_batches():
@@ -61,7 +61,7 @@ def test_code_converges_and_records_full_batches():
     best = wf.fit()
     mon = wf.monitor
     assert best < 1.0  # CoDE converges on 4-D Sphere in 15 generations
-    # torch parity: every generation's history entry is the FULL 3n batch
+    # every generation's history entry is the FULL 3n batch
     assert all(f.shape == (3 * pop,) for f in mon.get_fitness_history())
     assert all(s.shape == (3 * pop, 4) for s in mon.solution_history)
     # the elite pools the whole 3n batch, so the top-k IS the best so far

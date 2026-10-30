@@ -2,8 +2,8 @@
 
 ## Intent
 The EvoX framework on the EvoX Compiler tensor library
-(`evoxc`, installed from its source checkout into a locally built test venv —
-see "Environment" below). This package IS the shipped 2.0 release package
+(`evoxc`, declared as a runtime dependency in the root `pyproject.toml` and
+installed into a local venv — see "Environment" below). This package IS the shipped 2.0 release package
 (distribution `evox`, version `2.0.0a1`, single-sourced in the root
 `pyproject.toml`): the 1.x torch OOP implementation is gone from the source tree,
 so no module here may import or depend on it.
@@ -22,8 +22,8 @@ falls back to `"0.0.0.dev0"` in a source checkout.
   `virtual_lora_es` family) + MO (nsga2, nsga3, moead, rvea,
   rveaa, hype) — each module = config dataclass + `make_*` constructor +
   `init`/`init_step`/`step` plain functions (step protocol, see
-  `core/algorithm.py`). Public surface mirrors torch: `VirtualES`/`VirtualLoRAES`
-  are the bare torch names (both alias the VirtualES config), the distinct low-rank
+  `core/algorithm.py`). Public surface keeps the 1.x names: `VirtualES`/`VirtualLoRAES`
+  are the bare names (both alias the VirtualES config), the distinct low-rank
   config is `VirtualLoRAESConfig`. The virtual-population ES family adds
   `virtual_es.py` (`VirtualES`/`VirtualLoRAES` + `make_virtual_es`),
   `virtual_lora_es.py` (`VirtualLoRAESConfig` + `make_virtual_lora_es`) and the
@@ -33,7 +33,7 @@ falls back to `"0.0.0.dev0"` in a source checkout.
   and `.algorithms.so.es_variants` (`OpenES`, `XNES`, `SeparableNES`, `SNES`, `ARS`,
   `ASEBO`, `DES`, `ESMC`, `GuidedES`, `NoiseReuseES`, `PersistentES`, `CMAES`,
   `VirtualES`, `VirtualLoRAES`) — each is an alias of the matching `*Config`
-  dataclass, next to the port-native `*Config`/`make_*` spelling.
+  dataclass, next to the native `*Config`/`make_*` spelling.
 - `evox_etl.operators`: pure functions (sampling, selection, crossover, mutation).
 - `evox_etl.problems.numerical`: basic, dtlz, cec2022.
 - `evox_etl.problems.neuroevolution`: `VirtualProblem`/`VirtualLoRAProblem`
@@ -57,8 +57,8 @@ falls back to `"0.0.0.dev0"` in a source checkout.
 - No torch/numpy in framework code (numpy allowed only to load cec2022 input data and
   for host-side make_* preprocessing).
 - EvoX Compiler issues found while implementing: record under "EvoX Compiler issues
-  found" below and escalate to the root agent (do NOT edit the `evoxc` source checkout
-  at `<path-to-evoxc-checkout>` from here).
+  found" below and escalate to the root agent (never patch the `evoxc` package from
+  here).
 
 ## Routing Table
 | Area | Path | Notes |
@@ -77,15 +77,13 @@ falls back to `"0.0.0.dev0"` in a source checkout.
 | Utilities | `utils/` | functional helpers |
 | End-to-end tests (e2e + autoload) | `../unit_test/etl/` | real-algorithm convergence + autoload-guard tests (mirror) |
 | Tests | `../unit_test/etl/` | sibling — mirrors this package |
-| Benchmarks (torch vs evoxc) | `../benchmarks/etl_vs_torch/` | sibling — comparison harness |
-| EvoX Compiler library | `<path-to-evoxc-checkout>` | read via the installed `evoxc` package; fixes only by root agent |
+| Benchmarks (backend comparison) | `../benchmarks/etl_vs_torch/` | sibling — frozen `etl-*` backend ids + committed result JSONs |
+| EvoX Compiler (`evoxc`) | installed dependency | `evoxc >= 0.1.0`; fixes only by the root agent |
 
 ## Environment
-No pre-provisioned venv — build one locally with `uv venv` +
-`uv pip install <path-to-evoxc-checkout> numpy pytest plotly pandas`
-(`<path-to-evoxc-checkout>` is the EvoX Compiler source checkout whose
-`pyproject.toml` has `name = "evoxc"`; a published `evoxc` distribution can be
-installed by bare name instead). Canonical suite: the sibling
+Build a venv with `uv venv` + `uv pip install -e . pytest plotly pandas`; `evoxc`
+(`>= 0.1.0`) and `numpy` come from `pyproject.toml`, and a `evoxc` source checkout can
+be installed by path instead of by name. Canonical suite: the sibling
 `../unit_test/etl/` (mirrors this package) —
 `PYTHONPATH=src <venv>/bin/python -m pytest -q` from the repo root (numpy
 backend; ~6 min; per-suite counts in `../unit_test/etl/CONTEXT.md`).
@@ -115,7 +113,7 @@ the tree still carries pre-existing `I001`/`W292`/`F401` findings in
    `__post_init__`s (AssertionError with message, frozen because `../unit_test/etl`
    asserts them — do NOT convert to ValueError).
 2. **`evoxc.select` does not numpy-broadcast a `(n,)` condition against `(n, m)`
-   branches** (`cannot broadcast incompatible dims n and m`). numpy/torch broadcast
+   branches** (`cannot broadcast incompatible dims n and m`). numpy broadcasts
    `(n,)` → `(n, 1)` against `(n, m)` fine. Workaround: always
    `enp.expand_dims(cond, 1)` first (scalar conds broadcast OK).
    Repro: `evoxc.build(lambda x: evoxc.select(evoxc.sum(x, axes=1) < 0.5, 0.0, x),
@@ -128,13 +126,12 @@ the tree still carries pre-existing `I001`/`W292`/`F401` findings in
    tricks (es_variants; documented in its CONTEXT.md).
 6. Minor es_variants discoveries (documented in its CONTEXT.md): `evoxc.transpose`
    axes must be a tuple; `evoxc.clamp` needs both bounds; `(k,n)*(k,)` does not
-   align over k (use expand_dims); `evoxc.svd` returns reduced (U,S,Vh) matching
-   torch svd(some=True).
+   align over k (use expand_dims); `evoxc.svd` returns reduced (U,S,Vh).
 7. **No scatter-add** (`evoxc` `scatter` is replacement-only put_along_axis) —
    worked around with one-hot segment sums (mo/nsga3); a composition note, not a bug.
 8. Cosmetic: the `evoxc` numpy backend leaks a `RuntimeWarning: invalid value
    encountered in divide` for the intentional inf-beta draws (SBX/SHADE/SaDE NaN
-   paths) — torch-identical semantics, no change made.
+   paths) — deliberate, no change made.
 ### Additional findings (core/operators/problems teams)
 9. **Inconsistent axis arg naming**: reductions take `axes=` but topk/argmin/gather/
    `enp.sum/min` take `axis=`. Check the op signature before using.
@@ -143,14 +140,15 @@ the tree still carries pre-existing `I001`/`W292`/`F401` findings in
     traces); in-graph constants: `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`
     — `constant()` rejects raw ndarray; `x * 0.0` for zero-init; no `*_like` ops;
     `enp.floor` missing.
-12. Dtype promotion differs from torch: int32+int→int64, int32*float→float64,
+12. Dtype promotion is stricter than numpy: int32+int→int64, int32*float→float64,
     float32**int64→float64 — explicit `evoxc.cast` needed.
 13. `TensorSpec.from_tensor` does NOT exist (flat `(shape, dtype)` only);
     `Executable` has no `.run` (use `evoxc.run(exe, *args)`); `evoxc.evaluate` rejects
     static args (use `evoxc.build`); scalar tensor inputs must be 0-d ndarrays, not
     numpy scalars. Statics are path-specialized per distinct value — a different
     static value at run raises TraceError (build a new exe per value).
-14. `evoxc.gather` is numpy-take semantics (not torch gather); take_along_axis needs a
+14. `evoxc.gather` is numpy-take semantics (it does not gather along an axis);
+    take_along_axis needs a
     flatten trick; `!=` on symbolic tensors needs `evoxc.not_equal`; `evoxc.squeeze`
     missing at top level; slice op cannot express full-axis `:` over dynamic dims
     (`evoxc.gather(x, arange, axis=1)` workaround); reductions directly over a
@@ -200,56 +198,55 @@ git history. Current-state notes per subtree live in the child CONTEXT.md files
 (algorithms/so/de_variants, es_variants, pso_variants, algorithms/mo,
 problems/numerical); binding policy in DESIGN.md §4.1.
 Exports: `make_*` at each family `__init__`, `algorithms/so/__init__.py`, and
-`algorithms/__init__.py` (torch-style bare-name aliases unchanged).
+`algorithms/__init__.py` (1.x-style bare-name aliases unchanged).
 Carve-out: numerical problems (basic.py, cec2022.py) keep their validation-only
 `__post_init__`s — direct dataclass construction is their sanctioned public API.
 Unit-test construction sites at `../unit_test/etl` migrate to `make_*` in a
 parallel wave (direct construction still works for pre-normalized values but
 bypasses make_* validation).
 
-## Public-surface deltas vs torch `evox` (current state, matters for migration)
+## Public-surface deltas vs the 1.x line (removed in 2.0; matters for migration)
 - Root `evox_etl` re-exports core protocols, `StdWorkflow`, `EvalMonitor(Config)`,
   the 5 metric functions and `random`/`key`; it does NOT explicitly import
   `algorithms`/`problems`/`operators` — those become package attributes only because
   `auto_load_extensions()` imports the 5 domains as a side effect.
 - `evox_etl.utils` re-exports the 1.x `evox.utils` jit-fix helpers
   (`switch`/`clamp`/`clamp_int`/`clamp_float`/`clip`/`maximum*`/`minimum*`/`lexsort`/
-  `nanmin`/`nanmax`/`randint`) alongside the port-native helpers, so those 1.x imports
+  `nanmin`/`nanmax`/`randint`) alongside the native helpers, so those 1.x imports
   keep resolving; the canonical implementation home is `operators/jit_fix_operator.py`.
   `ParamsAndVector`, `VmapInfo`/`register_vmap_op` have no counterpart and are NOT
   re-exported (virtual problems take pre-flattened `param_shapes`/`layer_specs`).
 - Bare 1.x algorithm names resolve at every algorithmic level: `evox_etl.algorithms`,
   `.algorithms.so`, `.algorithms.mo` (aliases of the `*Config` dataclasses) and
   `.algorithms.so.es_variants` / `.de_variants` / `.pso_variants`.
-- `metrics.hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`); the port
+- `metrics.hv` takes a leading RNG key (`hv(key, objs, ref, num_sample)`); the package
   adds `gd_plus`/`igd_plus`/`bounding_cube_monte_carlo_hv`/`each_cube_monte_carlo_hv`.
 - DTLZ exposes the Pareto front as module-level `pf(config)`/`pf_dtlzN`, not a
   `DTLZ.pf()` method; there is no `DTLZ` base class.
 - `vis_tools` exports all `plot_*` + `EvoXVisionAdapter`/`new_exv_metadata` at package
-  level (torch `evox.vis_tools.__init__` is empty) and imports Plotly lazily.
+  level (the 1.x `vis_tools.__init__` was empty) and imports Plotly lazily.
 
-## 2.0 packaging state
-Both former CEC2022/packaging blockers are RESOLVED in this tree — keep them that way:
-- CEC2022 input data ships WITH this package: the 53 `.txt` files live in
+## Packaging
+The package ships as distribution `evox` version `2.0.0a1`, single-sourced in the root
+`pyproject.toml`:
+- CEC2022 input data ships WITH the package: the 53 `.txt` files live in
   `problems/numerical/cec2022_input_data/`, `numerical/cec2022.py` resolves them
   package-relatively via `importlib.resources` (works from a source checkout AND an
   installed wheel), `MANIFEST.in` includes them and `pyproject.toml`
   `[tool.setuptools.package-data]` ships them.
-- The root `pyproject.toml` is 2.0 metadata (distribution `evox`, version `2.0.0a1`,
-  dependencies `evoxc` + `numpy`, `include-package-data = true`,
-  `[tool.setuptools.packages.find] namespaces = true`), so the PEP 420
-  `evox_etl`/`evox_etl_ext` namespaces (and their data) build into the wheel.
+- The root `pyproject.toml` declares `evoxc` + `numpy` as runtime dependencies and sets
+  `include-package-data = true` with `[tool.setuptools.packages.find] namespaces =
+  true`, so the PEP 420 `evox_etl`/`evox_etl_ext` namespaces (and their data) build
+  into the wheel.
 - `evox_etl.__version__` comes from that metadata, so it tracks the `pyproject.toml`
   version with no second source of truth.
-Remaining 2.0 issues OUTSIDE this node (report, do not fix here): the 14
-`unit_test/etl/**/parity/test_*.py` modules (+ `.../parity/parity_common.py`) still
-import torch and the 1.x `evox` package, `benchmarks/etl_vs_torch/bench_{so,mo}.py`
-import the torch API, and `unit_test/etl/test_no_torch.py` documents the torch dev
-venv; they need deleting/guarding/pytest-marking before the wheel ships.
+Nothing under `src/evox_etl/**` imports torch, and the sibling suite at
+`../unit_test/etl/` is `evoxc`-only.
 
-## Not portable from torch evox
-Deliberately NOT ported, with the concrete reason (parallels live in the child
-CONTEXT.md files / `problems/hpo_wrapper.py`, not here):
+## Not ported from the 1.x line
+Deliberately NOT ported from the 1.x implementation (removed in 2.0), with the concrete
+reason (parallels live in the child CONTEXT.md files / `problems/hpo_wrapper.py`, not
+here):
 - torch `triton_kernels` — torch-dispatcher registration + hand-written Triton
   CUDA kernels have no `evoxc` analogue; the virtual-population noise is instead
   regenerated in-graph by `algorithms/so/es_variants/virtual_noise.py`

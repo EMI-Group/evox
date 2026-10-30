@@ -1,6 +1,6 @@
-"""Functional ETL port of the torch evox SHADE algorithm.
+"""SHADE, part of the 2.0 functional API.
 
-Port source: ``src/evox/algorithms/so/de_variants/shade.py`` (1:1 semantics).
+
 ``step`` owns ONE full generation: it draws F/CR from the success-history
 memory, builds the trial vectors, evaluates them through the opaque
 ``evaluate`` closure, then performs the selection and the memory update from

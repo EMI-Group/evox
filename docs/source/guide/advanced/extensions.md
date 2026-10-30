@@ -3,7 +3,7 @@
 EvoX 2.0 lets a third-party package add **algorithms, problems, operators, metrics or utilities** to `evox_etl` without forking or patching the core. Extensions are discovered at `import evox_etl` time through the PEP 420 namespace package `evox_etl_ext` and merged into the matching `evox_etl.<domain>` module, so afterwards they look exactly like built-ins.
 
 ```{warning}
-This page describes an **experimental EvoX 2.0 pre-release**. `evox_etl` is the functional rewrite running on the `evoxc` tensor-graph compiler; the 1.x torch API (`src/evox/`, `evox_ext`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) is scheduled for deletion and is **not** what extensions target here. The 2.0 extension namespace is `evox_etl_ext`. Expect the details below to move before 2.0 is final.
+This page describes an **experimental EvoX 2.0 pre-release**. `evox_etl` is the functional rewrite running on the `evoxc` tensor-graph compiler; the 1.x torch API (`src/evox/`, `evox_ext`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) was removed in 2.0 and is **not** what extensions target here — the 1.x `evox_ext` namespace is gone with it. The 2.0 extension namespace is `evox_etl_ext`. Expect the details below to move before 2.0 is final.
 ```
 
 ## How discovery works

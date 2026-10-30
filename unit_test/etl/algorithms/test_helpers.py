@@ -67,7 +67,7 @@ def test_dtlz1_matches_reference():
     fitness = _evaluate(DTLZ1Config(DIM, n_obj), x)
     assert fitness.shape == (N, n_obj)
     assert fitness.dtype == F32
-    # numpy reference of the torch DTLZ1 formula (minimize semantics)
+    # numpy reference of the DTLZ1 formula (minimize semantics)
     m = n_obj
     g = 100.0 * (
         DIM

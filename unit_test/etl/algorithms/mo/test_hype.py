@@ -5,8 +5,8 @@ evaluates the FULL initial population, later ``step`` calls evaluate the
 offspring batch they generate), a 3-generation DTLZ1 run via
 ``helpers.run_generations``, seed determinism, and the optional custom
 crossover/mutation op injection (``HypEConfig.mutation_op``/``crossover_op``;
-``None`` means the torch default; ``selection_op`` is intentionally not
-exposed because it is inert in the torch reference).
+``None`` means the module default; ``selection_op`` is intentionally not
+exposed because it is inert in the reference implementation).
 """
 
 import pathlib
@@ -90,7 +90,7 @@ def test_init_step_full_population_and_step_offspring_shape():
 
     # Gen 0 (init_step) evaluates the FULL initial population (no RNG draw):
     # exactly one evaluate call, on the pop itself, and ref is derived from
-    # that fitness as 1.2 * max over ALL its entries (torch init_step 1:1).
+    # that fitness as 1.2 * max over ALL its entries (init_step contract).
     pop_before = state.pop
     (state, batch), seen = _trace_step(hype.init_step, cfg, state)
     assert seen == [(POP_SIZE, DIM)]
@@ -137,7 +137,7 @@ def test_full_run_deterministic():
 
 
 # --------------------------------------------------------------------------
-# Custom crossover / mutation op injection (torch ``HypE.__init__`` parity)
+# Custom crossover / mutation op injection (``HypEConfig`` op fields)
 # --------------------------------------------------------------------------
 
 
@@ -220,7 +220,8 @@ def test_custom_ops_change_offspring_and_none_matches_default():
 
 def test_make_hype_validates_ops_and_hides_selection_op():
     """Non-callable op fields raise ValueError; ``selection_op`` is NOT exposed
-    (inert in the torch reference, which hard-codes ``tournament_selection``)."""
+    (inert in the reference implementation, which hard-codes
+    ``tournament_selection``)."""
     for field in ("mutation_op", "crossover_op"):
         with pytest.raises(ValueError):
             make_config(**{field: 5})

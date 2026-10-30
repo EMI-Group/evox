@@ -1,11 +1,10 @@
-"""Functional ETL port of the torch evox MOEA/D algorithm.
+"""MOEA/D, part of the 2.0 functional API.
 
 Plain functions (no ``@evoxc.defn`` — EvoX Compiler has no eager mode; call them only
-inside an active trace via ``evoxc.build``/``evoxc.run``). 1:1 port of
-``src/evox/algorithms/mo/moead.py`` (read-only torch reference): same math,
-same draw order, key-first RNG (operator shims). One ``step`` call owns the
+inside an active trace via ``evoxc.build``/``evoxc.run``). Same math and draw
+order as the 1.x algorithm, key-first RNG (operator shims). One ``step`` call owns the
 whole generation: the per-individual offspring batch is drawn up-front (the
-batched pairing is equivalent to the torch per-i calls), evaluated through
+batched pairing is equivalent to the per-individual calls), evaluated through
 the opaque ``evaluate`` closure, and the sequential per-individual update
 loop runs as one traced ``evoxc.while_loop``.
 """
@@ -30,7 +29,7 @@ class MOEADConfig:
     """MOEA/D hyperparameters (mirrors torch ``MOEAD.__init__`` minus device).
 
     ``lb``/``ub`` are flat float tuples (construct from array-like input via
-    ``make_moead``). ``selection_op`` is accepted for signature parity with
+    ``make_moead``). ``selection_op`` is accepted for signature compatibility with
     the torch class but is never used by the algorithm (torch ignores it too);
     for ``mutation_op``/``crossover_op``, ``None`` means the algorithm default.
     """
@@ -74,7 +73,7 @@ def make_moead(
     ``lb``/``ub`` are validated and normalized to flat float tuples — the
     config's static-leaf storage convention. ``None`` for ``mutation_op`` /
     ``crossover_op`` means the algorithm default; ``selection_op`` is accepted
-    for torch signature parity and ignored by the algorithm (torch ignores it
+    for signature compatibility and ignored by the algorithm (the 1.x version ignores it
     too).
     """
     for name, op in (

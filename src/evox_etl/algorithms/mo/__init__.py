@@ -1,6 +1,6 @@
-"""Functional MO algorithms — evox_etl ports of ``torch evox.algorithms.mo``.
+"""Multi-objective algorithms of the 2.0 functional API.
 
-Each module mirrors one torch algorithm class as a frozen config dataclass +
+Each module is one algorithm: a frozen config dataclass +
 frozen state dataclass + plain ``init``/``init_step``/``step`` functions (the
 STEP protocol of ``evox_etl.core.algorithm``; no ``final_step`` in this
 family). ``step(config, state, evaluate)`` owns ONE full generation: generate
@@ -11,7 +11,7 @@ opaque closure, then merge and run the environmental selection. See
 Configs are constructed via the module-level ``make_*`` constructors
 (``make_nsga2`` ... ``make_hype``), which normalize array-like bounds to flat
 float tuples and raise ``ValueError`` on malformed bounds. The ``*Config``
-dataclasses remain importable for parity and are plain frozen dataclasses.
+dataclasses remain importable directly and are plain frozen dataclasses.
 """
 
 __all__ = [
@@ -42,7 +42,7 @@ from .nsga3 import NSGA3Config, make_nsga3
 from .rvea import RVEAConfig, make_rvea
 from .rveaa import RVEAaConfig, make_rveaa
 
-# Torch parity: torch `algorithms/mo/__init__.py` exports the BARE algorithm
+# API compatibility: the 1.x `algorithms/mo/__init__.py` exports the BARE algorithm
 # names; the same names are re-exported here (and by the parent
 # `evox_etl.algorithms`) as aliases of the matching config dataclasses.  The
 # `*Config` names and the `make_*` constructors stay the port-native spelling.

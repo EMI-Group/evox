@@ -1,11 +1,11 @@
 """Host-side functional hyperparameter optimization (HPO) for evox_etl.
 
-Port of the torch ``src/evox/problems/hpo_wrapper.py`` (read-only reference) onto
-the ETL functional design.  The torch original wraps a whole ``Workflow`` as an
-``evox.core.Problem`` whose search space is the inner workflow's ``Parameter``s and
-runs the inner workflow INSIDE the outer workflow's traced ``evaluate``
-(``torch.func.stack_module_state`` + ``vmap`` + a ``torch.library`` custom-op loop,
-bookkept in the module-global ``HPOData`` registry).
+Host-side HPO on the ETL functional design.  The 1.x wrapper (removed in 2.0) put
+a whole ``Workflow`` inside an ``evox.core.Problem`` whose search space was the
+inner workflow's ``Parameter``s and ran the inner workflow INSIDE the outer
+workflow's traced ``evaluate`` (``torch.func.stack_module_state`` + ``vmap`` + a
+``torch.library`` custom-op loop, bookkept in a module-global registry); that design
+has no ``evoxc`` analogue, so HPO is rebuilt host-side here.
 
 ## Known Issues (why this is a host-side redesign rather than a port)
 
@@ -200,7 +200,7 @@ class HPOFitnessMonitor(HPOMonitor):
 
         Single-objective: the inner monitor's best-so-far fitness.  With
         ``multi_obj_metric`` set, the metric is applied to the inner Pareto-front
-        fitness and its minimum returned (torch ``HPOFitnessMonitor`` parity).
+        fitness and its minimum returned (matches the 1.x ``HPOFitnessMonitor``).
         """
         monitor = getattr(workflow, "monitor", None)
         if monitor is None or not hasattr(monitor, "get_best_fitness"):
@@ -348,7 +348,7 @@ class HPOProblemWrapper:
         return list(self._slot_names)
 
     def get_init_params(self) -> dict[str, float]:
-        """Current (default) values of the tunable hyperparameters (torch parity)."""
+        """Current (default) values of the tunable hyperparameters (API compatibility)."""
         return dict(self._defaults)
 
     # ------------------------------------------------------------- evaluation

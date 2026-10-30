@@ -2,9 +2,8 @@
 
 ## Intent
 Shared scaffolding + tests for the functional evox_etl algorithm port
-(`src/evox_etl/algorithms/`).  No torch imports here — the old torch-parity
-suite was removed with the torch package; expectations are hand-verified numpy
-references.  The virtual-ES /
+(`src/evox_etl/algorithms/`).  No torch imports here — the suite is ETL-only;
+expectations are hand-verified numpy references.  The virtual-ES /
 VirtualLoRA-ES smoke tests and the virtual end-to-end (real neuroevolution
 problem) convergence tests live under `so/es_variants/`.
 
@@ -24,8 +23,7 @@ problem) convergence tests live under `so/es_variants/`.
   - `test_shim_crossover.py` → `evox_etl.operators.crossover`. NOTE canonical
     `DE_differential_sum` returns the first-sampled index as **int32** with
     `replace=True` and **int64** with `replace=False` (the python-int scalar
-    in the fix-up `evoxc.select` promotes, torch promotes the same way); the old
-    shim cast it back to int32.
+    in the fix-up `evoxc.select` promotes); the old shim cast it back to int32.
   - `test_shim_mutation_sampling.py` → `evox_etl.operators.mutation` /
     `.sampling`; canonical `polynomial_mutation(key, x, lb, ub, pro_m=1.0,
     dis_m=20.0)` takes separate 0-d lb/ub tensors (defaults baked at trace,
@@ -36,19 +34,18 @@ problem) convergence tests live under `so/es_variants/`.
     winner assertions now replicate the internal draws with the same key
     (keys are pure → bit-identical draws) and check exact winners in numpy.
   - `test_shim_selection_nd.py` → `evox_etl.operators.selection` +
-    `.selection.non_dominate` (`dominate_relation` is not package-exported,
-    mirrors torch).
+    `.selection.non_dominate` (`dominate_relation` is not package-exported).
   - `test_shim_selection_rvea.py` → `evox_etl.operators.selection`
     (`ref_vec_guided`) + `.selection.rvea_selection` (`apd_fn`). apd_fn inputs
     use non-negative partition indices only: canonical gathers `norm_obj` with
-    `relu(x)` where torch does `norm_obj[x]` (negative-index wrap) — KNOWN
+    `relu(x)` instead of raw `norm_obj[x]` (negative-index wrap) — KNOWN
     latent canonical-operator bug, reported (do not pin in tests).
     `_cosine_similarity` no longer exists canonically (inlined in
     `ref_vec_guided`), so the shim-only helper test was replaced by
     `test_ref_vec_guided_nonorthogonal_vectors` (45deg reference vectors,
     checked against the hand-verified numpy reference).
   - `test_shim_utils.py` → `evox_etl.operators.jit_fix_operator` (canonical
-    home for the jit-fix utils, which torch keeps in `evox/utils/`).
+    home for the jit-fix utils).
 
 ## The step-protocol harness (helpers.run_generations) — FINAL API
 ```python

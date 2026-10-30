@@ -1,11 +1,11 @@
 """Tests for the canonical RVEA selection operators (no torch).
 
 Converted from the deprecated ``evox_etl.algorithms._shim_selection_rvea``
-compat stub (which kept torch-faithful ``apd_fn``/``_cosine_similarity``
+compat stub (which kept its own ``apd_fn``/``_cosine_similarity``
 implementations); now imports the canonical ``ref_vec_guided`` and ``apd_fn``
 directly. NOTE: the canonical ``apd_fn`` gathers ``norm_obj`` with ``relu(x)``
-where torch does ``norm_obj[x]`` (negative indices wrap to the last row) — a
-known latent divergence. The ``apd_fn`` test therefore uses non-negative
+rather than with raw ``norm_obj[x]`` (negative indices would wrap to the last
+row) — a known latent divergence. The ``apd_fn`` test therefore uses non-negative
 partition indices where both semantics agree; ``_cosine_similarity`` no longer
 exists canonically (its math is inlined in ``ref_vec_guided`` and covered by
 the hand-verified reference below).
@@ -65,8 +65,8 @@ def test_apd_fn_exact_values():
     """apd_fn on tiny known tensors equals hand-computed values.
 
     ``x`` is chosen non-negative: the canonical ``apd_fn`` gathers ``norm_obj``
-    with ``relu(x)`` while torch does ``norm_obj[x]`` (negative indices wrap to
-    the last row). On this input ``relu(x) == x`` so the two agree; negative
+    with ``relu(x)`` instead of raw ``norm_obj[x]`` (negative indices would wrap
+    to the last row). On this input ``relu(x) == x`` so the two agree; negative
     entries would hit the known latent divergence.
     """
     nv, m = 2, 2

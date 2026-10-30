@@ -3,7 +3,7 @@
 ```{warning} Experimental EvoX 2.0 pre-release
 These pages target the **EvoX 2.0 pre-release** (import name `evox_etl`, compiled by `evoxc`).
 They do **not** cover the EvoX 1.x torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`,
-`torch.compile`/`vmap`), which is frozen, scheduled for removal, and documented nowhere in these
+`torch.compile`/`vmap`), which was removed in 2.0 and is documented nowhere in these
 pages. APIs may still change between pre-releases.
 ```
 
@@ -54,10 +54,9 @@ tests, and any workload small enough that compiling costs more than it saves ({d
 | `"tvm"` | `pip install "evoxc[tvm]"` (`apache-tvm` + `jaxlib` for its MLIR bindings) | `llvm` CPU only | limited; see below |
 | `"xla"` | **no extra** — you supply a PJRT plugin `.so` | CPU, CUDA, ROCm | validated end-to-end |
 
-Compiled backends are optional extras. EvoX documents them as `evox[iree]`, `evox[tvm]` and
-`evox[compilers]`, and the compiler package exposes the same three as `evoxc[iree]`, `evoxc[tvm]`
-and `evoxc[compilers]`; until the 2.0 manifest ships, only the `evoxc[...]` spellings install
-anything — the current `evox` manifest has none of them — so install `evoxc[...]` and see
+Compiled backends are optional extras. The `evox` metadata declares them as `evox[iree]`, `evox[tvm]`
+and `evox[compilers]` by forwarding to the compiler's `evoxc[iree]`, `evoxc[tvm]` and
+`evoxc[compilers]`, so either spelling installs the same toolchain; pick one and see
 {doc}`../install/evox` for the full extras story. `evoxc[compilers]` installs IREE and TVM together;
 `evox[vis]` is unrelated (Plotly/`.exv` output).
 
@@ -168,7 +167,8 @@ The numbers on this page are workload-dependent measurements from `benchmarks/et
 (RTX A6000, seed 42, 100 generations), summarized in `REFACTOR_REPORT.md` §3: at 10⁴ × 10²,
 XLA-on-CUDA runs PSO/DE/OpenES in 8–18 ms/step (torch-cpu 8–36 ms/step, IREE-on-CUDA ~3.5 s/step);
 on the MO matrix XLA-on-CUDA runs all 12 cases at a median **28× faster than torch-cpu**; large-scale
-CMA-ES is the slowest evoxc cell. A hand-written CUDA kernel stack (the frozen 1.x torch build) is still
+CMA-ES is the slowest evoxc cell. A hand-written CUDA kernel stack (the released 1.x torch build, no
+longer in this repository) is still
 faster at the very largest single-objective batches — PSO ~1.1 vs XLA-on-CUDA ~17 ms/step — so the gain
 is portability across CPU/CUDA/ROCm from one program, not peak kernel throughput.
 

@@ -80,11 +80,11 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   (threads problem state) → opt-direction scaling (min semantics, baked f32
   constant, scalar () or (m,)) → fitness_transform → `monitor_update` (threads
   monitor state; receives `monitor_candidate(candidates)` — identity unless the
-  algorithm module defines the hook — + TRANSFORMED fitness — the torch
+  algorithm module defines the hook — + TRANSFORMED fitness — the 1.x
   post_ask/pre_tell semantics). Algorithms treat it as fully opaque: pass whatever
   tensor/pytree the candidates are, get transformed fitness back; do NOT store or
   re-thread it. The workflow keeps the problem/monitor state of the LAST evaluate
-  call (torch's stateful Problem semantics, reified).
+  call (stateful-Problem semantics, reified).
 - Dispatch is HOST-SIDE: `StdWorkflow.__init__` records `_has_init_step`/
   `_has_final_step` = whether the module defines callables; `init_step()`/`
   final_step()` resolve to the module function if present else `step`. There is NO
@@ -199,8 +199,8 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   `axis=` — inconsistent keyword naming.
 - Dynamic indexing `x[idx]` with a symbolic scalar tensor is NOT supported
   ("getitem: unsupported index key SymbolicTensor") — use `evoxc.gather(x, idx, axis=0)`.
-- `evoxc.select(pred, a, b)` broadcasts pred with a/b directly (unlike torch.where's
-  leading-dim broadcast): reshape the pred, e.g. `evoxc.reshape(cond, (n, 1))`.
+- `evoxc.select(pred, a, b)` broadcasts pred with a/b directly without adding a
+  leading dim: reshape the pred, e.g. `evoxc.reshape(cond, (n, 1))`.
 - `evoxc.tree_unflatten(leaves, treespec)` — argument order REVERSED vs JAX.
 - int32 tensor + Python int → int64; int32 * Python float → float64 (f32 + Python
   float stays f32). Cast generation counters explicitly to np.int32.
@@ -227,7 +227,7 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   both inline in `__main__` or in one test file) collide on function names like
   `init`. Tests must define toy components in separate module files.
 - TEST SEMANTICS: monitor `fit_history` entries are per-generation latest-fitness
-  VECTORS (torch EvalMonitor semantics — NOT monotone). Assert convergence via the
+  VECTORS (NOT monotone). Assert convergence via the
   monitor's running best (topk_fitness / get_best_fitness) or the algorithm's
   internal best field — those are monotone. With opt_direction="max": internal
   (minimized) fitness decreases while get_best_fitness (un-negated) increases.
@@ -235,7 +235,6 @@ re-exports), and `StdWorkflow` (compose+compile-once-per-variant+run loop). See
   the same workflow instance (pre-existing EvalMonitor semantics).
 - `global_best_fitness`-style fields are often shape (1,) — use
   `float(np.asarray(t.numpy()).reshape(-1)[0])` in tests, not `float(t.numpy())`.
-- Reference for workflow behavior: `../../evox/workflows/std_workflow.py` and
-  `../../evox/core/components.py` (torch, read-only siblings). EvoX Compiler same-device loop
-  pattern validated in evoxc tests (`tests/backends/test_iree_same_device_loop.py`
-  in the foreign repo).
+- Workflow behaviour is defined by `workflow.py` in this directory (binding spec:
+  `../DESIGN.md` §4.4). The same-device loop pattern is validated by `evoxc`'s own
+  tests (`tests/backends/test_iree_same_device_loop.py` in the `evoxc` repo).

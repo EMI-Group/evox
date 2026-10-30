@@ -1,12 +1,11 @@
 # evox_etl/operators/mutation — pure functional mutation operators
 
 ## Intent
-Port of torch evox mutation operators (`../../../evox/operators/mutation/`, read-only)
-as PLAIN functions (NO `@evoxc.defn` — plain functions compose inside traces; defn
-objects raise when called). Porting rules (binding, `../../DESIGN.md` §4.3): keep torch
-argument names/order EXACTLY; functions using randomness gain `key` as FIRST parameter
-(`evoxc.random`; split from the caller's key); torch→evoxc op translation (where→select,
-pow→power, logical and→logical_and).
+Mutation operators as PLAIN functions (NO `@evoxc.defn` — plain functions compose
+inside traces; defn objects raise when called). API rules (binding,
+`../../DESIGN.md` §4.3): keep the argument names/order EXACTLY; functions using
+randomness gain `key` as FIRST parameter (`evoxc.random`; split from the caller's
+key); the op mapping is where→select, pow→power, logical and→logical_and.
 
 ## Files
 - `pm_mutation.py` — `polynomial_mutation(key, x, lb, ub, pro_m=1.0, dis_m=20.0)`:

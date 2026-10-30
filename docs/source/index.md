@@ -26,9 +26,10 @@ Miscellaneous <miscellaneous/index>
 ```{warning} EvoX 2.0 — experimental pre-release
 These pages document the **EvoX 2.0 pre-release**, a functional rewrite of EvoX on top of the
 **EvoX Compiler** (`evoxc`) tensor library. The import name is **`evox_etl`**; the 1.x object-oriented
-torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) is **no longer
-documented and will be removed**. APIs may still change between pre-releases — see
-{doc}`tutorial/tutorial_part7` if you are bringing 1.x code across.
+torch API (`import evox`, `ModuleBase`, `Parameter`/`Mutable`, `torch.compile`/`vmap`) has been
+**removed from this tree and is no longer documented**. The pre-release is `2.0.0a1`, and APIs may
+still change before 2.0 is final — see {doc}`tutorial/tutorial_part7` if you are bringing 1.x code
+across.
 ```
 
 EvoX is a GPU-accelerated framework for scalable evolutionary computation.

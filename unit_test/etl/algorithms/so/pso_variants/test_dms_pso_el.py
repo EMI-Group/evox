@@ -1,8 +1,8 @@
 """Smoke tests for the functional ETL port of DMS-PSO-EL (no torch).
 
 Driven through ``run_generations`` from the sibling helpers module: generation 0
-uses ``init_step`` (the init generation — torch ``init_step`` increments the
-counter there), later generations use ``step`` (each one counts a generation).
+uses ``init_step`` (the init generation, which increments the generation
+counter), later generations use ``step`` (each one counts a generation).
 """
 
 import sys

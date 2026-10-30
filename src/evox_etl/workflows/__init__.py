@@ -1,4 +1,4 @@
-"""Workflow components: ``StdWorkflow`` and the ``EvalMonitor`` (mirrors torch evox.workflows)."""
+"""Workflow components: ``StdWorkflow`` and the ``EvalMonitor``."""
 
 from .eval_monitor import EvalMonitor, EvalMonitorConfig
 from .std_workflow import EmptyState, StdWorkflow, WorkflowState

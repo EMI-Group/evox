@@ -2,13 +2,13 @@
 ## Intent
 This directory is the **Sphinx documentation source root** for EvoX and contains everything `sphinx-build` compiles into the published HTML on Read the Docs: configuration, content pages, static assets, templates and i18n resources.
 It documents the **experimental EvoX 2.0 pre-release** only: the functional package `src/evox_etl/` (import name `evox_etl`) running on the EvoX Compiler (`evoxc`).
-The frozen EvoX 1.x torch package (`src/evox/`) is not documented anywhere; the only place 1.x appears is the migration page `tutorial/tutorial_part7.md`, which maps removed APIs to their 2.0 equivalents.
+The EvoX 1.x torch package (`src/evox/`, deleted in 2.0) is not documented anywhere; the only place 1.x appears is the migration page `tutorial/tutorial_part7.md`, which maps removed APIs to their 2.0 equivalents.
 The documentation is bilingual: English sources here, Simplified Chinese under `locale/`.
 
 ## API Surface
 | File / Directory | Purpose |
 |---|---|
-| `conf.py` | Sphinx configuration: extensions, shibuya theme, autodoc2 (scanning `../../src/evox_etl` only), i18n, nav links, `version = "2.0.0-pre"` |
+| `conf.py` | Sphinx configuration: extensions, shibuya theme, autodoc2 (scanning `../../src/evox_etl` only), i18n, nav links, `version = "2.0.0a1"` (kept in step with `pyproject.toml`) |
 | `index.md` | Root landing page: pre-release warning, functional-model summary, runnable quickstart, feature list, toctrees + grid-card navigation |
 | `tutorial/` | 7-part getting-started series (2.0 only) |
 | `guide/install/` | Python and `evox` installation, backend extras, XLA PJRT plugin |
@@ -25,7 +25,7 @@ The documentation is bilingual: English sources here, Simplified Chinese under `
 - **apidocs/ is generated**: `autodoc2` writes it at build time from `src/evox_etl`; it is git-ignored and must never be edited or committed. Delete `source/apidocs/` when the scanned package path changes, otherwise stale pages produce `autodoc2.missing` warnings.
 - `autodoc2_module_all_regexes` only lists packages whose every module defines `__all__` (`core`, `problems`, `utils`, `workflows`) — matching a module without `__all__` aborts the build.
 - `exclude_patterns` keeps `locale/**`, every `CONTEXT.md`, and one orphan autodoc2 page (`evox_etl.problems.numerical.state`) out of the source scan.
-- **Install/backend facts**: 2.0 requires Python 3.11+ and the `evoxc` compiler alongside `evox`; the compiled backends are the extras `evox[iree]` / `evox[tvm]` / `evox[compilers]` (equivalently `evoxc[...]`, which is the spelling that installs under the current 1.x manifest), `evox[vis]` adds Plotly, and XLA needs a user-supplied PJRT plugin via `EVOXC_PJRT_PLUGIN` exported before the process starts; `guide/install/evox.md` owns the install story and `guide/advanced/backends.md` owns backend detail.
+- **Install/backend facts**: 2.0 requires Python 3.11+ and `evox` declares `evoxc >= 0.1.0` + `numpy >= 2.0.0` as dependencies; the compiled backends are the extras `evox[iree]` / `evox[tvm]` / `evox[compilers]`, which forward to `evoxc[iree]` / `evoxc[tvm]` / `evoxc[compilers]` (either spelling installs the same toolchain), `evox[vis]` adds Plotly + pandas, and XLA needs a user-supplied PJRT plugin via `EVOXC_PJRT_PLUGIN` exported before the process starts; 2.0.0a1 is a pre-release, so `pip install evox` still resolves the 1.x line and the pages use `pip install --pre evox==2.0.0a1` / a source checkout; `guide/install/evox.md` owns the install story and `guide/advanced/backends.md` owns backend detail.
 - Content pages are MyST Markdown (`{toctree}`, `{note}`/`{warning}`/`{tip}`, `:::` colon fences, `{eval-rst}` grids, `{doc}` roles); notebook execution is disabled (`nb_execution_mode = "off"`), so no page may rely on build-time execution.
 - Build check: `PYTHONPATH=../src python -m sphinx -b html source <out>` from `docs/`; a clean tree builds warning-free.
 - Count claims stay identical across EN/ZH and match the repository: EvoX core "30+ algorithms" / "30+ benchmark problems"; ecosystem "140+ algorithms" / "240+ benchmark problems/environments".

@@ -6,7 +6,7 @@ Covers ``DE_differential_sum``, ``DE_binary_crossover``,
 key divergence and its documented shape/dtype/contract invariants
 (children-from-parents for the DE crossovers, the SBX symmetry
 ``c1 + c2 == p1 + p2``; the mathematically false "SBX children within parent
-range" is deliberately NOT tested — beta > 1 extrapolates, same as torch).
+range" is deliberately NOT tested — beta > 1 extrapolates).
 ``DE_arithmetic_recombination`` (deterministic, no key) is covered by the
 operator-shim test ``unit_test/etl/algorithms/test_shim_crossover.py``.
 
@@ -87,7 +87,7 @@ def test_de_diff_sum_no_self_pick(seed):
 
 
 def test_de_diff_sum_f_none_equals_f_one():
-    # F=None reproduces the old torch behaviour, which F=1.0 must reproduce
+    # F=None reproduces the legacy behaviour, which F=1.0 must reproduce
     # exactly for the same key
     exe_none = build(DE_differential_sum, KEY_SPEC, DPN, NDV_SPEC, INDEX_SPEC, POP_SPEC, None, False)
     exe_one = build(DE_differential_sum, KEY_SPEC, DPN, NDV_SPEC, INDEX_SPEC, POP_SPEC, 1.0, False)
@@ -168,7 +168,7 @@ def test_de_binary_vector_cr():
     assert np.all((out == mv) | (out == cv))
 
 
-# --- DE_binary_crossover mask distribution (torch commit 5e68f81f) ------------
+# --- DE_binary_crossover mask distribution (ported upstream fix) --------------
 # The crossover mask must be drawn from a UNIFORM distribution, not a normal
 # one: a standard normal yields an empirical crossover rate of ~0.57 at CR=0.1
 # and ~0.82 at CR=0.9, i.e. it fails both bands below.

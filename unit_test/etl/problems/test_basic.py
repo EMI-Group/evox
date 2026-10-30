@@ -109,7 +109,7 @@ def test_schwefel_optimum():
 
 
 def test_no_boundary_handling_raw_math():
-    # torch evox's basic problems do NOT clamp: Sphere(1e2) = dim * 1e4.
+    # the basic problems do NOT clamp: Sphere(1e2) = dim * 1e4.
     x = np.full((N, DIM), 1e2, dtype=np.float32)
     fitness, _ = run_evaluate(Sphere(), x)
     np.testing.assert_allclose(
@@ -176,7 +176,7 @@ def test_rosenbrock_and_levy_funcs_direct():
     np.testing.assert_allclose(run_func(levy_func, x), 0.0, atol=1e-4)
 
 
-# --- config validation (mirrors torch ShiftAffineNumericalProblem.__init__) ---
+# --- config validation (mirrors the ShiftAffineNumericalProblem contract) ----
 
 
 def test_invalid_affine_rejected():

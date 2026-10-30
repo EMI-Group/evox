@@ -8,8 +8,8 @@ There is **no top-level `guide/index.md`** — each child subdirectory has its o
 | File / Directory | Purpose |
 |---|---|
 | `install/index.md` | Section landing: "Installation Guide" — toctree links to `python` and `evox` |
-| `install/python.md` | Installing and isolating a Python ≥3.10 environment |
-| `install/evox.md` | Installing `evox` (import `evox_etl`), the backend extras, the XLA PJRT plugin, smoke test, editable install |
+| `install/python.md` | Installing and isolating a Python ≥3.11 environment |
+| `install/evox.md` | Installing `evox` (import `evox_etl`) as the 2.0.0a1 pre-release or from a checkout, the backend extras, the XLA PJRT plugin, smoke test |
 | `developer/index.md` | Section landing: "Developer Guide" — toctree links to `architecture`, `custom-alg-pro`, `custom-monitor`, `environment`, `document` |
 | `developer/architecture.md` | Functional architecture: config/state split, step protocol, compile-once workflow, `make_*` convention |
 | `developer/custom-alg-pro.md` | Authoring a custom algorithm and a custom problem (frozen config + `init`/`step`/`evaluate`) |

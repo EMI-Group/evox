@@ -1,7 +1,7 @@
 """Deterministic virtual-population Gaussian noise for the virtual-ES family.
 
-``evoxc`` is stateless-key based (no jump-ahead counter streams), so torch's
-``triton_kernels.kernels.{philox,virtual_noise}`` is replaced here by a
+``evoxc`` is stateless-key based (no jump-ahead counter streams), so the 1.x
+Triton noise kernels are replaced here by a
 deterministic **splitmix64 integer hash + Box-Muller** transform built purely
 from ``evoxc`` ops.  Given per-individual integer ``seeds`` and a flat element
 ``offset``, :func:`virtual_normal` regenerates the SAME ``(pop_size, n_elements)``

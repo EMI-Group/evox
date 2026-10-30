@@ -56,12 +56,19 @@ Suite-separate runs remain useful for per-suite numbers and faster failure isola
 The compiler the port and these tests run on is `evoxc` (distribution `evoxc`
 0.1.0; traced surface `evoxc`, `evoxc.core`, `evoxc.numpy`, `evoxc.random`,
 `evoxc.io`, `evoxc.ops`).
-`evox_etl` and `evox_etl_ext` are PEP 420 namespace packages under `src/` (not
-pip-installed when working from a checkout), so drivers need
+`evox_etl` is a regular package (`src/evox_etl/__init__.py`) and `evox_etl_ext`
+is a PEP 420 namespace package (`src/evox_etl_ext/`, no `__init__.py`); neither
+has to be pip-installed when working from a checkout, so drivers need
 `PYTHONPATH=src:<site-packages>`. Provision a writable venv: `uv venv` then
 `uv pip install evoxc pytest numpy` — the `evoxc` distribution is publish-ready
 but not yet on a package index, so install it from a source checkout (copy it
 somewhere writable if the checkout is read-only).
+The reported version is single-sourced in `pyproject.toml` and read through the
+distribution metadata: `evox_etl.__version__` is
+`importlib.metadata.version("evox")`, falling back to `"0.0.0.dev0"` in a
+source checkout without an installed `evox` distribution. `ext/test_autoload.py`
+derives its expectation the same way instead of pinning a literal, so a version
+bump never breaks it.
 torch is NOT part of this environment: the 2.0 release ships only
 `evoxc` + `numpy`, and no test under this tree may pull torch in.
 plotly enables the figure assertions of `vis_tools/` and

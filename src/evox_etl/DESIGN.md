@@ -5,10 +5,9 @@ All implementers MUST follow it. Read it fully before writing code.
 
 ## 1. Goal
 
-Build a new, functional implementation of the EvoX evolutionary-computation framework
-on top of the **EvoX Compiler tensor library** (the `evoxc` distribution, source
-checkout at `<path-to-evoxc-checkout>`, import
-name `evoxc`), replacing the torch OOP design with plain functional code:
+EvoX is a functional implementation of the EvoX evolutionary-computation framework
+on top of the **EvoX Compiler tensor library** (the `evoxc` distribution, import
+name `evoxc`), using plain functional code instead of the 1.x OOP design:
 
 - **Config objects**: plain frozen dataclasses holding hyperparameters (Python scalars,
   strings, etc.). Never mutated, never traced.
@@ -20,10 +19,11 @@ name `evoxc`), replacing the torch OOP design with plain functional code:
 - **Init is a separate function** (`init(config, key) -> state`) instead of a
   constructor that hides state creation. A step function owns the WHOLE
   generation: generate candidates → `fitness = evaluate(candidates)` → update
-  the state (mirroring torch `Algorithm.step`).
+  the state (as in the 1.x `Algorithm.step`).
 
-The existing torch-based `evox` package (v1.3.0, in `src/evox/`) stays untouched and
-serves as the reference implementation for parity tests and benchmarks.
+`evox_etl` is the ONLY implementation in this repository: the 1.x torch tree was
+removed in 2.0, so every rule below describes the shipped functional API and there is
+no second implementation to compare against.
 
 ## 2. Hard facts about EvoX Compiler (design constraints)
 
@@ -84,7 +84,7 @@ These were verified empirically — do not re-investigate, do not fight them:
    `evoxc.evaluate` (retrace+recompile) is the anti-pattern. On cuda, inputs must be
    explicitly placed via `t.to(evoxc.core.Device("cuda", N))` — no implicit transfers.
 
-## 3. Package layout (mirrors torch evox arrangement)
+## 3. Package layout
 
 ```
 src/evox_etl/
@@ -97,11 +97,11 @@ src/evox_etl/
 │   ├── monitor.py         # Monitor protocol
 │   └── state.py           # State helpers: e.g. replace(), get/set nested (pytree utils)
 ├── algorithms/
-│   ├── so/de_variants/  es_variants/  pso_variants/      # same files as torch evox
+│   ├── so/de_variants/  es_variants/  pso_variants/      # one module per algorithm
 │   │   └── es_variants/virtual_{noise,es,lora_es}.py +   # deterministic splitmix64
 │   │       _virtual_common.py                            #   noise + virtual-pop ES
 │   └── mo/                                              # nsga2, nsga3, moead, rvea, rveaa, hype
-├── operators/             # pure functions, same file names as torch evox
+├── operators/             # pure functions, one module per operator family
 │   ├── sampling/    selection/    crossover/    mutation/
 ├── problems/numerical/    # basic.py, dtlz.py, cec2022.py
 ├── problems/neuroevolution/  # virtual_problem.py (VirtualProblem/VirtualLoRAProblem)
@@ -117,10 +117,9 @@ src/evox_etl/
 ### 4.1 Config dataclasses
 
 Every algorithm/problem/monitor config is a **dumb frozen dataclass** (use
-`@dataclasses.dataclass(frozen=True)`) with the SAME field names and defaults as the
-torch evox class `__init__` signature (read `src/evox/...` for the reference), with
-these adjustments:
-- Drop the `device: torch.device | None = None` parameter.
+`@dataclasses.dataclass(frozen=True)`) whose field names and defaults ARE the public
+API (`make_*` constructors keyword-map onto them), with these adjustments:
+- There is no `device` field: the device is chosen per workflow (`StdWorkflow(device=...)`).
 - Configs are dumb: no `__post_init__`, no normalization, no validation logic
   (the numerical-problem carve-out below is the only exception). They store ONLY
   plain static leaves — Python scalars (floats, ints, strings, `None`) and **flat
@@ -129,7 +128,7 @@ these adjustments:
   `evoxc.run` performs strict by-value static revalidation on plain-leaf pytrees, so
   a drifted config value raises a TraceError instead of silently corrupting the
   run.
-- `lb`/`ub` (boundary tensors in torch) therefore become **flat `float` tuples**
+- `lb`/`ub` (boundary tensors in 1.x) are therefore **flat `float` tuples**
   of length `dim` in the config. Inside functions, bake them ONCE as graph
   constants:
   `lb = evoxc.ops.constant(evoxc.core.tensor(np.asarray(config.lb, dtype=np.float32)))`
@@ -138,7 +137,7 @@ these adjustments:
 - Optional operator fields (`selection_op: Optional[Callable]`, `mutation_op`,
   `crossover_op`) become **plain function references** (first-class functions —
   the operators are already pure functions, see §4.3); `None` means "algorithm
-  default" exactly like torch.
+  default".
 
 **Construction policy — `make_<algorithm>` constructors (binding):** for every
 algorithm config, the array-accepting entry point is a module-level functional
@@ -187,8 +186,8 @@ the unit tests — the messages are frozen, so do NOT convert them to
 - Problem state: numerical problems are stateless → `ProblemState()` empty frozen
   dataclass (still a distinct type so the workflow can route it).
 - Generation counter is an `int32` scalar tensor.
-- Fitness dtype float32. Minimization semantics internally everywhere (mirror torch
-  evox): the workflow applies `opt_direction` to convert maximization problems.
+- Fitness dtype float32. Minimization semantics internally everywhere: the workflow
+  applies `opt_direction` to convert maximization problems.
 
 ### 4.3 Functions (plain Python functions — NOT `@evoxc.defn`)
 
@@ -221,18 +220,16 @@ evaluate(config, problem_state, pop) -> (fitness, problem_state)   # pop: (n, di
 # numerical problems are stateless but keep the signature for uniformity.
 
 # operators/<...>.py — pure functions (called inside traces)
-# RULE (binding): keep the torch function name, argument names and order EXACTLY
-# (torch operators are already pure functions in src/evox/operators/).
-# - Functions that use randomness in torch (torch.rand/randint) gain `key` as
-#   the FIRST parameter (use evoxc.random).
-# - Drop the `device: torch.device` parameter (evoxc has no device arg).
-# - `torch.Tensor` -> evoxc tensors; translate ops 1:1 (torch.where->evoxc.select,
-#   torch.argsort->evoxc.argsort, torch.gather->evoxc.gather, clamp->clamp, etc.)
-# Known torch signatures (from src/evox/operators/):
+# RULE (binding): these names, argument names and order ARE the public API.
+# - Functions that draw randomness gain `key` as the FIRST parameter.
+# - There is no `device` parameter (evoxc has no device arg).
+# - Everything operates on evoxc tensors (where->select, argsort->argsort,
+#   gather->gather, clamp->clamp, etc.).
+# Operator signatures:
 #   simulated_binary(x, pro_c, dis_c)                -> simulated_binary(key, x, pro_c, dis_c)
 #   simulated_binary_half(x, pro_c, dis_c)           -> + key first
 #   DE_differential_sum(diff_padding_num, num_diff_vects, index, population, F=None,
-#                       replace=False)               -> + key first (F=None reproduces torch default)
+#                       replace=False)               -> + key first (F=None selects the default)
 #   DE_binary_crossover(mutation_vector, current_vector, CR)         -> + key
 #   DE_exponential_crossover(mutation_vector, current_vector, CR)    -> + key
 #   DE_arithmetic_recombination(mutation_vector, current_vector, K)  -> unchanged (no rng)
@@ -294,7 +291,7 @@ wf.init_step(state)                   # first generation (falls back to step)
 wf.step(state)                        # one generation (compiled executable run)
 wf.final_step(state)                  # last generation (falls back to step)
 wf.run(generations, seed=42) -> state # init + loop; collects monitor history
-wf.fit(fitness=..., generations=...)  # mirror torch API if cheap
+wf.fit(fitness=..., generations=...)  # in-place fit helper
 ```
 
 Implementation sketch (binding):
@@ -355,83 +352,76 @@ the monitor CONFIG object (plain Python lists) and are appended by the workflow
 `get_best_solution`/`get_best_fitness`/`plot`.
 `plot(problem_pf=None, source="eval", **kwargs)` is implemented via the ported host-side
 `evox_etl.vis_tools` (returns a plotly `Figure`; warns + returns `None` when plotly is
-unavailable or no history was recorded — torch parity).
+unavailable or no history was recorded).
 Algorithms MAY expose an optional host-side `record_step(config, state, candidate,
 fitness) -> dict` hook; the workflow appends its dict to the monitor's `aux_history`
 (gated on `full_pop_history`), and `plot(source="pop")` reads `aux_history["fit"]`.
 
-## 5. Porting rules for algorithms
+## 5. Rules for algorithm implementations
 
-1. Port semantics 1:1 from the torch evox version in `src/evox/algorithms/` (read the
-   file; the math must match). `bound_method` handling, batch processing, mirrored
-   sampling etc. must be preserved.
-2. Replace `torch.where` → `evoxc.select` (or `enp.where`), `torch.clamp` → `evoxc.clamp`,
-   `torch.argsort` → `evoxc.argsort`, `torch.gather` → `evoxc.gather`, index writes →
-   `evoxc.scatter`, `torch.cumsum` → `evoxc.cumsum`, matmul → `evoxc.dot`.
-   torch `x.scatter`/index assignments must be rewritten with `evoxc.scatter` (replacement
-   only — never accumulate; if the torch code scatter-ADDS, restructure to compute
-   sums first, then scatter).
-3. `torch.linalg.eigh` → `evoxc.eigh` (CMA-ES).
-4. Any `torch.compile`/`vmap` annotations simply disappear — the whole step is one
+1. The math is fixed by the algorithm's published definition; `bound_method` handling,
+   batch processing, mirrored sampling etc. are part of the semantics and must be
+   preserved.
+2. Op mapping used throughout the package: `where` → `evoxc.select` (or `enp.where`),
+   `clamp` → `evoxc.clamp`, `argsort` → `evoxc.argsort`, `gather` → `evoxc.gather`,
+   index writes → `evoxc.scatter`, `cumsum` → `evoxc.cumsum`, matmul → `evoxc.dot`.
+   Index writes go through `evoxc.scatter` (replacement only — never accumulate; an
+   accumulating update must be restructured to compute sums first, then scatter).
+3. Eigen-decomposition → `evoxc.eigh` (CMA-ES).
+4. There is no per-function `compile`/`vmap` annotation — the whole step is one
    compiled graph.
-5. RNG: replace `torch.rand(...)` etc. with `evoxc.random.*` + key splitting from
-   `state.key`. Cross-check determinism: same seed → same trajectory (within fp32
-   tolerance) across backends.
-6. State dataclass field naming mirrors the torch evox `State` object's attribute names.
+5. RNG: `evoxc.random.*` with keys split from `state.key`. Determinism: same seed →
+   same trajectory (within fp32 tolerance) across backends.
+6. State dataclass field naming follows the 1.x `State` attribute names, which are the
+   public state vocabulary.
 7. Configs are frozen dataclasses; if an algorithm truly needs mutable aux data
    (e.g. monitor history), it lives on the workflow/monitor config (host-side).
-8. No Python control flow depending on tensor VALUES inside defn (use `evoxc.cond`/
+8. No Python control flow depending on tensor VALUES inside a trace (use `evoxc.cond`/
    `select`). Static Python control flow on shapes/config is fine.
 9. Numerical problems: `evaluate` = vectorized math over the (n, dim) tensor (never a
-   Python loop over n). CEC2022: port the formulas AND the input-data loading
+   Python loop over n). CEC2022: the formulas AND the input-data loading
    (cec2022_input_data as numpy arrays loaded via importlib.resources; input data is
    CONSTANT tensors baked via closure, not graph inputs).
-10. If some algorithm genuinely cannot be ported (uses an op `evoxc` lacks and no
-    composition exists), DO NOT fake it: leave it out and report it to the
-    parent agent with a reason. (Expectation: all 34 algorithms are portable.)
+10. If an algorithm genuinely cannot be expressed with the ops `evoxc` provides and no
+    composition exists, DO NOT fake it: leave it out and report it. (All 34 algorithms
+    are implemented today.)
 
 ## 6. Testing strategy
 
-`unit_test/etl/` mirrors the package:
-- **Correctness**: port the torch evox unit tests (`unit_test/`) 1:1 where they are
-  tensor-based; for every algorithm test, run the SAME problem/setup and assert the
-  final best fitness is close to the torch evox result (tolerance 1e-3 relative for
-  convergence-sensitive tests; for exact-determinism tests compare against `evoxc` numpy
-  backend golden).
-- **Cross-backend parity**: for each algorithm, run 3 generations with the numpy
-  backend and (where applicable) assert outputs match within 1e-5/bit-exact.
-- Run from a locally built writable test venv (build it as described in
-  `src/evox_etl/CONTEXT.md` "Environment"): `PYTHONPATH=src:<primary .venv
-  site-packages> <test-venv>/bin/python -m pytest unit_test/etl -x -q` (numpy
-  backend). The primary `/home/bill/Source/evox/.venv` is read-only and lacks
-  `evoxc`/`pytest`.
-- IMPORTANT: test files must not import torch (`evoxc`-only tests). Parity tests that
-  import both evox and evox_etl live in `unit_test/etl/parity/` and MAY import torch.
+`unit_test/etl/` mirrors the package and is the only test suite (numpy backend):
+- **Correctness**: every algorithm runs a real end-to-end optimization and asserts the
+  final best fitness reaches the expected basin (tolerance 1e-3 relative for
+  convergence-sensitive tests; exact-determinism tests compare against `evoxc` numpy
+  backend golden values).
+- **Reproducibility**: the same integer seed reproduces the same trajectory, and
+  changing the seed changes it.
+- Run with `PYTHONPATH=src <venv>/bin/python -m pytest -q` from the repo root (venv
+  recipe in `src/evox_etl/CONTEXT.md` "Environment").
+- IMPORTANT: no test file imports torch — the suite is `evoxc`-only.
 
 ## 7. Benchmarks
 
-`benchmarks/etl_vs_torch/` — comparison harness (see the CONTEXT.md there):
+`benchmarks/etl_vs_torch/` — the backend comparison harness (see the CONTEXT.md there;
+the `etl_vs_torch` directory name and the `etl-*` backend ids are frozen keys into the
+committed result JSONs):
 - SO: PSO, DE, CMA-ES, OpenES on Sphere/Rastrigin/Ackley; MO: NSGA2 (+ NSGA3, MOEAD)
   on DTLZ1/2.
 - Scales: small (pop=100, dim=10), medium (pop=1000, dim=50), large (pop=10000,
   dim=100) — SO; (pop=100/1000, 3 obj, dim=10/30) — MO. 100 generations.
-- Runners: torch-cpu, torch-cuda, etl-numpy-cpu, etl-iree-llvm-cpu, etl-iree-cuda,
-  etl-xla-cuda. Same seeds/algorithms. Output: table of wall-time per step + total,
-  fitness convergence, plus a markdown report comparing code style/cleanliness
-  (pros/cons).
+- Runners: `etl-numpy`, `etl-iree-llvm-cpu`, `etl-iree-cuda`, `etl-iree-rocm`,
+  `etl-xla-cuda`, `etl-xla-rocm` — same seeds/algorithms. Output: table of wall-time
+  per step + total, fitness convergence, and per-case HV/IGD with a comparison
+  verdict against the frozen `results/{suite}_torch-cpu.json` baseline (1.x
+  measurements, read as JSON only).
 
 ## 8. Environment
 
-No pre-provisioned venv. Build a writable test venv locally with `uv venv` +
-`uv pip install <path-to-evoxc-checkout> numpy pytest "torch>=2.6.0"` (install the
-EvoX Compiler from its source checkout — the one whose `pyproject.toml` has
-`name = "evoxc"`; a published `evoxc` distribution can be installed by bare name
-instead; torch-cpu wheels suffice — no GPU
-here) and run tests from it:
-`PYTHONPATH=src:/home/bill/Source/evox/.venv/lib/python3.13/site-packages`
-(that primary venv supplies plotly/torch). The primary
-`/home/bill/Source/evox/.venv` is read-only and lacks `evoxc`/`pytest`. ALWAYS use
-the locally built test venv for tests/benchmarks.
+Build a venv with `uv venv` + `uv pip install -e . pytest plotly pandas` (`evoxc` and
+`numpy` come from `pyproject.toml`; the compiled backends need the matching extras
+`evoxc[iree]`/`evoxc[tvm]`, and XLA needs a PJRT plugin found through
+`EVOXC_PJRT_PLUGIN`), then run tests from it with `PYTHONPATH=src`.
+`evox_etl` and `evox_etl_ext` are PEP 420 namespace packages, so `PYTHONPATH=src` is
+required in a source checkout. Lint with `ruff check src/evox_etl src/evox_etl_ext`.
 GPUs: on a GPU host, scan `nvidia-smi` for the most-free GPU before GPU runs.
 
 ## 9. EvoX Compiler repo fixes (merged into `evoxc` master)
@@ -445,16 +435,17 @@ test venv's `evoxc` install needs no task branch:
   (`evoxc` commit 71d721e);
 - the xla rank-0 staging fixes.
 evox_etl code must NOT depend on any of these fixes — it only needs the `evoxc` API
-already on master. If you hit an `evoxc` bug/missing feature while implementing,
-record it in `src/evox_etl/CONTEXT.md` under "EvoX Compiler issues found" (don't try to fix
+already on master. If you hit an `evoxc` bug/missing feature, record it in
+`src/evox_etl/CONTEXT.md` under "EvoX Compiler issues found" (don't try to fix
 `evoxc` yourself — escalate to the root agent).
 
 ## 10. Style rules
 
 - Type hints on all public functions. Docstrings 1-3 lines.
 - No classes with methods that mutate tensors. Functions only.
-- Keep files < ~500 lines; mirror torch evox file names so diffing is easy.
-- No torch/numpy imports in `src/evox_etl/**` (except `problems/numerical/cec2022.py`
-  may use numpy ONLY to load the shipped input-data files; never in graph code).
+- Keep files < ~500 lines; keep the 1.x file names so the layout stays familiar.
+- No torch imports anywhere in `src/evox_etl/**`; numpy is allowed only host-side
+  (`problems/numerical/cec2022.py` input-data loading, `make_*` preprocessing, metrics,
+  HPO, visualization) and never in graph code.
 - `from evoxc import tree_map, ...` and `import evoxc.numpy as enp`, `import evoxc.random as
   random` are the sanctioned imports. `evoxc` top level re-exports most ops.

@@ -1,10 +1,8 @@
-"""Functional ETL port of the torch evox PersistentES algorithm (step
-protocol).
+"""PersistentES on the step protocol, part of the 2.0 functional API.
 
 Plain (non-`@evoxc.defn`) functions: they may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.run`), since EvoX Compiler has no eager
-mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/persistent_es.py` exactly: `step` owns the
+mode. `step` owns the
 WHOLE generation (mirrored perturbation sampling + accumulation →
 `evaluate(candidates)` → persistent gradient update), with the
 workflow-injected `evaluate` closure standing in for torch's
@@ -37,7 +35,7 @@ Tensor = evoxc.SymbolicTensor
 
 @dataclass(frozen=True)
 class PersistentESConfig:
-    """PersistentES hyperparameters (same names/defaults as the torch evox __init__).
+    """PersistentES hyperparameters (same names/defaults as the 1.x evox __init__).
 
     Dumb frozen config storing plain static leaves: `center_init` arrives as a
     flat float32 tuple, normalized by `make_persistent_es` (static config —

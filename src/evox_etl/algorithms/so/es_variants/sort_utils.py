@@ -1,9 +1,8 @@
-"""Functional ETL port of the torch evox `sort_utils.py` helper.
+"""Sort helpers shared by the ES family, part of the 2.0 functional API.
 
 Plain (non-`@evoxc.defn`) function: it may only be called inside an active
 trace (a function passed to `evoxc.build`/`evoxc.evaluate`), since EvoX Compiler has no
-eager mode. Semantics mirror the torch original in
-`src/evox/algorithms/so/es_variants/sort_utils.py` exactly.
+eager mode.
 """
 
 import evoxc

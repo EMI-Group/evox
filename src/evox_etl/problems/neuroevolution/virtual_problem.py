@@ -1,11 +1,11 @@
-"""Functional ETL port of the torch ``VirtualProblem`` (virtual Gaussian-noise neuroevolution).
+"""Virtual Gaussian-noise neuroevolution problem, part of the 2.0 functional API.
 
-The torch ``src/evox/problems/neuroevolution/virtual_problem.py`` evaluates a
-population of Gaussian-noise-perturbed neural networks WITHOUT materializing the
+The problem evaluates a population of Gaussian-noise-perturbed neural networks WITHOUT materializing the
 full perturbed population: it receives the tuple ``(center_flat, seeds, sigma)``
 (not a ``(pop_size, dim)`` matrix) and regenerates each individual's weight/bias
-noise on demand from its ``seeds`` entry inside a fused Triton kernel.  This
-module reproduces the same payload protocol as a plain (traced) function
+noise on demand from its ``seeds`` entry (the 1.x tree did this inside a fused
+Triton kernel; here it is traced ``evoxc`` ops).  This module implements that
+payload protocol as a plain (traced) function
 
     ``evaluate(config, problem_state, payload) -> (fitness, problem_state)``
 
@@ -20,7 +20,7 @@ The noise itself is the SHARED deterministic splitmix64 + Box-Muller stream of
 :mod:`evox_etl.algorithms.so.es_variants.virtual_noise` (the deliberate
 cross-subtree contract with the ``VirtualES``/``VirtualLoRAES`` algorithms).
 
-Notes / deliberate differences from the torch reference
+Notes / deliberate differences from the 1.x implementation
 -------------------------------------------------------
 1. **EvoX Compiler trade-off (materialization).**  Torch's fused kernel never
    materializes ``(out, in)`` noise; evoxc has no fused matmul, so this port DOES
@@ -118,7 +118,7 @@ class VirtualProblemConfig:
     lora_rank: int | None = None
 
 
-#: Class-free torch-parity aliases.
+#: Class-free aliases.
 VirtualProblem = VirtualProblemConfig
 VirtualLoRAProblem = VirtualProblem
 

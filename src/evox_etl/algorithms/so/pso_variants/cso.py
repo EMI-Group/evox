@@ -1,7 +1,7 @@
-"""Functional ETL port of the torch evox CSO algorithm.
+"""CSO, part of the 2.0 functional API.
 
-Step-protocol port of ``src/evox/algorithms/so/pso_variants/cso.py``
-(read-only torch reference): ``init``/``init_step``/``step`` plain functions,
+
+``init``/``init_step``/``step`` plain functions,
 each step-family function owning one full generation (candidate generation →
 ``evaluate`` → state update).  EvoX Compiler has no eager mode, so these functions only
 run inside an active trace via ``evoxc.build``/``evoxc.run``.

@@ -23,16 +23,16 @@ and the host-side HPO wrapper — running everything through `evoxc.build` +
   contract, and convergence driven through `StdWorkflow`.
 - `test_hpo_wrapper.py` — pure-ETL tests for the host-side HPO wrapper:
   `evaluate` runs the inner `StdWorkflow` with the substituted hyperparameters
-  (exact parity against a manually built workflow), the repeat/aggregation
+  (exact match against a manually built workflow), the repeat/aggregation
   policy, multi-objective inner problems, monitor edge cases, and `random_search`.
 
 ## Packaging
 - `__init__.py` in `problems/` makes it a distinct pytest package, so its test
   modules cannot collide with same-basename files in sibling suites.
-- `conftest.py` shims `sys.path` (repo root + `src/`) for the uninstalled PEP
-  420 `evox_etl` namespace package. It locates the repo root by searching
-  parents of `__file__` for `pyproject.toml` and is idempotent (no duplicate
-  sys.path entries).
+- `conftest.py` shims `sys.path` (repo root + `src/`) so the `evox_etl`
+  package under `src/` imports without an installation. It locates the repo
+  root by searching parents of `__file__` for `pyproject.toml` and is
+  idempotent (no duplicate sys.path entries).
 
 ## Run
 ```

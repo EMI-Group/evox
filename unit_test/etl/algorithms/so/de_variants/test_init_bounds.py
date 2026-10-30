@@ -1,7 +1,7 @@
 """Regression tests for the initial population of CoDE / SaDE / SHADE (no torch).
 
-The initial population must be drawn UNIFORMLY in ``[lb, ub]`` (upstream torch
-fix ported into ``evox_etl.algorithms.so.de_variants.{code,sade,shade}``). The
+The initial population must be drawn UNIFORMLY in ``[lb, ub]`` (upstream fix
+ported into ``evox_etl.algorithms.so.de_variants.{code,sade,shade}``). The
 test uses a tight box ``[3, 4]``: a uniform draw keeps every gene inside and
 covers the box roughly uniformly (mean 3.5, std 1/sqrt(12) ~ 0.2887), while a
 normal draw around the box visibly escapes it.

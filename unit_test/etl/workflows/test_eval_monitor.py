@@ -1,10 +1,9 @@
-"""Pure-ETL tests for the EvalMonitor shape policy (torch EvalMonitor parity).
+"""Pure-ETL tests for the EvalMonitor shape policy.
 
 The monitor stores the FULL evaluated batch as-is: the candidate/fitness
 leading dim may differ from ``pop_size`` (CoDE evaluates ``3 * pop_size``
-trials per generation, CSO ``pop_size // 2`` after its first generation —
-torch ``EvalMonitor.post_ask``/``pre_tell`` store the raw batch the same way,
-with no slicing to ``pop_size``). These tests drive the module-level
+trials per generation, CSO ``pop_size // 2`` after its first generation), with
+no slicing to ``pop_size``. These tests drive the module-level
 ``init``/``monitor_update`` functions directly through ``evoxc.build``/``evoxc.run``
 with several batch leading dims, pinning the monitor semantics independently
 of ``StdWorkflow``.
@@ -97,7 +96,7 @@ def test_mo_init_requires_n_obj():
 
 
 def test_so_update_stores_full_wide_batch():
-    """CoDE case: a (3*pop_size, dim) batch is stored whole (torch parity)."""
+    """CoDE case: a (3*pop_size, dim) batch is stored whole (no pop_size slice)."""
     pop, dim = 10, 3
     cfg = _so_cfg(pop_size=pop, dim=dim, topk=2)
     state = _run_init(cfg)
@@ -113,7 +112,7 @@ def test_so_update_stores_full_wide_batch():
 
 
 def test_so_update_stores_narrow_batch():
-    """CSO case: a (pop_size // 2, dim) batch is stored whole (torch parity)."""
+    """CSO case: a (pop_size // 2, dim) batch is stored whole (no pop_size slice)."""
     cfg = _so_cfg(pop_size=10, dim=3, topk=2)
     state = _run_init(cfg)
     cand = np.ones((5, 3), dtype=np.float32)

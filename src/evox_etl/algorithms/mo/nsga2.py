@@ -1,6 +1,6 @@
-"""Functional port of the torch NSGA2 (`src/evox/algorithms/mo/nsga2.py`).
+"""NSGA-II, part of the 2.0 functional API.
 
-1:1 semantic port in step form (DESIGN.md §4-5): `init` draws the population,
+Same semantics in step form (DESIGN.md §4-5): `init` draws the population,
 `init_step` owns the full-population first generation, and `step` owns one
 whole generation (tournament selection → SBX → polynomial mutation →
 `evaluate` → environmental selection). The candidates are evaluated inside

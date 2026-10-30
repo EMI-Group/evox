@@ -1,5 +1,5 @@
-"""Functional port of torch evox SaDE
-(``src/evox/algorithms/so/de_variants/sade.py``, read-only reference).
+"""SaDE (self-adaptive DE), part of the 2.0 functional API.
+
 
 Port notes:
 - ``step`` owns ONE full generation (torch ``SaDE.step``): adaptive strategy

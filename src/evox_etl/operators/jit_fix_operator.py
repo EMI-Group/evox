@@ -1,33 +1,31 @@
-"""ETL port of the torch evox ``utils/jit_fix_operator.py`` helpers + shared gather util.
+"""Compatibility helpers (clamp/maximum/...) + shared gather util.
 
-Functional (plain, NOT ``@evoxc.defn``) ports of the torch helper functions in
-``src/evox/utils/jit_fix_operator.py`` (read-only reference). The torch
-algorithms call these instead of raw ``torch.clamp``/``torch.maximum``/... for
-JIT-operator-fusion safety; the evoxc ports keep the exact same math (relu
-composition), which the algorithm ports rely on for torch parity.
+Plain (NOT ``@evoxc.defn``) functions.  Algorithms call these instead of raw
+``evoxc`` ops wherever the classic code needed JIT-operator-fusion safety; the
+math is identical (relu composition).
 
-Canonical evox_etl.operators only mirrors the torch ``operators/`` package, so
-these utils (which torch keeps in ``evox/utils/``) had no canonical home — this
-module is it. All functions are plain Python: they may only be called inside an
-active evoxc trace (the EvoX Compiler has no eager mode).
+This module is their canonical home: ``evox_etl.operators`` mirrors the classic
+``operators/`` package surface, while these helpers (historically kept in
+``evox/utils/``) live here.  All functions are plain Python: they may only be
+called inside an active evoxc trace (the EvoX Compiler has no eager mode).
 
-Torch name -> evoxc adaptation:
+1.x name -> evoxc adaptation:
 - ``switch`` — per-element select from a list of tensors; the torch
   ``torch.where`` chain becomes an ``evoxc.select`` chain (1:1).
 - ``clamp``/``clamp_float``/``clamp_int`` — relu-based clamps (1:1).
 - ``clip`` — clamp into [0, 1] (1:1; torch invokes ``clamp(a, 0, 1)``).
 - ``maximum``/``minimum`` (+ ``_int``/``_float`` variants) — relu-based elementwise ops (1:1).
-- ``lexsort(keys, dim=-1)`` — stable multi-key argsort; like the torch original,
+- ``lexsort(keys, dim=-1)`` — stable multi-key argsort; like the 1.x implementation,
   the LAST key is primary (numpy lexsort convention; verified against torch).
 - ``nanmin``/``nanmax`` — NaN-ignoring min/max returning ``(values, indices)``.
-- ``randint(key, low, high, size, dtype=None)`` — torch-style tensor-scalar
+- ``randint(key, low, high, size, dtype=None)`` — 1.x-style tensor-scalar
   randint; gains a leading ``key`` (evoxc RNG is stateless; the torch signature
   is ``randint(low, high, size, ...)``).
 - ``_take_along_axis(x, indices, axis)`` — torch ``gather``/``take_along_axis``
   semantics for 1-D/2-D tensors (``evoxc.gather`` is numpy-take). Used by the
   algorithm ports for row/column-local selection. NOTE: an equivalent private
   helper lives in ``evox_etl/operators/selection/non_dominate.py`` (pre-existing,
-  kept separate to avoid touching torch-parity-verified operators).
+  kept separate to avoid touching the already-verified operators).
 """
 
 from typing import Any, List, Optional, Sequence, Tuple, Union
@@ -151,10 +149,9 @@ def _torch_gather(x: Tensor, indices: Tensor, dim: int) -> Tensor:
 def lexsort(keys: List[Tensor], dim: int = -1) -> Tensor:
     """Indices sorting along `dim` lexicographically (LAST key primary), stable.
 
-    Exact port of the torch evox ``lexsort`` (``src/evox/utils/jit_fix_operator.py``
-    lines 216-252): stable-argsort by ``keys[0]``, then refine with each later key.
-    Like the torch original, the last key ends up the primary sort key (numpy
-    lexsort convention); earlier keys only break ties.
+    Stable-argsort by ``keys[0]``, then refine with each later key; the last key
+    ends up the primary sort key (numpy lexsort convention); earlier keys only
+    break ties.
     """
     axis = dim % len(keys[0].shape)
     sorted_indices = evoxc.argsort(keys[0], axis=axis, stable=True)

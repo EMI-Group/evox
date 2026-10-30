@@ -2,7 +2,8 @@
 ## Intent
 pytest suite for `evox_etl.vis_tools` (Plotly figure builders + the EvoXVision
 `.exv` binary serialization format). Numpy/plotly only — no torch. Runnable
-without installing `evox_etl` (PEP 420 namespace package under `src/`).
+without installing `evox_etl` (regular package under `src/`, imported through
+the `conftest.py` shim).
 ## Files
 - `conftest.py` — sys.path shim (repo root + `src/`), idempotent, locations
   computed from `__file__`.

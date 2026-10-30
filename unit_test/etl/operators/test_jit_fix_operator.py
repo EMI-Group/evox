@@ -1,6 +1,6 @@
 """Property tests for the jit-fix operator utils (ETL only, NO torch).
 
-Covers the ``torch.where``/``torch.clamp``-fusion replacements ported to
+Covers the ``where``/``clamp``-fusion replacements ported to
 ``evox_etl/operators/jit_fix_operator.py``: ``switch``, ``clip``,
 ``maximum_float`` and ``minimum_float``. Like every plain function in that
 module these are trace-only (evoxc has no eager mode), so each one is driven

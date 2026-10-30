@@ -1,10 +1,9 @@
-"""Functional ETL port of the torch evox HypE algorithm (plain functions).
+"""HypE, part of the 2.0 functional API (plain functions).
 
-1:1 port of the read-only torch reference ``src/evox/algorithms/mo/hype.py``
-as plain ``init/init_step/step`` functions following the step protocol of
+Plain ``init/init_step/step`` functions following the step protocol of
 ``evox_etl.core.algorithm`` (no ``@evoxc.defn`` — EvoX Compiler has no eager mode, see
-DESIGN.md §4.3). The torch class does everything inside ``step()``; here the
-fused ``step`` is selection → crossover → mutation → clamp →
+DESIGN.md §4.3). One fused ``step`` does
+selection → crossover → mutation → clamp →
 ``fitness = evaluate(offspring)`` → merge → rank → hypervolume truncation.
 Because ``evaluate`` is an opaque closure that only returns fitness, the
 offspring batch is carried in the ``offspring`` state leaf between the two
@@ -36,14 +35,14 @@ class HypEConfig:
     registered as an opaque childless pytree node because of the optional
     callable op fields below).
 
-    Signature parity: the torch ``HypE.__init__`` accepts optional selection,
+    Signature compatibility: the torch ``HypE.__init__`` accepts optional selection,
     mutation, and crossover operators. ``mutation_op``/``crossover_op`` are
     honored here; ``None`` means the torch default (``polynomial_mutation`` /
     ``simulated_binary``). A custom ``crossover_op`` is called as
     ``crossover_op(key, x)`` and a custom ``mutation_op`` as
     ``mutation_op(key, x, lb, ub)`` (the evoxc operators take an explicit RNG key
     and baked (dim,) float32 bounds). ``selection_op`` is deliberately NOT
-    exposed: the torch reference accepts it but immediately overwrites
+    exposed: the 1.x implementation accepts it but immediately overwrites
     ``self.selection`` with ``tournament_selection``, so it is inert there too
     and this port keeps the hard-coded ``tournament_selection``.
     """

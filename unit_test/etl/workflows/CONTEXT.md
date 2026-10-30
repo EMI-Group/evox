@@ -2,7 +2,8 @@
 ## Intent
 pytest suite for `evox_etl.workflows` (EvalMonitor semantics + StdWorkflow
 monitor/history behavior). Numpy backend only — no torch imports. Runnable
-without installing `evox_etl` (it is a PEP 420 namespace package under `src/`).
+without installing `evox_etl` (regular package under `src/`, imported through
+the `conftest.py` shim).
 ## Files
 - `conftest.py` — sys.path shim (repo root + `src/`), idempotent, locations
   computed from `__file__`. Shared bootstrap; do NOT add a second conftest.

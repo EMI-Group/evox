@@ -1,4 +1,4 @@
-"""Functional ETL port of the torch evox VirtualES algorithm (step protocol).
+"""VirtualES (training-free virtual population), part of the 2.0 functional API (step protocol).
 
 Instead of materialising a full ``(pop_size, dim)`` population, VirtualES
 stores a center vector ``(dim,)`` plus ``(pop_size,)`` integer seeds; the
@@ -7,8 +7,7 @@ deterministically on demand by
 :mod:`evox_etl.algorithms.so.es_variants.virtual_noise` (O(dim) memory instead
 of O(pop_size * dim)).
 
-``step`` mirrors the torch original in
-``src/evox/algorithms/so/es_variants/virtual_es.py``: resample the seeds, call
+``step``: resample the seeds, call
 ``evaluate((center, seeds, sigma))`` (the workflow routes that payload to a
 virtual-population problem), rebuild the SAME noise from those seeds, form the
 fitness-weighted ES gradient estimate and update the center.
@@ -168,11 +167,11 @@ def monitor_candidate(payload: tuple[Tensor, Tensor, float]) -> Tensor:
     return enp.broadcast_to(center, (int(seeds.shape[0]), int(center.shape[0])))
 
 
-# Torch parity: `virtual_es.py:122` ends with the alias `VirtualLoRAES = VirtualES`.
+# API compatibility: the 1.x `virtual_es.py` ends with the alias `VirtualLoRAES = VirtualES`.
 # The evox_etl algorithm handle IS its config dataclass, so `VirtualES` here is
 # the VirtualES config; the DISTINCT low-rank port lives in `virtual_lora_es.py`
 # as `VirtualLoRAESConfig` (which the package `__init__`s expose as the
-# torch-style bare name `VirtualLoRAES`).
+# 1.x-style bare name `VirtualLoRAES`).
 VirtualES = VirtualESConfig
 VirtualLoRAES = VirtualES
 
@@ -188,6 +187,6 @@ def record_step(
     A PLAIN (non-``@evoxc.defn``) module-level function called by ``StdWorkflow``
     HOST-SIDE after each generation on concrete tensors; it returns this
     generation's search ``center``. ``candidate``/``fitness`` are
-    accepted-but-unused, exactly like the torch reference which ignores them.
+    accepted-but-unused, exactly like the 1.x implementation which ignores them.
     """
     return {"center": state.center}

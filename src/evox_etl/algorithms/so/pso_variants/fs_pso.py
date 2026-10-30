@@ -1,7 +1,7 @@
-"""Functional ETL port of the torch Feature-Selection PSO algorithm.
+"""Feature-Selection PSO (FSPSO), part of the 2.0 functional API.
 
-Step-protocol port of the read-only torch reference in
-``src/evox/algorithms/so/pso_variants/fs_pso.py``: ``init``/``init_step``/
+
+``init``/``init_step``/
 ``step`` plain functions (no ``@evoxc.defn``), each step-family function owning
 one full generation (candidate generation → ``evaluate`` → state update).
 numpy is used at trace time to bake constants and on the host in the config
@@ -97,7 +97,7 @@ def make_fs_pso(
 
 @dataclass(frozen=True)
 class FSPSOState:
-    """Tensor leaves only (float32 data + int64 key); mirrors the torch evox State fields."""
+    """Tensor leaves only (float32 data + int64 key); mirrors the 1.x evox State fields."""
 
     pop: Tensor
     fit: Tensor
@@ -145,7 +145,7 @@ def init_step(config: FSPSO, state: FSPSOState, evaluate: Any) -> FSPSOState:
 
     Evaluates the initial population via ``evaluate`` and seeds the local
     best fitness and the global best fitness from it (the global best
-    LOCATION is not updated — torch parity).  See `step` for more details.
+    LOCATION is not updated).  See `step` for more details.
     """
     fitness = evaluate(state.pop)
     return replace(

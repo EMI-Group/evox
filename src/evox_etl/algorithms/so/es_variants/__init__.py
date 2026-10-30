@@ -1,7 +1,7 @@
-"""Functional (evox_etl) ports of the torch evox Evolution-Strategies family.
+"""Evolution-strategy family of the 2.0 functional API.
 
-Mirrors the torch `__init__.py` exports (config dataclasses instead of
-classes), plus a `make_*` functional constructor alongside each config.
+Exports config dataclasses instead of
+classes, plus a `make_*` functional constructor alongside each config.
 Every module exposes the step protocol: plain `init(config, key) -> state`
 and `step(config, state, evaluate) -> state` functions owning ONE full
 generation each (sample → evaluate → update), with optional
@@ -73,7 +73,7 @@ from .snes import SNESConfig, make_snes
 from .virtual_es import VirtualES, VirtualESConfig, VirtualLoRAES, make_virtual_es
 from .virtual_lora_es import VirtualLoRAESConfig, make_virtual_lora_es
 
-# Torch parity: the torch family exports the BARE algorithm names, so mirror
+# API compatibility: the 1.x family exports the BARE algorithm names, so mirror
 # them here as aliases of the matching config dataclasses (the parent
 # `evox_etl.algorithms.so` / `evox_etl.algorithms` re-export the same objects).
 OpenES = OpenESConfig
@@ -89,7 +89,7 @@ GuidedES = GuidedESConfig
 ESMC = ESMCConfig
 CMAES = CMAESConfig
 
-# Torch parity for the virtual family: torch `so/es_variants/__init__.py` exports
+# API compatibility for the virtual family: the 1.x `so/es_variants/__init__.py` exports
 # the BARE names `VirtualES` / `VirtualLoRAES`, both coming from `virtual_es.py`
 # (where `VirtualLoRAES = VirtualES`), so torch's bare `VirtualLoRAES` is the
 # VirtualES class and the DISTINCT low-rank class in `virtual_lora_es.py` is

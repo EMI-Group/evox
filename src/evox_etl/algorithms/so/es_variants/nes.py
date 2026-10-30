@@ -1,8 +1,8 @@
-"""Functional ETL port of the torch evox xNES / SeparableNES algorithms (step
-protocol).
+"""xNES / SeparableNES on the step protocol, part of the 2.0 functional API.
 
-Plain-function (non-``@evoxc.defn``) ``init``/``step`` ports of the torch
-classes in ``src/evox/algorithms/so/es_variants/nes.py`` (read-only reference).
+
+Plain-function (non-``@evoxc.defn``) ``init``/``step`` implementations.
+
 EvoX Compiler has no eager mode: every op runs inside functions invoked via
 ``evoxc.build``/``evoxc.run``.  ``step`` owns the WHOLE generation (sample →
 ``evaluate(candidates)`` → natural-gradient update), with the workflow-injected
@@ -398,7 +398,7 @@ def record_step(
     the torch per-class ``record_step`` methods (this module hosts both
     algorithms, so a single function dispatches with ``isinstance``, exactly as
     ``init``/``step`` do above).  ``candidate``/``fitness`` are accepted for
-    signature parity with the other algorithms and ignored (torch ignores them
+    signature compatibility with the other algorithms and ignored (torch ignores them
     too).
 
     - xNES -> ``{"mean": state.mean, "sigma": state.sigma, "B": state.B}``

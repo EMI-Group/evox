@@ -1,12 +1,12 @@
-"""Functional ETL port of the torch DMS-PSO-EL algorithm.
+"""DMS-PSO-EL, part of the 2.0 functional API.
 
-Step-protocol port of the read-only reference
-``src/evox/algorithms/so/pso_variants/dms_pso_el.py``: ``init``/
+Step protocol:
+``init``/
 ``init_step``/``step`` plain functions, each step-family function owning one
 full generation (candidate generation → ``evaluate`` → state update).
 Dynamic sub-swarms regroup every `regrouped_iteration_num` steps and switch
 to a global-best strategy once `iteration >= 0.9 * max_iteration`
-(data-dependent, so the torch Python `if`s become `evoxc.cond`).
+(data-dependent, so the Python `if`s become `evoxc.cond`).
 """
 
 from dataclasses import dataclass, replace

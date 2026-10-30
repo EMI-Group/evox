@@ -4,8 +4,8 @@ Converted from loading the deprecated
 ``src/evox_etl/algorithms/_shim_selection_nd.py`` compat stub by path (a pure
 re-export of the canonical module); now imports the canonical
 ``evox_etl.operators.selection`` operators directly. ``dominate_relation`` is
-not exported at package level (mirrors torch), so it is imported from the
-``non_dominate`` submodule. Outputs were checked bit-for-bit against the torch
+not exported at package level, so it is imported from the
+``non_dominate`` submodule. Outputs were checked bit-for-bit against the
 reference implementation.
 
 Tests use ETL only — no torch import.
@@ -109,7 +109,7 @@ def test_nd_environmental_selection():
     assert x_sel.shape == (3, 2) and f_sel.shape == (3, 2)
     assert rank_sel.shape == (3,) and cd_sel.shape == (3,)
     assert np.all(np.isfinite(x_sel)) and np.all(np.isfinite(f_sel))
-    # selected solutions come from the rank-0 front only, in torch's exact order
+    # selected solutions come from the rank-0 front only, in the reference order
     np.testing.assert_array_equal(rank_sel, np.zeros(3, dtype=np.int32))
     np.testing.assert_array_equal(x_sel, X[[0, 3, 1]])
     np.testing.assert_array_equal(f_sel, F[[0, 3, 1]])
