@@ -3,14 +3,14 @@
 ## Intent
 This directory contains the **Sphinx-based documentation system** for EvoX, published on Read the Docs.
 It documents the **experimental EvoX 2.0 pre-release** — the functional package `src/evox_etl/` (import name `evox_etl`) built on the EvoX Compiler (`evoxc`) — and nothing else.
-The frozen EvoX 1.x torch package (`src/evox/`, `ModuleBase`/`Parameter`/`Mutable`, `torch.compile`/`vmap`, distributed workflow, Triton kernels, Brax/MuJoCo problems) is deliberately undocumented; it survives only in the "removed in 2.0" sections of `source/tutorial/tutorial_part7.md` and in short "not covered" notes at the top of guide sections.
+The EvoX 1.x torch package (`src/evox/`, deleted in 2.0: `ModuleBase`/`Parameter`/`Mutable`, `torch.compile`/`vmap`, distributed workflow, Triton kernels, Brax/MuJoCo problems) is deliberately undocumented; it survives only in the "removed in 2.0" sections of `source/tutorial/tutorial_part7.md` and in short "not covered" notes at the top of guide sections.
 The documentation is bilingual: English sources live under `source/`, Simplified Chinese under `source/locale/zh_CN/`.
 
 ## API Surface
 | File / Directory | Purpose |
 |---|---|
 | `Makefile` / `make.bat` | Route `html`, `clean`, … to `sphinx-build` |
-| `source/conf.py` | Sphinx configuration — extensions, shibuya theme, autodoc2 targets (`../../src/evox_etl`), i18n, nav links, `version = "2.0.0-pre"` |
+| `source/conf.py` | Sphinx configuration — extensions, shibuya theme, autodoc2 targets (`../../src/evox_etl`), i18n, nav links, `version = "2.0.0a1"` |
 | `source/index.md` | Root landing page (pre-release warning, quickstart, toctrees, grid cards) |
 | `source/` | English content: `tutorial/`, `guide/install/`, `guide/developer/`, `guide/advanced/`, `examples/`, `miscellaneous/`, `_static/`, `_templates/` |
 | `source/locale/zh_CN/` | Chinese resources: gettext catalog `LC_MESSAGES/docs.po` + partial manual tutorial translations |
@@ -37,7 +37,7 @@ cd docs && rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html s
 ## Constraints
 - **2.0 API only**: every snippet must be valid `evox_etl` code (frozen config dataclasses + `make_*`, `StdWorkflow(algorithm=…, problem=…, monitor=…, opt_direction=…, backend=…, device=…)`, stateless `key(seed)`, host-side `EvalMonitor`/metrics/`vis_tools`). Verify snippets against `src/evox_etl` before publishing.
 - **apidocs/ is generated** — never create, edit or commit files there.
-- **Backends are optional extras of the compiler, not of evox**: the default install runs on the `evoxc` numpy backend; `evox[vis]` adds Plotly; the compiled backends come from `evoxc[iree]`, `evoxc[tvm]`, `evoxc[compilers]` (the `evox` distribution declares only `vis`, `default`, `neuroevolution`, `test`, `docs`, `triton`); XLA has no pip extra and needs a user-built PJRT plugin selected via the `EVOXC_PJRT_PLUGIN` environment variable.
+- **Backends are optional extras of the compiler**: the default install runs on the `evoxc` numpy backend and `evox` declares `evoxc >= 0.1.0` + `numpy >= 2.0.0` as dependencies; `evox[vis]` adds Plotly/pandas; the compiled backends are the `evox[iree]`/`evox[tvm]`/`evox[compilers]` extras, which forward to `evoxc[iree]`/`evoxc[tvm]`/`evoxc[compilers]` (`all` bundles them with the vis extras); XLA has no pip extra and needs a user-built PJRT plugin selected via the `EVOXC_PJRT_PLUGIN` environment variable.
 - **Runtime floor is `evoxc`'s**: `evoxc` declares `requires-python = ">=3.11"`, so 3.11+ is the real floor for every documented snippet even though the `evox` metadata still says `>=3.10`.
 - **Count claims** must stay identical wherever they appear (EN + ZH): EvoX core **30+ algorithms** / **30+ benchmark problems**; EvoX ecosystem (EvoX + 13 related libraries) **140+ algorithms** / **240+ benchmark problems/environments**. Do not conflate them with a speedup claim.
 - **Bilingual policy**: English pages only under `source/`; translations under `source/locale/`. Tutorial parts are full-page manual translations copied over the English tree by the `.readthedocs.yaml` pre-build job; everything else uses the gettext `.po` catalog. New or changed pages are translated by hand — the build never machine-translates. `docs.po` is currently stale (extracted from the 1.x pages); unmatched entries are ignored by gettext and cannot fail the build. Refresh with `sphinx-build -b gettext` + `sphinx-intl update -p <potdir> -l zh_CN`, then translate.
@@ -45,9 +45,8 @@ cd docs && rm -rf source/apidocs && PYTHONPATH=../src python -m sphinx -b html s
 - `README.md`/`README_ZH.md`, `pyproject.toml` and other repo-root files are outside this node.
 
 ## Known Issues
-- `pyproject.toml` is still the 1.x manifest (torch + numpy dependencies, no `evoxc`, no `iree`/`tvm`/`compilers` extras), so `pip install "evox[iree]"` is a no-op and only `evoxc[iree]` installs a backend today; the install pages state both spellings and say which one works.
-- `src/evox_etl/__init__.py` reports `__version__ = "1.4.0"` while `source/conf.py` declares `version = "2.0.0-pre"`; no page uses a version string as a 2.0 verification step for this reason.
-- `src/evox_etl/problems/numerical/cec2022.py` resolves its data directory through the frozen torch tree (`src/evox/...`), so CEC2022 only works from a source checkout.
+- `2.0.0a1` is a PEP 440 pre-release and 1.4.0 is still the newest final release on PyPI, so a plain `pip install evox` keeps resolving the 1.x line; the install pages therefore lead with `pip install --pre evox==2.0.0a1` / `pip install "evox>=2.0.0a1"` and the source checkout, and spell the extras both ways (`evox[iree]` forwards to `evoxc[iree]`).
+- `src/evox_etl/__init__.py` derives `__version__` from `importlib.metadata.version("evox")` (`2.0.0a1` when installed, `0.0.0.dev0` in a bare source checkout) and `source/conf.py` declares `version = "2.0.0a1"`; both must be bumped together with `pyproject.toml` at release time.
 - `evoxc` raises the provider's raw import error for a device whose provider package is missing (`backend="numpy", device="cuda"` → `ModuleNotFoundError: No module named 'iree'`); `guide/advanced/backends.md` and `miscellaneous/selecting_gpu.md` describe device failures behaviourally instead of promising one exception class.
 - The gettext catalog `docs.po` still holds entries extracted from the 1.x pages (unmatched entries are ignored by gettext) and the tutorial translations cover only `index.md`, so the 2.0 tutorial is English-only until the Chinese rewrite lands.
 - The build is warning-free, so a `{doc}` target that resolves but points at the wrong chapter is invisible to it — check cross-page "next step" links by hand when editing.
