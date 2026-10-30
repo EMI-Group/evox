@@ -15,11 +15,17 @@ dataclasses remain importable for parity and are plain frozen dataclasses.
 """
 
 __all__ = [
+    "HypE",
     "HypEConfig",
+    "MOEAD",
     "MOEADConfig",
+    "NSGA2",
     "NSGA2Config",
+    "NSGA3",
     "NSGA3Config",
+    "RVEA",
     "RVEAConfig",
+    "RVEAa",
     "RVEAaConfig",
     "make_hype",
     "make_moead",
@@ -35,3 +41,14 @@ from .nsga2 import NSGA2Config, make_nsga2
 from .nsga3 import NSGA3Config, make_nsga3
 from .rvea import RVEAConfig, make_rvea
 from .rveaa import RVEAaConfig, make_rveaa
+
+# Torch parity: torch `algorithms/mo/__init__.py` exports the BARE algorithm
+# names; the same names are re-exported here (and by the parent
+# `evox_etl.algorithms`) as aliases of the matching config dataclasses.  The
+# `*Config` names and the `make_*` constructors stay the port-native spelling.
+HypE = HypEConfig
+MOEAD = MOEADConfig
+NSGA2 = NSGA2Config
+NSGA3 = NSGA3Config
+RVEA = RVEAConfig
+RVEAa = RVEAaConfig

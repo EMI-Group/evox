@@ -14,37 +14,48 @@ on demand, `virtual_lora_es` the same with low-rank `B @ A` perturbations for
 """
 
 __all__ = [
+    "OpenES",
     "OpenESConfig",
     "make_open_es",
+    "XNES",
     "XNESConfig",
     "make_xnes",
+    "SeparableNES",
     "SeparableNESConfig",
     "make_separable_nes",
+    "DES",
     "DESConfig",
     "make_des",
+    "SNES",
     "SNESConfig",
     "make_snes",
+    "ARS",
     "ARSConfig",
     "make_ars",
+    "ASEBO",
     "ASEBOConfig",
     "make_asebo",
+    "PersistentES",
     "PersistentESConfig",
     "make_persistent_es",
+    "NoiseReuseES",
     "NoiseReuseESConfig",
     "make_noise_reuse_es",
+    "GuidedES",
     "GuidedESConfig",
     "make_guided_es",
+    "ESMC",
     "ESMCConfig",
     "make_esmc",
+    "CMAES",
     "CMAESConfig",
     "make_cma_es",
+    "VirtualES",
     "VirtualESConfig",
     "make_virtual_es",
+    "VirtualLoRAES",
     "VirtualLoRAESConfig",
     "make_virtual_lora_es",
-    # torch-style bare names for the virtual family (see the note below)
-    "VirtualES",
-    "VirtualLoRAES",
 ]
 
 
@@ -62,11 +73,27 @@ from .snes import SNESConfig, make_snes
 from .virtual_es import VirtualES, VirtualESConfig, VirtualLoRAES, make_virtual_es
 from .virtual_lora_es import VirtualLoRAESConfig, make_virtual_lora_es
 
+# Torch parity: the torch family exports the BARE algorithm names, so mirror
+# them here as aliases of the matching config dataclasses (the parent
+# `evox_etl.algorithms.so` / `evox_etl.algorithms` re-export the same objects).
+OpenES = OpenESConfig
+XNES = XNESConfig
+SeparableNES = SeparableNESConfig
+DES = DESConfig
+SNES = SNESConfig
+ARS = ARSConfig
+ASEBO = ASEBOConfig
+PersistentES = PersistentESConfig
+NoiseReuseES = NoiseReuseESConfig
+GuidedES = GuidedESConfig
+ESMC = ESMCConfig
+CMAES = CMAESConfig
+
 # Torch parity for the virtual family: torch `so/es_variants/__init__.py` exports
 # the BARE names `VirtualES` / `VirtualLoRAES`, both coming from `virtual_es.py`
 # (where `VirtualLoRAES = VirtualES`), so torch's bare `VirtualLoRAES` is the
 # VirtualES class and the DISTINCT low-rank class in `virtual_lora_es.py` is
 # shadowed (reachable only by its module path).  The same names are re-exported
 # here; the distinct low-rank config is `VirtualLoRAESConfig` /
-# `virtual_lora_es.VirtualLoRAES`.  The other families here keep the
-# `*Config` + `make_*` convention.
+# `virtual_lora_es.VirtualLoRAES`.  The other families here export their
+# `*Config` + `make_*` names AND the bare aliases above.

@@ -3,8 +3,32 @@
 Plain (non-defn) functions, callable only inside an active evoxc trace (except
 ``parse_opt_direction``/``compose``, which are pure Python).  Mirrors the JAX
 evox v0.9.0 ``utils/common.py`` surface.  See DESIGN.md §4.3.
+
+The torch-1.x ``evox.utils`` jit-fix helpers (``switch``/``clamp*``/``clip``/
+``maximum*``/``minimum*``/``lexsort``/``nanmin``/``nanmax``/``randint``) are
+re-exported here so ``from evox_etl.utils import clamp`` keeps working; their
+CANONICAL home is ``evox_etl.operators.jit_fix_operator`` (import from there in
+new code).  The torch-only helpers with no port counterpart
+(``VmapInfo``/``register_vmap_op``/``ParamsAndVector``) are not re-exported.
 """
 
+from ..operators.jit_fix_operator import (
+    clamp,
+    clamp_float,
+    clamp_int,
+    clip,
+    lexsort,
+    maximum,
+    maximum_float,
+    maximum_int,
+    minimum,
+    minimum_float,
+    minimum_int,
+    nanmax,
+    nanmin,
+    randint,
+    switch,
+)
 from .common import (
     cal_max,
     chebyshev_dist,
@@ -47,4 +71,20 @@ __all__ = [
     "tree_leaves",
     "tree_map",
     "tree_unflatten",
+    # jit-fix helpers (canonical home: evox_etl.operators.jit_fix_operator)
+    "switch",
+    "clamp",
+    "clamp_int",
+    "clamp_float",
+    "clip",
+    "maximum",
+    "minimum",
+    "maximum_float",
+    "minimum_float",
+    "maximum_int",
+    "minimum_int",
+    "lexsort",
+    "nanmin",
+    "nanmax",
+    "randint",
 ]
