@@ -1,12 +1,12 @@
-"""Single-objective benchmark runner: torch evox (eager) vs evox_etl (compiled).
+"""Single-objective benchmark runner for the evox_etl (evoxc) port.
 
 Cases: {PSO, DE, CMA-ES, OpenES} x {Sphere, Rastrigin, Ackley} x
 scales {(100,10), (1000,50), (10000,100)}; 100 generations, seed 42.
 
-Torch path: ``StdWorkflow`` + ``EvalMonitor``, eager (compile_time = 0.0,
-note "eager"). Etl path: ``StdWorkflow(backend=..., device=...)``; the wall
-time of ``wf.init(seed=42)`` is recorded as compile time (graph build +
-compile). Both sides warm up 2 steps, then time the remaining steps.
+``StdWorkflow(backend=..., device=...)`` is built per case; the wall time of
+``wf.init(seed=42)`` is recorded as compile time (graph build + compile). The
+timed region is the same on every backend: first generation via
+``init_step``, 2 warmup steps, then ``gens`` timed steps.
 
 Any per-case exception is recorded as ``{"error": "<Type>: <msg>"}`` and the
 runner continues (exit code 0) — errors are always printed.
@@ -19,77 +19,8 @@ import sys
 import time
 from typing import Any
 
-import numpy as np
-
 import bench_common  # noqa: F401  (applies the sys.path shim at import time)
-
-# ---------------------------------------------------------------------------
-# torch path (eager)
-# ---------------------------------------------------------------------------
-
-
-def run_torch_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
-    import torch
-    from evox.algorithms import CMAES, DE, OpenES, PSO
-    from evox.problems.numerical import Ackley, Rastrigin, Sphere
-    from evox.workflows import EvalMonitor, StdWorkflow
-
-    device = bench_common.torch_device(backend)
-    torch.manual_seed(case.seed)
-
-    lb = torch.full((case.dim,), bench_common.SO_LB, dtype=torch.float32)
-    ub = torch.full((case.dim,), bench_common.SO_UB, dtype=torch.float32)
-    if case.algo == "PSO":
-        algo = PSO(case.pop_size, lb, ub, device=device)
-    elif case.algo == "DE":
-        algo = DE(case.pop_size, lb, ub, device=device)
-    elif case.algo == "CMAES":
-        algo = CMAES(
-            torch.full((case.dim,), bench_common.SO_ES_CENTER, dtype=torch.float32),
-            bench_common.CMAES_SIGMA,
-            pop_size=case.pop_size,
-            device=device,
-        )
-    else:  # OpenES
-        algo = OpenES(
-            case.pop_size,
-            torch.full((case.dim,), bench_common.SO_ES_CENTER, dtype=torch.float32),
-            bench_common.OPENES_LR,
-            bench_common.OPENES_NOISE_STDEV,
-            device=device,
-        )
-    problem = {"Sphere": Sphere, "Rastrigin": Rastrigin, "Ackley": Ackley}[
-        case.problem
-    ]()
-    monitor = EvalMonitor(full_fit_history=True)
-    workflow = StdWorkflow(
-        algorithm=algo,
-        problem=problem,
-        monitor=monitor,
-        opt_direction="min",
-        device=device,
-    )
-    workflow.init_step()
-    bench_common.run_steps(workflow.step, bench_common.WARMUP_STEPS)
-
-    sync = torch.cuda.synchronize if device == "cuda" else (lambda: None)
-    sync()  # drain warmup kernels before the timed window
-    t0 = time.perf_counter()
-    bench_common.run_steps(workflow.step, case.gens)
-    sync()  # include queued kernel execution in the timed window
-    run_time = time.perf_counter() - t0
-
-    best = float(monitor.get_best_fitness().cpu())
-    rec = bench_common.base_record(case, backend, n_obj=1)
-    rec.update(
-        compile_time_s=0.0,
-        run_time_s=run_time,
-        ms_per_step=1000.0 * run_time / case.gens,
-        metric={"best_fitness": best},
-        note="eager",
-    )
-    return rec
-
+import numpy as np
 
 # ---------------------------------------------------------------------------
 # etl path (compiled)
@@ -150,9 +81,9 @@ def run_etl_case(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
         _build, case.seed, label=case.case_id
     )
 
-    # Generation 0 goes through the explicit first-generation call (mirrors
-    # the torch path's ``workflow.init_step()``); the remaining generations
-    # use step(). Warmup then timing structure is unchanged.
+    # Generation 0 goes through the explicit first-generation call; the
+    # remaining generations use step(). Warmup then timing structure is
+    # unchanged across backends.
     state = workflow.init_step(state)
     for _ in range(bench_common.WARMUP_STEPS):
         state = workflow.step(state)
@@ -195,8 +126,6 @@ def _print_line(rec: dict[str, Any]) -> None:
 
 def run_one(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
     try:
-        if bench_common.is_torch_backend(backend):
-            return run_torch_case(case, backend)
         return run_etl_case(case, backend)
     except BaseException as exc:  # noqa: BLE001 — record and continue
         note = None
@@ -210,13 +139,13 @@ def run_one(case: bench_common.SOCase, backend: str) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="SO benchmarks: torch evox (eager) vs evox_etl (compiled)."
+        description="SO benchmark suite for the evox_etl (evoxc) port."
     )
     parser.add_argument(
         "--backend",
         choices=bench_common.ALL_BACKENDS,
-        default="torch-cpu",
-        help="backend under test (default: torch-cpu)",
+        required=True,
+        help="backend under test (one of: " + ", ".join(bench_common.ALL_BACKENDS) + ")",
     )
     parser.add_argument(
         "--gpu",
@@ -240,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.gpu is not None:
         # re-execs the process so the env recipe (CUDA / ROCm) is active
-        # before any torch/evoxc import
+        # before any evoxc import
         bench_common.ensure_backend_env(args.backend, args.gpu)
     gpu_error = bench_common.gpu_selection_error(args.backend, args.gpu)
     if gpu_error:

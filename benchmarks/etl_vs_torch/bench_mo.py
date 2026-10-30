@@ -1,4 +1,4 @@
-"""Multi-objective benchmark runner: torch evox (eager) vs evox_etl (compiled).
+"""Multi-objective benchmark runner for the evox_etl (evoxc) port.
 
 Cases: {NSGA2, NSGA3, MOEAD} x {DTLZ1, DTLZ2} x scales {(100,3,10),
 (1000,3,30)}; 100 generations, seed 42. After the run, the monitor's
@@ -6,7 +6,7 @@ whole-history Pareto front is scored with the shared numpy metric helpers
 (hv with ref [2.0]*n_obj, igd vs the seeded analytic front) so every backend
 is measured with IDENTICAL metric code.
 
-Known limit: the etl iree backends are shape-risky on the NSGA-family
+Known limit: the iree backends are shape-risky on the NSGA-family
 while-loops (GPU especially), and their MO compile can fail nondeterministically
 (an upstream iree recursion); the evoxc compile is therefore retried a few times
 per case (``bench_common.init_with_retry``). Failures are recorded with the
@@ -21,9 +21,8 @@ import sys
 import time
 from typing import Any
 
-import numpy as np
-
 import bench_common  # noqa: F401  (applies the sys.path shim at import time)
+import numpy as np
 
 MOEAD_EFFECTIVE_POP_NOTE = (
     "effective population is the Das-Dennis count (uniform_sampling overwrites "
@@ -44,120 +43,6 @@ def _mo_metrics(pf: Any, problem: str, n_obj: int) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# torch path (eager)
-# ---------------------------------------------------------------------------
-
-
-def _torch_pf_fitness(monitor: Any) -> np.ndarray:
-    """Memory-safe replacement for ``monitor.get_pf_fitness()`` (torch path).
-
-    The framework's ``get_pf_fitness`` runs ``non_dominate_rank`` over the
-    whole evaluation history, which materializes ``(n, n, m)`` domination
-    matrices (O(n**2) memory). At 1000-pop x 100 gens (n ~ 100k+) that needs
-    ~280 GB and gets the process OOM-killed (cpu and cuda alike). The Pareto
-    front of the union equals the Pareto front of the union of the
-    per-generation fronts (any dominated point is dominated by a
-    non-dominated point of the same generation), so this computes
-    per-generation fronts (n <= pop <= ~2000, O(n**2) fine), deduplicates the
-    union, and filters it incrementally in numpy (O(history x |pf|) time,
-    O(|pf|) memory). Same semantics as ``get_pf_fitness(deduplicate=True)``
-    under opt_direction "min".
-    """
-    from evox.operators.selection import non_dominate_rank
-
-    fronts = []
-    for fit in monitor.fitness_history:
-        fit = fit.detach().cpu()
-        rank = non_dominate_rank(fit)
-        fronts.append(fit[rank == 0].numpy())
-    if not fronts:
-        return np.empty((0, 0))
-    all_front = np.unique(np.concatenate(fronts, axis=0), axis=0)
-    # incremental Pareto filter (minimization: a dominates b iff a <= b
-    # elementwise and a < b in at least one objective)
-    pf = np.empty((0, all_front.shape[1]), dtype=all_front.dtype)
-    for row in all_front:
-        if pf.shape[0] == 0:
-            pf = row[None, :]
-            continue
-        dominated_by_pf = np.any(
-            np.all(pf <= row, axis=1) & np.any(pf < row, axis=1)
-        )
-        if dominated_by_pf:
-            continue
-        keep = ~(np.all(row <= pf, axis=1) & np.any(row < pf, axis=1))
-        pf = np.vstack([pf[keep], row])
-    return pf
-
-
-def run_torch_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
-    import torch
-    from evox.algorithms import MOEAD, NSGA2, NSGA3
-    from evox.problems.numerical import DTLZ1, DTLZ2
-    from evox.workflows import EvalMonitor, StdWorkflow
-
-    device = bench_common.torch_device(backend)
-    torch.manual_seed(case.seed)
-
-    # The torch MO algorithms allocate several tensors without an explicit
-    # device: the population init in NSGA2/NSGA3/MOEAD uses the raw lb/ub
-    # constructor arguments (not the device-moved copies), NSGA3's
-    # vmap_get_table_row indexes with torch.arange on
-    # torch.get_default_device(), and uniform_sampling builds the reference
-    # points / weight vectors on the default device. Run the whole case with
-    # the default device set to the target device (and lb/ub created on it)
-    # so every implicit allocation lands on the same device. The torch-cpu
-    # path is unaffected (its default device is cpu anyway).
-    prev_default = torch.get_default_device()
-    torch.set_default_device(device)
-    try:
-        lb = torch.full(
-            (case.dim,), bench_common.MO_LB, dtype=torch.float32, device=device
-        )
-        ub = torch.full(
-            (case.dim,), bench_common.MO_UB, dtype=torch.float32, device=device
-        )
-        algo_cls = {"NSGA2": NSGA2, "NSGA3": NSGA3, "MOEAD": MOEAD}[case.algo]
-        algo = algo_cls(case.pop_size, case.n_obj, lb, ub, device=device)
-        problem = {"DTLZ1": DTLZ1, "DTLZ2": DTLZ2}[case.problem](
-            d=case.dim, m=case.n_obj
-        )
-        monitor = EvalMonitor(multi_obj=True, full_fit_history=True)
-        workflow = StdWorkflow(
-            algorithm=algo,
-            problem=problem,
-            monitor=monitor,
-            opt_direction=["min"] * case.n_obj,
-            device=device,
-        )
-        workflow.init_step()
-        bench_common.run_steps(workflow.step, bench_common.WARMUP_STEPS)
-
-        sync = torch.cuda.synchronize if device == "cuda" else (lambda: None)
-        sync()  # drain warmup kernels before the timed window
-        t0 = time.perf_counter()
-        bench_common.run_steps(workflow.step, case.gens)
-        sync()  # include queued kernel execution in the timed window
-        run_time = time.perf_counter() - t0
-
-        # whole-history Pareto front; _torch_pf_fitness avoids the O(n**2)
-        # domination matrix that get_pf_fitness would materialize
-        pf = _torch_pf_fitness(monitor)
-    finally:
-        torch.set_default_device(prev_default)
-    rec = bench_common.base_record(case, backend, n_obj=case.n_obj)
-    rec.update(
-        compile_time_s=0.0,
-        run_time_s=run_time,
-        ms_per_step=1000.0 * run_time / case.gens,
-        metric=_mo_metrics(pf, case.problem, case.n_obj),
-        note="eager"
-        + (f"; {MOEAD_EFFECTIVE_POP_NOTE}" if case.algo == "MOEAD" else ""),
-    )
-    return rec
-
-
-# ---------------------------------------------------------------------------
 # etl path (compiled)
 # ---------------------------------------------------------------------------
 
@@ -169,15 +54,13 @@ def _etl_pf_fitness(monitor: Any) -> np.ndarray:
     history with the O(n**2) domination matrix (``non_dominate_rank``
     materializes (n, n, m) broadcast intermediates); at 1000-pop x 100 gens
     (n ~ 100k+) each intermediate needs ~120 GB and the process is
-    OOM-killed — the same limitation documented for the torch
-    ``get_pf_fitness`` (see ``_torch_pf_fitness``). The Pareto front of the
-    union equals the Pareto front of the union of the per-generation fronts,
-    so this ranks each generation separately (n <= pop <= ~2000, O(n**2)
-    fine) with the monitor's own rank operator, then deduplicates the union
-    and filters it incrementally in numpy — same semantics as
-    ``get_pf_fitness(deduplicate=True)`` under opt_direction "min"
-    (``get_fitness_history`` undoes the opt-direction scaling exactly like
-    ``get_pf_fitness`` does).
+    OOM-killed. The Pareto front of the union equals the Pareto front of the
+    union of the per-generation fronts, so this ranks each generation
+    separately (n <= pop <= ~2000, O(n**2) fine) with the monitor's own rank
+    operator, then deduplicates the union and filters it incrementally in
+    numpy — same semantics as ``get_pf_fitness(deduplicate=True)`` under
+    opt_direction "min" (``get_fitness_history`` undoes the opt-direction
+    scaling exactly like ``get_pf_fitness`` does).
     """
     fronts = []
     for fit in monitor.get_fitness_history():
@@ -246,9 +129,9 @@ def run_etl_case(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
         _build, case.seed, label=case.case_id
     )
 
-    # Generation 0 goes through the explicit first-generation call (mirrors
-    # the torch path's ``workflow.init_step()``); the remaining generations
-    # use step(). Warmup then timing structure is unchanged.
+    # Generation 0 goes through the explicit first-generation call; the
+    # remaining generations use step(). Warmup then timing structure is
+    # unchanged across backends.
     state = workflow.init_step(state)
     for _ in range(bench_common.WARMUP_STEPS):
         state = workflow.step(state)
@@ -295,8 +178,6 @@ def _print_line(rec: dict[str, Any]) -> None:
 
 def run_one(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
     try:
-        if bench_common.is_torch_backend(backend):
-            return run_torch_case(case, backend)
         return run_etl_case(case, backend)
     except BaseException as exc:  # noqa: BLE001 — record and continue
         note = None
@@ -309,13 +190,13 @@ def run_one(case: bench_common.MOCase, backend: str) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="MO benchmarks: torch evox (eager) vs evox_etl (compiled)."
+        description="MO benchmark suite for the evox_etl (evoxc) port."
     )
     parser.add_argument(
         "--backend",
         choices=bench_common.ALL_BACKENDS,
-        default="torch-cpu",
-        help="backend under test (default: torch-cpu)",
+        required=True,
+        help="backend under test (one of: " + ", ".join(bench_common.ALL_BACKENDS) + ")",
     )
     parser.add_argument(
         "--gpu",
@@ -339,7 +220,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.gpu is not None:
         # re-execs the process so the env recipe (CUDA / ROCm) is active
-        # before any torch/evoxc import
+        # before any evoxc import
         bench_common.ensure_backend_env(args.backend, args.gpu)
     gpu_error = bench_common.gpu_selection_error(args.backend, args.gpu)
     if gpu_error:

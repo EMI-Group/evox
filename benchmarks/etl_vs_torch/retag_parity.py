@@ -8,6 +8,11 @@ parity block they attach at save time lacks the documented annotation
 conventions (machine-zero rule, skip reasons, not-ok notes). Partial runs are
 therefore written with ``--out <tmp>`` and merged back with this script.
 
+Everything here is stdlib JSON handling: the parity baseline
+``results/{suite}_torch-cpu.json`` is a FROZEN HISTORICAL artefact (the 1.x
+torch reference measurements). It is only read, never written, and no torch
+code is involved — ``torch-cpu`` is a baseline label, not a runnable backend.
+
 Verdict rules (identical to the conventions used for the original 12 JSONs):
   * rel_err <= 0.10                          -> ok, note=null
   * both sides <= 1e-4 (SO best_fitness; MO hv AND igd)
@@ -25,6 +30,7 @@ Usage:
   python3 retag_parity.py --suite so --backend etl-xla-cuda --partial /tmp/p.json
       [--cap-note "text appended to capped records' note"]
       [--note-override CASE_ID=TEXT]... [--case CASE_ID] [--apply]
+  python3 retag_parity.py --suite so --backend etl-numpy --case PSO/Sphere/100x10
 
 Without ``--apply`` it prints the verdicts it would write (dry run).
 Without ``--partial``, the touched set is ``--case`` (repeatable) or every
@@ -57,9 +63,14 @@ def _rel_err(value: float, ref_value: float) -> float:
 
 
 def compute_parity(suite: str, rec: dict, baseline_rec: dict | None, backend: str) -> dict:
-    """Recompute the parity block for one record per the committed rules."""
+    """Recompute the parity block for one record per the committed rules.
+
+    ``backend`` is the ``"vs"`` label written into the block (always the
+    frozen baseline id ``torch-cpu``); the baseline record itself never
+    carries a parity block.
+    """
     if rec.get("backend") == "torch-cpu":
-        return None  # the baseline itself never carries a parity block
+        return None  # the frozen baseline artefact tags nothing against itself
     if rec.get("error"):
         return {"vs": backend, "ok": None, "skip": "backend error"}
     if baseline_rec is None or baseline_rec.get("error"):
@@ -115,8 +126,17 @@ def compute_parity(suite: str, rec: dict, baseline_rec: dict | None, backend: st
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--suite", choices=["so", "mo"], required=True)
-    ap.add_argument("--backend", required=True)
+    ap.add_argument(
+        "--suite",
+        choices=["so", "mo"],
+        required=True,
+        help="case suite (the results file is results/<suite>_<backend>.json)",
+    )
+    ap.add_argument(
+        "--backend",
+        required=True,
+        help="backend id of the results file to retag (e.g. etl-numpy, etl-xla-cuda)",
+    )
     ap.add_argument("--partial", default=None, help="partial run JSON to merge")
     ap.add_argument("--case", action="append", default=[], help="case_id to retag (repeatable)")
     ap.add_argument("--cap-note", default=None, help="text appended to capped records' note")
@@ -160,6 +180,7 @@ def main(argv: list[str] | None = None) -> int:
         cid, _, text = ov.partition("=")
         set_notes[cid] = text
 
+    # frozen historical baseline (1.x torch reference measurements), read only
     baseline_path = RESULTS_DIR / f"{args.suite}_torch-cpu.json"
     baseline = load(baseline_path) if baseline_path.is_file() else []
     base_by_id = {r["case_id"]: r for r in baseline}
