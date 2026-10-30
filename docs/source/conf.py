@@ -54,14 +54,16 @@ autodoc2_packages = [
     "../../src/evox_etl",
 ]
 
+# ``autodoc2_module_all_regexes`` makes autodoc2 filter members through a
+# module's ``__all__``; it errors out for any matching module that has no
+# ``__all__``. In ``evox_etl`` only these four packages define ``__all__`` in
+# every module (the algorithm/operator/metric/vis_tools leaf modules do not), so
+# the filter is restricted to them — everything else is documented by its public
+# member set.
 autodoc2_module_all_regexes = [
-    r"evox_etl\.algorithms\..*",
     r"evox_etl\.core\..*",
-    r"evox_etl\.metrics\..*",
-    r"evox_etl\.operators\..*",
     r"evox_etl\.problems\..*",
     r"evox_etl\.utils\..*",
-    r"evox_etl\.vis_tools\..*",
     r"evox_etl\.workflows\..*",
 ]
 

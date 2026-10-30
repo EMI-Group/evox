@@ -48,11 +48,12 @@ The 2.0 programming model is **functional end to end**:
 
 ```python
 from evox_etl import StdWorkflow, EvalMonitorConfig
-from evox_etl.algorithms import PSO
+from evox_etl.algorithms import make_pso
 from evox_etl.problems import Sphere
 
+dim = 10
 workflow = StdWorkflow(
-    algorithm=PSO(pop_size=100, lb=-100.0, ub=100.0, dim=10),
+    algorithm=make_pso(100, lb=[-100.0] * dim, ub=[100.0] * dim),
     problem=Sphere(),
     monitor=EvalMonitorConfig(),
     opt_direction="min",
