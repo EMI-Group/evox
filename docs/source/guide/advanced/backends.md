@@ -167,7 +167,8 @@ The numbers on this page are workload-dependent measurements from `benchmarks/et
 (RTX A6000, seed 42, 100 generations), summarized in `REFACTOR_REPORT.md` §3: at 10⁴ × 10²,
 XLA-on-CUDA runs PSO/DE/OpenES in 8–18 ms/step (torch-cpu 8–36 ms/step, IREE-on-CUDA ~3.5 s/step);
 on the MO matrix XLA-on-CUDA runs all 12 cases at a median **28× faster than torch-cpu**; large-scale
-CMA-ES is the slowest evoxc cell. A hand-written CUDA kernel stack (the frozen 1.x torch build) is still
+CMA-ES is the slowest evoxc cell. A hand-written CUDA kernel stack (the released 1.x torch build, no
+longer in this repository) is still
 faster at the very largest single-objective batches — PSO ~1.1 vs XLA-on-CUDA ~17 ms/step — so the gain
 is portability across CPU/CUDA/ROCm from one program, not peak kernel throughput.
 

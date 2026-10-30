@@ -3,7 +3,7 @@
 This page is for you if you already have an EvoX 1.x script and want it running on EvoX 2.0.
 
 EvoX 2.0 is an **experimental pre-release**. It is imported as `evox_etl`, it is a functional rewrite built on the `evoxc` compiler, and it replaces the torch object model that 1.x shipped in `src/evox/`.
-The 1.x tree is frozen and scheduled for deletion, so it receives no fixes and no new features; the public surface for 2.0 is `src/evox_etl/`.
+The 1.x tree was deleted when 2.0 landed (it survives only in the released 1.x distributions on PyPI), so it receives no fixes and no new features; the public surface for 2.0 is `src/evox_etl/`.
 
 "The 1.x API is removed" means exactly that, not "deprecated with a warning": there is no `ModuleBase`, no `Parameter` and no `Mutable`; no `evox.core.compile`, `vmap` or `use_state`; no class-component `StdWorkflow` (the constructor keeps its name and argument order, but every component it receives is now a frozen config dataclass); and no distributed workflow switch.
 `evox_etl` imports nothing from `src/evox/` and nothing from torch, so 1.x code does not merely warn at import time — it simply is not there.

@@ -201,5 +201,5 @@ This page documents the **experimental EvoX 2.0 pre-release**. `evox_etl` is a f
 running on the `evoxc` tensor-graph compiler, so these signatures may still change before 2.0. For
 custom algorithms and problems see {doc}`../developer/custom-alg-pro`; for the end-to-end
 multi-objective walkthrough see {doc}`../../tutorial/tutorial_part6`. The 1.x `torch`-based `evox`
-package is scheduled for removal and is not covered here.
+package was removed in 2.0 and is not covered here.
 ```

@@ -50,7 +50,7 @@ extensions = [
 
 # The API documentation is generated from the functional EvoX 2.0 package ONLY
 # (``src/evox_etl``, built on the ``evoxc`` compiler). The 1.x torch package
-# ``src/evox`` is not scanned: it is frozen and scheduled for removal.
+# ``src/evox`` is not scanned: it was deleted in 2.0 and no longer exists.
 autodoc2_packages = [
     "../../src/evox_etl",
 ]
