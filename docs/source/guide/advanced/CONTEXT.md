@@ -17,7 +17,7 @@ The section landing page `index.md` is the single entry point; the root `docs/so
 | `extensions.md` | `evox_etl_ext` PEP 420 namespace, import-time `auto_load_extensions()`, per-domain `setattr` merge semantics, functional extension contract, minimal package layout, autoload tests |
 
 ## Known Issues
-- The `evox[iree]`/`evox[tvm]`/`evox[compilers]` extras are documented as the intended 2.0 surface, but only the `evoxc[...]` spellings exist in the current manifests; `backends.md` states this once and defers to `../install/evox`.
+- The `evox[iree]`/`evox[tvm]`/`evox[compilers]` extras forward to the compiler's `evoxc[iree]`/`evoxc[tvm]`/`evoxc[compilers]`, so both spellings install the same toolchain; `backends.md` says so once and defers to `../install/evox`.
 - Three `backends.md` blocks are labelled excerpts and are not executed: the `StdWorkflow` constructor sketch and the IREE/XLA alternatives reuse `algorithm`/`problem`, and the `_build_step_exe` fragment is abridged source with a bare `return`.
 - `metrics.md` `gd_plus` uses `max(pf - obj, 0)`: a front point *better* than the solution contributes nothing, so the score is `0` when every solution is weakly dominated by a front point — the opposite direction from textbook GD+, and the page says so.
 - The `metrics.md` worked NSGA2+DTLZ2 block emits a benign `RuntimeWarning: divide by zero` from the crowding-distance normalisation; the page notes it, matching `hpo.md`.
