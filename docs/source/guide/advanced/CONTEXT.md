@@ -20,7 +20,7 @@ The section landing page `index.md` is the single entry point; the root `docs/so
 - Every runnable Python block on every page was executed against this repository on the NumPy backend (`PYTHONPATH=src /tmp/venv/bin/python`); keep it that way when editing.
 - Three `backends.md` blocks are illustrative fragments or compiled-backend-only and cannot be executed as written (undefined `algorithm`/`problem`, an abridged `_build_step_exe` excerpt, an `iree`/`xla` re-run).
 - `evoxc` has no eager mode: examples must trace through `evoxc.build` + `evoxc.run` (or a `StdWorkflow` step) and use `.numpy()` on results — never `np.asarray` on a `Tensor`.
-- Backends other than `numpy` are optional extras (`evox[iree]`, `evox[tvm]`, `evox[compilers]`); XLA has no extra and needs a user-supplied PJRT plugin, so no page claims to have run a compiled backend here.
+- Compiled backends are opt-in: `pyproject.toml` defines only the `vis`, `neuroevolution`, `test`, `docs`, `default` and `triton` extras — there is no `iree`, `tvm`, `compilers` or `cuda` extra; XLA has no extra and needs a user-supplied PJRT plugin, so no page here claims to have run a compiled backend.
 - Performance statements are quoted only from `REFACTOR_REPORT.md` §3/§6 and `benchmarks/etl_vs_torch/`, never invented.
 - One H1 per page, MyST Markdown, and the shared `{warning}` block marking the experimental 2.0 pre-release on every content page.
 - Cross-references use agreed paths (`../install/evox`, `../install/python`, `../developer/architecture`, `../developer/custom-alg-pro`, `../../tutorial/tutorial_part2`…`part7`, sibling `{doc}` links); pages owned by other agents may not exist yet.
