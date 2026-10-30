@@ -26,4 +26,4 @@ Do not reference the deleted 1.x notebooks, and do not edit `conf.py`, `source/i
 
 ## Routing Table
 This is a leaf directory: all content is in the four pages listed above.
-Related documentation lives elsewhere — `../tutorial/tutorial_part2` (workflow internals), `../tutorial/tutorial_part6` (backends), `../tutorial/tutorial_part7` (1.x migration), `../guide/advanced/metrics`, `../guide/advanced/viz`, `../guide/advanced/hpo`, `../guide/developer/custom-alg-pro`.
+Related documentation lives elsewhere — `../tutorial/tutorial_part2` (PSO walkthrough), `../tutorial/tutorial_part6` (multi-objective chapter, overlapping `mo.md`), `../tutorial/tutorial_part7` (1.x migration), `../guide/advanced/backends`, `../guide/advanced/metrics`, `../guide/advanced/viz`, `../guide/advanced/hpo`, `../guide/developer/custom-alg-pro`.
