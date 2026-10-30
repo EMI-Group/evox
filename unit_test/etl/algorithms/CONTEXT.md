@@ -12,6 +12,12 @@ problem) convergence tests live under `so/es_variants/`.
 - `helpers.py` — toy problems (Sphere/Rosenbrock/Ackley/DTLZ1) + the generic
   STEP-PROTOCOL driver `run_generations` on the evoxc `"numpy"` backend.
 - `test_helpers.py` — tests for the scaffolding itself (pytest).
+- `so/de_variants/` — per-variant smoke tests plus the regressions for the
+  ported upstream fixes: `test_init_bounds.py` (CoDE/SaDE/SHADE initial
+  population uniform in `[lb, ub]`, pinned on a tight `[3, 4]` box) and
+  `test_shade.py` (success-history F/CR memory adapts off 0.5 while the run
+  still converges). `so/es_variants/` likewise pins the NES default `pop_size`
+  (`4 + floor(3 ln dim)`) and GuidedES with `subspace_dims < dim`.
 - `test_shim_*.py` — CONVERTED to canonical imports (file names kept for
   history; they no longer import the deprecated `evox_etl.algorithms._shim_*`
   compat stubs):

@@ -8,6 +8,7 @@ unit_test/etl/algorithms/helpers.py):
 * ``evoxc.run`` returns concrete ``evoxc.core.tensor.Tensor`` objects — use
   ``.numpy()`` to get ndarrays (np.asarray gives object dtype).
 """
+import itertools
 import numpy as np
 import pytest
 import evoxc
@@ -183,3 +184,72 @@ def test_each_cube_hv_matches_brute_force(seed):
 
     public_val = float(_as_np(_run(each_cube_monte_carlo_hv, key_np, objs, ref, num_sample, specs=specs + [num_sample])))
     assert abs(public_val - got) <= 1e-6
+
+
+# --- non-dominating reference-point clipping (hv / each_cube_monte_carlo_hv) --
+# A point that is NOT better than the reference point along some objective has
+# no extent along that objective: objectives are minimized, so the box a point
+# covers towards ``ref`` is ``max(ref - objs, 0)``. A regression to
+# ``abs(ref - objs)`` (or to an unclipped ``ref - objs``) turns such a point
+# into a contributor and inflates every estimate below.
+
+
+def _union_volume(points):
+    """Exact volume of the union of origin-anchored boxes [0, p] (inclusion-exclusion)."""
+    total = 0.0
+    n = points.shape[0]
+    for r in range(1, n + 1):
+        for combo in itertools.combinations(range(n), r):
+            total += (-1.0) ** (r + 1) * float(points[list(combo)].min(axis=0).prod())
+    return total
+
+
+def _hv_value(fn, seed, objs, ref, num_sample):
+    specs = [
+        TensorSpec((), np.int64),
+        TensorSpec(objs.shape, F32),
+        TensorSpec(ref.shape, F32),
+        num_sample,
+    ]
+    return float(_as_np(_run(fn, rnd.key(seed).numpy(), objs, ref, num_sample, specs=specs)))
+
+
+HV_FNS = [hv, each_cube_monte_carlo_hv]
+HV_FN_IDS = ["bounding_cube", "each_cube"]
+
+
+@pytest.mark.parametrize("fn", HV_FNS, ids=HV_FN_IDS)
+def test_hv_point_outside_ref_contributes_nothing(fn):
+    objs = np.array([[1.5, 0.5]], dtype=F32)  # worse than ref along objective 0
+    ref = np.array([1.0, 1.0], dtype=F32)
+    assert _hv_value(fn, 0, objs, ref, 100000) == 0.0
+
+
+@pytest.mark.parametrize("fn", HV_FNS, ids=HV_FN_IDS)
+def test_hv_half_outside_front_matches_dominated_area(fn):
+    objs = np.array([[0.2, 0.6], [1.5, 0.5]], dtype=F32)
+    ref = np.array([1.0, 1.0], dtype=F32)
+    # clipped boxes: [0.8, 0.4] (area 0.32) and [0, 0.5] (area 0) → 0.32
+    got = _hv_value(fn, 0, objs, ref, 400000)
+    assert got == pytest.approx(0.32, abs=0.01)
+
+
+@pytest.mark.parametrize("fn", HV_FNS, ids=HV_FN_IDS)
+def test_hv_three_objective_mixed_front_ignores_outside_point(fn):
+    ref = np.ones(3, dtype=F32)
+    front = np.array(
+        [[0.2, 0.3, 0.4], [0.5, 0.1, 0.2], [0.1, 0.6, 0.3]], dtype=F32
+    )
+    outside = np.array([[0.5, 0.5, 3.0]], dtype=F32)  # violates objective 2 only
+    expected = _union_volume(np.maximum(ref - front, 0.0))
+    got = _hv_value(fn, 0, front, ref, 200000)
+    assert got == pytest.approx(expected, abs=0.02)
+    # per-dimension clipping: the outside point has zero extent along the
+    # violated objective, so it must not add hypervolume (an ``abs`` regression
+    # inflates the estimate from ~0.53 to ~0.83 here)
+    with_outside = _hv_value(fn, 0, np.vstack([front, outside]), ref, 200000)
+    assert with_outside == pytest.approx(got, abs=0.01)
+    # sanity: without clipping that extra point WOULD contribute (guards the
+    # test itself against a no-op front)
+    unclipped = _union_volume(np.abs(np.vstack([front, outside]) - ref))
+    assert unclipped > expected + 0.1
