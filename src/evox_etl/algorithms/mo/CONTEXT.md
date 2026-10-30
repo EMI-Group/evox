@@ -1,8 +1,8 @@
-# evox_etl/algorithms/mo — functional ports of the torch MO algorithms (step protocol)
+# evox_etl/algorithms/mo — multi-objective algorithms (step protocol)
 
 ## Intent
-Plain-function ports of `src/evox/algorithms/mo/` (torch, READ-ONLY reference):
-nsga2, nsga3, moead, rvea, rveaa, hype. Each module = frozen config dataclass
+The 2.0 functional MO family: nsga2, nsga3, moead, rvea, rveaa, hype.
+Each module = frozen config dataclass
 (`<Name>Config`), frozen state dataclass (`<Name>State`, tensor leaves only),
 and plain `init`/`init_step`/`step` functions following the step protocol of
 `../../core/algorithm.py` (NO `@evoxc.defn`, see `../../DESIGN.md` §4.3; no
@@ -12,13 +12,13 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - `init(config, key) -> state` draws the initial population and derived
   tensors (reference vectors, ideal point buffers, generation counter).
 - `init_step(config, state, evaluate) -> state` — generation 0 evaluates the
-  FULL initial population (verified against all six torch classes, HypE
+  FULL initial population (uniform across all six modules, HypE
   included, whose init_step also derives `ref = 1.2 * max(fitness)`); moead's
   additionally seeds the ideal point `z = min(fitness, axes=0)`; nsga2's runs
   the environmental selection over the initial population.
 - `step(config, state, evaluate) -> state` owns ONE full generation, fused
   into a single trace:
-  1. offspring phase (torch's candidate generation): mating pool →
+  1. offspring phase (candidate generation): mating pool →
      crossover → mutation → clamp; the offspring batch and the advanced
      key/generation are written into an INTERMEDIATE state via
      `replace(...)` (field names `offspring` / `off` / `next_generation`)
@@ -33,13 +33,13 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
      function split, not a protocol function).
 - The workflow dispatches `init_step`/`step` HOST-SIDE (no in-graph
   generation branch); every module traces via `evoxc.build`/`evoxc.run`.
-- Config fields mirror torch `__init__` exactly minus `device`; `lb`/`ub`
+- Config fields carry every hyperparameter (there is no `device` field); `lb`/`ub`
   tuples baked as (dim,) float32 graph constants
   (`bake_bounds` → `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...,
   np.float32)))`); optional ops are plain function refs, `None` = algorithm
   default, resolved inside functions (see the config-construction section
   for the registration/op-field split between the six modules).
-- Operators are imported from the canonical torch-parity-verified modules:
+- Operators are imported from the canonical modules:
   selection (`nd_environmental_selection`, `non_dominate_rank`,
   `tournament_selection[_multifit]`, `ref_vec_guided`) from
   `evox_etl.operators.selection`; `simulated_binary[_half]` from
@@ -48,8 +48,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   pro_m=1.0, dis_m=20.0)` — lb/ub passed directly, no boundary stack);
   `uniform_sampling` from `evox_etl.operators.sampling`; and `clamp`,
   `minimum`, `lexsort`, `nanmax`, `nanmin`, `randint`, `_take_along_axis`
-  from `evox_etl.operators.jit_fix_operator` (canonical port of the torch
-  `utils/jit_fix_operator` helpers).
+  from `evox_etl.operators.jit_fix_operator` (canonical home for these helpers).
 - RNG: `key, subkey = random.split(state.key)` (returns TWO keys); several draws
   → `random.split_n(key, n)`; advanced `key` stored back. `init_step`/`step`
   are deterministic given the state (all randomness is drawn before the
@@ -74,15 +73,14 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - Bounds baking: module-local `_bounds` defs are deleted; every module bakes
   via `lb, ub = bake_bounds(config.lb, config.ub)` (natural (dim,) float32
   graph constants); `dim = len(config.lb)`.
-- Op fields: ALL SIX configs carry `Optional[Callable]` op fields mirroring
-  torch's `__init__` (nsga2/nsga3/rvea/rveaa all three; hype `mutation_op` +
-  `crossover_op` only — torch accepts `selection_op` there but immediately
-  overwrites it with `tournament_selection`, so it is inert and intentionally
-  not exposed; moead `mutation_op`/`crossover_op`, `selection_op`
-  accepted-and-ignored because torch ignores it too). nsga3 additionally
-  carries `data_type: Optional[Any] = None`. Every `step` resolves a `None` op
-  field to the torch default at the torch call site; an all-None config is
-  byte-identical to the pre-injection behavior (same RNG draw order).
+- Op fields: ALL SIX configs carry `Optional[Callable]` op fields (nsga2/nsga3/
+  rvea/rveaa all three; hype `mutation_op` + `crossover_op` only — its
+  `selection_op` is overwritten by `tournament_selection`, so it is inert and
+  intentionally not exposed; moead `mutation_op`/`crossover_op`, with
+  `selection_op` accepted-and-ignored). nsga3 additionally carries
+  `data_type: Optional[Any] = None`. Every `step` resolves a `None` op field to
+  the algorithm default at the call site; an all-None config is byte-identical
+  to the pre-injection behavior (same RNG draw order).
   Custom-op signatures (evoxc keyed unless noted): `selection_op(key, n_parents,
   fitness)` for the nsga2/nsga3/moead tournament style, or `selection_op(x, f,
   v, theta)` with NO key for the rvea/rveaa ref-vector style;
@@ -97,9 +95,8 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - `make_nsga3` also raises ValueError when `data_type` is neither `None` nor
   the builtin `bool` type (`_normalize_data_type`, re-called in `init` so
   direct dataclass construction fails loudly too). `data_type=bool` draws the
-  torch `data_type == torch.bool` boolean population (uniform > 0.5);
-  `torch.bool` itself is NOT accepted (the evoxc module never imports torch) —
-  callers must pass the builtin `bool`.
+  boolean population (uniform > 0.5); a framework dtype object is NOT accepted
+  (nothing here imports torch) — callers must pass the builtin `bool`.
 - `make_*` signatures (all raise ValueError on malformed bounds and on a
   non-callable non-None op field):
   - `make_nsga2(pop_size: int, n_objs: int, lb: ArrayLike, ub: ArrayLike, selection_op: Optional[Callable] = None, mutation_op: Optional[Callable] = None, crossover_op: Optional[Callable] = None) -> NSGA2Config`
@@ -114,20 +111,20 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   `data_type` so direct construction still fails loudly on a bad value.
 
 ## Per-module state shapes and quirks
-- Effective pop_size: MOEAD/RVEA/RVEAa overwrite torch `self.pop_size` with the
+- Effective pop_size: MOEAD/RVEA/RVEAa overwrite `config.pop_size` with the
   Das-Dennis count `n_v` from `uniform_sampling(pop_size, n_objs)` (returns
   `(points, n_samples)` — the static int drives shapes). NSGA2/NSGA3/HypE keep
   the user pop_size. SBX quirk preserved: offspring batch = 2*(n//2) rows
-  (torch `x[n//2 : n//2*2]`), e.g. 14 for n_v=15.
+  (`x[n//2 : n//2*2]`), e.g. 14 for n_v=15.
 - RVEA: `pop` stays (n_v, dim) forever. RVEAa: after the first generation
   `pop` GROWS to (2*n_v, dim) — `ref_vec_guided` returns one row per
   reference vector (2*n_v after RV regeneration) and unmatched vectors
   produce NaN rows — until the final `gen == max_gen` generation, where the
   batch truncation keeps only the second half (rows ≥ n_v) and the remaining
   rows become NaN. Both: the mating pool always draws the FIXED n_v, and the
-  torch `_mating_pool` valid-prefix trick spans `pop.shape[0]` rows — never
+  the mating pool's valid-prefix trick spans `pop.shape[0]` rows — never
   derive n_v from `pop.shape[0]`.
-- HypE keeps the torch algorithm split as module functions:
+- HypE keeps the algorithm split as module functions:
   `cal_hv(key, fit, ref, pop_size, n_sample)` (Monte-Carlo hypervolume
   contribution; `pop_size` is a Python int in the first call and a scalar
   tensor in the merged call) and the merged-batch truncation by
@@ -135,7 +132,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 - NSGA3's environmental selection ends in module-level
   `_final_survivors(merge_pop, merge_fit, rank, worst_rank, pop_size)`: it
   keeps the `pop_size` rows with `rank < worst_rank` ordered by POSITION in
-  the shuffled merge arrays, matching torch's mask selection
+  the shuffled merge arrays, matching a mask selection
   `merge_pop[rank < worst_rank]` (an ascending-rank sort would give the same
   SET in a different order).
 
@@ -145,12 +142,11 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   `simulated_binary` pairs `n//2` parents, so an odd offspring batch is
   2*pop_size−1 rows, while the merge/selection logic assumes exactly
   2*pop_size (the Das-Dennis `ref` also has n_v ≠ pop_size rows when
-  `pop_size` is not a Das-Dennis count). PRE-EXISTING — reproduces
-  identically in the pre-conversion code and matches the torch
-  reference's own assumption; use even pop_size values.
+  `pop_size` is not a Das-Dennis count). Inherent to the algorithm's
+  pairing assumption; use even pop_size values.
 - **RVEAa NaN survivor rows**: after the first generation `pop`/`fit` contain
-  all-NaN rows (one per unmatched reference vector). These are torch
-  semantics (`ref_vec_guided` writes NaN for null niches), not a port bug:
+  all-NaN rows (one per unmatched reference vector). These are 1.x
+  semantics (`ref_vec_guided` writes NaN for null niches), not a bug:
   the mating pool sorts NaN rows to the back with an int32-max sentinel, and
   `nanmin`/`nanmax` skip them. Consumers must tolerate NaN rows (the
   EvalMonitor is one such consumer that does not — see the escalation note).
@@ -159,7 +155,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   return annotation, `evaluate` and parts of `cal_hv` untyped), unlike the
   other five modules. Cosmetic only; left as-is to keep the diff minimal.
 - **MOEAD's ideal point `z` makes it metric-hostile**: `z` is a loop carry
-  updated per-i BEFORE the PBI comparisons (torch order — do NOT pre-lower z
+  updated per-i BEFORE the PBI comparisons (do NOT pre-lower z
   with the batch min, that contaminates the comparisons), and the returned
   `z` reflects only the minima seen inside the LAST `step` call's sequential
   update, not a global running min of all evaluated fitness. Metrics that
@@ -167,11 +163,11 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   (min over `fit`) rather than reading `state.z`.
 - **NSGA3's linalg is exporter-constrained**: the stablehlo-v1 exporter
   DEFERS `matrix_rank`/`svd`/`solve` → BackendError (escalated to the root
-  agent). The torch `matrix_rank(extreme) == n_objs` guard is therefore
+  agent). The `matrix_rank(extreme) == n_objs` guard is therefore
   rank = count(sqrt(eigvalsh(AᵀA)) > s_max·n·eps32) with AᵀA accumulated in
   float64 (noise floor ~1e-8·s_max « cutoff ~1e-7·s_max; verified ≡
   `evoxc.matrix_rank` on 14k random/singular/near-singular matrices), and the
-  torch `solve(extreme, ones)` hyperplane is the eigh-based normal equations
+  the `solve(extreme, ones)` hyperplane is the eigh-based normal equations
   (AᵀA)⁻¹Aᵀ·1 in float64 (≤1.2e-7 rel vs the numpy LU solve even at cond
   1e5). Both build+run on iree-llvm-cpu and xla-cuda.
 
@@ -181,7 +177,7 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   `state.next_parents`, `fitness`) is legal. Carry `i` must stay int32
   (`evoxc.cast(i + 1, evoxc.int32)`).
 - MOEAD sequential overwrites: the same row can be updated by several i's in
-  one generation (last-i-wins) — torch does the same; do not "deduplicate".
+  one generation (last-i-wins) — do not "deduplicate".
 - `evoxc.sum/mean` take `axes=`; `evoxc.min(x, axes=..)` values only (argmin
   separate); `evoxc.topk(x, k, axis, largest=False)` → `(values, indices)`;
   `evoxc.sort(x, axis, descending=, stable=)` values only; `evoxc.argsort(...,
@@ -192,10 +188,10 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   it unconditionally).
 - No boolean/advanced indexing with dynamic masks (no dynamic shapes): select
   survivors via sort/argsort of masked values + static `[:pop_size]` slice, or
-  one-hot `reduce_max(equal(...))` masks for torch `_masked_assign` patterns.
+  one-hot `reduce_max(equal(...))` masks for masked-assign patterns.
 - `evoxc.gather` = numpy `take`: row-local gathers → `_take_along_axis` from
   `evox_etl.operators.jit_fix_operator`; `evoxc.scatter` = put_along_axis
-  replacement (no scatter-add — torch NSGA3 `scatter_add` → one-hot sum).
+  replacement (no scatter-add — an accumulating update becomes a one-hot sum).
 - No `&`/`!=`/`%` overloads → `enp.logical_and`, `evoxc.not_equal`,
   `evoxc.remainder`. `enp.zeros/enp.full` (not `evoxc.zeros`); Python-int tensor
   promotion → wrap in `evoxc.cast`. `evoxc.stack` of mixed dtypes is risky → cast
@@ -206,20 +202,14 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
   `sqrt(maximum(d2, 0))`, `d2 = w2[:, None] + w2[None, :] - 2*dot(w, w.T)`.
 
 ## Tests
-- Smoke: `unit_test/etl/algorithms/mo/test_<name>.py` (evoxc-only, `__init__.py`
-  present so pytest collects uniquely-qualified names vs the parity dir). Each
-  uses `make_*` and adds custom-op tests: a recording wrapper proves each
-  user-supplied op is invoked during `step`; identity/constant ops prove the op
-  changes the output; explicit `None` proves the default is reproduced exactly.
-  nsga3 additionally covers the `data_type` contract and the `_final_survivors`
-  merge-order parity.
-- Parity (torch allowed): `unit_test/etl/algorithms/parity/test_nsga2.py`,
-  `test_nsga3.py`, `test_moead.py` + shared `parity_common.py` (also a package).
-- Gate (numpy backend; see `../../CONTEXT.md` "Environment" for venv setup):
-  `<venv>/bin/python -m pytest unit_test/etl/algorithms/mo
-  unit_test/etl/algorithms/parity/test_nsga2.py
-  unit_test/etl/algorithms/parity/test_nsga3.py
-  unit_test/etl/algorithms/parity/test_moead.py -q` — green (41 mo + 3 parity).
+- Suite: `unit_test/etl/algorithms/mo/test_<name>.py` (evoxc-only, `__init__.py`
+  present so pytest collects uniquely-qualified names). Each uses `make_*` and
+  adds custom-op tests: a recording wrapper proves each user-supplied op is
+  invoked during `step`; identity/constant ops prove the op changes the output;
+  explicit `None` proves the default is reproduced exactly. nsga3 additionally
+  covers the `data_type` contract and the `_final_survivors` merge ordering.
+- Gate: `<venv>/bin/python -m pytest unit_test/etl/algorithms/mo -q` (numpy
+  backend; see `../../CONTEXT.md` "Environment" for the venv recipe).
 
 ## Routing Table
 | Area | Path |
@@ -230,16 +220,9 @@ module in this family defines `final_step`). Bindings: `../../DESIGN.md` §4-5.
 | RVEA (reference-vector adaptation) | `rvea.py` |
 | RVEAa (RV regeneration + batch truncation) | `rveaa.py` |
 | HypE (Monte-Carlo hypervolume) | `hype.py` |
-| Smoke tests | `../../../unit_test/etl/algorithms/mo/` | sibling — write via bash heredoc |
-| Parity tests (torch allowed) | `../../../unit_test/etl/algorithms/parity/` | sibling |
-| Torch reference | `../../../evox/algorithms/mo/` | sibling — READ-ONLY |
+| Tests | `../../../unit_test/etl/algorithms/mo/` | sibling — mirrors this package |
 
 ## Escalation (outside this node's write scope)
-- `src/evox_etl/CONTEXT.md` "EvoX Compiler issues found" #1 still claims stale
-  "ndarray rejected" comments remain in mo/*.py — RESOLVED for this node
-  (T2-A44); root agent should condense that bullet once the SO rounds and
-  problems/numerical land. DESIGN.md §4.1 was refreshed upstream (make_*
-  policy) and now matches this node's state.
 - The EvalMonitor's fixed `(pop_size, dim)` buffers cannot absorb RVEAa's
   (2*n_v, dim) population or its NaN rows (same core-side constraint the
   CoDE family hit); needs a core/workflows-side monitor contract decision.

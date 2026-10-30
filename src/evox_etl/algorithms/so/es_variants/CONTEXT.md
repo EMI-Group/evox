@@ -1,14 +1,13 @@
-# evox_etl/algorithms/so/es_variants — functional ES-family ports (step protocol)
+# evox_etl/algorithms/so/es_variants — ES-family algorithms (step protocol)
 
 ## Intent
-Plain-function ports of the torch evox ES-family algorithms (read-only
-reference: `src/evox/algorithms/so/es_variants/`) to the post-1.0 STEP
-protocol. Binding spec: `../../../../DESIGN.md` (§4-5) +
+The 2.0 functional ES family on the STEP protocol.
+Binding spec: `../../../../DESIGN.md` (§4-5) +
 `evox_etl.core.algorithm` (the protocol doc). Each module exposes a frozen
 `XConfig` dataclass (dumb: plain static leaves only, array fields stored as
 f32 tuples — construct via the module-level `make_X` constructor, which
 normalizes and validates once), a frozen `XState` dataclass (tensor leaves
-only: torch Mutable names + sampling intermediates + `best_fitness` f32
+only: 1.x state names + sampling intermediates + `best_fitness` f32
 scalar + `key` last), and plain `init(config, key) -> state` /
 `step(config, state, evaluate) -> state` functions. `step` owns the WHOLE
 generation: sample the candidates and stash the sampling intermediates into
@@ -16,19 +15,16 @@ the state (`replace(...)`), then `fitness = evaluate(candidates)`
 (workflow-injected traced closure: solution_transform → problem evaluate →
 opt-direction scaling → fitness_transform; minimization semantics; treated as
 opaque, never stored), then update the distribution from
-(intermediates, fitness) and return the new state — mirroring torch
-`Algorithm.step` exactly.
+(intermediates, fitness) and return the new state — one full generation.
 `best_fitness` (min over all evaluated fitness, updated in step) is an
-evox_etl addition — torch has no such field.
-**No ES module defines `init_step`/`final_step`** — the torch reference has
-no algorithm-level overrides in this family (all use the base class
-fallbacks), so the workflow's `init_step()`/`final_step()` fall back to
-`step` everywhere here.
+evox_etl addition.
+**No ES module defines `init_step`/`final_step`** — no algorithm in this family
+has a distinct first or last generation, so the workflow's `init_step()`/
+`final_step()` fall back to `step` everywhere here.
 **Every ES module defines the optional `record_step(config, state, candidate,
 fitness)` aux-history hook** — a PLAIN, module-level, host-side function (NOT
-`@evoxc.defn`) mirroring the torch method of the same name; the returned dict of
-already-carried ``evoxc`` tensors feeds `EvalMonitor.aux_history` (see "Aux-history
-hook" below).
+`@evoxc.defn`); the returned dict of already-carried ``evoxc`` tensors feeds
+`EvalMonitor.aux_history` (see "Aux-history hook" below).
 
 ## Files
 | File | Contents |
@@ -45,16 +41,15 @@ hook" below).
 | `noise_reuse_es.py` | NoiseReuseESConfig/State — perturbation reuse, T/K counter |
 | `persistent_es.py` | PersistentESConfig/State — perturbation accumulation + reset |
 | `esmc.py` | ESMCConfig/State — baseline member; pop_size must be ODD |
-| `asebo.py` | ASEBOConfig/State — SVD active subspaces (fixed b448084a semantics, see Design Decisions); lr_decay/lr_limit config-only (unused in torch too) |
+| `asebo.py` | ASEBOConfig/State — SVD active subspaces (fixed b448084a semantics, see Design Decisions); lr_decay/lr_limit are config-only (unused) |
 | `virtual_noise.py` | SHARED deterministic generator (do not modify): `compute_offsets`, `compute_counter_offsets`, `virtual_normal`, `lora_factors` |
-| `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; torch-parity `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` aliases |
+| `virtual_es.py` | VirtualESConfig/State + make_virtual_es — O(dim) memory center+seeds virtual-population ES; bare aliases `VirtualES = VirtualESConfig` / `VirtualLoRAES = VirtualES` |
 | `virtual_lora_es.py` | VirtualLoRAESConfig/State + make_virtual_lora_es — DISTINCT low-rank variant (extra `lora_rank`, `B @ A` perturbations for ≥2-D blocks) |
 | `_virtual_common.py` | Shared virtual-family helpers: `normalize_param_shapes`, `param_dim`, `draw_seeds`, `update_center` |
 
 `__init__.py` exports the 14 configs + their 14 `make_*` constructors, plus the
-torch-style bare aliases `VirtualES` / `VirtualLoRAES` (both = `VirtualESConfig`,
-mirroring torch's shadowing of the distinct low-rank class; the low-rank config is
-`VirtualLoRAESConfig`).
+bare aliases `VirtualES` / `VirtualLoRAES` (both = `VirtualESConfig`; the distinct
+low-rank config is `VirtualLoRAESConfig`).
 
 ## Config construction (make_* constructors)
 - All 14 configs are dumb frozen dataclasses with NO `__post_init__` (13 files;
@@ -68,8 +63,8 @@ mirroring torch's shadowing of the distinct low-rank class; the low-rank config 
   make_ars, make_snes (snes.py), make_des (des.py), make_xnes +
   make_separable_nes (nes.py), make_guided_es, make_noise_reuse_es,
   make_persistent_es, make_esmc, make_asebo, make_virtual_es (virtual_es.py),
-  make_virtual_lora_es (virtual_lora_es.py). Param names/defaults = the torch
-  `__init__` kwargs (minus device).
+  make_virtual_lora_es (virtual_lora_es.py). Param names/defaults follow the
+  documented hyperparameters (there is no device field).
 - Shared host-side helpers live in `../_config_utils.py` (`to_float_tuple`,
   `bake_float32_constant`, `require_gt/ge/between/choice`); validation raises
   ValueError naming the parameter (never bare asserts). make_* rounds ALL array
@@ -93,12 +88,12 @@ mirroring torch's shadowing of the distinct low-rank class; the low-rank config 
   make_separable_nes/make_asebo (or pass explicit values).
 
 ## Virtual (training-free) ES family — PORTED
-`virtual_es.py` / `virtual_lora_es.py` implement the torch virtual-population ES
+`virtual_es.py` / `virtual_lora_es.py` implement the virtual-population ES
 family: the state carries only a `(dim,)` center plus `(pop_size,)` int64 seeds,
 and the full-parameter Gaussian perturbations are REGENERATED deterministically
 from those seeds by the shared `virtual_noise.py` generator (O(dim) memory
-instead of O(pop*dim)). Torch parity reached WITHOUT the Philox counter PRNG
-(evoxc.random is key/split-only): `virtual_noise` is an in-graph splitmix64 +
+instead of O(pop*dim)). The 1.x Philox counter PRNG has no evoxc analogue
+(evoxc.random is key/split-only), so: `virtual_noise` is an in-graph splitmix64 +
 Box-Muller generator whose cumulative per-block offsets make
 `virtual_normal(seeds, 0, dim)` identical to concatenating per-block calls.
 - `step` resamples seeds, then calls the opaque workflow-injected
@@ -131,12 +126,12 @@ Every module here defines the OPTIONAL plain, module-level, host-side
 (contract: `evox_etl.core.algorithm`; consumed host-side by
 `evox_etl.core.workflow._record_history`). It receives the POST-step algorithm
 state plus the monitor's `latest_solution`/`latest_fitness` (or `None`) and
-returns ``evoxc`` tensors ALREADY carried in the state — no tracing, no torch, no
-Python scalars. It mirrors the torch method of the same name exactly:
+returns ``evoxc`` tensors ALREADY carried in the state — no tracing, no Python
+scalars:
 - `{"center": state.center}` — ars.py, open_es.py, virtual_es.py,
   virtual_lora_es.py
 - `{"center": state.center, "sigma": state.sigma}` — des.py, esmc.py,
-  guided_es.py (alpha deliberately NOT recorded — torch omits it),
+  guided_es.py (alpha deliberately NOT recorded),
   noise_reuse_es.py, persistent_es.py, snes.py
 - `{"center": state.center, "sigma": state.sigma, "alpha": state.alpha}` —
   asebo.py
@@ -150,20 +145,18 @@ configured AND `EvalMonitorConfig.full_pop_history` is True.
 ## Routing Table
 | Area | Path |
 |---|---|
-| Family tests — no-torch smoke tests | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
-| Convergence-parity tests vs torch | `unit_test/etl/algorithms/parity/` (sibling — read-only here, escalate writes to the parent agent) |
+| Family tests — evoxc-only smoke tests | `unit_test/etl/algorithms/so/es_variants/` (sibling — read-only here, escalate writes to the parent agent) |
 | Shared test driver / toy problems | `unit_test/etl/algorithms/helpers.py` (sibling — read-only) |
-| Torch reference for every module here | `src/evox/algorithms/so/es_variants/` (read-only, never modify) |
 
-## Design Decisions (torch-parity choices — current state)
-### 1. ASEBO mirrors the post-b448084a reference (right singular vectors, no sign juggling)
-`asebo.py step()` reproduces the FIXED reference:
+## Design Decisions (current state)
+### 1. ASEBO uses the right singular vectors (no sign juggling)
+`asebo.py step()`:
 `subspace_ready = gen_counter > subspace_dims` is computed ONCE from the
 PRE-increment counter and gates BOTH `UUT`/`UUT_ort` and `alpha`.
 `X = grad_subspace - mean(X, axes=0)`; `_, S, Vh = evoxc.svd(X)`;
 `U = Vh[:subspace_dims]` (ROWS of the right singular vectors — `evoxc.svd`
-already returns the numpy/`torch.linalg.svd` convention, so no transpose and no
-sign multiply); `tol = eps(f32) * max(X.shape) * S[0]`;
+returns the numpy `linalg.svd` convention, so no transpose and no sign
+multiply); `tol = eps(f32) * max(X.shape) * S[0]`;
 `informative = (S[:subspace_dims] > tol)`;
 `UUT = (U.T * informative) @ U`; `UUT_ort = I - UUT`;
 `effective_dims = clamp(sum(informative), min=1.0)`.
@@ -187,51 +180,36 @@ subspace_dims=10) 248.03 → 51.83, (dim=12, pop=6, subspace_dims=3) 298.85 → 
 — all finite, alpha in [0, 1], `best_fitness` (a running min) non-increasing.
 
 ### 3. CMA-ES's rank-one covariance update = TRUE outer product
-The reference was fixed upstream (commit 86e8fa63) from the 1-D `p_c @ p_c.T`
-scalar-dot quirk to `torch.outer(p_c, p_c)`; `cma_es.py` step() builds
+`cma_es.py` step() builds
 `evoxc.dot(enp.expand_dims(p_c, 1), enp.expand_dims(p_c, 0))` (`evoxc.dot` needs
-rank ≥ 2). Measured on the sibling CMA-ES parity config (Sphere dim 40, 80 gens):
-outer product 3.96 / 2.60 (seeds 0 / 1) vs the old scalar form 20.05 / 24.78 vs
-torch 5.07 — i.e. the old scalar replication of the removed quirk was the
-divergence. Any future "replicate the quirk" reasoning here is obsolete: check
-the reference source, not this file's history.
+rank ≥ 2), i.e. a genuine (dim, dim) outer product; the 1-D `p_c @ p_c.T`
+scalar-dot form is a plain bug. Measured on the sibling CMA-ES config (Sphere
+dim 40, 80 gens): outer product 3.96 / 2.60 (seeds 0 / 1).
 
 ## Known Issues
-- The sibling parity test `unit_test/etl/algorithms/parity/test_parity.py::test_asebo_state_parity_with_torch`
-  still encodes the PRE-b448084a ASEBO semantics and now FAILS on the TORCH side:
-  it injects `torch.randn` noise shaped `(dim, half)` while the fixed reference
-  samples `(half, dim)` (`RuntimeError: mm: mat1 and mat2 shapes cannot be
-  multiplied`), and it asserts against an old `torch.svd`/`signs`/`Vt[half:]`
-  replica block plus now-false "isotropic cov" / "crashes past subspace_dims"
-  claims; re-porting it belongs to the test tree (outside this node's write scope).
 - `asebo.py step` uses `evoxc.svd` (U, S, Vh), which evoxc's stablehlo-v1 exporter
   DEFERS (`BackendError` on compiled backends iree/xla); the numpy backend is
   fine. The NSGA3 fix pattern (eigh-based equivalents, see
   `src/evox_etl/algorithms/mo/nsga3.py`) is the reference if asebo is ever
   benchmarked on compiled backends.
 - `open_es` with `mirrored_sampling=False` and a large lr can overflow to a NaN
-  best-fitness — pre-existing in the reference, not a step-protocol regression.
+  best-fitness — inherent to the algorithm, not a step-protocol regression.
 
 ## Notes for agents (verified — do not re-investigate)
 - All functions are PLAIN (no `@evoxc.defn`); traced via `evoxc.build`/`evoxc.run`.
-- The step ports are bitwise-identical to the pre-conversion two-phase protocol
-  on the numpy backend (validated per module over 10–20 generations) EXCEPT
-  `cma_es.py`, `asebo.py` and `ars.py`, whose numerics were corrected to match the
-  torch reference (see Design Decisions / git history).
-- Known torch bugs NOT replicated: XNES/SeparableNES use `self.dim` before it
-  exists when pop_size=None (torch nes.py lines 42-43, 154) — ports use the
-  local `dim` (commented in nes.py).
+- The step functions are bitwise-identical to the pre-conversion two-phase
+  protocol on the numpy backend (validated per module over 10–20 generations)
+  EXCEPT `cma_es.py`, `asebo.py` and `ars.py`, whose numerics follow the
+  documented formulas (see Design Decisions / git history).
+- `nes.py` computes the local `dim` before using it; the 1.x code read
+  `self.dim` before it exists when `pop_size=None` (commented in nes.py).
 - `evoxc.transpose(x, axes)` requires axes as a TUPLE (a list raises TypeError).
 - Broadcast gotcha: `(k, n) * signs(k,)` does NOT align over the k axis — use
   `enp.expand_dims(signs, axis=1)`; `(m, k) * signs(k,)` aligns fine.
-- `evoxc.svd` returns reduced `(U, S, Vh)`, Vh (k, n) — the numpy/`torch.linalg.svd`
-  convention, NOT `torch.svd(some=True)`: the deprecated `torch.svd` third output
-  is **V** (n, k), the transpose (its docstring: `input = U diag(S) V^H`; verified
-  on torch 2.12.1 with a (4,6) input → third output (6,4); `torch.linalg.svd(...,
-  full_matrices=False).Vh == V.T`). The two conventions coincide in shape — but
-  not in value — for a SQUARE matrix: `|V − Vh| ≈ 1.0` for a random 10×10. Every
-  module here consumes Vh directly (matching `torch.linalg.svd`), including
-  `asebo.py`, whose fixed reference also switched to `torch.linalg.svd`.
+- `evoxc.svd` returns reduced `(U, S, Vh)` with Vh (k, n) — the numpy
+  `linalg.svd` convention (Vh is the transpose of V; the two coincide in shape
+  but not in value for a square matrix). Every module here consumes Vh directly,
+  including `asebo.py`.
 - `guided_es.py` factorises `evoxc.transpose(state.grad_subspace, (1, 0))` (the
   stored gradients are ROWS), so `evoxc.qr` returns Q `(dim, subspace_dims)`
   (verified: 3×10 → Q (10,3), 10×10 → Q (10,10)); factorising the un-transposed
@@ -253,33 +231,16 @@ the reference source, not this file's history.
   touching the file anyway. Numpy import is sanctioned for this + np.dtype only.
 
 ## Tests
-Environment (no pre-provisioned venv): `uv venv` + `uv pip install <path-to-evoxc-checkout>
-pytest numpy` (a published `evoxc` distribution can be installed by bare name instead),
-then `PYTHONPATH="src:<torch-site-packages>"` (torch comes from the
-shared evox venv; no GPU here).
-- **Family suite**: `unit_test/etl/algorithms/so/es_variants/` — the no-torch
-  smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`; its
-  `conftest.py` is the repo-root/`src` sys.path shim — the pattern is the sibling
-  `unit_test/etl/workflows/conftest.py`); that node imports no torch.
-- **Torch-parity suite**: `unit_test/etl/algorithms/parity/` (sibling) injects
-  IDENTICAL noise on both sides (monkeypatch `torch.randn` +
-  `evoxc.random.normal` → an in-graph `evoxc.ops.constant`) to make torch and evoxc
-  trajectories comparable; it covers ARS odd `pop_size=5, elite_ratio=0.9` (torch
-  elite count 2 vs the old integer-division 1, Δcenter 1.8e-2), CMA-ES 2-step state
-  parity (ΔC 6e-8; the pre-fix scalar form shifts C by 0.12), OpenES, and ASEBO —
-  the ASEBO case `test_parity.py::test_asebo_state_parity_with_torch` still encodes
-  the PRE-b448084a semantics and FAILS on the TORCH side (see Known Issues).
-- `unit_test/etl/algorithms/parity/test_cma_es.py` passes; it monkeypatches
-  `CMAES._conditional_decomposition` to `_decomposition` because `torch.cond`
-  rejects the transposed-operand view on the installed torch — mathematically
-  identical for its configs (`decomp_per_iter == 1`, guarded by an assert); torch
-  5.06529 / 5.64848 vs evoxc 3.96482 / 2.59804 (seeds 0 / 1).
-- `test_record_step_aux.py` drives `cma_es`/`des` through `StdWorkflow` +
-  `EvalMonitorConfig(full_pop_history=True)` and pins the `record_step` →
-  `aux_history` aux channel (keys, one entry/generation, shapes, final-state
-  match). Note: these ES states expose neither `population`/`pop` nor a `dim`
-  config field, so `dim` (and `pop_size` for `cma_es`'s `None` default) must be
-  passed EXPLICITLY to `EvalMonitorConfig`.
+Environment: `uv venv` + `uv pip install -e . pytest plotly pandas` (see
+`../../CONTEXT.md` "Environment"), then run with `PYTHONPATH=src` from the repo root.
+- **Family suite**: `unit_test/etl/algorithms/so/es_variants/` — the evoxc-only
+  smoke tests (`test_*.py`, driven by `unit_test/etl/algorithms/helpers.py`; the
+  repo-root/`src` sys.path shim is `conftest.py`).
+- **Aux-history test**: `test_record_step_aux.py` drives `cma_es`/`des` through
+  `StdWorkflow` + `EvalMonitorConfig(full_pop_history=True)` and pins the
+  `record_step` → `aux_history` aux channel (keys, one entry/generation, shapes,
+  final-state match). These ES states expose neither `population`/`pop` nor a
+  `dim` config field, so `dim` (and `pop_size` for `cma_es`'s `None` default) must
+  be passed EXPLICITLY to `EvalMonitorConfig`.
 - Gate: `PYTHONPATH=src /tmp/venv/bin/python -m pytest
-  unit_test/etl/algorithms/so/es_variants unit_test/etl/algorithms/parity -q`
-  → everything green except the stale ASEBO parity test above.
+  unit_test/etl/algorithms/so/es_variants -q`.

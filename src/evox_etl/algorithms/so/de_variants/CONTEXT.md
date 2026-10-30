@@ -1,14 +1,13 @@
-# evox_etl/algorithms/so/de_variants — functional DE-family ports
+# evox_etl/algorithms/so/de_variants — DE-family algorithms
 
 ## Intent
-Plain-function step-protocol ports of the torch evox DE family (READ-ONLY
-reference: `../../../../evox/algorithms/so/de_variants/`), one module per torch
-file: `de.py`, `jade.py`, `shade.py`, `sade.py`, `ode.py`, `code.py`.
+The 2.0 functional DE family on the step protocol: `de.py`, `jade.py`,
+`shade.py`, `sade.py`, `ode.py`, `code.py` — one module per algorithm.
 Binding spec: `../../DESIGN.md` (read fully before writing code) and the
 protocol doc `../../core/algorithm.py`.
 
 ## API Surface
-- Each module: frozen config dataclass named after the torch class (`DE`, `JaDE`,
+- Each module: frozen config dataclass named after the algorithm (`DE`, `JaDE`,
   `SHADE`, `SaDE`, `ODE`, `CoDE`) + frozen `<Name>State` dataclass + plain
   functions `init(config, key) -> state` and
   `step(config, state, evaluate) -> state` owning ONE full generation
@@ -18,23 +17,21 @@ protocol doc `../../core/algorithm.py`.
   (`make_de`, `make_jade`, `make_shade`, `make_sade`, `make_ode`, `make_code`);
   `__init__.py` exports the classes and all 6 `make_*`.
 - `init_step(config, state, evaluate) -> state` exists ONLY on `de.py`, `ode.py`,
-  `jade.py` (their torch counterparts define `init_step`: evaluate the initial
-  population). The torch SHADE/SaDE/CoDE have no init_step, so those modules
-  define none and the workflow falls back to `step` for generation 0.
-- No `final_step` anywhere (the torch reference defines no algorithm-level
-  overrides). Only `init`/`init_step`/`step` exist — the pre-1.0 two-phase
-  candidate/fitness protocol is gone.
+  `jade.py` (they evaluate the initial population before the first real step).
+  SHADE/SaDE/CoDE define none, so the workflow falls back to `step` for
+  generation 0.
+- No `final_step` anywhere. Only `init`/`init_step`/`step` exist.
 - State leaves are evoxc tensors ONLY (float32 preferred, int32/int64 indices, key `()`
   int64) and their dtypes/shapes must be STABLE across generations (compile-once
   step graphs — no per-run dtype drift, see the SaDE cast notes below).
 - `step` never re-threads `evaluate`; ODE calls it TWICE per generation (DE
   trials, then the opposition population `lb + ub - pop` built from the
-  POST-selection pop — one evoxc step == one torch ODE step; the old two-phase
-  state machine and the `opposition`/`phase` state fields are gone).
+  POST-selection pop — one evoxc step == one algorithm generation; there is no
+  two-phase state machine and no `opposition`/`phase` state field).
 
 ## Constraints
 - Import crossover/sampling/selection operators from `evox_etl.operators`
-  (canonical, torch-parity-verified) and the jit-fix utils (clamp, clamp_float,
+  (the canonical modules) and the jit-fix utils (clamp, clamp_float,
   `_take_along_axis`, ...) from `evox_etl.operators.jit_fix_operator`.
 - No torch/numpy in graph code (numpy only for baking constants via
   `evoxc.ops.constant(evoxc.core.tensor(np.asarray(...)))`).
@@ -64,7 +61,7 @@ protocol doc `../../core/algorithm.py`.
 - `evoxc.gather` = numpy take semantics; a 0-d index drops the indexed axis
   (result `(dim,)`). Row-local gather needs `_take_along_axis` (2-D only).
 - RNG: `key, subkey = random.split(state.key)` at function entry; one split per
-  random op, in torch's draw order; store the advanced `key` back in the state.
+  random op, in a fixed draw order; store the advanced `key` back in the state.
   The post-evaluate halves draw no randomness. `random.multinomial(key, probs, n)`
   returns int32.
 - Bounds baked per function via `bake_bounds(lb, ub, as_row=True)` (shared
@@ -79,11 +76,11 @@ protocol doc `../../core/algorithm.py`.
   float("nan"))` (arithmetic NaN blending would keep every entry NaN).
 - SHADE draws no `init_step`, so generation 0 runs against the all-`inf` initial
   fitness: its deltas are `inf`, `norm_delta` is NaN and the memory correctly
-  keeps its 0.5 start for that one generation (torch-identical, not a bug).
+  keeps its 0.5 start for that one generation (deliberate, not a bug).
 - SHADE's `norm_delta` division therefore produces intentional NaN entries and the
   evoxc numpy backend emits one cosmetic `invalid value encountered in divide` warning
-  (same class as the SBX/SaDE NaN paths; torch has identical semantics).
-- `evoxc.median(x, axis=0)` matches torch's NaN propagation BUT promotes
+  (same class as the SBX/SaDE NaN paths; the semantics are unchanged).
+- `evoxc.median(x, axis=0)` matches the expected NaN propagation BUT promotes
   float32→float64; `int32 * bool` also promotes to int64 — cast back explicitly
   (SaDE does; see the casts around `CRM_update`/`success_counts`/
   `failure_counts` there). Compile-once step graphs REQUIRE stable state
@@ -95,21 +92,20 @@ protocol doc `../../core/algorithm.py`.
   wrap `step` in a `body(cfg, state) -> step(cfg, state, evaluate)` closure with
   the toy `evaluate` inlined. See `unit_test/etl/algorithms/helpers.py` for the
   build/run mechanics.
-- Parity tests MUST use a unique basename (`test_<name>_parity.py`, not
-  `test_<name>.py`): pytest's prepend import mode collides when the same basename
-  exists in `so/de_variants/` and `parity/` and both are collected in one run.
-- The DE parity test uses the MEDIAN of 3 seeds with the 10% margin: per-seed
-  best fitnesses fluctuate ~0.57-1.92× around torch (different RNG streams), so a
-  single-seed 10% margin fails ~1/3 of the time by chance. Median-of-3 is stable.
+- Test modules keep their per-family basenames (`test_de.py`, ...) unique so
+  pytest's prepend import mode never collides within one run.
+- Convergence assertions use the MEDIAN of 3 seeds with a 10% margin: per-seed
+  best fitnesses fluctuate ~0.57-1.92× between RNG streams, so a single-seed 10%
+  margin fails ~1/3 of the time by chance. Median-of-3 is stable.
 - **ode.py imports `_de_trial` from de.py** (algorithm logic — stays; the
   mutation/crossover helper is part of ODE's API) and the shared baking helpers
   from `algorithms/_config_utils.py`; keep ode.py compiling when touching either.
   code.py factors its candidate generation into `_generate_trials(config, state)
   -> (trial_batch, advanced_key)`.
-- Legacy direct-dataclass-construction sites (family smoke tests, parity
-  test_de_parity.py:45, benchmarks/etl_vs_torch/bench_so.py:115) still pass raw
-  np.ndarray `lb`/`ub` and still trace (bakers accept ArrayLike; evoxc accepts
-  ndarray statics); they should migrate to `make_*` (parallel migration round).
+- Legacy direct-dataclass-construction sites (`benchmarks/etl_vs_torch/
+  bench_so.py:115`) still pass raw np.ndarray `lb`/`ub` and still trace (bakers
+  accept ArrayLike; evoxc accepts ndarray statics); they should migrate to
+  `make_*`.
   Tests only exercise default hyperparameters — the tuple `differential_weight`
   (ndv>1), `mean`/`stdev` init, and non-default `param_pool` paths have NO test
   coverage.
@@ -120,7 +116,7 @@ protocol doc `../../core/algorithm.py`.
   against dim): the (ndv,) weight constant never multiplies per-individual
   difference vectors. Reproduced identically on the pre-conversion HEAD.
 - KNOWN ISSUE (core/workflows, NOT this family): `EvalMonitor`'s fixed
-  `(pop_size, dim)` monitor buffers cannot absorb CoDE's torch-faithful
+  `(pop_size, dim)` monitor buffers cannot absorb CoDE's
   `(3*pop_size, dim)` candidate batch under the compile-once step protocol —
   StdWorkflow(CoDE, ..., monitor=EvalMonitor) raises ShapeError at the second
   generation. CoDE itself (no monitor) is fine. Needs a core-side fix
@@ -131,7 +127,6 @@ protocol doc `../../core/algorithm.py`.
 |---|---|
 | DE + ODE (shared mutation/crossover helpers) | `de.py`, `ode.py` |
 | JaDE / SHADE / SaDE / CoDE | `jade.py`, `shade.py`, `sade.py`, `code.py` |
-| Smoke tests (no torch) | `../../../../unit_test/etl/algorithms/so/de_variants/` (sibling — write via bash heredoc) |
-| Parity test (torch allowed) | `../../../../unit_test/etl/algorithms/parity/test_de_parity.py` (sibling) |
+| Tests | `../../../../unit_test/etl/algorithms/so/de_variants/` (sibling — mirrors this package) |
 | Canonical operators (import from) | `../../../operators/crossover`, `../../../operators/selection`, `../../../operators/jit_fix_operator.py` |
 | Step-protocol contract | `../../core/algorithm.py` (protocol doc), `../../core/workflow.py` (`_make_step_fn`) |

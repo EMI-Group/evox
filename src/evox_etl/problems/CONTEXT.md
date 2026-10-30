@@ -20,25 +20,24 @@ problems (brax, mujoco_playground, supervised_learning).
   (fitness, problem_state)` — plain function, `pop` shape `(n, dim)`, fitness
   `(n,)` (SO) or `(n, n_obj)` (MO). All problems minimize internally; the
   workflow applies `opt_direction` for maximization.
-- **Configs** are frozen dataclasses mirroring the torch class `__init__`
-  signatures; boundary/shift/affine tensor fields become numpy arrays in the
-  config (baked once as graph constants inside functions, per DESIGN §4.1).
+- **Configs** are frozen dataclasses whose fields ARE the public API;
+  boundary/shift/affine tensor fields become numpy arrays in the config (baked
+  once as graph constants inside functions, per DESIGN §4.1).
 - **Statelessness**: numerical problems and the `neuroevolution` virtual problem
   are stateless and all share the empty frozen `ProblemState` (defined in
   `numerical/state.py`, re-exported at package level). The
   `(fitness, problem_state)` signature is kept for uniformity with stateful
   problems.
 - **DTLZ reference fronts**: DTLZ1-7 expose `pf(config)` functions (plain
-  functions meant to be traced) used by the metric/problem parity tests. Sampling
+  functions meant to be traced) used by the metric/problem tests. Sampling
   comes from the canonical `evox_etl.operators.sampling` operators
   (`uniform_sampling`/
   `grid_sampling`, which return `(points, n_samples)` tuples — dtlz unpacks
-  `[0]`). Verified bit-identical to the former private mirrors.
-- **No boundary handling in basic problems**: raw math only, exactly like torch
-  evox (constraining is the algorithm's responsibility there).
-- Package `__init__` re-exports the torch `evox.problems.numerical` export
-  surface plus `Zakharov`, `Levy`, `zakharov_func`, `levy_func` (torch basic.py
-  has them but doesn't re-export) and `ProblemState`; it also re-exports the
+  `[0]`).
+- **No boundary handling in basic problems**: raw math only (constraining is the
+  algorithm's responsibility).
+- Package `__init__` re-exports the `numerical` export surface plus `Zakharov`,
+  `Levy`, `zakharov_func`, `levy_func` and `ProblemState`; it also re-exports the
   `neuroevolution` subpackage and its `VirtualProblem`/`VirtualLoRAProblem`
   aliases (the generic `evaluate`/`make_virtual_problem` are intentionally NOT
   hoisted to package level — name clash with the numerical `evaluate`).
@@ -49,31 +48,31 @@ problems (brax, mujoco_playground, supervised_learning).
   per candidate in plain host Python (EvoX Compiler has no eager mode and cannot nest
   `evoxc.run` in a trace). See the module docstring for the precise limitations.
 
-## CEC2022 input data (resolved)
+## CEC2022 input data
 The 53 `.txt` files ship WITH this package in `numerical/cec2022_input_data/`.
-`numerical/cec2022.py` resolves `DATA_DIR = importlib.resources.files("evox_etl.problems.numerical").joinpath("cec2022_input_data")` — package-relative (DESIGN.md §5.9), so it works from a source checkout AND from an installed wheel, with no `src/evox/` path and no CWD dependence.
+`numerical/cec2022.py` resolves `DATA_DIR = importlib.resources.files("evox_etl.problems.numerical").joinpath("cec2022_input_data")` — package-relative (DESIGN.md §5.9), so it works from a source checkout AND from an installed wheel, with no CWD dependence.
 Packaging ships the data: `MANIFEST.in` includes `src/evox_etl/problems/numerical/cec2022_input_data/*.txt` and `pyproject.toml` has the matching `[tool.setuptools.package-data]` entry.
 `importlib.resources.files(...).is_file()` guards the read, so a genuinely missing file still raises `FileNotFoundError` with the resolved path.
 numpy stays allowed ONLY for loading that data; the values are baked as constant tensors.
 
-## HPO parity vs the 1.x torch wrapper (`hpo_wrapper.py`)
-torch `HPOProblemWrapper(iterations, num_instances, workflow, num_repeats, copy_init_state)` IS an `evox.core.Problem`: it stacks the workflow's `Parameter`s (`torch.func.stack_module_state` + `vmap` + a `torch.library` custom-op loop keyed by `HPOData`/`__hpo_data__`) so an OUTER `StdWorkflow` optimizes the hyperparameters in-graph.
-torch therefore tunes any `Parameter` of the workflow (arbitrary shape/tensor-valued, e.g. a `(7, 2)` matrix), evaluates `num_instances` candidates in parallel, and `copy_init_state` controls init-state reuse.
+## HPO wrapper compared with the 1.x torch design (`hpo_wrapper.py`)
+The 1.x `HPOProblemWrapper(iterations, num_instances, workflow, num_repeats, copy_init_state)` WAS an `evox.core.Problem`: it stacked the workflow's `Parameter`s (`torch.func.stack_module_state` + `vmap` + a `torch.library` custom-op loop keyed by `HPOData`/`__hpo_data__`) so an OUTER `StdWorkflow` optimized the hyperparameters in-graph.
+That design tuned any `Parameter` of the workflow (arbitrary shape/tensor-valued, e.g. a `(7, 2)` matrix), evaluated `num_instances` candidates in parallel, and used `copy_init_state` to control init-state reuse.
 The port tunes only scalar fields of the inner algorithm/problem/monitor config dataclasses (`HPSlot(config_kind, field, transform)`), one candidate at a time, `num_repeats` = independent seeds, and the outer search must be host Python (`random_search` is the only driver shipped).
-Consequence: no `evoxc` algorithm (e.g. PSO) can be the outer optimizer — the torch tutorials' flagship "outer StdWorkflow over the HPO wrapper" use case is not expressible, and there is no tensor/matrix-valued hyperparameter support.
-Port-only API (no torch equivalent): `HPOProblemConfig` frozen config, `HPOFitnessMonitorConfig` (inner `EvalMonitorConfig` + `fit_aggregation` + host-side numpy `multi_obj_metric`), `HPSlot.transform`, `evaluate_many`, `random_search`.
-torch API with no port equivalent: `HPOData`, `get_sub_state`, `get_init_params()` returning tensor `Parameter`s (port returns a `{dotted name: float}` dict), and `HPOFitnessMonitor.pre_tell`/`tell_fitness()` tensor protocol (port: `tell_fitness(workflow) -> float`).
-Both keep `get_params_keys()`; both need `multi_obj_metric` for MO inners (port additionally needs `full_fit_history=True` on the inner monitor for `get_pf_fitness`).
+Consequence: no `evoxc` algorithm (e.g. PSO) can be the outer optimizer — the "outer StdWorkflow over the HPO wrapper" use case is not expressible, and there is no tensor/matrix-valued hyperparameter support.
+API with no 1.x equivalent: `HPOProblemConfig` frozen config, `HPOFitnessMonitorConfig` (inner `EvalMonitorConfig` + `fit_aggregation` + host-side numpy `multi_obj_metric`), `HPSlot.transform`, `evaluate_many`, `random_search`.
+1.x API with no counterpart here: `HPOData`, `get_sub_state`, `get_init_params()` returning tensor `Parameter`s (this wrapper returns a `{dotted name: float}` dict), and the `HPOFitnessMonitor.pre_tell`/`tell_fitness()` tensor protocol (`tell_fitness(workflow) -> float` here).
+`get_params_keys()` exists in both; both need `multi_obj_metric` for MO inners (here additionally needing `full_fit_history=True` on the inner monitor for `get_pf_fitness`).
 
-## Migration surface (1.x torch neighbours)
-`examples/hpo/{single_objective_hpo,multi_objective_hpo,repeated_hpo}.py` and the `docs/` HPO material now import `evox_etl.*` and no longer use the torch API.
-The port's HPO suite is the sibling `../../../unit_test/etl/problems/test_hpo_wrapper.py` (host-side only, no outer-workflow case).
-The 1.x torch suites (`unit_test/problems/`, etc.) are outside this node and go away with the torch tree.
+## Migration surface
+`examples/hpo/{single_objective_hpo,multi_objective_hpo,repeated_hpo}.py` and the `docs/` HPO material import `evox_etl.*` and no longer use the 1.x API.
+The HPO suite is the sibling `../../../unit_test/etl/problems/test_hpo_wrapper.py` (host-side only, no outer-workflow case).
 
 ## Notes for Agents
-- CEC2022 input data resolves package-relatively (see "CEC2022 input data (resolved)" above) — never reintroduce a `src/evox/...` path.
-- **Test suite** (numerical + neuroevolution virtual-problem; pure-evoxc + torch
-  parity): canonical home is the sibling `../../../unit_test/etl/problems/`
+- CEC2022 input data resolves package-relatively (see "CEC2022 input data
+  (resolved)" above) — keep it package-relative.
+- **Test suite** (numerical + neuroevolution virtual-problem, evoxc-only):
+  canonical home is the sibling `../../../unit_test/etl/problems/`
   (write access requires parent). Gate: `<venv>/bin/python -m pytest
   unit_test/etl/problems -q`.
 
