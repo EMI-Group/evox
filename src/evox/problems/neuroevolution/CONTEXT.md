@@ -40,8 +40,23 @@ All three classes implement `evaluate(self, pop_params: Dict[str, nn.Parameter])
 - `pop_params`: Dictionary mapping parameter names to tensors of shape `(batch_size, *param_shape)`.
 - Returns: Tensor of shape `(batch_size,)` with per-individual fitness (reward or loss).
 
+## Virtual-Problem Semantics (parity-critical)
+`VirtualProblem.evaluate(self, payload)` / `VirtualLoRAProblem.evaluate(self, payload)` take one positional `payload = (center_flat, seeds, sigma)`, not a population dict or tensor.
+`center_flat` is `(dim,)` float32; `seeds` is `(pop_size,)` int64; `sigma` is a Python float; `pop_size` is inferred as `seeds.shape[0]`.
+Both return a plain `(pop_size,)` fitness tensor and **no** problem state; both are minimizers.
+Flat-vector ordering is torch `named_parameters()` order via `ParamsAndVector` from `evox.utils`: weight blocks are `(out_features, in_features)` row-major, each `nn.Linear` bias block immediately follows its weight block, so `offsets[bias] == offsets[weight] + out*in`.
+`n_batch_per_eval == -1` iterates the whole `data_loader`; any other value draws that many batches from the persistent `self.data_loader_iter` created in `__init__`, restarting it on `StopIteration` — consecutive evaluations therefore see successive batches (stateful round-robin).
+`reduction` is only `"mean"` (default) or `"sum"`; any other value silently takes the `"sum"` branch.
+A scalar criterion output triggers `warnings.warn` and is expanded to `(pop_size,)`; non-scalar per-sample losses are reshaped to `(pop_size, batch)` before reduction.
+Activations are a module-type whitelist `_SUPPORTED_ACTIVATIONS` (ReLU, Tanh, Sigmoid, GELU, LeakyReLU, ELU, Softmax, Identity) checked with `isinstance`; any other child raises `NotImplementedError`.
+Noise is not `torch.randn`: `VirtualProblem` uses splitmix64 + Box-Muller `_cpu_normal_noise` keyed by `(seed_i, element_index = offset + flat_index)`; `VirtualLoRAProblem` uses `philox_normal` counter offsets (bit-identical across Triton/PyTorch, whereas `virtual_perturbed_linear`'s Triton path uses `tl.randn` and is NOT numerically equal to its fallback).
+Full-noise path: `virtual_perturbed_linear(h, weight, bias, seeds, sigma, offset)` perturbs weight and bias together and computes `bias_offset = offset + out*in` internally, so only the weight block's offset is passed.
+LoRA path: weight delta is `sigma * (h @ Aᵀ) @ Bᵀ` with `A: (pop, rank, in)`, `B: (pop, out, rank)`; the bias gets direct noise `sigma * bias_noise` applied in the problem (no low-rank factor) from its own `counter_offsets[bias_idx]`.
+First-layer arithmetic differs between the two: `virtual_problem` feeds 2-D `(batch, in)` into the fused op (`x_is_per_individual=False`), while `virtual_lora_problem` pre-expands to `(pop, batch, in)` and computes the base `h @ weight.t() + bias` itself.
+Attributes set by both `__init__`s: `device`, `model`, `data_loader`, `data_loader_iter`, `criterion`, `n_batch_per_eval`, `reduction`, `param_names`, `param_shapes`, `params_and_vector`, `linear_param_indices`, plus `offsets` (virtual) or `counter_offsets` and `lora_rank` (LoRA).
+
 ## Constraints
-- All problems inherit from `evox.core.Problem` and implement `evaluate(pop_params) -> Tensor`.
+- All problems inherit from `evox.core.Problem` and implement `evaluate(pop_params) -> Tensor`, **except** the two virtual problems, whose `evaluate(payload)` takes the `(center_flat, seeds, sigma)` tuple.
 - **HPO Limitation**: None of the three problem classes support `HPOProblemWrapper` out-of-box. The JAX bridge prevents `torch.func.vmap` from working transparently.
   - *Workaround* (Brax/MuJoCo): Set `pop_size` to `inner_pop × outer_pop` and `num_repeats=1` in the HPO wrapper. Use `num_episodes` for statistical robustness instead.
 - `BraxProblem` and `MujocoProblem` require both `torch` and `jax` installed with compatible DLPack support.
