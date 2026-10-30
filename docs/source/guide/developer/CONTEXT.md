@@ -17,7 +17,7 @@ The section is linked from `docs/source/index.md` under "Getting Started" and as
 
 ## Constraints
 - No 1.x API anywhere: no `ModuleBase`, `Parameter`/`Mutable`, `use_state`, `torch.compile`/`vmap`, class-based components, or `python -m unittest`.
-  The only allowed exceptions are the `index.md` warning that names the removed 1.x API, and `environment.md` noting that `unit_test/etl/**/parity/` modules import PyTorch for numeric comparison.
+  The only allowed exceptions are the `index.md` warning that names the removed 1.x API, and `environment.md` noting that `unit_test/etl/test_no_torch.py` gates against torch creeping back in.
 - Every code snippet must be runnable and verified with the numpy backend (`PYTHONPATH=src python`).
   The large snippets on `custom-alg-pro.md` and `custom-monitor.md` are byte-identical to scripts run end-to-end; keep them in sync if the API changes.
 - One component per module: the workflow resolves functions via `importlib.import_module(type(config).__module__)`, so an algorithm, a problem and a monitor each need their own file.
