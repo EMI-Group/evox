@@ -47,15 +47,9 @@ A few details matter:
 ## What the workflow fills in for you
 
 Before your `init` runs, `StdWorkflow` completes the monitor config with
-`dataclasses.replace`, touching only fields the config actually declares:
-
-| Field | Value the workflow supplies |
-|---|---|
-| `pop_size` | From the algorithm state's `population` (or `pop`) tensor shape; otherwise from the algorithm config's `pop_size`. |
-| `dim` | The second dimension of that same tensor; otherwise from the algorithm config's `dim`. |
-| `n_obj` | `len(opt_direction)` when `opt_direction=` was passed as a list (or tuple). |
-| `multi_obj` | `len(opt_direction) > 1` when the field is left as `None`. |
-| `opt_direction` | Always overwritten with the workflow's authoritative tuple of `1`/`-1` integers. |
+`dataclasses.replace`, touching only the fields the config actually declares: `pop_size`,
+`dim`, `n_obj`, `multi_obj` and `opt_direction`. {doc}`architecture` holds the
+field-by-field table of what the workflow supplies.
 
 A 2-D `population`/`pop` tensor supplies both `pop_size` and `dim`; a 1-D one supplies
 only `pop_size`, with `dim` falling back to the algorithm config. The practical
@@ -64,8 +58,8 @@ your config (both defaulting to `None`) and raise a clear `ValueError` in `init`
 they are still `None` — the example below does exactly that.
 
 ```{tip}
-The workflow only fills and cross-checks field names it knows; extra fields are yours to
-populate and manage.
+The workflow only fills field names it knows; extra fields are yours to populate and
+manage.
 ```
 
 ## How `monitor_update` is called

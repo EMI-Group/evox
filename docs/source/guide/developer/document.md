@@ -91,7 +91,8 @@ interactive tutorial that benefits from stored cell output.
 ## Local build
 
 ```bash
-pip install -e ".[docs]"
+pip install sphinx shibuya sphinx-autodoc2 myst-parser myst-nb sphinx-copybutton \
+  sphinx-design sphinx-favicon sphinxcontrib-mermaid linkify-it-py
 rm -rf docs/source/apidocs
 PYTHONPATH=src python -m sphinx -b html docs/source docs/build/html
 ```
@@ -117,7 +118,7 @@ Two channels keep English and Simplified Chinese in step:
 
 ## Updating translations
 
-`sphinx-intl` is not part of the `docs` extra, so install it once:
+`sphinx-intl` is not part of the toolchain installed above, so install it once:
 
 ```bash
 pip install sphinx-intl
@@ -127,10 +128,12 @@ pip install sphinx-intl
 cd docs
 make gettext
 sphinx-intl update -p build/gettext -l zh_CN
-cd ..
-python docs/fix_output.py
+python fix_output.py
 ```
 
+- `fix_output.py` opens the catalog by a relative path
+  (`source/locale/zh_CN/LC_MESSAGES/docs.po`), so it must run **from `docs/`** — the sequence
+  above stays in that directory throughout.
 - Then translate the new or changed `msgstr` entries by hand in
   `docs/source/locale/zh_CN/LC_MESSAGES/docs.po`.
 - `docs/fix_output.py` strips the duplicate-implicit-target entries that Sphinx would otherwise

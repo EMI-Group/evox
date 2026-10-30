@@ -72,8 +72,8 @@ multi-objective algorithm configs accepting custom operators do so with
 
 A state is the opposite: every leaf is a concrete `evoxc` tensor with a fixed shape and
 dtype, and it is the only thing that varies between generations. Being an ordinary pytree,
-a state can be mapped over, copied, moved to another device and serialised — the workflow
-does all four — and algorithm states carry an RNG key leaf (see the Randomness section below). The
+a state can be mapped over, copied and moved to another device — the workflow does all
+three — and algorithm states carry an RNG key leaf (see the Randomness section below). The
 workflow's own `WorkflowState` has five fields: `algorithm_state`, `problem_state`,
 `monitor_state`, `generation` (a 0-d `int32` tensor) and `key` (0-d `int64`).
 
@@ -88,7 +88,8 @@ next to their config.
 | `init_step` | `init_step(config, state, evaluate) -> state` | no | generation 1 (falls back to `step`) |
 | `step` | `step(config, state, evaluate) -> state` | **yes** | every other generation |
 | `final_step` | `final_step(config, state, evaluate) -> state` | no | the last generation (falls back to `step`) |
-| `record_step` | `record_step(config, state, candidate, fitness) -> dict[str, tensor] \| None` | no | host-side, after each generation |
+| `record_step` | `record_step(config, state, candidate, fitness) -> dict[str, tensor] \| None` | no | host-side, after each generation — only when the monitor module also defines `record_auxiliary` |
+| `monitor_candidate` | `monitor_candidate(candidates) -> tensor` | no | inside the evaluate closure, ahead of `monitor_update` |
 
 | Problem function | Signature | Required | Called by |
 |---|---|---|---|
@@ -106,10 +107,16 @@ next to their config.
 state → return it. The workflow does not know what an algorithm does; it only decides
 which variant runs — generation 1 is `init_step`, the last is `final_step` (each falling
 back to `step`), everything between is a plain `step`, so `run(generations=1)` performs
-only the `init_step`. `record_step` is the one algorithm hook that runs on the **host**:
+only the `init_step`. `monitor_candidate` is the other optional in-graph hook: the
+workflow calls it inside the evaluate closure to map whatever the algorithm hands to
+`evaluate` onto the tensor the monitor consumes — identity by default, and the virtual ES
+family uses it to broadcast its `(center, seeds, sigma)` payload down to the center.
+`record_step` is the one algorithm hook that runs on the **host**:
 it gets the post-step state plus the monitor's `latest_solution`/`latest_fitness` (or
-`None`) and returns a dict of **existing** tensors for the monitor's `record_auxiliary` —
-creating a new tensor there raises `evoxc`'s `TraceError`.
+`None`) and returns a dict of **existing** tensors for the monitor's
+`record_auxiliary` — creating a new tensor there raises `evoxc`'s `TraceError`. It is
+invoked only when the monitor module also defines `record_auxiliary`, so the auxiliary
+channel needs both hooks.
 
 ```{warning}
 These must be **plain functions**, not `@evoxc.defn` objects. Defn objects raise when
@@ -211,7 +218,7 @@ already-normalised values but skips the `make_*` normalisation and validation.
 - **Nothing to keep in sync.** No marking layer declares which values are fixed and which
   vary: a config leaf is static, a state leaf is a tensor, and the compiler enforces it.
 - **State is plain data.** A run is a pytree of tensors: map over it, copy it, move it
-  between devices, serialise it — no framework support needed.
+  between devices — no framework support needed.
 - **Exactly one compile site.** Components never trace themselves, so every tensor
   operation ends up inside a graph — there is no eager path to fall back to.
 - **Backend and device are a workflow-level choice.** The same configs run unchanged

@@ -9,33 +9,42 @@ these documentation pages. The import name in 2.0 is `evox_etl`.
 ```bash
 git clone https://github.com/EMI-Group/evox.git
 cd evox
-python -m venv .venv
+python -m venv .venv           # Python 3.11+
 source .venv/bin/activate
-pip install -e .
+pip install -e .               # the `evox` distribution — its metadata is still the 1.x manifest
+pip install evoxc              # the compiler that `import evox_etl` needs
 ```
 
-- Python **3.10 or newer** is required (`requires-python = ">=3.10"` in `pyproject.toml`);
-  **3.11+ is recommended**, because that is the interpreter Read the Docs builds this
-  documentation with and the one the compiled-backend wheels target.
-- EvoX 2.0 runs on the **EvoX Compiler** (`evoxc`), a normal Python dependency that provides
-  `evoxc`, `evoxc.numpy`, `evoxc.random`, `evoxc.core` and the backends. Installing EvoX pulls it
-  in. If you are developing against a compiler checkout instead of the installed distribution,
-  put that checkout into the same environment:
+- **Python 3.11 or newer** is required. `import evox_etl` imports the
+  [EvoX Compiler](https://github.com/EMI-Group/evoxc) (`evoxc`) unconditionally, and `evoxc`
+  declares `requires-python = ">=3.11"`. The `evox` distribution's own metadata still says
+  `>=3.10` because it is the 1.x manifest, but no 2.0 program runs on 3.10.
+- The second `pip` command is not optional. `evox`'s packaging is still the 1.x manifest: it
+  declares `torch >= 2.6.0` and `numpy >= 2.0.0` and does **not** declare `evoxc`, so an
+  environment with only `evox` fails on `import evox_etl` with
+  `ModuleNotFoundError: No module named 'evoxc'`. The editable install also pulls PyTorch, which
+  no 2.0 code path imports.
+- If you are developing against a compiler checkout instead of the published distribution, install
+  that path instead:
 
 ```bash
 pip install /path/to/evoxc
 ```
 
-The default **NumPy backend** needs no compiler toolchain, no GPU driver and no PyTorch — a fresh
-virtual environment plus the editable install is enough for everything on this page.
+The default **NumPy backend** then needs no compiler toolchain and no GPU driver: an environment
+with both halves installed is enough for everything on this page.
 
 ```{tip}
 Editable mode (`-e`) keeps `evox_etl` importable straight from `src/`, so edits take effect
 without reinstalling. Add what the test suite needs with `pip install pytest numpy`.
 ```
 
-Visualization tests import Plotly (`pip install plotly`, or `pip install -e ".[vis]"`). Optional
-extras — `vis`, `iree`, `tvm`, `compilers` — are listed in {doc}`../install/evox`.
+Visualization tests import Plotly (`pip install plotly`, or `pip install -e ".[vis]"`). The
+compiled backends are extras of the compiler: EvoX documents them as `evox[iree]`, `evox[tvm]` and
+`evox[compilers]`, and `evoxc` exposes the same three as `evoxc[iree]`, `evoxc[tvm]` and
+`evoxc[compilers]`. Until the 2.0 manifest ships, only the `evoxc[...]` spelling installs anything
+— `pip install -e ".[iree]"` warns that the extra does not exist and installs nothing.
+{doc}`../install/evox` lists every extra and what it pulls in.
 
 ## Nix dev shell
 
@@ -75,9 +84,10 @@ check-added-large-files, `ruff --fix` and `ruff-format`.
 ## Run the test suite
 
 The canonical suite is **`unit_test/etl/`**, a pytest suite that mirrors `src/evox_etl/`.
-`evox_etl` is a namespace package under `src/`, so either install the project editable (see
-above) or prepend `src` to the import path; the repo-root `conftest.py` already shims `sys.path`
-with both the repository root and `src`.
+`evox_etl` is a regular installed package (`src/evox_etl/__init__.py`); only the extension
+namespaces `evox_ext` and `evox_etl_ext` are PEP 420 namespace packages. Either install the
+project editable (see above) or prepend `src` to the import path; the repo-root `conftest.py`
+already shims `sys.path` with both the repository root and `src`.
 
 Per-suite commands:
 
@@ -120,7 +130,8 @@ pytest unit_test/etl/workflows/test_aux_history.py -q
 ## Build the documentation
 
 ```bash
-pip install -e ".[docs]"
+pip install sphinx shibuya sphinx-autodoc2 myst-parser myst-nb sphinx-copybutton \
+  sphinx-design sphinx-favicon sphinxcontrib-mermaid linkify-it-py
 rm -rf docs/source/apidocs
 PYTHONPATH=src python -m sphinx -b html docs/source docs/build/html
 ```
