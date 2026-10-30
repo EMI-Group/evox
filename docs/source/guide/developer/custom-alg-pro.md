@@ -46,9 +46,9 @@ The algorithm module, `my_algorithm.py`, consists of six pieces:
 
 ```{note}
 `evaluate` is an opaque workflow closure, not a user function. It accepts a batch of
-candidates and returns fitness already scaled to **minimisation**, and the workflow may
-call it more than once per generation (for example for extra bookkeeping). Treat it as
-a black box that returns a tensor of shape `(pop_size,)`.
+candidates and returns fitness already scaled to **minimisation**, and your `step` may
+call it more than once per generation (for example with trial batches or a restart). Treat
+it as a black box that returns a tensor of shape `(pop_size,)`.
 ```
 
 The complete `my_algorithm.py`:

@@ -57,8 +57,8 @@ same way, at construction rather than inside a trace.
 | Handed to functions | first argument, by value (static) | second argument (a pytree) |
 | Changed after construction | never | never — a function returns a new state |
 
-A config is *fully static*: it carries no tensors, so the compiler specialises on it by
-value and re-validates it on every `evoxc.run`. Array-like hyperparameters are therefore
+A config is *fully static*: it carries no tensors, so the compiler specialises on it at
+trace time. Array-like hyperparameters are therefore
 normalised to flat float tuples, and values such as bounds are materialised inside the
 traced function instead:
 
@@ -73,7 +73,7 @@ multi-objective algorithm configs accepting custom operators do so with
 A state is the opposite: every leaf is a concrete `evoxc` tensor with a fixed shape and
 dtype, and it is the only thing that varies between generations. Being an ordinary pytree,
 a state can be mapped over, copied, moved to another device and serialised — the workflow
-does all four — and one leaf is always the RNG key (see [Randomness](#randomness)). The
+does all four — and algorithm states carry an RNG key leaf (see [Randomness](#randomness)). The
 workflow's own `WorkflowState` has five fields: `algorithm_state`, `problem_state`,
 `monitor_state`, `generation` (a 0-d `int32` tensor) and `key` (0-d `int64`).
 
@@ -175,7 +175,8 @@ the workflow fills in the fields it can infer with `dataclasses.replace`:
 | `opt_direction` | always the workflow's authoritative tuple of `1`/`-1` ints |
 
 ```{tip}
-The workflow's direction always wins, so every monitor accessor un-negates for `"max"`.
+The workflow's direction always wins, so a monitor that reports fitness back to users should
+un-negate it for `"max"` — the built-in `EvalMonitor` does exactly that.
 ```
 
 ## Randomness
@@ -194,15 +195,16 @@ reproduces the same run bit for bit, and any intermediate state can be resumed e
 
 ## The `make_*` convention
 
-A config is dumb — no `__post_init__`, no normalisation, no validation — so the friendly
-entry point is a module-level `make_<component>` constructor in the same module. It runs on
+Some configs validate their own fields in `__post_init__`, but array normalisation and
+derived defaults are host-side work, so the friendly entry point is a module-level
+`make_<component>` constructor in the same module. It runs on
 the **host, outside any trace**, and does three things: normalise array-like input
 (bounds, centres, weights) into flat float tuples; validate (positivity, shape agreement,
 ordering) with a clear `ValueError`; and derive defaults that must appear as fields, such
 as a population size computed from the dimension. It returns the frozen config. Shared
 helpers live in `evox_etl.algorithms._config_utils` (`to_float_tuple`,
 `normalize_bounds`, `require_gt`, `bake_bounds`, …); direct construction works for
-already-normalised values, skipping the checks.
+already-normalised values but skips the `make_*` normalisation and validation.
 
 ## Why this design
 

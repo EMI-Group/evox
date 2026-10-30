@@ -106,9 +106,10 @@ History lists belong on the **config** as plain Python lists (for example
 `record_step` hook — population entries, each gated by its `full_*_history` flag. Your
 own config can use the same pattern, as the example does with `aux_history`.
 
-The workflow exposes `workflow.monitor` (the wrapper, or `None`), `workflow.monitor_config`
-(the completed config) and `workflow.monitor_state` (the latest state, also refreshed on
-the wrapper as `.state`).
+The workflow exposes `workflow.monitor` (the wrapper, or `None`) and
+`workflow.monitor_config` (the completed config). `workflow.monitor_state` holds the state
+captured during initialization; only the wrapper's `.state` is refreshed after every
+generation, so read the wrapper rather than that attribute.
 
 `workflow.run()` returns the final `WorkflowState`. `workflow.fit()` runs the same loop
 and returns `workflow.monitor.get_best_fitness()`, raising a `ValueError` if there is no

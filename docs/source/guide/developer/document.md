@@ -117,6 +117,12 @@ Two channels keep English and Simplified Chinese in step:
 
 ## Updating translations
 
+`sphinx-intl` is not part of the `docs` extra, so install it once:
+
+```bash
+pip install sphinx-intl
+```
+
 ```bash
 cd docs
 make gettext

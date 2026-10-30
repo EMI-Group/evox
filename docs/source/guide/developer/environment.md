@@ -129,8 +129,9 @@ PYTHONPATH=src python -m sphinx -b html docs/source docs/build/html
   git-ignored: delete it before a clean build, and never edit it by hand.
 - On Windows use `docs\make.bat html`, or run the same `sphinx` command from a shell; from
   `docs/` the shortcut is `make html`. The output always lands in `docs/build/html`.
-- Set `READTHEDOCS_LANGUAGE=zh-cn` to preview the Chinese build locally; the two-channel
-  translation policy behind that switch is described in {doc}`document`.
+- Set `READTHEDOCS_LANGUAGE=zh-cn` to switch the navigation labels and theme text to Chinese;
+  the tutorial translations are copied into place by the Read the Docs pre-build job, so a
+  full Chinese preview also needs that copy step (described in {doc}`document`).
 
 ```{warning}
 A stale `docs/source/apidocs/` tree produces confusing build warnings and missing members. If the
