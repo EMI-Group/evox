@@ -111,7 +111,7 @@ Pages under `src/content/releases/*` are historical release announcements and in
 
 ## Known Issues
 
-- `evox_etl.__version__` is a hand-written string that still reports the 1.x value and is not derived from `pyproject.toml`, so it is not a reliable 2.0 release check — verify a 2.0 install by importing the package and running a smoke test.
+- `evox_etl.__version__` is read from installed distribution metadata (`importlib.metadata.version("evox")`) and falls back to `0.0.0.dev0` in a bare source checkout, so it reports `2.0.0a1` only for an installed 2.0 dist.
 - `evoxc` has no eager mode, so any direct `evoxc` tensor call outside an active trace raises `TraceError`; ad-hoc scripting must go through `StdWorkflow` or an explicit `evoxc.build`/`evoxc.run`.
 - The XLA backend has no pip extra and needs a user-supplied PJRT plugin found through `EVOXC_PJRT_PLUGIN`, so it is unavailable on a default install; the `plugin_path` compile option alone is not enough because loading and running rediscover the plugin from the environment.
 - `HPOProblemWrapper` is host-side by design: it is not an `evox_etl` `Problem`, evaluates candidates one at a time, and re-traces the inner workflow per candidate because config values are baked in as static leaves.
