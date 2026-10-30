@@ -9,8 +9,9 @@ evox
 
 This section installs the **experimental EvoX 2.0 pre-release**, the functional rewrite of EvoX whose
 import name is `evox_etl`: {doc}`python` prepares a **Python 3.11+** interpreter and an isolated
-environment, and {doc}`evox` installs the `evox` distribution from a checkout, adds the `evoxc` compiler
-that `import evox_etl` needs, verifies the result with a short PSO run, and points at the backend guide.
+environment, and {doc}`evox` installs the `evox` distribution — as the `2.0.0a1` pre-release or from a
+checkout — which brings the `evoxc` compiler that `import evox_etl` needs, verifies the result with a
+short PSO run, and points at the backend guide.
 `evoxc` runs the NumPy backend out of the box, so no compiler toolchain or GPU runtime is needed to get
 started; the compiled backends are optional extras.
 
