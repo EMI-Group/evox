@@ -65,7 +65,7 @@ print(workflow.monitor.get_best_fitness())
 workflow.monitor.plot()       # Plotly figure
 ```
 
-See {doc}`tutorial/tutorial_part2` for the walkthrough and {doc}`tutorial/tutorial_part6` for running
+See {doc}`tutorial/tutorial_part2` for the walkthrough and {doc}`guide/advanced/backends` for running
 the same program on IREE, TVM or XLA devices.
 
 ## Key Features
