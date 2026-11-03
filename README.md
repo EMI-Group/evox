@@ -24,9 +24,9 @@
   <a href="./README_ZH.md">简体中文</a>
 </p>
 
-**Generate possibilities. Test them. Build on what works.** EvoX brings this evolutionary process to AI, from model parameters and control policies to scientific design. Its ecosystem connects evolutionary algorithms, application libraries, and systems that improve through evaluation.
+**EvoX provides the computing and experimentation foundation for AI that evolves.** Generate candidates, execute tasks, evaluate results, and build on what works. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
 
-**This repository provides the PyTorch-based evolutionary computation framework.** It organizes candidate solutions and their evaluation as batched tensor computation on CPUs and GPUs. Compose an algorithm, a problem, and a monitor to run a search, then use the results to shape the next generation.
+**Tensorization and parallel computing scale up exploration.** The PyTorch main version in this repository organizes candidates and their evaluation as batched tensor computation on CPUs and GPUs. Composable algorithms, problems, and workflows connect search, execution, and feedback.
 
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-en.svg">
@@ -45,13 +45,13 @@
 | Python version | 3.10+ | 3.11+ |
 | Start here for | Applications, experiments, and PyTorch integration | Exploring the new functional API and compiler backends |
 
-**New to EvoX? [Get started with 1.x](#get-started).** The experimental version is a functional rewrite on EvoX Compiler, with a NumPy interpreter and optional IREE, XLA, and TVM backends. Its API is evolving. Both versions use the `evox` package name, so try the alpha in a separate environment using its [own installation guide](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation).
+**New to EvoX? [Get started with 1.x](#get-started).** The experimental version is a functional rewrite on EvoX Compiler, with a NumPy interpreter and optional IREE, XLA, and TVM backends. Both versions use the `evox` package name, so try the alpha in a separate environment using its [own installation guide](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation).
 
 The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI-Group/evox/tree/v0.9.0).
 
 ## Part of the EvoX ecosystem
 
-The same idea — improvement through generation and evaluation — extends across four application directions. These related projects have their own packages and runtime requirements.
+Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design.
 
 | **Generative AI** | **Agentic AI** |
 |---|---|
@@ -62,8 +62,6 @@ The same idea — improvement through generation and evaluation — extends acro
 |---|---|
 | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="Robot control policies evaluated in simulation."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="Candidate airfoil designs refined through evaluation."></picture> |
 | **Evolve the behavior.**<br>[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning | **Evolve the design.**<br>[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization |
-
-Specialized libraries include [EvoMO](https://github.com/EMI-Group/evomo) for multi-objective optimization, [EvoGP](https://github.com/EMI-Group/evogp) for genetic programming, [TensorNEAT](https://github.com/EMI-Group/tensorneat) for topology evolution, and [EvoXBench](https://github.com/EMI-Group/evoxbench) for neural architecture search benchmarking.
 
 Explore the [full ecosystem](https://www.evox.group/libs), or follow the experimental compiler work in [EvoX Compiler](https://github.com/EMI-Group/evoxc).
 
@@ -156,23 +154,19 @@ print("Pareto-front fitness shape:", monitor.get_pf_fitness().shape)
 
 Continue with the [tutorials](https://evox.readthedocs.io/en/latest/tutorial/index.html), [neuroevolution examples](docs/source/examples/brax.ipynb), or [hyperparameter optimization](docs/source/examples/hpo.ipynb).
 
-## Built for batched search
+## Libraries, benchmarks, and tooling
 
-- **Tensorized algorithms.** Population updates and fitness evaluations operate on batches, with `evox.compile` and `evox.vmap` for compilation and vectorization.
-- **Composable components.** Swap algorithms, objectives, and monitors without rebuilding the optimization loop; define custom components with PyTorch.
-- **Research tools included.** Track convergence, inspect Pareto fronts, compute multi-objective metrics, and export runs in the `.exv` format.
+Algorithm libraries propose candidates. Benchmarks and simulation environments provide evaluation feedback. Workflows organize iteration, while tensorization and compiler tools support execution at scale. Together, these components provide infrastructure for exploration and validation:
 
-The main package includes **30+ algorithms**. A selection of the built-in components:
+| Layer | Libraries and resources | What they provide |
+|---|---|---|
+| **Algorithm libraries** | [EvoX](src/evox/algorithms) · [EvoMO](https://github.com/EMI-Group/evomo) · [EvoGP](https://github.com/EMI-Group/evogp) · [TensorNEAT](https://github.com/EMI-Group/tensorneat) | Tensorized optimization, multi-objective search, genetic programming, and neural topology evolution. |
+| **Benchmarks** | [EvoXBench](https://github.com/EMI-Group/evoxbench) · [MoRobtrol in EvoMO](https://github.com/EMI-Group/evomo) · [EvoX problem library](src/evox/problems) | Neural architecture search, multi-objective robot control, and numerical optimization test suites. |
+| **Learning and simulation** | [EvoRL](https://github.com/EMI-Group/evorl) · [EvoX neuroevolution](src/evox/problems/neuroevolution) | Evolutionary reinforcement learning, batched policy evaluation, and integration with environments such as Brax and MuJoCo Playground. |
+| **Experiment tools** | [Workflows and monitors](src/evox/workflows) · [Metrics](src/evox/metrics) · [Hyperparameter optimization](docs/source/examples/hpo.ipynb) | Compose experiments, track convergence and Pareto fronts, compare results, and tune configurations. |
+| **Compilation and migration** | [EvoX Compiler](https://github.com/EMI-Group/evoxc) · [EvoCoCo](https://github.com/EMI-Group/evococo) | Compiler backends for the experimental EvoX line; automatic tensorization of MATLAB multi-objective optimization code into PyTorch/EvoX implementations. |
 
-| Task | Algorithms and tools |
-|---|---|
-| Single-objective optimization | PSO, DE, SHADE, CMA-ES, OpenES, xNES |
-| Multi-objective optimization | NSGA-II, NSGA-III, MOEA/D, RVEA, HypE |
-| Numerical benchmarking | Ackley, Sphere, Rosenbrock, DTLZ, CEC2022 |
-| Neuroevolution | Neural parameter search; Brax, MuJoCo Playground, and supervised-learning problem adapters |
-| Hyperparameter optimization | Nested workflows and `HPOProblemWrapper` |
-
-Browse the [algorithm source](src/evox/algorithms) and [problem source](src/evox/problems) for the full catalogue. Neural and simulation integrations require the optional `neuroevolution` dependencies:
+For neural and simulation integrations in EvoX 1.x:
 
 ```bash
 python -m pip install "evox[default,neuroevolution]>=1.4,<2"
