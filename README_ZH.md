@@ -24,9 +24,9 @@
   <a href="./README.md">English</a>
 </p>
 
-**生成候选，检验效果，保留有效方案并继续改进。** EvoX 将这一演化过程带入 AI，从模型参数与控制策略，到科学与工程设计。EvoX 生态连接演化算法、应用库与智能系统，让能力在持续评估中迭代。
+**EvoX 为持续演化的 AI 提供计算与实验基础。** 生成候选、执行任务、评估结果，再保留有效方案并继续改进——这一机制贯穿模型、软件、控制策略与科学设计，让能力随实验不断积累。
 
-**本仓库提供基于 PyTorch 的演化计算框架。** 将候选解及其评估组织为 CPU、GPU 上的批量张量计算，组合算法、问题与监测器即可运行搜索，再用评估结果推动下一代。
+**张量化与并行计算扩大探索规模。** 本仓库的 PyTorch 主版本将候选解及其评估组织为 CPU、GPU 上的批量张量计算，以可组合的算法、问题和工作流连接搜索、执行与反馈。
 
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-zh.svg">
@@ -45,13 +45,13 @@
 | Python 版本 | 3.10+ | 3.11+ |
 | 适合用途 | 应用开发、科研实验、PyTorch 集成 | 探索新的函数式 API 与编译后端 |
 
-**首次使用，建议从 [1.x 快速开始](#快速开始)入手。** 实验版基于 EvoX Compiler 进行函数式重写，提供 NumPy 解释执行及可选的 IREE、XLA、TVM 后端，API 仍在演进。两个版本共用 `evox` 包名；试用 alpha 版时，请在独立环境中按照其[安装说明](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation)操作。
+**首次使用，建议从 [1.x 快速开始](#快速开始)入手。** 实验版基于 EvoX Compiler 进行函数式重写，提供 NumPy 解释执行及可选的 IREE、XLA、TVM 后端。两个版本共用 `evox` 包名；试用 alpha 版时，请在独立环境中按照其[安装说明](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation)操作。
 
 早期 JAX 实现保留在 [`v0.9.0`](https://github.com/EMI-Group/evox/tree/v0.9.0)。
 
 ## EvoX 生态
 
-通过生成与评估持续改进，这一思想延伸到四个应用方向。以下相关项目有各自的安装包与运行环境。
+从数字世界到物理世界，EvoX 生态将演化用于模型融合、软件构建、机器人控制和科学设计。
 
 | **生成式 AI** | **智能体 AI** |
 |---|---|
@@ -62,8 +62,6 @@
 |---|---|
 | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="在仿真中评估机器人控制策略。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="通过评估逐步改进候选翼型设计。"></picture> |
 | **演化行为。**<br>[EvoRL](https://github.com/EMI-Group/evorl) · 演化强化学习 | **演化设计。**<br>[EvoGO](https://github.com/EMI-Group/evogo) · 生成式优化 |
-
-专用库还包括面向多目标优化的 [EvoMO](https://github.com/EMI-Group/evomo)、遗传编程的 [EvoGP](https://github.com/EMI-Group/evogp)、拓扑演化的 [TensorNEAT](https://github.com/EMI-Group/tensorneat)，以及神经架构搜索基准平台 [EvoXBench](https://github.com/EMI-Group/evoxbench)。
 
 浏览[完整生态](https://www.evox.group/zh-cn/libs)，或了解实验版使用的 [EvoX Compiler](https://github.com/EMI-Group/evoxc)。
 
@@ -156,23 +154,19 @@ print("Pareto-front fitness shape:", monitor.get_pf_fitness().shape)
 
 接下来可阅读[系列教程](https://evox.readthedocs.io/zh-cn/latest/tutorial/index.html)、[神经演化示例](docs/source/examples/brax.ipynb)或[超参数优化示例](docs/source/examples/hpo.ipynb)。
 
-## 为批量搜索而设计
+## 算法库、Benchmark 与工具链
 
-- **张量化算法。** 种群更新与适应度评估按批执行，配合 `evox.compile` 和 `evox.vmap` 进行编译与向量化。
-- **可组合的组件。** 更换算法、目标函数或监测器时，复用同一优化流程；使用 PyTorch 编写自定义组件。
-- **完整的实验工具。** 跟踪收敛、查看 Pareto 前沿、计算多目标指标，并以 `.exv` 格式导出运行数据。
+算法库提出候选，Benchmark 与仿真环境提供评估反馈，工作流组织迭代，张量化与编译工具支撑规模化执行。这些组件共同构成从探索到验证的基础设施：
 
-主包内置 **30+ 种算法**。部分组件如下：
+| 层次 | 算法库与资源 | 提供的能力 |
+|---|---|---|
+| **算法库** | [EvoX](src/evox/algorithms) · [EvoMO](https://github.com/EMI-Group/evomo) · [EvoGP](https://github.com/EMI-Group/evogp) · [TensorNEAT](https://github.com/EMI-Group/tensorneat) | 张量化优化、多目标搜索、遗传编程与神经网络拓扑演化。 |
+| **Benchmark** | [EvoXBench](https://github.com/EMI-Group/evoxbench) · [EvoMO / MoRobtrol](https://github.com/EMI-Group/evomo) · [EvoX 问题库](src/evox/problems) | 神经架构搜索、多目标机器人控制与数值优化测试套件。 |
+| **学习与仿真** | [EvoRL](https://github.com/EMI-Group/evorl) · [EvoX 神经演化](src/evox/problems/neuroevolution) | 演化强化学习、批量策略评估，以及 Brax、MuJoCo Playground 等环境集成。 |
+| **实验工具** | [工作流与监测器](src/evox/workflows) · [评价指标](src/evox/metrics) · [超参数优化](docs/source/examples/hpo.ipynb) | 组合实验流程，跟踪收敛与 Pareto 前沿，对比结果并优化配置。 |
+| **编译与迁移** | [EvoX Compiler](https://github.com/EMI-Group/evoxc) · [EvoCoCo](https://github.com/EMI-Group/evococo) | 实验版 EvoX 的编译后端；将 MATLAB 多目标优化代码自动张量化为 PyTorch/EvoX 实现。 |
 
-| 任务 | 算法与工具 |
-|---|---|
-| 单目标优化 | PSO、DE、SHADE、CMA-ES、OpenES、xNES |
-| 多目标优化 | NSGA-II、NSGA-III、MOEA/D、RVEA、HypE |
-| 数值基准测试 | Ackley、Sphere、Rosenbrock、DTLZ、CEC2022 |
-| 神经演化 | 神经网络参数搜索；Brax、MuJoCo Playground 与监督学习问题适配器 |
-| 超参数优化 | 嵌套工作流与 `HPOProblemWrapper` |
-
-完整列表见[算法源码](src/evox/algorithms)与[问题源码](src/evox/problems)。神经演化和仿真集成需要额外安装 `neuroevolution` 依赖：
+如需使用 EvoX 1.x 的神经演化与仿真集成：
 
 ```bash
 python -m pip install "evox[default,neuroevolution]>=1.4,<2"
