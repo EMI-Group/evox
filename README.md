@@ -1,368 +1,228 @@
-<h1 align="center">
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/evox_brand_light.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_brand_dark.svg">
-    <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_brand_dark.svg">
-  </picture>
-</h1>
-
-<p align="center">
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/pso_result.avif">
-    <img src="docs/source/_static/pso_result.gif" alt="PSO Result" height="150">
-  </picture>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/rvea_result.avif">
-    <img src="docs/source/_static/rvea_result.gif" alt="RVEA Result" height="150">
-  </picture>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/halfcheetah_200.avif">
-    <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+    <img src="docs/source/_static/evox_brand_dark.svg" alt="EvoX" width="280">
   </picture>
 </p>
 
+<h1 align="center">The Infrastructure for<br>Evolutionary AI Systems</h1>
 
-<div align="center">
-  <a href="https://arxiv.org/abs/2301.12457"><img src="https://img.shields.io/badge/arxiv-2212.05652-red" alt="arXiv"></a>
-  <a href="https://evox.readthedocs.io/en/latest/index.html"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="Documentation"></a>
-  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?logo=python" alt="PyPI Version"></a>
-  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/badge/python-3.10+-orange?logo=python" alt="Python Version"></a>
-  <a href="https://discord.gg/Vbtgcpy7G4"><img src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord" alt="Discord Server"></a>
-  <a href="https://qm.qq.com/q/vTPvoMUGAw"><img src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq" alt="QQ Group"></a>
-</div>
+<p align="center">Enabling intelligence to adapt, create, and evolve<br>across digital and physical worlds.</p>
 
 <p align="center">
-  <a href="./README.md"><img src="https://img.shields.io/badge/English-f6f5f4" alt="English README"></a>
-  <a href="./README_ZH.md"><img src="https://img.shields.io/badge/中文-f6f5f4" alt="中文 README"></a>
+  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?color=c8383c" alt="PyPI stable version"></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.6%2B-c8383c" alt="PyTorch 2.6 or later"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-555" alt="Python 3.10 or later"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-555" alt="GPL-3.0-or-later"></a>
 </p>
 
----
+<p align="center">
+  <a href="https://www.evox.group/">Website</a> ·
+  <a href="https://evox.readthedocs.io/en/latest/">Documentation</a> ·
+  <a href="https://github.com/EMI-Group/evox/releases">Releases</a> ·
+  <a href="./README_ZH.md">简体中文</a>
+</p>
 
-<h3 align="center"> 🌟Distributed GPU-accelerated Framework for Scalable Evolutionary Computation🌟 </h3>
+**Generate possibilities. Test them. Build on what works.** EvoX brings this evolutionary process to AI, from model parameters and control policies to scientific design. Its ecosystem connects evolutionary algorithms, application libraries, and systems that improve through evaluation.
 
----
+**This repository provides the PyTorch-based evolutionary computation framework.** It organizes candidate solutions and their evaluation as batched tensor computation on CPUs and GPUs. Compose an algorithm, a problem, and a monitor to run a search, then use the results to shape the next generation.
 
-## 🔥 News
-- [2026-09-09] Released **EvoX 1.4.0** - 🚀 A maintenance release with various fixes and improvements! [[Release Notes](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-en.svg">
+  <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Candidates form batched tensors for parallel evaluation. Fitness returns to the search; the selected candidate is retained and varied to form the next generation.">
+</picture>
 
-## Table of Contents
+[View the static diagram](docs/source/_static/readme-compute-en.svg)
 
-1. [Overview](#Overview)
-2. [Key Features](#key-features)
-3. [Main Contents](#main-contents)
-4. [Installation Guide](#installation-guide)
-5. [Quick Start](#quick-start)
-6. [Sister Projects](#sister-projects)
-7. [Community & Support](#community--support)
+## Choose your version
 
-## Overview
+| | **EvoX 1.x · Main version** | **EvoX 2.0 alpha · Experimental** |
+|---|---|---|
+| Branch | [`main`](https://github.com/EMI-Group/evox/tree/main) | [`evoxc-exp`](https://github.com/EMI-Group/evox/tree/evoxc-exp) |
+| Foundation | **PyTorch** | **[EvoX Compiler (`evoxc`)](https://github.com/EMI-Group/evoxc)** |
+| Python import | `import evox` | `import evox_etl` |
+| Python version | 3.10+ | 3.11+ |
+| Start here for | Applications, experiments, and PyTorch integration | Exploring the new functional API and compiler backends |
 
-EvoX is a distributed GPU-accelerated evolutionary computation framework compatible with **PyTorch**.  With a user-friendly programming model, it offers a comprehensive suite of **140+ Evolutionary Algorithms (EAs)** and **240+ Benchmark Problems/Environments** across the EvoX ecosystem — **30+ algorithms** and **30+ benchmark problems/environments** built into this package, plus its sister libraries. For more details, please refer to our [Paper](https://arxiv.org/abs/2301.12457) and [Documentation](https://evox.readthedocs.io/en/latest/index.html) / [文档](https://evox.readthedocs.io/zh_CN/latest/index.html).
+**New to EvoX? [Get started with 1.x](#get-started).** The experimental version is a functional rewrite on EvoX Compiler, with a NumPy interpreter and optional IREE, XLA, and TVM backends. Its API is evolving. Both versions use the `evox` package name, so try the alpha in a separate environment using its [own installation guide](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation).
 
-> [!NOTE]
-> Users of the previous **JAX-based version** can access it on the **v0.9.0 branch**.
+The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI-Group/evox/tree/v0.9.0).
 
+## Part of the EvoX ecosystem
 
-## Key Features
+The same idea — improvement through generation and evaluation — extends across four application directions. These related projects have their own packages and runtime requirements.
 
-### 💻 High-Performance Computing
+| **Generative AI** | **Agentic AI** |
+|---|---|
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="Expert model combinations evolving through evaluation."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="Source files generated from a task, tested, and repaired after a failing test."></picture> |
+| **Evolve the models.**<br>[EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging | **Evolve the software.**<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system |
 
-#### 🚀 Ultra Performance
-- Supports acceleration on heterogeneous hardware, including both **CPUs** and **GPUs**, achieving over **100x speedups**.
-- Integrates **distributed workflows** that scale seamlessly across multiple nodes or devices.
+| **Physical AI** | **AI for Science** |
+|---|---|
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="Robot control policies evaluated in simulation."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="Candidate airfoil designs refined through evaluation."></picture> |
+| **Evolve the behavior.**<br>[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning | **Evolve the design.**<br>[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization |
 
-#### 🌐 All-in-One Solution
-- Includes **30+ algorithms** for a wide range of use cases, fully supporting **single- and multi-objective optimization**, with **140+ algorithms** available across the EvoX ecosystem.
-- Provides a **hierarchical architecture** for complex tasks such as **meta learning**, **hyperparameter optimization**, and **neuroevolution**.
+Specialized libraries include [EvoMO](https://github.com/EMI-Group/evomo) for multi-objective optimization, [EvoGP](https://github.com/EMI-Group/evogp) for genetic programming, [TensorNEAT](https://github.com/EMI-Group/tensorneat) for topology evolution, and [EvoXBench](https://github.com/EMI-Group/evoxbench) for neural architecture search benchmarking.
 
-#### 🛠️ Easy-to-Use Design
-- Fully compatible with **PyTorch** and its ecosystem, simplifying algorithmic development with a **tailored programming model**.
-- Ensures effortless setup with **one-click installation** for Windows users.
+Explore the [full ecosystem](https://www.evox.group/libs), or follow the experimental compiler work in [EvoX Compiler](https://github.com/EMI-Group/evoxc).
 
+## Get started
 
-### 📊 Versatile Benchmarking
-
-#### 📚 Extensive Benchmark Suites
-- Features **30+ benchmark problems** spanning single-objective optimization, multi-objective optimization, and real-world engineering challenges, with **240+ benchmark problems/environments** across the EvoX ecosystem.
-
-#### 🎮 Support for Physics Engines
-- Integrates seamlessly with physics engines like **Brax** and other popular frameworks for reinforcement learning.
-
-#### ⚙️ Customizable Problems
-- Provides an **encapsulated module** for defining and evaluating custom problems tailored to user needs, with seamless integration into real-world applications and datasets.
-
-
-### 📈 Flexible Visualization
-
-#### 🔍 Ready-to-Use Tools
-- Offers a comprehensive set of **visualization tools** for analyzing evolutionary processes across various tasks.
-
-#### 🛠️ Customizable Modules
-- Enables users to integrate their own **visualization code**, allowing for tailored and flexible visualizations.
-
-#### 📂 Real-Time Data Streaming
-- Leverages the tailored **.exv format** to simplify and accelerate real-time data streaming.
-
-## Main Contents
-
-<table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
-  <thead>
-    <tr style="background-color: #f2f2f2;">
-      <th>Category</th>
-      <th>Subcategory</th>
-      <th>Notable Algorithms / Benchmark Problems</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="3">Single-objective Optimization</td>
-      <td><b>Differential Evolution</b></td>
-      <td>CoDE, JaDE, SaDE, SHADE, IMODE, ...</td>
-    </tr>
-    <tr>
-      <td><b>Evolution Strategy</b></td>
-      <td>CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ...</td>
-    </tr>
-    <tr>
-      <td><b>Particle Swarm Optimization</b></td>
-      <td>FIPS, CSO, CPSO, CLPSO, SL-PSO, ...</td>
-    </tr>
-    <tr>
-      <td rowspan="3">Multi-objective Optimization</td>
-      <td><b>Dominance-based</b></td>
-      <td>NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...</td>
-    </tr>
-    <tr>
-      <td><b>Decomposition-based</b></td>
-      <td>MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ...</td>
-    </tr>
-    <tr>
-      <td><b>Indicator-based</b></td>
-      <td>IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...</td>
-    </tr>
-    <tr>
-      <td rowspan="2">Benchmark Problems / Environments</td>
-      <td><b>Numerical</b></td>
-      <td>DTLZ, LSMOP, MaF, ZDT, CEC'22, ...</td>
-    </tr>
-    <tr>
-      <td><b>Neuroevolution / RL</b></td>
-      <td>Brax, TorchVision Dataset, ...</td>
-    </tr>
-  </tbody>
-</table>
-
-For a comprehensive list and detailed descriptions of all algorithms, please check the [Algorithms API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html), and for benchmark problems/environments, refer to the [Problems API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html).
-
-
-## Installation Guide
-
-Install `evox` with default feature sets via `pip`:
+Install [PyTorch for your hardware](https://pytorch.org/get-started/locally/), then install EvoX 1.x with visualization support:
 
 ```bash
-pip install "evox[default]"
+python -m pip install "evox[default]>=1.4,<2"
 ```
 
-Install the latest version from the source code for testing or development:
+### Run your first search
 
-```bash
-git clone https://github.com/EMI-Group/evox.git
-cd evox
-pip install -e .
-```
-
-> [!TIP]
-> Windows users can use the [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) script for installation.
-
-## Quick Start
-
-Here are some examples to get you started with EvoX:
-
-### Single-objective Optimization
-
-Solve the Ackley problem using the PSO algorithm:
+Optimize the 10-dimensional Ackley function with particle swarm optimization:
 
 ```python
 import torch
 from evox.algorithms import PSO
 from evox.problems.numerical import Ackley
-from evox.workflows import StdWorkflow, EvalMonitor
+from evox.workflows import EvalMonitor, StdWorkflow
 
-# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
+torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+torch.manual_seed(42)
 
-algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
-problem = Ackley()
+algorithm = PSO(
+    pop_size=100,
+    lb=-32 * torch.ones(10),
+    ub=32 * torch.ones(10),
+)
 monitor = EvalMonitor()
-workflow = StdWorkflow(algorithm, problem, monitor)
+workflow = StdWorkflow(algorithm, Ackley(), monitor)
+
 workflow.init_step()
-for i in range(100):
+for _ in range(100):
     workflow.step()
 
-monitor.plot() # or monitor.plot().show() if you are using headless mode
+print("Best fitness:", monitor.get_best_fitness().item())
+# monitor.plot().show()  # Optional: inspect the convergence curve.
 ```
 
-<details>
-  <summary>Example Output</summary>
+**Algorithm** generates and updates candidates. **Problem** evaluates a batch. **Workflow** connects them. **Monitor** records the results.
 
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/1-single-objective-output.avif">
-    <img src="docs/source/_static/1-single-objective-output.png">
-  </picture>
+<details>
+<summary><strong>Use your own objective</strong></summary>
+
+Implement a batched evaluation function. For a single objective, map a tensor of shape `(population_size, dimensions)` to one fitness value per candidate:
+
+```python
+from evox.core import Problem
+
+class Sphere(Problem):
+    def evaluate(self, candidates: torch.Tensor) -> torch.Tensor:
+        return candidates.square().sum(dim=-1)
+```
+
+Pass `Sphere()` in place of `Ackley()` when constructing the workflow. EvoX minimizes by default; use `opt_direction="max"` in `StdWorkflow` for maximization.
 
 </details>
 
-### Multi-objective Optimization
+<details>
+<summary><strong>Optimize multiple objectives</strong></summary>
 
-Solve the DTLZ2 problem using the RVEA algorithm:
+The same workflow supports multi-objective search. This example uses RVEA on DTLZ2:
 
 ```python
 import torch
 from evox.algorithms import RVEA
 from evox.problems.numerical import DTLZ2
-from evox.workflows import StdWorkflow, EvalMonitor
-
-# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
-
-prob = DTLZ2(m=2)
-pf = prob.pf()
-algo = RVEA(
-    pop_size=100,
-    n_objs=2,
-    lb=-torch.zeros(12),
-    ub=torch.ones(12)
-)
-monitor = EvalMonitor()
-workflow = StdWorkflow(algo, prob, monitor)
-workflow.init_step()
-for i in range(100):
-    workflow.step()
-
-monitor.plot() # or monitor.plot().show() if you are using headless mode
-```
-
-<details>
-  <summary>Example Output</summary>
-
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/2-multi-objective-output.avif">
-    <img src="docs/source/_static/2-multi-objective-output.png">
-  </picture>
-
-</details>
-
-### Neuroevolution
-
-Evolving a simple MLP model to solve the Brax HalfCheetah environment:
-
-```python
-import torch
-import torch.nn as nn
-from evox.algorithms import PSO
-from evox.problems.neuroevolution.brax import BraxProblem
-from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 
-# torch.set_default_device("cuda") # Uncomment this line if you want to use GPU by default
-
-class SimpleMLP(nn.Module):
-    def __init__(self):
-        super().__init__()
-        # observation space is 17-dim, action space is 6-dim.
-        self.features = nn.Sequential(nn.Linear(17, 8), nn.Tanh(), nn.Linear(8, 6))
-
-    def forward(self, x):
-        return torch.tanh(self.features(x))
-
-# Initialize the MLP model
-model = SimpleMLP()
-adapter = ParamsAndVector(dummy_model=model)
-# Set the population size
-POP_SIZE = 1024
-# Get the bound of the PSO algorithm
-model_params = dict(model.named_parameters())
-pop_center = adapter.to_vector(model_params)
-lb = torch.full_like(pop_center, -5)
-ub = torch.full_like(pop_center, 5)
-# Initialize the PSO, and you can also use any other algorithms
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
-# Initialize the Brax problem
-problem = BraxProblem(
-    policy=model,
-    env_name="halfcheetah",
-    max_episode_length=1000,
-    num_episodes=3,
-    pop_size=POP_SIZE,
+torch.manual_seed(42)
+algorithm = RVEA(
+    pop_size=100,
+    n_objs=2,
+    lb=torch.zeros(12),
+    ub=torch.ones(12),
 )
-# set an monitor, and it can record the top 3 best fitnesses
-monitor = EvalMonitor(topk=3)
-# Initiate an workflow
-workflow = StdWorkflow(
-    algorithm=algorithm,
-    problem=problem,
-    monitor=monitor,
-    opt_direction="max",
-    solution_transform=adapter,
-)
+monitor = EvalMonitor(multi_obj=True)
+workflow = StdWorkflow(algorithm, DTLZ2(m=2), monitor)
+
 workflow.init_step()
-for i in range(50):
+for _ in range(100):
     workflow.step()
 
-monitor.plot() # or monitor.plot().show() if you are using headless mode
+print("Pareto-front fitness shape:", monitor.get_pf_fitness().shape)
+# monitor.plot().show()
 ```
-
-<details>
-  <summary>Example Output</summary>
-
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/3-neuroevolution-output.avif">
-    <img src="docs/source/_static/3-neuroevolution-output.gif">
-  </picture>
 
 </details>
 
-> [!NOTE]
-> For comprehensive guidance, please visit our [Documentation](https://evox.readthedocs.io/en/latest/), where you'll find detailed installation steps, tutorials, practical examples, and complete API references.
+Continue with the [tutorials](https://evox.readthedocs.io/en/latest/tutorial/index.html), [neuroevolution examples](docs/source/examples/brax.ipynb), or [hyperparameter optimization](docs/source/examples/hpo.ipynb).
 
-## Sister Projects
-- **EvoRL**: GPU-accelerated framework for Evolutionary Reinforcement Learning. Check out [here](https://github.com/EMI-Group/evorl).
-- **EvoGP**: GPU-accelerated framework for Genetic Programming. Check out [here](https://github.com/EMI-Group/evogp).
-- **EvoMO**: GPU-accelerated library for Evolutionary Multiobjective Optimization (EMO). Check out [here](https://github.com/EMI-Group/evomo).
-- **TensorNEAT**: Tensorized NeuroEvolution of Augmenting Topologies (NEAT) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorneat).
-- **TensorRVEA**: Tensorized Reference Vector Guided Evolutionary Algorithm (RVEA) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensorrvea).
-- **TensorACO**: Tensorized Ant Colony Optimization (ACO) for GPU Acceleration. Check out [here](https://github.com/EMI-Group/tensoraco).
-- **EvoXBench**: A real-world benchmark platform for solving various optimization problems, such as Neural Architecture Search (NAS). It operates without the need for GPUs/PyTorch/TensorFlow and supports multiple programming environments. Check out [here](https://github.com/EMI-Group/evoxbench).
+## Built for batched search
 
-Together with EvoX, these and the other EvoX-related libraries published by the [EMI-Group](https://github.com/EMI-Group) form an ecosystem providing **140+ algorithms** and **240+ benchmark problems/environments**.
+- **Tensorized algorithms.** Population updates and fitness evaluations operate on batches, with `evox.compile` and `evox.vmap` for compilation and vectorization.
+- **Composable components.** Swap algorithms, objectives, and monitors without rebuilding the optimization loop; define custom components with PyTorch.
+- **Research tools included.** Track convergence, inspect Pareto fronts, compute multi-objective metrics, and export runs in the `.exv` format.
 
-Stay tuned - more exciting developments are on the way!  ✨
+The main package includes **30+ algorithms**. A selection of the built-in components:
 
-## Community & Support
+| Task | Algorithms and tools |
+|---|---|
+| Single-objective optimization | PSO, DE, SHADE, CMA-ES, OpenES, xNES |
+| Multi-objective optimization | NSGA-II, NSGA-III, MOEA/D, RVEA, HypE |
+| Numerical benchmarking | Ackley, Sphere, Rosenbrock, DTLZ, CEC2022 |
+| Neuroevolution | Neural parameter search; Brax, MuJoCo Playground, and supervised-learning problem adapters |
+| Hyperparameter optimization | Nested workflows and `HPOProblemWrapper` |
 
-- Join discussions on the [GitHub Discussion Board](https://github.com/EMI-Group/evox/discussions).
-- Connect via [Discord](https://discord.gg/Vbtgcpy7G4) or QQ group (ID: 297969717).
-- Visit [Offical Website](https://evox.group/).
+Browse the [algorithm source](src/evox/algorithms) and [problem source](src/evox/problems) for the full catalogue. Neural and simulation integrations require the optional `neuroevolution` dependencies:
 
-## Citing EvoX
+```bash
+python -m pip install "evox[default,neuroevolution]>=1.4,<2"
+```
 
-If EvoX contributes to your research, please cite it:
+### Execution and hardware
+
+The PyTorch version runs on **CPU**, **NVIDIA GPU (CUDA)**, **AMD GPU (ROCm)**, and **Apple Silicon (MPS, eager execution)** through the corresponding PyTorch backend. See the [hardware guide](docs/source/miscellaneous/other_gpus.md) for setup.
+
+For supported compilation environments, compile the repeated step before entering the search loop:
+
+```python
+from evox import compile
+
+workflow.step = compile(workflow.step)
+```
+
+[Multi-GPU and distributed workflows](docs/source/guide/experimental/distributed_workflow.md) are experimental and require a distributed launch and configuration. See [benchmark scripts](benchmarks) for reproducible performance experiments.
+
+## Community and contributing
+
+- **Questions and ideas:** [GitHub Discussions](https://github.com/EMI-Group/evox/discussions), [Discord](https://discord.gg/Vbtgcpy7G4), or [QQ group 297969717](https://qm.qq.com/q/vTPvoMUGAw).
+- **Bugs and contributions:** [Open an issue](https://github.com/EMI-Group/evox/issues) or start with the [developer guide](https://evox.readthedocs.io/en/latest/guide/developer/index.html).
+- **Research and collaboration:** [Ran Cheng](https://chengran.tech/).
+
+<details>
+<summary>Install the main version from source</summary>
+
+```bash
+git clone --branch main https://github.com/EMI-Group/evox.git
+cd evox
+python -m pip install -e ".[default]"
+```
+
+</details>
+
+## Citation
+
+If EvoX supports your research, please cite the [framework paper](https://arxiv.org/abs/2301.12457):
 
 ```bibtex
 @article{evox,
-  title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
+  title = {{EvoX}: A Distributed GPU-accelerated Framework for Scalable Evolutionary Computation},
   author = {Huang, Beichen and Cheng, Ran and Li, Zhuozhao and Jin, Yaochu and Tan, Kay Chen},
   journal = {IEEE Transactions on Evolutionary Computation},
-  year = 2024,
+  year = {2024},
   doi = {10.1109/TEVC.2024.3388550}
 }
 ```
 
-## License Notice
+## License
 
-EvoX is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. For full terms and conditions, please refer to the [LICENSE](./LICENSE) file.
-
-<!--
-## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
--->
+EvoX is licensed under [GPL-3.0-or-later](LICENSE). Related projects, including EvoX Compiler, carry their own licenses.

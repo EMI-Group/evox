@@ -1,0 +1,49 @@
+{
+  "repository": "https://github.com/EMI-Group/evox-portal",
+  "branch": "prod",
+  "revision": "c61174e5ff6fc719033476885c4f6aab180ff272",
+  "file": "src/components/art/evolution-scenes.ts",
+  "adaptation": "Original render methods; fixed canvas export; 600 ms loop crossfade for population scenes.",
+  "scenes": [
+    {
+      "kind": "generative",
+      "frames": 520,
+      "fps": 20,
+      "durationMs": 26000,
+      "width": 720,
+      "height": 420,
+      "encodedFrames": 304,
+      "bytes": 1278116
+    },
+    {
+      "kind": "agentic",
+      "frames": 254,
+      "fps": 20,
+      "durationMs": 12700,
+      "width": 720,
+      "height": 420,
+      "encodedFrames": 208,
+      "bytes": 724828
+    },
+    {
+      "kind": "physical",
+      "frames": 520,
+      "fps": 20,
+      "durationMs": 26000,
+      "width": 720,
+      "height": 420,
+      "encodedFrames": 396,
+      "bytes": 1393526
+    },
+    {
+      "kind": "science",
+      "frames": 520,
+      "fps": 20,
+      "durationMs": 26000,
+      "width": 720,
+      "height": 420,
+      "encodedFrames": 300,
+      "bytes": 816872
+    }
+  ]
+}

@@ -1,372 +1,228 @@
-<h2 align="center">
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/evox_brand_light.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/evox_brand_dark.svg">
-    <img alt="EvoX Logo" height="128" width="500px" src="docs/source/_static/evox_brand_dark.svg">
-  </picture>
-</h1>
-
-<p align="center">
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/pso_result.avif">
-    <img src="docs/source/_static/pso_result.gif" alt="PSO 结果" height="150">
-  </picture>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/rvea_result.avif">
-    <img src="docs/source/_static/rvea_result.gif" alt="RVEA 结果" height="150">
-  </picture>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/halfcheetah_200.avif">
-    <img src="docs/source/_static/halfcheetah_200.gif" alt="HalfCheetah 200" height="150">
+    <img src="docs/source/_static/evox_brand_dark.svg" alt="EvoX" width="280">
   </picture>
 </p>
 
-<div align="center">
-  <a href="https://arxiv.org/abs/2301.12457"><img src="https://img.shields.io/badge/arxiv-2212.05652-red" alt="arXiv"></a>
-  <a href="https://evox.readthedocs.io/zh_CN/latest/index.html"><img src="https://img.shields.io/badge/readthedocs-docs-green?logo=readthedocs" alt="文档"></a>
-  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?logo=python" alt="PyPI 版本"></a>
-  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/badge/python-3.10+-orange?logo=python" alt="Python 版本"></a>
-  <a href="https://discord.gg/Vbtgcpy7G4"><img src="https://img.shields.io/badge/discord-evox-%235865f2?logo=discord" alt="Discord 服务器"></a>
-  <a href="https://qm.qq.com/q/vTPvoMUGAw"><img src="https://img.shields.io/badge/QQ-297969717-%231db4f4?logo=tencentqq" alt="QQ 群"></a>
-</div>
+<h1 align="center">面向演化式 AI 系统的<br>基础设施</h1>
+
+<p align="center">让智能跨越数字与物理世界，持续适应、创造与演化。</p>
 
 <p align="center">
-  <a href="./README.md"><img src="https://img.shields.io/badge/English-f6f5f4" alt="English README"></a>
-  <a href="./README_ZH.md"><img src="https://img.shields.io/badge/中文-f6f5f4" alt="中文 README"></a>
+  <a href="https://pypi.org/project/evox/"><img src="https://img.shields.io/pypi/v/evox?color=c8383c" alt="PyPI 稳定版"></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.6%2B-c8383c" alt="PyTorch 2.6 及以上"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-555" alt="Python 3.10 及以上"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-555" alt="GPL-3.0-or-later"></a>
 </p>
 
----
+<p align="center">
+  <a href="https://www.evox.group/zh-cn/">官网</a> ·
+  <a href="https://evox.readthedocs.io/zh-cn/latest/">文档</a> ·
+  <a href="https://github.com/EMI-Group/evox/releases">版本发布</a> ·
+  <a href="./README.md">English</a>
+</p>
 
-<h3 align="center"> 🌟分布式 GPU 加速的通用演化计算框架🌟 </h3>
+**生成候选，检验效果，保留有效方案并继续改进。** EvoX 将这一演化过程带入 AI，从模型参数与控制策略，到科学与工程设计。EvoX 生态连接演化算法、应用库与智能系统，让能力在持续评估中迭代。
 
----
+**本仓库提供基于 PyTorch 的演化计算框架。** 将候选解及其评估组织为 CPU、GPU 上的批量张量计算，组合算法、问题与监测器即可运行搜索，再用评估结果推动下一代。
 
-## 🔥 新闻
-- [2026-09-09] 发布 **EvoX 1.4.0** - 🚀 维护版本更新，包含多项修复与改进！ [[发布说明](https://github.com/EMI-Group/evox/releases/tag/v1.4.0)]
-- [2025-05-13] 发布 **EvoX 1.2.2** - 🚀 EvoX v1.2.2 发布，新增 Mujoco Playground 及官方教程！ [[更新内容](https://evox.group/index.php?m=home&c=View&a=index&aid=151)]
-- [2025-02-03] 发布 **EvoRL**：基于 **JAX** 的 GPU 加速 **进化强化学习** 框架！[[论文](https://arxiv.org/abs/2501.15129)] [[代码](https://github.com/EMI-Group/evorl)]
-- [2025-01-30] 发布 **EvoGP**：基于 **PyTorch** & **CUDA** 的 GPU 加速 **遗传编程** 框架！[[论文](http://arxiv.org/abs/2501.17168)] [[代码](https://github.com/EMI-Group/evogp)]
-- [2025-01-14] 发布 **EvoX 1.0.0**，全面兼容 **PyTorch**，全面接入`torch.compile`！使用 **JAX 版本** 的用户可在 **v0.9.0 分支** 获取。
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-zh.svg">
+  <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="候选解组成批量张量并行评估，评估结果反馈到搜索，保留较优候选并通过变化形成下一代。">
+</picture>
 
-## 目录
+[查看静态图](docs/source/_static/readme-compute-zh.svg)
 
-1. [概述](#概述)
-2. [主要特性](#主要特性)
-3. [主要内容](#主要内容)
-4. [安装指南](#安装指南)
-5. [快速开始](#快速开始)
-6. [相关项目](#相关项目)
-7. [社区支持](#社区支持)
+## 选择版本
 
-## 概述
+| | **EvoX 1.x · 主版本** | **EvoX 2.0 alpha · 实验版** |
+|---|---|---|
+| 分支 | [`main`](https://github.com/EMI-Group/evox/tree/main) | [`evoxc-exp`](https://github.com/EMI-Group/evox/tree/evoxc-exp) |
+| 计算基础 | **PyTorch** | **[EvoX Compiler（`evoxc`）](https://github.com/EMI-Group/evoxc)** |
+| Python 导入 | `import evox` | `import evox_etl` |
+| Python 版本 | 3.10+ | 3.11+ |
+| 适合用途 | 应用开发、科研实验、PyTorch 集成 | 探索新的函数式 API 与编译后端 |
 
-EvoX 是一个分布式 GPU 加速的进化计算框架，兼容 **PyTorch**。提供易用的编程模型，EvoX 生态包含 **140+ 进化算法 (EAs)** 和 **240+ 基准问题/环境** —— 其中本包内置 **30+ 种算法** 和 **30+ 基准问题/环境**，其余来自姊妹项目。详情请参阅我们的 [论文](https://arxiv.org/abs/2301.12457) 及 [文档](https://evox.readthedocs.io/zh/latest/)。
+**首次使用，建议从 [1.x 快速开始](#快速开始)入手。** 实验版基于 EvoX Compiler 进行函数式重写，提供 NumPy 解释执行及可选的 IREE、XLA、TVM 后端，API 仍在演进。两个版本共用 `evox` 包名；试用 alpha 版时，请在独立环境中按照其[安装说明](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation)操作。
 
-> [!NOTE]
-> 需要使用 **JAX 版本** 的用户请安装 **0.9.0**或更早版本。
+早期 JAX 实现保留在 [`v0.9.0`](https://github.com/EMI-Group/evox/tree/v0.9.0)。
 
+## EvoX 生态
 
-## 主要特性
+通过生成与评估持续改进，这一思想延伸到四个应用方向。以下相关项目有各自的安装包与运行环境。
 
-### 💻 高性能计算
+| **生成式 AI** | **智能体 AI** |
+|---|---|
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="通过评估迭代专家模型的融合方案。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="从任务生成源代码，运行测试，并修复测试发现的问题。"></picture> |
+| **演化模型。**<br>[EvoGM](https://github.com/JiangTao97/evogm) · 演化式模型融合 | **演化软件。**<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · 递归智能体系统 |
 
-#### 🚀 超高性能
-- 支持在**CPU** 和 **GPU** 等异构硬件上加速运行，实现**100 倍以上加速**。
-- 集成**分布式工作流**，可无缝扩展至多个节点或设备。
+| **物理 AI** | **AI for Science** |
+|---|---|
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="在仿真中评估机器人控制策略。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="通过评估逐步改进候选翼型设计。"></picture> |
+| **演化行为。**<br>[EvoRL](https://github.com/EMI-Group/evorl) · 演化强化学习 | **演化设计。**<br>[EvoGO](https://github.com/EMI-Group/evogo) · 生成式优化 |
 
-#### 🌐 一体化解决方案
-- 内置**30+ 种算法**，全面支持**单目标和多目标优化**，EvoX 生态更提供 **140+ 种算法**。
-- 提供**分层架构**，适用于**元学习**、**超参数优化**和**神经进化**等复杂任务。
+专用库还包括面向多目标优化的 [EvoMO](https://github.com/EMI-Group/evomo)、遗传编程的 [EvoGP](https://github.com/EMI-Group/evogp)、拓扑演化的 [TensorNEAT](https://github.com/EMI-Group/tensorneat)，以及神经架构搜索基准平台 [EvoXBench](https://github.com/EMI-Group/evoxbench)。
 
-#### 🛠️ 易用设计
-- **完全兼容 PyTorch** 及其生态系统，借助**定制化编程模型**简化算法开发。
-- 具备**一键安装**功能，让 Windows 用户轻松上手。
-
-
-### 📊 多功能基准测试
-
-#### 📚 丰富的基准测试套件
-- 提供**30+ 基准测试问题**，涵盖单目标优化、多目标优化及现实工程挑战，EvoX 生态更提供 **240+ 基准问题/环境**。
-
-#### 🎮 支持物理引擎
-- 可无缝集成 **Brax** 等物理引擎，以及其他主流强化学习框架。
-
-#### ⚙️ 可定制问题
-- 提供**封装模块**，支持用户自定义问题，并可无缝集成到现实应用和数据集。
-
-
-### 📈 灵活的可视化工具
-
-#### 🔍 即用型工具
-- 内置**多种可视化工具**，支持不同任务的进化过程分析。
-
-#### 🛠️ 可定制模块
-- 允许用户集成自定义**可视化代码**，提供灵活的展示方式。
-
-#### 📂 实时数据流
-- 采用定制的 **.exv 格式**，简化并加速**实时数据流处理**。
-
-## 主要内容
-
-<table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
-  <thead>
-    <tr>
-      <th>类别</th>
-      <th>子类别</th>
-      <th>主要算法 / 基准问题</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="3">单目标优化</td>
-      <td><b>差分演化</b></td>
-      <td>CoDE, JaDE, SaDE, SHADE, IMODE, ...</td>
-    </tr>
-    <tr>
-      <td><b>演化策略</b></td>
-      <td>CMA-ES, PGPE, OpenES, CR-FM-NES, xNES, ...</td>
-    </tr>
-    <tr>
-      <td><b>粒子群优化</b></td>
-      <td>FIPS, CSO, CPSO, CLPSO, SL-PSO, ...</td>
-    </tr>
-    <tr>
-      <td rowspan="3">多目标优化</td>
-      <td><b>基于支配关系</b></td>
-      <td>NSGA-II, NSGA-III, SPEA2, BiGE, KnEA, ...</td>
-    </tr>
-    <tr>
-      <td><b>基于分解策略</b></td>
-      <td>MOEA/D, RVEA, t-DEA, MOEAD-M2M, EAG-MOEAD, ...</td>
-    </tr>
-    <tr>
-      <td><b>基于指标</b></td>
-      <td>IBEA, HypE, SRA, MaOEA-IGD, AR-MOEA, ...</td>
-    </tr>
-    <tr>
-      <td rowspan="2">基准问题 / 评测环境</td>
-      <td><b>数值优化问题</b></td>
-      <td>DTLZ, LSMOP, MaF, ZDT, CEC'22, ...</td>
-    </tr>
-    <tr>
-      <td><b>神经演化 / 强化学习</b></td>
-      <td>Brax, TorchVision 数据集, ...</td>
-    </tr>
-  </tbody>
-</table>
-
-如需完整的算法列表及详细描述，请访问 [算法 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.algorithms.html)，基准问题及环境请参考 [问题 API](https://evox.readthedocs.io/en/latest/apidocs/evox/evox.problems.html)。
-
-## 安装指南
-
-使用 `pip` 轻松安装包含基础功能的 `evox`：
-
-```bash
-pip install "evox[default]"
-```
-
-从源代码安装最新版本以进行测试或开发：
-
-```bash
-git clone https://github.com/EMI-Group/evox.git
-cd evox
-pip install -e .
-```
-
-> [!TIP]
-> Windows 用户可使用 [win-install.bat](https://evox.readthedocs.io/en/latest/_downloads/796714545d73f0b52e921d885369323d/win-install.bat) 脚本安装。
+浏览[完整生态](https://www.evox.group/zh-cn/libs)，或了解实验版使用的 [EvoX Compiler](https://github.com/EMI-Group/evoxc)。
 
 ## 快速开始
 
-以下是一些示例，帮助你快速上手 EvoX：
+先安装[适合硬件的 PyTorch](https://pytorch.org/get-started/locally/)，再安装包含可视化功能的 EvoX 1.x：
 
-### 单目标优化
+```bash
+python -m pip install "evox[default]>=1.4,<2"
+```
 
-使用 PSO 算法求解 Ackley 问题：
+### 运行第一次搜索
+
+用粒子群优化算法求解 10 维 Ackley 函数：
 
 ```python
 import torch
 from evox.algorithms import PSO
 from evox.problems.numerical import Ackley
-from evox.workflows import StdWorkflow, EvalMonitor
+from evox.workflows import EvalMonitor, StdWorkflow
 
-# torch.set_default_device("cuda") # 如果您希望默认使用 GPU，请取消注释此行
+torch.set_default_device("cuda" if torch.cuda.is_available() else "cpu")
+torch.manual_seed(42)
 
-algorithm = PSO(pop_size=100, lb=-32 * torch.ones(10), ub=32 * torch.ones(10))
-problem = Ackley()
+algorithm = PSO(
+    pop_size=100,
+    lb=-32 * torch.ones(10),
+    ub=32 * torch.ones(10),
+)
 monitor = EvalMonitor()
-workflow = StdWorkflow(algorithm, problem, monitor)
+workflow = StdWorkflow(algorithm, Ackley(), monitor)
+
 workflow.init_step()
-for i in range(100):
+for _ in range(100):
     workflow.step()
 
-monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
+print("Best fitness:", monitor.get_best_fitness().item())
+# monitor.plot().show()  # Optional: inspect the convergence curve.
 ```
 
-<details>
-  <summary>样例输出</summary>
+**Algorithm** 生成并更新候选解，**Problem** 批量评估，**Workflow** 组织运行，**Monitor** 记录结果。
 
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/1-single-objective-output.avif">
-    <img src="docs/source/_static/1-single-objective-output.png">
-  </picture>
+<details>
+<summary><strong>使用自己的目标函数</strong></summary>
+
+实现一个批量评估函数。单目标问题接收形状为 `(population_size, dimensions)` 的张量，为每个候选解返回一个适应度值：
+
+```python
+from evox.core import Problem
+
+class Sphere(Problem):
+    def evaluate(self, candidates: torch.Tensor) -> torch.Tensor:
+        return candidates.square().sum(dim=-1)
+```
+
+构建工作流时，将 `Ackley()` 替换为 `Sphere()` 即可。EvoX 默认最小化目标；最大化问题可在 `StdWorkflow` 中设置 `opt_direction="max"`。
 
 </details>
 
-### 多目标优化
+<details>
+<summary><strong>优化多个目标</strong></summary>
 
-使用 RVEA 算法求解 DTLZ2 问题：
+同一套工作流也支持多目标搜索。下面用 RVEA 求解 DTLZ2：
 
 ```python
 import torch
 from evox.algorithms import RVEA
-from evox.metrics import igd
 from evox.problems.numerical import DTLZ2
-from evox.workflows import StdWorkflow, EvalMonitor
-
-# torch.set_default_device("cuda") # 如果您希望默认使用 GPU，请取消注释此行
-
-prob = DTLZ2(m=2)
-pf = prob.pf()
-algo = RVEA(
-    pop_size=100,
-    n_objs=2,
-    lb=-torch.zeros(12),
-    ub=torch.ones(12)
-)
-monitor = EvalMonitor()
-workflow = StdWorkflow(algo, prob, monitor)
-workflow.init_step()
-for i in range(100):
-    workflow.step()
-
-monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
-```
-
-<details>
-  <summary>样例输出</summary>
-
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/2-multi-objective-output.avif">
-    <img src="docs/source/_static/2-multi-objective-output.png">
-  </picture>
-
-</details>
-
-### 神经演化
-
-进化一个简单的 MLP 模型，求解 HalfCheetah 环境：
-
-```python
-import torch
-import torch.nn as nn
-from evox.algorithms import PSO
-from evox.problems.neuroevolution.brax import BraxProblem
-from evox.utils import ParamsAndVector
 from evox.workflows import EvalMonitor, StdWorkflow
 
-# torch.set_default_device("cuda") # 如果您希望默认使用 GPU，请取消注释此行
-
-class SimpleMLP(nn.Module):
-    def __init__(self):
-        super().__init__()
-        # 观察空间维度为 17，动作空间维度为 6。
-        self.features = nn.Sequential(nn.Linear(17, 8), nn.Tanh(), nn.Linear(8, 6))
-
-    def forward(self, x):
-        return torch.tanh(self.features(x))
-
-# 初始化 MLP 模型
-model = SimpleMLP()
-adapter = ParamsAndVector(dummy_model=model)
-# 设置种群大小
-POP_SIZE = 1024
-# 获取 PSO 算法的边界
-model_params = dict(model.named_parameters())
-pop_center = adapter.to_vector(model_params)
-lb = torch.full_like(pop_center, -5)
-ub = torch.full_like(pop_center, 5)
-# 初始化 PSO 算法，你也可以使用其他算法
-algorithm = PSO(pop_size=POP_SIZE, lb=lb, ub=ub)
-# 初始化 Brax 问题
-problem = BraxProblem(
-    policy=model,
-    env_name="halfcheetah",
-    max_episode_length=1000,
-    num_episodes=3,
-    pop_size=POP_SIZE,
+torch.manual_seed(42)
+algorithm = RVEA(
+    pop_size=100,
+    n_objs=2,
+    lb=torch.zeros(12),
+    ub=torch.ones(12),
 )
-# 设置监视器，可记录最佳 3 个适应度值
-monitor = EvalMonitor(topk=3)
-# 初始化工作流
-workflow = StdWorkflow(
-    algorithm=algorithm,
-    problem=problem,
-    monitor=monitor,
-    opt_direction="max",
-    solution_transform=adapter,
-)
+monitor = EvalMonitor(multi_obj=True)
+workflow = StdWorkflow(algorithm, DTLZ2(m=2), monitor)
+
 workflow.init_step()
-for i in range(50):
+for _ in range(100):
     workflow.step()
 
-monitor.plot() # 或者在终端模式下调用 monitor.plot().show()
+print("Pareto-front fitness shape:", monitor.get_pf_fitness().shape)
+# monitor.plot().show()
 ```
-
-<details>
-  <summary>样例输出</summary>
-
-  <picture>
-    <source type="image/avif" srcset="docs/source/_static/3-neuroevolution-output.avif">
-    <img src="docs/source/_static/3-neuroevolution-output.gif">
-  </picture>
 
 </details>
 
-> [!NOTE]
-> 如需完整指南，请访问我们的[文档](https://evox.readthedocs.io/zh/latest/)，其中包含详细的安装步骤、教程、实践示例以及完整的API说明。
+接下来可阅读[系列教程](https://evox.readthedocs.io/zh-cn/latest/tutorial/index.html)、[神经演化示例](docs/source/examples/brax.ipynb)或[超参数优化示例](docs/source/examples/hpo.ipynb)。
 
-## 相关项目
+## 为批量搜索而设计
 
-- **EvoRL**: 基于 GPU 加速的进化强化学习框架。查看详情：点击这里。
-- **EvoGP**: 基于 GPU 加速的遗传编程框架。查看详情：点击这里。
-- **EvoMO**: 基于 GPU 加速的进化多目标优化（EMO）库。查看详情：点击这里。
-- **TensorNEAT**: 用于 GPU 加速的张量化 NEAT（NeuroEvolution of Augmenting Topologies）框架。查看详情：点击这里。
-- **TensorRVEA**: 用于 GPU 加速的张量化参考向量引导进化算法（RVEA）框架。查看详情：点击这里。
-- **TensorACO**: 用于 GPU 加速的张量化蚁群优化算法（ACO）框架。查看详情：点击这里。
-- **EvoXBench**: 一个用于解决各种优化问题（如神经架构搜索 NAS）的真实世界基准测试平台。该平台无需 GPU/PyTorch/TensorFlow 运行，并支持多种编程环境。查看详情：点击这里。
+- **张量化算法。** 种群更新与适应度评估按批执行，配合 `evox.compile` 和 `evox.vmap` 进行编译与向量化。
+- **可组合的组件。** 更换算法、目标函数或监测器时，复用同一优化流程；使用 PyTorch 编写自定义组件。
+- **完整的实验工具。** 跟踪收敛、查看 Pareto 前沿、计算多目标指标，并以 `.exv` 格式导出运行数据。
 
-EvoX 与这些项目以及其他由 [EMI-Group](https://github.com/EMI-Group) 发布的 EvoX 相关库共同构成了一个提供 **140+ 种算法** 和 **240+ 基准问题/环境** 的生态。
+主包内置 **30+ 种算法**。部分组件如下：
 
-敬请期待——更多精彩内容即将推出！✨
+| 任务 | 算法与工具 |
+|---|---|
+| 单目标优化 | PSO、DE、SHADE、CMA-ES、OpenES、xNES |
+| 多目标优化 | NSGA-II、NSGA-III、MOEA/D、RVEA、HypE |
+| 数值基准测试 | Ackley、Sphere、Rosenbrock、DTLZ、CEC2022 |
+| 神经演化 | 神经网络参数搜索；Brax、MuJoCo Playground 与监督学习问题适配器 |
+| 超参数优化 | 嵌套工作流与 `HPOProblemWrapper` |
 
-## 社区支持
+完整列表见[算法源码](src/evox/algorithms)与[问题源码](src/evox/problems)。神经演化和仿真集成需要额外安装 `neuroevolution` 依赖：
 
-- 在 [GitHub 讨论区](https://github.com/EMI-Group/evox/discussions) 参与讨论。
-- 通过 [Discord](https://discord.gg/Vbtgcpy7G4) 或 QQ 群（ID: 297969717）联系交流。
-- 访问 [EvoX官网](https://evox.group/)。
+```bash
+python -m pip install "evox[default,neuroevolution]>=1.4,<2"
+```
 
-## 引用 EvoX
+### 执行与硬件
 
-如果 EvoX 对您的研究有帮助，请引用：
+PyTorch 版本通过对应后端运行于 **CPU**、**NVIDIA GPU（CUDA）**、**AMD GPU（ROCm）**及 **Apple Silicon（MPS，eager 执行）**。配置方式见[硬件指南](docs/source/miscellaneous/other_gpus.md)。
+
+在支持编译的环境中，可在进入搜索循环前编译反复执行的步骤：
+
+```python
+from evox import compile
+
+workflow.step = compile(workflow.step)
+```
+
+[多 GPU 与分布式工作流](docs/source/guide/experimental/distributed_workflow.md)目前为实验功能，需要配置分布式环境并使用相应方式启动。可复现的性能实验见[基准测试脚本](benchmarks)。
+
+## 社区与贡献
+
+- **提问与讨论：** [GitHub Discussions](https://github.com/EMI-Group/evox/discussions)、[Discord](https://discord.gg/Vbtgcpy7G4) 或 [QQ 群 297969717](https://qm.qq.com/q/vTPvoMUGAw)。
+- **问题反馈与代码贡献：** [提交 Issue](https://github.com/EMI-Group/evox/issues)，或从[开发者指南](https://evox.readthedocs.io/zh-cn/latest/guide/developer/index.html)开始。
+- **研究合作：** [程然主页](https://chengran.tech/)。
+
+<details>
+<summary>从源码安装主版本</summary>
+
+```bash
+git clone --branch main https://github.com/EMI-Group/evox.git
+cd evox
+python -m pip install -e ".[default]"
+```
+
+</details>
+
+## 引用
+
+如果 EvoX 对你的研究有帮助，请引用[框架论文](https://arxiv.org/abs/2301.12457)：
 
 ```bibtex
 @article{evox,
-  title = {{EvoX}: {A} {Distributed} {GPU}-accelerated {Framework} for {Scalable} {Evolutionary} {Computation}},
+  title = {{EvoX}: A Distributed GPU-accelerated Framework for Scalable Evolutionary Computation},
   author = {Huang, Beichen and Cheng, Ran and Li, Zhuozhao and Jin, Yaochu and Tan, Kay Chen},
   journal = {IEEE Transactions on Evolutionary Computation},
-  year = 2024,
+  year = {2024},
   doi = {10.1109/TEVC.2024.3388550}
 }
 ```
 
-## 许可证声明
+## 许可证
 
-EvoX 遵循 **GNU 通用公共许可证 3.0 (GPL-3.0)** 进行授权。完整的条款和条件请参阅 [LICENSE](./LICENSE) 文件。
-
-<!--
-## Star 历史
-[![Star 历史图表](https://api.star-history.com/svg?repos=EMI-Group/evox&type=Date)](https://star-history.com/#EMI-Group/evox&Date)
--->
+EvoX 使用 [GPL-3.0-or-later](LICENSE) 许可证。EvoX Compiler 等相关项目采用各自的许可证。
