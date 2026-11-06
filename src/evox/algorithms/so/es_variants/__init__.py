@@ -11,6 +11,7 @@ __all__ = [
     "GuidedES",
     "ESMC",
     "CMAES",
+    "PlusLambdaES",
 ]
 
 
@@ -24,4 +25,5 @@ from .nes import XNES, SeparableNES
 from .noise_reuse_es import NoiseReuseES
 from .open_es import OpenES
 from .persistent_es import PersistentES
+from .plus_lambda_es import PlusLambdaES
 from .snes import SNES

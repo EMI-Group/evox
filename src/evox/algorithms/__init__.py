@@ -19,6 +19,7 @@ __all__ = [
     "GuidedES",
     "ESMC",
     "CMAES",
+    "PlusLambdaES",
     # PSO Variants
     "CLPSO",
     "CSO",
@@ -61,6 +62,7 @@ from .so import (
     NoiseReuseES,
     OpenES,
     PersistentES,
+    PlusLambdaES,
     SaDE,
     SeparableNES,
 )

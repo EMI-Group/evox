@@ -12,6 +12,7 @@ from evox.algorithms import (
     NoiseReuseES,
     OpenES,
     PersistentES,
+    PlusLambdaES,
     SeparableNES,
 )
 
@@ -99,6 +100,29 @@ class TestESVariants(TestBase):
             pop_size=self.pop_size,
             center_init=self.center,
             weight_type="temp",
+        )
+        self.run_all(algo)
+
+    def test_plus_lambda_es(self):
+        algo = PlusLambdaES(
+            center_init=self.center,
+            lambda_offspring=2,
+            sigma=0.5,
+            delta_accept=0.0,
+            lb=self.lb,
+            ub=self.ub,
+        )
+        self.run_all(algo)
+
+    def test_plus_lambda_es_schedule(self):
+        algo = PlusLambdaES(
+            center_init=self.center,
+            lambda_offspring=2,
+            sigma=0.5,
+            delta_accept=0.1,
+            lb=self.lb,
+            ub=self.ub,
+            sigma_schedule=torch.tensor([0.5, 0.25]),
         )
         self.run_all(algo)
 
