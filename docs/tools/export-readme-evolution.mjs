@@ -2,6 +2,7 @@
 // Build the pinned portal checkout first. Requires its installed Playwright and Python.
 // node docs/tools/export-readme-evolution.mjs /path/to/evox-portal /path/to/frames
 // python docs/tools/encode_readme_media.py /path/to/frames
+// python docs/tools/reframe_readme_evolution.py
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
