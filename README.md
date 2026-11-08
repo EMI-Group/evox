@@ -24,7 +24,7 @@
   <a href="./README_ZH.md">简体中文</a>
 </p>
 
-**EvoX provides the computing and experimentation foundation for AI that evolves.** Generate candidates, evaluate their performance, retain strong solutions, and adjust inherited traits for the next round. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
+**EvoX provides the computing and experimentation foundation for AI that evolves.** The loop has three steps: **Generate → Evaluate → Select**. Each new round generates candidates by inheriting useful traits from retained solutions and introducing small changes. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
 
 **Tensorization and parallel computing scale up exploration.** The PyTorch main version in this repository organizes candidates and their evaluation as batched tensor computation on CPUs and GPUs. Composable algorithms, problems, and workflows connect search, execution, and feedback.
 
@@ -51,7 +51,7 @@ The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI
 
 ## Part of the EvoX ecosystem
 
-Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design. The illustrations below follow two generations: evaluate alternatives, retain a strong candidate, copy its traits, and test locally changed descendants.
+Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design. The illustrations below follow two generations of **Generate → Evaluate → Select**. Copying retained traits and introducing local changes are part of generating the next round of candidates.
 
 | **Generative AI** | **Agentic AI** |
 |---|---|

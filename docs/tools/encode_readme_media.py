@@ -13,6 +13,8 @@ from PIL import Image, ImageChops
 frames_root = Path(sys.argv[1]).resolve()
 assets = Path(__file__).resolve().parents[1] / "source" / "_static"
 manifest = json.loads((frames_root / "manifest.json").read_text(encoding="utf-8"))
+frame_duration = manifest["frameDurationMs"]
+assert frame_duration % 10 == 0, "GIF durations must be whole centiseconds"
 for scene in manifest["scenes"]:
     folder = frames_root / scene["name"]
     indices = list(range(0, scene["frames"], 20))
@@ -42,8 +44,10 @@ for scene in manifest["scenes"]:
         destination,
         save_all=True,
         append_images=frames[1:],
-        duration=100,
+        duration=frame_duration,
         loop=0,
+        # Emit one global table instead of repeating a local palette in every frame.
+        palette=palette.getpalette(),
         optimize=True,
         disposal=1,
     )

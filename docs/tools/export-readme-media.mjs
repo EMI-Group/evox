@@ -10,6 +10,8 @@ import {execFileSync,spawn} from 'node:child_process';
 const portal=path.resolve(process.argv[2]);
 const output=path.resolve(process.argv[3]);
 const only=process.argv[4];
+const fps=25,frameMs=1000/fps;
+const phaseDurations=[1800,4200,480,2200,4200];
 const assets=path.resolve(import.meta.dirname,'../source/_static');
 const {chromium}=await import(pathToFileURL(path.join(portal,'node_modules/playwright/index.mjs')));
 const revision=execFileSync('git',['rev-parse','HEAD'],{cwd:portal,encoding:'utf8'}).trim();
@@ -18,7 +20,7 @@ const theme=source('src/styles/global.css');
 const light=[...theme.matchAll(/:root\[data-theme="light"\] \{([^}]+)\}/g)].map(m=>m[1]).join('\n');
 const sceneCode=['src/components/art/agentic-evolution.ts','src/components/art/diagram-theme.ts','src/components/art/evolution-scenes.ts'].map(file=>source(file).replace(/^import .*$/gm,'')).join('\n');
 const script=stripTypeScriptTypes(sceneCode).replace(/^export /gm,'')+'\nwindow.Scene=EvolutionScene;window.nextPopulation=nextPopulation;window.nextAgentPopulation=nextAgentPopulation;window.readPalette=readDiagramPalette;';
-const manifest={sourceFiles:['src/components/ParallelDiagram.astro','src/components/art/evolution-scenes.ts','src/components/art/agentic-evolution.ts','src/components/art/diagram-theme.ts','src/styles/global.css','src/i18n/locales/en.json','src/i18n/locales/zh-cn.json'],objectives:'Deterministic illustrative objectives; not measured model, robotics or CFD results.',repository:'https://github.com/EMI-Group/evox-portal',revision,theme:'light',fps:10,adaptation:'Original scene renderers and population transitions; localized captions and slightly enlarged labels. Two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.',scenes:[]};
+const manifest={sourceFiles:['src/components/ParallelDiagram.astro','src/components/art/evolution-scenes.ts','src/components/art/agentic-evolution.ts','src/components/art/diagram-theme.ts','src/styles/global.css','src/i18n/locales/en.json','src/i18n/locales/zh-cn.json'],objectives:'Deterministic illustrative objectives; not measured model, robotics or CFD results.',repository:'https://github.com/EMI-Group/evox-portal',revision,theme:'light',fps,frameDurationMs:frameMs,phaseDurationsMs:phaseDurations,adaptation:'Original scene renderers and population transitions; localized captions and slightly enlarged labels. Three-step captions group inheritance and variation into Generate. Evaluation holds shortened to 480 ms and code reproduction to 2800 ms; two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.',scenes:[]};
 if(only==='compute'){const previous=JSON.parse(readFileSync(path.join(output,'manifest.json'),'utf8'));if(previous.revision!==revision)throw new Error('Partial export requires the same source revision');manifest.scenes=previous.scenes.filter(scene=>scene.kind!=='compute');}
 mkdirSync(output,{recursive:true});
 const browser=await chromium.launch({headless:true});let server;
@@ -29,28 +31,34 @@ try{
  if(only!=='compute')for(const locale of ['en','zh-cn']){
   const tr=JSON.parse(source(`src/i18n/locales/${locale}.json`));
   for(const kind of ['generative','agentic','physical','science']){
+   // Code edits settle sooner than the continuous model, policy and shape changes.
+   const durations=kind==='agentic'?[...phaseDurations.slice(0,-1),2800]:phaseDurations;
+   const cycleMs=durations.reduce((sum,duration)=>sum+duration,0);
+   const sceneMs=cycleMs*2+400,sceneFrames=sceneMs/frameMs;
    const name=`readme-${kind}${locale==='en'?'':'-zh'}`;
    const dir=path.join(output,name);mkdirSync(dir,{recursive:true});
-   await page.evaluate(({kind,tr})=>{
+   await page.evaluate(({kind,tr,phaseDurations,cycleMs,sceneMs,frameMs})=>{
     const canvas=document.createElement('canvas');canvas.width=640;canvas.height=374;
     const frame=document.createElement('canvas');frame.width=640;frame.height=432;
     const fc=frame.getContext('2d'),palette=window.readPalette();
     const scene=Object.create(window.Scene.prototype);
     const dataset={generationLabel:tr['scene.generation'],retainedLabel:tr[kind==='generative'?'scene.retained':`scene.${kind}.retained`],testsLabel:tr['scene.agentic.tests'],testEmptyLabel:tr['scene.agentic.test.empty'],testTextLabel:tr['scene.agentic.test.text']};
-    for(let n=0;n<4;n++)dataset[`caption${n}`]=tr[`scene.${kind}.${n}`];
-    Object.assign(scene,{canvas,ctx:canvas.getContext('2d'),kind,root:{dataset},caption:document.createElement('p'),scale:640/480,ratio:1,palette,durations:[2200,4200,1800,2200,4200],starts:[0,2200,6400,8200,10400,14600]});
+    const stepKeys=['generate','evaluate','select','generate'];
+    const stepNumbers=['01','02','03','01'];
+    for(let n=0;n<4;n++)dataset[`caption${n}`]=`${stepNumbers[n]} ${tr[`evolution.step.${stepKeys[n]}`]} · ${tr[`scene.${kind}.${n}`]}`;
+    Object.assign(scene,{canvas,ctx:canvas.getContext('2d'),kind,root:{dataset},caption:document.createElement('p'),scale:640/480,ratio:1,palette,durations:phaseDurations,starts:phaseDurations.reduce((times,duration)=>[...times,times.at(-1)+duration],[0])});
     const text=scene.text;scene.text=function(value,x,y,color,alpha=1,size=10){return text.call(this,value,x,y,color,alpha,size+1);};
     const reset=()=>Object.assign(scene,{generation:0,time:0,lastCaption:-1,previousPopulation:undefined,offspring:undefined,agentOffspring:undefined,agentPopulation:window.nextAgentPopulation(undefined,0),population:kind==='agentic'?{candidates:[],winner:0}:window.nextPopulation(kind,undefined,0)});
     reset();
     const draw=ms=>{
-     const generation=Math.floor(ms/14600);
+     const generation=Math.floor(ms/cycleMs);
      while(scene.generation<generation){
       scene.previousPopulation=scene.population;scene.generation++;
       if(kind==='agentic'){scene.agentPopulation=scene.agentOffspring??window.nextAgentPopulation(scene.agentPopulation,scene.generation);scene.agentOffspring=undefined;}
       else scene.population=scene.offspring??window.nextPopulation(kind,scene.population,scene.generation);
       scene.offspring=undefined;
      }
-     scene.time=ms%14600;scene.render();
+     scene.time=ms%cycleMs;scene.render();
      fc.clearRect(0,0,640,432);fc.fillStyle=palette.bg;fc.fillRect(0,0,640,432);fc.drawImage(canvas,0,0);
      fc.fillStyle=palette.muted;fc.font='18px system-ui, sans-serif';fc.textAlign='center';
      const words=scene.caption.textContent.split(' '),lines=[];let line='';
@@ -60,15 +68,15 @@ try{
     };
     draw(0);const first=document.createElement('canvas');first.width=640;first.height=432;first.getContext('2d').drawImage(frame,0,0);
     window.mediaReset=reset;
-    window.mediaFrame=ms=>{if(ms<29200)draw(ms);else{draw(29100);fc.globalAlpha=(ms-29200+100)/400;fc.drawImage(first,0,0);fc.globalAlpha=1;}return frame.toDataURL('image/png');};
-   },{kind,tr});
-   const still=await page.evaluate(()=>window.mediaFrame(13700));writeFileSync(path.join(assets,name+'.png'),Buffer.from(still.split(',')[1],'base64'));
+    window.mediaFrame=ms=>{if(ms<cycleMs*2)draw(ms);else{draw(cycleMs*2-frameMs);fc.globalAlpha=(ms-cycleMs*2+frameMs)/(sceneMs-cycleMs*2);fc.drawImage(first,0,0);fc.globalAlpha=1;}return frame.toDataURL('image/png');};
+   },{kind,tr,phaseDurations:durations,cycleMs,sceneMs,frameMs});
+   const still=await page.evaluate(ms=>window.mediaFrame(ms),cycleMs-900);writeFileSync(path.join(assets,name+'.png'),Buffer.from(still.split(',')[1],'base64'));
    await page.evaluate(()=>window.mediaReset());
-   for(let base=0;base<296;base+=20){
-    const frames=await page.evaluate(base=>Array.from({length:Math.min(20,296-base)},(_,j)=>window.mediaFrame((base+j)*100)),base);
+   for(let base=0;base<sceneFrames;base+=20){
+    const frames=await page.evaluate(({base,sceneFrames,frameMs})=>Array.from({length:Math.min(20,sceneFrames-base)},(_,j)=>window.mediaFrame((base+j)*frameMs)),{base,sceneFrames,frameMs});
     frames.forEach((data,j)=>writeFileSync(path.join(dir,String(base+j).padStart(4,'0')+'.png'),Buffer.from(data.split(',')[1],'base64')));
    }
-   manifest.scenes.push({name,kind,locale,frames:296,durationMs:29600,width:640,height:432});console.log(`${name}: 296 frames`);
+   manifest.scenes.push({name,kind,locale,phaseDurationsMs:durations,frames:sceneFrames,durationMs:sceneMs,width:640,height:432});console.log(`${name}: ${sceneFrames} frames`);
   }
  }
  // Capture the actual hardware DOM, SVG and Canvas; only the clock and controls differ.
@@ -84,8 +92,8 @@ try{
   const figure=page.locator('.parallel-figure');await figure.scrollIntoViewIfNeeded();await page.evaluate(()=>document.fonts.ready);
   const name=`readme-compute-${locale==='en'?'en':'zh'}`,dir=path.join(output,name);mkdirSync(dir,{recursive:true});
   await figure.evaluate(el=>el.__readmeSeek(10800));await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>!document.querySelector('.parallel-figure').hasAttribute('data-motion-ready'));await figure.screenshot({path:path.join(assets,name+'.png')});await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>document.querySelector('.parallel-figure').hasAttribute('data-motion-ready'));
-  for(let frame=0;frame<120;frame++){await figure.evaluate((el,ms)=>el.__readmeSeek(ms),frame*100);await figure.screenshot({path:path.join(dir,String(frame).padStart(4,'0')+'.png')});}
-  const png=readFileSync(path.join(dir,'0000.png'));manifest.scenes.push({name,kind:'compute',locale,frames:120,durationMs:12000,width:png.readUInt32BE(16),height:png.readUInt32BE(20)});console.log(`${name}: 120 frames`);
+  for(let frame=0;frame<12000/frameMs;frame++){await figure.evaluate((el,ms)=>el.__readmeSeek(ms),frame*frameMs);await figure.screenshot({path:path.join(dir,String(frame).padStart(4,'0')+'.png')});}
+  const png=readFileSync(path.join(dir,'0000.png'));manifest.scenes.push({name,kind:'compute',locale,frames:12000/frameMs,durationMs:12000,width:png.readUInt32BE(16),height:png.readUInt32BE(20)});console.log(`${name}: ${12000/frameMs} frames`);
  }
  writeFileSync(path.join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 }finally{await browser.close();server?.kill();}
