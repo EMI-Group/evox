@@ -6,7 +6,8 @@
     "src/components/art/diagram-theme.ts",
     "src/styles/global.css",
     "src/i18n/locales/en.json",
-    "src/i18n/locales/zh-cn.json"
+    "src/i18n/locales/zh-cn.json",
+    "src/components/EvolutionDiagram.astro"
   ],
   "objectives": "Deterministic illustrative objectives; not measured model, robotics or CFD results.",
   "repository": "https://github.com/EMI-Group/evox-portal",
@@ -188,7 +189,48 @@
       "height": 373,
       "encodedFrames": 599,
       "bytes": 2971630
+    },
+    {
+      "name": "readme-evolution-loop-en",
+      "kind": "evolution",
+      "locale": "en",
+      "frames": 1160,
+      "durationMs": 23200,
+      "phaseDurationsMs": [
+        5000,
+        3400,
+        3000
+      ],
+      "width": 800,
+      "height": 1104,
+      "displayWidth": 400,
+      "displayHeight": 552,
+      "pixelRatio": 2,
+      "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
+      "encodedFrames": 1160,
+      "bytes": 7268043
+    },
+    {
+      "name": "readme-evolution-loop-zh",
+      "kind": "evolution",
+      "locale": "zh-cn",
+      "frames": 1160,
+      "durationMs": 23200,
+      "phaseDurationsMs": [
+        5000,
+        3400,
+        3000
+      ],
+      "width": 800,
+      "height": 1104,
+      "displayWidth": 400,
+      "displayHeight": 552,
+      "pixelRatio": 2,
+      "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
+      "encodedFrames": 1160,
+      "bytes": 7320768
     }
   ],
-  "paletteColors": 240
+  "paletteColors": 240,
+  "evolutionAdaptation": "Direct capture of the complete original website component: square diagram, three step labels and short caption beneath. Controls are hidden and caption height is reserved for two lines. Manual 50 fps clock, 400 px display width and 2x pixel density. Two original generations and a 400 ms replay crossfade; the static view shows inheritance."
 }
