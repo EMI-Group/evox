@@ -42,7 +42,7 @@
 </tr>
 </table>
 
-[查看静态图](docs/source/_static/readme-evolution-loop-zh.png) · 图中为简化搜索示例；具体候选更新与选择规则因算法而异。
+[查看静态图](docs/source/_static/readme-evolution-loop-zh.png)
 
 ## 扩大搜索规模
 
@@ -53,7 +53,7 @@
   <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="抽象任务片段汇聚成批量张量，流入硬件输入端，完成计算后输出结果。">
 </picture>
 
-[查看静态图](docs/source/_static/readme-compute-zh.png) · 可用硬件取决于下方所选的版本与后端。
+[查看静态图](docs/source/_static/readme-compute-zh.png)
 
 ## 选择版本
 
@@ -194,7 +194,7 @@ python -m pip install "evox[default,neuroevolution]>=1.4,<2"
 
 ### 执行与硬件
 
-PyTorch 版本通过对应后端运行于 **CPU**、**NVIDIA GPU（CUDA）**、**AMD GPU（ROCm）**及 **Apple Silicon（MPS，eager 执行）**。配置方式见[硬件指南](docs/source/miscellaneous/other_gpus.md)。
+PyTorch 版本通过对应后端运行于 **CPU**、**NVIDIA GPU（CUDA）**、**AMD GPU（ROCm）** 及 **Apple Silicon（MPS，eager 执行）**。配置方式见[硬件指南](docs/source/miscellaneous/other_gpus.md)。
 
 在支持编译的环境中，可在进入搜索循环前编译反复执行的步骤：
 
@@ -239,4 +239,4 @@ python -m pip install -e ".[default]"
 
 ## 许可证
 
-EvoX 使用 [GPL-3.0-or-later](LICENSE) 许可证。EvoX Compiler 等相关项目采用各自的许可证。
+EvoX 使用 [GPL-3.0-or-later](LICENSE) 许可证。

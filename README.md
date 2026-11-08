@@ -42,7 +42,7 @@
 </tr>
 </table>
 
-[View the static diagram](docs/source/_static/readme-evolution-loop-en.png) · A simplified search example; candidate updates and selection rules depend on the algorithm.
+[View the static diagram](docs/source/_static/readme-evolution-loop-en.png)
 
 ## Scaling the search
 
@@ -53,7 +53,7 @@
   <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Abstract task fragments gather into batched tensors, flow to hardware inputs, and produce results after computation.">
 </picture>
 
-[View the static diagram](docs/source/_static/readme-compute-en.png) · Hardware availability depends on the version and backend selected below.
+[View the static diagram](docs/source/_static/readme-compute-en.png)
 
 ## Choose your version
 
@@ -239,4 +239,4 @@ If EvoX supports your research, please cite the [framework paper](https://arxiv.
 
 ## License
 
-EvoX is licensed under [GPL-3.0-or-later](LICENSE). Related projects, including EvoX Compiler, carry their own licenses.
+EvoX is licensed under [GPL-3.0-or-later](LICENSE).
