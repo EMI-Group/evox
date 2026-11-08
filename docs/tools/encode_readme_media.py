@@ -63,7 +63,15 @@ for scene in manifest["scenes"]:
         assert animation.info["loop"] == 0
         scene.update(encodedFrames=animation.n_frames, bytes=destination.stat().st_size)
     print(f"{scene['name']}: {scene['bytes']:,} bytes", flush=True)
-(assets / "readme-motion-source.json").write_text(
+manifest_path = assets / "readme-motion-source.json"
+if manifest_path.exists():
+    previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+    updated_scenes = {(scene["kind"], scene["locale"]) for scene in manifest["scenes"]}
+    scenes = [scene for scene in previous["scenes"] if (scene["kind"], scene["locale"]) not in updated_scenes]
+    scenes += manifest["scenes"]
+    source_files = list(dict.fromkeys(previous["sourceFiles"] + manifest["sourceFiles"]))
+    manifest = {**previous, **manifest, "scenes": scenes, "sourceFiles": source_files}
+manifest_path.write_text(
     json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
     encoding="utf-8",
 )

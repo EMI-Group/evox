@@ -24,7 +24,27 @@
   <a href="./README_ZH.md">简体中文</a>
 </p>
 
-**EvoX provides the computing and experimentation foundation for AI that evolves.** The loop has three steps: **Generate → Evaluate → Select**. Each new round generates candidates by inheriting useful traits from retained solutions and introducing small changes. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
+**EvoX provides the computing and experimentation foundation for AI that evolves.** Across models, software, control policies, and scientific design, it connects population-based search with scalable evaluation.
+
+## How evolution works
+
+<table>
+<tr>
+<td width="50%" valign="middle">
+<p>Evolution lets search build on experience: useful traits persist while new candidates explore variations. EvoX provides the batched evaluation and parallel computation behind this loop, across models, software, control policies, and scientific design.</p>
+</td>
+<td width="50%" valign="middle">
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-evolution-loop-en.png">
+  <img src="docs/source/_static/readme-evolution-loop-en.gif" width="400" alt="The website's three-step evolution loop: Generate, Evaluate, Select. The next generation inherits and varies retained traits; step labels and a short explanation appear beneath the diagram.">
+</picture>
+</td>
+</tr>
+</table>
+
+[View the static diagram](docs/source/_static/readme-evolution-loop-en.png) · A simplified search example; candidate updates and selection rules depend on the algorithm.
+
+## Scaling the search
 
 **Tensorization and parallel computing scale up exploration.** The PyTorch main version in this repository organizes candidates and their evaluation as batched tensor computation on CPUs and GPUs. Composable algorithms, problems, and workflows connect search, execution, and feedback.
 
@@ -51,7 +71,7 @@ The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI
 
 ## Part of the EvoX ecosystem
 
-Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design. The illustrations below follow two generations of **Generate → Evaluate → Select**. Copying retained traits and introducing local changes are part of generating the next round of candidates.
+The same loop takes different forms across the EvoX ecosystem: model weights, code, control policies, or geometry become the candidates. Each illustration below follows two generations, showing how retained traits and local changes shape the next round of search.
 
 | **Generative AI** | **Agentic AI** |
 |---|---|
