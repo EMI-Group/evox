@@ -12,8 +12,8 @@
   "repository": "https://github.com/EMI-Group/evox-portal",
   "revision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
   "theme": "light",
-  "fps": 25,
-  "frameDurationMs": 40,
+  "fps": 50,
+  "frameDurationMs": 20,
   "phaseDurationsMs": [
     1800,
     4200,
@@ -21,7 +21,7 @@
     2200,
     4200
   ],
-  "adaptation": "Original scene renderers and population transitions; localized captions and slightly enlarged labels. Three-step captions group inheritance and variation into Generate. Evaluation holds shortened to 480 ms and code reproduction to 2800 ms; two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.",
+  "adaptation": "Original populations and scores; interpolated airflow, crossfaded code edits and 180 ms visual phase transitions; localized captions and slightly enlarged labels. Three-step captions group inheritance and variation into Generate. Evaluation holds shortened to 480 ms and code reproduction to 2800 ms; two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.",
   "scenes": [
     {
       "name": "readme-generative",
@@ -34,12 +34,12 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 547,
-      "bytes": 1100680
+      "encodedFrames": 1101,
+      "bytes": 2153934
     },
     {
       "name": "readme-agentic",
@@ -52,12 +52,12 @@
         2200,
         2800
       ],
-      "frames": 584,
+      "frames": 1168,
       "durationMs": 23360,
       "width": 640,
       "height": 432,
-      "encodedFrames": 461,
-      "bytes": 1363725
+      "encodedFrames": 978,
+      "bytes": 2644994
     },
     {
       "name": "readme-physical",
@@ -70,12 +70,12 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 560,
-      "bytes": 1806918
+      "encodedFrames": 1132,
+      "bytes": 3492059
     },
     {
       "name": "readme-science",
@@ -88,12 +88,12 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 593,
-      "bytes": 1106092
+      "encodedFrames": 1175,
+      "bytes": 2024745
     },
     {
       "name": "readme-generative-zh",
@@ -106,12 +106,12 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 546,
-      "bytes": 1098676
+      "encodedFrames": 1103,
+      "bytes": 2129307
     },
     {
       "name": "readme-agentic-zh",
@@ -124,12 +124,12 @@
         2200,
         2800
       ],
-      "frames": 584,
+      "frames": 1168,
       "durationMs": 23360,
       "width": 640,
       "height": 432,
-      "encodedFrames": 461,
-      "bytes": 1330184
+      "encodedFrames": 978,
+      "bytes": 2606779
     },
     {
       "name": "readme-physical-zh",
@@ -142,12 +142,12 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 560,
-      "bytes": 1798692
+      "encodedFrames": 1131,
+      "bytes": 3477385
     },
     {
       "name": "readme-science-zh",
@@ -160,34 +160,35 @@
         2200,
         4200
       ],
-      "frames": 654,
+      "frames": 1308,
       "durationMs": 26160,
       "width": 640,
       "height": 432,
-      "encodedFrames": 594,
-      "bytes": 1077835
+      "encodedFrames": 1175,
+      "bytes": 1977976
     },
     {
       "name": "readme-compute-en",
       "kind": "compute",
       "locale": "en",
-      "frames": 300,
+      "frames": 600,
       "durationMs": 12000,
       "width": 960,
       "height": 373,
-      "encodedFrames": 300,
-      "bytes": 1639308
+      "encodedFrames": 600,
+      "bytes": 2987237
     },
     {
       "name": "readme-compute-zh",
       "kind": "compute",
       "locale": "zh-cn",
-      "frames": 300,
+      "frames": 600,
       "durationMs": 12000,
       "width": 960,
       "height": 373,
-      "encodedFrames": 300,
-      "bytes": 1624127
+      "encodedFrames": 599,
+      "bytes": 2971630
     }
-  ]
+  ],
+  "paletteColors": 240
 }
