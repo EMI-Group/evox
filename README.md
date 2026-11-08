@@ -28,19 +28,18 @@
 
 ## How evolution works
 
-<table>
-<tr>
-<td width="50%" valign="middle">
-<p>Evolution lets search build on experience: useful traits persist while new candidates explore variations. EvoX provides the batched evaluation and parallel computation behind this loop, across models, software, control policies, and scientific design.</p>
-</td>
-<td width="50%" valign="middle">
+**Let search build on experience.**
+
+Retain useful traits and explore new possibilities from existing solutions.
+
+With batched evaluation and parallel computing, EvoX scales this loop to larger searches.
+
+<p align="center">
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-evolution-loop-en.png">
-  <img src="docs/source/_static/readme-evolution-loop-en.gif" width="400" alt="The website's three-step evolution loop: Generate, Evaluate, Select. The next generation inherits and varies retained traits; step labels and a short explanation appear beneath the diagram.">
+  <img src="docs/source/_static/readme-evolution-loop-en.gif" width="440" alt="The website's three-step evolution loop: Generate, Evaluate, Select. The next generation inherits and varies retained traits; step labels and a short explanation appear beneath the diagram.">
 </picture>
-</td>
-</tr>
-</table>
+</p>
 
 [View the static diagram](docs/source/_static/readme-evolution-loop-en.png)
 
@@ -57,13 +56,21 @@
 
 ## Choose your version
 
-| | **EvoX 1.x · Main version** | **EvoX 2.0 alpha · Experimental** |
-|---|---|---|
-| Branch | [`main`](https://github.com/EMI-Group/evox/tree/main) | [`evoxc-exp`](https://github.com/EMI-Group/evox/tree/evoxc-exp) |
-| Foundation | **PyTorch** | **[EvoX Compiler (`evoxc`)](https://github.com/EMI-Group/evoxc)** |
-| Python import | `import evox` | `import evox_etl` |
-| Python version | 3.10+ | 3.11+ |
-| Start here for | Applications, experiments, and PyTorch integration | Exploring the new functional API and compiler backends |
+### EvoX 1.x · Main version
+
+- **Branch:** [`main`](https://github.com/EMI-Group/evox/tree/main)
+- **Foundation:** **PyTorch**
+- **Python import:** `import evox`
+- **Python version:** 3.10+
+- **Start here for:** Applications, experiments, and PyTorch integration
+
+### EvoX 2.0 alpha · Experimental
+
+- **Branch:** [`evoxc-exp`](https://github.com/EMI-Group/evox/tree/evoxc-exp)
+- **Foundation:** **[EvoX Compiler (`evoxc`)](https://github.com/EMI-Group/evoxc)**
+- **Python import:** `import evox_etl`
+- **Python version:** 3.11+
+- **Start here for:** Exploring the new functional API and compiler backends
 
 **New to EvoX? [Get started with 1.x](#get-started).** The experimental version is a functional rewrite on EvoX Compiler, with a NumPy interpreter and optional IREE, XLA, and TVM backends. Both versions use the `evox` package name, so try the alpha in a separate environment using its [own installation guide](https://github.com/EMI-Group/evox/blob/evoxc-exp/README.md#installation).
 
@@ -73,15 +80,45 @@ The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI
 
 The same loop takes different forms across the EvoX ecosystem: model weights, code, control policies, or geometry become the candidates. Each illustration below follows two generations, showing how retained traits and local changes shape the next round of search.
 
-| **Generative AI** | **Agentic AI** |
-|---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="Model candidates are evaluated; the selected weights are retained and copied, with a few weights changed in each new variant."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="Code candidates face the same tests; the strongest solution is retained, and copies with individual code-line changes are tested in the next generation."></picture> |
-| **Evolve the models.** Retain useful weights and explore small changes.<br>[EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging | **Evolve the software.** Compare code variants against shared tests.<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system |
+### Generative AI
 
-| **Physical AI** | **AI for Science** |
-|---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="Control policies are compared on the same robot and course; a stable policy is retained and copied, with one control parameter changed per variant."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="Airfoil candidates are compared under the same illustrative flow conditions; the selected shape is retained and inherited by variants with one changed shape parameter."></picture> |
-| **Evolve the behavior.** Inherit control policies and vary their parameters.<br>[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning | **Evolve the design.** Inherit geometry and evaluate shape changes.<br>[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization |
+**Evolve the models.** Retain useful weights and explore small changes.
+
+[EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging
+
+<p align="center">
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="560" alt="Model candidates are evaluated; the selected weights are retained and copied, with a few weights changed in each new variant."></picture>
+</p>
+
+### Agentic AI
+
+**Evolve the software.** Compare code variants against shared tests.
+
+[EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system
+
+<p align="center">
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="560" alt="Code candidates face the same tests; the strongest solution is retained, and copies with individual code-line changes are tested in the next generation."></picture>
+</p>
+
+### Physical AI
+
+**Evolve the behavior.** Inherit control policies and vary their parameters.
+
+[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning
+
+<p align="center">
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="560" alt="Control policies are compared on the same robot and course; a stable policy is retained and copied, with one control parameter changed per variant."></picture>
+</p>
+
+### AI for Science
+
+**Evolve the design.** Inherit geometry and evaluate shape changes.
+
+[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization
+
+<p align="center">
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="560" alt="Airfoil candidates are compared under the same illustrative flow conditions; the selected shape is retained and inherited by variants with one changed shape parameter."></picture>
+</p>
 
 Explore the [full ecosystem](https://www.evox.group/libs), or follow the experimental compiler work in [EvoX Compiler](https://github.com/EMI-Group/evoxc).
 
@@ -178,13 +215,35 @@ Continue with the [tutorials](https://evox.readthedocs.io/en/latest/tutorial/ind
 
 Algorithm libraries propose candidates. Benchmarks and simulation environments provide evaluation feedback. Workflows organize iteration, while tensorization and compiler tools support execution at scale. Together, these components provide infrastructure for exploration and validation:
 
-| Layer | Libraries and resources | What they provide |
-|---|---|---|
-| **Algorithm libraries** | [EvoX](src/evox/algorithms) · [EvoMO](https://github.com/EMI-Group/evomo) · [EvoGP](https://github.com/EMI-Group/evogp) · [TensorNEAT](https://github.com/EMI-Group/tensorneat) | Tensorized optimization, multi-objective search, genetic programming, and neural topology evolution. |
-| **Benchmarks** | [EvoXBench](https://github.com/EMI-Group/evoxbench) · [MoRobtrol in EvoMO](https://github.com/EMI-Group/evomo) · [EvoX problem library](src/evox/problems) | Neural architecture search, multi-objective robot control, and numerical optimization test suites. |
-| **Learning and simulation** | [EvoRL](https://github.com/EMI-Group/evorl) · [EvoX neuroevolution](src/evox/problems/neuroevolution) | Evolutionary reinforcement learning, batched policy evaluation, and integration with environments such as Brax and MuJoCo Playground. |
-| **Experiment tools** | [Workflows and monitors](src/evox/workflows) · [Metrics](src/evox/metrics) · [Hyperparameter optimization](docs/source/examples/hpo.ipynb) | Compose experiments, track convergence and Pareto fronts, compare results, and tune configurations. |
-| **Compilation and migration** | [EvoX Compiler](https://github.com/EMI-Group/evoxc) · [EvoCoCo](https://github.com/EMI-Group/evococo) | Compiler backends for the experimental EvoX line; automatic tensorization of MATLAB multi-objective optimization code into PyTorch/EvoX implementations. |
+### Algorithm libraries
+
+Tensorized optimization, multi-objective search, genetic programming, and neural topology evolution.
+
+[EvoX](src/evox/algorithms) · [EvoMO](https://github.com/EMI-Group/evomo) · [EvoGP](https://github.com/EMI-Group/evogp) · [TensorNEAT](https://github.com/EMI-Group/tensorneat)
+
+### Benchmarks
+
+Neural architecture search, multi-objective robot control, and numerical optimization test suites.
+
+[EvoXBench](https://github.com/EMI-Group/evoxbench) · [MoRobtrol in EvoMO](https://github.com/EMI-Group/evomo) · [EvoX problem library](src/evox/problems)
+
+### Learning and simulation
+
+Evolutionary reinforcement learning, batched policy evaluation, and integration with environments such as Brax and MuJoCo Playground.
+
+[EvoRL](https://github.com/EMI-Group/evorl) · [EvoX neuroevolution](src/evox/problems/neuroevolution)
+
+### Experiment tools
+
+Compose experiments, track convergence and Pareto fronts, compare results, and tune configurations.
+
+[Workflows and monitors](src/evox/workflows) · [Metrics](src/evox/metrics) · [Hyperparameter optimization](docs/source/examples/hpo.ipynb)
+
+### Compilation and migration
+
+Compiler backends for the experimental EvoX line; automatic tensorization of MATLAB multi-objective optimization code into PyTorch/EvoX implementations.
+
+[EvoX Compiler](https://github.com/EMI-Group/evoxc) · [EvoCoCo](https://github.com/EMI-Group/evococo)
 
 For neural and simulation integrations in EvoX 1.x:
 
