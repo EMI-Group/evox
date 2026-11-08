@@ -1,49 +1,129 @@
 {
   "repository": "https://github.com/EMI-Group/evox-portal",
-  "branch": "prod",
-  "revision": "c61174e5ff6fc719033476885c4f6aab180ff272",
-  "file": "src/components/art/evolution-scenes.ts",
-  "adaptation": "Original render methods; fixed canvas export; 600 ms loop crossfade for population scenes.",
+  "revision": "ee2f7750cf60dfe0310cba0f698fca743c3372a1",
+  "theme": "light",
+  "fps": 10,
+  "adaptation": "Original scene renderers and population transitions; localized captions and slightly enlarged labels. Two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.",
   "scenes": [
     {
+      "name": "readme-generative",
       "kind": "generative",
-      "frames": 520,
-      "fps": 20,
-      "durationMs": 26000,
-      "width": 720,
-      "height": 420,
-      "encodedFrames": 304,
-      "bytes": 1278116
+      "locale": "en",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 235,
+      "bytes": 694524
     },
     {
+      "name": "readme-agentic",
       "kind": "agentic",
-      "frames": 254,
-      "fps": 20,
-      "durationMs": 12700,
-      "width": 720,
-      "height": 420,
-      "encodedFrames": 208,
-      "bytes": 724828
+      "locale": "en",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 217,
+      "bytes": 902700
     },
     {
+      "name": "readme-physical",
       "kind": "physical",
-      "frames": 520,
-      "fps": 20,
-      "durationMs": 26000,
-      "width": 720,
-      "height": 420,
-      "encodedFrames": 396,
-      "bytes": 1393526
+      "locale": "en",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 238,
+      "bytes": 1018547
     },
     {
+      "name": "readme-science",
       "kind": "science",
-      "frames": 520,
-      "fps": 20,
-      "durationMs": 26000,
-      "width": 720,
-      "height": 420,
-      "encodedFrames": 300,
-      "bytes": 816872
+      "locale": "en",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 275,
+      "bytes": 775904
+    },
+    {
+      "name": "readme-generative-zh",
+      "kind": "generative",
+      "locale": "zh-cn",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 235,
+      "bytes": 687153
+    },
+    {
+      "name": "readme-agentic-zh",
+      "kind": "agentic",
+      "locale": "zh-cn",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 217,
+      "bytes": 887072
+    },
+    {
+      "name": "readme-physical-zh",
+      "kind": "physical",
+      "locale": "zh-cn",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 238,
+      "bytes": 1017890
+    },
+    {
+      "name": "readme-science-zh",
+      "kind": "science",
+      "locale": "zh-cn",
+      "frames": 296,
+      "durationMs": 29600,
+      "width": 640,
+      "height": 432,
+      "encodedFrames": 275,
+      "bytes": 760205
+    },
+    {
+      "name": "readme-compute-en",
+      "kind": "compute",
+      "locale": "en",
+      "frames": 120,
+      "durationMs": 12000,
+      "width": 960,
+      "height": 373,
+      "encodedFrames": 120,
+      "bytes": 938717
+    },
+    {
+      "name": "readme-compute-zh",
+      "kind": "compute",
+      "locale": "zh-cn",
+      "frames": 120,
+      "durationMs": 12000,
+      "width": 960,
+      "height": 373,
+      "encodedFrames": 120,
+      "bytes": 909838
     }
-  ]
+  ],
+  "sourceFiles": [
+    "src/components/ParallelDiagram.astro",
+    "src/components/art/evolution-scenes.ts",
+    "src/components/art/agentic-evolution.ts",
+    "src/components/art/diagram-theme.ts",
+    "src/styles/global.css",
+    "src/i18n/locales/en.json",
+    "src/i18n/locales/zh-cn.json"
+  ],
+  "objectives": "Deterministic illustrative objectives; not measured model, robotics or CFD results."
 }

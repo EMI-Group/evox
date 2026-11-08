@@ -24,16 +24,16 @@
   <a href="./README_ZH.md">简体中文</a>
 </p>
 
-**EvoX provides the computing and experimentation foundation for AI that evolves.** Generate candidates, execute tasks, evaluate results, and build on what works. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
+**EvoX provides the computing and experimentation foundation for AI that evolves.** Generate candidates, evaluate their performance, retain strong solutions, and adjust inherited traits for the next round. Across models, software, control policies, and scientific design, this process turns experimental feedback into continued improvement.
 
 **Tensorization and parallel computing scale up exploration.** The PyTorch main version in this repository organizes candidates and their evaluation as batched tensor computation on CPUs and GPUs. Composable algorithms, problems, and workflows connect search, execution, and feedback.
 
 <picture>
-  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-en.svg">
-  <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Candidates form batched tensors for parallel evaluation. Fitness returns to the search; the selected candidate is retained and varied to form the next generation.">
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-en.png">
+  <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Abstract task fragments gather into batched tensors, flow to hardware inputs, and produce results after computation.">
 </picture>
 
-[View the static diagram](docs/source/_static/readme-compute-en.svg)
+[View the static diagram](docs/source/_static/readme-compute-en.png) · Hardware availability depends on the version and backend selected below.
 
 ## Choose your version
 
@@ -51,17 +51,17 @@ The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI
 
 ## Part of the EvoX ecosystem
 
-Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design.
+Across digital and physical worlds, the EvoX ecosystem applies evolution to model merging, software development, robot control, and scientific design. The illustrations below follow two generations: evaluate alternatives, retain a strong candidate, copy its traits, and test locally changed descendants.
 
 | **Generative AI** | **Agentic AI** |
 |---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="Expert model combinations evolving through evaluation."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="Source files generated from a task, tested, and repaired after a failing test."></picture> |
-| **Evolve the models.**<br>[EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging | **Evolve the software.**<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system |
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="Model candidates are evaluated; the selected weights are retained and copied, with a few weights changed in each new variant."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="Code candidates face the same tests; the strongest solution is retained, and copies with individual code-line changes are tested in the next generation."></picture> |
+| **Evolve the models.** Retain useful weights and explore small changes.<br>[EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging | **Evolve the software.** Compare code variants against shared tests.<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system |
 
 | **Physical AI** | **AI for Science** |
 |---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="Robot control policies evaluated in simulation."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="Candidate airfoil designs refined through evaluation."></picture> |
-| **Evolve the behavior.**<br>[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning | **Evolve the design.**<br>[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization |
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="Control policies are compared on the same robot and course; a stable policy is retained and copied, with one control parameter changed per variant."></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="Airfoil candidates are compared under the same illustrative flow conditions; the selected shape is retained and inherited by variants with one changed shape parameter."></picture> |
+| **Evolve the behavior.** Inherit control policies and vary their parameters.<br>[EvoRL](https://github.com/EMI-Group/evorl) · Evolutionary reinforcement learning | **Evolve the design.** Inherit geometry and evaluate shape changes.<br>[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization |
 
 Explore the [full ecosystem](https://www.evox.group/libs), or follow the experimental compiler work in [EvoX Compiler](https://github.com/EMI-Group/evoxc).
 

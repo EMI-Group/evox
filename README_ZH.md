@@ -24,16 +24,16 @@
   <a href="./README.md">English</a>
 </p>
 
-**EvoX 为持续演化的 AI 提供计算与实验基础。** 生成候选、执行任务、评估结果，再保留有效方案并继续改进——这一机制贯穿模型、软件、控制策略与科学设计，让能力随实验不断积累。
+**EvoX 为持续演化的 AI 提供计算与实验基础。** 生成候选、评估表现、选择保留，再调整继承的特征进入下一轮——这一机制贯穿模型、软件、控制策略与科学设计，让能力随实验不断积累。
 
 **张量化与并行计算扩大探索规模。** 本仓库的 PyTorch 主版本将候选解及其评估组织为 CPU、GPU 上的批量张量计算，以可组合的算法、问题和工作流连接搜索、执行与反馈。
 
 <picture>
-  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-zh.svg">
-  <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="候选解组成批量张量并行评估，评估结果反馈到搜索，保留较优候选并通过变化形成下一代。">
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-zh.png">
+  <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="抽象任务片段汇聚成批量张量，流入硬件输入端，完成计算后输出结果。">
 </picture>
 
-[查看静态图](docs/source/_static/readme-compute-zh.svg)
+[查看静态图](docs/source/_static/readme-compute-zh.png) · 可用硬件取决于下方所选的版本与后端。
 
 ## 选择版本
 
@@ -51,17 +51,17 @@
 
 ## EvoX 生态
 
-从数字世界到物理世界，EvoX 生态将演化用于模型融合、软件构建、机器人控制和科学设计。
+从数字世界到物理世界，EvoX 生态将演化用于模型融合、软件构建、机器人控制和科学设计。以下动画展示两代演化：比较候选、保留较优方案、复制其特征，再评估经过局部调整的后代。
 
 | **生成式 AI** | **智能体 AI** |
 |---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="440" alt="通过评估迭代专家模型的融合方案。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="440" alt="从任务生成源代码，运行测试，并修复测试发现的问题。"></picture> |
-| **演化模型。**<br>[EvoGM](https://github.com/JiangTao97/evogm) · 演化式模型融合 | **演化软件。**<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · 递归智能体系统 |
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative-zh.png"><img src="docs/source/_static/readme-generative-zh.gif" width="440" alt="评估候选模型，保留并复制优胜权重，仅调整少量权重形成下一代候选。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic-zh.png"><img src="docs/source/_static/readme-agentic-zh.gif" width="440" alt="用同一组测试比较代码候选，保留较优方案，修改副本中的个别代码行，再进入下一代测试。"></picture> |
+| **演化模型。** 保留有效权重，探索小幅调整。<br>[EvoGM](https://github.com/JiangTao97/evogm) · 演化式模型融合 | **演化软件。** 用同一组测试比较代码变体。<br>[EvoX Genesis](https://github.com/EMI-Group/genesis) · 递归智能体系统 |
 
 | **物理 AI** | **AI for Science** |
 |---|---|
-| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="440" alt="在仿真中评估机器人控制策略。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="440" alt="通过评估逐步改进候选翼型设计。"></picture> |
-| **演化行为。**<br>[EvoRL](https://github.com/EMI-Group/evorl) · 演化强化学习 | **演化设计。**<br>[EvoGO](https://github.com/EMI-Group/evogo) · 生成式优化 |
+| <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical-zh.png"><img src="docs/source/_static/readme-physical-zh.gif" width="440" alt="用相同机器人与赛道比较控制策略，保留并复制稳定策略，每个变体只调整一个控制参数。"></picture> | <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science-zh.png"><img src="docs/source/_static/readme-science-zh.gif" width="440" alt="在相同示意气流条件下比较翼型，保留较优形状，每个后代继承原有形状并调整一个形状参数。"></picture> |
+| **演化行为。** 继承控制策略，调整策略参数。<br>[EvoRL](https://github.com/EMI-Group/evorl) · 演化强化学习 | **演化设计。** 继承几何形状，评估形状变化。<br>[EvoGO](https://github.com/EMI-Group/evogo) · 生成式优化 |
 
 浏览[完整生态](https://www.evox.group/zh-cn/libs)，或了解实验版使用的 [EvoX Compiler](https://github.com/EMI-Group/evoxc)。
 
