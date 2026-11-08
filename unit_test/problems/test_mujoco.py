@@ -7,6 +7,7 @@ import unittest
 
 import torch
 import torch.nn as nn
+from mujoco_playground import MjxEnv, State, registry, wrapper
 
 from evox.algorithms import DE, PSO
 from evox.problems.hpo_wrapper import HPOFitnessMonitor, HPOProblemWrapper
@@ -37,6 +38,16 @@ class TestMujocoProblem(unittest.TestCase):
         seed = 1234
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
+
+    def test_playground_api(self):
+        """Check the installed integration API without a physics rollout or assets download."""
+        config = registry.get_default_config("SwimmerSwimmer6")
+        self.assertGreater(config.episode_length, 0)
+        self.assertTrue(callable(registry.load))
+        self.assertTrue(callable(wrapper.wrap_for_brax_training))
+        self.assertTrue(callable(MjxEnv.reset))
+        self.assertTrue(callable(MjxEnv.step))
+        self.assertTrue(callable(State.replace))
 
     @unittest.skip("mujoco_playground/mujoco version incompatibility: make_data() nconmax parameter removed")
     def test_mujoco_problem(self):
