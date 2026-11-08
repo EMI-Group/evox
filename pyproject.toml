@@ -37,7 +37,8 @@ vis = [
 neuroevolution = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
-  "playground >= 0.0.4",
+  # Playground 1.x removed the MjxEnv/State/registry API used by MujocoProblem.
+  "playground >= 0.0.4, < 1.0",
   "imageio >= 2.0.0",
 ]
 
@@ -45,7 +46,7 @@ test = [
   "torchvision >= 0.16.0",
   "brax >= 0.12.0",
   "plotly >= 5.0.0",
-  "playground >= 0.0.4",
+  "playground >= 0.0.4, < 1.0",
   "imageio >= 2.0.0",
 ]
 
