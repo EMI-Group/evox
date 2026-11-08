@@ -28,11 +28,7 @@
 
 ## How evolution works
 
-**Let search build on experience.**
-
-Retain useful traits and explore new possibilities from existing solutions.
-
-With batched evaluation and parallel computing, EvoX scales this loop to larger searches.
+**Retain what works, then explore new variations.** EvoX scales this loop through batched evaluation and parallel computing.
 
 <p align="center">
 <picture>
@@ -41,7 +37,7 @@ With batched evaluation and parallel computing, EvoX scales this loop to larger 
 </picture>
 </p>
 
-[View the static diagram](docs/source/_static/readme-evolution-loop-en.png)
+[Open full animation](docs/source/_static/readme-evolution-loop-en.gif) · [Static diagram](docs/source/_static/readme-evolution-loop-en.png)
 
 ## Scaling the search
 
@@ -52,7 +48,7 @@ With batched evaluation and parallel computing, EvoX scales this loop to larger 
   <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Abstract task fragments gather into batched tensors, flow to hardware inputs, and produce results after computation.">
 </picture>
 
-[View the static diagram](docs/source/_static/readme-compute-en.png)
+[Open full animation](docs/source/_static/readme-compute-en.gif) · [Static diagram](docs/source/_static/readme-compute-en.png)
 
 ## Choose your version
 
@@ -90,6 +86,8 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative.png"><img src="docs/source/_static/readme-generative.gif" width="560" alt="Model candidates are evaluated; the selected weights are retained and copied, with a few weights changed in each new variant."></picture>
 </p>
 
+[Open full animation](docs/source/_static/readme-generative.gif) · [Static diagram](docs/source/_static/readme-generative.png)
+
 ### Agentic AI
 
 **Evolve the software.** Compare code variants against shared tests.
@@ -99,6 +97,8 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="560" alt="Code candidates face the same tests; the strongest solution is retained, and copies with individual code-line changes are tested in the next generation."></picture>
 </p>
+
+[Open full animation](docs/source/_static/readme-agentic.gif) · [Static diagram](docs/source/_static/readme-agentic.png)
 
 ### Physical AI
 
@@ -110,6 +110,8 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical.png"><img src="docs/source/_static/readme-physical.gif" width="560" alt="Control policies are compared on the same robot and course; a stable policy is retained and copied, with one control parameter changed per variant."></picture>
 </p>
 
+[Open full animation](docs/source/_static/readme-physical.gif) · [Static diagram](docs/source/_static/readme-physical.png)
+
 ### AI for Science
 
 **Evolve the design.** Inherit geometry and evaluate shape changes.
@@ -119,6 +121,8 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="560" alt="Airfoil candidates are compared under the same illustrative flow conditions; the selected shape is retained and inherited by variants with one changed shape parameter."></picture>
 </p>
+
+[Open full animation](docs/source/_static/readme-science.gif) · [Static diagram](docs/source/_static/readme-science.png)
 
 Explore the [full ecosystem](https://www.evox.group/libs), or follow the experimental compiler work in [EvoX Compiler](https://github.com/EMI-Group/evoxc).
 

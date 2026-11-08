@@ -208,7 +208,8 @@
       "pixelRatio": 2,
       "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
       "encodedFrames": 1160,
-      "bytes": 7268043
+      "bytes": 7310357,
+      "presentationStartOffsetMs": 3600
     },
     {
       "name": "readme-evolution-loop-zh",
@@ -228,9 +229,11 @@
       "pixelRatio": 2,
       "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
       "encodedFrames": 1160,
-      "bytes": 7320768
+      "bytes": 7364988,
+      "presentationStartOffsetMs": 3600
     }
   ],
   "paletteColors": 240,
-  "evolutionAdaptation": "Direct capture of the complete original website component: square diagram, three step labels and short caption beneath. Controls are hidden and caption height is reserved for two lines. Manual 50 fps clock, 400 px display width and 2x pixel density. Two original generations and a 400 ms replay crossfade; the static view shows inheritance."
+  "evolutionAdaptation": "Direct capture of the complete original website component: square diagram, three step labels and short caption beneath. Controls are hidden and caption height is reserved for two lines. Manual 50 fps clock, 400 px display width and 2x pixel density. Two original generations and a 400 ms replay crossfade; the reduced-motion still shows a complete population.",
+  "evolutionPresentation": "The complete original loop starts at 3600 ms so the initial frame and reduced-motion still show a complete population. Original frame packets, palette, loop duration, and captions are retained without cropping or resizing."
 }

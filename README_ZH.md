@@ -28,11 +28,7 @@
 
 ## 演化如何发生
 
-**让探索积累经验。**
-
-保留有效特征，在已有方案上继续探索新的可能。
-
-EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的搜索。
+**保留有效特征，再探索新的变化。** EvoX 以批量评估和并行计算，将这一循环扩展到更大规模的搜索。
 
 <p align="center">
 <picture>
@@ -41,7 +37,7 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
 </picture>
 </p>
 
-[查看静态图](docs/source/_static/readme-evolution-loop-zh.png)
+[查看完整动画](docs/source/_static/readme-evolution-loop-zh.gif) · [静态图](docs/source/_static/readme-evolution-loop-zh.png)
 
 ## 扩大搜索规模
 
@@ -52,7 +48,7 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
   <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="抽象任务片段汇聚成批量张量，流入硬件输入端，完成计算后输出结果。">
 </picture>
 
-[查看静态图](docs/source/_static/readme-compute-zh.png)
+[查看完整动画](docs/source/_static/readme-compute-zh.gif) · [静态图](docs/source/_static/readme-compute-zh.png)
 
 ## 选择版本
 
@@ -90,6 +86,8 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-generative-zh.png"><img src="docs/source/_static/readme-generative-zh.gif" width="560" alt="评估候选模型，保留并复制优胜权重，仅调整少量权重形成下一代候选。"></picture>
 </p>
 
+[查看完整动画](docs/source/_static/readme-generative-zh.gif) · [静态图](docs/source/_static/readme-generative-zh.png)
+
 ### 智能体 AI
 
 **演化软件。** 用同一组测试比较代码变体。
@@ -99,6 +97,8 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic-zh.png"><img src="docs/source/_static/readme-agentic-zh.gif" width="560" alt="用同一组测试比较代码候选，保留较优方案，修改副本中的个别代码行，再进入下一代测试。"></picture>
 </p>
+
+[查看完整动画](docs/source/_static/readme-agentic-zh.gif) · [静态图](docs/source/_static/readme-agentic-zh.png)
 
 ### 物理 AI
 
@@ -110,6 +110,8 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-physical-zh.png"><img src="docs/source/_static/readme-physical-zh.gif" width="560" alt="用相同机器人与赛道比较控制策略，保留并复制稳定策略，每个变体只调整一个控制参数。"></picture>
 </p>
 
+[查看完整动画](docs/source/_static/readme-physical-zh.gif) · [静态图](docs/source/_static/readme-physical-zh.png)
+
 ### AI for Science
 
 **演化设计。** 继承几何形状，评估形状变化。
@@ -119,6 +121,8 @@ EvoX 通过批量评估与并行计算，将这一循环扩展到更大规模的
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science-zh.png"><img src="docs/source/_static/readme-science-zh.gif" width="560" alt="在相同示意气流条件下比较翼型，保留较优形状，每个后代继承原有形状并调整一个形状参数。"></picture>
 </p>
+
+[查看完整动画](docs/source/_static/readme-science-zh.gif) · [静态图](docs/source/_static/readme-science-zh.png)
 
 浏览[完整生态](https://www.evox.group/zh-cn/libs)，或了解实验版使用的 [EvoX Compiler](https://github.com/EMI-Group/evoxc)。
 
