@@ -15,18 +15,20 @@ assets = Path(__file__).resolve().parents[1] / "source" / "_static"
 manifest = json.loads((frames_root / "manifest.json").read_text(encoding="utf-8"))
 frame_duration = manifest["frameDurationMs"]
 assert frame_duration % 10 == 0, "GIF durations must be whole centiseconds"
+palette_colors = 240
+manifest["paletteColors"] = palette_colors
 for scene in manifest["scenes"]:
     folder = frames_root / scene["name"]
-    indices = list(range(0, scene["frames"], 20))
+    indices = list(range(0, scene["frames"], round(800 / frame_duration)))
     width, height = scene["width"], scene["height"]
     samples = Image.new("RGB", (width, height * len(indices)))
     for row, index in enumerate(indices):
         with Image.open(folder / f"{index:04}.png") as image:
             samples.paste(image.convert("RGB"), (0, row * height))
-    palette = samples.quantize(colors=128, method=Image.Quantize.MEDIANCUT)
+    palette = samples.quantize(colors=palette_colors, method=Image.Quantize.MEDIANCUT)
     # Keep common flat surfaces exact instead of averaging them with antialiasing colors.
     frequent = sorted(samples.getcolors(samples.width * samples.height), reverse=True)[:8]
-    colors = palette.getpalette()[: 128 * 3] + [value for _, rgb in frequent for value in rgb]
+    colors = palette.getpalette()[: palette_colors * 3] + [value for _, rgb in frequent for value in rgb]
     palette.putpalette(colors + [0] * (768 - len(colors)))
     frames = []
     for index in range(scene["frames"]):
@@ -37,7 +39,7 @@ for scene in manifest["scenes"]:
             for offset, (_, color) in enumerate(frequent[:2]):
                 red, green, blue = ImageChops.difference(rgb, Image.new("RGB", rgb.size, color)).split()
                 mask = ImageChops.lighter(ImageChops.lighter(red, green), blue).point(lambda value: 255 if value == 0 else 0)
-                indexed.paste(128 + offset, mask=mask)
+                indexed.paste(palette_colors + offset, mask=mask)
             frames.append(indexed)
     destination = assets / (scene["name"] + ".gif")
     frames[0].save(
