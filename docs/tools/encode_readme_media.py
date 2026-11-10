@@ -1,7 +1,7 @@
 """Encode rendered README frames with a shared palette per animation.
 
-Usage: python docs/tools/encode_readme_media.py /path/to/frames
-Requires Pillow. See export-readme-media.mjs for the renderer.
+Usage: python docs/tools/encode_readme_media.py /path/to/frames [en|zh-cn]
+Requires Pillow. See export-current-readme-media.mjs for the current renderer.
 """
 
 import json
@@ -13,6 +13,9 @@ from PIL import Image, ImageChops
 frames_root = Path(sys.argv[1]).resolve()
 assets = Path(__file__).resolve().parents[1] / "source" / "_static"
 manifest = json.loads((frames_root / "manifest.json").read_text(encoding="utf-8"))
+if len(sys.argv) > 2:
+    manifest["scenes"] = [scene for scene in manifest["scenes"] if scene["locale"] == sys.argv[2]]
+    assert manifest["scenes"], "No scenes match the requested locale"
 frame_duration = manifest["frameDurationMs"]
 assert frame_duration % 10 == 0, "GIF durations must be whole centiseconds"
 palette_colors = 240
@@ -64,7 +67,7 @@ for scene in manifest["scenes"]:
         scene.update(encodedFrames=animation.n_frames, bytes=destination.stat().st_size)
     print(f"{scene['name']}: {scene['bytes']:,} bytes", flush=True)
 manifest_path = assets / "readme-motion-source.json"
-if manifest_path.exists():
+if manifest_path.exists() and json.loads(manifest_path.read_text(encoding="utf-8"))["revision"] == manifest["revision"]:
     previous = json.loads(manifest_path.read_text(encoding="utf-8"))
     updated_scenes = {(scene["kind"], scene["locale"]) for scene in manifest["scenes"]}
     scenes = [scene for scene in previous["scenes"] if (scene["kind"], scene["locale"]) not in updated_scenes]

@@ -1,239 +1,172 @@
 {
+  "repository": "https://github.com/EMI-Group/evox-portal",
+  "revision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
   "sourceFiles": [
-    "src/components/ParallelDiagram.astro",
-    "src/components/art/evolution-scenes.ts",
-    "src/components/art/agentic-evolution.ts",
+    "src/components/art/animation-lifetime.ts",
     "src/components/art/diagram-theme.ts",
+    "src/components/art/recursive-agents.ts",
+    "src/components/art/paradigm-scenes.ts",
+    "src/components/EvolutionDiagram.astro",
+    "src/components/ParallelDiagram.astro",
     "src/styles/global.css",
     "src/i18n/locales/en.json",
     "src/i18n/locales/zh-cn.json",
-    "src/components/EvolutionDiagram.astro"
+    "src/components/art/ParadigmScene.astro"
   ],
-  "objectives": "Deterministic illustrative objectives; not measured model, robotics or CFD results.",
-  "repository": "https://github.com/EMI-Group/evox-portal",
-  "revision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
   "theme": "light",
   "fps": 50,
   "frameDurationMs": 20,
-  "phaseDurationsMs": [
-    1800,
-    4200,
-    480,
-    2200,
-    4200
-  ],
-  "adaptation": "Original populations and scores; interpolated airflow, crossfaded code edits and 180 ms visual phase transitions; localized captions and slightly enlarged labels. Three-step captions group inheritance and variation into Generate. Evaluation holds shortened to 480 ms and code reproduction to 2800 ms; two generations followed by a 400 ms replay crossfade. Hardware captures use the original component with a manual render clock.",
   "scenes": [
     {
       "name": "readme-generative",
       "kind": "generative",
       "locale": "en",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1101,
-      "bytes": 2153934
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1116,
+      "bytes": 2334253
     },
     {
       "name": "readme-agentic",
       "kind": "agentic",
       "locale": "en",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        2800
-      ],
-      "frames": 1168,
-      "durationMs": 23360,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 978,
-      "bytes": 2644994
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1280,
+      "bytes": 5209957
     },
     {
       "name": "readme-physical",
       "kind": "physical",
       "locale": "en",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1132,
-      "bytes": 3492059
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1152,
+      "bytes": 3891675
     },
     {
       "name": "readme-science",
       "kind": "science",
       "locale": "en",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1175,
-      "bytes": 2024745
-    },
-    {
-      "name": "readme-generative-zh",
-      "kind": "generative",
-      "locale": "zh-cn",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1103,
-      "bytes": 2129307
-    },
-    {
-      "name": "readme-agentic-zh",
-      "kind": "agentic",
-      "locale": "zh-cn",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        2800
-      ],
-      "frames": 1168,
-      "durationMs": 23360,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 978,
-      "bytes": 2606779
-    },
-    {
-      "name": "readme-physical-zh",
-      "kind": "physical",
-      "locale": "zh-cn",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1131,
-      "bytes": 3477385
-    },
-    {
-      "name": "readme-science-zh",
-      "kind": "science",
-      "locale": "zh-cn",
-      "phaseDurationsMs": [
-        1800,
-        4200,
-        480,
-        2200,
-        4200
-      ],
-      "frames": 1308,
-      "durationMs": 26160,
-      "width": 640,
-      "height": 432,
-      "encodedFrames": 1175,
-      "bytes": 1977976
-    },
-    {
-      "name": "readme-compute-en",
-      "kind": "compute",
-      "locale": "en",
-      "frames": 600,
-      "durationMs": 12000,
-      "width": 960,
-      "height": 373,
-      "encodedFrames": 600,
-      "bytes": 2987237
-    },
-    {
-      "name": "readme-compute-zh",
-      "kind": "compute",
-      "locale": "zh-cn",
-      "frames": 600,
-      "durationMs": 12000,
-      "width": 960,
-      "height": 373,
-      "encodedFrames": 599,
-      "bytes": 2971630
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1335,
+      "bytes": 2342925
     },
     {
       "name": "readme-evolution-loop-en",
       "kind": "evolution",
       "locale": "en",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
       "frames": 1160,
       "durationMs": 23200,
-      "phaseDurationsMs": [
-        5000,
-        3400,
-        3000
-      ],
       "width": 800,
       "height": 1104,
-      "displayWidth": 400,
-      "displayHeight": 552,
-      "pixelRatio": 2,
-      "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
       "encodedFrames": 1160,
       "bytes": 7310357,
       "presentationStartOffsetMs": 3600
     },
     {
+      "name": "readme-compute-en",
+      "kind": "compute",
+      "locale": "en",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 650,
+      "durationMs": 13000,
+      "width": 960,
+      "height": 373,
+      "encodedFrames": 650,
+      "bytes": 3677646
+    },
+    {
+      "name": "readme-generative-zh",
+      "kind": "generative",
+      "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1116,
+      "bytes": 2320793
+    },
+    {
+      "name": "readme-agentic-zh",
+      "kind": "agentic",
+      "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1280,
+      "bytes": 5182311
+    },
+    {
+      "name": "readme-physical-zh",
+      "kind": "physical",
+      "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1152,
+      "bytes": 3866880
+    },
+    {
+      "name": "readme-science-zh",
+      "kind": "science",
+      "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 1480,
+      "durationMs": 29600,
+      "width": 720,
+      "height": 484,
+      "encodedFrames": 1337,
+      "bytes": 2283114
+    },
+    {
       "name": "readme-evolution-loop-zh",
       "kind": "evolution",
       "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
       "frames": 1160,
       "durationMs": 23200,
-      "phaseDurationsMs": [
-        5000,
-        3400,
-        3000
-      ],
       "width": 800,
       "height": 1104,
-      "displayWidth": 400,
-      "displayHeight": 552,
-      "pixelRatio": 2,
-      "sourceRevision": "c29367d0af28b30ba90bebe2f44750b9a9d894e9",
       "encodedFrames": 1160,
       "bytes": 7364988,
       "presentationStartOffsetMs": 3600
+    },
+    {
+      "name": "readme-compute-zh",
+      "kind": "compute",
+      "locale": "zh-cn",
+      "sourceRevision": "5746e77e051e08aa602527c97c76a3a9de1e7130",
+      "frames": 650,
+      "durationMs": 13000,
+      "width": 960,
+      "height": 373,
+      "encodedFrames": 650,
+      "bytes": 3633528
     }
   ],
   "paletteColors": 240,
-  "evolutionAdaptation": "Direct capture of the complete original website component: square diagram, three step labels and short caption beneath. Controls are hidden and caption height is reserved for two lines. Manual 50 fps clock, 400 px display width and 2x pixel density. Two original generations and a 400 ms replay crossfade; the reduced-motion still shows a complete population.",
+  "objectives": "Illustrative deterministic animations, not measured model, robotics or CFD results.",
+  "adaptation": "Unchanged production renderers and original phase timings. Manual 50 fps clock; hidden playback controls. Application canvases have localized captions and a fixed export frame. Evolution and hardware use direct component screenshots. Two original generations/agent episodes, followed by a 400 ms replay crossfade; hardware runs one complete 13000 ms cycle.",
+  "evolutionAdaptation": "Direct capture of the complete production evolution component at 400 px and 2x density, with step labels and caption; the reduced-motion still shows a complete population.",
   "evolutionPresentation": "The complete original loop starts at 3600 ms so the initial frame and reduced-motion still show a complete population. Original frame packets, palette, loop duration, and captions are retained without cropping or resizing."
 }
