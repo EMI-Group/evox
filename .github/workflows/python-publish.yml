@@ -37,4 +37,4 @@ jobs:
     - name: Build package
       run: python -m build
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@v1.14.0
+      uses: pypa/gh-action-pypi-publish@v1.14.3  # >=1.14.3 fixes GHSA-5xjx-3w67-w9x9
