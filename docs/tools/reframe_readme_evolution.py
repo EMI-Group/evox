@@ -99,7 +99,7 @@ if __name__ == "__main__":
         "The complete original loop starts at 3600 ms so the initial frame and reduced-motion still show a complete population. "
         "Original frame packets, palette, loop duration, and captions are retained without cropping or resizing."
     )
-    manifest["evolutionAdaptation"] = manifest["evolutionAdaptation"].replace(
+    manifest["evolutionAdaptation"] = manifest.get("evolutionAdaptation", "Direct capture of the production component; the static view shows inheritance.").replace(
         "the static view shows inheritance.", "the reduced-motion still shows a complete population."
     )
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

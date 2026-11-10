@@ -28,12 +28,12 @@
 
 ## 演化如何发生
 
-**保留有效特征，再探索新的变化。** EvoX 以批量评估和并行计算，将这一循环扩展到更大规模的搜索。
+**生成候选、评估表现、选择保留。** 入选方案将有效特征传递给下一代，局部变化带来新的候选。EvoX 以批量评估和并行计算，将这一循环扩展到更大规模的搜索。
 
 <p align="center">
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-evolution-loop-zh.png">
-  <img src="docs/source/_static/readme-evolution-loop-zh.gif" width="440" alt="官网的三步演化循环：生成候选、评估表现、选择保留。下一代继承保留特征并作调整；步骤标签和简短说明位于图下方。">
+  <img src="docs/source/_static/readme-evolution-loop-zh.gif" width="440" alt="生成候选、评估表现、选择保留：候选围绕三步循环形成种群，比较评分，入选亲代将保留特征传递给带有局部变化的下一代。">
 </picture>
 </p>
 
@@ -45,7 +45,7 @@
 
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-zh.png">
-  <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="抽象任务片段汇聚成批量张量，流入硬件输入端，完成计算后输出结果。">
+  <img src="docs/source/_static/readme-compute-zh.gif" width="960" alt="批量复杂任务经 EvoX 张量化后，分别流入 CPU 执行通道与 GPU 或 NPU 矩阵运算，完成异构计算。">
 </picture>
 
 [查看完整动画](docs/source/_static/readme-compute-zh.gif) · [静态图](docs/source/_static/readme-compute-zh.png)
@@ -74,11 +74,11 @@
 
 ## EvoX 生态
 
-同一演化循环在 EvoX 生态中有不同的载体：模型权重、代码、控制策略或几何形状都可以成为候选方案。以下四组动画各展示两代搜索，呈现保留特征与局部调整如何共同构成下一轮候选。
+演化在 EvoX 生态中有不同的实现方式：模型权重、控制策略和几何形状通过评估、选择与继承变化持续改进；递归智能体则拆解软件任务，在分支上工作，再将成果合并到共同的代码库。以下动画分别展示两代搜索或两轮智能体协作。
 
-### 生成式 AI
+### 基础模型
 
-**演化模型。** 保留有效权重，探索小幅调整。
+**演化模型。** EvoGM 搜索微调专家模型的更优组合，无需进一步微调。动画以候选权重为示意，展示评估模型、保留较优方案，再调整少量继承权重的过程。
 
 [EvoGM](https://github.com/JiangTao97/evogm) · 演化式模型融合
 
@@ -90,12 +90,12 @@
 
 ### 智能体 AI
 
-**演化软件。** 用同一组测试比较代码变体。
+**演化软件。** 根智能体将子任务交给子智能体，子智能体还可以继续分工。父智能体也参与工作，并在所有子智能体完成后合并获接纳的提交；最终，根智能体的合并提交进入 `main`。被拒绝的分支保留在图中，但不会被合并。
 
 [EvoX Genesis](https://github.com/EMI-Group/genesis) · 递归智能体系统
 
 <p align="center">
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic-zh.png"><img src="docs/source/_static/readme-agentic-zh.gif" width="560" alt="用同一组测试比较代码候选，保留较优方案，修改副本中的个别代码行，再进入下一代测试。"></picture>
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic-zh.png"><img src="docs/source/_static/readme-agentic-zh.gif" width="560" alt="根智能体、子智能体与嵌套子智能体组成三层递归提交图：分支、工作，再逐层合并获接纳的提交。主分支推进至根智能体的合并提交，被拒绝的提交终止所在分支。"></picture>
 </p>
 
 [查看完整动画](docs/source/_static/readme-agentic-zh.gif) · [静态图](docs/source/_static/readme-agentic-zh.png)
@@ -116,7 +116,7 @@
 
 **演化设计。** 继承几何形状，评估形状变化。
 
-[EvoGO](https://github.com/EMI-Group/evogo) · 生成式优化
+[EvoGO](https://github.com/EMI-Group/evogo) · 超临界翼型设计
 
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science-zh.png"><img src="docs/source/_static/readme-science-zh.gif" width="560" alt="在相同示意气流条件下比较翼型，保留较优形状，每个后代继承原有形状并调整一个形状参数。"></picture>

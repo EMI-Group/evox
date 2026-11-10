@@ -28,12 +28,12 @@
 
 ## How evolution works
 
-**Retain what works, then explore new variations.** EvoX scales this loop through batched evaluation and parallel computing.
+**Generate candidates, evaluate them, and retain what works.** Selected solutions pass useful traits to the next generation, where local variations create new candidates. EvoX scales this loop through batched evaluation and parallel computing.
 
 <p align="center">
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-evolution-loop-en.png">
-  <img src="docs/source/_static/readme-evolution-loop-en.gif" width="440" alt="The website's three-step evolution loop: Generate, Evaluate, Select. The next generation inherits and varies retained traits; step labels and a short explanation appear beneath the diagram.">
+  <img src="docs/source/_static/readme-evolution-loop-en.gif" width="440" alt="Generate, Evaluate, Select: candidates form a population around a three-step loop, their scores are compared, and selected parents pass retained traits to varied descendants in the next generation.">
 </picture>
 </p>
 
@@ -45,7 +45,7 @@
 
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-compute-en.png">
-  <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Abstract task fragments gather into batched tensors, flow to hardware inputs, and produce results after computation.">
+  <img src="docs/source/_static/readme-compute-en.gif" width="960" alt="Batched complex tasks become tensors in EvoX, then flow to CPU execution lanes and GPU or NPU matrix operations for heterogeneous computing.">
 </picture>
 
 [Open full animation](docs/source/_static/readme-compute-en.gif) · [Static diagram](docs/source/_static/readme-compute-en.png)
@@ -74,11 +74,11 @@ The earlier JAX implementation is available at [`v0.9.0`](https://github.com/EMI
 
 ## Part of the EvoX ecosystem
 
-The same loop takes different forms across the EvoX ecosystem: model weights, code, control policies, or geometry become the candidates. Each illustration below follows two generations, showing how retained traits and local changes shape the next round of search.
+Evolution takes different forms across the EvoX ecosystem. Model weights, control policies, and geometry evolve through evaluation, selection, and inherited variation. Recursive agents decompose software tasks, work on branches, and merge their results into a shared codebase. The animations below show two search generations or two agent episodes.
 
-### Generative AI
+### Foundation Models
 
-**Evolve the models.** Retain useful weights and explore small changes.
+**Evolve the models.** EvoGM searches for stronger combinations of fine-tuned expert models without further fine-tuning. The animation illustrates evaluating candidate weights, retaining the best model, and varying a few inherited weights.
 
 [EvoGM](https://github.com/JiangTao97/evogm) · Evolutionary model merging
 
@@ -90,12 +90,12 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 
 ### Agentic AI
 
-**Evolve the software.** Compare code variants against shared tests.
+**Evolve the software.** A root agent delegates subtasks to subagents, which can delegate again. Parents contribute their own work, then merge accepted commits once all their subagents finish; the root's merge lands on `main`. A rejected branch remains visible without being merged.
 
 [EvoX Genesis](https://github.com/EMI-Group/genesis) · Recursive agentic system
 
 <p align="center">
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="560" alt="Code candidates face the same tests; the strongest solution is retained, and copies with individual code-line changes are tested in the next generation."></picture>
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-agentic.png"><img src="docs/source/_static/readme-agentic.gif" width="560" alt="A three-level recursive agent commit graph: root, subagents, and nested subagents branch, work, and merge accepted commits upward. Main advances to the root's merge; a rejected commit ends its branch."></picture>
 </p>
 
 [Open full animation](docs/source/_static/readme-agentic.gif) · [Static diagram](docs/source/_static/readme-agentic.png)
@@ -116,7 +116,7 @@ The same loop takes different forms across the EvoX ecosystem: model weights, co
 
 **Evolve the design.** Inherit geometry and evaluate shape changes.
 
-[EvoGO](https://github.com/EMI-Group/evogo) · Generative optimization
+[EvoGO](https://github.com/EMI-Group/evogo) · Supercritical airfoil design
 
 <p align="center">
 <picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/source/_static/readme-science.png"><img src="docs/source/_static/readme-science.gif" width="560" alt="Airfoil candidates are compared under the same illustrative flow conditions; the selected shape is retained and inherited by variants with one changed shape parameter."></picture>
