@@ -59,4 +59,4 @@ jobs:
         cd "$RUNNER_TEMP"
         python "$GITHUB_WORKSPACE/.github/scripts/wheel_smoke.py"
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@v1.14.0
+      uses: pypa/gh-action-pypi-publish@v1.14.3
