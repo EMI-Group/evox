@@ -21,7 +21,9 @@
   <a href="https://www.evox.group/">Website</a> ·
   <a href="https://evox.readthedocs.io/en/latest/">Documentation</a> ·
   <a href="https://github.com/EMI-Group/evox/releases">Releases</a> ·
-  <a href="./README_ZH.md">简体中文</a>
+  <a href="./README_ZH.md">简体中文</a> ·
+  <a href="./README_ZH_HK.md">繁體中文（HK）</a> ·
+  <a href="./README_ZH_TW.md">繁體中文（TW）</a>
 </p>
 
 **EvoX provides the computing and experimentation foundation for AI that evolves.** Across models, software, control policies, and scientific design, it connects population-based search with scalable evaluation.

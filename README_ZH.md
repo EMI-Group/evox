@@ -21,7 +21,9 @@
   <a href="https://www.evox.group/zh-cn/">官网</a> ·
   <a href="https://evox.readthedocs.io/zh-cn/latest/">文档</a> ·
   <a href="https://github.com/EMI-Group/evox/releases">版本发布</a> ·
-  <a href="./README.md">English</a>
+  <a href="./README.md">English</a> ·
+  <a href="./README_ZH_HK.md">繁體中文（HK）</a> ·
+  <a href="./README_ZH_TW.md">繁體中文（TW）</a>
 </p>
 
 **EvoX 为持续演化的 AI 提供计算与实验基础。** 从模型、软件到控制策略与科学设计，EvoX 将种群搜索与可扩展的评估计算连接起来。
